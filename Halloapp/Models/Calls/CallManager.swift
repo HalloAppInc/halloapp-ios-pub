@@ -15,6 +15,14 @@ import CocoaLumberjackSwift
 import WebRTC
 import AVFoundation
 
+public enum CallTone: String {
+    case none
+    case ringing
+    case reconnecting
+    case busy
+    case end
+}
+
 public protocol CallViewDelegate: AnyObject {
     // indicates user actions
     func startedOutgoingCall(call: Call)
@@ -72,16 +80,8 @@ final class CallManager: NSObject, CXProviderDelegate {
                 endReason = nil
                 startDate = nil
                 endDate = nil
-                stopCallRingtone()
-                stopCallBusytone()
-                stopCallReconnectingtone()
-                stopCallEndtone()
+                callToneToPlay = .none
                 activeCallWaitingForOffer = false
-            } else {
-                setupCallRingtone()
-                setupCallBusytone()
-                setupCallReconnectingtone()
-                setupCallEndtone()
             }
             isAnyCallOngoing.send(activeCall)
 
@@ -93,6 +93,25 @@ final class CallManager: NSObject, CXProviderDelegate {
     }
     // This variable is primarily used and modified only on the delegate queue to avoid race conditions.
     public var activeCallWaitingForOffer: Bool = false
+    public var callToneToPlay: CallTone {
+        didSet {
+            DDLogInfo("CallManager/callToneToPlay/didSet: \(callToneToPlay.rawValue)")
+            callTonePlayer?.stop()
+            callTonePlayer = nil
+            switch callToneToPlay {
+            case .none:
+                break
+            case .ringing:
+                playCallRingtone()
+            case .reconnecting:
+                playCallReconnectingtone()
+            case .busy:
+                playCallBusytone()
+            case .end:
+                playCallEndtone()
+            }
+        }
+    }
     public var callViewDelegate: CallViewDelegate?
     private var cancelTimer: DispatchSourceTimer?
     private var callTimer: Timer?
@@ -108,10 +127,7 @@ final class CallManager: NSObject, CXProviderDelegate {
         }
     }
     private var endReason: EndCallReason? = nil
-    private var callRingtonePlayer: AVAudioPlayer?
-    private var callEndtonePlayer: AVAudioPlayer?
-    private var callBusytonePlayer: AVAudioPlayer?
-    private var callReconnectingtonePlayer: AVAudioPlayer?
+    private var callTonePlayer: AVAudioPlayer?
     private var pendingStartCallAction: DispatchWorkItem? = nil
 
     // UUID to callID and peerUserID map: for all possible calls.
@@ -149,6 +165,7 @@ final class CallManager: NSObject, CXProviderDelegate {
     init(service: HalloService) {
         self.service = service
         self.provider = CXProvider(configuration: CallManager.providerConfiguration)
+        self.callToneToPlay = .none
         super.init()
         self.provider.setDelegate(self, queue: .main)
         self.service.callDelegate = self
@@ -160,6 +177,14 @@ final class CallManager: NSObject, CXProviderDelegate {
                 self.performStartCallAction()
             })
 
+        cancellables.insert(
+            NotificationCenter.default.publisher(for: AVAudioSession.routeChangeNotification).sink { [weak self] notification in
+                guard let self = self else { return }
+                let callTone = self.callToneToPlay
+                DDLogInfo("CallManager/routeChangeNotification/notification/callTone: \(callTone)")
+                // play using the call tone player.
+                self.callTonePlayer?.play()
+            })
     }
 
 
@@ -592,8 +617,8 @@ final class CallManager: NSObject, CXProviderDelegate {
         rtcAudioSession.audioSessionDidActivate(audioSession)
         rtcAudioSession.isAudioEnabled = true
         if let isOutgoing = isOutgoing, let activeCall = activeCall,
-           isOutgoing, activeCall.canPlayRingtone {
-            playCallRingtone()
+           isOutgoing, activeCall.canPlayRingtone, callToneToPlay == .none {
+            callToneToPlay = .ringing
         }
     }
 
@@ -706,105 +731,104 @@ final class CallManager: NSObject, CXProviderDelegate {
         DDLogInfo("CallManager/setupCallRingtone")
         do {
             // Loop ringtone
-            callRingtonePlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: Bundle.main.path(forResource: "us_ringtone", ofType: "mp3")!))
-            callRingtonePlayer?.prepareToPlay()
-            callRingtonePlayer?.numberOfLoops = -1
+            callTonePlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: Bundle.main.path(forResource: "us_ringtone", ofType: "mp3")!))
+            callTonePlayer?.prepareToPlay()
+            callTonePlayer?.numberOfLoops = -1
+            callTonePlayer?.delegate = self
         } catch {
             DDLogError("CallManager/setCallRingtone/failed: \(error)")
         }
     }
 
     private func playCallRingtone() {
-        DDLogInfo("CallManager/playCallRingtone/\(String(describing: callRingtonePlayer))")
-        if callRingtonePlayer == nil {
+        DDLogInfo("CallManager/playCallRingtone/\(String(describing: callTonePlayer))")
+        if callTonePlayer == nil {
             setupCallRingtone()
         }
-        callRingtonePlayer?.play()
+        callTonePlayer?.play()
     }
 
     private func stopCallRingtone() {
-        DDLogInfo("CallManager/stopCallRingtone/\(String(describing: callRingtonePlayer))")
-        callRingtonePlayer?.stop()
-        callRingtonePlayer = nil
+        DDLogInfo("CallManager/stopCallRingtone/\(String(describing: callTonePlayer))")
+        callTonePlayer?.stop()
     }
 
     private func setupCallEndtone() {
         DDLogInfo("CallManager/setupCallEndtone")
         do {
             // Play endtone once.
-            callEndtonePlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: Bundle.main.path(forResource: "endcalltone", ofType: "mp3")!))
-            callEndtonePlayer?.prepareToPlay()
-            callEndtonePlayer?.numberOfLoops = 0
+            callTonePlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: Bundle.main.path(forResource: "endcalltone", ofType: "mp3")!))
+            callTonePlayer?.prepareToPlay()
+            callTonePlayer?.numberOfLoops = 0
+            callTonePlayer?.delegate = self
         } catch {
             DDLogError("CallManager/setupCallEndtone/failed: \(error)")
         }
     }
 
     private func playCallEndtone() {
-        DDLogInfo("CallManager/playCallEndtone/\(String(describing: callEndtonePlayer))")
-        if callEndtonePlayer == nil {
+        DDLogInfo("CallManager/playCallEndtone/\(String(describing: callTonePlayer))")
+        if callTonePlayer == nil {
             setupCallEndtone()
         }
-        callEndtonePlayer?.play()
+        callTonePlayer?.play()
     }
 
     private func stopCallEndtone() {
-        DDLogInfo("CallManager/stopCallEndtone/\(String(describing: callEndtonePlayer))")
-        callEndtonePlayer?.stop()
-        callEndtonePlayer = nil
+        DDLogInfo("CallManager/stopCallEndtone/\(String(describing: callTonePlayer))")
+        callTonePlayer?.stop()
     }
 
     private func setupCallBusytone() {
         DDLogInfo("CallManager/setupCallBusytone")
         do {
             // Play busytone once.
-            callBusytonePlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: Bundle.main.path(forResource: "busycalltone", ofType: "mp3")!))
-            callBusytonePlayer?.prepareToPlay()
-            callBusytonePlayer?.numberOfLoops = 0
+            callTonePlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: Bundle.main.path(forResource: "busycalltone", ofType: "mp3")!))
+            callTonePlayer?.prepareToPlay()
+            callTonePlayer?.numberOfLoops = 0
+            callTonePlayer?.delegate = self
         } catch {
             DDLogError("CallManager/setupCallBusytone/failed: \(error)")
         }
     }
 
     private func playCallBusytone() {
-        DDLogInfo("CallManager/playCallBusytone/\(String(describing: callBusytonePlayer))")
-        if callBusytonePlayer == nil {
+        DDLogInfo("CallManager/playCallBusytone/\(String(describing: callTonePlayer))")
+        if callTonePlayer == nil {
             setupCallBusytone()
         }
-        callBusytonePlayer?.play()
+        callTonePlayer?.play()
     }
 
     private func stopCallBusytone() {
-        DDLogInfo("CallManager/stopCallBusytone/\(String(describing: callBusytonePlayer))")
-        callBusytonePlayer?.stop()
-        callBusytonePlayer = nil
+        DDLogInfo("CallManager/stopCallBusytone/\(String(describing: callTonePlayer))")
+        callTonePlayer?.stop()
     }
 
     private func setupCallReconnectingtone() {
         DDLogInfo("CallManager/setupCallReconnectingtone")
         do {
             // Play reconnecting tone in a loop.
-            callReconnectingtonePlayer = try AVAudioPlayer(contentsOf:
-                                                            URL(fileURLWithPath: Bundle.main.path(forResource: "reconnectingcalltone", ofType: "mp3")!))
-            callReconnectingtonePlayer?.prepareToPlay()
-            callReconnectingtonePlayer?.numberOfLoops = -1
+            callTonePlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: Bundle.main.path(forResource: "reconnectingcalltone", ofType: "mp3")!))
+            callTonePlayer?.prepareToPlay()
+            callTonePlayer?.numberOfLoops = -1
+            callTonePlayer?.delegate = self
         } catch {
             DDLogError("CallManager/setupCallReconnectingtone/failed: \(error)")
         }
     }
 
     private func playCallReconnectingtone() {
-        DDLogInfo("CallManager/playCallReconnectingtone/\(String(describing: callReconnectingtonePlayer))")
-        if callReconnectingtonePlayer == nil {
+        DDLogInfo("CallManager/playCallReconnectingtone/\(String(describing: callTonePlayer))")
+        if callTonePlayer == nil {
             setupCallReconnectingtone()
         }
-        callReconnectingtonePlayer?.play()
+        callTonePlayer?.play()
     }
 
     private func stopCallReconnectingtone() {
-        DDLogInfo("CallManager/stopCallReconnectingtone/\(String(describing: callReconnectingtonePlayer))")
-        callReconnectingtonePlayer?.stop()
-        callReconnectingtonePlayer = nil
+        DDLogInfo("CallManager/stopCallReconnectingtone/\(String(describing: callTonePlayer))")
+        callTonePlayer?.stop()
     }
 
 }
@@ -1038,19 +1062,18 @@ extension CallManager: HalloCallDelegate {
         let callID = endCall.callID
         if activeCallID == callID {
             // Stop any other call tones.
-            stopCallRingtone()
-            stopCallReconnectingtone()
+            callToneToPlay = .none
             // Vibrate for end of call
             checkAndVibrateEndCall()
             // calculate timeToWait to dismiss the screen.
             let timeToWait: TimeInterval
             if endCall.reason == .busy {
-                playCallBusytone()
+                callToneToPlay = .busy
                 timeToWait = 2
                 callViewDelegate?.callBusy()
             } else {
-                playCallEndtone()
-                timeToWait = 0.75
+                callToneToPlay = .end
+                timeToWait = 1
             }
             activeCall?.logPeerConnectionStats()
             endDate = Date()
@@ -1075,8 +1098,10 @@ extension CallManager: HalloCallDelegate {
                 activeCall = nil
                 reportCallEnded(id: callID, reason: endCall.cxEndCallReason)
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/success")
-                if isMissedCall {
-                    presentMissedCallNotification(id: callID, from: peerUserID, type: callType)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    if isMissedCall {
+                        presentMissedCallNotification(id: callID, from: peerUserID, type: callType)
+                    }
                 }
             }
             DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/success")
@@ -1224,7 +1249,7 @@ extension CallManager: CallStateDelegate {
         case .iceRestartConnecting:
             // Update UI to show reconnecting status
             callViewDelegate?.callReconnecting()
-            playCallReconnectingtone()
+            callToneToPlay = .reconnecting
 
         case .ringing:
             // Update UI to show ringing status.
@@ -1240,8 +1265,7 @@ extension CallManager: CallStateDelegate {
             }
 
         case .active:
-            stopCallRingtone()
-            stopCallReconnectingtone()
+            callToneToPlay = .none
             callViewDelegate?.callActive()
             // Cancel timer if call is active.
             cancelTimer?.cancel()
@@ -1251,11 +1275,21 @@ extension CallManager: CallStateDelegate {
         case .iceRestart:
             // Update UI to show reconnecting status
             callViewDelegate?.callReconnecting()
-            playCallReconnectingtone()
+            callToneToPlay = .reconnecting
 
         case .disconnected:
             checkAndReportCallEnded(id: activeCallID, reason: .failed)
             endActiveCall(reason: .connectionError)
+        }
+    }
+}
+
+extension CallManager: AVAudioPlayerDelegate {
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        DDLogInfo("CallManager/AVAudioPlayerDelegate/audioPlayerDidFinishPlaying/success: \(flag)")
+        if callTonePlayer == player {
+            DDLogInfo("CallManager/AVAudioPlayerDelegate/audioPlayerDidFinishPlaying/set tone to none.")
+            callToneToPlay = .none
         }
     }
 }
