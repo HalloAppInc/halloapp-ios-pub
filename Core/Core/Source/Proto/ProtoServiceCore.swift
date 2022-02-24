@@ -537,107 +537,111 @@ extension ProtoServiceCore: CoreService {
     }
 
     public func sendGroupFeedHistoryPayload(id groupFeedHistoryID: String, groupID: GroupID, payload: Data, to userID: UserID, rerequestCount: Int32, completion: @escaping ServiceRequestCompletion<Void>) {
-        guard let ownUserID = credentials?.userID,
-              let fromUID = Int64(ownUserID),
-              self.isConnected else {
-            DDLogInfo("ProtoServiceCore/sendGroupFeedHistoryPayload/\(groupFeedHistoryID)/\(groupID) skipping (disconnected)")
-            completion(.failure(RequestError.notConnected))
-            return
-        }
-        guard let toUID = Int64(userID) else {
-            DDLogError("ProtoServiceCore/sendGroupFeedHistoryPayload/\(groupFeedHistoryID)/\(groupID) error invalid to uid")
-            completion(.failure(.aborted))
-            return
-        }
-        AppContext.shared.messageCrypter.encrypt(payload, for: userID) { [weak self] result in
-            guard let self = self else { return }
-            switch result {
-            case .failure(let error):
-                DDLogError("ProtoServiceCore/sendGroupFeedHistoryPayload/\(groupFeedHistoryID)/\(groupID)/failed to encrypt packet for \(userID): \(error)")
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            guard let ownUserID = credentials?.userID,
+                  let fromUID = Int64(ownUserID),
+                  self.isConnected else {
+                DDLogInfo("ProtoServiceCore/sendGroupFeedHistoryPayload/\(groupFeedHistoryID)/\(groupID) skipping (disconnected)")
+                completion(.failure(RequestError.notConnected))
+                return
+            }
+            guard let toUID = Int64(userID) else {
+                DDLogError("ProtoServiceCore/sendGroupFeedHistoryPayload/\(groupFeedHistoryID)/\(groupID) error invalid to uid")
                 completion(.failure(.aborted))
-            case .success((let encryptedData, _)):
-                var groupFeedHistory = Server_GroupFeedHistory()
-                groupFeedHistory.gid = groupID
-                groupFeedHistory.id = groupFeedHistoryID
-                groupFeedHistory.encPayload = encryptedData.data
-                groupFeedHistory.publicKey = encryptedData.identityKey ?? Data()
-                groupFeedHistory.oneTimePreKeyID = Int32(encryptedData.oneTimeKeyId)
-                groupFeedHistory.senderClientVersion = AppContext.userAgent
-
-                var packet = Server_Packet()
-                packet.msg.toUid = toUID
-                packet.msg.fromUid = fromUID
-                packet.msg.id = PacketID.generate()
-                packet.msg.type = .chat
-                packet.msg.rerequestCount = rerequestCount
-                packet.msg.payload = .groupFeedHistory(groupFeedHistory)
-
-                guard let packetData = try? packet.serializedData() else {
-                    DDLogError("ProtoServiceCore/sendGroupFeedHistoryPayload/\(groupFeedHistoryID)/\(groupID)/error could not serialize packet")
+                return
+            }
+            AppContext.shared.messageCrypter.encrypt(payload, for: userID) { [weak self] result in
+                guard let self = self else { return }
+                switch result {
+                case .failure(let error):
+                    DDLogError("ProtoServiceCore/sendGroupFeedHistoryPayload/\(groupFeedHistoryID)/\(groupID)/failed to encrypt packet for \(userID): \(error)")
                     completion(.failure(.aborted))
-                    return
-                }
+                case .success((let encryptedData, _)):
+                    var groupFeedHistory = Server_GroupFeedHistory()
+                    groupFeedHistory.gid = groupID
+                    groupFeedHistory.id = groupFeedHistoryID
+                    groupFeedHistory.encPayload = encryptedData.data
+                    groupFeedHistory.publicKey = encryptedData.identityKey ?? Data()
+                    groupFeedHistory.oneTimePreKeyID = Int32(encryptedData.oneTimeKeyId)
+                    groupFeedHistory.senderClientVersion = AppContext.userAgent
 
-                DDLogInfo("ProtoServiceCore/sendGroupFeedHistoryPayload/\(groupFeedHistoryID)/\(groupID)/success")
-                self.send(packetData)
-                completion(.success(()))
+                    var packet = Server_Packet()
+                    packet.msg.toUid = toUID
+                    packet.msg.fromUid = fromUID
+                    packet.msg.id = PacketID.generate()
+                    packet.msg.type = .chat
+                    packet.msg.rerequestCount = rerequestCount
+                    packet.msg.payload = .groupFeedHistory(groupFeedHistory)
+
+                    guard let packetData = try? packet.serializedData() else {
+                        DDLogError("ProtoServiceCore/sendGroupFeedHistoryPayload/\(groupFeedHistoryID)/\(groupID)/error could not serialize packet")
+                        completion(.failure(.aborted))
+                        return
+                    }
+
+                    DDLogInfo("ProtoServiceCore/sendGroupFeedHistoryPayload/\(groupFeedHistoryID)/\(groupID)/success")
+                    self.send(packetData)
+                    completion(.success(()))
+                }
             }
         }
     }
 
     public func resendHistoryResendPayload(id historyResendID: String, groupID: GroupID, payload: Data, to userID: UserID, rerequestCount: Int32, completion: @escaping ServiceRequestCompletion<Void>) {
-        guard let ownUserID = credentials?.userID,
-              let fromUID = Int64(ownUserID),
-              self.isConnected else {
-            DDLogInfo("ProtoServiceCore/resendHistoryResendPayload/\(historyResendID)/\(groupID) skipping (disconnected)")
-            completion(.failure(RequestError.notConnected))
-            return
-        }
-        guard let toUID = Int64(userID) else {
-            DDLogError("ProtoServiceCore/resendHistoryResendPayload/\(historyResendID)/\(groupID) error invalid to uid")
-            completion(.failure(.aborted))
-            return
-        }
-
-        makeGroupRerequestEncryptedPayload(payloadData: payload, groupID: groupID, for: userID) { result in
-            switch result {
-            case .failure(let error):
-                DDLogError("ProtoServiceCore/resendHistoryResendPayload/\(historyResendID)/\(groupID)/failed to encrypt packet for \(userID): \(error)")
+        execute(whenConnectionStateIs: .connected, onQueue: .main) { [self] in
+            guard let ownUserID = credentials?.userID,
+                  let fromUID = Int64(ownUserID),
+                  self.isConnected else {
+                DDLogInfo("ProtoServiceCore/resendHistoryResendPayload/\(historyResendID)/\(groupID) skipping (disconnected)")
+                completion(.failure(RequestError.notConnected))
+                return
+            }
+            guard let toUID = Int64(userID) else {
+                DDLogError("ProtoServiceCore/resendHistoryResendPayload/\(historyResendID)/\(groupID) error invalid to uid")
                 completion(.failure(.aborted))
-            case .success((let clientEncryptedPayload, let senderStateWithKeyInfo)):
-                var historyResend = Server_HistoryResend()
-                historyResend.id = historyResendID
-                historyResend.gid = groupID
-                if let senderStateWithKeyInfo = senderStateWithKeyInfo {
-                    historyResend.senderState = senderStateWithKeyInfo
-                }
-                guard let encPayload = try? clientEncryptedPayload.serializedData() else {
-                    DDLogError("ProtoServiceCore/resendHistoryResendPayload/\(historyResendID)/\(groupID)/error could not serialize payload")
+                return
+            }
+
+            makeGroupRerequestEncryptedPayload(payloadData: payload, groupID: groupID, for: userID) { result in
+                switch result {
+                case .failure(let error):
+                    DDLogError("ProtoServiceCore/resendHistoryResendPayload/\(historyResendID)/\(groupID)/failed to encrypt packet for \(userID): \(error)")
                     completion(.failure(.aborted))
-                    return
+                case .success((let clientEncryptedPayload, let senderStateWithKeyInfo)):
+                    var historyResend = Server_HistoryResend()
+                    historyResend.id = historyResendID
+                    historyResend.gid = groupID
+                    if let senderStateWithKeyInfo = senderStateWithKeyInfo {
+                        historyResend.senderState = senderStateWithKeyInfo
+                    }
+                    guard let encPayload = try? clientEncryptedPayload.serializedData() else {
+                        DDLogError("ProtoServiceCore/resendHistoryResendPayload/\(historyResendID)/\(groupID)/error could not serialize payload")
+                        completion(.failure(.aborted))
+                        return
+                    }
+                    historyResend.encPayload = encPayload
+                    historyResend.payload = payload
+                    historyResend.senderClientVersion = AppContext.userAgent
+                    let messageID = PacketID.generate()
+
+                    var packet = Server_Packet()
+                    packet.msg.toUid = toUID
+                    packet.msg.fromUid = fromUID
+                    packet.msg.id = messageID
+                    packet.msg.type = .groupchat
+                    packet.msg.rerequestCount = rerequestCount
+                    packet.msg.payload = .historyResend(historyResend)
+
+                    guard let packetData = try? packet.serializedData() else {
+                        DDLogError("ProtoServiceCore/resendHistoryResendPayload/\(historyResendID)/\(groupID)/error could not serialize packet")
+                        completion(.failure(.aborted))
+                        return
+                    }
+
+                    DDLogInfo("ProtoServiceCore/resendHistoryResendPayload/\(historyResendID)/\(groupID)/success")
+                    self.send(packetData)
+                    completion(.success(()))
                 }
-                historyResend.encPayload = encPayload
-                historyResend.payload = payload
-                historyResend.senderClientVersion = AppContext.userAgent
-                let messageID = PacketID.generate()
-
-                var packet = Server_Packet()
-                packet.msg.toUid = toUID
-                packet.msg.fromUid = fromUID
-                packet.msg.id = messageID
-                packet.msg.type = .groupchat
-                packet.msg.rerequestCount = rerequestCount
-                packet.msg.payload = .historyResend(historyResend)
-
-                guard let packetData = try? packet.serializedData() else {
-                    DDLogError("ProtoServiceCore/resendHistoryResendPayload/\(historyResendID)/\(groupID)/error could not serialize packet")
-                    completion(.failure(.aborted))
-                    return
-                }
-
-                DDLogInfo("ProtoServiceCore/resendHistoryResendPayload/\(historyResendID)/\(groupID)/success")
-                self.send(packetData)
-                completion(.success(()))
             }
         }
     }
@@ -725,94 +729,98 @@ extension ProtoServiceCore: CoreService {
 
     public func resendPost(_ post: PostData, feed: Feed, rerequestCount: Int32, to toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
         DDLogInfo("ProtoServiceCore/resendPost/\(post.id)/begin")
-        guard let fromUserID = credentials?.userID, self.isConnected else {
-            DDLogInfo("ProtoServiceCore/resendPost/\(post.id) skipping (disconnected)")
-            completion(.failure(RequestError.notConnected))
-            return
-        }
+        execute(whenConnectionStateIs: .connected, onQueue: .main) { [self] in
+            guard let fromUserID = credentials?.userID, self.isConnected else {
+                DDLogInfo("ProtoServiceCore/resendPost/\(post.id) skipping (disconnected)")
+                completion(.failure(RequestError.notConnected))
+                return
+            }
 
-        makeGroupRerequestFeedItem(post, feed: feed, to: toUserID) { result in
-            switch result {
-            case .failure(let failure):
-                DDLogInfo("ProtoServiceCore/resendPost/\(post.id)/failure: \(failure), aborting to: \(toUserID)")
-                AppContext.shared.eventMonitor.count(.groupEncryption(error: failure, itemType: .post))
-                completion(.failure(RequestError.malformedRequest))
-            case .success(let serverGroupFeedItem):
-                let messageID = PacketID.generate()
-                DDLogInfo("ProtoServiceCore/resendPost/\(post.id)/message/\(messageID)/to: \(toUserID)")
-                let packet = Server_Packet.msgPacket(
-                    from: fromUserID,
-                    to: toUserID,
-                    id: messageID,
-                    type: .groupchat,
-                    rerequestCount: rerequestCount,
-                    payload: .groupFeedItem(serverGroupFeedItem))
-
-                guard let packetData = try? packet.serializedData() else {
-                    AppContext.shared.eventMonitor.count(.groupEncryption(error: .serialization, itemType: .post))
-                    DDLogError("ProtoServiceCore/resendPost/\(post.id)/message/\(messageID)/error could not serialize groupFeedItem message!")
+            makeGroupRerequestFeedItem(post, feed: feed, to: toUserID) { result in
+                switch result {
+                case .failure(let failure):
+                    DDLogInfo("ProtoServiceCore/resendPost/\(post.id)/failure: \(failure), aborting to: \(toUserID)")
+                    AppContext.shared.eventMonitor.count(.groupEncryption(error: failure, itemType: .post))
                     completion(.failure(RequestError.malformedRequest))
-                    return
-                }
+                case .success(let serverGroupFeedItem):
+                    let messageID = PacketID.generate()
+                    DDLogInfo("ProtoServiceCore/resendPost/\(post.id)/message/\(messageID)/to: \(toUserID)")
+                    let packet = Server_Packet.msgPacket(
+                        from: fromUserID,
+                        to: toUserID,
+                        id: messageID,
+                        type: .groupchat,
+                        rerequestCount: rerequestCount,
+                        payload: .groupFeedItem(serverGroupFeedItem))
 
-                DispatchQueue.main.async {
-                    guard self.isConnected else {
-                        DDLogInfo("ProtoServiceCore/resendPost/\(post.id)/message/\(messageID) aborting (disconnected)")
-                        completion(.failure(RequestError.notConnected))
+                    guard let packetData = try? packet.serializedData() else {
+                        AppContext.shared.eventMonitor.count(.groupEncryption(error: .serialization, itemType: .post))
+                        DDLogError("ProtoServiceCore/resendPost/\(post.id)/message/\(messageID)/error could not serialize groupFeedItem message!")
+                        completion(.failure(RequestError.malformedRequest))
                         return
                     }
-                    AppContext.shared.eventMonitor.count(.groupEncryption(error: nil, itemType: .post))
-                    DDLogInfo("ProtoServiceCore/resendPost/\(post.id)/message/\(messageID) sending encrypted")
-                    self.send(packetData)
-                    DDLogInfo("ProtoServiceCore/resendPost/\(post.id)/message/\(messageID) success")
-                    completion(.success(()))
+
+                    DispatchQueue.main.async {
+                        guard self.isConnected else {
+                            DDLogInfo("ProtoServiceCore/resendPost/\(post.id)/message/\(messageID) aborting (disconnected)")
+                            completion(.failure(RequestError.notConnected))
+                            return
+                        }
+                        AppContext.shared.eventMonitor.count(.groupEncryption(error: nil, itemType: .post))
+                        DDLogInfo("ProtoServiceCore/resendPost/\(post.id)/message/\(messageID) sending encrypted")
+                        self.send(packetData)
+                        DDLogInfo("ProtoServiceCore/resendPost/\(post.id)/message/\(messageID) success")
+                        completion(.success(()))
+                    }
                 }
             }
         }
     }
 
     public func resendComment(_ comment: CommentData, groupId: GroupID?, rerequestCount: Int32, to toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
-        guard let fromUserID = credentials?.userID, self.isConnected else {
-            DDLogInfo("ProtoServiceCore/resendComment/\(comment.id) skipping (disconnected)")
-            completion(.failure(RequestError.notConnected))
-            return
-        }
+        execute(whenConnectionStateIs: .connected, onQueue: .main) { [self] in
+            guard let fromUserID = credentials?.userID, self.isConnected else {
+                DDLogInfo("ProtoServiceCore/resendComment/\(comment.id) skipping (disconnected)")
+                completion(.failure(RequestError.notConnected))
+                return
+            }
 
-        makeGroupRerequestFeedItem(comment, groupID: groupId, to: toUserID) { result in
-            switch result {
-            case .failure(let failure):
-                DDLogInfo("ProtoServiceCore/resendComment/\(comment.id)/failure: \(failure), aborting to: \(toUserID)")
-                AppContext.shared.eventMonitor.count(.groupEncryption(error: failure, itemType: .comment))
-                completion(.failure(RequestError.malformedRequest))
-            case .success(let serverGroupFeedItem):
-                let messageID = PacketID.generate()
-                DDLogInfo("ProtoServiceCore/resendComment/\(comment.id)/message/\(messageID)/to: \(toUserID)")
-                let packet = Server_Packet.msgPacket(
-                    from: fromUserID,
-                    to: toUserID,
-                    id: messageID,
-                    type: .groupchat,
-                    rerequestCount: rerequestCount,
-                    payload: .groupFeedItem(serverGroupFeedItem))
-
-                guard let packetData = try? packet.serializedData() else {
-                    AppContext.shared.eventMonitor.count(.groupEncryption(error: .serialization, itemType: .comment))
-                    DDLogError("ProtoServiceCore/resendComment/\(comment.id)/message/\(messageID)/error could not serialize groupFeedItem message!")
+            makeGroupRerequestFeedItem(comment, groupID: groupId, to: toUserID) { result in
+                switch result {
+                case .failure(let failure):
+                    DDLogInfo("ProtoServiceCore/resendComment/\(comment.id)/failure: \(failure), aborting to: \(toUserID)")
+                    AppContext.shared.eventMonitor.count(.groupEncryption(error: failure, itemType: .comment))
                     completion(.failure(RequestError.malformedRequest))
-                    return
-                }
+                case .success(let serverGroupFeedItem):
+                    let messageID = PacketID.generate()
+                    DDLogInfo("ProtoServiceCore/resendComment/\(comment.id)/message/\(messageID)/to: \(toUserID)")
+                    let packet = Server_Packet.msgPacket(
+                        from: fromUserID,
+                        to: toUserID,
+                        id: messageID,
+                        type: .groupchat,
+                        rerequestCount: rerequestCount,
+                        payload: .groupFeedItem(serverGroupFeedItem))
 
-                DispatchQueue.main.async {
-                    guard self.isConnected else {
-                        DDLogInfo("ProtoServiceCore/resendComment/\(comment.id)/message/\(messageID) aborting (disconnected)")
-                        completion(.failure(RequestError.notConnected))
+                    guard let packetData = try? packet.serializedData() else {
+                        AppContext.shared.eventMonitor.count(.groupEncryption(error: .serialization, itemType: .comment))
+                        DDLogError("ProtoServiceCore/resendComment/\(comment.id)/message/\(messageID)/error could not serialize groupFeedItem message!")
+                        completion(.failure(RequestError.malformedRequest))
                         return
                     }
-                    AppContext.shared.eventMonitor.count(.groupEncryption(error: nil, itemType: .comment))
-                    DDLogInfo("ProtoServiceCore/resendComment/\(comment.id)/message/\(messageID) sending encrypted")
-                    self.send(packetData)
-                    DDLogInfo("ProtoServiceCore/resendComment/\(comment.id)/message/\(messageID) success")
-                    completion(.success(()))
+
+                    DispatchQueue.main.async {
+                        guard self.isConnected else {
+                            DDLogInfo("ProtoServiceCore/resendComment/\(comment.id)/message/\(messageID) aborting (disconnected)")
+                            completion(.failure(RequestError.notConnected))
+                            return
+                        }
+                        AppContext.shared.eventMonitor.count(.groupEncryption(error: nil, itemType: .comment))
+                        DDLogInfo("ProtoServiceCore/resendComment/\(comment.id)/message/\(messageID) sending encrypted")
+                        self.send(packetData)
+                        DDLogInfo("ProtoServiceCore/resendComment/\(comment.id)/message/\(messageID) success")
+                        completion(.success(()))
+                    }
                 }
             }
         }

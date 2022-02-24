@@ -489,7 +489,8 @@ final class ProtoService: ProtoServiceCore {
         case .msg(let msg):
             // We now use contentId to eliminate push notifications: so here, we assume all content is worth notifying.
             // TODO: murali@: since this is always true, lets try and remove this argument.
-            handleMessage(msg, isEligibleForNotification: true)
+            let ack = { self.sendAck(messageID: msg.id) }
+            handleMessage(msg, isEligibleForNotification: true, ack: ack)
         case .haError(let error):
             DDLogError("proto/didReceive/\(requestID) received packet with error \(error)")
         case .presence(let pbPresence):
@@ -540,10 +541,7 @@ final class ProtoService: ProtoServiceCore {
 
     // MARK: Message
 
-    private func handleMessage(_ msg: Server_Msg, isEligibleForNotification: Bool) {
-
-        let ack = { self.sendAck(messageID: msg.id) }
-
+    private func handleMessage(_ msg: Server_Msg, isEligibleForNotification: Bool, ack: @escaping () -> ()) {
         var hasAckBeenDelegated = false
         defer {
             // Ack any message where we haven't explicitly delegated the ack to someone else
@@ -1895,13 +1893,16 @@ extension ProtoService: HalloService {
                 if let serverMsgPb = sharedServerMsg.msg {
                     let serverMsg = try Server_Msg(serializedData: serverMsgPb)
                     DDLogInfo("ProtoService/mergeData/handle serverMsg: \(serverMsg.id)")
-                    handleMessage(serverMsg, isEligibleForNotification: false)
+                    let ack = { sharedDataStore.delete(serverMessageObjectID: sharedServerMsg.objectID) { } }
+                    handleMessage(serverMsg, isEligibleForNotification: false, ack: ack)
                 }
             } catch {
                 DDLogError("ProtoService/mergeData/Unable to initialize Server_Msg")
             }
         }
-        sharedDataStore.delete(serverMessages: sharedServerMessages, completion: completion)
+        DispatchQueue.main.async {
+            completion()
+        }
     }
 
     func getCallServers(id callID: CallID, for peerUserID: UserID, callType: CallType, completion: @escaping ServiceRequestCompletion<Server_GetCallServersResult>) {

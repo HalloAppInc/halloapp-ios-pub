@@ -247,6 +247,18 @@ open class SharedDataStore {
         }
     }
 
+    public final func delete(serverMessageObjectID: NSManagedObjectID, completion: @escaping (() -> Void)) {
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
+            if let message = managedObjectContext.object(with: serverMessageObjectID) as? SharedServerMessage {
+                managedObjectContext.delete(message)
+                self.save(managedObjectContext)
+            }
+            DispatchQueue.main.async {
+                completion()
+            }
+        }
+    }
+
     private func deleteFiles(forMedia mediaItems: [SharedMedia]) {
         for mediaItem in mediaItems {
             guard let relativePath = mediaItem.relativeFilePath else { continue }
