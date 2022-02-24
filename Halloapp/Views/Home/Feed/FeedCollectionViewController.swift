@@ -208,12 +208,6 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate {
         isVisible = false
     }
 
-    override func viewLayoutMarginsDidChange() {
-        super.viewLayoutMarginsDidChange()
-
-        feedLayout.invalidateLayout()
-    }
-
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         guard scrollView == collectionView else { return }
         if isNearTop(100) {

@@ -449,6 +449,7 @@ final class FeedItemHeaderView: UIView {
     // Gotham Medium, 15 pt (Subhead)
     private lazy var nameLabel: UILabel = {
         let label = Self.makeLabel()
+        label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         label.isUserInteractionEnabled = true
         label.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(showUser)))
         return label
@@ -456,7 +457,7 @@ final class FeedItemHeaderView: UIView {
     
     private lazy var groupNameLabel: UILabel = {
         let label = Self.makeLabel()
-        label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        label.setContentCompressionResistancePriority(UILayoutPriority(UILayoutPriority.defaultLow.rawValue - 1), for: .horizontal)
         label.isUserInteractionEnabled = true
         label.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(showGroupFeed)))
         return label
@@ -507,9 +508,19 @@ final class FeedItemHeaderView: UIView {
         button.contentHorizontalAlignment = .trailing
         button.imageEdgeInsets = UIEdgeInsets(top: -5, left: 0, bottom: 5, right: 0)
 
-        wrapperView.widthAnchor.constraint(equalToConstant: moreButtonWidth + moreButtonPadding).isActive = true
+        let widthConstraint = wrapperView.widthAnchor.constraint(equalToConstant: moreButtonWidth + moreButtonPadding)
+        // reduce priority to take up full width with vertical layout at a11y text sizes
+        widthConstraint.priority = UILayoutPriority(999)
+        widthConstraint.isActive = true
 
         return wrapperView
+    }()
+
+    private lazy var contentStackView: UIStackView = {
+        let contentStackView = UIStackView(arrangedSubviews: [ nameColumn ])
+        contentStackView.spacing = moreButtonSpacing
+        contentStackView.translatesAutoresizingMaskIntoConstraints = false
+        return contentStackView
     }()
 
     @objc private func showMoreTapped() {
@@ -522,41 +533,41 @@ final class FeedItemHeaderView: UIView {
         isUserInteractionEnabled = true
 
         addSubview(avatarViewButton)
+        addSubview(contentStackView)
 
-        let hStack = UIStackView(arrangedSubviews: [ nameColumn, moreButton ])
-        hStack.axis = .horizontal
-        hStack.spacing = moreButtonSpacing
-        hStack.alignment = .leading
-        hStack.translatesAutoresizingMaskIntoConstraints = false
- 
-        addSubview(hStack)
+        let contentStackViewCenterYConstraint = contentStackView.centerYAnchor.constraint(equalTo: centerYAnchor)
+        contentStackViewCenterYConstraint.priority = .defaultLow
 
-        avatarViewButton.constrain([.top, .leading], to: self)
-        avatarViewButton.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor).isActive = true
+        NSLayoutConstraint.activate([
+            avatarViewButton.topAnchor.constraint(equalTo: topAnchor),
+            avatarViewButton.leadingAnchor.constraint(equalTo: leadingAnchor),
+            avatarViewButton.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor),
 
-        hStack.leadingAnchor.constraint(equalTo: avatarViewButton.trailingAnchor, constant: avatarButtonSpacing).isActive = true
-        hStack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
-        hStack.constrain(anchor: .centerY, to: avatarViewButton, priority: .defaultLow)
+            contentStackView.leadingAnchor.constraint(equalTo: avatarViewButton.trailingAnchor, constant: avatarButtonSpacing),
+            contentStackView.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor),
+            contentStackView.topAnchor.constraint(greaterThanOrEqualTo: topAnchor),
+            contentStackView.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor),
+            contentStackViewCenterYConstraint,
+        ])
 
-        hStack.topAnchor.constraint(greaterThanOrEqualTo: topAnchor).isActive = true
-        hStack.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor).isActive = true
+        configureContentStackView()
+    }
 
-        contentSizeCategoryDidChangeCancellable = NotificationCenter.default
-            .publisher(for: UIContentSizeCategory.didChangeNotification)
-            .compactMap { $0.userInfo?[UIContentSizeCategory.newValueUserInfoKey] as? UIContentSizeCategory }
-            .sink { [weak self] category in
-                guard let self = self else { return }
-                self.configure(stackView: hStack, forVerticalLayout: category.isAccessibilityCategory)
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+
+        if traitCollection.preferredContentSizeCategory != previousTraitCollection?.preferredContentSizeCategory {
+            configureContentStackView()
         }
     }
 
-    private func configure(stackView: UIStackView, forVerticalLayout verticalLayout: Bool) {
-        if verticalLayout {
-            stackView.axis = .vertical
-            stackView.alignment = .fill
+    private func configureContentStackView() {
+        if traitCollection.preferredContentSizeCategory.isAccessibilityCategory {
+            contentStackView.axis = .vertical
+            contentStackView.alignment = .fill
         } else {
-            stackView.axis = .horizontal
-            stackView.alignment = .center
+            contentStackView.axis = .horizontal
+            contentStackView.alignment = .leading
         }
     }
 
@@ -572,36 +583,44 @@ final class FeedItemHeaderView: UIView {
         }
 
         avatarViewButton.avatarView.configure(with: post.userId, using: MainAppContext.shared.avatarStore)
-        
-        moreButton.isHidden = !(post.hasSaveablePostMedia && post.canSaveMedia) && post.userId != MainAppContext.shared.userData.userId
+
+        if !(post.hasSaveablePostMedia && post.canSaveMedia), post.userId != MainAppContext.shared.userData.userId {
+            moreButton.removeFromSuperview()
+        } else {
+            contentStackView.addArrangedSubview(moreButton)
+        }
+
         configureGroupLabel(with: post.groupId, contentWidth: contentWidth, showGroupName: showGroupName)
         refreshTimestamp(with: post)
     }
 
     func configureGroupLabel(with groupID: String?, contentWidth: CGFloat, showGroupName: Bool) {
-        guard let groupID = groupID, let groupChat = MainAppContext.shared.chatData.chatGroup(groupId: groupID), showGroupName else {
-            groupNameLabel.isHidden = true
-            secondLineGroupNameLabel.isHidden = true
+        guard showGroupName, let groupID = groupID, let groupChat = MainAppContext.shared.chatData.chatGroup(groupId: groupID) else {
             groupIndicatorLabel.isHidden = true
+            groupNameLabel.isHidden = true
+            groupNameLabel.text = nil
+            secondLineGroupNameLabel.removeFromSuperview()
+            secondLineGroupNameLabel.text = nil
             return
         }
 
-        groupNameLabel.text = groupChat.name
-        secondLineGroupNameLabel.text = groupChat.name
-
-        let shouldShowTwoLines = isRowTruncated(contentWidth: contentWidth)
-        groupNameLabel.isHidden = shouldShowTwoLines
-        secondLineGroupNameLabel.isHidden = !shouldShowTwoLines
         groupIndicatorLabel.isHidden = false
+        groupNameLabel.isHidden = false
+        groupNameLabel.text = groupChat.name
+
+        if isRowTruncated(contentWidth: contentWidth) {
+            groupNameLabel.text = nil
+            secondLineGroupNameLabel.text = groupChat.name
+            let index = (nameColumn.arrangedSubviews.firstIndex(of: userAndGroupNameRow) ?? 0) + 1
+            nameColumn.insertArrangedSubview(secondLineGroupNameLabel, at: index)
+        } else {
+            secondLineGroupNameLabel.removeFromSuperview()
+            secondLineGroupNameLabel.text = nil
+        }
     }
     
     func prepareForReuse() {
         avatarViewButton.avatarView.prepareForReuse()
-        groupNameLabel.text = nil
-        groupNameLabel.isHidden = true
-        groupIndicatorLabel.isHidden = true
-        secondLineGroupNameLabel.text = nil
-        secondLineGroupNameLabel.isHidden = true
     }
 
     @objc func showUser() {
@@ -614,7 +633,7 @@ final class FeedItemHeaderView: UIView {
 
     private func isRowTruncated(contentWidth: CGFloat) -> Bool {
         var requiredWidth = userAndGroupNameRow.systemLayoutSizeFitting(CGSize(width: contentWidth, height: 20)).width
-        requiredWidth += moreButton.isHidden ? 0 : (moreButtonWidth + moreButtonPadding + moreButtonSpacing)
+        requiredWidth += moreButton.isHidden ? directionalLayoutMargins.trailing : (moreButtonWidth + moreButtonPadding + moreButtonSpacing)
         requiredWidth += avatarButtonSize + avatarButtonSpacing
 
         return requiredWidth > contentWidth
