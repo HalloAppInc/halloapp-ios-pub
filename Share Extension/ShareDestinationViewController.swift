@@ -712,7 +712,7 @@ fileprivate class DestinationCell: UITableViewCell {
             avatar.image = AvatarView.defaultImage
 
             if !userAvatar.isEmpty {
-                userAvatar.loadImage(using: ShareExtensionContext.shared.avatarStore)
+                userAvatar.loadThumbnailImage(using: ShareExtensionContext.shared.avatarStore)
             }
         }
 

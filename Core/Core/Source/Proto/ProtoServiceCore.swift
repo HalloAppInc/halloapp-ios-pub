@@ -477,6 +477,24 @@ extension ProtoServiceCore: NoiseDelegate {
 }
 
 extension ProtoServiceCore: CoreService {
+    public func updateAvatar(_ avatarData: AvatarData?, for userID: UserID, completion: @escaping ServiceRequestCompletion<AvatarID?>) {
+        var uploadAvatar = Server_UploadAvatar()
+        uploadAvatar.id = userID
+        if let thumbnailData = avatarData?.thumbnail {
+            uploadAvatar.data = thumbnailData
+        }
+        if let fullData = avatarData?.full {
+            uploadAvatar.fullData = fullData
+        }
+
+        let request = ProtoRequest<String?>(
+            iqPacket: .iqPacket(type: .set, payload: .uploadAvatar(uploadAvatar)),
+            transform: { (iq) in .success(iq.avatar.id) },
+            completion: completion)
+
+        enqueue(request: request)
+    }
+
     public func requestMediaUploadURL(size: Int, downloadURL: URL?, completion: @escaping ServiceRequestCompletion<MediaURLInfo?>) {
         // Wait until connected to request URLs. User meanwhile can cancel posting.
         execute(whenConnectionStateIs: .connected, onQueue: .main) {

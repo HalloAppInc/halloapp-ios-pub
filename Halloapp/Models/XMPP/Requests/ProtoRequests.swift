@@ -27,23 +27,6 @@ final class ProtoAvatarRequest: ProtoRequest<AvatarInfo> {
     }
 }
 
-
-final class ProtoUpdateAvatarRequest: ProtoRequest<String?> {
-
-    init(data: Data?, completion: @escaping Completion) {
-        var uploadAvatar = Server_UploadAvatar()
-        if let data = data {
-            uploadAvatar.data = data
-        }
-
-        super.init(
-            iqPacket: .iqPacket(type: .set, payload: .uploadAvatar(uploadAvatar)),
-            transform: { (iq) in .success(iq.avatar.id) },
-            completion: completion)
-    }
-}
-
-
 final class ProtoPushTokenRequest: ProtoRequest<Void> {
 
     init(type: Server_PushToken.TokenType, token: String, langID: String?, completion: @escaping Completion) {

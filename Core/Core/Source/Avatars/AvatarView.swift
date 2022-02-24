@@ -116,7 +116,7 @@ public class AvatarView: UIView {
             avatar.image = AvatarView.defaultImage
 
             if !userAvatar.isEmpty {
-                userAvatar.loadImage(using: avatarStore)
+                userAvatar.loadThumbnailImage(using: avatarStore)
             }
         }
         

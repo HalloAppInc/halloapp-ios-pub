@@ -77,9 +77,9 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         transitionHasFinished ? .all : .portrait
     }
-    
-    init(avatarImage image: UIImage) {
-        let imageMedia = MediaExplorerMedia(url: nil, image: image, type: .image, size: image.size, update: nil, progress: nil)
+
+    init(imagePublisher: AnyPublisher<(URL?, UIImage?, CGSize), Never>, progress: AnyPublisher<Float, Never>? = nil) {
+        let imageMedia = MediaExplorerMedia(url: nil, image: nil, type: .image, size: .zero, update: imagePublisher, progress: progress)
         self.media = [imageMedia]
         self.currentIndex = 0
         super.init(nibName: nil, bundle: nil)

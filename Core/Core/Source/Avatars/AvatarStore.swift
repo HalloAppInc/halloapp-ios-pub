@@ -12,13 +12,18 @@ import Combine
 import CoreData
 import UIKit
 
+public struct AvatarData {
+    public var thumbnail: Data
+    public var full: Data?
+}
 
 public typealias AvatarID = String
 
 public class AvatarStore: ServiceAvatarDelegate {
-    public static let avatarSize = 256
+    public static let thumbnailSize = CGSize(width: 256, height: 256)
+    public static let fullSize = CGSize(width: 1024, height: 1024)
     public static let avatarCDNUrl = "https://avatar-cdn.halloapp.net/"
-    
+
     public struct Keys {
         public static let userDefaultsUpload = "xmpp.avatar-sent"
         public static let userDefaultsDownload = "xmpp.avatar-query"
@@ -62,6 +67,7 @@ public class AvatarStore: ServiceAvatarDelegate {
 
     private var viewContext: NSManagedObjectContext
     private var bgContext: NSManagedObjectContext
+    private let fullSizeImageCache = NSCache<NSString, UIImage>()
 
     public init() {
         self.persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
@@ -74,6 +80,14 @@ public class AvatarStore: ServiceAvatarDelegate {
             guard let self = self else { return }
             self.bgContext.performAndWait { block(self.bgContext) }
         }
+    }
+
+    fileprivate static func pendingThumbnailFilename(for userID: UserID) -> String {
+        return "\(userID).pending.thumb"
+    }
+
+    fileprivate static func pendingFullImageFilename(for userID: UserID) -> String {
+        return "\(userID).pending.full"
     }
     
     fileprivate static func fileURL(forRelativeFilePath relativePath: String) -> URL {
@@ -103,7 +117,7 @@ public class AvatarStore: ServiceAvatarDelegate {
             return userAvatar
         }
         
-        var userAvatar: UserAvatar?
+        var userAvatar: UserAvatar
         
         if let currentAvatar = avatar(forUserId: userId) {
             userAvatar = UserAvatar(currentAvatar)
@@ -111,16 +125,12 @@ public class AvatarStore: ServiceAvatarDelegate {
             userAvatar = UserAvatar(userId: userId)
         }
         
-        userAvatars.setObject(userAvatar!, forKey: userId as NSString)
+        userAvatars.setObject(userAvatar, forKey: userId as NSString)
         
-        return userAvatar!
+        return userAvatar
     }
     
-    public func save(avatarId: AvatarID, forUserId userId: UserID) {
-        save(avatarId: avatarId, forUserId: userId, using: bgContext)
-    }
-    
-    @discardableResult private func save(avatarId: AvatarID, forUserId userId: UserID, using managedObjectContext: NSManagedObjectContext, isContactSync: Bool = false) -> Avatar {
+    @discardableResult private func save(avatarId: AvatarID, forUserId userId: UserID, using managedObjectContext: NSManagedObjectContext) -> Avatar {
         let currentAvatar = insertAvatar(avatarId: avatarId, forUserId: userId, using: managedObjectContext)
         do {
             try managedObjectContext.save()
@@ -133,50 +143,179 @@ public class AvatarStore: ServiceAvatarDelegate {
         if let userAvatar = userAvatars.object(forKey: userId as NSString) {
             DDLogInfo("updating userAvatar for userId: \(userId) - avatarId: \(avatarId)")
             userAvatar.image = nil
-            userAvatar.data = nil
-            userAvatar.fileUrl = nil
-            
+            userAvatar.fileURL = nil
             userAvatar.avatarId = avatarId
-            
-            if avatarId != "self" && avatarId != "" {
-                userAvatar.loadImage(using: self)
-            }
+            userAvatar.loadThumbnailImage(using: self)
         }
         
         return currentAvatar
     }
 
-    @discardableResult
-    public func save(image: UIImage, forUserId userId: UserID, avatarId: AvatarID) -> Data? {
-        let managedObjectContext = bgContext
+    public func removeAvatar(for userID: UserID, using service: CoreService) {
+        uploadAvatarData(nil, for: userID, using: service)
 
-        let currentAvatar = insertAvatar(avatarId: avatarId, forUserId: userId, using: managedObjectContext)
-        removeAvatarFile(avatar: currentAvatar)
-        let data = image.jpegData(compressionQuality: CGFloat(UserData.compressionQuality))!
-        let fileURL = AvatarStore.fileURL(forRelativeFilePath: "\(avatarId).jpeg")
-        do {
-            try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
-            try data.write(to: fileURL)
-        } catch {
-            DDLogError("AvatarStore/save/failed [\(error)]")
-            
-            return nil
+        // TODO: Indicate that this is still pending instead of optimistically updating
+        let observedAvatar = userAvatar(forUserId: userID)
+        observedAvatar.avatarId = nil
+        observedAvatar.image = nil
+    }
+
+    public func uploadAvatar(image: UIImage, for userID: UserID, using service: CoreService) {
+        guard let thumbnailImage = image.fastResized(to: Self.thumbnailSize),
+              let thumbnailData = thumbnailImage.jpegData(compressionQuality: CGFloat(UserData.compressionQuality)) else
+        {
+            DDLogError("AvatarStore/uploadAvatar/thumb/error unable to get thumbnail data")
+            return
         }
-        currentAvatar.relativeFilePath = "\(avatarId).jpeg"
+
+        let managedObjectContext = bgContext
+        let currentAvatar = insertAvatar(avatarId: "", forUserId: userID, using: managedObjectContext)
+        let thumbnailFilename = AvatarStore.pendingThumbnailFilename(for: userID)
+
+        do {
+            try writeData(thumbnailData, toRelativePath: thumbnailFilename)
+            DDLogInfo("AvatarStore/uploadAvatar/write-thumb/success [userID: \(userID)] [file: \(thumbnailFilename)]")
+        } catch {
+            DDLogError("AvatarStore/uploadAvatar/write-thumb/error [\(error)]")
+            return
+        }
+
+        var avatarData = AvatarData(thumbnail: thumbnailData)
+
+        if let fullImage = image.fastResized(to: Self.fullSize),
+           let fullData = fullImage.jpegData(compressionQuality: CGFloat(UserData.compressionQuality))
+        {
+            do {
+                let fullImageFilename = AvatarStore.pendingFullImageFilename(for: userID)
+                try writeData(fullData, toRelativePath: fullImageFilename)
+                avatarData.full = fullData
+                DDLogInfo("AvatarStore/uploadAvatar/write-full/success [userID: \(userID)] [file: \(fullImageFilename)]")
+            } catch {
+                DDLogError("AvatarStore/uploadAvatar/write-full/error [\(error)]")
+            }
+        }
+
+        currentAvatar.relativeFilePath = thumbnailFilename
 
         do {
             try managedObjectContext.save()
         } catch let error as NSError {
-            DDLogError("AvatarStore/save/error [\(error)]")
+            DDLogError("AvatarStore/uploadAvatar/save/error [\(error)]")
         }
-        
-        DDLogInfo("AvatarStore/save avatar for user \(userId) has been saved to \(currentAvatar.relativeFilePath!)")
-        if let userAvatar = userAvatars.object(forKey: userId as NSString) {
-            DDLogInfo("updating userAvatar for userId: \(userId) - avatarId: \(avatarId)")
-            userAvatar.image = image
-            userAvatar.data = data
+
+        // TODO: Indicate that this is still pending instead of optimistically updating
+        DDLogInfo("AvatarStore/uploadAvatar/update-observed-avatar [pending]")
+        userAvatar(forUserId: userID).image = thumbnailImage
+
+        uploadAvatarData(avatarData, for: userID, using: service)
+    }
+
+    public func sendPendingAvatarIfNecessary(for userID: UserID, using service: CoreService) {
+        guard let pendingUserID = UserDefaults.standard.string(forKey: AvatarStore.Keys.userDefaultsUpload), pendingUserID == userID else
+        {
+            DDLogInfo("AvatarStore/sendPendingAvatarIfNecessary/skipping [not necessary]")
+            return
         }
-        return data
+
+        loadPendingAvatar(for: userID) { [weak self] avatarData in
+            self?.uploadAvatarData(avatarData, for: userID, using: service)
+        }
+    }
+
+    public func loadFullSizeImage(for avatar: UserAvatar, completion: @escaping (UIImage?) -> Void) {
+        guard let avatarID = avatar.avatarId, let url = URL(string: AvatarStore.avatarCDNUrl + avatarID + "-full") else
+        {
+            DDLogInfo("AvatarStore/loadFull/\(avatar)/error [missing-avatar-id]")
+            DispatchQueue.main.async { completion(nil) }
+            return
+        }
+
+        if let cachedImage = fullSizeImageCache.object(forKey: avatarID as NSString) {
+            DDLogInfo("AvatarStore/loadFull/\(avatarID)/cached")
+            DispatchQueue.main.async { completion(cachedImage) }
+            return
+        }
+
+        let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
+            guard let data = data, let image = UIImage(data: data) else {
+                DDLogError("AvatarStore/loadFull/\(avatarID)/download/error [\(error.debugDescription)]")
+                DispatchQueue.main.async { completion(nil) }
+                return
+            }
+            DDLogInfo("AvatarStore/loadFull/\(avatarID)/download/success [caching]")
+            self.fullSizeImageCache.setObject(image, forKey: avatarID as NSString)
+            DispatchQueue.main.async { completion(image) }
+        }
+        task.resume()
+    }
+
+    private func uploadAvatarData(_ avatarData: AvatarData?, for userID: UserID, using service: CoreService) {
+        // NB: We currently only support uploading avatar for one user ID at a time
+        UserDefaults.standard.set(userID, forKey: AvatarStore.Keys.userDefaultsUpload)
+        let logAction = avatarData == nil ? "remove" : "upload"
+        DDLogInfo("AvatarStore/uploadAvatarData/\(logAction)/begin")
+        service.updateAvatar(avatarData, for: userID) { [weak self] result in
+            switch result {
+            case .success(let avatarID):
+                DDLogInfo("AvatarStore/uploadAvatarData/\(logAction)/success")
+                UserDefaults.standard.removeObject(forKey: AvatarStore.Keys.userDefaultsUpload)
+
+                guard let avatarID = avatarID, let avatarData = avatarData, !avatarID.isEmpty else {
+                    // Return early after removing avatar
+                    return
+                }
+
+                // Save uploaded data to permanent spot
+                DDLogInfo("AvatarStore/uploadAvatarData received new avatarID [\(avatarID)]")
+                let relativeFilePath = "\(avatarID).jpeg"
+                do {
+                    try self?.writeData(avatarData.thumbnail, toRelativePath: relativeFilePath)
+                } catch {
+                    DDLogError("AvatarStore/uploadAvatarData/error [\(error)]")
+                }
+
+                // Update DB and remove pending files
+                self?.performOnBackgroundContextAndWait { [weak self] managedObjectContext in
+                    guard let currentAvatar = self?.avatar(forUserId: userID, using: managedObjectContext) else {
+                        DDLogError("AvatarStore/uploadAvatarData/error avatar does not exist!")
+                        return
+                    }
+
+                    currentAvatar.avatarId = avatarID
+                    currentAvatar.relativeFilePath = relativeFilePath
+
+                    do {
+                        try managedObjectContext.save()
+                        self?.removePendingAvatar(for: userID)
+                    } catch let error as NSError {
+                        DDLogError("AvatarStore/uploadAvatarData/error [\(error)]")
+                    }
+                }
+
+            case .failure(let error):
+                DDLogError("ProtoService/updateAvatar/\(logAction)/error: \(error)")
+            }
+        }
+    }
+
+    private func loadPendingAvatar(for userID: UserID, completion: @escaping (AvatarData?) -> Void) {
+        let thumbPath = AvatarStore.pendingThumbnailFilename(for: userID)
+        let fullImagePath = AvatarStore.pendingFullImageFilename(for: userID)
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            guard let thumbnailData = self.loadData(atRelativePath: thumbPath) else {
+                DDLogError("AvatarStore/loadPendingAvatar/error [no-thumbnail]")
+                DispatchQueue.main.async { completion(nil) }
+                return
+            }
+            var avatarData = AvatarData(thumbnail: thumbnailData)
+            avatarData.full = self.loadData(atRelativePath: fullImagePath)
+
+            DispatchQueue.main.async {
+                DDLogError("AvatarStore/loadPendingAvatar/success")
+                completion(avatarData)
+            }
+        }
     }
 
     private func insertAvatar(avatarId: AvatarID, forUserId userId: UserID, using managedObjectContext: NSManagedObjectContext) -> Avatar {
@@ -194,45 +333,50 @@ public class AvatarStore: ServiceAvatarDelegate {
         return currentAvatar
     }
 
+    private func removePendingAvatar(for userID: UserID) {
+        removeFile(atRelativePath: AvatarStore.pendingThumbnailFilename(for: userID))
+        removeFile(atRelativePath: AvatarStore.pendingFullImageFilename(for: userID))
+    }
+
     private func removeAvatarFile(avatar: Avatar) {
         if let relativeFilePath = avatar.relativeFilePath {
-            let filePath = AvatarStore.fileURL(forRelativeFilePath: relativeFilePath)
-            if FileManager.default.fileExists(atPath: filePath.path) {
-                do {
-                    try FileManager.default.removeItem(at: filePath)
-                } catch let error as NSError {
-                    DDLogError("AvatarStore/save/failed to remove old file [\(error)]")
-                }
-            }
+            removeFile(atRelativePath: relativeFilePath)
         }
         avatar.relativeFilePath = nil
     }
-    
-    /*
-     The following two `update` methods should only be used to update database.
-     They will not change the actual avatar file on disk.
-     Please use `save` methods above to change the actual avatar file.
-     */
-    
-    public func update(avatarId: AvatarID, forUserId userId: UserID) {
-        let managedObjectContext = bgContext
-        
-        guard let currentAvatar = avatar(forUserId: userId, using: managedObjectContext) else {
-            DDLogError("AvatarStore/updateAvatarId/error avatar does not exist!")
-            return
+
+    private func removeFile(atRelativePath relativePath: String) {
+        let fileURL = AvatarStore.fileURL(forRelativeFilePath: relativePath)
+        if FileManager.default.fileExists(atPath: fileURL.path) {
+            do {
+                try FileManager.default.removeItem(at: fileURL)
+            } catch {
+                DDLogError("AvatarStore/removeFile/error [\(relativePath)] [\(error)]")
+            }
         }
-        
-        currentAvatar.avatarId = avatarId
-        
-        do {
-            try managedObjectContext.save()
-        } catch let error as NSError {
-            DDLogError("AvatarStore/updateAvatarId/error [\(error)]")
-        }
-        
-        DDLogInfo("AvatarStore/updateAvatarId avatarId for user \(userId) has been changed to \(avatarId)")
     }
-    
+
+    private func loadData(atRelativePath relativePath: String) -> Data? {
+        let fileURL = AvatarStore.fileURL(forRelativeFilePath: relativePath)
+        guard FileManager.default.fileExists(atPath: fileURL.path) else {
+            DDLogInfo("AvatarStore/loadData/no-data [\(relativePath)]")
+            return nil
+        }
+        do {
+            return try Data(contentsOf: fileURL)
+        } catch {
+            DDLogInfo("AvatarStore/loadData/error [\(relativePath)] [\(error)]")
+            return nil
+        }
+    }
+
+    private func writeData(_ data: Data, toRelativePath relativePath: String) throws {
+        let fileURL = AvatarStore.fileURL(forRelativeFilePath: relativePath)
+        try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
+        try data.write(to: fileURL)
+    }
+
+    /// Updates relative file path in the database without changing files on disk.
     fileprivate func update(relativeFilePath: String, forUserId userId: UserID) {
         let managedObjectContext = bgContext
         
@@ -421,7 +565,6 @@ extension AvatarStore {
 }
 
 public class UserAvatar {
-    public var data: Data?
     public var image: UIImage? {
         didSet {
             DispatchQueue.main.async {
@@ -429,18 +572,12 @@ public class UserAvatar {
             }
         }
     }
-    public var isEmpty = true
-    
-    fileprivate var avatarId: AvatarID? {
-        didSet {
-            if avatarId != nil && !avatarId!.isEmpty {
-                isEmpty = false
-            } else {
-                isEmpty = true
-            }
-        }
+    public var isEmpty: Bool {
+        avatarId?.isEmpty ?? true
     }
-    fileprivate var fileUrl: URL?
+
+    fileprivate var avatarId: AvatarID?
+    fileprivate var fileURL: URL?
     
     private let userId: UserID
     private var imageIsLoading = false
@@ -452,17 +589,11 @@ public class UserAvatar {
     init(_ avatar: Avatar) {
         avatarId = avatar.avatarId
         userId = avatar.userId
-        
-        if avatarId != nil && !avatarId!.isEmpty {
-            isEmpty = false
-        } else {
-            isEmpty = true
-        }
-        
+
         if let relativeFilePath = avatar.relativeFilePath {
-            fileUrl = AvatarStore.fileURL(forRelativeFilePath: relativeFilePath)
+            fileURL = AvatarStore.fileURL(forRelativeFilePath: relativeFilePath)
         } else {
-            fileUrl = nil
+            fileURL = nil
         }
         
         DDLogInfo("UserAvatar/init for user=\(userId)")
@@ -475,43 +606,43 @@ public class UserAvatar {
         DDLogInfo("UserAvatar/init a dummy object for user=\(userId) has been created")
     }
     
-    public func loadImage(using avatarStore: AvatarStore) {
-        guard image == nil && !imageIsLoading && !isEmpty else {
+    public func loadThumbnailImage(using avatarStore: AvatarStore) {
+        guard let avatarId = avatarId, image == nil && !imageIsLoading && !isEmpty else {
             return
         }
         
         imageIsLoading = true
         
-        DDLogInfo("UserAvatar/loadImage for user=\(userId), avatar=\(avatarId ?? ""), fileUrl=\(String(describing: fileUrl))")
-        if let fileUrl = self.fileUrl { // avatar has been downloaded
+        DDLogInfo("UserAvatar/loadImage for user=\(userId), avatar=\(avatarId), fileUrl=\(String(describing: fileURL))")
+        if let fileURL = self.fileURL { // avatar has been downloaded
             UserAvatar.avatarLoadingQueue.async {
+                let data: Data
                 do {
-                    self.data = try Data(contentsOf: fileUrl)
+                    data = try Data(contentsOf: fileURL)
                 } catch {
                     DDLogError("UserAvatar/reload failed to read data \(error)")
                     return
                 }
                 
-                if let image = UIImage(data: self.data!) {
+                if let image = UIImage(data: data) {
                     DispatchQueue.main.async {
                         self.image = image
                         DDLogInfo("UserAvatar/loadImage avatar for user \(self.userId) has been loaded from disk")
                     }
                 } else {
                     DDLogError("UserAvatar/reload failed to deserialized data into UIImage")
-                    self.data = nil
                 }
                 
                 self.imageIsLoading = false
             }
         } else { // avatar has not been downloaded yet
-            guard let url = URL(string: AvatarStore.avatarCDNUrl + avatarId!) else {
-                DDLogError("UserAvatar/loadImage/error \(AvatarStore.avatarCDNUrl + avatarId!) cannot be formed as a URL")
+            guard let url = URL(string: AvatarStore.avatarCDNUrl + avatarId) else {
+                DDLogError("UserAvatar/loadImage/error \(AvatarStore.avatarCDNUrl + avatarId) cannot be formed as a URL")
                 self.imageIsLoading = false
                 return
             }
-            
-            let fileName = "\(avatarId!).jpeg"
+
+            let fileName = "\(avatarId).jpeg"
             let fileUrl = AvatarStore.fileURL(forRelativeFilePath: fileName)
             let destination: DownloadRequest.Destination = { _, _ in
                 return (fileUrl, [.removePreviousFile, .createIntermediateDirectories])
@@ -536,7 +667,7 @@ public class UserAvatar {
                     return
                 }
                 
-                guard let image = UIImage(data: response.value!) else {
+                guard let data = response.value, let image = UIImage(data: data) else {
                     DDLogError("UserAvatar/loadImage/AFDownload/error failed to deserialized data into UIIamge")
                     self.imageIsLoading = false
                     return
@@ -546,7 +677,6 @@ public class UserAvatar {
                 
                 DispatchQueue.main.async {
                     self.image = image
-                    self.data = response.value!
                     DDLogInfo("UserAvatar/loadImage avatar for user \(self.userId) has been loaded from network")
                 }
                 
@@ -619,13 +749,13 @@ public class GroupAvatarData {
     }
     
     public func loadImage(using avatarStore: AvatarStore) {
-        guard image == nil && !imageIsLoading && !isEmpty else {
+        guard let avatarId = avatarId, image == nil && !imageIsLoading && !isEmpty else {
             return
         }
         
         imageIsLoading = true
         
-        DDLogInfo("GroupAvatarData/loadImage for group=\(groupID), avatar=\(avatarId ?? ""), fileUrl=\(String(describing: fileUrl))")
+        DDLogInfo("GroupAvatarData/loadImage for group=\(groupID), avatar=\(avatarId), fileUrl=\(String(describing: fileUrl))")
         if let fileUrl = self.fileUrl { // avatar has been downloaded
             GroupAvatarData.avatarLoadingQueue.async {
                 do {
@@ -648,13 +778,13 @@ public class GroupAvatarData {
                 self.imageIsLoading = false
             }
         } else { // avatar has not been downloaded yet
-            guard let url = URL(string: AvatarStore.avatarCDNUrl + avatarId!) else {
-                DDLogError("GroupAvatarData/loadImage/error \(AvatarStore.avatarCDNUrl + avatarId!) cannot be formed as a URL")
+            guard let url = URL(string: AvatarStore.avatarCDNUrl + avatarId) else {
+                DDLogError("GroupAvatarData/loadImage/error \(AvatarStore.avatarCDNUrl + avatarId) cannot be formed as a URL")
                 self.imageIsLoading = false
                 return
             }
-            
-            let fileName = "\(avatarId!).jpeg"
+
+            let fileName = "\(avatarId).jpeg"
             let fileUrl = AvatarStore.fileURL(forRelativeFilePath: fileName)
             let destination: DownloadRequest.Destination = { _, _ in
                 return (fileUrl, [.removePreviousFile, .createIntermediateDirectories])

@@ -25,7 +25,6 @@ protocol HalloService: CoreService {
 
     // MARK: Profile
     func updateUsername(_ name: String)
-    func updateAvatar(_ data: Data?)
 
     // MARK: Feed requests
     func retractPost(_ id: FeedPostID, in groupID: GroupID?, completion: @escaping ServiceRequestCompletion<Void>)

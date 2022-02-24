@@ -189,29 +189,35 @@ final class ProfileHeaderViewController: UIViewController {
     }
     
     @objc private func avatarViewTapped() {
-        guard headerView.avatarViewButton.avatarView.hasImage, let userID = headerView.userID else { return }
+        guard let avatarStore = MainAppContext.shared.avatarStore, let userID = headerView.userID, headerView.avatarViewButton.avatarView.hasImage else {
+            // TODO: Support opening avatar view while avatar is being downloaded
+            return
+        }
         
-        guard let image = MainAppContext.shared.avatarStore.userAvatar(forUserId: userID).image else { return }
-        
-        let mediaController = MediaExplorerController(avatarImage: maskRoundedImage(image: image, radius: image.size.width / 2))
+        let avatar = avatarStore.userAvatar(forUserId: userID)
+        guard !avatar.isEmpty else {
+            DDLogError("ProfileHeaderViewController/avatarViewTapped/error [unknown-avatar-id]")
+            return
+        }
+
+        let imagePublisher = Future<(URL?, UIImage?, CGSize), Never> { promise in
+            avatarStore.loadFullSizeImage(for: avatar) { fullSizeImage in
+                // TODO Support waiting for avatar thumbnail if it isn't available yet
+                guard let image = fullSizeImage ?? MainAppContext.shared.avatarStore.userAvatar(forUserId: userID).image else {
+                    // TODO This publisher should accept errors!
+                    promise(.success((nil, nil, .zero)))
+                    return
+                }
+                promise(.success((nil, image.circularImage(), image.size)))
+            }
+        }.eraseToAnyPublisher()
+
+        let mediaController = MediaExplorerController(imagePublisher: imagePublisher, progress: nil)
         mediaController.delegate = self
 
         present(mediaController, animated: true)
     }
-    
-    /// - Author: [StackOverflow](https://stackoverflow.com/a/29046647)
-    private func maskRoundedImage(image: UIImage, radius: CGFloat) -> UIImage {
-        let imageView: UIImageView = UIImageView(image: image)
-        let layer = imageView.layer
-        layer.masksToBounds = true
-        layer.cornerRadius = radius
-        UIGraphicsBeginImageContext(imageView.bounds.size)
-        layer.render(in: UIGraphicsGetCurrentContext()!)
-        let roundedImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        return roundedImage!
-    }
-    
+
     @objc private func openChatView() {
         guard let userID = headerView.userID else { return }
 
@@ -312,18 +318,11 @@ final class ProfileHeaderViewController: UIViewController {
     }
 
     private func uploadProfilePhoto(_ image: UIImage) {
-        guard let resizedImage = image.fastResized(to: CGSize(width: AvatarStore.avatarSize, height: AvatarStore.avatarSize)) else {
-            DDLogError("profile/edit-photo/error Image resizing failed")
-            return
-        }
+        let userID = MainAppContext.shared.userData.userId
+        MainAppContext.shared.avatarStore.uploadAvatar(image: image, for: userID, using: MainAppContext.shared.service)
 
-        DDLogInfo("profile/edit-photo Will upload new photo")
-        if let avatarData = MainAppContext.shared.avatarStore.save(image: resizedImage, forUserId: MainAppContext.shared.userData.userId, avatarId: "self") {
-            MainAppContext.shared.service.updateAvatar(avatarData)
-        }
-        
         // need to configure again as avatar listens to cached objects and they get evicted once app goes to the background
-        headerView.avatarViewButton.avatarView.configure(with: MainAppContext.shared.userData.userId, using: MainAppContext.shared.avatarStore)
+        headerView.avatarViewButton.avatarView.configure(with: userID, using: MainAppContext.shared.avatarStore)
     }
 
     private func promptToDeleteProfilePhoto() {
@@ -337,10 +336,11 @@ final class ProfileHeaderViewController: UIViewController {
 
     private func deleteProfilePhoto() {
         DDLogInfo("profile/edit-photo Deleting photo")
-        MainAppContext.shared.avatarStore.save(avatarId: "", forUserId: MainAppContext.shared.userData.userId)
-        MainAppContext.shared.service.updateAvatar(nil)
+        let userID = MainAppContext.shared.userData.userId
+        MainAppContext.shared.avatarStore.removeAvatar(for: userID, using: MainAppContext.shared.service)
+
         // need to configure again as avatar listens to cached objects and they get evicted once app goes to the background
-        headerView.avatarViewButton.avatarView.configure(with: MainAppContext.shared.userData.userId, using: MainAppContext.shared.avatarStore)
+        headerView.avatarViewButton.avatarView.configure(with: userID, using: MainAppContext.shared.avatarStore)
     }
 }
 
@@ -657,4 +657,34 @@ final class LabeledIconButton: UIControl {
         label.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 4).isActive = true
         return view
     }()
+}
+
+private extension UIImage {
+    /// - Author: [StackOverflow](https://stackoverflow.com/a/29046647)
+    func circularImage() -> UIImage {
+        let minEdge = min(size.height, size.width)
+        let size = CGSize(width: minEdge, height: minEdge)
+
+        UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
+        guard let context = UIGraphicsGetCurrentContext() else {
+            DDLogError("UIImage/circularImage/error [could-not-get-context]")
+            return self
+        }
+
+        self.draw(in: CGRect(origin: CGPoint.zero, size: size), blendMode: .copy, alpha: 1.0)
+
+        context.setBlendMode(.copy)
+        context.setFillColor(UIColor.clear.cgColor)
+
+        let rectPath = UIBezierPath(rect: CGRect(origin: CGPoint.zero, size: size))
+        let circlePath = UIBezierPath(ovalIn: CGRect(origin: CGPoint.zero, size: size))
+        rectPath.append(circlePath)
+        rectPath.usesEvenOddFillRule = true
+        rectPath.fill()
+
+        let result = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+
+        return result ?? self
+    }
 }

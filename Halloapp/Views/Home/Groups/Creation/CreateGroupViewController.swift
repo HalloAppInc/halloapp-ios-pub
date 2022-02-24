@@ -306,7 +306,7 @@ class CreateGroupViewController: UIViewController {
     }
 
     private func setAvatar(image: UIImage) {
-        guard let resizedImage = image.fastResized(to: CGSize(width: AvatarStore.avatarSize, height: AvatarStore.avatarSize)) else {
+        guard let resizedImage = image.fastResized(to: AvatarStore.thumbnailSize) else {
             DDLogError("CreateGroupViewController/resizeImage error resize failed")
             return
         }

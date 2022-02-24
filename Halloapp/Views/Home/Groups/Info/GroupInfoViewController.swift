@@ -486,7 +486,7 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
     }
 
     private func changeAvatar(image: UIImage) {
-        guard let resizedImage = image.fastResized(to: CGSize(width: AvatarStore.avatarSize, height: AvatarStore.avatarSize)) else {
+        guard let resizedImage = image.fastResized(to: AvatarStore.thumbnailSize) else {
             DDLogError("GroupInfoViewController/resizeImage error resize failed")
             return
         }

@@ -254,7 +254,7 @@ fileprivate class DestinationViewCell: UICollectionViewCell {
             avatar.image = AvatarView.defaultGroupImage
 
             if !userAvatar.isEmpty {
-                userAvatar.loadImage(using: ShareExtensionContext.shared.avatarStore)
+                userAvatar.loadThumbnailImage(using: ShareExtensionContext.shared.avatarStore)
             }
         }
 
