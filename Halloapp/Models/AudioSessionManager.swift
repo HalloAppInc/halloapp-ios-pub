@@ -145,6 +145,7 @@ class AudioSessionManager {
                 options = .allowBluetooth
                 mode = .videoChat
                 monitorProximity = false
+                disableIdleTimer = true
             case .play:
                 if isPlayingOnDeviceSpeaker, UIDevice.current.proximityState {
                     category = .playAndRecord
