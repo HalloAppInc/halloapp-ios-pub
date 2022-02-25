@@ -537,7 +537,7 @@ extension ProtoServiceCore: CoreService {
     }
 
     public func sendGroupFeedHistoryPayload(id groupFeedHistoryID: String, groupID: GroupID, payload: Data, to userID: UserID, rerequestCount: Int32, completion: @escaping ServiceRequestCompletion<Void>) {
-        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+        execute(whenConnectionStateIs: .connected, onQueue: .main) { [self] in
             guard let ownUserID = credentials?.userID,
                   let fromUID = Int64(ownUserID),
                   self.isConnected else {
