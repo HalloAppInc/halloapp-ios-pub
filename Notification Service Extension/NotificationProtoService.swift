@@ -162,6 +162,19 @@ final class NotificationProtoService: ProtoServiceCore {
             return
         case .endOfQueue(_):
             return
+        case .whisperKeys(let pbKeys):
+            if let whisperMessage = WhisperMessage(pbKeys) {
+                // Let delegate know only about update-kind of messages, since we want to rerequest or continue decryption using 1-1 sessions.
+                // This message will be reprocessed by the main app anyways - so we will ack it and save the message.
+                switch whisperMessage {
+                case .update:
+                    keyDelegate?.service(self, didReceiveWhisperMessage: whisperMessage)
+                case .count:
+                    break
+                }
+            } else {
+                DDLogError("NotificationProtoService/didReceive/\(msg.id)/error could not read whisper message")
+            }
         case .incomingCall(let incomingCall):
             // If incomingCall is not too late then
             // abort everything and just report the call to the main app.

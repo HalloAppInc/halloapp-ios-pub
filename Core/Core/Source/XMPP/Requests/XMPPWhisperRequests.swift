@@ -9,7 +9,7 @@ import Foundation
 
 public enum WhisperMessage {
     case count(Int32)
-    case update(userID: UserID)
+    case update(userID: UserID, identityKey: Data)
 
     public init?(_ pbKeys: Server_WhisperKeys) {
         switch pbKeys.action {
@@ -17,7 +17,7 @@ public enum WhisperMessage {
             // NB: Server has been setting action to `.normal` for OTP key count but we want to transition to `.count`
             self = .count(pbKeys.otpKeyCount)
         case .update:
-            self = .update(userID: UserID(pbKeys.uid))
+            self = .update(userID: UserID(pbKeys.uid), identityKey: pbKeys.identityKey)
         default:
             return nil
         }

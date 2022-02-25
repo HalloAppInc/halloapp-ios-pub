@@ -271,8 +271,21 @@ extension KeyData: ServiceKeyDelegate {
     public func service(_ service: CoreService, didReceiveWhisperMessage message: WhisperMessage) {
         DDLogInfo("KeyData/didReceiveWhisperMessage \(message)")
         switch message {
-        case .update(let uid):
-            self.keyStore.deleteMessageKeyBundles(for: uid)
+        case .update(let uid, let identityKey):
+            // We might have already processed this update using the notification extension.
+            // Use the identity-key to deduplicate these messages.
+            // Server sends these messages only on re-registration (which basically means a new identity key).
+            self.keyStore.performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
+                guard let self = self else { return }
+                if let keyBundle = self.keyStore.messageKeyBundle(for: uid, in: managedObjectContext) {
+                    if keyBundle.inboundIdentityPublicEdKey != identityKey {
+                        DDLogInfo("KeyData/didReceiveWhisperMessage \(message)/new identity key/clear old key bundle.")
+                        self.keyStore.deleteMessageKeyBundles(for: uid)
+                    } else {
+                        DDLogInfo("KeyData/didReceiveWhisperMessage \(message)/skip - already on the latest identity key.")
+                    }
+                }
+            }
         case .count(let otpKeyCountNum):
             self.uploadMoreOTPKeysIfNeeded(currentNum: otpKeyCountNum)
         }

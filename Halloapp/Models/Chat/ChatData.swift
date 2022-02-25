@@ -3038,7 +3038,7 @@ extension ChatData {
     private func handleIncomingWhisperMessage(_ whisperMessage: WhisperMessage) {
         DDLogInfo("ChatData/handleIncomingWhisperMessage/begin")
         switch whisperMessage {
-        case .update(let userID):
+        case .update(let userID, _):
             DDLogInfo("ChatData/handleIncomingWhisperMessage/execute update for \(userID)")
             performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
                 guard let self = self else { return }
