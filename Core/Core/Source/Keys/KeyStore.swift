@@ -466,6 +466,8 @@ extension KeyStore {
 
             messageKeyBundle.teardownKey = keyBundle.teardownKey
 
+            DDLogInfo("KeyStore/saveKeyBundle/\(keyBundle.userId)/save updated keyBundle")
+
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
             }

@@ -506,6 +506,7 @@ public final class WhisperSession {
     private func setupInbound(with encryptedData: EncryptedData) -> Result<(KeyBundle, MessageKeyMap), DecryptionError> {
 
         guard case .ready(let keyBundle, let messageKeys) = state else {
+            DDLogInfo("WhisperSession/\(userID)/setup/setup new inbound session")
             return setupNewInboundSession(with: encryptedData)
         }
 
