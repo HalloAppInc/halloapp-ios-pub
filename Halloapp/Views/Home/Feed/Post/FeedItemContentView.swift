@@ -77,15 +77,15 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             commonInit()
         }
 
-        let textLabel = TextLabel()
+        let textView = ExpandableTextView()
 
         private func commonInit() {
             // when animating, align contents to top so that initial resize puts more content below the fold.
-            textLabel.contentMode = .top
-            textLabel.textColor = .label
-            textLabel.translatesAutoresizingMaskIntoConstraints = false
-            addSubview(textLabel)
-            textLabel.constrainMargins(to: self)
+            textView.contentMode = .top
+            textView.textColor = .label
+            textView.translatesAutoresizingMaskIntoConstraints = false
+            addSubview(textView)
+            textView.constrainMargins(to: self)
         }
     }
 
@@ -103,8 +103,8 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
     private var textContentView: TextContentView!
 
-    var textLabel: TextLabel! {
-        textContentView.textLabel
+    var textView: ExpandableTextView! {
+        textContentView.textView
     }
 
     private var audioView: PostAudioView?
@@ -213,14 +213,14 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
             let font = UIFont.preferredFont(forTextStyle: .body).withItalicsIfAvailable
             showTextContentView = true
-            textLabel.attributedText = text.with(font: font, color: .label)
-            textLabel.numberOfLines = 0
+            textView.attributedText = text.with(font: font, color: .label)
+            textView.numberOfLines = 0
         } else if post.isWaiting  {
             let text = NSMutableAttributedString(string: "🕓 " + Localizations.feedPostWaiting)
             let font = UIFont.preferredFont(forTextStyle: .body).withItalicsIfAvailable
             showTextContentView = true
-            textLabel.attributedText = text.with(font: font, color: .label)
-            textLabel.numberOfLines = 0
+            textView.attributedText = text.with(font: font, color: .label)
+            textView.numberOfLines = 0
         } else if postContainsText {
             showTextContentView = true
             let defaultNumberOfLines = media.isEmpty ? 10 : 3
@@ -240,12 +240,15 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
             if let attrText = postText?.with(font: postFont, color: .label) {
                 let ham = HAMarkdown(font: postFont, color: .label)
-                textLabel.attributedText = ham.parse(attrText).applyingFontForMentions(mentionNameFont)
+                textView.attributedText = ham.parse(attrText).applyingFontForMentions(mentionNameFont)
+            } else {
+                
             }
 
-            textLabel.numberOfLines = numberOfLinesToShow
+            textView.numberOfLines = numberOfLinesToShow
             // Adjust vertical margins around text.
             textContentView.layoutMargins.top = media.isEmpty ? 9 : 11
+            textContentView.textView.backgroundColor = nil
         } else {
             showTextContentView = false
         }
@@ -290,7 +293,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         }
         return cryptoResultString
     }
-
+  
     func stopPlayback() {
         if let mediaView = mediaView {
             mediaView.stopPlayback()

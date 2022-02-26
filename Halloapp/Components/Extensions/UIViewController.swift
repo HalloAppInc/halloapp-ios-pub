@@ -43,4 +43,16 @@ extension UIViewController {
         }
         return true
     }
+    
+    func getFailedCallAlert() -> UIAlertController {
+        let alert = UIAlertController(title: Localizations.failedCallTitle,
+                                    message: Localizations.failedCallNoticeText,
+                             preferredStyle: .alert)
+        
+        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default) { action in
+            self.dismiss(animated: true, completion: nil)
+        })
+        
+        return alert
+    }
 }

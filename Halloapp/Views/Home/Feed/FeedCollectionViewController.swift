@@ -19,7 +19,7 @@ protocol FeedCollectionViewControllerDelegate: AnyObject {
     func feedCollectionViewController(_ feedCollectionViewController: FeedCollectionViewController, userActioned: Bool)
 }
 
-class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate {
+class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, UserContextMenuHandler {
 
     weak var delegate: FeedCollectionViewControllerDelegate?
 
@@ -802,6 +802,10 @@ extension FeedCollectionViewController {
             guard let self = self else { return }
             self.handleDeletePostTapped(postId: postId)
         }
+        cell.contextAction = { [weak self] action in
+            self?.handle(user: action)
+        }
+        
         cell.delegate = self
     }
     
@@ -941,7 +945,6 @@ extension FeedCollectionViewController: UICollectionViewDelegate {
 
         feedCell.stopPlayback()
     }
-
 }
 
 extension FeedCollectionViewController: FeedPostCollectionViewCellDelegate {
@@ -959,20 +962,20 @@ extension FeedCollectionViewController: FeedPostCollectionViewCellDelegate {
         postDisplayData[postID] = displayData
     }
 
-    func feedPostCollectionViewCellDidRequestTextExpansion(_ cell: FeedPostCollectionViewCell, for label: TextLabel) {
+    func feedPostCollectionViewCellDidRequestTextExpansion(_ cell: FeedPostCollectionViewCell, for textView: ExpandableTextView) {
         guard let indexPath = collectionView.indexPath(for: cell),
               let postID = cell.postId else
         {
             return
         }
 
-        let numberOfLines = label.numberOfLines + 10
+        let numberOfLines = textView.numberOfLines + 10
 
         var displayData = postDisplayData[postID] ?? FeedPostDisplayData()
         displayData.textNumberOfLines = numberOfLines
         postDisplayData[postID] = displayData
 
-        label.numberOfLines = numberOfLines
+        textView.numberOfLines = numberOfLines
 
         if let collectionViewDataSource = collectionViewDataSource, let displayItem = feedDataSource.item(at: indexPath.item) {
             var snapshot = collectionViewDataSource.snapshot()

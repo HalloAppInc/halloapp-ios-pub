@@ -596,5 +596,4 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
             reloadBlockedSettingValue()
         }
     }
-
 }

@@ -30,7 +30,8 @@ class FeedPostView: UIView {
     var cancelSendingAction: (() -> ())?
     var retrySendingAction: (() -> ())?
     var deleteAction: (() -> ())?
-
+    var contextAction: ((UserContextAction) -> ())?
+    
     weak var delegate: FeedPostViewDelegate?
 
     override init(frame: CGRect) {
@@ -97,7 +98,7 @@ class FeedPostView: UIView {
         self.addSubview(headerView)
 
         itemContentView.translatesAutoresizingMaskIntoConstraints = false
-        itemContentView.textLabel.delegate = self
+        itemContentView.textView.delegate = self
         self.addSubview(itemContentView)
 
         footerView.translatesAutoresizingMaskIntoConstraints = false
@@ -269,29 +270,18 @@ class FeedPostView: UIView {
     }
 }
 
-extension FeedPostView: TextLabelDelegate {
-
-    func textLabel(_ label: TextLabel, didRequestHandle link: AttributedTextLink) {
-        switch link.linkType {
-        case .link, .phoneNumber:
-            if let url = link.result?.url, let delegate = delegate {
-                guard MainAppContext.shared.chatData.proceedIfNotGroupInviteLink(url) else { break }
-                delegate.feedPostView(self, didRequestOpen: url)
-            }
-
-        case .userMention:
-            if let userId = link.userID {
-                showUserAction?(userId)
-            }
-
-        default:
-            break
-        }
+extension FeedPostView: ExpandableTextViewDelegate {
+    func textView(_ textView: ExpandableTextView, didSelectAction action: UserContextAction) {
+        contextAction?(action)
     }
-
-    func textLabelDidRequestToExpand(_ label: TextLabel) {
+    
+    func textView(_ textView: ExpandableTextView, didRequestHandleMention userID: UserID) {
+        showUserAction?(userID)
+    }
+    
+    func textViewDidRequestToExpand(_ textView: ExpandableTextView) {
         delegate?.feedPostViewDidRequestTextExpansion(self) {
-            self.itemContentView.textLabel.numberOfLines = 0
+            self.itemContentView.textView.numberOfLines = 0
         }
     }
 }

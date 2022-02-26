@@ -114,7 +114,7 @@ class TextLabel: UILabel, NSLayoutManagerDelegate {
         layoutManager.delegate = self
 
         readMoreButton = UILabel()
-        readMoreButton.text = NSLocalizedString("textlabel.more", value: "...more", comment: "Link to expand truncated text.")
+        readMoreButton.text = Localizations.textViewMore
         readMoreButton.textColor = .systemBlue
         readMoreButton.backgroundColor = backgroundColor
         readMoreButton.isHidden = true
@@ -545,7 +545,7 @@ class TextLabel: UILabel, NSLayoutManagerDelegate {
         return results
     }
 
-    private class func textRects(forCharacterRange characterRange: NSRange, inTextContainer textContainer: NSTextContainer, withLayoutManager layoutManager: NSLayoutManager) -> [CGRect] {
+    class func textRects(forCharacterRange characterRange: NSRange, inTextContainer textContainer: NSTextContainer, withLayoutManager layoutManager: NSLayoutManager) -> [CGRect] {
         var rects: [CGRect] = []
         var glyphRange = layoutManager.glyphRange(forCharacterRange: characterRange, actualCharacterRange: nil)
         while (true) {

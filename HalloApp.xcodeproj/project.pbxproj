@@ -263,6 +263,8 @@
 		76E00DF624FEC4A800E06252 /* ProfileHeaderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E00DF324FEC2FC00E06252 /* ProfileHeaderViewController.swift */; };
 		76F43F2B2489BC4700D47920 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 76955DE924746E4C0088BE8C /* GoogleService-Info.plist */; };
 		76FE37ED2523EC9600372FB1 /* ContactPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */; };
+		A111BDFC27C96D9100E5DB4E /* UserContextMenuHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A111BDFB27C96D9100E5DB4E /* UserContextMenuHandler.swift */; };
+		A17DCD7027C0885F00E00073 /* ExpandableTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17DCD6F27C0885F00E00073 /* ExpandableTextView.swift */; };
 		A1C18C7C27A1EC9100A76102 /* HalloCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C18C7B27A1EC9100A76102 /* HalloCode.swift */; };
 		A1C18C7F27A1ED8C00A76102 /* HalloCodeTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C18C7E27A1ED8C00A76102 /* HalloCodeTest.swift */; };
 		E5230B1E267AABA60046A2EB /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E5230B1D267AABA60046A2EB /* Intents.framework */; };
@@ -911,6 +913,8 @@
 		76E81D27255E485F0068CD62 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		76F43F2D2489BD8900D47920 /* Notification Service Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Notification Service Extension.entitlements"; sourceTree = "<group>"; };
 		76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContactPickerViewController.swift; path = HalloApp/Components/Views/ContactPickerViewController.swift; sourceTree = SOURCE_ROOT; };
+		A111BDFB27C96D9100E5DB4E /* UserContextMenuHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserContextMenuHandler.swift; path = Halloapp/Views/Home/UserContextMenuHandler.swift; sourceTree = SOURCE_ROOT; };
+		A17DCD6F27C0885F00E00073 /* ExpandableTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpandableTextView.swift; sourceTree = "<group>"; };
 		A1C18C7B27A1EC9100A76102 /* HalloCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloCode.swift; sourceTree = "<group>"; };
 		A1C18C7E27A1ED8C00A76102 /* HalloCodeTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloCodeTest.swift; sourceTree = "<group>"; };
 		E5230B0F267A61BC0046A2EB /* Intents.intentdefinition */ = {isa = PBXFileReference; lastKnownFileType = file.intentdefinition; path = Intents.intentdefinition; sourceTree = "<group>"; };
@@ -1394,6 +1398,7 @@
 				765EB4EA24D92404002FA5D9 /* SafariView.swift */,
 				76A92448244EBCB600794859 /* ShapeView.swift */,
 				761C6167242D89F90028AE19 /* TextLabel.swift */,
+				A17DCD6F27C0885F00E00073 /* ExpandableTextView.swift */,
 				EAAF43982603F7720037F83D /* BlurView.swift */,
 				EA7A386526782A4D0028F739 /* ActionTableViewCell.swift */,
 				F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */,
@@ -1773,6 +1778,7 @@
 				EA73DF3F25E88D9B0070875D /* NewPostsIndicator.swift */,
 				68E5E9D925F6FAF100250762 /* FeedDataSource.swift */,
 				68629293265C660D00C54367 /* FeedPermissionAlert.swift */,
+				A111BDFB27C96D9100E5DB4E /* UserContextMenuHandler.swift */,
 			);
 			path = Feed;
 			sourceTree = "<group>";
@@ -2791,6 +2797,7 @@
 				6ABBB206272D90FB007A595D /* Call.swift in Sources */,
 				764AB41824A67A5C00D4E354 /* Privacy.swift in Sources */,
 				F8C92C9A24CF17BC00B1D4E6 /* MediaEditViewController.swift in Sources */,
+				A17DCD7027C0885F00E00073 /* ExpandableTextView.swift in Sources */,
 				EAC46556251484FE00783821 /* EditGroupViewController.swift in Sources */,
 				E5B9EAB8265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift in Sources */,
 				F850677826A55DAC00A120EC /* AudioRecorder.swift in Sources */,
@@ -2896,6 +2903,7 @@
 				EAA424FE24ECF1480025CBBE /* ChatGroup+CoreDataClass.swift in Sources */,
 				6829F78724D0A62800207F6B /* UserFeedViewController.swift in Sources */,
 				EABDC977253424E1005FE00A /* InboundMsgViewCell.swift in Sources */,
+				A111BDFC27C96D9100E5DB4E /* UserContextMenuHandler.swift in Sources */,
 				68CCE7AD275FDE8200C39B70 /* RootViewController.swift in Sources */,
 				EABDCEDB2697825C009053C7 /* UnknownContactActionBanner.swift in Sources */,
 				762EDBDD244E5A7800986617 /* HomeViewController.swift in Sources */,

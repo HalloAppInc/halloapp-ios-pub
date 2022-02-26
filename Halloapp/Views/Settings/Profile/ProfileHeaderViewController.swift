@@ -249,22 +249,11 @@ final class ProfileHeaderViewController: UIViewController {
                     DDLogInfo("ProfileHeader/startCall/success")
                 case .failure:
                     DDLogInfo("ProfileHeader/startCall/failure")
-                    let alert = self.getFailedCallAlertController()
+                    let alert = self.getFailedCallAlert()
                     self.present(alert, animated: true)
                 }
             }
         }
-    }
-
-    private func getFailedCallAlertController() -> UIAlertController {
-        let alert = UIAlertController(
-            title: Localizations.failedCallTitle,
-            message: Localizations.failedCallNoticeText,
-            preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: { action in
-            self.dismiss(animated: true, completion: nil)
-        }))
-        return alert
     }
     
     func openGroupsCommonPage() {

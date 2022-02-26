@@ -11,7 +11,7 @@ import Foundation
 import Photos
 import UIKit
 
-class PostViewController: UIViewController {
+class PostViewController: UIViewController, UserContextMenuHandler {
 
     private let post: FeedPost
 
@@ -171,6 +171,10 @@ extension PostViewController {
             alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil))
 
             self.present(alert, animated: true)
+        }
+        
+        postView.contextAction = { [weak self] action in
+            self?.handle(user: action)
         }
     }
 

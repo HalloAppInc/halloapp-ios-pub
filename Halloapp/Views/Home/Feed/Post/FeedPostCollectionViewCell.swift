@@ -41,7 +41,7 @@ extension FeedPost {
 protocol FeedPostCollectionViewCellDelegate: AnyObject {
     func feedPostCollectionViewCell(_ cell: FeedPostCollectionViewCell, didRequestOpen url: URL)
     func feedPostCollectionViewCell(_ cell: FeedPostCollectionViewCell, didChangeMediaIndex index: Int)
-    func feedPostCollectionViewCellDidRequestTextExpansion(_ cell: FeedPostCollectionViewCell, for label: TextLabel)
+    func feedPostCollectionViewCellDidRequestTextExpansion(_ cell: FeedPostCollectionViewCell, for textView: ExpandableTextView)
 }
 
 class FeedPostCollectionViewCell: UICollectionViewCell {
@@ -57,6 +57,7 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
     var cancelSendingAction: (() -> ())?
     var retrySendingAction: (() -> ())?
     var deleteAction: (() -> ())?
+    var contextAction: ((UserContextAction) -> ())?
 
     weak var delegate: FeedPostCollectionViewCellDelegate?
 
@@ -112,7 +113,7 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         contentView.addSubview(headerView)
 
         itemContentView.translatesAutoresizingMaskIntoConstraints = false
-        itemContentView.textLabel.delegate = self
+        itemContentView.textView.delegate = self
         contentView.addSubview(itemContentView)
 
         footerView.translatesAutoresizingMaskIntoConstraints = false
@@ -254,7 +255,7 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
     static func contentTopSpacing(forPost post: FeedPost) -> CGFloat {
         return post.media?.isEmpty ?? true ? 0 : 5
     }
-
+  
     // MARK: Button actions
 
     @objc(showComments)
@@ -273,28 +274,17 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
     }
 }
 
-extension FeedPostCollectionViewCell: TextLabelDelegate {
-
-    func textLabel(_ label: TextLabel, didRequestHandle link: AttributedTextLink) {
-        switch link.linkType {
-        case .link, .phoneNumber:
-            if let url = link.result?.url, let delegate = delegate {
-                guard MainAppContext.shared.chatData.proceedIfNotGroupInviteLink(url) else { break }
-                delegate.feedPostCollectionViewCell(self, didRequestOpen: url)
-            }
-
-        case .userMention:
-            if let userId = link.userID {
-                showUserAction?(userId)
-            }
-
-        default:
-            break
-        }
+extension FeedPostCollectionViewCell: ExpandableTextViewDelegate {
+    func textViewDidRequestToExpand(_ textView: ExpandableTextView) {
+        delegate?.feedPostCollectionViewCellDidRequestTextExpansion(self, for: textView)
     }
-
-    func textLabelDidRequestToExpand(_ label: TextLabel) {
-        delegate?.feedPostCollectionViewCellDidRequestTextExpansion(self, for: label)
+    
+    func textView(_ textView: ExpandableTextView, didRequestHandleMention userID: UserID) {
+        showUserAction?(userID)
+    }
+    
+    func textView(_ textView: ExpandableTextView, didSelectAction action: UserContextAction) {
+        contextAction?(action)
     }
 }
 
@@ -353,8 +343,8 @@ final class FeedEventCollectionViewCell: UICollectionViewCell {
                 tapFunc(currentEvent)
             }
         }
-        
     }
+    
     private static let cacheKey = "\(FeedEventCollectionViewCell.self).content"
     private static let sizingLabel = makeLabel(alignment: .natural, isMultiLine: true)
     private static let directionalLayoutMargins = NSDirectionalEdgeInsets(top: 8, leading: 50, bottom: 8, trailing: 50)

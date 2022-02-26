@@ -404,7 +404,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         }
         guard MainAppContext.shared.service.isConnected else {
             DDLogInfo("ChatViewController/startCallIfPossible/service not connected")
-            let alert = self.getFailedCallAlertController()
+            let alert = self.getFailedCallAlert()
             self.present(alert, animated: true)
             return
         }
@@ -416,25 +416,14 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                     DDLogInfo("ChatViewController/startCall/success")
                 case .failure:
                     DDLogInfo("ChatViewController/startCall/failure")
-                    let alert = self.getFailedCallAlertController()
+                    let alert = self.getFailedCallAlert()
                     self.present(alert, animated: true)
                 }
             }
         }
 
     }
-
-    private func getFailedCallAlertController() -> UIAlertController {
-        let alert = UIAlertController(
-            title: Localizations.failedCallTitle,
-            message: Localizations.failedCallNoticeText,
-            preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: { action in
-            self.dismiss(animated: true, completion: nil)
-        }))
-        return alert
-    }
-
+    
     private func pauseVoiceNotes() {
         for cell in tableView.visibleCells {
             if let cell = cell as? OutboundMsgViewCell {
