@@ -286,6 +286,10 @@ extension FeedPostCollectionViewCell: ExpandableTextViewDelegate {
     func textView(_ textView: ExpandableTextView, didSelectAction action: UserContextAction) {
         contextAction?(action)
     }
+    
+    func textView(_ textView: UITextView, shouldInteractWith URL: URL, in characterRange: NSRange, interaction: UITextItemInteraction) -> Bool {
+        return MainAppContext.shared.chatData.proceedIfNotGroupInviteLink(URL)
+    }
 }
 
 final class FeedEventCollectionViewCell: UICollectionViewCell {

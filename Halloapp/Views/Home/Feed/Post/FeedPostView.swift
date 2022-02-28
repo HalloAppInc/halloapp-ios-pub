@@ -284,6 +284,10 @@ extension FeedPostView: ExpandableTextViewDelegate {
             self.itemContentView.textView.numberOfLines = 0
         }
     }
+    
+    func textView(_ textView: UITextView, shouldInteractWith URL: URL, in characterRange: NSRange, interaction: UITextItemInteraction) -> Bool {
+        return MainAppContext.shared.chatData.proceedIfNotGroupInviteLink(URL)
+    }
 }
 
 final class FeedEventView: UIView {

@@ -15,17 +15,6 @@ protocol ExpandableTextViewDelegate: UITextViewDelegate {
     func textView(_ textView: ExpandableTextView, didSelectAction action: UserContextAction)
 }
 
-extension ExpandableTextViewDelegate {
-    func textView(_ textView: UITextView,
-      shouldInteractWith URL: URL,
-           in characterRange: NSRange,
-                 interaction: UITextItemInteraction) -> Bool
-    {
-        // default implementation to make sure we don't open group links
-        return MainAppContext.shared.chatData.proceedIfNotGroupInviteLink(URL)
-    }
-}
-
 /// An expandable text view that provides contextual menus for links, phone numbers,
 /// and @ mentions.
 class ExpandableTextView: UITextView {
