@@ -247,10 +247,6 @@ private class LogsArchive: UIActivityItemProvider {
 
 extension Localizations {
 
-    static var noCallsTitle: String {
-        NSLocalizedString("home.calls.notice.title", value: "No Active Calls", comment: "Title of call screen alert.")
-    }
-
     static var noCallsNoticeText: String {
         NSLocalizedString("home.calls.notice.text", value: "You dont have an active call at the moment.", comment: "Text shown to users trying to open the call screen.")
     }
