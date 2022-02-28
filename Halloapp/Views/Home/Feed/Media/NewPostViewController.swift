@@ -27,7 +27,7 @@ extension Localizations {
     static var voiceNoteDeleteWarningMessage: String {
         NSLocalizedString("composer.deletevoicenote.message",
                           value: "Voice recording will not be saved if you discard this post.",
-                          comment: "Show the user that the title is tappable")
+                          comment: "Warning message shown to the user before discarding a voice post")
     }
 }
 
