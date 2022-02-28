@@ -17,10 +17,6 @@ extension Localizations {
         NSLocalizedString("server.new.message", value: "New Message", comment: "fallback text in notification for a new chat message")
     }
 
-    static var serverGroupMessageNotification: String {
-        NSLocalizedString("server.new.group.message", value: "New Group Message", comment: "fallback text in notification for a new group chat message")
-    }
-
     static var serverInviterNotification: String {
         NSLocalizedString("server.new.inviter", value: "%@ just accepted your invite to join HalloApp 🎉", comment: "fallback text in notification when an invitee joins")
     }

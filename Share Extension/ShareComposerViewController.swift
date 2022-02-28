@@ -19,23 +19,6 @@ fileprivate struct Constants {
 }
 
 private extension Localizations {
-    static var titleDestinationFeed: String {
-        NSLocalizedString("share.composer.title.feed", value: "New Post", comment: "Composer title when sharing to feed")
-    }
-
-    static var titleDestinationContact: String {
-        NSLocalizedString("share.composer.title.contact", value: "New Message", comment: "Composer title when sharing with a contact")
-    }
-
-    static func subtitle(group name: String) -> String {
-        let format = NSLocalizedString("share.composer.subtitle.group", value: "Sharing with %@", comment: "Composer subtitle for group posts")
-        return String.localizedStringWithFormat(format, name)
-    }
-
-    static func subtitle(contact name: String) -> String {
-        let format = NSLocalizedString("share.composer.subtitle.contact", value: "Sending to %@", comment: "Composer subtitle when sharing with a contact")
-        return String.localizedStringWithFormat(format, name)
-    }
 
     static var placeholder: String {
         NSLocalizedString("share.composer.placeholder", value: "Write a description", comment: "Placeholder for media caption.")

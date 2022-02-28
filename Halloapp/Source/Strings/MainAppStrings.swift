@@ -84,10 +84,6 @@ extension Localizations {
         NSLocalizedString("message.copy", value: "Copy", comment: "Message action. Verb.")
     }
 
-    static var messageInfo: String {
-        NSLocalizedString("message.info", value: "Info", comment: "Message action. Verb.")
-    }
-
     static var messageDelete: String {
         NSLocalizedString("message.delete", value: "Delete", comment: "Message action. Verb.")
     }
