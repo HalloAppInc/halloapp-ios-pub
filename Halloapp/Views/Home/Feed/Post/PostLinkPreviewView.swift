@@ -89,6 +89,7 @@ class PostLinkPreviewView: UIView {
 
         let contentView = UIView()
         contentView.backgroundColor = .linkPreviewPostBackground
+        contentView.clipsToBounds = true
         contentView.layer.borderWidth = 0.5
         contentView.layer.borderColor = UIColor.black.withAlphaComponent(0.1).cgColor
         contentView.layer.cornerRadius = 15
