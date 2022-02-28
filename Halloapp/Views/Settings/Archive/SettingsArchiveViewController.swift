@@ -62,8 +62,8 @@ class SettingsArchiveViewController: UIViewController, UICollectionViewDelegate,
         imageView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor).isActive = true
 
         textLabel.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 16).isActive = true
-        textLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor).isActive = true
-        textLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor).isActive = true
+        textLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 4).isActive = true
+        textLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -4).isActive = true
 
         return containerView
     }()
