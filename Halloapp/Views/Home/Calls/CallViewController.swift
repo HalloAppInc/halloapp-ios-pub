@@ -604,7 +604,7 @@ extension Localizations {
         case .reconnecting:
             return NSLocalizedString("call.status.reconnecting", value: "reconnecting...", comment: "Status displayed when reconnecting during call")
         case .failed:
-            return NSLocalizedString("call.status.failed", value: "failed", comment: "Status displayed when call fails.")
+            return NSLocalizedString("call.status.failed", value: "call failed", comment: "Status displayed when call fails.")
         case .held:
             return NSLocalizedString("call.status.held", value: "on hold", comment: "Status displayed when call is on hold.")
         case .busy:
