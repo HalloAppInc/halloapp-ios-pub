@@ -4932,13 +4932,46 @@ extension ChatData: HalloChatDelegate {
                     DDLogError("ChatData/processGroupFeedHistory/\(groupID)/comment: \(comment.id)/hash mismatch/expected: \(String(describing: expectedHash))/actual: \(actualHash)")
                 }
             }
-            // Fetch identity keys of new members and compare with received keys.
-            // TODO: will do this after the first version!
-            let newMemberUids = historyPayload.memberDetails.map{ UserID($0.uid) }
 
-            // For now, encrypt and send the stanza to all the new members.
-            DDLogInfo("ChatData/processGroupFeedHistory/\(groupID)/postsToShare: \(postsToShare.count)/commentsToShare: \(commentsToShare.count)")
-            shareGroupFeedItems(posts: postsToShare, comments: commentsToShare, in: groupID, to: newMemberUids)
+            // Fetch identity keys of new members and compare with received keys.
+            var numberOfFailedVerifications = 0
+            let verifyKeysGroup = DispatchGroup()
+            var newMemberUids: [UserID] = []
+            let totalNewMemberUids = historyPayload.memberDetails.count
+            historyPayload.memberDetails.forEach { memberDetails in
+                verifyKeysGroup.enter()
+                let memberUid = UserID(memberDetails.uid)
+                AppContext.shared.messageCrypter.setupOutbound(for: memberUid) { result in
+                    switch result {
+                    case .success(let keyBundle):
+                        let expected = keyBundle.inboundIdentityPublicEdKey
+                        let actual = memberDetails.publicIdentityKey
+                        if expected == actual {
+                            DDLogInfo("ChatData/processGroupFeedHistory/\(groupID)/verified \(memberUid) successfully")
+                            newMemberUids.append(memberUid)
+                        } else {
+                            DDLogError("ChatData/processGroupFeedHistory/\(groupID)/failed verification of \(memberUid)/expected: \(expected.bytes.prefix(4))/actual: \(actual.bytes.prefix(4))")
+                            numberOfFailedVerifications += 1
+                        }
+                    case .failure(let error):
+                        DDLogError("ChatData/processGroupFeedHistory/\(groupID)/failed to verify \(memberUid)/\(error)")
+                        numberOfFailedVerifications += 1
+                    }
+                    verifyKeysGroup.leave()
+                }
+            }
+
+            // After verification - share group feed items to the verified new members.
+            verifyKeysGroup.notify(queue: .main) { [weak self] in
+                guard let self = self else { return }
+                if numberOfFailedVerifications > 0 {
+                    DDLogError("ProtoServiceCore/modifyGroup/\(groupID)/fetchMemberKeysCompletion/error - num: \(numberOfFailedVerifications)/\(totalNewMemberUids)")
+                }
+
+                // Now encrypt and send the stanza to the verified members.
+                DDLogInfo("ChatData/processGroupFeedHistory/\(groupID)/postsToShare: \(postsToShare.count)/commentsToShare: \(commentsToShare.count)")
+                self.shareGroupFeedItems(posts: postsToShare, comments: commentsToShare, in: groupID, to: newMemberUids)
+            }
         } catch {
             DDLogError("ChatData/processGroupFeedHistory/\(groupID)/failed serializing content: \(error)")
         }
