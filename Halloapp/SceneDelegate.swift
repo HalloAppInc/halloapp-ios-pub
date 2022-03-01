@@ -18,7 +18,7 @@ class SceneDelegate: UIResponder {
     var rootViewController = RootViewController()
 
     var callWindow: UIWindow?
-    var callViewController: CallViewController?
+    var callViewController: CallViewController? // Refers to the same call view controller throughout the duration of the call.
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -55,7 +55,6 @@ class SceneDelegate: UIResponder {
                 window.makeKeyAndVisible()
                 callWindow.windowScene = nil
                 self.callWindow = nil
-                self.callViewController = nil
             })
         MainAppContext.shared.coreService.sendPresenceIfPossible(.available)
     }
@@ -64,14 +63,18 @@ class SceneDelegate: UIResponder {
         guard let window = window else { return }
 
         let callViewController: CallViewController
-        switch call.type {
-        case .audio:
-            callViewController = AudioCallViewController(peerUserID: call.peerUserID, isOutgoing: call.isOutgoing) { [weak self] in
-                self?.hideCallViewController()
-            }
-        case .video:
-            callViewController = VideoCallViewController(peerUserID: call.peerUserID, isOutgoing: call.isOutgoing) { [weak self] in
-                self?.hideCallViewController()
+        if let currentCallViewController = self.callViewController {
+            callViewController = currentCallViewController
+        } else {
+            switch call.type {
+            case .audio:
+                callViewController = AudioCallViewController(peerUserID: call.peerUserID, isOutgoing: call.isOutgoing) { [weak self] in
+                    self?.hideCallViewController()
+                }
+            case .video:
+                callViewController = VideoCallViewController(peerUserID: call.peerUserID, isOutgoing: call.isOutgoing) { [weak self] in
+                    self?.hideCallViewController()
+                }
             }
         }
 
@@ -161,6 +164,7 @@ extension SceneDelegate: UIWindowSceneDelegate {
                         // Animate call bar out if visible or hide it immediately if root VC is hidden
                         self.rootViewController.updateCallUI(with: call, animated: self.callViewController == nil)
                         self.hideCallViewController()
+                        self.callViewController = nil
                     }
                 }
         })
