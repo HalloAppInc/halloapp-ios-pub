@@ -189,6 +189,16 @@ extension SceneDelegate: UIWindowSceneDelegate {
                 }
         })
 
+        cancellables.insert(
+            MainAppContext.shared.callManager.cameraAccessDenied.sink {
+                DispatchQueue.main.async {
+                    guard UIApplication.shared.applicationState != .background else {
+                        return
+                    }
+                    self.presentCameraPermissionsAlertController()
+                }
+            })
+
         MainAppContext.shared.callManager.callViewDelegate = self
         rootViewController.delegate = self
         
@@ -346,7 +356,7 @@ extension SceneDelegate: UIWindowSceneDelegate {
                     case .success:
                         DDLogInfo("appdelegate/scene/continueUserActivity/startCall/success")
                     case .failure(let error):
-                        if error != .alreadyInCall {
+                        if error != .alreadyInCall && error != .permissionError {
                             self.presentFailedCallAlertController()
                         }
                         DDLogInfo("appdelegate/scene/continueUserActivity/startCall/failure: \(error)")
@@ -412,6 +422,21 @@ extension SceneDelegate: UIWindowSceneDelegate {
     private func presentMicPermissionsAlertController() {
         DDLogInfo("SceneDelegate/presentMicPermissionsAlertController")
         let alert = UIAlertController(title: Localizations.micAccessDeniedTitle, message: Localizations.micAccessDeniedMessage, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+        alert.addAction(UIAlertAction(title: Localizations.settingsAppName, style: .default, handler: { _ in
+            guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else { return }
+            UIApplication.shared.open(settingsUrl)
+        }))
+        var viewController = window?.rootViewController
+        while let presentedViewController = viewController?.presentedViewController {
+            viewController = presentedViewController
+        }
+        viewController?.present(alert, animated: true)
+    }
+
+    private func presentCameraPermissionsAlertController() {
+        DDLogInfo("SceneDelegate/presentCameraPermissionsAlertController")
+        let alert = UIAlertController(title: nil, message: Localizations.cameraAccessPrompt, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         alert.addAction(UIAlertAction(title: Localizations.settingsAppName, style: .default, handler: { _ in
             guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else { return }

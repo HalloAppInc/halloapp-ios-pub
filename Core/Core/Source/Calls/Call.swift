@@ -133,6 +133,7 @@ public enum CallError: Error {
     case systemError
     case alreadyInCall
     case noActiveCall
+    case permissionError
 }
 
 public enum EndCallReason: Int16, Codable {

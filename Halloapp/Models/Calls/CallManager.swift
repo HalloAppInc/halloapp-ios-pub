@@ -159,6 +159,7 @@ final class CallManager: NSObject, CXProviderDelegate {
     // TODO: maybe we should just try and have a delegate
     // for all possible call failures and show alerts accordingly.
     public let microphoneAccessDenied = PassthroughSubject<Void, Never>()
+    public let cameraAccessDenied = PassthroughSubject<Void, Never>()
     private var cancellables = Set<AnyCancellable>()
 
     // Initialize
@@ -187,14 +188,56 @@ final class CallManager: NSObject, CXProviderDelegate {
             })
     }
 
+    private func checkPermissions(type: CallType, completion: @escaping (Bool) -> Void) {
+        DDLogInfo("CallManager/checkPermissions/callType: \(type)")
+        // check mic permissions.
+        AVAudioSession.sharedInstance().requestRecordPermission { [self] granted in
+            if (granted) {
+                switch type {
+                case .audio:
+                    DDLogInfo("CallManager/checkPermissions/audioCall/success")
+                    completion(true)
+                case .video:
+                    // check camera permissions.
+                    switch AVCaptureDevice.authorizationStatus(for: .video) {
+                    case .denied, .restricted:
+                        DDLogInfo("CallManager/checkPermissions/videoCall/denied")
+                        cameraAccessDenied.send()
+                        completion(false)
+                    case .notDetermined:
+                        AVCaptureDevice.requestAccess(for: .video) { granted in
+                            if granted {
+                                DDLogInfo("CallManager/checkPermissions/videoCall/success")
+                                completion(true)
+                            } else {
+                                DDLogInfo("CallManager/checkPermissions/videoCall/denied")
+                                cameraAccessDenied.send()
+                                completion(false)
+                            }
+                        }
+                    case .authorized:
+                        DDLogInfo("CallManager/checkPermissions/videoCall/success")
+                        completion(true)
+                    @unknown default:
+                        DDLogInfo("CallManager/checkPermissions/videoCall/unknown error")
+                        cameraAccessDenied.send()
+                        completion(false)
+                    }
+                }
+            } else {
+                DDLogInfo("CallManager/checkPermissions/audioCall/denied")
+                microphoneAccessDenied.send()
+                completion(false)
+            }
+        }
+    }
 
     // MARK: User-Initiated Actions
 
     func startCall(to peerUserID: String, type: CallType, completion: @escaping (Result<Void, CallError>) -> Void) {
-        // check Mic permissions before starting a call.
-        AVAudioSession.sharedInstance().requestRecordPermission { [self] granted in
-            if (granted) {
-                if let callID = activeCallID {
+        checkPermissions(type: type) { [self] result in
+            if result {
+                if let callID = self.activeCallID {
                     DDLogError("CallManager/startCall/callID:\(callID)/failed call to \(peerUserID)/already in call")
                     completion(.failure(.alreadyInCall))
                 } else {
@@ -210,32 +253,38 @@ final class CallManager: NSObject, CXProviderDelegate {
                     requestTransaction(transaction, completion: completion)
                 }
             } else {
-                microphoneAccessDenied.send()
-                completion(.failure(.systemError))
+                DDLogError("CallManager/startCall/failed call to \(peerUserID)/systemError")
+                completion(.failure(.permissionError))
             }
         }
     }
 
     func answerCall(completion: @escaping (Result<Void, CallError>) -> Void) {
-        // check Mic permissions before answering the call.
-        AVAudioSession.sharedInstance().requestRecordPermission { [self] granted in
-            if (granted) {
-                if let callID = activeCallID {
-                    DDLogInfo("CallManager/answerCall/callID: \(callID)")
-                    let answerCallAction = CXAnswerCallAction(call: callID.callUUID)
-                    let transaction = CXTransaction()
-                    transaction.addAction(answerCallAction)
-                    requestTransaction(transaction, completion: completion)
+        if let type = activeCall?.type {
+            checkPermissions(type: type) { [self] result in
+                if result {
+                    if let callID = activeCallID {
+                        DDLogInfo("CallManager/answerCall/callID: \(callID)")
+                        let answerCallAction = CXAnswerCallAction(call: callID.callUUID)
+                        let transaction = CXTransaction()
+                        transaction.addAction(answerCallAction)
+                        requestTransaction(transaction, completion: completion)
+                    } else {
+                        DDLogError("CallManager/answerCall/callID is nil")
+                        completion(.failure(.noActiveCall))
+                    }
                 } else {
-                    DDLogError("CallManager/answerCall/callID is nil")
-                    completion(.failure(.noActiveCall))
+                    DDLogError("CallManager/answerCall/failed call: \(String(describing: activeCallID))/systemError")
+                    checkAndReportCallEnded(id: activeCallID, reason: .failed)
+                    endActiveCall(reason: .systemError)
+                    completion(.failure(.permissionError))
                 }
-            } else {
-                checkAndReportCallEnded(id: activeCallID, reason: .failed)
-                endActiveCall(reason: .systemError)
-                microphoneAccessDenied.send()
-                completion(.failure(.systemError))
             }
+        } else {
+            DDLogError("CallManager/answerCall/failed call/activeCall is nil")
+            checkAndReportCallEnded(id: activeCallID, reason: .failed)
+            endActiveCall(reason: .systemError)
+            completion(.failure(.systemError))
         }
     }
 
@@ -532,9 +581,8 @@ final class CallManager: NSObject, CXProviderDelegate {
         if let details = callDetailsMap[action.callUUID],
            details.callID == activeCallID,
            let displayCall = activeCall {
-            // check Mic permissions before answering the call.
-            AVAudioSession.sharedInstance().requestRecordPermission { [self] granted in
-                if (granted) {
+            checkPermissions(type: displayCall.type) { [self] result in
+                if result {
                     // Show call UI to the user
                     callViewDelegate?.callAccepted(call: displayCall)
                     activeCall?.answer { [self] success in
@@ -549,10 +597,10 @@ final class CallManager: NSObject, CXProviderDelegate {
                         }
                     }
                 } else {
-                    checkAndReportCallEnded(id: activeCallID, reason: .failed)
+                    DDLogError("CallManager/CXAnswerCallAction/failed/denied access")
+                    checkAndReportCallEnded(id: activeCallID, reason: .unanswered)
                     endActiveCall(reason: .systemError)
                     action.fail()
-                    microphoneAccessDenied.send()
                 }
             }
         } else {
