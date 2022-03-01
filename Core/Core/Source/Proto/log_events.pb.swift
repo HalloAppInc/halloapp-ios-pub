@@ -183,6 +183,14 @@ public struct Server_EventData {
     set {_uniqueStorage()._edata = .fabAction(newValue)}
   }
 
+  public var groupHistoryReport: Server_GroupHistoryReport {
+    get {
+      if case .groupHistoryReport(let v)? = _storage._edata {return v}
+      return Server_GroupHistoryReport()
+    }
+    set {_uniqueStorage()._edata = .groupHistoryReport(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Edata: Equatable {
@@ -196,6 +204,7 @@ public struct Server_EventData {
     case groupDecryptionReport(Server_GroupDecryptionReport)
     case call(Server_Call)
     case fabAction(Server_FabAction)
+    case groupHistoryReport(Server_GroupHistoryReport)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_EventData.OneOf_Edata, rhs: Server_EventData.OneOf_Edata) -> Bool {
@@ -241,6 +250,10 @@ public struct Server_EventData {
       }()
       case (.fabAction, .fabAction): return {
         guard case .fabAction(let l) = lhs, case .fabAction(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.groupHistoryReport, .groupHistoryReport): return {
+        guard case .groupHistoryReport(let l) = lhs, case .groupHistoryReport(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -797,6 +810,8 @@ public struct Server_DecryptionReport {
 
   public var isSilent: Bool = false
 
+  public var contentType: Server_DecryptionReport.ContentType = .chat
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum Status: SwiftProtobuf.Enum {
@@ -827,6 +842,34 @@ public struct Server_DecryptionReport {
 
   }
 
+  public enum ContentType: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case chat // = 0
+    case groupHistory // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .chat
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .chat
+      case 1: self = .groupHistory
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .chat: return 0
+      case .groupHistory: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
   public init() {}
 }
 
@@ -837,6 +880,14 @@ extension Server_DecryptionReport.Status: CaseIterable {
   public static var allCases: [Server_DecryptionReport.Status] = [
     .ok,
     .fail,
+  ]
+}
+
+extension Server_DecryptionReport.ContentType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_DecryptionReport.ContentType] = [
+    .chat,
+    .groupHistory,
   ]
 }
 
@@ -992,6 +1043,70 @@ extension Server_GroupDecryptionReport.ItemType: CaseIterable {
 extension Server_GroupDecryptionReport.Schedule: CaseIterable {
   // The compiler won't synthesize support with the UNRECOGNIZED case.
   public static var allCases: [Server_GroupDecryptionReport.Schedule] = [
+    .daily,
+    .resultBased,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+public struct Server_GroupHistoryReport {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var gid: String = String()
+
+  public var numExpected: UInt32 = 0
+
+  public var numDecrypted: UInt32 = 0
+
+  public var originalVersion: String = String()
+
+  public var rerequestCount: UInt32 = 0
+
+  public var timeTakenS: UInt32 = 0
+
+  public var schedule: Server_GroupHistoryReport.Schedule = .daily
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum Schedule: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case daily // = 0
+    case resultBased // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .daily
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .daily
+      case 1: self = .resultBased
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .daily: return 0
+      case .resultBased: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Server_GroupHistoryReport.Schedule: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_GroupHistoryReport.Schedule] = [
     .daily,
     .resultBased,
   ]
@@ -1346,6 +1461,7 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     17: .standard(proto: "group_decryption_report"),
     18: .same(proto: "call"),
     19: .standard(proto: "fab_action"),
+    20: .standard(proto: "group_history_report"),
   ]
 
   fileprivate class _StorageClass {
@@ -1520,6 +1636,19 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
             _storage._edata = .fabAction(v)
           }
         }()
+        case 20: try {
+          var v: Server_GroupHistoryReport?
+          var hadOneofValue = false
+          if let current = _storage._edata {
+            hadOneofValue = true
+            if case .groupHistoryReport(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._edata = .groupHistoryReport(v)
+          }
+        }()
         default: break
         }
       }
@@ -1587,6 +1716,10 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       case .fabAction?: try {
         guard case .fabAction(let v)? = _storage._edata else { preconditionFailure() }
         try visitor.visitSingularMessageField(value: v, fieldNumber: 19)
+      }()
+      case .groupHistoryReport?: try {
+        guard case .groupHistoryReport(let v)? = _storage._edata else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 20)
       }()
       case nil: break
       }
@@ -2036,6 +2169,7 @@ extension Server_DecryptionReport: SwiftProtobuf.Message, SwiftProtobuf._Message
     7: .standard(proto: "rerequest_count"),
     8: .standard(proto: "time_taken_s"),
     9: .standard(proto: "is_silent"),
+    10: .standard(proto: "content_type"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2053,6 +2187,7 @@ extension Server_DecryptionReport: SwiftProtobuf.Message, SwiftProtobuf._Message
       case 7: try { try decoder.decodeSingularUInt32Field(value: &self.rerequestCount) }()
       case 8: try { try decoder.decodeSingularUInt32Field(value: &self.timeTakenS) }()
       case 9: try { try decoder.decodeSingularBoolField(value: &self.isSilent) }()
+      case 10: try { try decoder.decodeSingularEnumField(value: &self.contentType) }()
       default: break
       }
     }
@@ -2086,6 +2221,9 @@ extension Server_DecryptionReport: SwiftProtobuf.Message, SwiftProtobuf._Message
     if self.isSilent != false {
       try visitor.visitSingularBoolField(value: self.isSilent, fieldNumber: 9)
     }
+    if self.contentType != .chat {
+      try visitor.visitSingularEnumField(value: self.contentType, fieldNumber: 10)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -2099,6 +2237,7 @@ extension Server_DecryptionReport: SwiftProtobuf.Message, SwiftProtobuf._Message
     if lhs.rerequestCount != rhs.rerequestCount {return false}
     if lhs.timeTakenS != rhs.timeTakenS {return false}
     if lhs.isSilent != rhs.isSilent {return false}
+    if lhs.contentType != rhs.contentType {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -2108,6 +2247,13 @@ extension Server_DecryptionReport.Status: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "OK"),
     1: .same(proto: "FAIL"),
+  ]
+}
+
+extension Server_DecryptionReport.ContentType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "CHAT"),
+    1: .same(proto: "GROUP_HISTORY"),
   ]
 }
 
@@ -2221,6 +2367,81 @@ extension Server_GroupDecryptionReport.ItemType: SwiftProtobuf._ProtoNameProvidi
 }
 
 extension Server_GroupDecryptionReport.Schedule: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "DAILY"),
+    1: .same(proto: "RESULT_BASED"),
+  ]
+}
+
+extension Server_GroupHistoryReport: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".GroupHistoryReport"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "gid"),
+    2: .standard(proto: "num_expected"),
+    3: .standard(proto: "num_decrypted"),
+    4: .standard(proto: "original_version"),
+    5: .standard(proto: "rerequest_count"),
+    6: .standard(proto: "time_taken_s"),
+    7: .same(proto: "schedule"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.gid) }()
+      case 2: try { try decoder.decodeSingularUInt32Field(value: &self.numExpected) }()
+      case 3: try { try decoder.decodeSingularUInt32Field(value: &self.numDecrypted) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.originalVersion) }()
+      case 5: try { try decoder.decodeSingularUInt32Field(value: &self.rerequestCount) }()
+      case 6: try { try decoder.decodeSingularUInt32Field(value: &self.timeTakenS) }()
+      case 7: try { try decoder.decodeSingularEnumField(value: &self.schedule) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.gid.isEmpty {
+      try visitor.visitSingularStringField(value: self.gid, fieldNumber: 1)
+    }
+    if self.numExpected != 0 {
+      try visitor.visitSingularUInt32Field(value: self.numExpected, fieldNumber: 2)
+    }
+    if self.numDecrypted != 0 {
+      try visitor.visitSingularUInt32Field(value: self.numDecrypted, fieldNumber: 3)
+    }
+    if !self.originalVersion.isEmpty {
+      try visitor.visitSingularStringField(value: self.originalVersion, fieldNumber: 4)
+    }
+    if self.rerequestCount != 0 {
+      try visitor.visitSingularUInt32Field(value: self.rerequestCount, fieldNumber: 5)
+    }
+    if self.timeTakenS != 0 {
+      try visitor.visitSingularUInt32Field(value: self.timeTakenS, fieldNumber: 6)
+    }
+    if self.schedule != .daily {
+      try visitor.visitSingularEnumField(value: self.schedule, fieldNumber: 7)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_GroupHistoryReport, rhs: Server_GroupHistoryReport) -> Bool {
+    if lhs.gid != rhs.gid {return false}
+    if lhs.numExpected != rhs.numExpected {return false}
+    if lhs.numDecrypted != rhs.numDecrypted {return false}
+    if lhs.originalVersion != rhs.originalVersion {return false}
+    if lhs.rerequestCount != rhs.rerequestCount {return false}
+    if lhs.timeTakenS != rhs.timeTakenS {return false}
+    if lhs.schedule != rhs.schedule {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_GroupHistoryReport.Schedule: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "DAILY"),
     1: .same(proto: "RESULT_BASED"),
