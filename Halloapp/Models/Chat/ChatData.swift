@@ -1538,8 +1538,7 @@ class ChatData: ObservableObject {
                         messageID: chatMsg.id,
                         timestamp: chatTimestamp,
                         sender: UserAgent(string: senderClientVersion),
-                        rerequestCount: Int(serverMsg.rerequestCount),
-                        isSilent: false)
+                        rerequestCount: Int(serverMsg.rerequestCount))
                     DDLogInfo("ChatData/mergeSharedData/reported decryption result \(sharedMsg.decryptionError ?? "no-error") for msg: \(chatMsg.id)")
                 } catch {
                     DDLogError("ChatData/mergeSharedData/Unable to initialize Server_Msg")
@@ -1564,7 +1563,7 @@ class ChatData: ObservableObject {
     }
 
     // TODO: duplicate code from ProtoService.swift
-    private func reportDecryptionResult(error: DecryptionError?, messageID: String, timestamp: Date, sender: UserAgent?, rerequestCount: Int, isSilent: Bool) {
+    private func reportDecryptionResult(error: DecryptionError?, messageID: String, timestamp: Date, sender: UserAgent?, rerequestCount: Int) {
         AppContext.shared.eventMonitor.count(.decryption(error: error, sender: sender))
         if let sender = sender {
             MainAppContext.shared.cryptoData.update(
@@ -1572,8 +1571,7 @@ class ChatData: ObservableObject {
                 timestamp: timestamp,
                 result: error?.rawValue ?? "success",
                 rerequestCount: rerequestCount,
-                sender: sender,
-                isSilent: isSilent)
+                sender: sender)
         } else {
             DDLogError("ChatData/reportDecryptionResult/\(messageID)/decrypt/error missing sender user agent")
         }

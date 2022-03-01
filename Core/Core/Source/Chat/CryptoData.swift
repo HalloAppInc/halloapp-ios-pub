@@ -20,7 +20,7 @@ public final class CryptoData {
         self.persistentStoreURL = persistentStoreURL
     }
 
-    public func update(messageID: String, timestamp: Date, result: String, rerequestCount: Int, sender: UserAgent, isSilent: Bool) {
+    public func update(messageID: String, timestamp: Date, result: String, rerequestCount: Int, sender: UserAgent) {
         queue.async { [weak self] in
             guard let self = self else { return }
             guard let messageDecryption = self.fetchMessageDecryption(id: messageID, in: self.bgContext) ??
@@ -44,7 +44,8 @@ public final class CryptoData {
             messageDecryption.rerequestCount = Int32(rerequestCount)
             messageDecryption.decryptionResult = result
             messageDecryption.timeDecrypted = result == "success" ? Date() : nil
-            messageDecryption.isSilent = isSilent
+            // TODO: Delete this field from coredata
+            messageDecryption.isSilent = false
             if self.bgContext.hasChanges {
                 do {
                     try self.bgContext.save()

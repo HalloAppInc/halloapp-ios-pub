@@ -662,34 +662,7 @@ final class ProtoService: ProtoServiceCore {
                     messageID: msg.id,
                     timestamp: receiptTimestamp,
                     sender: UserAgent(string: serverChat.senderClientVersion),
-                    rerequestCount: Int(msg.rerequestCount),
-                    isSilent: false)
-            }
-        case .silentChatStanza(let silent):
-            let receiptTimestamp = Date()
-            // We ignore message content from silent messages (only interested in decryption success)
-            decryptChat(silent.chatStanza, from: UserID(msg.fromUid)) { (_, _, decryptionFailure) in
-                if let failure = decryptionFailure {
-                    DDLogError("proto/didReceive/\(msg.id)/silent-decrypt/error \(failure.error)")
-                    AppContext.shared.errorLogger?.logError(failure.error)
-                    hasAckBeenDelegated = true
-                    self.updateStatusAndRerequestMessage(msg, failedEphemeralKey: failure.ephemeralKey, ack: ack)
-                } else {
-                    DDLogInfo("proto/didReceive/\(msg.id)/silent-decrypt/success")
-                }
-                if !silent.chatStanza.senderClientVersion.isEmpty {
-                    DDLogInfo("proto/didReceive/\(msg.id)/senderClient [\(silent.chatStanza.senderClientVersion)]")
-                }
-                if !silent.chatStanza.senderLogInfo.isEmpty {
-                    DDLogInfo("proto/didReceive/\(msg.id)/senderLog [\(silent.chatStanza.senderLogInfo)]")
-                }
-                self.reportDecryptionResult(
-                    error: decryptionFailure?.error,
-                    messageID: msg.id,
-                    timestamp: receiptTimestamp,
-                    sender: UserAgent(string: silent.chatStanza.senderClientVersion),
-                    rerequestCount: Int(msg.rerequestCount),
-                    isSilent: true)
+                    rerequestCount: Int(msg.rerequestCount))
             }
         case .rerequest(let rerequest):
             let userID = UserID(msg.fromUid)
@@ -970,8 +943,7 @@ final class ProtoService: ProtoServiceCore {
                     messageID: groupFeedHistory.id,
                     timestamp: Date(),
                     sender: UserAgent(string: groupFeedHistory.senderClientVersion),
-                    rerequestCount: Int(msg.rerequestCount),
-                    isSilent: false)
+                    rerequestCount: Int(msg.rerequestCount))
             }
         case .groupChat(let pbGroupChat):
             if HalloGroupChatMessage(pbGroupChat, id: msg.id, retryCount: msg.retryCount) != nil {
@@ -1108,6 +1080,8 @@ final class ProtoService: ProtoServiceCore {
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .incomingCallPush(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
+        case .silentChatStanza(_):
+            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         }
     }
 
@@ -1164,7 +1138,7 @@ final class ProtoService: ProtoServiceCore {
         self.enqueue(request: request)
     }
 
-    private func reportDecryptionResult(error: DecryptionError?, messageID: String, timestamp: Date, sender: UserAgent?, rerequestCount: Int, isSilent: Bool) {
+    private func reportDecryptionResult(error: DecryptionError?, messageID: String, timestamp: Date, sender: UserAgent?, rerequestCount: Int) {
         AppContext.shared.eventMonitor.count(.decryption(error: error, sender: sender))
 
         if let sender = sender {
@@ -1173,8 +1147,7 @@ final class ProtoService: ProtoServiceCore {
                 timestamp: timestamp,
                 result: error?.rawValue ?? "success",
                 rerequestCount: rerequestCount,
-                sender: sender,
-                isSilent: isSilent)
+                sender: sender)
         } else {
             DDLogError("proto/didReceive/\(messageID)/decrypt/stats/error missing sender user agent")
         }
