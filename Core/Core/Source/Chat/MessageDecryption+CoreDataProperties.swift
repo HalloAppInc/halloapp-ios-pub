@@ -24,4 +24,5 @@ extension MessageDecryption {
     @NSManaged public var rerequestCount: Int32
     @NSManaged public var timeDecrypted: Date?
     @NSManaged public var isSilent: Bool
+    @NSManaged public var contentType: String
 }

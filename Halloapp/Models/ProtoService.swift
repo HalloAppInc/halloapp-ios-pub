@@ -662,7 +662,8 @@ final class ProtoService: ProtoServiceCore {
                     messageID: msg.id,
                     timestamp: receiptTimestamp,
                     sender: UserAgent(string: serverChat.senderClientVersion),
-                    rerequestCount: Int(msg.rerequestCount))
+                    rerequestCount: Int(msg.rerequestCount),
+                    contentType: .chat)
             }
         case .rerequest(let rerequest):
             let userID = UserID(msg.fromUid)
@@ -943,7 +944,8 @@ final class ProtoService: ProtoServiceCore {
                     messageID: groupFeedHistory.id,
                     timestamp: Date(),
                     sender: UserAgent(string: groupFeedHistory.senderClientVersion),
-                    rerequestCount: Int(msg.rerequestCount))
+                    rerequestCount: Int(msg.rerequestCount),
+                    contentType: .groupHistory)
             }
         case .groupChat(let pbGroupChat):
             if HalloGroupChatMessage(pbGroupChat, id: msg.id, retryCount: msg.retryCount) != nil {
@@ -1138,7 +1140,7 @@ final class ProtoService: ProtoServiceCore {
         self.enqueue(request: request)
     }
 
-    private func reportDecryptionResult(error: DecryptionError?, messageID: String, timestamp: Date, sender: UserAgent?, rerequestCount: Int) {
+    private func reportDecryptionResult(error: DecryptionError?, messageID: String, timestamp: Date, sender: UserAgent?, rerequestCount: Int, contentType: DecryptionReportContentType) {
         AppContext.shared.eventMonitor.count(.decryption(error: error, sender: sender))
 
         if let sender = sender {
@@ -1147,7 +1149,8 @@ final class ProtoService: ProtoServiceCore {
                 timestamp: timestamp,
                 result: error?.rawValue ?? "success",
                 rerequestCount: rerequestCount,
-                sender: sender)
+                sender: sender,
+                contentType: contentType)
         } else {
             DDLogError("proto/didReceive/\(messageID)/decrypt/stats/error missing sender user agent")
         }

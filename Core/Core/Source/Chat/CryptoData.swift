@@ -20,7 +20,7 @@ public final class CryptoData {
         self.persistentStoreURL = persistentStoreURL
     }
 
-    public func update(messageID: String, timestamp: Date, result: String, rerequestCount: Int, sender: UserAgent) {
+    public func update(messageID: String, timestamp: Date, result: String, rerequestCount: Int, sender: UserAgent, contentType: DecryptionReportContentType) {
         queue.async { [weak self] in
             guard let self = self else { return }
             guard let messageDecryption = self.fetchMessageDecryption(id: messageID, in: self.bgContext) ??
@@ -46,6 +46,7 @@ public final class CryptoData {
             messageDecryption.timeDecrypted = result == "success" ? Date() : nil
             // TODO: Delete this field from coredata
             messageDecryption.isSilent = false
+            messageDecryption.contentType = contentType.rawValue
             if self.bgContext.hasChanges {
                 do {
                     try self.bgContext.save()
@@ -442,6 +443,7 @@ extension MessageDecryption {
         {
             return nil
         }
+        let contentTypeValue = DecryptionReportContentType(rawValue: contentType) ?? .chat
 
         guard isReadyToBeReported(withDeadline: deadline) else {
             return nil
@@ -457,6 +459,7 @@ extension MessageDecryption {
 
         return .decryptionReport(
             id: messageID,
+            contentType: contentTypeValue,
             result: result,
             clientVersion: clientVersion,
             sender: sender,

@@ -232,7 +232,7 @@ private extension DiscreteEvent {
             push.clientTimestamp = UInt64(timestamp.timeIntervalSince1970)
             return .pushReceived(push)
 
-        case .decryptionReport(let id, let result, let clientVersion, let sender, let rerequestCount, let timeTaken, let isSilent):
+        case .decryptionReport(let id, let contentType, let result, let clientVersion, let sender, let rerequestCount, let timeTaken, let isSilent):
             var report = Server_DecryptionReport()
             report.msgID = id
             if result == "success" {
@@ -247,6 +247,12 @@ private extension DiscreteEvent {
             report.rerequestCount = UInt32(rerequestCount)
             report.timeTakenS = UInt32(timeTaken)
             report.isSilent = isSilent
+            switch contentType {
+            case .chat:
+                report.contentType = .chat
+            case .groupHistory:
+                report.contentType = .groupHistory
+            }
             return .decryptionReport(report)
 
         case .groupDecryptionReport(let id, let gid, let contentType, let error, let clientVersion, let sender, let rerequestCount, let timeTaken):
