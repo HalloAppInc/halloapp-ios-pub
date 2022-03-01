@@ -45,7 +45,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>This lets you take photos and videos right from within HalloApp.</string>
 	<key>NSContactsUsageDescription</key>
-	<string>Upload your contacts to HalloApp's servers to see posts of your friends and let them see yours.</string>
+	<string>Allow HalloApp access to your contacts to be able to share and see posts from your friends and family.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This lets you make calls, send audio posts and messages, and record videos with sound.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
