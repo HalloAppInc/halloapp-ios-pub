@@ -15,7 +15,7 @@ extension Localizations {
 
     static var groupInviteSheetTitle: String {
         NSLocalizedString("group.invitesheet.title",
-                          value: "Share this link with friends & family and they’ll automatically join HalloApp",
+                          value: "Share this link with friends & family and they’ll automatically join this HalloApp group",
                           comment: "Title of invite sheet")
     }
 

@@ -233,10 +233,7 @@ class CreateGroupViewController: UIViewController {
 
         let name = groupNameTextField.text?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) ?? ""
 
-        var selectedMembers = userIds
-        selectedMembers.append(MainAppContext.shared.userData.userId)
-
-        MainAppContext.shared.chatData.createGroup(name: name, description: "", members: selectedMembers, data: avatarData) { [weak self] result in
+        MainAppContext.shared.chatData.createGroup(name: name, description: "", members: userIds, data: avatarData) { [weak self] result in
             guard let self = self else { return }
 
             switch result {

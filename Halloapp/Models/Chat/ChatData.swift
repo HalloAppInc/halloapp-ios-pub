@@ -3629,12 +3629,15 @@ extension ChatData {
                         dispatchGroup.leave() // the group can be created regardless if avatar update succeeds or not
                     }
                 }
+
+                // create invite link now and store it so later UI does not need to show empty link on very first load
+                dispatchGroup.enter()
+                self.getGroupInviteLink(groupID: groupID) { _ in
+                    dispatchGroup.leave() // the group can be created regardless if group link request succeeds or not
+                }
                 
                 dispatchGroup.notify(queue: self.backgroundProcessingQueue) {
                     completion(.success(groupID))
-
-                    // create invite link now and store it so later UI does not need to show empty link on very first load
-                    self.getGroupInviteLink(groupID: groupID) { _ in }
                 }
             case .failure(let error):
                 completion(.failure(error))
