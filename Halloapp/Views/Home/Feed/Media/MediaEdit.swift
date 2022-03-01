@@ -30,6 +30,14 @@ class MediaEdit : ObservableObject {
     @Published var scale: CGFloat = 1.0
     @Published var offset = CGPoint.zero
 
+    // Drawing properties
+    @Published var isDrawing = false
+    @Published var drawingColor = UIColor.red
+    @Published var drawingLineWidth: CGFloat = 8
+    @Published var drawnItems: [PendingPath] = []
+
+    @Published var undoStack: [PendingUndo] = []
+
     private var original: UIImage?
     private var numberOfRotations = 0
     private var hFlipped = false
@@ -51,6 +59,8 @@ class MediaEdit : ObservableObject {
             numberOfRotations = edit.numberOfRotations
             scale = edit.scale
             offset = edit.offset
+            drawnItems.append(contentsOf: edit.drawnItems)
+            undoStack.append(contentsOf: edit.undoStack)
         } else {
             original = media.image
         }
@@ -122,6 +132,7 @@ class MediaEdit : ObservableObject {
                     || edit.numberOfRotations != numberOfRotations
                     || edit.scale != scale
                     || edit.offset != offset
+                    || edit.drawnItems != drawnItems
             }
 
             return initialCrop() != cropRect
@@ -130,6 +141,7 @@ class MediaEdit : ObservableObject {
                 || numberOfRotations != 0
                 || scale != 1.0
                 || offset != .zero
+                || drawnItems.count > 0
         case .video:
             if let edit = media.videoEdit {
                 return edit.muted != muted || edit.start != start || edit.end != end
@@ -158,6 +170,8 @@ class MediaEdit : ObservableObject {
             edit.numberOfRotations = numberOfRotations
             edit.scale = scale
             edit.offset = offset
+            edit.drawnItems = drawnItems
+            edit.undoStack = undoStack
 
             media.edit = edit
 
@@ -204,6 +218,7 @@ class MediaEdit : ObservableObject {
             scale = 1.0
             offset = .zero
             cropRect = initialCrop()
+            drawnItems = []
 
             updateImage()
         case .video:
@@ -213,6 +228,8 @@ class MediaEdit : ObservableObject {
         case .audio:
             break // audio edit is not currently suported
         }
+
+        undoStack = []
     }
 
     func updateImage() {
@@ -268,7 +285,7 @@ class MediaEdit : ObservableObject {
         }
     }
 
-    func rotate() {
+    func rotate(withUndo: Bool = true) {
         guard type == .image else { return }
         guard let image = image else { return }
 
@@ -295,10 +312,19 @@ class MediaEdit : ObservableObject {
             cropRect.size.height = cropRect.size.width * min(maxAspectRatio, ratio)
         }
 
+        drawnItems = drawnItems.map {
+            let points = $0.points.map { CGPoint(x: $0.y, y: image.size.width - $0.x) }
+            return PendingPath(points: points, color: $0.color, width: $0.width)
+        }
+
         updateImage()
+
+        if withUndo {
+            undoStack.append(.rotateReverse)
+        }
     }
 
-    func flip() {
+    func flip(withUndo: Bool = true) {
         guard type == .image else { return }
         guard let image = image else { return }
 
@@ -306,7 +332,16 @@ class MediaEdit : ObservableObject {
         cropRect.origin.x = image.size.width - cropRect.size.width - cropRect.origin.x
         offset.x = -offset.x
 
+        drawnItems = drawnItems.map {
+            let points = $0.points.map { CGPoint(x: image.size.width - $0.x, y: $0.y) }
+            return PendingPath(points: points, color: $0.color, width: $0.width)
+        }
+
         updateImage()
+
+        if withUndo {
+            undoStack.append(.flip)
+        }
     }
 
     func zoom(_ scale: CGFloat) {
@@ -366,18 +401,137 @@ class MediaEdit : ObservableObject {
         let cropOffsetX = cropRect.midX - imgCenterX
         let cropOffsetY = (CGFloat(image.height) - cropRect.midY) - imgCenterY
 
-        let transform = CGAffineTransform(translationX: contextCenterX, y: contextCenterY)
+        let transformImage = CGAffineTransform(translationX: contextCenterX, y: contextCenterY)
             .translatedBy(x: -cropOffsetX, y: -cropOffsetY)
             .translatedBy(x: offset.x, y: -offset.y)
             .scaledBy(x: scale, y: scale)
             .translatedBy(x: -imgCenterX, y: -imgCenterY)
 
-        let ciimage = CIImage(cgImage: image).transformed(by: transform)
-        guard let transformed = CIContext().createCGImage(ciimage, from: CGRect(x: 0, y: 0, width: cropRect.size.width, height: cropRect.size.height), format: .RGBA8, colorSpace: image.colorSpace) else {
-            return nil
+        let transformDrawing = CGAffineTransform(translationX: contextCenterX, y: contextCenterY)
+            .translatedBy(x: -cropOffsetX, y: cropOffsetY)
+            .translatedBy(x: offset.x, y: offset.y)
+            .scaledBy(x: scale, y: scale)
+            .translatedBy(x: -imgCenterX, y: -imgCenterY)
+
+
+        return UIGraphicsImageRenderer(size: cropRect.size).image { ctx in
+            ctx.cgContext.saveGState()
+            // fix coordinate system
+            ctx.cgContext.translateBy(x: 0, y: cropRect.size.height)
+            ctx.cgContext.scaleBy(x: 1, y: -1)
+
+            ctx.cgContext.concatenate(transformImage)
+            ctx.cgContext.draw(image, in: CGRect(x: 0, y: 0, width: image.width, height: image.height))
+            ctx.cgContext.restoreGState()
+
+            ctx.cgContext.saveGState()
+            ctx.cgContext.concatenate(transformDrawing)
+            ctx.cgContext.setLineCap(.round)
+            ctx.cgContext.setLineJoin(.round)
+            for item in drawnItems {
+                guard item.points.count > 0 else { return }
+                ctx.cgContext.setStrokeColor(item.color.cgColor)
+                ctx.cgContext.setLineWidth(item.width)
+                ctx.cgContext.beginPath()
+
+                ctx.cgContext.move(to: item.points[0])
+                MediaEdit.curves(item.points).forEach { ctx.cgContext.addCurve(to: $0.to, control1: $0.control1, control2: $0.control2) }
+
+                ctx.cgContext.strokePath()
+            }
+            ctx.cgContext.restoreGState()
+        }
+    }
+
+    func undo() {
+        guard let item = undoStack.popLast() else { return }
+
+        switch item {
+        case .removeDrawing:
+            drawnItems.removeLast()
+        case .flip:
+            flip(withUndo: false)
+        case .rotateReverse:
+            rotate(withUndo: false)
+            rotate(withUndo: false)
+            rotate(withUndo: false)
+        }
+    }
+
+    // Hermite splines
+    // https://spin.atomicobject.com/2014/05/28/ios-interpolating-points/
+    static func curves(_ rawPoints: [CGPoint]) -> [(to: CGPoint, control1: CGPoint, control2: CGPoint)] {
+        let points = sample(points: rawPoints)
+
+        guard points.count > 1 else { return [] }
+
+        var curves: [(to: CGPoint, control1: CGPoint, control2: CGPoint)] = []
+        var previous = CGPoint.zero
+        var current = points[0]
+        var next = points[1]
+
+        for index in 0 ..< points.count - 1 {
+            let end = next
+
+            var mx: CGFloat
+            var my: CGFloat
+
+            if index > 0 {
+                mx = (next.x - current.x) * 0.5 + (current.x - previous.x)*0.5
+                my = (next.y - current.y) * 0.5 + (current.y - previous.y)*0.5
+            } else {
+                mx = (next.x - current.x) * 0.5
+                my = (next.y - current.y) * 0.5
+            }
+
+            let ctrlPt1 = CGPoint(x: current.x + mx / 3.0, y: current.y + my / 3.0)
+
+            previous = current
+            current = next
+            let nextIndex = index + 2
+
+            if nextIndex < points.count {
+                next = points[nextIndex]
+
+                mx = (next.x - current.x) * 0.5 + (current.x - previous.x) * 0.5
+                my = (next.y - current.y) * 0.5 + (current.y - previous.y) * 0.5
+            } else {
+                mx = (current.x - previous.x) * 0.5
+                my = (current.y - previous.y) * 0.5
+            }
+
+            let ctrlPt2 = CGPoint(x: current.x - mx / 3.0, y: current.y - my / 3.0)
+
+            curves.append((to: end, control1: ctrlPt1, control2: ctrlPt2))
+
+            if nextIndex >= points.count {
+                break
+            }
         }
 
-        return UIImage(cgImage: transformed)
+        return curves
+    }
+
+    static func sample(points: [CGPoint]) -> [CGPoint] {
+        guard points.count > 1 else { return [] }
+
+        let mindistsq: CGFloat = 24 * 24
+        var sampled: [CGPoint] = [points[0]]
+
+        for p in points {
+            guard let current = sampled.last else { break }
+
+            let distsq = (current.x - p.x) * (current.x - p.x) + (current.y - p.y) * (current.y - p.y)
+            if distsq > mindistsq {
+                sampled.append(p)
+            }
+        }
+
+        if points.last != sampled.last, let last = points.last {
+            sampled.append(last)
+        }
+
+        return sampled
     }
 }
 

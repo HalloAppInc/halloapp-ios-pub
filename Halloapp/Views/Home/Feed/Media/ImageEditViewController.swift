@@ -42,7 +42,8 @@ struct ImageEditView: View {
     @State private var isDragging = false
     @State private var startingOffset = CGPoint.zero
     @State private var lastLocation = CGPoint.zero
-    @State private var lastCropSection: CropRegionSection = .none
+    @State private var currentCropSection: CropRegionSection = .none
+    @State private var currentPath: [CGPoint] = []
 
     private func findCropSection(_ crop: CGRect, location: CGPoint) -> CropRegionSection {
         let vThreshold = min(threshold, crop.width / 3)
@@ -85,7 +86,7 @@ struct ImageEditView: View {
     private func newCropRegion(_ crop: CGRect, deltaX: CGFloat = 0, deltaY: CGFloat = 0) -> CGRect {
         var crop = crop
 
-        switch lastCropSection {
+        switch currentCropSection {
         case .top, .topLeft, .topRight:
             crop.origin.y += deltaY
             crop.size.height -= deltaY
@@ -95,7 +96,7 @@ struct ImageEditView: View {
             break
         }
 
-        switch lastCropSection {
+        switch currentCropSection {
         case .left, .bottomLeft, .topLeft:
             crop.origin.x += deltaX
             crop.size.width -= deltaX
@@ -105,13 +106,13 @@ struct ImageEditView: View {
             break
         }
 
-        if lastCropSection == .inside {
+        if currentCropSection == .inside {
             crop.origin.x += deltaX
             crop.origin.y += deltaY
         }
 
         if let maxAspectRatio = maxAspectRatio, (crop.size.height / crop.size.width) - maxAspectRatio > epsilon {
-            switch lastCropSection {
+            switch currentCropSection {
             case .none, .inside:
                 break
             case .left, .right:
@@ -161,90 +162,210 @@ struct ImageEditView: View {
         return CGSize(width: offset.x * scale, height: offset.y * scale)
     }
 
+    private func scale(path: PendingPath, from: CGSize, to: CGSize) -> PendingPath {
+        let baseScale = to.width / from.width
+        let points = path.points.map {
+            $0.applying(CGAffineTransform(scaleX: baseScale, y: baseScale))
+        }
+
+        return PendingPath(points: points, color: path.color, width: path.width * baseScale)
+    }
+
+    private func onDragCropRegion(_ location: CGPoint, in region: CGSize) {
+        guard let imageSize = media.image?.size else { return }
+
+        var crop = scaleCropRegion(media.cropRect, from: imageSize, to: region)
+
+        if currentCropSection == .none {
+            lastLocation = location
+            currentCropSection = findCropSection(crop, location: location)
+
+            guard currentCropSection != .none else { return }
+
+            switch cropRegion {
+            case .circle, .square:
+                currentCropSection = .inside
+            case .any:
+                break
+            }
+        } else {
+            let valid = crop.insetBy(dx: -2 * outThreshold, dy: -2 * outThreshold)
+            if !valid.contains(location) {
+                return
+            }
+        }
+
+        let deltaX = location.x - lastLocation.x
+        let deltaY = location.y - lastLocation.y
+        lastLocation = location
+
+        var result = newCropRegion(crop, deltaX: deltaX)
+        if isCropRegionValid(result, limit: region) {
+            crop = result
+        }
+
+        result = newCropRegion(crop, deltaY: deltaY)
+        if isCropRegionValid(result, limit: region) {
+            crop = result
+        }
+
+        media.cropRect = scaleCropRegion(crop, from: region, to: imageSize)
+    }
+
+    func onDragCropRegionEnd() {
+        currentCropSection = .none
+    }
+
+    @ViewBuilder
+    private func draw(path: PendingPath) -> some View {
+        draw(path: path.points, color: Color(path.color), width: path.width)
+    }
+
+    @ViewBuilder
+    private func draw(path points: [CGPoint], color: Color, width: CGFloat) -> some View {
+        Path { path in
+            guard points.count > 1 else { return }
+
+            path.move(to: points[0])
+
+            MediaEdit.curves(points).forEach { path.addCurve(to: $0.to, control1: $0.control1, control2: $0.control2) }
+        }.stroke(color, style: StrokeStyle(lineWidth: width, lineCap: .round, lineJoin: .round))
+    }
+
     var body: some View {
-        if media.image != nil {
+        if let image = media.image {
             GeometryReader { outer in
-                VStack {
-                    Spacer()
-                    Image(uiImage: self.media.image!)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .allowsHitTesting(false)
-                        .scaleEffect(self.media.scale)
-                        .offset(self.scaleOffset(self.media.offset, containerSize: outer.size, imageSize: self.media.image!.size))
-                        .clipped()
-                        .overlay(GeometryReader { inner in
-                            CropRegion(cropRegion: self.cropRegion, region: self.scaleCropRegion(self.media.cropRect, from: self.media.image!.size, to: inner.size))
-                        })
-                        .overlay(GeometryReader { inner in
-                            CropGestureView(outThreshold: outThreshold)
-                                .onZoomChanged { scale, location in
-                                    let baseScale = self.media.image!.size.width / inner.size.width
-                                    let zoomCenter = location.applying(CGAffineTransform(scaleX: baseScale, y: baseScale))
-                                    let translationX = (zoomCenter.x - self.media.image!.size.width / 2 - self.media.offset.x) * (1 - scale)
-                                    let translationY = (zoomCenter.y - self.media.image!.size.height / 2 - self.media.offset.y) * (1 - scale)
+                ZStack {
+                    VStack {
+                        Spacer()
+                        Image(uiImage: image)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .allowsHitTesting(false)
+                            .scaleEffect(media.scale)
+                            .offset(scaleOffset(media.offset, containerSize: outer.size, imageSize: image.size))
+                            .clipped()
+                            .overlay(
+                                GeometryReader { inner in
+                                    ForEach((0..<media.drawnItems.count), id: \.self) { idx in
+                                        draw(path: scale(path: media.drawnItems[idx], from: image.size, to: inner.size))
+                                    }
 
-                                    self.media.zoom(self.media.scale * scale)
-                                    self.media.move(CGPoint(x: self.media.offset.x + translationX, y: self.media.offset.y + translationY))
+                                    draw(path: currentPath, color: Color(media.drawingColor), width: media.drawingLineWidth / media.scale)
                                 }
-                                .onPinchDragChanged { translation in
-                                    let baseScale = self.media.image!.size.width / inner.size.width
-                                    let scaled = translation.applying(CGAffineTransform(scaleX: baseScale, y: baseScale))
+                                .scaleEffect(media.scale)
+                                .offset(scaleOffset(media.offset, containerSize: outer.size, imageSize: image.size))
+                                .clipped()
+                            )
+                            .overlay(GeometryReader { inner in
+                                CropRegion(cropRegion: cropRegion, region: scaleCropRegion(media.cropRect, from: image.size, to: inner.size))
+                            })
+                            .overlay(GeometryReader { inner in
+                                CropGestureView(outThreshold: outThreshold)
+                                    .onZoomChanged { scale, location in
+                                        let baseScale = image.size.width / inner.size.width
+                                        let zoomCenter = location.applying(CGAffineTransform(scaleX: baseScale, y: baseScale))
+                                        let translationX = (zoomCenter.x - image.size.width / 2 - media.offset.x) * (1 - scale)
+                                        let translationY = (zoomCenter.y - image.size.height / 2 - media.offset.y) * (1 - scale)
 
-                                    self.media.move(CGPoint(x: self.media.offset.x + scaled.x, y: self.media.offset.y + scaled.y))
-                                }
-                                .onDragChanged { location in
-                                    var crop = self.scaleCropRegion(self.media.cropRect, from: self.media.image!.size, to: inner.size)
+                                        media.zoom(media.scale * scale)
+                                        media.move(CGPoint(x: media.offset.x + translationX, y: media.offset.y + translationY))
+                                    }
+                                    .onPinchDragChanged { translation in
+                                        let baseScale = image.size.width / inner.size.width
+                                        let scaled = translation.applying(CGAffineTransform(scaleX: baseScale, y: baseScale))
 
-                                    if !self.isDragging {
-                                        self.lastLocation = location
-                                        self.lastCropSection = self.findCropSection(crop, location: location)
+                                        media.move(CGPoint(x: media.offset.x + scaled.x, y: media.offset.y + scaled.y))
+                                    }
+                                    .onDragChanged { location in
+                                        isDragging = true
 
-                                        if self.lastCropSection != .none {
-                                            self.isDragging = true
+                                        if media.isDrawing {
+                                            let offset = scaleOffset(media.offset, containerSize: outer.size, imageSize: image.size)
+                                            let x = (media.scale - 1) * (inner.size.width / 2) + location.x - offset.width
+                                            let y = (media.scale - 1) * (inner.size.height / 2) + location.y - offset.height
+
+                                            currentPath.append(CGPoint(x: x / media.scale, y: y / media.scale))
                                         } else {
-                                            return
-                                        }
-
-                                        switch self.cropRegion {
-                                        case .circle, .square:
-                                            self.lastCropSection = .inside
-                                        case .any:
-                                            break
-                                        }
-                                    } else {
-                                        let valid = crop.insetBy(dx: -2 * outThreshold, dy: -2 * outThreshold)
-                                        if !valid.contains(location) {
-                                            return
+                                            onDragCropRegion(location, in: inner.size)
                                         }
                                     }
+                                    .onDragEnded { v in
+                                        isDragging = false
 
-                                    let deltaX = location.x - self.lastLocation.x
-                                    let deltaY = location.y - self.lastLocation.y
-                                    self.lastLocation = location
-
-                                    var result = self.newCropRegion(crop, deltaX: deltaX)
-                                    if self.isCropRegionValid(result, limit: inner.size) {
-                                        crop = result
+                                        if media.isDrawing {
+                                            let path = PendingPath(points: currentPath, color: media.drawingColor, width: media.drawingLineWidth / media.scale)
+                                            media.drawnItems.append(scale(path: path, from: inner.size, to: image.size))
+                                            media.undoStack.append(.removeDrawing)
+                                            currentPath = []
+                                        } else {
+                                            onDragCropRegionEnd()
+                                        }
                                     }
+                                    .offset(x: -outThreshold, y: -outThreshold)
+                                    .frame(width: inner.size.width + outThreshold * 2, height: inner.size.height + outThreshold * 2)
+                            })
+                        Spacer()
+                    }.frame(maxWidth: .infinity)
 
-                                    result = self.newCropRegion(crop, deltaY: deltaY)
-                                    if self.isCropRegionValid(result, limit: inner.size) {
-                                        crop = result
-                                    }
-
-                                    self.media.cropRect = self.scaleCropRegion(crop, from: inner.size, to: self.media.image!.size)
-                                }
-                                .onDragEnded { v in
-                                    self.isDragging = false
-                                }
-                                .offset(x: -outThreshold, y: -outThreshold)
-                                .frame(width: inner.size.width + outThreshold * 2, height: inner.size.height + outThreshold * 2)
-                        })
-                    Spacer()
-                }.frame(maxWidth: .infinity)
+                    if media.isDrawing && !isDragging {
+                        ColorPicker(color: $media.drawingColor)
+                            .offset(x: -14)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                    }
+                }
             }.padding(8)
         }
+    }
+}
+
+fileprivate struct ColorPicker: View {
+    @Binding var color: UIColor
+
+    private let height: CGFloat = 322
+    private let colors: [UIColor] = [
+        UIColor(red: 1, green: 0.271, blue: 0, alpha: 1),
+        UIColor(red: 1, green: 0.54, blue: 0, alpha: 1),
+        UIColor(red: 0.944, green: 0.954, blue: 0.469, alpha: 1),
+        UIColor(red: 0.549, green: 0.863, blue: 0.302, alpha: 1),
+        UIColor(red: 0.333, green: 0.825, blue: 0.796, alpha: 1),
+        UIColor(red: 0.249, green: 0.467, blue: 0.892, alpha: 1),
+        UIColor(red: 0.938, green: 0.195, blue: 0.641, alpha: 1),
+        UIColor(red: 0.871, green: 0.201, blue: 0.929, alpha: 1),
+        UIColor(red: 0.133, green: 0.133, blue: 0.133, alpha: 1),
+        .white,
+    ]
+    private let locations: [CGFloat] = [0, 0.11, 0.21, 0.35, 0.48, 0.62, 0.72, 0.79, 0.89, 0.96]
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 19)
+            .fill(.linearGradient(stops: zip(colors, locations).map { Gradient.Stop(color: Color($0.0), location: $0.1) }, startPoint: .bottom, endPoint: .top))
+            .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 0)
+            .gesture(DragGesture(minimumDistance: 0).onChanged {
+                let position = (height - min(height, max(0, $0.location.y))) / height
+                var index = 0
+                for (i, loc) in locations.enumerated() {
+                    if loc > position {
+                        break
+                    }
+                    index = i
+                }
+                index = min(index, locations.count - 2)
+
+                let prcnt = (position - locations[index]) / (locations[index + 1] - locations[index])
+
+                let color1 = colors[index]
+                let color2 = colors[index + 1]
+
+                var (r1, g1, b1, a1): (CGFloat, CGFloat, CGFloat, CGFloat) = (0, 0, 0, 0)
+                var (r2, g2, b2, a2): (CGFloat, CGFloat, CGFloat, CGFloat) = (0, 0, 0, 0)
+
+                guard color1.getRed(&r1, green: &g1, blue: &b1, alpha: &a1) else { return }
+                guard color2.getRed(&r2, green: &g2, blue: &b2, alpha: &a2) else { return }
+
+                color = UIColor(red: r1 + (r2 - r1) * prcnt, green: g1 + (g2 - g1) * prcnt, blue: b1 + (b2 - b1) * prcnt, alpha: a1 + (a2 - a1) * prcnt)
+            })
+            .frame(width: 38, height: height)
     }
 }
 
@@ -267,10 +388,10 @@ fileprivate struct CropRegion: View {
                 case .circle:
                     path.addEllipse(in: region)
                 case .square, .any:
-                    path.addRoundedRect(in: region, cornerSize: self.cornerSize)
+                    path.addRoundedRect(in: region, cornerSize: cornerSize)
                 }
             }
-            .fill(self.shadowColor, style: FillStyle(eoFill: true))
+            .fill(shadowColor, style: FillStyle(eoFill: true))
 
             // Border
             Path { path in
@@ -281,7 +402,7 @@ fileprivate struct CropRegion: View {
                 case .circle:
                     path.addEllipse(in: region)
                 case .square, .any:
-                    path.addRoundedRect(in: region, cornerSize: self.cornerSize)
+                    path.addRoundedRect(in: region, cornerSize: cornerSize)
                 }
             }
             .stroke(Color.white, lineWidth: borderThickness)

@@ -179,6 +179,22 @@ extension FeedMediaProtocol {
 
 }
 
+public enum PendingUndo {
+    case flip, rotateReverse, removeDrawing
+}
+
+public struct PendingPath: Equatable {
+    public var points: [CGPoint]
+    public var color: UIColor
+    public var width: CGFloat
+
+    public init(points: [CGPoint], color: UIColor, width: CGFloat) {
+        self.points = points
+        self.color = color
+        self.width = width
+    }
+}
+
 public struct PendingVideoEdit: Equatable {
     public var start: CGFloat = 0.0
     public var end: CGFloat = 1.0
@@ -205,6 +221,8 @@ public struct PendingMediaEdit: Equatable {
     public var numberOfRotations: Int = 0
     public var scale: CGFloat = 1.0
     public var offset = CGPoint.zero
+    public var drawnItems: [PendingPath] = []
+    public var undoStack: [PendingUndo] = []
     
     public init(image: UIImage?, url: URL?) {
         self.image = image
