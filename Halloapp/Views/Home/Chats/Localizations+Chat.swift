@@ -89,5 +89,20 @@ extension Localizations {
     static var chatGroupTakeOrChoosePhoto: String {
         NSLocalizedString("chat.group.take.or.choose.photo", value: "Take or Choose Photo", comment: "Action to take a picture or choose a photo from the library to use for the group photo")
     }
-    
+
+    static var learnMoreLabel: String {
+        NSLocalizedString("learn.more", value: "Learn more.", comment: "Text with hyperlink to halloapp's faq on encryption.")
+    }
+
+    static func appendLearnMoreLabel(to waitingString: String) -> NSMutableAttributedString {
+        let waitingAttributedString = NSMutableAttributedString(string: waitingString + " ")
+        let learnMoreAttributedString = NSMutableAttributedString(string: Localizations.learnMoreLabel)
+        if let url = URL(string: "https://halloapp.com/help/") {
+            // Set the 'learn more' substring to be the link.
+            // TODO: fix the link here.
+            learnMoreAttributedString.setAttributes([.link: url], range: Localizations.learnMoreLabel.utf16Extent)
+        }
+        waitingAttributedString.append(learnMoreAttributedString)
+        return waitingAttributedString
+    }
 }

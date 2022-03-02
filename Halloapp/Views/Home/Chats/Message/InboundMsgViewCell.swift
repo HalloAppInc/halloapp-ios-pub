@@ -590,7 +590,9 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                 textView.attributedText = ham.parse(text)
             }
         case .rerequesting:
-            textView.text = "🕓 " + Localizations.chatMessageWaiting
+            let waitingString = "🕓 " + Localizations.chatMessageWaiting
+            let attributedString = Localizations.appendLearnMoreLabel(to: waitingString)
+            textView.attributedText = attributedString
             textView.textColor = .chatTime
             textView.font = UIFont.preferredFont(forTextStyle: TextFontStyle).withItalicsIfAvailable
         case .retracted:

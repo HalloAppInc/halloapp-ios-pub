@@ -468,8 +468,9 @@ class CommentView: UIView {
         case .rerequesting:
             if comment.isWaiting {
                 showDeletedView()
-                let attributedText = NSMutableAttributedString(string: "🕓 " + Localizations.feedCommentWaiting)
-                deletedCommentTextLabel.attributedText = attributedText.with(
+                let waitingString = "🕓 " + Localizations.feedCommentWaiting
+                let attributedString = Localizations.appendLearnMoreLabel(to: waitingString)
+                deletedCommentTextLabel.attributedText = attributedString.with(
                     font: UIFont.preferredFont(forTextStyle: .subheadline).withItalicsIfAvailable,
                     color: .secondaryLabel)
             } else {
@@ -721,9 +722,10 @@ class CommentsTableHeaderView: UIView {
         let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
 
         if feedPost.isWaiting {
-            let text = NSMutableAttributedString(string: "🕓 " + Localizations.feedPostWaiting)
+            let waitingString = "🕓 " + Localizations.feedPostWaiting
+            let attributedString = Localizations.appendLearnMoreLabel(to: waitingString)
             let textFont = font.withItalicsIfAvailable
-            textLabel.attributedText = text.with(font: textFont, color: .label)
+            textLabel.attributedText = attributedString.with(font: textFont, color: .label)
             textLabel.numberOfLines = 0
             vStack.insertArrangedSubview(textLabel, at: vStack.arrangedSubviews.count - 1)
 

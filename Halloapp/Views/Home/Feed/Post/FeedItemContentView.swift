@@ -216,10 +216,11 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             textView.attributedText = text.with(font: font, color: .label)
             textView.numberOfLines = 0
         } else if post.isWaiting  {
-            let text = NSMutableAttributedString(string: "🕓 " + Localizations.feedPostWaiting)
+            let waitingString = "🕓 " + Localizations.feedPostWaiting
+            let attributedString = Localizations.appendLearnMoreLabel(to: waitingString)
             let font = UIFont.preferredFont(forTextStyle: .body).withItalicsIfAvailable
             showTextContentView = true
-            textView.attributedText = text.with(font: font, color: .label)
+            textView.attributedText = attributedString.with(font: font, color: .label)
             textView.numberOfLines = 0
         } else if postContainsText {
             showTextContentView = true
