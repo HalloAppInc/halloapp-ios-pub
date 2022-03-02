@@ -26,6 +26,7 @@ public enum DiscreteEvent {
     case pushReceived(id: String, timestamp: Date)
     case decryptionReport(id: String, contentType: DecryptionReportContentType, result: String, clientVersion: String, sender: UserAgent, rerequestCount: Int, timeTaken: TimeInterval, isSilent: Bool)
     case groupDecryptionReport(id: String, gid: String, contentType: String, error: String, clientVersion: String, sender: UserAgent?, rerequestCount: Int, timeTaken: TimeInterval)
+    case groupHistoryReport(gid: String, numExpected: Int32, numDecrypted: Int32, clientVersion: String, rerequestCount: Int32, timeTaken: TimeInterval)
     case callReport(id: String, peerUserID: UserID, type: String, direction: String, networkType: String, answered: Bool, connected: Bool, duration_ms: Int, endCallReason: String, localEndCall: Bool, webrtcStats: String)
     case fabAction(type: FabActionType)
 }
@@ -76,6 +77,14 @@ extension DiscreteEvent: Codable {
             let rerequestCount = try container.decode(Int.self, forKey: .count)
             let timeTaken = try container.decode(TimeInterval.self, forKey: .duration)
             self = .groupDecryptionReport(id: id, gid: gid, contentType: contentType, error: error, clientVersion: clientVersion, sender: sender, rerequestCount: rerequestCount, timeTaken: timeTaken)
+        case .groupHistoryReport:
+            let gid = try container.decode(String.self, forKey: .gid)
+            let numExpected = try container.decode(Int32.self, forKey: .numExpected)
+            let numDecrypted = try container.decode(Int32.self, forKey: .numDecrypted)
+            let clientVersion = try container.decode(String.self, forKey: .version)
+            let rerequestCount = try container.decode(Int32.self, forKey: .count)
+            let timeTaken = try container.decode(TimeInterval.self, forKey: .duration)
+            self = .groupHistoryReport(gid: gid, numExpected: numExpected, numDecrypted: numDecrypted, clientVersion: clientVersion, rerequestCount: rerequestCount, timeTaken: timeTaken)
         case .callReport:
             let id = try container.decode(String.self, forKey: .id)
             let peerUserID = try container.decode(String.self, forKey: .peerUserID)
@@ -141,6 +150,14 @@ extension DiscreteEvent: Codable {
             try container.encode(sender, forKey: .sender)
             try container.encode(rerequestCount, forKey: .count)
             try container.encode(timeTaken, forKey: .duration)
+        case .groupHistoryReport(let gid, let numExpected, let numDecrypted, let clientVersion, let rerequestCount, let timeTaken):
+            try container.encode(EventType.groupHistoryReport, forKey: .eventType)
+            try container.encode(gid, forKey: .gid)
+            try container.encode(numExpected, forKey: .numExpected)
+            try container.encode(numDecrypted, forKey: .numDecrypted)
+            try container.encode(clientVersion, forKey: .version)
+            try container.encode(rerequestCount, forKey: .count)
+            try container.encode(timeTaken, forKey: .duration)
         case .callReport(let id, let peerUserID, let type, let direction, let networkType, let answered, let connected, let duration_ms, let endCallReason, let localEndCall, let webrtcStats):
             try container.encode(EventType.callReport, forKey: .eventType)
             try container.encode(id, forKey: .id)
@@ -185,6 +202,8 @@ extension DiscreteEvent: Codable {
         case endCallReason
         case localEndCall
         case webrtcStats
+        case numExpected
+        case numDecrypted
     }
 
     private enum EventType: String, Codable {
@@ -195,5 +214,6 @@ extension DiscreteEvent: Codable {
         case groupDecryptionReport
         case callReport
         case fabAction
+        case groupHistoryReport
     }
 }

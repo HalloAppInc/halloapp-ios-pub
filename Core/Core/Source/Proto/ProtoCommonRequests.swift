@@ -287,6 +287,23 @@ private extension DiscreteEvent {
             }
             return .groupDecryptionReport(report)
 
+        case .groupHistoryReport(let gid, let numExpected, let numDecrypted, let clientVersion, let rerequestCount, let timeTaken):
+            var report = Server_GroupHistoryReport()
+            report.gid = gid
+            report.numDecrypted = UInt32(numDecrypted)
+            report.numExpected = UInt32(numExpected)
+            report.originalVersion = clientVersion
+            report.rerequestCount = UInt32(rerequestCount)
+            report.timeTakenS = UInt32(timeTaken)
+            // deadline is 1day = 86400seconds, so if timeTaken is beyond that.
+            // schedule is result_based.
+            if report.timeTakenS > 86400 {
+                report.schedule = .resultBased
+            } else {
+                report.schedule = .daily
+            }
+            return .groupHistoryReport(report)
+
         case .callReport(let id, let peerUserID, let type, let direction, let networkType, let answered, let connected, let duration_ms, let endCallReason, let localEndCall, let webrtcStats):
             var callReport = Server_Call()
             callReport.callID = id

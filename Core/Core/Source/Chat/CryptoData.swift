@@ -58,6 +58,65 @@ public final class CryptoData {
         }
     }
 
+    public func resetFeedHistory(groupID: String, timestamp: Date, numExpected: Int) {
+        queue.async { [weak self] in
+            guard let self = self else { return }
+            guard let groupFeedHistoryDecryption = self.fetchGroupFeedHistoryDecryption(groupID: groupID, in: self.bgContext) ??
+                    self.createGroupFeedHistoryDecryption(groupID: groupID, timestamp: timestamp, in: self.bgContext) else
+            {
+                DDLogError("CryptoData/updateGroupFeedHistoryDecryption/\(groupID)/error could not find or create decryption report")
+                return
+            }
+            groupFeedHistoryDecryption.groupID = groupID
+            groupFeedHistoryDecryption.timeReceived = timestamp
+            groupFeedHistoryDecryption.userAgentReceiver = AppContext.userAgent
+            groupFeedHistoryDecryption.hasBeenReported = false
+            groupFeedHistoryDecryption.numExpected = Int32(numExpected)
+            groupFeedHistoryDecryption.numDecrypted = 0
+            groupFeedHistoryDecryption.timeLastUpdated = Date()
+            if self.bgContext.hasChanges {
+                do {
+                    try self.bgContext.save()
+                    DDLogInfo("CryptoData/updateGroupFeedHistoryDecryption/\(groupID)/saved numExpected: [\(numExpected)]")
+                } catch {
+                    DDLogError("CryptoData/updateGroupFeedHistoryDecryption/\(groupID)/save/error [\(error)]")
+                }
+            }
+        }
+    }
+
+    public func receivedFeedHistoryItems(groupID: String, timestamp: Date, newlyDecrypted: Int, newRerequests: Int) {
+        queue.async { [weak self] in
+            guard let self = self else { return }
+            guard let groupFeedHistoryDecryption = self.fetchGroupFeedHistoryDecryption(groupID: groupID, in: self.bgContext) ??
+                    self.createGroupFeedHistoryDecryption(groupID: groupID, timestamp: timestamp, in: self.bgContext) else
+            {
+                DDLogError("CryptoData/updateGroupFeedHistoryDecryption/\(groupID)/error could not find or create decryption report")
+                return
+            }
+            let totalNumDecrypted = groupFeedHistoryDecryption.numDecrypted + Int32(newlyDecrypted)
+            let totalRerequestCount = groupFeedHistoryDecryption.rerequestCount + Int32(newRerequests)
+            guard totalNumDecrypted > groupFeedHistoryDecryption.numExpected || totalRerequestCount > groupFeedHistoryDecryption.rerequestCount  else {
+                DDLogInfo("CryptoData/updateGroupFeedHistoryDecryption/\(groupID)/skipping no change in numDecrypted -or- totalRerequestCount")
+                return
+            }
+            groupFeedHistoryDecryption.groupID = groupID
+            groupFeedHistoryDecryption.userAgentReceiver = AppContext.userAgent
+            groupFeedHistoryDecryption.hasBeenReported = false
+            groupFeedHistoryDecryption.numDecrypted = totalNumDecrypted
+            groupFeedHistoryDecryption.rerequestCount = totalRerequestCount
+            groupFeedHistoryDecryption.timeLastUpdated = timestamp
+            if self.bgContext.hasChanges {
+                do {
+                    try self.bgContext.save()
+                    DDLogInfo("CryptoData/updateGroupFeedHistoryDecryption/\(groupID)/saved numDecrypted: [\(totalNumDecrypted)]")
+                } catch {
+                    DDLogError("CryptoData/updateGroupFeedHistoryDecryption/\(groupID)/save/error [\(error)]")
+                }
+            }
+        }
+    }
+
     public func update(contentID: String, contentType: String, groupID: GroupID, timestamp: Date, error: String, sender: UserAgent?, rerequestCount: Int) {
         queue.async { [weak self] in
             guard let self = self else { return }
@@ -109,6 +168,10 @@ public final class CryptoData {
         groupFeedItemFetchRequest.predicate = NSPredicate(format: "hasBeenReported == false")
         groupFeedItemFetchRequest.returnsObjectsAsFaults = false
 
+        let groupFeedHistoryFetchRequest: NSFetchRequest<GroupFeedHistoryDecryption> = GroupFeedHistoryDecryption.fetchRequest()
+        groupFeedHistoryFetchRequest.predicate = NSPredicate(format: "hasBeenReported == false")
+        groupFeedHistoryFetchRequest.returnsObjectsAsFaults = false
+
         do {
 
             // Message decryption events.
@@ -121,12 +184,19 @@ public final class CryptoData {
             let groupReadyEvents = groupUnreportedEvents.filter { $0.isReadyToBeReported(withDeadline: deadline) }
             DDLogInfo("CryptoData/generateReport-group [\(groupReadyEvents.count) ready of \(groupUnreportedEvents.count) unreported]")
 
+            let groupHistoryUnreportedEvents = try viewContext.fetch(groupFeedHistoryFetchRequest)
+            let groupHistoryReadyEvents = groupHistoryUnreportedEvents.filter { $0.isReadyToBeReported(withDeadline: deadline) }
+            DDLogInfo("CryptoData/generateReport-groupHistory [\(groupHistoryReadyEvents.count) ready of \(groupHistoryUnreportedEvents.count) unreported]")
+
             if markEventsReported {
                 if !messageReadyEvents.isEmpty {
                     markDecryptionsAsReported(messageReadyEvents.map { $0.objectID })
                 }
                 if !groupReadyEvents.isEmpty {
                     markGroupDecryptionsAsReported(groupReadyEvents.map { $0.objectID })
+                }
+                if !groupHistoryReadyEvents.isEmpty {
+                    markGroupFeedHistoryDecryptionsAsReported(groupHistoryReadyEvents.map { $0.objectID })
                 }
             }
 
@@ -349,6 +419,24 @@ public final class CryptoData {
         }
     }
 
+    public func fetchGroupFeedHistoryDecryption(groupID: String, in context: NSManagedObjectContext) -> GroupFeedHistoryDecryption? {
+        let fetchRequest: NSFetchRequest<GroupFeedHistoryDecryption> = GroupFeedHistoryDecryption.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "groupID == %@", groupID)
+        fetchRequest.returnsObjectsAsFaults = false
+
+        do {
+            let results = try context.fetch(fetchRequest)
+            if results.count > 1 {
+                DDLogError("CryptoData/fetchGroupFeedHistoryDecryption/\(groupID)/error multiple-results [\(results.count) found]")
+            }
+            return results.first
+        }
+        catch {
+            DDLogError("CryptoData/fetchGroupFeedHistoryDecryption/\(groupID)/error \(error)")
+            return nil
+        }
+    }
+
     private func fetchAllMessageDecryptions(in context: NSManagedObjectContext) -> [MessageDecryption] {
         let fetchRequest: NSFetchRequest<MessageDecryption> = MessageDecryption.fetchRequest()
         fetchRequest.returnsObjectsAsFaults = false
@@ -388,6 +476,18 @@ public final class CryptoData {
         return decryption
     }
 
+    private func createGroupFeedHistoryDecryption(groupID: String, timestamp: Date, in context: NSManagedObjectContext) -> GroupFeedHistoryDecryption? {
+        let decryption = GroupFeedHistoryDecryption(context: context)
+        decryption.groupID = groupID
+        decryption.timeReceived = timestamp
+        decryption.userAgentReceiver = AppContext.userAgent
+        decryption.hasBeenReported = false
+        decryption.numExpected = 0
+        decryption.numDecrypted = 0
+        decryption.rerequestCount = 0
+        return decryption
+    }
+
     private func markDecryptionsAsReported(_ managedObjectIDs: [NSManagedObjectID]) {
         queue.async {
             for id in managedObjectIDs {
@@ -421,6 +521,25 @@ public final class CryptoData {
                     try self.bgContext.save()
                 } catch {
                     DDLogError("CryptoData/markDecryptionsAsReported/save/error [\(error)]")
+                }
+            }
+        }
+    }
+
+    private func markGroupFeedHistoryDecryptionsAsReported(_ managedObjectIDs: [NSManagedObjectID]) {
+        queue.async {
+            for id in managedObjectIDs {
+                guard let groupFeedHistoryDecryption = try? self.bgContext.existingObject(with: id) as? GroupFeedHistoryDecryption else {
+                    DDLogError("CryptoData/markGroupFeedHistoryDecryptionsAsReported/\(id)/error could not find row to update")
+                    continue
+                }
+                groupFeedHistoryDecryption.hasBeenReported = true
+            }
+            if self.bgContext.hasChanges {
+                do {
+                    try self.bgContext.save()
+                } catch {
+                    DDLogError("CryptoData/markGroupFeedHistoryDecryptionsAsReported/save/error [\(error)]")
                 }
             }
         }
@@ -516,5 +635,36 @@ extension GroupFeedItemDecryption {
 
     public func isSuccess() -> Bool {
         return (decryptionError ?? "").isEmpty
+    }
+}
+
+extension GroupFeedHistoryDecryption {
+    func isReadyToBeReported(withDeadline deadline: TimeInterval) -> Bool {
+        return timeReceived.timeIntervalSinceNow < -deadline
+    }
+
+    func report(deadline: TimeInterval) -> DiscreteEvent? {
+        guard let clientVersion = UserAgent(string: userAgentReceiver)?.version else {
+            return nil
+        }
+
+        guard isReadyToBeReported(withDeadline: deadline) else {
+            return nil
+        }
+
+        let timeTaken: TimeInterval = {
+            return timeLastUpdated.timeIntervalSince(timeReceived)
+        }()
+
+        return .groupHistoryReport(gid: groupID,
+                                   numExpected: numExpected,
+                                   numDecrypted: numDecrypted,
+                                   clientVersion: clientVersion,
+                                   rerequestCount: rerequestCount,
+                                   timeTaken: timeTaken)
+    }
+
+    public func isSuccess() -> Bool {
+        return numExpected == numDecrypted
     }
 }

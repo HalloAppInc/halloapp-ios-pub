@@ -915,6 +915,8 @@ final class ProtoService: ProtoServiceCore {
                 switch result {
                 case .failure(let failure):
                     DDLogError("proto/didReceive/\(msg.id)/groupFeedHistory/\(groupID)/ failed decryption: \(failure)")
+                    // Update rerequest count for groupHistory stats.
+                    AppContext.shared.cryptoData.receivedFeedHistoryItems(groupID: groupID, timestamp: Date(), newlyDecrypted: 0, newRerequests: 1)
                     self.rerequestMessage(groupFeedHistory.id,
                                           senderID: fromUserID,
                                           failedEphemeralKey: failure.ephemeralKey,
@@ -930,6 +932,8 @@ final class ProtoService: ProtoServiceCore {
                     decryptionFailure = failure
                 case .success(let items):
                     DDLogInfo("proto/didReceive/\(msg.id)/groupFeedHistory/success/begin processing items, count: \(items.items.count)")
+                    // Update items decrypted count for groupHistory stats.
+                    AppContext.shared.cryptoData.receivedFeedHistoryItems(groupID: groupID, timestamp: Date(), newlyDecrypted: items.items.count, newRerequests: 0)
                     let group = HalloGroup(id: items.gid, name: items.name, avatarID: items.avatarID)
                     for content in self.payloadContents(for: items.items, status: .received) {
                         let payload = HalloServiceFeedPayload(content: content, group: group, isEligibleForNotification: isEligibleForNotification)

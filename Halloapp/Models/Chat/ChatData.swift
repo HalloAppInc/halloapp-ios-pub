@@ -4857,6 +4857,8 @@ extension ChatData: HalloChatDelegate {
         // Nothing to share with anyone else.
         if isSelfANewMember {
             DDLogInfo("ChatData/didReceiveHistoryPayload/\(groupID)/self is newly added member - ignore historyResend stanza")
+            let numExpected = historyPayload?.contentDetails.count ?? 0
+            AppContext.shared.cryptoData.resetFeedHistory(groupID: groupID, timestamp: Date(), numExpected: numExpected)
 
         } else if let historyPayload = historyPayload,
                   sender != userData.userId {

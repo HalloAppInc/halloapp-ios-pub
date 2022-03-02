@@ -2566,6 +2566,8 @@ public struct Server_CallConfig {
 
   public var iceTransportPolicy: Server_CallConfig.IceTransportPolicy = .all
 
+  public var iceRestartDelayMs: Int32 = 0
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum IceTransportPolicy: SwiftProtobuf.Enum {
@@ -9887,6 +9889,7 @@ extension Server_CallConfig: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     8: .standard(proto: "audio_jitter_buffer_max_packets"),
     9: .standard(proto: "audio_jitter_buffer_fast_accelerate"),
     10: .standard(proto: "ice_transport_policy"),
+    11: .standard(proto: "ice_restart_delay_ms"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -9905,6 +9908,7 @@ extension Server_CallConfig: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
       case 8: try { try decoder.decodeSingularInt32Field(value: &self.audioJitterBufferMaxPackets) }()
       case 9: try { try decoder.decodeSingularBoolField(value: &self.audioJitterBufferFastAccelerate) }()
       case 10: try { try decoder.decodeSingularEnumField(value: &self.iceTransportPolicy) }()
+      case 11: try { try decoder.decodeSingularInt32Field(value: &self.iceRestartDelayMs) }()
       default: break
       }
     }
@@ -9941,6 +9945,9 @@ extension Server_CallConfig: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     if self.iceTransportPolicy != .all {
       try visitor.visitSingularEnumField(value: self.iceTransportPolicy, fieldNumber: 10)
     }
+    if self.iceRestartDelayMs != 0 {
+      try visitor.visitSingularInt32Field(value: self.iceRestartDelayMs, fieldNumber: 11)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -9955,6 +9962,7 @@ extension Server_CallConfig: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     if lhs.audioJitterBufferMaxPackets != rhs.audioJitterBufferMaxPackets {return false}
     if lhs.audioJitterBufferFastAccelerate != rhs.audioJitterBufferFastAccelerate {return false}
     if lhs.iceTransportPolicy != rhs.iceTransportPolicy {return false}
+    if lhs.iceRestartDelayMs != rhs.iceRestartDelayMs {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19206" systemVersion="20G165" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="GroupFeedHistoryDecryption" representedClassName="GroupFeedHistoryDecryption" syncable="YES">
+        <attribute name="groupID" optional="YES" attributeType="String"/>
+        <attribute name="hasBeenReported" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="numDecrypted" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="numExpected" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="rerequestCount" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="timeLastUpdated" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="timeReceived" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="userAgentReceiver" optional="YES" attributeType="String"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="groupID"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
     <entity name="GroupFeedItemDecryption" representedClassName="GroupFeedItemDecryption" syncable="YES" codeGenerationType="class">
         <attribute name="contentID" attributeType="String"/>
         <attribute name="contentType" attributeType="String"/>
@@ -30,6 +45,7 @@
         </uniquenessConstraints>
     </entity>
     <elements>
+        <element name="GroupFeedHistoryDecryption" positionX="-63" positionY="90" width="128" height="149"/>
         <element name="GroupFeedItemDecryption" positionX="-63" positionY="54" width="128" height="179"/>
         <element name="MessageDecryption" positionX="-63" positionY="-18" width="128" height="179"/>
     </elements>
