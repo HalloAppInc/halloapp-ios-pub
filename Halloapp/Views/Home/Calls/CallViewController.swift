@@ -21,6 +21,7 @@ enum CallStatus {
     case failed
     case held
     case busy
+    case muted
 }
 
 // TODO: consider making this only a protocol instead of an abstract class.
@@ -83,15 +84,11 @@ class CallViewController: UIViewController, CallViewDelegate {
     func callBusy() {
         fatalError("Must Override")
     }
-
-    func callMute(_ muted: Bool, media: CallMediaType) {
-        fatalError("Must Override")
-    }
 }
 
 class AudioCallViewController: CallViewController {
 
-    var muted: Bool = false
+    var isLocalAudioMuted: Bool = false
     var speakerOn: Bool = false
 
     // MARK: View Controller
@@ -198,11 +195,17 @@ class AudioCallViewController: CallViewController {
             return callManager.activeCall?.isOnHold ?? false
         }
     }
+    private var isCallRemoteAudioMuted: Bool {
+        get {
+            return callManager.activeCall?.isRemoteAudioMuted.value ?? false
+        }
+    }
     private var callDurationSec: Int {
         get {
             return Int(callManager.callDurationMs / 1000)
         }
     }
+    private var cancellableSet = Set<AnyCancellable>()
 
     init(peerUserID: UserID, isOutgoing: Bool, backAction: (() -> Void)?) {
         DDLogInfo("CallViewController/init/peerUserID: \(peerUserID)/isOutgoing: \(isOutgoing)")
@@ -298,6 +301,25 @@ class AudioCallViewController: CallViewController {
 
             fullCallView.topAnchor.constraint(greaterThanOrEqualTo: backButton.bottomAnchor).isActive = true
         }
+
+        if let activeCall = MainAppContext.shared.callManager.activeCall {
+            cancellableSet.insert(
+                activeCall.isRemoteAudioMuted.sink { [weak self] muted in
+                    guard let self = self else { return }
+                    guard activeCall.isActive else { return }
+                    self.callStatus = .muted
+                    self.useCallStatus = true
+                    DispatchQueue.main.async {
+                        self.updateCallStatusLabel()
+                    }
+                })
+
+            cancellableSet.insert(
+                activeCall.isLocalAudioMuted.sink { [weak self] muted in
+                    guard let self = self else { return }
+                    self.isLocalAudioMuted = muted
+                })
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -327,6 +349,8 @@ class AudioCallViewController: CallViewController {
 
     private func getCallStatusText() -> String {
         if isCallOnHold && useCallStatus {
+            return Localizations.callStatus(callStatus, for: peerPhoneNumber)
+        } else if isCallActive && isCallRemoteAudioMuted {
             return Localizations.callStatus(callStatus, for: peerPhoneNumber)
         } else if isCallActive {
             return durationString(seconds: callDurationSec)
@@ -360,16 +384,16 @@ class AudioCallViewController: CallViewController {
     }
 
     @objc func micButtonTapped(sender: UIButton) {
-        muted = !muted
-        DDLogInfo("CallViewController/micButtonTapped/muted: \(muted)")
-        callManager.muteAudio(muted: muted) { [weak self] result in
+        isLocalAudioMuted = !isLocalAudioMuted
+        DDLogInfo("CallViewController/micButtonTapped/muted: \(isLocalAudioMuted)")
+        callManager.muteAudio(muted: isLocalAudioMuted) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
                 switch result {
                 case .failure(let error):
                     DDLogError("CallViewController/endCall/failed: \(error)")
                 case .success:
-                    let micStatusImage = self.muted ? self.micOffImage : self.micOnImage
+                    let micStatusImage = self.isLocalAudioMuted ? self.micOffImage : self.micOnImage
                     self.micButton.image = micStatusImage
                 }
             }
@@ -494,9 +518,6 @@ class AudioCallViewController: CallViewController {
             self.updateCallStatusLabel()
         }
     }
-
-    override func callMute(_ muted: Bool, media: CallMediaType) {
-    }
 }
 
 final class CallViewButton: UIControl {
@@ -609,6 +630,22 @@ extension Localizations {
             return NSLocalizedString("call.status.held", value: "on hold", comment: "Status displayed when call is on hold.")
         case .busy:
             return NSLocalizedString("call.status.busy", value: "on another call", comment: "Status displayed when the other side is busy.")
+        case .muted:
+            return NSLocalizedString("call.status.muted", value: "call muted", comment: "Status displayed when the other side mutes the audio.")
+        }
+    }
+    static func remoteMuteStatus(isAudioMuted: Bool, isVideoMuted: Bool, for peerName: String) -> String {
+        if isAudioMuted && isVideoMuted {
+            let formatString = NSLocalizedString("call.mute.remote.audio.video", value: "%@'s camera and microphone is off", comment: "Status display when peer mutes both audio and video during a call.")
+            return String(format: formatString, peerName)
+        } else if isAudioMuted {
+            let formatString = NSLocalizedString("call.mute.remote.audio", value: "%@ muted this call", comment: "Status display when peer mutes audio during a call.")
+            return String(format: formatString, peerName)
+        } else if isVideoMuted {
+            let formatString = NSLocalizedString("call.mute.remote.video", value: "%@'s camera is off", comment: "Status display when peer mutes video during a call.")
+            return String(format: formatString, peerName)
+        } else {
+            return ""
         }
     }
 }

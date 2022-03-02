@@ -38,7 +38,6 @@ public protocol CallViewDelegate: AnyObject {
     func callFailed()
     func callHold(_ hold: Bool)
     func callBusy()
-    func callMute(_ muted: Bool, media: CallMediaType)
 }
 
 public struct CallDetails {
@@ -400,7 +399,7 @@ final class CallManager: NSObject, CXProviderDelegate {
         return handle
     }
 
-    private func peerName(for peerUserID: UserID) -> String {
+    public func peerName(for peerUserID: UserID) -> String {
         return MainAppContext.shared.contactStore.fullNameIfAvailable(for: peerUserID, ownName: nil, showPushNumber: true) ?? Localizations.unknownContact
     }
 
@@ -1267,7 +1266,6 @@ extension CallManager: HalloCallDelegate {
 
         if activeCallID == callID {
             self.activeCall?.didReceiveCallMute(isOnMute, media: mediaType)
-            self.callViewDelegate?.callMute(isOnMute, media: mediaType)
             DDLogInfo("CallManager/HalloCallDelegate/didReceiveMuteCall/success")
         }
     }

@@ -86,6 +86,11 @@ public class Call {
     public var isWaitingForWebRtcOffer: Bool
     public var answerCompletion: ((_ success: Bool) -> Void)? = nil
 
+    public var isLocalAudioMuted = CurrentValueSubject<Bool, Never>(false)
+    public var isLocalVideoMuted = CurrentValueSubject<Bool, Never>(false)
+    public var isRemoteAudioMuted = CurrentValueSubject<Bool, Never>(false)
+    public var isRemoteVideoMuted = CurrentValueSubject<Bool, Never>(false)
+
     var stateDelegate: CallStateDelegate? = nil
 
     // MARK: Derived Properties
@@ -455,6 +460,7 @@ public class Call {
                     DDLogError("Call/\(callID)/muteAudio/failed: \(error.localizedDescription)")
                 }
             }
+            isLocalAudioMuted.send(true)
         }
     }
 
@@ -470,6 +476,7 @@ public class Call {
                     DDLogError("Call/\(callID)/unmuteAudio/failed: \(error.localizedDescription)")
                 }
             }
+            isLocalAudioMuted.send(false)
         }
     }
 
@@ -485,6 +492,7 @@ public class Call {
                     DDLogError("Call/\(callID)/muteVideo/failed: \(error.localizedDescription)")
                 }
             }
+            isLocalVideoMuted.send(true)
         }
     }
 
@@ -500,6 +508,7 @@ public class Call {
                     DDLogError("Call/\(callID)/unmuteVideo/failed: \(error.localizedDescription)")
                 }
             }
+            isLocalVideoMuted.send(false)
         }
     }
 
@@ -673,6 +682,12 @@ public class Call {
         DDLogInfo("Call/\(callID)/didReceiveCallMute/begin/muted: \(muted)/media: \(media)")
         callQueue.async { [self] in
             DDLogInfo("Call/\(callID)/didReceiveCallMute/success")
+            switch media {
+            case .audio:
+                isRemoteAudioMuted.send(muted)
+            case .video:
+                isRemoteVideoMuted.send(muted)
+            }
         }
     }
 

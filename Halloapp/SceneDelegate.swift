@@ -527,10 +527,6 @@ extension SceneDelegate: CallViewDelegate {
     func callBusy() {
         callViewController?.callBusy()
     }
-
-    func callMute(_ muted: Bool, media: CallMediaType) {
-        callViewController?.callMute(muted, media: media)
-    }
 }
 
 // App expiration

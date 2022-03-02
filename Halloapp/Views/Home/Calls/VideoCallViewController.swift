@@ -16,9 +16,17 @@ import WebRTC
 
 class VideoCallViewController: CallViewController {
 
-    // Avoid storing local state here.
-    private var audioMuted: Bool = false
-    private var videoMuted: Bool = false
+    private enum VideoType {
+        case local
+        case remote
+    }
+    // This will be useful in the future.
+    private var expandedVideo: VideoType = .local
+
+    private var isLocalAudioMuted: Bool = false
+    private var isLocalVideoMuted: Bool = false
+    private var isRemoteAudioMuted: Bool = false
+    private var isRemoteVideoMuted: Bool = false
 
     // MARK: View Controller
 
@@ -70,6 +78,18 @@ class VideoCallViewController: CallViewController {
         callNameStatusView.spacing = 36
         callNameStatusView.setCustomSpacing(8, after: peerNameLabel)
         return callNameStatusView
+    }()
+
+    private lazy var muteStatusLabel: UILabel = {
+        let muteStatusLabel = UILabel()
+        muteStatusLabel.text = ""
+        muteStatusLabel.font = .systemFont(ofSize: 16)
+        muteStatusLabel.textColor = .white
+        muteStatusLabel.adjustsFontSizeToFitWidth = true
+        muteStatusLabel.textAlignment = .center
+        muteStatusLabel.translatesAutoresizingMaskIntoConstraints = false
+        muteStatusLabel.isHidden = true
+        return muteStatusLabel
     }()
 
     // Action Buttons related stack view
@@ -126,6 +146,13 @@ class VideoCallViewController: CallViewController {
             } else {
                 return Localizations.callIncoming
             }
+        }
+    }
+
+    private var muteStatusText: String {
+        get {
+            let peerName = MainAppContext.shared.callManager.peerName(for: peerUserID)
+            return Localizations.remoteMuteStatus(isAudioMuted: isRemoteAudioMuted, isVideoMuted: isRemoteVideoMuted, for: peerName)
         }
     }
 
@@ -288,10 +315,13 @@ class VideoCallViewController: CallViewController {
         MainAppContext.shared.callManager.activeCall?.renderRemoteVideo(to: remoteRenderer)
 
         view.addSubview(callNameStatusView)
+        view.addSubview(muteStatusLabel)
         view.addSubview(buttonPanel)
 
         callNameStatusView.constrain(anchor: .leading, to: view, constant: 36)
         callNameStatusView.constrain(anchor: .trailing, to: view, constant: -36)
+        muteStatusLabel.constrain(anchor: .leading, to: view, constant: 36)
+        muteStatusLabel.constrain(anchor: .trailing, to: view, constant: -36)
 
         NSLayoutConstraint.activate([
             buttonPanel.constrain(anchor: .leading, to: view, constant: 36),
@@ -301,6 +331,7 @@ class VideoCallViewController: CallViewController {
 
         if backAction == nil {
             callNameStatusView.constrainMargin(anchor: .top, to: view, constant: 44)
+            muteStatusLabel.constrainMargin(anchor: .top, to: view, constant: 200)
         } else {
             view.addSubview(backButton)
             backButton.constrainMargins([.top, .leading], to: view)
@@ -308,6 +339,7 @@ class VideoCallViewController: CallViewController {
             backButton.widthAnchor.constraint(equalToConstant: 44).isActive = true
 
             callNameStatusView.topAnchor.constraint(greaterThanOrEqualTo: backButton.bottomAnchor).isActive = true
+            muteStatusLabel.topAnchor.constraint(greaterThanOrEqualTo: backButton.bottomAnchor, constant: 200).isActive = true
         }
 
         if let activeCall = MainAppContext.shared.callManager.activeCall {
@@ -331,8 +363,37 @@ class VideoCallViewController: CallViewController {
                     guard let self = self else { return }
                     self.mirrorVideo(mirror)
                 })
-        }
 
+            cancellableSet.insert(
+                activeCall.isRemoteAudioMuted.sink { [weak self] muted in
+                    guard let self = self else { return }
+                    self.isRemoteAudioMuted = muted
+                    DispatchQueue.main.async {
+                        self.updateMuteStatusLabel()
+                    }
+                })
+
+            cancellableSet.insert(
+                activeCall.isRemoteVideoMuted.sink { [weak self] muted in
+                    guard let self = self else { return }
+                    self.isRemoteVideoMuted = muted
+                    DispatchQueue.main.async {
+                        self.updateMuteStatusLabel()
+                    }
+                })
+
+            cancellableSet.insert(
+                activeCall.isLocalAudioMuted.sink { [weak self] muted in
+                    guard let self = self else { return }
+                    self.isLocalAudioMuted = muted
+                })
+
+            cancellableSet.insert(
+                activeCall.isLocalVideoMuted.sink { [weak self] muted in
+                    guard let self = self else { return }
+                    self.isLocalVideoMuted = muted
+                })
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -364,6 +425,15 @@ class VideoCallViewController: CallViewController {
 
     private func updateCallStatusLabel() {
         callStatusLabel.text = callStatusText
+    }
+
+    private func updateMuteStatusLabel() {
+        guard !self.muteStatusText.isEmpty else {
+            self.muteStatusLabel.isHidden = true
+            return
+        }
+        self.muteStatusLabel.text = self.muteStatusText
+        self.muteStatusLabel.isHidden = false
     }
 
     override var shouldAutorotate: Bool {
@@ -420,16 +490,16 @@ class VideoCallViewController: CallViewController {
     }
 
     @objc func videoButtonTapped(sender: UIButton) {
-        videoMuted = !videoMuted
-        DDLogInfo("VideoCallViewController/videoButtonTapped/muted: \(videoMuted)")
-        callManager.muteVideo(muted: videoMuted) { [weak self] result in
+        isLocalVideoMuted = !isLocalVideoMuted
+        DDLogInfo("VideoCallViewController/videoButtonTapped/muted: \(isLocalVideoMuted)")
+        callManager.muteVideo(muted: isLocalVideoMuted) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
                 switch result {
                 case .failure(let error):
                     DDLogError("VideoCallViewController/muteVideo/failed: \(error)")
                 case .success:
-                    let videoStatusImage = self.videoMuted ? self.videoOffImage : self.videoOnImage
+                    let videoStatusImage = self.isLocalVideoMuted ? self.videoOffImage : self.videoOnImage
                     self.videoButton.image = videoStatusImage
                 }
             }
@@ -437,16 +507,16 @@ class VideoCallViewController: CallViewController {
     }
 
     @objc func micButtonTapped(sender: UIButton) {
-        audioMuted = !audioMuted
-        DDLogInfo("VideoCallViewController/micButtonTapped/muted: \(audioMuted)")
-        callManager.muteAudio(muted: audioMuted) { [weak self] result in
+        isLocalAudioMuted = !isLocalAudioMuted
+        DDLogInfo("VideoCallViewController/micButtonTapped/muted: \(isLocalAudioMuted)")
+        callManager.muteAudio(muted: isLocalAudioMuted) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
                 switch result {
                 case .failure(let error):
                     DDLogError("VideoCallViewController/muteCall/failed: \(error)")
                 case .success:
-                    let micStatusImage = self.audioMuted ? self.micOffImage : self.micOnImage
+                    let micStatusImage = self.isLocalAudioMuted ? self.micOffImage : self.micOnImage
                     self.micButton.image = micStatusImage
                 }
             }
@@ -495,6 +565,7 @@ class VideoCallViewController: CallViewController {
         callStatus = .connecting
         useCallStatus = true
         DispatchQueue.main.async {
+            self.callStatusLabel.isHidden = false
             self.updateCallStatusLabel()
         }
     }
@@ -521,6 +592,7 @@ class VideoCallViewController: CallViewController {
         callStatus = .reconnecting
         useCallStatus = true
         DispatchQueue.main.async {
+            self.callStatusLabel.isHidden = false
             self.updateCallStatusLabel()
         }
     }
@@ -529,6 +601,7 @@ class VideoCallViewController: CallViewController {
         callStatus = .failed
         useCallStatus = true
         DispatchQueue.main.async {
+            self.callStatusLabel.isHidden = false
             self.updateCallStatusLabel()
         }
     }
@@ -539,6 +612,7 @@ class VideoCallViewController: CallViewController {
         }
         useCallStatus = hold
         DispatchQueue.main.async {
+            self.callStatusLabel.isHidden = false
             self.updateCallStatusLabel()
         }
     }
@@ -551,14 +625,12 @@ class VideoCallViewController: CallViewController {
         }
     }
 
-    override func callMute(_ muted: Bool, media: CallMediaType) {
-    }
-
     func didStartReceivingRemoteVideo() {
         DDLogInfo("VideoCallViewController/didStartReceivingRemoteVideo")
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            self.callNameStatusView.isHidden = true
+            self.peerNameLabel.isHidden = true
+            self.callStatusLabel.isHidden = true
             self.expandRemoteVideo()
             self.setupHideControlsTimer()
         }
@@ -590,6 +662,7 @@ class VideoCallViewController: CallViewController {
         UIView.animate(withDuration: 0.5, animations: {
             self.view.layoutIfNeeded()
         })
+        expandedVideo = .local
     }
 
     func expandRemoteVideo() {
@@ -618,6 +691,7 @@ class VideoCallViewController: CallViewController {
         UIView.animate(withDuration: 0.5, animations: {
             self.view.layoutIfNeeded()
         })
+        expandedVideo = .remote
     }
 
     @objc private func localVideoTapped() {
