@@ -381,9 +381,11 @@
 		F40F7C6B274C8159008144DE /* PostAudioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40F7C6A274C8158008144DE /* PostAudioView.swift */; };
 		F40F7C8727570707008144DE /* AudioPostComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40F7C8627570707008144DE /* AudioPostComposer.swift */; };
 		F41F82972798D2AC0021BF40 /* GroupInviteSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41F82962798D2AC0021BF40 /* GroupInviteSheetViewController.swift */; };
+		F42F574827C86D7200988E9D /* FeedInviteCarouselCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */; };
 		F494BEE72745E7DB00982E49 /* ActionSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */; };
 		F4B91DF8278FCEEB00DF70C1 /* CADisplayLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B91DF7278FCEEB00DF70C1 /* CADisplayLink.swift */; };
 		F4D88F6B27D9873F00D706DA /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D88F6A27D9873E00D706DA /* Toast.swift */; };
+		F4D88F5127D6D8A300D706DA /* InviteContactViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D88F5027D6D8A300D706DA /* InviteContactViewController.swift */; };
 		F4F157DA276AA39F002FDB9E /* DeleteAccountPhoneNumberTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F157D9276AA39E002FDB9E /* DeleteAccountPhoneNumberTextField.swift */; };
 		F4F157DC276AA5B7002FDB9E /* DeleteAccountTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F157DB276AA5B7002FDB9E /* DeleteAccountTextView.swift */; };
 		F8003DDE24D7C30D00628719 /* MediaPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */; };
@@ -1052,9 +1054,11 @@
 		F40F7C6A274C8158008144DE /* PostAudioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostAudioView.swift; sourceTree = "<group>"; };
 		F40F7C8627570707008144DE /* AudioPostComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPostComposer.swift; sourceTree = "<group>"; };
 		F41F82962798D2AC0021BF40 /* GroupInviteSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupInviteSheetViewController.swift; sourceTree = "<group>"; };
+		F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedInviteCarouselCell.swift; sourceTree = "<group>"; };
 		F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionSheetViewController.swift; sourceTree = "<group>"; };
 		F4B91DF7278FCEEB00DF70C1 /* CADisplayLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CADisplayLink.swift; sourceTree = "<group>"; };
 		F4D88F6A27D9873E00D706DA /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
+		F4D88F5027D6D8A300D706DA /* InviteContactViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteContactViewController.swift; sourceTree = "<group>"; };
 		F4F157D9276AA39E002FDB9E /* DeleteAccountPhoneNumberTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountPhoneNumberTextField.swift; sourceTree = "<group>"; };
 		F4F157DB276AA5B7002FDB9E /* DeleteAccountTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountTextView.swift; sourceTree = "<group>"; };
 		F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPickerViewController.swift; sourceTree = "<group>"; };
@@ -1402,6 +1406,7 @@
 				68781D812600170D0045AB61 /* InviteViewController.swift */,
 				68B47B01260DBAD000D675FC /* InviteContactsManager.swift */,
 				32C83FCA2694DB1D00BEB4F5 /* InvitePermissionDeniedViewController.swift */,
+				F4D88F5027D6D8A300D706DA /* InviteContactViewController.swift */,
 			);
 			path = Invites;
 			sourceTree = "<group>";
@@ -1812,6 +1817,7 @@
 				68629293265C660D00C54367 /* FeedPermissionAlert.swift */,
 				A111BDFB27C96D9100E5DB4E /* UserMenuHandler.swift */,
 				F4D88F6A27D9873E00D706DA /* Toast.swift */,
+				F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */,
 			);
 			path = Feed;
 			sourceTree = "<group>";
@@ -2722,6 +2728,7 @@
 				EA79C6FD2554E89400E0525F /* Localizations+Chat.swift in Sources */,
 				EAD476CD245513EF00EF8591 /* ChatListViewController.swift in Sources */,
 				76538096243D4B33000AD9A1 /* FeedPostComment+CoreDataProperties.swift in Sources */,
+				F42F574827C86D7200988E9D /* FeedInviteCarouselCell.swift in Sources */,
 				F8E6054A2671F6A700DDEB2A /* MediaEdit.swift in Sources */,
 				76333085254A352100A1ED68 /* SettingsTableViewCell.swift in Sources */,
 				76C1F50B2537D6FD0060FBF5 /* AvatarViewButton.swift in Sources */,
@@ -2845,6 +2852,7 @@
 				76FE37ED2523EC9600372FB1 /* ContactPickerViewController.swift in Sources */,
 				EAEE49DA276A76ED0042E654 /* ChatTitleView.swift in Sources */,
 				328305C827D6736E00AD661A /* MessageCellViewBase.swift in Sources */,
+				F4D88F5127D6D8A300D706DA /* InviteContactViewController.swift in Sources */,
 				EA73DF4025E88D9B0070875D /* NewPostsIndicator.swift in Sources */,
 				EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */,
 				E5981A4A266032260014FFC9 /* FeedPermissionExplanationAlert.swift in Sources */,

@@ -34,7 +34,6 @@ final class FeedDataSource: NSObject {
     init(fetchRequest: NSFetchRequest<FeedPost>) {
         self.fetchRequest = fetchRequest
         super.init()
-        setup()
     }
 
     weak var delegate: FeedDataSourceDelegate?
@@ -258,6 +257,7 @@ enum FeedDisplayItem: Hashable, Equatable {
     case event(FeedEvent)
     case welcome
     case groupWelcome(GroupID)
+    case inviteCarousel
 
     var post: FeedPost? {
         switch self {
@@ -265,6 +265,7 @@ enum FeedDisplayItem: Hashable, Equatable {
         case .event: return nil
         case .welcome: return nil
         case .groupWelcome: return nil
+        case .inviteCarousel: return nil
         }
     }
     
@@ -274,6 +275,7 @@ enum FeedDisplayItem: Hashable, Equatable {
         case .event(let event): return event
         case .welcome: return nil
         case .groupWelcome: return nil
+        case .inviteCarousel: return nil
         }
     }
     
@@ -283,6 +285,7 @@ enum FeedDisplayItem: Hashable, Equatable {
         case .event: return nil
         case .welcome: return nil
         case .groupWelcome(let groupID): return groupID
+        case .inviteCarousel: return nil
         }
     }
 }

@@ -617,4 +617,35 @@ open class ContactStore {
         return nil
     }
 
+    // MARK: - Suggested Contacts hiding
+
+    public func hideContactFromSuggestedInvites(normalizedPhoneNumber: String) {
+        performOnBackgroundContext { context in
+            let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "normalizedPhoneNumber == %@", normalizedPhoneNumber)
+            do {
+                let contact = try context.fetch(fetchRequest).first
+                contact?.hideInSuggestedInvites = true
+                try context.save()
+            }
+            catch {
+                fatalError("Unable to set hideInSuggestedInvites: \(error)")
+            }
+        }
+    }
+
+    public func resetHiddenSuggestedContacts() {
+        performOnBackgroundContext { context in
+            let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "hideInSuggestedInvites == true")
+            do {
+                let contacts = try context.fetch(fetchRequest)
+                contacts.forEach { $0.hideInSuggestedInvites = false }
+                try context.save()
+            }
+            catch {
+                fatalError("Unable to reset hideInSuggestedInvites: \(error)")
+            }
+        }
+    }
 }

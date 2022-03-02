@@ -10,6 +10,7 @@ import Alamofire
 import CoreCommon
 import CocoaLumberjackSwift
 import Combine
+import Contacts
 import CoreData
 import UIKit
 
@@ -35,6 +36,7 @@ public class AvatarStore: ServiceAvatarDelegate {
     // Please notice that when app moves to the background, `userAvatars` may be evicted.
     private let userAvatars = NSCache<NSString, UserAvatar>()
     private let groupAvatarsData = NSCache<NSString, GroupAvatarData>()
+    private let addressBookAvatars = NSCache<NSString, AddressBookAvatar>()
     
     private class var persistentStoreURL: URL {
         get {
@@ -827,6 +829,70 @@ public class GroupAvatarData {
                 }
                 
                 self.imageIsLoading = false
+            }
+        }
+    }
+}
+
+// MARK: Contact Avatars
+
+extension AvatarStore {
+
+    public func addressBookAvatar(for identifier: String) -> AddressBookAvatar {
+        if let addressBookAvatar = addressBookAvatars.object(forKey: identifier as NSString) {
+            return addressBookAvatar
+        }
+
+        let addressBookAvatar = AddressBookAvatar(identifer: identifier)
+        addressBookAvatars.setObject(addressBookAvatar, forKey: identifier as NSString)
+        return addressBookAvatar
+    }
+}
+
+public class AddressBookAvatar {
+
+    public let identifier: String
+    public let imageDidChange = PassthroughSubject<UIImage?, Never>()
+    public var image: UIImage? {
+        didSet {
+            DispatchQueue.main.async {
+                self.imageDidChange.send(self.image)
+            }
+        }
+    }
+    private var imageIsLoading = false
+    private var hasEmptyImage = false
+
+    fileprivate init(identifer: String) {
+        self.identifier = identifer
+    }
+
+    public func loadImage(using avatarStore: AvatarStore) {
+        guard !imageIsLoading, !hasEmptyImage, CNContactStore.authorizationStatus(for: .contacts) == .authorized else {
+            return
+        }
+
+        DispatchQueue.global(qos: .default).async { [weak self, identifier] in
+            defer {
+                self?.imageIsLoading = false
+            }
+
+            do {
+                let contact = try CNContactStore().unifiedContact(withIdentifier: identifier,
+                                                                  keysToFetch: [CNContactImageDataKey as CNKeyDescriptor])
+                guard let imageData = contact.imageData else {
+                    self?.hasEmptyImage = true
+                    return
+                }
+
+                guard let image = UIImage(data: imageData) else {
+                    DDLogError("AddressBookAvatar/loadImage/failed to deserialize data into UIImage")
+                    return
+                }
+
+                self?.image = image
+            } catch {
+                DDLogError("AddressBookAvatar/loadImage/Error fetching contact image \(error)")
             }
         }
     }

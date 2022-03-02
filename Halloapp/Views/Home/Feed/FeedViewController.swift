@@ -25,16 +25,11 @@ class FeedViewController: FeedCollectionViewController {
             updateNotificationCount(notificationCount)
         }
     }
+    private lazy var canInvite = {
+        return isWhatsAppAvailable || isIMessageAvailable
+    }()
 
     private var showContactsPermissionDialogIfNecessary = true
-
-    override init(title: String?, fetchRequest: NSFetchRequest<FeedPost>) {
-        super.init(title: title, fetchRequest: fetchRequest)
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
 
     // MARK: UIViewController
 
@@ -154,7 +149,12 @@ class FeedViewController: FeedCollectionViewController {
                 result.append(FeedDisplayItem.welcome)
             }
         }
-        
+
+        // Check original items array to ignore any other nux / promos
+        if canInvite, !items.isEmpty, !inviteContactsManager.randomSelection.isEmpty, !isZeroZone {
+            result.insert(.inviteCarousel, at: min(4, result.count))
+        }
+
         return result
     }
     

@@ -61,6 +61,14 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
     private var isVisible: Bool = true
     private var isCheckForOnscreenCellsScheduled: Bool = false
 
+    private var invitedContacts: Set<InviteContact> = Set()
+
+    lazy var inviteContactsManager: InviteContactsManager = {
+        let inviteContactsManager = InviteContactsManager(hideInvitedAndHidden: true, sort: .numPotentialContacts)
+        inviteContactsManager.contactsChanged = suggestedContactsDidChange
+        return inviteContactsManager
+    }()
+
     var feedPostIdToScrollTo: FeedPostID?
     
     var firstActionHappened: Bool = false
@@ -71,6 +79,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         self.title = title
         
         feedDataSource.delegate = self
+        feedDataSource.setup()
     }
 
     required init?(coder: NSCoder) {
@@ -97,6 +106,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         collectionView.register(FeedEventCollectionViewCell.self, forCellWithReuseIdentifier: FeedEventCollectionViewCell.reuseIdentifier)
         collectionView.register(FeedWelcomeCell.self, forCellWithReuseIdentifier: FeedWelcomeCell.reuseIdentifier)
         collectionView.register(GroupFeedWelcomeCell.self, forCellWithReuseIdentifier: GroupFeedWelcomeCell.reuseIdentifier)
+        collectionView.register(FeedInviteCarouselCell.self, forCellWithReuseIdentifier: FeedInviteCarouselCell.reuseIdentifier)
 
         view.addSubview(collectionView)
         collectionView.constrain(to: view)
@@ -392,14 +402,14 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         navigationController?.pushViewController(vc, animated: true)
     }
 
-    private func showInviteScreen() {
+    private func showInviteScreen(opensInSearch: Bool = false) {
         guard ContactStore.contactsAccessAuthorized else {
             let inviteVC = InvitePermissionDeniedViewController()
             present(UINavigationController(rootViewController: inviteVC), animated: true)
             return
         }
         InviteManager.shared.requestInvitesIfNecessary()
-        let inviteVC = InviteViewController(manager: InviteManager.shared, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
+        let inviteVC = InviteViewController(manager: InviteManager.shared, opensInSearch: opensInSearch, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
         let navController = UINavigationController(rootViewController: inviteVC)
         present(navController, animated: true)
     }
@@ -675,8 +685,22 @@ extension FeedCollectionViewController {
                     }
                 }
                 return cell
+            case .inviteCarousel:
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedInviteCarouselCell.reuseIdentifier, for: indexPath)
+                if let self = self, let cell = cell as? FeedInviteCarouselCell {
+                    cell.configure(with: self.inviteContactsManager.randomSelection, invitedContacts: self.invitedContacts)
+                    cell.openInviteViewController = { [weak self] in
+                        self?.showInviteScreen(opensInSearch: true)
+                    }
+                    cell.inviteContact = { [weak self] contact in
+                        self?.showInviteContactActionSheet(for: contact)
+                    }
+                    cell.hideContact = { contact in
+                        AppContext.shared.contactStore.hideContactFromSuggestedInvites(normalizedPhoneNumber: contact.normalizedPhoneNumber)
+                    }
+                }
+                return cell
             }
-
         }
     }
     
@@ -1027,6 +1051,52 @@ extension FeedCollectionViewController: PostDashboardViewControllerDelegate {
             }
         }
         controller.dismiss(animated: true, completion: actionToPerformOnDashboardDismiss)
+    }
+}
+
+
+extension FeedCollectionViewController: InviteContactViewController {
+
+    var inviteManager: InviteManager {
+        return InviteManager.shared
+    }
+
+    func showLoadIndicator(_ isLoading: Bool) {
+        // no-op
+    }
+
+    func didInviteContact(_ contact: InviteContact, with action: InviteActionType) {
+        invitedContacts.insert(contact)
+        suggestedContactsDidChange()
+    }
+}
+
+// FeedInviteCarouselCell Callbacks
+
+extension FeedCollectionViewController {
+
+    private func suggestedContactsDidChange() {
+        guard let collectionViewDataSource = collectionViewDataSource else {
+            return
+        }
+
+        var snapshot = collectionViewDataSource.snapshot()
+        if inviteContactsManager.randomSelection.isEmpty {
+            snapshot.deleteItems([.inviteCarousel])
+        } else {
+            // If the cell is visible, update directly.
+            if let indexPath = collectionViewDataSource.indexPath(for: .inviteCarousel),
+               let cell = collectionView.cellForItem(at: indexPath) as? FeedInviteCarouselCell {
+                cell.configure(with: inviteContactsManager.randomSelection, invitedContacts: invitedContacts, animated: true)
+            } else {
+                if #available(iOS 15.0, *) {
+                    snapshot.reconfigureItems([.inviteCarousel])
+                } else {
+                    snapshot.reloadItems([.inviteCarousel])
+                }
+            }
+        }
+        collectionViewDataSource.apply(snapshot)
     }
 }
 

@@ -92,6 +92,10 @@ extension UIColor {
         UIColor(named: "AvatarDefaultBg")!
     }
 
+    class var avatarDefaultIcon: UIColor {
+        UIColor(named: "AvatarDefaultIcon")!
+    }
+
     class var avatarHomeBg: UIColor {
         UIColor(named: "AvatarHomeBg")!
     }

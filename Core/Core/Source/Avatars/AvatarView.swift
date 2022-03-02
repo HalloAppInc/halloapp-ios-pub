@@ -244,3 +244,22 @@ extension AvatarView {
 
     }
 }
+
+extension AvatarView {
+
+    public func configure(contactIdentfier identifer: String, using avatarStore: AvatarStore) {
+        let addressBookAvatar = avatarStore.addressBookAvatar(for: identifer)
+
+        if let image = addressBookAvatar.image {
+            avatar.image = image
+        } else {
+            avatar.image = AvatarView.defaultImage
+            addressBookAvatar.loadImage(using: avatarStore)
+        }
+
+        avatarUpdatingCancellable?.cancel()
+        avatarUpdatingCancellable = addressBookAvatar.imageDidChange.sink { [weak self] image in
+            self?.avatar.image = image ?? AvatarView.defaultImage
+        }
+    }
+}

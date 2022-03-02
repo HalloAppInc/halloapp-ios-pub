@@ -39,6 +39,7 @@ public extension ABContact {
     @NSManaged var userId: UserID?
     @NSManaged var phoneNumberHash: String?
     @NSManaged var numPotentialContacts: Int64
+    @NSManaged var hideInSuggestedInvites: Bool
 
     var status: Status {
         get {

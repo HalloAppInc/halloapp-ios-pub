@@ -21,6 +21,7 @@ private enum MenuTitles {
     static var resetNUXDemo: String { "Reset NUX Demo" }
     static var startZeroZoneDemo: String { "Start Welcome Posts Demo" }
     static var clearPushNamesAndNumbers: String { "Clear Pushnames/numbers" }
+    static var clearHiddenSuggestedContacts: String { "Clear hidden suggested contacts" }
     static var logOut: String { "Log Out" }
 }
 
@@ -154,6 +155,14 @@ struct DeveloperMenuView: View {
                     self.dismiss?()
                 }) {
                     Text(MenuTitles.clearPushNamesAndNumbers)
+                }
+
+                // Clear hidden suggested contacts
+                Button {
+                    MainAppContext.shared.contactStore.resetHiddenSuggestedContacts()
+                    self.dismiss?()
+                } label: {
+                    Text(MenuTitles.clearHiddenSuggestedContacts)
                 }
 
                 // Log Out

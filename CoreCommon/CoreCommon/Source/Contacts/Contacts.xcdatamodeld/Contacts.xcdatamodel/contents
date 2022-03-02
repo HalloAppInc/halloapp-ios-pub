@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="18154" systemVersion="20F71" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="20084" systemVersion="21D62" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="ABContact" representedClassName="ABContact" syncable="YES">
         <attribute name="fullName" optional="YES" attributeType="String"/>
         <attribute name="givenName" optional="YES" attributeType="String"/>
+        <attribute name="hideInSuggestedInvites" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="identifier" attributeType="String"/>
         <attribute name="indexName" optional="YES" attributeType="String"/>
         <attribute name="normalizedPhoneNumber" optional="YES" attributeType="String"/>
@@ -24,7 +25,7 @@
         <attribute name="userID" attributeType="String"/>
     </entity>
     <elements>
-        <element name="ABContact" positionX="-54" positionY="-9" width="128" height="209"/>
+        <element name="ABContact" positionX="-54" positionY="-9" width="128" height="224"/>
         <element name="PushName" positionX="-54" positionY="63" width="128" height="59"/>
         <element name="PushNumber" positionX="-45" positionY="90" width="128" height="74"/>
     </elements>

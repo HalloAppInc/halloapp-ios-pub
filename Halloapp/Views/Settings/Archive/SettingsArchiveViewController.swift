@@ -77,6 +77,7 @@ class SettingsArchiveViewController: UIViewController, UICollectionViewDelegate,
         title = Localizations.archiveNavigationTitle
         
         feedDataSource.delegate = self
+        feedDataSource.setup()
         
         view.addSubview(emptyPlaceholderView)
         emptyPlaceholderView.constrain(to: view)

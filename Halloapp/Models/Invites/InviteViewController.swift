@@ -23,14 +23,21 @@ enum InviteSection {
 let InviteCellReuse = "InviteCellReuse"
 let inviteViaLinkCellReuse = "InviteViaLinkCellReuse"
 
-final class InviteViewController: UIViewController {
+final class InviteViewController: UIViewController, InviteContactViewController {
 
     private var screenTitle: String?
     private var showDividers: Bool = true
+    private var opensInSearch: Bool
 
-    init(manager: InviteManager, title: String? = nil, showSearch: Bool = true, showDividers: Bool = true, dismissAction: (() -> Void)?) {
+    init(manager: InviteManager,
+         title: String? = nil,
+         showSearch: Bool = true,
+         showDividers: Bool = true,
+         opensInSearch: Bool = false,
+         dismissAction: (() -> Void)?) {
         self.screenTitle = title
         self.showDividers = showDividers
+        self.opensInSearch = opensInSearch
 
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
 
@@ -120,6 +127,18 @@ final class InviteViewController: UIViewController {
         busyView.constrain([.centerX, .centerY], to: view)
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        if opensInSearch {
+            opensInSearch = false
+            // Needs to be dispatched asynchronously otherwise it will have no effect
+            DispatchQueue.main.async { [weak searchController] in
+                searchController?.searchBar.becomeFirstResponder()
+            }
+        }
+    }
+
     override func viewDidLayoutSubviews() {
         if itemWidth != view.bounds.width {
             itemWidth = view.bounds.width
@@ -193,15 +212,6 @@ final class InviteViewController: UIViewController {
         let activityVC = UIActivityViewController(activityItems: objectsToShare, applicationActivities: nil)
         present(activityVC, animated: true, completion: nil)
     }
-
-    private let isWhatsAppAvailable: Bool = {
-        guard let url = URL(string: "whatsapp://app") else { return false }
-        return UIApplication.shared.canOpenURL(url)
-    }()
-
-    private let isIMessageAvailable: Bool = {
-        MFMessageComposeViewController.canSendText()
-    }()
 
     private let dismissAction: (() -> Void)?
     private var cancellableSet: Set<AnyCancellable> = []
@@ -289,105 +299,6 @@ final class InviteViewController: UIViewController {
         return snapshot
     }
 
-    private func redeemInvite(for contact: InviteContact, completion: ((InviteResult) -> Void)?) {
-        busyView.isHidden = false
-        busyView.startAnimating()
-        collectionView.isUserInteractionEnabled = false
-        DDLogInfo("InviteViewController/redeem/\(contact.normalizedPhoneNumber)/start")
-        inviteManager.redeemInviteForPhoneNumber(contact.normalizedPhoneNumber) { [weak self] result in
-            DDLogInfo("InviteViewController/redeem/\(contact.normalizedPhoneNumber)/result [\(result)]")
-            self?.collectionView.isUserInteractionEnabled = true
-            self?.busyView.stopAnimating()
-            self?.busyView.isHidden = true
-            completion?(result)
-        }
-    }
-
-    private func inviteAction(_ action: InviteActionType, contact: InviteContact) {
-        guard proceedIfConnected() else { return }
-        switch action {
-        case .sms:
-            smsAction(contact: contact)
-        case .whatsApp:
-            whatsAppAction(contact: contact)
-        }
-
-        var visitedActionsForContact = visitedActions[contact] ?? Set()
-        visitedActionsForContact.insert(action)
-        visitedActions[contact] = visitedActionsForContact
-
-        collectionView.reloadData()
-    }
-
-    private func smsAction(contact: InviteContact) {
-        DDLogInfo("InviteViewController/sms/\(contact.normalizedPhoneNumber)")
-        redeemInvite(for: contact) { [weak self] result in
-            guard let self = self else { return }
-            switch result {
-            case .success, .failure(.existingUser):
-                #if targetEnvironment(simulator)
-                let vc = UIAlertController(
-                    title: "Not available on Simulator",
-                    message: "Please use a physical device to test SMS",
-                    preferredStyle: .alert)
-                vc.addAction(.init(title: "OK", style: .default, handler: nil))
-                self.present(vc, animated: true, completion: nil)
-                #else
-                let vc = MFMessageComposeViewController()
-                vc.body = Localizations.inviteText(name: contact.givenName ?? contact.fullName, number: contact.formattedPhoneNumber)
-                vc.recipients = [contact.formattedPhoneNumber]
-                vc.messageComposeDelegate = self
-                self.present(vc, animated: true, completion: nil)
-                #endif
-
-            case .failure(let reason):
-                self.presentFailureAlert(for: reason)
-            }
-        }
-    }
-
-    private func whatsAppAction(contact: InviteContact) {
-        DDLogInfo("InviteViewController/WhatsApp/\(contact.normalizedPhoneNumber)")
-        redeemInvite(for: contact) { [weak self] result in
-            switch result {
-            case .success, .failure(.existingUser):
-                var allowedCharacters = CharacterSet.urlHostAllowed
-                allowedCharacters.remove("+")
-                guard let urlEncodedInviteText = Localizations
-                        .inviteText(name: contact.givenName ?? contact.fullName, number: contact.formattedPhoneNumber)
-                        .addingPercentEncoding(withAllowedCharacters: allowedCharacters),
-                      let whatsAppURL = URL(string: "https://wa.me/\(contact.normalizedPhoneNumber)/?text=\(urlEncodedInviteText)") else
-                {
-                    return
-                }
-                UIApplication.shared.open(whatsAppURL, options: [:], completionHandler: nil)
-            case .failure(let reason):
-                self?.presentFailureAlert(for: reason)
-            }
-        }
-    }
-
-    private func presentFailureAlert(for reason: InviteResult.FailureReason) {
-        switch reason {
-        case .existingUser:
-            DDLogInfo("InviteViewController/presentFailureAlert/skipping [existingUser]")
-        case .noInvitesLeft:
-            let vc = UIAlertController(
-                title: Localizations.inviteErrorTitle,
-                message: Localizations.outOfInvitesWith(date: inviteManager.nextRefreshDate ?? Date()),
-                preferredStyle: .alert)
-            vc.addAction(.init(title: Localizations.buttonOK, style: .default, handler: nil))
-            present(vc, animated: true, completion: nil)
-        case .invalidNumber, .unknown:
-            let vc = UIAlertController(
-                title: Localizations.inviteErrorTitle,
-                message: Localizations.inviteErrorMessage,
-                preferredStyle: .alert)
-            vc.addAction(.init(title: Localizations.buttonOK, style: .default, handler: nil))
-            present(vc, animated: true, completion: nil)
-        }
-    }
-
     private var itemWidth: CGFloat = 0 {
         didSet {
             let layout = UICollectionViewFlowLayout()
@@ -398,14 +309,19 @@ final class InviteViewController: UIViewController {
             collectionView.setCollectionViewLayout(layout, animated: true)
         }
     }
-}
 
-extension InviteViewController: MFMessageComposeViewControllerDelegate {
-    func messageComposeViewController(_ controller: MFMessageComposeViewController, didFinishWith result: MessageComposeResult) {
-        guard result == .cancelled else { return }
-        // NB: We should really be calling this on the presenting view controller (see: https://developer.apple.com/documentation/uikit/uiviewcontroller/1621505-dismiss)
-        // Unfortunately, that isn't working correctly (Apple bug?) so we have to call it on the presented controller instead
-        controller.dismiss(animated: true, completion: nil)
+    func showLoadIndicator(_ isLoading: Bool) {
+        busyView.isHidden = !isLoading
+        isLoading ? busyView.startAnimating() : busyView.stopAnimating()
+        collectionView.isUserInteractionEnabled = !isLoading
+    }
+
+    func didInviteContact(_ contact: InviteContact, with action: InviteActionType) {
+        var visitedActionsForContact = visitedActions[contact] ?? Set()
+        visitedActionsForContact.insert(action)
+        visitedActions[contact] = visitedActionsForContact
+
+        collectionView.reloadData()
     }
 }
 
@@ -422,31 +338,10 @@ extension InviteViewController: UICollectionViewDelegate, UICollectionViewDelega
         // check if it's the first cell, which is the static share button
         guard !(indexPath.section == 0 && indexPath.row == 0) else { return }
 
-        // at least one must be available to proceed
-        guard isIMessageAvailable || isWhatsAppAvailable else { return }
-
         guard let contact = dataSource.itemIdentifier(for: indexPath) else { return }
         guard let inviteContact = contact as? InviteContact, inviteContact.userID == nil else { return }
 
-        let actionSheet = UIAlertController(title: Localizations.inviteActionSheetTitle(inviteContact.fullName), message: nil, preferredStyle: .actionSheet)
-        actionSheet.view.tintColor = UIColor.systemBlue
-
-        if isIMessageAvailable {
-            actionSheet.addAction(UIAlertAction(title: Localizations.appNameSMS, style: .default) { [weak self] _ in
-                guard let self = self else { return }
-                self.inviteAction(.sms, contact: inviteContact)
-            })
-        }
-
-        if isWhatsAppAvailable {
-            actionSheet.addAction(UIAlertAction(title: Localizations.appNameWhatsApp, style: .default) { [weak self] _ in
-                guard let self = self else { return }
-                self.inviteAction(.whatsApp, contact: inviteContact)
-            })
-        }
-
-        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .destructive))
-        present(actionSheet, animated: true)
+        showInviteContactActionSheet(for: inviteContact)
     }
 }
 

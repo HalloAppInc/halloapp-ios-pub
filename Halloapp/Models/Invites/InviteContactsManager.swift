@@ -13,10 +13,33 @@ import Foundation
 
 final class InviteContactsManager: NSObject {
 
-    override init() {
+    enum Sort {
+        case name, numPotentialContacts
+    }
+
+    var contactsChanged: (() -> Void)?
+
+    init(hideInvitedAndHidden: Bool = false, sort: Sort = .name) {
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "normalizedPhoneNumber != nil && (userId == nil OR userId != %@)", MainAppContext.shared.userData.userId)
-        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \ABContact.sort, ascending: true) ]
+        var predicates: [NSPredicate] = []
+        predicates.append(NSPredicate(format: "normalizedPhoneNumber != nil"))
+
+        if hideInvitedAndHidden {
+            predicates.append(NSPredicate(format: "hideInSuggestedInvites == false"))
+            predicates.append(NSPredicate(format: "userId == nil"))
+        } else {
+            predicates.append(NSPredicate(format: "userId == nil OR userId != %@", MainAppContext.shared.userData.userId))
+        }
+
+        fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+
+        switch sort {
+        case .name:
+            fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \ABContact.sort, ascending: true) ]
+        case .numPotentialContacts:
+            fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \ABContact.numPotentialContacts, ascending: false) ]
+        }
+
         fetchedResultsController = NSFetchedResultsController<ABContact>(
             fetchRequest: fetchRequest,
             managedObjectContext: MainAppContext.shared.contactStore.viewContext,
@@ -34,7 +57,7 @@ final class InviteContactsManager: NSObject {
 
     let fetchedResultsController: NSFetchedResultsController<ABContact>
 
-    func contacts(searchString: String?) -> [InviteContact] {
+    func contacts(searchString: String? = nil) -> [InviteContact] {
         guard let searchString = searchString else {
             let uniqueContacts = ABContact.contactsWithUniquePhoneNumbers(allContacts: fetchedResultsController.fetchedObjects ?? [])
             return uniqueContacts.compactMap { InviteContact(from: $0) }
@@ -65,9 +88,34 @@ final class InviteContactsManager: NSObject {
             return output + [contact]
         }
     }
+
+    private var _randomSelection: [InviteContact]?
+
+    var randomSelection: [InviteContact] {
+        if let randomSelection = _randomSelection {
+            return randomSelection
+        } else {
+            // take a random 20 of the top 50 contacts, determined by sort
+            let randomSelection = Array(contacts().prefix(50).shuffled().prefix(20))
+            _randomSelection = randomSelection
+            return randomSelection
+        }
+    }
 }
 
 extension InviteContactsManager: NSFetchedResultsControllerDelegate {
+
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        if let randomSelection = _randomSelection {
+            let validNormalizedPhoneNumbers = Set(fetchedResultsController.fetchedObjects?.compactMap { $0.normalizedPhoneNumber } ?? [])
+
+            _randomSelection = randomSelection.filter {
+                validNormalizedPhoneNumbers.contains($0.normalizedPhoneNumber)
+            }
+        }
+
+        contactsChanged?()
+    }
 }
 
 enum InviteViaLinkRow: Hashable, Equatable {
@@ -81,6 +129,7 @@ struct InviteContact: Hashable, Equatable {
     var friendCount: Int?
     var userID: UserID?
     var formattedPhoneNumber: String
+    var identifier: String?
 }
 
 extension InviteContact {
@@ -94,5 +143,6 @@ extension InviteContact {
         self.formattedPhoneNumber = abContact.phoneNumber ?? "+\(number)".formattedPhoneNumber
         self.userID = abContact.userId
         self.friendCount = fullName.localizedCaseInsensitiveContains("spam") ? 0 : Int(abContact.numPotentialContacts)
+        self.identifier = abContact.identifier
     }
 }
