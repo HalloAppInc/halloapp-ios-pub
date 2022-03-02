@@ -30,7 +30,7 @@ class VideoCallViewController: CallViewController {
     private let micOnImage = UIImage(systemName: "mic.fill")
     private let videoOffImage = UIImage(systemName: "video.slash.fill")
     private let videoOnImage = UIImage(systemName: "video.fill")
-    private let endCallImage = UIImage(named: "ReplyPanelClose")?.withRenderingMode(.alwaysTemplate)
+    private let endCallImage = UIImage(systemName: "phone.down.fill")?.withRenderingMode(.alwaysTemplate)
     private let backImage = UIImage(named: "NavbarBack")?.imageFlippedForRightToLeftLayoutDirection().withRenderingMode(.alwaysTemplate)
 
     private lazy var backButton: UIButton = {
@@ -70,6 +70,20 @@ class VideoCallViewController: CallViewController {
         callNameStatusView.spacing = 36
         callNameStatusView.setCustomSpacing(8, after: peerNameLabel)
         return callNameStatusView
+    }()
+
+    // Action Buttons related stack view
+    private lazy var buttonPanel: UIStackView = {
+        let buttonPanel = UIStackView()
+        buttonPanel.translatesAutoresizingMaskIntoConstraints = false
+        buttonPanel.axis = .horizontal
+        buttonPanel.distribution  = .fillEqually
+        buttonPanel.alignment = UIStackView.Alignment.center
+        buttonPanel.addArrangedSubview(camButton)
+        buttonPanel.addArrangedSubview(videoButton)
+        buttonPanel.addArrangedSubview(micButton)
+        buttonPanel.addArrangedSubview(endCallButton)
+        return buttonPanel
     }()
 
     private lazy var camButton: VideoCallViewButton = {
@@ -146,6 +160,21 @@ class VideoCallViewController: CallViewController {
             return callManager.activeCall?.hasStartedReceivingRemoteVideo.value ?? false
         }
     }
+    private var hideControlsTimer: DispatchSourceTimer?
+    private var hideControls: Bool  = false {
+        didSet {
+            let isHidden = hideControls
+            UIView.animate(withDuration: 0.3) {
+                if isHidden {
+                    self.buttonPanel.alpha = 0
+                    self.backButton.alpha = 0
+                } else {
+                    self.buttonPanel.alpha = 1
+                    self.backButton.alpha = 1
+                }
+            }
+        }
+    }
 
     // TODO: This is not clean and has to be redone as per design.
     private var localViewLeadingConstraint: NSLayoutConstraint?
@@ -177,7 +206,7 @@ class VideoCallViewController: CallViewController {
     override func viewDidLoad() {
         DDLogInfo("VideoCallViewController/viewDidLoad")
         super.viewDidLoad()
-        view.backgroundColor = .black.withAlphaComponent(0.6)
+        view.backgroundColor = .black
         view.layoutMargins = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
 
         localRenderer.transform = CGAffineTransform(scaleX: -1, y: 1)
@@ -258,17 +287,6 @@ class VideoCallViewController: CallViewController {
         MainAppContext.shared.callManager.activeCall?.renderLocalVideo(to: localRenderer)
         MainAppContext.shared.callManager.activeCall?.renderRemoteVideo(to: remoteRenderer)
 
-        // Action Buttons related stack view
-        let buttonPanel = UIStackView()
-        buttonPanel.translatesAutoresizingMaskIntoConstraints = false
-        buttonPanel.axis = .horizontal
-        buttonPanel.distribution  = .fillEqually
-        buttonPanel.alignment = UIStackView.Alignment.center
-        buttonPanel.addArrangedSubview(camButton)
-        buttonPanel.addArrangedSubview(videoButton)
-        buttonPanel.addArrangedSubview(micButton)
-        buttonPanel.addArrangedSubview(endCallButton)
-
         view.addSubview(callNameStatusView)
         view.addSubview(buttonPanel)
 
@@ -330,11 +348,13 @@ class VideoCallViewController: CallViewController {
     override func viewDidAppear(_ animated: Bool) {
         DDLogInfo("VideoCallViewController/viewDidAppear")
         super.viewDidAppear(animated)
+        setupHideControlsTimer()
     }
 
     override func viewDidDisappear(_ animated: Bool) {
         DDLogInfo("VideoCallViewController/viewDidDisappear")
         super.viewDidDisappear(animated)
+        cancelHideControlsTimer()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -359,6 +379,25 @@ class VideoCallViewController: CallViewController {
         } else {
             return String(format: "%02d:%02d", mm, ss)
         }
+    }
+
+    private func setupHideControlsTimer() {
+        let timer = DispatchSource.makeTimerSource()
+        timer.setEventHandler(handler: { [weak self] in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                DDLogInfo("Call/setupHideControlsTimer/hiding controls now")
+                self.hideControls = true
+            }
+        })
+        timer.schedule(deadline: .now() + DispatchTimeInterval.seconds(5))
+        timer.resume()
+        hideControlsTimer = timer
+    }
+
+    private func cancelHideControlsTimer() {
+        hideControlsTimer?.cancel()
+        hideControlsTimer = nil
     }
 
     // Call Actions.
@@ -516,6 +555,7 @@ class VideoCallViewController: CallViewController {
             guard let self = self else { return }
             self.callNameStatusView.isHidden = true
             self.expandRemoteVideo()
+            self.setupHideControlsTimer()
         }
     }
 
@@ -529,6 +569,7 @@ class VideoCallViewController: CallViewController {
         localRenderer.layer.borderWidth = 0
         localRenderer.layer.cornerRadius = 0
         localRenderer.removeGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(localVideoTapped)))
+        localRenderer.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(screenTapped)))
         view.sendSubviewToBack(localRenderer)
         view.layoutIfNeeded()
 
@@ -539,6 +580,7 @@ class VideoCallViewController: CallViewController {
         remoteRenderer.layer.borderColor = UIColor.black.withAlphaComponent(0.2).cgColor
         remoteRenderer.layer.borderWidth = 0.5
         remoteRenderer.layer.cornerRadius = 10
+        remoteRenderer.removeGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(screenTapped)))
         remoteRenderer.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(remoteVideoTapped)))
         UIView.animate(withDuration: 0.5, animations: {
             self.view.layoutIfNeeded()
@@ -555,6 +597,7 @@ class VideoCallViewController: CallViewController {
         remoteRenderer.layer.borderWidth = 0
         remoteRenderer.layer.cornerRadius = 0
         remoteRenderer.removeGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(remoteVideoTapped)))
+        remoteRenderer.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(screenTapped)))
         view.sendSubviewToBack(remoteRenderer)
         view.layoutIfNeeded()
 
@@ -565,6 +608,7 @@ class VideoCallViewController: CallViewController {
         localRenderer.layer.borderColor = UIColor.black.withAlphaComponent(0.2).cgColor
         localRenderer.layer.borderWidth = 0.5
         localRenderer.layer.cornerRadius = 10
+        localRenderer.removeGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(screenTapped)))
         localRenderer.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(localVideoTapped)))
         UIView.animate(withDuration: 0.5, animations: {
             self.view.layoutIfNeeded()
@@ -577,6 +621,15 @@ class VideoCallViewController: CallViewController {
 
     @objc private func remoteVideoTapped() {
         expandRemoteVideo()
+    }
+
+    @objc private func screenTapped() {
+        hideControls.toggle()
+        if !hideControls {
+            setupHideControlsTimer()
+        } else {
+            cancelHideControlsTimer()
+        }
     }
 
     func mirrorVideo(_ mirror: Bool) {
@@ -604,7 +657,7 @@ final class VideoCallViewButton: UIControl {
 
     struct Style {
         var circleDiameter: CGFloat = 48
-        var circleColor: UIColor = UIColor.black.withAlphaComponent(0.7)
+        var circleColor: UIColor = UIColor.black.withAlphaComponent(0.6)
         var iconHeight: CGFloat = 20
 
         static var normal: Style {
