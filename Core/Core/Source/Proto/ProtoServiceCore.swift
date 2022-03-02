@@ -77,6 +77,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     private var groupStates = [GroupID: GroupProcessingState]()
     private var groupWorkQueue = DispatchQueue(label: "com.halloapp.group-work", qos: .default)
     private let resource: ResourceType
+    private var uploadLogsTimer: DispatchSourceTimer?
 
     private var stream: Stream?
     public var credentials: Credentials? {
@@ -320,10 +321,29 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         }
     }
 
+    private func startUploadLogsTimer(interval: TimeInterval = 60) {
+        let timer = DispatchSource.makeTimerSource(flags: [], queue: .main)
+        timer.setEventHandler(handler: { [weak self] in
+            self?.uploadLogsToServer()
+        })
+        timer.schedule(deadline: .now(), repeating: interval)
+        timer.resume()
+        uploadLogsTimer = timer
+    }
+
+    private func stopUploadLogsTimer() {
+        uploadLogsTimer?.cancel()
+        uploadLogsTimer = nil
+    }
+
     public func uploadLogsToServerIfNecessary() {
         guard UserDefaults.shared.bool(forKey: userDefaultsKeyForRequestLogs) else {
+            stopUploadLogsTimer()
             return
         }
+        // reset uploadLogsTimer
+        stopUploadLogsTimer()
+        startUploadLogsTimer()
         uploadLogsToServer()
     }
 
@@ -339,6 +359,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
             switch result {
             case .success:
                 UserDefaults.shared.set(false, forKey: userDefaultsKeyForRequestLogs)
+                self.stopUploadLogsTimer()
             default:
                 break
             }
