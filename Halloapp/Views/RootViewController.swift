@@ -186,7 +186,7 @@ final class CallBar: UIControl {
         addSubview(titleView)
         addSubview(durationLabel)
 
-        titleView.constrainMargins([.top, .bottom, .centerX], to: self, priority: .ifPossible)
+        titleView.constrainMargins([.top, .bottom, .leading], to: self, priority: .ifPossible)
         durationLabel.constrainMargins([.top, .bottom, .trailing], to: self, priority: .ifPossible)
     }
 
