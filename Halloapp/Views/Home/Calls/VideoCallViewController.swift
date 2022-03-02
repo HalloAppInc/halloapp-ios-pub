@@ -382,6 +382,9 @@ class VideoCallViewController: CallViewController {
     }
 
     private func setupHideControlsTimer() {
+        guard isCallActive else {
+            return
+        }
         let timer = DispatchSource.makeTimerSource()
         timer.setEventHandler(handler: { [weak self] in
             guard let self = self else { return }
@@ -499,12 +502,14 @@ class VideoCallViewController: CallViewController {
     override func callActive() {
         useCallStatus = false
         DispatchQueue.main.async {
+            self.callStatusLabel.isHidden = true
             self.updateCallStatusLabel()
         }
     }
 
     override func callDurationChanged(seconds: Int) {
         DispatchQueue.main.async {
+            self.callStatusLabel.isHidden = true
             self.updateCallStatusLabel()
         }
     }
