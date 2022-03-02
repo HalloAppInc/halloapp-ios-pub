@@ -261,11 +261,13 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
 
     @Published private(set) var shortFeedSetting: String = Constants.SettingLoading
     @Published private(set) var longFeedSetting: String = Constants.SettingLoading
-
+    let feedPrivacySettingDidChange = PassthroughSubject<Void, Never>()
+    
     override var activeType: PrivacyListType? {
         didSet {
             reloadFeedSettingValue()
             reloadPostComposerSubtitle()
+            feedPrivacySettingDidChange.send()
         }
     }
 

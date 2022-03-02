@@ -18,18 +18,33 @@ enum PostComposerDestination: Equatable {
     case chat(UserID?)
 }
 
-struct PostComposerViewConfiguration {
-    var destination: PostComposerDestination = .userFeed
-    var mentionableUsers: [MentionableUser]
-    var useTransparentNavigationBar = false
-    var mediaCarouselMaxAspectRatio: CGFloat = 1.25
+class PostComposerViewConfiguration: ObservableObject {
+    @Published var destination: PostComposerDestination = .userFeed
+    var useTransparentNavigationBar: Bool
+    var mediaCarouselMaxAspectRatio: CGFloat
     var mediaEditMaxAspectRatio: CGFloat?
-    var imageServerMaxAspectRatio: CGFloat? = 1.25
-    var maxVideoLength: TimeInterval = 500
+    var imageServerMaxAspectRatio: CGFloat?
+    var maxVideoLength: TimeInterval
 
+    init(
+        destination: PostComposerDestination,
+        useTransparentNavigationBar: Bool = false,
+        mediaCarouselMaxAspectRatio: CGFloat = 1.25,
+        mediaEditMaxAspectRatio: CGFloat? = nil,
+        imageServerMaxAspectRatio: CGFloat? = 1.25,
+        maxVideoLength: TimeInterval = 500) {
+        
+        self.destination = destination
+        self.useTransparentNavigationBar = useTransparentNavigationBar
+        self.mediaCarouselMaxAspectRatio = mediaCarouselMaxAspectRatio
+        self.mediaEditMaxAspectRatio = mediaEditMaxAspectRatio
+        self.imageServerMaxAspectRatio = imageServerMaxAspectRatio
+        self.maxVideoLength = maxVideoLength
+    }
+    
     static var userPost: PostComposerViewConfiguration {
         PostComposerViewConfiguration(
-            mentionableUsers: Mentions.mentionableUsersForNewPost(),
+            destination: .userFeed,
             useTransparentNavigationBar: true,
             maxVideoLength: ServerProperties.maxFeedVideoDuration
         )
@@ -38,7 +53,6 @@ struct PostComposerViewConfiguration {
     static func groupPost(id groupID: GroupID) -> PostComposerViewConfiguration {
         PostComposerViewConfiguration(
             destination: .groupFeed(groupID),
-            mentionableUsers: Mentions.mentionableUsers(forGroupID: groupID),
             useTransparentNavigationBar: true,
             maxVideoLength: ServerProperties.maxFeedVideoDuration
         )
@@ -47,7 +61,6 @@ struct PostComposerViewConfiguration {
     static func message(id userId: UserID?) -> PostComposerViewConfiguration {
         PostComposerViewConfiguration(
             destination: .chat(userId),
-            mentionableUsers: [],
             mediaCarouselMaxAspectRatio: 1.0,
             imageServerMaxAspectRatio: nil,
             maxVideoLength: ServerProperties.maxChatVideoDuration
@@ -224,7 +237,7 @@ class PostComposerViewController: UIViewController {
                 }
             }
         })
-
+        
         postComposerView = PostComposerView(
             mediaItems: mediaItems,
             inputToPost: inputToPost,
@@ -233,7 +246,6 @@ class PostComposerViewController: UIViewController {
             linkPreviewImage: linkPreviewImage,
             audioComposerRecorder: audioComposerRecorder,
             initialPostType: initialPostType,
-            mentionableUsers: configuration.mentionableUsers,
             shouldAutoPlay: shouldAutoPlay,
             configuration: configuration,
             crop: { [weak self] index, completion in
@@ -255,13 +267,11 @@ class PostComposerViewController: UIViewController {
                 
                 self.present(editController, animated: true)
             },
-            changeDestination: { [weak self] completion in
+            changeDestination: { [weak self] in
                 guard let self = self else { return }
-
                 let controller = ChangeDestinationViewController(destination: self.configuration.destination) { controller, destination in
                     controller.dismiss(animated: true)
                     self.configuration.destination = destination
-                    completion(destination)
                 }
 
                 self.present(UINavigationController(rootViewController: controller), animated: true)
@@ -297,6 +307,17 @@ class PostComposerViewController: UIViewController {
 
         navigationItem.leftBarButtonItem =
             UIBarButtonItem(image: isMediaPost ? backIcon : closeIcon, style: .plain, target: self, action: #selector(backAction))
+        
+        MainAppContext.shared.privacySettings.feedPrivacySettingDidChange.sink { [weak self] in
+            guard
+                let self = self,
+                self.configuration.destination == .userFeed
+            else { return }
+            // we need this because if the user change's their privacy settings for this post, the updated setting isn't
+            // cached until after the response from the server, which causes things like the allowed mentions to be out of
+            // sync for this post
+            self.configuration.destination = .userFeed
+        }.store(in: &cancellableSet)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -433,6 +454,7 @@ fileprivate struct PostComposerLayoutConstants {
 }
 
 fileprivate struct PostComposerView: View {
+    @ObservedObject var configuration: PostComposerViewConfiguration
     private let mediaCarouselMaxAspectRatio: CGFloat
     private let maxVideoLength: TimeInterval
     @ObservedObject private var mediaItems: ObservableMediaItems
@@ -444,8 +466,7 @@ fileprivate struct PostComposerView: View {
     private let initialPostType: NewPostMediaSource
     @ObservedObject private var shouldAutoPlay: GenericObservable<Bool>
     @ObservedObject private var isPosting = GenericObservable<Bool>(false)
-    private let mentionableUsers: [MentionableUser]
-    private let changeDestination: (@escaping (PostComposerDestination) -> Void) -> Void
+    private let changeDestination: () -> Void
     private let crop: (Int, @escaping ([PendingMedia], Int, Bool) -> Void) -> Void
     private let goBack: () -> Void
     private let share: () -> Void
@@ -460,7 +481,6 @@ fileprivate struct PostComposerView: View {
     @State private var presentPicker = false
     @State private var presentDeleteVoiceNote = false
     @State private var videoTooLong = false
-    @State private var destination: PostComposerDestination = .userFeed
     @State private var isReadyToShare = false
     private var mediaItemsBinding = Binding.constant([PendingMedia]())
     private var mediaIsReadyBinding = Binding.constant(false)
@@ -501,11 +521,10 @@ fileprivate struct PostComposerView: View {
         linkPreviewImage: GenericObservable<UIImage?>,
         audioComposerRecorder: AudioComposerRecorder,
         initialPostType: NewPostMediaSource,
-        mentionableUsers: [MentionableUser],
         shouldAutoPlay: GenericObservable<Bool>,
         configuration: PostComposerViewConfiguration,
         crop: @escaping (Int, @escaping ([PendingMedia], Int, Bool) -> Void) -> Void,
-        changeDestination: @escaping (@escaping(PostComposerDestination) -> Void) -> Void,
+        changeDestination: @escaping () -> Void,
         goBack: @escaping () -> Void,
         share: @escaping () -> Void
     ) {
@@ -517,7 +536,6 @@ fileprivate struct PostComposerView: View {
         self.linkPreviewImage = linkPreviewImage
         self.audioComposerRecorder = audioComposerRecorder
         self.initialPostType = initialPostType
-        self.mentionableUsers = mentionableUsers
         self.shouldAutoPlay = shouldAutoPlay
         self.mediaCarouselMaxAspectRatio = configuration.mediaCarouselMaxAspectRatio
         self.maxVideoLength = configuration.maxVideoLength
@@ -525,7 +543,7 @@ fileprivate struct PostComposerView: View {
         self.crop = crop
         self.goBack = goBack
         self.share = share
-        self._destination = State(initialValue: configuration.destination)
+        self.configuration = configuration
 
         let mediaReadyAndNotFailedPublisher = Publishers.CombineLatest(mediaState.$isReady, mediaState.$numberOfFailedItems)
             .map { (mediaIsReady, numberOfFailedUploads) in mediaIsReady && numberOfFailedUploads == 0 }
@@ -618,7 +636,7 @@ fileprivate struct PostComposerView: View {
     }
 
     private func changeDestinationButtonText() -> String {
-        switch destination {
+        switch configuration.destination {
         case .userFeed:
             return PrivacyList.name(forPrivacyListType: privacySettings.activeType ?? .all)
         case .groupFeed(let groupId):
@@ -636,7 +654,7 @@ fileprivate struct PostComposerView: View {
     }
 
     private func allowChangingDestination() -> Bool {
-        switch destination {
+        switch configuration.destination {
         case .userFeed, .groupFeed:
             return true
         case .chat:
@@ -691,10 +709,9 @@ fileprivate struct PostComposerView: View {
                     pendingMention: $pendingMention,
                     link: linkBinding,
                     input: inputToPost,
-                    mentionableUsers: mentionableUsers,
                     textHeight: postTextHeight,
                     shouldFocusOnLoad: mediaCount == 0)
-                    .frame(height: postTextComputedHeight.value)
+                    .frame(height: postTextComputedHeight.value).environmentObject(configuration)
             }
             .padding(.horizontal, PostComposerLayoutConstants.postTextHorizontalPadding)
             .padding(.vertical, PostComposerLayoutConstants.postTextVerticalPadding)
@@ -737,7 +754,7 @@ fileprivate struct PostComposerView: View {
             return false
         }
 
-        switch destination {
+        switch configuration.destination {
         case .userFeed, .groupFeed:
             return true
         case .chat:
@@ -747,9 +764,7 @@ fileprivate struct PostComposerView: View {
 
     var changeDestinationButton: some View {
         Button(action: {
-            changeDestination { destination in
-                self.destination = destination
-            }
+            changeDestination()
         }) {
             Text(changeDestinationButtonText())
                 .font(.system(size: 15, weight: .medium))
@@ -1025,14 +1040,15 @@ fileprivate struct Constants {
 }
 
 fileprivate struct TextView: UIViewRepresentable {
+    @EnvironmentObject var configuration: PostComposerViewConfiguration
     @Binding var mediaItems: [PendingMedia]
     @Binding var pendingMention: PendingMention?
     @Binding var link: String
     var input: GenericObservable<MentionInput>
-    let mentionableUsers: [MentionableUser]
     var textHeight: GenericObservable<CGFloat>
     var shouldFocusOnLoad: Bool
-
+    private(set) var mentionableUsers: [MentionableUser] = []
+    
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
@@ -1053,6 +1069,7 @@ fileprivate struct TextView: UIViewRepresentable {
         textView.tintColor = .systemBlue
         textView.textColor = Constants.textViewTextColor
         textView.text = input.value.text
+        
         return textView
     }
 
@@ -1075,8 +1092,8 @@ fileprivate struct TextView: UIViewRepresentable {
         if shouldFocusOnLoad && !context.coordinator.hasTextViewLoaded {
             uiView.becomeFirstResponder()
         }
+        
         context.coordinator.hasTextViewLoaded = true
-
         TextView.recomputeTextViewSizes(uiView, textSize: input.value.text.count, isPostWithMedia: mediaItems.count > 0, height: textHeight)
     }
 
@@ -1093,9 +1110,18 @@ fileprivate struct TextView: UIViewRepresentable {
     class Coordinator: NSObject, UITextViewDelegate {
         var parent: TextView
         var hasTextViewLoaded = false
-
+        var destinationListener: AnyCancellable?
+        
         init(_ uiTextView: TextView) {
             parent = uiTextView
+            super.init()
+            
+            parent.mentionableUsers = mentionableUsers(for: parent.configuration.destination)
+            destinationListener = parent.configuration.$destination.sink { [weak self] destination in
+                guard let self = self else { return }
+                self.parent.mentionableUsers = self.mentionableUsers(for: destination)
+                self.validateMentionsAfterAudienceChange()
+            }
         }
 
         // MARK: Mentions
@@ -1112,6 +1138,29 @@ fileprivate struct TextView: UIViewRepresentable {
             picker.heightAnchor.constraint(lessThanOrEqualToConstant: 120).isActive = true
             return picker
         }()
+        
+        private func mentionableUsers(for destination: PostComposerDestination) -> [MentionableUser] {
+            switch destination {
+            case .userFeed:
+                return Mentions.mentionableUsersForNewPost()
+            case .groupFeed(let id):
+                return Mentions.mentionableUsers(forGroupID: id)
+            case .chat(_):
+                return []
+            }
+        }
+        
+        private func validateMentionsAfterAudienceChange() {
+            updateMentionPickerContent()
+
+            let newSet = Set(parent.mentionableUsers.map { $0.userID })
+            let filtered = parent.input.value.mentions.filter { newSet.contains($1.userID) }
+            parent.input.value.mentions = filtered
+            
+            if let pending = parent.pendingMention, !newSet.contains(pending.userID) {
+                parent.pendingMention = nil
+            }
+        }
 
         private func updateMentionPickerContent() {
             let mentionableUsers = fetchMentionPickerContent(for: parent.input.value)
@@ -1155,7 +1204,9 @@ fileprivate struct TextView: UIViewRepresentable {
             }
             let mentionCandidate = input.text[mentionCandidateRange]
             let trimmedInput = String(mentionCandidate.dropFirst())
-            return parent.mentionableUsers.filter {
+            
+            let mentionableUsers = parent.mentionableUsers
+            return mentionableUsers.filter {
                 Mentions.isPotentialMatch(fullName: $0.fullName, input: trimmedInput)
             }
         }
