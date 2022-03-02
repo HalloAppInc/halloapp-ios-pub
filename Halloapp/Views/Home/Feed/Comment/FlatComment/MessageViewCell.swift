@@ -384,7 +384,7 @@ class MessageViewCell: UICollectionViewCell {
     }
 
     private func setNameLabel(for userID: String) {
-        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, showPushNumber: true)
+        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
     }
 
     private func configureText(comment: FeedPostComment) {
