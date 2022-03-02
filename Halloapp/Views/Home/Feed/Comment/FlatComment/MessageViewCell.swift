@@ -10,13 +10,6 @@ import Combine
 import Core
 import UIKit
 
-private extension Localizations {
-
-    static var commentDeleted: String {
-        NSLocalizedString("comment.deleted", value: "This comment has been deleted", comment: "Text displayed in place of deleted comment.")
-    }
-}
-
 protocol MessageViewDelegate: AnyObject {
     func messageView(_ view: MediaCarouselView, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int)
     func messageView(_ messageViewCell: MessageViewCell, replyTo feedPostCommentID: FeedPostCommentID)
@@ -322,13 +315,19 @@ class MessageViewCell: UICollectionViewCell {
         if comment.status == .retracted || comment.status == .retracting {
             configureCell()
             configureRetractedComment()
-            return
+        } else if comment.status == .rerequesting {
+            configureCell()
+            configureWaitingComment()
+        } else if comment.status == .unsupported {
+            configureCell()
+            configureUnsupportedComment(comment: comment)
+        } else {
+            configureQuotedComment(comment: comment, parentUserColorAssignment: parentUserColorAssignment)
+            configureText(comment: comment)
+            configureMedia(comment: comment)
+            configureLinkPreviewView(comment: comment)
+            configureCell()
         }
-        configureQuotedComment(comment: comment, parentUserColorAssignment: parentUserColorAssignment)
-        configureText(comment: comment)
-        configureMedia(comment: comment)
-        configureLinkPreviewView(comment: comment)
-        configureCell()
     }
 
     private func configureRetractedComment() {
@@ -338,6 +337,30 @@ class MessageViewCell: UICollectionViewCell {
         hasQuotedComment = false
         hasLinkPreview = false
         textLabel.text = Localizations.commentDeleted
+        textLabel.textColor = UIColor.chatTime
+    }
+
+    private func configureWaitingComment() {
+        let waitingString = "🕓 " + Localizations.feedCommentWaiting
+        let attributedString = Localizations.appendLearnMoreLabel(to: waitingString)
+        hasText = true
+        hasMedia = false
+        hasAudio = false
+        hasQuotedComment = false
+        hasLinkPreview = false
+        textLabel.attributedText = attributedString.with(font: UIFont.preferredFont(forTextStyle: .subheadline).withItalicsIfAvailable, color: .secondaryLabel)
+        textLabel.textColor = UIColor.chatTime
+    }
+
+    private func configureUnsupportedComment(comment: FeedPostComment) {
+        let cryptoResultString: String = FeedItemContentView.obtainCryptoResultString(for: comment.id)
+        let attributedString = NSMutableAttributedString(string: "⚠️ " + Localizations.commentIsNotSupported + cryptoResultString)
+        hasText = true
+        hasMedia = false
+        hasAudio = false
+        hasQuotedComment = false
+        hasLinkPreview = false
+        textLabel.attributedText = attributedString.with(font: UIFont.preferredFont(forTextStyle: .subheadline).withItalicsIfAvailable, color: .secondaryLabel)
         textLabel.textColor = UIColor.chatTime
     }
     
@@ -388,9 +411,11 @@ class MessageViewCell: UICollectionViewCell {
     }
 
     private func configureText(comment: FeedPostComment) {
-        if !comment.text.isEmpty  {
+        let cryptoResultString: String = FeedItemContentView.obtainCryptoResultString(for: comment.id)
+        let feedPostCommentText = comment.text + cryptoResultString
+        if !feedPostCommentText.isEmpty  {
             let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
-                comment.text,
+                feedPostCommentText,
                 mentions: Array(comment.mentions ?? Set()))
 
             let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
@@ -405,9 +430,9 @@ class MessageViewCell: UICollectionViewCell {
                 textLabel.attributedText = ham.parse(attrText).applyingFontForMentions(boldFont)
             }
             hasText = true
-            return
+        } else {
+            hasText = false
         }
-        hasText = false
     }
 
     private func configureQuotedComment(comment: FeedPostComment, parentUserColorAssignment: UIColor) {

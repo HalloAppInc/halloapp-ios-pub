@@ -25,7 +25,7 @@ protocol CommentViewDelegate: AnyObject {
     func commentView(_ view: MediaCarouselView, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int)
 }
 
-private extension Localizations {
+extension Localizations {
 
     static var commentReply: String {
         NSLocalizedString("comment.reply", value: "Reply", comment: "Title for the button displayed under feed post comment. Verb.")
