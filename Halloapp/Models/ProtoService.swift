@@ -1370,14 +1370,12 @@ extension ProtoService: HalloService {
         let expiry = postData.timestamp.addingTimeInterval(-FeedData.postExpiryTimeInterval)
 
         var ogTagInfo = Server_OgTagInfo()
-        if let text = postData.text {
-            ogTagInfo.description_p = text
-        }
+        ogTagInfo.title = Localizations.externalShareTitle(name: MainAppContext.shared.userData.name)
 
         enqueue(request: ProtoExternalShareRequest(encryptedPostData: encryptedPayload, expiry: expiry, ogTagInfo: ogTagInfo) { result in
             switch result {
             case .success(let blobID):
-                if let url = URL(string: "\(shareURLPrefix)\(blobID)?k=\(Data(attachmentKey).base64urlEncodedString())") {
+                if let url = URL(string: "\(shareURLPrefix)\(blobID)#k\(Data(attachmentKey).base64urlEncodedString())") {
                     completion(.success(url))
                 } else {
                     completion(.failure(RequestError.malformedResponse))

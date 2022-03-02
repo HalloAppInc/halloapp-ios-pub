@@ -179,4 +179,10 @@ extension Localizations {
         NSLocalizedString("app.ios.settings", value: "Settings", comment: "Translation of iPhone settings app.")
     }
 
+    static func externalShareTitle(name: String) -> String {
+        let format = NSLocalizedString("externalShare.og.title",
+                                       value: "%@'s HalloApp Post",
+                                       comment: "Placeholder title for posts that are externally shared, John Smith's HalloApp Post")
+        return String(format: format, name)
+    }
 }
