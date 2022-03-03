@@ -12,7 +12,7 @@ import Core
 protocol ExpandableTextViewDelegate: UITextViewDelegate {
     func textView(_ textView: ExpandableTextView, didRequestHandleMention userID: UserID)
     func textViewDidRequestToExpand(_ textView: ExpandableTextView)
-    func textView(_ textView: ExpandableTextView, didSelectAction action: UserContextAction)
+    func textView(_ textView: ExpandableTextView, didSelectAction action: UserMenuAction)
 }
 
 /// An expandable text view that provides contextual menus for links, phone numbers,
@@ -281,8 +281,10 @@ extension ExpandableTextView: UIContextMenuInteractionDelegate {
         let config = UIContextMenuConfiguration(identifier: id as NSString, previewProvider: {
             return UserFeedViewController(userId: id)
         }) { [weak self] _ in
-            let menuItems = self?.contextMenuItems(forUser: id) ?? []
-            return UIMenu(title: mention.text, children: menuItems)
+            return UIMenu.menu(for: id) { [weak self] action in
+                guard let self = self else { return }
+                (self.delegate as? ExpandableTextViewDelegate)?.textView(self, didSelectAction: action)
+            }
         }
         
         return config
@@ -323,43 +325,6 @@ extension ExpandableTextView: UIContextMenuInteractionDelegate {
         animator.addCompletion { [id] in
             (self.delegate as? ExpandableTextViewDelegate)?.textView(self, didRequestHandleMention: id)
         }
-    }
-    
-    private func contextMenuItems(forUser id: UserID) -> [UIMenuElement]? {
-        guard let _ = MainAppContext.shared.contactStore.contact(withUserId: id) else {
-            return nil
-        }
-        
-        var items = [UIMenuElement]()
-        items.append(UIAction(title: Localizations.contextMenuMessageUser, image: .init(systemName: "message")) { _ in
-            (self.delegate as? ExpandableTextViewDelegate)?.textView(self, didSelectAction: .message(id))
-        })
-        
-        items.append(UIAction(title: Localizations.contextMenuAudioCall, image: .init(systemName: "phone")) { _ in
-            (self.delegate as? ExpandableTextViewDelegate)?.textView(self, didSelectAction: .call(id, .audio))
-        })
-        
-        if ServerProperties.isVideoCallsEnabled {
-            items.append(UIAction(title: Localizations.contextMenuVideoCall, image: .init(systemName: "video")) { _ in
-                (self.delegate as? ExpandableTextViewDelegate)?.textView(self, didSelectAction: .call(id, .video))
-            })
-        }
-        
-        var block: UIAction!
-        let isBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(id)
-        if !isBlocked {
-            block = UIAction(title: Localizations.userOptionBlock, image: .init(systemName: "nosign"), attributes: .destructive) { _ in
-                (self.delegate as? ExpandableTextViewDelegate)?.textView(self, didSelectAction: .block(id))
-            }
-        } else {
-            block = UIAction(title: Localizations.userOptionUnblock, image: .init(systemName: "nosign")) { _ in
-                (self.delegate as? ExpandableTextViewDelegate)?.textView(self, didSelectAction: .unblock(id))
-            }
-        }
-        
-        items.append(UIMenu(title: "Block", image: nil, identifier: nil, options: .displayInline, children: [block]))
-        
-        return items
     }
 }
 

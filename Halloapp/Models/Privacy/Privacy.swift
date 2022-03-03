@@ -598,4 +598,35 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
             reloadBlockedSettingValue()
         }
     }
+    
+    /**
+     Adds a user to the blocked list.
+     */
+    public func block(userID: UserID) {
+        guard
+            let blockedList = blocked,
+            userID != MainAppContext.shared.userData.userId
+        else {
+            return
+        }
+        
+        replaceUserIDs(in: blockedList, with: blockedList.userIds + [userID])
+        
+        MainAppContext.shared.didPrivacySettingChange.send(userID)
+    }
+    
+    /**
+     Removes a user to the blocked list.
+     */
+    public func unblock(userID: UserID) {
+        guard let blockedList = blocked else {
+            return
+        }
+        
+        var newBlockedList = blockedList.userIds
+        newBlockedList.removeAll { $0 == userID }
+        replaceUserIDs(in: blockedList, with: newBlockedList)
+        
+        MainAppContext.shared.didPrivacySettingChange.send(userID)
+    }
 }

@@ -11,7 +11,7 @@ import Foundation
 import Photos
 import UIKit
 
-class PostViewController: UIViewController, UserContextMenuHandler {
+class PostViewController: UIViewController, UserMenuHandler {
 
     private let post: FeedPost
 
@@ -174,7 +174,7 @@ extension PostViewController {
         }
         
         postView.contextAction = { [weak self] action in
-            self?.handle(user: action)
+            self?.handle(action: action)
         }
     }
 

@@ -19,7 +19,7 @@ protocol FeedCollectionViewControllerDelegate: AnyObject {
     func feedCollectionViewController(_ feedCollectionViewController: FeedCollectionViewController, userActioned: Bool)
 }
 
-class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, UserContextMenuHandler {
+class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, UserMenuHandler {
 
     weak var delegate: FeedCollectionViewControllerDelegate?
 
@@ -803,7 +803,7 @@ extension FeedCollectionViewController {
             self.handleDeletePostTapped(postId: postId)
         }
         cell.contextAction = { [weak self] action in
-            self?.handle(user: action)
+            self?.handle(action: action)
         }
         
         cell.delegate = self

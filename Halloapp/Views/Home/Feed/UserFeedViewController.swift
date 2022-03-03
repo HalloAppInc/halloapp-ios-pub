@@ -100,7 +100,7 @@ class UserFeedViewController: FeedCollectionViewController {
             }))
         } else {
             headerViewController.configureOrRefresh(userID: userId)
-            navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), style: .plain, target: self, action: #selector(moreButtonTapped))
+            setupMoreButton()
         }
 
         collectionViewDataSource?.supplementaryViewProvider = { [weak self] (collectionView, kind, path) -> UICollectionReusableView? in
@@ -113,15 +113,38 @@ class UserFeedViewController: FeedCollectionViewController {
 
         if !isOwnFeed {
             // need to refresh when user is not in address book but gets added via the More menu
-            cancellables.insert(
-                MainAppContext.shared.contactStore.didDiscoverNewUsers.sink { [weak self] (newUserIDs) in
-                    guard let self = self else { return }
-                    if newUserIDs.contains(self.userId) {
-                        self.headerViewController.configureOrRefresh(userID: self.userId)
-                        self.collectionView.reloadData()
-                    }
+            MainAppContext.shared.contactStore.didDiscoverNewUsers.sink { [weak self] (newUserIDs) in
+                guard let self = self else { return }
+                if newUserIDs.contains(self.userId) {
+                    self.headerViewController.configureOrRefresh(userID: self.userId)
+                    self.collectionView.reloadData()
                 }
-            )
+            }.store(in: &cancellables)
+            
+            MainAppContext.shared.didPrivacySettingChange.sink { [weak self] changedID in
+                // update views if block setting changed
+                if changedID == self?.userId {
+                    self?.isUserBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(changedID)
+                    self?.headerViewController.configureOrRefresh(userID: changedID)
+                    self?.setupMoreButton()
+                }
+            }.store(in: &cancellables)
+        }
+    }
+    
+    private func setupMoreButton() {
+        if #available(iOS 14, *) {
+            // use new menu style if we can
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: nil,
+                                                                image: UIImage(systemName: "ellipsis"),
+                                                                 menu: UIMenu.menu(for: userId, options: [.utilityActions, .blockAction]) { [weak self] action in
+                self?.handle(action: action)
+            })
+        } else {
+            // TODO: remove this once iOS 13 is no longer supported
+            navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis"),
+                                                                style: .plain, target: self,
+                                                               action: #selector(moreButtonTapped))
         }
     }
     
@@ -135,107 +158,47 @@ class UserFeedViewController: FeedCollectionViewController {
         let pushNumberExist = MainAppContext.shared.contactStore.pushNumber(userId) != nil
 
         if !isContactInAddressBook, pushNumberExist {
+            let action = UserMenuAction.addContact(userId)
             let addToContactBookAction = UIAlertAction(title: Localizations.addToContactBook, style: .default) { [weak self] _ in
-                guard let self = self else { return }
-                MainAppContext.shared.contactStore.addUserToAddressBook(userID: self.userId, presentingVC: self)
+                self?.handle(action: action)
             }
             alert.addAction(addToContactBookAction)
         }
 
         /* Verify Safety Number */
         if let userKeys = MainAppContext.shared.keyStore.keyBundle(),
-              let contactKeyBundle = MainAppContext.shared.keyStore.messageKeyBundle(for: userId)?.keyBundle,
-              let contactData = SafetyNumberData(keyBundle: contactKeyBundle)
+           let contactKeyBundle = MainAppContext.shared.keyStore.messageKeyBundle(for: userId)?.keyBundle,
+           let contactData = SafetyNumberData(keyBundle: contactKeyBundle)
         {
+            let action = UserMenuAction.safetyNumber(self.userId, contactData: contactData, bundle: userKeys)
             let verifySafetyNumberAction = UIAlertAction(title: Localizations.safetyNumberTitle, style: .default) { [weak self] _ in
-                self?.viewSafetyNumber(contactData: contactData, userKeyBundle: userKeys)
+                self?.handle(action: action)
             }
             alert.addAction(verifySafetyNumberAction)
         }
 
-        let groupCommonAction = UIAlertAction(title: Localizations.groupsInCommonButtonLabel, style: .default) { [weak self] _ in
-            self?.headerViewController.openGroupsCommonPage()
+        let groupCommonAction = UIAlertAction(title: Localizations.groupsInCommonButtonLabel, style: .default) { [weak self, userId] _ in
+            self?.handle(action: UserMenuAction.commonGroups(userId))
         }
         alert.addAction(groupCommonAction)
 
         /* Block on HalloApp */
         if isUserBlocked {
-            let unblockUserAction = UIAlertAction(title: Localizations.userOptionUnblock, style: .destructive) { [weak self] _ in
-                self?.unBlockUserTapped()
+            let unblockUserAction = UIAlertAction(title: Localizations.userOptionUnblock, style: .destructive) { [weak self, userId] _ in
+                self?.handle(action: .unblock(userId))
             }
             alert.addAction(unblockUserAction)
         } else {
-            let blockUserAction = UIAlertAction(title: Localizations.userOptionBlock, style: .destructive) { [weak self] _ in
-                self?.blockUserTapped()
+            let blockUserAction = UIAlertAction(title: Localizations.userOptionBlock, style: .destructive) { [weak self, userId] _ in
+                self?.handle(action: .block(userId))
             }
             alert.addAction(blockUserAction)
         }
 
         let cancel = UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
         alert.view.tintColor = .systemBlue
-
         alert.addAction(cancel)
 
-        present(alert, animated: true)
-    }
-
-    private func viewSafetyNumber(contactData: SafetyNumberData, userKeyBundle: UserKeyBundle) {
-        let vc = SafetyNumberViewController(
-            currentUser: SafetyNumberData(
-                userID: MainAppContext.shared.userData.userId,
-                identityKey: userKeyBundle.identityPublicKey),
-            contact: contactData,
-            contactName: MainAppContext.shared.contactStore.fullName(for: userId),
-            dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
-        present(vc.withNavigationController(), animated: true)
-    }
-    
-    private func blockUserTapped() {
-        let blockMessage = Localizations.blockMessage(username: MainAppContext.shared.contactStore.fullName(for: userId))
-        
-        let alert = UIAlertController(title: nil, message: blockMessage, preferredStyle: .actionSheet)
-        let button = UIAlertAction(title: Localizations.blockButton, style: .destructive) { [weak self] _ in
-            let privacySettings = MainAppContext.shared.privacySettings
-            guard let self = self else { return }
-            guard let blockedList = privacySettings.blocked else { return }
-            let userID = self.userId
-            privacySettings.replaceUserIDs(in: blockedList, with: blockedList.userIds + [userID])
-            self.isUserBlocked = true
-            self.headerViewController.configureOrRefresh(userID: userID)
-            MainAppContext.shared.didPrivacySettingChange.send(userID)
-        }
-        alert.addAction(button)
-        
-        let cancel = UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
-        alert.addAction(cancel)
-        
-        present(alert, animated: true)
-    }
-    
-    private func unBlockUserTapped() {
-        guard !isOwnFeed else { return }
-
-        let unBlockMessage = Localizations.unBlockMessage(username: MainAppContext.shared.contactStore.fullName(for: userId))
-
-        let alert = UIAlertController(title: nil, message: unBlockMessage, preferredStyle: .actionSheet)
-        let button = UIAlertAction(title: Localizations.unBlockButton, style: .destructive) { [weak self] _ in
-            let privacySettings = MainAppContext.shared.privacySettings
-            guard let self = self else { return }
-            guard let blockedList = privacySettings.blocked else { return }
-            let userID = self.userId
-            
-            var newBlockList = blockedList.userIds
-            newBlockList.removeAll { value in return value == userID}
-            privacySettings.replaceUserIDs(in: blockedList, with: newBlockList)
-            self.isUserBlocked = false
-            self.headerViewController.configureOrRefresh(userID: userID)
-            MainAppContext.shared.didPrivacySettingChange.send(userID)
-        }
-        alert.addAction(button)
-
-        let cancel = UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
-        alert.addAction(cancel)
-        
         present(alert, animated: true)
     }
 

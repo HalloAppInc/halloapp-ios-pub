@@ -20,7 +20,7 @@ protocol ProfileHeaderDelegate: AnyObject {
     func profileHeaderDidTapUnblock(_ profileHeader: ProfileHeaderViewController)
 }
 
-final class ProfileHeaderViewController: UIViewController {
+final class ProfileHeaderViewController: UIViewController, UserMenuHandler {
     var isEditingAllowed: Bool = false {
         didSet {
             if let view = viewIfLoaded as? ProfileHeaderView {
@@ -91,7 +91,6 @@ final class ProfileHeaderViewController: UIViewController {
         }
 
         headerView.phoneLabel.isHidden = !showPhoneLabel
-
         headerView.avatarViewButton.addTarget(self, action: #selector(avatarViewTapped), for: .touchUpInside)
     }
           
@@ -108,28 +107,7 @@ final class ProfileHeaderViewController: UIViewController {
     
     @objc func unblockButtonTappedprofile() {
         guard let userID = headerView.userID else { return }
-
-        let unBlockMessage = Localizations.unBlockMessage(username: MainAppContext.shared.contactStore.fullName(for: userID))
-
-        let alert = UIAlertController(title: nil, message: unBlockMessage, preferredStyle: .actionSheet)
-        let button = UIAlertAction(title: Localizations.unBlockButton, style: .destructive) { [weak self] _ in
-            guard let self = self else { return }
-            let privacySettings = MainAppContext.shared.privacySettings
-            guard let blockedList = privacySettings.blocked else { return }
-            
-            var newBlockList = blockedList.userIds
-            newBlockList.removeAll { $0 == userID }
-            privacySettings.replaceUserIDs(in: blockedList, with: newBlockList)
-            
-            self.headerView.isBlocked = false
-            self.delegate?.profileHeaderDidTapUnblock(self)
-        }
-        alert.addAction(button)
-
-        let cancel = UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
-        alert.addAction(cancel)
-        
-        present(alert, animated: true)
+        handle(action: .unblock(userID))
     }
     
     // MARK: Profile Name Editing
@@ -220,52 +198,19 @@ final class ProfileHeaderViewController: UIViewController {
 
     @objc private func openChatView() {
         guard let userID = headerView.userID else { return }
-
-        navigationController?.pushViewController(ChatViewController(for: userID), animated: true)
+        self.handle(action: .message(userID))
     }
 
     @objc private func audioCallButtonTapped() {
-        startCall(type: .audio)
+        guard let userID = headerView.userID else { return }
+        self.handle(action: .call(userID, .audio))
     }
 
     @objc private func videoCallButtonTapped() {
-        startCall(type: .video)
-    }
-
-    private func startCall(type: CallType) {
-        guard let peerUserID = headerView.userID else {
-            DDLogInfo("ProfileHeader/audioCallButtonTapped/peerUserID is empty")
-            return
-        }
-        if peerUserID == MainAppContext.shared.userData.userId {
-            DDLogInfo("ProfileHeader/audioCallButtonTapped/cannot call oneself")
-            return
-        }
-        MainAppContext.shared.callManager.startCall(to: peerUserID, type: type) { [weak self] result in
-            guard let self = self else { return }
-            DispatchQueue.main.async {
-                switch result {
-                case .success:
-                    DDLogInfo("ProfileHeader/startCall/success")
-                case .failure:
-                    DDLogInfo("ProfileHeader/startCall/failure")
-                    let alert = self.getFailedCallAlert()
-                    self.present(alert, animated: true)
-                }
-            }
-        }
-    }
-    
-    func openGroupsCommonPage() {
         guard let userID = headerView.userID else { return }
-
-        let commonGroupsVC = GroupsInCommonViewController(userID: userID)
-        let controller = UINavigationController(rootViewController: commonGroupsVC)
-        controller.modalPresentationStyle = .fullScreen
-
-        navigationController?.present(controller, animated:true)
+        self.handle(action: .call(userID, .video))
     }
-    
+
     private func presentPhotoPicker() {
         DDLogInfo("profile/edit-photo Presenting photo picker")
 

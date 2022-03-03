@@ -57,7 +57,7 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
     var cancelSendingAction: (() -> ())?
     var retrySendingAction: (() -> ())?
     var deleteAction: (() -> ())?
-    var contextAction: ((UserContextAction) -> ())?
+    var contextAction: ((UserMenuAction) -> ())?
 
     weak var delegate: FeedPostCollectionViewCellDelegate?
 
@@ -283,7 +283,7 @@ extension FeedPostCollectionViewCell: ExpandableTextViewDelegate {
         showUserAction?(userID)
     }
     
-    func textView(_ textView: ExpandableTextView, didSelectAction action: UserContextAction) {
+    func textView(_ textView: ExpandableTextView, didSelectAction action: UserMenuAction) {
         contextAction?(action)
     }
     
