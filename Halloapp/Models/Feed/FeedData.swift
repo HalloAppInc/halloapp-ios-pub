@@ -512,8 +512,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
                 comments.append(contentsOf: postComments)
             }
-            let commentsData = comments.map{ $0.commentData }
-
+            let commentsData = comments.map{ $0.commentData }.sorted { $0.timestamp > $1.timestamp }
             let postIds = posts.map { $0.id }
             let commentIds = comments.map { $0.id }
 
