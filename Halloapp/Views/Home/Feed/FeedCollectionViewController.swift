@@ -162,6 +162,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
             NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification).sink { [weak self] (_) in
                 guard let self = self else { return }
                 self.checkForOnscreenCells()
+                self.updateNoConnectionBanner(animated: true)
         })
 
         cancellableSet.insert(
@@ -440,17 +441,14 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
     }
 
     /// Hides banner immediately if connected, otherwise waits for timeout to decide whether to show banner
-    private func updateNoConnectionBanner(animated: Bool, timeout: TimeInterval = 2) {
-        guard UIApplication.shared.applicationState == .active else {
-            return
-        }
+    private func updateNoConnectionBanner(animated: Bool, timeout: TimeInterval = 8) {
         if MainAppContext.shared.service.isConnected {
             hideNoConnectionBanner(animated: animated)
-        } else {
+        } else if UIApplication.shared.applicationState == .active {
             DispatchQueue.main.asyncAfter(deadline: .now() + timeout) {
                 if MainAppContext.shared.service.isConnected {
                     self.hideNoConnectionBanner(animated: animated)
-                } else {
+                } else if UIApplication.shared.applicationState == .active {
                     self.showNoConnectionBanner(animated: animated)
                 }
             }

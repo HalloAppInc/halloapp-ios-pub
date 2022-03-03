@@ -32,11 +32,15 @@ final class ConnectionBanner: UIView {
         addSubview(blurredEffectView)
         addSubview(label)
 
-        layoutMargins = UIEdgeInsets(top: 8, left: 36, bottom: 8, right: 36)
         heightAnchor.constraint(equalToConstant: 55).isActive = true
 
         blurredEffectView.constrain(to: self)
-        label.constrainMargins(to: self)
+        NSLayoutConstraint.activate([
+            label.topAnchor.constraint(equalTo: topAnchor, constant: 8),
+            label.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8),
+            label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 36),
+            label.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -36),
+        ])
 
         self.blurredEffectView = blurredEffectView
     }
