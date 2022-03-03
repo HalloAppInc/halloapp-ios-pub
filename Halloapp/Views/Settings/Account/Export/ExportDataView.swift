@@ -178,7 +178,7 @@ private extension Localizations {
     }
     
     static var dataAvailabilityDateNotFound: String {
-        NSLocalizedString("settings.account.export.not.found", value: "Ready date could not be established.", comment: "Label for when the date at which the user data is not determined.")
+        NSLocalizedString("settings.account.export.not.found", value: "Date when your data will be available could not be determined.", comment: "Label for when the date at which the exported user data will be available is not determined.")
     }
     
     static var openDataLink: String {
