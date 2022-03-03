@@ -152,6 +152,12 @@ class CreateGroupViewController: UIViewController {
     private lazy var groupNameTextField: UITextField = {
         class GroupNameTextField: UITextField {
 
+            var borderColor: UIColor? {
+                didSet {
+                    updateBorderColor()
+                }
+            }
+
             override func layoutSubviews() {
                 super.layoutSubviews()
                 let cornerRadius = min(bounds.height, bounds.width) / 2.0
@@ -160,7 +166,7 @@ class CreateGroupViewController: UIViewController {
             }
 
             override func textRect(forBounds bounds: CGRect) -> CGRect {
-                return bounds.insetBy(dx: 20, dy: 10)
+                return bounds.insetBy(dx: 20, dy: 12)
             }
 
             override func placeholderRect(forBounds bounds: CGRect) -> CGRect {
@@ -170,14 +176,26 @@ class CreateGroupViewController: UIViewController {
             override func editingRect(forBounds bounds: CGRect) -> CGRect {
                 return textRect(forBounds: bounds)
             }
+
+            override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+                super.traitCollectionDidChange(previousTraitCollection)
+
+                if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+                    updateBorderColor()
+                }
+            }
+
+            private func updateBorderColor() {
+                layer.borderColor = borderColor?.resolvedColor(with: traitCollection).cgColor
+            }
         }
 
         let groupNameTextField = GroupNameTextField()
         groupNameTextField.addTarget(self, action: #selector(groupNameChanged), for: .editingChanged)
-        groupNameTextField.backgroundColor = .systemBackground
+        groupNameTextField.backgroundColor = .systemGray6
         groupNameTextField.delegate = self
         groupNameTextField.font = UIFont.preferredFont(forTextStyle: .body)
-        groupNameTextField.layer.borderColor = UIColor.black.withAlphaComponent(0.12).cgColor
+        groupNameTextField.borderColor = UIColor.label.withAlphaComponent(0.24)
         groupNameTextField.layer.borderWidth = 0.5
         groupNameTextField.layer.shadowColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.04).cgColor
         groupNameTextField.layer.shadowOpacity = 1

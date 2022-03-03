@@ -335,13 +335,12 @@ private class GroupInviteSheetBackgroundView: UIView {
     init(contentView: UIView) {
         super.init(frame: .zero)
 
-        backgroundColor = .feedBackground
+        backgroundColor = .systemGray6
 
         // mimic outset border with shadow
-        layer.shadowColor = UIColor(red: 0.458, green: 0.441, blue: 0.441, alpha: 0.26).cgColor
         layer.shadowOffset = .zero
         layer.shadowOpacity = 1.0
-        layer.shadowRadius = 1.0
+        layer.shadowRadius = 1.0 / UIScreen.main.scale
 
         layer.cornerRadius = 20
 
@@ -361,6 +360,8 @@ private class GroupInviteSheetBackgroundView: UIView {
             contentView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -Self.additionalBottomPadding),
             contentView.trailingAnchor.constraint(equalTo: trailingAnchor),
         ])
+
+        updateShadowColor()
     }
 
     required init?(coder: NSCoder) {
@@ -370,6 +371,18 @@ private class GroupInviteSheetBackgroundView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: layer.cornerRadius).cgPath
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+
+        if traitCollection.hasDifferentColorAppearance(comparedTo: traitCollection) {
+            updateShadowColor()
+        }
+    }
+
+    private func updateShadowColor() {
+        layer.shadowColor = UIColor.label.resolvedColor(with: traitCollection).withAlphaComponent(0.64).cgColor
     }
 }
 
