@@ -960,6 +960,10 @@ public struct Clients_PostIdContext {
 
   public var feedPostID: String = String()
 
+  public var senderUid: Int64 = 0
+
+  public var timestamp: Int64 = 0
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -975,6 +979,10 @@ public struct Clients_CommentIdContext {
   public var feedPostID: String = String()
 
   public var parentCommentID: String = String()
+
+  public var senderUid: Int64 = 0
+
+  public var timestamp: Int64 = 0
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -2543,6 +2551,8 @@ extension Clients_PostIdContext: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
   public static let protoMessageName: String = _protobuf_package + ".PostIdContext"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "feed_post_id"),
+    2: .standard(proto: "sender_uid"),
+    3: .same(proto: "timestamp"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2552,6 +2562,8 @@ extension Clients_PostIdContext: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.feedPostID) }()
+      case 2: try { try decoder.decodeSingularInt64Field(value: &self.senderUid) }()
+      case 3: try { try decoder.decodeSingularInt64Field(value: &self.timestamp) }()
       default: break
       }
     }
@@ -2561,11 +2573,19 @@ extension Clients_PostIdContext: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
     if !self.feedPostID.isEmpty {
       try visitor.visitSingularStringField(value: self.feedPostID, fieldNumber: 1)
     }
+    if self.senderUid != 0 {
+      try visitor.visitSingularInt64Field(value: self.senderUid, fieldNumber: 2)
+    }
+    if self.timestamp != 0 {
+      try visitor.visitSingularInt64Field(value: self.timestamp, fieldNumber: 3)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Clients_PostIdContext, rhs: Clients_PostIdContext) -> Bool {
     if lhs.feedPostID != rhs.feedPostID {return false}
+    if lhs.senderUid != rhs.senderUid {return false}
+    if lhs.timestamp != rhs.timestamp {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -2577,6 +2597,8 @@ extension Clients_CommentIdContext: SwiftProtobuf.Message, SwiftProtobuf._Messag
     1: .standard(proto: "comment_id"),
     2: .standard(proto: "feed_post_id"),
     3: .standard(proto: "parent_comment_id"),
+    4: .standard(proto: "sender_uid"),
+    5: .same(proto: "timestamp"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2588,6 +2610,8 @@ extension Clients_CommentIdContext: SwiftProtobuf.Message, SwiftProtobuf._Messag
       case 1: try { try decoder.decodeSingularStringField(value: &self.commentID) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.feedPostID) }()
       case 3: try { try decoder.decodeSingularStringField(value: &self.parentCommentID) }()
+      case 4: try { try decoder.decodeSingularInt64Field(value: &self.senderUid) }()
+      case 5: try { try decoder.decodeSingularInt64Field(value: &self.timestamp) }()
       default: break
       }
     }
@@ -2603,6 +2627,12 @@ extension Clients_CommentIdContext: SwiftProtobuf.Message, SwiftProtobuf._Messag
     if !self.parentCommentID.isEmpty {
       try visitor.visitSingularStringField(value: self.parentCommentID, fieldNumber: 3)
     }
+    if self.senderUid != 0 {
+      try visitor.visitSingularInt64Field(value: self.senderUid, fieldNumber: 4)
+    }
+    if self.timestamp != 0 {
+      try visitor.visitSingularInt64Field(value: self.timestamp, fieldNumber: 5)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -2610,6 +2640,8 @@ extension Clients_CommentIdContext: SwiftProtobuf.Message, SwiftProtobuf._Messag
     if lhs.commentID != rhs.commentID {return false}
     if lhs.feedPostID != rhs.feedPostID {return false}
     if lhs.parentCommentID != rhs.parentCommentID {return false}
+    if lhs.senderUid != rhs.senderUid {return false}
+    if lhs.timestamp != rhs.timestamp {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
