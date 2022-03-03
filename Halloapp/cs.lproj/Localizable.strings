@@ -373,7 +373,7 @@
 /* Title warning that a voice recording will be deleted */
 "composer.delete.recording.title" = "Chcete odstranit hlasový záznam?";
 
-/* Show the user that the title is tappable */
+/* Warning message shown to the user before discarding a voice post */
 "composer.deletevoicenote.message" = "Pokud tento příspěvek zahodíte, hlasový záznam se neuloží.";
 
 /* Title for alert when closing the post composer with a voice note */
@@ -754,9 +754,6 @@
 /* Text shown to users trying to open the call screen. */
 "home.calls.notice.text" = "Momentálně nemáte aktivní hovor.";
 
-/* Title of call screen alert. */
-"home.calls.notice.title" = "Žádné aktivní hovory";
-
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Odejít";
 
@@ -891,9 +888,6 @@
 
 /* Message action. Verb. */
 "message.delete" = "Smazat";
-
-/* Message action. Verb. */
-"message.info" = "Info";
 
 /* Message action. Verb. */
 "message.reply" = "Odpovědět";
@@ -1229,9 +1223,6 @@
 /* fallback text in notification when user is added to a new group */
 "server.new.group" = "Byli jste přidáni do nové skupiny";
 
-/* fallback text in notification for a new group chat message */
-"server.new.group.message" = "Nová skupinová zpráva";
-
 /* fallback text in notification when an invitee joins */
 "server.new.inviter" = "%@ právě přijal vaše pozvání přidat se na HalloApp 🎉";
 
@@ -1375,9 +1366,6 @@
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.share" = "Sdílet...";
-
-/* Link to expand truncated text. */
-"textlabel.more" = "...více";
 
 /* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
 "thread.list.preview.already.user.default" = "%@ je na HalloApp";

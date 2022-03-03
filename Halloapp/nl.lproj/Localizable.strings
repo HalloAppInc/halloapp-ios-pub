@@ -154,6 +154,15 @@
 /* Title for call history event. Appears next to details of a missed call. */
 "call.history.voice.call.missed" = "Gemiste spraakoproep";
 
+/* Status display when peer mutes audio during a call. */
+"call.mute.remote.audio" = "%@ heeft deze oproep gedempt";
+
+/* Status display when peer mutes both audio and video during a call. */
+"call.mute.remote.audio.video" = "De camera en microfoon van %@ is uitgeschakeld";
+
+/* Status display when peer mutes video during a call. */
+"call.mute.remote.video" = "De camera van %@ is uitgeschakeld";
+
 /* Status displayed when the other side is busy. */
 "call.status.busy" = "in gesprek";
 
@@ -164,13 +173,16 @@
 "call.status.connecting" = "verbinding maken...";
 
 /* Status displayed when call fails. */
-"call.status.failed" = "mislukt";
+"call.status.failed" = "oproep mislukt";
 
 /* Status displayed when call is on hold. */
 "call.status.held" = "in de wacht";
 
 /* Status displayed when incoming call starts */
 "call.status.incoming" = "inkomende oproep";
+
+/* Status displayed when the other side mutes the audio. */
+"call.status.muted" = "oproep gedempt";
 
 /* Status displayed when reconnecting during call */
 "call.status.reconnecting" = "opnieuw verbinding maken...";
@@ -391,7 +403,7 @@
 /* Title warning that a voice recording will be deleted */
 "composer.delete.recording.title" = "Spraakopname verwijderen?";
 
-/* Show the user that the title is tappable */
+/* Warning message shown to the user before discarding a voice post */
 "composer.deletevoicenote.message" = "Spraakopname wordt niet opgeslagen als je deze post weggooit.";
 
 /* Title for alert when closing the post composer with a voice note */
@@ -778,9 +790,6 @@
 /* Text shown to users trying to open the call screen. */
 "home.calls.notice.text" = "Je hebt op dit moment geen actieve oproep.";
 
-/* Title of call screen alert. */
-"home.calls.notice.title" = "Geen Actieve Oproepen";
-
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Afsluiten";
 
@@ -905,6 +914,9 @@
 "media.voiceover.button.close" = "Sluiten";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.draw" = "Tekenen";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.flip" = "Omdraaien";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
@@ -918,9 +930,6 @@
 
 /* Message action. Verb. */
 "message.delete" = "Verwijderen";
-
-/* Message action. Verb. */
-"message.info" = "Informeren";
 
 /* Message action. Verb. */
 "message.reply" = "Beantwoorden";
@@ -1104,7 +1113,7 @@
 
 /* This is a verb.  The text is clickable, under a contact name and starts a video call with that contact. It should not be translated as a noun.
    This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun. */
-"profile.header.call.user" = "spraakoproep";
+"profile.header.call.user" = "bellen";
 
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
 "profile.header.message.user" = "stuur bericht";
@@ -1265,9 +1274,6 @@
 /* fallback text in notification when user is added to a new group */
 "server.new.group" = "Je bent toegevoegd aan een nieuwe groep";
 
-/* fallback text in notification for a new group chat message */
-"server.new.group.message" = "Nieuw Groepsbericht";
-
 /* fallback text in notification when an invitee joins */
 "server.new.inviter" = "%@ heeft je uitnodiging voor HalloApp geaccepteerd 🎉";
 
@@ -1412,8 +1418,17 @@
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.share" = "Delen...";
 
+/* Same as profile.header.call.user, but capitalized */
+"textview.context.menu.audio.call.user" = "Bellen";
+
+/* Same as profile.header.message.user, but capitalized */
+"textview.context.menu.message.user" = "Stuur bericht";
+
+/* Same as profile.header.call.user, but capitalized */
+"textview.context.menu.video.call.user" = "Videobellen";
+
 /* Link to expand truncated text. */
-"textlabel.more" = "...meer";
+"textview.more" = "...meer";
 
 /* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
 "thread.list.preview.already.user.default" = "%@ gebruikt HalloApp";

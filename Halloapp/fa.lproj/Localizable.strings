@@ -154,6 +154,15 @@
 /* Title for call history event. Appears next to details of a missed call. */
 "call.history.voice.call.missed" = "تماس صوتی از دست رفته";
 
+/* Status display when peer mutes audio during a call. */
+"call.mute.remote.audio" = "@% این تماس را بی صدا کرد";
+
+/* Status display when peer mutes both audio and video during a call. */
+"call.mute.remote.audio.video" = "دوربین و میکروفون @% خاموش است";
+
+/* Status display when peer mutes video during a call. */
+"call.mute.remote.video" = "دوربین %@ خاموش است";
+
 /* Status displayed when the other side is busy. */
 "call.status.busy" = "در تماس دیگر";
 
@@ -171,6 +180,9 @@
 
 /* Status displayed when incoming call starts */
 "call.status.incoming" = "تماس دریافتی";
+
+/* Status displayed when the other side mutes the audio. */
+"call.status.muted" = "تماس بی صدا شد";
 
 /* Status displayed when reconnecting during call */
 "call.status.reconnecting" = "برقراری ارتباط...";
@@ -391,7 +403,7 @@
 /* Title warning that a voice recording will be deleted */
 "composer.delete.recording.title" = "حذف پیام صوتی";
 
-/* Show the user that the title is tappable */
+/* Warning message shown to the user before discarding a voice post */
 "composer.deletevoicenote.message" = "ضبط صدا ذخیره نمیشود اگر این پست را لغو کنید.";
 
 /* Title for alert when closing the post composer with a voice note */
@@ -778,9 +790,6 @@
 /* Text shown to users trying to open the call screen. */
 "home.calls.notice.text" = "تماس فعال در حال حاضر ندارید.";
 
-/* Title of call screen alert. */
-"home.calls.notice.title" = "فاقد تماس فعال";
-
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "خروج";
 
@@ -905,6 +914,9 @@
 "media.voiceover.button.close" = "بستن";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.draw" = "نقاشی";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.flip" = "وارونه";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
@@ -918,9 +930,6 @@
 
 /* Message action. Verb. */
 "message.delete" = "حذف";
-
-/* Message action. Verb. */
-"message.info" = "اطلاعات";
 
 /* Message action. Verb. */
 "message.reply" = "پاسخ";
@@ -1265,9 +1274,6 @@
 /* fallback text in notification when user is added to a new group */
 "server.new.group" = "به گروه جدیدی دعوت شدید";
 
-/* fallback text in notification for a new group chat message */
-"server.new.group.message" = "پیام گروهی جدید";
-
 /* fallback text in notification when an invitee joins */
 "server.new.inviter" = "%@ دعوت شما را به هالواپ پذیرفت 🎉";
 
@@ -1412,8 +1418,17 @@
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.share" = "به اشتراک گذاشتن...";
 
+/* Same as profile.header.call.user, but capitalized */
+"textview.context.menu.audio.call.user" = "تماس صوتی";
+
+/* Same as profile.header.message.user, but capitalized */
+"textview.context.menu.message.user" = "پیام";
+
+/* Same as profile.header.call.user, but capitalized */
+"textview.context.menu.video.call.user" = "تماس ویدیویی";
+
 /* Link to expand truncated text. */
-"textlabel.more" = "...بیشتر";
+"textview.more" = "...بیشتر";
 
 /* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
 "thread.list.preview.already.user.default" = "%@ در هالواپ است";

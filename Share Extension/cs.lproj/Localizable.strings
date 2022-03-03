@@ -115,18 +115,6 @@
 /* Placeholder when sharing text only. */
 "share.composer.placeholder.text" = "Napsat příspěvek";
 
-/* Composer subtitle when sharing with a contact */
-"share.composer.subtitle.contact" = "Posílám %@";
-
-/* Composer subtitle for group posts */
-"share.composer.subtitle.group" = "Sdílím s %@";
-
-/* Composer title when sharing with a contact */
-"share.composer.title.contact" = "Nová zpráva";
-
-/* Composer title when sharing to feed */
-"share.composer.title.feed" = "Nový příspěvek";
-
 /* Alert dialog message shown when uploading fails. */
 "share.composer.uploading.fail.message" = "Zkuste to znovu později.";
 

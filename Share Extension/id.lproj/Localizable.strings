@@ -115,18 +115,6 @@
 /* Placeholder when sharing text only. */
 "share.composer.placeholder.text" = "Tuliskan unggahan";
 
-/* Composer subtitle when sharing with a contact */
-"share.composer.subtitle.contact" = "Kirim, kepada %@";
-
-/* Composer subtitle for group posts */
-"share.composer.subtitle.group" = "Bagikan dengan %@";
-
-/* Composer title when sharing with a contact */
-"share.composer.title.contact" = "Pesan Baru";
-
-/* Composer title when sharing to feed */
-"share.composer.title.feed" = "Pos Baru";
-
 /* Alert dialog message shown when uploading fails. */
 "share.composer.uploading.fail.message" = "Silakan coba lagi nanti.";
 

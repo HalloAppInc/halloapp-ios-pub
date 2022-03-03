@@ -5,7 +5,7 @@
 "NSCameraUsageDescription" = "Dit zorgt ervoor dat je direct vanuit HalloApp foto's en video's kunt maken.";
 
 /* Privacy - Contacts Usage Description */
-"NSContactsUsageDescription" = "Upload je contacten naar de servers van HalloApp zodat je de posts van je vrienden kunt zien en zij die van jou.";
+"NSContactsUsageDescription" = "Geef HalloApp toegang tot je contacten zodat je posts kunt delen en zien van je vrienden en familie.";
 
 /* Privacy - Microphone Usage Description */
 "NSMicrophoneUsageDescription" = "Dit zorgt ervoor dat je kunt bellen, audioposts en spraakberichten kunt verzenden en video's met geluid kunt opnemen.";

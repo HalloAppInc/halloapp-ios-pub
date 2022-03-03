@@ -115,18 +115,6 @@
 /* Placeholder when sharing text only. */
 "share.composer.placeholder.text" = "Напиши пост";
 
-/* Composer subtitle when sharing with a contact */
-"share.composer.subtitle.contact" = "Отправка в адрес %@...";
-
-/* Composer subtitle for group posts */
-"share.composer.subtitle.group" = "Предоставляется совместный доступ %@...";
-
-/* Composer title when sharing with a contact */
-"share.composer.title.contact" = "Новое сообщение";
-
-/* Composer title when sharing to feed */
-"share.composer.title.feed" = "Новый пост";
-
 /* Alert dialog message shown when uploading fails. */
 "share.composer.uploading.fail.message" = "Повторите попытку позже.";
 

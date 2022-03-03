@@ -73,18 +73,6 @@
 /* Placeholder when sharing text only. */
 "share.composer.placeholder.text" = "Σύνταξη δημοσίευσης";
 
-/* Composer subtitle when sharing with a contact */
-"share.composer.subtitle.contact" = "Αποστολή σε %@";
-
-/* Composer subtitle for group posts */
-"share.composer.subtitle.group" = "Κοινοποίηση σε %@";
-
-/* Composer title when sharing with a contact */
-"share.composer.title.contact" = "Νέο Μήνυμα";
-
-/* Composer title when sharing to feed */
-"share.composer.title.feed" = "Νέα Δημοσίευση";
-
 /* Alert dialog title shown when uploading fails. */
 "share.composer.uploading.fail.title" = "Το Ανέβασμα απέτυχε";
 

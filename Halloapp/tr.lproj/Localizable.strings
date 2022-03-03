@@ -391,7 +391,7 @@
 /* Title warning that a voice recording will be deleted */
 "composer.delete.recording.title" = "Ses kaydını sil?";
 
-/* Show the user that the title is tappable */
+/* Warning message shown to the user before discarding a voice post */
 "composer.deletevoicenote.message" = "Bu gönderiyi silerseniz ses kaydı kaydedilmeyecektir.";
 
 /* Title for alert when closing the post composer with a voice note */
@@ -778,9 +778,6 @@
 /* Text shown to users trying to open the call screen. */
 "home.calls.notice.text" = "Şu anda aktif bir aramanız yok.";
 
-/* Title of call screen alert. */
-"home.calls.notice.title" = "Aktif arama yok.";
-
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Çık";
 
@@ -918,9 +915,6 @@
 
 /* Message action. Verb. */
 "message.delete" = "Sil";
-
-/* Message action. Verb. */
-"message.info" = "Bilgi";
 
 /* Message action. Verb. */
 "message.reply" = "Yanıtla";
@@ -1265,9 +1259,6 @@
 /* fallback text in notification when user is added to a new group */
 "server.new.group" = "Yeni bir gruba eklendin";
 
-/* fallback text in notification for a new group chat message */
-"server.new.group.message" = "Yeni grup mesajı";
-
 /* fallback text in notification when an invitee joins */
 "server.new.inviter" = "%@ HalloApp davetini kabul etti 🎉";
 
@@ -1411,9 +1402,6 @@
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.share" = "Paylaş...";
-
-/* Link to expand truncated text. */
-"textlabel.more" = "...daha fazla";
 
 /* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
 "thread.list.preview.already.user.default" = "%@ HalloApp'te";

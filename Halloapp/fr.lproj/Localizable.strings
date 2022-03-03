@@ -373,7 +373,7 @@
 /* Title warning that a voice recording will be deleted */
 "composer.delete.recording.title" = "Effacer l'enregistrement vocal ?";
 
-/* Show the user that the title is tappable */
+/* Warning message shown to the user before discarding a voice post */
 "composer.deletevoicenote.message" = "L'enregistrement vocal ne sera pas sauvegardé si tu abandonnes cette publication.";
 
 /* Title for alert when closing the post composer with a voice note */
@@ -754,9 +754,6 @@
 /* Text shown to users trying to open the call screen. */
 "home.calls.notice.text" = "Tu n'as pas d'appel actif en ce moment.";
 
-/* Title of call screen alert. */
-"home.calls.notice.title" = "Aucun appel actif";
-
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Quitter";
 
@@ -891,9 +888,6 @@
 
 /* Message action. Verb. */
 "message.delete" = "Supprimer";
-
-/* Message action. Verb. */
-"message.info" = "Obtenir des informations";
 
 /* Message action. Verb. */
 "message.reply" = "Répondre";
@@ -1229,9 +1223,6 @@
 /* fallback text in notification when user is added to a new group */
 "server.new.group" = "Tu as été ajouté à un nouveau groupe";
 
-/* fallback text in notification for a new group chat message */
-"server.new.group.message" = "Nouveau message de groupe";
-
 /* fallback text in notification when an invitee joins */
 "server.new.inviter" = "%@ vient d'accepter ton invitation à rejoindre HalloApp 🎉";
 
@@ -1375,9 +1366,6 @@
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.share" = "Partager...";
-
-/* Link to expand truncated text. */
-"textlabel.more" = "...plus";
 
 /* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
 "thread.list.preview.already.user.default" = "%@ est sur HalloApp";

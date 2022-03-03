@@ -115,18 +115,6 @@
 /* Placeholder when sharing text only. */
 "share.composer.placeholder.text" = "Schrijf een post";
 
-/* Composer subtitle when sharing with a contact */
-"share.composer.subtitle.contact" = "Verzenden naar %@";
-
-/* Composer subtitle for group posts */
-"share.composer.subtitle.group" = "Delen met %@";
-
-/* Composer title when sharing with a contact */
-"share.composer.title.contact" = "Nieuw Bericht";
-
-/* Composer title when sharing to feed */
-"share.composer.title.feed" = "Nieuwe Post";
-
 /* Alert dialog message shown when uploading fails. */
 "share.composer.uploading.fail.message" = "Probeer later opnieuw alsjeblieft.";
 

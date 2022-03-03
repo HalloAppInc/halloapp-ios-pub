@@ -142,6 +142,9 @@
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 видео";
 
+/* Missed video call notification text to be shown to the user. */
+"notification.videocall.missed" = "📹 Пропущенный видеозвонок";
+
 /* Missed voice call notification text to be shown to the user. */
 "notification.voicecall.missed" = "Пропущенный голосовой вызов";
 

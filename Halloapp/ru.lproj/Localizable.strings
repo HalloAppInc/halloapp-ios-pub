@@ -143,6 +143,12 @@
 "call.button.speaker" = "громкая связь";
 
 /* Title for call history event. Appears next to details of a successful call. */
+"call.history.video.call" = "Видеозвонок";
+
+/* Title for call history event. Appears next to details of a missed call. */
+"call.history.video.call.missed" = "Пропущенный видеозвонок";
+
+/* Title for call history event. Appears next to details of a successful call. */
 "call.history.voice.call" = "Голосовой вызов";
 
 /* Title for call history event. Appears next to details of a missed call. */
@@ -385,7 +391,7 @@
 /* Title warning that a voice recording will be deleted */
 "composer.delete.recording.title" = "Удалить запись?";
 
-/* Show the user that the title is tappable */
+/* Warning message shown to the user before discarding a voice post */
 "composer.deletevoicenote.message" = "Голосовая запись не будет сохранена, если вы откажетесь от этого поста.";
 
 /* Title for alert when closing the post composer with a voice note */
@@ -772,9 +778,6 @@
 /* Text shown to users trying to open the call screen. */
 "home.calls.notice.text" = "На данный момент у вас нет активного звонка.";
 
-/* Title of call screen alert. */
-"home.calls.notice.title" = "Нет Активных Звонков";
-
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Выйти";
 
@@ -914,9 +917,6 @@
 "message.delete" = "Удалить";
 
 /* Message action. Verb. */
-"message.info" = "Информация";
-
-/* Message action. Verb. */
 "message.reply" = "Ответить";
 
 /* One of the contact actions in My Post screen. */
@@ -999,6 +999,9 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 видео";
+
+/* Missed video call notification text to be shown to the user. */
+"notification.videocall.missed" = "📹 Пропущенный видеозвонок";
 
 /* Missed voice call notification text to be shown to the user. */
 "notification.voicecall.missed" = "Пропущенный голосовой вызов";
@@ -1256,9 +1259,6 @@
 /* fallback text in notification when user is added to a new group */
 "server.new.group" = "Тебя добавили в новую группу";
 
-/* fallback text in notification for a new group chat message */
-"server.new.group.message" = "Новое групповое сообщение";
-
 /* fallback text in notification when an invitee joins */
 "server.new.inviter" = "%@ только что принял(-а) твое приглашение зарегистрироваться в HalloApp 🎉";
 
@@ -1403,8 +1403,17 @@
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.share" = "Поделиться...";
 
+/* Same as profile.header.call.user, but capitalized */
+"textview.context.menu.audio.call.user" = "Голосовой вызов";
+
+/* Same as profile.header.message.user, but capitalized */
+"textview.context.menu.message.user" = "Сообщение";
+
+/* Same as profile.header.call.user, but capitalized */
+"textview.context.menu.video.call.user" = "Видеозвонок";
+
 /* Link to expand truncated text. */
-"textlabel.more" = "...еще";
+"textview.more" = "...еще";
 
 /* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
 "thread.list.preview.already.user.default" = "%@ есть в HalloApp";

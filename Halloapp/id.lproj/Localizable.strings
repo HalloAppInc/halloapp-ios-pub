@@ -376,7 +376,7 @@
 /* Title warning that a voice recording will be deleted */
 "composer.delete.recording.title" = "Hapus rekaman suara?";
 
-/* Show the user that the title is tappable */
+/* Warning message shown to the user before discarding a voice post */
 "composer.deletevoicenote.message" = "Rekaman suara tidak akan disimpan jika kamu membuang postingan ini.";
 
 /* Title for alert when closing the post composer with a voice note */
@@ -757,9 +757,6 @@
 /* Text shown to users trying to open the call screen. */
 "home.calls.notice.text" = "Kamu tidak punya panggilan aktif saat ini.";
 
-/* Title of call screen alert. */
-"home.calls.notice.title" = "Tidak Ada Panggilan Aktif";
-
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Keluar";
 
@@ -897,9 +894,6 @@
 
 /* Message action. Verb. */
 "message.delete" = "Hapus";
-
-/* Message action. Verb. */
-"message.info" = "Info";
 
 /* Message action. Verb. */
 "message.reply" = "Balas";
@@ -1238,9 +1232,6 @@
 /* fallback text in notification when user is added to a new group */
 "server.new.group" = "Anda ditambahkan ke grup baru";
 
-/* fallback text in notification for a new group chat message */
-"server.new.group.message" = "Pesan Grup Baru";
-
 /* fallback text in notification when an invitee joins */
 "server.new.inviter" = "%@ baru menerima undangan Anda untuk bergabung di HalloApp 🎉";
 
@@ -1384,9 +1375,6 @@
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.share" = "Bagikan...";
-
-/* Link to expand truncated text. */
-"textlabel.more" = "...lebih banyak";
 
 /* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
 "thread.list.preview.already.user.default" = "%@ ada di HalloApp";
