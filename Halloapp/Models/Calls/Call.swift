@@ -15,13 +15,17 @@ import Reachability
 import Combine
 
 
-public let importantStatKeys: Set = ["packetsReceived", "bytesReceived",
-                                  "packetsLost", "packetsDiscarded",
-                                  "packetsSent", "bytesSent",
-                                  "headerBytesSent", "headerBytesReceived",
-                                  "retransmittedBytesSent", "retransmittedPacketsSent",
-                                  "insertedSamplesForDeceleration", "jitter",
-                                  "jitterBufferDelay", "jitterBufferEmittedCount"]
+public let importantStatKeys: Set = [
+    "packetsReceived", "bytesReceived",
+    "packetsLost", "packetsDiscarded",
+    "packetsSent", "bytesSent",
+    "headerBytesSent", "headerBytesReceived",
+    "retransmittedBytesSent", "retransmittedPacketsSent",
+    "insertedSamplesForDeceleration", "jitter",
+    "jitterBufferDelay", "jitterBufferEmittedCount",
+    "framesReceived", "framesPerSecond",
+    "framesDecoded", "keyFramesDecoded",
+    "framesDropped", "partialFramesLost", "fullFramesLost"]
 
 public let unwantedStatTypes: Set = ["codec", "certificate", "media-source", "candidate-pair", "local-candidate", "remote-candidate"]
 
