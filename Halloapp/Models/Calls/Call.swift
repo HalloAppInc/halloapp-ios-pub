@@ -139,6 +139,14 @@ public class Call {
             return true
         }
     }
+    private var iceRestartDelayMs: Int {
+        if let callConfig = webRTCClient?.callConfig {
+            return Int(callConfig.iceRestartDelayMs)
+        } else {
+            return 3000
+        }
+
+    }
 
     private var localVideoRenderer: RTCVideoRenderer?
     private var remoteVideoRenderer: RTCVideoRenderer?
@@ -774,8 +782,8 @@ extension Call: WebRTCClientDelegate {
             rtcIceState = iceState
             switch iceState {
             case .disconnected:
-                // check state and restart ice in 3 seconds.
-                checkAndStartIceRestartTimer(deadline: .now() + DispatchTimeInterval.seconds(3))
+                // check state and restart ice in around 3 seconds - use config param from server.
+                checkAndStartIceRestartTimer(deadline: .now() + DispatchTimeInterval.milliseconds(iceRestartDelayMs))
                 // disconnect call if we dont recover in 30 seconds.
                 checkAndStartCallFailedTimer(deadline: .now() + DispatchTimeInterval.seconds(30))
             case .failed:

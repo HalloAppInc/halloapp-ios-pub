@@ -10,7 +10,6 @@ import Foundation
 import CocoaLumberjackSwift
 import CallKit
 import CryptoKit
-import Reachability
 
 public typealias CallID = String
 

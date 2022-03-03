@@ -78,6 +78,8 @@ final class WebRTCClient: NSObject {
     }()
 
     weak var delegate: WebRTCClientDelegate?
+    public var callConfig: Server_CallConfig?
+
     private let callType: CallType
     private var peerConnection: RTCPeerConnection?
     private var audioSession: AudioSession?
@@ -93,7 +95,6 @@ final class WebRTCClient: NSObject {
     }()
     private var localDataChannel: RTCDataChannel?
     private var remoteDataChannel: RTCDataChannel?
-    private var callConfig: Server_CallConfig?
     private var selectedCameraType: CameraType = .front
     private var videoSource: RTCVideoSource?
     private var videoCapturer: RTCCameraVideoCapturer?
@@ -120,6 +121,47 @@ final class WebRTCClient: NSObject {
             return RTCVideoRotation._90
         @unknown default:
             return RTCVideoRotation._90
+        }
+    }
+
+    private var captureWidth: Int32 {
+        if let callConfig = callConfig,
+           callConfig.videoWidth != 0 {
+            return callConfig.videoWidth
+        } else {
+            return 1280
+        }
+    }
+    private var captureHeight: Int32 {
+        if let callConfig = callConfig,
+           callConfig.videoHeight != 0 {
+            return callConfig.videoHeight
+        } else {
+            return 720
+        }
+    }
+    private var captureFps: Int {
+        if let callConfig = callConfig,
+           callConfig.videoFps != 0 {
+            return Int(callConfig.videoFps)
+        } else {
+            return 30
+        }
+    }
+    private var videoBitRate: Int {
+        if let callConfig = callConfig,
+           callConfig.videoBitrateMax > 50000 { // 50 Kbps
+            return Int(callConfig.videoBitrateMax)
+        } else {
+            return 1000000 // 1Mbps
+        }
+    }
+    private var audioBitRate: Int {
+        if let callConfig = callConfig,
+           callConfig.audioBitrateMax > 1000 { // 1Kbps
+            return Int(callConfig.videoBitrateMax)
+        } else {
+            return 40000 // 40Kbps
         }
     }
 
@@ -189,6 +231,7 @@ final class WebRTCClient: NSObject {
                 return
             }
             self.peerConnection?.setLocalDescription(sdp, completionHandler: { (error) in
+                self.setMaxBitRate()
                 completion(sdp)
             })
         }
@@ -201,6 +244,7 @@ final class WebRTCClient: NSObject {
                 return
             }
             self.peerConnection?.setLocalDescription(sdp, completionHandler: { (error) in
+                self.setMaxBitRate()
                 completion(sdp)
             })
         }
@@ -269,23 +313,16 @@ final class WebRTCClient: NSObject {
         guard let captureFormat = camera.formats.first(where: { format in
             let width = CMVideoFormatDescriptionGetDimensions(format.formatDescription).width
             let height = CMVideoFormatDescriptionGetDimensions(format.formatDescription).height
-            return width == 1280 && height == 720
+            return width == captureWidth && height == captureHeight
         }) else {
             DDLogError("WebRTCClient/startVideoCapture/failed/formats: \(camera.formats)")
             return
         }
-        // TODO: Need to capture more details and pick a format here.
-        // TODO: Need to verify that call config parameters are not crazy before using them.
-        // TODO: use call config here.
-        // We need to have some fallback in these cases.
-
-        let fps = 30
-
         DDLogInfo("WebRTCClient/startVideoCapture/camera: \(camera.description)")
         DDLogInfo("WebRTCClient/startVideoCapture/captureFormat: \(captureFormat)")
-        DDLogInfo("WebRTCClient/startVideoCapture/fps: \(fps)")
+        DDLogInfo("WebRTCClient/startVideoCapture/fps: \(captureFps)")
 
-        videoCapturer?.startCapture(with: camera, format: captureFormat, fps: fps)
+        videoCapturer?.startCapture(with: camera, format: captureFormat, fps: captureFps)
         videoCapturer?.delegate = self
     }
 
@@ -354,6 +391,30 @@ final class WebRTCClient: NSObject {
            let localVideoTrack = localVideoTrack {
             self.peerConnection?.add(localVideoTrack, streamIds: [streamId])
             DDLogInfo("WebRTCClient/addTracksToPeerConnection/localVideoTrack: \(localVideoTrack)")
+        }
+    }
+
+    func setMaxBitRate() {
+        peerConnection?.senders.forEach { sender in
+            let parameters = sender.parameters
+            if let track = sender.track,
+               !parameters.encodings.isEmpty {
+                let trackType = track.kind
+                let maxBitRate: NSNumber
+                if trackType == "video" {
+                    maxBitRate = videoBitRate as NSNumber
+                } else {
+                    maxBitRate = audioBitRate as NSNumber
+                }
+                parameters.encodings.forEach { encoding in
+                    encoding.maxBitrateBps = maxBitRate
+                    DDLogInfo("WebRTCClient/setMaxBitRate/setEncodingMaxBitRate/\(maxBitRate)")
+                }
+                DDLogInfo("WebRTCClient/setMaxBitRate/sender: \(sender.senderId)/track: \(trackType)/maxBitRate: \(maxBitRate)")
+                sender.parameters = parameters
+            } else {
+                DDLogError("WebRTCClient/setMaxBitRate/track not ready/sender: \(sender.description)")
+            }
         }
     }
 
