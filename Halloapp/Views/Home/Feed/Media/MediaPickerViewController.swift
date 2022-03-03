@@ -8,6 +8,7 @@
 import AVKit
 import CocoaLumberjackSwift
 import Core
+import CoreCommon
 import Foundation
 import PhotosUI
 import UIKit

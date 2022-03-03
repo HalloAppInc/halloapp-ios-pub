@@ -10,6 +10,7 @@ import AVKit
 import CocoaLumberjackSwift
 import Combine
 import Core
+import CoreCommon
 import LinkPresentation
 import UIKit
 import CoreGraphics

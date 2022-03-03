@@ -15,7 +15,7 @@ public class CountableEvent: Codable {
         namespace: String,
         metric: String,
         count: Int = 1,
-        appVersion: String = AppContext.appVersionForService,
+        appVersion: String = AppContextCommon.appVersionForService,
         extraDimensions: [String: String] = [:])
     {
         self.namespace = namespace

@@ -25,7 +25,7 @@ extension UserDefaults {
         return object(forKey: key) as? Date
     }
 
-    func updateLastHistoryTransactionTimestamp(for target: AppTarget, to newValue: Date?) {
+    public func updateLastHistoryTransactionTimestamp(for target: AppTarget, to newValue: Date?) {
         let key = "lastHistoryTransactionTimeStamp-\(target.rawValue)"
         set(newValue, forKey: key)
     }
@@ -38,12 +38,17 @@ extension UserDefaults {
     }
 }
 
-struct PersistentHistoryMerger {
+public struct PersistentHistoryMerger {
 
     let backgroundContext: NSManagedObjectContext
     let currentTarget: AppTarget
 
-    func merge() throws -> Bool {
+    public init(backgroundContext: NSManagedObjectContext, currentTarget: AppTarget) {
+        self.backgroundContext = backgroundContext
+        self.currentTarget = currentTarget
+    }
+
+    public func merge() throws -> Bool {
         let fromDate = UserDefaults.shared.lastHistoryTransactionTimestamp(for: currentTarget) ?? .distantPast
         let fetcher = PersistentHistoryFetcher(context: backgroundContext, fromDate: fromDate)
         let history = try fetcher.fetch()
@@ -106,13 +111,18 @@ struct PersistentHistoryFetcher {
     }
 }
 
-struct PersistentHistoryCleaner {
+public struct PersistentHistoryCleaner {
 
     let context: NSManagedObjectContext
     let targets: [AppTarget]
 
+    public init(context: NSManagedObjectContext, targets: [AppTarget]) {
+        self.context = context
+        self.targets = targets
+    }
+
     // Cleans up the persistent history by deleting the transactions that have been merged into each target.
-    func clean() throws {
+    public func clean() throws {
         guard let timestamp = UserDefaults.shared.lastCommonTransactionTimestamp(in: targets) else {
             DDLogInfo("PersistentHistoryCleaner/Cancelling deletions as there is no common transaction timestamp")
             return

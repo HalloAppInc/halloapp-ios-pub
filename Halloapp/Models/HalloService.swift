@@ -8,6 +8,7 @@
 
 import Combine
 import Core
+import CoreCommon
 
 public struct HalloServiceFeedPayload {
     let content: FeedContent

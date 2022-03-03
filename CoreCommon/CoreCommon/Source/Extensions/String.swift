@@ -48,17 +48,17 @@ extension String {
     }
 
     public var formattedPhoneNumber: String {
-        let phoneNumberFormatter = AppContext.shared.phoneNumberFormatter
+        let phoneNumberFormatter = AppContextCommon.shared.phoneNumberFormatter
 
         let regionCode: String
-        if let countryCode = UInt64(AppContext.shared.userData.countryCode),
+        if let countryCode = UInt64(AppContextCommon.shared.userData.countryCode),
            let mainCountryCode = phoneNumberFormatter.mainCountry(forCode: countryCode) {
             regionCode = mainCountryCode
         } else {
             regionCode = PhoneNumberKit.defaultRegionCode()
         }
 
-        guard let phoneNumber = try? AppContext.shared.phoneNumberFormatter.parse(self, withRegion: regionCode) else {
+        guard let phoneNumber = try? AppContextCommon.shared.phoneNumberFormatter.parse(self, withRegion: regionCode) else {
             return self
         }
         return phoneNumberFormatter.format(phoneNumber, toType: .international)

@@ -165,9 +165,9 @@ public final class NoiseStream: NSObject {
     // MARK: Private
 
     private func disconnectWithError(_ error: NoiseStreamError, isDuringHandshake: Bool) {
-        AppContext.shared.errorLogger?.logError(error)
+        AppContextCommon.shared.errorLogger?.logError(error)
         if case .packetDecryptionFailure = error {
-            AppContext.shared.eventMonitor.count(.packetDecryption(duringHandshake: isDuringHandshake))
+            AppContextCommon.shared.eventMonitor.count(.packetDecryption(duringHandshake: isDuringHandshake))
         }
 
         // Cancel connection immediately without transitioning to `disconnecting` state.

@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import CoreCommon
 import CocoaLumberjackSwift
 
 // TODO: Add pushname and/or merge this with `MentionedUser`

@@ -10,6 +10,7 @@ import CocoaLumberjackSwift
 import Combine
 import Foundation
 import Core
+import CoreCommon
 
 class NotificationSettings: ObservableObject {
 

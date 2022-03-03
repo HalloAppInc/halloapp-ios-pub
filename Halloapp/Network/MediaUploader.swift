@@ -10,6 +10,7 @@ import Alamofire
 import CocoaLumberjackSwift
 import Combine
 import Core
+import CoreCommon
 import Foundation
 
 enum MediaUploadError: Error {

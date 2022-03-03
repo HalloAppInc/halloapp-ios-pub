@@ -9,7 +9,7 @@
 import Foundation
 
 extension UserDefaults {
-    class var shared: UserDefaults { AppContext.shared.userDefaults }
+    public class var shared: UserDefaults { AppContextCommon.shared.userDefaults }
 }
 
 extension UserDefaults {

@@ -8,6 +8,7 @@
 
 import CocoaLumberjackSwift
 import Core
+import CoreCommon
 import MessageUI
 import UIKit
 

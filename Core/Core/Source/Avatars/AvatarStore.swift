@@ -7,6 +7,7 @@
 //
 
 import Alamofire
+import CoreCommon
 import CocoaLumberjackSwift
 import Combine
 import CoreData

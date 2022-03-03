@@ -8,6 +8,7 @@ import AVFoundation
 import CocoaLumberjackSwift
 import Combine
 import Core
+import CoreCommon
 import UIKit
 import Social
 import Intents

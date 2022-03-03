@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import CoreCommon
 
 public typealias EncryptionLogInfo = [String: String]
 public typealias OutboundCompletion = (Result<KeyBundle, EncryptionError>) -> Void

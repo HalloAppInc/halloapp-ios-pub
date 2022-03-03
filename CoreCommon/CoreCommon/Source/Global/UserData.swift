@@ -89,8 +89,8 @@ public final class UserData: ObservableObject {
             phoneNumberStr = countryCode.appending(phoneInput)
         }
         phoneNumberStr = "+\(phoneNumberStr)"
-        if let phoneNumber = try? AppContext.shared.phoneNumberFormatter.parse(phoneNumberStr) {
-            phoneNumberStr = AppContext.shared.phoneNumberFormatter.format(phoneNumber, toType: .international)
+        if let phoneNumber = try? AppContextCommon.shared.phoneNumberFormatter.parse(phoneNumberStr) {
+            phoneNumberStr = AppContextCommon.shared.phoneNumberFormatter.format(phoneNumber, toType: .international)
         }
         return phoneNumberStr
     }
@@ -142,7 +142,8 @@ public final class UserData: ObservableObject {
 
         isLoggedIn = false
         
-        UserDefaults.standard.set(false, forKey: AvatarStore.Keys.userDefaultsDownload)
+        // TODO DINI
+        // UserDefaults.standard.set(false, forKey: AvatarStore.Keys.userDefaultsDownload)
     }
 
     // MARK: Noise

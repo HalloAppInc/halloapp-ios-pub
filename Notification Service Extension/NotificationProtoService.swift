@@ -10,6 +10,7 @@ import Foundation
 import CocoaLumberjackSwift
 import Combine
 import Core
+import CoreCommon
 import SwiftProtobuf
 import UserNotifications
 import CallKit

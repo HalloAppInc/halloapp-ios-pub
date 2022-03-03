@@ -28,7 +28,7 @@ open class ProtoRequestBase {
         self.request = request
     }
 
-    func send(using service: ProtoServiceCore) {
+    func send(using service: ProtoServiceCoreCommon) {
         guard state == .ready else {
             DDLogWarn("request/\(Self.self)/\(requestId)/send: not ready [\(state)]")
             return

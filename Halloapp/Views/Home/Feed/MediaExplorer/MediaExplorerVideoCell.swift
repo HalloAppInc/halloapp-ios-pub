@@ -7,6 +7,7 @@
 
 import AVKit
 import Core
+import CoreCommon
 import Combine
 import Foundation
 import UIKit

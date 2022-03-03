@@ -6,10 +6,10 @@
 //  Copyright © 2021 HalloApp, Inc. All rights reserved.
 //
 
-import Core
+import CoreCommon
 import Foundation
 
-class AppClipContext: AppContext {
+class AppClipContext: AppContextCommon {
 
     override class var shared: AppClipContext {
         get {

@@ -8,6 +8,7 @@
 
 import Contacts
 import Core
+import CoreCommon
 import Foundation
 import SwiftUI
 

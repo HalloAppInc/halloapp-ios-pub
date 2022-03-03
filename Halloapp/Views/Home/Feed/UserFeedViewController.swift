@@ -9,6 +9,7 @@
 import Combine
 import ContactsUI
 import Core
+import CoreCommon
 import CoreData
 import SwiftUI
 import UIKit

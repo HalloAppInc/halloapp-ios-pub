@@ -8,6 +8,7 @@
 
 import UIKit
 import Core
+import CoreCommon
 
 class MessageTimeHeaderView: UICollectionReusableView {
 

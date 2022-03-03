@@ -8,6 +8,7 @@
 import Combine
 import CocoaLumberjackSwift
 import Core
+import CoreCommon
 import CoreData
 import UIKit
 

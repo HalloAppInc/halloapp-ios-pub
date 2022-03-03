@@ -8,6 +8,7 @@
 
 import Combine
 import Core
+import CoreCommon
 import SwiftUI
 
 private enum MenuTitles {

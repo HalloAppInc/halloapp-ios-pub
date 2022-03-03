@@ -7,7 +7,7 @@
 //
 
 import CocoaLumberjackSwift
-import Core
+import CoreCommon
 import UIKit
 import CoreData
 
@@ -15,7 +15,7 @@ import CoreData
 class AppDelegate: UIResponder, UIApplicationDelegate {
     
     private let serviceBuilder: ServiceBuilder = {
-       return ProtoServiceCore(credentials: $0)
+       return ProtoServiceCoreCommon(credentials: $0)
     }
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {

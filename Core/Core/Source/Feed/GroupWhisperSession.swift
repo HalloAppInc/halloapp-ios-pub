@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import CoreCommon
 import CocoaLumberjackSwift
 
 public typealias GroupEncryptionCompletion = (Result<GroupEncryptedData, EncryptionError>) -> Void

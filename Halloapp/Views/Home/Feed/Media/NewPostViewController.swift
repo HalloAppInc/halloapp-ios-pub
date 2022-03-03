@@ -9,6 +9,7 @@
 import AVFoundation
 import CocoaLumberjackSwift
 import Core
+import CoreCommon
 import Photos
 import UIKit
 import SwiftUI

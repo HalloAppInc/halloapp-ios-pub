@@ -20,7 +20,7 @@ enum NoiseRegistrationError: Error {
 public final class NoiseRegistrationService: RegistrationService {
     public init(
         noiseKeys: NoiseKeys,
-        userAgent: String = AppContext.userAgent,
+        userAgent: String = AppContextCommon.userAgent,
         hostName: String = "s.halloapp.net",
         port: UInt16 = 5208,
         httpHostName: String = "api.halloapp.net")

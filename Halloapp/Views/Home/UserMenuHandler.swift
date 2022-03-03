@@ -9,6 +9,7 @@
 import Foundation
 import UIKit
 import Core
+import CoreCommon
 import CocoaLumberjackSwift
 
 enum UserMenuAction {

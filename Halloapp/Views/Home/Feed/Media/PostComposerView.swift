@@ -1,5 +1,6 @@
 import AVFoundation
 import Core
+import CoreCommon
 import CocoaLumberjackSwift
 import Combine
 import PhotosUI

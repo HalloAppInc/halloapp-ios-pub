@@ -9,6 +9,7 @@
 
 import CocoaLumberjackSwift
 import Core
+import CoreCommon
 import UIKit
 
 fileprivate struct Constants {

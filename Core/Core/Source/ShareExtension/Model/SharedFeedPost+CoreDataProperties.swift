@@ -6,6 +6,7 @@
 //
 //
 
+import CoreCommon
 import CoreData
 
 extension SharedFeedPost {

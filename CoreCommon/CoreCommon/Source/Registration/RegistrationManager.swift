@@ -56,12 +56,12 @@ public final class DefaultRegistrationManager: RegistrationManager {
     }
 
     public var formattedPhoneNumber: String? {
-        AppContext.shared.userData.formattedPhoneNumber
+        AppContextCommon.shared.userData.formattedPhoneNumber
     }
 
     public func set(countryCode: String, nationalNumber: String, userName: String) {
         userDefinedCountryCode = countryCode
-        let userData = AppContext.shared.userData
+        let userData = AppContextCommon.shared.userData
         userData.countryCode = countryCode
         userData.phoneInput = nationalNumber
         userData.normalizedPhoneNumber = countryCode.appending(nationalNumber)
@@ -86,8 +86,8 @@ public final class DefaultRegistrationManager: RegistrationManager {
     }
 
     public func confirmVerificationCode(_ verificationCode: String, pushOS: String?, completion: @escaping (Result<Void, Error>) -> Void) {
-        let userData = AppContext.shared.userData
-        let keyData = AppContext.shared.keyData
+        let userData = AppContextCommon.shared.userData
+        let keyData = AppContextCommon.shared.keyData
 
         guard let noiseKeys = NoiseKeys(),
               let userKeys = keyData?.generateUserKeys() else
@@ -117,7 +117,7 @@ public final class DefaultRegistrationManager: RegistrationManager {
     }
 
     public func didCompleteRegistrationFlow() {
-        AppContext.shared.userData.tryLogIn()
+        AppContextCommon.shared.userData.tryLogIn()
     }
     
     public func getGroupName(groupInviteToken: String, completion: @escaping (Result<String?, Error>) -> Void) {
@@ -132,13 +132,13 @@ public final class DefaultRegistrationManager: RegistrationManager {
     }
 
     private func requestVerificationCode(byVoice: Bool, hashcash: HashcashSolution?, completion: @escaping (Result<TimeInterval, RegistrationErrorResponse>) -> Void) {
-        let userData = AppContext.shared.userData
+        let userData = AppContextCommon.shared.userData
         let phoneNumber = userData.countryCode.appending(userData.phoneInput)
         let groupInviteToken = userData.groupInviteToken
         registrationService.requestVerificationCode(for: phoneNumber, byVoice: byVoice, hashcash: hashcash, groupInviteToken: groupInviteToken, locale: Locale.current) { result in
             switch result {
             case .success(let response):
-                let userData = AppContext.shared.userData
+                let userData = AppContextCommon.shared.userData
                 userData.normalizedPhoneNumber = response.normalizedPhoneNumber
                 userData.save()
                 completion(.success(response.retryDelay))

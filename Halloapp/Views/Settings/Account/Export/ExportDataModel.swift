@@ -8,6 +8,7 @@
 
 import SwiftUI
 import Core
+import CoreCommon
 import CocoaLumberjackSwift
 
 class ExportDataModel: ObservableObject {

@@ -8,6 +8,7 @@
 
 import UIKit
 import Core
+import CoreCommon
 
 protocol ExpandableTextViewDelegate: UITextViewDelegate {
     func textView(_ textView: ExpandableTextView, didRequestHandleMention userID: UserID)

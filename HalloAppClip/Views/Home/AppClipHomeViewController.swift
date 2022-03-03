@@ -7,7 +7,7 @@
 //
 import CocoaLumberjackSwift
 import Combine
-import Core
+import CoreCommon
 import StoreKit
 import UIKit
 
@@ -103,7 +103,7 @@ class AppClipHomeViewController: UIViewController {
         let storeViewController = SKStoreProductViewController()
         storeViewController.delegate = self
 
-        storeViewController.loadProduct(withParameters: [SKStoreProductParameterITunesItemIdentifier:NSNumber(value: AppContext.appStoreProductID)]) { (result, error) in
+        storeViewController.loadProduct(withParameters: [SKStoreProductParameterITunesItemIdentifier:NSNumber(value: AppContextCommon.appStoreProductID)]) { (result, error) in
           self.buttonInstall.isEnabled = true
           if(error != nil)
           {

@@ -8,6 +8,7 @@
 //
 
 import Core
+import CoreCommon
 import CoreData
 import Foundation
 import SwiftProtobuf

@@ -8,6 +8,7 @@
 
 import Foundation
 import Core
+import CoreCommon
 import UIKit
 import SwiftUI
 import Combine

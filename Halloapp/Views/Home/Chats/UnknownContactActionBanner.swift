@@ -6,6 +6,7 @@
 //
 
 import Core
+import CoreCommon
 import UIKit
 
 class UnknownContactActionBanner: UIView {

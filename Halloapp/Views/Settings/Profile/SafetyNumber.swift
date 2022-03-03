@@ -7,6 +7,7 @@
 //
 
 import Core
+import CoreCommon
 import CryptoKit
 import Foundation
 import Sodium

@@ -111,7 +111,7 @@ final public class ProtoWhisperGetCountOfOneTimeKeysRequest: ProtoRequest<Int32>
     public init(completion: @escaping Completion) {
         var keys = Server_WhisperKeys()
         keys.action = .count
-        if let uid = Int64(AppContext.shared.userData.userId) {
+        if let uid = Int64(AppContextCommon.shared.userData.userId) {
             keys.uid = uid
         }
 

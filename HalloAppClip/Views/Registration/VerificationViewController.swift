@@ -5,7 +5,7 @@
 //  Created by Nandini Shetty on 6/10/21.
 //  Copyright © 2021 HalloApp, Inc. All rights reserved.
 //
-import Core
+import CoreCommon
 import UIKit
 
 struct VerificationPhoneInputContext {

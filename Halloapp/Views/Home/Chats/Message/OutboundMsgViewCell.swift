@@ -10,6 +10,7 @@ import AVFoundation
 import CocoaLumberjackSwift
 import Combine
 import Core
+import CoreCommon
 import MarkdownKit
 import UIKit
 

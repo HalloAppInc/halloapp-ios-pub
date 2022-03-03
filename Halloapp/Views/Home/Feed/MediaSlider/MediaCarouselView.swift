@@ -9,6 +9,7 @@ import AVKit
 import CocoaLumberjackSwift
 import Combine
 import Core
+import CoreCommon
 import UIKit
 
 protocol MediaCarouselViewDelegate: AnyObject {

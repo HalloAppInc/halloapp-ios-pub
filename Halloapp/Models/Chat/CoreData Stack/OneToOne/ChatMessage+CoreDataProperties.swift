@@ -9,6 +9,7 @@
 
 import Foundation
 import Core
+import CoreCommon
 import CoreData
 
 extension ChatMessage {

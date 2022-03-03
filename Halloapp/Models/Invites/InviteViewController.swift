@@ -9,6 +9,7 @@
 import CocoaLumberjackSwift
 import Combine
 import Core
+import CoreCommon
 import MessageUI
 import UIKit
 

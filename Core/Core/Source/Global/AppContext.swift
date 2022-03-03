@@ -5,10 +5,10 @@
 //  Created by Igor Solomennikov on 3/6/20.
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
-
 import CocoaLumberjackSwift
 import Combine
 import Contacts
+import CoreCommon
 import CoreData
 import Foundation
 import PhoneNumberKit
@@ -17,13 +17,11 @@ import FirebaseCrashlytics
 
 fileprivate var sharedContext: AppContext?
 
-public typealias ServiceBuilder = (Credentials?) -> CoreService
-
 public func initAppContext(_ appContextClass: AppContext.Type, serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type, appTarget: AppTarget) {
     sharedContext = appContextClass.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass, appTarget: appTarget)
 }
 
-open class AppContext {
+open class AppContext: AppContextCommon {
     // MARK: Constants
     private static let appGroupName = "group.com.halloapp.shared"
     private static let mainStoreDatabaseFilename = "mainStore.sqlite"
@@ -44,72 +42,53 @@ open class AppContext {
         return "\(version) (\(buildNumber))"
     }()
 
-    public static let appVersionForService: String = {
-        guard let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String else {
-            return ""
-        }
-        guard let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String else {
-            return "\(version)"
-        }
-        return "\(version).\(buildNumber)"
-    }()
-
-    public static let appStoreProductID = 1501583052
-    public static let appStoreURL: URL? = URL(string: "itms-apps://apple.com/app/\(appStoreProductID)")
-
-    public static let userAgent: String = { UserAgent(platform: .ios, version: appVersionForService).description }()
-
-    public let didGetGroupInviteToken = PassthroughSubject<Void, Never>()
-
     open var applicationIconBadgeNumber: Int {
         get { userDefaults.integer(forKey: "ApplicationIconBadgeNumber") }
         set { userDefaults.set(newValue, forKey: "ApplicationIconBadgeNumber") }
     }
 
-    open var isAppExtension: Bool {
-        get { true }
-    }
-    
-    open class var isAppClip: Bool {
-        get { false }
+    private var mediaHashStoreImpl: MediaHashStore!
+    open var mediaHashStore: MediaHashStore {
+        mediaHashStoreImpl
     }
 
-    // MARK: Global objects
-    public let userData: UserData
-    public static let userDefaultsForAppGroup: UserDefaults! = UserDefaults(suiteName: appGroupName)
-    public let userDefaults: UserDefaults! = AppContext.userDefaultsForAppGroup
-    public let keyStore: KeyStore
-    public var keyData: KeyData!
-    public let mediaHashStore: MediaHashStore
-    public let notificationStore: NotificationStore
+    private var notificationStoreImpl: NotificationStore!
+    open var notificationStore: NotificationStore {
+        notificationStoreImpl
+    }
     public lazy var cryptoData: CryptoData = { CryptoData(persistentStoreURL: AppContext.cryptoStatsStoreURL) }()
-    public let messageCrypter: MessageCrypter
-    public let fileLogger: DDFileLogger
-    public let phoneNumberFormatter = PhoneNumberKit(metadataCallback: AppContext.phoneNumberKitMetadataCallback)
-    public let eventMonitor = EventMonitor()
+    private var messageCrypterImpl: MessageCrypter!
+    open var messageCrypter: MessageCrypter {
+        messageCrypterImpl
+    }
+    public var coreService: CoreService {
+        get {
+            coreServiceCommon as! CoreService
+        }
+        set {
+            coreServiceCommon = newValue
+        }
+    }
 
-    public var coreService: CoreService
-    public var errorLogger: ErrorLogger?
-
-    private let contactStoreImpl: ContactStore
+    private var contactStoreImpl: ContactStore!
     open var contactStore: ContactStore {
         get {
             contactStoreImpl
         }
     }
-    private let privacySettingsImpl: PrivacySettings
+    private var privacySettingsImpl: PrivacySettings!
     open var privacySettings: PrivacySettings {
         get {
             privacySettingsImpl
         }
     }
 
-    public let mainDataStore: MainDataStore
-
-    private var cancellableSet: Set<AnyCancellable> = []
+    private var mainDataStoreImpl: MainDataStore!
+    open var mainDataStore: MainDataStore {
+        mainDataStoreImpl
+    }
 
     // MARK: Event monitoring
-
     /// Loads any saved events from user defaults and starts reporting at interval
     public func startReportingEvents(atInterval interval: TimeInterval = 30) {
 
@@ -186,10 +165,6 @@ open class AppContext {
         URL(fileURLWithPath: NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true).first!)
     }()
 
-    public static let sharedDirectoryURL: URL! = {
-        FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: AppContext.appGroupName)
-    }()
-
     static let mainStoreURL = {
         sharedDirectoryURL.appendingPathComponent(AppContext.mainStoreDatabaseFilename)
     }()
@@ -224,29 +199,14 @@ open class AppContext {
     }
     
     // MARK: Initializer
-    open class var shared: AppContext {
+    override open class var shared: AppContext {
         get {
             return sharedContext!
         }
     }
 
     required public init(serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type, appTarget: AppTarget) {
-        let appGroupLogsDirectory = Self.sharedDirectoryURL
-            .appendingPathComponent("Library", isDirectory: true)
-            .appendingPathComponent("Application Support", isDirectory: true)
-            .appendingPathComponent("Logs", isDirectory: true)
-        let fileLogger = DDFileLogger(logFileManager: LogFileManager(logsDirectory: appGroupLogsDirectory.path))
-        fileLogger.rollingFrequency = TimeInterval(60*60*24)
-        fileLogger.doNotReuseLogFiles = true
-        fileLogger.logFileManager.maximumNumberOfLogFiles = 400
-        fileLogger.logFormatter = FileLogFormatter()
-        DDLog.add(fileLogger)
-        self.fileLogger = fileLogger
-
-        let osLogger = DDOSLogger.sharedInstance
-        osLogger.logFormatter = LogFormatter()
-        DDLog.add(osLogger)
-
+        super.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass, appTarget: appTarget)
         // Migrate saved user data to app group container.
         let userDataDatabaseLocationInAppContainer = NSPersistentContainer.defaultDirectoryURL()
         if FileManager.default.fileExists(atPath: userDataDatabaseLocationInAppContainer.appendingPathComponent("Halloapp.sqlite").path) {
@@ -263,29 +223,13 @@ open class AppContext {
                 }
             }
         }
-
-        userData = UserData(storeDirectoryURL: Self.sharedDirectoryURL, isAppClip: Self.isAppClip)
-        coreService = serviceBuilder(userData.credentials)
-        mainDataStore = MainDataStore(userData: userData)
+        mainDataStoreImpl = MainDataStore(userData: userData)
         contactStoreImpl = contactStoreClass.init(userData: userData)
         privacySettingsImpl = PrivacySettings(contactStore: contactStoreImpl)
-        keyStore = KeyStore(userData: userData, appTarget: appTarget, userDefaults: userDefaults)
-        keyData = KeyData(service: coreService, userData: userData, keyStore: keyStore)
-        messageCrypter = MessageCrypter(service: coreService, keyStore: keyStore)
+        messageCrypterImpl = MessageCrypter(service: coreService, keyStore: keyStore)
         keyStore.delegate = messageCrypter
-        mediaHashStore = MediaHashStore(persistentStoreURL: AppContext.mediaHashStoreURL)
-        notificationStore = NotificationStore(appTarget: appTarget, userDefaults: userDefaults)
-
-        cancellableSet.insert(
-            userData.didLogIn.sink { [weak self] in
-                self?.coreService.credentials = self?.userData.credentials
-            }
-        )
-        cancellableSet.insert(
-            userData.didLogOff.sink { [weak self] in
-                self?.coreService.credentials = nil
-            }
-        )
+        mediaHashStoreImpl = MediaHashStore(persistentStoreURL: AppContext.mediaHashStoreURL)
+        notificationStoreImpl = NotificationStore(appTarget: appTarget, userDefaults: userDefaults)
 
         #if !DEBUG
         FirebaseApp.configure()

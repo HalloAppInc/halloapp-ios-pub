@@ -9,6 +9,7 @@
 import Foundation
 import CocoaLumberjackSwift
 import Core
+import CoreCommon
 import CoreData
 
 final class NotificationRequest {

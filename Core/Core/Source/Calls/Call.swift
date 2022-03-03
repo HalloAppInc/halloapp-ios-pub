@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import CoreCommon
 import CocoaLumberjackSwift
 import CallKit
 import CryptoKit

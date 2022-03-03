@@ -8,6 +8,7 @@
 
 import UIKit
 import Core
+import CoreCommon
 
 fileprivate struct LayoutConstants {
     static let profilePictureSizeNormal: CGFloat = 30

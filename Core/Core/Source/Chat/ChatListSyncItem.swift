@@ -5,6 +5,7 @@
 //  Copyright © 2022 Hallo App, Inc. All rights reserved.
 //
 
+import CoreCommon
 import CocoaLumberjackSwift
 import Foundation
 

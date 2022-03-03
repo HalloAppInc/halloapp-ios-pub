@@ -8,7 +8,7 @@
 
 import CocoaLumberjackSwift
 import Combine
-import Core
+import CoreCommon
 import UIKit
 
 class SceneDelegate: UIResponder {
@@ -54,7 +54,7 @@ class SceneDelegate: UIResponder {
     }
 
     private func makeRegistrationManager() -> RegistrationManager? {
-        guard let noiseKeys = AppContext.shared.userData.loggedOutNoiseKeys else {
+        guard let noiseKeys = AppContextCommon.shared.userData.loggedOutNoiseKeys else {
             DDLogError("SceneDelegate/makeRegistrationManager/error [no-noise-keys]")
             return nil
         }

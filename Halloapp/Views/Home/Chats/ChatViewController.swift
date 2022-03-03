@@ -9,6 +9,7 @@ import CocoaLumberjackSwift
 import Combine
 import ContactsUI
 import Core
+import CoreCommon
 import CoreData
 import Photos
 import SafariServices

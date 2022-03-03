@@ -6,6 +6,7 @@
 //  Copyright © 2021 HalloApp, Inc. All rights reserved.
 //
 
+import CoreCommon
 import CocoaLumberjackSwift
 import Foundation
 import Zip

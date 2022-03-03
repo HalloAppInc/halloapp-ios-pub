@@ -14,7 +14,7 @@ import SwiftUI
 extension UIImage {
 
     public func fastResized(to size: CGSize) -> UIImage? {
-        if AppContext.shared.isAppExtension {
+        if AppContextCommon.shared.isAppExtension {
             return self.resized(to: size, contentMode: .scaleToFill, downscaleOnly: false)
         }
 

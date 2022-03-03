@@ -8,6 +8,7 @@
 //
 
 import Core
+import CoreCommon
 import Foundation
 import CoreData
 

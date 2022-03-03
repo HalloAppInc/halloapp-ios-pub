@@ -7,6 +7,7 @@
 //
 
 import Core
+import CoreCommon
 
 extension Localizations {
 

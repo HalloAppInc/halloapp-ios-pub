@@ -120,7 +120,7 @@ extension Sign {
 
 extension Sodium {
 
-    var keyAgreement: KeyAgreement {
+    public var keyAgreement: KeyAgreement {
         return KeyAgreement()
     }
 }

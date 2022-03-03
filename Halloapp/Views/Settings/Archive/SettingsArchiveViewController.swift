@@ -8,6 +8,7 @@
 
 import UIKit
 import Core
+import CoreCommon
 import Combine
 
 class SettingsArchiveViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {

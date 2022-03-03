@@ -8,6 +8,7 @@
 
 import Foundation
 import Core
+import CoreCommon
 import CocoaLumberjackSwift
 import WebRTC
 import CallKit

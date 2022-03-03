@@ -11,6 +11,7 @@ import CocoaLumberjackSwift
 import Combine
 import Contacts
 import Core
+import CoreCommon
 import CoreData
 import FirebaseCrashlytics
 import Reachability

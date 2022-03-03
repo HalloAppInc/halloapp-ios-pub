@@ -9,6 +9,7 @@
 import CocoaLumberjackSwift
 import Combine
 import Core
+import CoreCommon
 
 public enum PrivacyListItemUpdateAction: String, RawRepresentable {
     case add

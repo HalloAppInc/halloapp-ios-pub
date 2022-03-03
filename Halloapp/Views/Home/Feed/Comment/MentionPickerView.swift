@@ -7,6 +7,7 @@
 //
 
 import Core
+import CoreCommon
 import UIKit
 
 private let MentionPickerItemReuse = "MentionPickerItemReuse"

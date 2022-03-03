@@ -10,6 +10,7 @@ import AVFoundation
 import Combine
 import SwiftUI
 import Core
+import CoreCommon
 
 private extension Localizations {
 

@@ -8,6 +8,7 @@
 import AVKit
 import Combine
 import Core
+import CoreCommon
 import CoreData
 import Foundation
 import UIKit

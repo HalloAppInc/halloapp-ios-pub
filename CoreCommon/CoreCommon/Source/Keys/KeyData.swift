@@ -27,13 +27,13 @@ public class KeyData {
     }
 
     private var userData: UserData
-    private var service: CoreService
+    private var service: CoreServiceCommon
     
     private var cancellableSet: Set<AnyCancellable> = []
     
     private var keyStore: KeyStore
     
-    init(service: CoreService, userData: UserData, keyStore: KeyStore) {
+    init(service: CoreServiceCommon, userData: UserData, keyStore: KeyStore) {
         self.service = service
         self.userData = userData
         self.keyStore = keyStore
@@ -49,7 +49,7 @@ public class KeyData {
 
                     if self.keyStore.keyBundle(in: managedObjectContext) == nil {
                         DDLogError("KeyData/onConnect/noUserKeyBundle")
-                        AppContext.shared.errorLogger?.logError(KeyDataError.identityKeyMissing)
+                        AppContextCommon.shared.errorLogger?.logError(KeyDataError.identityKeyMissing)
                         userData.logout()
                     }
                 }
@@ -230,7 +230,7 @@ public class KeyData {
 
         let oneDay = TimeInterval(86400)
 
-        if let lastVerificationDate = AppContext.shared.userDefaults.object(forKey: UserDefaultsKey.identityKeyVerificationDate) as? Date,
+        if let lastVerificationDate = AppContextCommon.shared.userDefaults.object(forKey: UserDefaultsKey.identityKeyVerificationDate) as? Date,
            lastVerificationDate.advanced(by: oneDay) > Date()
         {
             DDLogInfo("KeyData/verifyIdentityKey/skipping [last verified: \(lastVerificationDate)]")
@@ -250,7 +250,7 @@ public class KeyData {
             case .success(let bundle):
                 if bundle.identity == savedIdentityKey {
                     DDLogError("KeyData/verifyIdentityKey/success")
-                    AppContext.shared.userDefaults.setValue(Date(), forKey: UserDefaultsKey.identityKeyVerificationDate)
+                    AppContextCommon.shared.userDefaults.setValue(Date(), forKey: UserDefaultsKey.identityKeyVerificationDate)
                 } else {
                     DDLogInfo("KeyData/verifyIdentityKey/identityKeyMismatch: saved: \(savedIdentityKey.bytes), received:\(bundle.identity.bytes)")
                     self.didFailIdentityKeyVerification(with: .identityKeyMismatch)
@@ -262,13 +262,13 @@ public class KeyData {
 
     private func didFailIdentityKeyVerification(with error: KeyDataError) {
         DDLogError("KeyData/didFailIdentityKeyVerification [\(error)]")
-        AppContext.shared.errorLogger?.logError(error)
+        AppContextCommon.shared.errorLogger?.logError(error)
         userData.logout()
     }
 }
 
 extension KeyData: ServiceKeyDelegate {
-    public func service(_ service: CoreService, didReceiveWhisperMessage message: WhisperMessage) {
+    public func service(_ service: CoreServiceCommon, didReceiveWhisperMessage message: WhisperMessage) {
         DDLogInfo("KeyData/didReceiveWhisperMessage \(message)")
         switch message {
         case .update(let uid, let identityKey):
@@ -293,7 +293,7 @@ extension KeyData: ServiceKeyDelegate {
         // We wait for them to resend their own senderState and we then discard what we have.
     }
 
-    public func service(_ service: CoreService, didReceiveRerequestWithRerequestCount rerequestCount: Int) {
+    public func service(_ service: CoreServiceCommon, didReceiveRerequestWithRerequestCount rerequestCount: Int) {
         if rerequestCount > 2 {
             verifyIdentityKeyIfNecessary()
         }

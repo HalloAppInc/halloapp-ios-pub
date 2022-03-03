@@ -8,6 +8,7 @@
 
 import CocoaLumberjackSwift
 import Core
+import CoreCommon
 
 private struct HalloPrivacyList: PrivacyListProtocol {
     let type: PrivacyListType

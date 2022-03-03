@@ -8,6 +8,7 @@
 
 import Foundation
 import Core
+import CoreCommon
 
 struct ChatDraft: Codable {
     var chatID: String

@@ -11,6 +11,7 @@ import WebRTC
 import CocoaLumberjackSwift
 import Combine
 import Core
+import CoreCommon
 import AVFoundation
 
 extension RTCSignalingState {

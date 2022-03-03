@@ -9,6 +9,7 @@
 import XCTest
 @testable import HalloApp
 @testable import Core
+@testable import CoreCommon
 
 class DateTests: XCTestCase {
     

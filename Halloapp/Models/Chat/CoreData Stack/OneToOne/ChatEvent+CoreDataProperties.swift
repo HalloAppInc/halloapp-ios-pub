@@ -8,6 +8,7 @@
 //
 
 import Core
+import CoreCommon
 import CoreData
 
 enum ChatEventType: Int16 {

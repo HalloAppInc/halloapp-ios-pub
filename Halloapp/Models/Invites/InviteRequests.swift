@@ -8,6 +8,7 @@
 
 import CocoaLumberjackSwift
 import Core
+import CoreCommon
 import Foundation
 
 typealias InviteResponse = (results: [String: InviteResult], count: Int, refreshDate: Date)

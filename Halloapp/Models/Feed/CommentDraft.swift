@@ -8,6 +8,7 @@
 
 import Foundation
 import Core
+import CoreCommon
 
 struct CommentDraft: Codable {
     var postID: FeedPostID

@@ -9,6 +9,7 @@ import AVFoundation
 import CocoaLumberjackSwift
 import Combine
 import Core
+import CoreCommon
 import Foundation
 
 class ShareDataLoader {

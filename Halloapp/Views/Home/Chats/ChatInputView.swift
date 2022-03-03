@@ -9,6 +9,7 @@ import AVKit
 import CocoaLumberjackSwift
 import Combine
 import Core
+import CoreCommon
 import LinkPresentation
 import MarkdownKit
 import UIKit

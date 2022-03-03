@@ -9,6 +9,7 @@
 import UIKit
 import Combine
 import Core
+import CoreCommon
 
 final class FeedPermissionTutorialAlert: UIView {
     struct Action {

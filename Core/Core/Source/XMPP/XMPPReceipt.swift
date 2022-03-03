@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import CoreCommon
 
 public typealias HalloReceipt = XMPPReceipt
 

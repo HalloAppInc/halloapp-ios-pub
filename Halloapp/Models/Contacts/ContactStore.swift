@@ -15,6 +15,7 @@ import Combine
 import Contacts
 import ContactsUI
 import Core
+import CoreCommon
 import CoreData
 
 // MARK: Constants

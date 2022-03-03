@@ -7,6 +7,7 @@
 //
 
 import Core
+import CoreCommon
 
 extension Mentions {
     public static func mentionableUsers(forPostID postID: FeedPostID) -> [MentionableUser] {

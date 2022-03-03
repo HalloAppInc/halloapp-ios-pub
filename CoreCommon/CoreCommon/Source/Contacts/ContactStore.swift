@@ -68,7 +68,7 @@ open class ContactStore {
 
     public class var persistentStoreURL: URL {
         get {
-            return AppContext.contactStoreURL
+            return AppContextCommon.contactStoreURL
         }
     }
 

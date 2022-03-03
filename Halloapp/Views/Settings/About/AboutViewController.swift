@@ -8,6 +8,7 @@
 
 import Combine
 import Core
+import CoreCommon
 import UIKit
 
 private extension Localizations {
