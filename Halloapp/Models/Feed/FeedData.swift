@@ -1001,14 +1001,21 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     DDLogInfo("FeedData/process-comments/existing-post [\(xmppComment.feedPostId)]")
                     feedPost = post
                 } else {
-                    DDLogInfo("FeedData/process-comments/missing-post [\(xmppComment.feedPostId)]/creating one")
-                    feedPost = FeedPost(context: managedObjectContext)
-                    feedPost.id = xmppComment.feedPostId
-                    feedPost.status = .rerequesting
-                    feedPost.userId = ""
-                    feedPost.timestamp = Date()
-                    feedPost.groupId = groupID
-                    posts[xmppComment.feedPostId] = feedPost
+                    if let groupID = groupID {
+                        // Create a post only for missing group posts.
+                        DDLogInfo("FeedData/process-comments/missing-post [\(xmppComment.feedPostId)]/creating one")
+                        feedPost = FeedPost(context: managedObjectContext)
+                        feedPost.id = xmppComment.feedPostId
+                        feedPost.status = .rerequesting
+                        feedPost.userId = ""
+                        feedPost.timestamp = Date()
+                        feedPost.groupId = groupID
+                        posts[xmppComment.feedPostId] = feedPost
+                    } else {
+                        DDLogError("FeedData/process-comments/missing-post [\(xmppComment.feedPostId)]/skip comment")
+                        ignoredCommentIds.insert(xmppComment.id)
+                        continue
+                    }
                 }
 
                 // Additional check: post's groupId must match groupId of the comment.
