@@ -999,22 +999,20 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 if let post = posts[xmppComment.feedPostId] {
                     DDLogInfo("FeedData/process-comments/existing-post [\(xmppComment.feedPostId)]")
                     feedPost = post
+                } else if let groupID = groupID {
+                    // Create a post only for missing group posts.
+                    DDLogInfo("FeedData/process-comments/missing-post [\(xmppComment.feedPostId)]/creating one")
+                    feedPost = FeedPost(context: managedObjectContext)
+                    feedPost.id = xmppComment.feedPostId
+                    feedPost.status = .rerequesting
+                    feedPost.userId = ""
+                    feedPost.timestamp = Date()
+                    feedPost.groupId = groupID
+                    posts[xmppComment.feedPostId] = feedPost
                 } else {
-                    if let groupID = groupID {
-                        // Create a post only for missing group posts.
-                        DDLogInfo("FeedData/process-comments/missing-post [\(xmppComment.feedPostId)]/creating one")
-                        feedPost = FeedPost(context: managedObjectContext)
-                        feedPost.id = xmppComment.feedPostId
-                        feedPost.status = .rerequesting
-                        feedPost.userId = ""
-                        feedPost.timestamp = Date()
-                        feedPost.groupId = groupID
-                        posts[xmppComment.feedPostId] = feedPost
-                    } else {
-                        DDLogError("FeedData/process-comments/missing-post [\(xmppComment.feedPostId)]/skip comment")
-                        ignoredCommentIds.insert(xmppComment.id)
-                        continue
-                    }
+                    DDLogError("FeedData/process-comments/missing-post [\(xmppComment.feedPostId)]/skip comment")
+                    ignoredCommentIds.insert(xmppComment.id)
+                    continue
                 }
 
                 // Additional check: post's groupId must match groupId of the comment.
