@@ -35,10 +35,8 @@ class VideoCallViewController: CallViewController {
     private var useCallStatus: Bool = false
 
     private let camImage = UIImage(systemName: "arrow.triangle.2.circlepath.camera.fill")
-    private let micOffImage = UIImage(systemName: "mic.slash.fill")
-    private let micOnImage = UIImage(systemName: "mic.fill")
-    private let videoOffImage = UIImage(systemName: "video.slash.fill")
-    private let videoOnImage = UIImage(systemName: "video.fill")
+    private let micImage = UIImage(systemName: "mic.slash.fill")
+    private let videoImage = UIImage(systemName: "video.slash.fill")
     private let endCallImage = UIImage(systemName: "phone.down.fill")?.withRenderingMode(.alwaysTemplate)
     private let backImage = UIImage(named: "NavbarBack")?.imageFlippedForRightToLeftLayoutDirection().withRenderingMode(.alwaysTemplate)
 
@@ -115,14 +113,14 @@ class VideoCallViewController: CallViewController {
     }()
 
     private lazy var videoButton: VideoCallViewButton = {
-        let button = VideoCallViewButton(image: videoOnImage, title: "")
+        let button = VideoCallViewButton(image: videoImage, title: "")
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(videoButtonTapped), for: .touchUpInside)
         return button
     }()
 
     private lazy var micButton: VideoCallViewButton = {
-        let button = VideoCallViewButton(image: micOnImage, title: "")
+        let button = VideoCallViewButton(image: micImage, title: "")
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(micButtonTapped), for: .touchUpInside)
         return button
@@ -500,8 +498,7 @@ class VideoCallViewController: CallViewController {
                 case .failure(let error):
                     DDLogError("VideoCallViewController/muteVideo/failed: \(error)")
                 case .success:
-                    let videoStatusImage = self.isLocalVideoMuted ? self.videoOffImage : self.videoOnImage
-                    self.videoButton.image = videoStatusImage
+                    self.videoButton.isSelected = self.isLocalVideoMuted
                 }
             }
         }
@@ -517,8 +514,7 @@ class VideoCallViewController: CallViewController {
                 case .failure(let error):
                     DDLogError("VideoCallViewController/muteCall/failed: \(error)")
                 case .success:
-                    let micStatusImage = self.isLocalAudioMuted ? self.micOffImage : self.micOnImage
-                    self.micButton.image = micStatusImage
+                    self.micButton.isSelected = self.isLocalAudioMuted
                 }
             }
         }
@@ -809,4 +805,16 @@ final class VideoCallViewButton: UIControl {
         view.widthAnchor.constraint(equalToConstant: diameter).isActive = true
         return view
     }()
+
+    override var isSelected: Bool {
+        didSet {
+            if isSelected {
+                circleView.backgroundColor = UIColor.white
+                imageView.image  = image?.withTintColor(.black, renderingMode: .alwaysOriginal)
+            } else {
+                circleView.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+                imageView.image  = image?.withTintColor(.white, renderingMode: .alwaysOriginal)
+            }
+        }
+    }
 }

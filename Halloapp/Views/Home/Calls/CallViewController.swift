@@ -96,11 +96,9 @@ class AudioCallViewController: CallViewController {
 
     var callStatus = CallStatus.calling
     var useCallStatus: Bool = false
-    let micOffImage = UIImage(systemName: "mic.slash.fill")
-    let micOnImage = UIImage(systemName: "mic.fill")
-    let speakerOffImage = UIImage(systemName: "speaker.slash.fill")
-    let speakerOnImage = UIImage(systemName: "speaker.wave.3.fill")
-    let endCallImage = UIImage(named: "ReplyPanelClose")?.withRenderingMode(.alwaysTemplate)
+    let micImage = UIImage(systemName: "mic.slash.fill")
+    let speakerImage = UIImage(systemName: "speaker.wave.3.fill")
+    let endCallImage = UIImage(systemName: "phone.down.fill")?.withRenderingMode(.alwaysTemplate)
     let chatImage = UIImage(systemName: "message.fill")
     let backImage = UIImage(named: "NavbarBack")?.imageFlippedForRightToLeftLayoutDirection().withRenderingMode(.alwaysTemplate)
 
@@ -122,7 +120,7 @@ class AudioCallViewController: CallViewController {
     }()
 
     private lazy var micButton: CallViewButton = {
-        let button = CallViewButton(image: micOnImage, title: Localizations.callMute)
+        let button = CallViewButton(image: micImage, title: Localizations.callMute)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(micButtonTapped), for: .touchUpInside)
         return button
@@ -136,7 +134,7 @@ class AudioCallViewController: CallViewController {
     }()
 
     private lazy var speakerButton: CallViewButton = {
-        let button = CallViewButton(image: speakerOffImage, title: Localizations.callSpeaker)
+        let button = CallViewButton(image: speakerImage, title: Localizations.callSpeaker)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(speakerButtonTapped), for: .touchUpInside)
         return button
@@ -394,8 +392,7 @@ class AudioCallViewController: CallViewController {
                 case .failure(let error):
                     DDLogError("CallViewController/endCall/failed: \(error)")
                 case .success:
-                    let micStatusImage = self.isLocalAudioMuted ? self.micOffImage : self.micOnImage
-                    self.micButton.image = micStatusImage
+                    self.micButton.isSelected = self.isLocalAudioMuted
                 }
             }
         }
@@ -411,8 +408,7 @@ class AudioCallViewController: CallViewController {
                 case .failure(let error):
                     DDLogError("CallViewController/endCall/failed: \(error)")
                 case .success:
-                    let speakerStatusImage = self.speakerOn ? self.speakerOnImage : self.speakerOffImage
-                    self.speakerButton.image = speakerStatusImage
+                    self.speakerButton.isSelected = self.speakerOn
                 }
             }
         }
@@ -597,6 +593,18 @@ final class CallViewButton: UIControl {
         view.widthAnchor.constraint(equalToConstant: diameter).isActive = true
         return view
     }()
+
+    override var isSelected: Bool {
+        didSet {
+            if isSelected {
+                circleView.backgroundColor = UIColor.white
+                imageView.image  = image?.withTintColor(.black, renderingMode: .alwaysOriginal)
+            } else {
+                circleView.backgroundColor = UIColor.white.withAlphaComponent(0.1)
+                imageView.image  = image?.withTintColor(.white, renderingMode: .alwaysOriginal)
+            }
+        }
+    }
 }
 
 extension Localizations {
