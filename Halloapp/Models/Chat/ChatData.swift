@@ -2330,11 +2330,13 @@ extension ChatData {
         for mediaItem in mediaItemsToUpload {
             let mediaIndex = mediaItem.order
             uploadGroup.enter()
+            let outputFileID = "\(msgID)-\(mediaIndex)"
 
-            DDLogDebug("ChatData/process-mediaItem: \(msgID)/\(mediaItem.order), index: \(mediaIndex)")
+            DDLogDebug("ChatData/process-mediaItem/chatMessage: \(msgID)/\(mediaItem.order), index: \(mediaIndex)")
             if let relativeFilePath = mediaItem.relativeFilePath, mediaItem.sha256.isEmpty && mediaItem.key.isEmpty {
+                DDLogDebug("ChatData/process-mediaItem/chatMessage: \(msgID)/\(mediaIndex)/relativeFilePath: \(relativeFilePath)")
                 let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
-                let output = url.deletingPathExtension().appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
+                let output = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(outputFileID, isDirectory: false).appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
 
                 let type: FeedMediaType = {
                     switch mediaItem.type {
@@ -2897,11 +2899,24 @@ extension ChatData {
             // strip out the index part of the id
             var fileNameWithIndexComponents = fileNameWithIndex.components(separatedBy: "-")
             fileNameWithIndexComponents.removeLast()
-            let id = fileNameWithIndexComponents.joined(separator: "-")
+            let msgID = fileNameWithIndexComponents.joined(separator: "-")
 
-            let chatMessage = MainAppContext.shared.chatData.chatMessage(with: id, in: MainAppContext.shared.chatData.viewContext)
-
-            if chatMessage == nil {
+            DDLogInfo("ChatData/cleanUpOldUploadData/file: \(file)/msgID: \(msgID)")
+            if let chatMessage = MainAppContext.shared.chatData.chatMessage(with: msgID, in: MainAppContext.shared.chatData.viewContext) {
+                // message exists, clean up any upload data in all the media
+                chatMessage.media?.forEach { (media) in
+                    guard media.outgoingStatus == .uploaded else { return }
+                    DDLogInfo("ChatData/cleanUpOldUploadData/clean up existing message upload data: \(media.relativeFilePath ?? "")")
+                    ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: media.relativeFilePath)
+                }
+                chatMessage.linkPreviews?.forEach { linkPreview in
+                    linkPreview.media?.forEach { media in
+                        guard media.outgoingStatus == .uploaded else { return }
+                        DDLogVerbose("ChatData/cleanUpOldUploadData/clean up existing link preview upload data: \(media.relativeFilePath ?? "")")
+                        ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: media.relativeFilePath)
+                    }
+                }
+            } else {
                 // message does not exist anymore, get the processed relative filepath and clean up
                 if fileNameComponents.count == 4, fileNameComponents[3] == encryptedSuffix, fileNameComponents[1] == processedSuffix {
                     // remove .enc
@@ -2917,13 +2932,6 @@ extension ChatData {
 
                     DDLogInfo("ChatData/cleanUpOldUploadData/clean up deleted message upload data: \(processedRelativeFilePath)")
                     ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: processedRelativeFilePath)
-                }
-            } else {
-                // message exists, clean up any upload data in all the media
-                chatMessage?.media?.forEach { (media) in
-                    guard media.outgoingStatus == .uploaded else { return }
-                    DDLogInfo("ChatData/cleanUpOldUploadData/clean up existing message upload data: \(media.relativeFilePath ?? "")")
-                    ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: media.relativeFilePath)
                 }
             }
         })

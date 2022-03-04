@@ -591,10 +591,19 @@ class ImageServer {
         let encryptedMediaFileURL = processedMediaFileURL.appendingPathExtension(encryptedSuffix)
 
         do {
-            try FileManager.default.removeItem(at: originalMediaFileURL)    // xxx.jpg
-            try FileManager.default.removeItem(at: encryptedMediaFileURL)   // xxx.processed.jpg.enc
+            if FileManager.default.fileExists(atPath: originalMediaFileURL.absoluteString) {
+                try FileManager.default.removeItem(at: originalMediaFileURL)    // xxx.jpg
+                DDLogDebug("ImageServer/cleanUpUploadData/success: \(originalMediaFileURL)")
+            }
+        } catch {
+            DDLogError("ImageServer/cleanUpUploadData/error [\(error)]")
         }
-        catch {
+        do {
+            if FileManager.default.fileExists(atPath: originalMediaFileURL.absoluteString) {
+                try FileManager.default.removeItem(at: encryptedMediaFileURL)   // xxx.processed.jpg.enc
+                DDLogDebug("ImageServer/cleanUpUploadData/success: \(encryptedMediaFileURL)")
+            }
+        } catch {
             DDLogError("ImageServer/cleanUpUploadData/error [\(error)]")
         }
     }
