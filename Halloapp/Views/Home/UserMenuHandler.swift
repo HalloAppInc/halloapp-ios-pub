@@ -227,7 +227,7 @@ extension UIMenu {
         
         // groups in common
         items.append(UIAction(title: Localizations.groupsInCommonButtonLabel,
-                              image: UIImage(named: "TabBarGroups")) { _ in
+                              image: UIImage(named: "TabBarGroups")?.withTintColor(.label, renderingMode: .alwaysOriginal)) { _ in
             handler(.commonGroups(userID))
         })
         
