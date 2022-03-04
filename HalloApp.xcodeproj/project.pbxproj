@@ -36,8 +36,6 @@
 		3250C60927D0120D0032FEC4 /* PhoneInputViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3250C60627D0120D0032FEC4 /* PhoneInputViewController.swift */; };
 		3250C60A27D0120D0032FEC4 /* VerificationCodeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3250C60727D0120D0032FEC4 /* VerificationCodeViewController.swift */; };
 		3250C60B27D0120D0032FEC4 /* Localizations+Registration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3250C60827D0120D0032FEC4 /* Localizations+Registration.swift */; };
-		3250C61027D01E810032FEC4 /* CoreCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 328D13BF27C02AB100AA9F18 /* CoreCommon.framework */; };
-		3250C61127D01E850032FEC4 /* CoreCommon.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 328D13BF27C02AB100AA9F18 /* CoreCommon.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		327AB839272C8356001C0E00 /* ChatLinkPreview+CoreDataProperties copy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 327AB836272C8355001C0E00 /* ChatLinkPreview+CoreDataProperties copy.swift */; };
 		327AB83A272C8356001C0E00 /* ChatLinkPreview+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 327AB838272C8356001C0E00 /* ChatLinkPreview+CoreDataClass.swift */; };
 		328B64102756D53900899525 /* FlatCommentsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 328B640F2756D53900899525 /* FlatCommentsViewController.swift */; };
@@ -105,6 +103,8 @@
 		68610B8F27A12DD3007019F4 /* ChatCallCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68610B8E27A12DD3007019F4 /* ChatCallCell.swift */; };
 		68629294265C660D00C54367 /* FeedPermissionAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68629293265C660D00C54367 /* FeedPermissionAlert.swift */; };
 		686CDFBC2548A6C200DB7266 /* RegistrationDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686CDFBB2548A6C200DB7266 /* RegistrationDemo.swift */; };
+		6873C34A27D28A6B0032328E /* CoreCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 328D13BF27C02AB100AA9F18 /* CoreCommon.framework */; };
+		6873C34B27D28A6B0032328E /* CoreCommon.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 328D13BF27C02AB100AA9F18 /* CoreCommon.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		68781D822600170D0045AB61 /* InviteViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68781D812600170D0045AB61 /* InviteViewController.swift */; };
 		6878E0132798E962008BB351 /* Quicksand-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6878E00D2798E962008BB351 /* Quicksand-Medium.ttf */; };
 		6878E0142798E962008BB351 /* Quicksand-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6878E00F2798E962008BB351 /* Quicksand-Regular.ttf */; };
@@ -534,7 +534,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				3250C61127D01E850032FEC4 /* CoreCommon.framework in Embed Frameworks */,
+				6873C34B27D28A6B0032328E /* CoreCommon.framework in Embed Frameworks */,
 				768123E12485DFB7008C5216 /* Core.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
@@ -1135,11 +1135,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3250C61027D01E810032FEC4 /* CoreCommon.framework in Frameworks */,
 				768123E02485DFB7008C5216 /* Core.framework in Frameworks */,
 				6A081C51273C154600E9E29A /* WebRTC in Frameworks */,
 				68929F9F2734AD3C00F79288 /* MarkdownKit in Frameworks */,
 				685B509B25E075FE00F782F9 /* Reachability in Frameworks */,
+				6873C34A27D28A6B0032328E /* CoreCommon.framework in Frameworks */,
 				F4B91DDE278CF46B00DF70C1 /* Sentry in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
