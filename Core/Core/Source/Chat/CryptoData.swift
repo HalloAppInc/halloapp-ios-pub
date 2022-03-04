@@ -344,7 +344,7 @@ public final class CryptoData {
 
     private var reportTimer: DispatchSourceTimer?
 
-    private lazy var viewContext: NSManagedObjectContext = {
+    public lazy var viewContext: NSManagedObjectContext = {
         persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
         return persistentContainer.viewContext
     }()

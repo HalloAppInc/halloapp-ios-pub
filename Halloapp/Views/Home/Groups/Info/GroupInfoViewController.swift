@@ -34,6 +34,8 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
     private let backgroundCellReuseIdentifier = "BackgroundViewCell"
     private let actionCellReuseIdentifier = "ActionViewCell"
     private let cellReuseIdentifier = "ContactViewCell"
+    private let statCellReuseIdentifier = "StatViewCell"
+    private let descriptionCellReuseIdentifier = "DescriptionViewCell"
 
     private var fetchedResultsController: NSFetchedResultsController<ChatGroupMember>?
     private var dataSource: GroupInfoDataSource?
@@ -68,6 +70,8 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
         tableView.register(BackgroundTableViewCell.self, forCellReuseIdentifier: backgroundCellReuseIdentifier)
         tableView.register(ActionTableViewCell.self, forCellReuseIdentifier: actionCellReuseIdentifier)
         tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: statCellReuseIdentifier)
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: descriptionCellReuseIdentifier)
 
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 50
@@ -84,7 +88,7 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
                 switch row {
                 case .descriptionRow:
                     guard let chatGroup = self.chatGroup else { break }
-                    let cell = UITableViewCell()
+                    let cell = tableView.dequeueReusableCell(withIdentifier: self.descriptionCellReuseIdentifier, for: indexPath)
                     cell.textLabel?.numberOfLines = 0
                     cell.textLabel?.font = UIFont.systemFont(forTextStyle: .body, maximumPointSize: Constants.MaxFontPointSize)
                     if let desc = chatGroup.desc, !desc.isEmpty {
@@ -141,6 +145,17 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
                     }
                 default:
                     break
+                }
+            } else if indexPath.section == 3 {
+                switch row {
+                case .historyStatsRow:
+                    let cell = tableView.dequeueReusableCell(withIdentifier: self.statCellReuseIdentifier, for: indexPath)
+                    cell.textLabel?.numberOfLines = 0
+                    cell.textLabel?.font = UIFont.systemFont(forTextStyle: .body, maximumPointSize: Constants.MaxFontPointSize)
+                    cell.textLabel?.text = self.generateHistoryStatsString()
+                    cell.heightAnchor.constraint(equalToConstant: Constants.ActionRowHeight).isActive = true
+                    return cell
+                default: break
                 }
             }
             return UITableViewCell()
@@ -305,6 +320,10 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
             contactRows.append(contentsOf: Array(allContactRows))
         }
 
+        var historyStatsRows = [Row]()
+        let historyStatsString = generateHistoryStatsString()
+        historyStatsRows.append(.historyStatsRow(.stats(value: historyStatsString)))
+
         /* apply snapshot */
         var snapshot = NSDiffableDataSourceSnapshot<Section, Row>()
         let numContacts = allContactRows.count
@@ -312,6 +331,10 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
         snapshot.appendItems(descriptionRows, toSection: .description)
         snapshot.appendItems(backgroundRows, toSection: .background)
         snapshot.appendItems(contactRows, toSection: .contacts(numContacts: numContacts))
+        if ServerProperties.isInternalUser {
+            snapshot.appendSections([.historyStats])
+            snapshot.appendItems(historyStatsRows, toSection: .historyStats)
+        }
 
         dataSource?.defaultRowAnimation = .fade
 
@@ -320,6 +343,16 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
         } else {
             dataSource?.apply(snapshot, animatingDifferences: animated)
         }
+    }
+
+    private func generateHistoryStatsString() -> String {
+        guard let chatGroup = chatGroup else {
+            return ""
+        }
+        let groupFeedHistoryDecryption = AppContext.shared.cryptoData.fetchGroupFeedHistoryDecryption(groupID: chatGroup.groupId, in: AppContext.shared.cryptoData.viewContext)
+        let numExpected = groupFeedHistoryDecryption?.numExpected ?? 0
+        let numDecrypted = groupFeedHistoryDecryption?.numDecrypted ?? 0
+        return String(numDecrypted) + " / " + String(numExpected)
     }
 
     // MARK: Actions
@@ -544,6 +577,8 @@ extension GroupInfoViewController: UITableViewDelegate {
             label.text = Localizations.groupBackgroundLabel.uppercased()
         } else if section == 2 {
             label.text = Localizations.groupMembersLabel.uppercased() + " (\(String(self.chatGroup?.members?.count ?? 0)))"
+        } else if section == 3 {
+            label.text = "History Decryption Stats"
         }
         view.addSubview(label)
         return view
@@ -653,6 +688,7 @@ extension GroupInfoViewController: UITableViewDelegate {
 fileprivate enum Section: Hashable {
     case description
     case background
+    case historyStats
     case contacts(numContacts: Int) // numContacts needed for snapshot to notice changes and update section header title
 }
 
@@ -660,6 +696,7 @@ fileprivate enum Row: Hashable, Equatable {
     case descriptionRow(DescriptionRow)
     case backgroundRow(BackgroundRow)
     case contactRow(ContactRow)
+    case historyStatsRow(HistoryStatsRow)
 
     var descriptionRow: DescriptionRow? {
         switch self {
@@ -681,6 +718,13 @@ fileprivate enum Row: Hashable, Equatable {
         default: return nil
         }
     }
+
+    var statsRow: HistoryStatsRow? {
+        switch self {
+        case .historyStatsRow(let statsRow): return statsRow
+        default: return nil
+        }
+    }
 }
 
 fileprivate enum DescriptionRow: Hashable, Equatable {
@@ -689,6 +733,10 @@ fileprivate enum DescriptionRow: Hashable, Equatable {
 
 fileprivate enum BackgroundRow: Hashable, Equatable {
     case background (selectedBackground: Int)
+}
+
+fileprivate enum HistoryStatsRow: Hashable, Equatable {
+    case stats(value: String)
 }
 
 fileprivate enum ContactRow: Hashable, Equatable {
