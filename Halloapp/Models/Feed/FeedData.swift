@@ -715,6 +715,85 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
+    // MARK: History tombstones
+    public func createTombstones(for groupID: GroupID, with contentsDetails: [Clients_ContentDetails]) {
+        DDLogInfo("FeedData/createTombstones/groupID: \(groupID)/itemsCount: \(contentsDetails.count)")
+        self.performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
+            guard let self = self else { return }
+
+            var feedPostContexts: [FeedPostID: Clients_PostIdContext] = [:]
+            var commentContexts: [FeedPostCommentID: Clients_CommentIdContext] = [:]
+
+            contentsDetails.forEach { contentDetails in
+                switch contentDetails.contentID {
+                case .postIDContext(let postIdContext):
+                    // This is to protect against invalid data and clients responding without senderUid
+                    if postIdContext.senderUid != 0 {
+                        feedPostContexts[postIdContext.feedPostID] = postIdContext
+                    }
+                case .commentIDContext(let commentIdContext):
+                    // This is to protect against invalid data and clients responding without senderUid
+                    if commentIdContext.senderUid != 0 {
+                        commentContexts[commentIdContext.commentID] = commentIdContext
+                    }
+                case .none:
+                    break
+                }
+            }
+            DDLogInfo("FeedData/createTombstones/groupID: \(groupID)/postsCount: \(feedPostContexts.count)/commentsCount: \(commentContexts.count)")
+
+            var posts = self.feedPosts(with: Set(feedPostContexts.keys), in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
+            var comments = self.feedComments(with: Set(commentContexts.keys), in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
+            DDLogInfo("FeedData/createTombstones/groupID: \(groupID)/postsAlreadyPresentCount: \(posts.count)")
+            DDLogInfo("FeedData/createTombstones/groupID: \(groupID)/commentsAlreadyPresentCount: \(comments.count)")
+
+            // Create post tombstones
+            feedPostContexts.forEach { (postId, postIdContext) in
+                if posts[postId] == nil {
+                    let feedPost = FeedPost(context: managedObjectContext)
+                    feedPost.id = postId
+                    feedPost.status = .rerequesting
+                    feedPost.userId = UserID(postIdContext.senderUid)
+                    feedPost.timestamp = Date(timeIntervalSince1970: TimeInterval(postIdContext.timestamp))
+                    feedPost.groupId = groupID
+                    posts[postId] = feedPost
+                } else {
+                    DDLogInfo("FeedData/createTombstones/groupID: \(groupID)/post: \(postId)/post already present - skip")
+                }
+            }
+
+            // Create comment tombsones only when posts are available.
+            commentContexts.forEach { (commentId, commentIdContext) in
+                if comments[commentId] == nil,
+                   let post = posts[commentIdContext.feedPostID] {
+                    let feedPostComment = FeedPostComment(context: managedObjectContext)
+                    feedPostComment.id = commentId
+                    feedPostComment.status = .rerequesting
+                    feedPostComment.userId = UserID(commentIdContext.senderUid)
+                    feedPostComment.timestamp = Date(timeIntervalSince1970: TimeInterval(commentIdContext.timestamp))
+                    feedPostComment.post = post
+                    feedPostComment.text = ""
+                    comments[commentId] = feedPostComment
+                } else {
+                    DDLogInfo("FeedData/createTombstones/groupID: \(groupID)/comment: \(commentId)/comment already present or post missing - skip")
+                }
+            }
+
+            // Update parent comment ids for the comments created.
+            commentContexts.forEach { (commentId, commentIdContext) in
+                if let comment = comments[commentId],
+                   let parentComment = comments[commentIdContext.parentCommentID] {
+                    comment.parent = parentComment
+                    comments[commentId] = comment
+                }
+            }
+
+            DDLogInfo("FeedData/createTombstones/groupID: \(groupID)/saving tombstones")
+            self.save(managedObjectContext)
+            DDLogInfo("FeedData/createTombstones/groupID: \(groupID)/saving tombstones/success")
+        }
+    }
+
     // MARK: Updates
 
     private func updateFeedPost(with id: FeedPostID, block: @escaping (FeedPost) -> (), performAfterSave: (() -> ())? = nil) {

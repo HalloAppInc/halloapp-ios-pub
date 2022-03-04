@@ -4860,6 +4860,9 @@ extension ChatData: HalloChatDelegate {
             DDLogInfo("ChatData/didReceiveHistoryPayload/\(groupID)/self is newly added member - ignore historyResend stanza")
             let numExpected = historyPayload?.contentDetails.count ?? 0
             AppContext.shared.cryptoData.resetFeedHistory(groupID: groupID, timestamp: Date(), numExpected: numExpected)
+            if let contentDetails = historyPayload?.contentDetails {
+                MainAppContext.shared.feedData.createTombstones(for: groupID, with: contentDetails)
+            }
 
         } else if let historyPayload = historyPayload,
                   sender != userData.userId {
