@@ -38,6 +38,7 @@ final class ChatCallCell: UITableViewCell {
     }
 
     override func prepareForReuse() {
+        super.prepareForReuse()
         callViewAlignmentConstraint?.isActive = false
     }
 

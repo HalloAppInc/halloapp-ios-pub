@@ -591,6 +591,8 @@ fileprivate class DestinationCell: UITableViewCell {
     }
 
     override func prepareForReuse() {
+        super.prepareForReuse()
+        
         cancellable?.cancel()
         homeView.isHidden = true
         avatar.isHidden = true

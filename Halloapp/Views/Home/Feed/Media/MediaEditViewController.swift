@@ -504,6 +504,7 @@ fileprivate class PreviewCell: UICollectionViewCell {
     }
 
     override func prepareForReuse() {
+        super.prepareForReuse()
         cancellable?.cancel()
     }
 

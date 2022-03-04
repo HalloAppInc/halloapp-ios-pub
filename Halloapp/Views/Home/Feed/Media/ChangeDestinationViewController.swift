@@ -521,6 +521,7 @@ fileprivate class ContactsCell: UICollectionViewCell {
     }
 
     override func prepareForReuse() {
+        super.prepareForReuse()
         subtitleView.text = MainAppContext.shared.privacySettings.composerIndicator
     }
 

@@ -312,6 +312,7 @@ final class FeedEventCollectionViewCell: UICollectionViewCell {
     }
 
     override func prepareForReuse() {
+        super.prepareForReuse()
         textLabel.text = nil
     }
 

@@ -139,6 +139,7 @@ final class MentionPickerItemCell: UICollectionViewCell {
     }
     
     override func prepareForReuse() {
+        super.prepareForReuse()
         avatarView.prepareForReuse()
         nameLabel.text = nil
     }
