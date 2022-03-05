@@ -180,7 +180,10 @@ final class NotificationProtoService: ProtoServiceCore {
             // If incomingCall is not too late then
             // abort everything and just report the call to the main app.
             // else just save and move-on.
+            hasAckBeenDelegated = true
             dataStore.saveServerMsg(contentId: msg.id, serverMsgPb: serverMsgPb)
+            // Ack the message and then start reporting the call.
+            ack()
             if !incomingCall.isTooLate {
                 reportIncomingCall(serverMsgPb: serverMsgPb)
             }
