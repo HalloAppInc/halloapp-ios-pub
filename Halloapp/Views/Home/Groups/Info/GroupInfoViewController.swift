@@ -321,8 +321,7 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
         }
 
         var historyStatsRows = [Row]()
-        let historyStatsString = generateHistoryStatsString()
-        historyStatsRows.append(.historyStatsRow(.stats(value: historyStatsString)))
+        historyStatsRows.append(.historyStatsRow(.stats))
 
         /* apply snapshot */
         var snapshot = NSDiffableDataSourceSnapshot<Section, Row>()
@@ -736,7 +735,7 @@ fileprivate enum BackgroundRow: Hashable, Equatable {
 }
 
 fileprivate enum HistoryStatsRow: Hashable, Equatable {
-    case stats(value: String)
+    case stats
 }
 
 fileprivate enum ContactRow: Hashable, Equatable {
