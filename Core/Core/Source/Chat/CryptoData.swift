@@ -65,7 +65,7 @@ public final class CryptoData {
             guard let groupFeedHistoryDecryption = self.fetchGroupFeedHistoryDecryption(groupID: groupID, in: self.bgContext) ??
                     self.createGroupFeedHistoryDecryption(groupID: groupID, timestamp: timestamp, in: self.bgContext) else
             {
-                DDLogError("CryptoData/updateGroupFeedHistoryDecryption/\(groupID)/error could not find or create decryption report")
+                DDLogError("CryptoData/resetFeedHistory/\(groupID)/error could not find or create decryption report")
                 return
             }
             groupFeedHistoryDecryption.groupID = groupID
@@ -78,9 +78,9 @@ public final class CryptoData {
             if self.bgContext.hasChanges {
                 do {
                     try self.bgContext.save()
-                    DDLogInfo("CryptoData/updateGroupFeedHistoryDecryption/\(groupID)/saved numExpected: [\(numExpected)]")
+                    DDLogInfo("CryptoData/resetFeedHistory/\(groupID)/saved numExpected: [\(numExpected)]")
                 } catch {
-                    DDLogError("CryptoData/updateGroupFeedHistoryDecryption/\(groupID)/save/error [\(error)]")
+                    DDLogError("CryptoData/resetFeedHistory/\(groupID)/save/error [\(error)]")
                 }
             }
         }
@@ -92,13 +92,13 @@ public final class CryptoData {
             guard let groupFeedHistoryDecryption = self.fetchGroupFeedHistoryDecryption(groupID: groupID, in: self.bgContext) ??
                     self.createGroupFeedHistoryDecryption(groupID: groupID, timestamp: timestamp, in: self.bgContext) else
             {
-                DDLogError("CryptoData/updateGroupFeedHistoryDecryption/\(groupID)/error could not find or create decryption report")
+                DDLogError("CryptoData/receivedFeedHistoryItems/\(groupID)/error could not find or create decryption report")
                 return
             }
             let totalNumDecrypted = groupFeedHistoryDecryption.numDecrypted + Int32(newlyDecrypted)
             let totalRerequestCount = groupFeedHistoryDecryption.rerequestCount + Int32(newRerequests)
-            guard totalNumDecrypted > groupFeedHistoryDecryption.numExpected || totalRerequestCount > groupFeedHistoryDecryption.rerequestCount  else {
-                DDLogInfo("CryptoData/updateGroupFeedHistoryDecryption/\(groupID)/skipping no change in numDecrypted -or- totalRerequestCount")
+            guard totalNumDecrypted > groupFeedHistoryDecryption.numDecrypted || totalRerequestCount > groupFeedHistoryDecryption.rerequestCount  else {
+                DDLogInfo("CryptoData/receivedFeedHistoryItems/\(groupID)/skipping no change in numDecrypted -or- totalRerequestCount")
                 return
             }
             groupFeedHistoryDecryption.groupID = groupID
@@ -110,9 +110,9 @@ public final class CryptoData {
             if self.bgContext.hasChanges {
                 do {
                     try self.bgContext.save()
-                    DDLogInfo("CryptoData/updateGroupFeedHistoryDecryption/\(groupID)/saved numDecrypted: [\(totalNumDecrypted)]")
+                    DDLogInfo("CryptoData/receivedFeedHistoryItems/\(groupID)/saved numDecrypted: [\(totalNumDecrypted)]")
                 } catch {
-                    DDLogError("CryptoData/updateGroupFeedHistoryDecryption/\(groupID)/save/error [\(error)]")
+                    DDLogError("CryptoData/receivedFeedHistoryItems/\(groupID)/save/error [\(error)]")
                 }
             }
         }
