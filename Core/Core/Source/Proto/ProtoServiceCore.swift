@@ -823,7 +823,7 @@ extension ProtoServiceCore: CoreService {
         }
 
         let work = DispatchWorkItem {
-            guard !groupStanza.historyResend.encPayload.isEmpty else {
+            guard !groupStanza.historyResend.encPayload.isEmpty && UserID(groupStanza.senderUid) != self.credentials?.userID else {
                 newCompletion(nil, true)
                 DDLogWarn("ProtoServiceCore/processGroupStanza/group: \(groupID)/historyResend payload is invalid")
                 return

@@ -609,6 +609,7 @@ final class GroupWhisperSession {
 
         let attemptNumber = 1 + (state.failedSetupAttempts ?? 0)
         state = .retrievingKeys(incomingSession: state.incomingSession)
+        let ownUserID = AppContext.shared.userData.userId
 
         service.getGroupMemberIdentityKeys(groupID: groupID) { result in
             self.sessionQueue.async {
@@ -645,7 +646,8 @@ final class GroupWhisperSession {
                 }()
 
                 if let outgoingSession = outgoingSession {
-                    let groupKeyBundle = GroupKeyBundle(outgoingSession: outgoingSession, incomingSession: self.state.incomingSession, pendingUids: members)
+                    let pendingUids = members.filter{ $0 != ownUserID }
+                    let groupKeyBundle = GroupKeyBundle(outgoingSession: outgoingSession, incomingSession: self.state.incomingSession, pendingUids: pendingUids)
                     DDLogInfo("GroupWhisperSession/setupOutbound/\(self.groupID)/success")
                     self.updateState(to: .ready(keyBundle: groupKeyBundle), saveToKeyStore: true)
                 } else {
