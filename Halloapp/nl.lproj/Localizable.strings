@@ -481,6 +481,9 @@
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Om connectie te maken, moeten jullie telefoonnummers uitwisselen";
 
+/* Placeholder title for posts that are externally shared, John Smith's HalloApp Post */
+"externalShare.og.title" = "HalloApp Post van %@";
+
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Camera";
 
@@ -850,6 +853,9 @@
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Zoeken";
 
+/* Text with hyperlink to halloapp's faq on encryption. */
+"learn.more" = "Meer informatie.";
+
 /* Link text to open invite flow */
 "link.invite.friend" = "Nodig een vriend uit";
 
@@ -1116,7 +1122,7 @@
 "profile.header.call.user" = "bellen";
 
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
-"profile.header.message.user" = "stuur bericht";
+"profile.header.message.user" = "Bericht sturen";
 
 /* Text for unblocking user under profile header */
 "profile.header.unblock.user" = "Deblokkeren";
@@ -1352,8 +1358,8 @@
 /* Navigation bar title informing the user that this page lets them export their user data. */
 "settings.account.export.navbar" = "Gegevens Exporteren";
 
-/* Label for when the date at which the user data is not determined. */
-"settings.account.export.not.found" = "Datum waarop de export gereed is, kon niet worden bepaald.";
+/* Label for when the date at which the exported user data will be available is not determined. */
+"settings.account.export.not.found" = "Datum waarop de gegevens gereed zijn, kon niet worden bepaald.";
 
 /* Button to open the user data exported from HalloApp. */
 "settings.account.export.open.data" = "Geëxporteerde gegevens openen";
@@ -1422,7 +1428,7 @@
 "textview.context.menu.audio.call.user" = "Bellen";
 
 /* Same as profile.header.message.user, but capitalized */
-"textview.context.menu.message.user" = "Stuur bericht";
+"textview.context.menu.message.user" = "Bericht sturen";
 
 /* Same as profile.header.call.user, but capitalized */
 "textview.context.menu.video.call.user" = "Videobellen";

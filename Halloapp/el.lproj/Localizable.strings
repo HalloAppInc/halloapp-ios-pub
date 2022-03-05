@@ -1006,7 +1006,7 @@
 /* Navigation bar title informing the user that this page lets them export their user data. */
 "settings.account.export.navbar" = "Εξαγωγή Δεδομένων";
 
-/* Label for when the date at which the user data is not determined. */
+/* Label for when the date at which the exported user data will be available is not determined. */
 "settings.account.export.not.found" = "Δεν ήταν δυνατός ο προσδιορισμός της ημερομηνίας που θα είναι έτοιμο.";
 
 /* Button to open the user data exported from HalloApp. */

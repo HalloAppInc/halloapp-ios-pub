@@ -1,92 +1,14 @@
-/* Title for alert shown when there's no internet connectivity */
-"alert.no.internet.title" = "عدم دسترسی به اینترنت";
-
-/* Message to tell the user to try again when they have internet connectivity again */
-"alert.no.internet.try.again" = "لطفاً مطمئن شوید به اینترنت دسترسی دارید سپس دوباره امتحان کنید.";
-
-/* Company name */
-"app.name.halloapp" = "هالواپ";
-
-/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
-"button.add" = "افزودن";
-
-/* Title for generic Cancel button. Mostly used in popups and as such. */
-"button.cancel" = "لغو";
-
-/* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
-"button.cancel.capitalized" = "لغو";
-
-/* Title for generic Continue button. Mostly used to complete some modal flow. */
-"button.continue" = "ادامه";
-
-/* Title for generic Create button */
-"button.create" = "ایجاد";
-
-/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
-"button.dismiss" = "لغو";
-
-/* Title for generic Done button. Mostly used to complete some modal flow. */
-"button.done" = "تأیید";
-
-/* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
-"button.go.to.settings" = "رفتن به تنظیمات";
-
 /* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
 "button.install" = "نصب";
-
-/* Title for generic Invite button. */
-"button.invite" = "دعوت";
-
-/* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
-"button.learn.more" = "بیشتر بدانید";
-
-/* Title for generic More button. Mostly used to complete some modal flow. */
-"button.more" = "بیشتر";
 
 /* Title for generic Next button. Mostly used to proceed to next screen in flow. */
 "button.next" = "بعدی";
 
-/* Title for generic Not Now button. Mostly used to complete some modal flow. */
-"button.not.now" = "الآن نه";
-
 /* Title for generic OK button. Mostly used in popups and as such. */
 "button.ok" = "تأیید";
 
-/* Title for generic Remove button. Mostly used to complete some modal flow. */
-"button.remove" = "حذف";
-
-/* Title for generic Save button. Mostly used to complete some modal flow. */
-"button.save" = "ذخیره";
-
-/* Title for generic Send button. Mostly used to complete some modal flow. */
-"button.send" = "ارسال";
-
-/* Title for generic Share button. Mostly used to complete some modal flow. */
-"button.share" = "به اشتراک گذاشتن";
-
-/* Title for generic Stop button. Currently used to stop an audio recording) */
-"button.stop" = "توقف";
-
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "به روز رسانی";
-
-/* Alert message when missing microphone access */
-"chat.mic.access.denied.message" = "برای فعال‌سازی ضبط صدا روی تنظیمات کلیک کنید و میکروفون را فعال کنید";
-
-/* Alert title when missing microphone access */
-"chat.mic.access.denied.title" = "خطا در دسترسی به میکروفون";
-
-/* Title for generic delete button. */
-"Delete" = "حذف";
-
-/* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.all" = "به اشتراک گذاشتن با تمام مخاطبین";
-
-/* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.except" = "به اشتراک گذاشتن با مخاطبین غیر از اشخاصی که انتخاب میکنم";
-
-/* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.only" = "به اشتراک گذاشتن فقط با مخاطبین انتخابی";
 
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "خروج";
@@ -96,24 +18,6 @@
 
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "این ورژن قدیمی است";
-
-/* Generic label for search, mostly used as placeholder text for searchbar */
-"label.search" = "جستجو";
-
-/* Generic 'learn more' link. Mostly used to present additional information about topic. */
-"link.learnMore" = "بیشتر بدانید";
-
-/* Link that when tapped will open App Store so user can update to the latest version of the app. */
-"link.update.your.app" = "برنامه را به روز رسانی کنید.";
-
-/* Displayed while waiting for link preview to load */
-"loading.preview" = "بارگذاری پیش‌نمایش...";
-
-/* Displayed in place of own name (e.g., next to own comments) */
-"meCapitalized" = "من";
-
-/* Button title. Refers to discarding photo/video edits in media composer. */
-"media.button.discard" = "لغو";
 
 /* Disclaimer text about receiving SMS verification code */
 "registration.code.disclaimer" = "یک کد دریافت خواهید کرد.\nممکن است اپراتور شما نرخی تحمیل کند.";
@@ -183,13 +87,4 @@
 
 /* Alert title telling the user that their account was successfully deleted */
 "settings.account.deleted.title" = "حساب کاربری با موفقیت حذف شد";
-
-/* String to auto-fill if a user tried to share to a friend. */
-"settings.share.text" = "به شبکه دوست‌های واقعی من در هالواپ بپیوندید. لینک دانلود رایگان halloapp.com/dl";
-
-/* Row in Settings screen */
-"title.privacy" = "حریم خصوصی";
-
-/* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "مخاطب ناشناخته";
 

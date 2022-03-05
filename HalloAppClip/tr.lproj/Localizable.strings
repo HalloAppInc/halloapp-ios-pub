@@ -1,92 +1,14 @@
-/* Title for alert shown when there's no internet connectivity */
-"alert.no.internet.title" = "İnternet bağlantısı yok";
-
-/* Message to tell the user to try again when they have internet connectivity again */
-"alert.no.internet.try.again" = "Lütfen internet bağlantını kontrol et ve yeniden dene.";
-
-/* Company name */
-"app.name.halloapp" = "HalloApp";
-
-/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
-"button.add" = "ekle";
-
-/* Title for generic Cancel button. Mostly used in popups and as such. */
-"button.cancel" = "İptal et";
-
-/* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
-"button.cancel.capitalized" = "İPTAL";
-
-/* Title for generic Continue button. Mostly used to complete some modal flow. */
-"button.continue" = "Devam et";
-
-/* Title for generic Create button */
-"button.create" = "Oluştur";
-
-/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
-"button.dismiss" = "Çık";
-
-/* Title for generic Done button. Mostly used to complete some modal flow. */
-"button.done" = "Bitti";
-
-/* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
-"button.go.to.settings" = "Ayarlara git";
-
 /* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
 "button.install" = "Yükle";
-
-/* Title for generic Invite button. */
-"button.invite" = "Davet et";
-
-/* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
-"button.learn.more" = "Daha fazlasını öğren";
-
-/* Title for generic More button. Mostly used to complete some modal flow. */
-"button.more" = "Daha fazla";
 
 /* Title for generic Next button. Mostly used to proceed to next screen in flow. */
 "button.next" = "Sonraki";
 
-/* Title for generic Not Now button. Mostly used to complete some modal flow. */
-"button.not.now" = "Şimdi değil";
-
 /* Title for generic OK button. Mostly used in popups and as such. */
 "button.ok" = "Tamam";
 
-/* Title for generic Remove button. Mostly used to complete some modal flow. */
-"button.remove" = "Sil";
-
-/* Title for generic Save button. Mostly used to complete some modal flow. */
-"button.save" = "Kaydet";
-
-/* Title for generic Send button. Mostly used to complete some modal flow. */
-"button.send" = "Gönder";
-
-/* Title for generic Share button. Mostly used to complete some modal flow. */
-"button.share" = "Paylaş";
-
-/* Title for generic Stop button. Currently used to stop an audio recording) */
-"button.stop" = "Durdur";
-
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Güncelle";
-
-/* Alert message when missing microphone access */
-"chat.mic.access.denied.message" = "Ses kaydını etkinleştirmek için lütfen Ayarlara git ve Mikrofonu aç";
-
-/* Alert title when missing microphone access */
-"chat.mic.access.denied.title" = "Mikrofona erişilemiyor";
-
-/* Title for generic delete button. */
-"Delete" = "Sil";
-
-/* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.all" = "Kişilerimle paylaş";
-
-/* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.except" = "Seçtiklerim hariç, kişilerimle paylaş";
-
-/* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.only" = "Yalnızca seçilen kişilerle paylaş";
 
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Çık";
@@ -96,24 +18,6 @@
 
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Bu sürüm güncel değil";
-
-/* Generic label for search, mostly used as placeholder text for searchbar */
-"label.search" = "Ara";
-
-/* Generic 'learn more' link. Mostly used to present additional information about topic. */
-"link.learnMore" = "Daha fazlasını öğren";
-
-/* Link that when tapped will open App Store so user can update to the latest version of the app. */
-"link.update.your.app" = "Uygulamanı güncelle";
-
-/* Displayed while waiting for link preview to load */
-"loading.preview" = "Ön izleme yükleniyor...";
-
-/* Displayed in place of own name (e.g., next to own comments) */
-"meCapitalized" = "Ben";
-
-/* Button title. Refers to discarding photo/video edits in media composer. */
-"media.button.discard" = "Sil";
 
 /* Disclaimer text about receiving SMS verification code */
 "registration.code.disclaimer" = "Bir onay kodu alacaksın. Bu mesaj ücretli olabilir.";
@@ -183,13 +87,4 @@
 
 /* Alert title telling the user that their account was successfully deleted */
 "settings.account.deleted.title" = "Hesap başarıyla silindi";
-
-/* String to auto-fill if a user tried to share to a friend. */
-"settings.share.text" = "HalloApp'teki gerçek ilişkiler ağıma katıl. halloapp.com/dl adresinden ücretsiz indir.";
-
-/* Row in Settings screen */
-"title.privacy" = "Gizlilik";
-
-/* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "Bilinmeyen kişi";
 
