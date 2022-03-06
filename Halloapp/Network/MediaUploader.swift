@@ -319,11 +319,6 @@ final class MediaUploader {
     }
 
     private func requestUrlsAndStartTask(uploadType: MediaUploadType, task: Task) {
-        guard FileManager.default.fileExists(atPath: task.fileURL.absoluteString) else {
-            DDLogError("MediaUploader/requestUrlsAndStartTask/file missing/fileURL: \(task.fileURL)")
-            self.fail(task: task, withError: MediaUploadError.canceled)
-            return
-        }
         // Request URLs first.
         let fileSize: Int
         // When sending out an iq - try our preference of urls.
