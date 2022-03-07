@@ -14,13 +14,13 @@ enum ActivityCenterSection {
     case main
 }
 
-struct ActivityCenterNotification: Hashable {
+struct ActivityCenterItem: Hashable {
     private var id: UUID = UUID()
-    private var notificationType: ActivityCenterNotificationType
+    private var content: Content
     
     /// Initializer is failable so that there must always be at least one `FeedNotification`
-    init?(notificationType: ActivityCenterNotificationType) {
-        self.notificationType = notificationType
+    init?(content: Content) {
+        self.content = content
     }
     
     /// Value describing whether the notification has been read or not. When multiple notifications are grouped together,
@@ -29,7 +29,7 @@ struct ActivityCenterNotification: Hashable {
         get {
             var feedNotifications: [FeedNotification] = []
             
-            switch notificationType {
+            switch content {
                 case .singleNotification(let notification): feedNotifications.append(notification)
                 case .unknownCommenters(let notifications): feedNotifications.append(contentsOf: notifications)
             }
@@ -44,7 +44,7 @@ struct ActivityCenterNotification: Hashable {
         }
         
         set {
-            switch notificationType {
+            switch content {
                 case .singleNotification(let notification): notification.read = newValue
                 case .unknownCommenters(let notifications): notifications.forEach { $0.read = newValue }
             }
@@ -54,7 +54,7 @@ struct ActivityCenterNotification: Hashable {
     /// The text that will be displayed in the notification tableview cell.
     var text: NSAttributedString {
         get {
-            switch notificationType {
+            switch content {
                 case .singleNotification(let notification): return notification.formattedText
                 case .unknownCommenters(let notifications): return textForUnknownCommenters(with: notifications)
             }
@@ -63,7 +63,7 @@ struct ActivityCenterNotification: Hashable {
     
     var image: UIImage? {
         get {
-            switch notificationType {
+            switch content {
                 case .singleNotification(let notification):
                     return notification.image
                 case .unknownCommenters(let notifications):
@@ -75,7 +75,7 @@ struct ActivityCenterNotification: Hashable {
     /// The userID related to the notification. If the notification is grouped, then the `UserID` is `nil` since they contacts are all unknown.
     var userID: UserID? {
         get {
-            switch notificationType {
+            switch content {
                 case .singleNotification(let notification): return notification.userId
                 case .unknownCommenters(_): return nil
             }
@@ -83,7 +83,7 @@ struct ActivityCenterNotification: Hashable {
     }
     
     var timestamp: Date {
-        switch notificationType {
+        switch content {
             case .singleNotification(let notification): return notification.timestamp
             case .unknownCommenters(let notifications): return Self.latestTimestamp(for: notifications)
         }
@@ -92,7 +92,7 @@ struct ActivityCenterNotification: Hashable {
     /// Feed post to navigate to when the notification is tapped
     var postId: FeedPostID? {
         get {
-            switch notificationType {
+            switch content {
                 case .singleNotification(let notification): return notification.postId
                 case .unknownCommenters(let notifications): return Self.latestUnseen(for: notifications)?.postId ?? nil
             }
@@ -102,7 +102,7 @@ struct ActivityCenterNotification: Hashable {
     /// Comment to highlight when the post related to the notification tapped is displayed. Should be a comment on post related to `postId` property.
     var commentId: FeedPostCommentID? {
         get {
-            switch notificationType {
+            switch content {
                 case .singleNotification(let notification): return notification.commentId
                 case .unknownCommenters(let notifications): return Self.latestUnseen(for: notifications)?.commentId ?? nil
             }
@@ -158,7 +158,7 @@ struct ActivityCenterNotification: Hashable {
         return notifications.first
     }
     
-    enum ActivityCenterNotificationType: Equatable, Hashable {
+    enum Content: Equatable, Hashable {
         case singleNotification(FeedNotification)
         case unknownCommenters([FeedNotification])
     }
