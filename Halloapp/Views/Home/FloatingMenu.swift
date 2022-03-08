@@ -272,6 +272,7 @@ final class FloatingMenu: UIView {
         [permanentButton] + expandedButtons
     }
 
+    // NB: Not in use as of 3/8/22. We used to show a "New Post" menu header but it was confusing users.
     private var expandedHeader: UIView?
 
     private func setup() {

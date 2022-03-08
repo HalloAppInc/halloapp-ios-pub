@@ -345,8 +345,7 @@ class GroupFeedViewController: FeedCollectionViewController {
                 collapsedIconTemplate: UIImage(named: "icon_fab_compose_post")?.withRenderingMode(.alwaysTemplate),
                 accessoryView: labelContainer,
                 expandedRotation: 45),
-            expandedButtons: expandedButtons,
-            expandedHeader: Localizations.newPost)
+            expandedButtons: expandedButtons)
     }()
 
     private func updateFloatingActionMenu() {
