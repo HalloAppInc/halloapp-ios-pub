@@ -1122,7 +1122,7 @@
 "profile.header.call.user" = "bellen";
 
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
-"profile.header.message.user" = "Bericht sturen";
+"profile.header.message.user" = "bericht sturen";
 
 /* Text for unblocking user under profile header */
 "profile.header.unblock.user" = "Deblokkeren";

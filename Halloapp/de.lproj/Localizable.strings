@@ -154,6 +154,15 @@
 /* Title for call history event. Appears next to details of a missed call. */
 "call.history.voice.call.missed" = "Verpasster Sprachanruf";
 
+/* Status display when peer mutes audio during a call. */
+"call.mute.remote.audio" = "%@ hat diesen Anruf stumm geschaltet";
+
+/* Status display when peer mutes both audio and video during a call. */
+"call.mute.remote.audio.video" = "%@'s Kamera und Mikrofon sind ausgeschaltet";
+
+/* Status display when peer mutes video during a call. */
+"call.mute.remote.video" = "%@'s Kamera ist ausgeschaltet";
+
 /* Status displayed when the other side is busy. */
 "call.status.busy" = "in einem anderen Gespräch";
 
@@ -171,6 +180,9 @@
 
 /* Status displayed when incoming call starts */
 "call.status.incoming" = "eingehender Anruf";
+
+/* Status displayed when the other side mutes the audio. */
+"call.status.muted" = "Anruf stummgeschaltet";
 
 /* Status displayed when reconnecting during call */
 "call.status.reconnecting" = "erneutes Verbinden...";
@@ -468,6 +480,9 @@
 
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Einfach Handynummern austauschen, um den Kontakt herzustellen";
+
+/* Placeholder title for posts that are externally shared, John Smith's HalloApp Post */
+"externalShare.og.title" = "%@'s HalloApp-Beitrag";
 
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Kamera";
@@ -788,7 +803,7 @@
 "home.update.notice.title" = "Diese Version ist veraltet";
 
 /* Text shown to users on video call failure. */
-"home.video.calls.fail.text" = "In Kürze verfügbar ...";
+"home.video.calls.fail.text" = "Demnächst verfügbar ...";
 
 /* Title of failed video call screen alert. */
 "home.video.calls.fail.title" = "Videoanrufe werden derzeit nicht unterstützt.";
@@ -837,6 +852,9 @@
 
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Suchen";
+
+/* Text with hyperlink to halloapp's faq on encryption. */
+"learn.more" = "Mehr erfahren.";
 
 /* Link text to open invite flow */
 "link.invite.friend" = "Freunde einladen";
@@ -900,6 +918,9 @@
 
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Schließen";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.draw" = "Zeichnen";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.flip" = "Umdrehen";
@@ -1338,7 +1359,7 @@
 "settings.account.export.navbar" = "Daten exportieren";
 
 /* Label for when the date at which the exported user data will be available is not determined. */
-"settings.account.export.not.found" = "Das Fertigstellungsdatum konnte nicht ermittelt werden.";
+"settings.account.export.not.found" = "Es konnte nicht ermittelt werden, wann deine Daten verfügbar sein werden.";
 
 /* Button to open the user data exported from HalloApp. */
 "settings.account.export.open.data" = "Exportierte Daten öffnen";

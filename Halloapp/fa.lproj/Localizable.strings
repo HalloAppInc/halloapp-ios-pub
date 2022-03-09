@@ -481,6 +481,9 @@
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "برای اشتراک گذاری باید شماره تلفن رد و بدل کنید";
 
+/* Placeholder title for posts that are externally shared, John Smith's HalloApp Post */
+"externalShare.og.title" = "پست هالواپ @%";
+
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "دوربین";
 
@@ -849,6 +852,9 @@
 
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "جستجو";
+
+/* Text with hyperlink to halloapp's faq on encryption. */
+"learn.more" = "اطلاعات بیشتر.";
 
 /* Link text to open invite flow */
 "link.invite.friend" = "دعوت کردن دوست";

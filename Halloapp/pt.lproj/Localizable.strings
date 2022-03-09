@@ -154,6 +154,15 @@
 /* Title for call history event. Appears next to details of a missed call. */
 "call.history.voice.call.missed" = "Chamada de voz perdida";
 
+/* Status display when peer mutes audio during a call. */
+"call.mute.remote.audio" = "%@ silenciou esta chamada";
+
+/* Status display when peer mutes both audio and video during a call. */
+"call.mute.remote.audio.video" = "A câmera e o microfone de %@ estão desligados";
+
+/* Status display when peer mutes video during a call. */
+"call.mute.remote.video" = "A câmera de %@ está desligada";
+
 /* Status displayed when the other side is busy. */
 "call.status.busy" = "em outra chamada";
 
@@ -171,6 +180,9 @@
 
 /* Status displayed when incoming call starts */
 "call.status.incoming" = "Recebendo Chamada";
+
+/* Status displayed when the other side mutes the audio. */
+"call.status.muted" = "chamada silenciada";
 
 /* Status displayed when reconnecting during call */
 "call.status.reconnecting" = "reconectando...";
@@ -468,6 +480,9 @@
 
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Para se ligar, deve trocar os números de telefone";
+
+/* Placeholder title for posts that are externally shared, John Smith's HalloApp Post */
+"externalShare.og.title" = "Postagem no HalloApp de %@";
 
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Câmara";
@@ -838,6 +853,9 @@
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Buscar";
 
+/* Text with hyperlink to halloapp's faq on encryption. */
+"learn.more" = "Saber mais.";
+
 /* Link text to open invite flow */
 "link.invite.friend" = "Convidar um amigo";
 
@@ -900,6 +918,9 @@
 
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Fechar";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.draw" = "Editor de Midia ";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.flip" = "Virar";
