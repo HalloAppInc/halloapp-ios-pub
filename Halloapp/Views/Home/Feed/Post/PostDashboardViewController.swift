@@ -225,10 +225,11 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
         snapshot.appendSections([ .contacts ])
         snapshot.appendItems(contactRows, toSection: .contacts)
 
-        if !isGroupPost {
-            snapshot.appendSections([ .actions ])
-            snapshot.appendItems(actionRows, toSection: .actions)
-        }
+        // (Chris) Temporarily disable actions as per design feedback
+        // if !isGroupPost {
+        //     snapshot.appendSections([ .actions ])
+        //     snapshot.appendItems(actionRows, toSection: .actions)
+        // }
 
         dataSource?.defaultRowAnimation = .fade
         dataSource?.apply(snapshot, animatingDifferences: viewIfLoaded?.window != nil)
