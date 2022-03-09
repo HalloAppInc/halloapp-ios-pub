@@ -32,6 +32,10 @@ private extension Localizations {
         NSLocalizedString("media.voiceover.button.draw", value: "Draw", comment: "Accessibility label for a button in media editor. Refers to media editing action.")
     }
 
+    static var voiceOverButtonAnnotate: String {
+        NSLocalizedString("media.voiceover.button.annotate", value: "Annotate", comment: "Accessibility label for a button in media editor. Refers to media editing action.")
+    }
+
     static var voiceOverButtonMute: String {
         NSLocalizedString("media.voiceover.button.mute", value: "Mute", comment: "Accessibility label for a button in media editor. Refers to media editing action.")
     }
@@ -62,6 +66,7 @@ class MediaEditViewController: UIViewController {
     private var mutedCancellable: AnyCancellable?
     private var drawingColorCancellable: AnyCancellable?
     private var undoStackCancellable: AnyCancellable?
+    private var draggingAnnotationCancellable: AnyCancellable?
 
     private lazy var buttonsView: UIView = {
         let buttonsView = UIStackView()
@@ -179,17 +184,30 @@ class MediaEditViewController: UIViewController {
 
     private func setupNavigation() {
         navigationController?.navigationBar.overrideUserInterfaceStyle = .dark
+        navigationController?.navigationBar.isTranslucent = true
+        navigationController?.navigationBar.backgroundColor = .clear
 
         let backImage = UIImage(systemName: "xmark", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: backImage, style: .plain, target: self, action: #selector(backAction))
 
         updateNavigation()
+
+
     }
 
     private func updateNavigation() {
         mutedCancellable?.cancel()
         drawingColorCancellable?.cancel()
         undoStackCancellable?.cancel()
+        draggingAnnotationCancellable?.cancel()
+
+        draggingAnnotationCancellable = media[selected].$isDraggingAnnotation.sink { [weak self] isDragging in
+            guard let self = self else { return }
+
+            UIView.animate(withDuration: 0.3) {
+                self.navigationController?.navigationBar.alpha = isDragging ? 0 : 1
+            }
+        }
 
         switch media[selected].type {
         case .image:
@@ -215,6 +233,11 @@ class MediaEditViewController: UIViewController {
                 drawBarBtn.accessibilityLabel = Localizations.voiceOverButtonDraw
 
                 navigationItem.rightBarButtonItems?.append(drawBarBtn)
+
+                let annotateIcon = UIImage(named: "Annotate")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+                let annotateBtn = UIBarButtonItem(image: annotateIcon, style: .plain, target: self, action: #selector(annotateAction))
+                annotateBtn.accessibilityLabel = Localizations.voiceOverButtonAnnotate
+                navigationItem.rightBarButtonItems?.append(annotateBtn)
             }
 
             let rotateIcon = UIImage(named: "Rotate")?.withTintColor(.white, renderingMode: .alwaysOriginal)
@@ -325,6 +348,7 @@ class MediaEditViewController: UIViewController {
         guard !processing else { return }
         guard media[selected].type == .image else { return }
         media[selected].isDrawing = false
+        media[selected].isAnnotating = false
         media[selected].rotate()
         updateNavigation()
     }
@@ -333,6 +357,7 @@ class MediaEditViewController: UIViewController {
         guard !processing else { return }
         guard media[selected].type == .image else { return }
         media[selected].isDrawing = false
+        media[selected].isAnnotating = false
         media[selected].flip()
         updateNavigation()
     }
@@ -340,7 +365,16 @@ class MediaEditViewController: UIViewController {
     @objc private func drawAction() {
         guard !processing else { return }
         guard media[selected].type == .image else { return }
+        media[selected].isAnnotating = false
         media[selected].isDrawing = !media[selected].isDrawing
+        updateNavigation()
+    }
+
+    @objc private func annotateAction() {
+        guard !processing else { return }
+        guard media[selected].type == .image else { return }
+        media[selected].isDrawing = false
+        media[selected].isAnnotating = !media[selected].isAnnotating
         updateNavigation()
     }
 
@@ -348,6 +382,7 @@ class MediaEditViewController: UIViewController {
         guard !processing else { return }
         guard media[selected].type == .image else { return }
         media[selected].isDrawing = false
+        media[selected].isAnnotating = false
         media[selected].undo()
         updateNavigation()
     }
@@ -370,6 +405,7 @@ class MediaEditViewController: UIViewController {
 
     @objc private func resetAction() {
         guard !processing else { return }
+        media[selected].isAnnotating = false
         media[selected].isDrawing = false
 
         for item in media {

@@ -33,9 +33,12 @@ class MediaEdit : ObservableObject {
 
     // Drawing properties
     @Published var isDrawing = false
+    @Published var isAnnotating = false
+    @Published var isDraggingAnnotation = false
     @Published var drawingColor = UIColor.red
     @Published var drawingLineWidth: CGFloat = 8
-    @Published var drawnItems: [PendingPath] = []
+    @Published var annotationFont = UIFont.gothamFont(ofFixedSize: 32, weight: .medium)
+    @Published var layers = [PendingLayer]()
 
     @Published var undoStack: [PendingUndo] = []
 
@@ -60,7 +63,7 @@ class MediaEdit : ObservableObject {
             numberOfRotations = edit.numberOfRotations
             scale = edit.scale
             offset = edit.offset
-            drawnItems.append(contentsOf: edit.drawnItems)
+            layers.append(contentsOf: edit.layers)
             undoStack.append(contentsOf: edit.undoStack)
         } else {
             original = media.image
@@ -133,7 +136,7 @@ class MediaEdit : ObservableObject {
                     || edit.numberOfRotations != numberOfRotations
                     || edit.scale != scale
                     || edit.offset != offset
-                    || edit.drawnItems != drawnItems
+                    || edit.layers != layers
             }
 
             return initialCrop() != cropRect
@@ -142,7 +145,7 @@ class MediaEdit : ObservableObject {
                 || numberOfRotations != 0
                 || scale != 1.0
                 || offset != .zero
-                || drawnItems.count > 0
+                || layers.count > 0
         case .video:
             if let edit = media.videoEdit {
                 return edit.muted != muted || edit.start != start || edit.end != end
@@ -171,7 +174,7 @@ class MediaEdit : ObservableObject {
             edit.numberOfRotations = numberOfRotations
             edit.scale = scale
             edit.offset = offset
-            edit.drawnItems = drawnItems
+            edit.layers = layers
             edit.undoStack = undoStack
 
             media.edit = edit
@@ -219,7 +222,7 @@ class MediaEdit : ObservableObject {
             scale = 1.0
             offset = .zero
             cropRect = initialCrop()
-            drawnItems = []
+            layers = []
 
             updateImage()
         case .video:
@@ -313,9 +316,16 @@ class MediaEdit : ObservableObject {
             cropRect.size.height = cropRect.size.width * min(maxAspectRatio, ratio)
         }
 
-        drawnItems = drawnItems.map {
-            let points = $0.points.map { CGPoint(x: $0.y, y: image.size.width - $0.x) }
-            return PendingPath(points: points, color: $0.color, width: $0.width)
+        layers = layers.map {
+            switch $0 {
+            case .path(var path):
+                path.points = path.points.map { CGPoint(x: $0.y, y: image.size.width - $0.x) }
+                return .path(path)
+            case .annotation(var annotation):
+                annotation.location = CGPoint(x: annotation.location.y, y: image.size.width - annotation.location.x)
+                annotation.rotation -= 90
+                return .annotation(annotation)
+            }
         }
 
         updateImage()
@@ -333,9 +343,15 @@ class MediaEdit : ObservableObject {
         cropRect.origin.x = image.size.width - cropRect.size.width - cropRect.origin.x
         offset.x = -offset.x
 
-        drawnItems = drawnItems.map {
-            let points = $0.points.map { CGPoint(x: image.size.width - $0.x, y: $0.y) }
-            return PendingPath(points: points, color: $0.color, width: $0.width)
+        layers = layers.map {
+            switch $0 {
+            case .path(var path):
+                path.points = path.points.map { CGPoint(x: image.size.width - $0.x, y: $0.y) }
+                return .path(path)
+            case .annotation(var annotation):
+                annotation.location.x = image.size.width - annotation.location.x
+                return .annotation(annotation)
+            }
         }
 
         updateImage()
@@ -427,22 +443,49 @@ class MediaEdit : ObservableObject {
             ctx.cgContext.draw(image, in: CGRect(x: 0, y: 0, width: image.width, height: image.height))
             ctx.cgContext.restoreGState()
 
-            ctx.cgContext.saveGState()
-            ctx.cgContext.concatenate(transformDrawing)
-            ctx.cgContext.setLineCap(.round)
-            ctx.cgContext.setLineJoin(.round)
-            for item in drawnItems {
-                guard item.points.count > 0 else { return }
-                ctx.cgContext.setStrokeColor(item.color.cgColor)
-                ctx.cgContext.setLineWidth(item.width)
-                ctx.cgContext.beginPath()
+            for item in layers {
+                switch item {
+                case .path(let path):
+                    guard path.points.count > 0 else { continue }
+                    ctx.cgContext.saveGState()
+                    ctx.cgContext.concatenate(transformDrawing)
+                    ctx.cgContext.setLineCap(.round)
+                    ctx.cgContext.setLineJoin(.round)
 
-                ctx.cgContext.move(to: item.points[0])
-                MediaEdit.curves(item.points).forEach { ctx.cgContext.addCurve(to: $0.to, control1: $0.control1, control2: $0.control2) }
+                    ctx.cgContext.setStrokeColor(path.color.cgColor)
+                    ctx.cgContext.setLineWidth(path.width)
+                    ctx.cgContext.beginPath()
 
-                ctx.cgContext.strokePath()
+                    ctx.cgContext.move(to: path.points[0])
+                    MediaEdit.curves(path.points).forEach { ctx.cgContext.addCurve(to: $0.to, control1: $0.control1, control2: $0.control2) }
+
+                    ctx.cgContext.strokePath()
+
+                    ctx.cgContext.restoreGState()
+                case .annotation(let annotation):
+                    let paragraphStyle = NSMutableParagraphStyle()
+                    paragraphStyle.alignment = .center
+
+                    let attrs = [
+                        NSAttributedString.Key.paragraphStyle: paragraphStyle,
+                        NSAttributedString.Key.font: annotation.font,
+                        NSAttributedString.Key.foregroundColor: annotation.color,
+                    ]
+
+                    ctx.cgContext.saveGState()
+                    ctx.cgContext.concatenate(transformDrawing)
+                    ctx.cgContext.translateBy(x: annotation.location.x, y: annotation.location.y)
+                    ctx.cgContext.rotate(by: annotation.rotation * CGFloat.pi / 180)
+
+                    let width = CGFloat(image.width)
+                    let height = CGFloat(image.height)
+                    let frame = CGRect(x:  -width / 2, y:  -annotation.font.pointSize / 2, width: width, height: height)
+                    annotation.text.draw(with: frame, options: .usesLineFragmentOrigin, attributes: attrs, context: nil)
+
+                    ctx.cgContext.restoreGState()
+                }
             }
-            ctx.cgContext.restoreGState()
+
         }
     }
 
@@ -450,8 +493,12 @@ class MediaEdit : ObservableObject {
         guard let item = undoStack.popLast() else { return }
 
         switch item {
-        case .removeDrawing:
-            drawnItems.removeLast()
+        case .remove:
+            layers.removeLast()
+        case .restore((let idx, let layer)):
+            layers[idx] = layer
+        case .insert((let idx, let layer)):
+            layers.insert(layer, at: idx)
         case .flip:
             flip(withUndo: false)
         case .rotateReverse:

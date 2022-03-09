@@ -45,6 +45,10 @@ struct ImageEditView: View {
     @State private var lastLocation = CGPoint.zero
     @State private var currentCropSection: CropRegionSection = .none
     @State private var currentPath: [CGPoint] = []
+    @State private var currentText = ""
+    @State private var currentLayerIdx: Int?
+    @State private var deleteBinFrame: CGRect = .zero
+    @State private var isOverDeleteBin = false
 
     private func findCropSection(_ crop: CGRect, location: CGPoint) -> CropRegionSection {
         let vThreshold = min(threshold, crop.width / 3)
@@ -142,40 +146,10 @@ struct ImageEditView: View {
         return isCropRegionWithinLimit(crop, limit: limit) && isCropRegionMinSize(crop)
     }
 
-    private func scaleCropRegion(_ crop: CGRect, from: CGSize, to: CGSize) -> CGRect {
-        let scale = to.height / from.height
-        var scaledCrop = crop.applying(CGAffineTransform(scaleX: scale, y: scale))
-
-        scaledCrop.origin.x = max(0, scaledCrop.origin.x)
-        scaledCrop.origin.y = max(0, scaledCrop.origin.y)
-        scaledCrop.size.width -= max(0, scaledCrop.maxX - to.width)
-        scaledCrop.size.height -= max(0, scaledCrop.maxY - to.height)
-
-        return scaledCrop
-    }
-
-    private func scaleOffset(_ offset: CGPoint, containerSize: CGSize, imageSize: CGSize) -> CGSize {
-        var scale: CGFloat = 1.0
-        if imageSize.width > containerSize.width || imageSize.height > containerSize.height {
-            scale = min(containerSize.width / imageSize.width, containerSize.height / imageSize.height)
-        }
-
-        return CGSize(width: offset.x * scale, height: offset.y * scale)
-    }
-
-    private func scale(path: PendingPath, from: CGSize, to: CGSize) -> PendingPath {
-        let baseScale = to.width / from.width
-        let points = path.points.map {
-            $0.applying(CGAffineTransform(scaleX: baseScale, y: baseScale))
-        }
-
-        return PendingPath(points: points, color: path.color, width: path.width * baseScale)
-    }
-
     private func onDragCropRegion(_ location: CGPoint, in region: CGSize) {
         guard let imageSize = media.image?.size else { return }
 
-        var crop = scaleCropRegion(media.cropRect, from: imageSize, to: region)
+        var crop = Scaler.scale(crop: media.cropRect, from: imageSize, to: region)
 
         if currentCropSection == .none {
             lastLocation = location
@@ -210,33 +184,45 @@ struct ImageEditView: View {
             crop = result
         }
 
-        media.cropRect = scaleCropRegion(crop, from: region, to: imageSize)
+        media.cropRect = Scaler.scale(crop: crop, from: region, to: imageSize)
     }
 
     func onDragCropRegionEnd() {
         currentCropSection = .none
     }
 
-    @ViewBuilder
-    private func draw(path: PendingPath) -> some View {
-        draw(path: path.points, color: Color(path.color), width: path.width)
-    }
-
-    @ViewBuilder
-    private func draw(path points: [CGPoint], color: Color, width: CGFloat) -> some View {
-        Path { path in
-            guard points.count > 1 else { return }
-
-            path.move(to: points[0])
-
-            MediaEdit.curves(points).forEach { path.addCurve(to: $0.to, control1: $0.control1, control2: $0.control2) }
-        }.stroke(color, style: StrokeStyle(lineWidth: width, lineCap: .round, lineJoin: .round))
+    var deleteBin: some View {
+        Image("NavbarTrashBinWithLid")
+            .resizable()
+            .renderingMode(.template)
+            .foregroundColor(isOverDeleteBin ? .white : Color.lavaOrange)
+            .aspectRatio(contentMode: .fit)
+            .frame(width: 22, height: 22)
+            .padding(8)
+            .background(isOverDeleteBin ? Color.lavaOrange : Color.clear)
+            .cornerRadius(19)
+            .overlay(
+                GeometryReader { geometry in
+                    Rectangle()
+                        .fill(Color.clear)
+                        .onAppear {
+                            deleteBinFrame = geometry.frame(in: .global)
+                        }
+                }
+            )
+            .animation(.spring(), value: isOverDeleteBin)
     }
 
     var body: some View {
         if let image = media.image {
             GeometryReader { outer in
                 ZStack {
+                    if media.isDraggingAnnotation {
+                        deleteBin
+                            .offset(x: 4, y: -50)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    }
+
                     VStack {
                         Spacer()
                         Image(uiImage: image)
@@ -244,23 +230,8 @@ struct ImageEditView: View {
                             .aspectRatio(contentMode: .fit)
                             .allowsHitTesting(false)
                             .scaleEffect(media.scale)
-                            .offset(scaleOffset(media.offset, containerSize: outer.size, imageSize: image.size))
+                            .offset(Scaler.scale(offset: media.offset, containerSize: outer.size, imageSize: image.size))
                             .clipped()
-                            .overlay(
-                                GeometryReader { inner in
-                                    ForEach((0..<media.drawnItems.count), id: \.self) { idx in
-                                        draw(path: scale(path: media.drawnItems[idx], from: image.size, to: inner.size))
-                                    }
-
-                                    draw(path: currentPath, color: Color(media.drawingColor), width: media.drawingLineWidth / media.scale)
-                                }
-                                .scaleEffect(media.scale)
-                                .offset(scaleOffset(media.offset, containerSize: outer.size, imageSize: image.size))
-                                .clipped()
-                            )
-                            .overlay(GeometryReader { inner in
-                                CropRegion(cropRegion: cropRegion, region: scaleCropRegion(media.cropRect, from: image.size, to: inner.size))
-                            })
                             .overlay(GeometryReader { inner in
                                 CropGestureView(outThreshold: outThreshold)
                                     .onZoomChanged { scale, location in
@@ -282,7 +253,7 @@ struct ImageEditView: View {
                                         isDragging = true
 
                                         if media.isDrawing {
-                                            let offset = scaleOffset(media.offset, containerSize: outer.size, imageSize: image.size)
+                                            let offset = Scaler.scale(offset: media.offset, containerSize: outer.size, imageSize: image.size)
                                             let x = (media.scale - 1) * (inner.size.width / 2) + location.x - offset.width
                                             let y = (media.scale - 1) * (inner.size.height / 2) + location.y - offset.height
 
@@ -295,9 +266,10 @@ struct ImageEditView: View {
                                         isDragging = false
 
                                         if media.isDrawing {
-                                            let path = PendingPath(points: currentPath, color: media.drawingColor, width: media.drawingLineWidth / media.scale)
-                                            media.drawnItems.append(scale(path: path, from: inner.size, to: image.size))
-                                            media.undoStack.append(.removeDrawing)
+                                            let width = media.drawingLineWidth / media.scale
+                                            let path = PendingLayer.Path(points: currentPath, color: media.drawingColor, width: width)
+                                            media.layers.append(.path(Scaler.scale(path: path, by: image.size.width / inner.size.width)))
+                                            media.undoStack.append(.remove)
                                             currentPath = []
                                         } else {
                                             onDragCropRegionEnd()
@@ -306,16 +278,303 @@ struct ImageEditView: View {
                                     .offset(x: -outThreshold, y: -outThreshold)
                                     .frame(width: inner.size.width + outThreshold * 2, height: inner.size.height + outThreshold * 2)
                             })
+                            .overlay(
+                                DrawingBoard(
+                                    media: media,
+                                    currentPath: currentPath,
+                                    currentText: $currentText,
+                                    currentLayerIdx: $currentLayerIdx,
+                                    deleteBinFrame: deleteBinFrame,
+                                    isOverDeleteBin: $isOverDeleteBin
+                                )
+                                    .clipped()
+                                    .offset(Scaler.scale(offset: media.offset, containerSize: outer.size, imageSize: image.size))
+                            )
+                            .overlay(GeometryReader { inner in
+                                CropRegion(
+                                    cropRegion: cropRegion,
+                                    region: Scaler.scale(crop: media.cropRect, from: image.size, to: inner.size),
+                                    isDrawing: media.isDrawing || media.isAnnotating
+                                )
+                                .allowsHitTesting(false)
+                            })
                         Spacer()
                     }.frame(maxWidth: .infinity)
 
-                    if media.isDrawing && !isDragging {
+                    if media.isAnnotating {
+                        TextView(text: $currentText, font: $media.annotationFont, color: $media.drawingColor)
+                            .frame(height: TextView.height(for: currentText, font: media.annotationFont, width: outer.size.width))
+                            .onTapGesture {
+                                // do nothing
+                                // makes the tap below be recognized only outside of text
+                            }
+                            .offset(y: -100)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .background(Color.black.opacity(0.7))
+                            .onTapGesture {
+                                let text = currentText.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+                                media.isAnnotating = false
+                                currentText = ""
+
+                                if let idx = currentLayerIdx {
+                                    currentLayerIdx = nil
+
+                                    if text.isEmpty {
+                                        let layer = media.layers.remove(at: idx)
+                                        media.undoStack.append(.insert((idx, layer)))
+                                        return
+                                    }
+
+                                    guard case .annotation(var annotation) = media.layers[idx] else { return }
+                                    annotation.text = text
+                                    annotation.color = media.drawingColor
+
+                                    media.undoStack.append(.restore((idx, media.layers[idx])))
+                                    media.layers[idx] = .annotation(annotation)
+                                } else {
+                                    guard !text.isEmpty else { return }
+
+                                    let scale = min(1, min(outer.size.width / image.size.width, outer.size.height / image.size.height))
+                                    let offset = Scaler.scale(offset: media.offset, containerSize: outer.size, imageSize: image.size)
+                                    let x = (media.scale * scale * image.size.width / 2 - offset.width) / media.scale
+                                    let y = (media.scale * scale * image.size.height / 2 - offset.height) / media.scale
+                                    let font = Scaler.scale(font: media.annotationFont, by: 1 / media.scale)
+
+                                    let annotation = PendingLayer.Annotation(
+                                        text: text,
+                                        font: font ?? media.annotationFont,
+                                        color: media.drawingColor,
+                                        location: CGPoint(x: x, y: y))
+
+                                    media.layers.append(.annotation(Scaler.scale(annotation: annotation, by: 1 / scale)))
+                                    media.undoStack.append(.remove)
+                                }
+                            }
+                    }
+
+                    if (media.isDrawing || media.isAnnotating) && !isDragging {
                         ColorPicker(color: $media.drawingColor)
                             .offset(x: -14)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                     }
                 }
-            }.padding(8)
+            }
+            .padding(8)
+            .edgesIgnoringSafeArea(.bottom)
+        }
+    }
+}
+
+fileprivate class Scaler {
+    static func scale(crop: CGRect, from: CGSize, to: CGSize) -> CGRect {
+        let scale = to.height / from.height
+        var scaledCrop = crop.applying(CGAffineTransform(scaleX: scale, y: scale))
+
+        scaledCrop.origin.x = max(0, scaledCrop.origin.x)
+        scaledCrop.origin.y = max(0, scaledCrop.origin.y)
+        scaledCrop.size.width -= max(0, scaledCrop.maxX - to.width)
+        scaledCrop.size.height -= max(0, scaledCrop.maxY - to.height)
+
+        return scaledCrop
+    }
+
+    static func scale(offset: CGPoint, containerSize: CGSize, imageSize: CGSize) -> CGSize {
+        var scale: CGFloat = 1.0
+        if imageSize.width > containerSize.width || imageSize.height > containerSize.height {
+            scale = min(containerSize.width / imageSize.width, containerSize.height / imageSize.height)
+        }
+
+        return CGSize(width: offset.x * scale, height: offset.y * scale)
+    }
+
+    static func scale(path: PendingLayer.Path, by scale: CGFloat) -> PendingLayer.Path {
+        let points = path.points.map {
+            $0.applying(CGAffineTransform(scaleX: scale, y: scale))
+        }
+
+        return PendingLayer.Path(points: points, color: path.color, width: path.width * scale)
+    }
+
+    static func scale(annotation: PendingLayer.Annotation, by scale: CGFloat) -> PendingLayer.Annotation {
+        let location = annotation.location.applying(CGAffineTransform(scaleX: scale, y: scale))
+        let font = Scaler.scale(font: annotation.font, by: scale) ?? annotation.font
+
+        return PendingLayer.Annotation(
+            text: annotation.text,
+            font: font,
+            color: annotation.color,
+            location: location,
+            rotation: annotation.rotation)
+    }
+
+    static func scale(font: UIFont, by scale: CGFloat) -> UIFont? {
+        return UIFont(name: font.fontName, size: font.pointSize * scale)
+    }
+}
+
+fileprivate struct DrawingBoard: View {
+    @ObservedObject var media: MediaEdit
+    var currentPath: [CGPoint]
+    @Binding var currentText: String
+    @Binding var currentLayerIdx: Int?
+    var deleteBinFrame: CGRect
+    @Binding var isOverDeleteBin: Bool
+
+
+    @State private var isRotating = false
+    @State private var initialRotation: CGFloat = 0
+    @State private var isDraging = false
+    @State private var initialLocation = CGPoint.zero
+    @State private var isScaling = false
+    @State private var initialSize: CGFloat = 0
+
+    @ViewBuilder
+    private func draw(path: PendingLayer.Path) -> some View {
+        draw(path: path.points, color: Color(path.color), width: path.width)
+    }
+
+    @ViewBuilder
+    private func draw(path points: [CGPoint], color: Color, width: CGFloat) -> some View {
+        Path { path in
+            guard points.count > 1 else { return }
+            path.move(to: points[0])
+            points.forEach { path.addLine(to: $0) }
+        }
+        .stroke(color, style: StrokeStyle(lineWidth: width, lineCap: .round, lineJoin: .round))
+        .scaleEffect(media.scale)
+        .allowsHitTesting(false)
+    }
+
+    var body: some View {
+        GeometryReader { inner in
+            if let imageSize = media.image?.size {
+                ForEach((0..<media.layers.count), id: \.self) { idx in
+                    switch media.layers[idx] {
+                    case .path(let path):
+                        draw(path: Scaler.scale(path: path, by: inner.size.width / imageSize.width))
+                    case .annotation(let annotation):
+                        let scaled = Scaler.scale(annotation: annotation, by: inner.size.width / imageSize.width)
+                        let x = media.scale * (scaled.location.x - inner.size.width / 2)
+                        let y = media.scale * (scaled.location.y - inner.size.height / 2)
+                        let textFont = Scaler.scale(font: scaled.font, by: media.scale) ?? scaled.font
+
+                        Text(scaled.text)
+                            .fixedSize()
+                            .font(Font(textFont as CTFont))
+                            .foregroundColor(Color(annotation.color))
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                            .rotationEffect(.degrees(scaled.rotation))
+                            .offset(x: x, y: y)
+                            .onTapGesture {
+                                guard !media.isDrawing else { return }
+                                guard case .annotation(let annotation) = media.layers[idx] else { return }
+
+                                currentLayerIdx = idx
+                                currentText = annotation.text
+                                media.drawingColor = annotation.color
+                                media.isAnnotating = true
+                            }
+                            .simultaneousGesture(
+                                DragGesture(coordinateSpace: .global)
+                                    .onChanged {
+                                        guard !media.isDrawing else { return }
+                                        guard case .annotation(let annotation) = media.layers[idx] else { return }
+                                        var scaled = Scaler.scale(annotation: annotation, by: inner.size.width / imageSize.width)
+
+                                        if !isDraging {
+                                            initialLocation = scaled.location
+
+                                            isDraging = true
+                                            withAnimation {
+                                                media.isDraggingAnnotation = true
+                                            }
+                                        }
+
+                                        scaled.location.x = initialLocation.x + $0.translation.width / media.scale
+                                        scaled.location.y = initialLocation.y + $0.translation.height / media.scale
+
+                                        media.layers[idx] = .annotation(Scaler.scale(annotation: scaled, by: imageSize.width / inner.size.width))
+
+                                        isOverDeleteBin = deleteBinFrame.insetBy(dx: -24, dy: -24).contains($0.location)
+                                    }
+                                    .onEnded { _ in
+                                        isDraging = false
+                                        media.isDraggingAnnotation = false
+
+                                        guard case .annotation(let annotation) = media.layers[idx] else { return }
+
+                                        var scaled = Scaler.scale(annotation: annotation, by: inner.size.width / imageSize.width)
+                                        let isInside = CGRect(origin: .zero, size: inner.size).contains(scaled.location)
+                                        scaled.location = initialLocation
+
+                                        let layer: PendingLayer = .annotation(Scaler.scale(annotation: scaled, by: imageSize.width / inner.size.width))
+
+                                        if isOverDeleteBin {
+                                            isOverDeleteBin = false
+                                            media.layers.remove(at: idx)
+                                            media.undoStack.append(.insert((idx, layer)))
+                                        } else if isInside {
+                                            media.undoStack.append(.restore((idx, layer)))
+                                        } else {
+                                            media.layers[idx] = layer
+                                        }
+                                    }
+                            )
+                            .simultaneousGesture(
+                                MagnificationGesture()
+                                    .onChanged {
+                                        guard !media.isDrawing else { return }
+                                        guard case .annotation(let annotation) = media.layers[idx] else { return }
+                                        var scaled = Scaler.scale(annotation: annotation, by: inner.size.width / imageSize.width)
+
+                                        if !isScaling {
+                                            initialSize = scaled.font.pointSize
+                                        }
+                                        isScaling = true
+
+                                        guard let font = UIFont(name: scaled.font.fontName, size: initialSize * $0) else { return }
+                                        scaled.font = font
+
+                                        media.layers[idx] = .annotation(Scaler.scale(annotation: scaled, by: imageSize.width / inner.size.width))
+                                    }
+                                    .onEnded { _ in
+                                        isScaling = false
+                                    }
+                            )
+                            .simultaneousGesture(
+                                RotationGesture()
+                                    .onChanged {
+                                        guard case .annotation(var annotation) = media.layers[idx] else { return }
+
+                                        if !isRotating {
+                                            initialRotation = annotation.rotation
+                                        }
+
+                                        isRotating = true
+                                        annotation.rotation = initialRotation + $0.degrees
+
+                                        media.layers[idx] = .annotation(annotation)
+                                    }
+                                    .onEnded { _ in
+                                        isRotating = false
+
+                                        // rotation & scaling always end at the same time
+                                        guard case .annotation(let annotation) = media.layers[idx] else { return }
+                                        var scaled = Scaler.scale(annotation: annotation, by: inner.size.width / imageSize.width)
+
+                                        guard let font = UIFont(name: scaled.font.fontName, size: initialSize) else { return }
+                                        scaled.font = font
+                                        scaled.rotation = initialRotation
+
+                                        let layer: PendingLayer = .annotation(Scaler.scale(annotation: scaled, by: imageSize.width / inner.size.width))
+                                        media.undoStack.append(.restore((idx, layer)))
+                                    }
+                            )
+                    }
+                }
+            }
+
+            draw(path: currentPath, color: Color(media.drawingColor), width: media.drawingLineWidth / media.scale)
         }
     }
 }
@@ -370,10 +629,71 @@ fileprivate struct ColorPicker: View {
     }
 }
 
+fileprivate struct TextView: UIViewRepresentable {
+    @Binding var text: String
+    @Binding var font: UIFont
+    @Binding var color: UIColor
+
+    func makeUIView(context: Context) -> UITextView {
+        let textView = UITextView()
+        textView.delegate = context.coordinator
+        textView.font = font
+        textView.isScrollEnabled = true
+        textView.isEditable = true
+        textView.isUserInteractionEnabled = true
+        textView.backgroundColor = UIColor.clear
+        textView.textAlignment = .center
+        textView.textColor = color
+        textView.text = text
+
+        return textView
+    }
+
+    func updateUIView(_ uiView: UITextView, context: Context)  {
+        uiView.font = font
+        uiView.textColor = color
+        uiView.text = text
+
+        if !context.coordinator.hasTextViewLoaded {
+            uiView.becomeFirstResponder()
+            context.coordinator.hasTextViewLoaded = true
+        }
+    }
+
+    static func height(for text: String, font: UIFont, width: CGFloat) -> CGFloat {
+        let textView = UITextView()
+        textView.font = font
+        textView.text = text
+
+        let limit = CGSize(width: width, height: CGFloat.greatestFiniteMagnitude)
+        return min(textView.sizeThatFits(limit).height, 320)
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    class Coordinator: NSObject, UITextViewDelegate {
+        var parent: TextView
+        var hasTextViewLoaded = false
+
+        init(_ textView: TextView) {
+            parent = textView
+        }
+
+        // MARK: UITextViewDelegate
+
+        func textViewDidChange(_ textView: UITextView) {
+            parent.text = textView.text ?? ""
+        }
+    }
+}
+
 fileprivate struct CropRegion: View {
 
     let cropRegion: MediaEditCropRegion
     let region: CGRect
+    let isDrawing: Bool
 
     private let borderThickness: CGFloat = 4
     private let cornerSize = CGSize(width: 15, height: 15)
@@ -396,6 +716,7 @@ fileprivate struct CropRegion: View {
 
             // Border
             Path { path in
+                guard !isDrawing else { return }
                 let offset = borderThickness / 2
                 let region = self.region.insetBy(dx: -offset + 1, dy: -offset + 1)
 

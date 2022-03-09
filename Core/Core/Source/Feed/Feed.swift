@@ -180,19 +180,53 @@ extension FeedMediaProtocol {
 
 }
 
-public enum PendingUndo {
-    case flip, rotateReverse, removeDrawing
+public enum PendingUndo: Equatable {
+    case flip, rotateReverse, remove, restore((Int, PendingLayer)), insert((Int, PendingLayer))
+
+    static public func == (lhs: PendingUndo, rhs: PendingUndo) -> Bool {
+        switch (lhs, rhs) {
+        case (.restore((let lidx, let llayer)), .restore((let ridx, let rlayer))):
+            return lidx == ridx && llayer == rlayer
+        case (.insert((let lidx, let llayer)), .insert((let ridx, let rlayer))):
+            return lidx == ridx && llayer == rlayer
+        case (.flip, .flip), (.rotateReverse, .rotateReverse), (.remove, .remove):
+            return true
+        default:
+            return false
+        }
+    }
 }
 
-public struct PendingPath: Equatable {
-    public var points: [CGPoint]
-    public var color: UIColor
-    public var width: CGFloat
+public enum PendingLayer: Equatable {
+    case path(Path)
+    case annotation(Annotation)
 
-    public init(points: [CGPoint], color: UIColor, width: CGFloat) {
-        self.points = points
-        self.color = color
-        self.width = width
+    public struct Path: Equatable {
+        public var points: [CGPoint]
+        public var color: UIColor
+        public var width: CGFloat
+
+        public init(points: [CGPoint], color: UIColor, width: CGFloat) {
+            self.points = points
+            self.color = color
+            self.width = width
+        }
+    }
+
+    public struct Annotation: Equatable {
+        public var text: String
+        public var font: UIFont
+        public var color: UIColor
+        public var location: CGPoint
+        public var rotation: CGFloat
+
+        public init(text: String, font: UIFont, color: UIColor, location: CGPoint, rotation: CGFloat = 0) {
+            self.text = text
+            self.font = font
+            self.color = color
+            self.location = location
+            self.rotation = rotation
+        }
     }
 }
 
@@ -222,7 +256,7 @@ public struct PendingMediaEdit: Equatable {
     public var numberOfRotations: Int = 0
     public var scale: CGFloat = 1.0
     public var offset = CGPoint.zero
-    public var drawnItems: [PendingPath] = []
+    public var layers = [PendingLayer]()
     public var undoStack: [PendingUndo] = []
     
     public init(image: UIImage?, url: URL?) {
