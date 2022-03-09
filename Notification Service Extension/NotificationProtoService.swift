@@ -35,6 +35,7 @@ final class NotificationProtoService: ProtoServiceCore {
                 self?.downloadManager.suspendMediaDownloads()
                 self?.processRetractNotifications()
             })
+        self.uploadLogsToServerIfNecessary()
     }
 
     override func performOnConnect() {
