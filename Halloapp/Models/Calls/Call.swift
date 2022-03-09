@@ -716,7 +716,18 @@ public class Call {
                             continue
                         }
                         currentReport[key] = stats
-                        var statString = key + ":" + stats.type + "/[ "
+                        var statString: String
+                        if key.contains("Video") && key.contains("Inbound") {
+                            statString = "video-in "
+                        } else if key.contains("Video") && key.contains("Outbound") {
+                            statString = "video-out "
+                        } else if key.contains("Audio") && key.contains("Inbound") {
+                            statString = "audio-in "
+                        } else if key.contains("Audio") && key.contains("Outbound") {
+                            statString = "audio-out "
+                        } else {
+                            statString = key + ":" + stats.type + " "
+                        }
                         let impStats = stats.values.filter { (statKey, statValue) in
                             return importantStatKeys.contains(statKey)
                         }
@@ -731,20 +742,20 @@ public class Call {
                         // Sort keys for easy debugging.
                         for (statKey, statValue) in Array(impStats).sorted(by: {$0.key < $1.key}) {
                             if importantStatNoDiffKeys.contains(statKey) {
-                                statString += "\"\(statKey)\": \(statValue) , "
+                                statString += "\(statKey): \(statValue) "
                             } else if let oldImpStats = oldImpStats,
                                       let oldStatValue = oldImpStats[statKey] as? Int,
                                       let newStatValue = statValue as? Int {
-                                statString += "\"\(statKey)\": \(newStatValue - oldStatValue) , "
+                                statString += "\(statKey): \(newStatValue - oldStatValue) "
                             } else if let oldImpStats = oldImpStats,
                                       let oldStatValue = oldImpStats[statKey] as? Double,
                                       let newStatValue = statValue as? Double {
-                                statString += "\"\(statKey)\": \(String(format: "%.3f", newStatValue - oldStatValue)) , "
+                                statString += "\(statKey): \(String(format: "%.3f", newStatValue - oldStatValue)) "
                             } else {
-                                statString += "\"\(statKey)\": \(statValue) , "
+                                statString += "\(statKey): \(statValue) "
                             }
                         }
-                        DDLogInfo("Call/\(callID)/logPeerConnectionStats/report/key: \(key)/stats: \(statString)]")
+                        DDLogInfo("Call/\(callID)/logPeerConnectionStats/report/key: \(key)/\(statString)")
                     }
                 }
                 // Hold latest report
