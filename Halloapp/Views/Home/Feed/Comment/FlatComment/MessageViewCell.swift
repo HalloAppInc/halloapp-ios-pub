@@ -13,12 +13,12 @@ import UIKit
 
 protocol MessageViewDelegate: AnyObject {
     func messageView(_ view: MediaCarouselView, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int)
-    func messageView(_ messageViewCell: MessageViewCellBase, replyTo feedPostCommentID: FeedPostCommentID)
-    func messageView(_ messageViewCell: MessageViewCellBase, didTapUserId userId: UserID)
-    func messageView(_ messageViewCell: MessageViewCellBase, jumpTo feedPostCommentID: FeedPostCommentID)
+    func messageView(_ messageViewCell: MessageCellViewBase, replyTo feedPostCommentID: FeedPostCommentID)
+    func messageView(_ messageViewCell: MessageCellViewBase, didTapUserId userId: UserID)
+    func messageView(_ messageViewCell: MessageCellViewBase, jumpTo feedPostCommentID: FeedPostCommentID)
 }
 
-class MessageViewCell: MessageViewCellBase {
+class MessageViewCell: MessageCellViewBase {
     private var audioMediaStatusCancellable: AnyCancellable?
 
     var MaxWidthOfMessageBubble: CGFloat { return contentView.bounds.width * 0.8 }
@@ -90,56 +90,6 @@ class MessageViewCell: MessageViewCellBase {
         return vStack
     }()
 
-    private lazy var timeRow: UIStackView = {
-        let leadingSpacer = UIView()
-        leadingSpacer.translatesAutoresizingMaskIntoConstraints = false
-        leadingSpacer.widthAnchor.constraint(equalToConstant: 30).isActive = true
-        let spacer = UIView()
-        spacer.translatesAutoresizingMaskIntoConstraints = false
-        let view = UIStackView(arrangedSubviews: [ leadingSpacer, audioTimeLabel, spacer, timeLabel ])
-        view.axis = .horizontal
-        view.spacing = 0
-        view.isLayoutMarginsRelativeArrangement = true
-        return view
-    }()
-
-    // MARK: Name Row
-
-    private lazy var nameRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ nameLabel ])
-        view.axis = .vertical
-        view.spacing = 0
-        view.isLayoutMarginsRelativeArrangement = true
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-
-    private lazy var nameLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-
-        label.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
-        label.textColor = .secondaryLabel
-        label.isUserInteractionEnabled = true
-
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
-        return label
-    }()
-
-    lazy var textLabel: TextLabel = {
-        let textLabel = TextLabel()
-        textLabel.isUserInteractionEnabled = true
-        textLabel.backgroundColor = .clear
-        textLabel.font = UIFont.systemFont(ofSize: 15)
-        textLabel.translatesAutoresizingMaskIntoConstraints = false
-        textLabel.isHidden = true
-        textLabel.numberOfLines = 0
-        textLabel.textColor = UIColor.primaryBlackWhite.withAlphaComponent(0.8)
-        return textLabel
-    }()
-
     // MARK: Media
 
     private lazy var mediaCarouselView: MediaCarouselView = {
@@ -179,19 +129,6 @@ class MessageViewCell: MessageViewCellBase {
         label.font = UIFont.preferredFont(forTextStyle: .caption2)
         label.textColor = UIColor.chatTime
 
-        return label
-    }()
-
-    // MARK: Time
-
-    private lazy var timeLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.font = UIFont.preferredFont(forTextStyle: .caption2)
-        label.textColor = UIColor.chatTime
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         return label
     }()
     

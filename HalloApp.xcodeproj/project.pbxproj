@@ -29,6 +29,7 @@
 		321A70132704FF3B005603B8 /* FeedLinkPreview+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 321A70122704FF3B005603B8 /* FeedLinkPreview+CoreDataClass.swift */; };
 		322DDDE52739A2A6006BE1E0 /* ChatLinkPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 322DDDE42739A2A6006BE1E0 /* ChatLinkPreviewView.swift */; };
 		323E88DB26CC430600202655 /* Feed3ToFeed4.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 323E88DA26CC430600202655 /* Feed3ToFeed4.xcmappingmodel */; };
+		3243C42B27D7D03300B994F4 /* MessageCellViewMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3243C42A27D7D03300B994F4 /* MessageCellViewMedia.swift */; };
 		324455E1275994D50031CD60 /* MessageViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 324455E0275994D50031CD60 /* MessageViewCell.swift */; };
 		3250C60327D0101C0032FEC4 /* PhoneInputViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3250C5FD27D010090032FEC4 /* PhoneInputViewController.swift */; };
 		3250C60427D0102D0032FEC4 /* VerificationCodeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3250C5FF27D010090032FEC4 /* VerificationCodeViewController.swift */; };
@@ -39,7 +40,7 @@
 		327AB839272C8356001C0E00 /* ChatLinkPreview+CoreDataProperties copy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 327AB836272C8355001C0E00 /* ChatLinkPreview+CoreDataProperties copy.swift */; };
 		327AB83A272C8356001C0E00 /* ChatLinkPreview+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 327AB838272C8356001C0E00 /* ChatLinkPreview+CoreDataClass.swift */; };
 		3283059727D2A88E00AD661A /* MessageCellViewText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3283059627D2A88E00AD661A /* MessageCellViewText.swift */; };
-		328305C827D6736E00AD661A /* MessageViewCellBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 328305C727D6736E00AD661A /* MessageViewCellBase.swift */; };
+		328305C827D6736E00AD661A /* MessageCellViewBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 328305C727D6736E00AD661A /* MessageCellViewBase.swift */; };
 		328B64102756D53900899525 /* FlatCommentsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 328B640F2756D53900899525 /* FlatCommentsViewController.swift */; };
 		329DFD56270CF70200B85CFF /* Feed4ToFeed5.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 329DFD55270CF70200B85CFF /* Feed4ToFeed5.xcmappingmodel */; };
 		329DFD61270F691F00B85CFF /* CommentLinkPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329DFD60270F691F00B85CFF /* CommentLinkPreviewView.swift */; };
@@ -574,6 +575,7 @@
 		322ECDC12735E6BD0006D9C1 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		323E88D626CC175900202655 /* Feed4.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed4.xcdatamodel; sourceTree = "<group>"; };
 		323E88DA26CC430600202655 /* Feed3ToFeed4.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = Feed3ToFeed4.xcmappingmodel; sourceTree = "<group>"; };
+		3243C42A27D7D03300B994F4 /* MessageCellViewMedia.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageCellViewMedia.swift; sourceTree = "<group>"; };
 		324455E0275994D50031CD60 /* MessageViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageViewCell.swift; sourceTree = "<group>"; };
 		324918192764265600E9090F /* pt */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pt; path = pt.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		3250C5FD27D010090032FEC4 /* PhoneInputViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhoneInputViewController.swift; sourceTree = "<group>"; };
@@ -587,7 +589,7 @@
 		327AB836272C8355001C0E00 /* ChatLinkPreview+CoreDataProperties copy.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ChatLinkPreview+CoreDataProperties copy.swift"; sourceTree = "<group>"; };
 		327AB838272C8356001C0E00 /* ChatLinkPreview+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ChatLinkPreview+CoreDataClass.swift"; sourceTree = "<group>"; };
 		3283059627D2A88E00AD661A /* MessageCellViewText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageCellViewText.swift; sourceTree = "<group>"; };
-		328305C727D6736E00AD661A /* MessageViewCellBase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageViewCellBase.swift; sourceTree = "<group>"; };
+		328305C727D6736E00AD661A /* MessageCellViewBase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageCellViewBase.swift; sourceTree = "<group>"; };
 		328B640F2756D53900899525 /* FlatCommentsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlatCommentsViewController.swift; sourceTree = "<group>"; };
 		328D13BA27C02AB000AA9F18 /* CoreCommon.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = CoreCommon.xcodeproj; path = CoreCommon/CoreCommon.xcodeproj; sourceTree = "<group>"; };
 		329DFD55270CF70200B85CFF /* Feed4ToFeed5.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = Feed4ToFeed5.xcmappingmodel; sourceTree = "<group>"; };
@@ -1229,6 +1231,7 @@
 		328B640D2756D4E300899525 /* FlatComment */ = {
 			isa = PBXGroup;
 			children = (
+				3243C42A27D7D03300B994F4 /* MessageCellViewMedia.swift */,
 				328B640F2756D53900899525 /* FlatCommentsViewController.swift */,
 				324455E0275994D50031CD60 /* MessageViewCell.swift */,
 				32ECB6E8277515DD004DABBA /* QuotedMessageCellView.swift */,
@@ -1237,7 +1240,7 @@
 				32E6970327B3259100599CC7 /* MessageUnreadHeaderView.swift */,
 				32E6970627B4442B00599CC7 /* MessageHeaderView.swift */,
 				3283059627D2A88E00AD661A /* MessageCellViewText.swift */,
-				328305C727D6736E00AD661A /* MessageViewCellBase.swift */,
+				328305C727D6736E00AD661A /* MessageCellViewBase.swift */,
 			);
 			path = FlatComment;
 			sourceTree = "<group>";
@@ -2828,6 +2831,7 @@
 				EAC46556251484FE00783821 /* EditGroupViewController.swift in Sources */,
 				E5B9EAB8265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift in Sources */,
 				F850677826A55DAC00A120EC /* AudioRecorder.swift in Sources */,
+				3243C42B27D7D03300B994F4 /* MessageCellViewMedia.swift in Sources */,
 				76407DF8245CA3F00031F96A /* UIViewController.swift in Sources */,
 				EA7B36442783C87100C82D2F /* ChatEventViewCell.swift in Sources */,
 				F89589562732A58300874054 /* ChangeDestinationViewController.swift in Sources */,
@@ -2851,7 +2855,7 @@
 				EAD476F32458F03700EF8591 /* ChatMedia+CoreDataProperties.swift in Sources */,
 				76FE37ED2523EC9600372FB1 /* ContactPickerViewController.swift in Sources */,
 				EAEE49DA276A76ED0042E654 /* ChatTitleView.swift in Sources */,
-				328305C827D6736E00AD661A /* MessageViewCellBase.swift in Sources */,
+				328305C827D6736E00AD661A /* MessageCellViewBase.swift in Sources */,
 				EA73DF4025E88D9B0070875D /* NewPostsIndicator.swift in Sources */,
 				EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */,
 				E5981A4A266032260014FFC9 /* FeedPermissionExplanationAlert.swift in Sources */,

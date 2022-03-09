@@ -61,6 +61,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     fileprivate typealias CommentSnapshot = NSDiffableDataSourceSnapshot<String, MessageRow>
     static private let messageViewCellReuseIdentifier = "MessageViewCell"
     static private let messageCellViewTextReuseIdentifier = "MessageCellViewText"
+    static private let messageCellViewMediaReuseIdentifier = "MessageCellViewMedia"
     static private let cellHighlightAnimationDuration = 0.15
 
     private var mediaPickerController: MediaPickerViewController?
@@ -158,7 +159,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
             collectionView: collectionView,
             cellProvider: { [weak self] (collectionView, indexPath, messageRow) -> UICollectionViewCell? in
                 switch messageRow {
-                case .comment(let feedComment), .audio(let feedComment), .media(let feedComment),.linkPreview(let feedComment), .retracted(let feedComment):
+                case .comment(let feedComment), .audio(let feedComment), .linkPreview(let feedComment), .retracted(let feedComment):
                     let cell = collectionView.dequeueReusableCell(
                         withReuseIdentifier: FlatCommentsViewController.messageViewCellReuseIdentifier,
                         for: indexPath)
@@ -176,6 +177,25 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                         itemCell.textLabel.delegate = self
                     }
                     return cell
+                case .media(let feedComment):
+                    let cell = collectionView.dequeueReusableCell(
+                        withReuseIdentifier: FlatCommentsViewController.messageCellViewMediaReuseIdentifier,
+                        for: indexPath)
+                    if let itemCell = cell as? MessageCellViewMedia, let self = self {
+                        // Get user name colors
+                        let userColorAssignment = self.getUserColorAssignment(userId: feedComment.userId)
+                        var parentUserColorAssignment = UIColor.secondaryLabel
+                        if let parentCommentUserId = feedComment.parent?.userId {
+                            parentUserColorAssignment = self.getUserColorAssignment(userId: parentCommentUserId)
+                        }
+
+                        let isPreviousMessageFromSameSender = self.isPreviousMessageSameSender(currentComment: feedComment)
+                        itemCell.configureWithComment(comment: feedComment, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
+                        itemCell.delegate = self
+                        itemCell.textLabel.delegate = self
+                    }
+                    return cell
+
                 case .text(let feedComment):
                     let cell = collectionView.dequeueReusableCell(
                         withReuseIdentifier: FlatCommentsViewController.messageCellViewTextReuseIdentifier,
@@ -272,6 +292,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         collectionView.keyboardDismissMode = .interactive
         collectionView.register(MessageViewCell.self, forCellWithReuseIdentifier: FlatCommentsViewController.messageViewCellReuseIdentifier)
         collectionView.register(MessageCellViewText.self, forCellWithReuseIdentifier: FlatCommentsViewController.messageCellViewTextReuseIdentifier)
+        collectionView.register(MessageCellViewMedia.self, forCellWithReuseIdentifier: FlatCommentsViewController.messageCellViewMediaReuseIdentifier)
         collectionView.register(MessageUnreadHeaderView.self, forCellWithReuseIdentifier: MessageUnreadHeaderView.elementKind)
         collectionView.register(MessageCommentHeaderView.self, forSupplementaryViewOfKind: MessageCommentHeaderView.elementKind, withReuseIdentifier: MessageCommentHeaderView.elementKind)
         collectionView.register(MessageTimeHeaderView.self, forSupplementaryViewOfKind: MessageTimeHeaderView.elementKind, withReuseIdentifier: MessageTimeHeaderView.elementKind)
@@ -341,7 +362,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     }
 
     private func unhighlightComment(_ commentId: FeedPostCommentID) {
-        for cell in collectionView.visibleCells.compactMap({ $0 as? MessageViewCellBase }) {
+        for cell in collectionView.visibleCells.compactMap({ $0 as? MessageCellViewBase }) {
             if cell.feedPostComment?.id == commentId && cell.isCellHighlighted {
                 UIView.animate(withDuration: Self.cellHighlightAnimationDuration) {
                     cell.isCellHighlighted = false
@@ -494,7 +515,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
 
     @objc func getMessageOptions(_ gestureRecognizer: UILongPressGestureRecognizer) {
         if let indexPath = collectionView.indexPathForItem(at: gestureRecognizer.location(in: collectionView)) {
-            if let cell = collectionView.cellForItem(at: indexPath) as? MessageViewCellBase, let comment = fetchedResultsController?.object(at: indexPath), comment.status != .retracted, comment.userId == MainAppContext.shared.userData.userId {
+            if let cell = collectionView.cellForItem(at: indexPath) as? MessageCellViewBase, let comment = fetchedResultsController?.object(at: indexPath), comment.status != .retracted, comment.userId == MainAppContext.shared.userData.userId {
                 // Only the author can delete a comment
                 guard comment.userId == MainAppContext.shared.userData.userId else { return }
                 cell.markViewSelected()
@@ -513,7 +534,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         }
     }
 
-    private func presentDeleteConfirmationActionSheet(indexPath: IndexPath, cell: MessageViewCellBase, comment: FeedPostComment) {
+    private func presentDeleteConfirmationActionSheet(indexPath: IndexPath, cell: MessageCellViewBase, comment: FeedPostComment) {
         let confirmationActionSheet = UIAlertController(title: nil, message: Localizations.deleteCommentConfirmation, preferredStyle: .actionSheet)
         confirmationActionSheet.addAction(UIAlertAction(title: Localizations.deleteCommentAction, style: .destructive) { _ in
             guard let comment = MainAppContext.shared.feedData.feedComment(with: comment.id) else { return }
@@ -624,7 +645,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                 collectionView.scrollToItem(at: indexp, at: .centeredVertically, animated: animated)
                 // if this comment needs to be highlighted after scroll, reset commentToScrollTo after highlighting
                 if let highlightedCommentId = highlightedCommentId, highlightedCommentId == commentId {
-                    guard let cell = collectionView.cellForItem(at: indexp) as? MessageViewCellBase else { return }
+                    guard let cell = collectionView.cellForItem(at: indexp) as? MessageCellViewBase else { return }
                         DDLogDebug("FlatCommentsView/scroll/highlighting/toComment: \(commentId)")
                     UIView.animate(withDuration: Self.cellHighlightAnimationDuration) {
                         cell.isCellHighlighted = true
@@ -734,7 +755,7 @@ extension FlatCommentsViewController: MessageViewDelegate {
         present(controller, animated: true)
     }
 
-    func messageView(_ messageViewCell: MessageViewCellBase, replyTo feedPostCommentID: FeedPostCommentID) {
+    func messageView(_ messageViewCell: MessageCellViewBase, replyTo feedPostCommentID: FeedPostCommentID) {
         guard let feedPostComment = messageViewCell.feedPostComment else { return }
         guard let comment = fetchedResultsController?.fetchedObjects?.first(where: {$0.id == feedPostComment.id }) else { return }
         guard !comment.isRetracted else { return }
@@ -743,11 +764,11 @@ extension FlatCommentsViewController: MessageViewDelegate {
         messageInputView.showQuotedReplyPanel(comment: comment, userColorAssignment: userColorAssignment)
     }
 
-    func messageView(_ messageViewCell: MessageViewCellBase, didTapUserId userId: UserID) {
+    func messageView(_ messageViewCell: MessageCellViewBase, didTapUserId userId: UserID) {
         showUserFeed(for: userId)
     }
     
-    func messageView(_ messageViewCell: MessageViewCellBase, jumpTo feedPostCommentID: FeedPostCommentID) {
+    func messageView(_ messageViewCell: MessageCellViewBase, jumpTo feedPostCommentID: FeedPostCommentID) {
         highlightedCommentId = feedPostCommentID
         commentToScrollTo = feedPostCommentID
         scrollToTarget(withAnimation: true)

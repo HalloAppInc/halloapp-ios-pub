@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-class MessageViewCellBase: UICollectionViewCell {
+class MessageCellViewBase: UICollectionViewCell {
 
     var feedPostComment: FeedPostComment?
     public var isOwnMessage: Bool = false
@@ -17,6 +17,54 @@ class MessageViewCellBase: UICollectionViewCell {
     public var userNameColorAssignment: UIColor = UIColor.primaryBlue
     weak var delegate: MessageViewDelegate?
     public var isReplyTriggered = false // track if swiping gesture on cell is enough to trigger reply
+
+    // MARK: Name Row
+
+    public lazy var nameRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ nameLabel ])
+        view.axis = .vertical
+        view.spacing = 0
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isLayoutMarginsRelativeArrangement = true
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 4, bottom: 0, right: 4)
+        return view
+    }()
+
+    public lazy var nameLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+
+        label.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
+        label.textColor = .secondaryLabel
+        label.isUserInteractionEnabled = true
+
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        return label
+    }()
+    
+    public lazy var textRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ textLabel ])
+        view.axis = .vertical
+        view.spacing = 0
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isLayoutMarginsRelativeArrangement = true
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 4, bottom: 0, right: 4)
+        return view
+    }()
+
+    lazy var textLabel: TextLabel = {
+        let textLabel = TextLabel()
+        textLabel.isUserInteractionEnabled = true
+        textLabel.backgroundColor = .clear
+        textLabel.font = UIFont.systemFont(ofSize: 15)
+        textLabel.translatesAutoresizingMaskIntoConstraints = false
+        textLabel.numberOfLines = 0
+        textLabel.textColor = UIColor.primaryBlackWhite.withAlphaComponent(0.8)
+        textLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        return textLabel
+    }()
     
     public lazy var bubbleView: UIView = {
         let bubbleView = UIView()
@@ -29,6 +77,28 @@ class MessageViewCellBase: UICollectionViewCell {
         bubbleView.layer.shadowRadius = 1.5
         bubbleView.translatesAutoresizingMaskIntoConstraints = false
         return bubbleView
+    }()
+
+    public lazy var timeRow: UIStackView = {
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+        let view = UIStackView(arrangedSubviews: [ spacer, timeLabel ])
+        view.axis = .horizontal
+        view.spacing = 0
+        view.isLayoutMarginsRelativeArrangement = true
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 4, bottom: 0, right: 4)
+        return view
+    }()
+
+    public lazy var timeLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.font = UIFont.preferredFont(forTextStyle: .caption2)
+        label.textColor = UIColor.chatTime
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        return label
     }()
 
     // MARK: Reply Arrow
@@ -72,7 +142,7 @@ class MessageViewCellBase: UICollectionViewCell {
 }
 
 // MARK: UIGestureRecognizer Delegates
-extension MessageViewCellBase: UIGestureRecognizerDelegate {
+extension MessageCellViewBase: UIGestureRecognizerDelegate {
 
     // used for swiping to reply
     override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
