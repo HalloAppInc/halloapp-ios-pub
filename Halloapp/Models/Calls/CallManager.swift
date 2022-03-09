@@ -1190,13 +1190,8 @@ extension CallManager: HalloCallDelegate {
                 }
             }
         } else {
-            DDLogError("CallManager/HalloCallDelegate/didReceiveIceOffer: \(callID) from: \(peerUserID)/end with reason busy")
-            MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .busy)
-            MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
-                call.endReason = .busy
-            }
-            didCallComplete.send(callID)
-            presentMissedCallNotification(id: callID, from: peerUserID)
+            DDLogError("CallManager/HalloCallDelegate/didReceiveIceOffer: \(callID) from: \(peerUserID)/ending call now")
+            endDifferentCall(callID: callID, peerUserID: peerUserID)
         }
     }
 
@@ -1234,13 +1229,8 @@ extension CallManager: HalloCallDelegate {
                 }
             }
         } else {
-            DDLogError("CallManager/HalloCallDelegate/didReceiveIceAnswer: \(callID) from: \(peerUserID)/end with reason busy")
-            MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .busy)
-            MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
-                call.endReason = .busy
-            }
-            didCallComplete.send(callID)
-            presentMissedCallNotification(id: callID, from: peerUserID)
+            DDLogError("CallManager/HalloCallDelegate/didReceiveIceAnswer: \(callID) from: \(peerUserID)/ending call now")
+            endDifferentCall(callID: callID, peerUserID: peerUserID)
         }
     }
 
@@ -1271,6 +1261,22 @@ extension CallManager: HalloCallDelegate {
         }
     }
 
+    func endDifferentCall(callID: CallID, peerUserID: UserID) {
+        DispatchQueue.main.async {
+            let viewContext = MainAppContext.shared.mainDataStore.viewContext
+            guard let call = MainAppContext.shared.mainDataStore.call(with: callID, in: viewContext),
+                  call.endReason == .unknown else {
+                      DDLogInfo("CallManager/endDifferentCall/callID: \(callID)/peerUserID: \(peerUserID)")
+                return
+            }
+            MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .busy)
+            MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
+                call.endReason = .busy
+            }
+            self.didCallComplete.send(callID)
+            self.presentMissedCallNotification(id: callID, from: peerUserID)
+        }
+    }
 }
 
 
