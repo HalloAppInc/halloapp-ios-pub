@@ -40,6 +40,7 @@ final class NotificationProtoService: ProtoServiceCore {
     override func performOnConnect() {
         super.performOnConnect()
         resendAllPendingAcks()
+        uploadLogsToServerIfNecessary()
     }
 
     override func authenticationFailed(with authResult: Server_AuthResult) {
