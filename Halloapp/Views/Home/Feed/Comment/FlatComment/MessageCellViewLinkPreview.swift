@@ -26,7 +26,7 @@ class MessageCellViewLinkPreview: MessageCellViewBase {
     }()
 
     private lazy var nameAudioTextTimeRow: UIStackView = {
-        let vStack = UIStackView(arrangedSubviews: [ nameRow, linkPreviewView, textLabel, timeRow ])
+        let vStack = UIStackView(arrangedSubviews: [ nameRow, linkPreviewView, textRow, timeRow ])
         vStack.axis = .vertical
         vStack.alignment = .fill
         vStack.layoutMargins = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)

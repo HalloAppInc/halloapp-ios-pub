@@ -34,7 +34,7 @@ class MessageCellViewBase: UICollectionViewCell {
         let label = UILabel()
         label.numberOfLines = 1
 
-        label.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
+        label.font = UIFont.systemFont(ofSize: 13, weight: .semibold)
         label.textColor = .secondaryLabel
         label.isUserInteractionEnabled = true
 
