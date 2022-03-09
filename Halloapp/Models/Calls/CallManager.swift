@@ -481,6 +481,15 @@ final class CallManager: NSObject, CXProviderDelegate {
         }
     }
 
+    private func setActiveCallAsAnswered() {
+        if let callID = activeCallID {
+            DDLogInfo("CallManager/setActiveCallAsAnswered/callID: \(callID)")
+            MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
+                call.answered = true
+            }
+        }
+    }
+
     // MARK: ProviderDelegate
     // TODO: Fulfill actions only on success responses from server - track iq results and message-acks.
 
@@ -614,7 +623,16 @@ final class CallManager: NSObject, CXProviderDelegate {
         DDLogInfo("CallManager/CXEndCallAction/\(action.callUUID)/begin")
         if let details = callDetailsMap[action.callUUID],
            details.callID == activeCallID {
-            endActiveCall(reason: endReason ?? EndCallReason.reject)
+            // This method could be called directly by callkit if user is on lockscreen.
+            // We call this function when user uses the in-app call screen.
+            let fallbackEndReason: EndCallReason
+            if let activeCall = activeCall,
+               activeCall.isAnswered {
+                fallbackEndReason = .ended
+            } else {
+                fallbackEndReason = .reject
+            }
+            endActiveCall(reason: endReason ?? fallbackEndReason)
             DDLogInfo("CallManager/CXEndCallAction/success")
             action.fulfill()
         } else {
@@ -1311,11 +1329,7 @@ extension CallManager: CallStateDelegate {
         case .connected:
             // Update UI to show connected status
             callViewDelegate?.callConnected()
-            if let callID = activeCallID {
-                MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
-                    call.answered = true
-                }
-            }
+            setActiveCallAsAnswered()
 
         case .active:
             callToneToPlay = .none
@@ -1323,6 +1337,7 @@ extension CallManager: CallStateDelegate {
             // Cancel timer if call is active.
             cancelTimer?.cancel()
             cancelTimer = nil
+            setActiveCallAsAnswered()
             startCallDurationTimer()
 
         case .iceRestart:
