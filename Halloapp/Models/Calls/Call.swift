@@ -28,6 +28,8 @@ public let importantStatKeys: Set = [
     "framesDecoded", "keyFramesDecoded",
     "framesDropped", "partialFramesLost", "fullFramesLost"]
 
+public let importantStatNoDiffKeys: Set = ["framesPerSecond"]
+
 public let unwantedStatTypes: Set = ["codec", "certificate", "media-source", "candidate-pair", "local-candidate", "remote-candidate"]
 
 
@@ -728,10 +730,16 @@ public class Call {
                         // Log difference in stats - easier to notice what happened in the recent few seconds.
                         // Sort keys for easy debugging.
                         for (statKey, statValue) in Array(impStats).sorted(by: {$0.key < $1.key}) {
-                            if let oldImpStats = oldImpStats,
-                               let oldStatValue = oldImpStats[statKey] as? Double,
-                               let newStatValue = statValue as? Double {
+                            if importantStatNoDiffKeys.contains(statKey) {
+                                statString += "\"\(statKey)\": \(statValue) , "
+                            } else if let oldImpStats = oldImpStats,
+                                      let oldStatValue = oldImpStats[statKey] as? Int,
+                                      let newStatValue = statValue as? Int {
                                 statString += "\"\(statKey)\": \(newStatValue - oldStatValue) , "
+                            } else if let oldImpStats = oldImpStats,
+                                      let oldStatValue = oldImpStats[statKey] as? Double,
+                                      let newStatValue = statValue as? Double {
+                                statString += "\"\(statKey)\": \(String(format: "%.3f", newStatValue - oldStatValue)) , "
                             } else {
                                 statString += "\"\(statKey)\": \(statValue) , "
                             }
