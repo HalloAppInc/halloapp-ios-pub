@@ -482,7 +482,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
 
     private let newPostsIndicator = NewPostsIndicator()
 
-    private func showNewPostsIndicator() {
+    func showNewPostsIndicator() {
         guard !view.subviews.contains(newPostsIndicator) else { return }
         newPostsIndicator.translatesAutoresizingMaskIntoConstraints = false
 
@@ -502,7 +502,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
     }
 
     private func removeNewPostsIndicatorAfterSeen() {
-        guard isVisible else { return }
+        guard isVisible, view.subviews.contains(newPostsIndicator) else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
             self?.removeNewPostsIndicator()
         }
@@ -513,7 +513,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         newPostsIndicator.removeFromSuperview()
     }
 
-    @objc private func newPostsIndicatorTapped() {
+    @objc func newPostsIndicatorTapped() {
         removeNewPostsIndicator()
         scrollToTop(animated: true)
     }

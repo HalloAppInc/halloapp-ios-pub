@@ -56,6 +56,14 @@ final class FeedDataSource: NSObject {
         return displayItems[index]
     }
 
+    var hasUnreadPosts: Bool {
+        return posts.contains(where: { [.incoming].contains($0.status) })
+    }
+
+    var posts: [FeedPost] {
+        return fetchedResultsController?.fetchedObjects ?? []
+    }
+
     func clear() {
         fetchedResultsController = nil
         events.removeAll()

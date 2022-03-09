@@ -19,6 +19,13 @@ class GroupFeedViewController: FeedCollectionViewController {
         static let sectionHeaderReuseIdentifier = "header-view"
     }
 
+    private struct GroupPostScrollPosition {
+        let postID: FeedPostID
+        let offset: CGFloat
+    }
+
+    private static var cachedScrollPositions: [GroupID: GroupPostScrollPosition] = [:]
+
     private let groupId: GroupID
     private var group: ChatGroup?
 
@@ -39,12 +46,23 @@ class GroupFeedViewController: FeedCollectionViewController {
     private var shouldShowInviteSheet = false
 
     private var cancellableSet: Set<AnyCancellable> = []
-    
+
+    private var shouldRestoreScrollPosition: Bool
+
+    override var feedPostIdToScrollTo: FeedPostID? {
+        didSet {
+            if feedPostIdToScrollTo != nil {
+                shouldRestoreScrollPosition = false
+            }
+        }
+    }
+
     init(groupId: GroupID, shouldShowInviteSheet: Bool = false) {
         self.groupId = groupId
         self.group = MainAppContext.shared.chatData.chatGroup(groupId: groupId)
         self.theme = group?.background ?? 0
         self.shouldShowInviteSheet = shouldShowInviteSheet
+        shouldRestoreScrollPosition = Self.cachedScrollPositions[groupId] != nil
         super.init(title: nil, fetchRequest: FeedDataSource.groupFeedRequest(groupID: groupId))
         self.hidesBottomBarWhenPushed = true
         self.populateEvents()
@@ -60,7 +78,6 @@ class GroupFeedViewController: FeedCollectionViewController {
         else {
             return nil
         }
-        
         self.init(groupId: id)
         self.feedPostIdToScrollTo = metadata.postData()?.id
     }
@@ -122,7 +139,13 @@ class GroupFeedViewController: FeedCollectionViewController {
             self?.composeVoiceNoteButton?.button.isEnabled = !hasActiveCall
             self?.composeCamPostButton?.button.isEnabled = !isVideoCallOngoing
         }))
-        
+
+        // Mark all posts as read on first view of group.
+        // This is tracked by whether we have a cached scroll position
+        if !shouldRestoreScrollPosition {
+            markAllPostsAsViewed()
+        }
+
         if let idForScroll = feedPostIdToScrollTo, scrollTo(postId: idForScroll) == true {
             feedPostIdToScrollTo = nil
         }
@@ -172,6 +195,53 @@ class GroupFeedViewController: FeedCollectionViewController {
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
+
+        memoizeScrollPosition()
+    }
+
+    func memoizeScrollPosition() {
+        guard let collectionViewDataSource = collectionViewDataSource else {
+            return
+        }
+
+        // Find a visible feedPost to serve as an anchor for positioning
+        for indexPath in collectionView.indexPathsForVisibleItems {
+            if let feedDisplayItem = collectionViewDataSource.itemIdentifier(for: indexPath),
+               case .post(let feedPost) = feedDisplayItem,
+               let layoutAttributes = collectionView.layoutAttributesForItem(at: indexPath) {
+                let offset = collectionView.contentOffset.y - layoutAttributes.frame.minY
+                Self.cachedScrollPositions[groupId] = GroupPostScrollPosition(postID: feedPost.id, offset: offset)
+                break
+            }
+        }
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+
+        guard collectionView.contentSize != .zero, shouldRestoreScrollPosition, let scrollPosition = Self.cachedScrollPositions[groupId] else {
+            return
+        }
+
+        // Only restore on initial load
+        shouldRestoreScrollPosition = false
+
+        // If we have a specific post to scroll to or can no longer find the anchor post, do not adjust scroll postion.
+        guard feedPostIdToScrollTo == nil, let index = feedDataSource.index(of: scrollPosition.postID) else {
+            return
+        }
+
+        let indexPath = IndexPath(item: index, section: 0)
+        // LayoutAttributes gives estimated sizes until initial render, so scroll to relative position then finalize
+        collectionView.scrollToItem(at: indexPath, at: .top, animated: false)
+        collectionView.layoutIfNeeded()
+        if let layoutAttributes = collectionView.layoutAttributesForItem(at: indexPath) {
+            collectionView.contentOffset = CGPoint(x: 0, y: layoutAttributes.frame.minY + scrollPosition.offset)
+        }
+
+        if feedDataSource.hasUnreadPosts, !isNearTop(100) {
+            showNewPostsIndicator()
+        }
     }
 
     override func showGroupName() -> Bool {
@@ -407,8 +477,16 @@ class GroupFeedViewController: FeedCollectionViewController {
         }
     }
 
-    private func isScrolledFromTop(by fromTop: CGFloat) -> Bool {
-        return collectionView.contentOffset.y < fromTop
+    override func newPostsIndicatorTapped() {
+        super.newPostsIndicatorTapped()
+        markAllPostsAsViewed()
+    }
+
+    private func markAllPostsAsViewed() {
+        for feedPost in feedDataSource.posts {
+            MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
+            UNUserNotificationCenter.current().removeDeliveredFeedNotifications(postId: feedPost.id)
+        }
     }
 }
 
