@@ -45,7 +45,6 @@ final class ProtoService: ProtoServiceCore {
                     self.readyToHandleCallMessages = false
                 }
             })
-        self.uploadLogsToServerIfNecessary()
     }
 
     override func performOnConnect() {
@@ -73,6 +72,7 @@ final class ProtoService: ProtoServiceCore {
         NotificationSettings.current.sendConfigIfNecessary(using: self)
         MainAppContext.shared.startReportingEvents()
         clearSilentChatRerequestRecords()
+        uploadLogsToServerIfNecessary()
     }
 
     override func authenticationSucceeded(with authResult: Server_AuthResult) {
