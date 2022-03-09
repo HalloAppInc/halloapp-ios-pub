@@ -62,6 +62,9 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     static private let messageViewCellReuseIdentifier = "MessageViewCell"
     static private let messageCellViewTextReuseIdentifier = "MessageCellViewText"
     static private let messageCellViewMediaReuseIdentifier = "MessageCellViewMedia"
+    static private let messageCellViewAudioReuseIdentifier = "MessageCellViewAudio"
+    static private let messageCellViewLinkPreviewReuseIdentifier = "MessageCellViewLinkPreview"
+ 
     static private let cellHighlightAnimationDuration = 0.15
 
     private var mediaPickerController: MediaPickerViewController?
@@ -153,28 +156,56 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
 
         return view
     }()
+    
+    private func configureCell(itemCell: MessageCellViewBase, for comment: FeedPostComment) {
+        // Get user name colors
+        let userColorAssignment = getUserColorAssignment(userId: comment.userId)
+        var parentUserColorAssignment = UIColor.secondaryLabel
+        if let parentCommentUserId = comment.parent?.userId {
+            parentUserColorAssignment = getUserColorAssignment(userId: parentCommentUserId)
+        }
+
+        let isPreviousMessageFromSameSender = isPreviousMessageSameSender(currentComment: comment)
+        itemCell.configureWithComment(comment: comment, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
+        itemCell.delegate = self
+        itemCell.textLabel.delegate = self
+    }
 
     private lazy var dataSource: CommentDataSource = {
         let dataSource = CommentDataSource(
             collectionView: collectionView,
             cellProvider: { [weak self] (collectionView, indexPath, messageRow) -> UICollectionViewCell? in
                 switch messageRow {
-                case .comment(let feedComment), .audio(let feedComment), .linkPreview(let feedComment), .retracted(let feedComment):
+                case .comment(let feedComment), .retracted(let feedComment):
                     let cell = collectionView.dequeueReusableCell(
                         withReuseIdentifier: FlatCommentsViewController.messageViewCellReuseIdentifier,
                         for: indexPath)
                     if let itemCell = cell as? MessageViewCell, let self = self {
-                        // Get user name colors
-                        let userColorAssignment = self.getUserColorAssignment(userId: feedComment.userId)
-                        var parentUserColorAssignment = UIColor.secondaryLabel
-                        if let parentCommentUserId = feedComment.parent?.userId {
-                            parentUserColorAssignment = self.getUserColorAssignment(userId: parentCommentUserId)
-                        }
-
-                        let isPreviousMessageFromSameSender = self.isPreviousMessageSameSender(currentComment: feedComment)
-                        itemCell.configureWithComment(comment: feedComment, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
-                        itemCell.delegate = self
-                        itemCell.textLabel.delegate = self
+                        self.configureCell(itemCell: itemCell, for: feedComment)
+                    }
+                    return cell
+                case .media(let feedComment):
+                    let cell = collectionView.dequeueReusableCell(
+                        withReuseIdentifier: FlatCommentsViewController.messageCellViewMediaReuseIdentifier,
+                        for: indexPath)
+                    if let itemCell = cell as? MessageCellViewMedia, let self = self {
+                        self.configureCell(itemCell: itemCell, for: feedComment)
+                    }
+                    return cell
+                case .audio(let feedComment):
+                    let cell = collectionView.dequeueReusableCell(
+                        withReuseIdentifier: FlatCommentsViewController.messageCellViewAudioReuseIdentifier,
+                        for: indexPath)
+                    if let itemCell = cell as? MessageCellViewAudio, let self = self {
+                        self.configureCell(itemCell: itemCell, for: feedComment)
+                    }
+                    return cell
+                case .linkPreview(let feedComment):
+                    let cell = collectionView.dequeueReusableCell(
+                        withReuseIdentifier: FlatCommentsViewController.messageCellViewLinkPreviewReuseIdentifier,
+                        for: indexPath)
+                    if let itemCell = cell as? MessageCellViewLinkPreview, let self = self {
+                        self.configureCell(itemCell: itemCell, for: feedComment)
                     }
                     return cell
                 case .media(let feedComment):
@@ -201,17 +232,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                         withReuseIdentifier: FlatCommentsViewController.messageCellViewTextReuseIdentifier,
                         for: indexPath)
                     if let itemCell = cell as? MessageCellViewText, let self = self {
-                        // Get user name colors
-                        let userColorAssignment = self.getUserColorAssignment(userId: feedComment.userId)
-                        var parentUserColorAssignment = UIColor.secondaryLabel
-                        if let parentCommentUserId = feedComment.parent?.userId {
-                            parentUserColorAssignment = self.getUserColorAssignment(userId: parentCommentUserId)
-                        }
-
-                        let isPreviousMessageFromSameSender = self.isPreviousMessageSameSender(currentComment: feedComment)
-                        itemCell.configureWithComment(comment: feedComment, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
-                        itemCell.delegate = self
-                        itemCell.textLabel.delegate = self
+                        self.configureCell(itemCell: itemCell, for: feedComment)
                     }
                     return cell
                 case .unreadCountHeader(let unreadCount):
@@ -293,6 +314,8 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         collectionView.register(MessageViewCell.self, forCellWithReuseIdentifier: FlatCommentsViewController.messageViewCellReuseIdentifier)
         collectionView.register(MessageCellViewText.self, forCellWithReuseIdentifier: FlatCommentsViewController.messageCellViewTextReuseIdentifier)
         collectionView.register(MessageCellViewMedia.self, forCellWithReuseIdentifier: FlatCommentsViewController.messageCellViewMediaReuseIdentifier)
+        collectionView.register(MessageCellViewAudio.self, forCellWithReuseIdentifier: FlatCommentsViewController.messageCellViewAudioReuseIdentifier)
+        collectionView.register(MessageCellViewLinkPreview.self, forCellWithReuseIdentifier: FlatCommentsViewController.messageCellViewLinkPreviewReuseIdentifier)
         collectionView.register(MessageUnreadHeaderView.self, forCellWithReuseIdentifier: MessageUnreadHeaderView.elementKind)
         collectionView.register(MessageCommentHeaderView.self, forSupplementaryViewOfKind: MessageCommentHeaderView.elementKind, withReuseIdentifier: MessageCommentHeaderView.elementKind)
         collectionView.register(MessageTimeHeaderView.self, forSupplementaryViewOfKind: MessageTimeHeaderView.elementKind, withReuseIdentifier: MessageTimeHeaderView.elementKind)
@@ -469,10 +492,9 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
             return MessageRow.media(comment)
         }
         // Link Preview
-        if let feedLinkPreviews = comment.linkPreviews, let feedLinkPreview = feedLinkPreviews.first {
+        if let feedLinkPreviews = comment.linkPreviews, feedLinkPreviews.first != nil {
             return MessageRow.linkPreview(comment)
         }
-        
         return MessageRow.text(comment)
     }
     

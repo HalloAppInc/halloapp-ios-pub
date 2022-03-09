@@ -30,7 +30,7 @@ class MessageViewCell: MessageCellViewBase {
     lazy var leftAlignedConstraint = messageRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor)
     lazy var mediaWidthConstraint = mediaCarouselView.widthAnchor.constraint(equalToConstant: MediaViewDimention)
     lazy var mediaHeightConstraint = mediaCarouselView.heightAnchor.constraint(equalToConstant: MediaViewDimention)
-    lazy var quotedMessageConstraint = quotedMessageView.widthAnchor.constraint(greaterThanOrEqualToConstant: CGFloat(MinWidthOfQuotedMessageBubble).rounded())
+    lazy var quotedMessageMinWidthConstraint = quotedMessageView.widthAnchor.constraint(greaterThanOrEqualToConstant: CGFloat(MinWidthOfQuotedMessageBubble).rounded())
 
     var hasMedia: Bool = false  {
         didSet {
@@ -78,10 +78,10 @@ class MessageViewCell: MessageCellViewBase {
     }()
 
     private lazy var nameTextTimeRow: UIStackView = {
-        let vStack = UIStackView(arrangedSubviews: [ nameRow, quotedMessageView, linkPreviewView, audioView, mediaCarouselView, textLabel, timeRow ])
+        let vStack = UIStackView(arrangedSubviews: [ nameRow, quotedMessageView, linkPreviewView, audioView, mediaCarouselView, textRow, audioTimeRow ])
         vStack.axis = .vertical
         vStack.alignment = .fill
-        vStack.layoutMargins = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
+        vStack.layoutMargins = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
         vStack.isLayoutMarginsRelativeArrangement = true
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.spacing = 3
@@ -132,6 +132,19 @@ class MessageViewCell: MessageCellViewBase {
         return label
     }()
     
+    private lazy var audioTimeRow: UIStackView = {
+        let leadingSpacer = UIView()
+        leadingSpacer.translatesAutoresizingMaskIntoConstraints = false
+        leadingSpacer.widthAnchor.constraint(equalToConstant: 40).isActive = true
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+        let view = UIStackView(arrangedSubviews: [ leadingSpacer, audioTimeLabel, spacer, timeLabel ])
+        view.axis = .horizontal
+        view.spacing = 0
+        view.isLayoutMarginsRelativeArrangement = true
+        return view
+    }()
+
     // MARK: Quoted Message
     
     private lazy var quotedMessageView: QuotedMessageCellView = {
@@ -183,11 +196,11 @@ class MessageViewCell: MessageCellViewBase {
             leftAlignedConstraint,
             mediaWidthConstraint,
             mediaHeightConstraint,
-            quotedMessageConstraint
+            quotedMessageMinWidthConstraint
         ])
     }
 
-    func configureWithComment(comment: FeedPostComment, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
+    override func configureWithComment(comment: FeedPostComment, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
         audioMediaStatusCancellable?.cancel()
         feedPostComment = comment
         isOwnMessage = comment.userId == MainAppContext.shared.userData.userId
@@ -276,48 +289,22 @@ class MessageViewCell: MessageCellViewBase {
     }
 
     private func updateMediaConstraints() {
-        mediaWidthConstraint.priority = UILayoutPriority.defaultLow
-        mediaHeightConstraint.priority = UILayoutPriority.defaultLow
-        quotedMessageConstraint.priority = UILayoutPriority.defaultLow
-        // If quoted comments have media, set the width of the comment.
-        if hasQuotedComment && quotedMessageView.hasMedia {
-            quotedMessageConstraint.priority = UILayoutPriority.defaultHigh
-        }
+        mediaWidthConstraint.isActive = false
+        mediaHeightConstraint.isActive = false
+        quotedMessageMinWidthConstraint.isActive = false
         if hasMedia || hasAudio {
-            mediaWidthConstraint.priority = UILayoutPriority.defaultHigh
+            mediaWidthConstraint.isActive = true
+        } else if (hasQuotedComment && quotedMessageView.hasMedia) ||  hasLinkPreview {
+            // If quoted comments have media, set the min width of the comment.
+            quotedMessageMinWidthConstraint .isActive = true
         }
         if hasMedia {
-            mediaHeightConstraint.priority = UILayoutPriority.defaultHigh
+            mediaHeightConstraint.isActive = true
         }
     }
 
     private func setNameLabel(for userID: String) {
         nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
-    }
-
-    private func configureText(comment: FeedPostComment) {
-        let cryptoResultString: String = FeedItemContentView.obtainCryptoResultString(for: comment.id)
-        let feedPostCommentText = comment.text + cryptoResultString
-        if !feedPostCommentText.isEmpty  {
-            let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
-                feedPostCommentText,
-                mentions: Array(comment.mentions ?? Set()))
-
-            let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
-            var font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize)
-            if comment.text.containsOnlyEmoji {
-                font = UIFont.preferredFont(forTextStyle: .largeTitle)
-            }
-            let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
-
-            if let attrText = textWithMentions?.with(font: font, color: .label) {
-                let ham = HAMarkdown(font: font, color: .label)
-                textLabel.attributedText = ham.parse(attrText).applyingFontForMentions(boldFont)
-            }
-            hasText = true
-        } else {
-            hasText = false
-        }
     }
 
     private func configureQuotedComment(comment: FeedPostComment, parentUserColorAssignment: UIColor) {

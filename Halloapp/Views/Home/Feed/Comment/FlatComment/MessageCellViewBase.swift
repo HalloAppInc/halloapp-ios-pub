@@ -139,6 +139,39 @@ class MessageCellViewBase: UICollectionViewCell {
             bubbleView.backgroundColor = UIColor.messageNotOwnBackground
         }
     }
+
+    public func configureText(comment: FeedPostComment) {
+        let cryptoResultString: String = FeedItemContentView.obtainCryptoResultString(for: comment.id)
+        let feedPostCommentText = comment.text + cryptoResultString
+        if !feedPostCommentText.isEmpty  {
+            let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
+                feedPostCommentText,
+                mentions: Array(comment.mentions ?? Set()))
+
+            let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
+            var font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize)
+            if comment.text.containsOnlyEmoji {
+                font = UIFont.preferredFont(forTextStyle: .largeTitle)
+            }
+            let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
+
+            if let attrText = textWithMentions?.with(font: font, color: .label) {
+                let ham = HAMarkdown(font: font, color: .label)
+                textLabel.attributedText = ham.parse(attrText).applyingFontForMentions(boldFont)
+            }
+        } else {
+            textLabel.isHidden = true
+        }
+    }
+    
+    func configureWithComment(comment: FeedPostComment, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
+        feedPostComment = comment
+        isOwnMessage = comment.userId == MainAppContext.shared.userData.userId
+        isPreviousMessageOwnMessage = isPreviousMessageFromSameSender
+        userNameColorAssignment = userColorAssignment
+        nameLabel.textColor = userNameColorAssignment
+        timeLabel.text = comment.timestamp.chatTimestamp()
+    }
 }
 
 // MARK: UIGestureRecognizer Delegates

@@ -1,23 +1,22 @@
 //
-//  MessageCellViewMedia.swift
+//  MessageCellViewLinkPreview.swift
 //  HalloApp
 //
-//  Created by Nandini Shetty on 3/7/22.
+//  Created by Nandini Shetty on 3/8/22.
 //  Copyright © 2022 HalloApp, Inc. All rights reserved.
 //
 
 import Foundation
 import UIKit
 
-class MessageCellViewMedia: MessageCellViewBase {
+class MessageCellViewLinkPreview: MessageCellViewBase {
 
-    var MediaViewDimention: CGFloat { return 170.0 }
-
+    var LinkPreviewViewWidth: CGFloat { return contentView.bounds.width * 0.7 }
     lazy var rightAlignedConstraint = messageRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
     lazy var leftAlignedConstraint = messageRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor)
-
+    
     private lazy var messageRow: UIStackView = {
-        let hStack = UIStackView(arrangedSubviews: [ nameMediaTextTimeRow ])
+        let hStack = UIStackView(arrangedSubviews: [ nameAudioTextTimeRow ])
         hStack.axis = .horizontal
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.isUserInteractionEnabled = true
@@ -26,8 +25,8 @@ class MessageCellViewMedia: MessageCellViewBase {
         return hStack
     }()
 
-    private lazy var nameMediaTextTimeRow: UIStackView = {
-        let vStack = UIStackView(arrangedSubviews: [ nameRow, mediaCarouselView, textRow, timeRow ])
+    private lazy var nameAudioTextTimeRow: UIStackView = {
+        let vStack = UIStackView(arrangedSubviews: [ nameRow, linkPreviewView, textLabel, timeRow ])
         vStack.axis = .vertical
         vStack.alignment = .fill
         vStack.layoutMargins = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
@@ -38,22 +37,13 @@ class MessageCellViewMedia: MessageCellViewBase {
         vStack.insertSubview(bubbleView, at: 0)
         return vStack
     }()
-    
-    // MARK: Media
 
-    private lazy var mediaCarouselView: MediaCarouselView = {
-        var configuration = MediaCarouselViewConfiguration.default
-        configuration.alwaysScaleToFitContent = false
-        let mediaCarouselView = MediaCarouselView(media: [], configuration: configuration)
-        mediaCarouselView.delegate = self
-        return mediaCarouselView
+    private lazy var linkPreviewView: CommentLinkPreviewView = {
+        let linkPreviewView = CommentLinkPreviewView(frame: .zero)
+        linkPreviewView.translatesAutoresizingMaskIntoConstraints = false
+        return linkPreviewView
     }()
     
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        textLabel.attributedText = nil
-    }
-
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupView()
@@ -75,10 +65,9 @@ class MessageCellViewMedia: MessageCellViewBase {
         contentView.addSubview(messageRow)
         messageRow.constrain([.top], to: contentView)
         messageRow.constrain(anchor: .bottom, to: contentView, priority: UILayoutPriority(rawValue: 999))
-
+        
         NSLayoutConstraint.activate([
-            mediaCarouselView.widthAnchor.constraint(equalToConstant: MediaViewDimention),
-            mediaCarouselView.heightAnchor.constraint(equalToConstant: MediaViewDimention),
+            linkPreviewView.widthAnchor.constraint(equalToConstant: LinkPreviewViewWidth),
             rightAlignedConstraint,
             leftAlignedConstraint
         ])
@@ -93,11 +82,20 @@ class MessageCellViewMedia: MessageCellViewBase {
 
     override func configureWithComment(comment: FeedPostComment, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
         super.configureWithComment(comment: comment, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
+
         configureText(comment: comment)
-        configureMedia(comment: comment)
+        configureLinkPreviewView(comment: comment)
         configureCell()
     }
-    
+
+    func configureLinkPreviewView(comment: FeedPostComment) {
+        guard let feedLinkPreviews = comment.linkPreviews, let feedLinkPreview = feedLinkPreviews.first else {
+            return
+        }
+        MainAppContext.shared.feedData.loadImages(feedLinkPreviewID: feedLinkPreview.id)
+        linkPreviewView.configure(feedLinkPreview: feedLinkPreview)
+    }
+ 
     // Adjusting constraint priorities here in a single place to be able to easily see relative priorities.
     private func configureCell() {
         if isOwnMessage {
@@ -109,43 +107,19 @@ class MessageCellViewMedia: MessageCellViewBase {
         } else {
             bubbleView.backgroundColor = UIColor.messageNotOwnBackground
             textLabel.textColor = UIColor.messageNotOwnText
-            nameRow.isHidden = false
+            rightAlignedConstraint.priority = UILayoutPriority(1)
+            leftAlignedConstraint.priority = UILayoutPriority(800)
             if let userId = feedPostComment?.userId {
                 nameLabel.text =  MainAppContext.shared.contactStore.fullName(for: userId)
             }
-            rightAlignedConstraint.priority = UILayoutPriority(1)
-            leftAlignedConstraint.priority = UILayoutPriority(800)
+            
+            // If the message contains media, always show name
+            // If the previous message was from the same user, hide name
+            if !isPreviousMessageOwnMessage {
+                nameRow.isHidden = false
+            } else {
+                nameRow.isHidden = true
+            }
         }
-    }
- 
-    private func configureMedia(comment: FeedPostComment) {
-        guard let commentMedia = comment.media, commentMedia.count > 0 else {
-            return
-        }
-        guard let media = MainAppContext.shared.feedData.media(commentID: comment.id) else {
-            return
-        }
-        // Download any pending media, comes in handy for media coming in while user is viewing comments
-        MainAppContext.shared.feedData.downloadMedia(in: [comment])
-        MainAppContext.shared.feedData.loadImages(commentID: comment.id)
-        mediaCarouselView.configureMediaCarousel(media: media)
-    }
-}
-
-extension MessageCellViewMedia: MediaCarouselViewDelegate {
-
-    func mediaCarouselView(_ view: MediaCarouselView, indexChanged newIndex: Int) {
-    }
-
-    func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
-        if let commentID = feedPostComment?.id {
-            delegate?.messageView(view, forComment: commentID, didTapMediaAtIndex: index)
-        }
-    }
-
-    func mediaCarouselView(_ view: MediaCarouselView, didDoubleTapMediaAtIndex index: Int) {
-    }
-
-    func mediaCarouselView(_ view: MediaCarouselView, didZoomMediaAtIndex index: Int, withScale scale: CGFloat) {
     }
 }

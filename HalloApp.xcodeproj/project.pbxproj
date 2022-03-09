@@ -28,6 +28,8 @@
 		321A70112704FF13005603B8 /* FeedLinkPreview+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 321A70102704FF13005603B8 /* FeedLinkPreview+CoreDataProperties.swift */; };
 		321A70132704FF3B005603B8 /* FeedLinkPreview+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 321A70122704FF3B005603B8 /* FeedLinkPreview+CoreDataClass.swift */; };
 		322DDDE52739A2A6006BE1E0 /* ChatLinkPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 322DDDE42739A2A6006BE1E0 /* ChatLinkPreviewView.swift */; };
+		323D787927D7D71300C29FA1 /* MessageCellViewAudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = 323D787827D7D71300C29FA1 /* MessageCellViewAudio.swift */; };
+		323D787D27D7E25000C29FA1 /* MessageCellViewLinkPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 323D787C27D7E25000C29FA1 /* MessageCellViewLinkPreview.swift */; };
 		323E88DB26CC430600202655 /* Feed3ToFeed4.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 323E88DA26CC430600202655 /* Feed3ToFeed4.xcmappingmodel */; };
 		3243C42B27D7D03300B994F4 /* MessageCellViewMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3243C42A27D7D03300B994F4 /* MessageCellViewMedia.swift */; };
 		324455E1275994D50031CD60 /* MessageViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 324455E0275994D50031CD60 /* MessageViewCell.swift */; };
@@ -573,6 +575,8 @@
 		321A70122704FF3B005603B8 /* FeedLinkPreview+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedLinkPreview+CoreDataClass.swift"; sourceTree = "<group>"; };
 		322DDDE42739A2A6006BE1E0 /* ChatLinkPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatLinkPreviewView.swift; sourceTree = "<group>"; };
 		322ECDC12735E6BD0006D9C1 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		323D787827D7D71300C29FA1 /* MessageCellViewAudio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageCellViewAudio.swift; sourceTree = "<group>"; };
+		323D787C27D7E25000C29FA1 /* MessageCellViewLinkPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageCellViewLinkPreview.swift; sourceTree = "<group>"; };
 		323E88D626CC175900202655 /* Feed4.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed4.xcdatamodel; sourceTree = "<group>"; };
 		323E88DA26CC430600202655 /* Feed3ToFeed4.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = Feed3ToFeed4.xcmappingmodel; sourceTree = "<group>"; };
 		3243C42A27D7D03300B994F4 /* MessageCellViewMedia.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageCellViewMedia.swift; sourceTree = "<group>"; };
@@ -1241,6 +1245,8 @@
 				32E6970627B4442B00599CC7 /* MessageHeaderView.swift */,
 				3283059627D2A88E00AD661A /* MessageCellViewText.swift */,
 				328305C727D6736E00AD661A /* MessageCellViewBase.swift */,
+				323D787827D7D71300C29FA1 /* MessageCellViewAudio.swift */,
+				323D787C27D7E25000C29FA1 /* MessageCellViewLinkPreview.swift */,
 			);
 			path = FlatComment;
 			sourceTree = "<group>";
@@ -2852,6 +2858,7 @@
 				6A1BFD30260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift in Sources */,
 				761C6161242D2AE50028AE19 /* DeveloperMenuView.swift in Sources */,
 				EAA424FF24ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift in Sources */,
+				323D787927D7D71300C29FA1 /* MessageCellViewAudio.swift in Sources */,
 				EAD476F32458F03700EF8591 /* ChatMedia+CoreDataProperties.swift in Sources */,
 				76FE37ED2523EC9600372FB1 /* ContactPickerViewController.swift in Sources */,
 				EAEE49DA276A76ED0042E654 /* ChatTitleView.swift in Sources */,
@@ -2873,6 +2880,7 @@
 				76B5B5322501F1700055E712 /* NotificationSettings.swift in Sources */,
 				68F935D3252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift in Sources */,
 				7653F302255DB7FE001CC946 /* FeedPostCollectionViewCell.swift in Sources */,
+				323D787D27D7E25000C29FA1 /* MessageCellViewLinkPreview.swift in Sources */,
 				32ECB6E9277515DD004DABBA /* QuotedMessageCellView.swift in Sources */,
 				EABBF72624E4EDF100FE1F1F /* NewGroupMembersViewController.swift in Sources */,
 				F893C86F25E5213000068F00 /* VideoView.swift in Sources */,
