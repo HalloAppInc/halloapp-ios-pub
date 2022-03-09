@@ -15,29 +15,6 @@ class MessageCellViewMedia: MessageCellViewBase {
 
     lazy var rightAlignedConstraint = messageRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
     lazy var leftAlignedConstraint = messageRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor)
-
-    private lazy var messageRow: UIStackView = {
-        let hStack = UIStackView(arrangedSubviews: [ nameMediaTextTimeRow ])
-        hStack.axis = .horizontal
-        hStack.translatesAutoresizingMaskIntoConstraints = false
-        hStack.isUserInteractionEnabled = true
-        hStack.isLayoutMarginsRelativeArrangement = true
-        hStack.layoutMargins = UIEdgeInsets(top: 3, left: 10, bottom: 3, right: 10)
-        return hStack
-    }()
-
-    private lazy var nameMediaTextTimeRow: UIStackView = {
-        let vStack = UIStackView(arrangedSubviews: [ nameRow, mediaCarouselView, textRow, timeRow ])
-        vStack.axis = .vertical
-        vStack.alignment = .fill
-        vStack.layoutMargins = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
-        vStack.isLayoutMarginsRelativeArrangement = true
-        vStack.translatesAutoresizingMaskIntoConstraints = false
-        vStack.spacing = 3
-        // Set bubble background
-        vStack.insertSubview(bubbleView, at: 0)
-        return vStack
-    }()
     
     // MARK: Media
 
@@ -64,14 +41,13 @@ class MessageCellViewMedia: MessageCellViewBase {
         setupView()
     }
 
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        bubbleView.layer.shadowPath = UIBezierPath(roundedRect: bubbleView.bounds, cornerRadius: 15).cgPath
-    }
-
     private func setupView() {
         backgroundColor = UIColor.feedBackground
         contentView.preservesSuperviewLayoutMargins = false
+        nameContentTimeRow.addArrangedSubview(nameRow)
+        nameContentTimeRow.addArrangedSubview(mediaCarouselView)
+        nameContentTimeRow.addArrangedSubview(textRow)
+        nameContentTimeRow.addArrangedSubview(timeRow)
         contentView.addSubview(messageRow)
         messageRow.constrain([.top], to: contentView)
         messageRow.constrain(anchor: .bottom, to: contentView, priority: UILayoutPriority(rawValue: 999))

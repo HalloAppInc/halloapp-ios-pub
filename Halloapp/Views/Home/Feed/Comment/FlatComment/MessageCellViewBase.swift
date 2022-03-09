@@ -65,17 +65,26 @@ class MessageCellViewBase: UICollectionViewCell {
         textLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         return textLabel
     }()
+
+    // Adding this class to be able to set the shadowPath after the bubble
+    // view size is determined.
+    public class BubbleViewBase: UIView {
+        override func layoutSubviews() {
+            super.layoutSubviews()
+            layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: layer.cornerRadius).cgPath
+        }
+    }
     
-    public lazy var bubbleView: UIView = {
-        let bubbleView = UIView()
-        bubbleView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+    public lazy var bubbleView: BubbleViewBase = {
+        let bubbleView = BubbleViewBase()
+        bubbleView.translatesAutoresizingMaskIntoConstraints = false
         bubbleView.layer.borderWidth = 0.5
         bubbleView.layer.borderColor = UIColor.black.withAlphaComponent(0.1).cgColor
         bubbleView.layer.cornerRadius = 14
-        bubbleView.layer.shadowColor = UIColor.black.withAlphaComponent(0.08).cgColor
+        bubbleView.layer.shadowColor = UIColor.black.cgColor
+        bubbleView.layer.shadowOpacity = 0.08
         bubbleView.layer.shadowOffset = CGSize(width: 0, height: 2)
         bubbleView.layer.shadowRadius = 1.5
-        bubbleView.translatesAutoresizingMaskIntoConstraints = false
         return bubbleView
     }()
 
@@ -120,6 +129,36 @@ class MessageCellViewBase: UICollectionViewCell {
         }
     }
     
+    public lazy var messageRow: UIStackView = {
+        let hStack = UIStackView(arrangedSubviews: [ nameContentTimeRow ])
+        hStack.axis = .horizontal
+        hStack.translatesAutoresizingMaskIntoConstraints = false
+        hStack.isUserInteractionEnabled = true
+        hStack.isLayoutMarginsRelativeArrangement = true
+        hStack.layoutMargins = UIEdgeInsets(top: 3, left: 10, bottom: 3, right: 10)
+        return hStack
+    }()
+
+    public lazy var nameContentTimeRow: UIStackView = {
+        let vStack = UIStackView()
+        vStack.axis = .vertical
+        vStack.alignment = .fill
+        vStack.layoutMargins = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
+        vStack.isLayoutMarginsRelativeArrangement = true
+        vStack.translatesAutoresizingMaskIntoConstraints = false
+        vStack.spacing = 3
+        // Set bubble background
+        vStack.insertSubview(bubbleView, at: 0)
+        
+        NSLayoutConstraint.activate([
+            bubbleView.leadingAnchor.constraint(equalTo: vStack.leadingAnchor, constant: 1),
+            bubbleView.topAnchor.constraint(equalTo: vStack.topAnchor, constant: 1),
+            bubbleView.bottomAnchor.constraint(equalTo: vStack.bottomAnchor, constant: -1),
+            bubbleView.trailingAnchor.constraint(equalTo: vStack.trailingAnchor, constant: 1),
+        ])
+        return vStack
+    }()
+    
     func markViewSelected() {
         UIView.animate(withDuration: 0.5, animations: {
             self.bubbleView.backgroundColor = .systemGray4
@@ -163,7 +202,11 @@ class MessageCellViewBase: UICollectionViewCell {
             textLabel.isHidden = true
         }
     }
-    
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+    }
+
     func configureWithComment(comment: FeedPostComment, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
         feedPostComment = comment
         isOwnMessage = comment.userId == MainAppContext.shared.userData.userId
