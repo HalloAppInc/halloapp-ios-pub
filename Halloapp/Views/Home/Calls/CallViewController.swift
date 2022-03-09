@@ -645,7 +645,7 @@ extension Localizations {
     }
     static func remoteMuteStatus(isAudioMuted: Bool, isVideoMuted: Bool, for peerName: String) -> String {
         if isAudioMuted && isVideoMuted {
-            let formatString = NSLocalizedString("call.mute.remote.audio.video", value: "%@'s camera and microphone is off", comment: "Status display when peer mutes both audio and video during a call.")
+            let formatString = NSLocalizedString("call.mute.remote.audio.video", value: "%@'s camera and microphone are off", comment: "Status display when peer mutes both audio and video during a call.")
             return String(format: formatString, peerName)
         } else if isAudioMuted {
             let formatString = NSLocalizedString("call.mute.remote.audio", value: "%@ muted this call", comment: "Status display when peer mutes audio during a call.")
