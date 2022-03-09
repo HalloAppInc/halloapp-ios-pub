@@ -11,6 +11,12 @@ import Combine
 import Core
 import CoreCommon
 
+private extension Localizations {
+    static var privacySyncFailure: String {
+        NSLocalizedString("privacy.sync.failure", value: "Failed to sync privacy settings. Please try again later.", comment: "Error banner displayed when there is a failure syncing preivacy settings, displayed on the privacy view")
+    }
+}
+
 public enum PrivacyListItemUpdateAction: String, RawRepresentable {
     case add
     case delete
@@ -395,7 +401,7 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
 
             case .failure(let error):
                 DDLogError("privacy/download-lists/error \(error)")
-                self.privacyListSyncError = "Failed to sync privacy settings. Please try again later."
+                self.privacyListSyncError = Localizations.privacySyncFailure
             }
         }
     }
@@ -455,7 +461,7 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
                 }
                 if !resync {
                     self.activeType = previousSetting
-                    self.privacyListSyncError = "Failed to sync privacy settings. Please try again later."
+                    self.privacyListSyncError = Localizations.privacySyncFailure
                 }
             }
             self.numberOfPendingRequests -= 1
@@ -572,7 +578,7 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
                 DDLogError("privacy/set-list/all/error \(error)")
 
                 self.activeType = previousSetting
-                self.privacyListSyncError = "Failed to sync privacy settings. Please try again later."
+                self.privacyListSyncError = Localizations.privacySyncFailure
             }
             self.numberOfPendingRequests -= 1
         }
