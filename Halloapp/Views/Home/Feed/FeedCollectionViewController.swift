@@ -774,9 +774,20 @@ extension FeedCollectionViewController {
             }
             
             if feedPost.userId == MainAppContext.shared.userData.userId {
-                if ServerProperties.externalSharingEnabled {
-                    alert.addAction(UIAlertAction(title: Localizations.shareExternally, style: .default) { [weak self] _ in
-                        self?.sharePostExternally(postID: postId)
+                // Disable external share if not enabled or this is a group post
+                if ServerProperties.externalSharingEnabled, feedPost.groupId == nil {
+                    alert.addAction(UIAlertAction(title: Localizations.buttonShare, style: .default, handler: { [weak self] _ in
+                        self?.generateExternalShareLink(postID: postId, success: { [weak self] url in
+                            let shareText = "\(Localizations.externalShareText) \(url)"
+                            let activityViewController = UIActivityViewController(activityItems: [shareText], applicationActivities: nil)
+                            self?.present(activityViewController, animated: true)
+                        })
+                    }))
+                    alert.addAction(UIAlertAction(title: Localizations.externalShareCopyLink, style: .default) { [weak self] _ in
+                        self?.generateExternalShareLink(postID: postId, success: { url in
+                            UIPasteboard.general.url = url
+                            Toast.show(icon: UIImage(systemName: "checkmark"), text: Localizations.externalShareLinkCopied)
+                        })
                     })
                 }
 
@@ -913,7 +924,7 @@ extension FeedCollectionViewController {
         dismiss(animated: true)
     }
 
-    private func sharePostExternally(postID: FeedPostID) {
+    private func generateExternalShareLink(postID: FeedPostID, success: @escaping (URL) -> Void) {
         guard proceedIfConnected() else {
             return
         }
@@ -922,7 +933,7 @@ extension FeedCollectionViewController {
 
             switch result {
             case .success(let url):
-                self.present(SFSafariViewController(url: url), animated: true)
+                success(url)
             case .failure(_):
                 let actionSheet = UIAlertController(title: nil, message: Localizations.externalShareFailed, preferredStyle: .alert)
                 actionSheet.addAction(UIAlertAction(title: Localizations.buttonOK, style: .cancel))
@@ -1073,11 +1084,23 @@ extension Localizations {
         NSLocalizedString("your.post.deletepost.button", value: "Delete Post", comment: "Title for the button that confirms intent to delete your own post.")
     }()
 
-    static var shareExternally: String = {
-        NSLocalizedString("your.post.externalshare.button",
-                          value: "Share Externally",
+    static var externalShareCopyLink: String = {
+        NSLocalizedString("your.post.externalshare.copylink",
+                          value: "Copy Link to Share",
                           comment: "Title for button in action sheet prompting user to share post to external sites")
     }()
+
+    static var externalShareLinkCopied: String {
+        NSLocalizedString("your.post.externalshare.copylink.success",
+                          value: "Copied to Clipboard",
+                          comment: "Success toast when external share link is copied")
+    }
+
+    static var externalShareText: String {
+        NSLocalizedString("your.post.externalshare.title",
+                          value: "Check out my post on HalloApp:",
+                          comment: "Text introducing external share link, part of what is shared")
+    }
 
     static var externalShareFailed: String = {
         NSLocalizedString("your.post.externalshare.error",

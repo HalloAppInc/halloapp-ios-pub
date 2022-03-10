@@ -178,6 +178,10 @@ extension UIColor {
         UIColor(named: "AudioComposerDeleteButtonForeground")!
     }
 
+    class var toastBackground: UIColor {
+        UIColor(named: "ToastBackground")!
+    }
+
     // MARK: Notifications
     
     class var notificationBottomBarBackground: UIColor {
