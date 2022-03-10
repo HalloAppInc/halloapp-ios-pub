@@ -98,9 +98,7 @@ extension Localizations {
     static func appendLearnMoreLabel(to waitingString: String) -> NSMutableAttributedString {
         let waitingAttributedString = NSMutableAttributedString(string: waitingString + " ")
         let learnMoreAttributedString = NSMutableAttributedString(string: Localizations.learnMoreLabel)
-        if let url = URL(string: "https://halloapp.com/help/") {
-            // Set the 'learn more' substring to be the link.
-            // TODO: fix the link here.
+        if let url = URL(string: "https://halloapp.com/help/#waiting-for-this-message") {
             learnMoreAttributedString.setAttributes([.link: url], range: Localizations.learnMoreLabel.utf16Extent)
         }
         waitingAttributedString.append(learnMoreAttributedString)
