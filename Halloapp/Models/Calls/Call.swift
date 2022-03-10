@@ -153,6 +153,7 @@ public class Call {
 
     private var localVideoRenderer: RTCVideoRenderer?
     private var remoteVideoRenderer: RTCVideoRenderer?
+    private var cancellableSet: Set<AnyCancellable> = []
 
     // MARK: Initialization
     init(id: CallID, peerUserID: UserID, type: CallType, direction: CallDirection = .incoming) {
@@ -166,6 +167,21 @@ public class Call {
         self.webRTCClient = WebRTCClient(callType: type)
         webRTCClient?.delegate = self
         canPlayRingtone = true
+
+        self.cancellableSet.insert(
+            // Notification to stop capture if app goes to background.
+            NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification).sink { [weak self] notification in
+                guard let self = self else { return }
+                self.muteVideo()
+            }
+        )
+
+        self.cancellableSet.insert(
+            // Notification to start capture if app goes to foreground.
+            NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification).sink { [weak self] notification in
+                guard let self = self else { return }
+                self.unmuteVideo()
+            })
     }
 
     func initializeWebRtcClient(iceServers: [RTCIceServer], config: Server_CallConfig) {

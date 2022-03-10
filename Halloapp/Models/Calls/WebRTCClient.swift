@@ -104,7 +104,6 @@ final class WebRTCClient: NSObject {
     private var remoteVideoTrack: RTCVideoTrack?
     private var localRenderer: RTCVideoRenderer?
     private var remoteRenderer: RTCVideoRenderer?
-    private var cancellableSet: Set<AnyCancellable> = []
 
     // TODO: This is not perfect - does not work well when device is locked.
     // Need to use the logic with motion sensor.
@@ -181,21 +180,6 @@ final class WebRTCClient: NSObject {
         createMediaTracks()
         configureAudioSession()
         startVideoCapture()
-
-        cancellableSet.insert(
-            // Notification to stop capture if app goes to background.
-            NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification).sink { [weak self] notification in
-                guard let self = self else { return }
-                self.videoCapturer?.stopCapture()
-            }
-        )
-
-        cancellableSet.insert(
-            // Notification to start capture if app goes to foreground.
-            NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification).sink { [weak self] notification in
-                guard let self = self else { return }
-                self.startVideoCapture()
-            })
     }
 
     func initialize(iceServers: [RTCIceServer], config: Server_CallConfig) {
