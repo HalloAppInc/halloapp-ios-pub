@@ -193,14 +193,13 @@ class TextLabel: UILabel, NSLayoutManagerDelegate {
 
     private var textRect: CGRect = .zero
 
+    private var layoutWidth: CGFloat = .greatestFiniteMagnitude
+
     override var intrinsicContentSize: CGSize {
         get {
             var maxLayoutWidth = preferredMaxLayoutWidth
             if maxLayoutWidth == 0 {
-                maxLayoutWidth = bounds.width
-            }
-            if maxLayoutWidth == 0 {
-                maxLayoutWidth = CGFloat.greatestFiniteMagnitude
+                maxLayoutWidth = layoutWidth
             }
             return sizeThatFits(CGSize(width: maxLayoutWidth, height: CGFloat.greatestFiniteMagnitude))
         }
@@ -208,6 +207,7 @@ class TextLabel: UILabel, NSLayoutManagerDelegate {
 
     override func invalidateIntrinsicContentSize() {
         super.invalidateIntrinsicContentSize()
+        layoutWidth = .greatestFiniteMagnitude
         performLayoutBlock { (textStorage, textContainer, layoutManager) in
             textContainer.size = .zero
         }
@@ -253,6 +253,12 @@ class TextLabel: UILabel, NSLayoutManagerDelegate {
 
     override func layoutSubviews() {
         super.layoutSubviews()
+
+        if preferredMaxLayoutWidth != 0, layoutWidth != bounds.width {
+            layoutWidth = bounds.width
+            // call super to avoid resetting layoutWidth to .greatestFiniteMagnitude
+            super.invalidateIntrinsicContentSize()
+        }
 
         let screenScale = UIScreen.main.scale
         readMoreButton.frame.origin.x = bounds.maxX - readMoreButton.frame.width
