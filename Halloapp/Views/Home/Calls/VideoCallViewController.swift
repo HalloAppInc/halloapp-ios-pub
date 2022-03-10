@@ -514,7 +514,10 @@ class VideoCallViewController: CallViewController {
                 case .failure(let error):
                     DDLogError("VideoCallViewController/switchCamera/failed: \(error)")
                 case .success:
-                    break
+                    self.camButton.isSelected = true
+                    UIView.animate(withDuration: 0.3, delay: 0, options: [.allowUserInteraction]) {
+                        self.camButton.isSelected = false
+                    }
                 }
             }
         }
