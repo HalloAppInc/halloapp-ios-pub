@@ -261,6 +261,8 @@ public class AvatarStore: ServiceAvatarDelegate {
                 DDLogInfo("AvatarStore/uploadAvatarData/\(logAction)/success")
                 UserDefaults.standard.removeObject(forKey: AvatarStore.Keys.userDefaultsUpload)
 
+                self?.userAvatar(forUserId: userID).avatarId = avatarID
+
                 guard let avatarID = avatarID, let avatarData = avatarData, !avatarID.isEmpty else {
                     // Return early after removing avatar
                     return
