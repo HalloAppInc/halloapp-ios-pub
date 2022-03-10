@@ -19,6 +19,8 @@ open class ProtoServiceCore: ProtoServiceCoreCommon {
         case busy
     }
 
+    public let didGetNewWhisperMessage = PassthroughSubject<WhisperMessage, Never>()
+
     // MARK: Avatar
     public weak var avatarDelegate: ServiceAvatarDelegate?
 

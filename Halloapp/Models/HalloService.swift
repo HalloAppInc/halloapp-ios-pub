@@ -41,7 +41,6 @@ protocol HalloService: CoreService {
 
     // MARK: Chat
     var didGetNewChatMessage: PassthroughSubject<IncomingChatMessage, Never> { get }
-    var didGetNewWhisperMessage: PassthroughSubject<WhisperMessage, Never> { get }
     var didGetChatAck: PassthroughSubject<ChatAck, Never> { get }
     var didGetPresence: PassthroughSubject<ChatPresenceInfo, Never> { get }
     var didGetChatState: PassthroughSubject<ChatStateInfo, Never> { get }

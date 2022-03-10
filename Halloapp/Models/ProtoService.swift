@@ -98,7 +98,6 @@ final class ProtoService: ProtoServiceCore {
     weak var callDelegate: HalloCallDelegate?
 
     let didGetNewChatMessage = PassthroughSubject<IncomingChatMessage, Never>()
-    let didGetNewWhisperMessage = PassthroughSubject<WhisperMessage, Never>()
     let didGetChatAck = PassthroughSubject<ChatAck, Never>()
     let didGetPresence = PassthroughSubject<ChatPresenceInfo, Never>()
     let didGetChatState = PassthroughSubject<ChatStateInfo, Never>()

@@ -8,6 +8,8 @@
 
 import Foundation
 import CoreCommon
+import Combine
+import CocoaLumberjackSwift
 
 public typealias EncryptionLogInfo = [String: String]
 public typealias OutboundCompletion = (Result<KeyBundle, EncryptionError>) -> Void
@@ -17,10 +19,32 @@ public typealias GroupFeedRerequestType = Server_GroupFeedRerequest.RerequestTyp
 public typealias GroupFeedRerequestContentType = Server_GroupFeedRerequest.ContentType
 
 public final class MessageCrypter: KeyStoreDelegate {
+    private var cancellableSet: Set<AnyCancellable> = []
 
     public init(service: CoreService, keyStore: KeyStore) {
         self.service = service
         self.keyStore = keyStore
+        self.cancellableSet.insert(
+            service.didGetNewWhisperMessage.sink { [weak self] whisperMessage in
+                self?.handleIncomingWhisperMessage(whisperMessage)
+            }
+        )
+    }
+
+    private func handleIncomingWhisperMessage(_ whisperMessage: WhisperMessage) {
+        DDLogInfo("ChatData/handleIncomingWhisperMessage/begin")
+        queue.async {
+            switch whisperMessage {
+            case .update(let userID, _):
+                DDLogInfo("ChatData/handleIncomingWhisperMessage/execute update for \(userID)")
+                // Clear cached whisper session.
+                // All future requests will refetch session from the keystore.
+                self.userSessions[userID] = nil
+            default:
+                DDLogInfo("ChatData/handleIncomingWhisperMessage/ignore")
+                break
+            }
+        }
     }
 
     public func setupOutbound(

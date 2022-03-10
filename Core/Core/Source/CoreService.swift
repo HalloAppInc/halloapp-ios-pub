@@ -20,6 +20,9 @@ public typealias AvatarInfo = (userID: UserID, avatarID: AvatarID)
 /// Core aspects of the service available in extensions
 public protocol CoreService: CoreServiceCommon {
 
+    // WhisperKeys
+    var didGetNewWhisperMessage: PassthroughSubject<WhisperMessage, Never> { get }
+
     // MARK: Avatar
     func updateAvatar(_ avatarData: AvatarData?, for userID: UserID, completion: @escaping ServiceRequestCompletion<AvatarID?>)
 

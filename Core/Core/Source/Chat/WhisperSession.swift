@@ -197,21 +197,26 @@ public final class WhisperSession {
     }
 
     public func reloadKeysFromKeyStore() {
+        DDLogInfo("WhisperSession/reloadKeysFromKeyStore/userID: \(userID)")
         sessionQueue.async {
             // Dont overwrite the state when current target is currently retrieving keys.
             switch self.state {
             case .retrievingKeys:
+                DDLogInfo("WhisperSession/reloadKeysFromKeyStore/userID: \(self.userID)/state: retrievingKeys")
                 AppContext.shared.errorLogger?.logError(NSError.init(domain: "WhisperSessionMergeError", code: 1005, userInfo: nil))
                 return
             case .ready(_, _):
                 if let (keyBundle, messageKeys) = self.loadFromKeyStore() {
+                    DDLogInfo("WhisperSession/reloadKeysFromKeyStore/userID: \(self.userID)/state: ready")
                     self.state = .ready(keyBundle, messageKeys)
                 } else {
+                    DDLogInfo("WhisperSession/reloadKeysFromKeyStore/userID: \(self.userID)/state: awaitingSetup")
                     // If we are not able to retrieve keys properly.
                     // Then this means the keyBundle has been deleted - so we have to start afresh.
                     self.state = .awaitingSetup(attempts: 0)
                 }
             case .awaitingSetup(_):
+                DDLogInfo("WhisperSession/reloadKeysFromKeyStore/userID: \(self.userID)/state: awaitingSetup")
                 if let (keyBundle, messageKeys) = self.loadFromKeyStore() {
                     self.state = .ready(keyBundle, messageKeys)
                 }
