@@ -56,6 +56,7 @@ final class ProfileHeaderViewController: UIViewController, UserMenuHandler {
         headerView.avatarViewButton.avatarView.configure(with: MainAppContext.shared.userData.userId, using: MainAppContext.shared.avatarStore)
         headerView.name = name
         headerView.phoneLabel.text = MainAppContext.shared.userData.formattedPhoneNumber
+        headerView.userID = MainAppContext.shared.userData.userId
 
         headerView.avatarViewButton.addTarget(self, action: #selector(editProfilePhoto), for: .touchUpInside)
         headerView.nameButton.addTarget(self, action: #selector(editName), for: .touchUpInside)
@@ -157,17 +158,25 @@ final class ProfileHeaderViewController: UIViewController, UserMenuHandler {
         }
 
         let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        actionSheet.addAction(UIAlertAction(title: Localizations.takeOrChoosePhoto, style: .default, handler: { _ in
+        actionSheet.addAction(UIAlertAction(title: Localizations.viewPhoto, style: .default) { _ in
+            self.presentAvatar()
+        })
+        
+        actionSheet.addAction(UIAlertAction(title: Localizations.takeOrChoosePhoto, style: .default) { _ in
             self.presentPhotoPicker()
-        }))
-        actionSheet.addAction(UIAlertAction(title: Localizations.deletePhoto, style: .destructive, handler: { _ in
+        })
+        actionSheet.addAction(UIAlertAction(title: Localizations.deletePhoto, style: .destructive) { _ in
             self.promptToDeleteProfilePhoto()
-        }))
-        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil))
+        })
+        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         present(actionSheet, animated: true)
     }
     
     @objc private func avatarViewTapped() {
+        presentAvatar()
+    }
+    
+    private func presentAvatar() {
         guard let avatarStore = MainAppContext.shared.avatarStore, let userID = headerView.userID, headerView.avatarViewButton.avatarView.hasImage else {
             // TODO: Support opening avatar view while avatar is being downloaded
             return
@@ -187,6 +196,7 @@ final class ProfileHeaderViewController: UIViewController, UserMenuHandler {
                     promise(.success((nil, nil, .zero)))
                     return
                 }
+                
                 promise(.success((nil, image.circularImage(), image.size)))
             }
         }.eraseToAnyPublisher()
@@ -521,6 +531,10 @@ extension Localizations {
 
     static var deletePhoto: String {
         NSLocalizedString("profile.delete.photo", value: "Delete Photo", comment: "Title for the button allowing to delete current profile photo.")
+    }
+    
+    static var viewPhoto: String {
+        NSLocalizedString("profile.view.photo", value: "View Photo", comment: "Title for the button allowing the user to view their own profile photo.")
     }
     
     static var profileHeaderMessageUser: String {
