@@ -21,6 +21,7 @@ public enum CallTone: String {
     case ringing
     case reconnecting
     case busy
+    case hold
     case end
 }
 
@@ -107,6 +108,8 @@ final class CallManager: NSObject, CXProviderDelegate {
                 playCallReconnectingtone()
             case .busy:
                 playCallBusytone()
+            case .hold:
+                playCallHoldtone()
             case .end:
                 playCallEndtone()
             }
@@ -897,6 +900,32 @@ final class CallManager: NSObject, CXProviderDelegate {
         callTonePlayer?.stop()
     }
 
+    private func setupCallHoldtone() {
+        DDLogInfo("CallManager/setupCallHoldtone")
+        do {
+            // Play busytone once.
+            callTonePlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: Bundle.main.path(forResource: "holdcalltone", ofType: "mp3")!))
+            callTonePlayer?.prepareToPlay()
+            callTonePlayer?.numberOfLoops = -1
+            callTonePlayer?.delegate = self
+        } catch {
+            DDLogError("CallManager/setupCallHoldtone/failed: \(error)")
+        }
+    }
+
+    private func playCallHoldtone() {
+        DDLogInfo("CallManager/playCallHoldtone/\(String(describing: callTonePlayer))")
+        if callTonePlayer == nil {
+            setupCallHoldtone()
+        }
+        callTonePlayer?.play()
+    }
+
+    private func stopCallHoldtone() {
+        DDLogInfo("CallManager/stopCallHoldtone/\(String(describing: callTonePlayer))")
+        callTonePlayer?.stop()
+    }
+
 }
 
 
@@ -1260,6 +1289,7 @@ extension CallManager: HalloCallDelegate {
         if activeCallID == callID {
             self.activeCall?.didReceiveCallHold(isOnHold)
             self.callViewDelegate?.callHold(isOnHold)
+            callToneToPlay = isOnHold ? .hold : .none
             DDLogInfo("CallManager/HalloCallDelegate/didReceiveHoldCall/success")
         }
     }

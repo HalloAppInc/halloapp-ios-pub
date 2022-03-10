@@ -143,6 +143,7 @@
 		6A08F9E227BB758B005894FF /* VideoCallViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A08F9E127BB758B005894FF /* VideoCallViewController.swift */; };
 		6A1BFD30260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1BFD2F260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift */; };
 		6A218966278E55C7008D7B7C /* us_ringtone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 6A218964278E55C7008D7B7C /* us_ringtone.mp3 */; };
+		6A51022927DAB0A100B53EA9 /* holdcalltone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 6A51022627DAB0A100B53EA9 /* holdcalltone.mp3 */; };
 		6A6D50D9270FE56800CD2EFC /* Feed4ToFeed6.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 6A6D50D8270FE56800CD2EFC /* Feed4ToFeed6.xcmappingmodel */; };
 		6A91069D262D02170081E337 /* NotificationRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A91069C262D02170081E337 /* NotificationRequest.swift */; };
 		6A911F3C270EAF2E003DCB7A /* Feed5ToFeed6.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 6A911F3B270EAF2E003DCB7A /* Feed5ToFeed6.xcmappingmodel */; };
@@ -817,6 +818,7 @@
 		6A1BFD2F260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostCommentToFeed2MigrationPolicy.swift; sourceTree = "<group>"; };
 		6A218964278E55C7008D7B7C /* us_ringtone.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = us_ringtone.mp3; sourceTree = "<group>"; };
 		6A38E09426F2BB6800103F30 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		6A51022627DAB0A100B53EA9 /* holdcalltone.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = holdcalltone.mp3; sourceTree = "<group>"; };
 		6A6D50D8270FE56800CD2EFC /* Feed4ToFeed6.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = Feed4ToFeed6.xcmappingmodel; sourceTree = "<group>"; };
 		6A91069C262D02170081E337 /* NotificationRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationRequest.swift; sourceTree = "<group>"; };
 		6A911F31270EAD8F003DCB7A /* Feed6.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed6.xcdatamodel; sourceTree = "<group>"; };
@@ -1352,6 +1354,7 @@
 		6A081C58273F975600E9E29A /* Calls */ = {
 			isa = PBXGroup;
 			children = (
+				6A51022627DAB0A100B53EA9 /* holdcalltone.mp3 */,
 				6ACF5AE927B6D060003B7B3C /* busycalltone.mp3 */,
 				6ACF5AEF27B7070E003B7B3C /* reconnectingcalltone.mp3 */,
 				6ACF5ACD27B32452003B7B3C /* endcalltone.mp3 */,
@@ -2573,6 +2576,7 @@
 				762EDBD8244E2EB700986617 /* Gotham-Bold.otf in Resources */,
 				762EDBCC244E2EB700986617 /* Gotham-UltraIta.otf in Resources */,
 				6878E0162798E962008BB351 /* Quicksand-Bold.ttf in Resources */,
+				6A51022927DAB0A100B53EA9 /* holdcalltone.mp3 in Resources */,
 				6878E0172798E962008BB351 /* Quicksand-SemiBold.ttf in Resources */,
 				762EDBD6244E2EB700986617 /* Gotham-MediumIta.otf in Resources */,
 				762EDBD9244E2EB700986617 /* Gotham-ThinIta.otf in Resources */,
