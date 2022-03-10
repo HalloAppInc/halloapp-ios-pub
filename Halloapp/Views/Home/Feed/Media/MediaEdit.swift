@@ -414,8 +414,10 @@ class MediaEdit : ObservableObject {
             .scaledBy(x: scale, y: scale)
             .translatedBy(x: -imgCenterX, y: -imgCenterY)
 
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
 
-        return UIGraphicsImageRenderer(size: cropRect.size).image { ctx in
+        return UIGraphicsImageRenderer(size: cropRect.size, format: format).image { ctx in
             ctx.cgContext.saveGState()
             // fix coordinate system
             ctx.cgContext.translateBy(x: 0, y: cropRect.size.height)
