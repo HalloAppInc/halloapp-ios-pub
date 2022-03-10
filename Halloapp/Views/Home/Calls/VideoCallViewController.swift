@@ -150,8 +150,13 @@ class VideoCallViewController: CallViewController {
 
     private var muteStatusText: String {
         get {
-            let peerName = MainAppContext.shared.callManager.peerName(for: peerUserID)
-            return Localizations.remoteMuteStatus(isAudioMuted: isRemoteAudioMuted, isVideoMuted: isRemoteVideoMuted, for: peerName)
+            switch expandedVideo {
+            case .local:
+                return Localizations.localMuteStatus(isAudioMuted: isLocalAudioMuted, isVideoMuted: isLocalVideoMuted)
+            case .remote:
+                let peerName = MainAppContext.shared.callManager.peerName(for: peerUserID)
+                return Localizations.remoteMuteStatus(isAudioMuted: isRemoteAudioMuted, isVideoMuted: isRemoteVideoMuted, for: peerName)
+            }
         }
     }
 
@@ -212,6 +217,21 @@ class VideoCallViewController: CallViewController {
     private var remoteViewTrailingConstraint: NSLayoutConstraint?
     private var remoteViewTopConstraint: NSLayoutConstraint?
     private var cancellableSet = Set<AnyCancellable>()
+
+    private lazy var remoteBlurView: UIVisualEffectView = {
+        let blurEffect = UIBlurEffect(style: .dark)
+        let blurEffectView = UIVisualEffectView(effect: blurEffect)
+        blurEffectView.frame = remoteRenderer.bounds
+        blurEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        return blurEffectView
+    }()
+    private lazy var localBlurView: UIVisualEffectView = {
+        let blurEffect = UIBlurEffect(style: .dark)
+        let blurEffectView = UIVisualEffectView(effect: blurEffect)
+        blurEffectView.frame = localRenderer.bounds
+        blurEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        return blurEffectView
+    }()
     // Using metal (arm64 only)
     private let remoteRenderer = RTCMTLVideoView()
     private let localRenderer = RTCMTLVideoView()
@@ -236,8 +256,17 @@ class VideoCallViewController: CallViewController {
         view.layoutMargins = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
 
         localRenderer.transform = CGAffineTransform(scaleX: -1, y: 1)
+
+        localRenderer.addSubview(localBlurView)
+        localBlurView.isHidden = true
+        remoteRenderer.addSubview(remoteBlurView)
+        remoteBlurView.isHidden = true
+
         view.addSubview(remoteRenderer)
         view.addSubview(localRenderer)
+
+        // Set self as delegate for remote view.
+        remoteRenderer.delegate = self
 
         localRenderer.videoContentMode = .scaleAspectFill
         let localViewBottomAnchor = localRenderer.bottomAnchor.constraint(equalTo: view.bottomAnchor)
@@ -377,7 +406,7 @@ class VideoCallViewController: CallViewController {
                     guard let self = self else { return }
                     self.isRemoteVideoMuted = muted
                     DispatchQueue.main.async {
-                        self.updateMuteStatusLabel()
+                        self.handleRemoteVideoMuted(muted: muted)
                     }
                 })
 
@@ -391,6 +420,9 @@ class VideoCallViewController: CallViewController {
                 activeCall.isLocalVideoMuted.sink { [weak self] muted in
                     guard let self = self else { return }
                     self.isLocalVideoMuted = muted
+                    DispatchQueue.main.async {
+                        self.handleLocalVideoMuted(muted: muted)
+                    }
                 })
         }
     }
@@ -622,6 +654,20 @@ class VideoCallViewController: CallViewController {
         }
     }
 
+    // Always called on the main queue.
+    func handleRemoteVideoMuted(muted: Bool) {
+        self.remoteRenderer.isEnabled = !muted
+        self.remoteBlurView.isHidden = !muted
+        self.updateMuteStatusLabel()
+    }
+
+    // Always called on the main queue.
+    func handleLocalVideoMuted(muted: Bool) {
+        self.localRenderer.isEnabled = !muted
+        self.localBlurView.isHidden = !muted
+        self.updateMuteStatusLabel()
+    }
+
     func didStartReceivingRemoteVideo() {
         DDLogInfo("VideoCallViewController/didStartReceivingRemoteVideo")
         DispatchQueue.main.async { [weak self] in
@@ -660,6 +706,7 @@ class VideoCallViewController: CallViewController {
             self.view.layoutIfNeeded()
         })
         expandedVideo = .local
+        self.updateMuteStatusLabel()
     }
 
     func expandRemoteVideo() {
@@ -689,6 +736,7 @@ class VideoCallViewController: CallViewController {
             self.view.layoutIfNeeded()
         })
         expandedVideo = .remote
+        self.updateMuteStatusLabel()
     }
 
     @objc private func localVideoTapped() {

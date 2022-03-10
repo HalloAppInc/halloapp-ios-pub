@@ -657,4 +657,15 @@ extension Localizations {
             return ""
         }
     }
+    static func localMuteStatus(isAudioMuted: Bool, isVideoMuted: Bool) -> String {
+        if isAudioMuted && isVideoMuted {
+            return NSLocalizedString("call.mute.local.audio.video", value: "camera and microphone are off", comment: "Status display when user mutes their own audio and video during a call.")
+        } else if isAudioMuted {
+            return NSLocalizedString("call.mute.local.audio", value: "microphone is off", comment: "Status display when user mutes their own audio during a call.")
+        } else if isVideoMuted {
+            return NSLocalizedString("call.mute.local.video", value: "camera is off", comment: "Status display when user mutes their own video during a call.")
+        } else {
+            return ""
+        }
+    }
 }
