@@ -869,6 +869,8 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                 receivedNewItem = true
                 if chatMsg.fromUserId != MainAppContext.shared.userData.userId {
                     incrementJumpButtonIfVisible()
+                } else {
+                    shouldScrollToBottom = true
                 }
             default:
                 break
@@ -1027,9 +1029,12 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             scrollToBottom(false)
         } else if receivedNewItem && jumpButton.isHidden {
             scrollToBottom(true)
+        } else if receivedNewItem, (jumpButton.isHidden || shouldScrollToBottom) {
+            scrollToBottom(true)
         }
         receivedNewItem = false
         needsInitialScrollToBottom = false
+        shouldScrollToBottom = false
     }
 
     private func scrollToBottom(_ animated: Bool = true) {
