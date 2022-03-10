@@ -24,7 +24,7 @@ class MessageViewCell: MessageCellViewBase {
     var MaxWidthOfMessageBubble: CGFloat { return contentView.bounds.width * 0.8 }
     var MinWidthOfMessageBubble: CGFloat { return contentView.bounds.width * 0.2 }
     var MinWidthOfQuotedMessageBubble: CGFloat { return contentView.bounds.width * 0.6 }
-    var MediaViewDimention: CGFloat { return 170.0 }
+    var MediaViewDimention: CGFloat { return 238.0 }
 
     lazy var rightAlignedConstraint = messageRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
     lazy var leftAlignedConstraint = messageRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor)

@@ -11,7 +11,7 @@ import UIKit
 
 class MessageCellViewMedia: MessageCellViewBase {
 
-    var MediaViewDimention: CGFloat { return 170.0 }
+    var MediaViewDimention: CGFloat { return 238.0 }
 
     lazy var rightAlignedConstraint = messageRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
     lazy var leftAlignedConstraint = messageRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor)
