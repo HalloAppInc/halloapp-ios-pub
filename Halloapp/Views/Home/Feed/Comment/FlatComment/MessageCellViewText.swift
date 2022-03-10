@@ -83,13 +83,10 @@ class MessageCellViewText: MessageCellViewBase {
             if let userId = feedPostComment?.userId {
                 nameLabel.text =  MainAppContext.shared.contactStore.fullName(for: userId)
             }
-            
-            // If the message contains media, always show name
-            // If the previous message was from the same user, hide name
-            if !isPreviousMessageOwnMessage {
-                nameRow.isHidden = false
+            if isPreviousMessageOwnMessage {
+                messageRow.layoutMargins = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
             } else {
-                nameRow.isHidden = true
+                messageRow.layoutMargins = UIEdgeInsets(top: 3, left: 10, bottom: 3, right: 10)
             }
         }
     }

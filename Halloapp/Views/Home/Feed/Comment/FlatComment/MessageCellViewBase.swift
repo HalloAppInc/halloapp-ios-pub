@@ -79,8 +79,8 @@ class MessageCellViewBase: UICollectionViewCell {
         let bubbleView = BubbleViewBase()
         bubbleView.translatesAutoresizingMaskIntoConstraints = false
         bubbleView.layer.borderWidth = 0.5
-        bubbleView.layer.borderColor = UIColor.black.withAlphaComponent(0.1).cgColor
-        bubbleView.layer.cornerRadius = 14
+        bubbleView.layer.borderColor = UIColor.black.withAlphaComponent(0.18).cgColor
+        bubbleView.layer.cornerRadius = 16
         bubbleView.layer.shadowColor = UIColor.black.cgColor
         bubbleView.layer.shadowOpacity = 0.08
         bubbleView.layer.shadowOffset = CGSize(width: 0, height: 2)
@@ -95,14 +95,14 @@ class MessageCellViewBase: UICollectionViewCell {
         view.axis = .horizontal
         view.spacing = 0
         view.isLayoutMarginsRelativeArrangement = true
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 4, bottom: 0, right: 4)
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 4, bottom: 0, right: 1)
         return view
     }()
 
     public lazy var timeLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-        label.font = UIFont.preferredFont(forTextStyle: .caption2)
+        label.font = UIFont.systemFont(ofSize: 12)
         label.textColor = UIColor.chatTime
         label.translatesAutoresizingMaskIntoConstraints = false
         label.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -143,7 +143,7 @@ class MessageCellViewBase: UICollectionViewCell {
         let vStack = UIStackView()
         vStack.axis = .vertical
         vStack.alignment = .fill
-        vStack.layoutMargins = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
+        vStack.layoutMargins = UIEdgeInsets(top: 10, left: 8, bottom: 6, right: 8)
         vStack.isLayoutMarginsRelativeArrangement = true
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.spacing = 3
@@ -188,14 +188,15 @@ class MessageCellViewBase: UICollectionViewCell {
                 mentions: Array(comment.mentions ?? Set()))
 
             let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
-            var font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize)
+            var font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize + 1)
             if comment.text.containsOnlyEmoji {
                 font = UIFont.preferredFont(forTextStyle: .largeTitle)
             }
             let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
 
-            if let attrText = textWithMentions?.with(font: font, color: .label) {
-                let ham = HAMarkdown(font: font, color: .label)
+            let textColor = isOwnMessage ? UIColor.messageOwnText : UIColor.messageNotOwnText
+            if let attrText = textWithMentions?.with(font: font, color: UIColor.messageOwnText) {
+                let ham = HAMarkdown(font: font, color: textColor)
                 textLabel.attributedText = ham.parse(attrText).applyingFontForMentions(boldFont)
             }
         } else {

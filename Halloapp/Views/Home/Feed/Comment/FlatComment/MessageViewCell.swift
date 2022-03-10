@@ -255,12 +255,10 @@ class MessageViewCell: MessageCellViewBase {
             rightAlignedConstraint.priority = UILayoutPriority(1)
             leftAlignedConstraint.priority = UILayoutPriority(800)
             quotedMessageView.bubbleView.backgroundColor = UIColor.quotedMessageNotOwnBackground
-            // If the message contains media, always show name
-            // If the previous message was from the same user, hide name
-            if hasMedia || !isPreviousMessageOwnMessage {
-                nameRow.isHidden = false
+            if isPreviousMessageOwnMessage {
+                messageRow.layoutMargins = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
             } else {
-                nameRow.isHidden = true
+                messageRow.layoutMargins = UIEdgeInsets(top: 3, left: 10, bottom: 3, right: 10)
             }
         }
     }
