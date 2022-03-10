@@ -347,7 +347,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
     func showCommentsView(for postId: FeedPostID, highlighting commentId: FeedPostCommentID? = nil) {
         DDLogDebug("FeedCollectionViewController/showCommentsView/post: \(postId), comment: \(commentId ?? "")")
 
-        if MainAppContext.shared.feedData.enableFlatComments {
+        if ServerProperties.isFlatCommentsEnabled {
             let commentsViewController = FlatCommentsViewController(feedPostId: postId)
             commentsViewController.highlightedCommentId = commentId
             navigationController?.pushViewController(commentsViewController, animated: true)

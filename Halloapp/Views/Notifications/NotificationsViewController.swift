@@ -239,8 +239,8 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         guard let postId = notification.postId, MainAppContext.shared.feedData.feedPost(with: postId) != nil else {
             return
         }
-        
-        if MainAppContext.shared.feedData.enableFlatComments {
+
+        if ServerProperties.isFlatCommentsEnabled {
             let commentsViewController = FlatCommentsViewController(feedPostId: postId)
             commentsViewController.highlightedCommentId = notification.commentId
             navigationController?.pushViewController(commentsViewController, animated: true)

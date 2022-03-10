@@ -17,15 +17,6 @@ import SwiftUI
 
 class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetchedResultsControllerDelegate {
 
-    public var enableFlatComments: Bool {
-        get {
-            return AppContext.shared.userDefaults.bool(forKey: "EnableFlatComments")
-        }
-        set {
-            AppContext.shared.userDefaults.set(newValue, forKey: "EnableFlatComments")
-        }
-    }
-
     private let userData: UserData
     private let contactStore: ContactStoreMain
     private var service: HalloService
