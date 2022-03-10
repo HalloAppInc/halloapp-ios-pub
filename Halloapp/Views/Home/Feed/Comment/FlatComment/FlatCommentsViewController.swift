@@ -57,6 +57,9 @@ fileprivate enum MessageRow: Hashable, Equatable {
 }
 
 class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NSFetchedResultsControllerDelegate {
+
+    private var loadingTimer = Timer()
+
     fileprivate typealias CommentDataSource = UICollectionViewDiffableDataSource<String, MessageRow>
     fileprivate typealias CommentSnapshot = NSDiffableDataSourceSnapshot<String, MessageRow>
     static private let messageViewCellReuseIdentifier = "MessageViewCell"
@@ -157,6 +160,35 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         return view
     }()
     
+    private lazy var activityIndicator: UIActivityIndicatorView = {
+        let activityIndicator = UIActivityIndicatorView(style: .large)
+        activityIndicator.color = .secondaryLabel
+        activityIndicator.translatesAutoresizingMaskIntoConstraints = false
+        return activityIndicator
+    }()
+
+    private lazy var tryAgainLabel: UILabel = {
+        let label = UILabel()
+        label.font = .preferredFont(forTextStyle: .title2)
+        label.textColor = .secondaryLabel
+        label.textAlignment = .center
+        label.numberOfLines = 0
+        label.isHidden = true
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = NSLocalizedString("comments.post.loading.failed",
+                                       value: "An error occured while trying to load this post. Please try again later.",
+                                       comment: "Warning text displayed in Comments when post wasn't available.")
+        return label
+    }()
+
+    private lazy var loadingView: UIView = {
+        let loadingView = UIView()
+        loadingView.translatesAutoresizingMaskIntoConstraints = true
+        loadingView.addSubview(activityIndicator)
+        loadingView.addSubview(tryAgainLabel)
+        return loadingView
+    }()
+
     private func configureCell(itemCell: MessageCellViewBase, for comment: FeedPostComment) {
         // Get user name colors
         let userColorAssignment = getUserColorAssignment(userId: comment.userId)
@@ -208,25 +240,6 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                         self.configureCell(itemCell: itemCell, for: feedComment)
                     }
                     return cell
-                case .media(let feedComment):
-                    let cell = collectionView.dequeueReusableCell(
-                        withReuseIdentifier: FlatCommentsViewController.messageCellViewMediaReuseIdentifier,
-                        for: indexPath)
-                    if let itemCell = cell as? MessageCellViewMedia, let self = self {
-                        // Get user name colors
-                        let userColorAssignment = self.getUserColorAssignment(userId: feedComment.userId)
-                        var parentUserColorAssignment = UIColor.secondaryLabel
-                        if let parentCommentUserId = feedComment.parent?.userId {
-                            parentUserColorAssignment = self.getUserColorAssignment(userId: parentCommentUserId)
-                        }
-
-                        let isPreviousMessageFromSameSender = self.isPreviousMessageSameSender(currentComment: feedComment)
-                        itemCell.configureWithComment(comment: feedComment, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
-                        itemCell.delegate = self
-                        itemCell.textLabel.delegate = self
-                    }
-                    return cell
-
                 case .text(let feedComment):
                     let cell = collectionView.dequeueReusableCell(
                         withReuseIdentifier: FlatCommentsViewController.messageCellViewTextReuseIdentifier,
@@ -302,6 +315,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     }
 
     private var fetchedResultsController: NSFetchedResultsController<FeedPostComment>?
+    private var feedPostFetchedResultsController: NSFetchedResultsController<FeedPost>?
 
     private lazy var collectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: self.view.bounds, collectionViewLayout: createLayout())
@@ -329,15 +343,15 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
 
     init(feedPostId: FeedPostID) {
         self.feedPostId = feedPostId
-        self.feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId)
         super.init(nibName: nil, bundle: nil)
         self.hidesBottomBarWhenPushed = true
+        initPostFetchedResultsController()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationItem.title = Localizations.titleComments
@@ -346,12 +360,28 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         collectionView.constrain(to: view)
         if let feedPost = feedPost {
             setupUI(with: feedPost)
+        } else {
+            messageInputView.isEnabled = false
+            self.view.addSubview(loadingView)
+            activityIndicator.startAnimating()
+            NSLayoutConstraint.activate([
+                activityIndicator.centerXAnchor.constraint(equalTo: view.layoutMarginsGuide.centerXAnchor),
+                activityIndicator.centerYAnchor.constraint(equalTo: view.layoutMarginsGuide.centerYAnchor)
+            ])
+            tryAgainLabel.constrainMargins(to: view)
+            loadingTimer = Timer.scheduledTimer(timeInterval: 5, target: self, selector: #selector(updateAfterTimerEnds), userInfo: nil, repeats: false)
         }
         messageInputView.delegate = self
         // Long press message options
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(getMessageOptions))
         longPressGesture.delaysTouchesBegan = true
         collectionView.addGestureRecognizer(longPressGesture)
+    }
+
+    @objc private func updateAfterTimerEnds() {
+        loadingTimer.invalidate()
+        activityIndicator.stopAnimating()
+        self.tryAgainLabel.isHidden = false
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -394,11 +424,21 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         }
     }
 
+    private var postLoadingCancellable: AnyCancellable?
+
     // Call this method only during initial setting up of the view as it has scroll consequences that should only be done on first load.
     private func setupUI(with feedPost: FeedPost) {
+        if loadingView.isDescendant(of: view) {
+            loadingView.removeFromSuperview()
+        }
+        if postLoadingCancellable != nil {
+            postLoadingCancellable?.cancel()
+            postLoadingCancellable = nil
+        }
+        messageInputView.isEnabled = true
         // Setup the diffable data source so it can be used for first fetch of data
         collectionView.dataSource = dataSource
-        initFetchedResultsController()
+        initCommentsFetchedResultsController()
         // Initiate download of media that were not yet downloaded. TODO Ask if this is needed
         if let comments = fetchedResultsController?.fetchedObjects {
             MainAppContext.shared.feedData.downloadMedia(in: comments)
@@ -424,7 +464,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: feedPostId)
     }
 
-    private func initFetchedResultsController() {
+    private func initCommentsFetchedResultsController() {
         let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "post.id = %@", feedPostId)
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPostComment.timestamp, ascending: true) ]
@@ -443,36 +483,79 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
             DDLogError("FlatCommentsViewController/initFetchedResultsController/failed to fetch comments for post \(feedPostId)")
         }
     }
+
+    private func initPostFetchedResultsController() {
+        // Setup feedPost fetched results controller
+        let feedPostFetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
+        feedPostFetchRequest.predicate = NSPredicate(format: "id == %@", feedPostId)
+        feedPostFetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: true) ]
+        feedPostFetchRequest.fetchLimit = 1
+        feedPostFetchedResultsController = NSFetchedResultsController<FeedPost>(
+            fetchRequest: feedPostFetchRequest,
+            managedObjectContext: MainAppContext.shared.feedData.viewContext,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+        feedPostFetchedResultsController?.delegate = self
+        do {
+            DDLogError("FlatCommentsViewController/initFetchedResultsController/fetching post \(feedPostId)")
+            try feedPostFetchedResultsController?.performFetch()
+        } catch {
+            DDLogError("FlatCommentsViewController/initFetchedResultsController/failed to fetch post \(feedPostId)")
+        }
+    }
     
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChangeContentWith snapshot: NSDiffableDataSourceSnapshotReference) {
-        var snapshot = CommentSnapshot()
-        if let sections = fetchedResultsController?.sections {
-            snapshot.appendSections(sections.map { $0.name } )
-            for section in sections {
-                if let comments = section.objects as? [FeedPostComment] {
-                    comments.forEach { comment in
-                        let messageRow = messagerow(for: comment)
-                        snapshot.appendItems([messageRow], toSection: section.name)
+        switch controller {
+        case fetchedResultsController:
+            var snapshot = CommentSnapshot()
+            if let sections = fetchedResultsController?.sections {
+                snapshot.appendSections(sections.map { $0.name } )
+                for section in sections {
+                    if let comments = section.objects as? [FeedPostComment] {
+                        comments.forEach { comment in
+                            let messageRow = messagerow(for: comment)
+                            snapshot.appendItems([messageRow], toSection: section.name)
+                        }
+                    }
+                }
+                // Insert the unread messages header. We insert this header only on first launch to avoid
+                // the header jumping around as new comments come in while the user is viewing the comments - @Dini
+                if let unreadCount = self.feedPost?.unreadCount, unreadCount > 0, isFirstLaunch {
+                    let unreadHeaderIndex = snapshot.numberOfItems - Int(unreadCount)
+                    if unreadHeaderIndex > 0 && unreadHeaderIndex < (snapshot.numberOfItems) {
+                        let item = snapshot.itemIdentifiers[unreadHeaderIndex]
+                        snapshot.insertItems([MessageRow.unreadCountHeader(Int32(unreadCount))], beforeItem: item)
                     }
                 }
             }
-            // Insert the unread messages header. We insert this header only on first launch to avoid
-            // the header jumping around as new comments come in while the user is viewing the comments - @Dini
-            if let unreadCount = self.feedPost?.unreadCount, unreadCount > 0, isFirstLaunch {
-                let unreadHeaderIndex = snapshot.numberOfItems - Int(unreadCount)
-                if unreadHeaderIndex > 0 && unreadHeaderIndex < (snapshot.numberOfItems) {
-                    let item = snapshot.itemIdentifiers[unreadHeaderIndex]
-                    snapshot.insertItems([MessageRow.unreadCountHeader(Int32(unreadCount))], beforeItem: item)
+            dataSource.apply(snapshot, animatingDifferences: true) { [weak self] in
+                guard let self = self else { return }
+                DispatchQueue.main.async {
+                    self.updateScrollingWhenDataChanges()
+                    self.scrollToTarget(withAnimation: true)
+                    self.isFirstLaunch = false
                 }
             }
-        }
-        dataSource.apply(snapshot, animatingDifferences: true) { [weak self] in
-            guard let self = self else { return }
-            DispatchQueue.main.async {
-                self.updateScrollingWhenDataChanges()
-                self.scrollToTarget(withAnimation: true)
-                self.isFirstLaunch = false
+        case feedPostFetchedResultsController:
+            guard let post = feedPostFetchedResultsController?.fetchedObjects?.first(where: {$0.id == feedPostId }) else { return }
+            if feedPost == nil {
+                feedPost = post
             }
+            switch post.status {
+            case .retracted:
+                if let presentedVC = self.presentedViewController {
+                    presentedVC.dismiss(animated: false) {
+                        self.navigationController?.popViewController(animated: true)
+                    }
+                } else {
+                    self.navigationController?.popViewController(animated: true)
+                }
+            default:
+                break
+            }
+        default:
+            break
         }
     }
     
