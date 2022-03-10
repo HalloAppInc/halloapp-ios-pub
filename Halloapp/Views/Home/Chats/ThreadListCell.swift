@@ -234,9 +234,7 @@ class ThreadListCell: UITableViewCell {
 
         if chatThread.unreadCount > 0 {
             unreadCountView.isHidden = false
-            unreadCountView.label.text = String(chatThread.unreadCount)
-            unreadCountView.label.insetsLayoutMarginsFromSafeArea = true
-            unreadCountView.layoutMargins = UIEdgeInsets(top: 1, left: chatThread.unreadCount >= 10 ? 5 : 1, bottom: 1, right: chatThread.unreadCount >= 10 ? 5 : 1)
+            unreadCountView.count = chatThread.unreadCount
             timeLabel.textColor = .systemBlue
         } else {
             unreadCountView.isHidden = true
@@ -280,7 +278,7 @@ class ThreadListCell: UITableViewCell {
 
         if unreadFeedCount > 0 {
             unreadCountView.isHidden = false
-            unreadCountView.label.text = String(unreadFeedCount)
+            unreadCountView.count = unreadFeedCount
             timeLabel.textColor = .systemBlue
         } else {
             unreadCountView.isHidden = true
@@ -384,7 +382,7 @@ class ThreadListCell: UITableViewCell {
         let label = UILabel()
         label.numberOfLines = 1
         label.font = Constants.TitleFont
-        label.textColor = UIColor.label.withAlphaComponent(0.8)
+        label.textColor = UIColor.label
         label.adjustsFontForContentSizeCategory = true
         return label
     }()
@@ -409,19 +407,17 @@ class ThreadListCell: UITableViewCell {
         return label
     }()
 
-    // 12 points for font
-    private lazy var unreadCountView: UnreadBadgeView = {
-        let view = UnreadBadgeView(frame: .zero)
-        
-        view.label.font = .systemFont(forTextStyle: .caption1, weight: .medium)
-        
-        view.widthAnchor.constraint(greaterThanOrEqualToConstant: 15).isActive = true
-        return view
-    }()
+    private lazy var unreadCountView = UnreadBadgeView()
 
 }
 
 private class UnreadBadgeView: UIView {
+
+    var count: Int32 = 0 {
+        didSet {
+            label.text = String(count)
+        }
+    }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -433,29 +429,32 @@ private class UnreadBadgeView: UIView {
         commonInit()
     }
 
-    var label: UILabel!
-
-    private func commonInit() {
-        backgroundColor = .clear
-        layoutMargins = UIEdgeInsets(top: 1, left: 1, bottom: 1, right: 1)
-
-        let backgroundView = PillView()
-        backgroundView.fillColor = .systemBlue
-        backgroundView.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(backgroundView)
-        backgroundView.constrain(to: self)
-
-        label = UILabel()
+    private let label: UILabel = {
+        let label = UILabel()
+        // 13 points for font
+        label.font = .systemFont(forTextStyle: .caption1, pointSizeChange: 1, weight: .medium)
         label.textAlignment = .center
-        label.textColor = .white
+        label.textColor = .primaryWhiteBlack
         label.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         label.setContentCompressionResistancePriority(.defaultHigh + 10, for: .horizontal)
         label.setContentHuggingPriority(.defaultHigh, for: .vertical)
         label.setContentCompressionResistancePriority(.defaultHigh + 10, for: .vertical)
+        return label
+    }()
+
+    private func commonInit() {
+        backgroundColor = .systemBlue
+        layoutMargins = UIEdgeInsets(top: 3, left: 6, bottom: 3, right: 6)
+
         label.translatesAutoresizingMaskIntoConstraints = false
         addSubview(label)
-        label.widthAnchor.constraint(greaterThanOrEqualTo: label.heightAnchor, multiplier: 1).isActive = true
         label.constrainMargins(to: self)
+        label.widthAnchor.constraint(greaterThanOrEqualTo: label.heightAnchor).isActive = true
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        layer.cornerRadius = min(bounds.height, bounds.width) * 0.5
     }
 }
 
