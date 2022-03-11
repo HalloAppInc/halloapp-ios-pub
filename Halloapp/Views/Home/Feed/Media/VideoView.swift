@@ -171,6 +171,15 @@ fileprivate class TimeSeekView : UIView {
     private var rateObservation: NSKeyValueObservation?
     private var timeObservation: Any?
 
+    private var isSeeking: Bool = false
+    private var wasPlayingBeforeSeek: Bool = false
+    private var isPlaying: Bool {
+        guard let player = player else {
+            return false
+        }
+        return player.rate > 0
+    }
+
     var player: AVPlayer? {
         didSet {
             rateObservation = nil
@@ -246,8 +255,11 @@ fileprivate class TimeSeekView : UIView {
         slider.translatesAutoresizingMaskIntoConstraints = false
         slider.minimumTrackTintColor = .white
         slider.setThumbImage(thumb(radius: 16), for: .normal)
-        slider.addTarget(self, action: #selector(onSliderValueUpdate), for: .valueChanged)
-
+        slider.addTarget(self, action: #selector(onSliderTouchDown), for: .touchDown)
+        slider.addTarget(self, action: #selector(onSliderValueChanged), for: .valueChanged)
+        slider.addTarget(self, action: #selector(onSliderTouchUp), for: .touchUpInside)
+        slider.addTarget(self, action: #selector(onSliderTouchUp), for: .touchUpOutside)
+        slider.addTarget(self, action: #selector(onSliderTouchUp), for: .touchCancel)
         return slider
     } ()
 
@@ -329,16 +341,28 @@ fileprivate class TimeSeekView : UIView {
         playButton.setImage(player.rate > 0 ? pauseIcon : playIcon, for: .normal)
     }
 
-    @objc private func onSliderValueUpdate() {
+    @objc private func onSliderTouchDown() {
+        isSeeking = true
+        if isPlaying {
+            wasPlayingBeforeSeek = true
+            player?.pause()
+        }
+    }
+
+    @objc private func onSliderValueChanged() {
         guard let player = player else { return }
         guard let duration = player.currentItem?.duration else { return }
         guard duration.isNumeric else { return }
 
         let time = CMTimeMultiplyByFloat64(duration, multiplier: Double(slider.value))
         player.seek(to: time)
+    }
 
-        if player.rate > 0 {
-            player.pause()
+    @objc private func onSliderTouchUp() {
+        isSeeking = false
+        if wasPlayingBeforeSeek {
+            wasPlayingBeforeSeek = false
+            player?.play()
         }
     }
 
