@@ -16,6 +16,7 @@ enum UserInterfaceState {
     case initializing
     case registration
     case mainInterface
+    case initial
 }
 
 protocol RootViewControllerDelegate: AnyObject {
@@ -31,7 +32,7 @@ final class RootViewController: UIViewController {
     var primaryViewContainer = UIView()
     var primaryViewController = UIViewController()
 
-    var state: UserInterfaceState = .initializing
+    var state: UserInterfaceState = .initial
     weak var delegate: RootViewControllerDelegate?
 
     override func viewDidLoad() {
@@ -57,8 +58,16 @@ final class RootViewController: UIViewController {
     }
 
     func transition(to newState: UserInterfaceState) {
-        guard newState != state else { return }
-        DDLogInfo("RootViewController/transition [\(newState)]")
+        guard newState != .initial else {
+            DDLogError("RootViewController/transition/aborting [should-not-transition-to-initial-state]")
+            return
+        }
+        guard newState != state else {
+            DDLogInfo("RootViewController/transition/skipping [\(state) == \(newState)]")
+            return
+        }
+
+        DDLogInfo("RootViewController/transition [\(state) => \(newState)]")
         state = newState
 
         // Remove old view
@@ -99,6 +108,9 @@ final class RootViewController: UIViewController {
 
     private func viewController(forUserInterfaceState state: UserInterfaceState) -> UIViewController {
         switch state {
+        case .initial:
+            return UIViewController()
+
         case .initializing:
             return InitializingViewController()
 
