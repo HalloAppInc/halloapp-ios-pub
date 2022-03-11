@@ -305,7 +305,7 @@ public class Call {
                     switch result {
                     case .success(_):
                         state = .connecting
-                        DDLogInfo("Call/\(callID)/start/success: \(sdpInfo)")
+                        DDLogInfo("Call/\(callID)/start/success")
                         DispatchQueue.main.async {
                             completion(true)
                         }
