@@ -432,7 +432,7 @@ private class UnreadBadgeView: UIView {
     private let label: UILabel = {
         let label = UILabel()
         // 13 points for font
-        label.font = .systemFont(forTextStyle: .caption1, pointSizeChange: 1, weight: .medium)
+        label.font = .monospacedDigitSystemFont(ofSize: 13, weight: .medium)
         label.textAlignment = .center
         label.textColor = .primaryWhiteBlack
         label.setContentHuggingPriority(.defaultHigh, for: .horizontal)
@@ -449,7 +449,7 @@ private class UnreadBadgeView: UIView {
         label.translatesAutoresizingMaskIntoConstraints = false
         addSubview(label)
         label.constrainMargins(to: self)
-        label.widthAnchor.constraint(greaterThanOrEqualTo: label.heightAnchor).isActive = true
+        widthAnchor.constraint(greaterThanOrEqualTo: heightAnchor).isActive = true
     }
 
     override func layoutSubviews() {
