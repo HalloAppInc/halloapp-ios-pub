@@ -190,6 +190,7 @@ class MessageCellViewBase: UICollectionViewCell {
         let cryptoResultString: String = FeedItemContentView.obtainCryptoResultString(for: comment.id)
         let feedPostCommentText = comment.text + cryptoResultString
         if !feedPostCommentText.isEmpty  {
+            textLabel.isHidden = false
             let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
                 feedPostCommentText,
                 mentions: Array(comment.mentions ?? Set()))
