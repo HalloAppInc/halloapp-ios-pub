@@ -77,11 +77,11 @@ extension CallMediaType {
 extension Server_EndCall {
     public var cxEndCallReason: CXCallEndedReason {
         switch self.reason {
-        case .timeout:
+        case .timeout, .busy:
             return .unanswered
         case .systemError, .connectionError, .decryptionFailed, .encryptionFailed, .videoUnsupported:
             return .failed
-        case .cancel, .reject, .busy, .callEnd:
+        case .cancel, .reject, .callEnd:
             return .remoteEnded
         case .unknown, .UNRECOGNIZED(_):
             return .failed
