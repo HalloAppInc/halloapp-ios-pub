@@ -1283,6 +1283,7 @@ class ChatData: ObservableObject {
             let messageId: ChatMessageID = message.id
             DDLogInfo("ChatData/mergeSharedData/message/\(messageId)")
 
+            var oldChatMsg: ChatMessage? = nil
             if let existingChatmessage = chatMessage(with: messageId, in: managedObjectContext) {
                 if existingChatmessage.incomingStatus == .rerequesting, [.received, .acked].contains(message.status) {
                     DDLogInfo("ChatData/mergeSharedData/already-exists [\(messageId)] override failed decryption.")
@@ -1290,6 +1291,7 @@ class ChatData: ObservableObject {
                     DDLogError("ChatData/mergeSharedData/already-exists [\(messageId)] dont override/status: \(existingChatmessage.incomingStatusValue)")
                     continue
                 }
+                oldChatMsg = existingChatmessage
             }
 
             // Dont merge messages with invalid status - these messages were interrupted in between by the user.
@@ -1316,7 +1318,16 @@ class ChatData: ObservableObject {
                 chatContext = nil
             }
 
-            let chatMessage = ChatMessage(context: managedObjectContext)
+            // Chat message does not have a unique-id constraint.
+            // So either update an existing message or create a new one.
+            // Dont overwrite timestamp for tombstones.
+            let chatMessage: ChatMessage
+            if let existingChatmessage = oldChatMsg {
+                chatMessage = existingChatmessage
+            } else {
+                chatMessage = ChatMessage(context: managedObjectContext)
+                chatMessage.timestamp = message.timestamp
+            }
             chatMessage.id = messageId
             chatMessage.toUserId = message.toUserId
             chatMessage.fromUserId = message.fromUserId
@@ -1325,7 +1336,6 @@ class ChatData: ObservableObject {
             chatMessage.chatReplyMessageID = chatContext?.chatReplyMessageID
             chatMessage.chatReplyMessageSenderID = chatContext?.chatReplyMessageSenderID
             chatMessage.chatReplyMessageMediaIndex = chatContext?.chatReplyMessageMediaIndex ?? 0
-            chatMessage.timestamp = message.timestamp // is this okay for tombstones?
             chatMessage.serverTimestamp = message.serverTimestamp
             DDLogDebug("ChatData/mergeSharedData/ChatData/\(messageId)/serialId [\(message.serialID)]")
             chatMessage.serialID = message.serialID
@@ -3270,7 +3280,7 @@ extension ChatData {
 
         save(managedObjectContext)
 
-        if isCurrentlyChattingWithUser && isAppActive && (chatMessage.incomingStatus != .unsupported) {
+        if isCurrentlyChattingWithUser && isAppActive && (chatMessage.incomingStatus != .unsupported) && (chatMessage.incomingStatus != .rerequesting) {
             self.sendSeenReceipt(for: chatMessage)
             self.updateChatMessage(with: chatMessage.id) { (chatMessage) in
                 chatMessage.incomingStatus = .haveSeen
