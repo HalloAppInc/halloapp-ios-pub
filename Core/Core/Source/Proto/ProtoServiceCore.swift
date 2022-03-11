@@ -1175,44 +1175,46 @@ extension ProtoServiceCore: CoreService {
     }
 
     private func rerequestGroupFeedItem(contentId: String, groupID: String, authorUserID: UserID, rerequestType: Server_GroupFeedRerequest.RerequestType, contentType: GroupFeedRerequestContentType, completion: @escaping ServiceRequestCompletion<Void>) {
-        guard let fromUserID = credentials?.userID else {
-            DDLogError("ProtoServiceCore/rerequestGroupFeedItem/error no-user-id")
-            completion(.failure(.aborted))
-            return
-        }
-
-        var groupFeedRerequest = Server_GroupFeedRerequest()
-        groupFeedRerequest.gid = groupID
-        groupFeedRerequest.id = contentId
-        groupFeedRerequest.rerequestType = rerequestType
-        groupFeedRerequest.contentType = contentType
-        DDLogInfo("ProtoServiceCore/rerequestGroupFeedItem/\(contentId) rerequesting")
-
-        let packet = Server_Packet.msgPacket(
-            from: fromUserID,
-            to: authorUserID,
-            id: PacketID.generate(),
-            type: .groupchat,
-            rerequestCount: 0,
-            payload: .groupFeedRerequest(groupFeedRerequest))
-
-        guard let packetData = try? packet.serializedData() else {
-            DDLogError("ProtoServiceCore/rerequestGroupFeedItem/\(contentId)/error could not serialize rerequest stanza!")
-            completion(.failure(.malformedRequest))
-            return
-        }
-
-        DispatchQueue.main.async {
-            guard self.isConnected else {
-                DDLogInfo("ProtoServiceCore/rerequestGroupFeedItem/\(contentId) aborting (disconnected)")
-                completion(.failure(.notConnected))
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            guard let fromUserID = self.credentials?.userID else {
+                DDLogError("ProtoServiceCore/rerequestGroupFeedItem/error no-user-id")
+                completion(.failure(.aborted))
                 return
             }
 
-            DDLogInfo("ProtoServiceCore/rerequestGroupFeedItem/\(contentId) sending")
-            self.send(packetData)
-            DDLogInfo("ProtoServiceCore/rerequestGroupFeedItem/\(contentId) success")
-            completion(.success(()))
+            var groupFeedRerequest = Server_GroupFeedRerequest()
+            groupFeedRerequest.gid = groupID
+            groupFeedRerequest.id = contentId
+            groupFeedRerequest.rerequestType = rerequestType
+            groupFeedRerequest.contentType = contentType
+            DDLogInfo("ProtoServiceCore/rerequestGroupFeedItem/\(contentId) rerequesting")
+
+            let packet = Server_Packet.msgPacket(
+                from: fromUserID,
+                to: authorUserID,
+                id: PacketID.generate(),
+                type: .groupchat,
+                rerequestCount: 0,
+                payload: .groupFeedRerequest(groupFeedRerequest))
+
+            guard let packetData = try? packet.serializedData() else {
+                DDLogError("ProtoServiceCore/rerequestGroupFeedItem/\(contentId)/error could not serialize rerequest stanza!")
+                completion(.failure(.malformedRequest))
+                return
+            }
+
+            DispatchQueue.main.async {
+                guard self.isConnected else {
+                    DDLogInfo("ProtoServiceCore/rerequestGroupFeedItem/\(contentId) aborting (disconnected)")
+                    completion(.failure(.notConnected))
+                    return
+                }
+
+                DDLogInfo("ProtoServiceCore/rerequestGroupFeedItem/\(contentId) sending")
+                self.send(packetData)
+                DDLogInfo("ProtoServiceCore/rerequestGroupFeedItem/\(contentId) success")
+                completion(.success(()))
+            }
         }
     }
 
@@ -1260,53 +1262,55 @@ extension ProtoServiceCore: CoreService {
     }
 
     public func sendChatMessage(_ message: ChatMessageProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
-        guard let fromUserID = credentials?.userID, self.isConnected else {
-            DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) skipping (disconnected)")
-            completion(.failure(RequestError.notConnected))
-            return
-        }
-
-        makeChatStanza(message) { chat, error in
-            guard let chat = chat else {
-                completion(.failure(RequestError.malformedRequest))
-                return
-            }
-
-            // Dont send chat messages on encryption errors.
-            if let error = error {
-                DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id)/error \(error)")
-                AppContext.shared.errorLogger?.logError(error)
-                DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) aborted")
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            guard let fromUserID = self.credentials?.userID else {
+                DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) skipping (disconnected)")
                 completion(.failure(RequestError.aborted))
                 return
             }
 
-            let packet = Server_Packet.msgPacket(
-                from: fromUserID,
-                to: message.toUserId,
-                id: message.id,
-                type: .chat,
-                rerequestCount: message.rerequestCount,
-                payload: .chatStanza(chat))
-
-            guard let packetData = try? packet.serializedData() else {
-                AppContext.shared.eventMonitor.count(.encryption(error: .serialization))
-                DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error could not serialize chat message!")
-                completion(.failure(RequestError.malformedRequest))
-                return
-            }
-
-            DispatchQueue.main.async {
-                guard self.isConnected else {
-                    DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) aborting (disconnected)")
-                    completion(.failure(RequestError.notConnected))
+            self.makeChatStanza(message) { chat, error in
+                guard let chat = chat else {
+                    completion(.failure(RequestError.malformedRequest))
                     return
                 }
-                AppContext.shared.eventMonitor.count(.encryption(error: error))
-                DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending encrypted")
-                self.send(packetData)
-                DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) success")
-                completion(.success(()))
+
+                // Dont send chat messages on encryption errors.
+                if let error = error {
+                    DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id)/error \(error)")
+                    AppContext.shared.errorLogger?.logError(error)
+                    DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) aborted")
+                    completion(.failure(RequestError.aborted))
+                    return
+                }
+
+                let packet = Server_Packet.msgPacket(
+                    from: fromUserID,
+                    to: message.toUserId,
+                    id: message.id,
+                    type: .chat,
+                    rerequestCount: message.rerequestCount,
+                    payload: .chatStanza(chat))
+
+                guard let packetData = try? packet.serializedData() else {
+                    AppContext.shared.eventMonitor.count(.encryption(error: .serialization))
+                    DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error could not serialize chat message!")
+                    completion(.failure(RequestError.malformedRequest))
+                    return
+                }
+
+                DispatchQueue.main.async {
+                    guard self.isConnected else {
+                        DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) aborting (disconnected)")
+                        completion(.failure(RequestError.notConnected))
+                        return
+                    }
+                    AppContext.shared.eventMonitor.count(.encryption(error: error))
+                    DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending encrypted")
+                    self.send(packetData)
+                    DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) success")
+                    completion(.success(()))
+                }
             }
         }
     }
@@ -1341,58 +1345,60 @@ extension ProtoServiceCore: CoreService {
     }
 
     public func rerequestMessage(_ messageID: String, senderID: UserID, failedEphemeralKey: Data?, contentType: Server_Rerequest.ContentType, completion: @escaping ServiceRequestCompletion<Void>) {
-        guard let userID = credentials?.userID else {
-            DDLogError("proto/rerequestMessage/error no-user-id")
-            completion(.failure(.notConnected))
-            return
-        }
-        guard let identityKey = AppContext.shared.keyStore.keyBundle()?.identityPublicEdKey else {
-            DDLogError("ProtoService/rerequestMessage/\(messageID)/error could not retrieve identity key")
-            completion(.failure(.aborted))
-            return
-        }
-
-        AppContext.shared.messageCrypter.sessionSetupInfoForRerequest(from: senderID) { setupInfo in
-            guard let setupInfo = setupInfo else {
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            guard let userID = self.credentials?.userID else {
+                DDLogError("proto/rerequestMessage/error no-user-id")
+                completion(.failure(.notConnected))
+                return
+            }
+            guard let identityKey = AppContext.shared.keyStore.keyBundle()?.identityPublicEdKey else {
+                DDLogError("ProtoService/rerequestMessage/\(messageID)/error could not retrieve identity key")
                 completion(.failure(.aborted))
                 return
             }
-            var rerequest = Server_Rerequest()
-            rerequest.id = messageID
-            rerequest.identityKey = identityKey
-            rerequest.signedPreKeyID = Int64(0)
-            rerequest.oneTimePreKeyID = Int64(setupInfo.1)
-            rerequest.sessionSetupEphemeralKey = setupInfo.0
-            rerequest.messageEphemeralKey = failedEphemeralKey ?? Data()
-            rerequest.contentType = contentType
 
-            DDLogInfo("ProtoService/rerequestMessage/\(messageID) rerequesting")
+            AppContext.shared.messageCrypter.sessionSetupInfoForRerequest(from: senderID) { setupInfo in
+                guard let setupInfo = setupInfo else {
+                    completion(.failure(.aborted))
+                    return
+                }
+                var rerequest = Server_Rerequest()
+                rerequest.id = messageID
+                rerequest.identityKey = identityKey
+                rerequest.signedPreKeyID = Int64(0)
+                rerequest.oneTimePreKeyID = Int64(setupInfo.1)
+                rerequest.sessionSetupEphemeralKey = setupInfo.0
+                rerequest.messageEphemeralKey = failedEphemeralKey ?? Data()
+                rerequest.contentType = contentType
 
-            let packet = Server_Packet.msgPacket(
-                from: userID,
-                to: senderID,
-                id: PacketID.generate(),
-                type: .chat,
-                rerequestCount: 0,
-                payload: .rerequest(rerequest))
+                DDLogInfo("ProtoService/rerequestMessage/\(messageID) rerequesting")
 
-            guard let packetData = try? packet.serializedData() else {
-                DDLogError("ProtoServiceCore/rerequestMessage/\(messageID)/error could not serialize rerequest stanza!")
-                completion(.failure(.malformedRequest))
-                return
-            }
+                let packet = Server_Packet.msgPacket(
+                    from: userID,
+                    to: senderID,
+                    id: PacketID.generate(),
+                    type: .chat,
+                    rerequestCount: 0,
+                    payload: .rerequest(rerequest))
 
-            DispatchQueue.main.async {
-                guard self.isConnected else {
-                    DDLogInfo("ProtoServiceCore/rerequestMessage/\(messageID) aborting (disconnected)")
-                    completion(.failure(.notConnected))
+                guard let packetData = try? packet.serializedData() else {
+                    DDLogError("ProtoServiceCore/rerequestMessage/\(messageID)/error could not serialize rerequest stanza!")
+                    completion(.failure(.malformedRequest))
                     return
                 }
 
-                DDLogInfo("ProtoServiceCore/rerequestMessage/\(messageID) sending")
-                self.send(packetData)
-                DDLogInfo("ProtoServiceCore/rerequestMessage/\(messageID) success")
-                completion(.success(()))
+                DispatchQueue.main.async {
+                    guard self.isConnected else {
+                        DDLogInfo("ProtoServiceCore/rerequestMessage/\(messageID) aborting (disconnected)")
+                        completion(.failure(.notConnected))
+                        return
+                    }
+
+                    DDLogInfo("ProtoServiceCore/rerequestMessage/\(messageID) sending")
+                    self.send(packetData)
+                    DDLogInfo("ProtoServiceCore/rerequestMessage/\(messageID) success")
+                    completion(.success(()))
+                }
             }
         }
     }
