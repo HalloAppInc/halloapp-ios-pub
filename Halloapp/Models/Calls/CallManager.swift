@@ -97,21 +97,23 @@ final class CallManager: NSObject, CXProviderDelegate {
     public var callToneToPlay: CallTone {
         didSet {
             DDLogInfo("CallManager/callToneToPlay/didSet: \(callToneToPlay.rawValue)")
-            callTonePlayer?.stop()
-            callTonePlayer = nil
-            switch callToneToPlay {
-            case .none:
-                break
-            case .ringing:
-                playCallRingtone()
-            case .reconnecting:
-                playCallReconnectingtone()
-            case .busy:
-                playCallBusytone()
-            case .hold:
-                playCallHoldtone()
-            case .end:
-                playCallEndtone()
+            DispatchQueue.main.async {
+                self.callTonePlayer?.stop()
+                self.callTonePlayer = nil
+                switch self.callToneToPlay {
+                case .none:
+                    break
+                case .ringing:
+                    self.playCallRingtone()
+                case .reconnecting:
+                    self.playCallReconnectingtone()
+                case .busy:
+                    self.playCallBusytone()
+                case .hold:
+                    self.playCallHoldtone()
+                case .end:
+                    self.playCallEndtone()
+                }
             }
         }
     }
