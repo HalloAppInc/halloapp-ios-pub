@@ -67,8 +67,6 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     static private let messageCellViewMediaReuseIdentifier = "MessageCellViewMedia"
     static private let messageCellViewAudioReuseIdentifier = "MessageCellViewAudio"
     static private let messageCellViewLinkPreviewReuseIdentifier = "MessageCellViewLinkPreview"
- 
-    static private let cellHighlightAnimationDuration = 0.15
 
     private var mediaPickerController: MediaPickerViewController?
     private var cancellableSet: Set<AnyCancellable> = []
@@ -406,7 +404,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
 
     private func resetCommentHighlightingIfNeeded() {
         if let commentId = highlightedCommentId, fetchedResultsController?.fetchedObjects?.firstIndex(where: {$0.id == commentId }) != nil {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
                 guard let self = self else { return }
                 self.unhighlightComment(commentId)
             }
@@ -417,7 +415,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     private func unhighlightComment(_ commentId: FeedPostCommentID) {
         for cell in collectionView.visibleCells.compactMap({ $0 as? MessageCellViewBase }) {
             if cell.feedPostComment?.id == commentId && cell.isCellHighlighted {
-                UIView.animate(withDuration: Self.cellHighlightAnimationDuration) {
+                UIView.animate(withDuration: 0.25) {
                     cell.isCellHighlighted = false
                 }
             }
@@ -678,6 +676,9 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     // MARK: Scrolling and Highlighting
 
     private func updateScrollingWhenDataChanges() {
+        if highlightedCommentId != nil {
+            return
+        }
         // When data changes, if the jump button is not visible, the user is viewing the bottom of the comments,
         // we scroll to bottom so they can see the new comments as they come in.
         guard !jumpButton.isHidden else {
@@ -745,18 +746,20 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                 return
             }
             let commentObj = fetchedResultsController?.fetchedObjects?[index]
-            if let commentObj = commentObj, let indexp = fetchedResultsController?.indexPath(forObject: commentObj) {
-                DDLogDebug("FlatCommentsView/scroll/scrolling/toComment: \(commentId)")
+            if let commentObj = commentObj, let indexp = dataSource.indexPath(for: messagerow(for: commentObj)) {
+               DDLogDebug("FlatCommentsView/scroll/scrolling/toComment: \(commentId)")
                 collectionView.scrollToItem(at: indexp, at: .centeredVertically, animated: animated)
                 // if this comment needs to be highlighted after scroll, reset commentToScrollTo after highlighting
                 if let highlightedCommentId = highlightedCommentId, highlightedCommentId == commentId {
+                    DDLogDebug("FlatCommentsView/scroll/highlighting/called/toComment: \(commentId)")
                     guard let cell = collectionView.cellForItem(at: indexp) as? MessageCellViewBase else { return }
                         DDLogDebug("FlatCommentsView/scroll/highlighting/toComment: \(commentId)")
-                    UIView.animate(withDuration: Self.cellHighlightAnimationDuration) {
+                    UIView.animate(withDuration: 0.5) {
                         cell.isCellHighlighted = true
+                    } completion: { _ in
+                        self.resetCommentHighlightingIfNeeded()
                     }
                     commentToScrollTo = nil
-                    resetCommentHighlightingIfNeeded()
                 } else {
                     // comment does not need highlighting, we can safely reset commentToScrollTo
                     commentToScrollTo = nil

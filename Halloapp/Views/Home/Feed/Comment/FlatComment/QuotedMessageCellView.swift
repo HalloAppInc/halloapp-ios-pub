@@ -12,13 +12,14 @@ import Combine
 import UIKit
 
 fileprivate struct Constants {
-    static let QuotedMediaSize: CGFloat = 40
+    static let QuotedMediaSize: CGFloat = 45
 }
 
 class QuotedMessageCellView: UIView {
 
     private var imageLoadingCancellable: AnyCancellable?
     lazy var mediaWidthConstraint = mediaView.widthAnchor.constraint(equalToConstant: Constants.QuotedMediaSize)
+    lazy var mediaWidthConstraintHidden = mediaView.widthAnchor.constraint(equalToConstant: 0)
     lazy var mediaHeightConstraint = mediaView.heightAnchor.constraint(equalToConstant: Constants.QuotedMediaSize)
 
     var hasMedia: Bool = false  {
@@ -39,7 +40,7 @@ class QuotedMessageCellView: UIView {
         mediaView.isHidden = true
         mediaView.contentMode = .scaleAspectFill
         mediaView.clipsToBounds = true
-        mediaView.layer.cornerRadius = 8
+        mediaView.layer.cornerRadius = 4
         return mediaView
     }()
     
@@ -48,11 +49,11 @@ class QuotedMessageCellView: UIView {
         let textLabel = UILabel()
         textLabel.isUserInteractionEnabled = true
         textLabel.backgroundColor = .clear
-        textLabel.font = UIFont.systemFont(ofSize: 12)
+        textLabel.font = UIFont.systemFont(ofSize: 13)
         textLabel.translatesAutoresizingMaskIntoConstraints = false
         textLabel.isHidden = true
         textLabel.numberOfLines = 2
-        textLabel.textColor = UIColor.chatTime
+        textLabel.textColor = UIColor.timeHeaderText
         textLabel.setContentHuggingPriority(.defaultHigh, for: .vertical)
         return textLabel
     }()
@@ -68,7 +69,7 @@ class QuotedMessageCellView: UIView {
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-        label.font = UIFont.boldSystemFont(ofSize: 12)
+        label.font = UIFont.boldSystemFont(ofSize: 13)
         label.textColor = .secondaryLabel.withAlphaComponent(0.2)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -84,19 +85,29 @@ class QuotedMessageCellView: UIView {
         vStack.isLayoutMarginsRelativeArrangement = true
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.spacing = 2
+        vStack.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 8)
+        vStack.isLayoutMarginsRelativeArrangement = true
         // Set bubble background
         vStack.insertSubview(bubbleView, at: 0)
         return vStack
     }()
 
+    private lazy var mediaTextView: UIView = {
+        let mediaTextView = UIView()
+        mediaTextView.translatesAutoresizingMaskIntoConstraints = false
+        mediaTextView.addSubview(mediaView)
+        mediaTextView.addSubview(nameTextRow)
+        return mediaTextView
+    }()
+
     private lazy var quotedView: UIStackView = {
-        let quotedView = UIStackView(arrangedSubviews: [mediaView, nameTextRow])
+        let quotedView = UIStackView(arrangedSubviews: [mediaTextView])
         quotedView.axis = .horizontal
         quotedView.alignment = .fill
-        quotedView.layoutMargins = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
+        quotedView.layoutMargins = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
         quotedView.isLayoutMarginsRelativeArrangement = true
         quotedView.translatesAutoresizingMaskIntoConstraints = false
-        quotedView.spacing = 5
+        quotedView.spacing = 10
         // Set bubble background
         quotedView.insertSubview(bubbleView, at: 0)
         return quotedView
@@ -118,8 +129,14 @@ class QuotedMessageCellView: UIView {
         quotedView.constrain([.top, .leading, .bottom, .trailing], to: self)
         bubbleView.constrain([.top, .leading, .bottom, .trailing], to: quotedView)
         NSLayoutConstraint.activate([
-            mediaWidthConstraint,
-            mediaHeightConstraint
+            mediaHeightConstraint,
+            mediaView.leadingAnchor.constraint(equalTo: mediaTextView.leadingAnchor),
+            mediaView.trailingAnchor.constraint(equalTo: nameTextRow.leadingAnchor, constant: -8),
+            mediaView.topAnchor.constraint(equalTo: mediaTextView.topAnchor),
+            mediaView.bottomAnchor.constraint(equalTo: mediaTextView.bottomAnchor),
+            nameTextRow.centerYAnchor.constraint(equalTo: mediaTextView.centerYAnchor),
+            nameTextRow.trailingAnchor.constraint(equalTo: mediaTextView.trailingAnchor),
+            nameTextRow.trailingAnchor.constraint(equalTo: mediaTextView.trailingAnchor)
         ])
     }
     
@@ -134,16 +151,17 @@ class QuotedMessageCellView: UIView {
         configureText(comment: comment)
         configureMedia(comment: comment)
         configureCell()
-
         textLabel.textColor = UIColor.quotedMessageText
     }
 
     // Adjusting constraint priorities here in a single place to be able to easily see relative priorities.
     private func configureCell() {
         if hasMedia {
-            mediaHeightConstraint.priority = UILayoutPriority.defaultHigh
+            mediaWidthConstraint.isActive = true
+            mediaWidthConstraintHidden.isActive = false
         } else {
-            mediaHeightConstraint.priority = UILayoutPriority.defaultLow
+            mediaWidthConstraintHidden.isActive = true
+            mediaWidthConstraint.isActive = false
         }
     }
 

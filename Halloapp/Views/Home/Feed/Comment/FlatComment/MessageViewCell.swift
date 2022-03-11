@@ -23,11 +23,13 @@ class MessageViewCell: MessageCellViewBase {
 
     var MaxWidthOfMessageBubble: CGFloat { return contentView.bounds.width * 0.8 }
     var MinWidthOfMessageBubble: CGFloat { return contentView.bounds.width * 0.2 }
-    var MinWidthOfQuotedMessageBubble: CGFloat { return contentView.bounds.width * 0.6 }
+    var MinWidthOfQuotedMediaMessageBubble: CGFloat { return contentView.bounds.width * 0.6 }
+    var MinWidthOfQuotedMessageBubble: CGFloat { return contentView.bounds.width * 0.4 }
     var MediaViewDimention: CGFloat { return 238.0 }
 
     lazy var mediaWidthConstraint = mediaCarouselView.widthAnchor.constraint(equalToConstant: MediaViewDimention)
     lazy var mediaHeightConstraint = mediaCarouselView.heightAnchor.constraint(equalToConstant: MediaViewDimention)
+    lazy var quotedMediaMessageMinWidthConstraint = quotedMessageView.widthAnchor.constraint(greaterThanOrEqualToConstant: CGFloat(MinWidthOfQuotedMediaMessageBubble).rounded())
     lazy var quotedMessageMinWidthConstraint = quotedMessageView.widthAnchor.constraint(greaterThanOrEqualToConstant: CGFloat(MinWidthOfQuotedMessageBubble).rounded())
 
     var hasMedia: Bool = false  {
@@ -170,8 +172,7 @@ class MessageViewCell: MessageCellViewBase {
             rightAlignedConstraint,
             leftAlignedConstraint,
             mediaWidthConstraint,
-            mediaHeightConstraint,
-            quotedMessageMinWidthConstraint
+            mediaHeightConstraint
         ])
     }
 
@@ -251,11 +252,14 @@ class MessageViewCell: MessageCellViewBase {
     private func updateMediaConstraints() {
         mediaWidthConstraint.isActive = false
         mediaHeightConstraint.isActive = false
+        quotedMediaMessageMinWidthConstraint.isActive = false
         quotedMessageMinWidthConstraint.isActive = false
         if hasMedia || hasAudio {
             mediaWidthConstraint.isActive = true
         } else if (hasQuotedComment && quotedMessageView.hasMedia) ||  hasLinkPreview {
             // If quoted comments have media, set the min width of the comment.
+            quotedMediaMessageMinWidthConstraint .isActive = true
+        } else if (hasQuotedComment && !quotedMessageView.hasMedia) {
             quotedMessageMinWidthConstraint .isActive = true
         }
         if hasMedia {

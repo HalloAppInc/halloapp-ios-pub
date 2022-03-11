@@ -30,8 +30,15 @@ class MessageHeaderView: UIView {
         let subView = UIView(frame: view.bounds)
         subView.backgroundColor = UIColor.timeHeaderBackground
         subView.layer.cornerRadius = 10
-        subView.layer.masksToBounds = true
+        subView.layer.masksToBounds = false
         subView.translatesAutoresizingMaskIntoConstraints = false
+        subView.layer.borderWidth = 0
+        subView.layer.borderColor = UIColor.black.withAlphaComponent(0.18).cgColor
+        subView.layer.shadowColor = UIColor.black.cgColor
+        subView.layer.shadowOpacity = 0.08
+        subView.layer.shadowOffset = CGSize(width: 0, height: 1)
+        subView.layer.shadowRadius = 0
+
         view.insertSubview(subView, at: 0)
         subView.constrain(to: view)
         return view

@@ -125,10 +125,14 @@ class MessageCellViewBase: UICollectionViewCell {
         view.isHidden = true
         return view
     }()
-    
+
     var isCellHighlighted: Bool = false {
         didSet {
-            self.backgroundColor = isCellHighlighted ? UIColor.systemBlue.withAlphaComponent(0.1) : .clear
+            if isCellHighlighted {
+                bubbleView.backgroundColor = .systemGray4
+            } else {
+                bubbleView.backgroundColor = isOwnMessage ? UIColor.messageOwnBackground : UIColor.messageNotOwnBackground
+            }
         }
     }
     
