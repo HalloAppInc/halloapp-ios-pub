@@ -26,8 +26,6 @@ class MessageViewCell: MessageCellViewBase {
     var MinWidthOfQuotedMessageBubble: CGFloat { return contentView.bounds.width * 0.6 }
     var MediaViewDimention: CGFloat { return 238.0 }
 
-    lazy var rightAlignedConstraint = messageRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
-    lazy var leftAlignedConstraint = messageRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor)
     lazy var mediaWidthConstraint = mediaCarouselView.widthAnchor.constraint(equalToConstant: MediaViewDimention)
     lazy var mediaHeightConstraint = mediaCarouselView.heightAnchor.constraint(equalToConstant: MediaViewDimention)
     lazy var quotedMessageMinWidthConstraint = quotedMessageView.widthAnchor.constraint(greaterThanOrEqualToConstant: CGFloat(MinWidthOfQuotedMessageBubble).rounded())
@@ -238,28 +236,15 @@ class MessageViewCell: MessageCellViewBase {
         textLabel.attributedText = attributedString.with(font: UIFont.preferredFont(forTextStyle: .subheadline).withItalicsIfAvailable, color: .secondaryLabel)
         textLabel.textColor = UIColor.chatTime
     }
-    
+
     // Adjusting constraint priorities here in a single place to be able to easily see relative priorities.
-    private func configureCell() {
+    override func configureCell() {
+        super.configureCell()
         updateMediaConstraints()
         if isOwnMessage {
-            bubbleView.backgroundColor = UIColor.messageOwnBackground
-            textLabel.textColor = UIColor.messageOwnText
-            nameRow.isHidden = true
-            rightAlignedConstraint.priority = UILayoutPriority(800)
-            leftAlignedConstraint.priority = UILayoutPriority(1)
             quotedMessageView.bubbleView.backgroundColor = UIColor.quotedMessageOwnBackground
         } else {
-            bubbleView.backgroundColor = UIColor.messageNotOwnBackground
-            textLabel.textColor = UIColor.messageNotOwnText
-            rightAlignedConstraint.priority = UILayoutPriority(1)
-            leftAlignedConstraint.priority = UILayoutPriority(800)
             quotedMessageView.bubbleView.backgroundColor = UIColor.quotedMessageNotOwnBackground
-            if isPreviousMessageOwnMessage {
-                messageRow.layoutMargins = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
-            } else {
-                messageRow.layoutMargins = UIEdgeInsets(top: 3, left: 10, bottom: 3, right: 10)
-            }
         }
     }
 

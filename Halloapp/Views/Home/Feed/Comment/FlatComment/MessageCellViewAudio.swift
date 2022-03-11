@@ -15,8 +15,6 @@ class MessageCellViewAudio: MessageCellViewBase {
     private var audioMediaStatusCancellable: AnyCancellable?
 
     var AudioViewWidth: CGFloat { return contentView.bounds.width * 0.5 }
-    lazy var rightAlignedConstraint = messageRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
-    lazy var leftAlignedConstraint = messageRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor)
 
     // MARK: Audio Media
     
@@ -140,28 +138,12 @@ class MessageCellViewAudio: MessageCellViewBase {
     }
     
     // Adjusting constraint priorities here in a single place to be able to easily see relative priorities.
-    private func configureCell() {
+    override func configureCell() {
+        super.configureCell()
         if isOwnMessage {
-            bubbleView.backgroundColor = UIColor.messageOwnBackground
-            textLabel.textColor = UIColor.messageOwnText
-            nameRow.isHidden = true
-            rightAlignedConstraint.priority = UILayoutPriority(800)
-            leftAlignedConstraint.priority = UILayoutPriority(1)
             nameContentTimeRow.layoutMargins =  UIEdgeInsets(top: 16, left: 6, bottom: 6, right: 6)
         } else {
-            bubbleView.backgroundColor = UIColor.messageNotOwnBackground
-            textLabel.textColor = UIColor.messageNotOwnText
-            rightAlignedConstraint.priority = UILayoutPriority(1)
-            leftAlignedConstraint.priority = UILayoutPriority(800)
-            if let userId = feedPostComment?.userId {
-                nameLabel.text =  MainAppContext.shared.contactStore.fullName(for: userId)
-            }
             nameContentTimeRow.layoutMargins =  UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
-            if isPreviousMessageOwnMessage {
-                messageRow.layoutMargins = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
-            } else {
-                messageRow.layoutMargins = UIEdgeInsets(top: 3, left: 10, bottom: 3, right: 10)
-            }
         }
     }
 }

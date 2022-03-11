@@ -12,9 +12,6 @@ import UIKit
 class MessageCellViewMedia: MessageCellViewBase {
 
     var MediaViewDimention: CGFloat { return 238.0 }
-
-    lazy var rightAlignedConstraint = messageRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
-    lazy var leftAlignedConstraint = messageRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor)
     
     // MARK: Media
 
@@ -72,30 +69,7 @@ class MessageCellViewMedia: MessageCellViewBase {
         super.configureWithComment(comment: comment, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
         configureText(comment: comment)
         configureMedia(comment: comment)
-        configureCell()
-    }
-    
-    // Adjusting constraint priorities here in a single place to be able to easily see relative priorities.
-    private func configureCell() {
-        if isOwnMessage {
-            bubbleView.backgroundColor = UIColor.messageOwnBackground
-            nameRow.isHidden = true
-            rightAlignedConstraint.priority = UILayoutPriority(800)
-            leftAlignedConstraint.priority = UILayoutPriority(1)
-        } else {
-            bubbleView.backgroundColor = UIColor.messageNotOwnBackground
-            nameRow.isHidden = false
-            if let userId = feedPostComment?.userId {
-                nameLabel.text =  MainAppContext.shared.contactStore.fullName(for: userId)
-            }
-            rightAlignedConstraint.priority = UILayoutPriority(1)
-            leftAlignedConstraint.priority = UILayoutPriority(800)
-        }
-        if isPreviousMessageOwnMessage {
-            messageRow.layoutMargins = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
-        } else {
-            messageRow.layoutMargins = UIEdgeInsets(top: 3, left: 10, bottom: 3, right: 10)
-        }
+        super.configureCell()
     }
  
     private func configureMedia(comment: FeedPostComment) {

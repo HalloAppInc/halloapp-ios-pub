@@ -11,6 +11,9 @@ import UIKit
 
 class MessageCellViewBase: UICollectionViewCell {
 
+    lazy var rightAlignedConstraint = messageRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
+    lazy var leftAlignedConstraint = messageRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor)
+
     var feedPostComment: FeedPostComment?
     public var isOwnMessage: Bool = false
     public var isPreviousMessageOwnMessage: Bool = false
@@ -151,10 +154,10 @@ class MessageCellViewBase: UICollectionViewCell {
         vStack.insertSubview(bubbleView, at: 0)
         
         NSLayoutConstraint.activate([
-            bubbleView.leadingAnchor.constraint(equalTo: vStack.leadingAnchor, constant: 1),
-            bubbleView.topAnchor.constraint(equalTo: vStack.topAnchor, constant: 1),
-            bubbleView.bottomAnchor.constraint(equalTo: vStack.bottomAnchor, constant: -1),
-            bubbleView.trailingAnchor.constraint(equalTo: vStack.trailingAnchor, constant: 1),
+            bubbleView.leadingAnchor.constraint(equalTo: vStack.leadingAnchor),
+            bubbleView.topAnchor.constraint(equalTo: vStack.topAnchor),
+            bubbleView.bottomAnchor.constraint(equalTo: vStack.bottomAnchor),
+            bubbleView.trailingAnchor.constraint(equalTo: vStack.trailingAnchor),
         ])
         return vStack
     }()
@@ -215,6 +218,28 @@ class MessageCellViewBase: UICollectionViewCell {
         userNameColorAssignment = userColorAssignment
         nameLabel.textColor = userNameColorAssignment
         timeLabel.text = comment.timestamp.chatTimestamp()
+    }
+
+    func configureCell() {
+        if isOwnMessage {
+            bubbleView.backgroundColor = UIColor.messageOwnBackground
+            nameRow.isHidden = true
+            rightAlignedConstraint.priority = UILayoutPriority(800)
+            leftAlignedConstraint.priority = UILayoutPriority(1)
+        } else {
+            bubbleView.backgroundColor = UIColor.messageNotOwnBackground
+            nameRow.isHidden = false
+            if let userId = feedPostComment?.userId {
+                nameLabel.text =  MainAppContext.shared.contactStore.fullName(for: userId)
+            }
+            rightAlignedConstraint.priority = UILayoutPriority(1)
+            leftAlignedConstraint.priority = UILayoutPriority(800)
+        }
+        if isPreviousMessageOwnMessage {
+            messageRow.layoutMargins = UIEdgeInsets(top: 2, left: 10, bottom: 2, right: 10)
+        } else {
+            messageRow.layoutMargins = UIEdgeInsets(top: 3, left: 10, bottom: 3, right: 10)
+        }
     }
 }
 
