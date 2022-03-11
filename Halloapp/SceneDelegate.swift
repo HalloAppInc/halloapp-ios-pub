@@ -150,23 +150,21 @@ extension SceneDelegate: UIWindowSceneDelegate {
 
         cancellables.insert(
             MainAppContext.shared.callManager.isAnyCallOngoing.sink { call in
-                DispatchQueue.main.async {
-                    if UIApplication.shared.applicationState == .background {
-                        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
-                        if call == nil {
-                            appDelegate.beginBackgroundConnectionTask()
-                        } else {
-                            appDelegate.endBackgroundConnectionTask()
-                            appDelegate.resumeMediaDownloads()
-                        }
-                    }
-
+                if UIApplication.shared.applicationState == .background {
+                    guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
                     if call == nil {
-                        // Animate call bar out if visible or hide it immediately if root VC is hidden
-                        self.rootViewController.updateCallUI(with: call, animated: self.callViewController == nil)
-                        self.hideCallViewController()
-                        self.callViewController = nil
+                        appDelegate.beginBackgroundConnectionTask()
+                    } else {
+                        appDelegate.endBackgroundConnectionTask()
+                        appDelegate.resumeMediaDownloads()
                     }
+                }
+
+                if call == nil {
+                    // Animate call bar out if visible or hide it immediately if root VC is hidden
+                    self.rootViewController.updateCallUI(with: call, animated: self.callViewController == nil)
+                    self.hideCallViewController()
+                    self.callViewController = nil
                 }
         })
 

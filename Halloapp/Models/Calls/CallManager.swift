@@ -84,11 +84,9 @@ final class CallManager: NSObject, CXProviderDelegate {
                 callToneToPlay = .none
                 activeCallWaitingForOffer = false
             }
-            isAnyCallOngoing.send(activeCall)
-
-            let hasActiveCall = activeCall != nil
-            DispatchQueue.main.async {
-                self.hasActiveCallPublisher.send(hasActiveCall)
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                self.isAnyCallOngoing.send(self.activeCall)
             }
         }
     }
@@ -157,8 +155,7 @@ final class CallManager: NSObject, CXProviderDelegate {
         return activeCall != nil
     }
 
-    public let hasActiveCallPublisher = CurrentValueSubject<Bool, Never>(false)
-    public let isAnyCallOngoing = PassthroughSubject<Call?, Never>()
+    public let isAnyCallOngoing = CurrentValueSubject<Call?, Never>(nil)
     public let didCallFail = PassthroughSubject<Void, Never>()
     public let didCallComplete = PassthroughSubject<CallID, Never>()
     // TODO: maybe we should just try and have a delegate

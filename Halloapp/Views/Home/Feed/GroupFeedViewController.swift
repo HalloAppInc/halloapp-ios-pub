@@ -116,8 +116,11 @@ class GroupFeedViewController: FeedCollectionViewController {
             }
         )
 
-        cancellableSet.insert(MainAppContext.shared.callManager.hasActiveCallPublisher.sink(receiveValue: { [weak self] hasActiveCall in
+        cancellableSet.insert(MainAppContext.shared.callManager.isAnyCallOngoing.sink(receiveValue: { [weak self] activeCall in
+            let hasActiveCall = activeCall != nil
+            let isVideoCallOngoing = activeCall?.isVideoCall ?? false
             self?.composeVoiceNoteButton?.button.isEnabled = !hasActiveCall
+            self?.composeCamPostButton?.button.isEnabled = !isVideoCallOngoing
         }))
         
         if let idForScroll = feedPostIdToScrollTo, scrollTo(postId: idForScroll) == true {
@@ -302,8 +305,15 @@ class GroupFeedViewController: FeedCollectionViewController {
     // MARK: New post
 
     private var composeVoiceNoteButton: FloatingMenuButton?
+    private var composeCamPostButton: FloatingMenuButton?
 
     private lazy var floatingMenu: FloatingMenu = {
+        let camButton = FloatingMenuButton.standardActionButton(
+            iconTemplate: UIImage(named: "icon_fab_compose_camera")?.withRenderingMode(.alwaysTemplate),
+            accessibilityLabel: Localizations.fabAccessibilityCamera,
+            action: { [weak self] in self?.presentNewPostViewController(source: .camera) })
+        composeCamPostButton = camButton
+
         var expandedButtons: [FloatingMenuButton] = [
             .standardActionButton(
                 iconTemplate: UIImage(named: "icon_fab_compose_image")?.withRenderingMode(.alwaysTemplate),
@@ -313,10 +323,7 @@ class GroupFeedViewController: FeedCollectionViewController {
                 iconTemplate: UIImage(named: "icon_fab_compose_text")?.withRenderingMode(.alwaysTemplate),
                 accessibilityLabel: Localizations.fabAccessibilityTextPost,
                 action: { [weak self] in self?.presentNewPostViewController(source: .noMedia) }),
-            .standardActionButton(
-                iconTemplate: UIImage(named: "icon_fab_compose_camera")?.withRenderingMode(.alwaysTemplate),
-                accessibilityLabel: Localizations.fabAccessibilityCamera,
-                action: { [weak self] in self?.presentNewPostViewController(source: .camera) }),
+            camButton
         ]
 
         if ServerProperties.isVoicePostsEnabled {

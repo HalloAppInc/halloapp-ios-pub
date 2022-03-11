@@ -116,6 +116,10 @@ public class Call {
     var isMissedCall: Bool {
         return !isOutgoing && !isAnswered
     }
+    var isVideoCall: Bool {
+        return type == .video
+    }
+
     var isOnHold: Bool = false
     // keep track on whether we can play ringtone or not - irrespective of the state of the call.
     var canPlayRingtone: Bool = false

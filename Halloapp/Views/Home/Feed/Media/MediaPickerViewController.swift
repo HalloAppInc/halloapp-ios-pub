@@ -13,6 +13,7 @@ import Foundation
 import PhotosUI
 import UIKit
 import AuthenticationServices
+import Combine
 
 private extension Localizations {
     static var photoAccessDeniedTitle: String {
@@ -100,6 +101,7 @@ class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
     private var updatingSnapshot = false
     private var nextInProgress = false
     private var originalMedia: [PendingMedia] = []
+    private var cameraButton: UIBarButtonItem? = nil
 
 
     private lazy var collectionView: UICollectionView = {
@@ -225,6 +227,8 @@ class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
 
         return bubble
     }()
+
+    private var isAnyCallOngoingCancellable: AnyCancellable?
     
     init(filter: MediaPickerFilter = .all, multiselect: Bool = true, camera: Bool = false, selected: [PendingMedia] = [] , didFinish: @escaping MediaPickerViewControllerCallback) {
         self.originalMedia.append(contentsOf: selected)
@@ -266,6 +270,11 @@ class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
 
         PHPhotoLibrary.shared().register(self)
         fetchAssets()
+
+        isAnyCallOngoingCancellable = MainAppContext.shared.callManager.isAnyCallOngoing.sink { [weak self] activeCall in
+            let isVideoCallOngoing = activeCall?.isVideoCall ?? false
+            self?.cameraButton?.isEnabled = !isVideoCallOngoing
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -401,9 +410,12 @@ class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
 
         var buttons = [UIBarButtonItem]()
         if camera {
+            let isVideoCallOngoing = MainAppContext.shared.callManager.activeCall?.isVideoCall ?? false
             let cameraIcon = UIImage(systemName: "camera.fill", withConfiguration: UIImage.SymbolConfiguration(scale: .large))
-            let cameraButton = UIBarButtonItem(image: cameraIcon, style: .done, target: self, action: #selector(cameraAction))
-            buttons.append(cameraButton)
+            let camButton = UIBarButtonItem(image: cameraIcon, style: .done, target: self, action: #selector(cameraAction))
+            cameraButton = camButton
+            cameraButton?.isEnabled = !isVideoCallOngoing
+            buttons.append(camButton)
         }
 
         navigationItem.rightBarButtonItems = buttons

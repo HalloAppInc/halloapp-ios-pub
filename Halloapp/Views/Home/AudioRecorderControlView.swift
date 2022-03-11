@@ -180,7 +180,7 @@ class AudioRecorderControlView: UIView {
     private let actionActivationThreshold: CGFloat = 90
     private let actionDoneThreshold: CGFloat = 105
 
-    private var hasActiveCallCancellable: AnyCancellable?
+    private var isAnyCallOngoingCancellable: AnyCancellable?
 
     init(configuration: Configuration) {
         self.configuration = configuration
@@ -205,10 +205,11 @@ class AudioRecorderControlView: UIView {
         lockButtonVertical.isActive = true
         cancelButtonHorizontal.isActive = true
 
-        hasActiveCallCancellable = MainAppContext.shared.callManager.hasActiveCallPublisher.sink { [weak self] hasActiveCall in
+        isAnyCallOngoingCancellable = MainAppContext.shared.callManager.isAnyCallOngoing.sink { [weak self] activeCall in
             guard let self = self else {
                 return
             }
+            let hasActiveCall = activeCall != nil
             self.mainButton.alpha = hasActiveCall ? 0.42 : 1
             self.isUserInteractionEnabled = !hasActiveCall
         }

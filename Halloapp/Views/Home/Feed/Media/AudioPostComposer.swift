@@ -243,12 +243,13 @@ class AudioComposerRecorder: NSObject, ObservableObject {
 
     @Published var voiceNote: PendingMedia?
 
-    private var hasActiveCallCancellable: AnyCancellable?
+    private var isAnyCallOngoingCancellable: AnyCancellable?
 
     override init() {
         super.init()
 
-        hasActiveCallCancellable = MainAppContext.shared.callManager.hasActiveCallPublisher.sink { [weak self] hasActiveCall in
+        isAnyCallOngoingCancellable = MainAppContext.shared.callManager.isAnyCallOngoing.sink { [weak self] activeCall in
+            let hasActiveCall = activeCall != nil
             self?.canRecord = !hasActiveCall
         }
     }
