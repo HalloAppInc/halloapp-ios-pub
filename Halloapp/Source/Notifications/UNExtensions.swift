@@ -220,7 +220,21 @@ extension Localizations {
     static var newAudioNoteNotificationBody: String {
         NSLocalizedString(
             "notification.voicenote",
-            value: "🎤 Voice note",
+            value: "🎤 Audio note",
+            comment: "New post notification text when post is a voice note.")
+    }
+
+    static var newAudioPostNotificationBody: String {
+        NSLocalizedString(
+            "notification.voicepost",
+            value: "🎤 Audio post",
+            comment: "New post notification text when post is a voice note.")
+    }
+
+    static var newAudioCommentNotificationBody: String {
+        NSLocalizedString(
+            "notification.voicecomment",
+            value: "🎤 Audio comment",
             comment: "New post notification text when post is a voice note.")
     }
 

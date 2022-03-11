@@ -572,7 +572,7 @@ class NotificationMetadata: Codable {
             }
         case .voiceNote:
             subtitle = newPostString
-            body = ""
+            body = Localizations.newAudioPostNotificationBody
         case .none, .retracted, .unsupported(_), .waiting:
             subtitle = ""
             body = newPostString
@@ -602,7 +602,7 @@ class NotificationMetadata: Codable {
             }
             body = String(format: Localizations.newCommentWithTextNotificationBody, commentText)
         case .voiceNote(_):
-            body = String(format: Localizations.newCommentWithTextNotificationBody, Localizations.newAudioNoteNotificationBody)
+            body = String(format: Localizations.newCommentWithTextNotificationBody, Localizations.newAudioCommentNotificationBody)
         case .none, .retracted, .unsupported, .waiting:
             body = newCommentString
         }
