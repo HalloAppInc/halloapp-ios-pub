@@ -154,6 +154,15 @@
 /* Title for call history event. Appears next to details of a missed call. */
 "call.history.voice.call.missed" = "Chamada de voz perdida";
 
+/* Status display when user mutes their own audio during a call. */
+"call.mute.local.audio" = "microfone está desligado";
+
+/* Status display when user mutes their own audio and video during a call. */
+"call.mute.local.audio.video" = "câmera e microfone estão desligados";
+
+/* Status display when user mutes their own video during a call. */
+"call.mute.local.video" = "a câmera está desligada";
+
 /* Status display when peer mutes audio during a call. */
 "call.mute.remote.audio" = "%@ silenciou esta chamada";
 
@@ -734,7 +743,7 @@
 "group.invite.title" = "Convite de grupo";
 
 /* Title of invite sheet */
-"group.invitesheet.title" = "Compartilhe este link com amigos e familiares e eles se juntarão automaticamente ao HalloApp";
+"group.invitesheet.title" = "Compartilhe este link com amigos e familiares e eles se juntarão automaticamente a este grupo no HalloApp";
 
 /* Section header describing options to share link */
 "group.invitesheet.use.link.via" = "Compartilhar link usando…";
@@ -1028,7 +1037,13 @@
 "notification.voicecall.missed" = "Chamada de voz perdida";
 
 /* New post notification text when post is a voice note. */
+"notification.voicecomment" = "🎤 Comentário em áudio";
+
+/* New post notification text when post is a voice note. */
 "notification.voicenote" = "🎤 Nota de voz";
+
+/* New post notification text when post is a voice note. */
+"notification.voicepost" = "🎤 Postagem de áudio";
 
 /* Text for new user popup pointing at activity center icon */
 "nux.activity.center.icon" = "Hallo!";
@@ -1111,6 +1126,9 @@
 /* Generic setting value telling how many contacts are blocked or muted. */
 "privacy.n.contacts" = "privacidade.n.contatos";
 
+/* Error banner displayed when there is a failure syncing preivacy settings, displayed on the privacy view */
+"privacy.sync.failure" = "Falha ao sincronizar as configurações de privacidade. Por favor, tente novamente mais tarde.";
+
 /* Title for the button allowing to delete current profile photo. */
 "profile.delete.photo" = "Excluir foto";
 
@@ -1119,7 +1137,7 @@
 
 /* This is a verb.  The text is clickable, under a contact name and starts a video call with that contact. It should not be translated as a noun.
    This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun. */
-"profile.header.call.user" = "ligar";
+"profile.header.call.user" = "chamada de voz";
 
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
 "profile.header.message.user" = "Mensagem \n";
@@ -1174,6 +1192,9 @@
 
 /* Title for the screen allowing to edit profile name */
 "profile.title.your.name" = "Seu nome";
+
+/* Title for the button allowing the user to view their own profile photo. */
+"profile.view.photo" = "Ver foto";
 
 /* Disclaimer text about receiving SMS verification code */
 "registration.code.disclaimer" = "Você receberá um código de verificação.\nTaxas da operadora podem ser aplicadas.";
@@ -1359,7 +1380,7 @@
 "settings.account.export.navbar" = "Exportar dados";
 
 /* Label for when the date at which the exported user data will be available is not determined. */
-"settings.account.export.not.found" = "Não foi possível estabelecer a data de conclusão.";
+"settings.account.export.not.found" = "A data em que seus dados estarão disponíveis não pôde ser determinada.";
 
 /* Button to open the user data exported from HalloApp. */
 "settings.account.export.open.data" = "Abrir dados exportados";

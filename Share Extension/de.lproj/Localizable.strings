@@ -119,7 +119,7 @@
 "share.composer.uploading.fail.message" = "Bitte versuche es später noch einmal.";
 
 /* Alert dialog title shown when uploading fails. */
-"share.composer.uploading.fail.title" = "Upload fehlgeschlagen";
+"share.composer.uploading.fail.title" = "Hochladen fehlgeschlagen";
 
 /* Contacts category label */
 "share.destination.contacts" = "Neue Kontakte";

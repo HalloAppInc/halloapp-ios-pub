@@ -149,7 +149,13 @@
 "notification.voicecall.missed" = "Chamada de voz perdida";
 
 /* New post notification text when post is a voice note. */
+"notification.voicecomment" = "🎤 Comentário em áudio";
+
+/* New post notification text when post is a voice note. */
 "notification.voicenote" = "🎤 Mensagem de voz";
+
+/* New post notification text when post is a voice note. */
+"notification.voicepost" = "🎤 Postagem de áudio";
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Junte-se à minha rede de relacionamento real no HalloApp. Baixe gratuitamente no site halloapp.com/dl";

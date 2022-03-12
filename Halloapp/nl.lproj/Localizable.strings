@@ -154,11 +154,20 @@
 /* Title for call history event. Appears next to details of a missed call. */
 "call.history.voice.call.missed" = "Gemiste spraakoproep";
 
+/* Status display when user mutes their own audio during a call. */
+"call.mute.local.audio" = "microfoon is uitgeschakeld";
+
+/* Status display when user mutes their own audio and video during a call. */
+"call.mute.local.audio.video" = "camera en microfoon zijn uitgeschakeld";
+
+/* Status display when user mutes their own video during a call. */
+"call.mute.local.video" = "camera is uitgeschakeld";
+
 /* Status display when peer mutes audio during a call. */
 "call.mute.remote.audio" = "%@ heeft deze oproep gedempt";
 
 /* Status display when peer mutes both audio and video during a call. */
-"call.mute.remote.audio.video" = "De camera en microfoon van %@ is uitgeschakeld";
+"call.mute.remote.audio.video" = "De camera en microfoon van %@ zijn uitgeschakeld";
 
 /* Status display when peer mutes video during a call. */
 "call.mute.remote.video" = "De camera van %@ is uitgeschakeld";
@@ -1111,6 +1120,9 @@
 /* Generic setting value telling how many contacts are blocked or muted. */
 "privacy.n.contacts" = "privacy.n.contacts";
 
+/* Error banner displayed when there is a failure syncing preivacy settings, displayed on the privacy view */
+"privacy.sync.failure" = "Synchroniseren van privacy-instellingen mislukt. Probeer later opnieuw.";
+
 /* Title for the button allowing to delete current profile photo. */
 "profile.delete.photo" = "Foto Verwijderen";
 
@@ -1174,6 +1186,9 @@
 
 /* Title for the screen allowing to edit profile name */
 "profile.title.your.name" = "Jouw Naam";
+
+/* Title for the button allowing the user to view their own profile photo. */
+"profile.view.photo" = "Foto bekijken";
 
 /* Disclaimer text about receiving SMS verification code */
 "registration.code.disclaimer" = "Je ontvangt een verificatiecode.\nJe aanbieder kan hiervoor kosten in rekening brengen.";
