@@ -99,7 +99,17 @@ final class RootViewController: UIViewController {
         callBar.updateCallDuration(seconds: seconds)
     }
 
+    private var callBarVisible: Bool {
+        guard let callBarCollapsedConstraint = callBarCollapsedConstraint else {
+            return false
+        }
+        return !callBarCollapsedConstraint.isActive
+    }
+
     private func updateCallBarVisibility(_ isVisible: Bool, animated: Bool) {
+        guard callBarVisible != isVisible else {
+            return
+        }
         UIView.animate(withDuration: animated ? 0.3 : 0) {
             self.callBarCollapsedConstraint?.isActive = !isVisible
             self.view.layoutIfNeeded()
