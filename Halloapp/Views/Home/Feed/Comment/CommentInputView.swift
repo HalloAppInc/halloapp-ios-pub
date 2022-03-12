@@ -530,8 +530,8 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         NSLayoutConstraint.activate([
             quotedCellView.leadingAnchor.constraint(equalTo: quotedPanel.leadingAnchor, constant: 8),
             quotedCellView.trailingAnchor.constraint(equalTo: quotedPanel.trailingAnchor, constant: -8),
-            quotedPanelCloseButton.trailingAnchor.constraint(equalTo: quotedCellView.trailingAnchor, constant: -6),
-            quotedPanelCloseButton.topAnchor.constraint(equalTo: quotedCellView.topAnchor, constant: 6),
+            quotedPanelCloseButton.trailingAnchor.constraint(equalTo: quotedCellView.trailingAnchor),
+            quotedPanelCloseButton.topAnchor.constraint(equalTo: quotedCellView.topAnchor),
         ])
         return quotedPanel
     }()
@@ -546,10 +546,11 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         let closeButton = UIButton(type: .custom)
         closeButton.bounds.size = CGSize(width: closeButtonDiameter, height: closeButtonDiameter)
         closeButton.translatesAutoresizingMaskIntoConstraints = false
-        closeButton.setImage(UIImage(systemName: "xmark.circle.fill")?.withRenderingMode(.alwaysTemplate), for: .normal)
+        closeButton.setImage(UIImage(named: "NavbarClose")?.withRenderingMode(.alwaysTemplate), for: .normal)
         closeButton.tintColor = .placeholderText
         closeButton.layer.cornerRadius = 0.5 * closeButtonDiameter
         closeButton.addTarget(self, action: #selector(didTapCloseQuotedPanel), for: .touchUpInside)
+        closeButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
         return closeButton
     }()
 
