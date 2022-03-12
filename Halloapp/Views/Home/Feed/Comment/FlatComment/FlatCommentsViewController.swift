@@ -53,6 +53,7 @@ fileprivate enum MessageRow: Hashable, Equatable {
     case audio(FeedPostComment)
     case text(FeedPostComment)
     case linkPreview(FeedPostComment)
+    case quoted(FeedPostComment)
     case unreadCountHeader(Int32)
 }
 
@@ -67,6 +68,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     static private let messageCellViewMediaReuseIdentifier = "MessageCellViewMedia"
     static private let messageCellViewAudioReuseIdentifier = "MessageCellViewAudio"
     static private let messageCellViewLinkPreviewReuseIdentifier = "MessageCellViewLinkPreview"
+    static private let messageCellViewQuotedReuseIdentifier = "MessageCellViewQuoted"
 
     private var mediaPickerController: MediaPickerViewController?
     private var cancellableSet: Set<AnyCancellable> = []
@@ -238,6 +240,14 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                         self.configureCell(itemCell: itemCell, for: feedComment)
                     }
                     return cell
+                case .quoted(let feedComment):
+                    let cell = collectionView.dequeueReusableCell(
+                        withReuseIdentifier: FlatCommentsViewController.messageCellViewQuotedReuseIdentifier,
+                        for: indexPath)
+                    if let itemCell = cell as? MessageCellViewQuoted, let self = self {
+                        self.configureCell(itemCell: itemCell, for: feedComment)
+                    }
+                    return cell
                 case .text(let feedComment):
                     let cell = collectionView.dequeueReusableCell(
                         withReuseIdentifier: FlatCommentsViewController.messageCellViewTextReuseIdentifier,
@@ -328,6 +338,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         collectionView.register(MessageCellViewMedia.self, forCellWithReuseIdentifier: FlatCommentsViewController.messageCellViewMediaReuseIdentifier)
         collectionView.register(MessageCellViewAudio.self, forCellWithReuseIdentifier: FlatCommentsViewController.messageCellViewAudioReuseIdentifier)
         collectionView.register(MessageCellViewLinkPreview.self, forCellWithReuseIdentifier: FlatCommentsViewController.messageCellViewLinkPreviewReuseIdentifier)
+        collectionView.register(MessageCellViewQuoted.self, forCellWithReuseIdentifier: FlatCommentsViewController.messageCellViewQuotedReuseIdentifier)
         collectionView.register(MessageUnreadHeaderView.self, forCellWithReuseIdentifier: MessageUnreadHeaderView.elementKind)
         collectionView.register(MessageCommentHeaderView.self, forSupplementaryViewOfKind: MessageCommentHeaderView.elementKind, withReuseIdentifier: MessageCommentHeaderView.elementKind)
         collectionView.register(MessageTimeHeaderView.self, forSupplementaryViewOfKind: MessageTimeHeaderView.elementKind, withReuseIdentifier: MessageTimeHeaderView.elementKind)
@@ -563,7 +574,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         }
         // Quoted Comment
         if comment.parent != nil {
-            return MessageRow.comment(comment)
+            return MessageRow.quoted(comment)
         }
         // Media
         if let media = MainAppContext.shared.feedData.media(commentID: comment.id), media.count > 0 {

@@ -153,7 +153,7 @@ class MessageCellViewBase: UICollectionViewCell {
         vStack.layoutMargins = UIEdgeInsets(top: 10, left: 8, bottom: 6, right: 8)
         vStack.isLayoutMarginsRelativeArrangement = true
         vStack.translatesAutoresizingMaskIntoConstraints = false
-        vStack.spacing = 3
+        vStack.spacing = 5
         // Set bubble background
         vStack.insertSubview(bubbleView, at: 0)
         
