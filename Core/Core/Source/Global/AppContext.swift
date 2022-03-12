@@ -15,8 +15,14 @@ import PhoneNumberKit
 import FirebaseCore
 import FirebaseCrashlytics
 
-fileprivate var sharedContext: AppContext?
-
+public var sharedContext: AppContext? {
+    get {
+        sharedContextCommon as? AppContext
+    }
+    set {
+        sharedContextCommon = newValue
+    }
+}
 public func initAppContext(_ appContextClass: AppContext.Type, serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type, appTarget: AppTarget) {
     sharedContext = appContextClass.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass, appTarget: appTarget)
 }

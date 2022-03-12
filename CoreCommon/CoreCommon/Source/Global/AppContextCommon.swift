@@ -11,12 +11,12 @@ import Contacts
 import Foundation
 import PhoneNumberKit
 
-fileprivate var sharedContext: AppContextCommon?
+public var sharedContextCommon: AppContextCommon?
 
 public typealias ServiceBuilder = (Credentials?) -> CoreServiceCommon
 
 public func initAppContext(_ appContextClass: AppContextCommon.Type, serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type, appTarget: AppTarget) {
-    sharedContext = appContextClass.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass, appTarget: appTarget)
+    sharedContextCommon = appContextClass.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass, appTarget: appTarget)
 }
 open class AppContextCommon {
     // MARK: Constants
@@ -78,7 +78,7 @@ open class AppContextCommon {
     // MARK: Initializer
     open class var shared: AppContextCommon {
         get {
-            return sharedContext!
+            return sharedContextCommon!
         }
     }
 
@@ -114,8 +114,6 @@ open class AppContextCommon {
                 self?.coreServiceCommon.credentials = nil
             }
         )
-        // When this class is initialized via a super class(AppContext), we are making sure the sharedContext of this class is set.
-        sharedContext = self
     }
 
     static func phoneNumberKitMetadataCallback() throws -> Data? {
