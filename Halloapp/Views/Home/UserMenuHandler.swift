@@ -211,7 +211,9 @@ extension UIMenu {
         // add to contacts
         if shouldAllowContactsAdd {
             items.append(UIAction(title: Localizations.addToContactBook,
-                                  image: UIImage(systemName: "person.badge.plus")) { _ in })
+                                  image: UIImage(systemName: "person.badge.plus")) { _ in
+                handler(.addContact(userID))
+            })
         }
         
         // verify safety number
