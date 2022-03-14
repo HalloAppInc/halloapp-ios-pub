@@ -1431,6 +1431,44 @@ extension Server_FabAction.FabActionType: CaseIterable {
 
 #endif  // swift(>=4.2)
 
+#if swift(>=5.5) && canImport(_Concurrency)
+extension Server_Platform: @unchecked Sendable {}
+extension Server_EventData: @unchecked Sendable {}
+extension Server_EventData.OneOf_Edata: @unchecked Sendable {}
+extension Server_MediaObjectDownload: @unchecked Sendable {}
+extension Server_MediaObjectDownload.TypeEnum: @unchecked Sendable {}
+extension Server_MediaObjectDownload.MediaType: @unchecked Sendable {}
+extension Server_MediaObjectDownload.Cdn: @unchecked Sendable {}
+extension Server_MediaObjectDownload.CdnCache: @unchecked Sendable {}
+extension Server_MediaObjectDownload.Status: @unchecked Sendable {}
+extension Server_MediaUpload: @unchecked Sendable {}
+extension Server_MediaUpload.TypeEnum: @unchecked Sendable {}
+extension Server_MediaUpload.Status: @unchecked Sendable {}
+extension Server_MediaDownload: @unchecked Sendable {}
+extension Server_MediaDownload.TypeEnum: @unchecked Sendable {}
+extension Server_MediaDownload.Status: @unchecked Sendable {}
+extension Server_MediaComposeLoad: @unchecked Sendable {}
+extension Server_PushReceived: @unchecked Sendable {}
+extension Server_DecryptionReport: @unchecked Sendable {}
+extension Server_DecryptionReport.Status: @unchecked Sendable {}
+extension Server_DecryptionReport.ContentType: @unchecked Sendable {}
+extension Server_GroupDecryptionReport: @unchecked Sendable {}
+extension Server_GroupDecryptionReport.Status: @unchecked Sendable {}
+extension Server_GroupDecryptionReport.ItemType: @unchecked Sendable {}
+extension Server_GroupDecryptionReport.Schedule: @unchecked Sendable {}
+extension Server_GroupHistoryReport: @unchecked Sendable {}
+extension Server_GroupHistoryReport.Schedule: @unchecked Sendable {}
+extension Server_Permissions: @unchecked Sendable {}
+extension Server_Permissions.TypeEnum: @unchecked Sendable {}
+extension Server_Permissions.Status: @unchecked Sendable {}
+extension Server_Call: @unchecked Sendable {}
+extension Server_Call.CallType: @unchecked Sendable {}
+extension Server_Call.CallDirection: @unchecked Sendable {}
+extension Server_Call.NetworkType: @unchecked Sendable {}
+extension Server_FabAction: @unchecked Sendable {}
+extension Server_FabAction.FabActionType: @unchecked Sendable {}
+#endif  // swift(>=5.5) && canImport(_Concurrency)
+
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
 fileprivate let _protobuf_package = "server"
