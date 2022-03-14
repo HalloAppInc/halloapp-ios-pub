@@ -271,6 +271,9 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
     @objc func cancelAciton() {
         DDLogInfo("ShareDestinationViewController/cancel")
 
+        ImageServer.shared.clearAllTasks(keepFiles: false)
+        ShareDataLoader.shared.reset()
+
         ShareExtensionContext.shared.coreService.disconnect()
         extensionContext?.cancelRequest(withError: ShareError.cancel)
     }

@@ -31,11 +31,16 @@ class ShareDataLoader {
 
     private init() {}
 
-    public func load(from context: NSExtensionContext?) {
-        guard let items = context?.inputItems else { return }
-
+    public func reset() {
+        ready.send(false)
         media = []
         text = ""
+    }
+
+    public func load(from context: NSExtensionContext?) {
+        reset()
+
+        guard let items = context?.inputItems else { return }
 
         let loadingGroup = DispatchGroup()
 

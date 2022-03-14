@@ -706,6 +706,7 @@ class ShareComposerViewController: UIViewController {
                 self.showUploadingFailedAlert()
             } else {
                 ImageServer.shared.clearAllTasks(keepFiles: false)
+                ShareDataLoader.shared.reset()
                 self.progressUploadMonitor?.setProgress(1, animated: true)
 
                 // We need to update presence after successfully posting.
