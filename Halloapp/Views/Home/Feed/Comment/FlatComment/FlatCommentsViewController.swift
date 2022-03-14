@@ -615,6 +615,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         // Setup the comment view header with post information as the global header of the collection view.
         let layoutHeaderSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(55))
         let layoutHeader = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: layoutHeaderSize, elementKind: MessageCommentHeaderView.elementKind, alignment: .top)
+        layoutHeader.pinToVisibleBounds = true
         let layoutConfig = UICollectionViewCompositionalLayoutConfiguration()
         layoutConfig.boundarySupplementaryItems = [layoutHeader]
 
