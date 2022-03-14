@@ -830,26 +830,32 @@ fileprivate struct PostComposerView: View {
                             } else if initialPostType == .voiceNote || audioComposerRecorder.voiceNote != nil {
                                 audioRecordingView
                             } else {
-                                ScrollView {
-                                    postTextView
-                                }
-                                .frame(maxHeight: min(
-                                    PostComposerLayoutConstants.postTextNoMediaMinHeight + PostComposerLayoutConstants.sendButtonHeight,
-                                    scrollGeometry.size.height - 2 * PostComposerLayoutConstants.sendButtonHeight
-                                ))
-
-                                HStack {
-                                    Button(action: { presentPicker = true }) {
-                                        Image("icon_add_photo")
-                                            .renderingMode(.template)
-                                            .foregroundColor(.blue)
+                                ZStack(alignment: .top) {
+                                    ScrollView {
+                                        postTextView
+                                            .padding(.bottom, PostComposerLayoutConstants.sendButtonHeight + 24)
                                     }
-                                    .padding(.leading, 10)
+                                    .frame(maxHeight: scrollGeometry.size.height - 2 * PostComposerLayoutConstants.verticalPadding)
 
-                                    Spacer()
-                                    shareButton
+                                    VStack {
+                                        Spacer()
+
+                                        HStack {
+                                            Button(action: { presentPicker = true }) {
+                                                Image("icon_add_photo")
+                                                    .renderingMode(.template)
+                                                    .foregroundColor(.blue)
+                                            }
+                                            .padding(.leading, 10)
+
+                                            Spacer()
+                                            shareButton
+                                        }
+                                        .padding(12)
+                                        .background(Color.white.opacity(0.95))
+                                    }
+
                                 }
-                                .padding(12)
                             }
                         }
                         .clipShape(RoundedRectangle(cornerRadius: PostComposerLayoutConstants.backgroundRadius))
