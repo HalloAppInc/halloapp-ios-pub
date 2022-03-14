@@ -111,7 +111,9 @@ struct ActivityCenterItem: Hashable {
     }
     
     private func textForUnknownCommenters(with notifications: [FeedNotification]) -> NSAttributedString {
-        let localizedString = NSLocalizedString("feed.notification.comment.grouped", value: "<$numberOthers$> others replied to <$author$>'s post", comment: "Text for feed notification displayed in Activity Center.")
+        let format = NSLocalizedString("n.others.replied", comment: "Summary when multiple commenters commented on the same post you commented on")
+        let numberOfOtherCommenters = notifications.count - 1 // Subtract 1 because text is "<$user$> and %d others replied..."
+        let localizedString = String.localizedStringWithFormat(format, numberOfOtherCommenters)
         
         let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
         let boldFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
@@ -125,9 +127,11 @@ struct ActivityCenterItem: Hashable {
             result.replaceCharacters(in: authorRange, with: author)
         }
 
-        let textRange = (result.string as NSString).range(of: "<$numberOthers$>")
-        if textRange.location != NSNotFound {
-            result.replaceCharacters(in: textRange, with: "\(notifications.count)")
+        let commenterRange = (result.string as NSString).range(of: "<$user$>")
+        if commenterRange.location != NSNotFound {
+            let commenterName = MainAppContext.shared.contactStore.fullName(for: notifications.first?.userId ?? "")
+            let commenter = NSAttributedString(string: commenterName, attributes: [ .font: boldFont ])
+            result.replaceCharacters(in: commenterRange, with: commenter)
         }
         
         let timestampString = NSAttributedString(string: " \(timestamp.feedTimestamp())", attributes: [ .font: baseFont, .foregroundColor: UIColor.secondaryLabel ])
