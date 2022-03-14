@@ -119,20 +119,25 @@ open class MainDataStore {
             guard let self = self else { return }
             DDLogInfo("MainDataStore/saveCall/callID: \(callID)")
 
-            let call = Call(context: managedObjectContext)
-            call.callID = callID
-            call.peerUserID = peerUserID
-            call.type = type
-            call.direction = direction
-            call.timestamp = timestamp
-            call.answered = false
-            call.durationMs = 0.0
-            call.endReason = .unknown
+            let newCall: Call
+            if let existingCall = self.call(with: callID, in: managedObjectContext) {
+                newCall = existingCall
+            } else {
+                newCall = Call(context: managedObjectContext)
+            }
+            newCall.callID = callID
+            newCall.peerUserID = peerUserID
+            newCall.type = type
+            newCall.direction = direction
+            newCall.timestamp = timestamp
+            newCall.answered = false
+            newCall.durationMs = 0.0
+            newCall.endReason = .unknown
 
             managedObjectContext.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
             self.save(managedObjectContext)
             DispatchQueue.main.async {
-                completion?(call)
+                completion?(newCall)
             }
         }
     }
