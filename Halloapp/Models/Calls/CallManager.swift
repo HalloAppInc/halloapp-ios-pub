@@ -207,7 +207,7 @@ final class CallManager: NSObject, CXProviderDelegate {
                         cameraAccessDenied.send()
                         completion(false)
                     case .notDetermined:
-                        AVCaptureDevice.requestAccess(for: .video) { granted in
+                        AVCaptureDevice.requestAccess(for: .video) { [self] granted in
                             if granted {
                                 DDLogInfo("CallManager/checkPermissions/videoCall/success")
                                 completion(true)
@@ -1192,7 +1192,7 @@ extension CallManager: HalloCallDelegate {
                 activeCall = nil
                 reportCallEnded(id: callID, reason: endCall.cxEndCallReason)
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/success")
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [self] in
                     if isMissedCall {
                         presentMissedCallNotification(id: callID, from: peerUserID, type: callType)
                     }
