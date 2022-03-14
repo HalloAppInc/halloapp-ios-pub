@@ -64,10 +64,11 @@ struct ActivityCenterItem: Hashable {
     var image: UIImage? {
         get {
             switch content {
-                case .singleNotification(let notification):
-                    return notification.image
-                case .unknownCommenters(let notifications):
-                    return notifications[0].image // Since they're all comments on the same post, just use the first image
+            case .singleNotification(let notification):
+                return notification.image ?? UIImage.thumbnail(forText: notification.text)
+            case .unknownCommenters(let notifications):
+                guard let notification = notifications.first else { return nil }
+                return notification.image ?? UIImage.thumbnail(forText: notification.text)
             }
         }
     }

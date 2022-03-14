@@ -344,16 +344,16 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
         ])
     }
 
-    func configure(with notification: ActivityCenterItem) {
-        backgroundColor = notification.read ? .primaryBg : .notificationUnreadHighlight
+    func configure(with item: ActivityCenterItem) {
+        backgroundColor = item.read ? .primaryBg : .notificationUnreadHighlight
 
-        unreadBadge.isHidden = notification.read
-        notificationTextLabel.attributedText = notification.text
+        unreadBadge.isHidden = item.read
+        notificationTextLabel.attributedText = item.text
 
-        mediaPreview.image = notification.image
-        mediaPreviewWidthAnchor?.constant = notification.image == nil ? 0 : 44
+        mediaPreview.image = item.image
+        mediaPreviewWidthAnchor?.constant = item.image == nil ? 0 : 44
         
-        if let userId = notification.userID {
+        if let userId = item.userID {
             contactImage.configure(with: userId, using: MainAppContext.shared.avatarStore)
         }
     }

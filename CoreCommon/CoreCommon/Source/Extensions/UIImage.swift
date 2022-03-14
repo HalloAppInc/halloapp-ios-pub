@@ -311,6 +311,22 @@ extension UIImage {
 
         return UIImage(cgImage: thumbnail)
     }
+
+    public static func thumbnail(forText text: String?) -> UIImage? {
+        let label = UILabel(frame: CGRect(x: 10, y: 10, width: 300, height: 100))
+        label.numberOfLines = 2
+        label.text = text
+        label.font = .systemFont(ofSize: 40)
+
+        let view = UIView(frame: CGRect(x: 0, y: 0, width: 300, height: 120))
+        view.addSubview(label)
+        view.backgroundColor = .systemBackground
+
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: 120, height: 120))
+        return renderer.image { context in
+            view.drawHierarchy(in: view.bounds, afterScreenUpdates: true)
+        }
+    }
 }
 
 private extension CGImagePropertyOrientation {
