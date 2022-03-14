@@ -1334,7 +1334,7 @@ extension ProtoService: HalloService {
             completion(.failure(RequestError.aborted))
             return
         }
-        guard let data = try? postData.clientPostContainer.serializedData() else {
+        guard let data = try? postData.clientPostContainerBlob.serializedData() else {
             DDLogError("ProtoService/UploadPostForExternalShare/Could not serialize post")
             completion(.failure(RequestError.aborted))
             return

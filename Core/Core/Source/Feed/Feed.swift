@@ -481,6 +481,15 @@ public extension PostData {
         return container
     }
 
+    var clientPostContainerBlob: Clients_PostContainerBlob {
+        var container = Clients_PostContainerBlob()
+        container.postContainer = clientPostContainer
+        container.postID = id
+        container.timestamp = Int64(timestamp.timeIntervalSince1970)
+        container.uid = Int64(userId) ?? 0
+        return container
+    }
+
     var serverPost: Server_Post? {
         guard let payloadData = try? clientContainer.serializedData() else {
             return nil
