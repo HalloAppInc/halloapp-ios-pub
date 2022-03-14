@@ -331,10 +331,12 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
             self.didUpdateItems()
             
             if let id = self.feedPostIdToScrollTo {
+                DDLogInfo("FeedCollectionViewController/scroll-to/postId: \(id)")
                 for item in items {
                     if id == item.post?.id {
                         self.feedPostIdToScrollTo = nil
-                        self.scrollTo(postId: id)
+                        let result = self.scrollTo(postId: id)
+                        DDLogInfo("FeedCollectionViewController/scroll-to/postId: \(id)/result: \(result)")
                         break
                     }
                 }

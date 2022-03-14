@@ -467,7 +467,8 @@ class FeedViewController: FeedCollectionViewController {
             if let feedPost = feedPost {
                 DDLogDebug("FeedViewController/scroll-to-post/immediate \(feedPostId)")
                 // Scroll to feed post now.
-                scrollTo(postId: feedPost.id)
+                let result = scrollTo(postId: feedPost.id)
+                DDLogDebug("FeedViewController/scroll-to-post/immediate \(feedPostId)/result: \(result)")
             } else {
                 DDLogDebug("FeedViewController/scroll-to-post/postpone \(feedPostId)")
                 // Scroll to the top now and wait for post to be received.
