@@ -197,7 +197,7 @@ class MediaEditViewController: UIViewController {
         #if DEBUG
         let isDrawingEnabled = true
         #else
-        let isDrawingEnabled = ServerProperties.isInternalUser || ServerProperties.isMediaDrawingEnabled
+        let isDrawingEnabled = ServerProperties.isMediaDrawingEnabled
         #endif
 
         mutedCancellable?.cancel()
