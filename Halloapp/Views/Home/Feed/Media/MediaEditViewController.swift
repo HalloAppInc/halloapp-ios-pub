@@ -191,11 +191,15 @@ class MediaEditViewController: UIViewController {
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: backImage, style: .plain, target: self, action: #selector(backAction))
 
         updateNavigation()
-
-
     }
 
     private func updateNavigation() {
+        #if DEBUG
+        let isDrawingEnabled = true
+        #else
+        let isDrawingEnabled = ServerProperties.isInternalUser || ServerProperties.isMediaDrawingEnabled
+        #endif
+
         mutedCancellable?.cancel()
         drawingColorCancellable?.cancel()
         undoStackCancellable?.cancel()
@@ -213,7 +217,7 @@ class MediaEditViewController: UIViewController {
         case .image:
             navigationItem.rightBarButtonItems = []
 
-            if ServerProperties.isInternalUser {
+            if isDrawingEnabled {
                 let drawIcon = UIImage(named: "Draw")?.withTintColor(.white, renderingMode: .alwaysOriginal)
                 let drawBtn = UIButton(frame: CGRect(x: 0, y: 0, width: 44, height: 44))
                 drawBtn.setImage(drawIcon, for: .normal)
@@ -250,7 +254,7 @@ class MediaEditViewController: UIViewController {
             flipBtn.accessibilityLabel = Localizations.voiceOverButtonRotate
             navigationItem.rightBarButtonItems?.append(flipBtn)
 
-            if ServerProperties.isInternalUser {
+            if isDrawingEnabled {
                 let undoIcon = UIImage(systemName: "arrow.uturn.backward")?.withTintColor(.white, renderingMode: .alwaysOriginal)
                 let undoBtn = UIBarButtonItem(image: undoIcon, style: .plain, target: self, action: #selector(undoAction))
                 undoBtn.accessibilityLabel = Localizations.voiceOverButtonRotate
