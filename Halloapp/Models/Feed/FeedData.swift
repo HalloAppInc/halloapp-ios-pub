@@ -882,10 +882,24 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         for xmppPost in xmppPosts {
 
-            // We only override status attribute if we encounter a successfully encrypted duplicate post.
-            // Since we already obtained content using the unencrypted part of the payload.
             if let existingPost = existingPosts[xmppPost.id] {
-                if !(existingPost.status == .none) && !(existingPost.status == .rerequesting && xmppPost.status == .received) {
+                // If status = .none for an existing post, we need to process the newly received post.
+                if existingPost.status == .none {
+                    DDLogInfo("FeedData/process-posts/existing [\(existingPost.id)]/status is none/need to update")
+                } else if existingPost.status == .rerequesting && xmppPost.status == .received {
+                    // If status = .rerequesting for an existing post.
+                    // We check if we already used the unencrypted payload as fallback.
+                    // If we already have content - then just update the status and return.
+                    // If we dont have the content already and are still waiting, then we need to process the newly received post.
+                    switch existingPost.postData.content {
+                    case .waiting:
+                        DDLogInfo("FeedData/process-posts/existing [\(existingPost.id)]/content is waiting/need to update")
+                    default:
+                        DDLogInfo("FeedData/process-posts/existing [\(existingPost.id)]/update status and return")
+                        existingPost.status = .incoming
+                        continue
+                    }
+                } else {
                     DDLogError("FeedData/process-posts/existing [\(existingPost.id)], ignoring")
                     continue
                 }
@@ -1059,8 +1073,24 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             for xmppComment in xmppCommentsMutable {
 
                 if let existingComment = comments[xmppComment.id] {
-                    if !(existingComment.status == .none) && !(existingComment.status == .rerequesting && xmppComment.status == .received) {
-                        DDLogError("FeedData/process-comments/existing [\(xmppComment.id)], ignoring")
+                    // If status = .none for an existing comment, we need to process the newly received comment.
+                    if existingComment.status == .none {
+                        DDLogInfo("FeedData/process-comments/existing [\(existingComment.id)]/status is none/need to update")
+                    } else if existingComment.status == .rerequesting && xmppComment.status == .received {
+                        // If status = .rerequesting for an existing comment.
+                        // We check if we already used the unencrypted payload as fallback.
+                        // If we already have content - then just update the status and return.
+                        // If we dont have the content already and are still waiting, then we need to process the newly received comment.
+                        switch existingComment.commentData.content {
+                        case .waiting:
+                            DDLogInfo("FeedData/process-comments/existing [\(existingComment.id)]/content is waiting/need to update")
+                        default:
+                            DDLogInfo("FeedData/process-comments/existing [\(existingComment.id)]/update status and return")
+                            existingComment.status = .incoming
+                            continue
+                        }
+                    } else {
+                        DDLogError("FeedData/process-comments/existing [\(existingComment.id)], ignoring")
                         continue
                     }
                 }
