@@ -1074,23 +1074,29 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     private func jumpToMsg(tableIndexPath: IndexPath, indexPath: IndexPath) {
         guard let message = fetchedResultsController?.object(at: indexPath) else { return }
 
-        guard let chatReplyMessageID = message.chatReplyMessageID else { return }
+        if let feedPostId = message.feedPostId {
+            guard let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) else {
+                DDLogWarn("ChatViewController/Quoted feed post \(feedPostId) not found")
+                return
+            }
+            present(PostViewController(post: feedPost), animated: true)
+        } else  if let chatReplyMessageID = message.chatReplyMessageID {
+            guard let allMessages = fetchedResultsController?.fetchedObjects else { return }
+            guard let replyMessage = allMessages.first(where: {$0.id == chatReplyMessageID}) else { return }
 
-        guard let allMessages = fetchedResultsController?.fetchedObjects else { return }
-        guard let replyMessage = allMessages.first(where: {$0.id == chatReplyMessageID}) else { return }
-        
-        guard let replyMsgIndexPath = fetchedResultsController?.indexPath(forObject: replyMessage) else { return }
-        let chatMsgData = ChatMsgData(id: replyMessage.id, cellHeight: replyMessage.cellHeight, outgoingStatus: replyMessage.outgoingStatus, incomingStatus: replyMessage.incomingStatus, timestamp: replyMessage.timestamp, indexPath: replyMsgIndexPath)
-        guard let toIndexPath = dataSource?.indexPath(for: Row.chatMsg(chatMsgData)) else { return }
-        tableView.scrollToRow(at: toIndexPath, at: .middle, animated: true)
+            guard let replyMsgIndexPath = fetchedResultsController?.indexPath(forObject: replyMessage) else { return }
+            let chatMsgData = ChatMsgData(id: replyMessage.id, cellHeight: replyMessage.cellHeight, outgoingStatus: replyMessage.outgoingStatus, incomingStatus: replyMessage.incomingStatus, timestamp: replyMessage.timestamp, indexPath: replyMsgIndexPath)
+            guard let toIndexPath = dataSource?.indexPath(for: Row.chatMsg(chatMsgData)) else { return }
+            tableView.scrollToRow(at: toIndexPath, at: .middle, animated: true)
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + waitForCellTimeout) {
-            if replyMessage.fromUserId == MainAppContext.shared.userData.userId {
-                guard let cell = self.tableView.cellForRow(at: toIndexPath) as? OutboundMsgViewCell else { return }
-                cell.highlight()
-            } else {
-                guard let cell = self.tableView.cellForRow(at: toIndexPath) as? InboundMsgViewCell else { return }
-                cell.highlight()
+            DispatchQueue.main.asyncAfter(deadline: .now() + waitForCellTimeout) {
+                if replyMessage.fromUserId == MainAppContext.shared.userData.userId {
+                    guard let cell = self.tableView.cellForRow(at: toIndexPath) as? OutboundMsgViewCell else { return }
+                    cell.highlight()
+                } else {
+                    guard let cell = self.tableView.cellForRow(at: toIndexPath) as? InboundMsgViewCell else { return }
+                    cell.highlight()
+                }
             }
         }
     }

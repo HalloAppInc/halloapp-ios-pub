@@ -241,6 +241,8 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         view.textColor = UIColor.systemGray
         view.linkTextAttributes = [.foregroundColor: UIColor.chatOwnMsg, .underlineStyle: 1]
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.textContainer.lineBreakMode = .byTruncatingTail
+        view.textContainer.maximumNumberOfLines = 3
 
         view.delegate = self
 

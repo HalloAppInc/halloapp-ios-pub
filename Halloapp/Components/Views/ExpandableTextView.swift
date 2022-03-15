@@ -48,7 +48,7 @@ class ExpandableTextView: UITextView {
     override var attributedText: NSAttributedString! {
         didSet {
             invalidateState()
-            if let font = attributedText?.attribute(.font, at: 0, effectiveRange: nil) as? UIFont {
+            if let attributedText = attributedText, attributedText.length > 0, let font = attributedText.attribute(.font, at: 0, effectiveRange: nil) as? UIFont {
                 updateMoreButtonFont(with: font)
             }
         }
