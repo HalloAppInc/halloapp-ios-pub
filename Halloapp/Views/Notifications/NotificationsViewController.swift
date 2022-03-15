@@ -114,9 +114,7 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         bottomBar.layer.shadowRadius = 4
         
         view.addSubview(bottomBar)
-        bottomBar.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
-        bottomBar.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
-        bottomBar.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+        bottomBar.constrain([.leading, .trailing, .bottom], to: view)
 
         readAllButton.addTarget(self, action: #selector(markAllNotificationsRead), for: .touchUpInside)
 
@@ -125,11 +123,12 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         readAllButton.setAttributedTitle(title, for: .normal)
         
         bottomBar.addSubview(readAllButton)
+
+        let readAllButtonBottomPadding: CGFloat = 3
         readAllButton.translatesAutoresizingMaskIntoConstraints = false
-        readAllButton.leadingAnchor.constraint(equalTo: bottomBar.leadingAnchor).isActive = true
-        readAllButton.trailingAnchor.constraint(equalTo: bottomBar.trailingAnchor).isActive = true
-        readAllButton.topAnchor.constraint(equalTo: bottomBar.topAnchor, constant: 8).isActive = true
-        readAllButton.bottomAnchor.constraint(equalTo: bottomBar.bottomAnchor, constant: -(bottomSafeAreaHeight + 3)).isActive = true
+        readAllButton.heightAnchor.constraint(equalToConstant: 48 - readAllButtonBottomPadding).isActive = true
+        readAllButton.constrain([.top, .leading, .trailing], to: bottomBar)
+        readAllButton.constrain(anchor: .bottom, to: bottomBar, constant: -(bottomSafeAreaHeight + readAllButtonBottomPadding))
     }
     
     override func viewDidLayoutSubviews() {
