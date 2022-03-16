@@ -23,6 +23,14 @@ protocol MessageCommentHeaderViewDelegate: AnyObject {
 
 class MessageCommentHeaderView: UICollectionReusableView {
 
+    public override func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
+        super.apply(layoutAttributes)
+        // Always ensure post header is on top of the section header
+        // Setting the ZIndex on the supplementary item did not work
+        // and hence we need to override the zPosition here
+        self.layer.zPosition = 1000
+    }
+
     static var elementKind: String {
         return String(describing: MessageCommentHeaderView.self)
     }
