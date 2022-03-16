@@ -12,8 +12,6 @@ import CoreCommon
 import CoreData
 import Foundation
 import PhoneNumberKit
-import FirebaseCore
-import FirebaseCrashlytics
 
 public var sharedContext: AppContext? {
     get {
@@ -236,17 +234,6 @@ open class AppContext: AppContextCommon {
         keyStore.delegate = messageCrypter
         mediaHashStoreImpl = MediaHashStore(persistentStoreURL: AppContext.mediaHashStoreURL)
         notificationStoreImpl = NotificationStore(appTarget: appTarget, userDefaults: userDefaults)
-
-        #if !DEBUG
-        FirebaseApp.configure()
-        let logger = CrashlyticsLogger()
-        logger.logFormatter = LogFormatter()
-        DDLog.add(logger)
-        // Add UserId to Crashlytics
-        Crashlytics.crashlytics().setUserID(userData.userId)
-        // Log errors to firebase
-        errorLogger = logger
-        #endif
 
         DispatchQueue.global(qos: .background).async {
             self.migrateLogFilesIfNeeded()

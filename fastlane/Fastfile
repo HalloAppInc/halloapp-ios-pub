@@ -52,7 +52,6 @@ platform :ios do
   lane :upload_symbols do
     ensure_env_vars(env_vars: ['SENTRY_AUTH_TOKEN'])
     download_dsyms(version: 'latest')
-    upload_symbols_to_crashlytics(gsp_path: 'HalloApp/GoogleService-Info.plist', binary_path: 'scripts/upload-symbols-to-crashlytics')
     sentry_upload_dsym(auth_token: ENV['SENTRY_AUTH_TOKEN'], org_slug: 'halloapp', project_slug: 'halloapp-ios')
     clean_build_artifacts
   end

@@ -74,6 +74,8 @@
 		32CE965E27CFEE4400B4A2C1 /* OneTimePreKey+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32CE965327CFEE4400B4A2C1 /* OneTimePreKey+CoreDataClass.swift */; };
 		32CE966027CFF6DB00B4A2C1 /* ProtoServiceCoreCommon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32CE965F27CFF6DB00B4A2C1 /* ProtoServiceCoreCommon.swift */; };
 		32CE966227CFF74900B4A2C1 /* CoreServiceCommon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32CE966127CFF74800B4A2C1 /* CoreServiceCommon.swift */; };
+		F4585C7627E152F700BF6ED6 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = F4585C7527E152F700BF6ED6 /* Sentry */; };
+		F4585C7C27E156B600BF6ED6 /* SentryLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4585C7B27E156B600BF6ED6 /* SentryLogger.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -136,6 +138,7 @@
 		32CE965327CFEE4400B4A2C1 /* OneTimePreKey+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "OneTimePreKey+CoreDataClass.swift"; path = "CoreCommon/Source/Keys/CoreData Stack/OneTimePreKey+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		32CE965F27CFF6DB00B4A2C1 /* ProtoServiceCoreCommon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtoServiceCoreCommon.swift; sourceTree = "<group>"; };
 		32CE966127CFF74800B4A2C1 /* CoreServiceCommon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreServiceCommon.swift; sourceTree = "<group>"; };
+		F4585C7B27E156B600BF6ED6 /* SentryLogger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SentryLogger.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -148,6 +151,7 @@
 				3250C61627D030950032FEC4 /* CryptoSwift in Frameworks */,
 				328D13CE27C02D8200AA9F18 /* SwiftNoise in Frameworks */,
 				328D13D327C02DAE00AA9F18 /* CocoaLumberjackSwift in Frameworks */,
+				F4585C7627E152F700BF6ED6 /* Sentry in Frameworks */,
 				328D13C527C02C9700AA9F18 /* SwiftProtobuf in Frameworks */,
 				328D13D127C02DAE00AA9F18 /* CocoaLumberjack in Frameworks */,
 				328D13C827C02CB500AA9F18 /* PhoneNumberKit in Frameworks */,
@@ -218,6 +222,7 @@
 			children = (
 				32CE961827CFECFA00B4A2C1 /* LogFileManager.swift */,
 				32CE961727CFECFA00B4A2C1 /* LogFormatter.swift */,
+				F4585C7B27E156B600BF6ED6 /* SentryLogger.swift */,
 			);
 			path = Logging;
 			sourceTree = "<group>";
@@ -381,6 +386,7 @@
 				328D13D527C02E5300AA9F18 /* Zip */,
 				328D13D827C02E6F00AA9F18 /* Sodium */,
 				3250C61527D030950032FEC4 /* CryptoSwift */,
+				F4585C7527E152F700BF6ED6 /* Sentry */,
 			);
 			productName = CoreCommon;
 			productReference = 328D13B027C02AB000AA9F18 /* CoreCommon.framework */;
@@ -419,6 +425,7 @@
 				328D13D427C02E5300AA9F18 /* XCRemoteSwiftPackageReference "Zip" */,
 				328D13D727C02E6F00AA9F18 /* XCRemoteSwiftPackageReference "swift-sodium" */,
 				3250C61427D030950032FEC4 /* XCRemoteSwiftPackageReference "CryptoSwift" */,
+				F4585C7427E152F700BF6ED6 /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 			);
 			productRefGroup = 328D13B127C02AB000AA9F18 /* Products */;
 			projectDirPath = "";
@@ -482,6 +489,7 @@
 				32CE960B27CFECCB00B4A2C1 /* Localizations.swift in Sources */,
 				321C83F327CFEC0B00DDD03A /* NoiseRegistrationService.swift in Sources */,
 				32CE960A27CFECCB00B4A2C1 /* UserData.xcdatamodeld in Sources */,
+				F4585C7C27E156B600BF6ED6 /* SentryLogger.swift in Sources */,
 				32CE962027CFED0000B4A2C1 /* CountableEvent.swift in Sources */,
 				32CE963327CFED0600B4A2C1 /* ProtoRequest.swift in Sources */,
 				32CE964427CFED6F00B4A2C1 /* Contacts.xcdatamodeld in Sources */,
@@ -871,6 +879,14 @@
 				version = 0.9.1;
 			};
 		};
+		F4585C7427E152F700BF6ED6 /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/getsentry/sentry-cocoa";
+			requirement = {
+				kind = exactVersion;
+				version = 7.10.2;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -918,6 +934,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 328D13D727C02E6F00AA9F18 /* XCRemoteSwiftPackageReference "swift-sodium" */;
 			productName = Sodium;
+		};
+		F4585C7527E152F700BF6ED6 /* Sentry */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F4585C7427E152F700BF6ED6 /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
+			productName = Sentry;
 		};
 /* End XCSwiftPackageProductDependency section */
 

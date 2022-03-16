@@ -11,8 +11,6 @@ import Combine
 import Contacts
 import Core
 import CoreCommon
-import FirebaseCore
-import FirebaseCrashlytics
 import Foundation
 import Intents
 

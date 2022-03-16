@@ -10,6 +10,7 @@ import Combine
 import Contacts
 import Foundation
 import PhoneNumberKit
+import Sentry
 
 public var sharedContextCommon: AppContextCommon?
 
@@ -83,6 +84,17 @@ open class AppContextCommon {
     }
 
     required public init(serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type, appTarget: AppTarget) {
+        #if !DEBUG
+        SentrySDK.start { options in
+            options.dsn = "https://ed03b5bdacbe4571927f8f2c93a45790@o473086.ingest.sentry.io/6126729"
+            options.maxBreadcrumbs = 500
+        }
+
+        let sentryLogger = SentryLogger(logFormatter: LogFormatter())
+        DDLog.add(sentryLogger)
+        errorLogger = sentryLogger
+        #endif
+
         let appGroupLogsDirectory = Self.sharedDirectoryURL
             .appendingPathComponent("Library", isDirectory: true)
             .appendingPathComponent("Application Support", isDirectory: true)
@@ -100,6 +112,11 @@ open class AppContextCommon {
         DDLog.add(osLogger)
 
         userData = UserData(storeDirectoryURL: Self.sharedDirectoryURL, isAppClip: Self.isAppClip)
+
+        #if !DEBUG
+        SentrySDK.setUser(Sentry.User(userId: userData.userId))
+        #endif
+
         coreServiceCommon = serviceBuilder(userData.credentials)
         keyStore = KeyStore(userData: userData, appTarget: appTarget, userDefaults: userDefaults)
         keyData = KeyData(service: coreServiceCommon, userData: userData, keyStore: keyStore)

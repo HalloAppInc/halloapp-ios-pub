@@ -13,7 +13,6 @@ import Contacts
 import Core
 import CoreCommon
 import CoreData
-import FirebaseCrashlytics
 import Reachability
 import Sentry
 import UIKit
@@ -34,15 +33,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         initAppContext(MainAppContext.self, serviceBuilder: serviceBuilder, contactStoreClass: ContactStoreMain.self, appTarget: AppTarget.mainApp)
-
-        #if !DEBUG
-        SentrySDK.start { options in
-            options.dsn = "https://ed03b5bdacbe4571927f8f2c93a45790@o473086.ingest.sentry.io/6126729"
-            options.maxBreadcrumbs = 500
-        }
-        SentrySDK.setUser(Sentry.User(userId: AppContext.shared.userData.userId))
-        DDLog.add(SentryLogger(logFormatter: LogFormatter()))
-        #endif
 
         DDLogInfo("application/didFinishLaunching [\(AppContext.userAgent)] [\(UIDevice.current.getModelName()) (iOS \(UIDevice.current.systemVersion))]")
 
@@ -65,7 +55,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         setUpReachability()
 
         // Check and log if crashlytics detects a crash.
-        if Crashlytics.crashlytics().didCrashDuringPreviousExecution() {
+        if SentrySDK.crashedLastRun {
             DDLogError("application/didFinishLaunching - crashed - didCrashDuringPreviousExecution")
         }
 

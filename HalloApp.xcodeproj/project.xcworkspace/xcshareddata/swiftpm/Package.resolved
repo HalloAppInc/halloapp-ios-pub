@@ -2,30 +2,12 @@
   "object": {
     "pins": [
       {
-        "package": "abseil",
-        "repositoryURL": "https://github.com/firebase/abseil-cpp-SwiftPM.git",
-        "state": {
-          "branch": null,
-          "revision": "fffc3c2729be5747390ad02d5100291a0d9ad26a",
-          "version": "0.20200225.4"
-        }
-      },
-      {
         "package": "Alamofire",
         "repositoryURL": "https://github.com/Alamofire/Alamofire.git",
         "state": {
           "branch": null,
           "revision": "f82c23a8a7ef8dc1a49a8bfc6a96883e79121864",
           "version": "5.5.0"
-        }
-      },
-      {
-        "package": "BoringSSL-GRPC",
-        "repositoryURL": "https://github.com/firebase/boringssl-SwiftPM.git",
-        "state": {
-          "branch": null,
-          "revision": "734a8247442fde37df4364c21f6a0085b6a36728",
-          "version": "0.7.2"
         }
       },
       {
@@ -74,69 +56,6 @@
         }
       },
       {
-        "package": "Firebase",
-        "repositoryURL": "https://github.com/firebase/firebase-ios-sdk.git",
-        "state": {
-          "branch": null,
-          "revision": "08686f04881483d2bc098b2696e674c0ba135e47",
-          "version": "8.10.0"
-        }
-      },
-      {
-        "package": "GoogleAppMeasurement",
-        "repositoryURL": "https://github.com/google/GoogleAppMeasurement.git",
-        "state": {
-          "branch": null,
-          "revision": "9b2f6aca5b4685c45f9f5481f19bee8e7982c538",
-          "version": "8.9.1"
-        }
-      },
-      {
-        "package": "GoogleDataTransport",
-        "repositoryURL": "https://github.com/google/GoogleDataTransport.git",
-        "state": {
-          "branch": null,
-          "revision": "15ccdfd25ac55b9239b82809531ff26605e7556e",
-          "version": "9.1.2"
-        }
-      },
-      {
-        "package": "GoogleUtilities",
-        "repositoryURL": "https://github.com/google/GoogleUtilities.git",
-        "state": {
-          "branch": null,
-          "revision": "b3bb0c5551fb3f80ca939829639ab5b093edd14f",
-          "version": "7.7.0"
-        }
-      },
-      {
-        "package": "gRPC",
-        "repositoryURL": "https://github.com/firebase/grpc-SwiftPM.git",
-        "state": {
-          "branch": null,
-          "revision": "fb405dd2c7901485f7e158b24e3a0a47e4efd8b5",
-          "version": "1.28.4"
-        }
-      },
-      {
-        "package": "GTMSessionFetcher",
-        "repositoryURL": "https://github.com/google/gtm-session-fetcher.git",
-        "state": {
-          "branch": null,
-          "revision": "424886f9336a71891aa81852d0c2c08d807d21aa",
-          "version": "1.6.1"
-        }
-      },
-      {
-        "package": "leveldb",
-        "repositoryURL": "https://github.com/firebase/leveldb.git",
-        "state": {
-          "branch": null,
-          "revision": "0706abcc6b0bd9cedfbb015ba840e4a780b5159b",
-          "version": "1.22.2"
-        }
-      },
-      {
         "package": "MarkdownKit",
         "repositoryURL": "https://github.com/bmoliveira/MarkdownKit",
         "state": {
@@ -146,30 +65,12 @@
         }
       },
       {
-        "package": "nanopb",
-        "repositoryURL": "https://github.com/firebase/nanopb.git",
-        "state": {
-          "branch": null,
-          "revision": "7ee9ef9f627d85cbe1b8c4f49a3ed26eed216c77",
-          "version": "2.30908.0"
-        }
-      },
-      {
         "package": "PhoneNumberKit",
         "repositoryURL": "https://github.com/marmelroy/PhoneNumberKit.git",
         "state": {
           "branch": null,
           "revision": "1ef0431b971f69c48ca5eb4cdba07f2c5da54c35",
           "version": "3.3.3"
-        }
-      },
-      {
-        "package": "Promises",
-        "repositoryURL": "https://github.com/google/promises.git",
-        "state": {
-          "branch": null,
-          "revision": "611337c330350c9c1823ad6d671e7f936af5ee13",
-          "version": "2.0.0"
         }
       },
       {
@@ -186,8 +87,8 @@
         "repositoryURL": "https://github.com/getsentry/sentry-cocoa",
         "state": {
           "branch": null,
-          "revision": "5dcd5c245545a03a27988dcdb1a53f78fbee12a1",
-          "version": "7.8.0"
+          "revision": "533a1a838a7046c26211e4186dee91ed2391707d",
+          "version": "7.10.2"
         }
       },
       {
