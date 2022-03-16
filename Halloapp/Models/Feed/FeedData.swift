@@ -480,7 +480,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     // MARK: Fetching Feed Data
 
-    public func feedHistory(for groupID: GroupID, in managedObjectContext: NSManagedObjectContext? = nil) -> ([PostData], [CommentData]) {
+    public func feedHistory(for groupID: GroupID, in managedObjectContext: NSManagedObjectContext? = nil, maxNumPosts: Int = Int.max, maxCommentsPerPost: Int = Int.max) -> ([PostData], [CommentData]) {
         let managedObjectContext = managedObjectContext ?? self.viewContext
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
         // Fetch all feedposts in the group that have not expired yet.
@@ -493,7 +493,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         fetchRequest.returnsObjectsAsFaults = false
         do {
             // Fetch posts and extract postData
-            let posts = try managedObjectContext.fetch(fetchRequest)
+            let posts = try managedObjectContext.fetch(fetchRequest).prefix(maxNumPosts)
             let postsData = posts.map{ $0.postData }
 
             // Fetch comments and extract commentData
@@ -502,9 +502,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 guard let postComments = post.comments else {
                     break
                 }
-                comments.append(contentsOf: postComments)
+                let sortedComments = postComments.sorted { $0.timestamp > $1.timestamp }
+                comments.append(contentsOf: sortedComments.prefix(maxCommentsPerPost))
             }
-            let commentsData = comments.map{ $0.commentData }.sorted { $0.timestamp > $1.timestamp }
+            let commentsData = comments.map{ $0.commentData }
             let postIds = posts.map { $0.id }
             let commentIds = comments.map { $0.id }
 

@@ -1751,50 +1751,10 @@ extension ProtoService: HalloService {
                 } else {
                     // After successfully obtaining the memberKeys
                     // Now fetch feedHistory, compute the hashes and construct the history resend stanza.
-                    // Get feedHistory
-                    let (allPostsData, allCommentsData) = MainAppContext.shared.feedData.feedHistory(for: groupID)
-
-                    // Set a limit of atmost 200 items.
-                    let postsData: [PostData]
-                    let commentsData: [CommentData]
-                    let maxLimit = 200
-                    if allPostsData.count + allCommentsData.count > maxLimit {
-                        // Data is already individually sorted by timestamp.
-                        // So just pick the most recent items till we satisfy the count.
-                        var count = 0
-                        var tempPostsData: [PostData] = []
-                        var tempCommentsData: [CommentData] = []
-                        var postIdx = 0
-                        var commentIdx = 0
-                        while count < maxLimit && postIdx < allPostsData.count && commentIdx < allCommentsData.count {
-                            if allPostsData[postIdx].timestamp >= allCommentsData[commentIdx].timestamp {
-                                tempPostsData.append(allPostsData[postIdx])
-                                postIdx += 1
-                            } else {
-                                tempCommentsData.append(allCommentsData[commentIdx])
-                                commentIdx += 1
-                            }
-                            count += 1
-                        }
-                        if count < maxLimit && postIdx < allPostsData.count {
-                            while count < maxLimit && postIdx < allPostsData.count {
-                                tempPostsData.append(allPostsData[postIdx])
-                                postIdx += 1
-                                count += 1
-                            }
-                        } else if count < maxLimit && commentIdx < allCommentsData.count {
-                            while count < maxLimit && commentIdx < allCommentsData.count {
-                                tempCommentsData.append(allCommentsData[commentIdx])
-                                commentIdx += 1
-                                count += 1
-                            }
-                        }
-                        postsData = tempPostsData
-                        commentsData = tempCommentsData
-                    } else {
-                        postsData = allPostsData
-                        commentsData = allCommentsData
-                    }
+                    // Get feedHistory with a set-limit of 20 most recent items and 50 most recent comments per post.
+                    let maxNumPosts = 20
+                    let maxCommentsPerPost = 50
+                    let (postsData, commentsData) = MainAppContext.shared.feedData.feedHistory(for: groupID, maxNumPosts: maxNumPosts, maxCommentsPerPost: maxCommentsPerPost)
 
                     DDLogInfo("ProtoServiceCore/modifyGroup/\(groupID)/fetchMemberKeysCompletion/success - \(newMembersDetails.count)")
                     var feedContentDetails: [Clients_ContentDetails] = []
