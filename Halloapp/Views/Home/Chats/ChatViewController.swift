@@ -870,6 +870,8 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                 } else {
                     shouldScrollToBottom = true
                 }
+            case .delete:
+                shouldUpdate = true
             default:
                 break
             }
@@ -1644,6 +1646,10 @@ extension ChatViewController: InboundMsgViewCellDelegate {
                 })
             }
 
+            actionSheet.addAction(UIAlertAction(title: Localizations.messageDelete, style: .destructive) { [weak self] _ in
+                self?.showDeletionConfirmationMenu(for: chatMessage)
+            })
+
             if ServerProperties.isInternalUser {
                 actionSheet.message = MainAppContext.shared.cryptoData.details(for: chatMessage.id, dateFormatter: DateFormatter.dateTimeFormatterMonthDayTime)
             }
@@ -1708,15 +1714,11 @@ extension ChatViewController: OutboundMsgViewCellDelegate {
                  })
             }
         }
-        
-        if [.sentOut, .delivered, .seen, .played].contains(chatMessage.outgoingStatus) {
-            actionSheet.addAction(UIAlertAction(title: Localizations.messageDelete, style: .destructive) { [weak self] _ in
-                guard let self = self else { return }
-                guard let toUserID = self.fromUserId else { return }
-                MainAppContext.shared.chatData.retractChatMessage(toUserID: toUserID, messageToRetractID: chatMessage.id)
-            })
-        }
-        
+
+        actionSheet.addAction(UIAlertAction(title: Localizations.messageDelete, style: .destructive) { [weak self] _ in
+            self?.showDeletionConfirmationMenu(for: chatMessage)
+        })
+
         guard actionSheet.actions.count > 0 else { return }
         
         actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
@@ -1727,6 +1729,26 @@ extension ChatViewController: OutboundMsgViewCellDelegate {
     func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, didCompleteVoiceNote msgId: String) {
         guard let indexPath = outboundMsgViewCell.indexPath else { return }
         playVoiceNote(after: indexPath)
+    }
+
+    func showDeletionConfirmationMenu(for chatMessage: ChatMessage) {
+        let chatMessageId = chatMessage.id
+        let alertController = UIAlertController(title: Localizations.chatDeleteTitle, message: nil, preferredStyle: .actionSheet)
+
+        if chatMessage.fromUserId == AppContext.shared.userData.userId,
+           [.sentOut, .delivered, .seen, .played].contains(chatMessage.outgoingStatus),
+           let toUserID = fromUserId {
+            alertController.addAction(UIAlertAction(title: Localizations.chatDeleteForEveryone, style: .destructive) { _ in
+                MainAppContext.shared.chatData.retractChatMessage(toUserID: toUserID, messageToRetractID: chatMessageId)
+            })
+        }
+
+        alertController.addAction(UIAlertAction(title: Localizations.chatDeleteForMe, style: .destructive) { _ in
+            MainAppContext.shared.chatData.deleteChatMessage(with: chatMessageId)
+        })
+
+        alertController.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+        present(alertController, animated: true)
     }
     
 }
@@ -1865,5 +1887,20 @@ class UnselectableUITextView: UITextView {
         }
         let startIndex = offset(from: beginningOfDocument, to: range.start)
         return attributedText.attribute(.link, at: startIndex, effectiveRange: nil) != nil
+    }
+}
+
+extension Localizations {
+
+    static var chatDeleteTitle: String {
+        NSLocalizedString("chat.delete.title", value: "Delete selected message?", comment: "Title of deletion menu")
+    }
+
+    static var chatDeleteForMe: String {
+        NSLocalizedString("chat.delete.me", value: "Delete for me", comment: "Button to locally delete a chat message")
+    }
+
+    static var chatDeleteForEveryone: String {
+        NSLocalizedString("chat.delete.everyone", value: "Delete for everyone", comment: "Button to retract a chat message for everyone")
     }
 }

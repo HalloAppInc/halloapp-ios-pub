@@ -2989,6 +2989,23 @@ extension ChatData {
         }
     }
 
+    public func deleteChatMessage(with id: ChatMessageID) {
+        DDLogDebug("ChatData/deleteChatmessage/message \(id)")
+
+        performSeriallyOnBackgroundContext { [weak self] context in
+            guard let self = self, let chatMessage = self.chatMessage(with: id, in: context) else {
+                return
+            }
+
+            self.deleteMedia(in: chatMessage)
+            context.delete(chatMessage)
+
+            if context.hasChanges {
+                self.save(context)
+            }
+        }
+    }
+
     private func deleteChatMessageContent(in chatMessage: ChatMessage) {
         DDLogDebug("ChatData/deleteChatMessageContent/message \(chatMessage.id) ")
         
