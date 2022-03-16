@@ -1076,6 +1076,9 @@ final class ProtoService: ProtoServiceCore {
                 callDelegate?.halloService(self, from: UserID(msg.fromUid), didReceiveMuteCall: muteCall)
             }
 
+        case .callSdp(_):
+            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
+
         case .inviteeNotice:
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .homeFeedRerequest(_):
