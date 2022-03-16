@@ -479,9 +479,6 @@
 "feed.notification..other.comment.no.text" = "<$author$> a également commenté";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.comment.grouped" = "<$numberOthers$> autres ont répondu au message de <$author$>";
-
-/* Text for feed notification displayed in Activity Center. */
 "feed.notification.commented.no.text" = "<$author$> a commenté votre publication";
 
 /* Text for feed notification displayed in Activity Center. */

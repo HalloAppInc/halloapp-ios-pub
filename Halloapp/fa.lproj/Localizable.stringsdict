@@ -164,6 +164,22 @@
 			<string>شما d% دعوتنامه دارید.</string>
 		</dict>
 	</dict>
+	<key>n.others.replied</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_others_replied@</string>
+		<key>n_others_replied</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>&lt;$user$&gt; and %d other replied to &lt;$author$&gt;'s post</string>
+			<key>other</key>
+			<string>&lt;$user$&gt; and %d others replied to &lt;$author$&gt;'s post</string>
+		</dict>
+	</dict>
 	<key>notification.n.photos</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>

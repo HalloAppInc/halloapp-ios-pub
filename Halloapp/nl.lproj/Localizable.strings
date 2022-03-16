@@ -521,9 +521,6 @@
 "feed.notification..other.comment.no.text" = "<$author$> heeft ook gereageerd";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.comment.grouped" = "<$numberOthers$> anderen hebben geantwoord op de post van <$author$>";
-
-/* Text for feed notification displayed in Activity Center. */
 "feed.notification.commented.no.text" = "<$author$> heeft op je post gereageerd";
 
 /* Text for feed notification displayed in Activity Center. */
@@ -776,7 +773,7 @@
 "groups.common" = "Gemeenschappelijke Groepen";
 
 /* Text shown when user is about to remove the group */
-"groups.list.remove.message" = "Weet je zeker dat je deze groep en de inhoud ervan wilt verwijderen?";
+"groups.list.remove.message" = "Weet je zeker dat je deze groep en de inhoud ervan wilt verwijderen van je apparaat?";
 
 /* The name of the group that is created for the user when they are new and in the zero zone (no contacts and no content) */
 "groups.NUX.user.group.name" = "Groep van %@";
@@ -845,7 +842,7 @@
 "invite.please.wait" = "Even wachten...";
 
 /* Text of invitation to join HalloApp. */
-"invite.text" = "Kom ook op HalloApp - een simpele, privé en veilige manier om in contact te blijven met vrienden en familie. Download de app op https://halloapp.com/dl";
+"invite.text" = "Kom ook op HalloApp - een eenvoudige, privé en veilige manier om in contact te blijven met vrienden en familie. Download de app op https://halloapp.com/dl";
 
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
 "invite.text.specific" = "Hey %1$@, ik wil je graag uitnodigen voor HalloApp - een netwerk voor échte relaties die het dichtst bij me staan. Gebruik %2$@ om je te registreren. Download de app op https://halloapp.com/dl";
@@ -979,6 +976,9 @@
 /* Indicates how many invites are remaining */
 "n.invites.remaining" = "n.invites.remaining";
 
+/* Summary when multiple commenters commented on the same post you commented on */
+"n.others.replied" = "n.others.replied";
+
 /* Displayed in place of deleted feed posts. */
 "n.posts.deleted" = "%@ posts verwijderd";
 
@@ -989,7 +989,7 @@
 "new.group.members.max.size.alert" = "De maximale groepsgrootte is %d";
 
 /* Title for alert that pops up when user attempts to save an empty contact list */
-"no.contact.selected" = "Geen contact geselecteerd.";
+"no.contact.selected" = "Geen contact geselecteerd";
 
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Je bent geen deelnemer meer van deze groep";
@@ -1037,7 +1037,13 @@
 "notification.voicecall.missed" = "☎️ Gemiste spraakoproep";
 
 /* New post notification text when post is a voice note. */
-"notification.voicenote" = "🎤 Spraakbericht";
+"notification.voicecomment" = "🎤 Audioreactie";
+
+/* New post notification text when post is a voice note. */
+"notification.voicenote" = "🎤 Audiobericht";
+
+/* New post notification text when post is a voice note. */
+"notification.voicepost" = "🎤 Audiopost";
 
 /* Text for new user popup pointing at activity center icon */
 "nux.activity.center.icon" = "Hallo!";
@@ -1191,7 +1197,7 @@
 "profile.view.photo" = "Foto bekijken";
 
 /* Disclaimer text about receiving SMS verification code */
-"registration.code.disclaimer" = "Je ontvangt een verificatiecode.\nJe aanbieder kan hiervoor kosten in rekening brengen.";
+"registration.code.disclaimer" = "Je ontvangt een verificatiecode.\nJe provider kan hiervoor kosten in rekening brengen.";
 
 /* Error message to display when user enters incorrect verification code */
 "registration.code.incorrect" = "De code die je hebt ingevoerd is onjuist";
@@ -1578,8 +1584,14 @@
 "your.post.deletepost.confirmation" = "Deze post verwijderen? Dit kan niet ongedaan worden gemaakt.";
 
 /* Title for button in action sheet prompting user to share post to external sites */
-"your.post.externalshare.button" = "Extern Delen";
+"your.post.externalshare.copylink" = "Kopieer Link om te Delen";
+
+/* Success toast when external share link is copied */
+"your.post.externalshare.copylink.success" = "Gekopieerd naar Klembord";
 
 /* Message that external share failed. */
 "your.post.externalshare.error" = "Uploaden post voor extern delen mislukt";
+
+/* Text introducing external share link, part of what is shared */
+"your.post.externalshare.title" = "Bekijk mijn post op HalloApp:";
 

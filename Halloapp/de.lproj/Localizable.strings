@@ -521,9 +521,6 @@
 "feed.notification..other.comment.no.text" = "<$author$> kommentierte";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.comment.grouped" = "<$numberOthers$> andere Personen haben auf <$author$>'s Beitrag geantwortet";
-
-/* Text for feed notification displayed in Activity Center. */
 "feed.notification.commented.no.text" = "<$author$> hat deinen Beitrag kommentiert";
 
 /* Text for feed notification displayed in Activity Center. */
@@ -1576,9 +1573,6 @@
 
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "Diesen Beitrag löschen? Diese Aktion kann nicht widerrufen werden.";
-
-/* Title for button in action sheet prompting user to share post to external sites */
-"your.post.externalshare.button" = "Extern teilen";
 
 /* Message that external share failed. */
 "your.post.externalshare.error" = "Beitrag für externe Freigabe konnte nicht hochgeladen werden";

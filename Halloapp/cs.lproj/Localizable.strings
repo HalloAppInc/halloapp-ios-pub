@@ -479,9 +479,6 @@
 "feed.notification..other.comment.no.text" = "<$author$> také komentoval/a";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.comment.grouped" = "<$numberOthers$> další zareagovali na příspěvek uživatele <$author$>";
-
-/* Text for feed notification displayed in Activity Center. */
 "feed.notification.commented.no.text" = "<$author$> okomentoval/a váš příspěvek";
 
 /* Text for feed notification displayed in Activity Center. */

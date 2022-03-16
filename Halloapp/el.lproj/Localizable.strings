@@ -344,9 +344,6 @@
 "feed.notification..other.comment.no.text" = "<$author$> σχολίασε επίσης";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.comment.grouped" = "<$numberOthers$> άλλοι χρήστες απάντησαν στην δημοσίευση του <$author$>'s";
-
-/* Text for feed notification displayed in Activity Center. */
 "feed.notification.commented.no.text" = "<$author$> σχολίασε στη δημοσίευσή σας";
 
 /* Text for feed notification displayed in Activity Center. */

@@ -497,9 +497,6 @@
 "feed.notification..other.comment.no.text" = "<$author$> тоже прокомментировал(-а)";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.comment.grouped" = "<$numberOthers$> чел. ответили на пост <$author$>";
-
-/* Text for feed notification displayed in Activity Center. */
 "feed.notification.commented.no.text" = "<$author$> прокомментировал(-а) Вашу публикацию";
 
 /* Text for feed notification displayed in Activity Center. */
@@ -1540,9 +1537,6 @@
 
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "Удалить этот пост? Это действие нельзя отменить.";
-
-/* Title for button in action sheet prompting user to share post to external sites */
-"your.post.externalshare.button" = "Поделиться";
 
 /* Message that external share failed. */
 "your.post.externalshare.error" = "Не удалось загрузить сообщение для публикации";

@@ -20,7 +20,7 @@
 "home.update.notice.title" = "Deze versie is verouderd";
 
 /* Disclaimer text about receiving SMS verification code */
-"registration.code.disclaimer" = "Je ontvangt een verificatiecode.\nJe aanbieder kan hiervoor kosten in rekening brengen.";
+"registration.code.disclaimer" = "Je ontvangt een verificatiecode.\nJe provider kan hiervoor kosten in rekening brengen.";
 
 /* Error message to display when user enters incorrect verification code */
 "registration.code.incorrect" = "De code die je hebt ingevoerd is onjuist";

@@ -482,9 +482,6 @@
 "feed.notification..other.comment.no.text" = "<$author$> juga memberikan komentar";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.comment.grouped" = "<$numberOthers$> lainnya membalas postingan <$author$>";
-
-/* Text for feed notification displayed in Activity Center. */
 "feed.notification.commented.no.text" = "<$author$> memberikan komentar pada kiriman Anda";
 
 /* Text for feed notification displayed in Activity Center. */

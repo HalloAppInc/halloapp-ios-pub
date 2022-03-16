@@ -497,9 +497,6 @@
 "feed.notification..other.comment.no.text" = "<$author$> kişisi de yorum yaptı";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.comment.grouped" = "<$numberOthers$> diğerleri <$author$> kişisinin gönderisine yanıt verdi";
-
-/* Text for feed notification displayed in Activity Center. */
 "feed.notification.commented.no.text" = "<$author$>, gönderine yorum yaptı";
 
 /* Text for feed notification displayed in Activity Center. */
@@ -1528,9 +1525,6 @@
 
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "Bu gönderi silinsin mi? Bu eylem geri alınamaz.";
-
-/* Title for button in action sheet prompting user to share post to external sites */
-"your.post.externalshare.button" = "Harici olarak paylaş ";
 
 /* Message that external share failed. */
 "your.post.externalshare.error" = "Harici paylaşım için gönderi yüklenemedi";

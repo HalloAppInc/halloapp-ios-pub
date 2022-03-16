@@ -521,9 +521,6 @@
 "feed.notification..other.comment.no.text" = "<$author$> também comentou";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.comment.grouped" = "Outros <$numberOthers$> responderam à publicação de <$author$>";
-
-/* Text for feed notification displayed in Activity Center. */
 "feed.notification.commented.no.text" = "<$author$> comentou em sua postagem";
 
 /* Text for feed notification displayed in Activity Center. */
@@ -1582,9 +1579,6 @@
 
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "Excluir esta postagem? Essa ação não pode ser desfeita.";
-
-/* Title for button in action sheet prompting user to share post to external sites */
-"your.post.externalshare.button" = "Compartilhar externamente";
 
 /* Message that external share failed. */
 "your.post.externalshare.error" = "Falha ao enviar postagem para compartilhamento externo";

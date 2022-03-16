@@ -154,6 +154,15 @@
 /* Title for call history event. Appears next to details of a missed call. */
 "call.history.voice.call.missed" = "تماس صوتی از دست رفته";
 
+/* Status display when user mutes their own audio during a call. */
+"call.mute.local.audio" = "میکروفون خاموش است";
+
+/* Status display when user mutes their own audio and video during a call. */
+"call.mute.local.audio.video" = "دوربین و میکروفون خاموش هستند";
+
+/* Status display when user mutes their own video during a call. */
+"call.mute.local.video" = "دوربین خاموش است";
+
 /* Status display when peer mutes audio during a call. */
 "call.mute.remote.audio" = "@% این تماس را بی صدا کرد";
 
@@ -510,9 +519,6 @@
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification..other.comment.no.text" = "<$author$> همچنین نظر نوشت";
-
-/* Text for feed notification displayed in Activity Center. */
-"feed.notification.comment.grouped" = "<$numberOthers$> نفر دیگر به پست <$author$> پاسخ دادند";
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification.commented.no.text" = "<$author$> زیر پست شما نظر نوشت";
@@ -1028,7 +1034,13 @@
 "notification.voicecall.missed" = "☎️ تماس صوتی از دست رفته";
 
 /* New post notification text when post is a voice note. */
+"notification.voicecomment" = "🎤 نظر صوتی";
+
+/* New post notification text when post is a voice note. */
 "notification.voicenote" = "🎤 پیام صوتی";
+
+/* New post notification text when post is a voice note. */
+"notification.voicepost" = "🎤 پست صوتی";
 
 /* Text for new user popup pointing at activity center icon */
 "nux.activity.center.icon" = "سلام!";
@@ -1111,6 +1123,9 @@
 /* Generic setting value telling how many contacts are blocked or muted. */
 "privacy.n.contacts" = "privacy.n.contacts";
 
+/* Error banner displayed when there is a failure syncing preivacy settings, displayed on the privacy view */
+"privacy.sync.failure" = "خطا در هماهنگ‌سازی تنظیمات حریم خصوصی. لطفاً بعداً مجدداً امتحان کنید.";
+
 /* Title for the button allowing to delete current profile photo. */
 "profile.delete.photo" = "حذف عکس";
 
@@ -1174,6 +1189,9 @@
 
 /* Title for the screen allowing to edit profile name */
 "profile.title.your.name" = "نام شما";
+
+/* Title for the button allowing the user to view their own profile photo. */
+"profile.view.photo" = "مشاهده عکس";
 
 /* Disclaimer text about receiving SMS verification code */
 "registration.code.disclaimer" = "یک کد دریافت خواهید کرد.\nممکن است اپراتور شما نرخی تحمیل کند.";
@@ -1561,9 +1579,6 @@
 
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "مطمئینید این پست را میخواهید حذف کنید؟ این کار برگشت ناپذیر است.";
-
-/* Title for button in action sheet prompting user to share post to external sites */
-"your.post.externalshare.button" = "به اشتراک گذاشتن خارج هالواپ";
 
 /* Message that external share failed. */
 "your.post.externalshare.error" = "خطا در بارگذاری پست برای به اشتراک گذاشتن خارجی";

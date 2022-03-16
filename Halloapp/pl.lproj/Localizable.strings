@@ -479,9 +479,6 @@
 "feed.notification..other.comment.no.text" = "Użytkownik <$author$> także skomentował";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.comment.grouped" = "Liczba innych osób, które odpowiedziały na wpis użytkownika <$author$>: <$numberOthers$>";
-
-/* Text for feed notification displayed in Activity Center. */
 "feed.notification.commented.no.text" = "Użytkownik <$author$> także skomentował Twój wpis";
 
 /* Text for feed notification displayed in Activity Center. */
