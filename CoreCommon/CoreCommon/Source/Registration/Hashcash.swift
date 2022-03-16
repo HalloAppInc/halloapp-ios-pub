@@ -119,8 +119,8 @@ class HashcashSolver {
         DispatchQueue.global(qos: .userInitiated).async {
             let startTime = CACurrentMediaTime()
             // NB: The difficulty D refers to the number of leading 0's in the hash.
-            //     This should show up once in every 2^D hashes, so we'd expect 256 valid solutions in D bytes (2^8D hashes).
-            let guessBytes = challenge.difficulty
+            //     This should show up once in every 2^D hashes, so we'd expect > 256 valid solutions in D/8 + 2 bytes.
+            let guessBytes = challenge.difficulty / 8 + 2
             var guess = Data(count: guessBytes)
             var timeTaken: TimeInterval = 0
             while timeTaken < challenge.expiresIn {
