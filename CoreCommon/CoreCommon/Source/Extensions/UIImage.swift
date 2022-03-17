@@ -324,7 +324,7 @@ extension UIImage {
 
         let renderer = UIGraphicsImageRenderer(size: CGSize(width: 120, height: 120))
         return renderer.image { context in
-            view.drawHierarchy(in: view.bounds, afterScreenUpdates: true)
+            view.layer.render(in: context.cgContext)
         }
     }
 }

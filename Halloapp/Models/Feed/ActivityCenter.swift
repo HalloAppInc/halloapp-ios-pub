@@ -62,15 +62,22 @@ struct ActivityCenterItem: Hashable {
     }
     
     var image: UIImage? {
-        get {
-            switch content {
-            case .singleNotification(let notification):
-                return notification.image ?? UIImage.thumbnail(forText: notification.text)
-            case .unknownCommenters(let notifications):
-                guard let notification = notifications.first else { return nil }
-                return notification.image ?? UIImage.thumbnail(forText: notification.text)
+        switch content {
+        case .singleNotification(let notification):
+            if let image = notification.image {
+                return image
+            }
+        case .unknownCommenters(let notifications):
+            if let image = notifications.first?.image {
+                return image
             }
         }
+        guard let postID = postId, let post = MainAppContext.shared.feedData.feedPost(with: postID) else
+            {
+                return nil
+            }
+        let postText = MainAppContext.shared.contactStore.textWithMentions(post.text ?? "", mentions: post.orderedMentions)
+        return UIImage.thumbnail(forText: postText?.string)
     }
     
     /// The userID related to the notification. If the notification is grouped, then the `UserID` is `nil` since they contacts are all unknown.
