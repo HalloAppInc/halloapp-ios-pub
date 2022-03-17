@@ -478,6 +478,8 @@ public struct Clients_PostContainerBlob {
 
   public var postID: String = String()
 
+  public var timestamp: Int64 = 0
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -1775,6 +1777,7 @@ extension Clients_PostContainerBlob: SwiftProtobuf.Message, SwiftProtobuf._Messa
     1: .standard(proto: "post_container"),
     2: .same(proto: "uid"),
     3: .standard(proto: "post_id"),
+    4: .same(proto: "timestamp"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1786,6 +1789,7 @@ extension Clients_PostContainerBlob: SwiftProtobuf.Message, SwiftProtobuf._Messa
       case 1: try { try decoder.decodeSingularMessageField(value: &self._postContainer) }()
       case 2: try { try decoder.decodeSingularInt64Field(value: &self.uid) }()
       case 3: try { try decoder.decodeSingularStringField(value: &self.postID) }()
+      case 4: try { try decoder.decodeSingularInt64Field(value: &self.timestamp) }()
       default: break
       }
     }
@@ -1805,6 +1809,9 @@ extension Clients_PostContainerBlob: SwiftProtobuf.Message, SwiftProtobuf._Messa
     if !self.postID.isEmpty {
       try visitor.visitSingularStringField(value: self.postID, fieldNumber: 3)
     }
+    if self.timestamp != 0 {
+      try visitor.visitSingularInt64Field(value: self.timestamp, fieldNumber: 4)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -1812,6 +1819,7 @@ extension Clients_PostContainerBlob: SwiftProtobuf.Message, SwiftProtobuf._Messa
     if lhs._postContainer != rhs._postContainer {return false}
     if lhs.uid != rhs.uid {return false}
     if lhs.postID != rhs.postID {return false}
+    if lhs.timestamp != rhs.timestamp {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
