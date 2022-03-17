@@ -2120,11 +2120,16 @@ extension ChatData {
 
             if let feedPostMedia = feedPost.media?.first(where: { $0.order == feedPostMediaIndex }) {
                 let quotedMedia = ChatQuotedMedia(context: context)
-                if feedPostMedia.type == .image {
-                    quotedMedia.type = .image
-                } else {
-                    quotedMedia.type = .video
+                let mediaType: ChatQuoteMediaType
+                switch feedPostMedia.type {
+                case .audio:
+                    mediaType = .audio
+                case .image:
+                    mediaType = .image
+                case .video:
+                    mediaType = .video
                 }
+                quotedMedia.type = mediaType
                 quotedMedia.order = feedPostMedia.order
                 quotedMedia.width = Float(feedPostMedia.size.width)
                 quotedMedia.height = Float(feedPostMedia.size.height)

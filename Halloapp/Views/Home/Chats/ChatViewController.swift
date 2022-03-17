@@ -225,18 +225,30 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard(_:)))
         view.addGestureRecognizer(tapGesture)
         
-        if let feedPostId = self.feedPostId {
-            if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
-                let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.text, mentions: feedPost.orderedMentions)
-                if let mediaItem = feedPost.media?.first(where: { $0.order == self.feedPostMediaIndex }) {
-                    let mediaType: ChatMessageMediaType = mediaItem.type == .video ? .video : .image
-                    let mediaUrl = MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
-
-                    chatInputView.showQuoteFeedPanel(with: feedPost.userId, text: mentionText?.string ?? "", mediaType: mediaType, mediaUrl: mediaUrl, from: self)
-                } else {
-                    chatInputView.showQuoteFeedPanel(with: feedPost.userId, text: mentionText?.string ?? "", mediaType: nil, mediaUrl: nil, from: self)
+        if let feedPostId = self.feedPostId, let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
+            let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.text, mentions: feedPost.orderedMentions)
+            let mediaType: ChatMessageMediaType?
+            let mediaUrl: URL?
+            if let mediaItem = feedPost.media?.first(where: { $0.order == self.feedPostMediaIndex }) {
+                switch mediaItem.type {
+                case .audio:
+                    mediaType = .audio
+                case .image:
+                    mediaType = .image
+                case .video:
+                    mediaType = .video
                 }
+                mediaUrl = MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
+            } else {
+                mediaType = nil
+                mediaUrl = nil
             }
+            chatInputView.showQuoteFeedPanel(with: feedPost.userId,
+                                             text: mentionText?.string ?? "",
+                                             mediaType: mediaType,
+                                             mediaUrl: mediaUrl,
+                                             from: self,
+                                             isQuotedFeedPost: true)
         }
 
         cancellableSet.insert(
@@ -502,7 +514,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                     
                     let reply = ReplyContext(replyMessageID: replyMessageID,
                           replySenderID: replySenderID,
-                          replyMediaIndex: chatReplyMessageMediaIndex,
+                          mediaIndex: chatReplyMessageMediaIndex,
                           text: replyMessage.text ?? "",
                           media: media)
                     
@@ -512,7 +524,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             
             let reply = ReplyContext(replyMessageID: replyMessageID,
                   replySenderID: replySenderID,
-                  replyMediaIndex: chatReplyMessageMediaIndex,
+                  mediaIndex: chatReplyMessageMediaIndex,
                   text: replyMessage.text ?? "",
                   media: nil)
             
@@ -521,19 +533,27 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
                 let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.text, mentions: feedPost.orderedMentions)
                 if let mediaItem = feedPost.media?.first(where: { $0.order == self.feedPostMediaIndex }) {
-                    let mediaType: ChatMessageMediaType = mediaItem.type == .video ? .video : .image
+                    let mediaType: ChatMessageMediaType
+                    switch mediaItem.type {
+                    case .audio:
+                        mediaType = .audio
+                    case .image:
+                        mediaType = .image
+                    case .video:
+                        mediaType = .video
+                    }
                     let mediaUrl = MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
                     
-                    let reply = ReplyContext(replyMessageID: feedPostId,
+                    let reply = ReplyContext(feedPostID: feedPostId,
                                              replySenderID: feedPost.userId,
-                                             replyMediaIndex: nil,
+                                             mediaIndex: feedPostMediaIndex,
                                              text: mentionText?.string ?? "",
                                              media: ChatReplyMedia(type: mediaType, mediaURL: mediaUrl.absoluteString))
                     return reply
                 } else {
-                    let reply = ReplyContext(replyMessageID: feedPostId,
+                    let reply = ReplyContext(feedPostID: feedPostId,
                                              replySenderID: feedPost.userId,
-                                             replyMediaIndex: nil,
+                                             mediaIndex: nil,
                                              text: mentionText?.string ?? "",
                                              media: nil)
                     return reply
@@ -556,9 +576,17 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         
         if let reply = draft.replyContext {
             handleDraftQuotedReply(reply: reply)
-            
-            chatReplyMessageID = reply.replyMessageID
-            chatReplyMessageSenderID = reply.replySenderID
+
+            if let feedPostId = reply.feedPostID {
+                self.feedPostId = feedPostId
+                feedPostMediaIndex = reply.mediaIndex ?? 0
+            } else if let chatReplyMessageID = chatReplyMessageID {
+                self.chatReplyMessageID = chatReplyMessageID
+                chatReplyMessageSenderID = reply.replySenderID
+                chatReplyMessageMediaIndex = reply.mediaIndex ?? 0
+            } else {
+                DDLogWarn("ChatViewController/No feedPostId or chatReplyMessageId when restoring draft reply")
+            }
         }
     }
     
@@ -1583,18 +1611,19 @@ extension ChatViewController {
         if let mediaItem = chatMessage.media?.first(where: { $0.order == chatReplyMessageMediaIndex }) {
             let mediaUrl = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
             
-            chatInputView.showQuoteFeedPanel(with: userID, text: chatMessage.text ?? "", mediaType: mediaItem.type, mediaUrl: mediaUrl, from: self)
+            chatInputView.showQuoteFeedPanel(with: userID, text: chatMessage.text ?? "", mediaType: mediaItem.type, mediaUrl: mediaUrl, from: self, isQuotedFeedPost: false)
         } else {
-            chatInputView.showQuoteFeedPanel(with: userID, text: chatMessage.text ?? "", mediaType: nil, mediaUrl: nil, from: self)
+            chatInputView.showQuoteFeedPanel(with: userID, text: chatMessage.text ?? "", mediaType: nil, mediaUrl: nil, from: self, isQuotedFeedPost: false)
         }
     }
 
     private func handleDraftQuotedReply(reply: ReplyContext) {
-        if let mediaURLString = reply.media?.mediaURL, let mediaURL = URL(string: mediaURLString) {
-            chatInputView.showQuoteFeedPanel(with: reply.replySenderID, text: reply.text, mediaType: reply.media?.type, mediaUrl: mediaURL, from: self)
-        } else {
-            chatInputView.showQuoteFeedPanel(with: reply.replySenderID, text: reply.text, mediaType: nil, mediaUrl: nil, from: self)
-        }
+        chatInputView.showQuoteFeedPanel(with: reply.replySenderID,
+                                         text: reply.text,
+                                         mediaType: reply.media?.type,
+                                         mediaUrl: reply.media.flatMap { URL(string: $0.mediaURL) },
+                                         from: self,
+                                         isQuotedFeedPost: reply.feedPostID != nil)
     }
 }
 

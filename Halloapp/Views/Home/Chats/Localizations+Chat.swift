@@ -40,6 +40,10 @@ extension Localizations {
     static var chatMessageAudio: String {
         NSLocalizedString("chat.message.audio", value: "Voice note", comment: "Message text shown in a message that have audio media but no text")
     }
+
+    static var chatMessageAudioPost: String {
+        NSLocalizedString("chat.message.audiopost", value: "Audio post", comment: "Message text shown for quoted audio posts")
+    }
     
     static func threadListPreviewAlreadyUserDefault(name: String) -> String {
         return String(

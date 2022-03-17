@@ -1083,7 +1083,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
 
     // MARK: Quote Panel
     
-    func showQuoteFeedPanel(with userId: String, text: String, mediaType: ChatMessageMediaType?, mediaUrl: URL?, groupID: GroupID? = nil, from viewController: UIViewController) {
+    func showQuoteFeedPanel(with userId: String, text: String, mediaType: ChatMessageMediaType?, mediaUrl: URL?, groupID: GroupID? = nil, from viewController: UIViewController, isQuotedFeedPost: Bool) {
         // Quote panel takes precedence over link preview. Remove link preview if present
         resetLinkDetection()
         quoteFeedPanelNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
@@ -1125,7 +1125,8 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
                     text.append(NSAttributedString(attachment: attachment))
                 }
 
-                text.append(NSAttributedString(string: Localizations.chatMessageAudio))
+                let message = isQuotedFeedPost ? Localizations.chatMessageAudioPost : Localizations.chatMessageAudio
+                text.append(NSAttributedString(string: message))
 
                 if FileManager.default.fileExists(atPath: url.path) {
                     let duration = Self.voiceNoteDurationFormatter.string(from: AVURLAsset(url: url).duration.seconds) ?? ""

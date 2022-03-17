@@ -17,9 +17,10 @@ struct ChatDraft: Codable {
 }
 
 struct ReplyContext: Codable {
-    var replyMessageID: String
+    var feedPostID: String?
+    var replyMessageID: String?
     var replySenderID: UserID
-    var replyMediaIndex: Int32?
+    var mediaIndex: Int32?
     
     var text: String
     var media: ChatReplyMedia?

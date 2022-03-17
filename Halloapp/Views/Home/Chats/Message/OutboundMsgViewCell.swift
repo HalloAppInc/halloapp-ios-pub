@@ -450,7 +450,9 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         if chatMessage.chatReplyMessageID != nil {
             quoteMediaIndex = Int(chatMessage.chatReplyMessageMediaIndex)
         }
-        let isQuotedMessage = updateQuoted(chatQuoted: chatMessage.quoted, mediaIndex: quoteMediaIndex)
+        let isQuotedMessage = updateQuoted(chatQuoted: chatMessage.quoted,
+                                           mediaIndex: quoteMediaIndex,
+                                           isQuotedFeedPost: chatMessage.feedPostId != nil)
 
         updateWith(chatMessage: chatMessage,
                    isPreviousMsgSameSender: isPreviousMsgSameSender,
@@ -469,7 +471,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         }
     }
 
-    func updateQuoted(chatQuoted: ChatQuoted?, mediaIndex: Int) -> Bool {
+    func updateQuoted(chatQuoted: ChatQuoted?, mediaIndex: Int, isQuotedFeedPost: Bool) -> Bool {
 
         var isQuotedMessage = false
         
@@ -529,7 +531,8 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                             text.append(NSAttributedString(attachment: attachment))
                         }
 
-                        text.append(NSAttributedString(string: Localizations.chatMessageAudio))
+                        let message = isQuotedFeedPost ? Localizations.chatMessageAudioPost : Localizations.chatMessageAudio
+                        text.append(NSAttributedString(string: message))
 
                         if FileManager.default.fileExists(atPath: fileURL.path) {
                             let duration = Self.voiceNoteDurationFormatter.string(from: AVURLAsset(url: fileURL).duration.seconds) ?? ""
