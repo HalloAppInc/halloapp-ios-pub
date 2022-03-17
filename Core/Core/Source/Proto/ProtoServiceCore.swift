@@ -1073,7 +1073,8 @@ extension ProtoServiceCore: CoreService {
                                       timestamp: Date(timeIntervalSince1970: TimeInterval(serverPost.timestamp)),
                                       payload: payload,
                                       status: .received,
-                                      isShared: false, audience: serverPost.audience) else {
+                                      isShared: false,
+                                      audience: serverPost.audience) else {
                 DDLogError("proto/parseGroupPayloadContent/\(item.gid)/post/\(serverPost.id)/error could not make post object")
                 completion(nil, GroupDecryptionFailure(contentId, publisherUid, .invalidPayload, .payload))
                 return
