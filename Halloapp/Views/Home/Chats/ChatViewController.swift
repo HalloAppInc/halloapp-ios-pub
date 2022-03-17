@@ -101,14 +101,6 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         navigationItem.rightBarButtonItems = rightBarButtons
         checkAndUpdateCallButtons()
 
-        let navAppearance = UINavigationBarAppearance()
-        navAppearance.backgroundColor = UIColor.primaryBg
-        navAppearance.shadowColor = nil
-        navAppearance.setBackIndicatorImage(UIImage(named: "NavbarBack"), transitionMaskImage: UIImage(named: "NavbarBack"))
-        navigationItem.standardAppearance = navAppearance
-        navigationItem.scrollEdgeAppearance = navAppearance
-        navigationItem.compactAppearance = navAppearance
-
         let titleWidthConstraint = titleView.widthAnchor.constraint(equalToConstant: (view.frame.width*0.8))
         titleWidthConstraint.priority = .defaultHigh // Lower priority to allow space for trailing button if necessary
         titleWidthConstraint.isActive = true

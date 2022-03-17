@@ -62,14 +62,6 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
     override func viewDidLoad() {
         DDLogInfo("GroupsListViewController/viewDidLoad")
 
-        let navAppearance = UINavigationBarAppearance()
-        navAppearance.backgroundColor = UIColor.primaryBg
-        navAppearance.shadowColor = nil
-        navAppearance.setBackIndicatorImage(UIImage(named: "NavbarBack"), transitionMaskImage: UIImage(named: "NavbarBack"))
-        navigationItem.standardAppearance = navAppearance
-        navigationItem.scrollEdgeAppearance = navAppearance
-        navigationItem.compactAppearance = navAppearance
-
         installLargeTitleUsingGothamFont()
 
         navigationItem.rightBarButtonItem = rightBarButtonItem

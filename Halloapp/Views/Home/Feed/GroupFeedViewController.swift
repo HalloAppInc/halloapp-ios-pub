@@ -310,14 +310,6 @@ class GroupFeedViewController: FeedCollectionViewController {
     private func setThemeColors(theme: Int32) {
         let backgroundColor = ChatData.getThemeBackgroundColor(for: theme)
         view.backgroundColor = backgroundColor
-
-        let navAppearance = UINavigationBarAppearance()
-        navAppearance.backgroundColor = UIColor.primaryBg
-        navAppearance.shadowColor = nil
-        navAppearance.setBackIndicatorImage(UIImage(named: "NavbarBack"), transitionMaskImage: UIImage(named: "NavbarBack"))
-        navigationItem.standardAppearance = navAppearance
-        navigationItem.scrollEdgeAppearance = navAppearance
-        navigationItem.compactAppearance = navAppearance
     }
 
     // MARK: Datasource

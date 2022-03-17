@@ -491,8 +491,7 @@ class MediaPickerViewController: UIViewController {
     }
     
     private func setupNavigation(album: String? = nil) {
-        navigationController?.navigationBar.standardAppearance = .translucentAppearance
-        navigationController?.navigationBar.isTranslucent = true
+        navigationItem.standardAppearance = .translucentAppearance
 
         albumsButton.setTitle(album ?? "", for: .normal)
         

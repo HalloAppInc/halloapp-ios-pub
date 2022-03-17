@@ -85,8 +85,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     override func viewDidLoad() {
         DDLogInfo("ChatListViewController/viewDidLoad")
 
-        navigationItem.standardAppearance = .transparentAppearance
-        navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
         installLargeTitleUsingGothamFont()
 
         navigationItem.rightBarButtonItem = rightBarButtonItem

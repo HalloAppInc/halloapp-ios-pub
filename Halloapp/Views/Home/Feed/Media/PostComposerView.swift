@@ -93,12 +93,6 @@ fileprivate class ObservableMediaState: ObservableObject {
     @Published var numberOfFailedItems: Int = 0
 }
 
-struct NavigationBarState {
-    var standardAppearance: UINavigationBarAppearance
-    var isTranslucent: Bool
-    var backgroundColor: UIColor?
-}
-
 private extension Localizations {
 
     static var writeDescription: String {
@@ -168,8 +162,6 @@ class PostComposerViewController: UIViewController {
     private let audioComposerRecorder = AudioComposerRecorder()
     private let initialPostType: NewPostMediaSource
 
-    private var barState: NavigationBarState?
-    
     private var cancellableSet: Set<AnyCancellable> = []
     private var mediaItemsReadyCancellableSet: Set<AnyCancellable> = []
 
@@ -200,6 +192,12 @@ class PostComposerViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        if configuration.useTransparentNavigationBar {
+            navigationItem.standardAppearance = .transparentAppearance
+            navigationItem.scrollEdgeAppearance = .transparentAppearance
+            navigationItem.compactAppearance = .transparentAppearance
+        }
 
         // handle early processing of media items
         cancellableSet.insert(self.mediaItems.$value.sink { [weak self] items in
@@ -321,29 +319,10 @@ class PostComposerViewController: UIViewController {
         }.store(in: &cancellableSet)
     }
 
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-
-        guard configuration.useTransparentNavigationBar, let navigationController = navigationController else { return }
-
-        barState = NavigationBarState(
-            standardAppearance: navigationController.navigationBar.standardAppearance,
-            isTranslucent: navigationController.navigationBar.isTranslucent,
-            backgroundColor: navigationController.navigationBar.backgroundColor)
-
-        navigationController.navigationBar.standardAppearance = .translucentAppearance
-        navigationController.navigationBar.isTranslucent = true
-        navigationController.navigationBar.backgroundColor = .clear
-    }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         delegate?.willDismissWithInput(mentionInput: inputToPost.value)
-
-        guard configuration.useTransparentNavigationBar, let navigationController = navigationController, let barState = barState else { return }
-        navigationController.navigationBar.standardAppearance = barState.standardAppearance
-        navigationController.navigationBar.isTranslucent = barState.isTranslucent
-        navigationController.navigationBar.backgroundColor = barState.backgroundColor
     }
 
     @objc private func backAction() {

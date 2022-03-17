@@ -41,8 +41,6 @@ class GroupBackgroundViewController: UIViewController {
         navigationItem.rightBarButtonItem?.tintColor = UIColor.primaryBlue
         
         navigationItem.title = Localizations.groupBgTitle
-        navigationItem.standardAppearance = .transparentAppearance
-        navigationItem.standardAppearance?.backgroundColor = UIColor.primaryBg
         
         view.addSubview(mainView)
         view.backgroundColor = UIColor.primaryBg

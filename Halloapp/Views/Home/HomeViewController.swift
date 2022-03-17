@@ -39,9 +39,8 @@ class HomeViewController: UITabBarController {
 
         // Set background color for navigation bar and search bar system-wide.
         UINavigationBar.appearance().standardAppearance = .opaqueAppearance
-        // Setting background color through appearance proxy seems to be the only way
-        // to modify navigation bar in SwiftUI's NavigationView.
-        UINavigationBar.appearance().backgroundColor = .primaryBg
+        UINavigationBar.appearance().scrollEdgeAppearance = .opaqueAppearance
+        UINavigationBar.appearance().compactAppearance = .opaqueAppearance
         UISearchBar.appearance().backgroundColor = .primaryBg
 
         // need to set UITabBarItem in addition to appearance as the very first load does not respect appearance (for font)

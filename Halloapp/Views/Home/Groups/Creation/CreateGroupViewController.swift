@@ -43,8 +43,6 @@ class CreateGroupViewController: UIViewController {
         navigationItem.rightBarButtonItem = nextBarButtonItem
 
         navigationItem.title = Localizations.createGroupTitle
-        navigationItem.standardAppearance = .transparentAppearance
-        navigationItem.standardAppearance?.backgroundColor = UIColor.primaryBg
 
         view.backgroundColor = UIColor.feedBackground
 

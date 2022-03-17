@@ -46,8 +46,6 @@ class EditGroupViewController: UIViewController {
         navigationItem.rightBarButtonItem?.isEnabled = canUpdate
         
         navigationItem.title = Localizations.chatGroupNameLabel
-        navigationItem.standardAppearance = .transparentAppearance
-        navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
         
         setupView()
     }

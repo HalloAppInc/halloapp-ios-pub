@@ -81,8 +81,6 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
     override func viewDidLoad() {
         DDLogInfo("GroupsInCommonViewController/viewDidLoad")
 
-        navigationItem.standardAppearance = .transparentAppearance
-        navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
         navigationItem.leftBarButtonItem = .init(image: UIImage(named: "ReplyPanelClose"), style: .plain, target: self, action: #selector(didTapDismiss))
 
         definesPresentationContext = true

@@ -46,8 +46,6 @@ class EditGroupDescViewController: UIViewController {
         navigationItem.rightBarButtonItem?.isEnabled = canUpdate
         
         navigationItem.title = Localizations.groupDescriptionLabel
-        navigationItem.standardAppearance = .transparentAppearance
-        navigationItem.standardAppearance?.backgroundColor = UIColor.primaryBg
         
         setupView()
     }

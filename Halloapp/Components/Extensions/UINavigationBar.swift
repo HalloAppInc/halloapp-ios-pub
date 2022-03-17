@@ -36,8 +36,9 @@ extension UINavigationBarAppearance {
             appearance.configureTitleTextAttributes()
             //TODO: proper mask image.
             appearance.setBackIndicatorImage(UIImage(named: "NavbarBack"), transitionMaskImage: UIImage(named: "NavbarBack"))
-            appearance.backgroundColor = .feedBackground
+            appearance.backgroundColor = .primaryBg
             appearance.backButtonAppearance = .transparentAppearance
+            appearance.buttonAppearance = UIBarButtonItemAppearance(style: .plain)
             appearance.shadowColor = nil
             return appearance
         }

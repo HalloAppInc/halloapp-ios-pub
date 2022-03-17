@@ -62,8 +62,6 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
         DDLogInfo("GroupInfoViewController/viewDidLoad")
 
         navigationItem.title = Localizations.chatGroupInfoTitle
-        navigationItem.standardAppearance = .transparentAppearance
-        navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
  
         tableView.separatorStyle = .none
         tableView.backgroundColor = UIColor.primaryBg
