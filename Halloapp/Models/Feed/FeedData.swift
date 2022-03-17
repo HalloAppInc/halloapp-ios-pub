@@ -272,7 +272,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     continue
                 }
                 // NB: Set isShared to true to avoid "New Post" banner
-                guard let postData = PostData(id: post.id, userId: post.userId, timestamp: post.timestamp, payload: rawData, status: post.feedItemStatus, isShared: true) else {
+                guard let postData = PostData(id: post.id, userId: post.userId, timestamp: post.timestamp, payload: rawData, status: post.feedItemStatus, isShared: true, audience: post.audience) else {
                     DDLogError("FeedData/processUnsupportedItems/posts/error [deserialization] [\(post.id)]")
                     continue
                 }
@@ -974,6 +974,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 mentions.insert(mention)
             }
             feedPost.mentions = mentions
+
+            // Post Audience
+            if let audience = xmppPost.audience {
+                let feedPostInfo = NSEntityDescription.insertNewObject(forEntityName: FeedPostInfo.entity().name!, into: managedObjectContext) as! FeedPostInfo
+                feedPostInfo.audienceType = audience.audienceType
+                feedPostInfo.receipts = audience.userIds.reduce(into: [UserID : Receipt]()) { (receipts, userId) in
+                    receipts[userId] = Receipt()
+                }
+                feedPost.info = feedPostInfo
+            }
 
             // Process link preview if present
             xmppPost.linkPreviewData.forEach { linkPreviewData in

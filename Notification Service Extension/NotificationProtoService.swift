@@ -374,7 +374,7 @@ final class NotificationProtoService: ProtoServiceCore {
                         }
                         switch contentType {
                         case .post:
-                            self.processPostData(postData: metadata.postData(status: .rerequesting, usePlainTextPayload: fallback), status: .decryptionError, metadata: metadata, ack: ack)
+                            self.processPostData(postData: metadata.postData(status: .rerequesting, usePlainTextPayload: fallback, audience: item.post.audience), status: .decryptionError, metadata: metadata, ack: ack)
                         case .comment:
                             self.processCommentData(commentData: metadata.commentData(status: .rerequesting, usePlainTextPayload: fallback), status: .decryptionError, metadata: metadata, ack: ack)
                         }

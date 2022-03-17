@@ -737,7 +737,7 @@ extension NotificationMetadata {
         }
     }
 
-    func postData(status: FeedItemStatus = .received, usePlainTextPayload: Bool = true) -> PostData? {
+    func postData(status: FeedItemStatus = .received, usePlainTextPayload: Bool = true, audience: Server_Audience? = nil) -> PostData? {
         if contentType == .feedPost || contentType == .groupFeedPost {
             // Fallback to plainText payload depending on the boolean here.
             if usePlainTextPayload {
@@ -746,14 +746,15 @@ extension NotificationMetadata {
                                               userId: fromId,
                                               timestamp: timestamp,
                                               payload: data ?? Data(),
-                                              status: status) else
+                                              status: status,
+                                              audience: audience) else
                 {
                     DDLogError("postData is null \(debugDescription)")
                     return nil
                 }
                 return postData
             } else {
-                return PostData(id: contentId, userId: fromId, content: .waiting, status: status)
+                return PostData(id: contentId, userId: fromId, content: .waiting, status: status, audience: audience)
             }
         } else {
             return nil

@@ -44,6 +44,8 @@ public struct PostData {
     // MARK: FeedPost
     public var content: PostContent
 
+    public var audience: FeedAudience?
+
     public var text: String? {
         switch content {
         case .retracted, .unsupported, .voiceNote, .waiting:
@@ -126,13 +128,38 @@ public struct PostData {
         return counters
     }
 
-    public init(id: FeedPostID, userId: UserID, content: PostContent, timestamp: Date = Date(), status: FeedItemStatus, isShared: Bool = false) {
+    public init(id: FeedPostID, userId: UserID, content: PostContent, timestamp: Date = Date(), status: FeedItemStatus, isShared: Bool = false, audience: FeedAudience?) {
         self.id = id
         self.userId = userId
         self.content = content
         self.timestamp = timestamp
         self.status = status
         self.isShared = isShared
+        self.audience = audience
+    }
+
+    public init(id: FeedPostID, userId: UserID, content: PostContent, timestamp: Date = Date(), status: FeedItemStatus, isShared: Bool = false, audience: Server_Audience?) {
+        var feedAudience: FeedAudience?
+        // Setup audience
+        if let audience = audience {
+            let audienceUserIDs = audience.uids.compactMap { UserID($0) }
+            let audienceType: AudienceType? = {
+                switch audience.type {
+                case .all:
+                    return AudienceType.all
+                case .only:
+                    return AudienceType.whitelist
+                case .except:
+                    return AudienceType.blacklist
+                case .UNRECOGNIZED(_):
+                    return nil
+                }
+            }()
+            if let audienceType = audienceType {
+                feedAudience = FeedAudience(audienceType: audienceType, userIds: Set(audienceUserIDs))
+            }
+        }
+        self.init(id: id, userId: userId, content: content, timestamp: timestamp, status: status, isShared: isShared, audience: feedAudience)
     }
 
     public init?(_ serverPost: Server_Post, status: FeedItemStatus, itemAction: ItemAction, usePlainTextPayload: Bool = true,
@@ -141,29 +168,37 @@ public struct PostData {
         let postId = serverPost.id
         let userId = UserID(serverPost.publisherUid)
         let timestamp = Date(timeIntervalSince1970: TimeInterval(serverPost.timestamp))
+
         // Fallback to plainText payload depending on the boolean here.
         if usePlainTextPayload {
             // If it is shared - then action could be retract and content must be set to retracted.
             if isShared {
                 switch itemAction {
                 case .none, .publish, .share:
-                    self.init(id: postId, userId: userId, timestamp: timestamp, payload: serverPost.payload, status: status, isShared: isShared)
+                    self.init(id: postId, userId: userId, timestamp: timestamp, payload: serverPost.payload, status: status, isShared: isShared, audience: serverPost.audience)
                 case .retract:
-                    self.init(id: postId, userId: userId, content: .retracted, timestamp: timestamp, status: status, isShared: isShared)
+                    self.init(id: postId, userId: userId, content: .retracted, timestamp: timestamp, status: status, isShared: isShared, audience: serverPost.audience)
                 }
             } else {
-                self.init(id: postId, userId: userId, timestamp: timestamp, payload: serverPost.payload, status: status, isShared: isShared)
+                self.init(id: postId, userId: userId, timestamp: timestamp, payload: serverPost.payload, status: status, isShared: isShared, audience: serverPost.audience)
             }
         } else {
-            self.init(id: postId, userId: userId, content: .waiting, timestamp: timestamp, status: status, isShared: isShared)
+            self.init(id: postId, userId: userId, content: .waiting, timestamp: timestamp, status: status, isShared: isShared, audience: serverPost.audience)
         }
     }
 
-    public init?(id: String, userId: UserID, timestamp: Date, payload: Data, status: FeedItemStatus, isShared: Bool = false) {
+    public init?(id: String, userId: UserID, timestamp: Date, payload: Data, status: FeedItemStatus, isShared: Bool = false, audience: FeedAudience?) {
         guard let processedContent = PostData.extractContent(postId: id, payload: payload) else {
             return nil
         }
-        self.init(id: id, userId: userId, content: processedContent, timestamp: timestamp, status: status, isShared: isShared)
+        self.init(id: id, userId: userId, content: processedContent, timestamp: timestamp, status: status, isShared: isShared, audience: audience)
+    }
+
+    public init?(id: String, userId: UserID, timestamp: Date, payload: Data, status: FeedItemStatus, isShared: Bool = false, audience: Server_Audience?) {
+        guard let processedContent = PostData.extractContent(postId: id, payload: payload) else {
+            return nil
+        }
+        self.init(id: id, userId: userId, content: processedContent, timestamp: timestamp, status: status, isShared: isShared, audience: audience)
     }
 
     public static func extractContent(postId: String, payload: Data) -> PostContent? {
