@@ -654,6 +654,40 @@ fileprivate struct PostComposerView: View {
         return ""
     }
 
+    @ViewBuilder
+    private func changeDestinationIcon() -> some View {
+        switch configuration.destination {
+        case .userFeed:
+            switch privacySettings.activeType ?? .all {
+            case .all:
+                Image("settingsAccount")
+                    .resizable()
+                    .renderingMode(.template)
+                    .foregroundColor(.white)
+                    .frame(width: 13, height: 13)
+            default:
+                Image("settingsSettings")
+                    .resizable()
+                    .renderingMode(.template)
+                    .foregroundColor(.white)
+                    .frame(width: 13, height: 13)
+            }
+        case .groupFeed(let groupId):
+            if let image = MainAppContext.shared.avatarStore.groupAvatarData(for: groupId).image {
+                Image(uiImage: image)
+                    .resizable()
+                    .frame(width: 19, height: 19)
+                    .cornerRadius(6)
+            } else {
+                Image("AvatarGroup")
+                    .resizable()
+                    .frame(width: 19, height: 19)
+            }
+        case .chat:
+            EmptyView()
+        }
+    }
+
     private func allowChangingDestination() -> Bool {
         switch configuration.destination {
         case .userFeed, .groupFeed:
@@ -764,9 +798,10 @@ fileprivate struct PostComposerView: View {
     }
 
     var changeDestinationButton: some View {
-        Button(action: {
-            changeDestination()
-        }) {
+        Button(action: changeDestination) {
+            changeDestinationIcon()
+                .offset(x: 2, y: -1)
+
             Text(changeDestinationButtonText())
                 .font(.system(size: 15, weight: .medium))
                 .foregroundColor(.white)
@@ -780,9 +815,8 @@ fileprivate struct PostComposerView: View {
         }
         .frame(height: 25)
         .padding(EdgeInsets(top: 1, leading: 11, bottom: 0, trailing: 11))
-        .background(Color.blue)
-        .cornerRadius(12)
-        .offset(y: -3)
+        .background(Color.primaryBlue)
+        .cornerRadius(11)
         .disabled(!allowChangingDestination())
     }
 
@@ -1512,7 +1546,7 @@ fileprivate struct Picker: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UINavigationController {
         DDLogInfo("Picker/makeUIViewController")
         MediaCarouselView.stopAllPlayback()
-        let controller = MediaPickerViewController(selected: mediaItems) { controller, media, cancel in
+        let controller = MediaPickerViewController(config: .more, selected: mediaItems) { controller, _, media, cancel in
             self.complete(media, cancel)
         }
 

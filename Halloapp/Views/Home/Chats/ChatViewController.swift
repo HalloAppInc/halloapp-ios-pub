@@ -1197,7 +1197,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     }
 
     private func presentMediaPicker() {
-        let vc = MediaPickerViewController(camera: true) { [weak self] controller, media, cancel in
+        let vc = MediaPickerViewController(config: .chat(id: fromUserId)) { [weak self] controller, _, media, cancel in
             guard let self = self else { return }
             if cancel {
                 self.dismiss(animated: true)
@@ -1510,7 +1510,7 @@ extension ChatViewController: PostComposerViewDelegate {
 
         if let viewControllers = (presentedVC as? UINavigationController)?.viewControllers {
             if let mediaPickerController = viewControllers.last as? MediaPickerViewController {
-                mediaPickerController.reset(selected: media)
+                mediaPickerController.reset(destination: nil, selected: media)
             }
         }
     }

@@ -78,21 +78,49 @@ fileprivate enum TransitionState {
     case ready, inprogress, finishing
 }
 
-typealias MediaPickerViewControllerCallback = (MediaPickerViewController, [PendingMedia], Bool) -> Void
+struct MediaPickerConfig {
+    var destination: PostComposerDestination?
+    var filter: MediaPickerFilter = .all
+    var allowsMultipleSelection = true
+    var isCameraEnabled = false
 
-class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
+    static var feed: MediaPickerConfig {
+        MediaPickerConfig(destination: .userFeed, filter: .all, allowsMultipleSelection: true, isCameraEnabled: false)
+    }
+
+    static func group(id: GroupID) -> MediaPickerConfig {
+        MediaPickerConfig(destination: .groupFeed(id), filter: .all, allowsMultipleSelection: true, isCameraEnabled: false)
+    }
+
+    static func chat(id: UserID?) -> MediaPickerConfig {
+        MediaPickerConfig(destination: .chat(id), filter: .all, allowsMultipleSelection: true, isCameraEnabled: true)
+    }
+
+    static var comments: MediaPickerConfig {
+        MediaPickerConfig(destination: nil, filter: .all, allowsMultipleSelection: false, isCameraEnabled: true)
+    }
+
+    static var image: MediaPickerConfig {
+        MediaPickerConfig(destination: nil, filter: .image, allowsMultipleSelection: false, isCameraEnabled: true)
+    }
+
+    static var more: MediaPickerConfig {
+        MediaPickerConfig(destination: nil, filter: .all, allowsMultipleSelection: true, isCameraEnabled: false)
+    }
+}
+
+typealias MediaPickerViewControllerCallback = (MediaPickerViewController, PostComposerDestination?, [PendingMedia], Bool) -> Void
+
+class MediaPickerViewController: UIViewController {
 
     private struct UserDefaultsKey {
         static let MediaPickerMode = "MediaPickerMode"
     }
 
-    fileprivate var mode: MediaPickerMode
-    fileprivate var selected = [PHAsset]()
-    fileprivate var multiselect: Bool
-    
+    private var mode: MediaPickerMode
+    private var selected = [PHAsset]()
+    private var config: MediaPickerConfig
     private let didFinish: MediaPickerViewControllerCallback
-    private let camera: Bool
-    private let filter: MediaPickerFilter
     private var assets: PHFetchResult<PHAsset>?
     private var transitionLayout: UICollectionViewTransitionLayout?
     private var initialTransitionVelocity: CGFloat = 0
@@ -103,7 +131,6 @@ class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
     private var originalMedia: [PendingMedia] = []
     private var cameraButton: UIBarButtonItem? = nil
 
-
     private lazy var collectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: view.frame, collectionViewLayout: makeLayout())
         collectionView.delegate = self
@@ -111,7 +138,7 @@ class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.allowsMultipleSelection = true
         collectionView.register(AssetViewCell.self, forCellWithReuseIdentifier: AssetViewCell.reuseIdentifier)
-        collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 50, right: 0)
+        collectionView.contentInset = UIEdgeInsets(top: 35, left: 0, bottom: 50, right: 0)
         collectionView.dataSource = self
 
         return collectionView
@@ -228,15 +255,85 @@ class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
         return bubble
     }()
 
+    private var changeDestinationIconConstraint: NSLayoutConstraint?
+    private lazy var changeDestinationIcon: UIImageView = {
+        let iconImage = UIImage(named: "settingsAccount")?
+            .withTintColor(.white, renderingMode: .alwaysOriginal)
+        let icon = UIImageView(image: iconImage)
+        icon.translatesAutoresizingMaskIntoConstraints = false
+        icon.contentMode = .scaleAspectFit
+
+        let iconConstraint = icon.widthAnchor.constraint(equalToConstant: 13)
+        iconConstraint.isActive = true
+        icon.heightAnchor.constraint(equalTo: icon.widthAnchor).isActive = true
+        changeDestinationIconConstraint = iconConstraint
+
+        return icon
+    }()
+
+    private lazy var changeDestinationLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = .white
+        label.font = .systemFont(ofSize: 15, weight: .medium)
+
+        return label
+    }()
+
+    private lazy var changeDestinationBtn: UIButton = {
+        let arrowConfig = UIImage.SymbolConfiguration(pointSize: 14, weight: .medium)
+        let arrowImage = UIImage(systemName: "chevron.down", withConfiguration: arrowConfig)?
+            .withTintColor(.white, renderingMode: .alwaysOriginal)
+        let arrow = UIImageView(image: arrowImage)
+        arrow.translatesAutoresizingMaskIntoConstraints = false
+
+        let stack = UIStackView(arrangedSubviews: [changeDestinationIcon, changeDestinationLabel, arrow])
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .horizontal
+        stack.alignment = .center
+        stack.spacing = 6
+        stack.isUserInteractionEnabled = false
+
+        stack.heightAnchor.constraint(equalToConstant: 25).isActive = true
+
+        let button = UIButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setBackgroundColor(.primaryBlue, for: .normal)
+        button.layer.cornerRadius = 11
+        button.layer.masksToBounds = true
+        button.addTarget(self, action: #selector(changeDestinationAction), for: .touchUpInside)
+
+        button.addSubview(stack)
+        stack.topAnchor.constraint(equalTo: button.topAnchor).isActive = true
+        stack.bottomAnchor.constraint(equalTo: button.bottomAnchor, constant: -1).isActive = true
+        stack.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: 11).isActive = true
+        stack.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -11).isActive = true
+
+        return button
+    }()
+
+    private lazy var changeDestinationContainer: UIView = {
+        let effect = UIBlurEffect(style: .systemUltraThinMaterial)
+        let container = BlurView(effect: effect, intensity: 1)
+        container.translatesAutoresizingMaskIntoConstraints = false
+        container.backgroundColor = .feedBackground.withAlphaComponent(0.95)
+
+        container.contentView.addSubview(changeDestinationBtn)
+        container.topAnchor.constraint(equalTo: changeDestinationBtn.topAnchor).isActive = true
+        container.bottomAnchor.constraint(equalTo: changeDestinationBtn.bottomAnchor, constant: 9).isActive = true
+        container.centerXAnchor.constraint(equalTo: changeDestinationBtn.centerXAnchor).isActive = true
+
+        return container
+    }()
+
     private var isAnyCallOngoingCancellable: AnyCancellable?
+    private var privacyCancellable: AnyCancellable?
     
-    init(filter: MediaPickerFilter = .all, multiselect: Bool = true, camera: Bool = false, selected: [PendingMedia] = [] , didFinish: @escaping MediaPickerViewControllerCallback) {
+    init(config: MediaPickerConfig, selected: [PendingMedia] = [] , didFinish: @escaping MediaPickerViewControllerCallback) {
+        self.config = config
         self.originalMedia.append(contentsOf: selected)
         self.selected.append(contentsOf: selected.filter { $0.asset != nil }.map { $0.asset! })
         self.didFinish = didFinish
-        self.camera = camera
-        self.multiselect = multiselect
-        self.filter = filter
 
         let modeRawValue = MainAppContext.shared.userDefaults.integer(forKey: UserDefaultsKey.MediaPickerMode)
         mode = MediaPickerMode(rawValue: modeRawValue) ?? .day
@@ -264,6 +361,22 @@ class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
         limitedAccessBubble.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 20).isActive = true
         limitedAccessBubble.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -20).isActive = true
         limitedAccessBubble.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -20).isActive = true
+
+        if config.destination != nil {
+            view.addSubview(changeDestinationContainer)
+            changeDestinationContainer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
+            changeDestinationContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
+            changeDestinationContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+
+            updateChangeDestinationBtn()
+
+            privacyCancellable = MainAppContext.shared.privacySettings.objectWillChange.sink { [weak self] _ in
+                guard let self = self else { return }
+                DispatchQueue.main.async {
+                    self.updateChangeDestinationBtn()
+                }
+            }
+        }
 
         setupZoom()
         setupPreviews()
@@ -336,7 +449,7 @@ class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
             let assets: PHFetchResult<PHAsset>
             if let album = album ?? recent {
                 let options: PHFetchOptions?
-                switch self.filter {
+                switch self.config.filter {
                 case .all:
                     options = nil
                 case .image:
@@ -349,7 +462,7 @@ class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
 
                 assets = PHAsset.fetchAssets(in: album, options: options)
             } else {
-                switch self.filter {
+                switch self.config.filter {
                 case .all:
                     assets = PHAsset.fetchAssets(with: nil)
                 case .image:
@@ -386,7 +499,7 @@ class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
         updateNavigationButtons()
     }
     
-    public func reset(selected: [PendingMedia]) {
+    public func reset(destination: PostComposerDestination?, selected: [PendingMedia]) {
         originalMedia.removeAll()
         originalMedia.append(contentsOf: selected)
 
@@ -395,21 +508,24 @@ class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
         
         for cell in collectionView.visibleCells {
             guard let cell = cell as? AssetViewCell else { continue }
-            cell.prepare()
+            cell.prepare(config: self.config, mode: self.mode, selection: self.selected)
         }
         
         updateNavigationButtons()
+
+        config.destination = destination
+        updateChangeDestinationBtn()
     }
     
     private func updateNavigationButtons() {
         let backIcon = UIImage(systemName: selected.count > 0 ? "xmark" : "chevron.left", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))
         navigationItem.setLeftBarButton(UIBarButtonItem(image: backIcon, style: .plain, target: self, action: #selector(cancelAction)), animated: true)
 
-        nextButton.isHidden = !multiselect
+        nextButton.isHidden = !config.allowsMultipleSelection
         nextButton.isEnabled = selected.count > 0
 
         var buttons = [UIBarButtonItem]()
-        if camera {
+        if config.isCameraEnabled {
             let isVideoCallOngoing = MainAppContext.shared.callManager.activeCall?.isVideoCall ?? false
             let cameraIcon = UIImage(systemName: "camera.fill", withConfiguration: UIImage.SymbolConfiguration(scale: .large))
             let camButton = UIBarButtonItem(image: cameraIcon, style: .done, target: self, action: #selector(cameraAction))
@@ -419,6 +535,46 @@ class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
         }
 
         navigationItem.rightBarButtonItems = buttons
+    }
+
+    private func updateChangeDestinationBtn() {
+        guard let destination = config.destination else { return }
+
+        changeDestinationIcon.isHidden = false
+        changeDestinationIcon.layer.cornerRadius = 0
+        changeDestinationIcon.layer.masksToBounds = false
+
+        switch destination {
+        case .userFeed:
+            let privacy = MainAppContext.shared.privacySettings.activeType ?? .all
+
+            switch privacy {
+            case .all:
+                changeDestinationIcon.image = UIImage(named: "settingsAccount")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+            default:
+                changeDestinationIcon.image = UIImage(named: "settingsSettings")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+            }
+
+            changeDestinationIconConstraint?.constant = 13
+
+            changeDestinationLabel.text = PrivacyList.name(forPrivacyListType: privacy)
+        case .groupFeed(let groupId):
+            if let image = MainAppContext.shared.avatarStore.groupAvatarData(for: groupId).image {
+                changeDestinationIcon.image = image
+                changeDestinationIcon.layer.cornerRadius = 6
+                changeDestinationIcon.layer.masksToBounds = true
+            } else {
+                changeDestinationIcon.image = UIImage(named: "AvatarGroup")
+            }
+
+            changeDestinationIconConstraint?.constant = 19
+
+            if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
+                changeDestinationLabel.text = group.name
+            }
+        case .chat:
+            break
+        }
     }
     
     private func setupZoom() {
@@ -455,7 +611,7 @@ class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
                 
                 for cell in collectionView.visibleCells {
                     guard let cell = cell as? AssetViewCell else { continue }
-                    cell.prepare()
+                    cell.prepare(config: self.config, mode: self.mode, selection: self.selected)
                 }
                 
                 transitionState = .inprogress
@@ -523,7 +679,7 @@ class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
                 media.order = 1
                 media.image = image.correctlyOrientedImage()
 
-                self.didFinish(self, [media], false)
+                self.didFinish(self, self.config.destination, [media], false)
             },
             didPickVideo: { [weak self] url in
                 guard let self = self else { return }
@@ -534,7 +690,7 @@ class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
                 media.originalVideoURL = url
                 media.fileURL = url
 
-                self.didFinish(self, [media], false)
+                self.didFinish(self, self.config.destination, [media], false)
             }
         )
 
@@ -665,18 +821,18 @@ class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
 
-                if !self.multiselect {
+                if !self.config.allowsMultipleSelection {
                     self.selected.removeAll()
                 }
 
                 self.nextInProgress = false
-                self.didFinish(self, result, false)
+                self.didFinish(self, self.config.destination, result, false)
             }
         }
     }
 
     @objc private func cancelAction() {
-        didFinish(self, [], true)
+        didFinish(self, config.destination, [], true)
     }
 
     @objc private func openAlbumsAction() {
@@ -692,6 +848,18 @@ class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
         }
 
         present(controller, animated: true)
+    }
+
+    @objc private func changeDestinationAction() {
+        guard let destination = config.destination else { return }
+
+        let controller = ChangeDestinationViewController(destination: destination) { controller, destination in
+            controller.dismiss(animated: true)
+            self.config.destination = destination
+            self.updateChangeDestinationBtn()
+        }
+
+        present(UINavigationController(rootViewController: controller), animated: true)
     }
 
     @objc private func closeLimitedAccessBuble() {
@@ -743,7 +911,7 @@ extension MediaPickerViewController: UICollectionViewDelegate {
     }
 
     private func select(_ collectionView: UICollectionView, cell: AssetViewCell, asset: PHAsset) {
-        if !multiselect {
+        if !config.allowsMultipleSelection {
             selected.append(asset)
             nextAction()
             return
@@ -756,14 +924,14 @@ extension MediaPickerViewController: UICollectionViewDelegate {
             UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.7, animations: {
                 cell.image.layer.cornerRadius = 20
                 cell.image.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
-                cell.prepareIndicator()
+                cell.prepareIndicator(config: self.config, selection: self.selected)
             })
 
             UIView.addKeyframe(withRelativeStartTime: 0.7, relativeDuration: 0.3, animations: {
                 cell.image.transform = CGAffineTransform.identity
             })
         }, completion: { _ in
-            cell.prepare()
+            cell.prepare(config: self.config, mode: self.mode, selection: self.selected)
         })
     }
 
@@ -776,7 +944,7 @@ extension MediaPickerViewController: UICollectionViewDelegate {
             UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.7, animations: {
                 cell.image.layer.cornerRadius = 0
                 cell.image.transform = CGAffineTransform(scaleX: 1.1, y: 1.1)
-                cell.prepareIndicator()
+                cell.prepareIndicator(config: self.config, selection: self.selected)
             })
 
             UIView.addKeyframe(withRelativeStartTime: 0.7, relativeDuration: 0.3, animations: {
@@ -785,7 +953,7 @@ extension MediaPickerViewController: UICollectionViewDelegate {
         }, completion: { _ in
             for cell in collectionView.visibleCells {
                 guard let cell = cell as? AssetViewCell else { continue }
-                cell.prepare()
+                cell.prepare(config: self.config, mode: self.mode, selection: self.selected)
             }
         })
     }
@@ -829,16 +997,16 @@ extension MediaPickerViewController: UICollectionViewDataSource {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AssetViewCell.reuseIdentifier, for: indexPath)
 
         if let cell = cell as? AssetViewCell, let asset = assets?[indexPath.row] {
-            cell.delegate = self
             cell.asset = asset
             cell.indexPath = indexPath
 
             let options = PHImageRequestOptions()
             options.isNetworkAccessAllowed = true
-            PHImageManager.default().requestImage(for: asset, targetSize: CGSize(width: 256, height: 256), contentMode: .aspectFill, options: options) { image, _ in
+            PHImageManager.default().requestImage(for: asset, targetSize: CGSize(width: 256, height: 256), contentMode: .aspectFill, options: options) { [weak self] image, _ in
+                guard let self = self else { return }
                 guard cell.asset?.localIdentifier == asset.localIdentifier else { return }
                 cell.image.image = image
-                cell.prepare()
+                cell.prepare(config: self.config, mode: self.mode, selection: self.selected)
             }
         }
 
@@ -867,18 +1035,11 @@ extension MediaPickerViewController: UIAdaptivePresentationControllerDelegate {
     }
 }
 
-fileprivate protocol PickerViewCellDelegate: AnyObject {
-    var mode: MediaPickerMode {get}
-    var selected: [PHAsset] {get}
-    var multiselect: Bool {get}
-}
-
 fileprivate class AssetViewCell: UICollectionViewCell {
     static var reuseIdentifier: String {
         return String(describing: AssetViewCell.self)
     }
-    
-    weak var delegate: PickerViewCellDelegate?
+
     var asset: PHAsset?
     var indexPath: IndexPath?
 
@@ -956,8 +1117,7 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func calculateSpacing() -> (CGFloat, CGFloat, CGFloat) {
-        guard let delegate = delegate else { return (0, 0, 0) }
+    func calculateSpacing(mode: MediaPickerMode) -> (CGFloat, CGFloat, CGFloat) {
         guard let indexPath = indexPath else { return (0, 0, 0) }
         
         let spacing = CGFloat(1)
@@ -965,7 +1125,7 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         var column: CGFloat
         var columnCount: CGFloat
         
-        switch delegate.mode {
+        switch mode {
         case .month:
             column = CGFloat(indexPath.row % 5)
             columnCount = 5
@@ -987,8 +1147,8 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         return (spacing, column * spacing / columnCount, spacing - ((column + 1) * spacing / columnCount))
     }
     
-    func prepare() {
-        let (spacingBottom, spacingLead, spacingTrail) = calculateSpacing()
+    func prepare(config: MediaPickerConfig, mode: MediaPickerMode, selection: [PHAsset]) {
+        let (spacingBottom, spacingLead, spacingTrail) = calculateSpacing(mode: mode)
         
         NSLayoutConstraint.deactivate(activeConstraints)
         
@@ -1009,7 +1169,7 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         
         NSLayoutConstraint.activate(activeConstraints)
 
-        if let asset = asset, delegate?.selected.contains(asset) == true {
+        if let asset = asset, selection.contains(asset) {
             image.layer.cornerRadius = 20
         } else {
             image.layer.cornerRadius = 0
@@ -1023,13 +1183,13 @@ fileprivate class AssetViewCell: UICollectionViewCell {
 
         favorite.isHidden = asset?.isFavorite != true
 
-        prepareIndicator()
+        prepareIndicator(config: config, selection: selection)
 
         setNeedsLayout()
     }
 
-    func prepareIndicator() {
-        if let asset = asset, let idx = delegate?.selected.firstIndex(of: asset) {
+    func prepareIndicator(config: MediaPickerConfig, selection: [PHAsset]) {
+        if let asset = asset, let idx = selection.firstIndex(of: asset) {
             indicator.layer.borderColor = UIColor.lavaOrange.cgColor
             indicator.backgroundColor = .lavaOrange
 
@@ -1051,8 +1211,6 @@ fileprivate class AssetViewCell: UICollectionViewCell {
             indicatorLabel.isHidden = true
         }
 
-        if let multiselect = delegate?.multiselect, !multiselect {
-            indicator.isHidden = true
-        }
+        indicator.isHidden = !config.allowsMultipleSelection
     }
 }

@@ -180,12 +180,30 @@ final class NewPostViewController: UIViewController {
     }
     
     private func makeMediaPickerViewControllerNew() -> UINavigationController {
-        let pickerController = MediaPickerViewController { [weak self] controller, media, cancel in
+        let config: MediaPickerConfig
+
+        switch destination {
+        case .userFeed:
+            config = .feed
+        case .groupFeed(let groupID):
+            config = .group(id: groupID)
+        }
+
+        let pickerController = MediaPickerViewController(config: config) { [weak self] controller, destination, media, cancel in
             guard let self = self else { return }
             
             if cancel {
                 self.cleanupAndFinish()
             } else {
+                switch destination {
+                case .userFeed:
+                    self.destination = .userFeed
+                case .groupFeed(let groupID):
+                    self.destination = .groupFeed(groupID)
+                default:
+                    break
+                }
+
                 self.state.pendingMedia = media
                 self.didFinishPickingMedia()
             }
@@ -264,7 +282,7 @@ extension NewPostViewController: PostComposerViewDelegate {
         containedNavigationController.popViewController(animated: true)
         switch state.mediaSource {
         case .library:
-            (containedNavigationController.topViewController as? MediaPickerViewController)?.reset(selected: media)
+            (containedNavigationController.topViewController as? MediaPickerViewController)?.reset(destination: destination, selected: media)
         case .camera:
             break
         default:

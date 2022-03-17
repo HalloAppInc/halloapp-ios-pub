@@ -34,8 +34,6 @@ private extension Localizations {
     }
 }
 
-typealias ChangeDestinationViewControllerCallback = (ChangeDestinationViewController, [PendingMedia], Bool) -> Void
-
 class ChangeDestinationViewController: UIViewController {
 
     static let rowHeight = CGFloat(54)

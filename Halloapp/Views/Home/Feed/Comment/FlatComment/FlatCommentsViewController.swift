@@ -1029,7 +1029,7 @@ extension FlatCommentsViewController: CommentInputViewDelegate {
         guard  mediaPickerController == nil else {
             return
         }
-        mediaPickerController = MediaPickerViewController(filter: .all, multiselect: false, camera: true) {[weak self] controller, media, cancel in
+        mediaPickerController = MediaPickerViewController(config: .comments) {[weak self] controller, _, media, cancel in
             guard let self = self else { return }
             guard let media = media.first, !cancel else {
                 DDLogInfo("FlatCommentsViewController/media comment cancelled")
