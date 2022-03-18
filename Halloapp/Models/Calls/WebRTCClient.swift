@@ -75,6 +75,7 @@ final class WebRTCClient: NSObject {
         RTCInitializeSSL()
         let videoEncoderFactory = RTCDefaultVideoEncoderFactory()
         let videoDecoderFactory = RTCDefaultVideoDecoderFactory()
+        videoEncoderFactory.preferredCodec = RTCVideoCodecInfo.init(name: kRTCVideoCodecVp8Name)
         return RTCPeerConnectionFactory(encoderFactory: videoEncoderFactory, decoderFactory: videoDecoderFactory)
     }()
 
