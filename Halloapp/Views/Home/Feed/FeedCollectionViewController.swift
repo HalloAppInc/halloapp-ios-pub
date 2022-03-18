@@ -965,16 +965,16 @@ extension FeedCollectionViewController {
         guard proceedIfConnected() else {
             return
         }
-        MainAppContext.shared.service.uploadPostForExternalShare(postID) { [weak self] result in
-            guard let self = self else { return }
-
-            switch result {
-            case .success(let url):
-                success(url)
-            case .failure(_):
-                let actionSheet = UIAlertController(title: nil, message: Localizations.externalShareFailed, preferredStyle: .alert)
-                actionSheet.addAction(UIAlertAction(title: Localizations.buttonOK, style: .cancel))
-                self.present(actionSheet, animated: true)
+        MainAppContext.shared.feedData.externalShareUrl(for: postID) { [weak self] result in
+            DispatchQueue.main.async { [weak self] in
+                switch result {
+                case .success(let url):
+                    success(url)
+                case .failure(_):
+                    let actionSheet = UIAlertController(title: nil, message: Localizations.externalShareFailed, preferredStyle: .alert)
+                    actionSheet.addAction(UIAlertAction(title: Localizations.buttonOK, style: .cancel))
+                    self?.present(actionSheet, animated: true)
+                }
             }
         }
     }

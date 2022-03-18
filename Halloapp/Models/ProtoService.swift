@@ -22,8 +22,6 @@ fileprivate let userDefaultsKeyForVOIPSyncTime = "voipSyncTime"
 fileprivate let userDefaultsKeyForNameSync = "xmpp.name-sent"
 fileprivate let userDefaultsKeyForSilentRerequestRecords = "silentRerequestRecords"
 
-fileprivate let shareURLPrefix = "https://share.halloapp.com/"
-
 final class ProtoService: ProtoServiceCore {
 
     var readyToHandleCallMessages = false {
@@ -1328,7 +1326,7 @@ extension ProtoService: HalloService {
         }
     }
 
-    func uploadPostForExternalShare(_ postID: FeedPostID, completion: @escaping (Result<URL, RequestError>) -> Void) {
+    func uploadPostForExternalShare(_ postID: FeedPostID, completion: @escaping ServiceRequestCompletion<(blobID: String, key: Data)>) {
         guard let postData = MainAppContext.shared.feedData.feedPost(with: postID)?.postData else {
             DDLogError("ProtoService/UploadPostForExternalShare/Failed find post")
             completion(.failure(RequestError.aborted))
@@ -1378,15 +1376,15 @@ extension ProtoService: HalloService {
         enqueue(request: ProtoExternalShareRequest(encryptedPostData: encryptedPayload, expiry: expiry, ogTagInfo: ogTagInfo) { result in
             switch result {
             case .success(let blobID):
-                if let url = URL(string: "\(shareURLPrefix)\(blobID)#k\(Data(attachmentKey).base64urlEncodedString())") {
-                    completion(.success(url))
-                } else {
-                    completion(.failure(RequestError.malformedResponse))
-                }
+                completion(.success((blobID, Data(attachmentKey))))
             case .failure(let error):
                 completion(.failure(error))
             }
         })
+    }
+
+    func revokeExternalShareLink(blobID: String, completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: ProtoExternalShareRevokeRequest(blobID: blobID, completion: completion))
     }
 
     func sendReceipt(itemID: String, thread: HalloReceipt.Thread, type: HalloReceipt.`Type`, fromUserID: UserID, toUserID: UserID) {

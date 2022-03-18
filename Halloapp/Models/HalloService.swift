@@ -34,7 +34,8 @@ protocol HalloService: CoreService {
     func retractComment(_ id: FeedPostCommentID, postID: FeedPostID, in groupID: GroupID, to toUserID: UserID)
     func sharePosts(postIds: [FeedPostID], with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>)
     func shareGroupHistory(items: Server_GroupFeedItems, with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>)
-    func uploadPostForExternalShare(_ postID: FeedPostID, completion: @escaping (Result<URL, RequestError>) -> Void)
+    func uploadPostForExternalShare(_ postID: FeedPostID, completion: @escaping ServiceRequestCompletion<(blobID: String, key: Data)>)
+    func revokeExternalShareLink(blobID: String, completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Receipts
     func sendReceipt(itemID: String, thread: HalloReceipt.Thread, type: HalloReceipt.`Type`, fromUserID: UserID, toUserID: UserID)

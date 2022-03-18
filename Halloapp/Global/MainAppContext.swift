@@ -132,7 +132,7 @@ class MainAppContext: AppContext {
         // This is needed to encode/decode protobuf in FeedPostInfo.
         ValueTransformer.setValueTransformer(FeedPostReceiptInfoTransformer(), forName: .feedPostReceiptInfoTransformer)
 
-        feedData = FeedData(service: service, contactStore: contactStore, userData: userData)
+        feedData = FeedData(service: service, contactStore: contactStore, mainDataStore: mainDataStore, userData: userData)
         chatData = ChatData(service: service, contactStore: contactStore, userData: userData)
         syncManager = SyncManager(contactStore: contactStore, service: service, userData: userData)
         avatarStore = AvatarStore()

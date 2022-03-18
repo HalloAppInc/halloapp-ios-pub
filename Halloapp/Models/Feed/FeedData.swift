@@ -19,6 +19,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private let userData: UserData
     private let contactStore: ContactStoreMain
+    private let mainDataStore: MainDataStore
     private var service: HalloService
 
     private var cancellableSet: Set<AnyCancellable> = []
@@ -47,9 +48,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private var contentInFlight: Set<String> = []
 
-    init(service: HalloService, contactStore: ContactStoreMain, userData: UserData) {
+    init(service: HalloService, contactStore: ContactStoreMain, mainDataStore: MainDataStore, userData: UserData) {
         self.service = service
         self.contactStore = contactStore
+        self.mainDataStore = mainDataStore
         self.userData = userData
         self.mediaUploader = MediaUploader(service: service)
 
@@ -2711,8 +2713,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func handleRerequest(for contentID: String, contentType: GroupFeedRerequestContentType, from userID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
         if contentType == .historyResend {
-            let mainDataStore = MainAppContext.shared.mainDataStore
-            mainDataStore.performSeriallyOnBackgroundContext{ managedObjectContext in
+            mainDataStore.performSeriallyOnBackgroundContext { [mainDataStore] managedObjectContext in
                 let resendInfo = mainDataStore.fetchContentResendInfo(for: contentID, userID: userID, in: managedObjectContext)
                 resendInfo.retryCount += 1
                 // retryCount indicates number of times content has been rerequested until now: increment and use it when sending.
@@ -4008,6 +4009,83 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         
         try? AppContext.shared.userDefaults.setCodable(draftsArray, forKey: CommentsViewController.postCommentDraftKey)
     }
+
+    // MARK: - External Share
+
+    func externalShareUrl(for postID: FeedPostID, completion: @escaping (Result<URL, Error>) -> Void) {
+        if let url = Self.externalShareInfo(for: postID, in: mainDataStore.viewContext)?.externalShareURL {
+            completion(.success(url))
+        } else {
+            service.uploadPostForExternalShare(postID) { [mainDataStore] result in
+                switch result {
+                case .success(let (blobID, key)):
+                    mainDataStore.performSeriallyOnBackgroundContext { [mainDataStore] context in
+                        // Somehow, another request completed before us and already saved external share info.
+                        // Discard in flight request and return previously saved data
+                        if let url = Self.externalShareInfo(for: postID, in: context)?.externalShareURL {
+                            completion(.success(url))
+                            return
+                        }
+
+                        let externalShareInfo = ExternalShareInfo(context: context)
+                        externalShareInfo.blobID = blobID
+                        externalShareInfo.feedPostID = postID
+                        externalShareInfo.key = key
+
+                        // Make sure we can generate a URL before saving
+                        guard let url = externalShareInfo.externalShareURL else {
+                            context.delete(externalShareInfo)
+                            completion(.failure(RequestError.malformedResponse))
+                            return
+                        }
+
+                        mainDataStore.save(context)
+                        completion(.success(url))
+                    }
+                case .failure(let error):
+                    completion(.failure(error))
+                }
+            }
+        }
+    }
+
+    func revokeExternalShareUrl(for postID: FeedPostID, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard let blobID = Self.externalShareInfo(for: postID, in: mainDataStore.viewContext)?.blobID else {
+            completion(.failure(RequestError.aborted))
+            DDLogWarn("FeedData/revokeExternalShareUrl/trying to revoke external share link for post with no link")
+            return
+        }
+
+        service.revokeExternalShareLink(blobID: blobID) { [mainDataStore] result in
+            switch result {
+            case .success:
+                mainDataStore.performSeriallyOnBackgroundContext { [mainDataStore] context in
+                    // if externalShareInfo does not exist, there's nothing to delete
+                    if let externalShareInfo = Self.externalShareInfo(for: postID, in: context) {
+                        context.delete(externalShareInfo)
+                        mainDataStore.save(context)
+                    }
+                    completion(.success(()))
+                }
+            case .failure(let error):
+                DDLogError("FeedData/revokeExternalShareUrl/error: \(error)")
+                completion(.failure(error))
+            }
+        }
+    }
+
+    private class func externalShareInfo(for postID: FeedPostID, in context: NSManagedObjectContext) -> ExternalShareInfo? {
+        let fetchRequest = ExternalShareInfo.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "feedPostID = %@", postID)
+        fetchRequest.fetchLimit = 1
+        fetchRequest.returnsObjectsAsFaults = false
+        do {
+            return try context.fetch(fetchRequest).first
+        } catch {
+            DDLogError("FeedData/externalShareInfo/error [\(error)]")
+            fatalError("Failed to fetch external share info")
+        }
+    }
     
     // MARK: Merge Data
     
@@ -4362,8 +4440,7 @@ extension FeedData: HalloFeedDelegate {
     }
 
     func halloService(_ halloService: HalloService, didRerequestGroupFeedHistory contentID: String, from userID: UserID, ack: (() -> Void)?) {
-        let mainDataStore = MainAppContext.shared.mainDataStore
-        mainDataStore.performSeriallyOnBackgroundContext{ managedObjectContext in
+        mainDataStore.performSeriallyOnBackgroundContext{ [mainDataStore] managedObjectContext in
             let resendInfo = mainDataStore.fetchContentResendInfo(for: contentID, userID: userID, in: managedObjectContext)
             resendInfo.retryCount += 1
             // retryCount indicates number of times content has been rerequested until now: increment and use it when sending.

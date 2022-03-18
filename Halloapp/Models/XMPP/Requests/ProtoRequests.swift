@@ -476,6 +476,17 @@ final class ProtoExternalShareRequest: ProtoRequest<String> {
     }
 }
 
+final class ProtoExternalShareRevokeRequest: ProtoRequest<Void> {
+
+    init(blobID: String, completion: @escaping Completion) {
+        var externalSharePost = Server_ExternalSharePost()
+        externalSharePost.action = .delete
+        externalSharePost.blobID = blobID
+        let iqPacket: Server_Packet = .iqPacket(type: .set, payload: .externalSharePost(externalSharePost))
+        super.init(iqPacket: iqPacket, transform: { _ in .success(()) }, completion: completion)
+    }
+}
+
 extension Server_PushPref.Name {
     init(_ configKey: NotificationSettings.ConfigKey) {
         switch configKey {
