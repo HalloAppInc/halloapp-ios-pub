@@ -149,7 +149,13 @@
 "notification.voicecall.missed" = "☎️ Verpasster Sprachanruf";
 
 /* New post notification text when post is a voice note. */
-"notification.voicenote" = "🎤 Sprachnotiz";
+"notification.voicecomment" = "🎤 Audiokommentar";
+
+/* New post notification text when post is a voice note. */
+"notification.voicenote" = "🎤 Audionotiz";
+
+/* New post notification text when post is a voice note. */
+"notification.voicepost" = "🎤 Audiobeitrag";
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Mach mit bei meinem HalloApp-Netzwerk für echte Beziehungen! Kostenlos herunterladen auf halloapp.com/dl";

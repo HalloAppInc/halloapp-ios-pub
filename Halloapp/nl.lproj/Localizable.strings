@@ -238,6 +238,15 @@
 /* Label for creating a new group */
 "chat.create.new.group" = "Nieuwe Groep Aanmaken";
 
+/* Button to retract a chat message for everyone */
+"chat.delete.everyone" = "Verwijderen voor iedereen";
+
+/* Button to locally delete a chat message */
+"chat.delete.me" = "Verwijderen voor mezelf";
+
+/* Title of deletion menu */
+"chat.delete.title" = "Geselecteerd bericht verwijderen?";
+
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
 "chat.encryption.label" = "Chats zijn end-to-end versleuteld en HalloApp heeft hiertoe geen toegang. Tik voor meer informatie.";
 
@@ -921,6 +930,9 @@
 
 /* Label indicating that media was successfully saved to the camera roll */
 "media.save.saved" = "Opgeslagen op Filmrol";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.annotate" = "Tekst toevoegen";
 
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Sluiten";

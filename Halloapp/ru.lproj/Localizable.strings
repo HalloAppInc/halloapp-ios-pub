@@ -154,6 +154,24 @@
 /* Title for call history event. Appears next to details of a missed call. */
 "call.history.voice.call.missed" = "Пропущенный голосовой вызов";
 
+/* Status display when user mutes their own audio during a call. */
+"call.mute.local.audio" = "микрофон выключен";
+
+/* Status display when user mutes their own audio and video during a call. */
+"call.mute.local.audio.video" = "камера и микрофон выключены";
+
+/* Status display when user mutes their own video during a call. */
+"call.mute.local.video" = "камера выключена";
+
+/* Status display when peer mutes audio during a call. */
+"call.mute.remote.audio" = "%@ отключил звук";
+
+/* Status display when peer mutes both audio and video during a call. */
+"call.mute.remote.audio.video" = "Камера и микрофон у %@ выключены";
+
+/* Status display when peer mutes video during a call. */
+"call.mute.remote.video" = "Камера у %@ выключена";
+
 /* Status displayed when the other side is busy. */
 "call.status.busy" = "занято";
 
@@ -171,6 +189,9 @@
 
 /* Status displayed when incoming call starts */
 "call.status.incoming" = "входящий звонок";
+
+/* Status displayed when the other side mutes the audio. */
+"call.status.muted" = "звук отключен";
 
 /* Status displayed when reconnecting during call */
 "call.status.reconnecting" = "повторное подключение...";
@@ -216,6 +237,15 @@
 
 /* Label for creating a new group */
 "chat.create.new.group" = "Создать новую группу";
+
+/* Button to retract a chat message for everyone */
+"chat.delete.everyone" = "Удалить для всех";
+
+/* Button to locally delete a chat message */
+"chat.delete.me" = "Удалить для меня";
+
+/* Title of deletion menu */
+"chat.delete.title" = "Удалить выбранное сообщение?";
 
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
 "chat.encryption.label" = "Чаты зашифрованы сквозным шифрованием, и HalloApp не имеет к ним доступа. Нажмите, чтобы узнать больше.";
@@ -468,6 +498,9 @@
 
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Для установки связи вам нужно обменяться номерами телефонов";
+
+/* Placeholder title for posts that are externally shared, John Smith's HalloApp Post */
+"externalShare.og.title" = "Пост от %@ в HalloApp";
 
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Камера";
@@ -835,6 +868,9 @@
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Поиск";
 
+/* Text with hyperlink to halloapp's faq on encryption. */
+"learn.more" = "Узнать больше.";
+
 /* Link text to open invite flow */
 "link.invite.friend" = "Пригласи друга";
 
@@ -895,8 +931,14 @@
 /* Label indicating that media was successfully saved to the camera roll */
 "media.save.saved" = "Сохранено в Фотопленке";
 
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.annotate" = "Аннотировать";
+
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Закрыть";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.draw" = "Редактировать";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.flip" = "Отразить зеркально";
@@ -945,6 +987,9 @@
 
 /* Indicates how many invites are remaining */
 "n.invites.remaining" = "n.invites.remaining";
+
+/* Summary when multiple commenters commented on the same post you commented on */
+"n.others.replied" = "n.others.replied";
 
 /* Displayed in place of deleted feed posts. */
 "n.posts.deleted" = "Сообщения %@ удалены";
@@ -1004,7 +1049,13 @@
 "notification.voicecall.missed" = "Пропущенный голосовой вызов";
 
 /* New post notification text when post is a voice note. */
+"notification.voicecomment" = "🎤 Аудиокомментарий";
+
+/* New post notification text when post is a voice note. */
 "notification.voicenote" = "🎤 Голосовая заметка";
+
+/* New post notification text when post is a voice note. */
+"notification.voicepost" = "🎤 Аудиопост";
 
 /* Text for new user popup pointing at activity center icon */
 "nux.activity.center.icon" = "Привет!";
@@ -1087,6 +1138,9 @@
 /* Generic setting value telling how many contacts are blocked or muted. */
 "privacy.n.contacts" = "privacy.n.contacts";
 
+/* Error banner displayed when there is a failure syncing preivacy settings, displayed on the privacy view */
+"privacy.sync.failure" = "Не удалось синхронизировать настройки конфиденциальности. Пожалуйста, попробуйте позже.";
+
 /* Title for the button allowing to delete current profile photo. */
 "profile.delete.photo" = "Удалить фото";
 
@@ -1150,6 +1204,9 @@
 
 /* Title for the screen allowing to edit profile name */
 "profile.title.your.name" = "Ваше имя";
+
+/* Title for the button allowing the user to view their own profile photo. */
+"profile.view.photo" = "Посмотреть фото";
 
 /* Disclaimer text about receiving SMS verification code */
 "registration.code.disclaimer" = "Вы получите код подтверждения.\nМогут применяться тарифы поставщика услуг связи.";
@@ -1538,6 +1595,15 @@
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "Удалить этот пост? Это действие нельзя отменить.";
 
+/* Title for button in action sheet prompting user to share post to external sites */
+"your.post.externalshare.copylink" = "Скопируйте ссылку, чтобы поделиться";
+
+/* Success toast when external share link is copied */
+"your.post.externalshare.copylink.success" = "Скопировано";
+
 /* Message that external share failed. */
 "your.post.externalshare.error" = "Не удалось загрузить сообщение для публикации";
+
+/* Text introducing external share link, part of what is shared */
+"your.post.externalshare.title" = "Посмотрите мой пост на HalloApp:";
 

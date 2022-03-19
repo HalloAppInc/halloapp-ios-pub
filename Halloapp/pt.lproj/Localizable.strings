@@ -238,6 +238,15 @@
 /* Label for creating a new group */
 "chat.create.new.group" = "Criar novo grupo";
 
+/* Button to retract a chat message for everyone */
+"chat.delete.everyone" = "Excluir para todos";
+
+/* Button to locally delete a chat message */
+"chat.delete.me" = "Excluir para mim";
+
+/* Title of deletion menu */
+"chat.delete.title" = "Excluir mensagem selecionada?";
+
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
 "chat.encryption.label" = "Os chats são criptografados de ponta a ponta e o HalloApp não tem acesso a eles. Toque para saber mais.";
 
@@ -922,6 +931,9 @@
 /* Label indicating that media was successfully saved to the camera roll */
 "media.save.saved" = "Salvos na Galeria de Fotos ";
 
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.annotate" = "Anotar";
+
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Fechar";
 
@@ -975,6 +987,9 @@
 
 /* Indicates how many invites are remaining */
 "n.invites.remaining" = "n.invites.remaining";
+
+/* Summary when multiple commenters commented on the same post you commented on */
+"n.others.replied" = "n.outros.responderam";
 
 /* Displayed in place of deleted feed posts. */
 "n.posts.deleted" = "% @ postagens excluídas";
@@ -1580,6 +1595,15 @@
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "Apagar esta publicação? Essa ação não pode ser revertida.";
 
+/* Title for button in action sheet prompting user to share post to external sites */
+"your.post.externalshare.copylink" = "Copiar link para partilhar";
+
+/* Success toast when external share link is copied */
+"your.post.externalshare.copylink.success" = "Copiado para a área de transferência";
+
 /* Message that external share failed. */
 "your.post.externalshare.error" = "Falha ao carregar postagem para partilhamento externo";
+
+/* Text introducing external share link, part of what is shared */
+"your.post.externalshare.title" = "Confira meu post no HalloApp:";
 

@@ -215,13 +215,13 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>few</key>
-			<string>&lt;$user$&gt; and %d others replied to &lt;$author$&gt;'s post</string>
+			<string>&lt;$user$&gt; и еще %d ответили на пост от &lt;$author$&gt;</string>
 			<key>many</key>
-			<string>&lt;$user$&gt; and %d others replied to &lt;$author$&gt;'s post</string>
+			<string>&lt;$user$&gt; и еще %d ответили на пост от &lt;$author$&gt;</string>
 			<key>one</key>
-			<string>&lt;$user$&gt; and %d other replied to &lt;$author$&gt;'s post</string>
+			<string>&lt;$user$&gt; и еще %d ответили на пост от &lt;$author$&gt;</string>
 			<key>other</key>
-			<string>&lt;$user$&gt; and %d others replied to &lt;$author$&gt;'s post</string>
+			<string>&lt;$user$&gt; и еще %d ответили на пост от &lt;$author$&gt;</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>

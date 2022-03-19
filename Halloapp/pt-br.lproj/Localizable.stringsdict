@@ -245,7 +245,7 @@
 	<key>n.others.replied</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>%#@n_others_replied@</string>
+		<string>%#@n_outros_responderam@</string>
 		<key>n_others_replied</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
@@ -257,9 +257,9 @@
 			<key>many</key>
 			<string>&lt;$user$&gt; and %d others replied to &lt;$author$&gt;'s post</string>
 			<key>one</key>
-			<string>&lt;$user$&gt; and %d other replied to &lt;$author$&gt;'s post</string>
+			<string>&lt;$usuario$&gt; e %d outro respondeu para &lt;$autor$&gt;'s postagem</string>
 			<key>other</key>
-			<string>&lt;$user$&gt; and %d others replied to &lt;$author$&gt;'s post</string>
+			<string>&lt;$usuario$&gt; e %d outros responderam para &lt;$autor$&gt;'s postagem</string>
 			<key>two</key>
 			<string>&lt;$user$&gt; and %d others replied to &lt;$author$&gt;'s post</string>
 			<key>zero</key>

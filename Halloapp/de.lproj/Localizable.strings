@@ -238,6 +238,15 @@
 /* Label for creating a new group */
 "chat.create.new.group" = "Neue Gruppe erstellen";
 
+/* Button to retract a chat message for everyone */
+"chat.delete.everyone" = "Für alle löschen";
+
+/* Button to locally delete a chat message */
+"chat.delete.me" = "Für mich löschen";
+
+/* Title of deletion menu */
+"chat.delete.title" = "Ausgewählte Nachricht löschen?";
+
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
 "chat.encryption.label" = "Die Chats sind Ende-zu-Ende verschlüsselt und HalloApp hat keinen Zugriff darauf. Tippe hier, um mehr zu erfahren.";
 
@@ -614,7 +623,7 @@
 "feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
 
 /* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.body" = "Verwende deine Handynummer, um dich mit deinen Freunden und deiner Familie in einem digitalen Raum ohne Werbung, Marken, Likes und Influencer zu verbinden.\n\nHalloApp ist für dich und die, die dir nahe stehen - ganz privat. Lade deine echten Freunde ein, um loszulegen!";
+"feed.welcome.post.body" = "Verwende deine Handynummer, um dich mit deinen Freunden und deiner Familie in einem digitalen Raum ohne Werbung, Marken, Likes und Influencer zu verbinden.\n\nHalloApp ist für dich und die Menschen, die dir nahe stehen - ganz privat. Lade deine echten Freunde ein, um loszulegen!";
 
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
 "feed.welcome.post.title" = "Willkommen bei HalloApp, ein digitaler Raum für echte Beziehungen ✨";
@@ -922,6 +931,9 @@
 /* Label indicating that media was successfully saved to the camera roll */
 "media.save.saved" = "In der Kamerarolle gespeichert";
 
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.annotate" = "Text einfügen";
+
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Schließen";
 
@@ -975,6 +987,9 @@
 
 /* Indicates how many invites are remaining */
 "n.invites.remaining" = "n.invites.remaining";
+
+/* Summary when multiple commenters commented on the same post you commented on */
+"n.others.replied" = "n.others.replied";
 
 /* Displayed in place of deleted feed posts. */
 "n.posts.deleted" = "%@ gelöschte Beiträge";
@@ -1034,7 +1049,13 @@
 "notification.voicecall.missed" = "☎️ Verpasster Sprachanruf";
 
 /* New post notification text when post is a voice note. */
-"notification.voicenote" = "🎤 Sprachnotiz";
+"notification.voicecomment" = "🎤 Audiokommentar";
+
+/* New post notification text when post is a voice note. */
+"notification.voicenote" = "🎤 Audionotiz";
+
+/* New post notification text when post is a voice note. */
+"notification.voicepost" = "🎤 Audiobeitrag";
 
 /* Text for new user popup pointing at activity center icon */
 "nux.activity.center.icon" = "Hallo!";
@@ -1574,6 +1595,15 @@
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "Diesen Beitrag löschen? Diese Aktion kann nicht widerrufen werden.";
 
+/* Title for button in action sheet prompting user to share post to external sites */
+"your.post.externalshare.copylink" = "Link zum Teilen kopieren";
+
+/* Success toast when external share link is copied */
+"your.post.externalshare.copylink.success" = "In die Zwischenablage kopiert";
+
 /* Message that external share failed. */
 "your.post.externalshare.error" = "Beitrag für externe Freigabe konnte nicht hochgeladen werden";
+
+/* Text introducing external share link, part of what is shared */
+"your.post.externalshare.title" = "Schau dir meinen Beitrag auf HalloApp an:";
 
