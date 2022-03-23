@@ -319,6 +319,9 @@
 /* Message text shown in a message that have audio media but no text */
 "chat.message.audio" = "Spraakbericht";
 
+/* Message text shown for quoted audio posts */
+"chat.message.audiopost" = "Audiopost";
+
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "Dit bericht is verwijderd.";
 

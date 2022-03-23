@@ -932,7 +932,7 @@
 "media.save.saved" = "In der Kamerarolle gespeichert";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
-"media.voiceover.button.annotate" = "Text einfügen";
+"media.voiceover.button.annotate" = "Text hinzufügen";
 
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Schließen";

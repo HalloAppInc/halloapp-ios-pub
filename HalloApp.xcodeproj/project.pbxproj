@@ -384,8 +384,8 @@
 		F42F574827C86D7200988E9D /* FeedInviteCarouselCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */; };
 		F494BEE72745E7DB00982E49 /* ActionSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */; };
 		F4B91DF8278FCEEB00DF70C1 /* CADisplayLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B91DF7278FCEEB00DF70C1 /* CADisplayLink.swift */; };
-		F4D88F6B27D9873F00D706DA /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D88F6A27D9873E00D706DA /* Toast.swift */; };
 		F4D88F5127D6D8A300D706DA /* InviteContactViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D88F5027D6D8A300D706DA /* InviteContactViewController.swift */; };
+		F4D88F6B27D9873F00D706DA /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D88F6A27D9873E00D706DA /* Toast.swift */; };
 		F4F157DA276AA39F002FDB9E /* DeleteAccountPhoneNumberTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F157D9276AA39E002FDB9E /* DeleteAccountPhoneNumberTextField.swift */; };
 		F4F157DC276AA5B7002FDB9E /* DeleteAccountTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F157DB276AA5B7002FDB9E /* DeleteAccountTextView.swift */; };
 		F8003DDE24D7C30D00628719 /* MediaPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */; };
@@ -1057,8 +1057,8 @@
 		F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedInviteCarouselCell.swift; sourceTree = "<group>"; };
 		F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionSheetViewController.swift; sourceTree = "<group>"; };
 		F4B91DF7278FCEEB00DF70C1 /* CADisplayLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CADisplayLink.swift; sourceTree = "<group>"; };
-		F4D88F6A27D9873E00D706DA /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		F4D88F5027D6D8A300D706DA /* InviteContactViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteContactViewController.swift; sourceTree = "<group>"; };
+		F4D88F6A27D9873E00D706DA /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		F4F157D9276AA39E002FDB9E /* DeleteAccountPhoneNumberTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountPhoneNumberTextField.swift; sourceTree = "<group>"; };
 		F4F157DB276AA5B7002FDB9E /* DeleteAccountTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountTextView.swift; sourceTree = "<group>"; };
 		F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPickerViewController.swift; sourceTree = "<group>"; };
