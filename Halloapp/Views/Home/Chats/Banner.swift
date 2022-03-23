@@ -13,69 +13,86 @@ import UIKit
 
 // MARK: Constraint Constants
 fileprivate struct Constants {
-    static let AvatarSize: CGFloat = 50
+    static let AvatarSize: CGFloat = 40
 }
 
 class Banner {
-
-    static let animateDuration = 0.5
-    static let bannerDuration: TimeInterval = 2
-    
     static func show(title: String, body: String, userID: String? = nil, groupID: GroupID? = nil, using avatarStore: AvatarStore) {
-        guard let superView = UIApplication.shared.windows.filter({$0.isKeyWindow}).first else { return }
-        
-        let width = superView.bounds.size.width
-        let height: CGFloat = 110
-        
-        let bannerView = BannerView(frame: CGRect(x: 0, y: 0 - height, width: width, height: height))
-        bannerView.configure(title: title, body: body, userID: userID, groupID: groupID, using: avatarStore)
-        bannerView.translatesAutoresizingMaskIntoConstraints = false
-              
-        superView.addSubview(bannerView)
-    
-        bannerView.widthAnchor.constraint(equalToConstant: width).isActive = true
-        bannerView.heightAnchor.constraint(equalToConstant: height).isActive = true
- 
-        let bannerTopConstraint = NSLayoutConstraint(item: bannerView, attribute: .top, relatedBy: .equal, toItem: superView, attribute: .top, multiplier: 1, constant: 0 - height)
-
-        NSLayoutConstraint.activate([bannerTopConstraint])
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            UIView.animate(withDuration: animateDuration) {
-                bannerTopConstraint.constant = 0
-                superView.layoutIfNeeded()
-            }
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + bannerDuration) {
-                UIView.animate(withDuration: animateDuration, animations: {
-                    bannerTopConstraint.constant = 0 - bannerView.frame.height
-                    superView.layoutIfNeeded()
-                }, completion: { finished in
-                    if finished {
-                        bannerView.removeFromSuperview()
-                    }
-                })
-            }
+        guard let keyWindow = UIApplication.shared.windows.filter({ $0.isKeyWindow }).first else {
+            return
         }
+        
+        let bannerView = BannerView(keyWindow: keyWindow)
+        bannerView.configure(title: title,
+                              body: body,
+                            userID: userID,
+                           groupID: groupID,
+                             using: avatarStore)
     }
 }
 
+fileprivate class BannerView: UIView, UIGestureRecognizerDelegate {
+    private(set) var type: ChatType = .oneToOne
+    private(set) var userID: UserID? = nil
+    private(set) var groupID: GroupID? = nil
 
-class BannerView: UIView, UIGestureRecognizerDelegate {
-
-    var type: ChatType = .oneToOne
-    var userID: UserID? = nil
-    var groupID: GroupID? = nil
+    private var autoDismiss: DispatchWorkItem?
+    private var dismissAnimator: UIViewPropertyAnimator?
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setup()
+    var topConstraint: NSLayoutConstraint?
+    private var topPadding: CGFloat {
+        return superview?.safeAreaInsets.top ?? .zero
+    }
+    
+    init(keyWindow: UIWindow) {
+        super.init(frame: .zero)
+        self.translatesAutoresizingMaskIntoConstraints = false
+        keyWindow.addSubview(self)
+        
+        let topConstraint = self.topAnchor.constraint(equalTo: keyWindow.topAnchor, constant: keyWindow.safeAreaInsets.top)
+        self.topConstraint = topConstraint
+        
+        self.backgroundColor = .primaryBg
+        addSubview(backgroundView)
+        addSubview(mainView)
+        
+        NSLayoutConstraint.activate([
+            topConstraint,
+            leadingAnchor.constraint(equalTo: keyWindow.leadingAnchor, constant: 8),
+            trailingAnchor.constraint(equalTo: keyWindow.trailingAnchor, constant: -8),
+            backgroundView.topAnchor.constraint(equalTo: topAnchor),
+            backgroundView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            backgroundView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            backgroundView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            mainView.topAnchor.constraint(equalTo: topAnchor),
+            mainView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            mainView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            mainView.bottomAnchor.constraint(equalTo: bottomAnchor),
+        ])
+
+        layoutIfNeeded()
+        topConstraint.constant = -(mainView.bounds.height + keyWindow.safeAreaInsets.top)
+        
+        let dismissWorkItem = DispatchWorkItem { [weak self] in
+            self?.animateDismiss()
+        }
+        self.autoDismiss = dismissWorkItem
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 0.75, initialSpringVelocity: 0, options: .curveEaseOut, animations: {
+                self.topConstraint?.constant = keyWindow.safeAreaInsets.top
+                self.superview?.layoutIfNeeded()
+            }, completion: { _ in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0, execute: dismissWorkItem)
+            })
+        }
+    }
+    
+    required init(coder: NSCoder) {
+        fatalError("Banner view coder init not implemented...")
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
-
     public func configure(title: String, body: String, userID: UserID? = nil, groupID: GroupID? = nil, using avatarStore: AvatarStore) {
-
         if let userID = userID {
             self.type = .oneToOne
             self.userID = userID
@@ -90,29 +107,18 @@ class BannerView: UIView, UIGestureRecognizerDelegate {
         let ham = HAMarkdown(font: bodyLabel.font, color: bodyLabel.textColor)
         bodyLabel.attributedText = ham.parse(body)
     }
-    
-    private func setup() {
-        backgroundColor = UIColor.systemGray2
-        addSubview(mainView)
-        mainView.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
-        mainView.topAnchor.constraint(equalTo: topAnchor).isActive = true
-        mainView.trailingAnchor.constraint(equalTo: trailingAnchor).isActive = true
-        mainView.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
-    }
 
     private lazy var mainView: UIStackView = {
-        let spacer = UIView()
-        spacer.backgroundColor = UIColor.white
-        spacer.translatesAutoresizingMaskIntoConstraints = false
-        
         let view = UIStackView(arrangedSubviews: [ avatarView, textColumn ])
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = nil
         view.axis = .horizontal
         view.alignment = .center
-     
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 10)
-        view.isLayoutMarginsRelativeArrangement = true
+        view.spacing = 10
         
-        view.translatesAutoresizingMaskIntoConstraints = false
+        view.insetsLayoutMarginsFromSafeArea = false
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 15, bottom: 10, right: 10)
+        view.isLayoutMarginsRelativeArrangement = true
         
         avatarView.widthAnchor.constraint(equalToConstant: Constants.AvatarSize).isActive = true
         avatarView.heightAnchor.constraint(equalToConstant: Constants.AvatarSize).isActive = true
@@ -121,10 +127,25 @@ class BannerView: UIView, UIGestureRecognizerDelegate {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(gotoChat(_:)))
         addGestureRecognizer(tapGesture)
         
-        let slideUp = UISwipeGestureRecognizer(target: self, action: #selector(dismiss(_:)))
-        slideUp.direction = .up
-        addGestureRecognizer(slideUp)
+        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(didPan))
+        addGestureRecognizer(panGesture)
 
+        return view
+    }()
+    
+    private lazy var backgroundView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .feedPostBackground
+        
+        view.layer.cornerRadius = 16
+        view.layer.borderWidth = 0.5
+        view.layer.borderColor = UIColor.label.withAlphaComponent(0.18).cgColor
+        view.layer.shadowColor = UIColor.black.cgColor
+        view.layer.shadowOpacity = 0.1
+        view.layer.shadowOffset = CGSize(width: 0, height: 2.75)
+        view.layer.shadowRadius = 3
+        
         return view
     }()
 
@@ -134,20 +155,9 @@ class BannerView: UIView, UIGestureRecognizerDelegate {
     }()
     
     private lazy var textColumn: UIStackView = {
-        let topSpacer = UIView()
-        topSpacer.translatesAutoresizingMaskIntoConstraints = false
-        topSpacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        let bottomSpacer = UIView()
-        bottomSpacer.translatesAutoresizingMaskIntoConstraints = false
-        bottomSpacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        
         let view = UIStackView(arrangedSubviews: [ titleRow, bodyRow ])
         view.axis = .vertical
-        
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 0)
-        view.isLayoutMarginsRelativeArrangement = true
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
+        view.spacing = 4
         
         return view
     }()
@@ -162,7 +172,7 @@ class BannerView: UIView, UIGestureRecognizerDelegate {
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-        label.font = UIFont.boldSystemFont(ofSize: 16.0)
+        label.font = UIFont.gothamFont(ofFixedSize: 16.0, weight: .medium)
         label.textColor = .label
         label.textAlignment = .left
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -185,7 +195,15 @@ class BannerView: UIView, UIGestureRecognizerDelegate {
         return label
     }()
     
-    @objc func gotoChat(_ sender: UIView) {
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        
+        let path = UIBezierPath(roundedRect: backgroundView.bounds, cornerRadius: 16)
+        backgroundView.layer.shadowPath = path.cgPath
+    }
+    
+    @objc
+    private func gotoChat(_ sender: UIView) {
         var id: String? = nil
         var notificationType: NotificationContentType
     
@@ -198,30 +216,72 @@ class BannerView: UIView, UIGestureRecognizerDelegate {
         }
         
         guard let contentId = id else { return }
-        
         let metadata = NotificationMetadata(contentId: contentId,
-                                            contentType: notificationType,
-                                            fromId: contentId,
+                                          contentType: notificationType,
+                                               fromId: contentId,
                                             timestamp: nil,
-                                            data: nil,
+                                                 data: nil,
                                             messageId: nil)
         metadata.groupId = groupID
         metadata.saveToUserDefaults()
-        
         MainAppContext.shared.didTapNotification.send(metadata)
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        autoDismiss?.cancel()
+        animateDismiss()
+    }
+    
+    private func animateDismiss(using spring: UISpringTimingParameters? = nil) {
+        let duration = 0.5
+        if let spring = spring {
+            dismissAnimator = UIViewPropertyAnimator(duration: duration, timingParameters: spring)
+        } else {
+            dismissAnimator = UIViewPropertyAnimator(duration: duration, dampingRatio: 0.75)
+        }
+        
+        dismissAnimator?.addAnimations {
+            self.topConstraint?.constant = -self.bounds.height
+            self.superview?.layoutIfNeeded()
+        }
+        
+        dismissAnimator?.addCompletion { _ in
+            self.dismissAnimator = nil
             self.removeFromSuperview()
+        }
+        
+        dismissAnimator?.startAnimation()
+    }
+    
+    @objc
+    private func didPan(_ gesture: UIPanGestureRecognizer) {
+        switch gesture.state {
+        case .began:
+            autoDismiss?.cancel()
+            fallthrough
+        case .changed:
+            let translation = gesture.translation(in: gesture.view)
+            if translation.y > 0 {
+                topConstraint?.constant = topPadding + pow(translation.y, 0.55)
+            } else {
+                topConstraint?.constant = topPadding + translation.y
+            }
+        case .ended, .cancelled:
+            let spring = timingParameters(from: gesture)
+            animateDismiss(using: spring)
+        default:
+            break
         }
     }
     
-    @objc func dismiss(_ sender: UIView) {
-        UIView.animate(withDuration: 0.2, animations: {
-            self.frame.origin.y -= self.frame.height
-        }, completion: { finished in
-            if finished {
-                self.removeFromSuperview()
-            }
-        })
+    private func timingParameters(from gesture: UIPanGestureRecognizer) -> UISpringTimingParameters {
+        var velocity = CGVector.zero
+        let distanceToGo = frame.maxY
+        
+        if distanceToGo != 0 {
+            let gestureVelocity = gesture.velocity(in: gesture.view)
+            let initial = abs(gestureVelocity.y) / distanceToGo
+            velocity.dy = initial
+        }
+        
+        return UISpringTimingParameters(dampingRatio: 0.75, initialVelocity: velocity)
     }
 }
