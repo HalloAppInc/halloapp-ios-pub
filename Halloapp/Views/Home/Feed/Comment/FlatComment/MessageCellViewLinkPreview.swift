@@ -36,6 +36,7 @@ class MessageCellViewLinkPreview: MessageCellViewBase {
         nameContentTimeRow.addArrangedSubview(linkPreviewView)
         nameContentTimeRow.addArrangedSubview(textRow)
         nameContentTimeRow.addArrangedSubview(timeRow)
+        nameContentTimeRow.setCustomSpacing(0, after: textRow)
         contentView.addSubview(messageRow)
         messageRow.constrain([.top], to: contentView)
         messageRow.constrain(anchor: .bottom, to: contentView, priority: UILayoutPriority(rawValue: 999))

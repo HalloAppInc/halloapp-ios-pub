@@ -141,8 +141,7 @@ class PostComposerLinkPreviewView: UIView {
 
                 self.linkPreviewData = LinkPreviewData(id : nil, url: url, title: data.title ?? "", description: "", previewImages: [])
 
-                // If image is not present, fallback on icon.
-                if let imageProvider = data.imageProvider ?? data.iconProvider {
+                if let imageProvider = data.imageProvider {
                     imageProvider.loadObject(ofClass: UIImage.self) { (image, error) in
                         if let image = image as? UIImage {
                             self.linkViewImage = image

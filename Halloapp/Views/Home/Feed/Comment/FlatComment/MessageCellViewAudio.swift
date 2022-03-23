@@ -56,6 +56,7 @@ class MessageCellViewAudio: MessageCellViewBase {
         view.axis = .horizontal
         view.spacing = 0
         view.isLayoutMarginsRelativeArrangement = true
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 3)
         return view
     }()
 
@@ -74,7 +75,8 @@ class MessageCellViewAudio: MessageCellViewBase {
         contentView.preservesSuperviewLayoutMargins = false
         nameContentTimeRow.addArrangedSubview(nameRow)
         nameContentTimeRow.addArrangedSubview(audioRow)
-        nameContentTimeRow.addArrangedSubview(timeRow)
+        nameContentTimeRow.addArrangedSubview(audioTimeRow)
+        nameContentTimeRow.setCustomSpacing(0, after: audioRow)
         contentView.addSubview(messageRow)
         messageRow.constrain([.top], to: contentView)
         messageRow.constrain(anchor: .bottom, to: contentView, priority: UILayoutPriority(rawValue: 999))

@@ -40,6 +40,7 @@ class MessageCellViewText: MessageCellViewBase {
         nameContentTimeRow.addArrangedSubview(textRow)
         nameContentTimeRow.addArrangedSubview(timeRow)
         contentView.addSubview(messageRow)
+        nameContentTimeRow.setCustomSpacing(0, after: textRow)
         messageRow.constrain([.top], to: contentView)
         messageRow.constrain(anchor: .bottom, to: contentView, priority: UILayoutPriority(rawValue: 999))
         
