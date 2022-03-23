@@ -52,6 +52,7 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
     var showUserAction: ((UserID) -> ())?
     var showGroupFeedAction: ((GroupID) -> ())?
     var showMoreAction: ((UserID) -> ())?
+    var showPrivacyAction: (() -> ())?
     var commentAction: (() -> ())?
     var messageAction: (() -> ())?
     var showSeenByAction: (() -> ())?
@@ -241,6 +242,9 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         headerView.showMoreAction = { [weak self] in
             guard let self = self, let showMoreAction = self.showMoreAction else { return }
             showMoreAction(post.userId)
+        }
+        headerView.showPrivacyAction = { [weak self] in
+            self?.showPrivacyAction?()
         }
         itemContentView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, displayData: displayData)
         itemContentView.didChangeMediaIndex = { [weak self] index in

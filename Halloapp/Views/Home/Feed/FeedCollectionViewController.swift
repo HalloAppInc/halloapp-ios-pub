@@ -11,6 +11,7 @@ import Combine
 import Core
 import CoreCommon
 import CoreData
+import SwiftUI
 import UIKit
 import Intents
 import Photos
@@ -824,6 +825,18 @@ extension FeedCollectionViewController {
             alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil))
             alert.view.tintColor = .systemBlue
             self.present(alert, animated: true, completion: nil)
+        }
+        
+        cell.showPrivacyAction = { [weak self] in
+            guard let self = self else { return }
+            let alert = UIAlertController(title: Localizations.favoritesTitle, message: Localizations.favoritesDescription, preferredStyle: .alert)
+           alert.addAction(.init(title: Localizations.titlePrivacy, style: .default, handler: { [weak self] _ in
+               guard let self = self else { return }
+               let privacyVC = UIHostingController(rootView: FeedPrivacyView(privacySettings: MainAppContext.shared.privacySettings))
+               self.navigationController?.pushViewController(privacyVC, animated: true)
+           }))
+           alert.addAction(.init(title: Localizations.buttonOK, style: .default, handler: nil))
+           self.present(alert, animated: true, completion: nil)
         }
         
         cell.cancelSendingAction = { [weak self] in

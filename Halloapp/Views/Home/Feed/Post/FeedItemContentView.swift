@@ -379,6 +379,7 @@ final class FeedItemHeaderView: UIView {
     var showUserAction: (() -> ())? = nil
     var showGroupFeedAction: (() -> ())? = nil
     var showMoreAction: (() -> ())? = nil
+    var showPrivacyAction: (() -> ())? = nil
 
     private var contentSizeCategoryDidChangeCancellable: AnyCancellable!
 
@@ -520,6 +521,27 @@ final class FeedItemHeaderView: UIView {
 
         return wrapperView
     }()
+    
+    private lazy var privacyIndicatorButtonView: UIView = {
+        let privacyIndicatorButton = UIButton()
+        privacyIndicatorButton.addTarget(self, action: #selector(showPrivacyIndicatorTapped), for: .touchUpInside)
+        privacyIndicatorButton.translatesAutoresizingMaskIntoConstraints = false
+        let image = UIImage(named: "PrivacySettingFavorite")
+        privacyIndicatorButton.setImage(image, for: .normal)
+        privacyIndicatorButton.backgroundColor = .favoritesBg
+        privacyIndicatorButton.layer.cornerRadius = 11
+        let privacyIndicatorButtonView = UIView()
+        privacyIndicatorButtonView.addSubview(privacyIndicatorButton)
+        privacyIndicatorButtonView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            privacyIndicatorButton.widthAnchor.constraint(equalToConstant: 22.5),
+            privacyIndicatorButton.heightAnchor.constraint(equalToConstant: 22.5),
+            privacyIndicatorButton.topAnchor.constraint(equalTo: privacyIndicatorButtonView.topAnchor, constant: 2),
+            privacyIndicatorButton.bottomAnchor.constraint(equalTo: privacyIndicatorButtonView.bottomAnchor),
+            privacyIndicatorButton.trailingAnchor.constraint(equalTo: privacyIndicatorButtonView.trailingAnchor)
+        ])
+        return privacyIndicatorButtonView
+    }()
 
     private lazy var contentStackView: UIStackView = {
         let contentStackView = UIStackView(arrangedSubviews: [ nameColumn ])
@@ -532,6 +554,10 @@ final class FeedItemHeaderView: UIView {
         if let action = showMoreAction {
             action()
         }
+    }
+    
+    @objc private func showPrivacyIndicatorTapped() {
+        showPrivacyAction?()
     }
 
     private func setupView() {
@@ -588,6 +614,13 @@ final class FeedItemHeaderView: UIView {
         }
 
         avatarViewButton.avatarView.configure(with: post.userId, using: MainAppContext.shared.avatarStore)
+
+        if let audienceType = post.info?.audienceType, audienceType == AudienceType.whitelist {
+            contentStackView.addArrangedSubview(privacyIndicatorButtonView)
+            contentStackView.setCustomSpacing(0, after: privacyIndicatorButtonView)
+        } else {
+            privacyIndicatorButtonView.removeFromSuperview()
+        }
 
         if !(post.hasSaveablePostMedia && post.canSaveMedia), post.userId != MainAppContext.shared.userData.userId {
             moreButton.removeFromSuperview()

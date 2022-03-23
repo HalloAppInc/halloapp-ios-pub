@@ -325,4 +325,8 @@ extension UIColor {
     class var timeHeaderText: UIColor {
         UIColor(named: "TimeHeaderText")!
     }
+
+    class var favoritesBg: UIColor {
+        UIColor(named: "FavoritesBg")!
+    }
 }
