@@ -96,7 +96,11 @@ final class InviteContactsManager: NSObject {
             return randomSelection
         } else {
             // take a random 20 of the top 50 contacts, determined by sort
-            let randomSelection = Array(contacts().prefix(50).shuffled().prefix(20))
+            let randomSelection = Array(contacts()
+                .filter { !$0.fullName.localizedCaseInsensitiveContains(Localizations.contactSpamName) && ($0.friendCount ?? 0) > 0 }
+                .prefix(50)
+                .shuffled()
+                .prefix(20))
             _randomSelection = randomSelection
             return randomSelection
         }
@@ -142,7 +146,16 @@ extension InviteContact {
         self.normalizedPhoneNumber = number
         self.formattedPhoneNumber = abContact.phoneNumber ?? "+\(number)".formattedPhoneNumber
         self.userID = abContact.userId
-        self.friendCount = fullName.localizedCaseInsensitiveContains("spam") ? 0 : Int(abContact.numPotentialContacts)
+        self.friendCount = fullName.localizedCaseInsensitiveContains(Localizations.contactSpamName) ? 0 : Int(abContact.numPotentialContacts)
         self.identifier = abContact.identifier
+    }
+}
+
+extension Localizations {
+
+    static var contactSpamName: String {
+        NSLocalizedString("invitemanager.spam",
+                          value: "spam",
+                          comment: "Contacts including this in their name are excluded from the invite carousel")
     }
 }

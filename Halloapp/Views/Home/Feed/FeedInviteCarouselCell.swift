@@ -372,7 +372,11 @@ private class FeedInviteCarouselContactCell: UICollectionViewCell {
         nameLabel.numberOfLines = 2
         nameLabel.text = contact.fullName
         numContactsLabel.text = contact.friendCount.flatMap { Localizations.contactsOnHalloApp($0) }
-        inviteButton.setTitle(Localizations.buttonInvite, for: .normal)
+        // Prevent title fade animation
+        UIView.performWithoutAnimation {
+            inviteButton.setTitle(Localizations.buttonInvite, for: .normal)
+            inviteButton.layoutIfNeeded()
+        }
         inviteButton.setBackgroundColor(invited ? .systemGray : .primaryBlue, for: .normal)
         dismissButton.isHidden = false
     }
@@ -383,7 +387,11 @@ private class FeedInviteCarouselContactCell: UICollectionViewCell {
         nameLabel.numberOfLines = 0
         nameLabel.text = Localizations.feedInviteCarouselSearchPrompt
         numContactsLabel.text = nil
-        inviteButton.setTitle(Localizations.labelSearch, for: .normal)
+        // Prevent title fade animation
+        UIView.performWithoutAnimation {
+            inviteButton.setTitle(Localizations.labelSearch, for: .normal)
+            inviteButton.layoutIfNeeded()
+        }
         inviteButton.setBackgroundColor(.primaryBlue, for: .normal)
         dismissButton.isHidden = true
     }
