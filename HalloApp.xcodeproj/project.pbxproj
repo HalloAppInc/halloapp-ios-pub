@@ -381,6 +381,7 @@
 		F40F7C6B274C8159008144DE /* PostAudioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40F7C6A274C8158008144DE /* PostAudioView.swift */; };
 		F40F7C8727570707008144DE /* AudioPostComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40F7C8627570707008144DE /* AudioPostComposer.swift */; };
 		F41F82972798D2AC0021BF40 /* GroupInviteSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41F82962798D2AC0021BF40 /* GroupInviteSheetViewController.swift */; };
+		F41FAA4227E52B7E00FC5090 /* BottomSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41FAA4127E52B7E00FC5090 /* BottomSheetViewController.swift */; };
 		F42F574827C86D7200988E9D /* FeedInviteCarouselCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */; };
 		F470251027ED31A6008CD37F /* URLRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F470250F27ED31A6008CD37F /* URLRouter.swift */; };
 		F494BEE72745E7DB00982E49 /* ActionSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */; };
@@ -1056,6 +1057,7 @@
 		F40F7C6A274C8158008144DE /* PostAudioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostAudioView.swift; sourceTree = "<group>"; };
 		F40F7C8627570707008144DE /* AudioPostComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPostComposer.swift; sourceTree = "<group>"; };
 		F41F82962798D2AC0021BF40 /* GroupInviteSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupInviteSheetViewController.swift; sourceTree = "<group>"; };
+		F41FAA4127E52B7E00FC5090 /* BottomSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomSheetViewController.swift; sourceTree = "<group>"; };
 		F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedInviteCarouselCell.swift; sourceTree = "<group>"; };
 		F470250F27ED31A6008CD37F /* URLRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLRouter.swift; sourceTree = "<group>"; };
 		F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionSheetViewController.swift; sourceTree = "<group>"; };
@@ -1444,6 +1446,7 @@
 				EAAF43982603F7720037F83D /* BlurView.swift */,
 				EA7A386526782A4D0028F739 /* ActionTableViewCell.swift */,
 				F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */,
+				F41FAA4127E52B7E00FC5090 /* BottomSheetViewController.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -2720,6 +2723,7 @@
 				68A64E9224D33E0F00F40F1F /* MentionPickerView.swift in Sources */,
 				EAF3A1C32334191E00805FF9 /* AppDelegate.swift in Sources */,
 				2446D67C24CB54F8005BAD3C /* VideoUtils.swift in Sources */,
+				F41FAA4227E52B7E00FC5090 /* BottomSheetViewController.swift in Sources */,
 				761EE21E24B5135400B30632 /* MFMessageComposeView.swift in Sources */,
 				F850677A26A7FDDF00A120EC /* AudioView.swift in Sources */,
 				EAA424FB24ECF1480025CBBE /* ChatGroupMember+CoreDataProperties.swift in Sources */,
