@@ -759,72 +759,7 @@ extension FeedCollectionViewController {
             self.showGroupFeed(for: groupID)
         }
         cell.showMoreAction = { [weak self] userID in
-            guard let self = self else { return }
-            
-            let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-
-            if feedPost.hasSaveablePostMedia && feedPost.canSaveMedia {
-                let saveMediaTitle = feedPost.media?.count ?? 0 > 1 ? Localizations.saveAllButton : Localizations.saveAllButtonSingular
-                alert.addAction(UIAlertAction(title: saveMediaTitle, style: .default, handler:  { [weak self] _ in
-                    PHPhotoLibrary.requestAuthorization { status in
-                        // `.limited` was introduced in iOS 14, and only gives us partial access to the photo album. In this case we can still save to the camera roll
-                        if #available(iOS 14, *) {
-                            guard status == .authorized || status == .limited else {
-                                DispatchQueue.main.async {
-                                    self?.handleMediaAuthorizationFailure()
-                                }
-                                return
-                            }
-                        } else {
-                            guard status == .authorized else {
-                                DispatchQueue.main.async {
-                                    self?.handleMediaAuthorizationFailure()
-                                }
-                                return
-                            }
-                        }
-                        
-                        guard let expectedMedia = feedPost.media, let self = self else { return } // Get the media data to determine how many should be downloaded
-                        let media = self.getMedia(feedPost: feedPost) // Get the media from memory
-                        
-                        // Make sure the media in memory is the correct number or items
-                        guard expectedMedia.count == media.count else {
-                            DDLogError("FeedCollectionViewController/saveAllButton/error: Downloaded media not same size as expected")
-                            return
-                        }
-                        
-                        self.saveMedia(media: media)
-                    }
-                }))
-            }
-            
-            if feedPost.userId == MainAppContext.shared.userData.userId {
-                // Disable external share if not enabled or this is a group post
-                if ServerProperties.externalSharingEnabled, feedPost.groupId == nil {
-                    alert.addAction(UIAlertAction(title: Localizations.buttonShare, style: .default, handler: { [weak self] _ in
-                        self?.generateExternalShareLink(postID: postId, success: { [weak self] url in
-                            let shareText = "\(Localizations.externalShareText) \(url)"
-                            let activityViewController = UIActivityViewController(activityItems: [shareText], applicationActivities: nil)
-                            self?.present(activityViewController, animated: true)
-                        })
-                    }))
-                    alert.addAction(UIAlertAction(title: Localizations.externalShareCopyLink, style: .default) { [weak self] _ in
-                        self?.generateExternalShareLink(postID: postId, success: { url in
-                            UIPasteboard.general.url = url
-                            Toast.show(icon: UIImage(systemName: "checkmark"), text: Localizations.externalShareLinkCopied)
-                        })
-                    })
-                }
-
-                let action = UIAlertAction(title: Localizations.deletePostButtonTitle, style: .destructive) { [weak self] _ in
-                    self?.handleDeletePostTapped(postId: postId)
-                }
-                alert.addAction(action)
-            }
-            
-            alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil))
-            alert.view.tintColor = .systemBlue
-            self.present(alert, animated: true, completion: nil)
+            self?.showMoreMenu(for: feedPost)
         }
         cell.showPrivacyAction = { [weak self] in
             guard let self = self else { return }
@@ -843,7 +778,6 @@ extension FeedCollectionViewController {
            alert.addAction(.init(title: Localizations.buttonOK, style: .default, handler: nil))
            self.present(alert, animated: true, completion: nil)
         }
-        
         cell.cancelSendingAction = { [weak self] in
             guard let self = self else { return }
             self.cancelSending(postId: postId)
@@ -861,6 +795,92 @@ extension FeedCollectionViewController {
         }
         
         cell.delegate = self
+    }
+
+    private func showMoreMenu(for feedPost: FeedPost) {
+        let isOwnPost = feedPost.userId == MainAppContext.shared.userData.userId
+        let isGroupPost = feedPost.groupId != nil
+        let menu = FeedPostMenuViewController.Menu {
+            // Disable external share if not enabled or this is a group post
+            if isOwnPost && !isGroupPost && ServerProperties.externalSharingEnabled {
+                FeedPostMenuViewController.Section(description: Localizations.externalShareDescription)
+                FeedPostMenuViewController.Section {
+                    FeedPostMenuViewController.Item(style: .standard,
+                                                    icon: UIImage(systemName: "square.and.arrow.up"),
+                                                    title: Localizations.externalShareButton) { [weak self] _ in
+                        self?.generateExternalShareLink(postID: feedPost.id, success: { [weak self] url in
+                            let shareText = "\(Localizations.externalShareText) \(url)"
+                            let activityViewController = UIActivityViewController(activityItems: [shareText], applicationActivities: nil)
+                            self?.present(activityViewController, animated: true)
+                        })
+                    }
+                    FeedPostMenuViewController.Item(style: .standard,
+                                                    icon: UIImage(systemName: "link"),
+                                                    title: Localizations.externalShareCopyLink) { [weak self] _ in
+                        self?.generateExternalShareLink(postID: feedPost.id, success: { url in
+                            UIPasteboard.general.url = url
+                            Toast.show(icon: UIImage(systemName: "checkmark"), text: Localizations.externalShareLinkCopied)
+                        })
+                    }
+                }
+            }
+
+            if feedPost.hasSaveablePostMedia, feedPost.canSaveMedia {
+                FeedPostMenuViewController.Section {
+                    FeedPostMenuViewController.Item(style: .standard,
+                                                    icon: UIImage(systemName: "photo.on.rectangle.angled"),
+                                                    title: feedPost.media?.count ?? 0 > 1 ?
+                                                        Localizations.saveAllButton :
+                                                        Localizations.saveAllButtonSingular) { [weak self] _ in
+                        self?.savePostMedia(feedPost: feedPost)
+                    }
+                }
+            }
+
+            if isOwnPost {
+                FeedPostMenuViewController.Section {
+                    FeedPostMenuViewController.Item(style: .destructive,
+                                                    icon: UIImage(systemName: "trash"),
+                                                    title: Localizations.deletePostButtonTitle) { [weak self] _ in
+                        self?.handleDeletePostTapped(postId: feedPost.id)
+                    }
+                }
+            }
+        }
+
+        present(FeedPostMenuViewController(menu: menu), animated: true)
+    }
+
+    private func savePostMedia(feedPost: FeedPost) {
+        PHPhotoLibrary.requestAuthorization { [weak self] status in
+            // `.limited` was introduced in iOS 14, and only gives us partial access to the photo album. In this case we can still save to the camera roll
+            if #available(iOS 14, *) {
+                guard status == .authorized || status == .limited else {
+                    DispatchQueue.main.async {
+                        self?.handleMediaAuthorizationFailure()
+                    }
+                    return
+                }
+            } else {
+                guard status == .authorized else {
+                    DispatchQueue.main.async {
+                        self?.handleMediaAuthorizationFailure()
+                    }
+                    return
+                }
+            }
+
+            guard let expectedMedia = feedPost.media, let self = self else { return } // Get the media data to determine how many should be downloaded
+            let media = self.getMedia(feedPost: feedPost) // Get the media from memory
+
+            // Make sure the media in memory is the correct number or items
+            guard expectedMedia.count == media.count else {
+                DDLogError("FeedCollectionViewController/saveAllButton/error: Downloaded media not same size as expected")
+                return
+            }
+
+            self.saveMedia(media: media)
+        }
     }
     
     private func handleMediaAuthorizationFailure() {
@@ -1194,5 +1214,17 @@ extension Localizations {
         NSLocalizedString("your.post.externalshare.error",
                           value: "Failed to upload post for external share",
                           comment: "Message that external share failed.")
+    }()
+
+    static var externalShareDescription: String = {
+        NSLocalizedString("your.post.externalshare.description",
+                          value: "Anyone with this link can see your post. Links expire when your post expires on HalloApp.",
+                          comment: "Message on header of post menu explaining external share")
+    }()
+
+    static var externalShareButton: String = {
+        NSLocalizedString("your.post.externalshare.button",
+                          value: "Share Externally",
+                          comment: "Button to open the system share sheet with an external post link")
     }()
 }
