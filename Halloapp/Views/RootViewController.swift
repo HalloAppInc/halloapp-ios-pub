@@ -163,7 +163,7 @@ final class CallBar: UIControl {
         fatalError("init(coder:) has not been implemented")
     }
 
-    var call: Call? {
+    weak var call: Call? {
         didSet {
             update(with: call)
         }
