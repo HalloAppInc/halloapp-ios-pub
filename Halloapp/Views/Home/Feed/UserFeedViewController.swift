@@ -119,6 +119,7 @@ class UserFeedViewController: FeedCollectionViewController {
                 if newUserIDs.contains(self.userId) {
                     self.headerViewController.configureOrRefresh(userID: self.userId)
                     self.collectionView.reloadData()
+                    self.updateExchangeNumbersView(isFeedEmpty: self.collectionView.numberOfItems(inSection: 0) == 0)
                 }
             }.store(in: &cancellables)
             
