@@ -76,6 +76,7 @@ class FeedInviteCarouselCell: UICollectionViewCell {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(titleLabel)
 
+        collectionView.clipsToBounds = false
         collectionView.setContentCompressionResistancePriority(UILayoutPriority(751), for: .vertical)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(collectionView)
@@ -201,7 +202,7 @@ private class FeedInviteCarouselContactCell: UICollectionViewCell {
         static let numContactsLabelInviteButtonSpacing: CGFloat = 12
         static let inviteButtonBottomSpacing: CGFloat = 16
         static let inviteButtonVerticalPadding: CGFloat = 8
-        static let nameLabelFont = UIFont.systemFont(ofSize: 15, weight: .medium)
+        static let nameLabelFont = UIFont.gothamFont(ofFixedSize: 15, weight: .medium)
         static let numContactsLabelFont = UIFont.systemFont(ofSize: 13, weight: .regular)
         static let inviteButtonFont = UIFont.systemFont(ofSize: 15, weight: .medium)
     }
@@ -297,6 +298,7 @@ private class FeedInviteCarouselContactCell: UICollectionViewCell {
         contentView.layer.cornerRadius = 15
         contentView.layer.shadowColor = UIColor.black.cgColor
         contentView.layer.shadowOffset = CGSize(width: 0, height: 3)
+        contentView.layer.shadowOpacity = 0.08
         contentView.layer.shadowRadius = 5
 
         avatarView.translatesAutoresizingMaskIntoConstraints = false

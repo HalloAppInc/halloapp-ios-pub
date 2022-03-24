@@ -100,7 +100,7 @@ final class InviteContactsManager: NSObject {
                 .filter { !$0.fullName.localizedCaseInsensitiveContains(Localizations.contactSpamName) && ($0.friendCount ?? 0) > 0 }
                 .prefix(50)
                 .shuffled()
-                .prefix(20))
+                .prefix(10))
             _randomSelection = randomSelection
             return randomSelection
         }
