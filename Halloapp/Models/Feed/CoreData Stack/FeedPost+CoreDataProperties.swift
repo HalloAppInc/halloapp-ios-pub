@@ -93,7 +93,7 @@ extension FeedPost {
     }
 
     var canSaveMedia: Bool {
-        return groupId != nil || userId == MainAppContext.shared.userData.userId
+        return groupId != nil
     }
 }
 
