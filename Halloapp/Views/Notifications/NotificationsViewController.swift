@@ -39,6 +39,8 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
     private let readAllButton = UIButton()
   
     private var displayedItems: [ActivityCenterItem] = []
+    /// - note: Used for when the user marks all notifications as read.
+    private var cachedScrollPosition: (indexPath: IndexPath, offset: CGFloat)?
 
     // MARK: UIViewController
 
@@ -99,6 +101,7 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         let hasUnreadItem = snapshot.itemIdentifiers.contains { $0.read == false }
 
         dataSource.apply(snapshot, animatingDifferences: false)
+        
         readAllButton.isEnabled = hasUnreadItem
         readAllButton.setTitleColor(hasUnreadItem ? .systemBlue : .gray, for: .normal)
     }
@@ -132,7 +135,18 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
     }
     
     override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
         tableView.contentInset.bottom = bottomBar.frame.height - bottomSafeAreaHeight
+        
+        if let cachedPosition = cachedScrollPosition, tableView.contains(indexPath: cachedPosition.indexPath) {
+            tableView.scrollToRow(at: cachedPosition.indexPath, at: .top, animated: false)
+            tableView.layoutIfNeeded()
+            let cellRect = tableView.rectForRow(at: cachedPosition.indexPath)
+            
+            tableView.contentOffset = CGPoint(x: 0, y: cellRect.minY + cachedPosition.offset)
+        }
+        
+        cachedScrollPosition = nil
     }
 
     // MARK: Fetched Results Controller
@@ -260,9 +274,21 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         actionSheet.addAction(UIAlertAction(title: Localizations.markAllRead, style:.destructive) { _ in
             MainAppContext.shared.feedData.markNotificationsAsRead()
+            
+            self.memoizeScrollPosition()
         })
         actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         present(actionSheet, animated: true)
+    }
+    
+    private func memoizeScrollPosition() {
+        guard let firstVisiblePath = tableView.indexPathsForVisibleRows?.first else {
+            return
+        }
+        
+        let rect = tableView.rectForRow(at: firstVisiblePath)
+        let offset = tableView.contentOffset.y - rect.minY
+        cachedScrollPosition = (firstVisiblePath, offset)
     }
 }
 
@@ -362,5 +388,11 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
         
         contactImage.prepareForReuse()
         notificationTextLabel.attributedText = nil
+    }
+}
+
+extension UITableView {
+    func contains(indexPath: IndexPath) -> Bool {
+        return numberOfSections > indexPath.section && numberOfRows(inSection: indexPath.section) > indexPath.row
     }
 }
