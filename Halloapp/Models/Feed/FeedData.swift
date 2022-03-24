@@ -4190,6 +4190,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
+    func externalShareInfo(for postID: FeedPostID) -> ExternalShareInfo? {
+        return Self.externalShareInfo(for: postID, in: mainDataStore.viewContext)
+    }
+
     private class func externalShareInfo(for postID: FeedPostID, in context: NSManagedObjectContext) -> ExternalShareInfo? {
         let fetchRequest = ExternalShareInfo.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "feedPostID = %@", postID)
