@@ -85,6 +85,12 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Partilhar apenas com contatos selecionados";
 
+/* Description of the alert shown to user indicating their post is only shown to their favorites audienc */
+"feed.privacy.list.only.description" = "Esta postagem é compartilhada apenas com um grupo personalizado de contatos. Você pode ajustar seu público sempre que fizer uma nova postagem ou em Configurações > Privacidade.";
+
+/* Title of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.only.title" = "Favoritos";
+
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Foi adicionado a um novo grupo";
 

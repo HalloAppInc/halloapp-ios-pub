@@ -607,8 +607,14 @@
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.only" = "Alleen Delen Met...";
 
+/* Description of the alert shown to user indicating their post is only shown to their favorites audienc */
+"feed.privacy.list.only.description" = "Deze post is alleen gedeeld met een aangepaste groep contacten. Je kunt dit aanpassen wanneer je een nieuw bericht plaatst, of onder Instellingen > Privacy.";
+
 /* Header for the list when selecting contacts to share with. */
 "feed.privacy.list.only.details" = "Selecteer wie deze post kan zien";
+
+/* Title of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.only.title" = "Favorieten";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Mijn Contacten";
@@ -630,6 +636,12 @@
 
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
 "feed.welcome.post.title" = "Welkom bij HalloApp, een digitale ruimte voor echte relaties ✨";
+
+/* Text for 'more' cell prompting users to open the invite screen */
+"feedInviteCarousel.searchPrompt" = "Zoek naar meer vrienden en familie";
+
+/* Title for section of contacts to invite in feed */
+"feedInviteCarousel.title" = "HalloApp is leuk met vrienden & familie";
 
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Reageren";
@@ -864,6 +876,9 @@
 
 /* Title of cell at the top of the invite screen */
 "invite.via.link" = "Uitnodigen via link";
+
+/* Contacts including this in their name are excluded from the invite carousel */
+"invitemanager.spam" = "spam";
 
 /* Text shown when inviting to a group using a QR code */
 "join.group.using.qr.code" = "Neem deel aan mijn Groep op HalloApp!";

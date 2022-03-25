@@ -85,6 +85,12 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Alleen delen met geselecteerde contacten";
 
+/* Description of the alert shown to user indicating their post is only shown to their favorites audienc */
+"feed.privacy.list.only.description" = "Deze post is alleen gedeeld met een aangepaste groep contacten. Je kunt dit aanpassen wanneer je een nieuw bericht plaatst, of onder Instellingen > Privacy.";
+
+/* Title of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.only.title" = "Favorieten";
+
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Zoeken";
 

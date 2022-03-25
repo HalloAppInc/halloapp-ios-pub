@@ -319,6 +319,9 @@
 /* Message text shown in a message that have audio media but no text */
 "chat.message.audio" = "پیام صوتی";
 
+/* Message text shown for quoted audio posts */
+"chat.message.audiopost" = "پست صوتی";
+
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "این پیام حذف شده است.";
 
@@ -628,6 +631,12 @@
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
 "feed.welcome.post.title" = "به هالواپ خوش‌آمدید، فضایی برای رابطه‌های واقعی ✨";
 
+/* Text for 'more' cell prompting users to open the invite screen */
+"feedInviteCarousel.searchPrompt" = "جستجوی دوستان و آشنایان";
+
+/* Title for section of contacts to invite in feed */
+"feedInviteCarousel.title" = "هالواپ با دوستان و آشنایان سرگرم‌کننده است";
+
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "نظر نوشتن";
 
@@ -861,6 +870,9 @@
 
 /* Title of cell at the top of the invite screen */
 "invite.via.link" = "دعوت از طریق لینک";
+
+/* Contacts including this in their name are excluded from the invite carousel */
+"invitemanager.spam" = "ناخواسته";
 
 /* Text shown when inviting to a group using a QR code */
 "join.group.using.qr.code" = "به گروه من در هالواپ بپیوندید!";

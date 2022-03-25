@@ -319,6 +319,9 @@
 /* Message text shown in a message that have audio media but no text */
 "chat.message.audio" = "Sprachnotiz";
 
+/* Message text shown for quoted audio posts */
+"chat.message.audiopost" = "Audiobeitrag";
+
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "Diese Nachricht wurde gelöscht.";
 
@@ -335,7 +338,7 @@
 "chat.message.video" = "Video";
 
 /* Text shown in place of a received message we are not able to decrypt yet. */
-"chat.message.waiting" = "Warten auf Eingang dieser Nachricht. Dies kann eine Weile dauern.";
+"chat.message.waiting" = "Warte auf diese Nachricht. Das kann einen Moment dauern.";
 
 /* Alert message when missing microphone access */
 "chat.mic.access.denied.message" = "Für Audioaufnahmen bitte in den Einstellungen das Mikrofon aktivieren";
@@ -518,7 +521,7 @@
 "fab.post.button" = "Beitrag";
 
 /* Text shown in place of a received post we are not able to decrypt yet. */
-"feed.comment.waiting" = "Warten auf Eingang dieses Kommentars. Dies kann eine Weile dauern.";
+"feed.comment.waiting" = "Warte auf diesen Kommentar. Das kann eine Weile dauern.";
 
 /* Shown while content is being retracted from feed */
 "feed.deleting" = "wird gelöscht...";
@@ -572,7 +575,7 @@
 "feed.post.unsupported" = "Deine HalloApp-Version unterstützt diese Art von Beitrag nicht.";
 
 /* Text shown in place of a received post we are not able to decrypt yet. */
-"feed.post.waiting" = "Warten auf Eingang dieses Beitrags. Dies kann eine Weile dauern.";
+"feed.post.waiting" = "Warte auf diesen Beitrag. Das kann einen Moment dauern.";
 
 /* Shown while content is being posted to feed */
 "feed.posting" = "Beitrag wird geposted...";
@@ -627,6 +630,12 @@
 
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
 "feed.welcome.post.title" = "Willkommen bei HalloApp, ein digitaler Raum für echte Beziehungen ✨";
+
+/* Text for 'more' cell prompting users to open the invite screen */
+"feedInviteCarousel.searchPrompt" = "Suche nach mehr Freunden und Familie";
+
+/* Title for section of contacts to invite in feed */
+"feedInviteCarousel.title" = "HalloApp macht Spaß mit Freunden und Familie";
 
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Kommentieren";
@@ -861,6 +870,9 @@
 
 /* Title of cell at the top of the invite screen */
 "invite.via.link" = "Per Link einladen";
+
+/* Contacts including this in their name are excluded from the invite carousel */
+"invitemanager.spam" = "Spam";
 
 /* Text shown when inviting to a group using a QR code */
 "join.group.using.qr.code" = "Tritt meiner Gruppe auf HalloApp bei!";
@@ -1368,7 +1380,7 @@
 "settings.account.delete.phone.number.prompt" = "Zur Bestätigung bitte deine Handynummer eingeben";
 
 /* String that's displayed when a spinner is not available to indicate that the view is waiting for a response from the server */
-"settings.account.delete.spinner.replacement" = "Auf Serverantwort wird gewartet";
+"settings.account.delete.spinner.replacement" = "Warte auf Serverantwort";
 
 /* Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account */
 "settings.account.deleted.message" = "Du kannst dich erst wieder anmelden, wenn du die Anwendung neu startest";

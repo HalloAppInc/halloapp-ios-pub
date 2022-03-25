@@ -319,6 +319,9 @@
 /* Message text shown in a message that have audio media but no text */
 "chat.message.audio" = "Mensagem de voz";
 
+/* Message text shown for quoted audio posts */
+"chat.message.audiopost" = "Postagem de áudio";
+
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "Esta mensagem foi apagada.";
 
@@ -604,8 +607,14 @@
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.only" = "Partilhar apenas com...";
 
+/* Description of the alert shown to user indicating their post is only shown to their favorites audienc */
+"feed.privacy.list.only.description" = "Esta postagem é compartilhada apenas com um grupo personalizado de contatos. Você pode ajustar seu público sempre que fizer uma nova postagem ou em Configurações > Privacidade.";
+
 /* Header for the list when selecting contacts to share with. */
 "feed.privacy.list.only.details" = "Selecione quem verá esta postagem";
+
+/* Title of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.only.title" = "Favoritos";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Meus Contatos";
@@ -627,6 +636,12 @@
 
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
 "feed.welcome.post.title" = "Bem-vindo ao HalloApp, um espaço para relacionamentos reais ✨";
+
+/* Text for 'more' cell prompting users to open the invite screen */
+"feedInviteCarousel.searchPrompt" = "Procure mais amigos e familiares";
+
+/* Title for section of contacts to invite in feed */
+"feedInviteCarousel.title" = "HalloApp é divertido com amigos e familiares";
 
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Comentar";
@@ -861,6 +876,9 @@
 
 /* Title of cell at the top of the invite screen */
 "invite.via.link" = "Convidar por link";
+
+/* Contacts including this in their name are excluded from the invite carousel */
+"invitemanager.spam" = "spam";
 
 /* Text shown when inviting to a group using a QR code */
 "join.group.using.qr.code" = "Junte-se ao meu grupo no HalloApp!";
