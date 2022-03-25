@@ -382,7 +382,9 @@
 		F40F7C8727570707008144DE /* AudioPostComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40F7C8627570707008144DE /* AudioPostComposer.swift */; };
 		F41F82972798D2AC0021BF40 /* GroupInviteSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41F82962798D2AC0021BF40 /* GroupInviteSheetViewController.swift */; };
 		F42F574827C86D7200988E9D /* FeedInviteCarouselCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */; };
+		F470251027ED31A6008CD37F /* URLRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F470250F27ED31A6008CD37F /* URLRouter.swift */; };
 		F494BEE72745E7DB00982E49 /* ActionSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */; };
+		F49D2E6427EE6A8900195566 /* URLRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49D2E6027EE6A5300195566 /* URLRouterTests.swift */; };
 		F4B91DF8278FCEEB00DF70C1 /* CADisplayLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B91DF7278FCEEB00DF70C1 /* CADisplayLink.swift */; };
 		F4D88F5127D6D8A300D706DA /* InviteContactViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D88F5027D6D8A300D706DA /* InviteContactViewController.swift */; };
 		F4D88F6B27D9873F00D706DA /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D88F6A27D9873E00D706DA /* Toast.swift */; };
@@ -1055,7 +1057,9 @@
 		F40F7C8627570707008144DE /* AudioPostComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPostComposer.swift; sourceTree = "<group>"; };
 		F41F82962798D2AC0021BF40 /* GroupInviteSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupInviteSheetViewController.swift; sourceTree = "<group>"; };
 		F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedInviteCarouselCell.swift; sourceTree = "<group>"; };
+		F470250F27ED31A6008CD37F /* URLRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLRouter.swift; sourceTree = "<group>"; };
 		F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionSheetViewController.swift; sourceTree = "<group>"; };
+		F49D2E6027EE6A5300195566 /* URLRouterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLRouterTests.swift; sourceTree = "<group>"; };
 		F4B91DF7278FCEEB00DF70C1 /* CADisplayLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CADisplayLink.swift; sourceTree = "<group>"; };
 		F4D88F5027D6D8A300D706DA /* InviteContactViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteContactViewController.swift; sourceTree = "<group>"; };
 		F4D88F6A27D9873E00D706DA /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
@@ -1414,6 +1418,7 @@
 		761C6165242D896E0028AE19 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				F470250C27ED318A008CD37F /* Routing */,
 				7639BA2D251944400023850E /* Third Party */,
 				EABF312423EE1EDF0039B5A6 /* Extensions */,
 				761C6166242D89D70028AE19 /* Views */,
@@ -2141,6 +2146,7 @@
 				E552E8E0268249EB00C7774D /* DateTests.swift */,
 				A1C18C7E27A1ED8C00A76102 /* HalloCodeTest.swift */,
 				EAF3A1D92334192000805FF9 /* HalloappTests.swift */,
+				F49D2E6027EE6A5300195566 /* URLRouterTests.swift */,
 				EAF3A1DB2334192000805FF9 /* Info.plist */,
 			);
 			path = HalloappTests;
@@ -2153,6 +2159,14 @@
 				EAF3A1E62334192000805FF9 /* Info.plist */,
 			);
 			path = HalloappUITests;
+			sourceTree = "<group>";
+		};
+		F470250C27ED318A008CD37F /* Routing */ = {
+			isa = PBXGroup;
+			children = (
+				F470250F27ED31A6008CD37F /* URLRouter.swift */,
+			);
+			path = Routing;
 			sourceTree = "<group>";
 		};
 		F8606DCB257E7245006CD1A6 /* MediaExplorer */ = {
@@ -2695,6 +2709,7 @@
 			files = (
 				761442C5245D32C200DD9D1A /* UIDevice.swift in Sources */,
 				2446D67E24CB558F005BAD3C /* ImageServer.swift in Sources */,
+				F470251027ED31A6008CD37F /* URLRouter.swift in Sources */,
 				68E5E9DA25F6FAF100250762 /* FeedDataSource.swift in Sources */,
 				EA45713D23EB7F47008C2E44 /* MediaCarouselView.swift in Sources */,
 				F40F7C8727570707008144DE /* AudioPostComposer.swift in Sources */,
@@ -2990,6 +3005,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				EAF3A1DA2334192000805FF9 /* HalloappTests.swift in Sources */,
+				F49D2E6427EE6A8900195566 /* URLRouterTests.swift in Sources */,
 				E552E8E1268249EB00C7774D /* DateTests.swift in Sources */,
 				685B76C124E262AF00BF666A /* MentionInputTests.swift in Sources */,
 				A1C18C7F27A1ED8C00A76102 /* HalloCodeTest.swift in Sources */,
