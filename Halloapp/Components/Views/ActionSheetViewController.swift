@@ -335,7 +335,6 @@ class ActionSheetViewController: UIViewController, UIViewControllerTransitioning
     // MARK: - Presentation
 
     private class ActionSheetPresentationController: UIPresentationController {
-
         private lazy var backgroundView: UIView = {
             let backgroundView = UIView()
             backgroundView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(dismissActionSheet)))

@@ -272,6 +272,7 @@
 		A17DCD7027C0885F00E00073 /* ExpandableTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17DCD6F27C0885F00E00073 /* ExpandableTextView.swift */; };
 		A1C18C7C27A1EC9100A76102 /* HalloCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C18C7B27A1EC9100A76102 /* HalloCode.swift */; };
 		A1C18C7F27A1ED8C00A76102 /* HalloCodeTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C18C7E27A1ED8C00A76102 /* HalloCodeTest.swift */; };
+		A1EE101827ECDE0F00148CEB /* UnknownContactSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1EE101527ECDE0E00148CEB /* UnknownContactSheetViewController.swift */; };
 		E5230B1E267AABA60046A2EB /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E5230B1D267AABA60046A2EB /* Intents.framework */; };
 		E5230B21267AABA60046A2EB /* IntentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5230B20267AABA60046A2EB /* IntentHandler.swift */; };
 		E5230B25267AABA60046A2EB /* Intents Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = E5230B1C267AABA60046A2EB /* Intents Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -351,7 +352,6 @@
 		EABBF72624E4EDF100FE1F1F /* NewGroupMembersViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABBF72524E4EDF100FE1F1F /* NewGroupMembersViewController.swift */; };
 		EABBF72B24E72C6200FE1F1F /* CreateGroupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABBF72A24E72C6200FE1F1F /* CreateGroupViewController.swift */; };
 		EABDC977253424E1005FE00A /* InboundMsgViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABDC976253424E1005FE00A /* InboundMsgViewCell.swift */; };
-		EABDCEDB2697825C009053C7 /* UnknownContactActionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABDCEDA2697825C009053C7 /* UnknownContactActionBanner.swift */; };
 		EAC46556251484FE00783821 /* EditGroupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC46555251484FE00783821 /* EditGroupViewController.swift */; };
 		EAC4AF23233E8DAB00739B2B /* ChatMediaDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC4AF22233E8DAB00739B2B /* ChatMediaDownloader.swift */; };
 		EAC6A4452721F57D00E5E12E /* FeedWelcomeCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC6A4442721F57C00E5E12E /* FeedWelcomeCell.swift */; };
@@ -943,6 +943,7 @@
 		A17DCD6F27C0885F00E00073 /* ExpandableTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpandableTextView.swift; sourceTree = "<group>"; };
 		A1C18C7B27A1EC9100A76102 /* HalloCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloCode.swift; sourceTree = "<group>"; };
 		A1C18C7E27A1ED8C00A76102 /* HalloCodeTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloCodeTest.swift; sourceTree = "<group>"; };
+		A1EE101527ECDE0E00148CEB /* UnknownContactSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnknownContactSheetViewController.swift; sourceTree = "<group>"; };
 		E5230B0F267A61BC0046A2EB /* Intents.intentdefinition */ = {isa = PBXFileReference; lastKnownFileType = file.intentdefinition; path = Intents.intentdefinition; sourceTree = "<group>"; };
 		E5230B1C267AABA60046A2EB /* Intents Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Intents Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E5230B1D267AABA60046A2EB /* Intents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Intents.framework; path = System/Library/Frameworks/Intents.framework; sourceTree = SDKROOT; };
@@ -1018,7 +1019,6 @@
 		EABBF72524E4EDF100FE1F1F /* NewGroupMembersViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewGroupMembersViewController.swift; sourceTree = "<group>"; };
 		EABBF72A24E72C6200FE1F1F /* CreateGroupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateGroupViewController.swift; sourceTree = "<group>"; };
 		EABDC976253424E1005FE00A /* InboundMsgViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundMsgViewCell.swift; sourceTree = "<group>"; };
-		EABDCEDA2697825C009053C7 /* UnknownContactActionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnknownContactActionBanner.swift; sourceTree = "<group>"; };
 		EAC46555251484FE00783821 /* EditGroupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditGroupViewController.swift; sourceTree = "<group>"; };
 		EAC4AF22233E8DAB00739B2B /* ChatMediaDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMediaDownloader.swift; sourceTree = "<group>"; };
 		EAC6A4442721F57C00E5E12E /* FeedWelcomeCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedWelcomeCell.swift; sourceTree = "<group>"; };
@@ -1837,9 +1837,9 @@
 				EAEE49E2276C13E10042E654 /* ChatHeaderView.swift */,
 				EA6DE2CC25C3768C00C83001 /* GroupTitleView.swift */,
 				EA3585752450BE3300E6E8AB /* ChatInputView.swift */,
+				A1EE101527ECDE0E00148CEB /* UnknownContactSheetViewController.swift */,
 				EA388C5B2520EB9500DEAB53 /* Banner.swift */,
 				EA79C6FC2554E89400E0525F /* Localizations+Chat.swift */,
-				EABDCEDA2697825C009053C7 /* UnknownContactActionBanner.swift */,
 				322DDDE42739A2A6006BE1E0 /* ChatLinkPreviewView.swift */,
 				68610B8E27A12DD3007019F4 /* ChatCallCell.swift */,
 			);
@@ -2745,6 +2745,7 @@
 				761442C9245D4DE500DD9D1A /* UIButton.swift in Sources */,
 				768123A42485C56E008C5216 /* MainAppContext.swift in Sources */,
 				E5230B2B267AABCA0046A2EB /* Intents.intentdefinition in Sources */,
+				A1EE101827ECDE0F00148CEB /* UnknownContactSheetViewController.swift in Sources */,
 				EA27790925B91E58009CA884 /* PrivacyViewController.swift in Sources */,
 				EAD476F62458F03700EF8591 /* ChatMessage+CoreDataClass.swift in Sources */,
 				761C6168242D89F90028AE19 /* TextLabel.swift in Sources */,
@@ -2938,7 +2939,6 @@
 				3283296E27DC0BA7003AD019 /* MessageCellViewQuoted.swift in Sources */,
 				A111BDFC27C96D9100E5DB4E /* UserMenuHandler.swift in Sources */,
 				68CCE7AD275FDE8200C39B70 /* RootViewController.swift in Sources */,
-				EABDCEDB2697825C009053C7 /* UnknownContactActionBanner.swift in Sources */,
 				762EDBDD244E5A7800986617 /* HomeViewController.swift in Sources */,
 				764AB41A24A6A48400D4E354 /* PrivacyRequests.swift in Sources */,
 				764AB41F24A6C5F300D4E354 /* Color.swift in Sources */,

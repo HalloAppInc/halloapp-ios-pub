@@ -304,8 +304,6 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                     if let headerView = self.tableView.tableHeaderView as? ChatHeaderView {
                         headerView.configureOrRefresh(with: userID)
                     }
-                    self.chatInputView.isHidden = false
-                    self.unknownContactActionBanner.isHidden = true
                 }
             }
         )
@@ -638,16 +636,9 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                                              !haveMessagedBefore
 
         if showUnknownContactActionBanner {
-            if view.subviews.contains(unknownContactActionBanner) {
-                unknownContactActionBanner.removeFromSuperview()
-            }
-            view.addSubview(unknownContactActionBanner)
-            unknownContactActionBanner.constrain([.leading, .trailing, .bottom], to: view.safeAreaLayoutGuide)
+            present(unknownContactSheet, animated: true)
         }
         
-        unknownContactActionBanner.isHidden = !showUnknownContactActionBanner
-        chatInputView.isHidden = showUnknownContactActionBanner
-
         var headerHeight: CGFloat = 90
         if isUserBlocked {
             headerHeight = 130
@@ -657,8 +648,6 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         chatHeaderView.configureOrRefresh(with: userID)
         chatHeaderView.delegate = self
         tableView.tableHeaderView = chatHeaderView
-
-        tableView.tableFooterView = nil
     }
 
     private lazy var titleView: ChatTitleView = {
@@ -736,26 +725,26 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         return view
     }()
     
-    private lazy var unknownContactActionBanner: UnknownContactActionBanner = {
-        let view = UnknownContactActionBanner()
-        view.translatesAutoresizingMaskIntoConstraints = false
+    private lazy var unknownContactSheet: UnknownContactSheetViewController = {
+        let sheet = UnknownContactSheetViewController()
 
-        view.acceptAction = { [weak self] in
+        sheet.acceptAction = { [weak self] in
             guard let self = self else { return }
+            self.dismiss(animated: true)
             guard let userID = self.fromUserId else { return }
             MainAppContext.shared.contactStore.setIsMessagingAccepted(userID: userID, isMessagingAccepted: true)
-            self.unknownContactActionBanner.isHidden = true
-            self.chatInputView.isHidden = false
         }
 
-        view.addToContactBookAction = { [weak self] in
+        sheet.addContactAction = { [weak self] in
             guard let self = self else { return }
+            self.dismiss(animated: true)
             guard let userID = self.fromUserId else { return }
             MainAppContext.shared.contactStore.addUserToAddressBook(userID: userID, presentingVC: self)
         }
 
-        view.blockAction = { [weak self] in
+        sheet.blockAction = { [weak self] in
             guard let self = self else { return }
+            self.dismiss(animated: true)
             guard let userID = self.fromUserId else { return }
             let blockMessage = Localizations.blockMessage(username: MainAppContext.shared.contactStore.fullName(for: userID))
 
@@ -775,8 +764,13 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
             self.present(alert, animated: true)
         }
+        
+        sheet.cancelAction = { [weak self] in
+            self?.dismiss(animated: true)
+            self?.navigationController?.popViewController(animated: true)
+        }
 
-        return view
+        return sheet
     }()
 
     // MARK: Data
