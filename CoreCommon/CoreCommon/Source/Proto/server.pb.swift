@@ -2800,6 +2800,7 @@ public struct Server_ExternalSharePost {
     public typealias RawValue = Int
     case store // = 0
     case delete // = 1
+    case get // = 2
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -2810,6 +2811,7 @@ public struct Server_ExternalSharePost {
       switch rawValue {
       case 0: self = .store
       case 1: self = .delete
+      case 2: self = .get
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -2818,6 +2820,7 @@ public struct Server_ExternalSharePost {
       switch self {
       case .store: return 0
       case .delete: return 1
+      case .get: return 2
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -2836,6 +2839,7 @@ extension Server_ExternalSharePost.Action: CaseIterable {
   public static var allCases: [Server_ExternalSharePost.Action] = [
     .store,
     .delete,
+    .get,
   ]
 }
 
@@ -10625,6 +10629,7 @@ extension Server_ExternalSharePost.Action: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "STORE"),
     1: .same(proto: "DELETE"),
+    2: .same(proto: "GET"),
   ]
 }
 
