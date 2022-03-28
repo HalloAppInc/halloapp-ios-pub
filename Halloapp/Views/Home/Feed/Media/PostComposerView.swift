@@ -852,7 +852,6 @@ fileprivate struct PostComposerView: View {
 
                                     VStack {
                                         Spacer()
-
                                         HStack {
                                             Button(action: { presentPicker = true }) {
                                                 Image("icon_add_photo")
@@ -865,9 +864,8 @@ fileprivate struct PostComposerView: View {
                                             shareButton
                                         }
                                         .padding(12)
-                                        .background(Color.white.opacity(0.95))
+                                        .background(Color(.secondarySystemGroupedBackground)).opacity(0.95)
                                     }
-
                                 }
                             }
                         }
