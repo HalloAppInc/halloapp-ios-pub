@@ -120,6 +120,7 @@ class UserFeedViewController: FeedCollectionViewController {
                     self.headerViewController.configureOrRefresh(userID: self.userId)
                     self.collectionView.reloadData()
                     self.updateExchangeNumbersView(isFeedEmpty: self.collectionView.numberOfItems(inSection: 0) == 0)
+                    self.setupMoreButton()
                 }
             }.store(in: &cancellables)
             

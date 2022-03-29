@@ -1506,6 +1506,11 @@ extension ChatViewController: ChatHeaderViewDelegate {
 extension ChatViewController: CNContactViewControllerDelegate {
     func contactViewController(_ viewController: CNContactViewController, didCompleteWith contact: CNContact?) {
         navigationController?.popViewController(animated: true)
+        
+        if contact == nil {
+            // need to display the unknown contact sheet again
+            setupOrRefreshHeaderAndFooter()
+        }
     }
 }
 
