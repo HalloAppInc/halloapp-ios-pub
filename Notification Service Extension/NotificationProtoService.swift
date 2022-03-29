@@ -206,7 +206,7 @@ final class NotificationProtoService: ProtoServiceCore {
 
         switch metadata.contentType {
         case .feedPost:
-            guard let postData = metadata.postData() else {
+            guard let postData = metadata.postData(audience: msg.feedItem.post.audience) else {
                 DDLogError("didReceiveRequest/error Invalid fields in metadata.")
                 return
             }

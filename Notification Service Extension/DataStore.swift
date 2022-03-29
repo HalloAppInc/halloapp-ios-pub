@@ -71,6 +71,12 @@ class DataStore: NotificationServiceExtensionDataStore {
             }
             feedPost.mentions = mentions
             
+            // Post Audience
+            if let audience = postData?.audience {
+                feedPost.audienceType = audience.audienceType
+                feedPost.audienceUserIds = Array(audience.userIds)
+            }
+
             // Add link previews
             var linkPreviews: Set<SharedFeedLinkPreview> = []
             postData?.linkPreviewData.forEach { linkPreviewData in
