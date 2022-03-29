@@ -826,10 +826,15 @@ extension FeedCollectionViewController {
             alert.view.tintColor = .systemBlue
             self.present(alert, animated: true, completion: nil)
         }
-        
         cell.showPrivacyAction = { [weak self] in
             guard let self = self else { return }
-            let alert = UIAlertController(title: Localizations.favoritesTitle, message: Localizations.favoritesDescription, preferredStyle: .alert)
+            let description: String
+            if feedPost.userId == MainAppContext.shared.userData.userId {
+                description = Localizations.favoritesDescriptionOwn
+            } else {
+                description = Localizations.favoritesDescriptionNotOwn
+            }
+           let alert = UIAlertController(title: Localizations.favoritesTitle, message: description, preferredStyle: .alert)
            alert.addAction(.init(title: Localizations.titlePrivacy, style: .default, handler: { [weak self] _ in
                guard let self = self else { return }
                let privacyVC = UIHostingController(rootView: FeedPrivacyView(privacySettings: MainAppContext.shared.privacySettings))
