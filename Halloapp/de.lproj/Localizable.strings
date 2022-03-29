@@ -610,6 +610,9 @@
 /* Header for the list when selecting contacts to share with. */
 "feed.privacy.list.only.details" = "Wähle aus, wer diesen Beitrag sehen soll";
 
+/* Title of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.only.title" = "Favoriten";
+
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Meine Kontakte";
 

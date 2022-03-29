@@ -8,7 +8,7 @@
 "• %@" = "• %@";
 
 /* About screen: body text. */
-"about.body.1" = "Hier is HalloApp! En we maken het voor jou en iedereen die je dierbaar is. We hebben sociale apps teruggebracht naar de basis, met een focus op veiligheid en privacy waarvan we vinden dat iedereen in de wereld toegang toe zou moeten hebben.\n\nHalloApp zal nooit je persoonlijke informatie gebruiken of advertenties laten zien.\nIn plaats daarvan zijn we van plan om in de toekomst extra functies tegen een kleine betaling aan te bieden.";
+"about.body.1" = "HalloApp is hier! En we maken het voor jou en iedereen die je dierbaar is. We hebben sociale apps teruggebracht naar de basis, met een focus op veiligheid en privacy waarvan we vinden dat iedereen in de wereld toegang toe zou moeten hebben.\n\nHalloApp zal nooit je persoonlijke informatie gebruiken of advertenties laten zien.\nIn plaats daarvan zijn we van plan om in de toekomst extra functies tegen een kleine betaling aan te bieden.";
 
 /* About screen: body text. */
 "about.body.2" = "Bedankt voor het gebruiken en delen van HalloApp met je vrienden en familie. We verbeteren de app iedere week!";
@@ -606,9 +606,6 @@
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.only" = "Alleen Delen Met...";
-
-/* Description of the alert shown to user indicating their post is only shown to their favorites audienc */
-"feed.privacy.list.only.description" = "Deze post is alleen gedeeld met een aangepaste groep contacten. Je kunt dit aanpassen wanneer je een nieuw bericht plaatst, of onder Instellingen > Privacy.";
 
 /* Header for the list when selecting contacts to share with. */
 "feed.privacy.list.only.details" = "Selecteer wie deze post kan zien";

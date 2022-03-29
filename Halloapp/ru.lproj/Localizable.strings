@@ -319,6 +319,9 @@
 /* Message text shown in a message that have audio media but no text */
 "chat.message.audio" = "Голосовая заметка";
 
+/* Message text shown for quoted audio posts */
+"chat.message.audiopost" = "Аудио пост";
+
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "Это сообщение было удалено.";
 
@@ -607,6 +610,9 @@
 /* Header for the list when selecting contacts to share with. */
 "feed.privacy.list.only.details" = "Выберите, кто увидит этот пост";
 
+/* Title of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.only.title" = "Избранное";
+
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Мои телефонные контакты";
 
@@ -627,6 +633,12 @@
 
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
 "feed.welcome.post.title" = "Добро пожаловать в HalloApp, пространство для настоящих отношений ✨";
+
+/* Text for 'more' cell prompting users to open the invite screen */
+"feedInviteCarousel.searchPrompt" = "Найдите друзей и родных";
+
+/* Title for section of contacts to invite in feed */
+"feedInviteCarousel.title" = "HalloApp — это весело с друзьями и семьей";
 
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Комментировать";
@@ -861,6 +873,9 @@
 
 /* Title of cell at the top of the invite screen */
 "invite.via.link" = "Пригласить по ссылке";
+
+/* Contacts including this in their name are excluded from the invite carousel */
+"invitemanager.spam" = "спам";
 
 /* Text shown when inviting to a group using a QR code */
 "join.group.using.qr.code" = "Присоединяйтесь к моей группе в HalloApp!";

@@ -85,6 +85,9 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Solo compartir con contactos seleccionados";
 
+/* Title of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.only.title" = "Favoritos";
+
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Fuiste agregado a un grupo nuevo";
 
@@ -149,7 +152,13 @@
 "notification.voicecall.missed" = "☎️ Llamada de voz perdida";
 
 /* New post notification text when post is a voice note. */
+"notification.voicecomment" = "Comentario de audio";
+
+/* New post notification text when post is a voice note. */
 "notification.voicenote" = "🎤 Nota de voz";
+
+/* New post notification text when post is a voice note. */
+"notification.voicepost" = "Publicación de audio\n ";
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Únete a mi red social de relaciones verdaderas en HalloApp. Bájalo gratis en halloapp.com/dl ";

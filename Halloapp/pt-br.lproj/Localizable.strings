@@ -607,9 +607,6 @@
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.only" = "Compartilhar apenas com...";
 
-/* Description of the alert shown to user indicating their post is only shown to their favorites audienc */
-"feed.privacy.list.only.description" = "Esta postagem é compartilhada apenas com um grupo personalizado de contatos. Você pode ajustar seu público sempre que fizer uma nova postagem ou em Configurações > Privacidade.";
-
 /* Header for the list when selecting contacts to share with. */
 "feed.privacy.list.only.details" = "Selecione quem verá esta postagem";
 

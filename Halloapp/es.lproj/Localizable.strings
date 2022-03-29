@@ -154,6 +154,24 @@
 /* Title for call history event. Appears next to details of a missed call. */
 "call.history.voice.call.missed" = "Llamada de voz perdida.";
 
+/* Status display when user mutes their own audio during a call. */
+"call.mute.local.audio" = "micrófono está apagado";
+
+/* Status display when user mutes their own audio and video during a call. */
+"call.mute.local.audio.video" = "cámara y micrófono estás apagados";
+
+/* Status display when user mutes their own video during a call. */
+"call.mute.local.video" = "cámara está apagada";
+
+/* Status display when peer mutes audio during a call. */
+"call.mute.remote.audio" = "%@ silenciar esta llamada";
+
+/* Status display when peer mutes both audio and video during a call. */
+"call.mute.remote.audio.video" = "%@ la cámara y el micrófono están apagados";
+
+/* Status display when peer mutes video during a call. */
+"call.mute.remote.video" = "%@ la cámara está apagada";
+
 /* Status displayed when the other side is busy. */
 "call.status.busy" = "en otra llamada";
 
@@ -171,6 +189,9 @@
 
 /* Status displayed when incoming call starts */
 "call.status.incoming" = "llamada entrante";
+
+/* Status displayed when the other side mutes the audio. */
+"call.status.muted" = "llamada silenciada";
 
 /* Status displayed when reconnecting during call */
 "call.status.reconnecting" = "reconectando...";
@@ -216,6 +237,15 @@
 
 /* Label for creating a new group */
 "chat.create.new.group" = "Crear un grupo nuevo";
+
+/* Button to retract a chat message for everyone */
+"chat.delete.everyone" = "Borrar para todos";
+
+/* Button to locally delete a chat message */
+"chat.delete.me" = "Borrar para mi";
+
+/* Title of deletion menu */
+"chat.delete.title" = "¿Deseas borrar el mensaje seleccionado?";
 
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
 "chat.encryption.label" = "Las conversaciones están encriptadas de extremo a extremo y HalloApp no tiene acceso a ellas. Toca para saber más.";
@@ -288,6 +318,9 @@
 
 /* Message text shown in a message that have audio media but no text */
 "chat.message.audio" = "Nota de voz";
+
+/* Message text shown for quoted audio posts */
+"chat.message.audiopost" = "Entrada de audio";
 
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "Este mensaje fue eliminado.";
@@ -469,6 +502,9 @@
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Para conectarse debéis intercambiar números de teléfono";
 
+/* Placeholder title for posts that are externally shared, John Smith's HalloApp Post */
+"externalShare.og.title" = "%@ Publicación de HalloApp";
+
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Cámara";
 
@@ -574,6 +610,9 @@
 /* Header for the list when selecting contacts to share with. */
 "feed.privacy.list.only.details" = "Selecciona quién verá esta publicación";
 
+/* Title of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.only.title" = "Favoritos";
+
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Mis contactos de teléfono";
 
@@ -594,6 +633,12 @@
 
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
 "feed.welcome.post.title" = "Bienvenido a HalloApp, un espacio para relaciones de verdad ✨";
+
+/* Text for 'more' cell prompting users to open the invite screen */
+"feedInviteCarousel.searchPrompt" = "Busca más amigos y familiares";
+
+/* Title for section of contacts to invite in feed */
+"feedInviteCarousel.title" = "HalloApp es divertido con amigos y familiares";
 
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Comentar";
@@ -829,11 +874,17 @@
 /* Title of cell at the top of the invite screen */
 "invite.via.link" = "Invita mediante enlace";
 
+/* Contacts including this in their name are excluded from the invite carousel */
+"invitemanager.spam" = "mensajes no deseados";
+
 /* Text shown when inviting to a group using a QR code */
 "join.group.using.qr.code" = "¡Únete a mi grupo de HalloApp!";
 
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Búsqueda";
+
+/* Text with hyperlink to halloapp's faq on encryption. */
+"learn.more" = "Conoce más";
 
 /* Link text to open invite flow */
 "link.invite.friend" = "Invita a un amigo";
@@ -895,8 +946,14 @@
 /* Label indicating that media was successfully saved to the camera roll */
 "media.save.saved" = "Guardado en rollo de cámara";
 
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.annotate" = "Comentar";
+
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Cerrar";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.draw" = "Dibuja";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.flip" = "Voltear";
@@ -1004,7 +1061,13 @@
 "notification.voicecall.missed" = "☎️ Llamada de voz perdida";
 
 /* New post notification text when post is a voice note. */
+"notification.voicecomment" = "Comentario de audio";
+
+/* New post notification text when post is a voice note. */
 "notification.voicenote" = "🎤 Nota de voz";
+
+/* New post notification text when post is a voice note. */
+"notification.voicepost" = "Publicación de audio";
 
 /* Text for new user popup pointing at activity center icon */
 "nux.activity.center.icon" = "¡Hola!";
@@ -1087,6 +1150,9 @@
 /* Generic setting value telling how many contacts are blocked or muted. */
 "privacy.n.contacts" = "privacidad.n.contactos";
 
+/* Error banner displayed when there is a failure syncing preivacy settings, displayed on the privacy view */
+"privacy.sync.failure" = "No se pudo sincronizar la configuración de privacidad. Por favor, inténtalo de nuevo más tarde.";
+
 /* Title for the button allowing to delete current profile photo. */
 "profile.delete.photo" = "Eliminar foto";
 
@@ -1150,6 +1216,9 @@
 
 /* Title for the screen allowing to edit profile name */
 "profile.title.your.name" = "Tu nombre";
+
+/* Title for the button allowing the user to view their own profile photo. */
+"profile.view.photo" = "Ver foto";
 
 /* Disclaimer text about receiving SMS verification code */
 "registration.code.disclaimer" = "Recibirás un código de verificación.\nEl proveedor de telefonía móvil podría aplicar cargos.";
@@ -1400,6 +1469,18 @@
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.share" = "Compartir";
 
+/* Same as profile.header.call.user, but capitalized */
+"textview.context.menu.audio.call.user" = "Llamada";
+
+/* Same as profile.header.message.user, but capitalized */
+"textview.context.menu.message.user" = "Mensaje";
+
+/* Same as profile.header.call.user, but capitalized */
+"textview.context.menu.video.call.user" = "Videollamada";
+
+/* Link to expand truncated text. */
+"textview.more" = "... más";
+
 /* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
 "thread.list.preview.already.user.default" = "%@ está en HalloApp";
 
@@ -1526,6 +1607,15 @@
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "¿Eliminar esta publicación? Está acción no se puede deshacer.";
 
+/* Title for button in action sheet prompting user to share post to external sites */
+"your.post.externalshare.copylink" = "Copiar enlace para compartir";
+
+/* Success toast when external share link is copied */
+"your.post.externalshare.copylink.success" = "Copiado al portapapeles";
+
 /* Message that external share failed. */
 "your.post.externalshare.error" = "Fallo al sublir publicación para compartir de forma externa";
+
+/* Text introducing external share link, part of what is shared */
+"your.post.externalshare.title" = "Mira mi entrada en HalloAPp";
 
