@@ -181,9 +181,27 @@ extension Localizations {
     }
 
     static func externalShareTitle(name: String) -> String {
-        let format = NSLocalizedString("externalShare.og.title",
-                                       value: "%@'s HalloApp Post",
-                                       comment: "Placeholder title for posts that are externally shared, John Smith's HalloApp Post")
+        let format = NSLocalizedString("externalShare.og.title2",
+                                       value: "HalloApp post from %@",
+                                       comment: "Title for posts that are externally shared, 'HalloApp Post from John Smith'")
         return String(format: format, name)
+    }
+
+    static var externalShareAudioPostDescription: String {
+        NSLocalizedString("externalShare.og.description.audio",
+                          value: "Audio post",
+                          comment: "Description of an externally shared post containing an audio post")
+    }
+
+    static var externalShareMediaPostDescription: String {
+        NSLocalizedString("externalShare.og.description.media",
+                          value: "Media post",
+                          comment: "Description of an externally shared post containing photos/videos")
+    }
+
+    static var externalShareTextPostDescription: String {
+        NSLocalizedString("externalShare.og.description.text",
+                          value: "Text post",
+                          comment: "Description of an externally shared post containing just text")
     }
 }
