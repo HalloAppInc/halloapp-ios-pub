@@ -462,6 +462,7 @@ fileprivate struct PostComposerView: View {
     @State private var presentDeleteVoiceNote = false
     @State private var videoTooLong = false
     @State private var isReadyToShare = false
+    @State private var changeDestinationImage: UIImage?
     private var mediaItemsBinding = Binding.constant([PendingMedia]())
     private var mediaIsReadyBinding = Binding.constant(false)
     private var numberOfFailedItemsBinding = Binding.constant(0)
@@ -657,6 +658,11 @@ fileprivate struct PostComposerView: View {
                     .resizable()
                     .frame(width: 19, height: 19)
                     .cornerRadius(6)
+            } else if let image = changeDestinationImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .frame(width: 19, height: 19)
+                    .cornerRadius(6)
             } else {
                 Image("AvatarGroup")
                     .resizable()
@@ -665,6 +671,19 @@ fileprivate struct PostComposerView: View {
         case .chat:
             EmptyView()
         }
+    }
+
+    private func changeDestinationIconPublisher() -> AnyPublisher<UIImage?, Never> {
+        if case .groupFeed(let groupId) = configuration.destination {
+            let avatarData = MainAppContext.shared.avatarStore.groupAvatarData(for: groupId)
+
+            if avatarData.image == nil && !avatarData.isEmpty {
+                avatarData.loadImage(using: MainAppContext.shared.avatarStore)
+                return avatarData.imageDidChange.eraseToAnyPublisher()
+            }
+        }
+
+        return Empty<UIImage?, Never>(completeImmediately: false).eraseToAnyPublisher()
     }
 
     private func allowChangingDestination() -> Bool {
@@ -797,6 +816,9 @@ fileprivate struct PostComposerView: View {
         .background(Color.primaryBlue)
         .cornerRadius(11)
         .disabled(!allowChangingDestination())
+        .onReceive(changeDestinationIconPublisher()) {
+            changeDestinationImage = $0
+        }
     }
 
     var body: some View {

@@ -53,6 +53,7 @@ extension UINavigationBarAppearance {
             appearance.setBackIndicatorImage(UIImage(named: "NavbarBack"), transitionMaskImage: UIImage(named: "NavbarBack"))
             appearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterial)
             appearance.backButtonAppearance = .transparentAppearance
+            appearance.backgroundColor = .clear
             appearance.shadowColor = nil
             return appearance
         }
