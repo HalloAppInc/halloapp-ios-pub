@@ -32,6 +32,8 @@ class Banner {
 }
 
 fileprivate class BannerView: UIView, UIGestureRecognizerDelegate {
+    private static let cornerRadius: CGFloat = 16.0
+    
     private(set) var type: ChatType = .oneToOne
     private(set) var userID: UserID? = nil
     private(set) var groupID: GroupID? = nil
@@ -46,13 +48,15 @@ fileprivate class BannerView: UIView, UIGestureRecognizerDelegate {
     
     init(keyWindow: UIWindow) {
         super.init(frame: .zero)
-        self.translatesAutoresizingMaskIntoConstraints = false
+        translatesAutoresizingMaskIntoConstraints = false
         keyWindow.addSubview(self)
         
         let topConstraint = self.topAnchor.constraint(equalTo: keyWindow.topAnchor, constant: keyWindow.safeAreaInsets.top)
         self.topConstraint = topConstraint
         
-        self.backgroundColor = .primaryBg
+        backgroundColor = .primaryBg
+        layer.cornerRadius = Self.cornerRadius
+        
         addSubview(backgroundView)
         addSubview(mainView)
         
@@ -79,11 +83,11 @@ fileprivate class BannerView: UIView, UIGestureRecognizerDelegate {
         self.autoDismiss = dismissWorkItem
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 0.75, initialSpringVelocity: 0, options: .curveEaseOut, animations: {
+            UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: .curveEaseInOut, animations: {
                 self.topConstraint?.constant = keyWindow.safeAreaInsets.top
                 self.superview?.layoutIfNeeded()
             }, completion: { _ in
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0, execute: dismissWorkItem)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0, execute: dismissWorkItem)
             })
         }
     }
@@ -138,7 +142,7 @@ fileprivate class BannerView: UIView, UIGestureRecognizerDelegate {
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = .feedPostBackground
         
-        view.layer.cornerRadius = 16
+        view.layer.cornerRadius = Self.cornerRadius
         view.layer.borderWidth = 0.5
         view.layer.borderColor = UIColor.label.withAlphaComponent(0.18).cgColor
         view.layer.shadowColor = UIColor.black.cgColor
