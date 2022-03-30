@@ -37,6 +37,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         static let persistentStoreUserID = "feed.store.userID"
     }
 
+    private static let externalShareThumbSize: CGFloat = 1200
+
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.feed")
     private lazy var downloadManager: FeedDownloadManager = {
         let downloadManager = FeedDownloadManager(mediaDirectoryURL: MainAppContext.mediaDirectoryURL)
@@ -59,7 +61,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         self.service.feedDelegate = self
         mediaUploader.resolveMediaPath = { (relativePath) in
-            return MainAppContext.mediaDirectoryURL.appendingPathComponent(relativePath, isDirectory: false)
+            return URL(fileURLWithPath: relativePath, isDirectory: false, relativeTo: MainAppContext.mediaDirectoryURL)
         }
 
         // when app resumes, xmpp reconnects, feed should try uploading any pending again
@@ -4016,36 +4018,109 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         if let url = Self.externalShareInfo(for: postID, in: mainDataStore.viewContext)?.externalShareURL {
             completion(.success(url))
         } else {
-            service.uploadPostForExternalShare(postID) { [mainDataStore] result in
-                switch result {
-                case .success(let (blobID, key)):
-                    mainDataStore.performSeriallyOnBackgroundContext { [mainDataStore] context in
-                        // Somehow, another request completed before us and already saved external share info.
-                        // Discard in flight request and return previously saved data
-                        if let url = Self.externalShareInfo(for: postID, in: context)?.externalShareURL {
+            guard let post = feedPost(with: postID) else {
+                DDLogError("FeedData/externalShareUrl/could not fid post with id \(postID)")
+                completion(.failure(RequestError.aborted))
+                return
+            }
+
+            let media = media(for: post)
+
+            let description: String
+            let thumbnailMedia: FeedMedia?
+            if media.isEmpty {
+                description = Localizations.externalShareTextPostDescription
+                thumbnailMedia = nil
+            } else if media.count == 1, media.first?.type == .audio {
+                description = Localizations.externalShareAudioPostDescription
+                thumbnailMedia = nil
+            } else {
+                description = Localizations.externalShareMediaPostDescription
+                thumbnailMedia = media.first { [.image, .video].contains($0.type) && $0.fileURL != nil }
+            }
+
+            let uploadPostForExternalShare: (URL?, CGSize?) -> Void = { [mainDataStore, service] (thumbURL, thumbSize) in
+                service.uploadPostForExternalShare(post: post,
+                                                   ogTitle: Localizations.externalShareTitle(name: MainAppContext.shared.userData.name),
+                                                   ogDescription: description,
+                                                   ogThumbURL: thumbURL,
+                                                   ogThumbSize: thumbSize) { [mainDataStore] result in
+                    switch result {
+                    case .success(let (blobID, key)):
+                        mainDataStore.performSeriallyOnBackgroundContext { [mainDataStore] context in
+                            // Somehow, another request completed before us and already saved external share info.
+                            // Discard in flight request and return previously saved data
+                            if let url = Self.externalShareInfo(for: postID, in: context)?.externalShareURL {
+                                completion(.success(url))
+                                return
+                            }
+
+                            let externalShareInfo = ExternalShareInfo(context: context)
+                            externalShareInfo.blobID = blobID
+                            externalShareInfo.feedPostID = postID
+                            externalShareInfo.key = key
+
+                            // Make sure we can generate a URL before saving
+                            guard let url = externalShareInfo.externalShareURL else {
+                                context.delete(externalShareInfo)
+                                completion(.failure(RequestError.malformedResponse))
+                                return
+                            }
+
+                            mainDataStore.save(context)
                             completion(.success(url))
-                            return
                         }
-
-                        let externalShareInfo = ExternalShareInfo(context: context)
-                        externalShareInfo.blobID = blobID
-                        externalShareInfo.feedPostID = postID
-                        externalShareInfo.key = key
-
-                        // Make sure we can generate a URL before saving
-                        guard let url = externalShareInfo.externalShareURL else {
-                            context.delete(externalShareInfo)
-                            completion(.failure(RequestError.malformedResponse))
-                            return
-                        }
-
-                        mainDataStore.save(context)
-                        completion(.success(url))
+                    case .failure(let error):
+                        completion(.failure(error))
                     }
-                case .failure(let error):
-                    completion(.failure(error))
                 }
             }
+
+            if let thumbnailMedia = thumbnailMedia, let fileURL = thumbnailMedia.fileURL {
+                let image: UIImage?
+                switch thumbnailMedia.type {
+                case .image:
+                    image = UIImage.thumbnail(contentsOf: fileURL, maxPixelSize: Self.externalShareThumbSize)
+                    break
+                case .video:
+                    image = VideoUtils.videoPreviewImage(url: fileURL, size: CGSize(width: Self.externalShareThumbSize,
+                                                                                    height: Self.externalShareThumbSize))
+                case .audio:
+                    image = nil
+                    break
+                }
+
+                if let image = image {
+                    let uploadFileURL = URL(fileURLWithPath: NSTemporaryDirectory())
+                        .appendingPathComponent(UUID().uuidString, isDirectory: false)
+                        .appendingPathExtension("jpg")
+                    if image.save(to: uploadFileURL) {
+                        let imageSize = image.size
+                        mediaUploader.upload(media: SimpleMediaUploadable(encryptedFilePath: uploadFileURL.relativePath),
+                                             groupId: "\(post.id)-external",
+                                             didGetURLs: { _ in }) { result in
+                            do {
+                                try FileManager.default.removeItem(at: uploadFileURL)
+                            } catch {
+                                DDLogError("FeedData/externalShareUrl/could not clean up thumbnail at \(uploadFileURL): \(error)")
+                            }
+                            switch result {
+                            case .success(let details):
+                                uploadPostForExternalShare(details.downloadURL, imageSize)
+                                break
+                            case .failure(let error):
+                                DDLogError("FeedData/externalShareUrl/Error uploading thumbnail: \(error)")
+                                uploadPostForExternalShare(nil, nil)
+                                break
+                            }
+                        }
+                        // don't fall through to no image case - this will happen via the image upload completion handler
+                        return
+                    }
+                }
+            }
+
+            uploadPostForExternalShare(nil, nil)
         }
     }
 
