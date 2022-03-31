@@ -122,7 +122,8 @@ class ImageServer {
 
     static let shared = ImageServer()
 
-    private let queue = DispatchQueue(label: "ImageServer.MediaProcessing", qos: .userInitiated)
+    private let taskQueue = DispatchQueue(label: "ImageServer.Tasks", qos: .userInitiated)
+    private let processingQueue = DispatchQueue(label: "ImageServer.MediaProcessing", qos: .userInitiated)
     private var tasks = [Task]()
     public let progress = PassthroughSubject<String, Never>()
     private let chunkSize = 512 * 1024 // 0.5MB
@@ -130,7 +131,7 @@ class ImageServer {
     private init() {}
 
     public func progress(for id: String) -> (Int, Float) {
-        queue.sync {
+        taskQueue.sync {
             let items = self.tasks.filter { $0.id == id }
             guard items.count > 0 else { return (0, 0) }
 
@@ -140,7 +141,7 @@ class ImageServer {
     }
 
     public func clearAllTasks(keepFiles: Bool = true) {
-        queue.async { [weak self] in
+        taskQueue.sync { [weak self] in
             guard let self = self else { return }
 
             for task in self.tasks {
@@ -156,7 +157,7 @@ class ImageServer {
     }
 
     public func clearAllTasks(for id: String, keepFiles: Bool = true) {
-        queue.async { [weak self] in
+        taskQueue.sync { [weak self] in
             guard let self = self else { return }
 
             for task in self.tasks {
@@ -173,7 +174,7 @@ class ImageServer {
     }
 
     public func clearTask(for url: URL, keepFiles: Bool = true) {
-        queue.async { [weak self] in
+        taskQueue.sync { [weak self] in
             guard let self = self else { return }
 
             for task in self.tasks {
@@ -190,7 +191,7 @@ class ImageServer {
     }
 
     public func clearUnattachedTasks(keepFiles: Bool = true) {
-        queue.async { [weak self] in
+        taskQueue.sync { [weak self] in
             guard let self = self else { return }
 
             for task in self.tasks {
@@ -210,30 +211,30 @@ class ImageServer {
     private static let mediaProcessingSemaphore = DispatchSemaphore(value: 3)
 
     private func find(url: URL, id: String? = nil, index: Int? = nil, shouldStreamVideo: Bool? = nil) -> Task? {
-        if let t = (tasks.first { $0.url == url && (shouldStreamVideo == nil || $0.shouldStreamVideo == shouldStreamVideo) }) {
-            return t
-        } else if let id = id, let index = index, let t = (tasks.first { $0.id == id && $0.index == index && (shouldStreamVideo == nil || $0.shouldStreamVideo == shouldStreamVideo) }) {
-            return t
-        }
+        taskQueue.sync {
+            if let t = (tasks.first { $0.url == url && (shouldStreamVideo == nil || $0.shouldStreamVideo == shouldStreamVideo) }) {
+                return t
+            } else if let id = id, let index = index, let t = (tasks.first { $0.id == id && $0.index == index && (shouldStreamVideo == nil || $0.shouldStreamVideo == shouldStreamVideo) }) {
+                return t
+            }
 
-        return nil
+            return nil
+        }
     }
 
     func attach(for url: URL, id: String? = nil, index: Int? = nil, completion: Completion? = nil) {
-        queue.async {
-            if let task = self.find(url: url, id: id, index: index) {
-                task.id = id
-                task.index = index
+        if let task = self.find(url: url, id: id, index: index) {
+            task.id = id
+            task.index = index
 
-                if let completion = completion {
-                    task.callbacks.append(completion)
-                }
+            if let completion = completion {
+                task.callbacks.append(completion)
             }
         }
     }
 
     func prepare(_ type: FeedMediaType, url: URL, for id: String? = nil, index: Int? = nil, shouldStreamVideo: Bool, completion: Completion? = nil) {
-        queue.async { [weak self] in
+        processingQueue.async { [weak self] in
             guard let self = self else { return }
 
             if let task = self.find(url: url, id: id, index: index, shouldStreamVideo: shouldStreamVideo) {
