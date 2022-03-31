@@ -53,7 +53,7 @@ class MediaExplorerAnimator: NSObject, UIViewControllerTransitioningDelegate, UI
     }
 
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        return 0.4
+        return 0.45
     }
 
     func getTransitionView() -> UIView? {
@@ -137,8 +137,8 @@ class MediaExplorerAnimator: NSObject, UIViewControllerTransitioningDelegate, UI
         explorer.hideCollectionView()
 
         transitionContext.containerView.setNeedsLayout()
-
-        UIView.animate(withDuration: transitionDuration(using: nil), animations: {
+        
+        UIView.animate(withDuration: transitionDuration(using: nil), delay: 0, usingSpringWithDamping: 0.85, initialSpringVelocity: 0, options: .curveEaseInOut, animations: {
             transitionView.frame.size = transitionViewFinalSize
             transitionView.center = transitionViewFinalCenter
 
