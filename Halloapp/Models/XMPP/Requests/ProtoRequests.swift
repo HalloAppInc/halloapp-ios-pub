@@ -463,7 +463,7 @@ final class ProtoStartCallRequest: ProtoRequest<Server_StartCallResult> {
     }
 }
 
-final class ProtoExternalShareRequest: ProtoRequest<String> {
+final class ProtoExternalShareStoreRequest: ProtoRequest<String> {
 
     init(encryptedPostData: Data, expiry: Date, ogTagInfo: Server_OgTagInfo, completion: @escaping Completion) {
         var externalSharePost = Server_ExternalSharePost()
@@ -484,6 +484,17 @@ final class ProtoExternalShareRevokeRequest: ProtoRequest<Void> {
         externalSharePost.blobID = blobID
         let iqPacket: Server_Packet = .iqPacket(type: .set, payload: .externalSharePost(externalSharePost))
         super.init(iqPacket: iqPacket, transform: { _ in .success(()) }, completion: completion)
+    }
+}
+
+final class ProtoExternalShareGetRequest: ProtoRequest<Data> {
+
+    init(blobID: String, completion: @escaping Completion) {
+        var externalSharePost = Server_ExternalSharePost()
+        externalSharePost.blobID = blobID
+        externalSharePost.action = .get
+        let iqPacket: Server_Packet = .iqPacket(type: .get, payload: .externalSharePost(externalSharePost))
+        super.init(iqPacket: iqPacket, transform: { .success($0.externalSharePost.blob) }, completion: completion)
     }
 }
 

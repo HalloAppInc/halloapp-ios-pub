@@ -55,8 +55,8 @@ class FacePileView: UIControl {
         self.bottomAnchor.constraint(equalTo: lastView.bottomAnchor).isActive = true
     }
 
-    func configure(with post: FeedPost) {
-        let seenReceipts = MainAppContext.shared.feedData.seenReceipts(for: post)
+    func configure(with post: FeedPostDisplayable) {
+        let seenReceipts = post.seenReceipts
         let usersToShow = seenReceipts.prefix(numberOfFaces).map { $0.userId }.reversed()
         let avatarsToShow = usersToShow.map { MainAppContext.shared.avatarStore.userAvatar(forUserId: $0) }
 

@@ -27,12 +27,15 @@ public protocol FeedDownloadManagerDelegate: AnyObject {
 
 public class FeedDownloadManager {
 
+    public typealias TaskCompletion = (Result<URL, Error>) -> Void
+
     public class Task: Identifiable, Hashable, Equatable {
         public let id: String
 
         // Input parameters.
         var mediaData: FeedMediaData
         public var feedMediaObjectId: NSManagedObjectID?
+        fileprivate var completion: TaskCompletion?
 
         // Output parameters.
         public let downloadProgress = CurrentValueSubject<Float, Never>(0)
@@ -84,13 +87,14 @@ public class FeedDownloadManager {
      - returns:
      True if download task was scheduled.
      */
-    public func downloadMedia(for feedPostMedia: FeedMediaProtocol) -> (Bool, Task) {
-        assert(delegate != nil, "Must set delegate before starting any task.")
+    public func downloadMedia(for feedPostMedia: FeedMediaProtocol, completion: TaskCompletion? = nil) -> (Bool, Task) {
+        assert(delegate != nil || completion != nil, "Must set delegate or completion handler before starting any task.")
         if let existingTask = currentTask(for: feedPostMedia) {
             DDLogWarn("FeedDownloadManager/\(existingTask.id)/warning Already downloading")
             return (false, existingTask)
         }
         let task = Task(media: feedPostMedia)
+        task.completion = completion
         let taskAdded = self.addTask(task)
         return (taskAdded, task)
     }
@@ -509,6 +513,14 @@ public class FeedDownloadManager {
         DispatchQueue.main.async {
             self.tasks.remove(task)
             self.delegate?.feedDownloadManager(self, didFinishTask: task)
+
+            if let completion = task.completion {
+                if let path = task.decryptedFilePath {
+                    completion(.success(self.fileURL(forRelativeFilePath: path)))
+                } else {
+                    completion(.failure(MediaDownloadError.unknownError))
+                }
+            }
         }
     }
 
@@ -526,6 +538,8 @@ public class FeedDownloadManager {
         DispatchQueue.main.async {
             self.tasks.remove(task)
             self.delegate?.feedDownloadManager(self, didFinishTask: task)
+
+            task.completion?(.failure(task.error ?? MediaDownloadError.unknownError))
         }
     }
 

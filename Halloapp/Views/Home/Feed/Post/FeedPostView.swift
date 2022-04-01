@@ -217,8 +217,8 @@ class FeedPostView: UIView {
         footerView.configure(with: feedPost, contentWidth: contentWidth)
     }
 
-    func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, showGroupName: Bool, showArchivedDate: Bool, displayData: FeedPostDisplayData? = nil) {
-        DDLogVerbose("FeedPostCollectionViewCell/configure [\(post.id)]-[\(post.media?.count ?? 0)]")
+    func configure(with post: FeedPostDisplayable, contentWidth: CGFloat, gutterWidth: CGFloat, showGroupName: Bool, showArchivedDate: Bool, displayData: FeedPostDisplayData? = nil) {
+        DDLogVerbose("FeedPostCollectionViewCell/configure [\(post.id)]-[\(post.mediaCount)]")
 
         postId = post.id
 
@@ -240,7 +240,7 @@ class FeedPostView: UIView {
             self.delegate?.feedPostView(self, didChangeMediaIndex: index)
         }
         
-        if post.media?.count ?? 0 > 0 {
+        if post.mediaCount > 0 {
             contentTopConstraint?.constant = 5
         } else {
             contentTopConstraint?.constant = 0

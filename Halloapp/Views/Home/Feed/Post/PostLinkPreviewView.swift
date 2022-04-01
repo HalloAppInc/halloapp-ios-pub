@@ -14,7 +14,7 @@ import SwiftUI
 class PostLinkPreviewView: UIView {
 
     private var imageLoadingCancellable: AnyCancellable?
-    private var feedLinkPreview: FeedLinkPreview?
+    private var linkPreviewURL: URL?
     private var contentHeightConstraint: NSLayoutConstraint?
     private var previewImageHeightConstraint: NSLayoutConstraint?
 
@@ -126,17 +126,17 @@ class PostLinkPreviewView: UIView {
         isUserInteractionEnabled = true
     }
 
-    func configure(feedLinkPreview: FeedLinkPreview) {
-        if feedLinkPreview.id != self.feedLinkPreview?.id {
+    func configure(feedLinkPreview: LinkPreviewDisplayable) {
+        if feedLinkPreview.url != linkPreviewURL {
             imageLoadingCancellable?.cancel()
             imageLoadingCancellable = nil
         }
-        self.feedLinkPreview = feedLinkPreview
+        linkPreviewURL = feedLinkPreview.url
 
         urlLabel.text = feedLinkPreview.url?.host
         titleLabel.text = feedLinkPreview.title
 
-        if feedLinkPreview.media != nil, let media = MainAppContext.shared.feedData.media(feedLinkPreviewID: feedLinkPreview.id)?.first {
+        if let media = feedLinkPreview.feedMedia {
             configureMedia(media: media)
             previewImageView.isHidden = false
             previewImageHeightConstraint?.isActive = false
@@ -159,8 +159,9 @@ class PostLinkPreviewView: UIView {
             }
         } else if imageLoadingCancellable == nil {
             showPlaceholderImage()
-            imageLoadingCancellable = media.imageDidBecomeAvailable.sink { [weak self] (image) in
-                guard let self = self else { return }
+            // capture a strong reference to media so it is not deallocated while the image is loading
+            imageLoadingCancellable = media.imageDidBecomeAvailable.sink { [weak self, media] _ in
+                guard let self = self, let image = media.image else { return }
                 self.imageLoadingCancellable = nil
                 self.show(image: image)
             }
@@ -178,7 +179,7 @@ class PostLinkPreviewView: UIView {
     }
 
     @objc private func previewTapped(sender: UITapGestureRecognizer) {
-        if let url = feedLinkPreview?.url {
+        if let url = linkPreviewURL {
             guard MainAppContext.shared.chatData.proceedIfNotGroupInviteLink(url) else { return }
             UIApplication.shared.open(url)
         }

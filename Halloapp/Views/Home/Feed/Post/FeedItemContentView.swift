@@ -58,7 +58,6 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
     private let scaleThreshold: CGFloat = 1.3
     private var postId: FeedPostID? = nil
-    private var feedPost: FeedPost?
 
     private enum LayoutConstants {
         static let topMargin: CGFloat = 5
@@ -130,10 +129,8 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         vStack.constrainMargins(to: self)
     }
 
-    func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, displayData: FeedPostDisplayData?) {
-        feedPost = post
-
-        let media = MainAppContext.shared.feedData.media(for: post)
+    func configure(with post: FeedPostDisplayable, contentWidth: CGFloat, gutterWidth: CGFloat, displayData: FeedPostDisplayData?) {
+        let media = post.feedMedia
         let imageAndVideoMedia = media.filter { [.image, .video].contains($0.type) }
         let showMediaCarousel = !imageAndVideoMedia.isEmpty
 
@@ -202,7 +199,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         let postTextWithCryptoResult = (post.text ?? "") + cryptoResultString
         let postContainsText = !(postTextWithCryptoResult).isEmpty
         let showTextContentView: Bool
-        if post.isPostUnsupported  {
+        if post.isUnsupported  {
             let text = NSMutableAttributedString(string: "⚠️ " + Localizations.feedPostUnsupported + cryptoResultString)
 
             if let url = AppContext.appStoreURL {
@@ -263,7 +260,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
         // Link preview
 
-        if let feedLinkPreview = post.linkPreviews?.first, media.isEmpty {
+        if let feedLinkPreview = post.linkPreview, media.isEmpty {
             MainAppContext.shared.feedData.loadImages(feedLinkPreviewID: feedLinkPreview.id)
             let postLinkPreviewView = postLinkPreviewView ?? PostLinkPreviewView()
             self.postLinkPreviewView = postLinkPreviewView
@@ -332,7 +329,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
     }
 
     private func presentMedia(_ media: [FeedMedia], index: Int, delegate transitionDelegate: MediaExplorerTransitionDelegate? = nil) {
-        guard let post = feedPost else { return }
+        guard let postId = postId, let post = MainAppContext.shared.feedData.feedPost(with: postId) else { return }
 
         let explorerController = MediaExplorerController(media: media, index: index, canSaveMedia: post.canSaveMedia)
         explorerController.delegate = transitionDelegate
@@ -356,7 +353,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 extension FeedItemContentView: PostAudioViewDelegate {
 
     func postAudioView(_ postAudioView: PostAudioView, didUpdateIsPlayingTo isPlaying: Bool) {
-        guard isPlaying, let feedPost = feedPost else {
+        guard isPlaying, let postId = postId, let feedPost = MainAppContext.shared.feedData.feedPost(with: postId) else {
             return
         }
         MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
@@ -602,11 +599,11 @@ final class FeedItemHeaderView: UIView {
         }
     }
 
-    func refreshTimestamp(with post: FeedPost) {
+    func refreshTimestamp(with post: FeedPostDisplayable) {
         timestampLabel.text = post.timestamp.feedTimestamp()
     }
 
-    func configure(with post: FeedPost, contentWidth: CGFloat, showGroupName: Bool, showArchivedDate: Bool = false) {
+    func configure(with post: FeedPostDisplayable, contentWidth: CGFloat, showGroupName: Bool, showArchivedDate: Bool = false) {
         nameLabel.text = MainAppContext.shared.contactStore.fullName(for: post.userId)
         if showArchivedDate {
             let archivedDate = post.timestamp.addingTimeInterval(Date.days(30))
@@ -615,7 +612,7 @@ final class FeedItemHeaderView: UIView {
 
         avatarViewButton.avatarView.configure(with: post.userId, using: MainAppContext.shared.avatarStore)
 
-        if let audienceType = post.info?.audienceType, audienceType == AudienceType.whitelist {
+        if post.audienceType == AudienceType.whitelist {
             contentStackView.addArrangedSubview(privacyIndicatorButtonView)
             contentStackView.setCustomSpacing(0, after: privacyIndicatorButtonView)
         } else {
@@ -849,7 +846,7 @@ final class FeedItemFooterView: UIView {
         facePileView.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 4).isActive = true
     }
 
-    private class func senderCategory(for post: FeedPost) -> SenderCategory {
+    private class func senderCategory(for post: FeedPostDisplayable) -> SenderCategory {
         if post.userId == MainAppContext.shared.userData.userId {
             return .ownPost
         }
@@ -859,7 +856,7 @@ final class FeedItemFooterView: UIView {
         return .nonContact
     }
 
-    private class func state(for post: FeedPost) -> State {
+    private class func state(for post: FeedPostDisplayable) -> State {
         switch post.status {
         case .sending: return .sending
         case .sendError: return .error
@@ -868,7 +865,7 @@ final class FeedItemFooterView: UIView {
         }
     }
 
-    func configure(with post: FeedPost, contentWidth: CGFloat) {
+    func configure(with post: FeedPostDisplayable, contentWidth: CGFloat) {
         let state = Self.state(for: post)
 
         buttonStack.isHidden = state == .sending || state == .error || state == .retracting
@@ -880,7 +877,7 @@ final class FeedItemFooterView: UIView {
             hideProgressView()
             hideErrorView()
 
-            commentButton.badge = (post.comments ?? []).isEmpty ? .hidden : (post.unreadCount > 0 ? .unread : .read)
+            commentButton.badge = post.hasComments ? (post.unreadCount > 0 ? .unread : .read) : .hidden
             messageButton.alpha = sender == .contact ? 1 : 0
             if sender == .ownPost {
                 facePileView.isHidden = false
@@ -890,7 +887,7 @@ final class FeedItemFooterView: UIView {
             showProgressView(post)
             hideErrorView()
 
-            if let count = post.media?.count, count > 0 {
+            if post.mediaCount > 0 {
                 let postId = post.id
                 let mediaUploader = MainAppContext.shared.feedData.mediaUploader
 
@@ -918,8 +915,9 @@ final class FeedItemFooterView: UIView {
         }
     }
 
-    private func updateSendingProgress(for post: FeedPost) {
-        guard let count = post.media?.count, count > 0 else { return }
+    private func updateSendingProgress(for post: FeedPostDisplayable) {
+        let count = post.mediaCount
+        guard count > 0 else { return }
 
         var (processingCount, processingProgress) = ImageServer.shared.progress(for: post.id)
         var (uploadCount, uploadProgress) = MainAppContext.shared.feedData.mediaUploader.uploadProgress(forGroupId: post.id)
@@ -953,7 +951,7 @@ final class FeedItemFooterView: UIView {
         return view
     }()
 
-    private func showProgressView(_ post: FeedPost) {
+    private func showProgressView(_ post: FeedPostDisplayable) {
         if progressView.superview == nil {
             addSubview(progressView)
             progressView.constrain(to: buttonStack)
@@ -1116,9 +1114,8 @@ class PostingProgressView: UIView {
          
     For posts that consist of *only* text, there will be no progress bar.
     */
-    func configure(with post: FeedPost) {
-        let media = post.media
-        let isTextPost = media?.isEmpty ?? true
+    func configure(with post: FeedPostDisplayable) {
+        let isTextPost = post.mediaCount == 0
 
         isIndeterminate = isTextPost
 

@@ -4174,6 +4174,22 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
+    func feedPost(with blobID: String, key: Data, completion: @escaping (Result<ExternalSharePost, Error>) -> Void) {
+        service.externalSharePost(blobID: blobID, key: key) { [self] result in
+            switch result {
+            case .success(let postData):
+                performSeriallyOnBackgroundContext() { context in
+                    let externalSharePost = ExternalSharePost(postData: postData)
+                    DispatchQueue.main.async {
+                        completion(.success(externalSharePost))
+                    }
+                }
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }
+    }
+
     private class func externalShareInfo(for postID: FeedPostID, in context: NSManagedObjectContext) -> ExternalShareInfo? {
         let fetchRequest = ExternalShareInfo.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "feedPostID = %@", postID)

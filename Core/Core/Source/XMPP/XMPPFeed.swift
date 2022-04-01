@@ -38,7 +38,7 @@ public struct PostData {
     public let id: FeedPostID
     public let userId: UserID
     public var timestamp: Date = Date()
-    public var  status: FeedItemStatus
+    public var status: FeedItemStatus
     public let isShared: Bool
 
     // MARK: FeedPost
@@ -57,7 +57,7 @@ public struct PostData {
         }
     }
 
-    public var orderedMedia: [FeedMediaProtocol] {
+    public var orderedMedia: [FeedMediaData] {
         switch content {
         case .album(_, let media):
             return media
@@ -86,7 +86,7 @@ public struct PostData {
             .sorted { $0.index < $1.index }
     }
     
-    public var linkPreviewData: [LinkPreviewProtocol] {
+    public var linkPreviewData: [LinkPreviewData] {
         switch content {
         case .retracted, .unsupported, .album, .voiceNote, .waiting:
             return []
@@ -201,6 +201,23 @@ public struct PostData {
         self.init(id: id, userId: userId, content: processedContent, timestamp: timestamp, status: status, isShared: isShared, audience: audience)
     }
 
+    public init?(postContainerBlobData: Data) {
+        guard let postContainerBlob = try? Clients_PostContainerBlob(serializedData: postContainerBlobData),
+              let postContent = Self.extractContent(postId: postContainerBlob.postID,
+                                                    postContainer: postContainerBlob.postContainer,
+                                                    payload: postContainerBlobData) else {
+            DDLogError("Could not deserialize external share post")
+            return nil
+        }
+
+        self.init(id: postContainerBlob.postID,
+                  userId: String(postContainerBlob.uid),
+                  content: postContent,
+                  status: .received,
+                  isShared: false,
+                  audience: nil as FeedAudience?)
+    }
+
     public static func extractContent(postId: String, payload: Data) -> PostContent? {
         guard let protoContainer = try? Clients_Container(serializedData: payload) else {
             DDLogError("Could not deserialize post [\(postId)]")
@@ -208,47 +225,48 @@ public struct PostData {
         }
         if protoContainer.hasPostContainer {
             // Future-proof post
-            let post = protoContainer.postContainer
-
-            switch post.post {
-            case .text(let clientText):
-                return .text(clientText.mentionText, clientText.linkPreviewData)
-            case .album(let album):
-                var media = [FeedMediaData]()
-                var foundUnsupportedMedia = false
-                for (i, albumMedia) in album.media.enumerated() {
-                    guard let mediaData = FeedMediaData(id: "\(postId)-\(i)", albumMedia: albumMedia) else {
-                        foundUnsupportedMedia = true
-                        continue
-                    }
-                    media.append(mediaData)
-                }
-                if album.hasVoiceNote {
-                    if let mediaData = FeedMediaData(id: "\(postId)-voicenote", clientVoiceNote: album.voiceNote) {
-                        media.append(mediaData)
-                    } else {
-                        foundUnsupportedMedia = true
-                    }
-                }
-                if foundUnsupportedMedia {
-                    DDLogError("PostData/initFromServerPost/error unrecognized media")
-                    return .unsupported(payload)
-                } else {
-                    return .album(album.text.mentionText, media)
-                }
-            case .voiceNote(let voiceNote):
-                guard let media = FeedMediaData(id: "\(postId)-voicenote", clientVoiceNote: voiceNote) else {
-                    DDLogError("PostData/initFromServerPost/error unrecognized media")
-                    return .unsupported(payload)
-                }
-                return .voiceNote(media)
-            case .none:
-                return .unsupported(payload)
-            }
-
+            return extractContent(postId: postId, postContainer: protoContainer.postContainer, payload: payload)
         } else {
             DDLogError("Unrecognized post (no post or post container set)")
             return nil
+        }
+    }
+
+    private static func extractContent(postId: FeedPostID, postContainer post: Clients_PostContainer, payload: Data) -> PostContent? {
+        switch post.post {
+        case .text(let clientText):
+            return .text(clientText.mentionText, clientText.linkPreviewData)
+        case .album(let album):
+            var media = [FeedMediaData]()
+            var foundUnsupportedMedia = false
+            for (i, albumMedia) in album.media.enumerated() {
+                guard let mediaData = FeedMediaData(id: "\(postId)-\(i)", albumMedia: albumMedia) else {
+                    foundUnsupportedMedia = true
+                    continue
+                }
+                media.append(mediaData)
+            }
+            if album.hasVoiceNote {
+                if let mediaData = FeedMediaData(id: "\(postId)-voicenote", clientVoiceNote: album.voiceNote) {
+                    media.append(mediaData)
+                } else {
+                    foundUnsupportedMedia = true
+                }
+            }
+            if foundUnsupportedMedia {
+                DDLogError("PostData/initFromServerPost/error unrecognized media")
+                return .unsupported(payload)
+            } else {
+                return .album(album.text.mentionText, media)
+            }
+        case .voiceNote(let voiceNote):
+            guard let media = FeedMediaData(id: "\(postId)-voicenote", clientVoiceNote: voiceNote) else {
+                DDLogError("PostData/initFromServerPost/error unrecognized media")
+                return .unsupported(payload)
+            }
+            return .voiceNote(media)
+        case .none:
+            return .unsupported(payload)
         }
     }
 }

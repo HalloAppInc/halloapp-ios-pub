@@ -12,33 +12,6 @@ import Core
 import CoreCommon
 import UIKit
 
-extension FeedPost {
-    var hideFooterSeparator: Bool {
-        // Separator should be hidden for media-only posts and posts with link previews
-        if hasLinkPreviews { return true }
-        if hasText || hasAudio { return false }
-        return true
-    }
-
-    var hasText: Bool {
-        if let text = text, !text.isEmpty {
-            return true
-        }
-        return false
-    }
-
-    var hasLinkPreviews: Bool {
-        guard let linkPreviews = linkPreviews, linkPreviews.count > 0 else {
-            return false
-        }
-        return true
-    }
-
-    var hasAudio: Bool {
-        return media?.contains{ $0.type == .audio } ?? false
-    }
-}
-
 protocol FeedPostCollectionViewCellDelegate: AnyObject {
     func feedPostCollectionViewCell(_ cell: FeedPostCollectionViewCell, didRequestOpen url: URL)
     func feedPostCollectionViewCell(_ cell: FeedPostCollectionViewCell, didChangeMediaIndex index: Int)

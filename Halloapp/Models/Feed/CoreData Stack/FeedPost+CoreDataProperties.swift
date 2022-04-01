@@ -67,10 +67,6 @@ extension FeedPost {
         }
     }
 
-    var isPostUnsupported: Bool {
-        return self.status == .unsupported
-    }
-
     var isWaiting: Bool {
         switch self.postData.content {
         case .waiting: return true
@@ -82,10 +78,6 @@ extension FeedPost {
         guard let audienceType = info?.audienceType else { return nil }
         guard let receipts = info?.receipts else { return nil }
         return FeedAudience(audienceType: audienceType, userIds: Set(receipts.keys))
-    }
-    
-    var hasPostMedia: Bool {
-        return media?.count ?? 0 > 0
     }
 
     var hasSaveablePostMedia: Bool {

@@ -14,7 +14,7 @@ import UIKit
 
 class PostViewController: UIViewController, UserMenuHandler {
 
-    private let post: FeedPost
+    private let post: FeedPostDisplayable
 
     private lazy var backBtn: UIView = {
         let background = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 0.1)
@@ -74,7 +74,7 @@ class PostViewController: UIViewController, UserMenuHandler {
         return scrollView
     }()
 
-    init(post: FeedPost) {
+    init(post: FeedPostDisplayable) {
         self.post = post
         
         super.init(nibName: nil, bundle: nil)
@@ -122,6 +122,14 @@ class PostViewController: UIViewController, UserMenuHandler {
         postView.delegate = self
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+
+        if let post = post as? ExternalSharePost {
+            post.downloadMedia()
+        }
+    }
+
     @objc private func backAction() {
         dismiss(animated: true)
     }
@@ -149,7 +157,7 @@ extension PostViewController {
             let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
 
             if self.post.hasSaveablePostMedia && self.post.canSaveMedia {
-                let saveMediaTitle = self.post.media?.count ?? 0 > 1 ? Localizations.saveAllButton : Localizations.saveAllButtonSingular
+                let saveMediaTitle = self.post.mediaCount > 1 ? Localizations.saveAllButton : Localizations.saveAllButtonSingular
 
                 alert.addAction(UIAlertAction(title: saveMediaTitle, style: .default, handler:  { _ in
                     PHPhotoLibrary.requestAuthorization { status in
@@ -203,7 +211,7 @@ extension PostViewController {
 
     private func saveMedia() {
         // Get media from cache if available
-        let media = MainAppContext.shared.feedData.media(for: post)
+        let media = post.feedMedia
 
         guard media.first(where: { !$0.isMediaAvailable || $0.fileURL == nil }) == nil else {
             DDLogError("PostViewController/saveMedia/error: Missing media")

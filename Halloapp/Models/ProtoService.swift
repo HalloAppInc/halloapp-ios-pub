@@ -1347,15 +1347,11 @@ extension ProtoService: HalloService {
             return
         }
 
-        guard let fullKey = try? HKDF(password: attachmentKey, info: "HalloApp Share Post".bytes, keyLength: 80, variant: .sha256).calculate() else {
+        guard let (iv, aesKey, hmacKey) = Self.externalShareKeys(from: attachmentKey) else {
             DDLogError("ProtoService/UploadPostForExternalShare/Failed to generate key")
             completion(.failure(RequestError.aborted))
             return
         }
-
-        let iv = Array(fullKey[0..<16])
-        let aesKey = Array(fullKey[16..<48])
-        let hmacKey = Array(fullKey[48..<80])
 
         guard let encryptedPostData = try? AES(key: aesKey, blockMode: CBC(iv: iv), padding: .pkcs5).encrypt(data.bytes) else {
             DDLogError("ProtoService/UploadPostForExternalShare/Failed to encrypt post data")
@@ -1381,7 +1377,7 @@ extension ProtoService: HalloService {
             ogTagInfo.thumbnailHeight = Int32(ogThumbSize.height)
         }
 
-        enqueue(request: ProtoExternalShareRequest(encryptedPostData: encryptedPayload, expiry: expiry, ogTagInfo: ogTagInfo) { result in
+        enqueue(request: ProtoExternalShareStoreRequest(encryptedPostData: encryptedPayload, expiry: expiry, ogTagInfo: ogTagInfo) { result in
             switch result {
             case .success(let blobID):
                 completion(.success((blobID, Data(attachmentKey))))
@@ -1393,6 +1389,69 @@ extension ProtoService: HalloService {
 
     func revokeExternalShareLink(blobID: String, completion: @escaping ServiceRequestCompletion<Void>) {
         enqueue(request: ProtoExternalShareRevokeRequest(blobID: blobID, completion: completion))
+    }
+
+    func externalSharePost(blobID: String, key: Data, completion: @escaping ServiceRequestCompletion<PostData>) {
+        guard let (iv, aesKey, hmacKey) = Self.externalShareKeys(from: [UInt8](key)) else {
+            DDLogError("ProtoService/externalSharePost/Failed to generate key")
+            completion(.failure(RequestError.malformedRequest))
+            return
+        }
+
+        enqueue(request: ProtoExternalShareGetRequest(blobID: blobID, completion: { result in
+            switch result {
+            case .success(let encryptedPayload):
+                guard encryptedPayload.count > 32 else {
+                    DDLogError("ProtoService/externalSharePost/invalid response length")
+                    completion(.failure(RequestError.malformedResponse))
+                    return
+                }
+
+                let encryptedPostData = [UInt8](encryptedPayload[0 ..< encryptedPayload.count - 32])
+                let hmac = [UInt8](encryptedPayload[encryptedPayload.count - 32 ..< encryptedPayload.count])
+
+                guard let calculatedHmac = try? HMAC(key: hmacKey, variant: .sha256).authenticate(encryptedPostData),
+                      hmac == calculatedHmac else {
+                    DDLogError("ProtoService/externalSharePost/Failed to authenticate encryptedPostData")
+                    completion(.failure(RequestError.malformedResponse))
+                    return
+                }
+
+                guard let postData = try? AES(key: aesKey, blockMode: CBC(iv: iv), padding: .pkcs5).decrypt(encryptedPostData) else {
+                    DDLogError("ProtoService/UploadPostForExternalShare/Failed to decrypt post data")
+                    completion(.failure(RequestError.malformedResponse))
+                    return
+                }
+
+                if let postData = PostData(postContainerBlobData: Data(postData)) {
+                    completion(.success(postData))
+                } else {
+                    DDLogError("ProtoService/UploadPostForExternalShare/Failed to serialize post data")
+                    completion(.failure(RequestError.malformedResponse))
+                }
+
+
+                break
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }))
+    }
+
+    static func externalShareKeys(from key: [UInt8]) -> (iv: [UInt8], aesKey: [UInt8], hmacKey: [UInt8])? {
+        guard let fullKey = try? HKDF(password: key,
+                                      info: "HalloApp Share Post".bytes,
+                                      keyLength: 80,
+                                      variant: .sha256).calculate() else {
+            DDLogError("ProtoService/externalShareKeys/Failed to generate key")
+            return nil
+        }
+
+        let iv = Array(fullKey[0..<16])
+        let aesKey = Array(fullKey[16..<48])
+        let hmacKey = Array(fullKey[48..<80])
+
+        return (iv, aesKey, hmacKey)
     }
 
     func sendReceipt(itemID: String, thread: HalloReceipt.Thread, type: HalloReceipt.`Type`, fromUserID: UserID, toUserID: UserID) {
