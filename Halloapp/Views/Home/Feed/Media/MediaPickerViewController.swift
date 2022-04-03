@@ -159,8 +159,10 @@ class MediaPickerViewController: UIViewController {
         button.layer.masksToBounds = true
         button.contentEdgeInsets = UIEdgeInsets(top: -1.5, left: 0, bottom: 0, right: 0)
 
-        button.heightAnchor.constraint(equalToConstant: 44).isActive = true
-        button.widthAnchor.constraint(equalToConstant: 90).isActive = true
+        NSLayoutConstraint.activate([
+            button.heightAnchor.constraint(equalToConstant: 44),
+            button.widthAnchor.constraint(equalToConstant: 90),
+        ])
 
         button.addTarget(self, action: #selector(nextAction), for: .touchUpInside)
 
@@ -194,11 +196,13 @@ class MediaPickerViewController: UIViewController {
         container.contentView.addSubview(albumsButton)
         container.contentView.addSubview(nextButton)
 
-        container.heightAnchor.constraint(equalToConstant: 85).isActive = true
-        albumsButton.centerYAnchor.constraint(equalTo: container.contentView.centerYAnchor, constant: -9).isActive = true
-        albumsButton.leadingAnchor.constraint(equalTo: container.contentView.leadingAnchor, constant: 24).isActive = true
-        nextButton.centerYAnchor.constraint(equalTo: container.contentView.centerYAnchor, constant: -9).isActive = true
-        nextButton.trailingAnchor.constraint(equalTo: container.contentView.trailingAnchor, constant: -18).isActive = true
+        NSLayoutConstraint.activate([
+            container.heightAnchor.constraint(equalToConstant: 85),
+            albumsButton.centerYAnchor.constraint(equalTo: container.contentView.centerYAnchor, constant: -9),
+            albumsButton.leadingAnchor.constraint(equalTo: container.contentView.leadingAnchor, constant: 24),
+            nextButton.centerYAnchor.constraint(equalTo: container.contentView.centerYAnchor, constant: -9),
+            nextButton.trailingAnchor.constraint(equalTo: container.contentView.trailingAnchor, constant: -18),
+        ])
 
         return container
     }()
@@ -262,8 +266,10 @@ class MediaPickerViewController: UIViewController {
         icon.contentMode = .scaleAspectFit
 
         let iconConstraint = icon.widthAnchor.constraint(equalToConstant: 13)
-        iconConstraint.isActive = true
-        icon.heightAnchor.constraint(equalTo: icon.widthAnchor).isActive = true
+        NSLayoutConstraint.activate([
+            iconConstraint,
+            icon.heightAnchor.constraint(equalTo: icon.widthAnchor),
+        ])
         changeDestinationIconConstraint = iconConstraint
 
         return icon
@@ -292,7 +298,7 @@ class MediaPickerViewController: UIViewController {
         stack.spacing = 6
         stack.isUserInteractionEnabled = false
 
-        stack.heightAnchor.constraint(equalToConstant: 25).isActive = true
+
 
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -302,10 +308,14 @@ class MediaPickerViewController: UIViewController {
         button.addTarget(self, action: #selector(changeDestinationAction), for: .touchUpInside)
 
         button.addSubview(stack)
-        stack.topAnchor.constraint(equalTo: button.topAnchor).isActive = true
-        stack.bottomAnchor.constraint(equalTo: button.bottomAnchor, constant: -1).isActive = true
-        stack.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: 11).isActive = true
-        stack.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -11).isActive = true
+
+        NSLayoutConstraint.activate([
+            stack.heightAnchor.constraint(equalToConstant: 25),
+            stack.topAnchor.constraint(equalTo: button.topAnchor),
+            stack.bottomAnchor.constraint(equalTo: button.bottomAnchor, constant: -1),
+            stack.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: 11),
+            stack.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -11),
+        ])
 
         return button
     }()
@@ -315,8 +325,11 @@ class MediaPickerViewController: UIViewController {
         view.translatesAutoresizingMaskIntoConstraints = false
 
         view.addSubview(changeDestinationButton)
-        changeDestinationButton.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
-        changeDestinationButton.heightAnchor.constraint(equalTo: view.heightAnchor).isActive = true
+
+        NSLayoutConstraint.activate([
+            changeDestinationButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            changeDestinationButton.heightAnchor.constraint(equalTo: view.heightAnchor),
+        ])
 
         return view
     }()
@@ -331,8 +344,10 @@ class MediaPickerViewController: UIViewController {
         button.setImage(image, for: .normal)
         button.addTarget(self, action: #selector(cancelAction), for: .touchUpInside)
 
-        button.widthAnchor.constraint(equalToConstant: 44).isActive = true
-        button.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        NSLayoutConstraint.activate([
+            button.widthAnchor.constraint(equalToConstant: 44),
+            button.heightAnchor.constraint(equalToConstant: 44),
+        ])
 
         return button
     }()
@@ -347,8 +362,10 @@ class MediaPickerViewController: UIViewController {
         button.setImage(image, for: .normal)
         button.addTarget(self, action: #selector(cameraAction), for: .touchUpInside)
 
-        button.widthAnchor.constraint(equalToConstant: 44).isActive = true
-        button.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        NSLayoutConstraint.activate([
+            button.widthAnchor.constraint(equalToConstant: 44),
+            button.heightAnchor.constraint(equalToConstant: 44),
+        ])
 
         return button
     }()
@@ -375,11 +392,8 @@ class MediaPickerViewController: UIViewController {
         navigationRow.axis = .horizontal
         navigationRow.alignment = .center
         navigationRow.distribution = .equalSpacing
-        navigationRow.heightAnchor.constraint(equalToConstant: 44).isActive = true
-
         navigationRow.addSubview(titleLabel)
-        titleLabel.centerXAnchor.constraint(equalTo: navigationRow.centerXAnchor).isActive = true
-        titleLabel.centerYAnchor.constraint(equalTo: navigationRow.centerYAnchor).isActive = true
+
 
         let rowsView = UIStackView(arrangedSubviews: [navigationRow, changeDestinationRow])
         rowsView.translatesAutoresizingMaskIntoConstraints = false
@@ -388,9 +402,16 @@ class MediaPickerViewController: UIViewController {
         rowsView.spacing = 8
 
         container.contentView.addSubview(rowsView)
-        rowsView.leadingAnchor.constraint(equalTo: container.contentView.leadingAnchor, constant: 8).isActive = true
-        rowsView.trailingAnchor.constraint(equalTo: container.contentView.trailingAnchor, constant: -8).isActive = true
-        rowsView.bottomAnchor.constraint(equalTo: container.contentView.bottomAnchor, constant: -9).isActive = true
+
+
+        NSLayoutConstraint.activate([
+            navigationRow.heightAnchor.constraint(equalToConstant: 44),
+            titleLabel.centerXAnchor.constraint(equalTo: navigationRow.centerXAnchor),
+            titleLabel.centerYAnchor.constraint(equalTo: navigationRow.centerYAnchor),
+            rowsView.leadingAnchor.constraint(equalTo: container.contentView.leadingAnchor, constant: 8),
+            rowsView.trailingAnchor.constraint(equalTo: container.contentView.trailingAnchor, constant: -8),
+            rowsView.bottomAnchor.constraint(equalTo: container.contentView.bottomAnchor, constant: -9),
+        ])
 
         customNavigationContentTopConstraint = rowsView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8)
 
@@ -426,15 +447,18 @@ class MediaPickerViewController: UIViewController {
         view.addSubview(customNavigationBar)
 
         collectionView.constrain(to: view)
-        actionsContainerView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
-        actionsContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
-        actionsContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
-        limitedAccessBubble.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 20).isActive = true
-        limitedAccessBubble.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -20).isActive = true
-        limitedAccessBubble.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -20).isActive = true
-        customNavigationBar.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
-        customNavigationBar.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
-        customNavigationBar.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+
+        NSLayoutConstraint.activate([
+            actionsContainerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            actionsContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            actionsContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            limitedAccessBubble.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 20),
+            limitedAccessBubble.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -20),
+            limitedAccessBubble.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -20),
+            customNavigationBar.topAnchor.constraint(equalTo: view.topAnchor),
+            customNavigationBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            customNavigationBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+        ])
         customNavigationContentTopConstraint?.isActive = true
 
         updateNavigation()
@@ -1141,8 +1165,10 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         view.layer.borderWidth = 3
         view.layer.masksToBounds = true
 
-        view.widthAnchor.constraint(equalToConstant: 30).isActive = true
-        view.heightAnchor.constraint(equalToConstant: 30).isActive = true
+        NSLayoutConstraint.activate([
+            view.widthAnchor.constraint(equalToConstant: 30),
+            view.heightAnchor.constraint(equalToConstant: 30),
+        ])
 
         view.addSubview(indicatorLabel)
 
