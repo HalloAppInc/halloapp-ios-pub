@@ -387,13 +387,15 @@ class MediaPickerViewController: UIViewController {
         let container = BlurView(effect: effect, intensity: 1)
         container.translatesAutoresizingMaskIntoConstraints = false
 
-        let navigationRow = UIStackView(arrangedSubviews: [backButton, cameraButton, nextButton])
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+
+        let navigationRow = UIStackView(arrangedSubviews: [backButton, spacer, cameraButton])
         navigationRow.translatesAutoresizingMaskIntoConstraints = false
         navigationRow.axis = .horizontal
         navigationRow.alignment = .center
         navigationRow.distribution = .equalSpacing
         navigationRow.addSubview(titleLabel)
-
 
         let rowsView = UIStackView(arrangedSubviews: [navigationRow, changeDestinationRow])
         rowsView.translatesAutoresizingMaskIntoConstraints = false
@@ -402,7 +404,6 @@ class MediaPickerViewController: UIViewController {
         rowsView.spacing = 8
 
         container.contentView.addSubview(rowsView)
-
 
         NSLayoutConstraint.activate([
             navigationRow.heightAnchor.constraint(equalToConstant: 44),
@@ -625,6 +626,9 @@ class MediaPickerViewController: UIViewController {
         }
 
         changeDestinationRow.isHidden = config.destination == nil
+        if case .chat = config.destination {
+            changeDestinationRow.isHidden = true
+        }
     }
 
     private func updateChangeDestinationBtn() {
