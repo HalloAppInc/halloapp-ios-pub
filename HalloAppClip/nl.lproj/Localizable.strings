@@ -29,7 +29,7 @@
 "registration.code.instructions" = "Voer de code in die we naar %@ hebben verzonden";
 
 /* Error message to display when we cannot send a verification code */
-"registration.code.request.error" = "Kon de code niet verzenden. Probeer later opnieuw.";
+"registration.code.request.error" = "Kon de code niet verzenden. Probeer het later opnieuw.";
 
 /* Button label to resend verification code */
 "registration.code.resend" = "Sms opnieuw verzenden";

@@ -2,7 +2,7 @@
 "alert.no.internet.title" = "Geen Internetverbinding";
 
 /* Message to tell the user to try again when they have internet connectivity again */
-"alert.no.internet.try.again" = "Controleer of je internetverbinding hebt en probeer opnieuw.";
+"alert.no.internet.try.again" = "Controleer of je internetverbinding hebt en probeer het opnieuw.";
 
 /* Company name */
 "app.name.halloapp" = "HalloApp";
@@ -85,8 +85,14 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Alleen delen met geselecteerde contacten";
 
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.notOwn.only.description" = "Deze post wordt alleen gedeeld met een beperkt publiek. Je kunt je publiek op ieder moment aanpassen in de privacy-instellingen.";
+
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.only.title" = "Favorieten";
+
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.own.only.description" = "Deze post wordt alleen gedeeld met een aangepaste groep contacten. Je kunt je publiek aanpassen wanneer je een nieuw bericht plaatst, of onder Instellingen > Privacy.";
 
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Zoeken";
@@ -119,7 +125,7 @@
 "share.composer.placeholder.text" = "Schrijf een post";
 
 /* Alert dialog message shown when uploading fails. */
-"share.composer.uploading.fail.message" = "Probeer later opnieuw alsjeblieft.";
+"share.composer.uploading.fail.message" = "Probeer het later opnieuw.";
 
 /* Alert dialog title shown when uploading fails. */
 "share.composer.uploading.fail.title" = "Uploaden mislukt";

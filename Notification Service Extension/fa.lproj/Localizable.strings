@@ -85,6 +85,15 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "به اشتراک گذاشتن فقط با مخاطبین انتخابی";
 
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.notOwn.only.description" = "این پست فقط برای به اشتراک گذاشتن با گروه خاص از مخاطبین است. میتوانید برای تغییر آن به حریم خصوصی در تنظیمات مراجعه کنید.";
+
+/* Title of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.only.title" = "محبوب‌ها";
+
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.own.only.description" = "این پست فقط برای به اشتراک گذاشتن با گروه خاص از مخاطبین است. میتوانید مخاطبین خود را موقع تنظیم پست تغییر دهید و یا به حریم خصوصی در تنظیمات مراجعه کنید.";
+
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "شما به یک گروه دعوت شده‌اید";
 

@@ -127,9 +127,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>Voorbereiden media mislukt. Probeer alsjeblieft opnieuw of selecteer een andere foto / video.</string>
+			<string>Voorbereiden van media mislukt. Probeer het opnieuw of selecteer een andere foto / video.</string>
 			<key>other</key>
-			<string>Voorbereiden %d media-items mislukt. Probeer alsjeblieft opnieuw of selecteer een andere foto / video.</string>
+			<string>Voorbereiden van %d media-items mislukt. Probeer het opnieuw of selecteer een andere foto / video.</string>
 		</dict>
 	</dict>
 	<key>n.invites.count</key>

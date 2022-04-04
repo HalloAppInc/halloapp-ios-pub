@@ -502,9 +502,6 @@
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Einfach Handynummern austauschen, um den Kontakt herzustellen";
 
-/* Placeholder title for posts that are externally shared, John Smith's HalloApp Post */
-"externalShare.og.title" = "%@'s HalloApp-Beitrag";
-
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Kamera";
 
@@ -604,6 +601,9 @@
 /* Title for the list when selecting contacts to not share with. */
 "feed.privacy.list.except.title" = "Beiträge ausblenden für...";
 
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.notOwn.only.description" = "Dieser Beitrag wird nur mit einem begrenzten Benutzerkreis geteilt. Du kannst deine Zielgruppe in den Privatsphäre-Einstellungen jederzeit anpassen.";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.only" = "Nur teilen mit...";
 
@@ -612,6 +612,9 @@
 
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.only.title" = "Favoriten";
+
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.own.only.description" = "Dieser Beitrag wird nur mit einer benutzerdefinierten Gruppe von Kontakten geteilt. Du kannst deine Zielgruppe anpassen, wann immer du einen neuen Beitrag teilst, oder unter den Einstellungen > Privatsphäre.";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Meine Kontakte";

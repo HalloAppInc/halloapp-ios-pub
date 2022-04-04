@@ -502,8 +502,17 @@
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "برای اشتراک گذاری باید شماره تلفن رد و بدل کنید";
 
-/* Placeholder title for posts that are externally shared, John Smith's HalloApp Post */
-"externalShare.og.title" = "پست هالواپ @%";
+/* Description of an externally shared post containing an audio post */
+"externalShare.og.description.audio" = "پست صوتی";
+
+/* Description of an externally shared post containing photos/videos */
+"externalShare.og.description.media" = "پست چند رسانه‌ای";
+
+/* Description of an externally shared post containing just text */
+"externalShare.og.description.text" = "پست متنی";
+
+/* Title for posts that are externally shared, 'HalloApp Post from John Smith' */
+"externalShare.og.title2" = "پست هالواپ از @%";
 
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "دوربین";
@@ -604,11 +613,20 @@
 /* Title for the list when selecting contacts to not share with. */
 "feed.privacy.list.except.title" = "پست‌های من را پنهان کن از...";
 
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.notOwn.only.description" = "این پست فقط برای به اشتراک گذاشتن با گروه خاص از مخاطبین است. میتوانید برای تغییر آن به حریم خصوصی در تنظیمات مراجعه کنید.";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.only" = "اشتراک گذاشتن با...";
 
 /* Header for the list when selecting contacts to share with. */
 "feed.privacy.list.only.details" = "انتخاب کسانی که پست شما را میبینند";
+
+/* Title of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.only.title" = "محبوب‌ها";
+
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.own.only.description" = "این پست فقط برای به اشتراک گذاشتن با گروه خاص از مخاطبین است. میتوانید مخاطبین خود را موقع تنظیم پست تغییر دهید و یا به حریم خصوصی در تنظیمات مراجعه کنید.";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "مخاطب‌های تلفن";

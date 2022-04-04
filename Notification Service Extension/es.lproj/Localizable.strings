@@ -85,8 +85,14 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Solo compartir con contactos seleccionados";
 
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.notOwn.only.description" = "Esta publicación solo se comparte con una audiencia limitada. Puedes cambiar tu audiencia en la configuración de privacidad en cualquier momento.";
+
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.only.title" = "Favoritos";
+
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.own.only.description" = "Esta publicación solo se comparte con un grupo personalizado de contactos. Puedes cambiar tu audiencia cada vez que hagas una nueva publicación, o en Configuración > Privacidad.";
 
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Fuiste agregado a un grupo nuevo";
@@ -158,7 +164,7 @@
 "notification.voicenote" = "🎤 Nota de voz";
 
 /* New post notification text when post is a voice note. */
-"notification.voicepost" = "Publicación de audio\n ";
+"notification.voicepost" = "Publicación de audio";
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Únete a mi red social de relaciones verdaderas en HalloApp. Bájalo gratis en halloapp.com/dl ";

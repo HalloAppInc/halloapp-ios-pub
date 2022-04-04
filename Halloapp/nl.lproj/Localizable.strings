@@ -44,7 +44,7 @@
 "alert.no.internet.title" = "Geen Internetverbinding";
 
 /* Message to tell the user to try again when they have internet connectivity again */
-"alert.no.internet.try.again" = "Controleer of je internetverbinding hebt en probeer opnieuw.";
+"alert.no.internet.try.again" = "Controleer of je internetverbinding hebt en probeer het opnieuw.";
 
 /* Title of view where users can invite friends and family. */
 "app.ios.invite.friends" = "Vrienden & familie uitnodigen";
@@ -401,7 +401,7 @@
 "comment.unsupported" = "Je versie van HalloApp ondersteunt dit type reactie niet.";
 
 /* Warning text displayed in Comments when post wasn't available. */
-"comments.post.loading.failed" = "Er is een fout opgetreden tijdens het laden van deze post. Probeer het later opnieuw alsjeblieft.";
+"comments.post.loading.failed" = "Er is een fout opgetreden tijdens het laden van deze post. Probeer het later opnieuw.";
 
 /* Accessibility label for add images button */
 "composer.audio.a11y.addImages" = "Afbeeldingen Toevoegen";
@@ -434,7 +434,7 @@
 "composer.label.more" = "Meer toevoegen";
 
 /* Alert message in composer when a video is too long */
-"composer.max.video.length.message" = "Selecteer alsjeblieft een andere video of tik op bewerken.";
+"composer.max.video.length.message" = "Selecteer een andere video of tik op bewerken.";
 
 /* Alert title in composer when a video is too long */
 "composer.max.video.length.title" = "Deze video is langer dan %.0f seconden";
@@ -488,7 +488,7 @@
 "create.group.description.placeholder" = "Omschrijving toevoegen (optioneel)";
 
 /* Alert message telling the user to try creating the group again after an error */
-"create.group.error" = "Er is een fout opgetreden bij het aanmaken van de groep, probeer opnieuw";
+"create.group.error" = "Er is een fout opgetreden bij het aanmaken van de groep, probeer het opnieuw";
 
 /* Placeholder text shown inside the group name input box when it's empty */
 "create.group.name.placeholder" = "Groepsnaam invoeren";
@@ -502,8 +502,17 @@
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Om connectie te maken, moeten jullie telefoonnummers uitwisselen";
 
-/* Placeholder title for posts that are externally shared, John Smith's HalloApp Post */
-"externalShare.og.title" = "HalloApp Post van %@";
+/* Description of an externally shared post containing an audio post */
+"externalShare.og.description.audio" = "Audiopost";
+
+/* Description of an externally shared post containing photos/videos */
+"externalShare.og.description.media" = "Mediapost";
+
+/* Description of an externally shared post containing just text */
+"externalShare.og.description.text" = "Tekstpost";
+
+/* Title for posts that are externally shared, 'HalloApp Post from John Smith' */
+"externalShare.og.title2" = "HalloApp post van %@";
 
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Camera";
@@ -604,6 +613,9 @@
 /* Title for the list when selecting contacts to not share with. */
 "feed.privacy.list.except.title" = "Verberg Posts Voor...";
 
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.notOwn.only.description" = "Deze post wordt alleen gedeeld met een beperkt publiek. Je kunt je publiek op ieder moment aanpassen in de privacy-instellingen.";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.only" = "Alleen Delen Met...";
 
@@ -612,6 +624,9 @@
 
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.only.title" = "Favorieten";
+
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.own.only.description" = "Deze post wordt alleen gedeeld met een aangepaste groep contacten. Je kunt je publiek aanpassen wanneer je een nieuw bericht plaatst, of onder Instellingen > Privacy.";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Mijn Contacten";
@@ -806,13 +821,13 @@
 "help.send.logs.email.body" = "\n\n\nBeschrijf het probleem of de feedback in de ruimte hierboven alsjeblieft.\n\nVersie %1$@ - %2$@\n%3$@";
 
 /* Text shown to users on failed audio capture alert during a call. */
-"home.calls.fail.audio.text" = "Probeer later opnieuw.";
+"home.calls.fail.audio.text" = "Probeer het later opnieuw.";
 
 /* Title of failed audio capture alert during a call. */
 "home.calls.fail.audio.title" = "Kan geen audio opnemen tijdens een HalloApp-oproep.";
 
 /* Text shown to users on call failure. */
-"home.calls.fail.text" = "Zorg ervoor dat je telefoon internetverbinding heeft en probeer opnieuw.";
+"home.calls.fail.text" = "Zorg ervoor dat je telefoon internetverbinding heeft en probeer het opnieuw.";
 
 /* Title of failed call screen alert. */
 "home.calls.fail.title" = "Kan niet bellen.";
@@ -851,7 +866,7 @@
 "invite.contact.count" = "%d contacten op HalloApp";
 
 /* Body of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
-"invite.error.alert.message" = "Er ging iets mis. Probeer later opnieuw.";
+"invite.error.alert.message" = "Er ging iets mis. Probeer het later opnieuw.";
 
 /* Title of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
 "invite.error.alert.title" = "Kon niet uitnodigen";
@@ -860,7 +875,7 @@
 "invite.out.of.invites.w.date" = "Je uitnodigingen zijn op. Probeer het na %@ opnieuw";
 
 /* Displayed white user is inviting someone. */
-"invite.please.wait" = "Even wachten...";
+"invite.please.wait" = "Even geduld...";
 
 /* Text of invitation to join HalloApp. */
 "invite.text" = "Kom ook op HalloApp - een eenvoudige, privé en veilige manier om in contact te blijven met vrienden en familie. Download de app op https://halloapp.com/dl";
@@ -1106,10 +1121,10 @@
 "picker.access.limited.message" = "Je hebt HalloApp toegang gegeven tot een beperkt aantal foto's en video's.";
 
 /* Alert message in media picker when unable to load media file. */
-"picker.media.fail.message" = "Probeer opnieuw of selecteer een andere foto of video alsjeblieft.";
+"picker.media.fail.message" = "Probeer het opnieuw of selecteer een andere foto of video.";
 
 /* Alert title in media picker when unable to load media file. */
-"picker.media.fail.title" = "Laden media mislukt";
+"picker.media.fail.title" = "Laden van media mislukt";
 
 /* Button shown to update limited access to media. */
 "picker.media.limit.button" = "Bijwerken";
@@ -1154,7 +1169,7 @@
 "privacy.n.contacts" = "privacy.n.contacts";
 
 /* Error banner displayed when there is a failure syncing preivacy settings, displayed on the privacy view */
-"privacy.sync.failure" = "Synchroniseren van privacy-instellingen mislukt. Probeer later opnieuw.";
+"privacy.sync.failure" = "Synchroniseren van privacy-instellingen mislukt. Probeer het later opnieuw.";
 
 /* Title for the button allowing to delete current profile photo. */
 "profile.delete.photo" = "Foto Verwijderen";
@@ -1233,7 +1248,7 @@
 "registration.code.instructions" = "Voer de code in die we naar %@ hebben verzonden";
 
 /* Error message to display when we cannot send a verification code */
-"registration.code.request.error" = "Kon de code niet verzenden. Probeer later opnieuw.";
+"registration.code.request.error" = "Kon de code niet verzenden. Probeer het later opnieuw.";
 
 /* Button label to resend verification code */
 "registration.code.resend" = "Sms opnieuw verzenden";
@@ -1617,7 +1632,7 @@
 "your.post.externalshare.copylink.success" = "Gekopieerd naar Klembord";
 
 /* Message that external share failed. */
-"your.post.externalshare.error" = "Uploaden post voor extern delen mislukt";
+"your.post.externalshare.error" = "Uploaden van post voor extern delen mislukt";
 
 /* Text introducing external share link, part of what is shared */
 "your.post.externalshare.title" = "Bekijk mijn post op HalloApp:";

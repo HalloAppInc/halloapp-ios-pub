@@ -65,7 +65,7 @@
 "audio.control.cancel" = "desliza para cancelar";
 
 /* Text to show on banner when no connection is available */
-"banner.no.connection" = "No hay conexión de Internet";
+"banner.no.connection" = "Sin conexión de Internet";
 
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
 "button.add" = "Añadir";
@@ -152,7 +152,7 @@
 "call.history.voice.call" = "Llamada de voz";
 
 /* Title for call history event. Appears next to details of a missed call. */
-"call.history.voice.call.missed" = "Llamada de voz perdida.";
+"call.history.voice.call.missed" = "Llamada de voz perdida";
 
 /* Status display when user mutes their own audio during a call. */
 "call.mute.local.audio" = "micrófono está apagado";
@@ -320,7 +320,7 @@
 "chat.message.audio" = "Nota de voz";
 
 /* Message text shown for quoted audio posts */
-"chat.message.audiopost" = "Entrada de audio";
+"chat.message.audiopost" = "Publicación de audio";
 
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "Este mensaje fue eliminado.";
@@ -502,8 +502,17 @@
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Para conectarse debéis intercambiar números de teléfono";
 
-/* Placeholder title for posts that are externally shared, John Smith's HalloApp Post */
-"externalShare.og.title" = "%@ Publicación de HalloApp";
+/* Description of an externally shared post containing an audio post */
+"externalShare.og.description.audio" = "Publicación de audio";
+
+/* Description of an externally shared post containing photos/videos */
+"externalShare.og.description.media" = "Publicación de medios";
+
+/* Description of an externally shared post containing just text */
+"externalShare.og.description.text" = "Publicación de texto";
+
+/* Title for posts that are externally shared, 'HalloApp Post from John Smith' */
+"externalShare.og.title2" = "Publicación en HalloApp de %s";
 
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Cámara";
@@ -604,6 +613,9 @@
 /* Title for the list when selecting contacts to not share with. */
 "feed.privacy.list.except.title" = "Esconder publicaciones de...";
 
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.notOwn.only.description" = "Esta publicación solo se comparte con una audiencia limitada. Puedes cambiar tu audiencia en la configuración de privacidad en cualquier momento.";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.only" = "Solo compartir con...";
 
@@ -612,6 +624,9 @@
 
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.only.title" = "Favoritos";
+
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.own.only.description" = "Esta publicación solo se comparte con un grupo personalizado de contactos. Puedes cambiar tu audiencia cada vez que hagas una nueva publicación, o en Configuración > Privacidad.";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Mis contactos de teléfono";
@@ -1002,6 +1017,9 @@
 
 /* Indicates how many invites are remaining */
 "n.invites.remaining" = "n.invites.remaining";
+
+/* Summary when multiple commenters commented on the same post you commented on */
+"n.others.replied" = "n.others.replied";
 
 /* Displayed in place of deleted feed posts. */
 "n.posts.deleted" = "%@ publicaciones borradas";
@@ -1470,7 +1488,7 @@
 "textlabel.context.menu.share" = "Compartir";
 
 /* Same as profile.header.call.user, but capitalized */
-"textview.context.menu.audio.call.user" = "Llamada";
+"textview.context.menu.audio.call.user" = "Llamar";
 
 /* Same as profile.header.message.user, but capitalized */
 "textview.context.menu.message.user" = "Mensaje";
@@ -1485,7 +1503,7 @@
 "thread.list.preview.already.user.default" = "%@ está en HalloApp";
 
 /* Default preview text shown for a symmetric contact who just joined Halloapp */
-"thread.list.preview.new.user.default" = "%@ está en HalloApp! 🎉";
+"thread.list.preview.new.user.default" = "¡%@ está en HalloApp! 🎉";
 
 /* Last seen timestamp: full date in short format and time */
 "timestamp.last.seen.date.at.time" = "Visto por última vez el %1$@ a la(s) %2$@";
