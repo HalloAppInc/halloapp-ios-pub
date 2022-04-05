@@ -202,9 +202,15 @@ final class FloatingMenu: UIView {
         for (i, button) in orderedButtons.enumerated() {
             let castsShadow = button == permanentButton
             let needsSpacing = !isCollapsed && button != permanentButton
+            
+            var buttonDifference = (button.bounds.width - permanentButton.bounds.width) / 2
+            if case .rightToLeft = effectiveUserInterfaceLayoutDirection {
+                buttonDifference = -buttonDifference
+            }
+            
             button.layer.shadowOpacity = castsShadow ? Self.ShadowOpacity : 0
             button.center = CGPoint(
-                x: permanentButton.center.x - (button.bounds.width - permanentButton.bounds.width) / 2,
+                x: permanentButton.center.x - buttonDifference,
                 y: permanentButton.center.y)
             if needsSpacing {
                 let deltaY = Self.PermanentButtonExtraSpacing + CGFloat(i) * (Self.ButtonDiameter + Self.ButtonSpacing)
@@ -312,11 +318,13 @@ final class AccessorizedFloatingButton: UIControl {
         super.init(frame: .zero)
 
         imageView.image = icon
-        imageView.heightAnchor.constraint(equalToConstant: icon?.size.height ?? 0).isActive = true
-        imageView.widthAnchor.constraint(equalToConstant: icon?.size.width ?? 0).isActive = true
+        imageView.contentMode = .scaleAspectFit
         translatesAutoresizingMaskIntoConstraints = false
         addSubview(pillView)
         pillView.constrain(to: self)
+        
+        imageView.setContentHuggingPriority(.required, for: .horizontal)
+        imageView.setContentCompressionResistancePriority(.required, for: .horizontal)
     }
 
     required init?(coder: NSCoder) {
@@ -340,17 +348,28 @@ final class AccessorizedFloatingButton: UIControl {
         let stackView = UIStackView(arrangedSubviews: [accessoryView, imageView])
         stackView.translatesAutoresizingMaskIntoConstraints = false
         stackView.axis = .horizontal
-        stackView.spacing = 9
+        stackView.alignment = .center
+        stackView.distribution = .fill
+        stackView.spacing = 7
         view.addSubview(stackView)
 
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.tintColor = .white
-        imageView.centerXAnchor.constraint(equalTo: view.trailingAnchor, constant: -FloatingMenu.ButtonDiameter/2).isActive = true
-        imageView.constrain([.centerY], to: view)
-        accessoryView.constrainMargins([.leading, .centerY], to: view)
 
-        view.heightAnchor.constraint(equalToConstant: FloatingMenu.ButtonDiameter).isActive = true
-        view.widthAnchor.constraint(greaterThanOrEqualToConstant: FloatingMenu.ButtonDiameter).isActive = true
+        // using a less than constraint here adds a little bit of padding to the left, making the image off-center
+        // instead, we now use a fixed value and a lower priority
+        let widthConstraint = view.widthAnchor.constraint(equalToConstant: FloatingMenu.ButtonDiameter)
+        widthConstraint.priority = .defaultLow
+        
+        NSLayoutConstraint.activate([
+            imageView.centerXAnchor.constraint(equalTo: view.trailingAnchor, constant: -FloatingMenu.ButtonDiameter/2),
+            imageView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            accessoryView.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
+            accessoryView.centerYAnchor.constraint(equalTo: view.layoutMarginsGuide.centerYAnchor),
+            view.heightAnchor.constraint(equalToConstant: FloatingMenu.ButtonDiameter),
+            widthConstraint,
+        ])
+        
         return view
     }()
 }

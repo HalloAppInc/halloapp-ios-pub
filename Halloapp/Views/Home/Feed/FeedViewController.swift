@@ -316,12 +316,17 @@ class FeedViewController: FeedCollectionViewController {
             composeVoiceNoteButton = button
             expandedButtons.insert(button, at: 1)
         }
-
+        
+        let config = UIImage.SymbolConfiguration(pointSize: 20, weight: .bold)
+        let plusImage = UIImage(systemName: "plus", withConfiguration: config)
+        let accessory = UIImageView(image: UIImage(named: "fab_hallo"))
+        accessory.contentMode = .scaleAspectFit
+        
         return FloatingMenu(
             permanentButton: .rotatingToggleButton(
-                collapsedIconTemplate: UIImage(named: "icon_fab_compose_post")?.withRenderingMode(.alwaysTemplate),
-                accessoryView: UIImageView(image: UIImage(named: "fab_hallo")),
-                expandedRotation: 45),
+                collapsedIconTemplate: plusImage?.withRenderingMode(.alwaysTemplate),
+                        accessoryView: UIImageView(image: UIImage(named: "fab_hallo")),
+                     expandedRotation: 45),
             expandedButtons: expandedButtons)
     }()
 
