@@ -124,15 +124,15 @@ open class MainDataStore {
                 newCall = existingCall
             } else {
                 newCall = Call(context: managedObjectContext)
+                newCall.callID = callID
+                newCall.peerUserID = peerUserID
+                newCall.type = type
+                newCall.direction = direction
+                newCall.timestamp = timestamp
+                newCall.answered = false
+                newCall.durationMs = 0.0
+                newCall.endReason = .unknown
             }
-            newCall.callID = callID
-            newCall.peerUserID = peerUserID
-            newCall.type = type
-            newCall.direction = direction
-            newCall.timestamp = timestamp
-            newCall.answered = false
-            newCall.durationMs = 0.0
-            newCall.endReason = .unknown
 
             managedObjectContext.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
             self.save(managedObjectContext)

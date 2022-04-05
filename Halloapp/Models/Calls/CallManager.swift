@@ -943,14 +943,15 @@ extension CallManager: HalloCallDelegate {
             // Save call to mainDataStore.
             MainAppContext.shared.mainDataStore.saveCall(callID: callID, peerUserID: peerUserID, type: callType, direction: .incoming, timestamp: Date())
 
+
             if activeCallID == incomingCallPush.callID {
-                DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID) duplicate packet")
+                DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCallPush: \(callID) from: \(peerUserID) duplicate packet")
                 reportIncomingCall(id: callID, from: peerUserID, type: callType) { result in
                     switch result {
                     case .success:
-                        DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/system/duplicate-success")
+                        DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCallPush/system/duplicate-success")
                     case .failure(let error):
-                        DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/system/duplicate-failed: \(error)")
+                        DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCallPush/system/duplicate-failed: \(error)")
                     }
                 }
             } else if activeCall != nil {
@@ -959,9 +960,9 @@ extension CallManager: HalloCallDelegate {
                     call.endReason = .busy
                 }
                 didCallComplete.send(callID)
-                DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID)/end with reason busy")
+                DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCallPush: \(callID) from: \(peerUserID)/end with reason busy")
             } else {
-                DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID)/callUUID: \(callID.callUUID)")
+                DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCallPush: \(callID)/callUUID: \(callID.callUUID)")
                 callDetailsMap[callID.callUUID] = CallDetails(callID: callID, peerUserID: peerUserID, type: callType)
                 let iceServers = WebRTCClient.getIceServers(stunServers: incomingCallPush.stunServers, turnServers: incomingCallPush.turnServers)
                 activeCall = Call(id: callID, peerUserID: peerUserID, type: callType)
@@ -971,9 +972,9 @@ extension CallManager: HalloCallDelegate {
                 reportIncomingCall(id: callID, from: peerUserID, type: callType) { result in
                     switch result {
                     case .success:
-                        DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/system/success")
+                        DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCallPush/system/success")
                     case .failure(let error):
-                        DDLogError("CallManager/HalloCallDelegate/didReceiveIncomingCall/system/failed: \(error)")
+                        DDLogError("CallManager/HalloCallDelegate/didReceiveIncomingCallPush/system/failed: \(error)")
                         self.checkAndReportCallEnded(id: callID, reason: .failed)
                         self.endActiveCall(reason: .systemError)
                     }
