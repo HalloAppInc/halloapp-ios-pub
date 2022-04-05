@@ -9,7 +9,6 @@
 import Combine
 import Core
 import CoreCommon
-import UIKit
 
 public struct HalloServiceFeedPayload {
     let content: FeedContent
@@ -35,12 +34,7 @@ protocol HalloService: CoreService {
     func retractComment(_ id: FeedPostCommentID, postID: FeedPostID, in groupID: GroupID, to toUserID: UserID)
     func sharePosts(postIds: [FeedPostID], with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>)
     func shareGroupHistory(items: Server_GroupFeedItems, with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>)
-    func uploadPostForExternalShare(post: FeedPost,
-                                    ogTitle: String,
-                                    ogDescription: String,
-                                    ogThumbURL: URL?,
-                                    ogThumbSize: CGSize?,
-                                    completion: @escaping ServiceRequestCompletion<(blobID: String, key: Data)>)
+    func uploadPostForExternalShare(_ postID: FeedPostID, completion: @escaping ServiceRequestCompletion<(blobID: String, key: Data)>)
     func revokeExternalShareLink(blobID: String, completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Receipts

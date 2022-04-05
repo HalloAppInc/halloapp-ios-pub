@@ -32,13 +32,8 @@ protocol MediaUploadable {
     var encryptedFilePath: String? { get }
 
     var urlInfo: MediaURLInfo? { get }
-}
 
-struct SimpleMediaUploadable: MediaUploadable {
-
-    let index = 0
-    let encryptedFilePath: String?
-    let urlInfo: MediaURLInfo? = nil
+    var url: URL? { get }
 }
 
 final class MediaUploader {

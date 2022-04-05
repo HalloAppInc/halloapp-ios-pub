@@ -1326,14 +1326,12 @@ extension ProtoService: HalloService {
         }
     }
 
-    func uploadPostForExternalShare(post: FeedPost,
-                                    ogTitle: String,
-                                    ogDescription: String,
-                                    ogThumbURL: URL?,
-                                    ogThumbSize: CGSize?,
-                                    completion: @escaping ServiceRequestCompletion<(blobID: String, key: Data)>) {
-        let postData = post.postData
-
+    func uploadPostForExternalShare(_ postID: FeedPostID, completion: @escaping ServiceRequestCompletion<(blobID: String, key: Data)>) {
+        guard let postData = MainAppContext.shared.feedData.feedPost(with: postID)?.postData else {
+            DDLogError("ProtoService/UploadPostForExternalShare/Failed find post")
+            completion(.failure(RequestError.aborted))
+            return
+        }
         guard let data = try? postData.clientPostContainerBlob.serializedData() else {
             DDLogError("ProtoService/UploadPostForExternalShare/Could not serialize post")
             completion(.failure(RequestError.aborted))
@@ -1373,13 +1371,7 @@ extension ProtoService: HalloService {
         let expiry = postData.timestamp.addingTimeInterval(-FeedData.postExpiryTimeInterval)
 
         var ogTagInfo = Server_OgTagInfo()
-        ogTagInfo.title = ogTitle
-        ogTagInfo.description_p = ogDescription
-        if let ogThumbURL = ogThumbURL, let ogThumbSize = ogThumbSize {
-            ogTagInfo.thumbnailURL = ogThumbURL.absoluteString
-            ogTagInfo.thumbnailWidth = Int32(ogThumbSize.width)
-            ogTagInfo.thumbnailHeight = Int32(ogThumbSize.height)
-        }
+        ogTagInfo.title = Localizations.externalShareTitle(name: MainAppContext.shared.userData.name)
 
         enqueue(request: ProtoExternalShareRequest(encryptedPostData: encryptedPayload, expiry: expiry, ogTagInfo: ogTagInfo) { result in
             switch result {
