@@ -21,7 +21,6 @@ enum PostComposerDestination: Equatable {
 
 class PostComposerViewConfiguration: ObservableObject {
     @Published var destination: PostComposerDestination = .userFeed
-    var useTransparentNavigationBar: Bool
     var mediaCarouselMaxAspectRatio: CGFloat
     var mediaEditMaxAspectRatio: CGFloat?
     var imageServerMaxAspectRatio: CGFloat?
@@ -29,14 +28,12 @@ class PostComposerViewConfiguration: ObservableObject {
 
     init(
         destination: PostComposerDestination,
-        useTransparentNavigationBar: Bool = false,
         mediaCarouselMaxAspectRatio: CGFloat = 1.25,
         mediaEditMaxAspectRatio: CGFloat? = nil,
         imageServerMaxAspectRatio: CGFloat? = 1.25,
         maxVideoLength: TimeInterval = 500) {
         
         self.destination = destination
-        self.useTransparentNavigationBar = useTransparentNavigationBar
         self.mediaCarouselMaxAspectRatio = mediaCarouselMaxAspectRatio
         self.mediaEditMaxAspectRatio = mediaEditMaxAspectRatio
         self.imageServerMaxAspectRatio = imageServerMaxAspectRatio
@@ -46,7 +43,6 @@ class PostComposerViewConfiguration: ObservableObject {
     static var userPost: PostComposerViewConfiguration {
         PostComposerViewConfiguration(
             destination: .userFeed,
-            useTransparentNavigationBar: true,
             maxVideoLength: ServerProperties.maxFeedVideoDuration
         )
     }
@@ -54,7 +50,6 @@ class PostComposerViewConfiguration: ObservableObject {
     static func groupPost(id groupID: GroupID) -> PostComposerViewConfiguration {
         PostComposerViewConfiguration(
             destination: .groupFeed(groupID),
-            useTransparentNavigationBar: true,
             maxVideoLength: ServerProperties.maxFeedVideoDuration
         )
     }
@@ -164,6 +159,145 @@ class PostComposerViewController: UIViewController {
 
     private var cancellableSet: Set<AnyCancellable> = []
     private var mediaItemsReadyCancellableSet: Set<AnyCancellable> = []
+    private var changeDestinationAvatarCancellable: AnyCancellable?
+
+    private lazy var backButton: UIButton = {
+        let imageColor = UIColor.label.withAlphaComponent(0.9)
+        let imageConfig = UIImage.SymbolConfiguration(weight: .bold)
+        let image = UIImage(systemName: "chevron.left", withConfiguration: imageConfig)?.withTintColor(imageColor)
+
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(image, for: .normal)
+        button.addTarget(self, action: #selector(backAction), for: .touchUpInside)
+
+        NSLayoutConstraint.activate([
+            button.widthAnchor.constraint(equalToConstant: 44),
+            button.heightAnchor.constraint(equalToConstant: 44),
+        ])
+
+        return button
+    }()
+
+    private lazy var titleLabel: UILabel = {
+        let title = UILabel()
+        title.translatesAutoresizingMaskIntoConstraints = false
+        title.textAlignment = .center
+        title.font = .gothamFont(ofFixedSize: 15, weight: .medium)
+        title.textColor = .label.withAlphaComponent(0.9)
+
+        return title
+    }()
+
+    private var changeDestinationIconConstraint: NSLayoutConstraint?
+    private lazy var changeDestinationIcon: UIImageView = {
+        let iconImage = UIImage(named: "settingsAccount")?
+            .withTintColor(.white, renderingMode: .alwaysOriginal)
+        let icon = UIImageView(image: iconImage)
+        icon.translatesAutoresizingMaskIntoConstraints = false
+        icon.contentMode = .scaleAspectFit
+
+        let iconConstraint = icon.widthAnchor.constraint(equalToConstant: 13)
+        NSLayoutConstraint.activate([
+            iconConstraint,
+            icon.heightAnchor.constraint(equalTo: icon.widthAnchor),
+        ])
+        changeDestinationIconConstraint = iconConstraint
+
+        return icon
+    }()
+
+    private lazy var changeDestinationLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = .white
+        label.font = .systemFont(ofSize: 15, weight: .medium)
+
+        return label
+    }()
+
+    private lazy var changeDestinationButton: UIButton = {
+        let arrowConfig = UIImage.SymbolConfiguration(pointSize: 14, weight: .medium)
+        let arrowImage = UIImage(systemName: "chevron.down", withConfiguration: arrowConfig)?
+            .withTintColor(.white, renderingMode: .alwaysOriginal)
+        let arrow = UIImageView(image: arrowImage)
+        arrow.translatesAutoresizingMaskIntoConstraints = false
+
+        let stack = UIStackView(arrangedSubviews: [changeDestinationIcon, changeDestinationLabel, arrow])
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .horizontal
+        stack.alignment = .center
+        stack.spacing = 6
+        stack.isUserInteractionEnabled = false
+
+        let button = UIButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setBackgroundColor(.primaryBlue, for: .normal)
+        button.layer.cornerRadius = 11
+        button.layer.masksToBounds = true
+        button.addTarget(self, action: #selector(changeDestinationAction), for: .touchUpInside)
+
+        button.addSubview(stack)
+
+        NSLayoutConstraint.activate([
+            stack.heightAnchor.constraint(equalToConstant: 25),
+            stack.topAnchor.constraint(equalTo: button.topAnchor),
+            stack.bottomAnchor.constraint(equalTo: button.bottomAnchor, constant: -1),
+            stack.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: 11),
+            stack.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -11),
+        ])
+
+        return button
+    }()
+
+    private lazy var changeDestinationRow: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+
+        view.addSubview(changeDestinationButton)
+
+        NSLayoutConstraint.activate([
+            changeDestinationButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            changeDestinationButton.heightAnchor.constraint(equalTo: view.heightAnchor),
+        ])
+
+        return view
+    }()
+
+    private var customNavigationContentTopConstraint: NSLayoutConstraint?
+    private lazy var customNavigationBar: UIView = {
+        let effect = UIBlurEffect(style: .systemUltraThinMaterial)
+        let container = BlurView(effect: effect, intensity: 1)
+        container.translatesAutoresizingMaskIntoConstraints = false
+
+        let navigationRow = UIView()
+        navigationRow.translatesAutoresizingMaskIntoConstraints = false
+        navigationRow.addSubview(backButton)
+        navigationRow.addSubview(titleLabel)
+
+        let rowsView = UIStackView(arrangedSubviews: [navigationRow, changeDestinationRow])
+        rowsView.translatesAutoresizingMaskIntoConstraints = false
+        rowsView.axis = .vertical
+        rowsView.alignment = .fill
+        rowsView.spacing = -4
+
+        container.contentView.addSubview(rowsView)
+
+        NSLayoutConstraint.activate([
+            navigationRow.heightAnchor.constraint(equalToConstant: 44),
+            backButton.leadingAnchor.constraint(equalTo: navigationRow.leadingAnchor),
+            backButton.centerYAnchor.constraint(equalTo: navigationRow.centerYAnchor),
+            titleLabel.centerXAnchor.constraint(equalTo: navigationRow.centerXAnchor),
+            titleLabel.centerYAnchor.constraint(equalTo: navigationRow.centerYAnchor),
+            rowsView.leadingAnchor.constraint(equalTo: container.contentView.leadingAnchor, constant: 8),
+            rowsView.trailingAnchor.constraint(equalTo: container.contentView.trailingAnchor, constant: -8),
+            rowsView.bottomAnchor.constraint(equalTo: container.contentView.bottomAnchor, constant: -9),
+        ])
+
+        customNavigationContentTopConstraint = rowsView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8)
+
+        return container
+    }()
 
     init(
         mediaToPost media: [PendingMedia],
@@ -192,12 +326,6 @@ class PostComposerViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        if configuration.useTransparentNavigationBar {
-            navigationItem.standardAppearance = .transparentAppearance
-            navigationItem.scrollEdgeAppearance = .transparentAppearance
-            navigationItem.compactAppearance = .transparentAppearance
-        }
 
         // handle early processing of media items
         cancellableSet.insert(self.mediaItems.$value.sink { [weak self] items in
@@ -266,15 +394,6 @@ class PostComposerViewController: UIViewController {
                 
                 self.present(editController, animated: true)
             },
-            changeDestination: { [weak self] in
-                guard let self = self else { return }
-                let controller = ChangeDestinationViewController(destination: self.configuration.destination) { controller, destination in
-                    controller.dismiss(animated: true)
-                    self.configuration.destination = destination
-                }
-
-                self.present(UINavigationController(rootViewController: controller), animated: true)
-            },
             goBack: { [weak self] in self?.backAction() },
             share: { [weak self] in
                 self?.isVideoLengthWithinLimit { [weak self] isWithinLimit in
@@ -290,35 +409,46 @@ class PostComposerViewController: UIViewController {
         )
 
         let postComposerViewController = UIHostingController(rootView: postComposerView)
-        addChild(postComposerViewController)
-        view.addSubview(postComposerViewController.view)
         postComposerViewController.view.translatesAutoresizingMaskIntoConstraints = false
         postComposerViewController.view.backgroundColor = .feedBackground
+
+        addChild(postComposerViewController)
+        view.addSubview(postComposerViewController.view)
         postComposerViewController.view.constrain(to: view)
         postComposerViewController.didMove(toParent: self)
 
+        view.addSubview(customNavigationBar)
+        NSLayoutConstraint.activate([
+            customNavigationBar.topAnchor.constraint(equalTo: view.topAnchor),
+            customNavigationBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            customNavigationBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+        ])
+        customNavigationContentTopConstraint?.isActive = true
+
         switch configuration.destination {
         case .chat(_):
-            title = Localizations.newMessageTitle
+            titleLabel.text = Localizations.newMessageTitle
         default:
-            title = Localizations.newPostTitle
+            titleLabel.text = Localizations.newPostTitle
         }
-
-        navigationItem.leftBarButtonItem =
-            UIBarButtonItem(image: isMediaPost ? backIcon : closeIcon, style: .plain, target: self, action: #selector(backAction))
         
         MainAppContext.shared.privacySettings.feedPrivacySettingDidChange.sink { [weak self] in
-            guard
-                let self = self,
-                self.configuration.destination == .userFeed
-            else { return }
-            // we need this because if the user change's their privacy settings for this post, the updated setting isn't
-            // cached until after the response from the server, which causes things like the allowed mentions to be out of
-            // sync for this post
-            self.configuration.destination = .userFeed
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                self.updateChangeDestinationBtn()
+            }
         }.store(in: &cancellableSet)
+
+        updateChangeDestinationBtn()
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        // Required because UIHostingController and also a custom navigation due to the destination button
+        DispatchQueue.main.async {
+            self.navigationController?.setNavigationBarHidden(true, animated: false)
+        }
+    }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
@@ -331,6 +461,76 @@ class PostComposerViewController: UIViewController {
                                      destination: configuration.destination,
                                      media: mediaItems.invalidated ? [] : mediaItems.value,
                                      voiceNote: audioComposerRecorder.voiceNote)
+    }
+
+    @objc private func changeDestinationAction() {
+        if case .chat = configuration.destination {
+            return
+        }
+
+        let controller = ChangeDestinationViewController(destination: configuration.destination) { controller, destination in
+            controller.dismiss(animated: true)
+            self.configuration.destination = destination
+            self.updateChangeDestinationBtn()
+        }
+
+        present(UINavigationController(rootViewController: controller), animated: true)
+    }
+
+    private func updateChangeDestinationBtn() {
+        changeDestinationIcon.isHidden = false
+        changeDestinationIcon.layer.cornerRadius = 0
+        changeDestinationIcon.layer.masksToBounds = false
+        changeDestinationAvatarCancellable?.cancel()
+
+        switch configuration.destination {
+        case .userFeed:
+            let privacy = MainAppContext.shared.privacySettings.activeType ?? .all
+
+            switch privacy {
+            case .all:
+                changeDestinationIcon.image = UIImage(named: "settingsAccount")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+            default:
+                changeDestinationIcon.image = UIImage(named: "settingsSettings")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+            }
+
+            changeDestinationIconConstraint?.constant = 13
+
+            changeDestinationLabel.text = PrivacyList.name(forPrivacyListType: privacy)
+        case .groupFeed(let groupId):
+            let avatarData = MainAppContext.shared.avatarStore.groupAvatarData(for: groupId)
+
+            if let image = avatarData.image {
+                changeDestinationIcon.image = image
+                changeDestinationIcon.layer.cornerRadius = 6
+                changeDestinationIcon.layer.masksToBounds = true
+            } else {
+                changeDestinationIcon.image = AvatarView.defaultGroupImage
+
+                guard !avatarData.isEmpty else { return }
+
+                changeDestinationAvatarCancellable = avatarData.imageDidChange.sink { [weak self] image in
+                    guard let self = self else { return }
+                    guard let image = image else { return }
+                    self.changeDestinationIcon.image = image
+                }
+
+                avatarData.loadImage(using: MainAppContext.shared.avatarStore)
+            }
+
+            changeDestinationIconConstraint?.constant = 19
+
+            if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
+                changeDestinationLabel.text = group.name
+            }
+        case .chat(let userId):
+            changeDestinationIcon.isHidden = true
+
+            if let userId = userId {
+                let name = MainAppContext.shared.contactStore.fullName(for: userId)
+                changeDestinationLabel.text = Localizations.newMessageSubtitle(recipient: name)
+            }
+        }
     }
 
     private func share() {
@@ -446,7 +646,6 @@ fileprivate struct PostComposerView: View {
     private let initialPostType: NewPostMediaSource
     @ObservedObject private var shouldAutoPlay: GenericObservable<Bool>
     @ObservedObject private var isPosting = GenericObservable<Bool>(false)
-    private let changeDestination: () -> Void
     private let crop: (Int, @escaping ([PendingMedia], Int, Bool) -> Void) -> Void
     private let goBack: () -> Void
     private let share: () -> Void
@@ -462,7 +661,6 @@ fileprivate struct PostComposerView: View {
     @State private var presentDeleteVoiceNote = false
     @State private var videoTooLong = false
     @State private var isReadyToShare = false
-    @State private var changeDestinationImage: UIImage?
     private var mediaItemsBinding = Binding.constant([PendingMedia]())
     private var mediaIsReadyBinding = Binding.constant(false)
     private var numberOfFailedItemsBinding = Binding.constant(0)
@@ -505,7 +703,6 @@ fileprivate struct PostComposerView: View {
         shouldAutoPlay: GenericObservable<Bool>,
         configuration: PostComposerViewConfiguration,
         crop: @escaping (Int, @escaping ([PendingMedia], Int, Bool) -> Void) -> Void,
-        changeDestination: @escaping () -> Void,
         goBack: @escaping () -> Void,
         share: @escaping () -> Void
     ) {
@@ -520,7 +717,6 @@ fileprivate struct PostComposerView: View {
         self.shouldAutoPlay = shouldAutoPlay
         self.mediaCarouselMaxAspectRatio = configuration.mediaCarouselMaxAspectRatio
         self.maxVideoLength = configuration.maxVideoLength
-        self.changeDestination = changeDestination
         self.crop = crop
         self.goBack = goBack
         self.share = share
@@ -616,76 +812,6 @@ fileprivate struct PostComposerView: View {
         return MediaCarouselView.preferredHeight(for: feedMediaItems, width: width - 4 * PostComposerLayoutConstants.horizontalPadding)
     }
 
-    private func changeDestinationButtonText() -> String {
-        switch configuration.destination {
-        case .userFeed:
-            return PrivacyList.name(forPrivacyListType: privacySettings.activeType ?? .all)
-        case .groupFeed(let groupId):
-            if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
-                return group.name
-            }
-        case .chat(let userId):
-            if let userId = userId {
-                let name = MainAppContext.shared.contactStore.fullName(for: userId)
-                return Localizations.newMessageSubtitle(recipient: name)
-            }
-        }
-
-        return ""
-    }
-
-    @ViewBuilder
-    private func changeDestinationIcon() -> some View {
-        switch configuration.destination {
-        case .userFeed:
-            switch privacySettings.activeType ?? .all {
-            case .all:
-                Image("settingsAccount")
-                    .resizable()
-                    .renderingMode(.template)
-                    .foregroundColor(.white)
-                    .frame(width: 13, height: 13)
-            default:
-                Image("settingsSettings")
-                    .resizable()
-                    .renderingMode(.template)
-                    .foregroundColor(.white)
-                    .frame(width: 13, height: 13)
-            }
-        case .groupFeed(let groupId):
-            if let image = MainAppContext.shared.avatarStore.groupAvatarData(for: groupId).image {
-                Image(uiImage: image)
-                    .resizable()
-                    .frame(width: 19, height: 19)
-                    .cornerRadius(6)
-            } else if let image = changeDestinationImage {
-                Image(uiImage: image)
-                    .resizable()
-                    .frame(width: 19, height: 19)
-                    .cornerRadius(6)
-            } else {
-                Image("AvatarGroup")
-                    .resizable()
-                    .frame(width: 19, height: 19)
-            }
-        case .chat:
-            EmptyView()
-        }
-    }
-
-    private func changeDestinationIconPublisher() -> AnyPublisher<UIImage?, Never> {
-        if case .groupFeed(let groupId) = configuration.destination {
-            let avatarData = MainAppContext.shared.avatarStore.groupAvatarData(for: groupId)
-
-            if avatarData.image == nil && !avatarData.isEmpty {
-                avatarData.loadImage(using: MainAppContext.shared.avatarStore)
-                return avatarData.imageDidChange.eraseToAnyPublisher()
-            }
-        }
-
-        return Empty<UIImage?, Never>(completeImmediately: false).eraseToAnyPublisher()
-    }
-
     private func allowChangingDestination() -> Bool {
         switch configuration.destination {
         case .userFeed, .groupFeed:
@@ -771,7 +897,7 @@ fileprivate struct PostComposerView: View {
             self.share()
         }
         .offset(x: 2)
-        .disabled(!isReadyToShare || isPosting.value)
+        .disabled(!isReadyToShare || isPosting.value || (audioComposerRecorder.isRecording && !audioComposerRecorder.recorderControlsLocked))
     }
 
     var audioRecordingView: some View {
@@ -795,36 +921,8 @@ fileprivate struct PostComposerView: View {
         }
     }
 
-    var changeDestinationButton: some View {
-        Button(action: changeDestination) {
-            changeDestinationIcon()
-                .offset(x: 2, y: -1)
-
-            Text(changeDestinationButtonText())
-                .font(.system(size: 15, weight: .medium))
-                .foregroundColor(.white)
-                .offset(y: -1)
-
-            if allowChangingDestination() {
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white)
-            }
-        }
-        .frame(height: 25)
-        .padding(EdgeInsets(top: 1, leading: 11, bottom: 0, trailing: 11))
-        .background(Color.primaryBlue)
-        .cornerRadius(11)
-        .disabled(!allowChangingDestination())
-        .onReceive(changeDestinationIconPublisher()) {
-            changeDestinationImage = $0
-        }
-    }
-
     var body: some View {
         VStack(spacing: 0) {
-            changeDestinationButton
-
             GeometryReader { scrollGeometry in
                 ScrollView {
                     VStack {
@@ -902,7 +1000,8 @@ fileprivate struct PostComposerView: View {
                         .padding(.horizontal, mediaCount > 0 ? 0 : PostComposerLayoutConstants.horizontalPadding)
                         .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
                     }
-                    .frame(minHeight: scrollGeometry.size.height)
+                    .frame(minHeight: scrollGeometry.size.height-80)
+                    .padding(.top, 80)
                     .background(
                         YOffsetGetter(coordinateSpace: .named(PostComposerLayoutConstants.mainScrollCoordinateSpace))
                             .onPreferenceChange(YOffsetPreferenceKey.self, perform: {
@@ -1411,12 +1510,14 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
             var items: [MediaCarouselSupplementaryItem] = []
 
             if numberOfPages == 1 {
-                let label = UILabel()
-                label.text = Localizations.addMore
-                label.font = .systemFont(ofSize: 14)
-                label.textColor = .primaryBlackWhite.withAlphaComponent(0.4)
+                let button = UIButton(type: .system)
+                button.translatesAutoresizingMaskIntoConstraints = false
+                button.setTitle(Localizations.addMore, for: .normal)
+                button.titleLabel?.font = .systemFont(ofSize: 14)
+                button.titleLabel?.textColor = .label.withAlphaComponent(0.4)
+                button.addTarget(context.coordinator, action: #selector(context.coordinator.moreAction), for: .touchUpInside)
 
-                items.append(MediaCarouselSupplementaryItem(anchors: [.trailing], view: label))
+                items.append(MediaCarouselSupplementaryItem(anchors: [.trailing], view: button))
             }
 
             if numberOfPages < 10 {

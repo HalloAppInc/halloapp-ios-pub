@@ -401,7 +401,7 @@ class MediaPickerViewController: UIViewController {
         rowsView.translatesAutoresizingMaskIntoConstraints = false
         rowsView.axis = .vertical
         rowsView.alignment = .fill
-        rowsView.spacing = 8
+        rowsView.spacing = -4
 
         container.contentView.addSubview(rowsView)
 

@@ -214,7 +214,6 @@ class ChangeDestinationViewController: UIViewController {
     }
 
     override func viewDidLoad() {
-        isModalInPresentation = true
         view.backgroundColor = .primaryBg
 
         navigationItem.title = Localizations.titlePrivacy
