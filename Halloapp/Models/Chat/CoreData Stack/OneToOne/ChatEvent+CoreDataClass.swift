@@ -10,7 +10,7 @@
 import Foundation
 import CoreData
 
-@objc(ChatEvent)
-public class ChatEvent: NSManagedObject {
+@objc(ChatEventLegacy)
+public class ChatEventLegacy: NSManagedObject {
 
 }

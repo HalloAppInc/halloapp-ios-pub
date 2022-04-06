@@ -105,7 +105,7 @@ class DataStore: NotificationServiceExtensionDataStore {
             // Add media
             var postMedia: Set<SharedMedia> = []
             for (index, feedPostMedia) in postData?.orderedMedia.enumerated() ?? [].enumerated() {
-                guard let mediaType: FeedMediaType = {
+                guard let mediaType: CommonMediaType = {
                     switch feedPostMedia.type {
                     case .image: return .image
                     case .video: return .video

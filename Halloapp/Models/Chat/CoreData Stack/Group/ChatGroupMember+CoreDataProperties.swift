@@ -10,7 +10,6 @@
 import Foundation
 import CoreData
 
-
 extension ChatGroupMember {
 
     @nonobjc public class func fetchRequest() -> NSFetchRequest<ChatGroupMember> {
@@ -21,7 +20,7 @@ extension ChatGroupMember {
     @NSManaged var typeValue: Int16
     @NSManaged var userId: String
 
-    @NSManaged var group: ChatGroup
+    @NSManaged var group: ChatGroupLegacy
     
     var `type`: ChatGroupMemberType {
         get {

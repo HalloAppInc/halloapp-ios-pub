@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="20083" systemVersion="21D49" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
-    <entity name="ChatEvent" representedClassName="ChatEvent" syncable="YES">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19557.2" systemVersion="20G95" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="ChatEvent" representedClassName="ChatEventLegacy" syncable="YES">
         <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="typeValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="userID" attributeType="String"/>
     </entity>
-    <entity name="ChatGroup" representedClassName="ChatGroup" syncable="YES">
+    <entity name="ChatGroup" representedClassName="ChatGroupLegacy" syncable="YES">
         <attribute name="avatar" optional="YES" attributeType="String"/>
         <attribute name="background" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="desc" optional="YES" attributeType="String"/>
@@ -90,7 +90,7 @@
         <attribute name="userID" optional="YES" attributeType="String"/>
         <relationship name="chatGroupMessage" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatGroupMessage" inverseName="mentions" inverseEntity="ChatGroupMessage"/>
     </entity>
-    <entity name="ChatMessage" representedClassName="ChatMessage" syncable="YES">
+    <entity name="ChatMessage" representedClassName="ChatMessageLegacy" syncable="YES">
         <attribute name="cellHeight" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="chatReplyMessageID" optional="YES" attributeType="String"/>
         <attribute name="chatReplyMessageMediaIndex" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
@@ -113,7 +113,7 @@
         <relationship name="media" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ChatMedia" inverseName="message" inverseEntity="ChatMedia"/>
         <relationship name="quoted" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatQuoted" inverseName="message" inverseEntity="ChatQuoted"/>
     </entity>
-    <entity name="ChatQuoted" representedClassName="ChatQuoted" syncable="YES">
+    <entity name="ChatQuoted" representedClassName="ChatQuotedLegacy" syncable="YES">
         <attribute name="text" optional="YES" attributeType="String"/>
         <attribute name="typeValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="userId" optional="YES" attributeType="String"/>
@@ -132,7 +132,7 @@
         <attribute name="width" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
         <relationship name="quoted" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatQuoted" inverseName="media" inverseEntity="ChatQuoted"/>
     </entity>
-    <entity name="ChatThread" representedClassName="ChatThread" syncable="YES">
+    <entity name="ChatThread" representedClassName="ChatThreadLegacy" syncable="YES">
         <attribute name="chatWithUserId" optional="YES" attributeType="String"/>
         <attribute name="groupId" optional="YES" attributeType="String"/>
         <attribute name="isNew" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
@@ -154,6 +154,7 @@
         <attribute name="unreadFeedCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
     </entity>
     <elements>
+        <element name="ChatEvent" positionX="-27" positionY="153" width="128" height="74"/>
         <element name="ChatGroup" positionX="-45" positionY="135" width="128" height="164"/>
         <element name="ChatGroupMember" positionX="-36" positionY="144" width="128" height="103"/>
         <element name="ChatGroupMessage" positionX="-27" positionY="153" width="128" height="284"/>
@@ -162,10 +163,9 @@
         <element name="ChatLinkPreview" positionX="-27" positionY="153" width="128" height="119"/>
         <element name="ChatMedia" positionX="-54" positionY="36" width="128" height="299"/>
         <element name="ChatMention" positionX="-36" positionY="144" width="128" height="89"/>
-        <element name="ChatMessage" positionX="-54" positionY="-9" width="128" height="14"/>
-        <element name="ChatQuoted" positionX="-45" positionY="99" width="128" height="148"/>
+        <element name="ChatMessage" positionX="-54" positionY="-9" width="128" height="344"/>
+        <element name="ChatQuoted" positionX="-45" positionY="99" width="128" height="134"/>
         <element name="ChatQuotedMedia" positionX="-36" positionY="108" width="128" height="149"/>
         <element name="ChatThread" positionX="-36" positionY="108" width="128" height="314"/>
-        <element name="ChatEvent" positionX="-27" positionY="153" width="128" height="74"/>
     </elements>
 </model>

@@ -12,31 +12,7 @@ import Core
 import CoreCommon
 import CoreData
 
-extension ChatMessage {
-
-    enum IncomingStatus: Int16 {
-        case none = 0
-        case haveSeen = 1
-        case sentSeenReceipt = 2
-        case error = 3
-        case retracted = 4
-        case rerequesting = 5
-        case unsupported = 6
-        case played = 7
-        case sentPlayedReceipt = 8
-    }
-    
-    enum OutgoingStatus: Int16 {
-        case none = 0
-        case pending = 1        // initial state, only recorded in the database
-        case sentOut = 2        // got ACK from server, timestamp is from server
-        case delivered = 3      // other user have gotten the message
-        case seen = 4           // other user have seen the message
-        case error = 5
-        case retracting = 6     // marked for deletion but no server ack yet
-        case retracted = 7      // deleted messages
-        case played = 8         // other user have played the message, only for voice notes
-    }
+extension ChatMessageLegacy {
     
     @nonobjc public class func fetchRequest() -> NSFetchRequest<ChatMessage> {
         return NSFetchRequest<ChatMessage>(entityName: "ChatMessage")
@@ -55,7 +31,7 @@ extension ChatMessage {
     @NSManaged var chatReplyMessageSenderID: UserID?
     @NSManaged var chatReplyMessageMediaIndex: Int32
     
-    @NSManaged var quoted: ChatQuoted?
+    @NSManaged var quoted: ChatQuotedLegacy?
     
     @NSManaged var incomingStatusValue: Int16
     @NSManaged var outgoingStatusValue: Int16
@@ -74,18 +50,18 @@ extension ChatMessage {
 
     @NSManaged public var linkPreviews: Set<ChatLinkPreview>?
     
-    var incomingStatus: IncomingStatus {
+    var incomingStatus: ChatMessage.IncomingStatus {
         get {
-            return IncomingStatus(rawValue: self.incomingStatusValue)!
+            return ChatMessage.IncomingStatus(rawValue: self.incomingStatusValue)!
         }
         set {
             self.incomingStatusValue = newValue.rawValue
         }
     }
     
-    var outgoingStatus: OutgoingStatus {
+    var outgoingStatus: ChatMessage.OutgoingStatus {
         get {
-            return OutgoingStatus(rawValue: self.outgoingStatusValue)!
+            return ChatMessage.OutgoingStatus(rawValue: self.outgoingStatusValue)!
         }
         set {
             self.outgoingStatusValue = newValue.rawValue
@@ -123,6 +99,10 @@ extension ChatMessage {
 
 
 extension ChatMessage: ChatQuotedProtocol {
+    public var quotedText: String? {
+        return rawText
+    }
+
     public var userId: String {
         return fromUserId
     }
@@ -131,8 +111,8 @@ extension ChatMessage: ChatQuotedProtocol {
         return .message
     }
 
-    public var mentions: Set<FeedMention>? {
-        return nil
+    public var mentions: [MentionData] {
+        return []
     }
 
     public var mediaList: [QuotedMedia] {

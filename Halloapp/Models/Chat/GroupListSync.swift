@@ -13,7 +13,7 @@ import Foundation
 
 public class GroupListSync: NSObject, NSFetchedResultsControllerDelegate {
 
-    private var fetchedResultsController: NSFetchedResultsController<ChatGroup>?
+    private var fetchedResultsController: NSFetchedResultsController<Group>?
     private var userId: UserID?
     private let sync = PassthroughSubject<Void, Never>()
     private var syncCancellable: AnyCancellable?
@@ -26,13 +26,13 @@ public class GroupListSync: NSObject, NSFetchedResultsControllerDelegate {
             }
             fetchedResultsController.managedObjectContext.perform {
                 let groups = (fetchedResultsController.fetchedObjects ?? [])
-                    .filter { $0.members?.first { $0.userId == userId } != nil }
-                    .map { (group: ChatGroup) -> GroupListSyncItem in
-                        let users = group.members?.map { $0.userId } ?? [UserID]()
-                        let thread = self.chatThread(for: group.groupId, in: fetchedResultsController.managedObjectContext)
+                    .filter { $0.members?.first { $0.userID == userId } != nil }
+                    .map { (group: Group) -> GroupListSyncItem in
+                        let users = group.members?.map { $0.userID } ?? [UserID]()
+                        let thread = self.chatThread(for: group.id, in: fetchedResultsController.managedObjectContext)
 
                         return GroupListSyncItem(
-                            id: group.groupId,
+                            id: group.id,
                             name: group.name,
                             users: users,
                             lastActivityTimestamp: thread?.lastFeedTimestamp ?? thread?.lastMsgTimestamp
@@ -51,12 +51,12 @@ public class GroupListSync: NSObject, NSFetchedResultsControllerDelegate {
         sync.send()
     }
 
-    private func makeFetchedResultsController(using context: NSManagedObjectContext) -> NSFetchedResultsController<ChatGroup> {
-        let request: NSFetchRequest<ChatGroup> = ChatGroup.fetchRequest()
+    private func makeFetchedResultsController(using context: NSManagedObjectContext) -> NSFetchedResultsController<Group> {
+        let request: NSFetchRequest<Group> = Group.fetchRequest()
         request.sortDescriptors = [
             NSSortDescriptor(key: "name", ascending: true),
         ]
-        request.predicate = NSPredicate(format: "groupId != nil")
+        request.predicate = NSPredicate(format: "id != nil")
 
         return NSFetchedResultsController(fetchRequest: request, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
     }
@@ -67,7 +67,7 @@ public class GroupListSync: NSObject, NSFetchedResultsControllerDelegate {
 
     private func chatThread(for id: GroupID, in context: NSManagedObjectContext) -> ChatThread? {
         let request = ChatThread.fetchRequest()
-        request.predicate = NSPredicate(format: "groupId == %@", id)
+        request.predicate = NSPredicate(format: "groupID == %@", id)
 
 
         do {

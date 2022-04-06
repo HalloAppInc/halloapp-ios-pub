@@ -14,32 +14,9 @@ typealias HalloGroups = XMPPGroups
 typealias HalloGroup = XMPPGroup
 typealias HalloGroupChatMessage = XMPPChatGroupMessage
 
-enum ChatGroupAction: String {
-    case create = "create"
-    case join = "join"
-    case leave = "leave"
-    case delete = "delete"
-    case changeName = "change_name"
-    case changeDescription = "change_description"
-    case changeAvatar = "change_avatar"
-    case setBackground = "set_background"
-    case modifyMembers = "modify_members"
-    case modifyAdmins = "modify_admins"
-}
-
-enum ChatGroupMemberType: Int {
-    case admin = 0
-    case member = 1
-}
-
-enum ChatGroupMemberAction: String {
-    case add = "add"
-    case promote = "promote"
-    case demote = "demote"
-    case remove = "remove"
-    case leave = "leave"
-    case join = "join"
-}
+typealias ChatGroupAction = GroupAction
+typealias ChatGroupMemberType = GroupMemberType
+typealias ChatGroupMemberAction = GroupMemberAction
 
 public struct XMPPChatMention: FeedMentionProtocol {
     public let index: Int
@@ -185,6 +162,7 @@ struct XMPPChatGroupMessage {
     }
 
     // used for outbound pending chat messages
+    /*
     init(chatGroupMessage: ChatGroupMessage) {
         self.id = chatGroupMessage.id
         self.groupId = chatGroupMessage.groupId
@@ -196,19 +174,21 @@ struct XMPPChatGroupMessage {
         self.chatReplyMessageID = chatGroupMessage.chatReplyMessageID
         self.chatReplyMessageSenderID = chatGroupMessage.chatReplyMessageSenderID
         self.chatReplyMessageMediaIndex = chatGroupMessage.chatReplyMessageMediaIndex
-        
+
+        self.media = []
         if let media = chatGroupMessage.media {
             self.media = media.sorted(by: { $0.order < $1.order }).map{ XMPPChatMedia(chatMedia: $0) }
         } else {
             self.media = []
         }
-        
+
         if let mentions = chatGroupMessage.mentions {
             self.mentions = mentions.map { XMPPChatMention(index: Int($0.index), userID: $0.userID, name: $0.name) }
         } else {
             self.mentions = []
         }
     }
+    */
 
     // init inbound message
     init?(_ pbGroupChat: Server_GroupChat, id: String, retryCount: Int32) {

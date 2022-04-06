@@ -9,12 +9,13 @@ import Combine
 import LinkPresentation
 import UIKit
 import SwiftUI
+import Core
 
 class ChatLinkPreviewView: UIView {
 
     private var imageLoadingCancellable: AnyCancellable?
-    private var media: ChatMedia?
-    private var chatLinkPreview: ChatLinkPreview?
+    private var media: CommonMedia?
+    private var chatLinkPreview: CommonLinkPreview?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -24,7 +25,7 @@ class ChatLinkPreviewView: UIView {
         super.init(coder: coder)
     }
 
-    func configure(chatLinkPreview: ChatLinkPreview) {
+    func configure(chatLinkPreview: CommonLinkPreview) {
         if let media = chatLinkPreview.media {
             self.media = media.first
         }

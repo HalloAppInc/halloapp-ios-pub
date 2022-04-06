@@ -18,7 +18,7 @@ class MediaEdit : ObservableObject {
     @Published var image: UIImage?
 
     let media: PendingMedia
-    var type: FeedMediaType { media.type }
+    var type: CommonMediaType { media.type }
     private var cancellable: AnyCancellable?
 
     // Video properties

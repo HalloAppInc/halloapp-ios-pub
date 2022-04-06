@@ -15,6 +15,8 @@ import Intents
 import SwiftUI
 import UIKit
 
+typealias ChatThread = CommonThread
+
 fileprivate struct Constants {
     static let AvatarSize: CGFloat = 56
 }
@@ -355,13 +357,14 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     // MARK: Fetched Results Controller
     
     public var fetchRequest: NSFetchRequest<ChatThread> {
-        let fetchRequest = NSFetchRequest<ChatThread>(entityName: "ChatThread")
+        let fetchRequest = NSFetchRequest<ChatThread>(entityName: "CommonThread")
         fetchRequest.sortDescriptors = [
-            NSSortDescriptor(key: "lastMsgTimestamp", ascending: false),
+            NSSortDescriptor(key: "lastTimestamp", ascending: false),
             NSSortDescriptor(key: "title", ascending: true)
         ]
-        
-        fetchRequest.predicate = NSPredicate(format: "chatWithUserId != nil")
+
+        // TODO: Should this use type field instead?
+        fetchRequest.predicate = NSPredicate(format: "userID != nil")
         
         return fetchRequest
     }
@@ -411,8 +414,8 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         var chatRows = [Row]()
 
         chatThreads.forEach { thread in
-            guard let chatWithUserID = thread.chatWithUserId else {
-                // all chat threads should have a chatWithUserID, logging to attempt to catch the time when it does not
+            guard let chatWithUserID = thread.userID else {
+                // all chat threads should have a userID, logging to attempt to catch the time when it does not
                 DDLogDebug("ChatListView/reloadDataInMainQueue/empty chatWithUserID: \(thread)")
                 return
             }
@@ -464,7 +467,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         var typingIndicatorStr: String? = nil
 
         if chatThread.type == .oneToOne {
-            typingIndicatorStr = MainAppContext.shared.chatData.getTypingIndicatorString(type: chatThread.type, id: chatThread.chatWithUserId)
+            typingIndicatorStr = MainAppContext.shared.chatData.getTypingIndicatorString(type: chatThread.type, id: chatThread.userID)
         }
 
         if typingIndicatorStr == nil && !cell.isShowingTypingIndicator {
@@ -550,7 +553,7 @@ extension ChatListViewController: UITableViewDelegate {
             return
         }
 
-        guard let chatWithUserId = chatThread.chatWithUserId else { return }
+        guard let chatWithUserId = chatThread.userID else { return }
 
         let vc = ChatViewController(for: chatWithUserId, with: nil, at: 0)
         vc.delegate = self
@@ -561,7 +564,7 @@ extension ChatListViewController: UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         guard let chatThread = self.chatThread(at: indexPath) else { return UISwipeActionsConfiguration(actions: []) }
-        guard let chatWithUserId = chatThread.chatWithUserId else { return UISwipeActionsConfiguration(actions: []) }
+        guard let chatWithUserId = chatThread.userID else { return UISwipeActionsConfiguration(actions: []) }
 
         let removeAction = UIContextualAction(style: .destructive, title: Localizations.buttonRemove) { [weak self] (_, _, completionHandler) in
             guard let self = self else { return }
@@ -598,7 +601,7 @@ extension ChatListViewController: UISearchResultsUpdating {
         let searchStr = searchBarText.trimmingCharacters(in: CharacterSet.whitespaces).lowercased()
 
         filteredChats = allChats.filter {
-            guard let chatWithUserID = $0.chatWithUserId else { return false }
+            guard let chatWithUserID = $0.userID else { return false }
             let title = MainAppContext.shared.contactStore.fullName(for: chatWithUserID)
             if title.lowercased().contains(searchStr) {
                 return true

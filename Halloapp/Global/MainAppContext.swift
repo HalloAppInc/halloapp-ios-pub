@@ -86,11 +86,11 @@ class MainAppContext: AppContext {
         AppContext.libraryDirectoryURL.appendingPathComponent("ChatMedia", isDirectory: false)
     }()
 
-    static let feedStoreURL = {
+    static let feedStoreURLLegacy = {
         AppContext.documentsDirectoryURL.appendingPathComponent(feedDatabaseFilename)
     }()
 
-    static let chatStoreURL = {
+    static let chatStoreURLLegacy = {
         AppContext.documentsDirectoryURL.appendingPathComponent(chatDatabaseFilename)
     }()
 
@@ -132,9 +132,9 @@ class MainAppContext: AppContext {
         super.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass, appTarget: appTarget)
         // This is needed to encode/decode protobuf in FeedPostInfo.
         ValueTransformer.setValueTransformer(FeedPostReceiptInfoTransformer(), forName: .feedPostReceiptInfoTransformer)
-
+        ValueTransformer.setValueTransformer(MentionValueTransformer(), forName: .mentionValueTransformer)
         feedData = FeedData(service: service, contactStore: contactStore, mainDataStore: mainDataStore, userData: userData)
-        chatData = ChatData(service: service, contactStore: contactStore, userData: userData)
+        chatData = ChatData(service: service, contactStore: contactStore, mainDataStore: mainDataStore, userData: userData)
         syncManager = SyncManager(contactStore: contactStore, service: service, userData: userData)
         avatarStore = AvatarStore()
         coreService.avatarDelegate = avatarStore
@@ -173,6 +173,10 @@ class MainAppContext: AppContext {
         cryptoData.startReporting(interval: oneHour) { [weak self] events in
             self?.eventMonitor.observe(events)
         }
+
+        // CoreData migrations (moving feed/chat to MainDataStore)
+        migrateFeedDataIfNecessary()
+        migrateChatDataIfNecessary()
     }
 
     private func performAppUpdateMigrationIfNecessary() {
@@ -209,6 +213,42 @@ class MainAppContext: AppContext {
             DDLogInfo("MainAppContext/migrateLegacyCryptoData/complete [destroying old store]")
             legacyCryptoData.destroyStore()
         }
+    }
+
+    private func migrateFeedDataIfNecessary() {
+        guard FileManager.default.fileExists(atPath: Self.feedStoreURLLegacy.path) else {
+            DDLogInfo("MainAppContext/migrateFeedData/skipping [not found]")
+            return
+        }
+        let feedLegacy = FeedDataLegacy(persistentStoreURL: Self.feedStoreURLLegacy)
+
+        DDLogInfo("MainAppContext/migrateFeedData/starting")
+        feedData.migrateLegacyPosts(feedLegacy.fetchPosts())
+        feedData.migrateLegacyNotifications(feedLegacy.fetchNotifications())
+
+        DDLogInfo("MainAppContext/migrateFeedData/destroying-store")
+        feedLegacy.destroyStore()
+
+        DDLogInfo("MainAppContext/migrateFeedData/finished")
+    }
+
+    private func migrateChatDataIfNecessary() {
+        guard FileManager.default.fileExists(atPath: Self.chatStoreURLLegacy.path) else {
+            DDLogInfo("MainAppContext/migrateChatData/skipping [not found]")
+            return
+        }
+        let chatLegacy = ChatDataLegacy(persistentStoreURL: Self.chatStoreURLLegacy)
+
+        DDLogInfo("MainAppContext/migrateChatData/starting")
+        chatData.migrateLegacyGroups(chatLegacy.fetchGroups())
+        chatData.migrateLegacyThreads(chatLegacy.fetchThreads())
+        chatData.migrateLegacyMessages(chatLegacy.fetchMessages())
+        chatData.migrateLegacyChatEvents(chatLegacy.fetchEvents())
+
+        DDLogInfo("MainAppContext/migrateChatData/destroying-store")
+        chatLegacy.destroyStore()
+
+        DDLogInfo("MainAppContext/migrateChatData/finished")
     }
 
     // Process persistent history to merge changes from other coordinators.

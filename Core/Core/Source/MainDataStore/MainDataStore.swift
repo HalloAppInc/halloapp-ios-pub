@@ -20,6 +20,9 @@ open class MainDataStore {
 
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.mainDataStore")
 
+    public let willClearStore = PassthroughSubject<Void, Never>()
+    public let didClearStore = PassthroughSubject<Void, Never>()
+
     // MARK: CoreData stack
 
     public class var persistentStoreURL: URL {
@@ -247,6 +250,48 @@ open class MainDataStore {
             DDLogError("FeedData/fetchAndUpdateRetryCount/error  [\(error)]")
             fatalError("Failed to fetchAndUpdateRetryCount.")
         }
+    }
+
+    public func deleteAllEntities() {
+
+        DispatchQueue.main.async {
+            self.willClearStore.send()
+        }
+
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+
+            let model = self.persistentContainer.managedObjectModel
+            let entities = model.entities
+
+            /* nb: batchdelete will not auto delete entities with a cascade delete rule for core data relationships but
+               can result in not deleting an entity if there's a deny delete rule in place */
+            for entity in entities {
+                guard let entityName = entity.name else { continue }
+                DDLogDebug("MainDataStore/deleteAllEntities/clear/\(entityName)")
+
+                let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
+                let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+                batchDeleteRequest.resultType = .resultTypeObjectIDs
+                do {
+                    let result = try managedObjectContext.execute(batchDeleteRequest) as? NSBatchDeleteResult
+                    guard let objectIDs = result?.result as? [NSManagedObjectID] else { continue }
+                    let changes = [NSDeletedObjectsKey: objectIDs]
+                    DDLogDebug("MainDataStore/deleteAllEntities/clear/\(entityName)/num: \(objectIDs.count)")
+
+                    // update main context manually as batchdelete does not notify other contexts
+                    NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [self.viewContext])
+
+                } catch {
+                    DDLogError("MainDataStore/deleteAllEntities/clear/\(entityName)/error \(error)")
+                }
+            }
+
+            DispatchQueue.main.async {
+                self.didClearStore.send()
+            }
+        }
+
     }
 
 }

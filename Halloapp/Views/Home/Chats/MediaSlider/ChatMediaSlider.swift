@@ -282,10 +282,10 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate, MediaExplorerTransitionDele
 
 struct SliderMedia {
     let image: UIImage?
-    let type: ChatMessageMediaType
+    let type: CommonMediaType
     let order: Int
 
-    init(image: UIImage?, type: ChatMessageMediaType, order: Int) {
+    init(image: UIImage?, type: CommonMediaType, order: Int) {
         self.image = image
         self.type = type
         self.order = order

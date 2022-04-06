@@ -14,14 +14,14 @@ protocol MsgUIProtocol {
     var TextFontStyle: UIFont.TextStyle { get }
     var MaxWidthOfMsgBubble: CGFloat { get }
 
-    func preferredSize(for media: [ChatMedia]) -> CGSize
+    func preferredSize(for media: [CommonMedia]) -> CGSize
 }
 
 extension MsgUIProtocol {
     var TextFontStyle: UIFont.TextStyle { return .subheadline }
     var MaxWidthOfMsgBubble: CGFloat { return UIScreen.main.bounds.width * 0.8 }
 
-    func preferredSize(for media: [ChatMedia]) -> CGSize {
+    func preferredSize(for media: [CommonMedia]) -> CGSize {
         guard !media.isEmpty else { return CGSize(width: 0, height: 0) }
 
         let maxRatio: CGFloat = 5/4 // height/width

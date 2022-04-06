@@ -16,27 +16,16 @@ import UIKit
 
 extension FeedPostMedia {
 
-    enum Status: Int16 {
-        case none = 0
-        case uploading = 1
-        case uploaded = 2
-        case uploadError = 3
-        case downloading = 4
-        case downloaded = 5
-        case downloadError = 6
-        case downloadFailure = 7
-    }
-
     @nonobjc class func fetchRequest() -> NSFetchRequest<FeedPostMedia> {
         return NSFetchRequest<FeedPostMedia>(entityName: "FeedPostMedia")
     }
 
-    public var `type`: FeedMediaType {
+    public var `type`: CommonMediaType {
         get {
-            return FeedMediaType(rawValue: Int(self.typeValue))!
+            return CommonMediaType(rawValue: self.typeValue) ?? .image
         }
         set {
-            self.typeValue = Int16(newValue.rawValue)
+            self.typeValue = newValue.rawValue
         }
     }
     @NSManaged var typeValue: Int16
@@ -47,9 +36,9 @@ extension FeedPostMedia {
     @NSManaged var comment: FeedPostComment?
     @NSManaged var linkPreview: FeedLinkPreview?
     @NSManaged private var statusValue: Int16
-    var status: Status {
+    var status: CommonMedia.Status {
         get {
-            return Status(rawValue: self.statusValue)!
+            return CommonMedia.Status(rawValue: self.statusValue)!
         }
         set {
             self.statusValue = newValue.rawValue
@@ -134,14 +123,7 @@ extension FeedPostMedia: FeedMediaProtocol {
 
 
 extension FeedPostMedia: QuotedMedia {
-    public var quotedMediaType: ChatQuoteMediaType {
-        switch type {
-        case .image:
-            return .image
-        case .video:
-            return .video
-        case .audio:
-            return .audio
-        }
+    public var quotedMediaType: CommonMediaType {
+        return type
     }
 }

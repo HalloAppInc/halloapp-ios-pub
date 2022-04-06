@@ -1,13 +1,11 @@
 //
 //  FeedPostComment+CoreDataClass.swift
-//  HalloApp
+//  Core
 //
-//  Created by Igor Solomennikov on 4/7/20.
-//  Copyright © 2020 Halloapp, Inc. All rights reserved.
-//
+//  Created by Garrett on 3/22/22.
+//  Copyright © 2022 Hallo App, Inc. All rights reserved.
 //
 
-import Foundation
 import CoreData
 
 @objc(FeedPostComment)

@@ -11,10 +11,10 @@ import Foundation
 import CoreData
 
 
-extension ChatGroup {
+extension ChatGroupLegacy {
 
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<ChatGroup> {
-        return NSFetchRequest<ChatGroup>(entityName: "ChatGroup")
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<ChatGroupLegacy> {
+        return NSFetchRequest<ChatGroupLegacy>(entityName: "ChatGroup")
     }
 
     @NSManaged var groupId: String

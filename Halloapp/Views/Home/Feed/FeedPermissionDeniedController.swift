@@ -54,9 +54,9 @@ class FeedPermissionDeniedController: UIViewController {
         self.notificationButton = notificationButton
 
         // We need this here to show/hide the badge on the activity center button
-        if let feedNotifications = MainAppContext.shared.feedData.feedNotifications {
-            notificationCount = feedNotifications.unreadCount
-            self.cancellables.insert(feedNotifications.unreadCountDidChange.sink { [weak self] (unreadCount) in
+        if let feedActivities = MainAppContext.shared.feedData.activityObserver {
+            notificationCount = feedActivities.unreadCount
+            self.cancellables.insert(feedActivities.unreadCountDidChange.sink { [weak self] (unreadCount) in
                 self?.notificationCount = unreadCount
             })
         }

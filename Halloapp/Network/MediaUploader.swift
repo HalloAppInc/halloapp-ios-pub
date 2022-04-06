@@ -517,3 +517,32 @@ final class MediaUploader {
     }
 }
 
+extension CommonMedia: MediaUploadable {
+
+    var encryptedFilePath: String? {
+        guard let filePath = relativeFilePath else {
+            return nil
+        }
+        return filePath.appending(".enc")
+    }
+
+    var index: Int {
+        get { Int(order) }
+    }
+
+    var urlInfo: MediaURLInfo? {
+        if let uploadUrl = uploadURL {
+            if let downloadUrl = url {
+                return .getPut(downloadUrl, uploadUrl)
+            } else {
+                return .patch(uploadUrl)
+            }
+        } else {
+            if let downloadUrl = url {
+                return .download(downloadUrl)
+            } else {
+                return nil
+            }
+        }
+    }
+}

@@ -13,7 +13,7 @@ import CocoaLumberjackSwift
 
 extension FeedDownloadManager {
 
-    func copyMedia(from pendingMedia: PendingMedia, to feedPostMedia: FeedPostMedia) throws {
+    func copyMedia(from pendingMedia: PendingMedia, to feedPostMedia: CommonMedia) throws {
         guard let sourceURL = pendingMedia.fileURL else {
             DDLogError("FeedDownloadManager/copyMedia/sourceURL is nil/pendingMedia: \(pendingMedia)")
             return

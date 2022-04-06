@@ -1083,7 +1083,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
 
     // MARK: Quote Panel
     
-    func showQuoteFeedPanel(with userId: String, text: String, mediaType: ChatMessageMediaType?, mediaUrl: URL?, groupID: GroupID? = nil, from viewController: UIViewController, isQuotedFeedPost: Bool) {
+    func showQuoteFeedPanel(with userId: String, text: String, mediaType: CommonMediaType?, mediaUrl: URL?, groupID: GroupID? = nil, from viewController: UIViewController, isQuotedFeedPost: Bool) {
         // Quote panel takes precedence over link preview. Remove link preview if present
         resetLinkDetection()
         quoteFeedPanelNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)

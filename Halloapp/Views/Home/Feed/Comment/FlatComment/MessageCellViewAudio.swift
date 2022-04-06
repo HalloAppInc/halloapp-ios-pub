@@ -6,8 +6,9 @@
 //  Copyright © 2022 HalloApp, Inc. All rights reserved.
 //
 
-import Foundation
+import Core
 import Combine
+import Foundation
 import UIKit
 
 class MessageCellViewAudio: MessageCellViewBase {

@@ -48,7 +48,7 @@ extension XMPPChatMessage: ChatMessageProtocol {
 }
 
 extension XMPPChatMedia {
-    init(chatMedia: ChatMedia) {
+    init(chatMedia: CommonMedia) {
         self.init(
             url: chatMedia.url,
             type: chatMedia.type,

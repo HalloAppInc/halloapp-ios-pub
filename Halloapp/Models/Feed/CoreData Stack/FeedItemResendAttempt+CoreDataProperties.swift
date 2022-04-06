@@ -7,9 +7,9 @@
 //
 //
 
-import Foundation
+import Core
 import CoreData
-
+import Foundation
 
 extension FeedItemResendAttempt {
 

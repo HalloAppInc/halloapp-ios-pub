@@ -21,6 +21,8 @@ extension ContentResendInfo {
     @NSManaged public var retryCount: Int32
     @NSManaged public var userID: String
     @NSManaged public var groupHistoryInfo: GroupHistoryInfo?
+    @NSManaged public var post: FeedPost?
+    @NSManaged public var comment: FeedPostComment?
 
 }
 

@@ -270,7 +270,7 @@ class CommentView: UIView {
         let nameFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
  
         let cryptoResultString: String = FeedItemContentView.obtainCryptoResultString(for: feedPostComment.id)
-        let feedPostCommentText = feedPostComment.text + cryptoResultString
+        let feedPostCommentText = feedPostComment.rawText + cryptoResultString
 
         if let feedCommentMedia = feedPostComment.media,
            let media = MainAppContext.shared.feedData.media(commentID: feedPostComment.id),
@@ -333,7 +333,7 @@ class CommentView: UIView {
             if !feedPostCommentText.isEmpty {
                 let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
                     feedPostCommentText,
-                    mentions: Array(feedPostComment.mentions ?? Set()))
+                    mentions: feedPostComment.mentions)
 
                 let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
                 let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
@@ -372,7 +372,7 @@ class CommentView: UIView {
 
             attributedText.append(NSAttributedString(string: " "))
 
-            if let commentText = MainAppContext.shared.contactStore.textWithMentions(feedPostCommentText, mentions: Array(feedPostComment.mentions ?? Set())),
+            if let commentText = MainAppContext.shared.contactStore.textWithMentions(feedPostCommentText, mentions: feedPostComment.mentions),
                 !feedPostComment.isRetracted
             {
                 let ham = HAMarkdown(font: baseFont, color: .label)
@@ -385,7 +385,7 @@ class CommentView: UIView {
         }
     }
 
-    func configureLinkPreviewView(feedLinkPreview: FeedLinkPreview) {
+    func configureLinkPreviewView(feedLinkPreview: CommonLinkPreview) {
         // Set Name
         MainAppContext.shared.feedData.loadImages(feedLinkPreviewID: feedLinkPreview.id)
         let commentLinkPreviewView = CommentLinkPreviewView()
@@ -409,10 +409,10 @@ class CommentView: UIView {
     }
 
     func configureTextCommentLabel(feedPostComment: FeedPostComment) {
-        if !feedPostComment.text.isEmpty {
+        if !feedPostComment.rawText.isEmpty {
             let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
-                feedPostComment.text,
-                mentions: Array(feedPostComment.mentions ?? Set()))
+                feedPostComment.rawText,
+                mentions: feedPostComment.mentions)
 
             let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
             let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
@@ -716,7 +716,7 @@ class CommentsTableHeaderView: UIView {
 
         // Text
         let cryptoResultString: String = FeedItemContentView.obtainCryptoResultString(for: feedPost.id)
-        let postTextWithCryptoResult = (feedPost.text ?? "") + cryptoResultString
+        let postTextWithCryptoResult = (feedPost.rawText ?? "") + cryptoResultString
 
         let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
         let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)

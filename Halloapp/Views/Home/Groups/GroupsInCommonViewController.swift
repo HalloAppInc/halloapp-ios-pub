@@ -23,14 +23,14 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
     private static let cellReuseIdentifier = "ThreadListCell"
     private let tableView = UITableView(frame: CGRect.zero, style: .grouped)
     
-    private var fetchedResultsController: NSFetchedResultsController<ChatThread>?
+    private var fetchedResultsController: NSFetchedResultsController<CommonThread>?
     
     private var isVisible: Bool = false
     
-    private var filteredChats: [ChatThread] = []
+    private var filteredChats: [CommonThread] = []
     private var searchController: UISearchController!
     
-    private var commonChats: [ChatThread] = []
+    private var commonChats: [CommonThread] = []
     
     private var isSearchBarEmpty: Bool {
         return searchController.searchBar.text?.isEmpty ?? true
@@ -55,7 +55,7 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
             let group = MainAppContext.shared.chatData.chatGroup(groupId: Id)
             guard let members = group?.members else { return false}
             for member in members {
-                if (member.userId == self.userID) {
+                if (member.userID == self.userID) {
                     return true
                 }
             }
@@ -176,14 +176,13 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
     
     // MARK: Fetched Results Controller
     
-    public var fetchRequest: NSFetchRequest<ChatThread> {
-        let fetchRequest = NSFetchRequest<ChatThread>(entityName: "ChatThread")
+    public var fetchRequest: NSFetchRequest<CommonThread> {
+        let fetchRequest = NSFetchRequest<CommonThread>(entityName: "CommonThread")
         fetchRequest.sortDescriptors = [
-            NSSortDescriptor(key: "lastFeedTimestamp", ascending: false),
-            NSSortDescriptor(key: "lastMsgTimestamp", ascending: false),
+            NSSortDescriptor(key: "lastTimestamp", ascending: false),
             NSSortDescriptor(key: "title", ascending: true)
         ]
-        fetchRequest.predicate = NSPredicate(format: "groupId != nil")
+        fetchRequest.predicate = NSPredicate(format: "groupID != nil")
         return fetchRequest
     }
 
@@ -201,9 +200,9 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
         }
     }
 
-    private func createFetchedResultsController() -> NSFetchedResultsController<ChatThread> {
+    private func createFetchedResultsController() -> NSFetchedResultsController<CommonThread> {
         // Setup fetched results controller the old way because it allows granular control over UI update operations.
-        let fetchedResultsController = NSFetchedResultsController<ChatThread>(fetchRequest: fetchRequest,
+        let fetchedResultsController = NSFetchedResultsController<CommonThread>(fetchRequest: fetchRequest,
                                                                               managedObjectContext: MainAppContext.shared.chatData.viewContext,
                                                                               sectionNameKeyPath: nil,
                                                                               cacheName: nil)
@@ -226,7 +225,7 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
         switch type {
         case .insert:
-            guard let indexPath = newIndexPath, let chatThread = anObject as? ChatThread else { break }
+            guard let indexPath = newIndexPath, let chatThread = anObject as? CommonThread else { break }
             DDLogDebug("GroupsInCommonView/frc/insert [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] at [\(indexPath)]")
             if trackPerRowFRCChanges && !isFiltering {
                 tableView.insertRows(at: [ indexPath ], with: .automatic)
@@ -235,7 +234,7 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
             }
 
         case .delete:
-            guard let indexPath = indexPath, let chatThread = anObject as? ChatThread else { break }
+            guard let indexPath = indexPath, let chatThread = anObject as? CommonThread else { break }
             DDLogDebug("GroupsInCommonView/frc/delete [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] at [\(indexPath)]")
       
             if trackPerRowFRCChanges && !isFiltering {
@@ -245,7 +244,7 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
             }
             
         case .move:
-            guard let fromIndexPath = indexPath, let toIndexPath = newIndexPath, let chatThread = anObject as? ChatThread else { break }
+            guard let fromIndexPath = indexPath, let toIndexPath = newIndexPath, let chatThread = anObject as? CommonThread else { break }
             DDLogDebug("GroupsInCommon/frc/move [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] from [\(fromIndexPath)] to [\(toIndexPath)]")
             if trackPerRowFRCChanges && !isFiltering {
                 tableView.moveRow(at: fromIndexPath, to: toIndexPath)
@@ -255,7 +254,7 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
             }
 
         case .update:
-            guard let indexPath = indexPath, let chatThread = anObject as? ChatThread else { return }
+            guard let indexPath = indexPath, let chatThread = anObject as? CommonThread else { return }
             DDLogDebug("GroupsListView/frc/update [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] at [\(indexPath)]")
 
             reloadTableViewInDidChangeContent = true
@@ -307,7 +306,7 @@ extension GroupsInCommonViewController: FeedCollectionViewControllerDelegate {
 // MARK: UITableView Delegates
 extension GroupsInCommonViewController: UITableViewDelegate, UITableViewDataSource {
     
-    func chatThread(at indexPath: IndexPath) -> ChatThread? {
+    func chatThread(at indexPath: IndexPath) -> CommonThread? {
         
         if isFiltering {
             return filteredChats[indexPath.row]
@@ -406,7 +405,7 @@ extension GroupsInCommonViewController: UISearchResultsUpdating {
             if $0.type == .group {
                 titleText = $0.title
             } else {
-                titleText = MainAppContext.shared.contactStore.fullName(for: $0.chatWithUserId ?? "")
+                titleText = MainAppContext.shared.contactStore.fullName(for: $0.userID ?? "")
             }
 
             guard let title = titleText else { return false }

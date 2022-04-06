@@ -17,7 +17,7 @@ public class ChatMedia: NSManagedObject {
     
     @NSManaged public var linkPreview: ChatLinkPreview?
 
-    public var feedMediaType: FeedMediaType {
+    public var feedMediaType: CommonMediaType {
         get {
             switch type {
             case .image:

@@ -14,32 +14,15 @@ import Foundation
 import UIKit
 
 extension FeedNotification {
-    enum Event: Int16 {
-        case comment = 0          // comment on your post
-        case reply = 1            // reply to your comment
-        case retractedComment = 2 // comment was deleted
-        case retractedPost = 3    // post was deleted
-        case otherComment = 4     // comment on the post your commented on
-        case mentionComment = 5   // mentioned in a comment
-        case mentionPost = 6   // mentioned in a post
-        case favoritesPromo = 7 // Promo for new favorites
-    }
-
-    enum MediaType: Int16 {
-        case none = 0
-        case image = 1
-        case video = 2
-        case audio = 3
-    }
 
     @nonobjc class func fetchRequest() -> NSFetchRequest<FeedNotification> {
         return NSFetchRequest<FeedNotification>(entityName: "FeedNotification")
     }
 
     @NSManaged private var eventValue: Int16
-    var event: Event {
+    var event: FeedActivity.Event {
         get {
-            return Event(rawValue: self.eventValue)!
+            return FeedActivity.Event(rawValue: self.eventValue)!
         }
         set {
             self.eventValue = newValue.rawValue
@@ -54,9 +37,9 @@ extension FeedNotification {
     @NSManaged var text: String?
     @NSManaged var timestamp: Date
     @NSManaged private var postMediaType: Int16
-    var mediaType: MediaType {
+    var mediaType: FeedActivity.MediaType {
         get {
-            return MediaType(rawValue: self.postMediaType) ?? .none
+            return FeedActivity.MediaType(rawValue: self.postMediaType) ?? .none
         }
         set {
             self.postMediaType = newValue.rawValue

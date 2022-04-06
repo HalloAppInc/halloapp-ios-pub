@@ -101,7 +101,9 @@ public class MediaHashStore {
     public func fetch(hash: String, blobVersion: BlobVersion, completion: @escaping (MediaHash?) -> Void) {
         performSeriallyOnBackgroundContext { context in
             let mediaHash = self.fetch(hash: hash, blobVersion: blobVersion, in: context)
-            completion(mediaHash)
+            DispatchQueue.main.async {
+                completion(mediaHash)
+            }
         }
     }
 

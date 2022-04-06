@@ -26,10 +26,10 @@ protocol EditGroupViewControllerDelegate: AnyObject {
 class EditGroupViewController: UIViewController {
     weak var delegate: EditGroupViewControllerDelegate?
     
-    private var chatGroup: ChatGroup
+    private var chatGroup: Group
     private let originalName: String
     
-    init(chatGroup: ChatGroup) {
+    init(chatGroup: Group) {
         self.chatGroup = chatGroup
         self.originalName = chatGroup.name
         super.init(nibName: nil, bundle: nil)
@@ -144,7 +144,7 @@ class EditGroupViewController: UIViewController {
         
         let name = textView.text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
         
-        MainAppContext.shared.chatData.changeGroupName(groupID: chatGroup.groupId, name: name) { [weak self] result in
+        MainAppContext.shared.chatData.changeGroupName(groupID: chatGroup.id, name: name) { [weak self] result in
             guard let self = self else { return }
 
             switch result {

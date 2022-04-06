@@ -12,38 +12,8 @@ import CoreCommon
 import CoreData
 import Foundation
 
-extension ChatThread {
+extension ChatThreadLegacy {
 
-    enum LastMsgStatus: Int16 {
-        case none = 0
-        case pending = 1
-        case sentOut = 2
-        case delivered = 3
-        case seen = 4
-        case error = 5
-        case retracting = 6
-        case retracted = 7
-        case played = 8
-    }
-    
-    enum LastMediaType: Int16 {
-        case none = 0
-        case image = 1
-        case video = 2
-        case audio = 3
-        case missedAudioCall = 4
-        case incomingAudioCall = 5
-        case outgoingAudioCall = 6
-        case missedVideoCall = 7
-        case incomingVideoCall = 8
-        case outgoingVideoCall = 9
-    }
-    
-    enum LastFeedStatus: Int16 {
-        case none = 0
-        case retracted = 11
-    }
-    
     @nonobjc class func fetchRequest() -> NSFetchRequest<ChatThread> {
         return NSFetchRequest<ChatThread>(entityName: "ChatThread")
     }
@@ -85,36 +55,36 @@ extension ChatThread {
         }
     }
     
-    var lastMsgStatus: LastMsgStatus {
+    var lastMsgStatus: CommonThread.LastMsgStatus {
         get {
-            return LastMsgStatus(rawValue: self.lastMsgStatusValue) ?? .none
+            return CommonThread.LastMsgStatus(rawValue: self.lastMsgStatusValue) ?? .none
         }
         set {
             self.lastMsgStatusValue = newValue.rawValue
         }
     }
     
-    var lastMsgMediaType: LastMediaType {
+    var lastMsgMediaType: CommonThread.LastMediaType {
         get {
-            return LastMediaType(rawValue: self.lastMsgMediaTypeValue) ?? .none
+            return CommonThread.LastMediaType(rawValue: self.lastMsgMediaTypeValue) ?? .none
         }
         set {
             self.lastMsgMediaTypeValue = newValue.rawValue
         }
     }
 
-    var lastFeedStatus: LastFeedStatus {
+    var lastFeedStatus: CommonThread.LastFeedStatus {
         get {
-            return LastFeedStatus(rawValue: self.lastFeedStatusValue) ?? .none
+            return CommonThread.LastFeedStatus(rawValue: self.lastFeedStatusValue) ?? .none
         }
         set {
             self.lastFeedStatusValue = newValue.rawValue
         }
     }
     
-    var lastFeedMediaType: LastMediaType {
+    var lastFeedMediaType: CommonThread.LastMediaType {
         get {
-            return LastMediaType(rawValue: self.lastMsgMediaTypeValue) ?? .none
+            return CommonThread.LastMediaType(rawValue: self.lastMsgMediaTypeValue) ?? .none
         }
         set {
             self.lastMsgMediaTypeValue = newValue.rawValue

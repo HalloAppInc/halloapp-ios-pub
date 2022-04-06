@@ -21,7 +21,7 @@ fileprivate struct Constants {
 
 class GroupInviteViewController: UIViewController {
     private var groupID: GroupID
-    private var group: ChatGroup?
+    private var group: Group?
 
     init(for groupID: GroupID) {
         self.groupID = groupID

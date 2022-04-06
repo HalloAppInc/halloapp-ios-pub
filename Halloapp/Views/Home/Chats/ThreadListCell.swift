@@ -59,7 +59,7 @@ class ThreadListCell: UITableViewCell {
 
     private func lastMessageText(for chatThread: ChatThread) -> NSMutableAttributedString {
         var defaultText = ""
-        if chatThread.type == .oneToOne, let chatWithUserID = chatThread.chatWithUserId, chatThread.lastMsgMediaType == .none, chatThread.chatWithUserId != MainAppContext.shared.userData.userId {
+        if chatThread.type == .oneToOne, let chatWithUserID = chatThread.userID, chatThread.lastMsgMediaType == .none, chatThread.userID != MainAppContext.shared.userData.userId {
             let fullName = MainAppContext.shared.contactStore.fullName(for: chatWithUserID)
             if chatThread.isNew {
                 defaultText = Localizations.threadListPreviewInvitedUserDefault(name: fullName)
@@ -226,7 +226,7 @@ class ThreadListCell: UITableViewCell {
     func configureForChatsList(with chatThread: ChatThread, squareSize: CGFloat = 0) {
         self.chatThread = chatThread
         
-        guard let userID = chatThread.chatWithUserId else { return }
+        guard let userID = chatThread.userID else { return }
 
         titleLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, showPushNumber: true)
 
@@ -245,7 +245,7 @@ class ThreadListCell: UITableViewCell {
             timeLabel.text = timestamp.chatListTimestamp()
         }
 
-        avatarView.configure(userId: chatThread.chatWithUserId ?? "", using: MainAppContext.shared.avatarStore)
+        avatarView.configure(userId: chatThread.userID ?? "", using: MainAppContext.shared.avatarStore)
 
         if !MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID) {
             cancellableSet.forEach { $0.cancel() }

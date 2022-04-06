@@ -120,4 +120,8 @@ public struct MentionText: Codable {
     public func isEmpty() -> Bool {
         return collapsedText.isEmpty && mentions.isEmpty
     }
+
+    public var mentionsArray: [MentionData] {
+        return mentions.map { MentionData(index: $0, userID: $1.userID, name: $1.pushName ?? "") }
+    }
 }

@@ -1,5 +1,5 @@
 //
-//  FeedPost+CoreDataClass.swift
+//  FeedPostComment+CoreDataClass.swift
 //  HalloApp
 //
 //  Created by Igor Solomennikov on 4/7/20.
@@ -10,7 +10,7 @@
 import Foundation
 import CoreData
 
-@objc(FeedPost)
-public class FeedPost: NSManagedObject {
+@objc(FeedPostCommentLegacy)
+public class FeedPostCommentLegacy: NSManagedObject {
 
 }

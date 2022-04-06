@@ -49,7 +49,7 @@ open class SharedDataStore {
         return Self.dataDirectoryURL.appendingPathComponent(relativePath)
     }
 
-    public final class func relativeFilePath(forFilename filename: String, mediaType: FeedMediaType) -> String {
+    public final class func relativeFilePath(forFilename filename: String, mediaType: CommonMediaType) -> String {
         // No intermediate directories needed.
         let fileExtension = FeedDownloadManager.fileExtension(forMediaType: mediaType)
         return "\(filename).\(fileExtension)"
@@ -318,7 +318,7 @@ open class ShareExtensionDataStore: SharedDataStore {
         AppContext.sharedDirectoryURL.appendingPathComponent("share-extension.sqlite")
     }
 
-    override class var dataDirectoryURL: URL {
+    public override class var dataDirectoryURL: URL {
         AppContext.sharedDirectoryURL.appendingPathComponent("ShareExtension")
     }
 
@@ -331,7 +331,7 @@ open class NotificationServiceExtensionDataStore: SharedDataStore {
         AppContext.sharedDirectoryURL.appendingPathComponent("notification-service-extension.sqlite")
     }
 
-    override class var dataDirectoryURL: URL {
+    public override class var dataDirectoryURL: URL {
         AppContext.sharedDirectoryURL.appendingPathComponent("NotificationServiceExtension")
     }
 

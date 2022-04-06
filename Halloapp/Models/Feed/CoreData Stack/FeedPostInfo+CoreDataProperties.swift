@@ -36,6 +36,7 @@ extension FeedPostInfo {
 
 }
 
+@objc(FeedPostReceiptInfoTransformer)
 class FeedPostReceiptInfoTransformer: ValueTransformer {
 
     override class func transformedValueClass() -> AnyClass {

@@ -1600,7 +1600,7 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
     class Coordinator: MediaCarouselViewDelegate {
         private struct MediaState: Equatable {
             public var order: Int
-            public var type: FeedMediaType
+            public var type: CommonMediaType
             public var originalVideoURL: URL?
             public var fileURL: URL?
             public var asset: PHAsset?

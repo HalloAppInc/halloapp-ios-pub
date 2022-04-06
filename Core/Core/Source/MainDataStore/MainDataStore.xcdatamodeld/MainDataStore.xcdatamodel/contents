@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="20086" systemVersion="21E230" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19557.2" systemVersion="20G95" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="Call" representedClassName="Call" syncable="YES">
         <attribute name="answered" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="callID" attributeType="String"/>
@@ -15,11 +15,112 @@
             </uniquenessConstraint>
         </uniquenessConstraints>
     </entity>
+    <entity name="ChatEvent" representedClassName="ChatEvent" syncable="YES">
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="typeValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="userID" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="ChatMessage" representedClassName="ChatMessage" syncable="YES">
+        <attribute name="cellHeight" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="chatReplyMessageID" optional="YES" attributeType="String"/>
+        <attribute name="chatReplyMessageMediaIndex" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="chatReplyMessageSenderID" optional="YES" attributeType="String"/>
+        <attribute name="feedPostID" optional="YES" attributeType="String"/>
+        <attribute name="feedPostMediaIndex" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="fromUserID" attributeType="String"/>
+        <attribute name="id" attributeType="String"/>
+        <attribute name="incomingStatusValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="mentionsValue" optional="YES" attributeType="Transformable" valueTransformerName="MentionValueTransformer"/>
+        <attribute name="outgoingStatusValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="rawData" optional="YES" attributeType="Binary"/>
+        <attribute name="rawText" optional="YES" attributeType="String"/>
+        <attribute name="resendAttempts" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="retractID" optional="YES" attributeType="String"/>
+        <attribute name="serialID" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="serverTimestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="toUserID" attributeType="String"/>
+        <relationship name="linkPreviews" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CommonLinkPreview" inverseName="message" inverseEntity="CommonLinkPreview"/>
+        <relationship name="media" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CommonMedia" inverseName="message" inverseEntity="CommonMedia"/>
+        <relationship name="quoted" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatQuoted" inverseName="message" inverseEntity="ChatQuoted"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="ChatQuoted" representedClassName="ChatQuoted" syncable="YES">
+        <attribute name="mentionsValue" optional="YES" attributeType="Transformable" valueTransformerName="MentionValueTransformer"/>
+        <attribute name="rawText" optional="YES" attributeType="String"/>
+        <attribute name="typeValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="userID" optional="YES" attributeType="String"/>
+        <relationship name="media" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CommonMedia" inverseName="chatQuoted" inverseEntity="CommonMedia"/>
+        <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatMessage" inverseName="quoted" inverseEntity="ChatMessage"/>
+    </entity>
+    <entity name="CommonLinkPreview" representedClassName="CommonLinkPreview" syncable="YES">
+        <attribute name="desc" optional="YES" attributeType="String"/>
+        <attribute name="id" attributeType="String"/>
+        <attribute name="title" optional="YES" attributeType="String"/>
+        <attribute name="url" optional="YES" attributeType="URI"/>
+        <relationship name="comment" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPostComment" inverseName="linkPreviews" inverseEntity="FeedPostComment"/>
+        <relationship name="media" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CommonMedia" inverseName="linkPreview" inverseEntity="CommonMedia"/>
+        <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatMessage" inverseName="linkPreviews" inverseEntity="ChatMessage"/>
+        <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="linkPreviews" inverseEntity="FeedPost"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="CommonMedia" representedClassName="CommonMedia" syncable="YES">
+        <attribute name="blobSize" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="blobVersionValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="chunkSize" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="height" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="key" optional="YES" attributeType="String"/>
+        <attribute name="mediaDirectoryValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="numTries" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="order" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="previewData" optional="YES" attributeType="Binary"/>
+        <attribute name="relativeFilePath" optional="YES" attributeType="String"/>
+        <attribute name="sha256" optional="YES" attributeType="String"/>
+        <attribute name="statusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="typeValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="uploadURL" optional="YES" attributeType="URI"/>
+        <attribute name="url" optional="YES" attributeType="URI"/>
+        <attribute name="width" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <relationship name="chatQuoted" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatQuoted" inverseName="media" inverseEntity="ChatQuoted"/>
+        <relationship name="comment" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPostComment" inverseName="media" inverseEntity="FeedPostComment"/>
+        <relationship name="linkPreview" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CommonLinkPreview" inverseName="media" inverseEntity="CommonLinkPreview"/>
+        <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatMessage" inverseName="media" inverseEntity="ChatMessage"/>
+        <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="media" inverseEntity="FeedPost"/>
+    </entity>
+    <entity name="CommonThread" representedClassName="CommonThread" syncable="YES">
+        <attribute name="groupID" optional="YES" attributeType="String"/>
+        <attribute name="isNew" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="lastContentID" optional="YES" attributeType="String"/>
+        <attribute name="lastMediaTypeValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="lastStatusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="lastText" optional="YES" attributeType="String"/>
+        <attribute name="lastTimestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="lastUserID" optional="YES" attributeType="String"/>
+        <attribute name="title" optional="YES" attributeType="String"/>
+        <attribute name="typeValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="unreadCount" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="userID" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="ContentPublishInfo" representedClassName="ContentPublishInfo" syncable="YES">
+        <attribute name="audienceTypeValue" attributeType="String"/>
+        <attribute name="receiptInfo" optional="YES" attributeType="Transformable" valueTransformerName="FeedPostReceiptInfoTransformer"/>
+        <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="info" inverseEntity="FeedPost"/>
+    </entity>
     <entity name="ContentResendInfo" representedClassName="ContentResendInfo" syncable="YES">
         <attribute name="contentID" optional="YES" attributeType="String"/>
         <attribute name="retryCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="userID" optional="YES" attributeType="String"/>
+        <relationship name="comment" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPostComment" inverseName="contentResendInfo" inverseEntity="FeedPostComment"/>
         <relationship name="groupHistoryInfo" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="GroupHistoryInfo" inverseName="contentResendInfo" inverseEntity="GroupHistoryInfo"/>
+        <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="contentResendInfo" inverseEntity="FeedPost"/>
     </entity>
     <entity name="ExternalShareInfo" representedClassName="ExternalShareInfo" syncable="YES">
         <attribute name="blobID" attributeType="String"/>
@@ -30,6 +131,84 @@
                 <constraint value="feedPostID"/>
             </uniquenessConstraint>
         </uniquenessConstraints>
+    </entity>
+    <entity name="FeedActivity" representedClassName="FeedActivity" syncable="YES">
+        <attribute name="commentID" optional="YES" attributeType="String"/>
+        <attribute name="eventValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="mediaPreview" optional="YES" attributeType="Binary"/>
+        <attribute name="mentionsValue" optional="YES" attributeType="Transformable" valueTransformerName="MentionValueTransformer"/>
+        <attribute name="postID" optional="YES" attributeType="String"/>
+        <attribute name="postMediaType" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="rawText" optional="YES" attributeType="String"/>
+        <attribute name="read" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="userID" attributeType="String"/>
+    </entity>
+    <entity name="FeedPost" representedClassName="FeedPost" syncable="YES">
+        <attribute name="groupID" optional="YES" attributeType="String"/>
+        <attribute name="id" attributeType="String"/>
+        <attribute name="mentionsValue" optional="YES" attributeType="Transformable" valueTransformerName="MentionValueTransformer"/>
+        <attribute name="rawData" optional="YES" attributeType="Binary"/>
+        <attribute name="rawText" optional="YES" attributeType="String"/>
+        <attribute name="statusValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="unreadCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="userID" attributeType="String"/>
+        <relationship name="comments" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FeedPostComment" inverseName="post" inverseEntity="FeedPostComment"/>
+        <relationship name="contentResendInfo" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ContentResendInfo" inverseName="post" inverseEntity="ContentResendInfo"/>
+        <relationship name="info" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ContentPublishInfo" inverseName="post" inverseEntity="ContentPublishInfo"/>
+        <relationship name="linkPreviews" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CommonLinkPreview" inverseName="post" inverseEntity="CommonLinkPreview"/>
+        <relationship name="media" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CommonMedia" inverseName="post" inverseEntity="CommonMedia"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="FeedPostComment" representedClassName="FeedPostComment" syncable="YES">
+        <attribute name="id" attributeType="String"/>
+        <attribute name="mentionsValue" optional="YES" attributeType="Transformable" valueTransformerName="MentionValueTransformer"/>
+        <attribute name="rawData" optional="YES" attributeType="Binary"/>
+        <attribute name="rawText" attributeType="String"/>
+        <attribute name="statusValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="userID" attributeType="String"/>
+        <relationship name="contentResendInfo" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ContentResendInfo" inverseName="comment" inverseEntity="ContentResendInfo"/>
+        <relationship name="linkPreviews" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CommonLinkPreview" inverseName="comment" inverseEntity="CommonLinkPreview"/>
+        <relationship name="media" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CommonMedia" inverseName="comment" inverseEntity="CommonMedia"/>
+        <relationship name="parent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPostComment" inverseName="replies" inverseEntity="FeedPostComment"/>
+        <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="comments" inverseEntity="FeedPost"/>
+        <relationship name="replies" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FeedPostComment" inverseName="parent" inverseEntity="FeedPostComment"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="Group" representedClassName="Group" syncable="YES">
+        <attribute name="avatarID" optional="YES" attributeType="String"/>
+        <attribute name="background" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="desc" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="inviteLink" optional="YES" attributeType="String"/>
+        <attribute name="lastSync" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="maxSize" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <relationship name="members" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="GroupMember" inverseName="group" inverseEntity="GroupMember"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="GroupEvent" representedClassName="GroupEvent" syncable="YES">
+        <attribute name="actionValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="groupID" attributeType="String"/>
+        <attribute name="groupName" optional="YES" attributeType="String"/>
+        <attribute name="memberActionValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="memberUserID" optional="YES" attributeType="String"/>
+        <attribute name="senderUserID" optional="YES" attributeType="String"/>
+        <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
     <entity name="GroupHistoryInfo" representedClassName="GroupHistoryInfo" syncable="YES">
         <attribute name="groupId" optional="YES" attributeType="String"/>
@@ -42,10 +221,29 @@
             </uniquenessConstraint>
         </uniquenessConstraints>
     </entity>
+    <entity name="GroupMember" representedClassName="GroupMember" syncable="YES">
+        <attribute name="groupID" optional="YES" attributeType="String"/>
+        <attribute name="typeValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="userID" optional="YES" attributeType="String"/>
+        <relationship name="group" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Group" inverseName="members" inverseEntity="Group"/>
+    </entity>
     <elements>
         <element name="Call" positionX="-63" positionY="-18" width="128" height="149"/>
-        <element name="ContentResendInfo" positionX="-63" positionY="45" width="128" height="89"/>
-        <element name="GroupHistoryInfo" positionX="-63" positionY="45" width="128" height="89"/>
+        <element name="ChatEvent" positionX="36" positionY="189" width="128" height="74"/>
+        <element name="ChatMessage" positionX="-9" positionY="144" width="128" height="359"/>
+        <element name="ChatQuoted" positionX="0" positionY="153" width="128" height="119"/>
+        <element name="CommonLinkPreview" positionX="-45" positionY="63" width="128" height="149"/>
+        <element name="CommonMedia" positionX="-36" positionY="72" width="128" height="344"/>
+        <element name="CommonThread" positionX="27" positionY="180" width="128" height="209"/>
+        <element name="ContentPublishInfo" positionX="36" positionY="108" width="128" height="74"/>
+        <element name="ContentResendInfo" positionX="-63" positionY="45" width="128" height="119"/>
         <element name="ExternalShareInfo" positionX="-54" positionY="54" width="128" height="74"/>
+        <element name="FeedActivity" positionX="18" positionY="99" width="128" height="179"/>
+        <element name="FeedPost" positionX="-18" positionY="81" width="128" height="239"/>
+        <element name="FeedPostComment" positionX="0" positionY="90" width="128" height="224"/>
+        <element name="Group" positionX="9" positionY="162" width="128" height="164"/>
+        <element name="GroupEvent" positionX="45" positionY="198" width="128" height="134"/>
+        <element name="GroupHistoryInfo" positionX="-63" positionY="45" width="128" height="89"/>
+        <element name="GroupMember" positionX="18" positionY="171" width="128" height="89"/>
     </elements>
 </model>

@@ -29,12 +29,12 @@ extension SharedMedia {
     }
     
     @NSManaged private var typeValue: Int16
-    public var `type`: FeedMediaType {
+    public var `type`: CommonMediaType {
         get {
-            return FeedMediaType(rawValue: Int(self.typeValue))!
+            return CommonMediaType(rawValue: self.typeValue) ?? .image
         }
         set {
-            typeValue = Int16(newValue.rawValue)
+            typeValue = newValue.rawValue
         }
     }
 
@@ -110,11 +110,7 @@ extension SharedMedia {
 }
 
 extension SharedMedia: ChatMediaProtocol {
-    public var mediaType: ChatMessageMediaType {
-        switch type {
-        case .image: return .image
-        case .video: return .video
-        case .audio: return .audio
-        }
+    public var mediaType: CommonMediaType {
+        return type
     }
 }

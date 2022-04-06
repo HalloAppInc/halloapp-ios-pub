@@ -308,12 +308,12 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
     // MARK: Fetched Results Controller
     
     public var fetchRequest: NSFetchRequest<ChatThread> {
-        let fetchRequest = NSFetchRequest<ChatThread>(entityName: "ChatThread")
+        let fetchRequest = NSFetchRequest<ChatThread>(entityName: "CommonThread")
         fetchRequest.sortDescriptors = [
-            NSSortDescriptor(key: "lastFeedTimestamp", ascending: false),
+            NSSortDescriptor(key: "lastTimestamp", ascending: false),
             NSSortDescriptor(key: "title", ascending: true)
         ]
-        fetchRequest.predicate = NSPredicate(format: "groupId != nil")
+        fetchRequest.predicate = NSPredicate(format: "groupID != nil")
         return fetchRequest
     }
 
@@ -329,7 +329,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
 
     private func createFetchedResultsController() -> NSFetchedResultsController<ChatThread> {
         let fetchedResultsController = NSFetchedResultsController<ChatThread>(fetchRequest: fetchRequest,
-                                                                              managedObjectContext: MainAppContext.shared.chatData.viewContext,
+                                                                              managedObjectContext: MainAppContext.shared.mainDataStore.viewContext,
                                                                               sectionNameKeyPath: nil,
                                                                               cacheName: nil)
         fetchedResultsController.delegate = self
@@ -644,7 +644,7 @@ extension GroupsListViewController: UISearchResultsUpdating {
             guard let members = group?.members else { return false }
 
             for member in members {
-                let name = MainAppContext.shared.contactStore.fullName(for: member.userId)
+                let name = MainAppContext.shared.contactStore.fullName(for: member.userID)
                 if name.lowercased().contains(searchStr) {
                     return true
                 }

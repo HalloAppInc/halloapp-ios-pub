@@ -7,6 +7,7 @@
 //
 
 import Combine
+import Core
 import LinkPresentation
 import UIKit
 
@@ -14,7 +15,7 @@ class CommentLinkPreviewView: UIView {
 
     private var imageLoadingCancellable: AnyCancellable?
     private var media: FeedMedia?
-    private var feedLinkPreview: FeedLinkPreview?
+    private var feedLinkPreview: CommonLinkPreview?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -26,7 +27,7 @@ class CommentLinkPreviewView: UIView {
         commonInit()
     }
 
-    func configure(feedLinkPreview: FeedLinkPreview) {
+    func configure(feedLinkPreview: CommonLinkPreview) {
         if feedLinkPreview.media != nil {
             let media = MainAppContext.shared.feedData.media(feedLinkPreviewID: feedLinkPreview.id)
             self.media = media?.first

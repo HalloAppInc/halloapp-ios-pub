@@ -478,12 +478,12 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         if let quoted = chatQuoted {
             isQuotedMessage = true
             
-            guard let userID = quoted.userId else { return false }
+            guard let userID = quoted.userID else { return false }
             
             quotedNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
 
             if let mentionText = MainAppContext.shared.contactStore.textWithMentions(
-                quoted.text,
+                quoted.rawText,
                 mentions: quoted.orderedMentions) {
                 let ham = HAMarkdown(font: UIFont.preferredFont(forTextStyle: .footnote), color: UIColor.systemGray)
                 quotedTextView.attributedText = ham.parse(mentionText)
@@ -494,9 +494,10 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                 quotedTextView.font = UIFont.preferredFont(forTextStyle: .largeTitle)
             }
 
-            if let media = quoted.media, let item = media.first(where: { $0.order == mediaIndex }) {
-                let fileURL = item.mediaUrl
-
+            if let media = quoted.media,
+               let item = media.first(where: { $0.order == mediaIndex }),
+               let fileURL = item.mediaURL
+            {
                 quotedImageView.isUserInteractionEnabled = FileManager.default.fileExists(atPath: fileURL.path)
                 quotedImageView.isHidden = false
 
@@ -552,7 +553,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         return isQuotedMessage
     }
     
-    func updateWith(chatMessage: ChatMessage, isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, orderedMentions: [ChatMention], linkPreview: ChatLinkPreview?) {
+    func updateWith(chatMessage: ChatMessage, isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, orderedMentions: [MentionData], linkPreview: CommonLinkPreview?) {
         if isPreviousMsgSameSender {
             contentView.layoutMargins = UIEdgeInsets(top: 3, left: 18, bottom: 0, right: 18)
         } else {
@@ -691,7 +692,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         timeAndStatusLabel.attributedText = result
         
         // text
-        var text = chatMessage.text ?? ""
+        var text = chatMessage.rawText ?? ""
         if [.retracting, .retracted].contains(chatMessage.outgoingStatus) {
             textView.textColor = UIColor.chatTime
             text = Localizations.chatMessageDeleted

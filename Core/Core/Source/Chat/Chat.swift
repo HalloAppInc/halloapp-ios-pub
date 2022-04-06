@@ -11,21 +11,11 @@ import CocoaLumberjackSwift
 import UIKit
 
 public typealias GroupID = String
-
-public enum ChatType: Int16 {
-    case oneToOne = 0
-    case group = 1
-}
+public typealias ChatType = ThreadType
 
 public enum ChatState: String {
     case available = "available"
     case typing = "typing"
-}
-
-public enum ChatMessageMediaType: Int, Codable {
-    case image = 0
-    case video = 1
-    case audio = 2
 }
 
 public struct MediaCounters {
@@ -197,7 +187,7 @@ public extension ChatMessageProtocol {
 
 public protocol ChatMediaProtocol {
     var url: URL? { get }
-    var mediaType: ChatMessageMediaType { get }
+    var mediaType: CommonMediaType { get }
     var size: CGSize { get }
     var key: String { get }
     var sha256: String { get }
@@ -363,7 +353,7 @@ extension Clients_ChatContainer {
 
 public struct XMPPChatMedia {
     public var url: URL?
-    public var type: ChatMessageMediaType
+    public var type: CommonMediaType
     public var size: CGSize
     public var key: String
     public var sha256: String
@@ -371,7 +361,7 @@ public struct XMPPChatMedia {
     public var chunkSize: Int32
     public var blobSize: Int64
 
-    public init(url: URL? = nil, type: ChatMessageMediaType, size: CGSize, key: String, sha256: String, blobVersion: BlobVersion, chunkSize: Int32, blobSize: Int64) {
+    public init(url: URL? = nil, type: CommonMediaType, size: CGSize, key: String, sha256: String, blobVersion: BlobVersion, chunkSize: Int32, blobSize: Int64) {
         self.url = url
         self.type = type
         self.size = size
@@ -383,7 +373,7 @@ public struct XMPPChatMedia {
     }
 
     public init?(protoMedia: Clients_Media) {
-        guard let type = ChatMessageMediaType(clientsMediaType: protoMedia.type) else { return nil }
+        guard let type = CommonMediaType(clientsMediaType: protoMedia.type) else { return nil }
         guard let url = URL(string: protoMedia.downloadURL) else { return nil }
         let width = CGFloat(protoMedia.width)
         let height = CGFloat(protoMedia.height)
@@ -447,12 +437,12 @@ public struct XMPPChatMedia {
 }
 
 extension XMPPChatMedia: ChatMediaProtocol {
-    public var mediaType: ChatMessageMediaType {
+    public var mediaType: CommonMediaType {
         type
     }
 }
 
-public extension ChatMessageMediaType {
+public extension CommonMediaType {
     init?(clientsMediaType: Clients_MediaType) {
         switch clientsMediaType {
         case .image:

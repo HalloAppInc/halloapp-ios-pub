@@ -1,5 +1,5 @@
 //
-//  FeedNotifications.swift
+//  FeedActivityObserver.swift
 //  HalloApp
 //
 //  Created by Igor Solomennikov on 4/22/20.
@@ -8,24 +8,25 @@
 
 import CocoaLumberjackSwift
 import Combine
+import Core
 import CoreData
 import Foundation
 
-class FeedNotifications: NSObject, NSFetchedResultsControllerDelegate {
+class FeedActivityObserver: NSObject, NSFetchedResultsControllerDelegate {
 
-    private let fetchedResultsController: NSFetchedResultsController<FeedNotification>
+    private let fetchedResultsController: NSFetchedResultsController<FeedActivity>
 
     init(_ managedObjectContext: NSManagedObjectContext) {
-        let fetchRequest: NSFetchRequest<FeedNotification> = FeedNotification.fetchRequest()
-        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedNotification.timestamp, ascending: false) ]
-        fetchedResultsController = NSFetchedResultsController<FeedNotification>(fetchRequest: fetchRequest, managedObjectContext: managedObjectContext, sectionNameKeyPath: nil, cacheName: nil)
+        let fetchRequest: NSFetchRequest<FeedActivity> = FeedActivity.fetchRequest()
+        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedActivity.timestamp, ascending: false) ]
+        fetchedResultsController = NSFetchedResultsController<FeedActivity>(fetchRequest: fetchRequest, managedObjectContext: managedObjectContext, sectionNameKeyPath: nil, cacheName: nil)
         super.init()
         fetchedResultsController.delegate = self
         do {
             try fetchedResultsController.performFetch()
         } catch {
-            DDLogError("FeedNotifications/fetch/error [\(error)]")
-            fatalError("Failed to fetch feed notifications.")
+            DDLogError("FeedActivityObserver/fetch/error [\(error)]")
+            fatalError("Failed to fetch post activities.")
         }
     }
 
@@ -40,14 +41,14 @@ class FeedNotifications: NSObject, NSFetchedResultsControllerDelegate {
 
     private func reloadUnreadCount() {
         let managedObjectContext = self.fetchedResultsController.managedObjectContext
-        let fetchRequest: NSFetchRequest<FeedNotification> = FeedNotification.fetchRequest()
+        let fetchRequest: NSFetchRequest<FeedActivity> = FeedActivity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "read = %@", NSExpression(forConstantValue: false))
         do {
             self.unreadCount = try managedObjectContext.count(for: fetchRequest)
         }
         catch {
-            DDLogError("FeedNotifications/fetch/error [\(error)]")
-            fatalError("Failed to fetch feed notifications.")
+            DDLogError("FeedActivityObserver/fetch/error [\(error)]")
+            fatalError("Failed to fetch post activities.")
         }
     }
 

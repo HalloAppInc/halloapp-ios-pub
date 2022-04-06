@@ -439,7 +439,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             case .unsupported:
                 return .unsupported
             case .error, .haveSeen, .none, .sentSeenReceipt, .played, .sentPlayedReceipt:
-                return .normal(chatMessage.text ?? "", orderedMentions: [])
+                return .normal(chatMessage.rawText ?? "", orderedMentions: [])
             }
         }()
 
@@ -464,12 +464,12 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         if let quoted = chatQuoted {
             isQuotedMessage = true
 
-            guard let userID = quoted.userId else { return false }
+            guard let userID = quoted.userID else { return false }
             
             quotedNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
 
             if let mentionText = MainAppContext.shared.contactStore.textWithMentions(
-                quoted.text,
+                quoted.rawText,
                 mentions: quoted.orderedMentions) {
                 let ham = HAMarkdown(font: UIFont.preferredFont(forTextStyle: .footnote), color: UIColor.systemGray)
                 quotedTextView.attributedText = ham.parse(mentionText)
@@ -480,9 +480,10 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                 quotedTextView.font = UIFont.preferredFont(forTextStyle: .largeTitle)
             }
 
-            if let media = quoted.media, let item = media.first(where: { $0.order == mediaIndex }) {
-                let fileURL = item.mediaUrl
-
+            if let media = quoted.media,
+               let item = media.first(where: { $0.order == mediaIndex }),
+               let fileURL = item.mediaURL
+            {
                 quotedImageView.isUserInteractionEnabled = FileManager.default.fileExists(atPath: fileURL.path)
                 quotedImageView.isHidden = false
 
@@ -541,7 +542,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     }
     
     
-    func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, isPlayed: Bool, displayText: DisplayText, media: Set<ChatMedia>?, linkPreview: ChatLinkPreview?, timestamp: Date?) {
+    func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, isPlayed: Bool, displayText: DisplayText, media: Set<CommonMedia>?, linkPreview: CommonLinkPreview?, timestamp: Date?) {
         if isPreviousMsgSameSender {
             contentView.layoutMargins = UIEdgeInsets(top: 3, left: 18, bottom: 0, right: 18)
         } else {
@@ -694,7 +695,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         }
     }
 
-    func updateMedia(_ media: ChatMedia) {
+    func updateMedia(_ media: CommonMedia) {
         guard let relativeFilePath = media.relativeFilePath else { return }
         let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
 
@@ -714,7 +715,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         }
     }
     
-    func updateLinkPreviewMedia(_ media: ChatMedia) {
+    func updateLinkPreviewMedia(_ media: CommonMedia) {
         guard let relativeFilePath = media.relativeFilePath else { return }
         let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
 

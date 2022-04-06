@@ -6,6 +6,7 @@
 //  Copyright © 2022 HalloApp, Inc. All rights reserved.
 //
 
+import Core
 import Foundation
 import UIKit
 
@@ -188,16 +189,16 @@ class MessageCellViewBase: UICollectionViewCell {
 
     public func configureText(comment: FeedPostComment) {
         let cryptoResultString: String = FeedItemContentView.obtainCryptoResultString(for: comment.id)
-        let feedPostCommentText = comment.text + cryptoResultString
+        let feedPostCommentText = comment.rawText + cryptoResultString
         if !feedPostCommentText.isEmpty  {
             textLabel.isHidden = false
             let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
                 feedPostCommentText,
-                mentions: Array(comment.mentions ?? Set()))
+                mentions: comment.mentions)
 
             let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
             var font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize + 1)
-            if comment.text.containsOnlyEmoji {
+            if comment.rawText.containsOnlyEmoji {
                 font = UIFont.preferredFont(forTextStyle: .largeTitle)
             }
             let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)

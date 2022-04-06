@@ -27,7 +27,7 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
     private static var cachedScrollPositions: [GroupID: GroupPostScrollPosition] = [:]
 
     private let groupId: GroupID
-    private var group: ChatGroup?
+    private var group: Group?
 
     private var theme: Int32 = 0 {
         didSet {
@@ -335,7 +335,7 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
         let isSampleGroup = sharedNUX.sampleGroupID() == self.groupId
         let showWelcomePostIfNeeded = welcomePostExist || isZeroZone
 
-        guard let groupMember = sharedChatData?.chatGroupMember(groupId: group.groupId, memberUserId: sharedUserData.userId) else { return result }
+        guard let groupMember = sharedChatData?.chatGroupMember(groupId: group.id, memberUserId: sharedUserData.userId) else { return result }
         guard groupMember.type == .admin else { return result }
 
         if showWelcomePostIfNeeded {
@@ -362,11 +362,8 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
     
     private func populateEvents() {
         let groupFeedEvents = MainAppContext.shared.chatData.groupFeedEvents(with: self.groupId)
-        var feedEvents = [FeedEvent]()
-        groupFeedEvents.forEach {
-            let text = $0.event?.text ?? ""
-            let timestamp = $0.timestamp ?? Date()
-            feedEvents.append((FeedEvent(description: text, timestamp: timestamp, isThemed: theme != 0)))
+        let feedEvents: [FeedEvent] = groupFeedEvents.map {
+            FeedEvent(description: $0.text ?? "", timestamp: $0.timestamp, isThemed: theme != 0)
         }
 
         feedDataSource.events = feedEvents

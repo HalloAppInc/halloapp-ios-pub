@@ -27,6 +27,6 @@ struct ReplyContext: Codable {
 }
 
 struct ChatReplyMedia: Codable {
-    var type: ChatMessageMediaType
+    var type: CommonMediaType
     var mediaURL: String
 }

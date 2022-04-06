@@ -6,6 +6,7 @@
 //  Copyright © 2022 HalloApp, Inc. All rights reserved.
 //
 
+import Core
 import Foundation
 import UIKit
 

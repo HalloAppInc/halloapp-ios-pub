@@ -233,7 +233,7 @@ class ImageServer {
         }
     }
 
-    func prepare(_ type: FeedMediaType, url: URL, for id: String? = nil, index: Int? = nil, shouldStreamVideo: Bool, completion: Completion? = nil) {
+    func prepare(_ type: CommonMediaType, url: URL, for id: String? = nil, index: Int? = nil, shouldStreamVideo: Bool, completion: Completion? = nil) {
         processingQueue.async { [weak self] in
             guard let self = self else { return }
 
@@ -286,7 +286,7 @@ class ImageServer {
         }
     }
 
-    private func encrypt(_ type: FeedMediaType, input: URL, output: URL) -> Result<(key: String, sha256: String), Error> {
+    private func encrypt(_ type: CommonMediaType, input: URL, output: URL) -> Result<(key: String, sha256: String), Error> {
         let ts = Date()
         do {
             if FileManager.default.fileExists(atPath: output.path) {
@@ -334,7 +334,7 @@ class ImageServer {
         }
     }
 
-    private func encryptChunkedMedia(_ type: FeedMediaType, input: URL, output: URL) -> Result<(key: String, sha256: String, chunkSize: Int32, blobSize: Int64), Error> {
+    private func encryptChunkedMedia(_ type: CommonMediaType, input: URL, output: URL) -> Result<(key: String, sha256: String, chunkSize: Int32, blobSize: Int64), Error> {
         guard let plaintextResource = try? input.resourceValues(forKeys: [.fileSizeKey]),
               let plaintextSize = plaintextResource.fileSize else {
             DDLogError("ImageServer/encryptChunkedMedia/media/error  Could not read file size")

@@ -114,7 +114,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
 
         setupNoConnectionBanner()
 
-        cancellableSet.insert(MainAppContext.shared.feedData.willDestroyStore.sink { [weak self] in
+        cancellableSet.insert(MainAppContext.shared.mainDataStore.willClearStore.sink { [weak self] in
             guard let self = self else { return }
             self.view.isUserInteractionEnabled = false
             self.feedDataSource.clear()
@@ -122,7 +122,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         })
 
         cancellableSet.insert(
-            MainAppContext.shared.feedData.didReloadStore.sink { [weak self] in
+            MainAppContext.shared.mainDataStore.didClearStore.sink { [weak self] in
                 guard let self = self else { return }
                 self.feedDataSource.setup()
                 self.collectionView.reloadData()
@@ -916,10 +916,10 @@ extension FeedCollectionViewController {
         present(alert, animated: true)
     }
     
-    private func getMedia(feedPost: FeedPost) -> [(type: FeedMediaType, url: URL)] {
+    private func getMedia(feedPost: FeedPost) -> [(type: CommonMediaType, url: URL)] {
         let feedMedia = MainAppContext.shared.feedData.media(for: feedPost)
 
-        var mediaItems: [(type: FeedMediaType, url: URL)] = []
+        var mediaItems: [(type: CommonMediaType, url: URL)] = []
         
         for media in feedMedia {
             if media.isMediaAvailable, let url = media.fileURL {
@@ -930,7 +930,7 @@ extension FeedCollectionViewController {
         return mediaItems
     }
     
-    private func saveMedia(media: [(type: FeedMediaType, url: URL)]) {
+    private func saveMedia(media: [(type: CommonMediaType, url: URL)]) {
         PHPhotoLibrary.shared().performChanges({ [weak self] in
             for media in media {
                 if media.type == .image {

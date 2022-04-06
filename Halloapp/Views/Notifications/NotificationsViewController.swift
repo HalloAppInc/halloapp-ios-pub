@@ -33,7 +33,7 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
     private let bottomSafeAreaHeight = UIApplication.shared.windows[0].safeAreaInsets.bottom
 
     private var dataSource: UITableViewDiffableDataSource<ActivityCenterSection, ActivityCenterItem>!
-    private var fetchedResultsController: NSFetchedResultsController<FeedNotification>!
+    private var fetchedResultsController: NSFetchedResultsController<FeedActivity>!
     private lazy var tableView: UITableView = { UITableView() }()
     private var bottomBar: UIView!
     private let readAllButton = UIButton()
@@ -70,22 +70,22 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
             return cell
         }
 
-        let fetchRequest: NSFetchRequest<FeedNotification> = FeedNotification.fetchRequest()
+        let fetchRequest: NSFetchRequest<FeedActivity> = FeedActivity.fetchRequest()
         if !ContactStore.contactsAccessAuthorized {
             let eligiblePostIdsFetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-            eligiblePostIdsFetchRequest.predicate = NSPredicate(format: "userId = %@ || groupId != nil", MainAppContext.shared.userData.userId)
+            eligiblePostIdsFetchRequest.predicate = NSPredicate(format: "userID = %@ || groupID != nil", MainAppContext.shared.userData.userId)
             do {
                 let eligiblePosts = try MainAppContext.shared.feedData.viewContext.fetch(eligiblePostIdsFetchRequest)
                 let eligiblePostIds = eligiblePosts.compactMap {$0.id}
-                fetchRequest.predicate = NSPredicate(format: "postId IN %@", eligiblePostIds)
+                fetchRequest.predicate = NSPredicate(format: "postID IN %@", eligiblePostIds)
             }
             catch {
                 DDLogError("NotificationsViewController/viewDidLoad/failed to fetch eligible posts")
             }
         }
-        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedNotification.timestamp, ascending: false) ]
+        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedActivity.timestamp, ascending: false) ]
         fetchedResultsController =
-            NSFetchedResultsController<FeedNotification>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.feedData.viewContext,
+            NSFetchedResultsController<FeedActivity>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.mainDataStore.viewContext,
                                                          sectionNameKeyPath: nil, cacheName: nil)
         fetchedResultsController.delegate = self
         do {
@@ -167,17 +167,17 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         return snapshot
     }
     
-    private func activityCenterItems(for rawNotifications: [FeedNotification]) -> [ActivityCenterItem] {
+    private func activityCenterItems(for rawNotifications: [FeedActivity]) -> [ActivityCenterItem] {
         var displayItems: [ActivityCenterItem] = []
         
-        let notificationsPerPost: [FeedPostID: [FeedNotification]] = rawNotifications.reduce(into: [:]) {
-            let previousNotificationsForPost: [FeedNotification] = $0[$1.postId] ?? []
-            $0[$1.postId] = previousNotificationsForPost + [$1]
+        let notificationsPerPost: [FeedPostID: [FeedActivity]] = rawNotifications.reduce(into: [:]) {
+            let previousNotificationsForPost: [FeedActivity] = $0[$1.postID] ?? []
+            $0[$1.postID] = previousNotificationsForPost + [$1]
         }
         
         for (_, postNotifications) in notificationsPerPost {
-            let notificationsPerEventType: [FeedNotification.Event : [FeedNotification]] = postNotifications.reduce(into: [:]) {
-                let previousNotificationsForEvent: [FeedNotification] = $0[$1.event] ?? []
+            let notificationsPerEventType: [FeedActivity.Event : [FeedActivity]] = postNotifications.reduce(into: [:]) {
+                let previousNotificationsForEvent: [FeedActivity] = $0[$1.event] ?? []
                 $0[$1.event] = previousNotificationsForEvent + [$1]
             }
             
@@ -201,12 +201,12 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
     /// Generates notifications for events where another user commented on a post you did. Groups together notifications for non-contacts.
     /// - Parameter postNotifications: Notifications to process
     /// - Returns: Array of activity center notifications for display
-    private func otherCommentItems(for postNotifications: [FeedNotification]) -> [ActivityCenterItem] {
+    private func otherCommentItems(for postNotifications: [FeedActivity]) -> [ActivityCenterItem] {
         var items: [ActivityCenterItem] = []
         
         // Add an item for each comment made by a contact
         let contactNotifications = postNotifications.filter { notification in
-            MainAppContext.shared.contactStore.isContactInAddressBook(userId: notification.userId)
+            MainAppContext.shared.contactStore.isContactInAddressBook(userId: notification.userID)
         }
         let itemsForContactComments = contactNotifications.compactMap {
             ActivityCenterItem(content: .singleNotification($0))
@@ -215,10 +215,10 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         
         // Aggregate all comments from non-contacts into a single item
         let nonContactNotifications = postNotifications.filter { notification in
-            !MainAppContext.shared.contactStore.isContactInAddressBook(userId: notification.userId)
+            !MainAppContext.shared.contactStore.isContactInAddressBook(userId: notification.userID)
         }
         let itemForNonContactComments: ActivityCenterItem? = {
-            let nonContactsWhoCommented = Set<UserID>(nonContactNotifications.map { $0.userId })
+            let nonContactsWhoCommented = Set<UserID>(nonContactNotifications.map { $0.userID })
             if nonContactsWhoCommented.count > 1 {
                 // Aggregate comments from multiple non-contacts
                 return ActivityCenterItem(content: .unknownCommenters(nonContactNotifications))
@@ -238,7 +238,7 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
     }
     
     /// Default handler for notifications. Simply passes them on as `ActivityCenterItems` without any modification
-    private func defaultItems(for postNotifications: [FeedNotification]) -> [ActivityCenterItem] {
+    private func defaultItems(for postNotifications: [FeedActivity]) -> [ActivityCenterItem] {
         return postNotifications.compactMap {
             ActivityCenterItem(content: .singleNotification($0))
         }
@@ -388,25 +388,28 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
         notificationTextLabel.attributedText = item.text
         mediaPreview.image = item.image
         
-        let visibleBorderWidth: CGFloat = 0.5
+
         
         // only text and audio posts get a border
-        switch item.content {
-        case .singleNotification(let notif) where notif.mediaType == FeedNotification.MediaType.audio:
-            mediaPreview.contentMode = .center
-            mediaPreview.layer.borderWidth = visibleBorderWidth
-        case .unknownCommenters(let notif) where notif.first?.mediaType == FeedNotification.MediaType.audio:
-            mediaPreview.contentMode = .center
-            mediaPreview.layer.borderWidth = visibleBorderWidth
-            
-        case .singleNotification(let notif) where notif.mediaType == FeedNotification.MediaType.none:
-            mediaPreview.contentMode = .scaleAspectFit
-            mediaPreview.layer.borderWidth = visibleBorderWidth
-        case .unknownCommenters(let notifs) where notifs.first?.mediaType == FeedNotification.MediaType.none:
-            mediaPreview.contentMode = .scaleAspectFit
-            mediaPreview.layer.borderWidth = visibleBorderWidth
+        let displayedMediaType: FeedActivity.MediaType
 
-        default:
+        switch item.content {
+        case .singleNotification(let activity):
+            displayedMediaType = activity.mediaType
+        case .unknownCommenters(let activities):
+            // Fall back to borderless case if activities is empty
+            displayedMediaType = activities.first?.mediaType ?? .image
+        }
+
+        let visibleBorderWidth: CGFloat = 0.5
+        switch displayedMediaType {
+        case .audio:
+            mediaPreview.contentMode = .center
+            mediaPreview.layer.borderWidth = visibleBorderWidth
+        case .none:
+            mediaPreview.contentMode = .scaleAspectFit
+            mediaPreview.layer.borderWidth = visibleBorderWidth
+        case .image, .video:
             mediaPreview.contentMode = .scaleAspectFit
             mediaPreview.layer.borderWidth = 0
         }

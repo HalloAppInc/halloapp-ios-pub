@@ -254,7 +254,7 @@ public struct PostData {
     }
 }
 
-public struct MentionData: FeedMentionProtocol {
+public struct MentionData: Codable, FeedMentionProtocol {
     public let index: Int
     public let userID: String
     public let name: String
@@ -268,7 +268,7 @@ public struct MentionData: FeedMentionProtocol {
 
 public struct FeedMediaData: FeedMediaProtocol {
 
-    public init(id: String, url: URL?, type: FeedMediaType, size: CGSize, key: String, sha256: String, blobVersion: BlobVersion, chunkSize: Int32, blobSize: Int64) {
+    public init(id: String, url: URL?, type: CommonMediaType, size: CGSize, key: String, sha256: String, blobVersion: BlobVersion, chunkSize: Int32, blobSize: Int64) {
         self.id = id
         self.url = url
         self.type = type
@@ -295,7 +295,7 @@ public struct FeedMediaData: FeedMediaProtocol {
 
     public let id: String
     public let url: URL?
-    public let type: FeedMediaType
+    public let type: CommonMediaType
     public let size: CGSize
     public let key: String
     public let sha256: String
@@ -304,7 +304,7 @@ public struct FeedMediaData: FeedMediaProtocol {
     public let blobSize: Int64
 
     public init?(id: String, protoMedia: Clients_Media) {
-        guard let type: FeedMediaType = {
+        guard let type: CommonMediaType = {
             switch protoMedia.type {
             case .image: return .image
             case .video: return .video

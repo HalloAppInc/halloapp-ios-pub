@@ -21,7 +21,7 @@ protocol FeedPostDisplayable {
     var timestamp: Date { get }
     var unreadCount: Int32 { get }
     var status: FeedPost.Status { get }
-    var orderedMentions: [FeedMentionProtocol] { get }
+    var orderedMentions: [MentionData] { get }
     var audienceType: AudienceType? { get }
     var hasComments: Bool { get }
     var mediaCount: Int { get }
@@ -31,7 +31,7 @@ protocol FeedPostDisplayable {
     var linkPreview: LinkPreviewDisplayable? { get }
     var seenReceipts: [FeedPostReceipt] { get }
     var isWaiting: Bool { get }
-    var text: String? { get }
+    var rawText: String? { get }
     var hasAudio: Bool { get }
     var canDeletePost: Bool { get }
     var canSharePost: Bool { get }
@@ -64,7 +64,7 @@ extension FeedPostDisplayable {
     }
 
     var hasText: Bool {
-        return !(text?.isEmpty ?? true)
+        return !(rawText?.isEmpty ?? true)
     }
 
     var isUnsupported: Bool {
@@ -130,7 +130,7 @@ extension FeedPost: FeedPostDisplayable {
     }
 }
 
-extension FeedLinkPreview: LinkPreviewDisplayable {
+extension CommonLinkPreview: LinkPreviewDisplayable {
 
     var feedMedia: FeedMedia? {
         return MainAppContext.shared.feedData.media(feedLinkPreviewID: id)?.first

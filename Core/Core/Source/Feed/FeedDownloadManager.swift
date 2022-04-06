@@ -545,7 +545,7 @@ public class FeedDownloadManager {
 
     // MARK: File management
 
-    public class func fileExtension(forMediaType mediaType: FeedMediaType) -> String {
+    public class func fileExtension(forMediaType mediaType: CommonMediaType) -> String {
         switch mediaType {
         case .image:
             return "jpg"

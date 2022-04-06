@@ -33,7 +33,7 @@ public extension NotificationMediaType {
         }
     }
 
-    init(chatMsgMediaType: ChatMessageMediaType) {
+    init(chatMsgMediaType: CommonMediaType) {
         switch chatMsgMediaType {
         case .image:
             self = .image
@@ -44,7 +44,7 @@ public extension NotificationMediaType {
         }
     }
 
-    init(feedMediaType: FeedMediaType) {
+    init(feedMediaType: CommonMediaType) {
         switch feedMediaType {
         case .image:
             self = .image

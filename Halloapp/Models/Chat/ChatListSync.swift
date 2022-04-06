@@ -14,7 +14,7 @@ import Foundation
 
 public class ChatListSync: NSObject, NSFetchedResultsControllerDelegate {
 
-    private var fetchedResultsController: NSFetchedResultsController<ChatThread>?
+    private var fetchedResultsController: NSFetchedResultsController<CommonThread>?
     private let sync = PassthroughSubject<Void, Never>()
     private var syncCancellable: AnyCancellable?
     private let syncQueue = DispatchQueue(label: "com.halloapp.chat-list-sync")
@@ -28,7 +28,7 @@ public class ChatListSync: NSObject, NSFetchedResultsControllerDelegate {
                 let threads = (fetchedResultsController.fetchedObjects ?? [])
 
                 ChatListSyncItem.save(threads.compactMap {
-                    guard let userId = $0.chatWithUserId else { return nil }
+                    guard let userId = $0.userID else { return nil }
                     return ChatListSyncItem(userId: userId, timestamp: $0.lastMsgTimestamp)
                 })
             }
@@ -40,14 +40,15 @@ public class ChatListSync: NSObject, NSFetchedResultsControllerDelegate {
         sync.send()
     }
 
-    private func makeFetchedResultsController(using context: NSManagedObjectContext) -> NSFetchedResultsController<ChatThread> {
-        let request = NSFetchRequest<ChatThread>(entityName: "ChatThread")
+    private func makeFetchedResultsController(using context: NSManagedObjectContext) -> NSFetchedResultsController<CommonThread> {
+        let request = NSFetchRequest<CommonThread>(entityName: "CommonThread")
         request.sortDescriptors = [
-            NSSortDescriptor(key: "lastMsgTimestamp", ascending: false),
+            NSSortDescriptor(key: "lastTimestamp", ascending: false),
             NSSortDescriptor(key: "title", ascending: true)
         ]
 
-        request.predicate = NSPredicate(format: "chatWithUserId != nil")
+        // TODO: Should this use type field instead?
+        request.predicate = NSPredicate(format: "userID != nil")
 
         return NSFetchedResultsController(fetchRequest: request, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
     }

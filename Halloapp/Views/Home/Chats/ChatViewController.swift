@@ -218,18 +218,11 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         view.addGestureRecognizer(tapGesture)
         
         if let feedPostId = self.feedPostId, let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
-            let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.text, mentions: feedPost.orderedMentions)
-            let mediaType: ChatMessageMediaType?
+            let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.rawText, mentions: feedPost.orderedMentions)
+            let mediaType: CommonMediaType?
             let mediaUrl: URL?
             if let mediaItem = feedPost.media?.first(where: { $0.order == self.feedPostMediaIndex }) {
-                switch mediaItem.type {
-                case .audio:
-                    mediaType = .audio
-                case .image:
-                    mediaType = .image
-                case .video:
-                    mediaType = .video
-                }
+                mediaType = mediaItem.type
                 mediaUrl = MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
             } else {
                 mediaType = nil
@@ -505,7 +498,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                     let reply = ReplyContext(replyMessageID: replyMessageID,
                           replySenderID: replySenderID,
                           mediaIndex: chatReplyMessageMediaIndex,
-                          text: replyMessage.text ?? "",
+                          text: replyMessage.rawText ?? "",
                           media: media)
                     
                     return reply
@@ -515,23 +508,15 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             let reply = ReplyContext(replyMessageID: replyMessageID,
                   replySenderID: replySenderID,
                   mediaIndex: chatReplyMessageMediaIndex,
-                  text: replyMessage.text ?? "",
+                  text: replyMessage.rawText ?? "",
                   media: nil)
             
             return reply
         } else if let feedPostId = self.feedPostId {
             if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
-                let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.text, mentions: feedPost.orderedMentions)
+                let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.rawText, mentions: feedPost.orderedMentions)
                 if let mediaItem = feedPost.media?.first(where: { $0.order == self.feedPostMediaIndex }) {
-                    let mediaType: ChatMessageMediaType
-                    switch mediaItem.type {
-                    case .audio:
-                        mediaType = .audio
-                    case .image:
-                        mediaType = .image
-                    case .video:
-                        mediaType = .video
-                    }
+                    let mediaType = mediaItem.type
                     let mediaUrl = MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
                     
                     let reply = ReplyContext(feedPostID: feedPostId,
@@ -609,7 +594,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         return true
     }
 
-    private func presentMediaExplorer(media: [ChatMedia], At index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
+    private func presentMediaExplorer(media: [CommonMedia], At index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
         let controller = MediaExplorerController(media: media, index: index)
         controller.delegate = delegate
 
@@ -808,7 +793,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         return false
     }
 
-    private func findUpdatedMedia(for chatMessage: ChatMessage) -> ChatMedia? {
+    private func findUpdatedMedia(for chatMessage: ChatMessage) -> CommonMedia? {
         guard chatMessage.fromUserId != MainAppContext.shared.userData.userId else { return nil }
         guard let trackedChatMessage = self.trackedChatMessages[chatMessage.id] else { return nil }
         guard let media = chatMessage.media else { return nil }
@@ -1254,7 +1239,7 @@ fileprivate extension ChatViewController {
         let fetchRequest: NSFetchRequest<ChatMessage> = ChatMessage.fetchRequest()
         guard let userID = fromUserId else { return }
         let appUserID = MainAppContext.shared.userData.userId
-        fetchRequest.predicate = NSPredicate(format: "(fromUserId = %@ AND toUserId = %@) || (toUserId = %@ && fromUserId = %@)", userID, appUserID, userID, appUserID)
+        fetchRequest.predicate = NSPredicate(format: "(fromUserID = %@ AND toUserID = %@) || (toUserID = %@ && fromUserID = %@)", userID, appUserID, userID, appUserID)
         fetchRequest.sortDescriptors = [
             NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true),
             NSSortDescriptor(keyPath: \ChatMessage.serialID, ascending: true) // if timestamps are the same, break tie
@@ -1282,7 +1267,7 @@ fileprivate extension ChatViewController {
             NSSortDescriptor(keyPath: \ChatEvent.timestamp, ascending: true)
         ]
 
-        chatEventFetchedResultsController = NSFetchedResultsController<ChatEvent>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.chatData.viewContext, sectionNameKeyPath: nil, cacheName: nil)
+        chatEventFetchedResultsController = NSFetchedResultsController<ChatEvent>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.mainDataStore.viewContext, sectionNameKeyPath: nil, cacheName: nil)
         chatEventFetchedResultsController?.delegate = self
         do {
             try chatEventFetchedResultsController!.performFetch()
@@ -1432,7 +1417,7 @@ fileprivate struct TrackedChatMedia {
     var relativeFilePath: String?
     let order: Int
 
-    init(with chatMedia: ChatMedia) {
+    init(with chatMedia: CommonMedia) {
         self.order = Int(chatMedia.order)
         self.relativeFilePath = chatMedia.relativeFilePath
     }
@@ -1602,9 +1587,9 @@ extension ChatViewController {
         if let mediaItem = chatMessage.media?.first(where: { $0.order == chatReplyMessageMediaIndex }) {
             let mediaUrl = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
             
-            chatInputView.showQuoteFeedPanel(with: userID, text: chatMessage.text ?? "", mediaType: mediaItem.type, mediaUrl: mediaUrl, from: self, isQuotedFeedPost: false)
+            chatInputView.showQuoteFeedPanel(with: userID, text: chatMessage.rawText ?? "", mediaType: mediaItem.type, mediaUrl: mediaUrl, from: self, isQuotedFeedPost: false)
         } else {
-            chatInputView.showQuoteFeedPanel(with: userID, text: chatMessage.text ?? "", mediaType: nil, mediaUrl: nil, from: self, isQuotedFeedPost: false)
+            chatInputView.showQuoteFeedPanel(with: userID, text: chatMessage.rawText ?? "", mediaType: nil, mediaUrl: nil, from: self, isQuotedFeedPost: false)
         }
     }
 
@@ -1665,7 +1650,7 @@ extension ChatViewController: InboundMsgViewCellDelegate {
                 self.handleQuotedReply(msg: chatMessage, mediaIndex: inboundMsgViewCell.mediaIndex)
              })
         
-            if let messageText = chatMessage.text, !messageText.isEmpty {
+            if let messageText = chatMessage.rawText, !messageText.isEmpty {
                 actionSheet.addAction(UIAlertAction(title: Localizations.messageCopy, style: .default) { _ in
                     let pasteboard = UIPasteboard.general
                     pasteboard.string = messageText
@@ -1733,7 +1718,7 @@ extension ChatViewController: OutboundMsgViewCellDelegate {
                 self.handleQuotedReply(msg: chatMessage, mediaIndex: outboundMsgViewCell.mediaIndex)
              })
             
-            if let messageText = chatMessage.text, !messageText.isEmpty {
+            if let messageText = chatMessage.rawText, !messageText.isEmpty {
                 actionSheet.addAction(UIAlertAction(title: Localizations.messageCopy, style: .default) { _ in
                     let pasteboard = UIPasteboard.general
                     pasteboard.string = messageText

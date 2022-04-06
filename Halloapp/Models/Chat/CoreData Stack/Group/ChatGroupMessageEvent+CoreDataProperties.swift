@@ -14,34 +14,6 @@ import Foundation
 
 extension ChatGroupMessageEvent {
 
-    enum Action: Int16 {
-        case none = 0
-        case get = 1
-        case create = 2
-        case leave = 3
-        case delete = 4
-
-        case changeName = 5
-        case changeAvatar = 6
-    
-        case modifyMembers = 7
-        case modifyAdmins = 8
-        
-        case join = 9
-        case setBackground = 10
-        
-        case changeDescription = 11
-    }
-
-    enum MemberAction: Int16 {
-        case none = 0
-        case add = 1
-        case remove = 2
-        case promote = 3
-        case demote = 4
-        case leave = 5
-    }
-
     @nonobjc public class func fetchRequest() -> NSFetchRequest<ChatGroupMessageEvent> {
         return NSFetchRequest<ChatGroupMessageEvent>(entityName: "ChatGroupMessageEvent")
     }
@@ -54,24 +26,26 @@ extension ChatGroupMessageEvent {
     
     @NSManaged public var groupMessage: ChatGroupMessage
     
-    var action: Action {
+    var action: GroupEvent.Action {
         get {
-            return Action(rawValue: self.actionValue)!
+            return GroupEvent.Action(rawValue: self.actionValue)!
         }
         set {
             self.actionValue = newValue.rawValue
         }
     }
     
-    var memberAction: MemberAction {
+    var memberAction: GroupEvent.MemberAction {
         get {
-            return MemberAction(rawValue: self.memberActionValue)!
+            return GroupEvent.MemberAction(rawValue: self.memberActionValue)!
         }
         set {
             self.memberActionValue = newValue.rawValue
         }
     }
+}
 
+extension GroupEvent {
     enum Subject {
         case you
         case other(String)
@@ -79,7 +53,7 @@ extension ChatGroupMessageEvent {
 
     private var subject: Subject? {
         get {
-            guard let userId = sender else { return nil }
+            guard let userId = senderUserID else { return nil }
             if userId == MainAppContext.shared.userData.userId {
                 return .you
             }
@@ -89,7 +63,7 @@ extension ChatGroupMessageEvent {
     
     var memberName: String? {
         get {
-            guard let userId = memberUserId else { return nil }
+            guard let userId = memberUserID else { return nil }
             if userId == MainAppContext.shared.userData.userId {
                 return Localizations.userYou
             }
@@ -139,7 +113,7 @@ extension ChatGroupMessageEvent {
 
 extension Localizations {
 
-    static func groupEventCreatedGroup(subject: ChatGroupMessageEvent.Subject, groupName: String) -> String {
+    static func groupEventCreatedGroup(subject: GroupEvent.Subject, groupName: String) -> String {
         switch subject {
         case .you:
             let format = NSLocalizedString("group.event.created.group.you", value: "You created the group \"%1@\"", comment: "Message text shown when you create a group")
@@ -150,7 +124,7 @@ extension Localizations {
         }
     }
 
-    static func groupEventJoin(subject: ChatGroupMessageEvent.Subject) -> String {
+    static func groupEventJoin(subject: GroupEvent.Subject) -> String {
         switch subject {
         case .you:
             return NSLocalizedString("chat.group.event.join.you", value: "You joined the group via Group Invite Link", comment: "Message text shown when you join a group via invite link")
@@ -160,7 +134,7 @@ extension Localizations {
         }
     }
 
-    static func groupEventChangedName(subject: ChatGroupMessageEvent.Subject, groupName: String) -> String {
+    static func groupEventChangedName(subject: GroupEvent.Subject, groupName: String) -> String {
         switch subject {
         case .you:
             let format = NSLocalizedString("group.event.changed.name.you", value: "You changed the group name to \"%1@\"", comment: "Message text shown when you change the group name")
@@ -171,7 +145,7 @@ extension Localizations {
         }
     }
 
-    static func groupEventChangedDescription(subject: ChatGroupMessageEvent.Subject) -> String {
+    static func groupEventChangedDescription(subject: GroupEvent.Subject) -> String {
         switch subject {
         case .you:
             let format = NSLocalizedString("group.event.changed.description.you", value: "You changed the group description", comment: "Message text shown when you change the group description")
@@ -182,7 +156,7 @@ extension Localizations {
         }
     }
 
-    static func groupEventChangedAvatar(subject: ChatGroupMessageEvent.Subject, groupName: String) -> String {
+    static func groupEventChangedAvatar(subject: GroupEvent.Subject, groupName: String) -> String {
         switch subject {
         case .you:
             return NSLocalizedString("group.event.changed.avatar.you", value: "You changed the group icon", comment: "Message text shown with the user who changed the group avatar")
@@ -192,7 +166,7 @@ extension Localizations {
         }
     }
 
-    static func groupEventChangedBackground(subject: ChatGroupMessageEvent.Subject) -> String {
+    static func groupEventChangedBackground(subject: GroupEvent.Subject) -> String {
         switch subject {
         case .you:
             return NSLocalizedString("group.event.changed.background.you", value: "You changed the background color", comment: "Message text shown when you change the background")
@@ -202,7 +176,7 @@ extension Localizations {
         }
     }
 
-    static func groupEventAddedMember(subject: ChatGroupMessageEvent.Subject, memberName: String) -> String {
+    static func groupEventAddedMember(subject: GroupEvent.Subject, memberName: String) -> String {
         switch subject {
         case .you:
             let format = NSLocalizedString("group.event.added.member.you", value: "You added %1@", comment: "Message text shown when you add a group member")
@@ -213,7 +187,7 @@ extension Localizations {
         }
     }
 
-    static func groupEventRemovedMember(subject: ChatGroupMessageEvent.Subject, memberName: String) -> String {
+    static func groupEventRemovedMember(subject: GroupEvent.Subject, memberName: String) -> String {
         switch subject {
         case .you:
             let format = NSLocalizedString("group.event.removed.member.you", value: "You removed %1@", comment: "Message text shown when you remove a group member")
@@ -224,7 +198,7 @@ extension Localizations {
         }
     }
 
-    static func groupEventPromotedMember(subject: ChatGroupMessageEvent.Subject, memberName: String) -> String {
+    static func groupEventPromotedMember(subject: GroupEvent.Subject, memberName: String) -> String {
         switch subject {
         case .you:
             let format = NSLocalizedString("group.event.promoted.member.you", value: "You made %1@ an admin", comment: "Message text shown when you promote a group member")
@@ -235,7 +209,7 @@ extension Localizations {
         }
     }
 
-    static func groupEventDemotedMember(subject: ChatGroupMessageEvent.Subject, memberName: String) -> String {
+    static func groupEventDemotedMember(subject: GroupEvent.Subject, memberName: String) -> String {
         switch subject {
         case .you:
             let format = NSLocalizedString("group.event.demoted.member.you", value: "You removed %1@ as an admin", comment: "Message text shown when you demote a group admin")
@@ -246,7 +220,7 @@ extension Localizations {
         }
     }
 
-    static func groupEventMemberLeave(subject: ChatGroupMessageEvent.Subject) -> String {
+    static func groupEventMemberLeave(subject: GroupEvent.Subject) -> String {
         switch subject {
         case .you:
             return NSLocalizedString("chat.group.event.member.left.you", value: "You left", comment: "Message text shown when you leave a group")

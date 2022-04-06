@@ -198,7 +198,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         // Text
 
         let cryptoResultString: String = FeedItemContentView.obtainCryptoResultString(for: post.id)
-        let postTextWithCryptoResult = (post.text ?? "") + cryptoResultString
+        let postTextWithCryptoResult = (post.rawText ?? "") + cryptoResultString
         let postContainsText = !(postTextWithCryptoResult).isEmpty
         let showTextContentView: Bool
         if post.isUnsupported  {

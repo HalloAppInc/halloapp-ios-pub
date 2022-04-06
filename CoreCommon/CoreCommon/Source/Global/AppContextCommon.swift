@@ -62,7 +62,7 @@ open class AppContextCommon {
 
     public var coreServiceCommon: CoreServiceCommon
     public var errorLogger: ErrorLogger?
-    private var cancellableSet: Set<AnyCancellable> = []
+    public var cancellableSet: Set<AnyCancellable> = []
 
     public static let sharedDirectoryURL: URL! = {
         FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: AppContextCommon.appGroupName)

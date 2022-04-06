@@ -38,8 +38,8 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     private var isSystemUIHidden = false
     private var isTransition = false
     private var animator: MediaExplorerAnimator?
-    private var fetchedResultsController: NSFetchedResultsController<ChatMedia>?
-    private let chatMediaUpdated = PassthroughSubject<(ChatMedia, IndexPath), Never>()
+    private var fetchedResultsController: NSFetchedResultsController<CommonMedia>?
+    private let chatMediaUpdated = PassthroughSubject<(CommonMedia, IndexPath), Never>()
     private var canSaveMedia = false
     private var transitionHasFinished = false
 
@@ -204,7 +204,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         transitioningDelegate = self
     }
 
-    init(media: [ChatMedia], index: Int, startTime: CMTime = .zero) {
+    init(media: [CommonMedia], index: Int, startTime: CMTime = .zero) {
         self.media = media.map {
             let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent($0.relativeFilePath ?? "", isDirectory: false)
             let image: UIImage? = $0.type == .image ? UIImage(contentsOfFile: url.path) : nil
@@ -506,16 +506,17 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         return collectionView
     }
 
-    private func request(with media: ChatMedia, limitToMessage: Bool = false) -> NSFetchRequest<ChatMedia> {
-        let request: NSFetchRequest<ChatMedia> = ChatMedia.fetchRequest()
+    private func request(with media: CommonMedia, limitToMessage: Bool = false) -> NSFetchRequest<CommonMedia> {
+        let request: NSFetchRequest<CommonMedia> = CommonMedia.fetchRequest()
 
         if let message = media.message {
             let base = """
-                ((message.fromUserId = %@ AND message.toUserId = %@) || (message.toUserId = %@ && message.fromUserId = %@)) &&
+                ((message.fromUserID = %@ AND message.toUserID = %@) || (message.toUserID = %@ && message.fromUserID = %@)) &&
                 (typeValue == 0 || typeValue == 1)
             """
 
             if limitToMessage {
+                // TODO: Use compound predicate instead of concatenating query strings
                 request.predicate = NSPredicate(format: base + " && message.timestamp < %@", message.fromUserId, message.toUserId, message.fromUserId, message.toUserId, message.timestamp! as NSDate)
             } else {
                 request.predicate = NSPredicate(format: base, message.fromUserId, message.toUserId, message.fromUserId, message.toUserId)
@@ -523,9 +524,12 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
             request.sortDescriptors = [
                 NSSortDescriptor(key: "message.timestamp", ascending: true),
-                NSSortDescriptor(keyPath: \ChatMedia.order, ascending: true),
+                NSSortDescriptor(keyPath: \CommonMedia.order, ascending: true),
             ]
-        } else if let message = media.groupMessage {
+        }
+        /* TODO: Add group message relationship to media?
+
+         else if let message = media.groupMessage {
             let base = "groupMessage.groupId = %@"
 
             if limitToMessage {
@@ -536,21 +540,21 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
             request.sortDescriptors = [
                 NSSortDescriptor(key: "groupMessage.timestamp", ascending: true),
-                NSSortDescriptor(keyPath: \ChatMedia.order, ascending: true),
+                NSSortDescriptor(keyPath: \CommonMedia.order, ascending: true),
             ]
-        }
+        }*/
 
         return request
     }
 
-    private func makeFetchedResultsController(_ media: ChatMedia) -> NSFetchedResultsController<ChatMedia> {
+    private func makeFetchedResultsController(_ media: CommonMedia) -> NSFetchedResultsController<CommonMedia> {
         let request = request(with: media)
         request.fetchBatchSize = 5
 
         return NSFetchedResultsController(fetchRequest: request, managedObjectContext: MainAppContext.shared.chatData.viewContext, sectionNameKeyPath: nil, cacheName: nil)
     }
 
-    private func computePosition(for media: ChatMedia) -> Int {
+    private func computePosition(for media: CommonMedia) -> Int {
         let request = request(with: media, limitToMessage: true)
         let preceding = try? MainAppContext.shared.chatData.viewContext.count(for: request)
 
@@ -815,7 +819,7 @@ extension MediaExplorerController: MediaExplorerTransitionDelegate {
 extension MediaExplorerController: NSFetchedResultsControllerDelegate {
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
         guard let indexPath = indexPath else { return }
-        guard let chatMedia = anObject as? ChatMedia else { return }
+        guard let chatMedia = anObject as? CommonMedia else { return }
 
         chatMediaUpdated.send((chatMedia, indexPath))
     }

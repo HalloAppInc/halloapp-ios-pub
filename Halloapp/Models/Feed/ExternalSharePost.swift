@@ -22,9 +22,9 @@ class ExternalSharePost: FeedPostDisplayable {
     let timestamp: Date
     let status: FeedPost.Status
     let media: [ExternalShareMedia]
-    let orderedMentions: [FeedMentionProtocol]
+    let orderedMentions: [MentionData]
     let externalShareLinkPreview: ExternalShareLinkPreview?
-    let text: String?
+    let rawText: String?
 
     init(name: String, avatarID: String, postContainerBlob: Clients_PostContainerBlob) {
         id = postContainerBlob.postID
@@ -68,7 +68,7 @@ class ExternalSharePost: FeedPostDisplayable {
         orderedMentions = (mentionText?.mentions ?? [:])
             .map { (i, user) in MentionData(index: i, userID: user.userID, name: user.pushName ?? "") }
             .sorted { $0.index < $1.index }
-        text = mentionText?.collapsedText
+        rawText = mentionText?.collapsedText
     }
 
     var groupId: GroupID? {
@@ -177,7 +177,7 @@ class ExternalShareMedia: FeedMediaProtocol {
 
     let id: String
     let url: URL?
-    let type: FeedMediaType
+    let type: CommonMediaType
     let size: CGSize
     let key: String
     let sha256: String
@@ -185,7 +185,7 @@ class ExternalShareMedia: FeedMediaProtocol {
     let chunkSize: Int32
     let blobSize: Int64
 
-    var status: FeedPostMedia.Status
+    var status: CommonMedia.Status
     var fileURL: URL?
     let ready = CurrentValueSubject<Bool, Never>(false)
     var progress = CurrentValueSubject<Float, Never>(0)

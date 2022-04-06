@@ -41,11 +41,10 @@ class ChangeDestinationViewController: UIViewController {
     private lazy var fetchedResultsController: NSFetchedResultsController<ChatThread> = {
         let request = ChatThread.fetchRequest()
         request.sortDescriptors = [
-            NSSortDescriptor(key: "lastFeedTimestamp", ascending: false),
-            NSSortDescriptor(key: "lastMsgTimestamp", ascending: false),
+            NSSortDescriptor(key: "lastTimestamp", ascending: false),
             NSSortDescriptor(key: "title", ascending: true)
         ]
-        request.predicate = NSPredicate(format: "groupId != nil")
+        request.predicate = NSPredicate(format: "groupID != nil")
         
         let fetchedResultsController = NSFetchedResultsController<ChatThread>(fetchRequest: request,
                                                                               managedObjectContext: MainAppContext.shared.chatData.viewContext,

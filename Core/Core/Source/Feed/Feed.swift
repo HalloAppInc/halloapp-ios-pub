@@ -26,12 +26,6 @@ public enum FeedPostDestination {
 public typealias FeedPostCommentID = String
 public typealias FeedLinkPreviewID = String
 
-public enum FeedMediaType: Int {
-    case image = 0
-    case video = 1
-    case audio = 2
-}
-
 // MARK: Feed Mention
 
 public protocol FeedMentionProtocol {
@@ -77,7 +71,7 @@ public protocol FeedMediaProtocol {
 
     var url: URL? { get }
 
-    var type: FeedMediaType { get }
+    var type: CommonMediaType { get }
 
     var size: CGSize { get }
 
@@ -270,7 +264,7 @@ public class PendingMedia {
     private static let homeDirURL = URL(fileURLWithPath: NSHomeDirectory()).standardizedFileURL
 
     public var order: Int = 0
-    public var type: FeedMediaType
+    public var type: CommonMediaType
     public var url: URL?
     public var uploadUrl: URL?
     public var size: CGSize?
@@ -369,7 +363,7 @@ public class PendingMedia {
     public var edit: PendingMediaEdit?
     public var videoEdit: PendingVideoEdit?
 
-    public init(type: FeedMediaType) {
+    public init(type: CommonMediaType) {
         self.type = type
     }
 

@@ -8,15 +8,10 @@
 //
 
 import Foundation
+import Core
 import CoreData
 
-public enum ChatQuoteMediaType: Int16 {
-    case image = 0
-    case video = 1
-    case audio = 2
-}
-
-public enum MediaDirectory: String {
+public enum MediaDirectoryLegacy: String {
     case media
     case chatMedia
 }
@@ -35,19 +30,19 @@ extension ChatQuotedMedia {
     @NSManaged public var previewData: Data?
     @NSManaged public var mediaDir: String?
 
-    var type: ChatQuoteMediaType {
+    var type: CommonMediaType {
         get {
-            return ChatQuoteMediaType(rawValue: self.typeValue) ?? .image
+            return CommonMediaType(rawValue: self.typeValue) ?? .image
         }
         set {
             self.typeValue = newValue.rawValue
         }
     }
 
-    var mediaDirectory: MediaDirectory? {
+    var mediaDirectory: MediaDirectoryLegacy? {
         get {
             if let mediaDirString = mediaDir {
-                return MediaDirectory(rawValue: mediaDirString)
+                return MediaDirectoryLegacy(rawValue: mediaDirString)
             }
             return nil
         }
@@ -76,7 +71,7 @@ extension ChatQuotedMedia {
 // Protocol for quoted media content in chats.
 public protocol QuotedMedia {
 
-    var quotedMediaType: ChatQuoteMediaType { get }
+    var quotedMediaType: CommonMediaType { get }
 
     var order: Int16 { get }
 
@@ -86,4 +81,10 @@ public protocol QuotedMedia {
 
     var relativeFilePath: String? { get }
 
+}
+
+extension CommonMedia: QuotedMedia {
+    public var quotedMediaType: CommonMediaType {
+        return type
+    }
 }

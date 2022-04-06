@@ -11,12 +11,7 @@ import Core
 import CoreCommon
 import CoreData
 
-enum ChatEventType: Int16 {
-    case none = 0
-    case whisperKeysChange = 1
-}
-
-extension ChatEvent {
+extension ChatEventLegacy {
 
     @nonobjc public class func fetchRequest() -> NSFetchRequest<ChatEvent> {
         return NSFetchRequest<ChatEvent>(entityName: "ChatEvent")

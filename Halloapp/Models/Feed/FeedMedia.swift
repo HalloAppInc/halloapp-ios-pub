@@ -23,9 +23,9 @@ class FeedMedia: Identifiable, Hashable {
     var id: String?
     var feedElementId: FeedElementID?
     let order: Int
-    let type: FeedMediaType
+    let type: CommonMediaType
     var size: CGSize
-    private var status: FeedPostMedia.Status {
+    private var status: CommonMedia.Status {
         didSet {
             // Notify all status updates.
             mediaStatusDidChange.send(self)
@@ -114,7 +114,7 @@ class FeedMedia: Identifiable, Hashable {
         }
     }
 
-    init(_ feedPostMedia: FeedPostMedia) {
+    init(_ feedPostMedia: CommonMedia) {
         order = Int(feedPostMedia.order)
         if let feedPost = feedPostMedia.post {
             feedElementId = .post(feedPost.id)
@@ -139,7 +139,7 @@ class FeedMedia: Identifiable, Hashable {
         status = feedPostMedia.status
     }
 
-    func reload(from feedPostMedia: FeedPostMedia) {
+    func reload(from feedPostMedia: CommonMedia) {
         assert(feedPostMedia.order == self.order)
         switch feedElementId {
         case .post(let postId) :

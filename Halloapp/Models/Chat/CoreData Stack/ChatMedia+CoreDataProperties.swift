@@ -15,30 +15,16 @@ import UIKit
 
 extension ChatMedia {
     
-    enum IncomingStatus: Int16 {
-        case none = 0
-        case pending = 1
-        case downloaded = 2
-        case error = 3
-    }
-    
-    enum OutgoingStatus: Int16 {
-        case none = 0
-        case pending = 1
-        case uploaded = 2
-        case error = 3
-    }
-    
     @nonobjc public class func fetchRequest() -> NSFetchRequest<ChatMedia> {
         return NSFetchRequest<ChatMedia>(entityName: "ChatMedia")
     }
 
-    var `type`: ChatMessageMediaType {
+    var `type`: CommonMediaType {
         get {
-            return ChatMessageMediaType(rawValue: Int(self.typeValue)) ?? .image
+            return CommonMediaType(rawValue: self.typeValue) ?? .image
         }
         set {
-            self.typeValue = Int16(newValue.rawValue)
+            self.typeValue = newValue.rawValue
         }
     }
     
@@ -57,18 +43,18 @@ extension ChatMedia {
     @NSManaged private var outgoingStatusValue: Int16
     @NSManaged var numTries: Int16
     
-    var incomingStatus: IncomingStatus {
+    var incomingStatus: CommonMedia.IncomingStatus {
         get {
-            return IncomingStatus(rawValue: self.incomingStatusValue)!
+            return CommonMedia.IncomingStatus(rawValue: self.incomingStatusValue)!
         }
         set {
             self.incomingStatusValue = newValue.rawValue
         }
     }
     
-    var outgoingStatus: OutgoingStatus {
+    var outgoingStatus: CommonMedia.OutgoingStatus {
         get {
-            return OutgoingStatus(rawValue: self.outgoingStatusValue)!
+            return CommonMedia.OutgoingStatus(rawValue: self.outgoingStatusValue)!
         }
         set {
             self.outgoingStatusValue = newValue.rawValue
@@ -130,15 +116,8 @@ extension ChatMedia: MediaUploadable {
 }
 
 extension ChatMedia: QuotedMedia {
-    public var quotedMediaType: ChatQuoteMediaType {
-        switch type {
-        case .image:
-            return .image
-        case .video:
-            return .video
-        case .audio:
-            return .audio
-        }
+    public var quotedMediaType: CommonMediaType {
+        return type
     }
 }
 

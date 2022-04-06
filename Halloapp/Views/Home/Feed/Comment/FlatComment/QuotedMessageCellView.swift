@@ -171,10 +171,10 @@ class QuotedMessageCellView: UIView {
     }
 
     private func configureText(comment: FeedPostComment) {
-        if !comment.text.isEmpty  {
+        if !comment.rawText.isEmpty  {
             let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
-                comment.text,
-                mentions: Array(comment.mentions ?? Set()))
+                comment.rawText,
+                mentions: comment.mentions)
 
             let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
             let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 3)
@@ -207,7 +207,7 @@ class QuotedMessageCellView: UIView {
         if let media = media.first {
             showMedia(media: media)
             // if quoted comment does not contain text, we need placeholder text
-            if comment.text.isEmpty {
+            if comment.rawText.isEmpty {
                 textLabel.attributedText = getPlaceholderMediaText(media: media)
                 hasText = true
             }

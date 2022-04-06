@@ -237,7 +237,7 @@ private class PostCollectionViewCell: UICollectionViewCell {
             imageView.isHidden = false
             multipleMediaIcon.isHidden = media.count < 2
         } else {
-            labelView.text = post.text
+            labelView.text = post.rawText
             labelView.isHidden = false
         }
     }

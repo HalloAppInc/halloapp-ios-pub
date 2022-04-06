@@ -22,12 +22,12 @@ protocol GroupBackgroundViewControllerDelegate: AnyObject {
 class GroupBackgroundViewController: UIViewController {
     weak var delegate: GroupBackgroundViewControllerDelegate?
 
-    private var chatGroup: ChatGroup
+    private var chatGroup: Group
     private var selectedBackground: Int32 = 0
     
     private var colorSelectionDict: [Int32: UIView] = [:]
 
-    init(chatGroup: ChatGroup) {
+    init(chatGroup: Group) {
         self.chatGroup = chatGroup
         super.init(nibName: nil, bundle: nil)
     }
@@ -287,7 +287,7 @@ class GroupBackgroundViewController: UIViewController {
     @objc private func updateAction() {
         navigationItem.rightBarButtonItem?.isEnabled = false
 
-        MainAppContext.shared.chatData.setGroupBackground(groupID: chatGroup.groupId, background: selectedBackground) { [weak self] result in
+        MainAppContext.shared.chatData.setGroupBackground(groupID: chatGroup.id, background: selectedBackground) { [weak self] result in
             guard let self = self else { return }
 
             switch result {

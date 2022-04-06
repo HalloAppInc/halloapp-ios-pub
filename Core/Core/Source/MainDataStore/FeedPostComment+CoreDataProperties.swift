@@ -1,18 +1,15 @@
 //
 //  FeedPostComment+CoreDataProperties.swift
-//  HalloApp
+//  Core
 //
-//  Created by Igor Solomennikov on 4/7/20.
-//  Copyright © 2020 Halloapp, Inc. All rights reserved.
-//
+//  Created by Garrett on 3/22/22.
+//  Copyright © 2022 Hallo App, Inc. All rights reserved.
 //
 
-import Core
 import CoreCommon
 import CoreData
-import Foundation
 
-extension FeedPostComment {
+public extension FeedPostComment {
 
     enum Status: Int16 {
         case none = 0
@@ -31,18 +28,23 @@ extension FeedPostComment {
         return NSFetchRequest<FeedPostComment>(entityName: "FeedPostComment")
     }
 
-    @NSManaged public var id: FeedPostID
-    @NSManaged public var mentions: Set<FeedMention>?
-    @NSManaged public var text: String
-    @NSManaged public var timestamp: Date
-    @NSManaged public var userId: UserID
+    @NSManaged var id: FeedPostCommentID
+    @NSManaged private var mentionsValue: Any?
+    var mentions: [MentionData] {
+        get { return mentionsValue as? [MentionData] ?? [] }
+        set { mentionsValue = newValue }
+    }
+
+    @NSManaged var rawText: String
+    @NSManaged var timestamp: Date
+    @NSManaged var userID: UserID
     @NSManaged var parent: FeedPostComment?
     @NSManaged var post: FeedPost
-    @NSManaged var media: Set<FeedPostMedia>?
+    @NSManaged var media: Set<CommonMedia>?
     @NSManaged var replies: Set<FeedPostComment>?
-    @NSManaged public var linkPreviews: Set<FeedLinkPreview>?
+    @NSManaged var linkPreviews: Set<CommonLinkPreview>?
     @NSManaged var rawData: Data?
-    @NSManaged public var resendAttempts: Set<FeedItemResendAttempt>?
+    @NSManaged var contentResendInfo: Set<ContentResendInfo>?
     @NSManaged private var statusValue: Int16
     var status: Status {
         get {
@@ -88,6 +90,10 @@ extension FeedPostComment {
             return status == .sent || status == .incoming || status == .played || status == .rerequesting
         }
     }
+
+    var orderedMentions: [MentionData] {
+        return mentions.sorted(by: { $0.index < $1.index })
+     }
 }
 
 extension FeedPostComment {
@@ -152,7 +158,7 @@ extension FeedPostComment {
 
         return CommentData(
             id: id,
-            userId: userId,
+            userId: userID,
             timestamp: timestamp,
             feedPostId: post.id,
             parentId: parent?.id,
@@ -161,44 +167,20 @@ extension FeedPostComment {
     }
 
     public var mentionText: MentionText? {
-        guard !text.isEmpty else {
+        guard !rawText.isEmpty else {
             return nil
         }
         return MentionText(
-            collapsedText: text,
-            mentionArray: Array(mentions ?? []))
+            collapsedText: rawText,
+            mentionArray: mentions)
     }
 }
 
-extension FeedPostComment {
+public extension FeedPostComment {
 
-    @objc(addMediaObject:)
-    @NSManaged func addToMedia(_ value: FeedPostMedia)
-
-    @objc(removeMediaObject:)
-    @NSManaged func removeFromMedia(_ value: FeedPostMedia)
-
-    @objc(addMedia:)
-    @NSManaged func addToMedia(_ values: NSSet)
-
-    @objc(removeMedia:)
-    @NSManaged func removeFromMedia(_ values: NSSet)
-
-}
-
-// MARK: Generated accessors for resendAttempts
-extension FeedPostComment {
-
-    @objc(addResendAttemptsObject:)
-    @NSManaged public func addToResendAttempts(_ value: FeedItemResendAttempt)
-
-    @objc(removeResendAttemptsObject:)
-    @NSManaged public func removeFromResendAttempts(_ value: FeedItemResendAttempt)
-
-    @objc(addResendAttempts:)
-    @NSManaged public func addToResendAttempts(_ values: NSSet)
-
-    @objc(removeResendAttempts:)
-    @NSManaged public func removeFromResendAttempts(_ values: NSSet)
-
+    // TODO: Remove and use `userID` everywhere
+    var userId: UserID {
+        get { return userID }
+        set { userID = newValue }
+    }
 }

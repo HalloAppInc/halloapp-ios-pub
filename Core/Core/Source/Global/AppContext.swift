@@ -34,6 +34,7 @@ open class AppContext: AppContextCommon {
     private static let cryptoStatsDatabaseFilename = "cryptoStats.sqlite"
     private static let mediaHashDatabaseFilename = "mediaHash.sqlite"
     private static let notificationsDatabaseFilename = "notifications.sqlite"
+    private static let userDefaultsUserIDKey = "main.store.userID"
 
     // Temporary hack until we move all data to the mainDataStore.
     // Once we have that i can create a new entity for this that can be easily updated for retracted or expired posts.
@@ -242,6 +243,27 @@ open class AppContext: AppContextCommon {
         DispatchQueue.global(qos: .background).async {
             self.migrateLogFilesIfNeeded()
         }
+
+        userData.didLogIn.sink {
+            if let previousID = self.userDefaults?.string(forKey: Self.userDefaultsUserIDKey),
+               previousID == self.userData.userId
+            {
+                DDLogInfo("MainAppContext/didLogIn Login matches prior user ID. Not unloading.")
+            } else {
+                DDLogInfo("MainAppContext/didLogin Login does not match prior user ID. Unloading data store.")
+                self.mainDataStore.deleteAllEntities()
+                self.userDefaults?.setValue(self.userData.userId, forKey: Self.userDefaultsUserIDKey)
+            }
+        }.store(in: &cancellableSet)
+
+        coreService.didConnect.sink {
+            if self.userDefaults?.string(forKey: Self.userDefaultsUserIDKey) == nil {
+                // NB: This value is used to retain content when a user logs back in to the same account.
+                //     Earlier builds did not set it at login, so let's set it in didConnect to support already logged-in users.
+                DDLogInfo("MainAppContext/didConnect Storing user ID \(self.userData.userId)")
+                self.userDefaults?.setValue(self.userData.userId, forKey: Self.userDefaultsUserIDKey)
+            }
+        }.store(in: &cancellableSet)
     }
 
     static func phoneNumberKitMetadataCallback() throws -> Data? {

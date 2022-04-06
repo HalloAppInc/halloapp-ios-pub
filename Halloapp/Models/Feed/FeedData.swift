@@ -24,9 +24,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private var cancellableSet: Set<AnyCancellable> = []
 
-    private(set) var feedNotifications: FeedNotifications?
+    private(set) var activityObserver: FeedActivityObserver?
 
-    let willDestroyStore = PassthroughSubject<Void, Never>()
     let didReloadStore = PassthroughSubject<Void, Never>()
 
     let shouldReloadView = PassthroughSubject<Void, Never>()
@@ -78,25 +77,20 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
                 self.resendStuckItems()
                 self.resendPendingReadReceipts()
-
-                // NB: This value is used to retain posts when a user logs back in to the same account.
-                //     Earlier builds did not set it at login, so let's set it in didConnect to support already logged-in users.
-                AppContext.shared.userDefaults?.setValue(self.userData.userId, forKey: UserDefaultsKey.persistentStoreUserID)
             })
-        
+
         cancellableSet.insert(
-            self.userData.didLogIn.sink {
-                if let previousID = AppContext.shared.userDefaults?.string(forKey: UserDefaultsKey.persistentStoreUserID),
-                      previousID == self.userData.userId
-                {
-                    DDLogInfo("FeedData/didLogIn Persistent store matches user ID. Not unloading.")
-                } else {
-                    DDLogInfo("FeedData/didLogin Persistent store / user ID mismatch. Unloading feed data. \(self.fetchedResultsController.fetchedObjects?.count ?? 0) posts")
-                    self.destroyStore()
-                    AppContext.shared.userDefaults?.setValue(self.userData.userId, forKey: UserDefaultsKey.persistentStoreUserID)
+            mainDataStore.didClearStore.sink {
+                do {
+                    DDLogInfo("FeedData/didClearStore/clear-media starting")
+                    try FileManager.default.removeItem(at: MediaDirectory.media.url)
+                    DDLogInfo("FeedData/didClearStore/clear-media finished")
                 }
-
-            })
+                catch {
+                    DDLogError("FeedData/didClearStore/clear-media/error [\(error)]")
+                }
+            }
+        )
 
         cancellableSet.insert(
             self.contactStore.didDiscoverNewUsers.sink { (userIds) in
@@ -106,87 +100,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         fetchFeedPosts()
     }
 
-    // MARK: CoreData stack
-
-    private class var persistentStoreURL: URL {
-        get {
-            return MainAppContext.feedStoreURL
-        }
-    }
-
-    private func loadPersistentContainer() {
-        let container = self.persistentContainer
-        DDLogDebug("FeedData/loadPersistentStore Loaded [\(container)]")
-    }
-
-    private lazy var persistentContainer: NSPersistentContainer = {
-        let storeDescription = NSPersistentStoreDescription(url: FeedData.persistentStoreURL)
-        storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
-        storeDescription.setOption(NSNumber(booleanLiteral: false), forKey: NSInferMappingModelAutomaticallyOption)
-        storeDescription.setValue(NSString("WAL"), forPragmaNamed: "journal_mode")
-        storeDescription.setValue(NSString("1"), forPragmaNamed: "secure_delete")
-        let container = NSPersistentContainer(name: "Feed")
-        container.persistentStoreDescriptions = [storeDescription]
-        self.loadPersistentStores(in: container)
-        return container
-    }()
-
-    private func loadPersistentStores(in persistentContainer: NSPersistentContainer) {
-        persistentContainer.loadPersistentStores { (description, error) in
-            if let error = error {
-                DDLogError("Failed to load persistent store: \(error)")
-                fatalError("Unable to load persistent store: \(error)")
-            } else {
-                DDLogInfo("FeedData/load-store/completed [\(description)]")
-            }
-        }
-    }
-    
-    func deletePersistentStores() {
-        do {
-            try FileManager.default.removeItem(at: FeedData.persistentStoreURL)
-            DDLogInfo("FeedData/deletePersistentStores: Deleted feed data")
-        } catch {
-            DDLogError("FeedData/deletePersistentStores: Error deleting feed data: \(error)")
-        }
-    }
-
-    // NB: Can be called only from a non-main thread, of the caller's choice
-    public func performOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
-        guard !Thread.current.isMainThread else {
-            DDLogDebug("FeedData/performOnBackgroundContextAndWait/exit, being called from main thread")
-            return
-        }
-        let managedObjectContext = persistentContainer.newBackgroundContext()
-        managedObjectContext.automaticallyMergesChangesFromParent = true
-        managedObjectContext.performAndWait { block(managedObjectContext) }
-    }
-
     private func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
-        self.backgroundProcessingQueue.async {
-            self.initBgContext()
-            guard let bgContext = self.bgContext else {
-                let managedObjectContext = self.persistentContainer.newBackgroundContext()
-                managedObjectContext.performAndWait { block(managedObjectContext) }
-                return
-            }
-            bgContext.performAndWait { block(bgContext) }
-        }
+        mainDataStore.performSeriallyOnBackgroundContext(block)
     }
 
-    private func initBgContext() {
-        if bgContext == nil {
-            bgContext = persistentContainer.newBackgroundContext()
-            bgContext?.automaticallyMergesChangesFromParent = true
-        }
-    }
-
-    private var bgContext: NSManagedObjectContext? = nil    // binded to the background queue, should access only from background queue
     var viewContext: NSManagedObjectContext {
-        get {
-            self.persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
-            return self.persistentContainer.viewContext
-        }
+        mainDataStore.viewContext
     }
 
     private func save(_ managedObjectContext: NSManagedObjectContext) {
@@ -204,60 +123,177 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         processUnsupportedItems()
     }
 
-    func destroyStore() {
-        DDLogInfo("FeedData/destroy/start")
+    func migrateLegacyPosts(_ legacyPosts: [FeedPostLegacy]) {
+        mainDataStore.performSeriallyOnBackgroundContextAndWait { context in
+            DDLogInfo("FeedData/migrateLegacyPosts/begin [\(legacyPosts.count)]")
+            legacyPosts.forEach { self.migrateLegacyPost($0, in: context) }
+            DDLogInfo("FeedData/migrateLegacyPosts/finished [\(legacyPosts.count)]")
+            mainDataStore.save(context)
+        }
+    }
 
-        // Tell subscribers that everything is going away forever.
-        self.willDestroyStore.send()
+    func migrateLegacyNotifications(_ legacyNotifications: [FeedNotification]) {
+        mainDataStore.performSeriallyOnBackgroundContextAndWait { context in
+            DDLogInfo("FeedData/migrateLegacyNotifications/begin [\(legacyNotifications.count)]")
+            legacyNotifications.forEach { self.migrateLegacyNotification($0, in: context) }
+            DDLogInfo("FeedData/migrateLegacyNotifications/finished [\(legacyNotifications.count)]")
+            mainDataStore.save(context)
+        }
+    }
 
-        self.fetchedResultsController.delegate = nil
-        self.feedNotifications = nil
+    private func migrateLegacyNotification(_ legacy: FeedNotification, in managedObjectContext: NSManagedObjectContext) {
+        DDLogInfo("FeedData/migrateLegacyNotification/new/ [\(legacy.postId):\(legacy.event):\(legacy.userId):\(legacy.timestamp)]")
+        let activity = FeedActivity(context: managedObjectContext)
+        activity.event = legacy.event
+        activity.commentID = legacy.commentId
+        activity.mediaPreview = legacy.mediaPreview
+        activity.postID = legacy.postId
+        activity.userID = legacy.userId
+        activity.read = legacy.read
+        activity.rawText = legacy.text
+        activity.timestamp = legacy.timestamp
+        activity.mentions = legacy.mentions?.map { MentionData(index: $0.index, userID: $0.userID, name: $0.name) } ?? []
+        activity.mediaType = legacy.mediaType
+        DDLogInfo("FeedData/migrateLegacyNotification/finished/ [\(legacy.postId):\(legacy.event):\(legacy.userId):\(legacy.timestamp)]")
+    }
 
-        // TODO: wait for all background tasks to finish.
-        // TODO: cancel all media downloads.
-
-        // Delete SQlite database.
-        let coordinator = self.persistentContainer.persistentStoreCoordinator
-        do {
-            let stores = coordinator.persistentStores
-            stores.forEach { (store) in
-                do {
-                    try coordinator.remove(store)
-                    DDLogError("FeedData/destroy/remove-store/finised [\(store)]")
-                }
-                catch {
-                    DDLogError("FeedData/destroy/remove-store/error [\(error)]")
-                }
+    private func migrateLegacyPost(_ legacy: FeedPostLegacy, in managedObjectContext: NSManagedObjectContext) {
+        let post: FeedPost = {
+            if let post = feedPost(with: legacy.id, in: managedObjectContext, archived: true) {
+                DDLogInfo("FeedData/migrateLegacyPost/existing/\(legacy.id)")
+                return post
+            } else {
+                DDLogInfo("FeedData/migrateLegacyPost/new/\(legacy.id)")
+                return FeedPost(context: managedObjectContext)
             }
+        }()
+        legacy.comments?.forEach { self.migrateLegacyComment($0, toPost: post, in: managedObjectContext) }
+        legacy.linkPreviews?.forEach { self.migrateLegacyLinkPreview($0, toPost: post, in: managedObjectContext) }
 
-            try coordinator.destroyPersistentStore(at: FeedData.persistentStoreURL, ofType: NSSQLiteStoreType, options: nil)
-            DDLogInfo("FeedData/destroy/delete-store/complete")
-        }
-        catch {
-            DDLogError("FeedData/destroy/delete-store/error [\(error)]")
-            fatalError("Failed to destroy Feed store.")
-        }
+        // Remove and recreate media
+        post.media?.forEach { managedObjectContext.delete($0) }
+        legacy.media?.forEach { self.migrateLegacyMedia($0, toPost: post, in: managedObjectContext) }
 
-        // Delete saved Feed media.
-        do {
-            try FileManager.default.removeItem(at: MainAppContext.mediaDirectoryURL)
-            DDLogError("FeedData/destroy/delete-media/finished")
-        }
-        catch {
-            DDLogError("FeedData/destroy/delete-media/error [\(error)]")
+        if let legacyInfo = legacy.info {
+            let originalReceipts = legacyInfo.receipts ?? [:]
+            let info = ContentPublishInfo(context: managedObjectContext)
+            info.audienceType = legacyInfo.audienceType
+            info.receipts = originalReceipts.merging(post.info?.receipts ?? [:]) { r1, r2 in return r2 }
+            post.info = info
         }
 
-        // Load an empty store.
-        self.loadPersistentStores(in: self.persistentContainer)
+        for legacyAttempt in (legacy.resendAttempts ?? []) {
+            if let existing = post.contentResendInfo?.first(where: { $0.userID == legacyAttempt.userID }) {
+                existing.retryCount = max(existing.retryCount, legacyAttempt.retryCount)
+            } else {
+                let info = ContentResendInfo(context: managedObjectContext)
+                info.contentID = legacyAttempt.contentID
+                info.retryCount = legacyAttempt.retryCount
+                info.userID = legacyAttempt.userID
+                info.post = post
+            }
+        }
 
-        // Reload fetched results controller.
-        self.fetchedResultsController = self.newFetchedResultsController()
-        self.fetchFeedPosts()
+        post.mentions = legacy.mentions?.map { MentionData(index: $0.index, userID: $0.userID, name: $0.name) } ?? []
+        post.userID = legacy.userId
+        post.id = legacy.id
+        post.rawText = legacy.text
+        post.groupID = legacy.groupId
+        post.timestamp = legacy.timestamp
+        post.unreadCount = Int32(legacy.unreadCount)
+        post.rawData = legacy.rawData
+        post.statusValue = Int16(legacy.statusValue)
+        DDLogInfo("FeedData/migrateLegacyPost/finished/\(legacy.id)")
+    }
 
-        // Tell subscribers that store is ready to use again.
-        self.didReloadStore.send()
+    private func migrateLegacyComment(_ legacy: FeedPostCommentLegacy, toPost post: FeedPost, in managedObjectContext: NSManagedObjectContext) {
+        let comment: FeedPostComment = {
+            if let comment = feedComment(with: legacy.id, in: managedObjectContext) {
+                DDLogInfo("FeedData/migrateLegacyComment/existing/\(legacy.id)")
+                return comment
+            } else {
+                DDLogInfo("FeedData/migrateLegacyComment/new/\(legacy.id)")
+                return FeedPostComment(context: managedObjectContext)
+            }
+        }()
 
-        DDLogInfo("FeedData/destroy/finished")
+        // Remove and recreate media
+        comment.media?.forEach { managedObjectContext.delete($0) }
+        legacy.media?.forEach { self.migrateLegacyMedia($0, toComment: comment, in: managedObjectContext) }
+
+        legacy.linkPreviews?.forEach { self.migrateLegacyLinkPreview($0, toComment: comment, in: managedObjectContext) }
+
+        comment.id = legacy.id
+        comment.mentions = legacy.mentions?.map { MentionData(index: $0.index, userID: $0.userID, name: $0.name) } ?? []
+        comment.rawText = legacy.text
+        comment.timestamp = legacy.timestamp
+        comment.userID = legacy.userId
+        comment.rawData = legacy.rawData
+        comment.status = legacy.status
+        if let resendAttempts = legacy.resendAttempts {
+            let resendInfo: [ContentResendInfo] = resendAttempts.map {
+                let info = ContentResendInfo(context: managedObjectContext)
+                info.contentID = $0.contentID
+                info.retryCount = $0.retryCount
+                info.userID = $0.userID
+                // TODO: Need to fix up group history info?
+                return info
+            }
+            comment.contentResendInfo = Set(resendInfo)
+        }
+        // Set parent comment if available...
+        if let parentID = legacy.parent?.id, let parent = feedComment(with: parentID, in: managedObjectContext) {
+            comment.parent = parent
+        }
+        // ... and also set replies in case the child comments have already been migrated.
+        if let replyIDs = legacy.replies?.map({ $0.id }) {
+            let replies = feedComments(with: Set(replyIDs), in: managedObjectContext)
+            comment.replies = Set(replies).union(comment.replies ?? [])
+        }
+        comment.post = post
+        DDLogInfo("FeedData/migrateLegacyComment/finished/\(legacy.id)")
+    }
+
+    private func migrateLegacyMedia(_ legacy: FeedPostMedia, toPost post: FeedPost? = nil, toComment comment: FeedPostComment? = nil, toLinkPreview linkPreview: CommonLinkPreview? = nil, in managedObjectContext: NSManagedObjectContext) {
+        DDLogInfo("FeedData/migrateLegacyMedia/new/\(legacy.id)")
+
+        let media = CommonMedia(context: managedObjectContext)
+        media.typeValue = legacy.typeValue
+        media.relativeFilePath = legacy.relativeFilePath
+        media.url = legacy.url
+        media.uploadURL = legacy.uploadUrl
+        media.status = legacy.status
+        media.width = legacy.width
+        media.height = legacy.height
+        media.key = legacy.key
+        media.sha256 = legacy.sha256
+        media.order = legacy.order
+        media.blobVersion = legacy.blobVersion
+        media.chunkSize = legacy.chunkSize
+        media.blobSize = legacy.blobSize
+        media.mediaDirectory = .media
+
+        media.post = post
+        media.comment = comment
+        media.linkPreview = linkPreview
+        DDLogInfo("FeedData/migrateLegacyMedia/finished/\(legacy.id)")
+    }
+
+    private func migrateLegacyLinkPreview(_ legacy: FeedLinkPreview, toPost post: FeedPost? = nil, toComment comment: FeedPostComment? = nil, in managedObjectContext: NSManagedObjectContext) {
+        DDLogInfo("FeedData/migrateLegacyLinkPreview/new/\(legacy.id)")
+        let linkPreview = feedLinkPreview(with: legacy.id, in: managedObjectContext) ?? CommonLinkPreview(context: managedObjectContext)
+        linkPreview.id = legacy.id
+        linkPreview.desc = legacy.desc
+        linkPreview.title = legacy.title
+        linkPreview.url = legacy.url
+
+        // Remove and recreate media
+        linkPreview.media?.forEach { managedObjectContext.delete($0) }
+        legacy.media?.forEach { self.migrateLegacyMedia($0, toLinkPreview: linkPreview, in: managedObjectContext) }
+
+        linkPreview.post = post
+        linkPreview.comment = comment
+        DDLogInfo("FeedData/migrateLegacyLinkPreview/finished/\(legacy.id)")
     }
 
     // MARK: Fetched Results Controller
@@ -428,7 +464,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
 
                 // 1.3 Notifications
-                let notificationsFetchRequest: NSFetchRequest<FeedNotification> = FeedNotification.fetchRequest()
+                let notificationsFetchRequest: NSFetchRequest<FeedActivity> = FeedActivity.fetchRequest()
                 notificationsFetchRequest.predicate = NSPredicate(format: "timestamp > %@", cutoffDate as NSDate)
                 do {
                     let notificationsWithIncorrectTimestamp = try viewContext.fetch(notificationsFetchRequest)
@@ -455,7 +491,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             fatalError("Failed to fetch feed items \(error)")
         }
 
-        feedNotifications = FeedNotifications(viewContext)
+        activityObserver = FeedActivityObserver(viewContext)
 
         reloadGroupFeedUnreadCounts()
     }
@@ -465,7 +501,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private func newFetchedResultsController() -> NSFetchedResultsController<FeedPost> {
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
-        let fetchedResultsController = NSFetchedResultsController<FeedPost>(fetchRequest: fetchRequest, managedObjectContext: self.viewContext,
+        let fetchedResultsController = NSFetchedResultsController<FeedPost>(fetchRequest: fetchRequest, managedObjectContext: viewContext,
                                                                             sectionNameKeyPath: nil, cacheName: nil)
         fetchedResultsController.delegate = self
         return fetchedResultsController
@@ -485,11 +521,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     // MARK: Fetching Feed Data
 
     public func feedHistory(for groupID: GroupID, in managedObjectContext: NSManagedObjectContext? = nil, maxNumPosts: Int = Int.max, maxCommentsPerPost: Int = Int.max) -> ([PostData], [CommentData]) {
-        let managedObjectContext = managedObjectContext ?? self.viewContext
+        let managedObjectContext = managedObjectContext ?? viewContext
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
         // Fetch all feedposts in the group that have not expired yet.
         fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-            NSPredicate(format: "groupId == %@", groupID),
+            NSPredicate(format: "groupID == %@", groupID),
             NSPredicate(format: "timestamp >= %@", Self.cutoffDate as NSDate)
         ])
         // Fetch feedposts in reverse timestamp order.
@@ -541,7 +577,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     private func feedPosts(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil, archived: Bool = false) -> [FeedPost] {
-        let managedObjectContext = managedObjectContext ?? self.viewContext
+        let managedObjectContext = managedObjectContext ?? viewContext
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
         
         if let predicate = predicate {
@@ -574,16 +610,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     // Should always be called using the backgroundQueue.
-    func fetchResendAttempt(for contentID: String, userID: UserID, in managedObjectContext: NSManagedObjectContext) -> FeedItemResendAttempt {
+    func fetchResendAttempt(for contentID: String, userID: UserID, in managedObjectContext: NSManagedObjectContext) -> ContentResendInfo {
         let managedObjectContext = managedObjectContext
-        let fetchRequest: NSFetchRequest<FeedItemResendAttempt> = FeedItemResendAttempt.fetchRequest()
+        let fetchRequest: NSFetchRequest<ContentResendInfo> = ContentResendInfo.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "contentID == %@ AND userID == %@", contentID, userID)
         fetchRequest.returnsObjectsAsFaults = false
         do {
             if let result = try managedObjectContext.fetch(fetchRequest).first {
                 return result
             } else {
-                let result = FeedItemResendAttempt(context: managedObjectContext)
+                let result = ContentResendInfo(context: managedObjectContext)
                 result.contentID = contentID
                 result.userID = userID
                 result.retryCount = 0
@@ -599,9 +635,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return feedPosts(predicate: NSPredicate(format: "id in %@", ids), in: managedObjectContext, archived: archived)
     }
 
-    func feedLinkPreview(with id: FeedLinkPreviewID, in managedObjectContext: NSManagedObjectContext? = nil) -> FeedLinkPreview? {
-        let managedObjectContext = managedObjectContext ?? self.viewContext
-        let fetchRequest: NSFetchRequest<FeedLinkPreview> = FeedLinkPreview.fetchRequest()
+    func feedLinkPreview(with id: FeedLinkPreviewID, in managedObjectContext: NSManagedObjectContext? = nil) -> CommonLinkPreview? {
+        let managedObjectContext = managedObjectContext ?? viewContext
+        let fetchRequest: NSFetchRequest<CommonLinkPreview> = CommonLinkPreview.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", id)
         fetchRequest.returnsObjectsAsFaults = false
         do {
@@ -615,7 +651,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     func feedComment(with id: FeedPostCommentID, in managedObjectContext: NSManagedObjectContext? = nil) -> FeedPostComment? {
-        let managedObjectContext = managedObjectContext ?? self.viewContext
+        let managedObjectContext = managedObjectContext ?? viewContext
         let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", id)
         fetchRequest.returnsObjectsAsFaults = false
@@ -662,20 +698,20 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         // Count posts in all groups.
         let countDesc = NSExpressionDescription()
-        countDesc.expression = NSExpression(forFunction: "count:", arguments: [ NSExpression(forKeyPath: \FeedPost.groupId) ])
+        countDesc.expression = NSExpression(forFunction: "count:", arguments: [ NSExpression(forKeyPath: \FeedPost.groupID) ])
         countDesc.name = "count"
         countDesc.expressionResultType = .integer64AttributeType
 
         let fetchRequest: NSFetchRequest<NSDictionary> = NSFetchRequest(entityName: FeedPost.entity().name!)
         fetchRequest.returnsObjectsAsFaults = false
-        fetchRequest.predicate = NSPredicate(format: "groupId != nil")
-        fetchRequest.propertiesToGroupBy = [ "groupId" ]
-        fetchRequest.propertiesToFetch = [ "groupId", countDesc ]
+        fetchRequest.predicate = NSPredicate(format: "groupID != nil")
+        fetchRequest.propertiesToGroupBy = [ "groupID" ]
+        fetchRequest.propertiesToFetch = [ "groupID", countDesc ]
         fetchRequest.resultType = .dictionaryResultType
         do {
             let fetchResults = try viewContext.fetch(fetchRequest)
             for result in fetchResults {
-                guard let groupId = result["groupId"] as? GroupID, let count = result["count"] as? Int else { continue }
+                guard let groupId = result["groupID"] as? GroupID, let count = result["count"] as? Int else { continue }
                 results[groupId] = .seenPosts(count)
             }
         }
@@ -685,11 +721,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         // Count new posts in groups.
-        fetchRequest.predicate = NSPredicate(format: "groupId != nil AND statusValue == %d", FeedPost.Status.incoming.rawValue)
+        fetchRequest.predicate = NSPredicate(format: "groupID != nil AND statusValue == %d", FeedPost.Status.incoming.rawValue)
         do {
             let fetchResults = try viewContext.fetch(fetchRequest)
             for result in fetchResults {
-                guard let groupId = result["groupId"] as? GroupID, let count = result["count"] as? Int else { continue }
+                guard let groupId = result["groupID"] as? GroupID, let count = result["count"] as? Int else { continue }
                 if case .seenPosts(let totalPostsCount) = results[groupId] {
                     results[groupId] = .newPosts(count, totalPostsCount)
                 } else {
@@ -768,7 +804,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     feedPostComment.userId = UserID(commentIdContext.senderUid)
                     feedPostComment.timestamp = Date(timeIntervalSince1970: TimeInterval(commentIdContext.timestamp))
                     feedPostComment.post = post
-                    feedPostComment.text = ""
+                    feedPostComment.rawText = ""
                     comments[commentId] = feedPostComment
                 } else {
                     DDLogInfo("FeedData/createTombstones/groupID: \(groupID)/comment: \(commentId)/comment already present or post missing - skip")
@@ -831,7 +867,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
     
-    private func updateFeedLinkPreview(with id: FeedLinkPreviewID, block: @escaping (FeedLinkPreview) -> (), performAfterSave: (() -> ())? = nil) {
+    private func updateFeedLinkPreview(with id: FeedLinkPreviewID, block: @escaping (CommonLinkPreview) -> (), performAfterSave: (() -> ())? = nil) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             defer {
                 if let performAfterSave = performAfterSave {
@@ -938,7 +974,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.id = xmppPost.id
             feedPost.userId = xmppPost.userId
             feedPost.groupId = groupID
-            feedPost.text = xmppPost.text
+            feedPost.rawText = xmppPost.text
             feedPost.timestamp = xmppPost.timestamp
 
             switch xmppPost.content {
@@ -969,19 +1005,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             // Clear cached media if any.
             cachedMedia[feedPost.id] = nil
 
-            var mentions = Set<FeedMention>()
-            for xmppMention in xmppPost.orderedMentions {
-                let mention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
-                mention.index = xmppMention.index
-                mention.userID = xmppMention.userID
-                mention.name = xmppMention.name
-                mentions.insert(mention)
+            feedPost.mentions = xmppPost.orderedMentions.map {
+                MentionData(index: $0.index, userID: $0.userID, name: $0.name)
             }
-            feedPost.mentions = mentions
 
             // Post Audience
             if let audience = xmppPost.audience {
-                let feedPostInfo = NSEntityDescription.insertNewObject(forEntityName: FeedPostInfo.entity().name!, into: managedObjectContext) as! FeedPostInfo
+                let feedPostInfo = ContentPublishInfo(context: managedObjectContext)
                 feedPostInfo.audienceType = audience.audienceType
                 feedPostInfo.receipts = audience.userIds.reduce(into: [UserID : Receipt]()) { (receipts, userId) in
                     receipts[userId] = Receipt()
@@ -992,14 +1022,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             // Process link preview if present
             xmppPost.linkPreviewData.forEach { linkPreviewData in
                 DDLogDebug("FeedData/process-posts/new/add-link-preview [\(linkPreviewData.url)]")
-                let linkPreview = NSEntityDescription.insertNewObject(forEntityName: FeedLinkPreview.entity().name!, into: managedObjectContext) as! FeedLinkPreview
+                let linkPreview = CommonLinkPreview(context: managedObjectContext)
                 linkPreview.id = PacketID.generate()
                 linkPreview.url = linkPreviewData.url
                 linkPreview.title = linkPreviewData.title
                 linkPreview.desc = linkPreviewData.description
                 // Set preview image if present
                 linkPreviewData.previewImages.forEach { previewMedia in
-                    let media = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
+                    let media = CommonMedia(context: managedObjectContext)
                     media.type = previewMedia.type
                     media.status = .none
                     media.url = previewMedia.url
@@ -1013,7 +1043,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             // Process post media
             for (index, xmppMedia) in xmppPost.orderedMedia.enumerated() {
                 DDLogDebug("FeedData/process-posts/new/add-media [\(xmppMedia.url!)]")
-                let feedMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
+                let feedMedia = CommonMedia(context: managedObjectContext)
                 switch xmppMedia.type {
                 case .image:
                     feedMedia.type = .image
@@ -1156,7 +1186,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         parentComment?.post = feedPost
                         parentComment?.timestamp = Date()
                         parentComment?.userId = ""
-                        parentComment?.text = ""
+                        parentComment?.rawText = ""
                         parentComment?.status = .rerequesting
                         comments[parentId] = parentComment
                     }
@@ -1198,27 +1228,19 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 switch xmppComment.content {
                 case .text(let mentionText, let linkPreviewData):
                     comment.status = .incoming
-                    comment.text = mentionText.collapsedText
-                    var mentions = Set<FeedMention>()
-                    for (i, user) in mentionText.mentions {
-                        let mention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
-                        mention.index = i
-                        mention.userID = user.userID
-                        mention.name = user.pushName ?? ""
-                        mentions.insert(mention)
-                    }
-                    comment.mentions = mentions
+                    comment.rawText = mentionText.collapsedText
+                    comment.mentions = mentionText.mentionsArray
                     // Process link preview if present
                     linkPreviewData.forEach { linkPreviewData in
                         DDLogDebug("FeedData/process-comments/new/add-link-preview [\(linkPreviewData.url)]")
-                        let linkPreview = NSEntityDescription.insertNewObject(forEntityName: FeedLinkPreview.entity().name!, into: managedObjectContext) as! FeedLinkPreview
+                        let linkPreview = CommonLinkPreview(context: managedObjectContext)
                         linkPreview.id = PacketID.generate()
                         linkPreview.url = linkPreviewData.url
                         linkPreview.title = linkPreviewData.title
                         linkPreview.desc = linkPreviewData.description
                         // Set preview image if present
                         linkPreviewData.previewImages.forEach { previewMedia in
-                            let media = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
+                            let media = CommonMedia(context: managedObjectContext)
                             media.type = previewMedia.type
                             media.status = .none
                             media.url = previewMedia.url
@@ -1230,20 +1252,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         linkPreview.comment = comment
                     }
                 case .album(let mentionText, let media):
-                    comment.text = mentionText.collapsedText
-                    var mentions = Set<FeedMention>()
-                    for (i, user) in mentionText.mentions {
-                        let mention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
-                        mention.index = i
-                        mention.userID = user.userID
-                        mention.name = user.pushName ?? ""
-                        mentions.insert(mention)
-                    }
-                    comment.mentions = mentions
+                    comment.rawText = mentionText.collapsedText
+                    comment.mentions = mentionText.mentionsArray
                     // Process Comment Media
                     for (index, xmppMedia) in media.enumerated() {
                         DDLogDebug("FeedData/process-comments/new/add-comment-media [\(xmppMedia.url!)]")
-                        let feedCommentMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
+                        let feedCommentMedia = CommonMedia(context: managedObjectContext)
                         switch xmppMedia.type {
                         case .image:
                             feedCommentMedia.type = .image
@@ -1264,10 +1278,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         feedCommentMedia.blobSize = xmppMedia.blobSize
                     }
                 case .voiceNote(let media):
-                    comment.text = ""
-                    comment.mentions = Set<FeedMention>()
+                    comment.rawText = ""
+                    comment.mentions = []
 
-                    let feedCommentMedia = FeedPostMedia(context: managedObjectContext)
+                    let feedCommentMedia = CommonMedia(context: managedObjectContext)
                     feedCommentMedia.type = .audio
                     feedCommentMedia.status = .none
                     feedCommentMedia.url = media.url
@@ -1279,21 +1293,17 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 case .retracted:
                     DDLogError("FeedData/process-comments/incoming-retracted-comment [\(xmppComment.id)]")
                     comment.status = .retracted
-                    comment.text = ""
+                    comment.rawText = ""
                 case .unsupported(let data):
                     comment.status = .unsupported
                     comment.rawData = data
-
-                    // populate text with empty string as text is required, could be removed if this changes
-                    if comment.text.isEmpty {
-                        comment.text = ""
-                    }
+                    comment.rawText = ""
                 case .waiting:
                     comment.status = .rerequesting
                     if xmppComment.status != .rerequesting {
                         DDLogError("FeedData/process-comments/invalid content [\(xmppComment.id)] with status: \(xmppComment.status)")
                     }
-                    comment.text = ""
+                    comment.rawText = ""
                 }
 
                 comments[comment.id] = comment
@@ -1365,24 +1375,23 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             let comments = self.process(comments: comments, receivedIn: groupID, using: managedObjectContext, presentLocalNotifications: presentLocalNotifications)
             self.generateNotifications(for: comments, using: managedObjectContext)
-
             ack?()
         }
     }
 
     // MARK: Notifications
 
-    private func notificationEvent(for post: FeedPost) -> FeedNotification.Event? {
+    private func notificationEvent(for post: FeedPost) -> FeedActivity.Event? {
         let selfId = userData.userId
 
-        if post.mentions?.contains(where: { $0.userID == selfId}) ?? false {
+        if post.mentions.contains(where: { $0.userID == selfId}) {
             return .mentionPost
         }
 
         return nil
     }
 
-    private func notificationEvent(for comment: FeedPostComment) -> FeedNotification.Event? {
+    private func notificationEvent(for comment: FeedPostComment) -> FeedActivity.Event? {
         let selfId = userData.userId
 
         // This would be the person who posted comment.
@@ -1399,7 +1408,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         // Someone mentioned you in a comment
-        else if comment.mentions?.contains(where: { $0.userID == selfId }) ?? false {
+        else if comment.mentions.contains(where: { $0.userID == selfId }) {
             return .mentionComment
         }
 
@@ -1419,23 +1428,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             guard let event = notificationEvent(for: post) else { continue }
 
             // Step 2. Add notification entry to the database.
-            let notification = NSEntityDescription.insertNewObject(forEntityName: FeedNotification.entity().name!, into: managedObjectContext) as! FeedNotification
-            notification.commentId = nil
-            notification.postId = post.id
+            let notification = FeedActivity(context: managedObjectContext)
+            notification.commentID = nil
+            notification.postID = post.id
             notification.event = event
-            notification.userId = post.userId
+            notification.userID = post.userId
             notification.timestamp = post.timestamp
-            notification.text = post.text
-
-            var mentionSet = Set<FeedMention>()
-            for postMention in post.mentions ?? [] {
-                let newMention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
-                newMention.index = postMention.index
-                newMention.userID = postMention.userID
-                newMention.name = postMention.name
-                mentionSet.insert(newMention)
-            }
-            notification.mentions = mentionSet
+            notification.rawText = post.rawText
+            notification.mentions = post.mentions
 
             if let media = post.media?.first {
                 switch media.type {
@@ -1468,23 +1468,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             guard let event = notificationEvent(for: comment) else { continue }
 
             // Step 2. Add notification entry to the database.
-            let notification = NSEntityDescription.insertNewObject(forEntityName: FeedNotification.entity().name!, into: managedObjectContext) as! FeedNotification
-            notification.commentId = comment.id
-            notification.postId = comment.post.id
+            let notification = FeedActivity(context: managedObjectContext)
+            notification.commentID = comment.id
+            notification.postID = comment.post.id
             notification.event = event
-            notification.userId = comment.userId
+            notification.userID = comment.userId
             notification.timestamp = comment.timestamp
-            notification.text = comment.text
-
-            var mentionSet = Set<FeedMention>()
-            for commentMention in comment.mentions ?? [] {
-                let newMention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
-                newMention.index = commentMention.index
-                newMention.userID = commentMention.userID
-                newMention.name = commentMention.name
-                mentionSet.insert(newMention)
-            }
-            notification.mentions = mentionSet
+            notification.rawText = comment.rawText
+            notification.mentions = comment.mentions
 
             if let media = comment.post.media?.first {
                 switch media.type {
@@ -1508,8 +1499,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    private func notifications(with predicate: NSPredicate, in managedObjectContext: NSManagedObjectContext) -> [ FeedNotification ] {
-        let fetchRequest: NSFetchRequest<FeedNotification> = FeedNotification.fetchRequest()
+    private func notifications(with predicate: NSPredicate, in managedObjectContext: NSManagedObjectContext) -> [ FeedActivity ] {
+        let fetchRequest: NSFetchRequest<FeedActivity> = FeedActivity.fetchRequest()
         fetchRequest.predicate = predicate
         do {
             let results = try managedObjectContext.fetch(fetchRequest)
@@ -1521,10 +1512,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    private func notifications(for postId: FeedPostID, commentId: FeedPostCommentID? = nil, in managedObjectContext: NSManagedObjectContext) -> [FeedNotification] {
-        let postIdPredicate = NSPredicate(format: "postId = %@", postId)
-        if commentId != nil {
-            let commentIdPredicate = NSPredicate(format: "commentId = %@", commentId!)
+    private func notifications(for postId: FeedPostID, commentId: FeedPostCommentID? = nil, in managedObjectContext: NSManagedObjectContext) -> [FeedActivity] {
+        let postIdPredicate = NSPredicate(format: "postID = %@", postId)
+        if let commentID = commentId {
+            let commentIdPredicate = NSPredicate(format: "commentID = %@", commentID)
             return self.notifications(with: NSCompoundPredicate(andPredicateWithSubpredicates: [ postIdPredicate, commentIdPredicate ]), in: managedObjectContext)
         } else {
             return self.notifications(with: postIdPredicate, in: managedObjectContext)
@@ -1533,10 +1524,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     func markNotificationsAsRead(for postId: FeedPostID? = nil) {
         performSeriallyOnBackgroundContext { (managedObjectContext) in
-            let notifications: [FeedNotification]
+            let notifications: [FeedActivity]
             let isNotReadPredicate = NSPredicate(format: "read = %@", NSExpression(forConstantValue: false))
             if postId != nil {
-                let postIdPredicate = NSPredicate(format: "postId = %@", postId!)
+                let postIdPredicate = NSPredicate(format: "postID = %@", postId!)
                 notifications = self.notifications(with: NSCompoundPredicate(andPredicateWithSubpredicates: [ isNotReadPredicate, postIdPredicate ]), in: managedObjectContext)
             } else {
                 notifications = self.notifications(with: isNotReadPredicate, in: managedObjectContext)
@@ -1548,7 +1539,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
             self.save(managedObjectContext)
 
-            UNUserNotificationCenter.current().removeDeliveredFeedNotifications(commentIds: notifications.compactMap({ $0.commentId }))
+            UNUserNotificationCenter.current().removeDeliveredFeedNotifications(commentIds: notifications.compactMap({ $0.commentID }))
         }
     }
 
@@ -1573,7 +1564,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         // Notify when comment contains you as one of the mentions.
-        let isUserMentioned = comment.mentions?.contains(where: { mention in
+        let isUserMentioned = comment.mentions.contains(where: { mention in
             mention.userID == selfId
         })
         if isUserMentioned == true {
@@ -1624,7 +1615,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 metadata.parentId = comment.parent?.id
                 if let groupId = comment.post.groupId,
                    let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
-                    metadata.groupId = group.groupId
+                    metadata.groupId = group.id
                     metadata.groupName = group.name
                 }
                 // create and add a notification to the notification center.
@@ -1658,7 +1649,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                                                     messageId: nil)
                 if let groupId = feedPost.groupId,
                    let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
-                    metadata.groupId = group.groupId
+                    metadata.groupId = group.id
                     metadata.groupName = group.name
                 }
                 // create and add a notification to the notification center.
@@ -1702,7 +1693,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             notifications.forEach { managedObjectContext.delete($0)}
 
             // 4. Reset post data and mark post as deleted.
-            feedPost.text = nil
+            feedPost.rawText = nil
             feedPost.status = .retracted
 
             if managedObjectContext.hasChanges {
@@ -1736,7 +1727,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             // 1. Reset comment text and mark comment as deleted.
             // TBD: should replies be deleted too?
-            feedComment.text = ""
+            feedComment.rawText = ""
             feedComment.status = .retracted
 
             // 2. Delete comment media
@@ -1746,7 +1737,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             let notifications = self.notifications(for: feedComment.post.id, commentId: feedComment.id, in: managedObjectContext)
             notifications.forEach { (notification) in
                 notification.event = .retractedComment
-                notification.text = nil
+                notification.rawText = nil
             }
 
             if managedObjectContext.hasChanges {
@@ -2067,7 +2058,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         // Iterate through all the suspendedMediaObjectIds and download media for those posts.
         downloadManager.suspendedMediaObjectIds.forEach { feedMediaObjectId in
             // Fetch FeedPostMedia
-            guard let feedPostMedia = try? viewContext.existingObject(with: feedMediaObjectId) as? FeedPostMedia else {
+            guard let feedPostMedia = try? viewContext.existingObject(with: feedMediaObjectId) as? CommonMedia else {
                 DDLogError("FeedData/resumeMediaDownloads/error missing-object [\(feedMediaObjectId)]")
                 return
             }
@@ -2348,8 +2339,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     func feedDownloadManager(_ manager: FeedDownloadManager, didFinishTask task: FeedDownloadManager.Task) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             // Step 1: Update FeedPostMedia
-            guard let objectID = task.feedMediaObjectId, let feedPostMedia = try? managedObjectContext.existingObject(with: objectID) as? FeedPostMedia else {
-                DDLogError("FeedData/download-task/\(task.id)/error  Missing FeedPostMedia  taskId=[\(task.id)]  objectId=[\(task.feedMediaObjectId?.uriRepresentation().absoluteString ?? "nil")))]")
+            guard let objectID = task.feedMediaObjectId, let feedPostMedia = try? managedObjectContext.existingObject(with: objectID) as? CommonMedia else {
+                DDLogError("FeedData/download-task/\(task.id)/error  Missing CommonMedia  taskId=[\(task.id)]  objectId=[\(task.feedMediaObjectId?.uriRepresentation().absoluteString ?? "nil")))]")
                 return
             }
 
@@ -2418,14 +2409,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    private func updateNotificationMediaPreview(with postMedia: FeedPostMedia, using managedObjectContext: NSManagedObjectContext) {
+    private func updateNotificationMediaPreview(with postMedia: CommonMedia, using managedObjectContext: NSManagedObjectContext) {
         guard postMedia.relativeFilePath != nil else { return }
         if let feedPost = postMedia.post {
             let feedPostId = feedPost.id
 
             // Fetch all associated notifications.
-            let fetchRequest: NSFetchRequest<FeedNotification> = FeedNotification.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "postId == %@", feedPostId)
+            let fetchRequest: NSFetchRequest<FeedActivity> = FeedActivity.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "postID == %@", feedPostId)
             do {
                 let notifications = try managedObjectContext.fetch(fetchRequest)
                 if !notifications.isEmpty {
@@ -2440,8 +2431,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         // TODO Nandini : handle this for feedComment = postMedia.comment
     }
 
-    private func generateMediaPreview(for notifications: [FeedNotification], feedPost: FeedPost, using managedObjectContext: NSManagedObjectContext) {
-        guard let postMedia = feedPost.orderedMedia.first as? FeedPostMedia else { return }
+    private func generateMediaPreview(for notifications: [FeedActivity], feedPost: FeedPost, using managedObjectContext: NSManagedObjectContext) {
+        guard let postMedia = feedPost.orderedMedia.first as? CommonMedia else { return }
         guard let mediaPath = postMedia.relativeFilePath else { return }
 
         DDLogInfo("FeedData/generateMediaPreview/feedPost \(feedPost.id), mediaType: \(postMedia.type)")
@@ -2461,7 +2452,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    private func updateMediaPreview(for notifications: [FeedNotification], usingImageAt url: URL) {
+    private func updateMediaPreview(for notifications: [FeedActivity], usingImageAt url: URL) {
         guard let image = UIImage(contentsOfFile: url.path) else {
             DDLogError("FeedData/notification/preview/error  Failed to load image at [\(url)]")
             return
@@ -2469,7 +2460,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         updateMediaPreview(for: notifications, using: image)
     }
 
-    private func updateMediaPreview(for notifications: [FeedNotification], using image: UIImage) {
+    private func updateMediaPreview(for notifications: [FeedActivity], using image: UIImage) {
         guard let preview = image.resized(to: CGSize(width: 128, height: 128), contentMode: .scaleAspectFill, downscaleOnly: false) else {
             DDLogError("FeedData/notification/preview/error  Failed to generate preview for notifications: \(notifications)")
             return
@@ -2489,38 +2480,35 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         let postId: FeedPostID = PacketID.generate()
 
         // Create and save new FeedPost object.
-        let managedObjectContext = persistentContainer.viewContext
         DDLogDebug("FeedData/new-post/create [\(postId)]")
-        let feedPost = NSEntityDescription.insertNewObject(forEntityName: FeedPost.entity().name!, into: managedObjectContext) as! FeedPost
+        let managedObjectContext = viewContext
+        let feedPost = FeedPost(context: managedObjectContext)
         feedPost.id = postId
         feedPost.userId = AppContext.shared.userData.userId
         if case .groupFeed(let groupId) = destination {
             feedPost.groupId = groupId
         }
-        feedPost.text = text.collapsedText
+        feedPost.rawText = text.collapsedText
         feedPost.status = .sending
         feedPost.timestamp = Date()
 
         // Add mentions
-        var mentionSet = Set<FeedMention>()
-        for (index, user) in text.mentions {
-            let feedMention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
-            feedMention.index = index
-            feedMention.userID = user.userID
-            feedMention.name = contactStore.pushNames[user.userID] ?? user.pushName ?? ""
-            if feedMention.name == "" {
-                DDLogError("FeedData/new-post/mention/\(user.userID) missing push name")
-            }
-            mentionSet.insert(feedMention)
+        feedPost.mentions = text.mentionsArray.map {
+            return MentionData(
+                index: $0.index,
+                userID: $0.userID,
+                name: contactStore.pushNames[$0.userID] ?? $0.name)
         }
-        feedPost.mentions = mentionSet
+        feedPost.mentions.filter { $0.name == "" }.forEach {
+            DDLogError("FeedData/new-post/mention/\($0.userID) missing push name")
+        }
 
         let shouldStreamFeedVideo = ServerProperties.streamingSendingEnabled && ChunkedMediaTestConstants.STREAMING_FEED_GROUP_IDS.contains(feedPost.groupId ?? "")
 
         // Add post media.
         for (index, mediaItem) in media.enumerated() {
             DDLogDebug("FeedData/new-post/add-media [\(mediaItem.fileURL!)]")
-            let feedMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
+            let feedMedia = CommonMedia(context: managedObjectContext)
             feedMedia.type = mediaItem.type
             feedMedia.status = .uploading
             feedMedia.url = mediaItem.url
@@ -2545,16 +2533,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         // Add feed link preview if any
-        var linkPreview: FeedLinkPreview?
+        var linkPreview: CommonLinkPreview?
         if let linkPreviewData = linkPreviewData {
-            linkPreview = FeedLinkPreview(context: managedObjectContext)
+            linkPreview = CommonLinkPreview(context: managedObjectContext)
             linkPreview?.id = PacketID.generate()
             linkPreview?.url = linkPreviewData.url
             linkPreview?.title = linkPreviewData.title
             linkPreview?.desc = linkPreviewData.description
             // Set preview image if present
             if let linkPreviewMedia = linkPreviewMedia {
-                let previewMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
+                let previewMedia = CommonMedia(context: managedObjectContext)
                 previewMedia.type = linkPreviewMedia.type
                 previewMedia.status = .uploading
                 previewMedia.url = linkPreviewMedia.url
@@ -2577,7 +2565,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         switch destination {
         case .userFeed:
-            let feedPostInfo = NSEntityDescription.insertNewObject(forEntityName: FeedPostInfo.entity().name!, into: managedObjectContext) as! FeedPostInfo
+            let feedPostInfo = ContentPublishInfo(context: managedObjectContext)
             let postAudience = try! MainAppContext.shared.privacySettings.currentFeedAudience()
             let receipts = postAudience.userIds.reduce(into: [UserID : Receipt]()) { (receipts, userId) in
                 receipts[userId] = Receipt()
@@ -2589,10 +2577,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             guard let chatGroup = MainAppContext.shared.chatData.chatGroup(groupId: groupId) else {
                 return
             }
-            let feedPostInfo = NSEntityDescription.insertNewObject(forEntityName: FeedPostInfo.entity().name!, into: managedObjectContext) as! FeedPostInfo
+            let feedPostInfo = ContentPublishInfo(context: managedObjectContext)
             var receipts = [UserID : Receipt]()
             chatGroup.members?.forEach({ member in
-                receipts[member.userId] = Receipt()
+                receipts[member.userID] = Receipt()
             })
             feedPostInfo.receipts = receipts
             feedPostInfo.audienceType = .group
@@ -2621,7 +2609,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         let commentId: FeedPostCommentID = PacketID.generate()
 
         // Create and save FeedPostComment
-        let managedObjectContext = self.persistentContainer.viewContext
+        let managedObjectContext = viewContext // why viewContext?
         guard let feedPost = self.feedPost(with: feedPostID, in: managedObjectContext) else {
             DDLogError("FeedData/new-comment/error  Missing FeedPost with id [\(feedPostID)]")
             fatalError("Unable to find FeedPost")
@@ -2634,34 +2622,31 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
         }
 
-        var mentionSet = Set<FeedMention>()
-        for (index, user) in comment.mentions {
-            let feedMention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
-            feedMention.index = index
-            feedMention.userID = user.userID
-            feedMention.name = contactStore.pushNames[user.userID] ?? user.pushName ?? ""
-            if feedMention.name == "" {
-                DDLogError("FeedData/new-comment/mention/\(user.userID) missing push name")
-            }
-            mentionSet.insert(feedMention)
-        }
-
         DDLogDebug("FeedData/new-comment/create id=[\(commentId)]  postId=[\(feedPost.id)]")
         let feedComment = NSEntityDescription.insertNewObject(forEntityName: FeedPostComment.entity().name!, into: managedObjectContext) as! FeedPostComment
         feedComment.id = commentId
         feedComment.userId = AppContext.shared.userData.userId
-        feedComment.text = comment.collapsedText
-        feedComment.mentions = mentionSet
+        feedComment.rawText = comment.collapsedText
         feedComment.parent = parentComment
         feedComment.post = feedPost
         feedComment.status = .sending
         feedComment.timestamp = Date()
+        feedComment.mentions = comment.mentions.map { (index, user) in
+            return MentionData(
+                index: index,
+                userID: user.userID,
+                name: contactStore.pushNames[user.userID] ?? user.pushName ?? "")
+        }
+        feedPost.mentions.filter { $0.name == "" }.forEach {
+            DDLogError("FeedData/new-comment/mention/\($0.userID) missing push name")
+        }
+
 
         // Add post comment media.
         for (index, mediaItem) in media.enumerated() {
             DDLogDebug("FeedData/new-comment/add-media [\(mediaItem.fileURL!)]")
 
-            let feedMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
+            let feedMedia = CommonMedia(context: managedObjectContext)
             feedMedia.type = mediaItem.type
             feedMedia.status = .uploading
             feedMedia.url = mediaItem.url
@@ -2681,16 +2666,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
         
         // Add feed link preview if any
-        var linkPreview: FeedLinkPreview?
+        var linkPreview: CommonLinkPreview?
         if let linkPreviewData = linkPreviewData {
-            linkPreview = FeedLinkPreview(context: managedObjectContext)
+            linkPreview = CommonLinkPreview(context: managedObjectContext)
             linkPreview?.id = PacketID.generate()
             linkPreview?.url = linkPreviewData.url
             linkPreview?.title = linkPreviewData.title
             linkPreview?.desc = linkPreviewData.description
             // Set preview image if present
             if let linkPreviewMedia = linkPreviewMedia {
-                let previewMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
+                let previewMedia = CommonMedia(context: managedObjectContext)
                 previewMedia.type = linkPreviewMedia.type
                 previewMedia.status = .uploading
                 previewMedia.url = linkPreviewMedia.url
@@ -2725,7 +2710,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     func retryPosting(postId: FeedPostID) {
         DDLogInfo("FeedData/retryPosting/postId: \(postId)")
-        let managedObjectContext = self.persistentContainer.viewContext
+        let managedObjectContext = viewContext
 
         guard let feedPost = self.feedPost(with: postId, in: managedObjectContext) else { return }
         guard feedPost.status == .sendError else { return }
@@ -2738,7 +2723,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     func resend(commentWithId commentId: FeedPostCommentID) {
         DDLogInfo("FeedData/resend/commentWithId: \(commentId)")
-        let managedObjectContext = self.persistentContainer.viewContext
+        let managedObjectContext = viewContext
 
         guard let comment = self.feedComment(with: commentId, in: managedObjectContext) else { return }
         guard comment.status == .sendError else { return }
@@ -2810,7 +2795,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     }
                     let feed: Feed = .group(groupId)
                     resendAttempt.post = post
-                    post.addToResendAttempts(resendAttempt)
                     self.save(managedObjectContext)
 
                     // Handle rerequests for posts based on status.
@@ -2835,7 +2819,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 } else if let comment = self.feedComment(with: contentID, in: managedObjectContext) {
                     DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id) begin/userID: \(userID)/rerequestCount: \(rerequestCount)")
                     resendAttempt.comment = comment
-                    comment.addToResendAttempts(resendAttempt)
                     self.save(managedObjectContext)
 
                     guard let groupId = comment.post.groupId else {
@@ -2974,7 +2957,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             return
         }
 
-        let predicate = NSPredicate(format: "statusValue == %d AND groupId == nil AND timestamp > %@", FeedPost.Status.sent.rawValue, NSDate(timeIntervalSinceNow: -Date.days(7)))
+        let predicate = NSPredicate(format: "statusValue == %d AND groupID == nil AND timestamp > %@", FeedPost.Status.sent.rawValue, NSDate(timeIntervalSinceNow: -Date.days(7)))
         let posts = feedPosts(predicate: predicate, in: viewContext)
 
         var postsToShare: [FeedPost] = []
@@ -3125,7 +3108,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    private func uploadMediaAndSend(feedLinkPreview: FeedLinkPreview) {
+    private func uploadMediaAndSend(feedLinkPreview: CommonLinkPreview) {
 
         guard let mediaItemsToUpload = feedLinkPreview.media?.filter({ $0.status == .none || $0.status == .uploading || $0.status == .uploadError }), !mediaItemsToUpload.isEmpty else {
             // no link preview media.. upload
@@ -3384,7 +3367,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             // Lookup object from coredata again instead of passing around the object across threads.
             DDLogInfo("FeedData/upload/fetch upload hash \(postId)/\(mediaIndex)")
-            guard let post = self.feedPost(with: postId),
+            guard let post = self.feedPost(with: postId, in: self.viewContext),
                   let media = post.media?.first(where: { $0.order == mediaIndex }) else {
                 DDLogError("FeedData/upload/upload hash finished/fetch post and media/ \(postId)/\(mediaIndex) - missing")
                 return
@@ -3738,7 +3721,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     func deletePosts(groupId: String) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             let feedFetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-            feedFetchRequest.predicate = NSPredicate(format: "groupId == %@", groupId)
+            feedFetchRequest.predicate = NSPredicate(format: "groupID == %@", groupId)
             do {
                 let groupFeeds = try self.viewContext.fetch(feedFetchRequest)
                 
@@ -3849,7 +3832,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    private func deleteMedia(feedLinkPreview: FeedLinkPreview) {
+    private func deleteMedia(feedLinkPreview: CommonLinkPreview) {
         feedLinkPreview.media?.forEach { (media) in
             // cancel any pending tasks for this media
             DDLogInfo("FeedData/deleteMedia/feedLinkPreview-id \(feedLinkPreview.id), media-id: \(media.id)")
@@ -3925,7 +3908,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     private func deleteNotifications(olderThan date: Date, in managedObjectContext: NSManagedObjectContext) {
-        let fetchRequest = NSFetchRequest<FeedNotification>(entityName: FeedNotification.entity().name!)
+        let fetchRequest = FeedActivity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "timestamp < %@", date as NSDate)
         do {
             let notifications = try managedObjectContext.fetch(fetchRequest)
@@ -3945,8 +3928,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     private func deleteNotifications(forPosts postIDs: [FeedPostID], in managedObjectContext: NSManagedObjectContext) {
-        let fetchRequest = NSFetchRequest<FeedNotification>(entityName: FeedNotification.entity().name!)
-        fetchRequest.predicate = NSPredicate(format: "postId IN %@", postIDs)
+        let fetchRequest = FeedActivity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "postID IN %@", postIDs)
         do {
             let notifications = try managedObjectContext.fetch(fetchRequest)
             guard !notifications.isEmpty else {
@@ -4356,7 +4339,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.id = post.id
             feedPost.userId = post.userId
             feedPost.groupId = post.groupId
-            feedPost.text = post.text
+            feedPost.rawText = post.text
             feedPost.status = {
                 switch post.status {
                 case .received, .acked: return .incoming
@@ -4374,19 +4357,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             cachedMedia[postId] = nil
 
             // Mentions
-            var mentionSet = Set<FeedMention>()
-            for mention in post.mentions ?? [] {
-                let feedMention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
-                feedMention.index = mention.index
-                feedMention.userID = mention.userID
-                feedMention.name = mention.name
-                mentionSet.insert(feedMention)
-            }
-            feedPost.mentions = mentionSet
+            feedPost.mentions = post.mentions?.map { MentionData(index: $0.index, userID: $0.userID, name: $0.name) } ?? []
 
             // Post Audience
             if let audience = post.audience {
-                let feedPostInfo = NSEntityDescription.insertNewObject(forEntityName: FeedPostInfo.entity().name!, into: managedObjectContext) as! FeedPostInfo
+                let feedPostInfo = ContentPublishInfo(context: managedObjectContext)
                 feedPostInfo.audienceType = audience.audienceType
                 feedPostInfo.receipts = audience.userIds.reduce(into: [UserID : Receipt]()) { (receipts, userId) in
                     receipts[userId] = Receipt()
@@ -4397,14 +4372,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             // Process link preview if present
             post.linkPreviews?.forEach { linkPreviewData in
                 DDLogDebug("FeedData/merge-data/post/\(postId)/add-link-preview [\(String(describing: linkPreviewData.url))]")
-                let linkPreview = NSEntityDescription.insertNewObject(forEntityName: FeedLinkPreview.entity().name!, into: managedObjectContext) as! FeedLinkPreview
+                let linkPreview = CommonLinkPreview(context: managedObjectContext)
                 linkPreview.id = PacketID.generate()
                 linkPreview.url = linkPreviewData.url
                 linkPreview.title = linkPreviewData.title
                 linkPreview.desc = linkPreviewData.desc
                 // Set preview image if present
                 linkPreviewData.media?.forEach { previewMedia in
-                    let media = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
+                    let media = CommonMedia(context: managedObjectContext)
                     media.type = previewMedia.type
                     media.status = .none
                     media.url = previewMedia.url
@@ -4440,7 +4415,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             post.media?.forEach { (media) in
                 DDLogDebug("FeedData/merge-data/post/\(postId)/add-media [\(media)] - [\(media.status)]")
 
-                let feedMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
+                let feedMedia = CommonMedia(context: managedObjectContext)
                 feedMedia.type = media.type
                 feedMedia.status = {
                     switch media.status {
@@ -4538,33 +4513,20 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 return nil
             }
         }
-
-        // Add mentions
-        var mentionSet = Set<FeedMention>()
-        sharedComment.mentions?.forEach({ mention in
-            let feedMention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
-            feedMention.index = mention.index
-            feedMention.userID = mention.userID
-            feedMention.name = mention.name
-            if feedMention.name == "" {
-                DDLogError("FeedData/merge/comment/mention/\(mention.userID) missing push name")
-            }
-            mentionSet.insert(feedMention)
-        })
         
         // Process link preview if present
-        var linkPreviews = Set<FeedLinkPreview>()
+        var linkPreviews = Set<CommonLinkPreview>()
         sharedComment.linkPreviews?.forEach { sharedLinkPreviewData in
             DDLogDebug("FeedData/process-comments/new/add-link-preview [\(String(describing: sharedLinkPreviewData.url))]")
 
-            let linkPreview = NSEntityDescription.insertNewObject(forEntityName: FeedLinkPreview.entity().name!, into: managedObjectContext) as! FeedLinkPreview
+            let linkPreview = CommonLinkPreview(context: managedObjectContext)
             linkPreview.id = PacketID.generate()
             linkPreview.url = sharedLinkPreviewData.url
             linkPreview.title = sharedLinkPreviewData.title
             linkPreview.desc = sharedLinkPreviewData.desc
             // Set preview image if present
             sharedLinkPreviewData.media?.forEach { sharedPreviewMedia in
-                let media = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
+                let media = CommonMedia(context: managedObjectContext)
                 media.type = sharedPreviewMedia.type
                 media.status = .none
                 media.url = sharedPreviewMedia.url
@@ -4577,9 +4539,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         // Add media
-        var mediaItems = Set<FeedPostMedia>()
+        var mediaItems = Set<CommonMedia>()
         sharedComment.media?.forEach({ mediaItem in
-            let feedCommentMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
+            let feedCommentMedia = CommonMedia(context: managedObjectContext)
             feedCommentMedia.type = mediaItem.type
             feedCommentMedia.status = {
                 switch mediaItem.status {
@@ -4607,8 +4569,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         let feedComment = NSEntityDescription.insertNewObject(forEntityName: FeedPostComment.entity().name!, into: managedObjectContext) as! FeedPostComment
         feedComment.id = commentId
         feedComment.userId = sharedComment.userId
-        feedComment.text = sharedComment.text
-        feedComment.mentions = mentionSet
+        feedComment.rawText = sharedComment.text
+        feedComment.mentions = sharedComment.mentions?.map {
+            if $0.name.isEmpty {
+                DDLogError("FeedData/merge/comment/mention/\($0.userID) missing push name")
+            }
+            return MentionData(index: $0.index, userID: $0.userID, name: $0.name)
+        } ?? []
         feedComment.media = mediaItems
         feedComment.linkPreviews = linkPreviews
         feedComment.parent = parentComment
@@ -4708,7 +4675,7 @@ extension FeedData: HalloFeedDelegate {
             }
             feedPost.willChangeValue(forKey: "info")
             if feedPost.info == nil {
-                feedPost.info = NSEntityDescription.insertNewObject(forEntityName: FeedPostInfo.entity().name!, into: managedObjectContext) as? FeedPostInfo
+                feedPost.info = ContentPublishInfo(context: managedObjectContext)
             }
             var receipts = feedPost.info!.receipts ?? [:]
             if receipts[receipt.userId] == nil {

@@ -26,7 +26,7 @@ fileprivate struct Constants {
 class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     private var groupID: GroupID
-    private var chatGroup: ChatGroup?
+    private var chatGroup: Group?
     private var isAdmin: Bool = false
     private var isMember: Bool = false
 
@@ -37,7 +37,7 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
     private let statCellReuseIdentifier = "StatViewCell"
     private let descriptionCellReuseIdentifier = "DescriptionViewCell"
 
-    private var fetchedResultsController: NSFetchedResultsController<ChatGroupMember>?
+    private var fetchedResultsController: NSFetchedResultsController<GroupMember>?
     private var dataSource: GroupInfoDataSource?
 
     private var showAllContacts: Bool = false
@@ -211,13 +211,13 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
 
     // MARK: Fetch Results Controller
 
-    public var fetchRequest: NSFetchRequest<ChatGroupMember> {
+    public var fetchRequest: NSFetchRequest<GroupMember> {
         get {
-            let fetchRequest = NSFetchRequest<ChatGroupMember>(entityName: "ChatGroupMember")
+            let fetchRequest = NSFetchRequest<GroupMember>(entityName: "GroupMember")
             fetchRequest.sortDescriptors = [
                 NSSortDescriptor(keyPath: \ChatGroupMember.typeValue, ascending: true)
             ]
-            fetchRequest.predicate = NSPredicate(format: "groupId = %@", groupID)
+            fetchRequest.predicate = NSPredicate(format: "groupID = %@", groupID)
             return fetchRequest
         }
     }
@@ -231,8 +231,8 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
         }
     }
 
-    private func newFetchedResultsController() -> NSFetchedResultsController<ChatGroupMember> {
-        let fetchedResultsController = NSFetchedResultsController<ChatGroupMember>(fetchRequest: self.fetchRequest, managedObjectContext: MainAppContext.shared.chatData.viewContext,
+    private func newFetchedResultsController() -> NSFetchedResultsController<GroupMember> {
+        let fetchedResultsController = NSFetchedResultsController<GroupMember>(fetchRequest: self.fetchRequest, managedObjectContext: MainAppContext.shared.mainDataStore.viewContext,
                                                                             sectionNameKeyPath: nil, cacheName: nil)
         fetchedResultsController.delegate = self
         return fetchedResultsController
@@ -243,9 +243,9 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
         checkIfMember()
     }
 
-    private func sortByFullName(this: ChatGroupMember, that: ChatGroupMember) -> Bool {
-        let thisName = MainAppContext.shared.contactStore.fullName(for: this.userId)
-        let thatName = MainAppContext.shared.contactStore.fullName(for: that.userId)
+    private func sortByFullName(this: GroupMember, that: GroupMember) -> Bool {
+        let thisName = MainAppContext.shared.contactStore.fullName(for: this.userID)
+        let thatName = MainAppContext.shared.contactStore.fullName(for: that.userID)
         return thisName < thatName
     }
 
@@ -267,21 +267,21 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
         backgroundRows.append(Row.backgroundRow(BackgroundRow.background(selectedBackground: selectedBackground)))
 
         /* contacts section */
-        var allGroupMembers: [ChatGroupMember] = []
+        var allGroupMembers: [GroupMember] = []
 
         // user (Me) first, admins second, members who are contacts, members not contacts, all alphabetical
-        var yourself: [ChatGroupMember] = []
-        var contactsWhoAreAdmins: [ChatGroupMember] = []
-        var contactsInAddressBook: [ChatGroupMember] = []
-        var contactsNotInAddressBook: [ChatGroupMember] = []
+        var yourself: [GroupMember] = []
+        var contactsWhoAreAdmins: [GroupMember] = []
+        var contactsInAddressBook: [GroupMember] = []
+        var contactsNotInAddressBook: [GroupMember] = []
         
         if let objects = fetchedResultsController?.fetchedObjects {
             for groupMember in objects {
-                if groupMember.userId == MainAppContext.shared.userData.userId {
+                if groupMember.userID == MainAppContext.shared.userData.userId {
                     yourself.append(groupMember)
                 } else if groupMember.type == .admin {
                     contactsWhoAreAdmins.append(groupMember)
-                } else if MainAppContext.shared.contactStore.isContactInAddressBook(userId: groupMember.userId) {
+                } else if MainAppContext.shared.contactStore.isContactInAddressBook(userId: groupMember.userID) {
                     contactsInAddressBook.append(groupMember)
                 } else {
                     contactsNotInAddressBook.append(groupMember)
@@ -299,7 +299,7 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
         allGroupMembers.append(contentsOf: Array(contactsNotInAddressBook))
 
         var allContactRowContacts = [ContactRow]()
-        allContactRowContacts.append(contentsOf: allGroupMembers.map { ContactRow.contact($0.userId) })
+        allContactRowContacts.append(contentsOf: allGroupMembers.map { ContactRow.contact($0.userID) })
 
         var allContactRows = [Row]()
         allContactRows.append(contentsOf: allContactRowContacts.map { Row.contactRow($0) })
@@ -346,7 +346,7 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
         guard let chatGroup = chatGroup else {
             return ""
         }
-        let groupFeedHistoryDecryption = AppContext.shared.cryptoData.fetchGroupFeedHistoryDecryption(groupID: chatGroup.groupId, in: AppContext.shared.cryptoData.viewContext)
+        let groupFeedHistoryDecryption = AppContext.shared.cryptoData.fetchGroupFeedHistoryDecryption(groupID: chatGroup.id, in: AppContext.shared.cryptoData.viewContext)
         let numExpected = groupFeedHistoryDecryption?.numExpected ?? 0
         let numDecrypted = groupFeedHistoryDecryption?.numDecrypted ?? 0
         return String(numDecrypted) + " / " + String(numExpected)
@@ -401,7 +401,7 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
         var currentMembers: [UserID] = []
         if let objects = fetchedResultsController?.fetchedObjects {
             for groupMember in objects {
-                currentMembers.append(groupMember.userId)
+                currentMembers.append(groupMember.userID)
             }
         }
         guard ContactStore.contactsAccessAuthorized else {
@@ -796,11 +796,11 @@ class GroupInfoHeaderView: UIView {
 
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
-    public func configure(chatGroup: ChatGroup?) {
+    public func configure(chatGroup: Group?) {
         guard let chatGroup = chatGroup else { return }
         let ham = HAMarkdown(font: groupNameText.font, color: groupNameText.textColor)
         groupNameText.attributedText = ham.parse(chatGroup.name)
-        avatarView.configure(groupId: chatGroup.groupId, squareSize: Constants.AvatarSize, using: MainAppContext.shared.avatarStore)
+        avatarView.configure(groupId: chatGroup.id, squareSize: Constants.AvatarSize, using: MainAppContext.shared.avatarStore)
     }
 
     public func setIsMember(_ isMember: Bool) {

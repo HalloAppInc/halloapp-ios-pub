@@ -169,7 +169,7 @@ public class MediaCrypter {
         return Data(bytes: bytes, count: count)
     }
 
-    private class func HKDFInfo(for mediaType: FeedMediaType, chunkIndex: Int? = nil) -> [UInt8] {
+    private class func HKDFInfo(for mediaType: CommonMediaType, chunkIndex: Int? = nil) -> [UInt8] {
         switch mediaType {
         case .image:
             return "HalloApp image".bytes
@@ -181,12 +181,12 @@ public class MediaCrypter {
         }
     }
 
-    fileprivate class func expandedKey(from key: Data, mediaType: FeedMediaType, chunkIndex: Int? = nil) throws -> Data {
+    fileprivate class func expandedKey(from key: Data, mediaType: CommonMediaType, chunkIndex: Int? = nil) throws -> Data {
         let expandedKeyBytes = try HKDF(password: key.bytes, info: HKDFInfo(for: mediaType, chunkIndex: chunkIndex), keyLength: MediaCrypter.expandedKeyLength, variant: .sha256).calculate()
         return Data(bytes: expandedKeyBytes, count: expandedKeyBytes.count)
     }
     
-    public class func encrypt(data: Data, mediaType: FeedMediaType) throws -> (Data, Data, Data) {
+    public class func encrypt(data: Data, mediaType: CommonMediaType) throws -> (Data, Data, Data) {
         let mediaKey = try MediaCrypter.randomKey(MediaCrypter.attachedKeyLength)
         let expandedKey = try MediaCrypter.expandedKey(from: mediaKey, mediaType: mediaType)
 
@@ -201,7 +201,7 @@ public class MediaCrypter {
         return (encryptedData, mediaKey, sha256Hash)
     }
     
-    public class func decrypt(data: Data, mediaKey: Data, sha256hash: Data, mediaType: FeedMediaType) throws -> Data {
+    public class func decrypt(data: Data, mediaKey: Data, sha256hash: Data, mediaType: CommonMediaType) throws -> Data {
         let expandedKey = try MediaCrypter.expandedKey(from: mediaKey, mediaType: mediaType)
 
         let IV = expandedKey[0...15]
@@ -280,7 +280,7 @@ public class MediaChunkCrypter: MediaCrypter {
     private var hmacContext: CCHmacContext
 
     // MARK: initialization
-    public init(mediaKey: Data, sha256hash: Data, mediaType: FeedMediaType) throws {
+    public init(mediaKey: Data, sha256hash: Data, mediaType: CommonMediaType) throws {
         // derive and extract keys
         let expandedKey = try MediaChunkCrypter.expandedKey(from: mediaKey, mediaType: mediaType)
         let IV = expandedKey[0...15]
@@ -310,7 +310,7 @@ public class MediaChunkCrypter: MediaCrypter {
         }
     }
 
-    public init(mediaType: FeedMediaType) throws {
+    public init(mediaType: CommonMediaType) throws {
         let mediaKey = try MediaCrypter.randomKey(MediaCrypter.attachedKeyLength)
         let expandedKey = try MediaCrypter.expandedKey(from: mediaKey, mediaType: mediaType)
         let IV = expandedKey[0...15]
@@ -453,7 +453,7 @@ public class ChunkedMediaCrypter: MediaCrypter {
         public var sha256: Data
     }
 
-    public static func encryptChunkedMedia(mediaType: FeedMediaType,
+    public static func encryptChunkedMedia(mediaType: CommonMediaType,
                                            chunkedParameters: ChunkedMediaParameters,
                                            readChunkData: ReadChunkData,
                                            writeChunkData: WriteChunkData) throws -> EncryptionResult {
@@ -481,7 +481,7 @@ public class ChunkedMediaCrypter: MediaCrypter {
         return EncryptionResult(mediaKey: encrypter.mediaKey, sha256: try encrypter.hashFinalize())
     }
 
-    public static func decryptChunkedMedia(mediaType: FeedMediaType,
+    public static func decryptChunkedMedia(mediaType: CommonMediaType,
                                            mediaKey: Data,
                                            sha256Hash: Data,
                                            chunkedParameters: ChunkedMediaParameters,
@@ -511,18 +511,18 @@ public class ChunkedMediaCrypter: MediaCrypter {
         try decrypter.hashFinalizeAndVerify(sha256Hash: sha256Hash)
     }
 
-    private let mediaType: FeedMediaType
+    private let mediaType: CommonMediaType
     public let mediaKey: Data
     private var hashContext: CC_SHA256_CTX
 
-    fileprivate init(mediaType: FeedMediaType, mediaKey: Data) {
+    fileprivate init(mediaType: CommonMediaType, mediaKey: Data) {
         self.mediaType = mediaType
         self.mediaKey = mediaKey
         self.hashContext = CC_SHA256_CTX.init()
         CC_SHA256_Init(&hashContext)
     }
 
-    fileprivate convenience init(mediaType: FeedMediaType) throws {
+    fileprivate convenience init(mediaType: CommonMediaType) throws {
         let mediaKey = try MediaCrypter.randomKey(MediaCrypter.attachedKeyLength)
         self.init(mediaType: mediaType, mediaKey: mediaKey)
     }
