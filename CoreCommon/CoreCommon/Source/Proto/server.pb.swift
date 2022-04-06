@@ -2863,6 +2863,10 @@ public struct Server_ExternalSharePostContainer {
   /// Clears the value of `ogTagInfo`. Subsequent reads from it will return its default value.
   public mutating func clearOgTagInfo() {self._ogTagInfo = nil}
 
+  public var name: String = String()
+
+  public var avatarID: String = String()
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -3187,6 +3191,14 @@ public struct Server_Iq {
     set {payload = .externalSharePost(newValue)}
   }
 
+  public var externalSharePostContainer: Server_ExternalSharePostContainer {
+    get {
+      if case .externalSharePostContainer(let v)? = payload {return v}
+      return Server_ExternalSharePostContainer()
+    }
+    set {payload = .externalSharePostContainer(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Payload: Equatable {
@@ -3230,6 +3242,7 @@ public struct Server_Iq {
     case startCallResult(Server_StartCallResult)
     case truncWhisperKeysCollection(Server_TruncWhisperKeysCollection)
     case externalSharePost(Server_ExternalSharePost)
+    case externalSharePostContainer(Server_ExternalSharePostContainer)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Iq.OneOf_Payload, rhs: Server_Iq.OneOf_Payload) -> Bool {
@@ -3387,6 +3400,10 @@ public struct Server_Iq {
       }()
       case (.externalSharePost, .externalSharePost): return {
         guard case .externalSharePost(let l) = lhs, case .externalSharePost(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.externalSharePostContainer, .externalSharePostContainer): return {
+        guard case .externalSharePostContainer(let l) = lhs, case .externalSharePostContainer(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -10639,6 +10656,8 @@ extension Server_ExternalSharePostContainer: SwiftProtobuf.Message, SwiftProtobu
     1: .same(proto: "uid"),
     2: .same(proto: "blob"),
     3: .standard(proto: "og_tag_info"),
+    4: .same(proto: "name"),
+    5: .standard(proto: "avatar_id"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -10650,6 +10669,8 @@ extension Server_ExternalSharePostContainer: SwiftProtobuf.Message, SwiftProtobu
       case 1: try { try decoder.decodeSingularInt64Field(value: &self.uid) }()
       case 2: try { try decoder.decodeSingularBytesField(value: &self.blob) }()
       case 3: try { try decoder.decodeSingularMessageField(value: &self._ogTagInfo) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self.avatarID) }()
       default: break
       }
     }
@@ -10669,6 +10690,12 @@ extension Server_ExternalSharePostContainer: SwiftProtobuf.Message, SwiftProtobu
     try { if let v = self._ogTagInfo {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
     } }()
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 4)
+    }
+    if !self.avatarID.isEmpty {
+      try visitor.visitSingularStringField(value: self.avatarID, fieldNumber: 5)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -10676,6 +10703,8 @@ extension Server_ExternalSharePostContainer: SwiftProtobuf.Message, SwiftProtobu
     if lhs.uid != rhs.uid {return false}
     if lhs.blob != rhs.blob {return false}
     if lhs._ogTagInfo != rhs._ogTagInfo {return false}
+    if lhs.name != rhs.name {return false}
+    if lhs.avatarID != rhs.avatarID {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -10724,6 +10753,7 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
     41: .standard(proto: "start_call_result"),
     42: .standard(proto: "trunc_whisper_keys_collection"),
     43: .standard(proto: "external_share_post"),
+    44: .standard(proto: "external_share_post_container"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -11228,6 +11258,19 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
           self.payload = .externalSharePost(v)
         }
       }()
+      case 44: try {
+        var v: Server_ExternalSharePostContainer?
+        var hadOneofValue = false
+        if let current = self.payload {
+          hadOneofValue = true
+          if case .externalSharePostContainer(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.payload = .externalSharePostContainer(v)
+        }
+      }()
       default: break
       }
     }
@@ -11396,6 +11439,10 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
     case .externalSharePost?: try {
       guard case .externalSharePost(let v)? = self.payload else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 43)
+    }()
+    case .externalSharePostContainer?: try {
+      guard case .externalSharePostContainer(let v)? = self.payload else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 44)
     }()
     case nil: break
     }
