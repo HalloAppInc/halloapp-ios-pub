@@ -663,15 +663,15 @@ class MediaPickerViewController: UIViewController {
             } else {
                 changeDestinationIcon.image = AvatarView.defaultGroupImage
 
-                guard !avatarData.isEmpty else { return }
+                if !avatarData.isEmpty {
+                    changeDestinationAvatarCancellable = avatarData.imageDidChange.sink { [weak self] image in
+                        guard let self = self else { return }
+                        guard let image = image else { return }
+                        self.changeDestinationIcon.image = image
+                    }
 
-                changeDestinationAvatarCancellable = avatarData.imageDidChange.sink { [weak self] image in
-                    guard let self = self else { return }
-                    guard let image = image else { return }
-                    self.changeDestinationIcon.image = image
+                    avatarData.loadImage(using: MainAppContext.shared.avatarStore)
                 }
-
-                avatarData.loadImage(using: MainAppContext.shared.avatarStore)
             }
 
             changeDestinationIconConstraint?.constant = 19
