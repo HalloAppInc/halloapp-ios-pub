@@ -178,7 +178,7 @@ fileprivate class BannerView: UIView, UIGestureRecognizerDelegate {
         label.numberOfLines = 1
         label.font = UIFont.gothamFont(ofFixedSize: 16.0, weight: .medium)
         label.textColor = .label
-        label.textAlignment = .left
+        label.textAlignment = .natural
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -194,7 +194,7 @@ fileprivate class BannerView: UIView, UIGestureRecognizerDelegate {
         let label = UILabel()
         label.numberOfLines = 1
         label.textColor = .label
-        label.textAlignment = .left
+        label.textAlignment = .natural
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()

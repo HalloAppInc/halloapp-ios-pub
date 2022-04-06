@@ -178,13 +178,18 @@ class MediaPickerViewController: UIViewController {
         button.titleLabel?.font = .gothamFont(ofFixedSize: 16, weight: .medium)
         button.setTitleColor(.label.withAlphaComponent(0.9), for: .normal)
         button.setImage(icon, for: .normal)
-        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 0)
-
-        // keep image on the right & tappable
-        button.semanticContentAttribute = UIApplication.shared.userInterfaceLayoutDirection == .rightToLeft ? .forceLeftToRight : .forceRightToLeft
-
+        
+        let insets: UIEdgeInsets
+        if case .rightToLeft = view.effectiveUserInterfaceLayoutDirection {
+            // keep image on the right & tappable
+            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -8, bottom: 0, right: 0)
+            button.semanticContentAttribute = .forceLeftToRight
+        } else {
+            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 0)
+            button.semanticContentAttribute = .forceRightToLeft
+        }
+        
         button.addTarget(self, action: #selector(openAlbumsAction), for: .touchUpInside)
-
         return button
     }()
 
@@ -611,7 +616,7 @@ class MediaPickerViewController: UIViewController {
     private func updateNavigation() {
         let backImageColor = UIColor.label.withAlphaComponent(0.9)
         let backImageConfig = UIImage.SymbolConfiguration(weight: .bold)
-        let backImage = UIImage(systemName: selected.count > 0 ? "xmark" : "chevron.left", withConfiguration: backImageConfig)?.withTintColor(backImageColor)
+        let backImage = UIImage(systemName: selected.count > 0 ? "xmark" : "chevron.down", withConfiguration: backImageConfig)?.withTintColor(backImageColor)
         backButton.setImage(backImage, for: .normal)
 
         titleLabel.text = title

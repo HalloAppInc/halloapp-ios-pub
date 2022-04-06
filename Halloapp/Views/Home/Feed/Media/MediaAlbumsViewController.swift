@@ -118,7 +118,7 @@ fileprivate struct AlbumsView: View {
         ZStack {
             HStack {
                 Button(action: { self.complete(nil, true) }) {
-                    Image(systemName: "chevron.left")
+                    Image(systemName: "chevron.down")
                         .font(.system(size: 22, weight: .bold))
                         .accessibility(label: Text(Localizations.buttonCancel))
                         .padding()
