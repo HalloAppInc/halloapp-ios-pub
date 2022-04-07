@@ -36,6 +36,7 @@ public struct ServerProperties {
         case streamingSendingEnabled = "streaming_sending_enabled"
         case externalSharingEnabled = "external_sharing"
         case isMediaDrawingEnabled = "draw_media"
+        case isGroupCommentNotificationsEnabled = "group_comments_notification"
     }
 
     private struct UserDefaultsKey {
@@ -71,6 +72,7 @@ public struct ServerProperties {
         static let streamingSendingEnabled = false
         static let externalSharingEnabled = false
         static let isMediaDrawingEnabled = false
+        static let isGroupCommentNotificationsEnabled = false
     }
 
     // MARK: Storage
@@ -285,5 +287,9 @@ public struct ServerProperties {
 
     public static var isMediaDrawingEnabled: Bool {
         ServerProperties.bool(forKey: .isMediaDrawingEnabled) ?? Defaults.isMediaDrawingEnabled
+    }
+
+    public static var isGroupCommentNotificationsEnabled: Bool {
+        ServerProperties.bool(forKey: .isGroupCommentNotificationsEnabled) ?? Defaults.isGroupCommentNotificationsEnabled
     }
 }

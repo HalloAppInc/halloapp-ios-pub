@@ -1580,6 +1580,19 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             return true
         }
 
+        // Notify group comments by contacts on group posts
+        let isKnownPublisher = AppContext.shared.contactStore.contact(withUserId: comment.userId) != nil
+        let isGroupComment = comment.post.groupId != nil
+        if ServerProperties.isGroupCommentNotificationsEnabled  && isGroupComment && isKnownPublisher {
+            return true
+        }
+
+        // Notify group comments on group posts after user has commented on it.
+        let interestedPosts = AppContext.shared.userDefaults.value(forKey: AppContext.commentedGroupPostsKey) as? [FeedPostID] ?? []
+        if Set(interestedPosts).contains(comment.post.id) {
+            return true
+        }
+
         // Do not notify about all other comments.
         return false
     }
@@ -2837,6 +2850,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         DDLogInfo("FeedData/send-comment/commentID: \(comment.id)")
         let commentId = comment.id
         let groupId = comment.post.groupId
+        let postId = comment.post.id
 
         guard !contentInFlight.contains(commentId) else {
             DDLogInfo("FeedData/send-comment/commentID: \(comment.id) already-in-flight")
@@ -2855,6 +2869,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     feedComment.status = .sent
 
                     MainAppContext.shared.endBackgroundTask(feedComment.id)
+                }
+                if groupId != nil {
+                    var interestedPosts = AppContext.shared.userDefaults.value(forKey: AppContext.commentedGroupPostsKey) as? [FeedPostID] ?? []
+                    interestedPosts.append(postId)
+                    AppContext.shared.userDefaults.set(Array(Set(interestedPosts)), forKey: AppContext.commentedGroupPostsKey)
                 }
 
             case .failure(let error):

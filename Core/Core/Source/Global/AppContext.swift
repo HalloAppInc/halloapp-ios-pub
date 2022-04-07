@@ -35,6 +35,10 @@ open class AppContext: AppContextCommon {
     private static let mediaHashDatabaseFilename = "mediaHash.sqlite"
     private static let notificationsDatabaseFilename = "notifications.sqlite"
 
+    // Temporary hack until we move all data to the mainDataStore.
+    // Once we have that i can create a new entity for this that can be easily updated for retracted or expired posts.
+    public static let commentedGroupPostsKey = "commentedGroupPosts"
+
     // MARK: Global App Properties
     public static let appVersionForDisplay: String = {
         guard let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String else {

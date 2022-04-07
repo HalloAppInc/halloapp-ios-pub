@@ -556,10 +556,25 @@ final class NotificationProtoService: ProtoServiceCore {
 
     // Used to present comment notifications.
     private func presentCommentNotification(for metadata: NotificationMetadata, using commentData: CommentData) {
+        // Notify important comments.
+        let isImportantComment = metadata.messageTypeRawValue == Server_Msg.TypeEnum.headline.rawValue
+
+        // Notify comments with mentions.
         let isUserMentioned = commentData.orderedMentions.contains(where: { mention in
             mention.userID == AppContext.shared.userData.userId
         })
-        if metadata.messageTypeRawValue == Server_Msg.TypeEnum.headline.rawValue || isUserMentioned {
+
+        // Notify comments from contacts on group posts.
+        let isKnownPublisher = AppContext.shared.contactStore.contact(withUserId: commentData.userId) != nil
+        let isGroupComment = metadata.groupId != nil
+        let isGroupCommentFromContact = ServerProperties.isGroupCommentNotificationsEnabled  && isGroupComment && isKnownPublisher
+
+        // Notify comments from group posts that user commented on.
+        // This is a hack until we move the data to the mainDataStore.
+        let interestedPosts = AppContext.shared.userDefaults.value(forKey: AppContext.commentedGroupPostsKey) as? [FeedPostID] ?? []
+        let isGroupCommentOnInterestedPost = Set(interestedPosts).contains(commentData.feedPostId)
+
+        if isImportantComment || isUserMentioned || isGroupCommentFromContact || isGroupCommentOnInterestedPost {
             runIfNotificationWasNotPresented(for: metadata.contentId) { [self] in
                 guard NotificationSettings.isCommentsEnabled else {
                     DDLogDebug("ProtoService/CommentNotification - skip due to userPreferences")
