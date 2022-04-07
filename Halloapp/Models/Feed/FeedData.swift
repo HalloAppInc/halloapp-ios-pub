@@ -4114,9 +4114,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     let uploadFileURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativePath)
                     if image.save(to: uploadFileURL) {
                         let imageSize = image.size
+                        let groupID = "\(post.id)-external"
                         mediaUploader.upload(media: SimpleMediaUploadable(encryptedFilePath: relativePath),
-                                             groupId: "\(post.id)-external",
-                                             didGetURLs: { _ in }) { result in
+                                             groupId: groupID,
+                                             didGetURLs: { _ in }) { [weak mediaUploader] result in
+                            // By default, completed tasks are not cleard from the media uploader.
+                            // This needs to be dispatched on a different queue as clearTasks is synchronous on
+                            // mediauploader's queue, which this completion is dispatched on.
+                            DispatchQueue.main.async {
+                                mediaUploader?.clearTasks(withGroupID: groupID)
+                            }
                             do {
                                 try FileManager.default.removeItem(at: uploadFileURL)
                             } catch {
