@@ -16,64 +16,65 @@ import SwiftUI
 import UIKit
 import VideoToolbox
 
-final class VideoSettings: ObservableObject {
-
-    private enum UserDefaultsKeys {
-        static var resolution: String { "VideoSettings.resolution" }
-        static var bitrate: String { "VideoSettings.bitrate" }
-    }
-
-    private init() {
-        let userDefaults = AppContext.shared.userDefaults!
-        // Set defaults
-        userDefaults.register(defaults: [
-            UserDefaultsKeys.resolution: AVOutputSettingsPreset.preset960x540.rawValue,
-            UserDefaultsKeys.bitrate: 50
-        ])
-        // Load settings
-        if let value = userDefaults.string(forKey: UserDefaultsKeys.resolution) {
-            preset = AVOutputSettingsPreset(rawValue: value)
-        } else {
-            preset = AVOutputSettingsPreset.preset960x540
-        }
-        resolution = VideoSettings.resolution(from: preset)
-        
-        let bitrateSetting = userDefaults.integer(forKey: UserDefaultsKeys.bitrate)
-        if bitrateSetting > 0 {
-            bitrateMultiplier = min(max(bitrateSetting, 30), 100)
-        } else {
-            bitrateMultiplier = 50
-        }
-    }
-
-    private static let sharedInstance = VideoSettings()
-
-    static var shared: VideoSettings {
-        sharedInstance
-    }
-
-    // MARK: Settings
-
-    static func resolution(from preset: AVOutputSettingsPreset) -> String {
-        // AVOutputSettingsPreset960x540 -> 960x540
-        return preset.rawValue.trimmingCharacters(in: .letters)
-    }
-
-    @Published var resolution: String
-
-    var preset: AVOutputSettingsPreset {
-        didSet {
-            AppContext.shared.userDefaults.setValue(preset.rawValue, forKey: UserDefaultsKeys.resolution)
-            resolution = VideoSettings.resolution(from: preset)
-        }
-    }
-
-    @Published var bitrateMultiplier: Int {
-        didSet {
-            AppContext.shared.userDefaults.setValue(bitrateMultiplier, forKey: UserDefaultsKeys.bitrate)
-        }
-    }
-}
+// TODO: Temporarily turn off and potentially remove
+//final class VideoSettings: ObservableObject {
+//
+//    private enum UserDefaultsKeys {
+//        static var resolution: String { "VideoSettings.resolution" }
+//        static var bitrate: String { "VideoSettings.bitrate" }
+//    }
+//
+//    private init() {
+//        let userDefaults = AppContext.shared.userDefaults!
+//        // Set defaults
+//        userDefaults.register(defaults: [
+//            UserDefaultsKeys.resolution: AVOutputSettingsPreset.preset960x540.rawValue,
+//            UserDefaultsKeys.bitrate: 50
+//        ])
+//        // Load settings
+//        if let value = userDefaults.string(forKey: UserDefaultsKeys.resolution) {
+//            preset = AVOutputSettingsPreset(rawValue: value)
+//        } else {
+//            preset = AVOutputSettingsPreset.preset960x540
+//        }
+//        resolution = VideoSettings.resolution(from: preset)
+//
+//        let bitrateSetting = userDefaults.integer(forKey: UserDefaultsKeys.bitrate)
+//        if bitrateSetting > 0 {
+//            bitrateMultiplier = min(max(bitrateSetting, 30), 100)
+//        } else {
+//            bitrateMultiplier = 50
+//        }
+//    }
+//
+//    private static let sharedInstance = VideoSettings()
+//
+//    static var shared: VideoSettings {
+//        sharedInstance
+//    }
+//
+//    // MARK: Settings
+//
+//    static func resolution(from preset: AVOutputSettingsPreset) -> String {
+//        // AVOutputSettingsPreset960x540 -> 960x540
+//        return preset.rawValue.trimmingCharacters(in: .letters)
+//    }
+//
+//    @Published var resolution: String
+//
+//    var preset: AVOutputSettingsPreset {
+//        didSet {
+//            AppContext.shared.userDefaults.setValue(preset.rawValue, forKey: UserDefaultsKeys.resolution)
+//            resolution = VideoSettings.resolution(from: preset)
+//        }
+//    }
+//
+//    @Published var bitrateMultiplier: Int {
+//        didSet {
+//            AppContext.shared.userDefaults.setValue(bitrateMultiplier, forKey: UserDefaultsKeys.bitrate)
+//        }
+//    }
+//}
 
 public enum VideoUtilsError: Error, CustomStringConvertible {
     case missingVideoTrack
@@ -96,6 +97,23 @@ public enum VideoUtilsError: Error, CustomStringConvertible {
 
 final class VideoUtils {
 
+    static func maxVideoResolution(for targetResolution: CGFloat) -> CGFloat {
+        switch(targetResolution) {
+        case 480, 640:
+            return 640
+        case 540, 960:
+            return 960
+        case 720, 1280:
+            return 1280
+        case 1080, 1920:
+            return 1920
+        case 2160, 3840:
+            return 3840
+        default:
+            return targetResolution
+        }
+    }
+
     static func resizeVideo(inputUrl: URL, progress: ((Float) -> Void)? = nil, completion: @escaping (Swift.Result<(URL, CGSize), Error>) -> Void) -> CancelableExporter {
 
         let avAsset = AVURLAsset(url: inputUrl, options: nil)
@@ -111,39 +129,41 @@ final class VideoUtils {
         var videoOutputConfiguration: [String: Any] = [
             AVVideoCodecKey: AVVideoCodecType.h264,
             AVVideoCompressionPropertiesKey: [
-                AVVideoAverageBitRateKey: 5250000, // avg bitrate from `preset960x540`
+                AVVideoAverageBitRateKey: ServerProperties.targetVideoBitRate,
                 AVVideoProfileLevelKey: AVVideoProfileLevelH264BaselineAutoLevel
             ]
         ]
-        var audioOutputConfiguration: [String: Any] =  [
+        let audioOutputConfiguration: [String: Any] =  [
             AVFormatIDKey: kAudioFormatMPEG4AAC,
             AVEncoderBitRateKey: 96000,
             AVNumberOfChannelsKey: 2,
             AVSampleRateKey: 44100
         ]
 
-        var maxVideoResolution: CGFloat = 960 // match value from `preset960x540`
-        if let assistant = AVOutputSettingsAssistant(preset: VideoSettings.shared.preset) {
-            if let videoSettings = assistant.videoSettings {
-                videoOutputConfiguration.merge(videoSettings) { (_, new) in new }
+        let maxVideoResolution = maxVideoResolution(for: ServerProperties.targetVideoResolution)
 
-                if let presetVideoWidth = videoSettings[AVVideoWidthKey] as? CGFloat,
-                   let presetVideoHeight = videoSettings[AVVideoHeightKey] as? CGFloat {
-                    maxVideoResolution = max(presetVideoWidth, presetVideoHeight)
-                }
-            }
-            if let audioSettings = assistant.audioSettings {
-                audioOutputConfiguration.merge(audioSettings, uniquingKeysWith: { (_, new) in new })
-            }
-        }
+        // TODO: Temporarily turn off and potentially remove
+//        if let assistant = AVOutputSettingsAssistant(preset: VideoSettings.shared.preset), useDeveloperSettings {
+//            if let videoSettings = assistant.videoSettings {
+//                videoOutputConfiguration.merge(videoSettings) { (_, new) in new }
+//
+//                if let presetVideoWidth = videoSettings[AVVideoWidthKey] as? CGFloat,
+//                   let presetVideoHeight = videoSettings[AVVideoHeightKey] as? CGFloat {
+//                    maxVideoResolution = max(presetVideoWidth, presetVideoHeight)
+//                }
+//            }
+//            if let audioSettings = assistant.audioSettings {
+//                audioOutputConfiguration.merge(audioSettings, uniquingKeysWith: { (_, new) in new })
+//            }
+//        }
 
         // Adjust video bitrate.
-        if var compressionProperties = videoOutputConfiguration[AVVideoCompressionPropertiesKey] as? [String: Any],
-           let avgBitrate = compressionProperties[AVVideoAverageBitRateKey] as? Double {
-            let multiplier = Double(VideoSettings.shared.bitrateMultiplier) * 0.01
-            compressionProperties[AVVideoAverageBitRateKey] = Int(round(avgBitrate * multiplier))
-            videoOutputConfiguration[AVVideoCompressionPropertiesKey] = compressionProperties
-        }
+//        if var compressionProperties = videoOutputConfiguration[AVVideoCompressionPropertiesKey] as? [String: Any],
+//           let avgBitrate = compressionProperties[AVVideoAverageBitRateKey] as? Double, useDeveloperSettings {
+//            let multiplier = Double(VideoSettings.shared.bitrateMultiplier) * 0.01
+//            compressionProperties[AVVideoAverageBitRateKey] = Int(round(avgBitrate * multiplier))
+//            videoOutputConfiguration[AVVideoCompressionPropertiesKey] = compressionProperties
+//        }
 
         // Resize video (if necessary) keeping aspect ratio.
         let track = avAsset.tracks(withMediaType: AVMediaType.video).first

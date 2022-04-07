@@ -20,6 +20,8 @@ public struct ServerProperties {
         case maxFeedVideoDuration = "max_feed_video_duration"
         case maxChatVideoDuration = "max_chat_video_duration"
         case maxVideoBitRate = "max_video_bit_rate"
+        case targetVideoBitRate = "target_video_bit_rate"
+        case targetVideoResolution = "target_video_resolution"
         case contactSyncFrequency = "contact_sync_frequency"
         case isVoiceNotesEnabled = "voice_notes"
         case isMediaCommentsEnabled = "media_comments"
@@ -55,7 +57,9 @@ public struct ServerProperties {
         static let groupSyncTime = 604800
         static let maxFeedVideoDuration = 60.0
         static let maxChatVideoDuration = 120.0
-        static let maxVideoBitRate = 8000000.0
+        static let maxVideoBitRate = 6000000.0
+        static let targetVideoBitRate = 4000000.0
+        static let targetVideoResolution = 720.0
         static let contactSyncFrequency: TimeInterval = 24 * 3600
         static let isVoiceNotesEnabled = false
         static let isMediaCommentsEnabled = false
@@ -223,6 +227,14 @@ public struct ServerProperties {
 
     public static var maxVideoBitRate: Double {
         ServerProperties.double(forKey: .maxVideoBitRate) ?? Defaults.maxVideoBitRate
+    }
+
+    public static var targetVideoBitRate: Double {
+        ServerProperties.double(forKey: .targetVideoBitRate) ?? Defaults.targetVideoBitRate
+    }
+
+    public static var targetVideoResolution: Double {
+        ServerProperties.double(forKey: .targetVideoResolution) ?? Defaults.targetVideoResolution
     }
 
     public static var contactSyncFrequency: TimeInterval {
