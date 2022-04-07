@@ -51,18 +51,3 @@ extension ChatQuotedLegacy {
     }
     
 }
-
-// Protocol for quoted content in chats.
-public protocol ChatQuotedProtocol {
-    // TODO(murali@): why have separate media types everywhere - just share one.
-    var type: ChatQuoteType { get }
-
-    var userId: String { get }
-
-    var quotedText: String? { get }
-
-    var mentions: [MentionData] { get }
-
-    var mediaList: [QuotedMedia] { get }
-
-}

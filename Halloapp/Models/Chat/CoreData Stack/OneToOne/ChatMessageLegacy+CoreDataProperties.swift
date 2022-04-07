@@ -96,31 +96,3 @@ extension ChatMessageLegacy {
         }
     }
 }
-
-
-extension ChatMessage: ChatQuotedProtocol {
-    public var quotedText: String? {
-        return rawText
-    }
-
-    public var userId: String {
-        return fromUserId
-    }
-
-    public var type: ChatQuoteType {
-        return .message
-    }
-
-    public var mentions: [MentionData] {
-        return []
-    }
-
-    public var mediaList: [QuotedMedia] {
-        if let media = media {
-            return Array(media)
-        } else {
-            return []
-        }
-    }
-
-}

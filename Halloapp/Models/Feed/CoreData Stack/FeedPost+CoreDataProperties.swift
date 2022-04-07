@@ -9,27 +9,6 @@
 
 import Core
 import CoreCommon
-import CoreData
-import Foundation
-
-extension FeedPost: ChatQuotedProtocol {
-
-    public var quotedText: String? {
-        return rawText
-    }
-
-    public var type: ChatQuoteType {
-        return .feedpost
-    }
-
-    public var mediaList: [QuotedMedia] {
-        if let media = media {
-            return Array(media)
-        } else {
-            return []
-        }
-    }
-}
 
 extension FeedPost {
     var canSaveMedia: Bool {

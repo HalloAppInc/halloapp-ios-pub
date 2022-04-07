@@ -67,24 +67,3 @@ extension ChatQuotedMedia {
     }
     
 }
-
-// Protocol for quoted media content in chats.
-public protocol QuotedMedia {
-
-    var quotedMediaType: CommonMediaType { get }
-
-    var order: Int16 { get }
-
-    var height: Float { get }
-
-    var width: Float { get }
-
-    var relativeFilePath: String? { get }
-
-}
-
-extension CommonMedia: QuotedMedia {
-    public var quotedMediaType: CommonMediaType {
-        return type
-    }
-}

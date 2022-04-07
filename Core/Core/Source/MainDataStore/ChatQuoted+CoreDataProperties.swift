@@ -51,3 +51,85 @@ public extension ChatQuoted {
         return mentions.sorted { $0.index < $1.index }
     }
 }
+
+// MARK: - Protocols
+
+// Protocol for quoted media content in chats.
+public protocol QuotedMedia {
+
+    var quotedMediaType: CommonMediaType { get }
+
+    var order: Int16 { get }
+
+    var height: Float { get }
+
+    var width: Float { get }
+
+    var relativeFilePath: String? { get }
+}
+
+// Protocol for quoted content in chats.
+public protocol ChatQuotedProtocol {
+
+    var type: ChatQuoteType { get }
+
+    var userId: String { get }
+
+    var quotedText: String? { get }
+
+    var mentions: [MentionData] { get }
+
+    var mediaList: [QuotedMedia] { get }
+}
+
+// MARK: - Extensions
+
+extension CommonMedia: QuotedMedia {
+    public var quotedMediaType: CommonMediaType {
+        return type
+    }
+}
+
+extension ChatMessage: ChatQuotedProtocol {
+    public var quotedText: String? {
+        return rawText
+    }
+
+    public var userId: String {
+        return fromUserId
+    }
+
+    public var type: ChatQuoteType {
+        return .message
+    }
+
+    public var mentions: [MentionData] {
+        return []
+    }
+
+    public var mediaList: [QuotedMedia] {
+        if let media = media {
+            return Array(media)
+        } else {
+            return []
+        }
+    }
+}
+
+extension FeedPost: ChatQuotedProtocol {
+    public var quotedText: String? {
+        return rawText
+    }
+
+    public var type: ChatQuoteType {
+        return .feedpost
+    }
+
+    public var mediaList: [QuotedMedia] {
+        if let media = media {
+            return Array(media)
+        } else {
+            return []
+        }
+    }
+}
