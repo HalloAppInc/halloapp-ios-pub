@@ -105,6 +105,10 @@ class ExternalSharePost: FeedPostDisplayable {
         return media.contains { $0.type == .audio }
     }
 
+    var canDeletePost: Bool {
+        return false
+    }
+
     func downloadMedia() {
         media.forEach { $0.download() }
         externalShareLinkPreview?.media?.forEach { $0.download() }

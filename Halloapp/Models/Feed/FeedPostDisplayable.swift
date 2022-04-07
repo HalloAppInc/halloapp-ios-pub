@@ -33,6 +33,7 @@ protocol FeedPostDisplayable {
     var isWaiting: Bool { get }
     var text: String? { get }
     var hasAudio: Bool { get }
+    var canDeletePost: Bool { get }
 }
 
 // MARK: - LinkPreviewDisplayable
@@ -95,6 +96,10 @@ extension FeedPost: FeedPostDisplayable {
 
     var hasAudio: Bool {
         return media?.contains { $0.type == .audio } ?? false
+    }
+
+    var canDeletePost: Bool {
+        return userId == MainAppContext.shared.userData.userId
     }
 }
 

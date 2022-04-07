@@ -142,8 +142,7 @@ class CommentLinkPreviewView: UIView {
 
     @objc private func previewTapped(sender: UITapGestureRecognizer) {
         if let url = feedLinkPreview?.url {
-            guard MainAppContext.shared.chatData.proceedIfNotGroupInviteLink(url) else { return }
-            UIApplication.shared.open(url)
+            URLRouter.shared.handleOrOpen(url: url)
         }
     }
 

@@ -619,7 +619,7 @@ final class FeedItemHeaderView: UIView {
             privacyIndicatorButtonView.removeFromSuperview()
         }
 
-        if !(post.hasSaveablePostMedia && post.canSaveMedia), post.userId != MainAppContext.shared.userData.userId {
+        if !(post.hasSaveablePostMedia && post.canSaveMedia), !post.canDeletePost {
             moreButton.removeFromSuperview()
         } else {
             contentStackView.addArrangedSubview(moreButton)

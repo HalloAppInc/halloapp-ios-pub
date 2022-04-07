@@ -139,7 +139,6 @@ class MsgViewCell: UITableViewCell {
 
 extension MsgViewCell: UITextViewDelegate {
     func textView(_ textView: UITextView, shouldInteractWith URL: URL, in characterRange: NSRange) -> Bool {
-        guard MainAppContext.shared.chatData.proceedIfNotGroupInviteLink(URL) else { return false }
-        return true
+        return !URLRouter.shared.handle(url: URL)
     }
 }

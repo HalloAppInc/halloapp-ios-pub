@@ -293,9 +293,8 @@ extension SceneDelegate: UIWindowSceneDelegate {
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
         DDLogInfo("application/scene/openURLContexts")
         guard let url = URLContexts.first?.url else { return }
-        guard let inviteToken = ChatData.parseInviteURL(url: url) else { return }
         DDLogInfo("application/scene/openURLContexts/url \(url)")
-        processGroupInviteToken(inviteToken)
+        URLRouter.shared.handle(url: url)
     }
 
     // handles invite url while app is either in foreground or background
@@ -304,9 +303,8 @@ extension SceneDelegate: UIWindowSceneDelegate {
         switch userActivity.activityType {
         case NSUserActivityTypeBrowsingWeb:
             guard let incomingURL = userActivity.webpageURL else { return }
-            guard let inviteToken = ChatData.parseInviteURL(url: incomingURL) else { return }
             DDLogInfo("application/scene/continue/incomingURL \(incomingURL)")
-            processGroupInviteToken(inviteToken)
+            URLRouter.shared.handle(url: incomingURL)
 
         // TODO: Do we need to use this intent to pop up people for share-intents? maybe?
         case "INStartAudioCallIntent", "INStartCallIntent", "INStartVideoCallIntent":

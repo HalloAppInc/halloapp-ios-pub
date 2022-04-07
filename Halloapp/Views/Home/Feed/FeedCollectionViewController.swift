@@ -837,7 +837,7 @@ extension FeedCollectionViewController {
                 }
             }
 
-            if isOwnPost {
+            if feedPost.canDeletePost {
                 FeedPostMenuViewController.Section {
                     FeedPostMenuViewController.Item(style: .destructive,
                                                     icon: UIImage(systemName: "trash"),

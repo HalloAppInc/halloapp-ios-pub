@@ -7,6 +7,7 @@
 //
 
 import CocoaLumberjackSwift
+import CoreCommon
 import Foundation
 
 class URLRouter {
@@ -30,12 +31,38 @@ class URLRouter {
 
         var shareRoutes: [Route] = []
         shareRoutes.append(Route(path: "/:blobID") { params in
-            guard let blobID = params["blobID"] else {
+            guard let blobID = params["blobID"],
+                  let key = params[URLRouter.fragmentParameter].flatMap({ fragment -> Data? in
+                      var key = fragment
+                      if key.hasPrefix("k") {
+                          key = String(fragment.dropFirst())
+                      }
+                      return Data(base64urlEncoded: key)
+                  }) else {
                 return
             }
+            MainAppContext.shared.feedData.feedPost(with: blobID, key: key) { result in
+                guard let currentViewController = UIViewController.currentViewController else {
+                    DDLogError("URLRouter/Unable to find currentViewController")
+                    return
+                }
 
-            // TODO
-
+                switch result {
+                case .success(let post):
+                    let viewController: UIViewController
+                    if let feedPost = MainAppContext.shared.feedData.feedPost(with: post.id) {
+                        viewController = UINavigationController(rootViewController: FlatCommentsViewController(feedPostId: post.id))
+                    } else {
+                        viewController = PostViewController(post: post)
+                    }
+                    currentViewController.present(viewController, animated: true)
+                case .failure(let error):
+                    DDLogError("URLRouter/Failed to decrypt external share post: \(error)")
+                    let alertController = UIAlertController(title: Localizations.failedToLoadExternalSharePost, message: nil, preferredStyle: .alert)
+                    alertController.addAction(.init(title: Localizations.buttonOK, style: .default, handler: nil))
+                    currentViewController.present(alertController, animated: true)
+                }
+            }
         })
 
         return URLRouter(hosts: [
@@ -162,5 +189,14 @@ extension URLRouter {
         params[Self.fragmentParameter] = urlComponents.fragment
 
         return (route, params)
+    }
+}
+
+extension Localizations {
+
+    static var failedToLoadExternalSharePost: String {
+        NSLocalizedString("urlrouter.externalShare.failed",
+                          value: "Failed to load post",
+                          comment: "Alert appearing after clicking an external share link that failed to load")
     }
 }

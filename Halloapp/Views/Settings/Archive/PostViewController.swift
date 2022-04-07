@@ -171,7 +171,7 @@ extension PostViewController {
                 }))
             }
 
-            if self.post.userId == MainAppContext.shared.userData.userId {
+            if self.post.canDeletePost {
                 alert.addAction(UIAlertAction(title: Localizations.deletePostButtonTitle, style: .destructive) { _ in
                     self.deletePost()
                 })

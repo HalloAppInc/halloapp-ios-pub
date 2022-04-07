@@ -1429,9 +1429,6 @@ extension ProtoService: HalloService {
                     DDLogError("ProtoService/UploadPostForExternalShare/Failed to serialize post data")
                     completion(.failure(RequestError.malformedResponse))
                 }
-
-
-                break
             case .failure(let error):
                 completion(.failure(error))
             }

@@ -364,6 +364,15 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationItem.title = Localizations.titleComments
+
+        // If we are the only view controller in our navigation stack, add a dismiss button
+        if navigationController?.viewControllers.count == 1, navigationController?.topViewController === self {
+            navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "chevron.down"),
+                                                               style: .plain,
+                                                               target: self,
+                                                               action: #selector(dismissAnimated))
+        }
+
         view.backgroundColor = UIColor.primaryBg
         view.addSubview(collectionView)
         collectionView.constrain(to: view)
@@ -836,6 +845,10 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         messageInputView.mentionText = draft.text
         messageInputView.updateInputView()
     }
+
+    @objc private func dismissAnimated() {
+        dismiss(animated: true)
+    }
 }
 
 extension FlatCommentsViewController: MessageCommentHeaderViewDelegate {
@@ -908,10 +921,7 @@ extension FlatCommentsViewController: TextLabelDelegate {
         switch link.linkType {
         case .link, .phoneNumber:
             if let url = link.result?.url {
-                guard MainAppContext.shared.chatData.proceedIfNotGroupInviteLink(url) else { break }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                    UIApplication.shared.open(url, options: [:])
-                }
+                URLRouter.shared.handleOrOpen(url: url)
             }
         case .userMention:
             if let userID = link.userID {

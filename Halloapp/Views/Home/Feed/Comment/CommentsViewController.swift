@@ -970,10 +970,7 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
         switch link.linkType {
         case .link, .phoneNumber:
             if let url = link.result?.url {
-                guard MainAppContext.shared.chatData.proceedIfNotGroupInviteLink(url) else { break }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                    UIApplication.shared.open(url, options: [:])
-                }
+                URLRouter.shared.handleOrOpen(url: url)
             }
         case .userMention:
             if let userID = link.userID {
