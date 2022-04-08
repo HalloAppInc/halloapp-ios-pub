@@ -17,6 +17,7 @@ class URLRouterTests: XCTestCase {
             URLRouter.Host(domains: [URLRouter.applinkHost], routes: [
                 URLRouter.Route(path: "/foo/bar", handler: { _ in
                     expectation.fulfill()
+                    return true
                 })
             ])
         ])
@@ -31,6 +32,7 @@ class URLRouterTests: XCTestCase {
             URLRouter.Host(domains: ["www.halloapp.com", "halloapp.com"], routes: [
                 URLRouter.Route(path: "/foo/bar", handler: { _ in
                     expectation.fulfill()
+                    return true
                 })
             ])
         ])
@@ -53,6 +55,7 @@ class URLRouterTests: XCTestCase {
                     XCTAssertEqual(params["baz"], "value2")
                     XCTAssertEqual(params.count, 2)
                     expectation.fulfill()
+                    return true
                 })
             ])
         ])
@@ -73,6 +76,7 @@ class URLRouterTests: XCTestCase {
                     XCTAssertEqual(params["baz"], "value2")
                     XCTAssertEqual(params.count, 2)
                     expectation.fulfill()
+                    return true
                 })
             ])
         ])
@@ -91,6 +95,7 @@ class URLRouterTests: XCTestCase {
                     XCTAssertEqual(params[URLRouter.fragmentParameter], "fragment")
                     XCTAssertEqual(params.count, 1)
                     expectation.fulfill()
+                    return true
                 })
             ])
         ])
@@ -108,6 +113,7 @@ class URLRouterTests: XCTestCase {
                     XCTAssertEqual(params["bar"], "url")
                     XCTAssertEqual(params.count, 1)
                     expectation.fulfill()
+                    return true
                 })
             ])
         ])

@@ -16,17 +16,19 @@ class URLRouter {
         var routes: [Route] = []
         routes.append(Route(path: "/invite") { params in
             guard let inviteToken = params["g"] else {
-                return
+                return false
             }
             MainAppContext.shared.userData.groupInviteToken = inviteToken
             MainAppContext.shared.didGetGroupInviteToken.send()
+            return true
         })
         routes.append(Route(path: "/appclip") { params in
             guard let inviteToken = params["g"] else {
-                return
+                return false
             }
             MainAppContext.shared.userData.groupInviteToken = inviteToken
             MainAppContext.shared.didGetGroupInviteToken.send()
+            return true
         })
 
         var shareRoutes: [Route] = []
@@ -39,7 +41,7 @@ class URLRouter {
                       }
                       return Data(base64urlEncoded: key)
                   }) else {
-                return
+                return false
             }
             MainAppContext.shared.feedData.externalSharePost(with: blobID, key: key) { result in
                 guard let currentViewController = UIViewController.currentViewController else {
@@ -64,6 +66,7 @@ class URLRouter {
                     currentViewController.present(alertController, animated: true)
                 }
             }
+            return true
         })
 
         return URLRouter(hosts: [
@@ -78,6 +81,7 @@ class URLRouter {
     }()
 
     typealias Params = [String: String]
+    typealias Handler = (Params) -> Bool
 
     struct Host {
         let domains: Set<String>
@@ -93,14 +97,14 @@ class URLRouter {
     static let fragmentParameter = "urlFragment"
 
     struct Route {
-        enum PathComponent {
+        fileprivate enum PathComponent {
             case path(path: String), parameter(name: String)
         }
 
-        let pathComponents: [PathComponent]
-        let handler: ([String: String]) -> Void
+        fileprivate let pathComponents: [PathComponent]
+        let handler: Handler
 
-        init(path: String, handler: @escaping (Params) -> Void) {
+        init(path: String, handler: @escaping Handler) {
             self.pathComponents = path.split(separator: "/").map { component in
                 if component.hasPrefix(":") {
                     return .parameter(name: String(component.dropFirst()))
@@ -125,8 +129,7 @@ class URLRouter {
             return false
         }
         DDLogInfo("URLRouter/Found matching route and will handle \(url)")
-        route.handler(params)
-        return true
+        return route.handler(params)
     }
 
     func handleOrOpen(url: URL) {
