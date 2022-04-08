@@ -407,7 +407,7 @@ private extension Localizations {
     
     static var standardPostDisappearTimeLabel: String {
         NSLocalizedString("mypost.disappear.time.label",
-                   value: "Your posts will disappear after 30 days.",
+                   value: "Your post will disappear after 30 days.",
                  comment: "Generic message displayed to say when posts will disappear.")
     }
 
