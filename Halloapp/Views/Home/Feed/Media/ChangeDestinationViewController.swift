@@ -153,12 +153,6 @@ class ChangeDestinationViewController: UIViewController {
                             hasNext: false)
                     case 1:
                         cell.configure(
-                            title: PrivacyList.name(forPrivacyListType: .blacklist),
-                            subtitle: activePrivacyListType == .blacklist ? privacySettings.longFeedSetting : Localizations.feedPrivacyShareWithContactsExcept,
-                            isSelected: isDestinationUserFeed && activePrivacyListType == .blacklist,
-                            hasNext: true)
-                    case 2:
-                        cell.configure(
                             title: PrivacyList.name(forPrivacyListType: .whitelist),
                             subtitle: activePrivacyListType == .whitelist ? privacySettings.longFeedSetting : Localizations.feedPrivacyShareWithSelected,
                             isSelected: isDestinationUserFeed && activePrivacyListType == .whitelist,
@@ -296,7 +290,6 @@ class ChangeDestinationViewController: UIViewController {
             snapshot.appendSections([0])
             snapshot.appendItems([
                 SelectableDestination.allContacts,
-                SelectableDestination.blacklistContacts,
                 SelectableDestination.whitelistContacts,
             ], toSection: 0)
 
@@ -325,18 +318,6 @@ extension ChangeDestinationViewController: UICollectionViewDelegate {
                 destination = .userFeed
                 backAction()
             case 1:
-                if searchController.isActive {
-                    dismiss(animated: true)
-                }
-
-                let controller = ContactSelectionViewController.forPrivacyList(privacySettings.blacklist, in: privacySettings, doneAction: { [weak self] in
-                    self?.dismiss(animated: false)
-                    self?.destination = .userFeed
-                    self?.backAction()
-                }, dismissAction: nil)
-
-                present(UINavigationController(rootViewController: controller), animated: true)
-            case 2:
                 if searchController.isActive {
                     dismiss(animated: true)
                 }

@@ -86,42 +86,6 @@ struct FeedPrivacyView: View {
                     PrivacyPermissionDeniedView(dismissAction: { self.shouldShowEnableContactPermissionView = false })
                 }
 
-                Button(action: { self.isBlacklistScreenPresented = true }) {
-                    HStack {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(self.privacySettings.activeType == .blacklist ? .blue : .clear)
-
-                        VStack(alignment: .leading) {
-                            Text(PrivacyList.name(forPrivacyListType: .blacklist))
-                                .font(.body)
-
-                            Text(self.privacySettings.activeType == .blacklist ? self.privacySettings.longFeedSetting : Localizations.feedPrivacyShareWithContactsExcept)
-                                .lineLimit(1)
-                                .font(.footnote)
-                                .foregroundColor(.secondary)
-                        }
-
-                        Spacer()
-
-                        Image(systemName: "chevron.right")
-                            .renderingMode(.template)
-                            .foregroundColor(.primaryBlackWhite.opacity(0.3))
-                    }
-                }
-                .frame(height: 54)
-                .padding(EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 10))
-                .background(Color.feedPostBackground)
-                .cornerRadius(10)
-                .shadow(color: .black.opacity(0.15), radius: 0, x: 0, y: 0.5)
-                .padding(EdgeInsets(top: 0, leading: 16, bottom: 7, trailing: 16))
-                .disabled(!self.privacySettings.isDownloaded || self.privacySettings.isSyncing)
-                .sheet(isPresented: self.$isBlacklistScreenPresented) {
-                    PrivacyListView(self.privacySettings.blacklist, dismissAction: { self.isBlacklistScreenPresented = false })
-                        .environmentObject(self.privacySettings)
-                        .edgesIgnoringSafeArea(.bottom)
-                }
-
                 Button(action: { self.isWhitelistScreenPresented = true }) {
                     HStack {
                         Image(systemName: "checkmark")
