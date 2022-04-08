@@ -460,6 +460,7 @@ class GroupFeedViewController: FeedCollectionViewController {
             present(alert, animated: true)
         } else {
             let newPostViewController = NewPostViewController(source: source, destination: .groupFeed(groupId)) { didPost in
+                MainAppContext.shared.privacySettings.activeType = .all
                 self.dismiss(animated: true)
                 if didPost { self.scrollToTop(animated: true) }
             }

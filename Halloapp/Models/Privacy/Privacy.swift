@@ -143,7 +143,7 @@ extension PrivacyList {
         case .blacklist:
             return NSLocalizedString("feed.privacy.list.except", value: "My Contacts Except...", comment: "Settings > Privacy > Posts: one of the possible setting values.")
         case .whitelist:
-            return NSLocalizedString("feed.privacy.list.only", value: "Only Share With...", comment: "Settings > Privacy > Posts: one of the possible setting values.")
+            return NSLocalizedString("feed.privacy.list.only", value: "Favorites", comment: "Settings > Privacy > Posts > Favorites privacy setting.")
         case .muted:
             return "Muted" // not in use currently
         case .blocked:

@@ -148,10 +148,6 @@ enum PrivacySettingsError: Error {
 
 open class PrivacySettings {
 
-    private struct Constants {
-        static let UserDefaultsKeyActiveListType = "FeedPrivacySetting"
-    }
-
     private let contactStore: ContactStore
 
     public private(set) var whitelist: PrivacyList!
@@ -173,18 +169,12 @@ open class PrivacySettings {
         muted = PrivacyList(type: .muted, fileUrl: privacyListsDirectory.appendingPathComponent("list3.json", isDirectory: false))
         blocked = PrivacyList(type: .blocked, fileUrl: privacyListsDirectory.appendingPathComponent("list4.json", isDirectory: false))
 
-        if let listType = PrivacyListType(rawValue: AppContext.userDefaultsForAppGroup.string(forKey: Constants.UserDefaultsKeyActiveListType) ?? "") {
-            DDLogInfo("privacy/feed Loaded current feed setting: [\(listType)]")
-            activeType = listType
-        }
+        activeType = .all
     }
 
     open var activeType: PrivacyListType? = nil {
         didSet {
             DDLogInfo("privacy/change-active From [\(oldValue?.rawValue ?? "none")] to [\(activeType?.rawValue ?? "none")]")
-            if let listType = activeType {
-                AppContext.userDefaultsForAppGroup.setValue(listType.rawValue, forKey: Core.PrivacySettings.Constants.UserDefaultsKeyActiveListType)
-            }
         }
     }
 
