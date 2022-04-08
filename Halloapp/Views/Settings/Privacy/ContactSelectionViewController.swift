@@ -15,7 +15,7 @@ let SelectableContactReuse = "SelectableContactReuse"
 
 final class ContactSelectionViewController: UIViewController {
     static let rowHeight = CGFloat(54)
-
+    var sectionIndexes: [String] = []
     enum Style {
         case `default`, destructive
     }
@@ -108,8 +108,8 @@ final class ContactSelectionViewController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
 
-    lazy var dataSource: UICollectionViewDiffableDataSource<Int, SelectableContact> = {
-        let source = UICollectionViewDiffableDataSource<Int, SelectableContact>(collectionView: collectionView) { [weak self] collectionView, indexPath, contact in
+    lazy var dataSource: UICollectionViewDiffableDataSource<String, SelectableContact> = {
+        let source = UICollectionViewDiffableDataSource<String, SelectableContact>(collectionView: collectionView) { [weak self] collectionView, indexPath, contact in
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: SelectableContactReuse, for: indexPath)
             if let self = self, let itemCell = cell as? SelectableContactCell {
                 itemCell.configure(with: contact, isSelected: self.manager.selectedUserIDs.contains(contact.userID), style: self.style)
@@ -120,8 +120,8 @@ final class ContactSelectionViewController: UIViewController {
         source.supplementaryViewProvider = { [weak self] (collectionView, kind, indexPath) in
             let supplementaryView = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: HeaderView.elementKind, for: indexPath)
 
-            if let self = self, let headerTitle = self.header, let headerView = supplementaryView as? HeaderView {
-                headerView.text = headerTitle
+            if let self = self, let headerView = supplementaryView as? HeaderView {
+                headerView.text = String(self.sectionIndexes[indexPath.section])
             }
 
             return supplementaryView
@@ -222,13 +222,20 @@ final class ContactSelectionViewController: UIViewController {
         return view
     }()
 
-    private func makeDataSnapshot(searchString: String?) -> NSDiffableDataSourceSnapshot<Int, SelectableContact> {
-        var snapshot = NSDiffableDataSourceSnapshot<Int, SelectableContact>()
-
+    private func makeDataSnapshot(searchString: String?) -> NSDiffableDataSourceSnapshot<String, SelectableContact> {
+        var snapshot = NSDiffableDataSourceSnapshot<String, SelectableContact>()
         let contacts = manager.contacts(searchString: searchString)
-        snapshot.appendSections([0])
-        snapshot.appendItems(contacts, toSection: 0)
-
+        let sections = Dictionary(grouping: contacts) { (contact) -> String in
+            guard let name = contact.name.first else { return "" }
+            return String(name.uppercased())
+        }.sorted { (left, right) -> Bool in
+            left.key < right.key
+        }
+        snapshot.appendSections(sections.map { $0.key} )
+        sectionIndexes = sections.map { $0.key}
+        for section in sections {
+            snapshot.appendItems(section.value, toSection: section.key)
+        }
         return snapshot
     }
 
@@ -339,7 +346,7 @@ fileprivate class HeaderView: UICollectionReusableView {
     private lazy var titleView: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = .systemFont(ofSize: 12, weight: .medium)
+        label.font = .systemFont(ofSize: 16, weight: .medium)
         label.textColor = .primaryBlackWhite.withAlphaComponent(0.5)
 
         return label
