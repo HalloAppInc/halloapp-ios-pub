@@ -66,8 +66,7 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
         case blacklist(UserID)
     }
 
-    let feedPostId: FeedPostID
-    private let isGroupPost: Bool
+    let feedPost: FeedPost
     private var showAllContacts: Bool = false
     private var initialNumContactsToShow: Int = 12
 
@@ -83,9 +82,8 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
 
     weak var delegate: PostDashboardViewControllerDelegate?
 
-    required init(feedPostId: FeedPostID, isGroupPost: Bool) {
-        self.feedPostId = feedPostId
-        self.isGroupPost = isGroupPost
+    required init(feedPost: FeedPost) {
+        self.feedPost = feedPost
         super.init(style: .insetGrouped)
     }
 
@@ -162,7 +160,7 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
         }
 
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "id == %@", feedPostId)
+        fetchRequest.predicate = NSPredicate(format: "id == %@", feedPost.id)
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: true) ]
         fetchedResultsController = NSFetchedResultsController<FeedPost>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.feedData.viewContext, sectionNameKeyPath: nil, cacheName: nil)
         fetchedResultsController.delegate = self
@@ -239,11 +237,33 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
         guard section == 0 else { return nil }
         let footerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.size.width, height: 40))
 
-        let label = UILabel(frame: CGRect(x: 10, y: 0, width: view.frame.size.width - 20, height: 40))
+        let label = UILabel()
         label.textColor = .secondaryLabel
         label.font = .systemFont(ofSize: 12)
-        label.text = Localizations.myPostDisappearTimeLabel
+        label.numberOfLines = 0
+        label.translatesAutoresizingMaskIntoConstraints = false
+        
+        let message: String
+        switch feedPost.audienceType {
+        case .all:
+            message = Localizations.contactsMyPostDisappearTimeLabel
+        case .whitelist:
+            message = Localizations.favoritesMyPostDisappearTimeLabel
+        default:
+            // groups go here
+            message = Localizations.standardPostDisappearTimeLabel
+        }
+        
+        label.text = message
+        
         footerView.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: footerView.leadingAnchor, constant: 10),
+            label.topAnchor.constraint(equalTo: footerView.topAnchor),
+            label.trailingAnchor.constraint(equalTo: footerView.trailingAnchor, constant: -10),
+            label.bottomAnchor.constraint(equalTo: footerView.bottomAnchor),
+        ])
+        
         return footerView
     }
 
@@ -282,7 +302,7 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
                     // Hide from Contact
                     // This options isn't shown for group feed posts to avoid confusion:
                     // blacklisted contacts still able to see user's posts in the group.
-                    if !isGroupPost {
+                    if feedPost.audienceType != .group {
                         actionSheet.addAction(UIAlertAction(title: Localizations.actionHideMyPosts, style: .destructive, handler: { (_) in
                             self.promptToAddToBlacklist(userId: receipt.userId, contactName: contactName)
                         }))
@@ -373,9 +393,22 @@ fileprivate enum ActionRow {
 }
 
 private extension Localizations {
-
-    static var myPostDisappearTimeLabel: String {
-        NSLocalizedString("mypost.disappear.time.label", value: "Your posts will disappear after 30 days.", comment: "Message displayed to say when posts will disappear")
+    static var contactsMyPostDisappearTimeLabel: String {
+        NSLocalizedString("mypost.contacts.disappear.time.label",
+                   value: "Your post will disappear after 30 days. Your contacts who join HalloApp can see your unexpired posts.",
+                 comment: "Message displayed to say when posts will disappear for posts shared with contacts.")
+    }
+    
+    static var favoritesMyPostDisappearTimeLabel: String {
+        NSLocalizedString("mypost.favorites.disappear.time.label",
+                   value: "Your post was shared with your Favorites and will disappear after 30 days.",
+                 comment: "Message displayed to say when posts will disappear for posts shared with favorites.")
+    }
+    
+    static var standardPostDisappearTimeLabel: String {
+        NSLocalizedString("mypost.disappear.time.label",
+                   value: "Your posts will disappear after 30 days.",
+                 comment: "Generic message displayed to say when posts will disappear.")
     }
 
     static var myPostRowManagePrivacy: String {

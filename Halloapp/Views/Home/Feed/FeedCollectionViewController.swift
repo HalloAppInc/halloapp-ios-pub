@@ -385,8 +385,8 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         }
     }
 
-    private func showSeenByView(for postId: FeedPostID, isGroupPost: Bool) {
-        let viewController = PostDashboardViewController(feedPostId: postId, isGroupPost: isGroupPost)
+    private func showSeenByView(for post: FeedPost) {
+        let viewController = PostDashboardViewController(feedPost: post)
         viewController.delegate = self
         present(UINavigationController(rootViewController: viewController), animated: true)
     }
@@ -748,7 +748,7 @@ extension FeedCollectionViewController {
         }
         cell.showSeenByAction = { [weak self] in
             guard let self = self else { return }
-            self.showSeenByView(for: postId, isGroupPost: isGroupPost)
+            self.showSeenByView(for: feedPost)
         }
         cell.showUserAction = { [weak self] userID in
             guard let self = self else { return }
@@ -1039,7 +1039,7 @@ extension FeedCollectionViewController: PostDashboardViewControllerDelegate {
 
         case .message(let userId):
             actionToPerformOnDashboardDismiss = {
-                self.navigationController?.pushViewController(ChatViewController(for: userId, with: controller.feedPostId), animated: true)
+                self.navigationController?.pushViewController(ChatViewController(for: userId, with: controller.feedPost.id), animated: true)
             }
 
         case .blacklist(let userId):
