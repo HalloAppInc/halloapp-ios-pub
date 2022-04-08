@@ -47,6 +47,10 @@ private extension Localizations {
     static var buttonReset: String {
         NSLocalizedString("media.button.reset", value: "Reset", comment: "Button title. Refers to resetting photo / video to original version.")
     }
+
+    static var buttonUndo: String {
+        NSLocalizedString("media.button.undo", value: "Undo", comment: "Button title. Refers to undoing an edit of a photo.")
+    }
 }
 
 typealias MediaEditViewControllerCallback = (MediaEditViewController, [PendingMedia], Int, Bool) -> Void
@@ -68,21 +72,24 @@ class MediaEditViewController: UIViewController {
     private var undoStackCancellable: AnyCancellable?
     private var draggingAnnotationCancellable: AnyCancellable?
 
+    private lazy var undoButton: UIButton = {
+        let undoButton = UIButton()
+        undoButton.translatesAutoresizingMaskIntoConstraints = false
+        undoButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
+        undoButton.setTitle(Localizations.buttonUndo, for: .normal)
+        undoButton.setTitleColor(.white, for: .normal)
+        undoButton.setImage(UIImage(named: "Undo")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
+        undoButton.titleEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 0)
+        undoButton.addTarget(self, action: #selector(undoAction), for: .touchUpInside)
+
+        NSLayoutConstraint.activate([
+            undoButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 75),
+        ])
+
+        return undoButton
+    }()
+
     private lazy var buttonsView: UIView = {
-        let buttonsView = UIStackView()
-        buttonsView.translatesAutoresizingMaskIntoConstraints = false
-        buttonsView.axis = .horizontal
-        buttonsView.distribution = .equalSpacing
-        buttonsView.alignment = .center
-
-        let resetBtn = UIButton()
-        resetBtn.translatesAutoresizingMaskIntoConstraints = false
-        resetBtn.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
-        resetBtn.setTitle(Localizations.buttonReset, for: .normal)
-        resetBtn.setTitleColor(.primaryBlue, for: .normal)
-        resetBtn.addTarget(self, action: #selector(resetAction), for: .touchUpInside)
-        buttonsView.addArrangedSubview(resetBtn)
-
         let doneBtn = UIButton()
         doneBtn.translatesAutoresizingMaskIntoConstraints = false
         doneBtn.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
@@ -92,10 +99,18 @@ class MediaEditViewController: UIViewController {
         doneBtn.layer.cornerRadius = 22
         doneBtn.layer.masksToBounds = true
         doneBtn.addTarget(self, action: #selector(doneAction), for: .touchUpInside)
-        buttonsView.addArrangedSubview(doneBtn)
 
         doneBtn.heightAnchor.constraint(equalToConstant: 44).isActive = true
         doneBtn.widthAnchor.constraint(equalToConstant: 90).isActive = true
+
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+
+        let buttonsView = UIStackView(arrangedSubviews: [undoButton, spacer, doneBtn])
+        buttonsView.translatesAutoresizingMaskIntoConstraints = false
+        buttonsView.axis = .horizontal
+        buttonsView.distribution = .equalSpacing
+        buttonsView.alignment = .center
 
         return buttonsView
     }()
@@ -103,7 +118,7 @@ class MediaEditViewController: UIViewController {
     private lazy var previewCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.minimumInteritemSpacing = 0
-        layout.minimumLineSpacing = 20
+        layout.minimumLineSpacing = 10
         layout.sectionInset = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 8)
         layout.scrollDirection = .horizontal
         layout.itemSize = CGSize(width: 80, height: 80)
@@ -112,6 +127,7 @@ class MediaEditViewController: UIViewController {
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.register(PreviewCell.self, forCellWithReuseIdentifier: PreviewCell.reuseIdentifier)
         collectionView.showsHorizontalScrollIndicator = false
+        collectionView.backgroundColor = .clear
         collectionView.delegate = self
         collectionView.dataSource = self
 
@@ -162,19 +178,28 @@ class MediaEditViewController: UIViewController {
 
         setupNavigation()
 
+        let bottomBackground = UIView()
+        bottomBackground.translatesAutoresizingMaskIntoConstraints = false
+        bottomBackground.backgroundColor = .systemGray6
+
         view.backgroundColor = .black
+        view.addSubview(bottomBackground)
         view.addSubview(buttonsView)
         view.addSubview(previewCollectionView)
 
         NSLayoutConstraint.activate([
             buttonsView.heightAnchor.constraint(equalToConstant: 44),
             buttonsView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            buttonsView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 18),
+            buttonsView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
             buttonsView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -18),
             previewCollectionView.heightAnchor.constraint(equalToConstant: media.count > 1 ? 80 : 0),
             previewCollectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             previewCollectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             previewCollectionView.bottomAnchor.constraint(equalTo: buttonsView.topAnchor, constant: -20),
+            bottomBackground.topAnchor.constraint(equalTo: previewCollectionView.topAnchor, constant: media.count > 1 ? -14 : 0),
+            bottomBackground.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            bottomBackground.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            bottomBackground.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
 
         updateEditViewController()
@@ -187,7 +212,7 @@ class MediaEditViewController: UIViewController {
         navigationController?.navigationBar.isTranslucent = true
         navigationController?.navigationBar.backgroundColor = .clear
 
-        let backImage = UIImage(systemName: "xmark", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))
+        let backImage = UIImage(systemName: "xmark", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))?.withTintColor(.white, renderingMode: .alwaysOriginal)
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: backImage, style: .plain, target: self, action: #selector(backAction))
 
         updateNavigation()
@@ -213,6 +238,11 @@ class MediaEditViewController: UIViewController {
             }
         }
 
+        undoButton.isHidden = media[selected].undoStack.count == 0
+        undoStackCancellable = media[selected].$undoStack.sink { [weak self] stack in
+            self?.undoButton.isHidden = stack.count == 0
+        }
+
         switch media[selected].type {
         case .image:
             navigationItem.rightBarButtonItems = []
@@ -235,13 +265,26 @@ class MediaEditViewController: UIViewController {
 
                 let drawBarBtn = UIBarButtonItem(customView: drawBtn)
                 drawBarBtn.accessibilityLabel = Localizations.voiceOverButtonDraw
-
                 navigationItem.rightBarButtonItems?.append(drawBarBtn)
 
                 let annotateIcon = UIImage(named: "Annotate")?.withTintColor(.white, renderingMode: .alwaysOriginal)
-                let annotateBtn = UIBarButtonItem(image: annotateIcon, style: .plain, target: self, action: #selector(annotateAction))
-                annotateBtn.accessibilityLabel = Localizations.voiceOverButtonAnnotate
-                navigationItem.rightBarButtonItems?.append(annotateBtn)
+                let annotateBtn = UIButton(frame: CGRect(x: 0, y: 0, width: 44, height: 44))
+                annotateBtn.setImage(annotateIcon, for: .normal)
+                annotateBtn.layer.cornerRadius = 22
+                annotateBtn.clipsToBounds = true
+                annotateBtn.addTarget(self, action: #selector(annotateAction), for: .touchUpInside)
+
+                if media[selected].isAnnotating {
+                    annotateBtn.setBackgroundColor(media[selected].drawingColor, for: .normal)
+
+                    drawingColorCancellable = media[selected].$drawingColor.sink {
+                        annotateBtn.setBackgroundColor($0, for: .normal)
+                    }
+                }
+
+                let annotateBarBtn = UIBarButtonItem(customView: annotateBtn)
+                annotateBarBtn.accessibilityLabel = Localizations.voiceOverButtonAnnotate
+                navigationItem.rightBarButtonItems?.append(annotateBarBtn)
             }
 
             let rotateIcon = UIImage(named: "Rotate")?.withTintColor(.white, renderingMode: .alwaysOriginal)
@@ -253,27 +296,6 @@ class MediaEditViewController: UIViewController {
             let flipBtn = UIBarButtonItem(image: flipIcon, style: .plain, target: self, action: #selector(flipAction))
             flipBtn.accessibilityLabel = Localizations.voiceOverButtonRotate
             navigationItem.rightBarButtonItems?.append(flipBtn)
-
-            if isDrawingEnabled {
-                let undoIcon = UIImage(systemName: "arrow.uturn.backward")?.withTintColor(.white, renderingMode: .alwaysOriginal)
-                let undoBtn = UIBarButtonItem(image: undoIcon, style: .plain, target: self, action: #selector(undoAction))
-                undoBtn.accessibilityLabel = Localizations.voiceOverButtonRotate
-
-                if media[selected].undoStack.count > 0 {
-                    navigationItem.rightBarButtonItems?.append(undoBtn)
-                }
-
-                undoStackCancellable = media[selected].$undoStack.sink { [weak self] stack in
-                    guard let self = self else { return }
-                    let idx = self.navigationItem.rightBarButtonItems?.firstIndex(of: undoBtn)
-
-                    if stack.count > 0 && idx == nil {
-                        self.navigationItem.rightBarButtonItems?.append(undoBtn)
-                    } else if stack.count == 0, let idx = idx {
-                        self.navigationItem.rightBarButtonItems?.remove(at: idx)
-                    }
-                }
-            }
         case .video:
             let muteBtn = UIBarButtonItem(image: muteIcon(media[selected].muted), style: .plain, target: self, action: #selector(toggleMuteAction))
             muteBtn.accessibilityLabel = Localizations.voiceOverButtonMute
@@ -317,7 +339,7 @@ class MediaEditViewController: UIViewController {
             controller.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             controller.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             controller.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            controller.view.bottomAnchor.constraint(equalTo: previewCollectionView.topAnchor),
+            controller.view.bottomAnchor.constraint(equalTo: previewCollectionView.topAnchor, constant: -14),
         ])
 
         controller.didMove(toParent: self)
@@ -407,18 +429,6 @@ class MediaEditViewController: UIViewController {
         }
     }
 
-    @objc private func resetAction() {
-        guard !processing else { return }
-        media[selected].isAnnotating = false
-        media[selected].isDrawing = false
-
-        for item in media {
-            item.reset()
-        }
-
-        updateNavigation()
-    }
-
     @objc private func doneAction() {
         guard !processing else { return }
         processing = true
@@ -486,25 +496,16 @@ fileprivate class PreviewCell: UICollectionViewCell {
         let imageView = UIImageView()
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFill
-        imageView.layer.borderColor = UIColor.primaryBlue.cgColor
         imageView.layer.cornerRadius = 10
         imageView.layer.masksToBounds = true
 
         return imageView
-    }()
-    private lazy var overlayView: UIView = {
-        let overlayView = UIView()
-        overlayView.translatesAutoresizingMaskIntoConstraints = false
-        overlayView.backgroundColor = UIColor.black.withAlphaComponent(0.4)
-
-        return overlayView
     }()
     private lazy var videoIconView: UIImageView = {
         let videoIcon = UIImage(systemName: "play.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal)
         let videoIconView = UIImageView(image: videoIcon)
         videoIconView.translatesAutoresizingMaskIntoConstraints = false
         videoIconView.contentMode = .scaleAspectFit
-        videoIconView.alpha = 0.6
 
         return videoIconView
     }()
@@ -512,26 +513,21 @@ fileprivate class PreviewCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        contentView.layer.cornerRadius = 3
+        contentView.layer.cornerRadius = 16
         contentView.layer.masksToBounds = true
 
         contentView.addSubview(imageView)
-        contentView.addSubview(overlayView)
         contentView.addSubview(videoIconView)
 
         NSLayoutConstraint.activate([
-            imageView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            imageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            overlayView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            overlayView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            overlayView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            overlayView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            imageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 5),
+            imageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -5),
+            imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 5),
+            imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -5),
             videoIconView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             videoIconView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            videoIconView.widthAnchor.constraint(equalToConstant: 24),
-            videoIconView.heightAnchor.constraint(equalToConstant: 24),
+            videoIconView.widthAnchor.constraint(equalToConstant: 32),
+            videoIconView.heightAnchor.constraint(equalToConstant: 32),
         ])
     }
 
@@ -553,8 +549,7 @@ fileprivate class PreviewCell: UICollectionViewCell {
             self?.imageView.image = $0
         }
 
-        imageView.layer.borderWidth = selected ? 5 : 0
-        overlayView.isHidden = selected
+        contentView.backgroundColor = selected ? .primaryBlue : .clear
         videoIconView.isHidden = media.type != .video
     }
 }

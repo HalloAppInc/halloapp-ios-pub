@@ -72,4 +72,14 @@ extension Color {
     static var nux: Color {
         Color("NUX")
     }
+
+    // MARK: MediaEdit
+
+    static var mediaEditBorder: Color {
+        Color("MediaEditBorder")
+    }
+
+    static var mediaEditGrid: Color {
+        Color("MediaEditGrid")
+    }
 }
