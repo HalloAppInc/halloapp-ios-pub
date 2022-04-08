@@ -288,7 +288,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                 if let messageCommentHeaderView = headerView as? MessageCommentHeaderView, let self = self, let feedPost = self.feedPost {
                     messageCommentHeaderView.configure(withPost: feedPost)
                     messageCommentHeaderView.delegate = self
-                    messageCommentHeaderView.textLabel.delegate = self
+                    messageCommentHeaderView.textView.delegate = self
                     return messageCommentHeaderView
                 } else {
                     // TODO(@dini) add post loading here
@@ -914,6 +914,25 @@ extension FeedPostComment {
           return timestamp.chatMsgGroupingTimestamp(Date())
       }
   }
+}
+
+extension FlatCommentsViewController: ExpandableTextViewDelegate, UserMenuHandler {
+    func textView(_ textView: ExpandableTextView, didRequestHandleMention userID: UserID) {
+        showUserFeed(for: userID)
+    }
+    
+    func textViewDidRequestToExpand(_ textView: ExpandableTextView) {
+        textView.numberOfLines = 0
+        collectionView.collectionViewLayout.invalidateLayout()
+    }
+    
+    func textView(_ textView: ExpandableTextView, didSelectAction action: UserMenuAction) {
+        handle(action: action)
+    }
+    
+    func textView(_ textView: UITextView, shouldInteractWith URL: URL, in characterRange: NSRange, interaction: UITextItemInteraction) -> Bool {
+        return MainAppContext.shared.chatData.proceedIfNotGroupInviteLink(URL)
+    }
 }
 
 extension FlatCommentsViewController: TextLabelDelegate {

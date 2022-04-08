@@ -115,7 +115,7 @@ class TextLabel: UILabel, NSLayoutManagerDelegate {
         layoutManager.delegate = self
 
         readMoreButton = UILabel()
-        readMoreButton.text = Localizations.textViewMore
+        readMoreButton.text = Localizations.textLabelMore
         readMoreButton.textColor = .systemBlue
         readMoreButton.backgroundColor = backgroundColor
         readMoreButton.isHidden = true
@@ -621,6 +621,11 @@ class TextLabel: UILabel, NSLayoutManagerDelegate {
 }
 
 private extension Localizations {
+    static var textLabelMore: String {
+        return NSLocalizedString("textlabel.more",
+                          value: "...more",
+                        comment: "Link to expand truncated text.")
+    }
 
     static var openLink: String {
         return NSLocalizedString("textlabel.context.menu.open.link", value: "Open Link", comment: "One of the items in context menu presented upon long press on web link.")

@@ -239,7 +239,9 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
             if let attrText = postText?.with(font: postFont, color: .label) {
                 let ham = HAMarkdown(font: postFont, color: .label)
+
                 textView.attributedText = ham.parse(attrText).applyingFontForMentions(mentionNameFont)
+                textView.textAlignment = postText?.string.naturalAlignment ?? .natural
             } else {
                 
             }

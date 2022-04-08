@@ -99,11 +99,11 @@ class MessageCommentHeaderView: UICollectionReusableView {
         return audioView
     }()
 
-    let textLabel: TextLabel = {
-        let label = TextLabel()
-        label.numberOfLines = 3
-        label.isHidden = true
-        return label
+    let textView: ExpandableTextView = {
+        let textView = ExpandableTextView()
+        textView.numberOfLines = 3
+        textView.isHidden = true
+        return textView
     }()
 
     private let timestampLabel: UILabel = {
@@ -128,7 +128,7 @@ class MessageCommentHeaderView: UICollectionReusableView {
     }()
 
     private lazy var vStack: UIStackView = {
-        let vStack = UIStackView(arrangedSubviews: [userAndGroupNameRow, mediaCarouselView, audioView, textLabel, timestampLabel])
+        let vStack = UIStackView(arrangedSubviews: [userAndGroupNameRow, mediaCarouselView, audioView, textView, timestampLabel])
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.axis = .vertical
         vStack.spacing = 4
@@ -239,8 +239,10 @@ class MessageCommentHeaderView: UICollectionReusableView {
 
             if let attrText = textWithMentions?.with(font: font, color: .label) {
                 let ham = HAMarkdown(font: font, color: .label)
-                textLabel.attributedText = ham.parse(attrText).applyingFontForMentions(boldFont)
-                textLabel.isHidden = false
+                textView.attributedText = ham.parse(attrText).applyingFontForMentions(boldFont)
+                // @TODO: since we've already calculated the alignment on the feed, bring it over?
+                textView.textAlignment = attrText.string.naturalAlignment
+                textView.isHidden = false
             }
         }
     }

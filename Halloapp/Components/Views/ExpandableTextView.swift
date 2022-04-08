@@ -19,10 +19,6 @@ protocol ExpandableTextViewDelegate: UITextViewDelegate {
 /// An expandable text view that provides contextual menus for links, phone numbers,
 /// and @ mentions.
 class ExpandableTextView: UITextView {
-    /// For when the text view doesn't display all of its text. `glyphs` is the range for
-    /// the last visible line of glyphs, and `rect` is the bounding rect for said glyphs.
-    private typealias TruncationPosition = (glyphs: NSRange, rect: CGRect)
-    private var truncationPosition: TruncationPosition?
     /// - note: For correctly positioning `moreButton`.
     private var baselineOffsetFromBottom: CGFloat?
     
@@ -30,27 +26,32 @@ class ExpandableTextView: UITextView {
     
     private lazy var moreButton: UILabel = {
         let button = UILabel()
-        button.text = Localizations.textViewMore
-        button.sizeToFit()
-        button.textColor = .systemBlue
         button.isUserInteractionEnabled = true
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(pushedMore))
         button.addGestureRecognizer(tap)
         
+        button.text = Localizations.textViewMore
+        
         return button
     }()
     
+    private lazy var ellipsisLabel: UILabel = {
+        let label = UILabel()
+        label.text = "... "
+        
+        return label
+    }()
+    
     override var text: String! {
-        didSet { invalidateState() }
+        didSet {
+            invalidateState()
+        }
     }
     
     override var attributedText: NSAttributedString! {
         didSet {
             invalidateState()
-            if let attributedText = attributedText, attributedText.length > 0, let font = attributedText.attribute(.font, at: 0, effectiveRange: nil) as? UIFont {
-                updateMoreButtonFont(with: font)
-            }
         }
     }
     
@@ -58,8 +59,16 @@ class ExpandableTextView: UITextView {
         didSet {
             invalidateState()
             if let font = font {
-                updateMoreButtonFont(with: font)
+                updateExpanderViews(with: font)
+                setNeedsLayout()
             }
+        }
+    }
+    
+    override var textAlignment: NSTextAlignment {
+        didSet {
+            invalidateState()
+            setNeedsLayout()
         }
     }
     
@@ -72,27 +81,27 @@ class ExpandableTextView: UITextView {
         get { return textContainer.maximumNumberOfLines }
     }
     
-    override var intrinsicContentSize: CGSize {
-        get {
-            // - TODO: move truncation + exclusion logic to another place
-            let size = super.intrinsicContentSize
-            textContainer.size = size
-            findTruncationPosition()
-            placeExclusionPathIfNeeded()
-            return size
+    private var textDirection: UIUserInterfaceLayoutDirection {
+        switch textAlignment {
+        case .left:
+            return .leftToRight
+        case .right:
+            return .rightToLeft
+        default:
+            return effectiveUserInterfaceLayoutDirection
         }
     }
     
     init() {
         super.init(frame: .zero, textContainer: nil)
-        
+        backgroundColor = nil
         contentInset = .zero
         insetsLayoutMarginsFromSafeArea = false
         isEditable = false
         isSelectable = true
         isScrollEnabled = false
         tintColor = .systemBlue
-        
+
         layoutManager.usesFontLeading = false
         layoutManager.delegate = self
         textContainer.lineFragmentPadding = 0
@@ -107,83 +116,61 @@ class ExpandableTextView: UITextView {
         
         // for mentions
         addInteraction(UIContextMenuInteraction(delegate: self))
-        
+
         addSubview(moreButton)
-        moreButton.isHidden = true
+        addSubview(ellipsisLabel)
     }
     
     required init?(coder: NSCoder) {
         fatalError("ExpandableTextView coder init not implemented.")
     }
     
-    @objc private func pushedMore(_ button: UIButton) {
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        
+        if let font = font {
+            updateExpanderViews(with: font)
+        }
+        
+        handleTruncation()
+    }
+    
+    @objc
+    private func pushedMore(_ button: UIButton) {
         (self.delegate as? ExpandableTextViewDelegate)?.textViewDidRequestToExpand(self)
-    }
-    
-    private func placeExclusionPathIfNeeded() {
-        guard let (_, lastLineRect) = truncationPosition else {
-            textContainer.exclusionPaths = []
-            truncationPosition = nil
-            moreButton.isHidden = true
-            return
-        }
-        
-        let threshold = self.bounds.maxX - moreButton.bounds.width
-        if lastLineRect != .zero && lastLineRect.maxX > threshold {
-            let offset = lastLineRect.maxX - threshold
-            let exclusionRect = CGRect(x: lastLineRect.maxX - offset,
-                                       y: lastLineRect.minY,
-                                   width: self.bounds.maxX - lastLineRect.maxX,
-                                  height: lastLineRect.height * 0.5)
-            
-            textContainer.exclusionPaths = [UIBezierPath(rect: exclusionRect)]
-        }
-
-        moreButton.isHidden = false
-    }
-    
-    /**
-     Finds the truncation point in the text view, if it exists. Updates `truncationPosition`.
-     - note: Can cause layout generation.
-     */
-    private func findTruncationPosition() {
-        guard numberOfLines != 0 else {
-            truncationPosition = nil
-            return
-        }
-
-        let glyphCount = layoutManager.numberOfGlyphs
-        var glyphIndex = 0
-        var lineIndex = 0
-        var lastRect: CGRect?
-        var lastLineGlyphs = NSMakeRange(0, 0)
-        
-        while glyphIndex < layoutManager.numberOfGlyphs && lineIndex < numberOfLines {
-            lastRect = layoutManager.lineFragmentUsedRect(forGlyphAt: glyphIndex, effectiveRange: &lastLineGlyphs)
-            glyphIndex = NSMaxRange(lastLineGlyphs)
-            lineIndex += 1
-        }
-        
-        let truncatedGlyphRange = layoutManager.truncatedGlyphRange(inLineFragmentForGlyphAt: lastLineGlyphs.location)
-        guard glyphIndex != glyphCount || truncatedGlyphRange.location != NSNotFound else {
-            truncationPosition = nil
-            return
-        }
-        
-        self.truncationPosition = (lastLineGlyphs, lastRect ?? .zero)
     }
     
     private func invalidateState() {
         trackedMention = nil
-        textContainer.exclusionPaths = []
+        invalidateTruncation()
         invalidateIntrinsicContentSize()
     }
     
-    private func updateMoreButtonFont(with font: UIFont) {
+    private func invalidateTruncation() {
+        textContainer.exclusionPaths = []
+        ellipsisLabel.isHidden = true
+        moreButton.isHidden = true
+    }
+    
+    /**
+     Updates the styling of `ellipsisLabel` and `moreButton`.
+     */
+    private func updateExpanderViews(with font: UIFont) {
         let mediumFont = UIFont.systemFont(ofSize: font.pointSize, weight: .medium)
+        
+        ellipsisLabel.font = font
         moreButton.font = mediumFont
+        ellipsisLabel.textColor = .label
+        moreButton.textColor = .systemBlue
+        
+        if case .rightToLeft = textDirection {
+            ellipsisLabel.text = " ..."
+        } else {
+            ellipsisLabel.text = "... "
+        }
+        
         moreButton.sizeToFit()
-        setNeedsLayout()
+        ellipsisLabel.sizeToFit()
     }
     
     private func mention(at point: CGPoint) -> AttributedTextLink? {
@@ -239,34 +226,169 @@ class ExpandableTextView: UITextView {
     }
 }
 
+// MARK: - truncation flow
+
+extension ExpandableTextView {
+    /// For when the text view doesn't display all of its text. `glyphs` is the range for
+    /// the last visible line of glyphs, and `rect` is the bounding rect for said glyphs.
+    private typealias TruncationPosition = (glyphs: NSRange, rect: CGRect)
+
+    private func handleTruncation() {
+        if let position = truncationPosition() {
+            placeExclusionPathIfNeeded(position)
+
+            ellipsisLabel.isHidden = false
+            moreButton.isHidden = false
+        } else {
+            invalidateTruncation()
+        }
+    }
+    
+    /**
+     Finds the truncation point in the text view, if it exists.
+     */
+    private func truncationPosition() -> TruncationPosition? {
+        guard numberOfLines != 0 else {
+            return nil
+        }
+
+        let glyphCount = layoutManager.numberOfGlyphs
+        var glyphIndex = 0
+        var lineIndex = 0
+        var lastRect: CGRect?
+        var lastLineGlyphs = NSMakeRange(0, 0)
+        
+        while glyphIndex < layoutManager.numberOfGlyphs, lineIndex < numberOfLines {
+            lastRect = layoutManager.lineFragmentUsedRect(forGlyphAt: glyphIndex, effectiveRange: &lastLineGlyphs, withoutAdditionalLayout: true)
+            glyphIndex = NSMaxRange(lastLineGlyphs)
+            lineIndex += 1
+        }
+        
+        let truncatedGlyphRange = layoutManager.truncatedGlyphRange(inLineFragmentForGlyphAt: lastLineGlyphs.location)
+        guard glyphIndex != glyphCount || truncatedGlyphRange.location != NSNotFound else {
+            return nil
+        }
+        
+        return (lastLineGlyphs, lastRect ?? .zero)
+    }
+    
+    /**
+     Applies an exclusion path if there is not enough space for the expander views.
+     
+     - Returns: An updated truncation position that takes into account the exclusion path. If no exclusion path was applied,
+                the same values that were passed in are returned.
+     */
+    @discardableResult
+    private func placeExclusionPathIfNeeded(_ position: TruncationPosition) -> TruncationPosition {
+        var (lastLineGlyphs, lastLineRect) = position
+        
+        if let exclusionRect = exclusionRect(for: lastLineRect) {
+            textContainer.exclusionPaths = [UIBezierPath(rect: exclusionRect)]
+            // get the updated bounding rect after the exlusion path has been applied
+            var updatedGlyphs = NSMakeRange(0, 0)
+            lastLineRect = layoutManager.lineFragmentUsedRect(forGlyphAt: lastLineGlyphs.location, effectiveRange: &updatedGlyphs)
+            lastLineGlyphs = updatedGlyphs
+        }
+        
+        positionExpanderViews((lastLineGlyphs, lastLineRect))
+        return (lastLineGlyphs, lastLineRect)
+    }
+    
+    /**
+     - Parameter linRect: The bounding rect for the last visible line in the text view.
+     - Returns: The rect to be used for the exclusion path. `nil` if no exclusion is necessary.
+     */
+    private func exclusionRect(for lineRect: CGRect) -> CGRect? {
+        guard lineRect != .zero else {
+            return nil
+        }
+        
+        let expanderViewsWidth = ellipsisLabel.bounds.width + moreButton.bounds.width
+        
+        if case .rightToLeft = textDirection {
+            let limit = self.bounds.minX + expanderViewsWidth
+            if lineRect.minX < limit {
+                
+                return CGRect(x: 0,
+                              y: lineRect.minY,
+                          width: expanderViewsWidth,
+                         height: lineRect.height * 0.5)
+            }
+        } else {
+            let limit = self.bounds.maxX - expanderViewsWidth
+            if lineRect.maxX > limit {
+                let widthToExclude = lineRect.maxX - limit
+                
+                return CGRect(x: lineRect.maxX - widthToExclude,
+                              y: lineRect.minY,
+                          width: self.bounds.maxX - expanderViewsWidth,
+                         height: lineRect.height * 0.5)
+            }
+        }
+        
+        return nil
+    }
+    
+    private func positionExpanderViews(_ position: TruncationPosition) {
+        let rect = adjustedTruncationViewsPosition(position) ?? position.rect
+        if case .rightToLeft = textDirection {
+            ellipsisLabel.frame.origin.x = rect.minX - ellipsisLabel.bounds.width
+            moreButton.frame.origin.x = ellipsisLabel.frame.origin.x - moreButton.bounds.width
+        } else {
+            ellipsisLabel.frame.origin.x = rect.maxX
+            moreButton.frame.origin.x = ellipsisLabel.frame.origin.x + ellipsisLabel.bounds.width
+        }
+        
+        let screenScale = UIScreen.main.scale
+        let baselineOffset = baselineOffsetFromBottom ?? .zero
+        let labelBaselineY = self.ellipsisLabel.font?.ascender ?? .zero
+        
+        ellipsisLabel.frame.origin.y = ((position.rect.maxY - baselineOffset - labelBaselineY) * screenScale) / screenScale
+        if ellipsisLabel.frame.maxY > bounds.maxY {
+            // there are edge cases w/ right-to-left languages that can cause the label to be cut-off
+            ellipsisLabel.frame.origin.y = bounds.maxY - ellipsisLabel.frame.height
+        }
+
+        moreButton.frame.origin.y = ellipsisLabel.frame.origin.y + (ellipsisLabel.font.ascender - moreButton.font.ascender)
+    }
+    
+    private func adjustedTruncationViewsPosition(_ position: TruncationPosition) -> CGRect? {
+        let characterRange = layoutManager.characterRange(forGlyphRange: position.glyphs, actualGlyphRange: nil)
+        // it's a bit tricky w/ right-to-left languages as the ranges seem to be flipped
+        // hence the other conditional assignment inside of the loop
+        let lastChar = textDirection == .leftToRight ? NSMaxRange(characterRange) - 1 : characterRange.location
+        var adjusted = lastChar
+        var i = 0
+        
+        while let range = Range(NSMakeRange(adjusted, 1), in: textStorage.string),
+              textStorage.string[range] == " ",
+              i < 2,
+              characterRange.contains(lastChar)
+        {
+            // for now let's just move backwards up to two spaces
+            // we can adjust this method later on if we want to skip other characters
+            adjusted += textDirection == .leftToRight ? -1 : 1
+            i += 1
+        }
+        
+        if adjusted != lastChar {
+            let adjustedGlyphRange = layoutManager.glyphRange(forCharacterRange: NSMakeRange(adjusted, 1), actualCharacterRange: nil)
+            return layoutManager.boundingRect(forGlyphRange: adjustedGlyphRange, in: textContainer)
+        }
+        
+        return nil
+    }
+}
+
 // MARK: - layout manager delegate methods
 
 extension ExpandableTextView: NSLayoutManagerDelegate {
-    func layoutManager(_ layoutManager: NSLayoutManager, textContainer: NSTextContainer, didChangeGeometryFrom oldSize: CGSize) {
-        placeExclusionPathIfNeeded()
-    }
-    
     func layoutManager(_ layoutManager: NSLayoutManager, shouldSetLineFragmentRect lineFragmentRect: UnsafeMutablePointer<CGRect>, lineFragmentUsedRect: UnsafeMutablePointer<CGRect>, baselineOffset: UnsafeMutablePointer<CGFloat>, in textContainer: NSTextContainer, forGlyphRange glyphRange: NSRange) -> Bool {
         
         baselineOffsetFromBottom = lineFragmentRect.pointee.height - baselineOffset.pointee
         return false
     }
-    
-    func layoutManager(_ layoutManager: NSLayoutManager, didCompleteLayoutFor textContainer: NSTextContainer?, atEnd layoutFinishedFlag: Bool) {
-        guard let _ = truncationPosition else {
-            return
-        }
-        
-        let screenScale = UIScreen.main.scale
-        if let baselineOffset = baselineOffsetFromBottom {
-            let labelBaselineY = moreButton.font.ascender
-            moreButton.frame.origin.y = floor((self.textContainer.size.height  - baselineOffset - labelBaselineY) * screenScale) / screenScale
-        }
-        
-        moreButton.frame.origin.x = self.bounds.maxX - moreButton.bounds.width
-    }
 }
-
 
 // MARK: - context menu delegate methods
 
@@ -346,7 +468,9 @@ extension Localizations {
                                                  value: "Video call",
                                                comment: "Same as profile.header.call.user, but capitalized")
     
-    static var textViewMore = NSLocalizedString("textview.more", value: "...more", comment: "Link to expand truncated text.")
+    static var textViewMore = NSLocalizedString("textview.more",
+                                         value: "more",
+                                       comment: "Link to expand truncated text.")
 }
 
 fileprivate extension CGRect {
