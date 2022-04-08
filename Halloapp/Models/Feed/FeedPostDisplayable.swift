@@ -34,6 +34,7 @@ protocol FeedPostDisplayable {
     var text: String? { get }
     var hasAudio: Bool { get }
     var canDeletePost: Bool { get }
+    var canSharePost: Bool { get }
 }
 
 // MARK: - LinkPreviewDisplayable
@@ -100,6 +101,12 @@ extension FeedPost: FeedPostDisplayable {
 
     var canDeletePost: Bool {
         return userId == MainAppContext.shared.userData.userId
+    }
+
+    var canSharePost: Bool {
+        let isOwnPost = userId == MainAppContext.shared.userData.userId
+        let isGroupPost = groupId != nil
+        return isOwnPost && !isGroupPost && ServerProperties.externalSharingEnabled
     }
 }
 

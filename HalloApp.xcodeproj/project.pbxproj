@@ -384,6 +384,7 @@
 		F41FAA4227E52B7E00FC5090 /* BottomSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41FAA4127E52B7E00FC5090 /* BottomSheetViewController.swift */; };
 		F41FAA5227E54F2900FC5090 /* FeedPostMenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41FAA5127E54F2800FC5090 /* FeedPostMenuViewController.swift */; };
 		F42F574827C86D7200988E9D /* FeedInviteCarouselCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */; };
+		F445A73927FFB8270046D382 /* ShareMenuPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F445A73827FFB8270046D382 /* ShareMenuPresenter.swift */; };
 		F470251027ED31A6008CD37F /* URLRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F470250F27ED31A6008CD37F /* URLRouter.swift */; };
 		F494BEE72745E7DB00982E49 /* ActionSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */; };
 		F49D2E6427EE6A8900195566 /* URLRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49D2E6027EE6A5300195566 /* URLRouterTests.swift */; };
@@ -1063,6 +1064,7 @@
 		F41FAA4127E52B7E00FC5090 /* BottomSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomSheetViewController.swift; sourceTree = "<group>"; };
 		F41FAA5127E54F2800FC5090 /* FeedPostMenuViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostMenuViewController.swift; sourceTree = "<group>"; };
 		F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedInviteCarouselCell.swift; sourceTree = "<group>"; };
+		F445A73827FFB8270046D382 /* ShareMenuPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareMenuPresenter.swift; sourceTree = "<group>"; };
 		F470250F27ED31A6008CD37F /* URLRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLRouter.swift; sourceTree = "<group>"; };
 		F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionSheetViewController.swift; sourceTree = "<group>"; };
 		F49D2E6027EE6A5300195566 /* URLRouterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLRouterTests.swift; sourceTree = "<group>"; };
@@ -1833,6 +1835,7 @@
 				F4D88F6A27D9873E00D706DA /* Toast.swift */,
 				F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */,
 				F41FAA5127E54F2800FC5090 /* FeedPostMenuViewController.swift */,
+				F445A73827FFB8270046D382 /* ShareMenuPresenter.swift */,
 			);
 			path = Feed;
 			sourceTree = "<group>";
@@ -2812,6 +2815,7 @@
 				32C83FBD268FD6B000BEB4F5 /* NewGroupMembersPermissionDeniedController.swift in Sources */,
 				F4063F2F276836F50068B9ED /* ShareButton.swift in Sources */,
 				EABBF72B24E72C6200FE1F1F /* CreateGroupViewController.swift in Sources */,
+				F445A73927FFB8270046D382 /* ShareMenuPresenter.swift in Sources */,
 				EA796B9B2469DDF100BC795E /* ChatQuoted+CoreDataClass.swift in Sources */,
 				322DDDE52739A2A6006BE1E0 /* ChatLinkPreviewView.swift in Sources */,
 				32C83FC42690463C00BEB4F5 /* PrivacyPermissionDeniedController.swift in Sources */,

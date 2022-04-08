@@ -109,6 +109,10 @@ class ExternalSharePost: FeedPostDisplayable {
         return false
     }
 
+    var canSharePost: Bool {
+        return false
+    }
+
     func downloadMedia() {
         media.forEach { $0.download() }
         externalShareLinkPreview?.media?.forEach { $0.download() }

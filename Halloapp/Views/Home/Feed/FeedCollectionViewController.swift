@@ -21,7 +21,7 @@ protocol FeedCollectionViewControllerDelegate: AnyObject {
     func feedCollectionViewController(_ feedCollectionViewController: FeedCollectionViewController, userActioned: Bool)
 }
 
-class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, UserMenuHandler {
+class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, UserMenuHandler, ShareMenuPresenter {
 
     weak var delegate: FeedCollectionViewControllerDelegate?
 
@@ -793,47 +793,15 @@ extension FeedCollectionViewController {
         cell.contextAction = { [weak self] action in
             self?.handle(action: action)
         }
+        cell.shareAction = { [weak self] in
+            self?.presentShareMenu(for: feedPost)
+        }
         
         cell.delegate = self
     }
 
     private func showMoreMenu(for feedPost: FeedPost) {
-        let postID = feedPost.id
-        let isOwnPost = feedPost.userId == MainAppContext.shared.userData.userId
-        let isGroupPost = feedPost.groupId != nil
         let menu = FeedPostMenuViewController.Menu {
-            // Disable external share if not enabled or this is a group post
-            if isOwnPost && !isGroupPost && ServerProperties.externalSharingEnabled {
-                FeedPostMenuViewController.Section(description: Localizations.externalShareDescription)
-                FeedPostMenuViewController.Section {
-                    FeedPostMenuViewController.Item(style: .standard,
-                                                    icon: UIImage(systemName: "square.and.arrow.up"),
-                                                    title: Localizations.externalShareButton) { [weak self] _ in
-                        self?.generateExternalShareLink(postID: postID, success: { [weak self] url in
-                            let shareText = "\(Localizations.externalShareText) \(url)"
-                            let activityViewController = UIActivityViewController(activityItems: [shareText], applicationActivities: nil)
-                            self?.present(activityViewController, animated: true)
-                        })
-                    }
-                    FeedPostMenuViewController.Item(style: .standard,
-                                                    icon: UIImage(named: "ExternalShareLink"),
-                                                    title: Localizations.externalShareCopyLink) { [weak self] _ in
-                        self?.generateExternalShareLink(postID: postID, success: { url in
-                            UIPasteboard.general.url = url
-                            Toast.show(icon: UIImage(systemName: "checkmark"), text: Localizations.externalShareLinkCopied)
-                        })
-                    }
-
-                    if MainAppContext.shared.feedData.externalShareInfo(for: feedPost.id) != nil {
-                        FeedPostMenuViewController.Item(style: .destructive,
-                                                        icon: UIImage(named: "ExternalShareLinkStrikethrough"),
-                                                        title: Localizations.externalShareRevoke) { [weak self] _ in
-                            self?.revokeExternalShareLink(postID: postID)
-                        }
-                    }
-                }
-            }
-
             if feedPost.hasSaveablePostMedia, feedPost.canSaveMedia {
                 FeedPostMenuViewController.Section {
                     FeedPostMenuViewController.Item(style: .standard,
@@ -993,43 +961,6 @@ extension FeedCollectionViewController {
         
         MainAppContext.shared.feedData.retract(post: feedPost)
         dismiss(animated: true)
-    }
-
-    private func generateExternalShareLink(postID: FeedPostID, success: @escaping (URL) -> Void) {
-        guard proceedIfConnected() else {
-            return
-        }
-        MainAppContext.shared.feedData.externalShareUrl(for: postID) { [weak self] result in
-            DispatchQueue.main.async { [weak self] in
-                switch result {
-                case .success(let url):
-                    success(url)
-                case .failure(_):
-                    let actionSheet = UIAlertController(title: nil, message: Localizations.externalShareFailed, preferredStyle: .alert)
-                    actionSheet.addAction(UIAlertAction(title: Localizations.buttonOK, style: .cancel))
-                    self?.present(actionSheet, animated: true)
-                }
-            }
-        }
-    }
-
-    private func revokeExternalShareLink(postID: FeedPostID) {
-        guard proceedIfConnected() else {
-            return
-        }
-        MainAppContext.shared.feedData.revokeExternalShareUrl(for: postID) { [weak self] result in
-            DispatchQueue.main.async { [weak self] in
-                switch result {
-                case .success(_):
-                    // No-op on success
-                    break
-                case .failure(_):
-                    let actionSheet = UIAlertController(title: nil, message: Localizations.externalShareRevokeFailed, preferredStyle: .alert)
-                    actionSheet.addAction(UIAlertAction(title: Localizations.buttonOK, style: .cancel))
-                    self?.present(actionSheet, animated: true)
-                }
-            }
-        }
     }
 }
 
@@ -1218,53 +1149,5 @@ extension Localizations {
     }()
     static var deletePostButtonTitle: String = {
         NSLocalizedString("your.post.deletepost.button", value: "Delete Post", comment: "Title for the button that confirms intent to delete your own post.")
-    }()
-
-    static var externalShareCopyLink: String = {
-        NSLocalizedString("your.post.externalshare.copylink",
-                          value: "Copy Link to Share",
-                          comment: "Title for button in action sheet prompting user to share post to external sites")
-    }()
-
-    static var externalShareLinkCopied: String {
-        NSLocalizedString("your.post.externalshare.copylink.success",
-                          value: "Copied to Clipboard",
-                          comment: "Success toast when external share link is copied")
-    }
-
-    static var externalShareText: String {
-        NSLocalizedString("your.post.externalshare.title",
-                          value: "Check out my post on HalloApp:",
-                          comment: "Text introducing external share link, part of what is shared")
-    }
-
-    static var externalShareFailed: String = {
-        NSLocalizedString("your.post.externalshare.error",
-                          value: "Failed to upload post for external share",
-                          comment: "Message that external share failed.")
-    }()
-
-    static var externalShareDescription: String = {
-        NSLocalizedString("your.post.externalshare.description",
-                          value: "Anyone with this link can see your post. Links expire when your post expires on HalloApp.",
-                          comment: "Message on header of post menu explaining external share")
-    }()
-
-    static var externalShareButton: String = {
-        NSLocalizedString("your.post.externalshare.button",
-                          value: "Share Externally",
-                          comment: "Button to open the system share sheet with an external post link")
-    }()
-
-    static var externalShareRevoke: String = {
-        NSLocalizedString("your.post.externalshare.revoke",
-                          value: "Revoke Link",
-                          comment: "Button to invalidate an external share link")
-    }()
-
-    static var externalShareRevokeFailed: String = {
-        NSLocalizedString("your.post.externalshare.revoke.error",
-                          value: "Failed to revoke link for external share",
-                          comment: "Message that revoking external share link failed.")
     }()
 }

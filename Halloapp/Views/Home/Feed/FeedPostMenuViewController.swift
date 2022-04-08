@@ -23,7 +23,7 @@ class FeedPostMenuViewController: BottomSheetViewController {
     struct Section: Hashable {
 
         fileprivate enum SectionType: Hashable {
-            case description(String), actions([Item])
+            case description(Description), actions([Item]), postPreview(FeedPostPreview)
         }
 
         fileprivate let type: SectionType
@@ -32,8 +32,12 @@ class FeedPostMenuViewController: BottomSheetViewController {
             type = .actions(builder())
         }
 
-        init(description: String) {
-            type = .description(description)
+        init(description: String, icon: UIImage? = nil) {
+            type = .description(Description(description: description, icon: icon))
+        }
+
+        init(postPreview: FeedPostPreview) {
+            type = .postPreview(postPreview)
         }
 
         var items: [AnyHashable] {
@@ -42,6 +46,8 @@ class FeedPostMenuViewController: BottomSheetViewController {
                 return [description]
             case .actions(let items):
                 return items
+            case .postPreview(let feedPostPreview):
+                return [feedPostPreview]
             }
         }
     }
@@ -72,6 +78,17 @@ class FeedPostMenuViewController: BottomSheetViewController {
         func hash(into hasher: inout Hasher) {
             uuid.hash(into: &hasher)
         }
+    }
+
+    struct FeedPostPreview: Hashable {
+        let image: UIImage?
+        let title: String?
+        let subtitle: String?
+    }
+
+    struct Description: Hashable {
+        let description: String
+        let icon: UIImage?
     }
 
     @resultBuilder
@@ -125,6 +142,7 @@ class FeedPostMenuViewController: BottomSheetViewController {
     private struct ReuseIdentifier {
         static let cell = "cell"
         static let descriptionCell = "description"
+        static let postPreviewCell = "postPreview"
         static let footer = "footer"
     }
 
@@ -152,6 +170,7 @@ class FeedPostMenuViewController: BottomSheetViewController {
         collectionView.isScrollEnabled = false
         collectionView.register(FeedPostMenuCell.self, forCellWithReuseIdentifier: ReuseIdentifier.cell)
         collectionView.register(FeedPostMenuDescriptionCell.self, forCellWithReuseIdentifier: ReuseIdentifier.descriptionCell)
+        collectionView.register(FeedPostMenuPostPreviewCell.self, forCellWithReuseIdentifier: ReuseIdentifier.postPreviewCell)
         collectionView.register(FeedPostMenuFooter.self,
                                 forSupplementaryViewOfKind: ElementKind.footer,
                                 withReuseIdentifier: ReuseIdentifier.footer)
@@ -213,7 +232,7 @@ class FeedPostMenuViewController: BottomSheetViewController {
         } else {
             sectionIdentifier = dataSource.snapshot().sectionIdentifiers[sectionIndex]
         }
-        if case .actions(_) = sectionIdentifier?.type {
+        if case .actions = sectionIdentifier?.type {
             let decorationItem = NSCollectionLayoutDecorationItem.background(elementKind: ElementKind.sectionBackground)
             decorationItem.contentInsets = section.contentInsets
             section.decorationItems = [decorationItem]
@@ -232,9 +251,13 @@ class FeedPostMenuViewController: BottomSheetViewController {
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ReuseIdentifier.cell, for: indexPath)
             (cell as? FeedPostMenuCell)?.configure(with: item, isInitialItem: isInitialItem, isFinalItem: isFinalItem)
             return cell
-        case let item as String:
+        case let item as Description:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ReuseIdentifier.descriptionCell, for: indexPath)
             (cell as? FeedPostMenuDescriptionCell)?.configure(with: item)
+            return cell
+        case let item as FeedPostPreview:
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ReuseIdentifier.postPreviewCell, for: indexPath)
+            (cell as? FeedPostMenuPostPreviewCell)?.configure(with: item)
             return cell
         default:
             fatalError()
@@ -352,26 +375,47 @@ private class FeedPostMenuSectionBackground: UICollectionReusableView {
 
 private class FeedPostMenuDescriptionCell: UICollectionViewCell {
 
+    private let iconImageView: UIImageView = {
+        let iconImageView = UIImageView()
+        iconImageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 17, weight: .regular)
+        iconImageView.tintColor = .label.withAlphaComponent(0.5)
+        return iconImageView
+    }()
+
     private let descriptionLabel: UILabel = {
         let titleLabel = UILabel()
-        titleLabel.font = .systemFont(ofSize: 15, weight: .regular)
+        titleLabel.font = .systemFont(ofSize: 13, weight: .regular)
         titleLabel.numberOfLines = 0
         titleLabel.textAlignment = .center
-        titleLabel.textColor = .label.withAlphaComponent(0.7)
+        titleLabel.textColor = .label.withAlphaComponent(0.5)
         return titleLabel
+    }()
+
+    private lazy var descriptionLabelLeadingConstraint: NSLayoutConstraint = {
+        descriptionLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor)
     }()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        contentView.addSubview(descriptionLabel)
+        iconImageView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(iconImageView)
+
         descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(descriptionLabel)
+
+        let heightMinimizationConstraint = contentView.heightAnchor.constraint(equalToConstant: 0)
+        heightMinimizationConstraint.priority = UILayoutPriority(1)
 
         NSLayoutConstraint.activate([
-            descriptionLabel.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor, constant: 12),
-            descriptionLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            iconImageView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            iconImageView.centerXAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 26),
+            iconImageView.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor),
+
+            descriptionLabelLeadingConstraint,
             descriptionLabel.topAnchor.constraint(equalTo: contentView.topAnchor),
-            descriptionLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            descriptionLabel.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor),
+            descriptionLabel.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor),
         ])
     }
 
@@ -379,8 +423,12 @@ private class FeedPostMenuDescriptionCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func configure(with description: String) {
-        descriptionLabel.text = description
+    func configure(with description: FeedPostMenuViewController.Description) {
+        descriptionLabel.text = description.description
+        let hasIcon = (description.icon != nil)
+        descriptionLabel.textAlignment = hasIcon ? .natural : .center
+        descriptionLabelLeadingConstraint.constant = hasIcon ? 50 : 0
+        iconImageView.image = description.icon
     }
 }
 
@@ -489,5 +537,73 @@ private class FeedPostMenuCell: UICollectionViewCell {
 
     private func updateTitleLabelLeadingConstraint() {
         titleLabelLeadingConstraint.priority = iconImageView.image == nil ? .defaultHigh : UILayoutPriority(1)
+    }
+}
+
+private class FeedPostMenuPostPreviewCell: UICollectionViewCell {
+
+    private let imageView: UIImageView = {
+        class FeedPostMenuPostPreviewCellImageView: UIImageView {
+            override var intrinsicContentSize: CGSize {
+                return image == nil ? .zero : CGSize(width: 75, height: 75)
+            }
+        }
+        let imageView = FeedPostMenuPostPreviewCellImageView()
+        imageView.clipsToBounds = true
+        imageView.contentMode = .scaleAspectFill
+        imageView.layer.cornerRadius = 13
+        return imageView
+    }()
+
+    private let titleLabel: UILabel = {
+        let titleLabel = UILabel()
+        titleLabel.font = .systemFont(ofSize: 15, weight: .medium)
+        titleLabel.numberOfLines = 0
+        titleLabel.textColor = .label
+        return titleLabel
+    }()
+
+    private let subtitleLabel: UILabel = {
+        let subtitleLabel = UILabel()
+        subtitleLabel.font = .systemFont(ofSize: 15, weight: .regular)
+        subtitleLabel.numberOfLines = 0
+        subtitleLabel.textColor = .label.withAlphaComponent(0.7)
+        return subtitleLabel
+    }()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+
+        let textStackView = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel])
+        textStackView.axis = .vertical
+        textStackView.spacing = 2
+
+        let contentStackView = UIStackView(arrangedSubviews: [imageView, textStackView])
+        contentStackView.alignment = .top
+        contentStackView.axis = .horizontal
+        contentStackView.spacing = 12
+        contentStackView.translatesAutoresizingMaskIntoConstraints = false
+
+        contentView.addSubview(contentStackView)
+
+        NSLayoutConstraint.activate([
+            contentStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 2),
+            contentStackView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            contentStackView.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -2),
+            contentStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+        ])
+    }
+
+    func configure(with feedPostPreview: FeedPostMenuViewController.FeedPostPreview) {
+        imageView.image = feedPostPreview.image
+        imageView.isHidden = (feedPostPreview.image == nil)
+        titleLabel.text = feedPostPreview.title
+        titleLabel.isHidden = feedPostPreview.title?.isEmpty ?? true
+        subtitleLabel.text = feedPostPreview.subtitle
+        subtitleLabel.isHidden = feedPostPreview.subtitle?.isEmpty ?? true
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 }

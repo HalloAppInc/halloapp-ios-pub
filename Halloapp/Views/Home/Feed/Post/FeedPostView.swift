@@ -32,6 +32,7 @@ class FeedPostView: UIView {
     var retrySendingAction: (() -> ())?
     var deleteAction: (() -> ())?
     var contextAction: ((UserMenuAction) -> ())?
+    var shareAction: (() -> ())?
     
     weak var delegate: FeedPostViewDelegate?
 
@@ -145,6 +146,9 @@ class FeedPostView: UIView {
         }
         footerView.deleteAction = { [weak self] in
             self?.deleteAction?()
+        }
+        footerView.shareAction = { [weak self] in
+            self?.shareAction?()
         }
     }
 

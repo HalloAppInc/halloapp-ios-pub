@@ -749,6 +749,7 @@ final class FeedItemFooterView: UIView {
     var deleteAction: (() -> ())?
     var cancelAction: (() -> ())?
     var retryAction: (() -> ())?
+    var shareAction: (() -> ())?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -823,6 +824,23 @@ final class FeedItemFooterView: UIView {
         return separator
     }()
 
+    lazy var shareButton: UIButton = {
+        let shareButton = UIButton(type: .system)
+        shareButton.addTarget(self, action: #selector(shareButtonAction), for: .touchUpInside)
+        shareButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        let shareIcon = UIImage(systemName: "square.and.arrow.up")?
+            .withConfiguration(UIImage.SymbolConfiguration(pointSize: 14, weight: .semibold))
+        shareButton.setImage(shareIcon, for: .normal)
+        shareButton.tintColor = .label.withAlphaComponent(0.75)
+        return shareButton
+    }()
+
+    private lazy var facePileShareButtonConstraint: NSLayoutConstraint = {
+        let constraint = shareButton.leadingAnchor.constraint(equalTo: facePileView.trailingAnchor, constant: 4)
+        constraint.priority = .defaultHigh
+        return constraint
+    }()
+
     var buttonStack: UIStackView!
 
     private func setupView() {
@@ -842,8 +860,21 @@ final class FeedItemFooterView: UIView {
         buttonStack.constrain(to: self)
 
         addSubview(facePileView)
-        facePileView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8).isActive = true
-        facePileView.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 4).isActive = true
+
+        shareButton.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(shareButton)
+
+        let facePileTrailingConstraint = facePileView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8)
+        facePileTrailingConstraint.priority = UILayoutPriority(500)
+
+        NSLayoutConstraint.activate([
+            facePileTrailingConstraint,
+            facePileView.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 4),
+
+            facePileShareButtonConstraint,
+            shareButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -4),
+            shareButton.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 2),
+        ])
     }
 
     private class func senderCategory(for post: FeedPostDisplayable) -> SenderCategory {
@@ -871,6 +902,14 @@ final class FeedItemFooterView: UIView {
         buttonStack.isHidden = state == .sending || state == .error || state == .retracting
         facePileView.isHidden = true
         separator.isHidden = post.hideFooterSeparator
+
+        if case .normal = state, post.canSharePost {
+            shareButton.isHidden = false
+            facePileShareButtonConstraint.priority = .defaultHigh
+        } else {
+            shareButton.isHidden = true
+            facePileShareButtonConstraint.priority = .defaultLow
+        }
 
         switch state {
         case .normal(let sender):
@@ -1033,6 +1072,10 @@ final class FeedItemFooterView: UIView {
 
     @objc private func deleteButtonAction() {
         deleteAction?()
+    }
+
+    @objc private func shareButtonAction() {
+        shareAction?()
     }
 }
 

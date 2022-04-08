@@ -87,6 +87,17 @@ extension FeedPost {
     var canSaveMedia: Bool {
         return groupId != nil
     }
+
+    var externalShareDescription: String {
+        let media = media ?? []
+        if media.isEmpty {
+            return Localizations.externalShareTextPostDescription
+        } else if media.count == 1, media.first?.type == .audio {
+            return Localizations.externalShareAudioPostDescription
+        } else {
+            return Localizations.externalShareMediaPostDescription
+        }
+    }
 }
 
 extension FeedPost {

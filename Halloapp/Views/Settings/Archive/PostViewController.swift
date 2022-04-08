@@ -12,7 +12,7 @@ import Foundation
 import Photos
 import UIKit
 
-class PostViewController: UIViewController, UserMenuHandler {
+class PostViewController: UIViewController, UserMenuHandler, ShareMenuPresenter {
 
     private let post: FeedPostDisplayable
 
@@ -184,6 +184,13 @@ extension PostViewController {
         
         postView.contextAction = { [weak self] action in
             self?.handle(action: action)
+        }
+
+        postView.shareAction = { [weak self] in
+            guard let self = self, let post = self.post as? FeedPost else {
+                return
+            }
+            self.presentShareMenu(for: post)
         }
     }
 
