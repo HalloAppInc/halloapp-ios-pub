@@ -133,6 +133,10 @@ private extension Localizations {
         NSLocalizedString("composer.label.more", value: "Add more", comment: "Label shown when only single media item selected")
     }
 
+    static var edit: String {
+        NSLocalizedString("composer.button.edit", value: "Edit", comment: "Title on edit button")
+    }
+
     static var deleteVoiceRecordingTitle: String {
         NSLocalizedString("composer.delete.recording.title", value: "Delete voice recording?", comment: "Title warning that a voice recording will be deleted")
     }
@@ -603,9 +607,8 @@ class PostComposerViewController: UIViewController {
 fileprivate struct PostComposerLayoutConstants {
     static let horizontalPadding = MediaCarouselViewConfiguration.default.cellSpacing * 0.5
     static let verticalPadding = MediaCarouselViewConfiguration.default.cellSpacing * 0.5
-    static let controlSpacing: CGFloat = 12
+    static let controlSpacing: CGFloat = 9
     static let controlRadius: CGFloat = 18
-    static let controlXSpacing: CGFloat = 20
     static let controlSize: CGFloat = 36
     static let backgroundRadius: CGFloat = 20
 
@@ -1153,21 +1156,6 @@ struct YOffsetGetter: View {
     }
 }
 
-fileprivate struct ControlIconView: View {
-    let imageLabel: String
-
-    var body: some View {
-        Image(imageLabel)
-            .renderingMode(.template)
-            .foregroundColor(.white)
-            .frame(width: PostComposerLayoutConstants.controlSize, height: PostComposerLayoutConstants.controlSize)
-            .background(
-                RoundedRectangle(cornerRadius: PostComposerLayoutConstants.controlRadius)
-                    .fill(Color(.composerButton))
-            )
-    }
-}
-
 private struct PendingMention {
     var name: String
     var userID: UserID
@@ -1473,38 +1461,76 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
         var configuration = MediaCarouselViewConfiguration.composer
         configuration.gutterWidth = PostComposerLayoutConstants.horizontalPadding
         configuration.supplementaryViewsProvider = { index in
+            let deleteBackground = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 1)
+            deleteBackground.translatesAutoresizingMaskIntoConstraints = false
+            deleteBackground.isUserInteractionEnabled = false
+
+            let deleteImageConfiguration = UIImage.SymbolConfiguration(weight: .bold)
+            let deleteImage = UIImage(systemName: "xmark", withConfiguration: deleteImageConfiguration)?.withTintColor(.white, renderingMode: .alwaysOriginal)
+
             let deleteButton = UIButton(type: .custom)
             deleteButton.translatesAutoresizingMaskIntoConstraints = false
-            deleteButton.setImage(UIImage(named: "ComposerDeleteMedia")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
-            deleteButton.setBackgroundColor(.composerButton, for: .normal)
+            deleteButton.setImage(deleteImage, for: .normal)
             deleteButton.layer.cornerRadius = PostComposerLayoutConstants.controlRadius
             deleteButton.clipsToBounds = true
             deleteButton.addTarget(context.coordinator, action: #selector(context.coordinator.deleteAction), for: .touchUpInside)
+            deleteButton.insertSubview(deleteBackground, at: 0)
+            if let imageView = deleteButton.imageView {
+                deleteButton.bringSubviewToFront(imageView)
+            }
+
+            deleteBackground.constrain(to: deleteButton)
             NSLayoutConstraint.activate([
                 deleteButton.widthAnchor.constraint(equalToConstant: PostComposerLayoutConstants.controlSize),
                 deleteButton.heightAnchor.constraint(equalToConstant: PostComposerLayoutConstants.controlSize)
             ])
 
-            let cropButton = UIButton(type: .custom)
-            cropButton.translatesAutoresizingMaskIntoConstraints = false
-            cropButton.setImage(UIImage(named: "ComposerCropMedia")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
-            cropButton.setBackgroundColor(.composerButton, for: .normal)
-            cropButton.layer.cornerRadius = PostComposerLayoutConstants.controlRadius
-            cropButton.clipsToBounds = true
-            cropButton.addTarget(context.coordinator, action: #selector(context.coordinator.cropAction), for: .touchUpInside)
+            let editBackground = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 1)
+            editBackground.translatesAutoresizingMaskIntoConstraints = false
+            editBackground.isUserInteractionEnabled = false
+
+            let editImageConfiguration = UIImage.SymbolConfiguration(pointSize: 18)
+            let editImage = UIImage(systemName: "pencil.circle.fill", withConfiguration: editImageConfiguration)?.withTintColor(.white, renderingMode: .alwaysOriginal)
+
+            let editButton = UIButton(type: .custom)
+            editButton.translatesAutoresizingMaskIntoConstraints = false
+            editButton.setImage(editImage, for: .normal)
+            editButton.setTitle(Localizations.edit, for: .normal)
+            editButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .medium)
+            editButton.layer.cornerRadius = 15
+            editButton.clipsToBounds = true
+            editButton.imageEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 12)
+            editButton.contentEdgeInsets = UIEdgeInsets(top: 0, left: 4, bottom: 0, right: 6)
+            editButton.addTarget(context.coordinator, action: #selector(context.coordinator.cropAction), for: .touchUpInside)
+            editButton.insertSubview(editBackground, at: 0)
+            if let imageView = editButton.imageView {
+                editButton.bringSubviewToFront(imageView)
+            }
+            if let titleLabel = editButton.titleLabel {
+                editButton.bringSubviewToFront(titleLabel)
+            }
+
+            editBackground.constrain(to: editButton)
             NSLayoutConstraint.activate([
-                cropButton.widthAnchor.constraint(equalToConstant: PostComposerLayoutConstants.controlSize),
-                cropButton.heightAnchor.constraint(equalToConstant: PostComposerLayoutConstants.controlSize)
+                editButton.heightAnchor.constraint(equalToConstant: 30)
             ])
 
-            let stack = UIStackView(arrangedSubviews: [deleteButton, cropButton])
-            stack.translatesAutoresizingMaskIntoConstraints = false
-            stack.axis = .horizontal
-            stack.spacing = PostComposerLayoutConstants.controlXSpacing
-            stack.isLayoutMarginsRelativeArrangement = true
-            stack.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: PostComposerLayoutConstants.controlSpacing, right: PostComposerLayoutConstants.controlSpacing)
+            let topTrailingActions = UIStackView(arrangedSubviews: [deleteButton])
+            topTrailingActions.translatesAutoresizingMaskIntoConstraints = false
+            topTrailingActions.axis = .horizontal
+            topTrailingActions.isLayoutMarginsRelativeArrangement = true
+            topTrailingActions.layoutMargins = UIEdgeInsets(top: PostComposerLayoutConstants.controlSpacing, left: 0, bottom: 0, right: PostComposerLayoutConstants.controlSpacing)
 
-            return [MediaCarouselSupplementaryItem(anchors: [.bottom, .trailing], view: stack)]
+            let bottomTrailingActions = UIStackView(arrangedSubviews: [editButton])
+            bottomTrailingActions.translatesAutoresizingMaskIntoConstraints = false
+            bottomTrailingActions.axis = .horizontal
+            bottomTrailingActions.isLayoutMarginsRelativeArrangement = true
+            bottomTrailingActions.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: PostComposerLayoutConstants.controlSpacing, right: PostComposerLayoutConstants.controlSpacing)
+
+            return [
+                MediaCarouselSupplementaryItem(anchors: [.top, .trailing], view: topTrailingActions),
+                MediaCarouselSupplementaryItem(anchors: [.bottom, .trailing], view: bottomTrailingActions),
+            ]
         }
         configuration.pageControlViewsProvider = { numberOfPages in
             var items: [MediaCarouselSupplementaryItem] = []
