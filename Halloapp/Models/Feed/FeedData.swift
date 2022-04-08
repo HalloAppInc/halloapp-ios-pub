@@ -1444,7 +1444,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 case .video:
                     notification.mediaType = .video
                 case .audio:
-                    notification.mediaType = .none
+                    notification.mediaType = .audio
                 }
             } else {
                 notification.mediaType = .none
@@ -1493,7 +1493,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 case .video:
                     notification.mediaType = .video
                 case .audio:
-                    notification.mediaType = .none
+                    notification.mediaType = .audio
                 }
             } else {
                 notification.mediaType = .none

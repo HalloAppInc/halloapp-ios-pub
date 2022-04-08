@@ -330,7 +330,11 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
         imageView.contentMode = .scaleAspectFit
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.layer.cornerRadius = 8
+        imageView.backgroundColor = .feedPostBackground
         imageView.layer.masksToBounds = true
+        imageView.layer.borderColor = UIColor.lightGray.withAlphaComponent(0.5).cgColor
+        imageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 22)
+        imageView.tintColor = .darkGray
         return imageView
     }()
     
@@ -374,8 +378,31 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
 
         unreadBadge.isHidden = item.read
         notificationTextLabel.attributedText = item.text
-
         mediaPreview.image = item.image
+        
+        let visibleBorderWidth: CGFloat = 0.5
+        
+        // only text and audio posts get a border
+        switch item.content {
+        case .singleNotification(let notif) where notif.mediaType == FeedNotification.MediaType.audio:
+            mediaPreview.contentMode = .center
+            mediaPreview.layer.borderWidth = visibleBorderWidth
+        case .unknownCommenters(let notif) where notif.first?.mediaType == FeedNotification.MediaType.audio:
+            mediaPreview.contentMode = .center
+            mediaPreview.layer.borderWidth = visibleBorderWidth
+            
+        case .singleNotification(let notif) where notif.mediaType == FeedNotification.MediaType.none:
+            mediaPreview.contentMode = .scaleAspectFit
+            mediaPreview.layer.borderWidth = visibleBorderWidth
+        case .unknownCommenters(let notifs) where notifs.first?.mediaType == FeedNotification.MediaType.none:
+            mediaPreview.contentMode = .scaleAspectFit
+            mediaPreview.layer.borderWidth = visibleBorderWidth
+
+        default:
+            mediaPreview.contentMode = .scaleAspectFit
+            mediaPreview.layer.borderWidth = 0
+        }
+        
         mediaPreviewWidthAnchor?.constant = item.image == nil ? 0 : 44
         
         if let userId = item.userID {

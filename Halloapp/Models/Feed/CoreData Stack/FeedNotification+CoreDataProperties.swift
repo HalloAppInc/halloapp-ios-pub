@@ -28,6 +28,7 @@ extension FeedNotification {
         case none = 0
         case image = 1
         case video = 2
+        case audio = 3
     }
 
     @nonobjc class func fetchRequest() -> NSFetchRequest<FeedNotification> {
@@ -192,7 +193,6 @@ extension FeedNotification {
             let mediaType = self.mediaType
             guard mediaType != .none else {
                 return nil
-
             }
 
             var image: UIImage?
@@ -203,13 +203,16 @@ extension FeedNotification {
                 switch mediaType {
                 case .image:
                     // TODO: need better image
-                    image = UIImage(systemName: "photo")
+                    image = UIImage(systemName: "photo")?.withRenderingMode(.alwaysTemplate)
                 case .video:
-                    image = UIImage(systemName: "video")
+                    image = UIImage(systemName: "video")?.withRenderingMode(.alwaysTemplate)
+                case .audio:
+                    image = UIImage(systemName: "speaker.wave.2.fill")?.withRenderingMode(.alwaysTemplate)
                 default:
                     break
                 }
             }
+            
             return image
         }
     }

@@ -15,8 +15,7 @@ enum ActivityCenterSection {
 }
 
 struct ActivityCenterItem: Hashable {
-    private var id: UUID = UUID()
-    private var content: Content
+    private(set) var content: Content
     
     /// Initializer is failable so that there must always be at least one `FeedNotification`
     init?(content: Content) {

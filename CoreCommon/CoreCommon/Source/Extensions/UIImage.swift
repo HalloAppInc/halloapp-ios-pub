@@ -316,7 +316,7 @@ extension UIImage {
         let label = UILabel(frame: CGRect(x: 10, y: 10, width: 300, height: 100))
         label.numberOfLines = 2
         label.text = text
-        label.font = .systemFont(ofSize: 40)
+        label.font = .systemFont(ofSize: 33)
 
         let view = UIView(frame: CGRect(x: 0, y: 0, width: 300, height: 120))
         view.addSubview(label)
