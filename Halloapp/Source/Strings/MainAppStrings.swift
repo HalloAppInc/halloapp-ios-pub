@@ -181,9 +181,9 @@ extension Localizations {
     }
 
     static func externalShareTitle(name: String) -> String {
-        let format = NSLocalizedString("externalShare.og.title2",
-                                       value: "HalloApp post from %@",
-                                       comment: "Title for posts that are externally shared, 'HalloApp Post from John Smith'")
+        let format = NSLocalizedString("externalShare.og.title3",
+                                       value: "%@'s HalloApp Post",
+                                       comment: "Title for posts that are externally shared, 'John Smith's HalloApp Post'")
         return String(format: format, name)
     }
 

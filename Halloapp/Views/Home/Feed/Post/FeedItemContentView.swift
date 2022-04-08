@@ -769,6 +769,7 @@ final class FeedItemFooterView: UIView {
         let button = ButtonWithBadge(type: .system)
         button.setTitle(stringComment, for: .normal)
         button.setImage(UIImage(named: "FeedPostComment"), for: .normal)
+        button.imageView?.tintColor = .label.withAlphaComponent(0.75)
         button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .footnote, weight: .medium, maximumPointSize: 18)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.titleLabel?.lineBreakMode = .byWordWrapping
@@ -829,7 +830,7 @@ final class FeedItemFooterView: UIView {
         shareButton.addTarget(self, action: #selector(shareButtonAction), for: .touchUpInside)
         shareButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
         let shareIcon = UIImage(systemName: "square.and.arrow.up")?
-            .withConfiguration(UIImage.SymbolConfiguration(pointSize: 14, weight: .semibold))
+            .withConfiguration(UIImage.SymbolConfiguration(pointSize: 13, weight: .semibold))
         shareButton.setImage(shareIcon, for: .normal)
         shareButton.tintColor = .label.withAlphaComponent(0.75)
         return shareButton
@@ -869,7 +870,7 @@ final class FeedItemFooterView: UIView {
 
         NSLayoutConstraint.activate([
             facePileTrailingConstraint,
-            facePileView.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 4),
+            facePileView.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 3),
 
             facePileShareButtonConstraint,
             shareButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -4),

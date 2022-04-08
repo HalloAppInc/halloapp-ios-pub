@@ -381,7 +381,7 @@ private class BottomSheetBackgroundView: UIView {
     init(contentView: UIView) {
         super.init(frame: .zero)
 
-        backgroundColor = .systemGray6
+        backgroundColor = .feedBackground
 
         // mimic outset border with shadow
         layer.shadowOffset = .zero

@@ -148,7 +148,6 @@ class FeedPostMenuViewController: BottomSheetViewController {
 
     private struct ElementKind {
         static let footer = "footer"
-        static let sectionBackground = "background"
     }
 
     private lazy var collectionView: UICollectionView = {
@@ -161,8 +160,12 @@ class FeedPostMenuViewController: BottomSheetViewController {
                                                         alignment: .bottom),
         ]
 
-        let layout = UICollectionViewCompositionalLayout(sectionProvider: sectionProvider(_:_:), configuration: configuration)
-        layout.register(FeedPostMenuSectionBackground.self, forDecorationViewOfKind: ElementKind.sectionBackground)
+        let size = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
+        let item = NSCollectionLayoutItem(layoutSize: size)
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: size, subitems: [item])
+        let section = NSCollectionLayoutSection(group: group)
+        section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20)
+        let layout = UICollectionViewCompositionalLayout(section: section, configuration: configuration)
 
         let collectionView = FeedPostMenuCollectionView(frame: CGRect(origin: .zero, size: CGSize(width: 100, height: 100)),
                                                         collectionViewLayout: layout)
@@ -216,29 +219,6 @@ class FeedPostMenuViewController: BottomSheetViewController {
             snapshot.appendItems(section.items, toSection: section)
         }
         dataSource.apply(snapshot)
-    }
-
-    private func sectionProvider(_ sectionIndex: Int,
-                                 _ layoutEnvironment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection {
-        let size = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
-        let item = NSCollectionLayoutItem(layoutSize: size)
-        let group = NSCollectionLayoutGroup.horizontal(layoutSize: size, subitems: [item])
-        let section = NSCollectionLayoutSection(group: group)
-        section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20)
-
-        let sectionIdentifier: Section?
-        if #available(iOS 15.0, *) {
-            sectionIdentifier = dataSource.sectionIdentifier(for: sectionIndex)
-        } else {
-            sectionIdentifier = dataSource.snapshot().sectionIdentifiers[sectionIndex]
-        }
-        if case .actions = sectionIdentifier?.type {
-            let decorationItem = NSCollectionLayoutDecorationItem.background(elementKind: ElementKind.sectionBackground)
-            decorationItem.contentInsets = section.contentInsets
-            section.decorationItems = [decorationItem]
-        }
-
-        return section
     }
 
     private func cellProvider(_ collectionView: UICollectionView,
@@ -351,34 +331,12 @@ private class FeedPostMenuFooter: UICollectionReusableView {
     }
 }
 
-private class FeedPostMenuSectionBackground: UICollectionReusableView {
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-
-        layer.cornerRadius = 10
-        layer.shadowColor = UIColor.black.cgColor
-        layer.shadowOffset = CGSize(width: 0, height: 1)
-        layer.shadowOpacity = 0.15
-        layer.shadowRadius = 0
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: layer.cornerRadius).cgPath
-    }
-}
-
 private class FeedPostMenuDescriptionCell: UICollectionViewCell {
 
     private let iconImageView: UIImageView = {
         let iconImageView = UIImageView()
         iconImageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 17, weight: .regular)
-        iconImageView.tintColor = .label.withAlphaComponent(0.5)
+        iconImageView.tintColor = .label.withAlphaComponent(0.4)
         return iconImageView
     }()
 
@@ -387,7 +345,7 @@ private class FeedPostMenuDescriptionCell: UICollectionViewCell {
         titleLabel.font = .systemFont(ofSize: 13, weight: .regular)
         titleLabel.numberOfLines = 0
         titleLabel.textAlignment = .center
-        titleLabel.textColor = .label.withAlphaComponent(0.5)
+        titleLabel.textColor = .label.withAlphaComponent(0.4)
         return titleLabel
     }()
 
@@ -436,7 +394,7 @@ private class FeedPostMenuCell: UICollectionViewCell {
 
     private let iconImageView: UIImageView = {
         let iconImageView = UIImageView()
-        iconImageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 17, weight: .regular)
+        iconImageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 17, weight: .semibold)
         return iconImageView
     }()
 
