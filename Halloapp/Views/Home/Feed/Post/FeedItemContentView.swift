@@ -606,13 +606,14 @@ final class FeedItemHeaderView: UIView {
     }
 
     func configure(with post: FeedPostDisplayable, contentWidth: CGFloat, showGroupName: Bool, showArchivedDate: Bool = false) {
-        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: post.userId)
+        nameLabel.text = post.posterFullName
         if showArchivedDate {
             let archivedDate = post.timestamp.addingTimeInterval(Date.days(30))
             timestampLabel.text = (timestampLabel.text ?? "") + " • " + Localizations.feedPostArchivedTimestamp(time: archivedDate.shortDateFormat())
         }
 
-        avatarViewButton.avatarView.configure(with: post.userId, using: MainAppContext.shared.avatarStore)
+        let userAvatar = post.userAvatar(using: MainAppContext.shared.avatarStore)
+        avatarViewButton.avatarView.configure(with: userAvatar, using: MainAppContext.shared.avatarStore)
 
         if post.audienceType == AudienceType.whitelist {
             contentStackView.addArrangedSubview(privacyIndicatorButtonView)

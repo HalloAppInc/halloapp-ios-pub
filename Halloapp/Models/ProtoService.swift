@@ -1391,7 +1391,7 @@ extension ProtoService: HalloService {
         enqueue(request: ProtoExternalShareRevokeRequest(blobID: blobID, completion: completion))
     }
 
-    func externalSharePost(blobID: String, key: Data, completion: @escaping ServiceRequestCompletion<PostData>) {
+    func externalSharePost(blobID: String, key: Data, completion: @escaping ServiceRequestCompletion<ExternalSharePost>) {
         guard let (iv, aesKey, hmacKey) = Self.externalShareKeys(from: [UInt8](key)) else {
             DDLogError("ProtoService/externalSharePost/Failed to generate key")
             completion(.failure(RequestError.malformedRequest))
@@ -1400,7 +1400,8 @@ extension ProtoService: HalloService {
 
         enqueue(request: ProtoExternalShareGetRequest(blobID: blobID, completion: { result in
             switch result {
-            case .success(let encryptedPayload):
+            case .success(let externalSharePostContainer):
+                let encryptedPayload = externalSharePostContainer.blob
                 guard encryptedPayload.count > 32 else {
                     DDLogError("ProtoService/externalSharePost/invalid response length")
                     completion(.failure(RequestError.malformedResponse))
@@ -1423,12 +1424,15 @@ extension ProtoService: HalloService {
                     return
                 }
 
-                if let postData = PostData(postContainerBlobData: Data(postData)) {
-                    completion(.success(postData))
-                } else {
+                guard let postContainerBlob = try? Clients_PostContainerBlob(contiguousBytes: postData) else {
                     DDLogError("ProtoService/UploadPostForExternalShare/Failed to serialize post data")
                     completion(.failure(RequestError.malformedResponse))
+                    return
                 }
+
+                completion(.success(ExternalSharePost(name: externalSharePostContainer.name,
+                                                      avatarID: externalSharePostContainer.avatarID,
+                                                      postContainerBlob: postContainerBlob)))
             case .failure(let error):
                 completion(.failure(error))
             }

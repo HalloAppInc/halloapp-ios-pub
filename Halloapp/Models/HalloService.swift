@@ -42,7 +42,7 @@ protocol HalloService: CoreService {
                                     ogThumbSize: CGSize?,
                                     completion: @escaping ServiceRequestCompletion<(blobID: String, key: Data)>)
     func revokeExternalShareLink(blobID: String, completion: @escaping ServiceRequestCompletion<Void>)
-    func externalSharePost(blobID: String, key: Data, completion: @escaping ServiceRequestCompletion<PostData>)
+    func externalSharePost(blobID: String, key: Data, completion: @escaping ServiceRequestCompletion<ExternalSharePost>)
 
     // MARK: Receipts
     func sendReceipt(itemID: String, thread: HalloReceipt.Thread, type: HalloReceipt.`Type`, fromUserID: UserID, toUserID: UserID)

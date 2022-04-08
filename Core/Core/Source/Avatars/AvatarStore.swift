@@ -605,8 +605,9 @@ public class UserAvatar {
     }
     
     // Create a dummy object for a user that's not in the database
-    init(userId: UserID) {
+    public init(userId: UserID, avatarID: String? = nil) {
         self.userId = userId
+        self.avatarId = avatarID
         
         DDLogInfo("UserAvatar/init a dummy object for user=\(userId) has been created")
     }

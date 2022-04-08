@@ -41,7 +41,7 @@ class URLRouter {
                   }) else {
                 return
             }
-            MainAppContext.shared.feedData.feedPost(with: blobID, key: key) { result in
+            MainAppContext.shared.feedData.externalSharePost(with: blobID, key: key) { result in
                 guard let currentViewController = UIViewController.currentViewController else {
                     DDLogError("URLRouter/Unable to find currentViewController")
                     return

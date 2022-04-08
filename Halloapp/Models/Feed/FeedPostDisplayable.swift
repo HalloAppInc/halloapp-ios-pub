@@ -35,6 +35,9 @@ protocol FeedPostDisplayable {
     var hasAudio: Bool { get }
     var canDeletePost: Bool { get }
     var canSharePost: Bool { get }
+    var posterFullName: String { get }
+
+    func userAvatar(using avatarStore: AvatarStore) -> UserAvatar
 }
 
 // MARK: - LinkPreviewDisplayable
@@ -107,6 +110,14 @@ extension FeedPost: FeedPostDisplayable {
         let isOwnPost = userId == MainAppContext.shared.userData.userId
         let isGroupPost = groupId != nil
         return isOwnPost && !isGroupPost && ServerProperties.externalSharingEnabled
+    }
+
+    var posterFullName: String {
+        return MainAppContext.shared.contactStore.fullName(for: userId)
+    }
+
+    func userAvatar(using avatarStore: AvatarStore) -> UserAvatar {
+        return avatarStore.userAvatar(forUserId: userId)
     }
 }
 

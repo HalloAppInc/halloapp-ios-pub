@@ -201,24 +201,7 @@ public struct PostData {
         self.init(id: id, userId: userId, content: processedContent, timestamp: timestamp, status: status, isShared: isShared, audience: audience)
     }
 
-    public init?(postContainerBlobData: Data) {
-        guard let postContainerBlob = try? Clients_PostContainerBlob(serializedData: postContainerBlobData),
-              let postContent = Self.extractContent(postId: postContainerBlob.postID,
-                                                    postContainer: postContainerBlob.postContainer,
-                                                    payload: postContainerBlobData) else {
-            DDLogError("Could not deserialize external share post")
-            return nil
-        }
-
-        self.init(id: postContainerBlob.postID,
-                  userId: String(postContainerBlob.uid),
-                  content: postContent,
-                  status: .received,
-                  isShared: false,
-                  audience: nil as FeedAudience?)
-    }
-
-    public static func extractContent(postId: String, payload: Data) -> PostContent? {
+    public static func extractContent(postId: FeedPostID, payload: Data) -> PostContent? {
         guard let protoContainer = try? Clients_Container(serializedData: payload) else {
             DDLogError("Could not deserialize post [\(postId)]")
             return nil
@@ -232,7 +215,7 @@ public struct PostData {
         }
     }
 
-    private static func extractContent(postId: FeedPostID, postContainer post: Clients_PostContainer, payload: Data) -> PostContent? {
+    public static func extractContent(postId: FeedPostID, postContainer post: Clients_PostContainer, payload: Data) -> PostContent? {
         switch post.post {
         case .text(let clientText):
             return .text(clientText.mentionText, clientText.linkPreviewData)
@@ -275,6 +258,12 @@ public struct MentionData: FeedMentionProtocol {
     public let index: Int
     public let userID: String
     public let name: String
+
+    public init(index: Int, userID: String, name: String) {
+        self.index = index
+        self.userID = userID
+        self.name = name
+    }
 }
 
 public struct FeedMediaData: FeedMediaProtocol {

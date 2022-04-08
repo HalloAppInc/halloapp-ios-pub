@@ -487,14 +487,14 @@ final class ProtoExternalShareRevokeRequest: ProtoRequest<Void> {
     }
 }
 
-final class ProtoExternalShareGetRequest: ProtoRequest<Data> {
+final class ProtoExternalShareGetRequest: ProtoRequest<Server_ExternalSharePostContainer> {
 
     init(blobID: String, completion: @escaping Completion) {
         var externalSharePost = Server_ExternalSharePost()
         externalSharePost.blobID = blobID
         externalSharePost.action = .get
         let iqPacket: Server_Packet = .iqPacket(type: .get, payload: .externalSharePost(externalSharePost))
-        super.init(iqPacket: iqPacket, transform: { .success($0.externalSharePost.blob) }, completion: completion)
+        super.init(iqPacket: iqPacket, transform: { .success($0.externalSharePostContainer) }, completion: completion)
     }
 }
 

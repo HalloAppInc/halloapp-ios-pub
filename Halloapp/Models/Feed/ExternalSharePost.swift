@@ -15,6 +15,8 @@ class ExternalSharePost: FeedPostDisplayable {
 
     let id: FeedPostID
     let userId: UserID
+    let name: String
+    let avatarID: String
     let timestamp: Date
     let status: FeedPost.Status
     let media: [ExternalShareMedia]
@@ -22,39 +24,49 @@ class ExternalSharePost: FeedPostDisplayable {
     let externalShareLinkPreview: ExternalShareLinkPreview?
     let text: String?
 
-    init(postData: PostData) {
-        id = postData.id
-        userId = postData.userId
-        timestamp = postData.timestamp
-        status = {
-            switch postData.content {
-            case .retracted:
-                return .retracted
-            case .unsupported:
-                return .unsupported
-            case .waiting:
-                return .none
-            case .text, .album, .voiceNote:
-                switch postData.status {
-                case .none:
-                    return .none
-                case .sent:
-                    return .sent
-                case .received:
-                    return .incoming
-                case .sendError:
-                    return .sendError
-                case .rerequesting:
-                    return .rerequesting
-                }
-            }
-        }()
-        media = postData.orderedMedia.map { ExternalShareMedia(feedMediaData: $0) }
-        orderedMentions = postData.orderedMentions
-        externalShareLinkPreview = postData.linkPreviewData.first.flatMap {
-            ExternalShareLinkPreview(linkPreviewData: $0, postID: postData.id)
+    init(name: String, avatarID: String, postContainerBlob: Clients_PostContainerBlob) {
+        id = postContainerBlob.postID
+        userId = String(postContainerBlob.uid)
+        self.name = name
+        self.avatarID = avatarID
+        timestamp = Date(timeIntervalSince1970: TimeInterval(postContainerBlob.timestamp))
+        status = .seen
+
+        let postContent = PostData.extractContent(postId: postContainerBlob.postID,
+                                                  postContainer: postContainerBlob.postContainer,
+                                                  payload: Data())
+
+        let mediaData: [FeedMediaData]
+        let mentionText: MentionText?
+        let linkPreviews: [LinkPreviewData]?
+
+        switch postContent {
+        case .text(let mention, let linkPreviewData):
+            mediaData = []
+            mentionText = mention
+            linkPreviews = linkPreviewData
+        case .album(let mention, let media):
+            mediaData = media
+            mentionText = mention
+            linkPreviews = nil
+        case .voiceNote(let media):
+            mediaData = [media]
+            mentionText = nil
+            linkPreviews = nil
+        case .waiting, .unsupported, .retracted, .none:
+            mediaData = []
+            mentionText = nil
+            linkPreviews = nil
         }
-        text = postData.text
+
+        media = mediaData
+            .map { ExternalShareMedia(feedMediaData: $0) }
+        externalShareLinkPreview = linkPreviews?.first
+            .flatMap { ExternalShareLinkPreview(linkPreviewData: $0, postID: postContainerBlob.postID) }
+        orderedMentions = (mentionText?.mentions ?? [:])
+            .map { (i, user) in MentionData(index: i, userID: user.userID, name: user.pushName ?? "") }
+            .sorted { $0.index < $1.index }
+        text = mentionText?.collapsedText
     }
 
     var groupId: GroupID? {
@@ -111,6 +123,17 @@ class ExternalSharePost: FeedPostDisplayable {
 
     var canSharePost: Bool {
         return false
+    }
+
+    var posterFullName: String {
+        let fullName = MainAppContext.shared.contactStore.fullNameIfAvailable(for: userId,
+                                                                              ownName: Localizations.meCapitalized,
+                                                                              showPushNumber: false)
+        return fullName ?? "~\(name)"
+    }
+
+    func userAvatar(using avatarStore: AvatarStore) -> UserAvatar {
+        return UserAvatar(userId: userId, avatarID: avatarID)
     }
 
     func downloadMedia() {
