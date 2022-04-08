@@ -67,7 +67,12 @@ class URLRouter {
 
         return URLRouter(hosts: [
             Host(domains: ["share.halloapp.com"], routes: shareRoutes),
-            Host(domains: [URLRouter.applinkHost, "halloapp.com", "www.halloapp.com"], routes: routes)
+            Host(domains: [
+                URLRouter.applinkHost,
+                "halloapp.com",
+                "www.halloapp.com",
+                "invite.halloapp.com"
+            ], routes: routes)
         ])
     }()
 
