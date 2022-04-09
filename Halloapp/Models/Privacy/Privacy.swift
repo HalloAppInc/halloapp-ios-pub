@@ -169,11 +169,11 @@ extension PrivacyList {
     static func details(forPrivacyListType privacyListType: PrivacyListType) -> String? {
         switch privacyListType {
         case .all:
-            return nil
+            return NSLocalizedString("feed.privacy.list.all.details", value: "My HalloApp Contacts", comment: "Header for the list of all contacts on HallAapp.")
         case .blacklist:
             return NSLocalizedString("feed.privacy.list.except.details", value: "Select who won't see this post", comment: "Header for the list when selecting contacts to not share with.")
         case .whitelist:
-            return NSLocalizedString("feed.privacy.list.only.details", value: "Select who will see this post", comment: "Header for the list when selecting contacts to share with.")
+            return NSLocalizedString("feed.privacy.list.only.details", value: "Who will see this post", comment: "Header for the list when selecting contacts to share with.")
         case .muted:
             return nil
         case .blocked:

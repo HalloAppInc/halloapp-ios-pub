@@ -17,7 +17,7 @@ final class ContactSelectionViewController: UIViewController {
     static let rowHeight = CGFloat(54)
     var sectionIndexes: [String] = []
     enum Style {
-        case `default`, destructive
+        case `default`, destructive, all
     }
 
     init(
@@ -31,7 +31,7 @@ final class ContactSelectionViewController: UIViewController {
     {
         searchController = {
             guard showSearch else { return nil }
-            let searchResultsController = ContactSelectionViewController(manager: manager, header: header, showSearch: false, dismissAction: nil)
+            let searchResultsController = ContactSelectionViewController(manager: manager, header: header, showSearch: false, style: style, dismissAction: nil)
             let searchController = UISearchController(searchResultsController: searchResultsController)
             searchController.searchResultsUpdater = searchResultsController
             searchController.searchBar.showsCancelButton = false
@@ -101,9 +101,6 @@ final class ContactSelectionViewController: UIViewController {
 
         dataSource.apply(makeDataSnapshot(searchString: nil), animatingDifferences: false)
 
-        groupMemberAvatars.insert(with: Array(manager.selectedUserIDs))
-        selectedAvatarsRow.isHidden = manager.selectedUserIDs.isEmpty
-
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
@@ -118,13 +115,21 @@ final class ContactSelectionViewController: UIViewController {
         }
 
         source.supplementaryViewProvider = { [weak self] (collectionView, kind, indexPath) in
-            let supplementaryView = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: HeaderView.elementKind, for: indexPath)
+            if kind == HeaderView.elementKind {
+                let supplementaryView = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: HeaderView.elementKind, for: indexPath)
 
-            if let self = self, let headerView = supplementaryView as? HeaderView {
-                headerView.text = String(self.sectionIndexes[indexPath.section])
+                if let self = self, let headerView = supplementaryView as? HeaderView {
+                    headerView.text = String(self.sectionIndexes[indexPath.section])
+                }
+                return supplementaryView
+            } else {
+                let supplementaryView = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: PrivacySettingsHeaderView.elementKind, for: indexPath)
+
+                if let self = self, let headerTitle = self.header, let headerView = supplementaryView as? PrivacySettingsHeaderView {
+                    headerView.text = headerTitle
+                }
+                return supplementaryView
             }
-
-            return supplementaryView
         }
 
         return source
@@ -141,22 +146,29 @@ final class ContactSelectionViewController: UIViewController {
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
 
         let backgroundDecoration = NSCollectionLayoutDecorationItem.background(elementKind: BackgroundDecorationView.elementKind)
-        backgroundDecoration.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16)
+        backgroundDecoration.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 10, trailing: 16)
 
-        let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(44))
-        let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: headerSize, elementKind: HeaderView.elementKind, alignment: .top)
-
+        let sectionHeaderSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(28))
+        let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: sectionHeaderSize, elementKind: HeaderView.elementKind, alignment: .top)
         let section = NSCollectionLayoutSection(group: group)
 
         if header != nil {
-            backgroundDecoration.contentInsets = NSDirectionalEdgeInsets(top: 44, leading: 16, bottom: 0, trailing: 16)
+            backgroundDecoration.contentInsets = NSDirectionalEdgeInsets(top: 28, leading: 16, bottom: 10, trailing: 16)
             section.boundarySupplementaryItems = [sectionHeader]
         }
 
         section.decorationItems = [backgroundDecoration]
-        section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16)
+        section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 10, trailing: 16)
+
+        let globalHeaderSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(20))
+        let globalHeader = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: globalHeaderSize, elementKind: PrivacySettingsHeaderView.elementKind, alignment: .top)
+        globalHeader.pinToVisibleBounds = true
+        globalHeader.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16)
+        let layoutConfig = UICollectionViewCompositionalLayoutConfiguration()
+        layoutConfig.boundarySupplementaryItems = [globalHeader]
 
         let layout = UICollectionViewCompositionalLayout(section: section)
+        layout.configuration = layoutConfig
         layout.register(BackgroundDecorationView.self, forDecorationViewOfKind: BackgroundDecorationView.elementKind)
 
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
@@ -165,6 +177,7 @@ final class ContactSelectionViewController: UIViewController {
         collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 16, right: 0)
         collectionView.register(SelectableContactCell.self, forCellWithReuseIdentifier: SelectableContactReuse)
         collectionView.register(HeaderView.self, forSupplementaryViewOfKind: HeaderView.elementKind, withReuseIdentifier: HeaderView.elementKind)
+        collectionView.register(PrivacySettingsHeaderView.self, forSupplementaryViewOfKind: PrivacySettingsHeaderView.elementKind, withReuseIdentifier: PrivacySettingsHeaderView.elementKind)
 
         return collectionView
     }()
@@ -175,46 +188,14 @@ final class ContactSelectionViewController: UIViewController {
 
     private var cancellableSet = Set<AnyCancellable>()
 
-    private lazy var selectedAvatarsRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ groupMemberAvatars ])
-        view.axis = .horizontal
-
-        view.layoutMargins = UIEdgeInsets(top: 15, left: 0, bottom: 10, right: 0)
-        view.isLayoutMarginsRelativeArrangement = true
-
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.heightAnchor.constraint(equalToConstant: 120).isActive = true
-
-        let subView = UIView(frame: view.bounds)
-        subView.layer.masksToBounds = true
-        subView.clipsToBounds = true
-        subView.backgroundColor = UIColor.feedBackground
-        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.insertSubview(subView, at: 0)
-
-        let topBorder = UIView(frame: view.bounds)
-        topBorder.frame.size.height = 1
-        topBorder.backgroundColor = UIColor.secondarySystemGroupedBackground
-        topBorder.autoresizingMask = [.flexibleWidth]
-        view.insertSubview(topBorder, at: 1)
-
-        return view
-    }()
-
-    private lazy var groupMemberAvatars: GroupMemberAvatars = {
-        let view = GroupMemberAvatars()
-        view.delegate = self
-        return view
-    }()
-
     private lazy var mainView: UIStackView = {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
 
-        let view = UIStackView(arrangedSubviews: [ collectionView, selectedAvatarsRow ])
+        let view = UIStackView(arrangedSubviews: [ collectionView ])
         view.axis = .vertical
 
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 10, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -240,15 +221,6 @@ final class ContactSelectionViewController: UIViewController {
     }
 
     private func update(selection: Set<UserID>) {
-        let added = selection.subtracting(groupMemberAvatars.avatarUserIDs)
-        groupMemberAvatars.insert(with: Array(added))
-
-        let removed = Set(groupMemberAvatars.avatarUserIDs).subtracting(selection)
-        for toRemove in removed {
-            groupMemberAvatars.removeUser(toRemove)
-        }
-
-        selectedAvatarsRow.isHidden = selection.isEmpty
         collectionView.reloadData()
     }
 
@@ -312,6 +284,9 @@ final class ContactSelectionViewController: UIViewController {
 extension ContactSelectionViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         guard let contact = dataSource.itemIdentifier(for: indexPath) else { return }
+        if style == .all {
+            return
+        }
         searchController?.searchBar.text = ""
         manager.toggleSelection(for: contact.userID)
     }
@@ -354,7 +329,51 @@ fileprivate class HeaderView: UICollectionReusableView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
+        addSubview(titleView)
+        titleView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
+        titleView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 4).isActive = true
+    }
 
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+fileprivate class PrivacySettingsHeaderView: UICollectionReusableView {
+
+    public override func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
+        super.apply(layoutAttributes)
+        // Always ensure global header is on top of the section header
+        // Setting the ZIndex on the supplementary item did not work
+        // and hence we need to override the zPosition here
+        self.layer.zPosition = 1000
+    }
+
+    static var elementKind: String {
+        return String(describing: PrivacySettingsHeaderView.self)
+    }
+
+    var text: String? {
+        get {
+            titleView.text
+        }
+        set {
+            titleView.text = newValue?.uppercased()
+        }
+    }
+
+    private lazy var titleView: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = .systemFont(ofSize: 12, weight: .medium)
+        label.textColor = .primaryBlackWhite.withAlphaComponent(0.5)
+
+        return label
+    }()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        backgroundColor = UIColor.primaryBg
         addSubview(titleView)
         titleView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
         titleView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 4).isActive = true
@@ -496,10 +515,17 @@ final class ContactSelectionView: UIView {
             case .destructive:
                 accessoryImageView.tintColor = .lavaOrange
                 accessoryImageView.image = Self.xmarkChecked
+            case .all:
+                accessoryImageView.isHidden = true
             }
         } else {
-            accessoryImageView.tintColor = .primaryBlackWhite.withAlphaComponent(0.2)
-            accessoryImageView.image = Self.checkmarkUnchecked
+            switch style {
+            case .all:
+                accessoryImageView.isHidden = true
+            default:
+                accessoryImageView.tintColor = .primaryBlackWhite.withAlphaComponent(0.2)
+                accessoryImageView.image = Self.checkmarkUnchecked
+            }
         }
     }
 
@@ -522,6 +548,24 @@ final class ContactSelectionView: UIView {
 }
 
 extension ContactSelectionViewController {
+
+    static func forAllContacts(_ privacyListType: PrivacyListType, in privacySettings: PrivacySettings, doneAction: (() -> Void)? = nil, dismissAction: (() -> Void)?) -> ContactSelectionViewController {
+        return ContactSelectionViewController(
+            manager: ContactSelectionManager(initialSelection: Set()),
+            title: PrivacyList.title(forPrivacyListType: privacyListType),
+            header: PrivacyList.details(forPrivacyListType: privacyListType),
+            style: .all,
+            saveAction: { vc, userIDs in
+
+                if let doneAction = doneAction {
+                    doneAction()
+                } else {
+                    dismissAction?()
+                }
+            },
+            dismissAction: dismissAction)
+    }
+
     static func forPrivacyList(_ privacyList: PrivacyList, in privacySettings: PrivacySettings, doneAction: (() -> Void)? = nil, dismissAction: (() -> Void)?) -> ContactSelectionViewController {
         return ContactSelectionViewController(
             manager: ContactSelectionManager(initialSelection: Set(privacyList.userIds)),

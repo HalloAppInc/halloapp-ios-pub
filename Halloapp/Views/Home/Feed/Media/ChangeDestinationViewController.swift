@@ -150,7 +150,7 @@ class ChangeDestinationViewController: UIViewController {
                             title: PrivacyList.name(forPrivacyListType: .all),
                             subtitle: Localizations.feedPrivacyShareWithAllContacts,
                             isSelected: isDestinationUserFeed && activePrivacyListType == .all,
-                            hasNext: false)
+                            hasNext: true)
                     case 1:
                         cell.configure(
                             title: PrivacyList.name(forPrivacyListType: .whitelist),
@@ -315,8 +315,18 @@ extension ChangeDestinationViewController: UICollectionViewDelegate {
             switch indexPath.row {
             case 0:
                 privacySettings.setFeedSettingToAllContacts()
-                destination = .userFeed
-                backAction()
+                if searchController.isActive {
+                    dismiss(animated: true)
+                }
+
+                let controller = ContactSelectionViewController.forAllContacts(PrivacyListType.all, in: privacySettings, doneAction: { [weak self] in
+                    self?.dismiss(animated: false)
+                    self?.destination = .userFeed
+                    self?.backAction()
+                    privacySettings.setFeedSettingToAllContacts()
+                }, dismissAction: nil)
+
+                present(UINavigationController(rootViewController: controller), animated: true)
             case 1:
                 if searchController.isActive {
                     dismiss(animated: true)
