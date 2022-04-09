@@ -651,8 +651,13 @@ class MediaPickerViewController: UIViewController {
             switch privacy {
             case .all:
                 changeDestinationIcon.image = UIImage(named: "settingsAccount")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+                changeDestinationButton.setBackgroundColor(.primaryBlue, for: .normal)
+            case .whitelist:
+                changeDestinationIcon.image = UIImage(named: "PrivacySettingFavorite")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+                changeDestinationButton.setBackgroundColor(.favoritesBg, for: .normal)
             default:
                 changeDestinationIcon.image = UIImage(named: "settingsSettings")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+                changeDestinationButton.setBackgroundColor(.primaryBlue, for: .normal)
             }
 
             changeDestinationIconConstraint?.constant = 13

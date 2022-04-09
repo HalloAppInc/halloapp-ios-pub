@@ -20,6 +20,25 @@ final class ContactSelectionViewController: UIViewController {
         case `default`, destructive, all
     }
 
+    var isEditModeOn = false
+    private lazy var editSelectionLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 17)
+        label.textColor = .systemBlue
+        label.textAlignment = .right
+        label.text = Localizations.editFavorites
+
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.didTapEditFavorites(_:)))
+        label.isUserInteractionEnabled = true
+        label.addGestureRecognizer(tapGesture)
+        return label
+    }()
+
+    @objc func didTapEditFavorites(_ sender: UITapGestureRecognizer) {
+        isEditModeOn = true
+        dataSource.apply(makeDataSnapshot(searchString: "nil"))
+    }
+
     init(
         manager: ContactSelectionManager,
         title: String? = nil,
@@ -199,19 +218,22 @@ final class ContactSelectionViewController: UIViewController {
         view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false
-
         return view
     }()
 
     private func makeDataSnapshot(searchString: String?) -> NSDiffableDataSourceSnapshot<String, SelectableContact> {
         var snapshot = NSDiffableDataSourceSnapshot<String, SelectableContact>()
         let contacts = manager.contacts(searchString: searchString)
+
         let sections = Dictionary(grouping: contacts) { (contact) -> String in
+            // All favorite contacts need to be in a single group on top
+            if manager.selectedUserIDs.contains(contact.userID) { return "" }
             guard let name = contact.name.first else { return "" }
             return String(name.uppercased())
         }.sorted { (left, right) -> Bool in
             left.key < right.key
         }
+
         snapshot.appendSections(sections.map { $0.key} )
         sectionIndexes = sections.map { $0.key}
         for section in sections {
@@ -668,5 +690,8 @@ extension Localizations {
     }
     static var selectAtLeastOneContact: String {
         NSLocalizedString("select.at.least.one.contact", value: "Please select at least one contact.", comment: "Message that pops up when user attempts to save an empty contact list")
+    }
+    static var editFavorites: String {
+        NSLocalizedString("edit.favorites", value: "Edit Favorites", comment: "link, tapping on which launched the flow to edit favorites")
     }
 }
