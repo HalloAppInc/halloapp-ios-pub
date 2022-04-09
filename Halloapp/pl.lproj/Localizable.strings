@@ -550,7 +550,7 @@
 /* Title for the list when selecting contacts to not share with. */
 "feed.privacy.list.except.title" = "Ukryj posty przed...";
 
-/* Settings > Privacy > Posts: one of the possible setting values. */
+/* Settings > Privacy > Posts > Favorites privacy setting. */
 "feed.privacy.list.only" = "Udostępniaj tylko dla...";
 
 /* Header for the list when selecting contacts to share with. */
@@ -898,7 +898,7 @@
 /* One of the contact actions in My Post screen. */
 "mypost.action.view.profile" = "Zobacz profil";
 
-/* Message displayed to say when posts will disappear */
+/* Generic message displayed to say when posts will disappear. */
 "mypost.disappear.time.label" = "Twoje wpisy znikną po 30 dniach.";
 
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
@@ -1363,6 +1363,9 @@
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.share" = "Udostępnij...";
+
+/* Link to expand truncated text. */
+"textlabel.more" = "...więcej";
 
 /* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
 "thread.list.preview.already.user.default" = "%@ jest na HalloApp";

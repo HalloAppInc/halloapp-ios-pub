@@ -601,7 +601,7 @@
 /* Title for the list when selecting contacts to not share with. */
 "feed.privacy.list.except.title" = "Скрыть посты от ...";
 
-/* Settings > Privacy > Posts: one of the possible setting values. */
+/* Settings > Privacy > Posts > Favorites privacy setting. */
 "feed.privacy.list.only" = "Делиться только с...";
 
 /* Header for the list when selecting contacts to share with. */
@@ -979,7 +979,7 @@
 /* One of the contact actions in My Post screen. */
 "mypost.action.view.profile" = "Просмотреть профиль";
 
-/* Message displayed to say when posts will disappear */
+/* Generic message displayed to say when posts will disappear. */
 "mypost.disappear.time.label" = "Твои посты исчезнут через 30 дней.";
 
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
@@ -1469,6 +1469,9 @@
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.share" = "Поделиться...";
 
+/* Link to expand truncated text. */
+"textlabel.more" = "...еще";
+
 /* Same as profile.header.call.user, but capitalized */
 "textview.context.menu.audio.call.user" = "Голосовой вызов";
 
@@ -1606,6 +1609,9 @@
 
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "Удалить этот пост? Это действие нельзя отменить.";
+
+/* Button to open the system share sheet with an external post link */
+"your.post.externalshare.button" = "Поделиться";
 
 /* Title for button in action sheet prompting user to share post to external sites */
 "your.post.externalshare.copylink" = "Скопируйте ссылку, чтобы поделиться";

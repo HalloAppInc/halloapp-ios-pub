@@ -553,7 +553,7 @@
 /* Title for the list when selecting contacts to not share with. */
 "feed.privacy.list.except.title" = "Sembunyikan Postingan Dari...";
 
-/* Settings > Privacy > Posts: one of the possible setting values. */
+/* Settings > Privacy > Posts > Favorites privacy setting. */
 "feed.privacy.list.only" = "Hanya Bagikan Dengan...";
 
 /* Header for the list when selecting contacts to share with. */
@@ -904,7 +904,7 @@
 /* One of the contact actions in My Post screen. */
 "mypost.action.view.profile" = "Lihat Profil";
 
-/* Message displayed to say when posts will disappear */
+/* Generic message displayed to say when posts will disappear. */
 "mypost.disappear.time.label" = "Posmu akan menghilang setelah 30 hari.";
 
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
@@ -1372,6 +1372,9 @@
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.share" = "Bagikan...";
+
+/* Link to expand truncated text. */
+"textlabel.more" = "...lebih banyak";
 
 /* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
 "thread.list.preview.already.user.default" = "%@ ada di HalloApp";

@@ -511,9 +511,6 @@
 /* Description of an externally shared post containing just text */
 "externalShare.og.description.text" = "Tekstpost";
 
-/* Title for posts that are externally shared, 'HalloApp Post from John Smith' */
-"externalShare.og.title2" = "HalloApp post van %@";
-
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Camera";
 
@@ -616,7 +613,7 @@
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.notOwn.only.description" = "Deze post wordt alleen gedeeld met een beperkt publiek. Je kunt je publiek op ieder moment aanpassen in de privacy-instellingen.";
 
-/* Settings > Privacy > Posts: one of the possible setting values. */
+/* Settings > Privacy > Posts > Favorites privacy setting. */
 "feed.privacy.list.only" = "Alleen Delen Met...";
 
 /* Header for the list when selecting contacts to share with. */
@@ -997,7 +994,7 @@
 /* One of the contact actions in My Post screen. */
 "mypost.action.view.profile" = "Profiel bekijken";
 
-/* Message displayed to say when posts will disappear */
+/* Generic message displayed to say when posts will disappear. */
 "mypost.disappear.time.label" = "Je posts verdwijnen na 30 dagen.";
 
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
@@ -1487,6 +1484,9 @@
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.share" = "Delen...";
 
+/* Link to expand truncated text. */
+"textlabel.more" = "...meer";
+
 /* Same as profile.header.call.user, but capitalized */
 "textview.context.menu.audio.call.user" = "Bellen";
 
@@ -1586,6 +1586,9 @@
 /* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
 "unknown.contact.not.in.contact.book" = "Deze afzender staat niet in je contactenlijst.";
 
+/* Alert appearing after clicking an external share link that failed to load */
+"urlrouter.externalShare.failed" = "Laden van post mislukt";
+
 /* Button to confirm blocking user via profile page */
 "user.block" = "Blokkeren";
 
@@ -1625,6 +1628,9 @@
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "Deze post verwijderen? Dit kan niet ongedaan worden gemaakt.";
 
+/* Button to open the system share sheet with an external post link */
+"your.post.externalshare.button" = "Extern Delen";
+
 /* Title for button in action sheet prompting user to share post to external sites */
 "your.post.externalshare.copylink" = "Kopieer Link om te Delen";
 
@@ -1633,6 +1639,12 @@
 
 /* Message that external share failed. */
 "your.post.externalshare.error" = "Uploaden van post voor extern delen mislukt";
+
+/* Button to invalidate an external share link */
+"your.post.externalshare.revoke" = "Link intrekken";
+
+/* Message that revoking external share link failed. */
+"your.post.externalshare.revoke.error" = "Intrekken van link voor extern delen mislukt";
 
 /* Text introducing external share link, part of what is shared */
 "your.post.externalshare.title" = "Bekijk mijn post op HalloApp:";

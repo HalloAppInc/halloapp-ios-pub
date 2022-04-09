@@ -5,7 +5,7 @@
 "button.next" = "Siguiente";
 
 /* Title for generic OK button. Mostly used in popups and as such. */
-"button.ok" = "De acuerdo";
+"button.ok" = "OK";
 
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Actualizar";
@@ -20,16 +20,16 @@
 "home.update.notice.title" = "Esta versión está desactualizada";
 
 /* Disclaimer text about receiving SMS verification code */
-"registration.code.disclaimer" = "Recibirás un código de verificación.\nPueden aplicarse las tarifas del operador.";
+"registration.code.disclaimer" = "Recibirás un código de verificación.\nEl proveedor de telefonía móvil podría aplicar cargos.";
 
 /* Error message to display when user enters incorrect verification code */
-"registration.code.incorrect" = "El código que has introducido es incorrecto";
+"registration.code.incorrect" = "El código que ingresaste es incorrecto";
 
 /* Instructions for filling in SMS verification code. Parameter is formatted phone number */
 "registration.code.instructions" = "Introduce el código que hemos enviado a %@";
 
 /* Error message to display when we cannot send a verification code */
-"registration.code.request.error" = "No se ha podido enviar el código. Vuelve a intentarlo más tarde.";
+"registration.code.request.error" = "No se pudo enviar el código. Por favor inténtalo más tarde.";
 
 /* Button label to resend verification code */
 "registration.code.resend" = "Reenviar SMS";
@@ -47,7 +47,7 @@
 "registration.free.app.notice" = "Gratis en la App Store de iPhone";
 
 /* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
-"registration.group.name" = "Estás invitado a unirte al grupo %@";
+"registration.group.name" = "Te invitaron a unirte al grupo %@";
 
 /* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
 "registration.install.app.to.continue" = "Instala HalloApp para continuar";
@@ -59,7 +59,7 @@
 "registration.invalidphone" = "¡Caramba!";
 
 /* Popup that appears when user tries to register invalid number */
-"registration.invalidphone.only" = "El número de teléfono que has marcado no es válido. Por favor, revísalo.";
+"registration.invalidphone.only" = "El número de teléfono que marcaste no es válido. Por favor, revísalo.";
 
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Si has seguido un enlace de invitación a un grupo para registrarte, vuelve a pulsar el enlace para finalizar el registro y unirte al grupo.";
@@ -71,7 +71,7 @@
 "registration.phoneEntry.placeholder" = "Número de teléfono";
 
 /* Text for modal describing how we use contacts data */
-"registration.privacy.content" = "HalloApp solo utiliza el campo del número de teléfono para ponerte en contacto con tus amigos en HalloApp, y no transmite ningún dato adicional de tu agenda de contactos.";
+"registration.privacy.content" = "HalloApp solo usa el número de teléfono para conectarte con tus amigos en HalloApp, y no comparte ninguna otra información adicional de tu libreta de contactos.";
 
 /* Title for modal describing how we use contacts data */
 "registration.privacy.title" = "Tu privacidad es nuestra prioridad";
@@ -80,10 +80,10 @@
 "registration.shucks" = "¡Caramba!";
 
 /* Shown above name and phone inputs */
-"registration.welcome" = "¡Bienvenido!";
+"registration.welcome" = "¡Bienvenido(a)!";
 
 /* Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account */
-"settings.account.deleted.message" = "No serás capaz de iniciar sesión hasta que no reinicies la aplicación";
+"settings.account.deleted.message" = "No podrás iniciar sesión hasta que reinicies la aplicación";
 
 /* Alert title telling the user that their account was successfully deleted */
 "settings.account.deleted.title" = "Cuenta eliminada con éxito";

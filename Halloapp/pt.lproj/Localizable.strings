@@ -421,6 +421,9 @@
 /* Title for audio post composer */
 "composer.audio.title" = "Nova postagem de áudio";
 
+/* Title on edit button */
+"composer.button.edit" = "Editar";
+
 /* Title warning that a voice recording will be deleted */
 "composer.delete.recording.title" = "Excluir gravação de voz?";
 
@@ -501,6 +504,18 @@
 
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Para se ligar, deve trocar os números de telefone";
+
+/* Description of an externally shared post containing an audio post */
+"externalShare.og.description.audio" = "Postagem de áudio";
+
+/* Description of an externally shared post containing photos/videos */
+"externalShare.og.description.media" = "Postagem de mídia";
+
+/* Description of an externally shared post containing just text */
+"externalShare.og.description.text" = "Postagem de texto";
+
+/* Title for posts that are externally shared, 'John Smith's HalloApp Post' */
+"externalShare.og.title3" = "Postagem no HalloApp de %@";
 
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Câmara";
@@ -604,7 +619,7 @@
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.notOwn.only.description" = "Esta postagem é compartilhada apenas com um público limitado. Você pode ajustar seu público nas configurações de privacidade a qualquer momento.";
 
-/* Settings > Privacy > Posts: one of the possible setting values. */
+/* Settings > Privacy > Posts > Favorites privacy setting. */
 "feed.privacy.list.only" = "Partilhar apenas com...";
 
 /* Header for the list when selecting contacts to share with. */
@@ -913,6 +928,9 @@
 /* Button title. Refers to resetting photo / video to original version. */
 "media.button.reset" = "Repôr";
 
+/* Button title. Refers to undoing an edit of a photo. */
+"media.button.undo" = "Desfazer";
+
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.camera.access.request" = "O HalloApp não tem acesso à sua câmara. Para habilitar o acesso, clique em Configurações e ligue a Câmara";
 
@@ -985,8 +1003,14 @@
 /* One of the contact actions in My Post screen. */
 "mypost.action.view.profile" = "Ver perfil";
 
-/* Message displayed to say when posts will disappear */
+/* Message displayed to say when posts will disappear for posts shared with contacts. */
+"mypost.contacts.disappear.time.label" = "Sua postagem desaparecerá após 30 dias. Seus contatos que ingressam no HalloApp podem ver suas postagens não expiradas.";
+
+/* Generic message displayed to say when posts will disappear. */
 "mypost.disappear.time.label" = "As suas publicações desaparecerão após 30 dias.";
+
+/* Message displayed to say when posts will disappear for posts shared with favorites. */
+"mypost.favorites.disappear.time.label" = "Sua postagem foi compartilhada com seus Favoritos e desaparecerá após 30 dias.";
 
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
 "mypost.hide.posts.confirmation" = "Tem certeza de que deseja ocultar todas as suas publicações futuras de %@? Pode sempre mudar esta escolha mais tarde.";
@@ -1475,6 +1499,9 @@
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.share" = "Partilhar...";
 
+/* Link to expand truncated text. */
+"textlabel.more" = "...mais";
+
 /* Same as profile.header.call.user, but capitalized */
 "textview.context.menu.audio.call.user" = "Chamada de voz";
 
@@ -1485,7 +1512,7 @@
 "textview.context.menu.video.call.user" = "Chamada de vídeo ";
 
 /* Link to expand truncated text. */
-"textview.more" = "...mais";
+"textview.more" = "ver mais";
 
 /* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
 "thread.list.preview.already.user.default" = "%@ está no HalloApp";
@@ -1574,6 +1601,9 @@
 /* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
 "unknown.contact.not.in.contact.book" = "Este usuário não está em sua lista de contatos.";
 
+/* Alert appearing after clicking an external share link that failed to load */
+"urlrouter.externalShare.failed" = "Falha ao carregar a postagem";
+
 /* Button to confirm blocking user via profile page */
 "user.block" = "Bloquear";
 
@@ -1613,14 +1643,26 @@
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "Apagar esta publicação? Essa ação não pode ser revertida.";
 
+/* Button to open the system share sheet with an external post link */
+"your.post.externalshare.button" = "Partilhar Externamente";
+
 /* Title for button in action sheet prompting user to share post to external sites */
 "your.post.externalshare.copylink" = "Copiar link para partilhar";
 
 /* Success toast when external share link is copied */
 "your.post.externalshare.copylink.success" = "Copiado para a área de transferência";
 
+/* Message on header of post menu explaining external share */
+"your.post.externalshare.description2" = "Qualquer pessoa com o link pode ver sua postagem. O link expira com sua postagem. A visualização do link não é criptografada.";
+
 /* Message that external share failed. */
 "your.post.externalshare.error" = "Falha ao carregar postagem para partilhamento externo";
+
+/* Button to invalidate an external share link */
+"your.post.externalshare.revoke" = "Revogar Link";
+
+/* Message that revoking external share link failed. */
+"your.post.externalshare.revoke.error" = "Falha ao revogar link para partilhamento externo";
 
 /* Text introducing external share link, part of what is shared */
 "your.post.externalshare.title" = "Confira meu post no HalloApp:";

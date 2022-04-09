@@ -400,7 +400,7 @@
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.except" = "Επαφές μου Εκτός...";
 
-/* Settings > Privacy > Posts: one of the possible setting values. */
+/* Settings > Privacy > Posts > Favorites privacy setting. */
 "feed.privacy.list.only" = "Μόνο Κοινοποίηση Σε...";
 
 /* Possible Feed Privacy setting value. */
@@ -673,7 +673,7 @@
 /* One of the contact actions in My Post screen. */
 "mypost.action.view.profile" = "Εμφάνιση Προφίλ";
 
-/* Message displayed to say when posts will disappear */
+/* Generic message displayed to say when posts will disappear. */
 "mypost.disappear.time.label" = "Οι δημοσιεύσεις σας θα εξαφανιστούν μετά από 30 ημέρες.";
 
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
@@ -1062,6 +1062,9 @@
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.share" = "Κοινοποίηση...";
+
+/* Link to expand truncated text. */
+"textlabel.more" = "...περισσότερα";
 
 /* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
 "thread.list.preview.already.user.default" = "Η επαφή %@ είναι στο HalloApp";

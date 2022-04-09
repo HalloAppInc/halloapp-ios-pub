@@ -502,6 +502,15 @@
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Einfach Handynummern austauschen, um den Kontakt herzustellen";
 
+/* Description of an externally shared post containing an audio post */
+"externalShare.og.description.audio" = "Audiobeitrag";
+
+/* Description of an externally shared post containing photos/videos */
+"externalShare.og.description.media" = "Medienbeitrag";
+
+/* Description of an externally shared post containing just text */
+"externalShare.og.description.text" = "Textbeitrag";
+
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Kamera";
 
@@ -604,7 +613,7 @@
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.notOwn.only.description" = "Dieser Beitrag wird nur mit einem begrenzten Benutzerkreis geteilt. Du kannst deine Zielgruppe in den Privatsphäre-Einstellungen jederzeit anpassen.";
 
-/* Settings > Privacy > Posts: one of the possible setting values. */
+/* Settings > Privacy > Posts > Favorites privacy setting. */
 "feed.privacy.list.only" = "Nur teilen mit...";
 
 /* Header for the list when selecting contacts to share with. */
@@ -985,7 +994,7 @@
 /* One of the contact actions in My Post screen. */
 "mypost.action.view.profile" = "Profil ansehen";
 
-/* Message displayed to say when posts will disappear */
+/* Generic message displayed to say when posts will disappear. */
 "mypost.disappear.time.label" = "Deine Beiträge sind 30 Tage sichtbar.";
 
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
@@ -1475,6 +1484,9 @@
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.share" = "Teilen...";
 
+/* Link to expand truncated text. */
+"textlabel.more" = "...mehr";
+
 /* Same as profile.header.call.user, but capitalized */
 "textview.context.menu.audio.call.user" = "Sprachanruf";
 
@@ -1612,6 +1624,9 @@
 
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "Diesen Beitrag löschen? Diese Aktion kann nicht widerrufen werden.";
+
+/* Button to open the system share sheet with an external post link */
+"your.post.externalshare.button" = "Extern teilen";
 
 /* Title for button in action sheet prompting user to share post to external sites */
 "your.post.externalshare.copylink" = "Link zum Teilen kopieren";

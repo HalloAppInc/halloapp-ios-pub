@@ -29,10 +29,10 @@
 "button.done" = "Listo";
 
 /* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
-"button.go.to.settings" = "Ir a la configuración";
+"button.go.to.settings" = "Ir a configuración";
 
 /* Title for generic Invite button. */
-"button.invite" = "Invitar ";
+"button.invite" = "Invitar";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
 "button.learn.more" = "Más información";
@@ -68,10 +68,10 @@
 "button.update" = "Actualizar";
 
 /* Alert message when missing microphone access */
-"chat.mic.access.denied.message" = "Para capacitar la grabación de audio, por favor ve a Configuración y enciende el micrófono";
+"chat.mic.access.denied.message" = "Para poder grabar audio, por favor ve a Configuración y enciende el micrófono";
 
 /* Alert title when missing microphone access */
-"chat.mic.access.denied.title" = "Incapaz de acceder al micrófono";
+"chat.mic.access.denied.title" = "No se pudo acceder al micrófono";
 
 /* Title for generic delete button. */
 "Delete" = "Eliminar";
@@ -80,19 +80,19 @@
 "feed.privacy.descr.all" = "Comparte con todos mis contactos";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.except" = "Comparte con todos mis contactos excepto con la gente que yo seleccione";
+"feed.privacy.descr.except" = "Comparte con todos mis contactos excepto con gente que yo seleccione";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.only" = "Solo comparte con contactos seleccionados";
+"feed.privacy.descr.only" = "Compartir solamente con contactos seleccionados";
 
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
-"feed.privacy.list.notOwn.only.description" = "Esta publicación solo se comparte con una audiencia limitada. Puedes cambiar tu audiencia en la configuración de privacidad en cualquier momento. ";
+"feed.privacy.list.notOwn.only.description" = "Esta publicación solo se comparte con una audiencia limitada. Puedes cambiar tu audiencia en la configuración de privacidad en cualquier momento.";
 
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.only.title" = "Favoritos";
 
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
-"feed.privacy.list.own.only.description" = "Esta publicación solo se comparte con un grupo personalizado de contactos. Puedes cambiar tu audiencia cada vez que hagas una nueva publicación, o en Configuración > Privacidad.";
+"feed.privacy.list.own.only.description" = "Esta publicación solo se comparte con un grupo personalizado de contactos. Puedes cambiar tu audiencia cada vez que realices una nueva publicación, o en Configuración > Privacidad.";
 
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Búsqueda";
@@ -113,7 +113,7 @@
 "media.button.discard" = "Descartar";
 
 /* String to auto-fill if a user tried to share to a friend. */
-"settings.share.text" = "Únete a mi red social de relaciones verdaderas en HalloApp. Bájalo gratis en halloapp.com/dl ";
+"settings.share.text" = "Únete a mi red social de relaciones reales, HalloApp. Baja la aplicación gratis en halloapp.com/dl";
 
 /* Label above the list with whom you share */
 "share.composer.destinations.label" = "Compartir con";
@@ -125,7 +125,7 @@
 "share.composer.placeholder.text" = "Escribe una publicación";
 
 /* Alert dialog message shown when uploading fails. */
-"share.composer.uploading.fail.message" = "Por favor, inteńtalo de nuevo más tarde.";
+"share.composer.uploading.fail.message" = "Por favor, inténtalo más tarde.";
 
 /* Alert dialog title shown when uploading fails. */
 "share.composer.uploading.fail.title" = "Error al cargar";

@@ -568,7 +568,7 @@
 /* Title for the list when selecting contacts to not share with. */
 "feed.privacy.list.except.title" = "Gönderileri şundan gizle: ";
 
-/* Settings > Privacy > Posts: one of the possible setting values. */
+/* Settings > Privacy > Posts > Favorites privacy setting. */
 "feed.privacy.list.only" = "Yalnızca ... kişisiyle paylaş";
 
 /* Header for the list when selecting contacts to share with. */
@@ -821,7 +821,7 @@
 "invite.text" = "HalloApp'te bana katıl — ailen ve arkadaşlarınla iletişimde kalmanın kolay, özel ve güvenli bir yolu. https://halloapp.com/dl adresinden indir.";
 
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
-"invite.text.specific" = "Merhaba %1$s! Seni, sevdiklerimizle gerçek bağlantılar kurabildiğimiz bir uygulama olan HalloApp'e davet ediyorum. Kaydolmak için %2$s numarasını kullan. halloapp.com/dl adresinden uygulamayı \nindir.";
+"invite.text.specific" = "Merhaba %1$s! Seni, sevdiklerimizle gerçek bağlantılar kurabildiğimiz bir uygulama olan HalloApp'e davet ediyorum. Kaydolmak için %2$s numarasını kullan. halloapp.com/dl adresinden uygulamayı indir.";
 
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Davet et";
@@ -925,7 +925,7 @@
 /* One of the contact actions in My Post screen. */
 "mypost.action.view.profile" = "Profili görüntüle";
 
-/* Message displayed to say when posts will disappear */
+/* Generic message displayed to say when posts will disappear. */
 "mypost.disappear.time.label" = "Gönderilerin, 30 gün sonra kaybolacak.";
 
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
@@ -1400,6 +1400,9 @@
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.share" = "Paylaş...";
 
+/* Link to expand truncated text. */
+"textlabel.more" = "...daha fazla";
+
 /* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
 "thread.list.preview.already.user.default" = "%@ HalloApp'te";
 
@@ -1525,6 +1528,9 @@
 
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "Bu gönderi silinsin mi? Bu eylem geri alınamaz.";
+
+/* Button to open the system share sheet with an external post link */
+"your.post.externalshare.button" = "Harici olarak paylaş ";
 
 /* Message that external share failed. */
 "your.post.externalshare.error" = "Harici paylaşım için gönderi yüklenemedi";

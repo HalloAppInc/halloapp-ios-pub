@@ -511,9 +511,6 @@
 /* Description of an externally shared post containing just text */
 "externalShare.og.description.text" = "پست متنی";
 
-/* Title for posts that are externally shared, 'HalloApp Post from John Smith' */
-"externalShare.og.title2" = "پست هالواپ از @%";
-
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "دوربین";
 
@@ -616,7 +613,7 @@
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.notOwn.only.description" = "این پست فقط برای به اشتراک گذاشتن با گروه خاص از مخاطبین است. میتوانید برای تغییر آن به حریم خصوصی در تنظیمات مراجعه کنید.";
 
-/* Settings > Privacy > Posts: one of the possible setting values. */
+/* Settings > Privacy > Posts > Favorites privacy setting. */
 "feed.privacy.list.only" = "اشتراک گذاشتن با...";
 
 /* Header for the list when selecting contacts to share with. */
@@ -997,7 +994,7 @@
 /* One of the contact actions in My Post screen. */
 "mypost.action.view.profile" = "مشاهده حساب کاربری";
 
-/* Message displayed to say when posts will disappear */
+/* Generic message displayed to say when posts will disappear. */
 "mypost.disappear.time.label" = "پست‌های شما بعد از ۳۰ روز حذف خواهند شد.";
 
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
@@ -1487,6 +1484,9 @@
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.share" = "به اشتراک گذاشتن...";
 
+/* Link to expand truncated text. */
+"textlabel.more" = "...بیشتر";
+
 /* Same as profile.header.call.user, but capitalized */
 "textview.context.menu.audio.call.user" = "تماس صوتی";
 
@@ -1624,6 +1624,9 @@
 
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "مطمئینید این پست را میخواهید حذف کنید؟ این کار برگشت ناپذیر است.";
+
+/* Button to open the system share sheet with an external post link */
+"your.post.externalshare.button" = "به اشتراک گذاشتن خارج هالواپ";
 
 /* Title for button in action sheet prompting user to share post to external sites */
 "your.post.externalshare.copylink" = "کپی لینک برای به اشتراک گذاشتن";

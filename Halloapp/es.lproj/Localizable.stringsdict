@@ -29,7 +29,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>Compartiendo con %d de mis contactos</string>
+			<string>Compartir con %d de mis contactos</string>
 			<key>other</key>
 			<string>Compartir con %d de mis contactos</string>
 		</dict>
@@ -47,7 +47,7 @@
 			<key>one</key>
 			<string>%d contacto excluido</string>
 			<key>other</key>
-			<string>%d contacto excluido</string>
+			<string>%d contactos excluidos</string>
 		</dict>
 	</dict>
 	<key>feed.privacy.value.n.contacts.selected</key>
@@ -113,7 +113,7 @@
 			<key>other</key>
 			<string>%d participantes</string>
 			<key>zero</key>
-			<string>No hay participantes</string>
+			<string>No hay miembros</string>
 		</dict>
 	</dict>
 	<key>media.prepare.failed.n.count</key>
@@ -127,9 +127,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>No se pudo preparar el archivo. Intente de nuevo o seleccione una foto o video diferente. </string>
+			<string>No se pudo preparar el archivo. Inténtalo de nuevo o selecciona una foto o video diferente.</string>
 			<key>other</key>
-			<string>No se pudieron preparar %d archivos multimedia. Intenta de nuevo o trata de seleccionar una foto o video diferente.</string>
+			<string>No se pudieron preparar %d archivos multimedia. Inténtalo de nuevo o trata de seleccionar una foto o video diferente.</string>
 		</dict>
 	</dict>
 	<key>n.invites.count</key>
@@ -175,9 +175,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>&lt;$usuario$&gt; y %d otro respondieron a la entrada de &lt;$author$&gt;</string>
+			<string>&lt;$usuario$&gt; y %d otro respondieron a la publicación de &lt;$author$&gt;</string>
 			<key>other</key>
-			<string>&lt;$usuario$&gt; y %d otros respondieron a las entradas de &lt;$author$&gt;</string>
+			<string>&lt;$usuario$&gt; y %d otros respondieron a las publicaciones de &lt;$author$&gt;</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>
