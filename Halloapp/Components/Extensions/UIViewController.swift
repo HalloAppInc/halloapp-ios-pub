@@ -60,11 +60,13 @@ extension UIViewController {
     // returns the topmost view controller in the app
     class var currentViewController: UIViewController? {
         var keyWindow: UIWindow?
-        for case let scene as UIWindowScene in UIApplication.shared.connectedScenes where scene.activationState == .foregroundActive {
-            for window in scene.windows {
-                if window.isKeyWindow {
-                    keyWindow = window
-                    break
+        for case let scene as UIWindowScene in UIApplication.shared.connectedScenes {
+            if [.foregroundInactive, .foregroundActive].contains(scene.activationState) {
+                for window in scene.windows {
+                    if window.isKeyWindow {
+                        keyWindow = window
+                        break
+                    }
                 }
             }
         }
