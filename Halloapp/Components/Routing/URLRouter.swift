@@ -49,13 +49,7 @@ class URLRouter {
 
                 switch result {
                 case .success(let post):
-                    let viewController: UIViewController
-                    if let feedPost = MainAppContext.shared.feedData.feedPost(with: post.id) {
-                        viewController = UINavigationController(rootViewController: FlatCommentsViewController(feedPostId: post.id))
-                    } else {
-                        viewController = PostViewController(post: post)
-                    }
-                    currentViewController.present(viewController, animated: true)
+                    currentViewController.present(PostViewController(post: post), animated: true)
                 case .failure(let error):
                     DDLogError("URLRouter/Failed to decrypt external share post: \(error)")
                     let alertController = UIAlertController(title: Localizations.failedToLoadExternalSharePost, message: nil, preferredStyle: .alert)

@@ -108,8 +108,7 @@ extension FeedPost: FeedPostDisplayable {
 
     var canSharePost: Bool {
         let isOwnPost = userId == MainAppContext.shared.userData.userId
-        let isGroupPost = groupId != nil
-        return isOwnPost && !isGroupPost && ServerProperties.externalSharingEnabled
+        return isOwnPost && ServerProperties.externalSharingEnabled
     }
 
     var posterFullName: String {
