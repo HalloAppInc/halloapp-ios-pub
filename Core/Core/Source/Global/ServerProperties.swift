@@ -39,6 +39,7 @@ public struct ServerProperties {
         case externalSharingEnabled = "external_sharing"
         case isMediaDrawingEnabled = "draw_media"
         case isGroupCommentNotificationsEnabled = "group_comments_notification"
+        case inviteStrings = "invite_strings"
     }
 
     private struct UserDefaultsKey {
@@ -202,6 +203,14 @@ public struct ServerProperties {
         }
         return Double(value)
     }
+    
+    private static func json(forKey key: Key) -> [String: Any]? {
+        guard let data = string(forKey: key)?.data(using: .utf16) else {
+            return nil
+        }
+        
+        return try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+    }
 
     // MARK: Getters
 
@@ -303,5 +312,19 @@ public struct ServerProperties {
 
     public static var isGroupCommentNotificationsEnabled: Bool {
         ServerProperties.bool(forKey: .isGroupCommentNotificationsEnabled) ?? Defaults.isGroupCommentNotificationsEnabled
+    }
+    
+    public static var inviteString: String? {
+        guard
+            let allInviteStrings = json(forKey: .inviteStrings),
+            let locale = Locale.current.languageCode?.lowercased(),
+            let specificInviteString = allInviteStrings[locale] as? String
+        else {
+            return nil
+        }
+        
+        // lowercased locale because Apple has some capitalization in their language codes (e.g. pt-BR)
+        // while the server keys do not
+        return specificInviteString
     }
 }

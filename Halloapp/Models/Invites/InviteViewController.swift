@@ -698,6 +698,19 @@ extension Localizations {
     static var pleaseWait: String {
         NSLocalizedString("invite.please.wait", value: "Please wait...", comment: "Displayed white user is inviting someone.")
     }
+    
+    static var genericInviteText: String {
+        NSLocalizedString("invite.text",
+                   value: "Join me on HalloApp – a simple, private, and secure way to stay in touch with friends and family. Get it at https://halloapp.com/dl",
+                 comment: "Text of invitation to join HalloApp.")
+    }
+    
+    /// - note: We prefer to get this text from the server. If that's unavailable, we use this value.
+    static var specificInviteTextFallback: String {
+        NSLocalizedString("invite.text.specific",
+                   value: "Hey %1$@, I have an invite for you to join me on HalloApp - a real-relationship network for those closest to me. Use %2$@ to register. Get it at https://halloapp.com/dl",
+                 comment: "Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number.")
+    }
 
     static func outOfInvitesWith(date: Date) -> String {
         let dateFormatter = DateFormatter()
@@ -727,14 +740,11 @@ extension Localizations {
 
     static func inviteText(name: String?, number: String?) -> String {
         guard let name = name, let number = number else {
-            return NSLocalizedString("invite.text",
-                              value: "Join me on HalloApp – a simple, private, and secure way to stay in touch with friends and family. Get it at https://halloapp.com/dl",
-                              comment: "Text of invitation to join HalloApp.")
+            return Localizations.genericInviteText
         }
-        let format = NSLocalizedString("invite.text.specific",
-                                       value: "Hey %1$@, I have an invite for you to join me on HalloApp - a real-relationship network for those closest to me. Use %2$@ to register. Get it at https://halloapp.com/dl",
-                                       comment: "Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number.")
-        return String(format: format, name, number)
+
+        let inviteString = ServerProperties.inviteString ?? Localizations.specificInviteTextFallback
+        return String(format: inviteString, name, number)
     }
 
     static func contactsOnHalloApp(_ count: Int) -> String {
