@@ -11,6 +11,7 @@ import CoreCommon
 import CoreData
 
 fileprivate let shareURLPrefix = "https://share.halloapp.com/"
+fileprivate let shareURLTestPrefix = "https://share-test.halloapp.com/"
 
 @objc(ExternalShareInfo)
 public class ExternalShareInfo: NSManagedObject {
@@ -19,6 +20,7 @@ public class ExternalShareInfo: NSManagedObject {
         guard let blobID = blobID, let key = key else {
             return nil
         }
-        return URL(string: "\(shareURLPrefix)\(blobID)#k\(key.base64urlEncodedString())")
+        let urlPrefix = ServerProperties.isInternalUser ? shareURLTestPrefix : shareURLPrefix
+        return URL(string: "\(urlPrefix)\(blobID)#k\(key.base64urlEncodedString())")
     }
 }

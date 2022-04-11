@@ -12,6 +12,7 @@
 		<string>applinks:invite.halloapp.com</string>
 		<string>applinks:share.halloapp.com</string>
 		<string>appclips:halloapp.com</string>
+		<string>applinks:share-test.halloapp.com</string>
 	</array>
 	<key>com.apple.security.application-groups</key>
 	<array>

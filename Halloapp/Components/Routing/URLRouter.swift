@@ -60,7 +60,7 @@ class URLRouter {
         })
 
         return URLRouter(hosts: [
-            Host(domains: ["share.halloapp.com"], routes: shareRoutes),
+            Host(domains: ["share.halloapp.com", "share-test.halloapp.com"], routes: shareRoutes),
             Host(domains: [
                 URLRouter.applinkHost,
                 "halloapp.com",
