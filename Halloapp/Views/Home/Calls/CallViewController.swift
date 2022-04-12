@@ -275,7 +275,8 @@ class AudioCallViewController: CallViewController {
         fullCallView.axis = .vertical
         fullCallView.distribution = .fill
         fullCallView.alignment = .center
-        fullCallView.spacing = 36
+        fullCallView.spacing = 30
+        fullCallView.setCustomSpacing(8, after: stationIdentification)
         fullCallView.setCustomSpacing(8, after: peerNameLabel)
 
         view.addSubview(fullCallView)
