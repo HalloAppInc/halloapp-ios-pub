@@ -68,8 +68,40 @@ class VideoCallViewController: CallViewController {
         return peerNameLabel
     }()
 
+    private lazy var stationIdentification: UIView = {
+        let imageView = UIImageView(image: UIImage(named: "AppIconSmall"))
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = Localizations.appNameHalloApp
+        label.textColor = .white
+        label.font = .systemFont(forTextStyle: .title3)
+
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(imageView)
+        view.addSubview(label)
+
+        imageView.constrain([.top, .bottom, .leading], to: view)
+        label.leadingAnchor.constraint(equalTo: imageView.trailingAnchor, constant: 10).isActive = true
+        label.constrain([.top, .bottom, .trailing], to: view)
+        return view
+    }()
+
+    private lazy var encryptionLabel: UILabel = {
+        let encryptionLabel = UILabel()
+        encryptionLabel.text = "🔒 " + Localizations.callEncryption
+        encryptionLabel.font = .systemFont(ofSize: 15)
+        encryptionLabel.textColor = .white
+        encryptionLabel.adjustsFontSizeToFitWidth = true
+        encryptionLabel.textAlignment = .center
+        encryptionLabel.translatesAutoresizingMaskIntoConstraints = false
+        return encryptionLabel
+    }()
+
     private lazy var callNameStatusView: UIStackView = {
-        let callNameStatusView = UIStackView(arrangedSubviews: [peerNameLabel, callStatusLabel])
+        let callNameStatusView = UIStackView(arrangedSubviews: [stationIdentification, encryptionLabel, peerNameLabel, callStatusLabel])
         callNameStatusView.translatesAutoresizingMaskIntoConstraints = false
         callNameStatusView.axis = .vertical
         callNameStatusView.distribution = .fill
@@ -195,6 +227,13 @@ class VideoCallViewController: CallViewController {
     private var hideControls: Bool  = false {
         didSet {
             let isHidden = hideControls
+            if isHidden {
+                self.stationIdentification.isHidden = true
+                self.encryptionLabel.isHidden = true
+            } else {
+                self.stationIdentification.isHidden = false
+                self.encryptionLabel.isHidden = false
+            }
             UIView.animate(withDuration: 0.3) {
                 if isHidden {
                     self.buttonPanel.alpha = 0
@@ -675,6 +714,8 @@ class VideoCallViewController: CallViewController {
         DDLogInfo("VideoCallViewController/didStartReceivingRemoteVideo")
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
+            self.stationIdentification.isHidden = true
+            self.encryptionLabel.isHidden = true
             self.peerNameLabel.isHidden = true
             self.callStatusLabel.isHidden = true
             self.expandRemoteVideo()

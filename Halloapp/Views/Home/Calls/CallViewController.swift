@@ -260,8 +260,17 @@ class AudioCallViewController: CallViewController {
         peerNameLabel.textAlignment = .center
         peerNameLabel.translatesAutoresizingMaskIntoConstraints = false
 
+        // Text Label
+        let encryptionLabel = UILabel()
+        encryptionLabel.text = "🔒 " + Localizations.callEncryption
+        encryptionLabel.font = .systemFont(ofSize: 15)
+        encryptionLabel.textColor = .white
+        encryptionLabel.adjustsFontSizeToFitWidth = true
+        encryptionLabel.textAlignment = .center
+        encryptionLabel.translatesAutoresizingMaskIntoConstraints = false
+
         // Full stack view: contains all the components
-        let fullCallView = UIStackView(arrangedSubviews: [stationIdentification, avatarView, peerNameLabel, callStatusLabel])
+        let fullCallView = UIStackView(arrangedSubviews: [stationIdentification, encryptionLabel, avatarView, peerNameLabel, callStatusLabel])
         fullCallView.translatesAutoresizingMaskIntoConstraints = false
         fullCallView.axis = .vertical
         fullCallView.distribution = .fill
@@ -622,6 +631,9 @@ extension Localizations {
     }
     static var callIncoming: String {
         NSLocalizedString("call.status.incoming", value: "incoming call", comment: "Status displayed when incoming call starts")
+    }
+    static var callEncryption: String {
+        NSLocalizedString("call.encryption.text", value: "End-to-end encrypted", comment: "Text indicating that calls are end-to-end encrypted")
     }
     static func callStatus(_ status: CallStatus, for phoneNumber: String) -> String {
         switch status {
