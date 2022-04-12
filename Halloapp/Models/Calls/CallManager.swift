@@ -1012,17 +1012,18 @@ extension CallManager: HalloCallDelegate {
                     }
                 case .failure(let failure):
                     DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/decrypt/failure: \(failure)")
-                    self.service.rerequestMessage(incomingCall.callID,
-                                                  senderID: peerUserID,
-                                                  failedEphemeralKey: failure.ephemeralKey,
-                                                  contentType: .call) { result in
-                        switch result {
-                        case .failure(let error):
-                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/rerequestMessage/failure: \(error)")
-                        case .success(_):
-                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/rerequestMessage/success")
-                        }
-                    }
+                    // TODO: murali@: Implement rerequest flow for calls.
+//                    self.service.rerequestMessage(incomingCall.callID,
+//                                                  senderID: peerUserID,
+//                                                  failedEphemeralKey: failure.ephemeralKey,
+//                                                  contentType: .call) { result in
+//                        switch result {
+//                        case .failure(let error):
+//                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/rerequestMessage/failure: \(error)")
+//                        case .success(_):
+//                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/rerequestMessage/success")
+//                        }
+//                    }
                     self.checkAndReportCallEnded(id: callID, reason: .failed)
                     self.endActiveCall(reason: .decryptionError)
                 }
@@ -1110,18 +1111,20 @@ extension CallManager: HalloCallDelegate {
                     self.activeCall?.didReceiveAnswer(sdpInfo: String(data: decryptedData, encoding: .utf8)!)
                 case .failure(let failure):
                     DDLogInfo("CallManager/HalloCallDelegate/didReceiveAnswerCall/decrypt/failure: \(failure)")
-                    self.service.rerequestMessage(answerCall.callID,
-                                                  senderID: peerUserID,
-                                                  failedEphemeralKey: failure.ephemeralKey,
-                                                  contentType: .call) { result in
-                        switch result {
-                        case .failure(let error):
-                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveAnswerCall/rerequestMessage/failure: \(error)")
-                        case .success(_):
-                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveAnswerCall/rerequestMessage/success")
-                        }
-                    }
-                    self.service.endCall(id: callID, to: peerUserID, reason: .decryptionError)
+                    // TODO: murali@: Implement rerequest flow for calls.
+//                    self.service.rerequestMessage(answerCall.callID,
+//                                                  senderID: peerUserID,
+//                                                  failedEphemeralKey: failure.ephemeralKey,
+//                                                  contentType: .call) { result in
+//                        switch result {
+//                        case .failure(let error):
+//                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveAnswerCall/rerequestMessage/failure: \(error)")
+//                        case .success(_):
+//                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveAnswerCall/rerequestMessage/success")
+//                        }
+//                    }
+                    self.checkAndReportCallEnded(id: callID, reason: .failed)
+                    self.endActiveCall(reason: .decryptionError)
                 }
             }
         } else {
@@ -1221,17 +1224,18 @@ extension CallManager: HalloCallDelegate {
                     self.activeCall?.didReceiveIceOffer(sdpInfo: String(data: decryptedData, encoding: .utf8)!)
                 case .failure(let failure):
                     DDLogInfo("CallManager/HalloCallDelegate/didReceiveIceOffer/decrypt/failure: \(failure)")
-                    self.service.rerequestMessage(callID,
-                                                  senderID: peerUserID,
-                                                  failedEphemeralKey: failure.ephemeralKey,
-                                                  contentType: .call) { result in
-                        switch result {
-                        case .failure(let error):
-                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIceOffer/rerequestMessage/failure: \(error)")
-                        case .success(_):
-                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIceOffer/rerequestMessage/success")
-                        }
-                    }
+                    // TODO: murali@: Implement rerequest flow for calls.
+//                    self.service.rerequestMessage(callID,
+//                                                  senderID: peerUserID,
+//                                                  failedEphemeralKey: failure.ephemeralKey,
+//                                                  contentType: .call) { result in
+//                        switch result {
+//                        case .failure(let error):
+//                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIceOffer/rerequestMessage/failure: \(error)")
+//                        case .success(_):
+//                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIceOffer/rerequestMessage/success")
+//                        }
+//                    }
                     // Dont do anything else here for now.
                     // call-state will eventually go to failed and then closed - we will then end the call.
                 }
@@ -1260,17 +1264,18 @@ extension CallManager: HalloCallDelegate {
                     self.activeCall?.didReceiveIceAnswer(sdpInfo: String(data: decryptedData, encoding: .utf8)!)
                 case .failure(let failure):
                     DDLogInfo("CallManager/HalloCallDelegate/didReceiveIceAnswer/decrypt/failure: \(failure)")
-                    self.service.rerequestMessage(callID,
-                                                  senderID: peerUserID,
-                                                  failedEphemeralKey: failure.ephemeralKey,
-                                                  contentType: .call) { result in
-                        switch result {
-                        case .failure(let error):
-                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIceAnswer/rerequestMessage/failure: \(error)")
-                        case .success(_):
-                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIceAnswer/rerequestMessage/success")
-                        }
-                    }
+                    // TODO: murali@: Implement rerequest flow for calls.
+//                    self.service.rerequestMessage(callID,
+//                                                  senderID: peerUserID,
+//                                                  failedEphemeralKey: failure.ephemeralKey,
+//                                                  contentType: .call) { result in
+//                        switch result {
+//                        case .failure(let error):
+//                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIceAnswer/rerequestMessage/failure: \(error)")
+//                        case .success(_):
+//                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIceAnswer/rerequestMessage/success")
+//                        }
+//                    }
                     // Dont do anything else here for now.
                     // call-state will eventually go to failed and then closed - we will then end the call.
                 }
