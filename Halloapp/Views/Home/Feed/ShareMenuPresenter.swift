@@ -26,7 +26,8 @@ extension ShareMenuPresenter {
                 FeedPostMenuViewController.Item(style: .standard,
                                                 icon: UIImage(systemName: "square.and.arrow.up"),
                                                 title: Localizations.externalShareButton) { [weak self] _ in
-                    self?.generateExternalShareLink(postID: postID, success: { [weak self] url in
+                    self?.generateExternalShareLink(postID: postID, success: { [weak self] url, toast in
+                        toast.hide()
                         let shareText = "\(Localizations.externalShareText) \(url)"
                         let activityViewController = UIActivityViewController(activityItems: [shareText], applicationActivities: nil)
                         self?.present(activityViewController, animated: true)
@@ -35,9 +36,9 @@ extension ShareMenuPresenter {
                 FeedPostMenuViewController.Item(style: .standard,
                                                 icon: UIImage(named: "ExternalShareLink"),
                                                 title: Localizations.externalShareCopyLink) { [weak self] _ in
-                    self?.generateExternalShareLink(postID: postID, success: { url in
+                    self?.generateExternalShareLink(postID: postID, success: { url, toast in
+                        toast.update(type: .icon(UIImage(systemName: "checkmark")), text: Localizations.externalShareLinkCopied)
                         UIPasteboard.general.url = url
-                        Toast.show(icon: UIImage(systemName: "checkmark"), text: Localizations.externalShareLinkCopied)
                     })
                 }
 
@@ -53,16 +54,19 @@ extension ShareMenuPresenter {
         }), animated: true)
     }
 
-    private func generateExternalShareLink(postID: FeedPostID, success: @escaping (URL) -> Void) {
+    private func generateExternalShareLink(postID: FeedPostID, success: @escaping (URL, Toast) -> Void) {
         guard proceedIfConnected() else {
             return
         }
+        let toast = Toast(type: .activityIndicator, text: Localizations.externalShareLinkUploading)
+        toast.show(shouldAutodismiss: false)
         MainAppContext.shared.feedData.externalShareUrl(for: postID) { [weak self] result in
             DispatchQueue.main.async { [weak self] in
                 switch result {
                 case .success(let url):
-                    success(url)
+                    success(url, toast)
                 case .failure(_):
+                    toast.hide()
                     let actionSheet = UIAlertController(title: nil, message: Localizations.externalShareFailed, preferredStyle: .alert)
                     actionSheet.addAction(UIAlertAction(title: Localizations.buttonOK, style: .cancel))
                     self?.present(actionSheet, animated: true)
@@ -92,6 +96,10 @@ extension ShareMenuPresenter {
 }
 
 extension Localizations {
+
+    static var externalShareLinkUploading: String = {
+        NSLocalizedString("your.post.externalshare.uploading", value: "Creating post...", comment: "Notification that post is uploading ")
+    }()
 
     static var externalShareCopyLink: String = {
         NSLocalizedString("your.post.externalshare.copylink",
