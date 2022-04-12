@@ -959,7 +959,16 @@ extension FeedCollectionViewController {
             return
         }
         
-        MainAppContext.shared.feedData.retract(post: feedPost)
+        MainAppContext.shared.feedData.retract(post: feedPost) { [weak self] result in
+            switch result {
+            case .failure(_):
+                let alert = UIAlertController(title: Localizations.deletePostError, message: nil, preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
+                self?.present(alert, animated: true, completion: nil)
+            default:
+                break
+            }
+        }
         dismiss(animated: true)
     }
 }
@@ -1150,4 +1159,7 @@ extension Localizations {
     static var deletePostButtonTitle: String = {
         NSLocalizedString("your.post.deletepost.button", value: "Delete Post", comment: "Title for the button that confirms intent to delete your own post.")
     }()
+    static var deletePostError: String {
+        NSLocalizedString("your.post.deletepost.error", value: "Error deleting post", comment: "Displayed when a post fails to delete")
+    }
 }

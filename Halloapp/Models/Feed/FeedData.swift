@@ -1777,47 +1777,71 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         ack?()
     }
 
-    func retract(post feedPost: FeedPost) {
+    func retract(post feedPost: FeedPost, completion: ((Result<Void, Error>) -> Void)? = nil) {
         let postId = feedPost.id
         DDLogInfo("FeedData/retract/postId \(feedPost.id), status: \(feedPost.status)")
-        switch feedPost.status {
 
-        // these errors mean that server does not have a copy of the post.
-        // so we need send retract request to the server - just delete the local copy.
-        // Think more on how sending status should be handled here??
-        case .none, .sendError:
-            DDLogInfo("FeedData/retract/postId \(feedPost.id), delete local copy.")
-            processPostRetract(postId) {}
+        let deletePost: () -> Void = { [weak self] in
+            guard let self = self else {
+                completion?(.failure(RequestError.malformedRequest))
+                return
+            }
+            switch feedPost.status {
 
-        // own posts or pending retract posts.
-        // .seen is the status for posts reshared after reinstall.
-        // This will go away soon once we have e2e everywhere.
-        // TODO: why are we marking own posts as seen anyways?
-        case .sent, .retracting, .seen:
-            DDLogInfo("FeedData/retract/postId \(feedPost.id), sending retract request")
-            // Mark post as "being retracted"
-            feedPost.status = .retracting
-            save(viewContext)
+            // these errors mean that server does not have a copy of the post.
+            // so we need send retract request to the server - just delete the local copy.
+            // Think more on how sending status should be handled here??
+            case .none, .sendError:
+                DDLogInfo("FeedData/retract/postId \(feedPost.id), delete local copy.")
+                self.processPostRetract(postId) {
+                    completion?(.success(()))
+                }
 
-            // Request to retract.
-            service.retractPost(feedPost.id, in: feedPost.groupId) { result in
-                switch result {
-                case .success:
-                    DDLogInfo("FeedData/retract/postId \(feedPost.id), retract request was successful")
-                    self.processPostRetract(postId) {}
+            // own posts or pending retract posts.
+            // .seen is the status for posts reshared after reinstall.
+            // This will go away soon once we have e2e everywhere.
+            // TODO: why are we marking own posts as seen anyways?
+            case .sent, .retracting, .seen:
+                DDLogInfo("FeedData/retract/postId \(feedPost.id), sending retract request")
+                // Mark post as "being retracted"
+                feedPost.status = .retracting
+                self.save(self.viewContext)
 
-                case .failure(_):
-                    DDLogError("FeedData/retract/postId \(feedPost.id), retract request failed")
-                    self.updateFeedPost(with: postId) { (post) in
-                        post.status = .sent
+                // Request to retract.
+                self.service.retractPost(feedPost.id, in: feedPost.groupId) { result in
+                    switch result {
+                    case .success:
+                        DDLogInfo("FeedData/retract/postId \(feedPost.id), retract request was successful")
+                        self.processPostRetract(postId) {
+                            completion?(.success(()))
+                        }
+                    case .failure(let error):
+                        DDLogError("FeedData/retract/postId \(feedPost.id), retract request failed")
+                        self.updateFeedPost(with: postId) { (post) in
+                            post.status = .sent
+                            completion?(.failure(error))
+                        }
                     }
                 }
-            }
 
-        // everything else.
-        default:
-            DDLogError("FeedData/retract/postId \(feedPost.id) unexpected retract request here: \(feedPost.status)")
-            return
+            // everything else.
+            default:
+                DDLogError("FeedData/retract/postId \(feedPost.id) unexpected retract request here: \(feedPost.status)")
+                completion?(.failure(RequestError.malformedRequest))
+            }
+        }
+
+        if self.externalShareInfo(for: postId) != nil {
+            self.revokeExternalShareUrl(for: postId) { result in
+                switch result {
+                case .success:
+                    deletePost()
+                case .failure(let error):
+                    completion?(.failure(error))
+                }
+            }
+        } else {
+            deletePost()
         }
     }
 
