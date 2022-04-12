@@ -19,24 +19,42 @@ final class ContactSelectionViewController: UIViewController {
     enum Style {
         case `default`, destructive, all
     }
+    var privacyListType: PrivacyListType
 
-    var isEditModeOn = false
+    var isEditModeOn = false {
+        didSet {
+            editSelectionRow.isHidden = isEditModeOn
+        }
+    }
     private lazy var editSelectionLabel: UILabel = {
         let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = true
         label.font = UIFont.systemFont(ofSize: 17)
         label.textColor = .systemBlue
-        label.textAlignment = .right
         label.text = Localizations.editFavorites
 
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.didTapEditFavorites(_:)))
         label.isUserInteractionEnabled = true
         label.addGestureRecognizer(tapGesture)
+        label.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        label.setContentCompressionResistancePriority(.defaultHigh, for: .vertical)
         return label
+    }()
+
+    private lazy var editSelectionRow: UIStackView = {
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+        let hStack = UIStackView(arrangedSubviews: [spacer, editSelectionLabel])
+        hStack.axis = .horizontal
+        hStack.translatesAutoresizingMaskIntoConstraints = false
+        hStack.layoutMargins = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        hStack.isLayoutMarginsRelativeArrangement = true
+        return hStack
     }()
 
     @objc func didTapEditFavorites(_ sender: UITapGestureRecognizer) {
         isEditModeOn = true
-        dataSource.apply(makeDataSnapshot(searchString: "nil"))
+        dataSource.apply(makeDataSnapshot(searchString: nil))
     }
 
     init(
@@ -45,12 +63,13 @@ final class ContactSelectionViewController: UIViewController {
         header: String? = nil,
         showSearch: Bool = true,
         style: Style = .default,
+        privacyListType: PrivacyListType,
         saveAction: ((ContactSelectionViewController, Set<UserID>) -> Void)? = nil,
         dismissAction: (() -> Void)? = nil)
     {
         searchController = {
             guard showSearch else { return nil }
-            let searchResultsController = ContactSelectionViewController(manager: manager, header: header, showSearch: false, style: style, dismissAction: nil)
+            let searchResultsController = ContactSelectionViewController(manager: manager, header: header, showSearch: false, style: style, privacyListType: privacyListType, dismissAction: nil)
             let searchController = UISearchController(searchResultsController: searchResultsController)
             searchController.searchResultsUpdater = searchResultsController
             searchController.searchBar.showsCancelButton = false
@@ -71,14 +90,15 @@ final class ContactSelectionViewController: UIViewController {
         }()
 
         self.style = style
+        self.privacyListType = privacyListType
         self.header = header
         self.manager = manager
         self.saveAction = saveAction
         self.dismissAction = dismissAction
-
+        self.isEditModeOn = false
         super.init(nibName: nil, bundle: nil)
-
         self.title = title
+        editSelectionRow.isHidden = privacyListType == .whitelist ? false : true
         collectionView.delegate = self
 
         cancellableSet.insert(
@@ -211,7 +231,7 @@ final class ContactSelectionViewController: UIViewController {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
 
-        let view = UIStackView(arrangedSubviews: [ collectionView ])
+        let view = UIStackView(arrangedSubviews: [ editSelectionRow, collectionView ])
         view.axis = .vertical
 
         view.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 10, right: 0)
@@ -223,8 +243,13 @@ final class ContactSelectionViewController: UIViewController {
 
     private func makeDataSnapshot(searchString: String?) -> NSDiffableDataSourceSnapshot<String, SelectableContact> {
         var snapshot = NSDiffableDataSourceSnapshot<String, SelectableContact>()
-        let contacts = manager.contacts(searchString: searchString)
-
+        var contacts: [SelectableContact]
+        //if in edit mode, only show selected contacts
+        if !isEditModeOn && privacyListType == .whitelist {
+            contacts = manager.contacts(searchString: searchString).filter { manager.selectedUserIDs.contains($0.userID) }
+        } else {
+            contacts = manager.contacts(searchString: searchString)
+        }
         let sections = Dictionary(grouping: contacts) { (contact) -> String in
             // All favorite contacts need to be in a single group on top
             if manager.selectedUserIDs.contains(contact.userID) { return "" }
@@ -249,10 +274,12 @@ final class ContactSelectionViewController: UIViewController {
     // MARK: Top Nav Button Actions
 
     @objc private func didTapDone() {
+        isEditModeOn = false
         saveAction?(self, manager.selectedUserIDs)
     }
 
     @objc private func didTapCancel() {
+        isEditModeOn = false
         if let dismissAction = dismissAction {
             dismissAction()
         } else if let navigationController = navigationController, navigationController.viewControllers.count > 1 {
@@ -577,6 +604,7 @@ extension ContactSelectionViewController {
             title: PrivacyList.title(forPrivacyListType: privacyListType),
             header: PrivacyList.details(forPrivacyListType: privacyListType),
             style: .all,
+            privacyListType: privacyListType,
             saveAction: { vc, userIDs in
 
                 if let doneAction = doneAction {
@@ -594,6 +622,7 @@ extension ContactSelectionViewController {
             title: PrivacyList.title(forPrivacyListType: privacyList.type),
             header: PrivacyList.details(forPrivacyListType: privacyList.type),
             style: privacyList.type == .blacklist ? .destructive : .default,
+            privacyListType: privacyList.type,
             saveAction: { vc, userIDs in
 
                 if privacyList.type == .whitelist, userIDs.isEmpty {

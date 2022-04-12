@@ -533,8 +533,8 @@ final class FeedItemHeaderView: UIView {
         privacyIndicatorButtonView.addSubview(privacyIndicatorButton)
         privacyIndicatorButtonView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            privacyIndicatorButton.widthAnchor.constraint(equalToConstant: 22.5),
-            privacyIndicatorButton.heightAnchor.constraint(equalToConstant: 22.5),
+            privacyIndicatorButton.widthAnchor.constraint(equalToConstant: 22),
+            privacyIndicatorButton.heightAnchor.constraint(equalToConstant: 22),
             privacyIndicatorButton.topAnchor.constraint(equalTo: privacyIndicatorButtonView.topAnchor, constant: 2),
             privacyIndicatorButton.bottomAnchor.constraint(equalTo: privacyIndicatorButtonView.bottomAnchor),
             privacyIndicatorButton.trailingAnchor.constraint(equalTo: privacyIndicatorButtonView.trailingAnchor)
