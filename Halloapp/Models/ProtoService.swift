@@ -1326,48 +1326,13 @@ extension ProtoService: HalloService {
         }
     }
 
-    func uploadPostForExternalShare(post: FeedPost,
+    func uploadPostForExternalShare(encryptedBlob: Data,
+                                    expiry: Date,
                                     ogTitle: String,
                                     ogDescription: String,
                                     ogThumbURL: URL?,
                                     ogThumbSize: CGSize?,
-                                    completion: @escaping ServiceRequestCompletion<(blobID: String, key: Data)>) {
-        let postData = post.postData
-
-        guard let data = try? postData.clientPostContainerBlob.serializedData() else {
-            DDLogError("ProtoService/UploadPostForExternalShare/Could not serialize post")
-            completion(.failure(RequestError.aborted))
-            return
-        }
-
-        var attachmentKey = [UInt8](repeating: 0, count: 15)
-        guard SecRandomCopyBytes(kSecRandomDefault, 15, &attachmentKey) == errSecSuccess else {
-            DDLogError("ProtoService/UploadPostForExternalShare/Failed to generate key")
-            completion(.failure(RequestError.aborted))
-            return
-        }
-
-        guard let (iv, aesKey, hmacKey) = Self.externalShareKeys(from: attachmentKey) else {
-            DDLogError("ProtoService/UploadPostForExternalShare/Failed to generate key")
-            completion(.failure(RequestError.aborted))
-            return
-        }
-
-        guard let encryptedPostData = try? AES(key: aesKey, blockMode: CBC(iv: iv), padding: .pkcs5).encrypt(data.bytes) else {
-            DDLogError("ProtoService/UploadPostForExternalShare/Failed to encrypt post data")
-            completion(.failure(RequestError.aborted))
-            return
-        }
-
-        guard let hmac = try? HMAC(key: hmacKey, variant: .sha256).authenticate(encryptedPostData) else {
-            DDLogError("ProtoService/UploadPostForExternalShare/Failed to authenticate encryptedPostData")
-            completion(.failure(RequestError.aborted))
-            return
-        }
-
-        let encryptedPayload = Data(encryptedPostData + hmac)
-        let expiry = postData.timestamp.addingTimeInterval(-FeedData.postExpiryTimeInterval)
-
+                                    completion: @escaping ServiceRequestCompletion<String>) {
         var ogTagInfo = Server_OgTagInfo()
         ogTagInfo.title = ogTitle
         ogTagInfo.description_p = ogDescription
@@ -1377,10 +1342,10 @@ extension ProtoService: HalloService {
             ogTagInfo.thumbnailHeight = Int32(ogThumbSize.height)
         }
 
-        enqueue(request: ProtoExternalShareStoreRequest(encryptedPostData: encryptedPayload, expiry: expiry, ogTagInfo: ogTagInfo) { result in
+        enqueue(request: ProtoExternalShareStoreRequest(encryptedPostData: encryptedBlob, expiry: expiry, ogTagInfo: ogTagInfo) { result in
             switch result {
             case .success(let blobID):
-                completion(.success((blobID, Data(attachmentKey))))
+                completion(.success(blobID))
             case .failure(let error):
                 completion(.failure(error))
             }
@@ -1391,52 +1356,8 @@ extension ProtoService: HalloService {
         enqueue(request: ProtoExternalShareRevokeRequest(blobID: blobID, completion: completion))
     }
 
-    func externalSharePost(blobID: String, key: Data, completion: @escaping ServiceRequestCompletion<ExternalSharePost>) {
-        guard let (iv, aesKey, hmacKey) = Self.externalShareKeys(from: [UInt8](key)) else {
-            DDLogError("ProtoService/externalSharePost/Failed to generate key")
-            completion(.failure(RequestError.malformedRequest))
-            return
-        }
-
-        enqueue(request: ProtoExternalShareGetRequest(blobID: blobID, completion: { result in
-            switch result {
-            case .success(let externalSharePostContainer):
-                let encryptedPayload = externalSharePostContainer.blob
-                guard encryptedPayload.count > 32 else {
-                    DDLogError("ProtoService/externalSharePost/invalid response length")
-                    completion(.failure(RequestError.malformedResponse))
-                    return
-                }
-
-                let encryptedPostData = [UInt8](encryptedPayload[0 ..< encryptedPayload.count - 32])
-                let hmac = [UInt8](encryptedPayload[encryptedPayload.count - 32 ..< encryptedPayload.count])
-
-                guard let calculatedHmac = try? HMAC(key: hmacKey, variant: .sha256).authenticate(encryptedPostData),
-                      hmac == calculatedHmac else {
-                    DDLogError("ProtoService/externalSharePost/Failed to authenticate encryptedPostData")
-                    completion(.failure(RequestError.malformedResponse))
-                    return
-                }
-
-                guard let postData = try? AES(key: aesKey, blockMode: CBC(iv: iv), padding: .pkcs5).decrypt(encryptedPostData) else {
-                    DDLogError("ProtoService/UploadPostForExternalShare/Failed to decrypt post data")
-                    completion(.failure(RequestError.malformedResponse))
-                    return
-                }
-
-                guard let postContainerBlob = try? Clients_PostContainerBlob(contiguousBytes: postData) else {
-                    DDLogError("ProtoService/UploadPostForExternalShare/Failed to serialize post data")
-                    completion(.failure(RequestError.malformedResponse))
-                    return
-                }
-
-                completion(.success(ExternalSharePost(name: externalSharePostContainer.name,
-                                                      avatarID: externalSharePostContainer.avatarID,
-                                                      postContainerBlob: postContainerBlob)))
-            case .failure(let error):
-                completion(.failure(error))
-            }
-        }))
+    func externalSharePost(blobID: String, completion: @escaping ServiceRequestCompletion<Server_ExternalSharePostContainer>) {
+        enqueue(request: ProtoExternalShareGetRequest(blobID: blobID, completion: completion))
     }
 
     static func externalShareKeys(from key: [UInt8]) -> (iv: [UInt8], aesKey: [UInt8], hmacKey: [UInt8])? {

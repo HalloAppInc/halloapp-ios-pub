@@ -4067,14 +4067,27 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 return
             }
 
+            let postData = post.postData
+            let expiry = postData.timestamp.addingTimeInterval(-FeedData.postExpiryTimeInterval)
+            let encryptedBlob: Data
+            let key: Data
+            do {
+                (encryptedBlob, key) = try ExternalSharePost.encypt(blob: postData.clientPostContainerBlob)
+            } catch {
+                DDLogError("FeedData/externalShareUrl/error encrypting post \(error)")
+                completion(.failure(error))
+                return
+            }
+
             let uploadPostForExternalShare: (URL?, CGSize?) -> Void = { [mainDataStore, service] (thumbURL, thumbSize) in
-                service.uploadPostForExternalShare(post: post,
+                service.uploadPostForExternalShare(encryptedBlob: encryptedBlob,
+                                                   expiry: expiry,
                                                    ogTitle: Localizations.externalShareTitle(name: MainAppContext.shared.userData.name),
                                                    ogDescription: post.externalShareDescription,
                                                    ogThumbURL: thumbURL,
                                                    ogThumbSize: thumbSize) { [mainDataStore] result in
                     switch result {
-                    case .success(let (blobID, key)):
+                    case .success(let blobID):
                         mainDataStore.performSeriallyOnBackgroundContext { [mainDataStore] context in
                             // Somehow, another request completed before us and already saved external share info.
                             // Discard in flight request and return previously saved data
@@ -4169,13 +4182,54 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     func externalSharePost(with blobID: String, key: Data, completion: @escaping (Result<ExternalSharePost, Error>) -> Void) {
-        service.externalSharePost(blobID: blobID, key: key) { result in
-            switch result {
-            case .success(let externalSharePost):
-                completion(.success(externalSharePost))
-            case .failure(let error):
-                completion(.failure(error))
+        let mainQueueCompletion: (Result<ExternalSharePost, Error>) -> Void = { result in
+            DispatchQueue.main.async {
+                completion(result)
             }
+        }
+        let transform: (Server_ExternalSharePostContainer) -> Void = { externalSharePostContainer in
+            do {
+                let postContainerBlob = try ExternalSharePost.decrypt(encryptedBlob: externalSharePostContainer.blob, key: key)
+                mainQueueCompletion(.success(ExternalSharePost(name: externalSharePostContainer.name,
+                                                               avatarID: externalSharePostContainer.avatarID,
+                                                               postContainerBlob: postContainerBlob)))
+            } catch {
+                DDLogError("FeedData/externalSharePost/decryptionError: \(error)")
+                mainQueueCompletion(.failure(error))
+            }
+        }
+
+        if userData.isLoggedIn {
+            DDLogInfo("FeedData/externalSharePost/fetchingViaService")
+            service.externalSharePost(blobID: blobID) { result in
+                switch result {
+                case .success(let externalSharePostContainer):
+                    transform(externalSharePostContainer)
+                case .failure(let error):
+                    mainQueueCompletion(.failure(error))
+                }
+            }
+        } else {
+            // If the user is not logged in, fall back to HTTP
+            DDLogInfo("FeedData/externalSharePost/fetchingViaHTTP")
+
+            let url = URL(string: "https://\(ExternalShareInfo.externalShareHost)/\(blobID)?format=pb")!
+            var request = URLRequest(url: url)
+            request.setValue(AppContext.userAgent, forHTTPHeaderField: "User-Agent")
+            let task = URLSession.shared.dataTask(with: request) { (data, urlResponse, error) in
+                if let error = error {
+                    mainQueueCompletion(.failure(error))
+                } else if let data = data {
+                    do {
+                        transform(try Server_ExternalSharePostContainer(serializedData: data))
+                    } catch {
+                        mainQueueCompletion(.failure(error))
+                    }
+                } else {
+                    mainQueueCompletion(.failure(RequestError.malformedResponse))
+                }
+            }
+            task.resume()
         }
     }
 
