@@ -55,7 +55,7 @@ final class FloatingMenuButton: UIView {
         let button = AccessorizedFloatingButton(icon: collapsedIconTemplate, accessoryView: accessoryView)
         return FloatingMenuButton(
             button: button,
-            action: { menu in menu.toggleExpanded() },
+            action: { menu in menu.toggle() },
             transition: { expansionState, accessoryState in
                 switch expansionState {
                 case .collapsed:
@@ -85,8 +85,9 @@ final class FloatingMenuButton: UIView {
         return FloatingMenuButton(
             button: button,
             action: { menu in
+                menu.presenter?.dismiss(animated: true)
                 action()
-                return menu.setExpansionState(.collapsed, animated: true) },
+                return Future<Void, Never>.guarantee(()) },
             transition: { (state, _) in
                 switch state {
                 case .collapsed:
@@ -100,7 +101,44 @@ final class FloatingMenuButton: UIView {
     }
 }
 
-final class FloatingMenu: UIView {
+// MARK: - FloatingMenuPresenter protocol
+
+protocol FloatingMenuPresenter: UIViewController {
+    var floatingMenu: FloatingMenu { get }
+    func makeTriggerButton() -> FloatingMenuButton
+    func toggledFloatingMenu(_ menu: FloatingMenu, to state: FloatingMenu.ExpansionState) -> Future<Void, Never>
+}
+
+// MARK: - FloatingMenuPresenter default implementation
+
+extension FloatingMenuPresenter {
+    func toggledFloatingMenu(_ menu: FloatingMenu, to state: FloatingMenu.ExpansionState) -> Future<Void, Never> {
+        switch state {
+        case .collapsed:
+            guard presentedViewController === floatingMenu else { return Future<Void, Never>.guarantee(()) }
+            return Future { [weak self] promise in
+                self?.dismiss(animated: true) {
+                    promise(.success(()))
+                }
+            }
+        case .expanded:
+            guard presentedViewController == nil else { return Future<Void, Never>.guarantee(()) }
+            return Future { [weak self] promise in
+                guard let self = self else {
+                    return
+                }
+                
+                self.present(self.floatingMenu, animated: true) {
+                    promise(.success(()))
+                }
+            }
+        }
+    }
+}
+
+// MARK: - FloatingMenu implementation
+
+final class FloatingMenu: UIViewController, UIViewControllerTransitioningDelegate {
 
     static var ButtonDiameter: CGFloat = 55
     static var ButtonSpacing: CGFloat = 15
@@ -108,14 +146,23 @@ final class FloatingMenu: UIView {
     static var HeaderSpacing: CGFloat = 20
     static var ShadowOpacity: Float = 0.2
     static var ExpandedBackgroundColor: UIColor = .feedBackground.withAlphaComponent(0.9)
+    
+    weak var presenter: FloatingMenuPresenter?
 
-    init(permanentButton: FloatingMenuButton, expandedButtons: [FloatingMenuButton] = [], expandedHeader: String? = nil) {
-        self.permanentButton = permanentButton
+    init(presenter: FloatingMenuPresenter, expandedButtons: [FloatingMenuButton] = [], expandedHeader: String? = nil) {
+        self.triggerButton = presenter.makeTriggerButton()
+        self.anchorButton = presenter.makeTriggerButton()
         self.expandedButtons = expandedButtons
+        self.presenter = presenter
+        
         if let expandedHeader = expandedHeader {
             self.expandedHeader = Self.makeLabel(text: expandedHeader, textStyle: .body)
         }
-        super.init(frame: .zero)
+        
+        super.init(nibName: nil, bundle: nil)
+        
+        modalPresentationStyle = .custom
+        transitioningDelegate = self
         setup()
     }
 
@@ -123,7 +170,9 @@ final class FloatingMenu: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    let permanentButton: FloatingMenuButton
+    /// Identical in appearance to `anchorButton`. This button lives on the presenting view controller.
+    let triggerButton: FloatingMenuButton
+    let anchorButton: FloatingMenuButton
     let expandedButtons: [FloatingMenuButton]
 
     // NB: These are private(set) so we can update them in a custom animation block.
@@ -131,18 +180,20 @@ final class FloatingMenu: UIView {
     private(set) var accessoryState = AccessoryState.accessorized
 
     var suggestedContentInsetHeight: CGFloat {
-        layoutIfNeeded()
-        let margin = bounds.maxY - permanentButton.frame.maxY
-        return permanentButton.frame.height + (2 * margin)
+        view.layoutIfNeeded()
+        let margin = view.bounds.maxY - anchorButton.frame.maxY
+        return anchorButton.frame.height + (2 * margin)
     }
 
     @discardableResult
-    func toggleExpanded() -> Future<Void, Never> {
-        return setExpansionState(isCollapsed ? .expanded : .collapsed, animated: true)
+    func toggle() -> Future<Void, Never> {
+        let nextState = isCollapsed ? ExpansionState.expanded : ExpansionState.collapsed
+        return presenter?.toggledFloatingMenu(self, to: nextState) ?? Future<Void, Never>.guarantee(())
     }
 
+    /// - note: `fileprivate` protection because we only want to call this method during view controller presentation.
     @discardableResult
-    func setExpansionState(_ newState: ExpansionState, animated: Bool) -> Future<Void, Never> {
+    fileprivate func setExpansionState(_ newState: ExpansionState, animated: Bool) -> Future<Void, Never> {
         guard newState != expansionState else {
             return Future<Void, Never>.guarantee(())
         }
@@ -150,7 +201,7 @@ final class FloatingMenu: UIView {
         if animated {
             return animateLayout()
         } else {
-            layoutSubviews()
+            viewDidLayoutSubviews()
             return Future<Void, Never>.guarantee(())
         }
     }
@@ -164,7 +215,7 @@ final class FloatingMenu: UIView {
         if animated {
             return animateLayout()
         } else {
-            layoutSubviews()
+            viewDidLayoutSubviews()
             return Future<Void, Never>.guarantee(())
         }
     }
@@ -177,41 +228,36 @@ final class FloatingMenu: UIView {
         let animationDuration: TimeInterval = 0.3
         
         return Future { promise in
-            // Dispatch async to prevent animating collection view cell reuse when scrolling to top
-            DispatchQueue.main.async {
-                UIView.animate(
-                    withDuration: animationDuration,
-                    delay: 0,
-                    usingSpringWithDamping: damping,
-                    initialSpringVelocity: 0,
-                    options: .allowUserInteraction,
-                    animations: { self.layoutSubviews() },
-                    completion: { _ in promise(.success(())) })
-            }
+            UIView.animate(
+                withDuration: animationDuration,
+                delay: 0,
+                usingSpringWithDamping: damping,
+                initialSpringVelocity: 0,
+                options: .allowUserInteraction,
+                animations: { self.viewDidLayoutSubviews() },
+                completion: { _ in promise(.success(())) })
         }
     }
 
-    // UIView
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
 
-    override func layoutSubviews() {
-        super.layoutSubviews()
-
-        orderedButtons.forEach { $0.transition?(expansionState, accessoryState) }
-        backgroundColor = isCollapsed ? .clear : Self.ExpandedBackgroundColor
-
+        allButtons.forEach { $0.transition?(expansionState, accessoryState) }
+        view.backgroundColor = isCollapsed ? .clear : Self.ExpandedBackgroundColor
+        
         for (i, button) in orderedButtons.enumerated() {
-            let castsShadow = button == permanentButton
-            let needsSpacing = !isCollapsed && button != permanentButton
-            
-            var buttonDifference = (button.bounds.width - permanentButton.bounds.width) / 2
-            if case .rightToLeft = effectiveUserInterfaceLayoutDirection {
+            let castsShadow = button == anchorButton
+            let needsSpacing = !isCollapsed && button != anchorButton
+
+            var buttonDifference = (button.bounds.width - anchorButton.bounds.width) / 2
+            if case .rightToLeft = view.effectiveUserInterfaceLayoutDirection {
                 buttonDifference = -buttonDifference
             }
             
             button.layer.shadowOpacity = castsShadow ? Self.ShadowOpacity : 0
             button.center = CGPoint(
-                x: permanentButton.center.x - buttonDifference,
-                y: permanentButton.center.y)
+                x: anchorButton.center.x - buttonDifference,
+                y: anchorButton.center.y)
             if needsSpacing {
                 let deltaY = Self.PermanentButtonExtraSpacing + CGFloat(i) * (Self.ButtonDiameter + Self.ButtonSpacing)
                 button.center.y -= deltaY
@@ -219,34 +265,20 @@ final class FloatingMenu: UIView {
         }
 
         if let header = expandedHeader {
-            let topButton = orderedButtons.last ?? permanentButton
-            let headerCenterY = isCollapsed ? permanentButton.center.y : topButton.frame.minY - Self.HeaderSpacing - header.bounds.height/2
+            let topButton = orderedButtons.last ?? anchorButton
+            let headerCenterY = isCollapsed ? anchorButton.center.y : topButton.frame.minY - Self.HeaderSpacing - header.bounds.height/2
             header.center = CGPoint(
-                x: permanentButton.center.x - (header.bounds.width - permanentButton.bounds.width) / 2,
+                x: anchorButton.center.x - (header.bounds.width - anchorButton.bounds.width) / 2,
                 y: headerCenterY)
             header.alpha = isCollapsed ? 0 : 1
         }
     }
 
-    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-        guard isUserInteractionEnabled else {
-            return nil
-        }
-        let hitTargets: [UIView] = isCollapsed ? [permanentButton] : orderedButtons
-        let result: UIView? = hitTargets.reduce(nil) { hitView, target in
-            let convertedPoint = self.convert(point, to: target)
-            return hitView ?? target.hitTest(convertedPoint, with: event)
-        }
-        if result == nil, !isCollapsed {
-            // Block interaction with view below
-            return self
-        }
-        return result
-    }
-
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        
         if !isCollapsed {
-            setExpansionState(.collapsed, animated: true)
+            _ = presenter?.toggledFloatingMenu(self, to: .collapsed)
         }
     }
 
@@ -275,30 +307,96 @@ final class FloatingMenu: UIView {
     private var isCollapsed: Bool { self.expansionState == .collapsed }
 
     private var orderedButtons: [FloatingMenuButton] {
-        [permanentButton] + expandedButtons
+        [anchorButton] + expandedButtons
+    }
+    
+    private var allButtons: [FloatingMenuButton] {
+        [triggerButton] + orderedButtons
     }
 
     // NB: Not in use as of 3/8/22. We used to show a "New Post" menu header but it was confusing users.
     private var expandedHeader: UIView?
 
     private func setup() {
-
-        orderedButtons.reversed().forEach { button in
-            addSubview(button)
+        for button in allButtons.reversed() {
             button.menu = self
-            button.translatesAutoresizingMaskIntoConstraints = false
             button.layer.shadowColor = UIColor.black.cgColor
             button.layer.shadowRadius = 6
             button.layer.shadowOpacity = Self.ShadowOpacity
             button.layer.shadowOffset = CGSize(width: 0, height: 5)
-        }
-        if let header = expandedHeader {
-            addSubview(header)
+            
+            if button === triggerButton {
+                continue
+            }
+            
+            button.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(button)
         }
 
-        permanentButton.constrainMargin(anchor: .bottom, to: self, constant: -4)
-        permanentButton.constrainMargin(anchor: .trailing, to: self, constant: -4)
-        setNeedsLayout()
+        if let header = expandedHeader {
+            view.addSubview(header)
+        }
+
+        view.setNeedsLayout()
+    }
+    
+    func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        return FloatingMenuPresentController()
+    }
+    
+    func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        return FloatingMenuDismissController()
+    }
+}
+
+// MARK: - custom view controller presentation
+
+fileprivate final class FloatingMenuPresentController: NSObject, UIViewControllerAnimatedTransitioning {
+    private var presentFinishedListener: AnyCancellable?
+    
+    func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
+        return 0.3
+    }
+    
+    func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
+        guard let menu = transitionContext.viewController(forKey: .to) as? FloatingMenu else {
+            transitionContext.completeTransition(false)
+            return
+        }
+        
+        transitionContext.containerView.addSubview(menu.view)
+        // align the menu w/ the trigger button that's on the presenting vc
+        NSLayoutConstraint.activate([
+            menu.anchorButton.trailingAnchor.constraint(equalTo: menu.triggerButton.trailingAnchor),
+            menu.anchorButton.bottomAnchor.constraint(equalTo: menu.triggerButton.bottomAnchor),
+        ])
+        
+        menu.triggerButton.layer.shadowOpacity = 0
+        menu.view.layoutIfNeeded()
+        
+        // we use the menu's animation method
+        presentFinishedListener = menu.setExpansionState(.expanded, animated: true).sink {
+            transitionContext.completeTransition(true)
+        }
+    }
+}
+
+fileprivate final class FloatingMenuDismissController: NSObject, UIViewControllerAnimatedTransitioning {
+    private var dismissFinishedListener: AnyCancellable?
+    
+    func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
+        return 0.3
+    }
+    
+    func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
+        let from = transitionContext.viewController(forKey: .from) as! FloatingMenu
+        
+        dismissFinishedListener = from.setExpansionState(.collapsed, animated: true).sink {
+            from.triggerButton.layer.shadowOpacity = FloatingMenu.ShadowOpacity
+            from.anchorButton.layer.shadowOpacity = 0
+            
+            transitionContext.completeTransition(true)
+        }
     }
 }
 
@@ -311,6 +409,8 @@ extension Future {
         }
     }
 }
+
+// MARK: - AccessorizedFloatingButton implementation
 
 final class AccessorizedFloatingButton: UIControl {
     init(icon: UIImage?, accessoryView: UIView) {

@@ -16,7 +16,7 @@ import SwiftUI
 import UIKit
 
 
-class FeedViewController: FeedCollectionViewController {
+class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
 
     private var cancellables: Set<AnyCancellable> = []
     private var notificationButton: BadgedButton?
@@ -95,6 +95,13 @@ class FeedViewController: FeedCollectionViewController {
         if isNearTop(100) {
             MainAppContext.shared.feedData.didGetRemoveHomeTabIndicator.send()
         }
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        let bottomInset = view.bounds.maxX - floatingMenu.triggerButton.frame.minX
+        collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: bottomInset, right: 0)
     }
 
     deinit {
@@ -245,8 +252,8 @@ class FeedViewController: FeedCollectionViewController {
     private func showFloatingMenuNUX() {
         let popover = NUXPopover(
             Localizations.nuxNewPostButtonContent,
-            targetRect: floatingMenu.permanentButton.bounds,
-            targetSpace: floatingMenu.permanentButton.coordinateSpace,
+            targetRect: floatingMenu.anchorButton.bounds,
+            targetSpace: floatingMenu.anchorButton.coordinateSpace,
             showButton: false) { [weak self] in
             MainAppContext.shared.nux.didComplete(.newPostButton)
             self?.overlay = nil
@@ -289,7 +296,7 @@ class FeedViewController: FeedCollectionViewController {
     private var composeVoiceNoteButton: FloatingMenuButton?
     private var composeCamPostButton: FloatingMenuButton?
 
-    private lazy var floatingMenu: FloatingMenu = {
+    private(set) lazy var floatingMenu: FloatingMenu = {
         let camButton = FloatingMenuButton.standardActionButton(
             iconTemplate: UIImage(named: "icon_fab_compose_camera")?.withRenderingMode(.alwaysTemplate),
             accessibilityLabel: Localizations.fabAccessibilityCamera,
@@ -317,25 +324,29 @@ class FeedViewController: FeedCollectionViewController {
             expandedButtons.insert(button, at: 1)
         }
         
-        let config = UIImage.SymbolConfiguration(pointSize: 20, weight: .bold)
-        let plusImage = UIImage(systemName: "plus", withConfiguration: config)
-        let accessory = UIImageView(image: UIImage(named: "fab_hallo"))
-        accessory.contentMode = .scaleAspectFit
-        
-        return FloatingMenu(
-            permanentButton: .rotatingToggleButton(
-                collapsedIconTemplate: plusImage?.withRenderingMode(.alwaysTemplate),
-                        accessoryView: UIImageView(image: UIImage(named: "fab_hallo")),
-                     expandedRotation: 45),
-            expandedButtons: expandedButtons)
+        return FloatingMenu(presenter: self, expandedButtons: expandedButtons)
     }()
-
+    
+    func makeTriggerButton() -> FloatingMenuButton {
+        let config = UIImage.SymbolConfiguration(pointSize: 20, weight: .bold)
+        let plusImage = UIImage(systemName: "plus", withConfiguration: config)?.withRenderingMode(.alwaysTemplate)
+        let accessory = UIImageView(image: UIImage(named: "fab_hallo"))
+        
+        return .rotatingToggleButton(collapsedIconTemplate: plusImage,
+                                             accessoryView: accessory,
+                                          expandedRotation: 45)
+    }
+    
     private func installFloatingActionMenu() {
-        floatingMenu.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(floatingMenu)
-        floatingMenu.constrain(to: view)
-
-        collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: floatingMenu.suggestedContentInsetHeight, right: 0)
+        let trigger = floatingMenu.triggerButton
+        
+        trigger.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(trigger)
+        
+        NSLayoutConstraint.activate([
+            trigger.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
+            trigger.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor, constant: -20),
+        ])
     }
 
     private let settingsURL = URL(string: UIApplication.openSettingsURLString)

@@ -13,7 +13,7 @@ import CoreCommon
 import CoreData
 import UIKit
 
-class GroupFeedViewController: FeedCollectionViewController {
+class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
 
     private enum Constants {
         static let sectionHeaderReuseIdentifier = "header-view"
@@ -218,7 +218,9 @@ class GroupFeedViewController: FeedCollectionViewController {
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-
+        let bottomInset = view.bounds.maxX - floatingMenu.triggerButton.frame.minX
+        collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: bottomInset, right: 0)
+        
         guard collectionView.contentSize != .zero, shouldRestoreScrollPosition, let scrollPosition = Self.cachedScrollPositions[groupId] else {
             return
         }
@@ -369,7 +371,7 @@ class GroupFeedViewController: FeedCollectionViewController {
     private var composeVoiceNoteButton: FloatingMenuButton?
     private var composeCamPostButton: FloatingMenuButton?
 
-    private lazy var floatingMenu: FloatingMenu = {
+    private(set) lazy var floatingMenu: FloatingMenu = {
         let camButton = FloatingMenuButton.standardActionButton(
             iconTemplate: UIImage(named: "icon_fab_compose_camera")?.withRenderingMode(.alwaysTemplate),
             accessibilityLabel: Localizations.fabAccessibilityCamera,
@@ -397,6 +399,10 @@ class GroupFeedViewController: FeedCollectionViewController {
             expandedButtons.insert(button, at: 1)
         }
 
+        return FloatingMenu(presenter: self, expandedButtons: expandedButtons)
+    }()
+    
+    func makeTriggerButton() -> FloatingMenuButton {
         let postLabel = UILabel()
         postLabel.translatesAutoresizingMaskIntoConstraints = false
         postLabel.font = .quicksandFont(ofFixedSize: 21, weight: .bold)
@@ -408,30 +414,30 @@ class GroupFeedViewController: FeedCollectionViewController {
         labelContainer.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 1, right: 0)
         labelContainer.addSubview(postLabel)
         postLabel.constrainMargins(to: labelContainer)
-
-        let config = UIImage.SymbolConfiguration(pointSize: 20, weight: .bold)
-        let plusImage = UIImage(systemName: "plus", withConfiguration: config)
-        let accessory = UIImageView(image: UIImage(named: "fab_hallo"))
         
-        return FloatingMenu(
-            permanentButton: .rotatingToggleButton(
-                collapsedIconTemplate: plusImage?.withRenderingMode(.alwaysTemplate),
-                        accessoryView: labelContainer,
-                     expandedRotation: 45),
-            expandedButtons: expandedButtons)
-    }()
+        let config = UIImage.SymbolConfiguration(pointSize: 20, weight: .bold)
+        let plusImage = UIImage(systemName: "plus", withConfiguration: config)?.withRenderingMode(.alwaysTemplate)
+        
+        return .rotatingToggleButton(collapsedIconTemplate: plusImage,
+                                             accessoryView: labelContainer,
+                                          expandedRotation: 45)
+    }
 
     private func updateFloatingActionMenu() {
-        floatingMenu.isHidden = !userBelongsToGroup
-        floatingMenu.isUserInteractionEnabled = userBelongsToGroup
+        floatingMenu.triggerButton.isHidden = !userBelongsToGroup
+        floatingMenu.triggerButton.isUserInteractionEnabled = userBelongsToGroup
     }
 
     private func installFloatingActionMenu() {
-        floatingMenu.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(floatingMenu)
-        floatingMenu.constrain(to: view)
-
-        collectionView.contentInset.bottom = floatingMenu.suggestedContentInsetHeight
+        let trigger = floatingMenu.triggerButton
+        
+        trigger.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(trigger)
+        
+        NSLayoutConstraint.activate([
+            trigger.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
+            trigger.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor, constant: -20)
+        ])
     }
 
     private func presentNewPostViewController(source: NewPostMediaSource) {
