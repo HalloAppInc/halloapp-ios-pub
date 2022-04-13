@@ -142,6 +142,9 @@
 /* Label for button that toggles speakerphone status during call */
 "call.button.speaker" = "altavoz";
 
+/* Text indicating that calls are end-to-end encrypted */
+"call.encryption.text" = "Cifrado de extremo a extremo";
+
 /* Title for call history event. Appears next to details of a successful call. */
 "call.history.video.call" = "Videollamada";
 
@@ -502,6 +505,9 @@
 /* Title for generic delete button. */
 "Delete" = "Eliminar";
 
+/* link, tapping on which launched the flow to edit favorites */
+"edit.favorites" = "Editar favoritos";
+
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Para conectarte debes intercambiar números de teléfono";
 
@@ -607,6 +613,9 @@
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.all" = "Mis contactos";
 
+/* Header for the list of all contacts on HallAapp. */
+"feed.privacy.list.all.details" = "Mis contactos de HalloApp";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.except" = "Mis contactos excepto ...";
 
@@ -650,7 +659,7 @@
 "feed.welcome.post.body" = "Usa tu número de teléfono para conectarte con amigos y familia en un entorno sin anuncios, marcas, me gustan o influentes.\n\nHalloApp es para tí y para esos cercanos a tí, en privado. ¡Invita a tus amigos de verdad para empezar!";
 
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.title" = "Bienvenido a HalloApp, un espacio para relaciones de verdad ✨";
+"feed.welcome.post.title" = "Bienvenido(a) a HalloApp, un espacio para relaciones de verdad ✨";
 
 /* Text for 'more' cell prompting users to open the invite screen */
 "feedInviteCarousel.searchPrompt" = "Busca más amigos y familiares";
@@ -1666,4 +1675,7 @@
 
 /* Text introducing external share link, part of what is shared */
 "your.post.externalshare.title" = "Mira mi publicación en HalloApp:";
+
+/* Notification that post is uploading */
+"your.post.externalshare.uploading" = "Creando publicación...";
 

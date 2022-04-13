@@ -142,6 +142,9 @@
 /* Label for button that toggles speakerphone status during call */
 "call.button.speaker" = "luidspreker";
 
+/* Text indicating that calls are end-to-end encrypted */
+"call.encryption.text" = "End-to-end versleuteld";
+
 /* Title for call history event. Appears next to details of a successful call. */
 "call.history.video.call" = "Video-oproep";
 
@@ -421,6 +424,9 @@
 /* Title for audio post composer */
 "composer.audio.title" = "Nieuwe Audiopost";
 
+/* Title on edit button */
+"composer.button.edit" = "Bewerken";
+
 /* Title warning that a voice recording will be deleted */
 "composer.delete.recording.title" = "Spraakopname verwijderen?";
 
@@ -499,6 +505,9 @@
 /* Title for generic delete button. */
 "Delete" = "Verwijderen";
 
+/* link, tapping on which launched the flow to edit favorites */
+"edit.favorites" = "Favorieten Bijwerken";
+
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Om connectie te maken, moeten jullie telefoonnummers uitwisselen";
 
@@ -510,6 +519,9 @@
 
 /* Description of an externally shared post containing just text */
 "externalShare.og.description.text" = "Tekstpost";
+
+/* Title for posts that are externally shared, 'John Smith's HalloApp Post' */
+"externalShare.og.title3" = "HalloApp Post van %@";
 
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Camera";
@@ -601,6 +613,9 @@
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.all" = "Mijn Contacten";
 
+/* Header for the list of all contacts on HallAapp. */
+"feed.privacy.list.all.details" = "Mijn HalloApp Contacten";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.except" = "Mijn Contacten, Behalve...";
 
@@ -614,10 +629,10 @@
 "feed.privacy.list.notOwn.only.description" = "Deze post wordt alleen gedeeld met een beperkt publiek. Je kunt je publiek op ieder moment aanpassen in de privacy-instellingen.";
 
 /* Settings > Privacy > Posts > Favorites privacy setting. */
-"feed.privacy.list.only" = "Alleen Delen Met...";
+"feed.privacy.list.only" = "Favorieten";
 
 /* Header for the list when selecting contacts to share with. */
-"feed.privacy.list.only.details" = "Selecteer wie deze post kan zien";
+"feed.privacy.list.only.details" = "Wie kan deze post zien";
 
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.only.title" = "Favorieten";
@@ -922,6 +937,9 @@
 /* Button title. Refers to resetting photo / video to original version. */
 "media.button.reset" = "Resetten";
 
+/* Button title. Refers to undoing an edit of a photo. */
+"media.button.undo" = "Ongedaan maken";
+
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.camera.access.request" = "HalloApp heeft geen toegang tot je camera. Om toegang te geven, tik op Instellingen en zet Camera aan";
 
@@ -995,7 +1013,10 @@
 "mypost.action.view.profile" = "Profiel bekijken";
 
 /* Generic message displayed to say when posts will disappear. */
-"mypost.disappear.time.label" = "Je posts verdwijnen na 30 dagen.";
+"mypost.disappear.time.label" = "Je post verdwijnt na 30 dagen.";
+
+/* Message displayed to say when posts will disappear for posts shared with favorites. */
+"mypost.favorites.disappear.time.label" = "Je post is gedeeld met je Favorieten en verdwijnt na 30 dagen.";
 
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
 "mypost.hide.posts.confirmation" = "Weet je zeker dat je al je toekomstige posts wilt verbergen voor %@? Je kunt dit later altijd weer aanpassen.";
@@ -1497,7 +1518,7 @@
 "textview.context.menu.video.call.user" = "Videobellen";
 
 /* Link to expand truncated text. */
-"textview.more" = "...meer";
+"textview.more" = "meer";
 
 /* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
 "thread.list.preview.already.user.default" = "%@ gebruikt HalloApp";
@@ -1637,6 +1658,9 @@
 /* Success toast when external share link is copied */
 "your.post.externalshare.copylink.success" = "Gekopieerd naar Klembord";
 
+/* Message on header of post menu explaining external share */
+"your.post.externalshare.description2" = "Iedereen met deze link kan je post zien. Link verloopt zodra je post verloopt. Linkvoorbeeld is onversleuteld.";
+
 /* Message that external share failed. */
 "your.post.externalshare.error" = "Uploaden van post voor extern delen mislukt";
 
@@ -1648,4 +1672,7 @@
 
 /* Text introducing external share link, part of what is shared */
 "your.post.externalshare.title" = "Bekijk mijn post op HalloApp:";
+
+/* Notification that post is uploading */
+"your.post.externalshare.uploading" = "Post wordt aangemaakt...";
 

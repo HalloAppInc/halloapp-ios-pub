@@ -502,6 +502,9 @@
 /* Title for generic delete button. */
 "Delete" = "Apagar";
 
+/* link, tapping on which launched the flow to edit favorites */
+"edit.favorites" = "Editar Favoritos ";
+
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Para se ligar, deve trocar os números de telefone";
 
@@ -606,6 +609,9 @@
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.all" = "Meus Contatos";
+
+/* Header for the list of all contacts on HallAapp. */
+"feed.privacy.list.all.details" = "Meus contatos do HalloApp";
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.except" = "Os meus contatos, exceto...";
