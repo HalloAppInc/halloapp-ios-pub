@@ -616,7 +616,7 @@ extension ContactSelectionViewController {
             dismissAction: dismissAction)
     }
 
-    static func forPrivacyList(_ privacyList: PrivacyList, in privacySettings: PrivacySettings, doneAction: (() -> Void)? = nil, dismissAction: (() -> Void)?) -> ContactSelectionViewController {
+    static func forPrivacyList(_ privacyList: PrivacyList, in privacySettings: PrivacySettings, setActiveType: Bool, doneAction: (() -> Void)? = nil, dismissAction: (() -> Void)?) -> ContactSelectionViewController {
         return ContactSelectionViewController(
             manager: ContactSelectionManager(initialSelection: Set(privacyList.userIds)),
             title: PrivacyList.title(forPrivacyListType: privacyList.type),
@@ -630,7 +630,7 @@ extension ContactSelectionViewController {
                     return
                 }
 
-                privacySettings.replaceUserIDs(in: privacyList, with: userIDs)
+                privacySettings.replaceUserIDs(in: privacyList, with: userIDs, setActiveType: false)
 
                 if let doneAction = doneAction {
                     doneAction()

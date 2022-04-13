@@ -425,7 +425,7 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
         }
     }
 
-    private func upload(privacyList: PrivacyList, retryOnFailure: Bool = true) {
+    private func upload(privacyList: PrivacyList, retryOnFailure: Bool = true, setActiveType: Bool = true) {
         numberOfPendingRequests += 1
         privacyListSyncError = nil
 
@@ -438,7 +438,7 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
                 DDLogInfo("privacy/upload-list/\(privacyList.type)/complete")
 
                 privacyList.commitChanges()
-                if privacyList.canBeSetAsFeedAudience {
+                if privacyList.canBeSetAsFeedAudience, setActiveType {
                     self.activeType = privacyList.type
                 }
 
@@ -514,14 +514,14 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
     }
 
     // TODO: Improve this API to clarify that the new list will be synced
-    func replaceUserIDs<T>(in privacyList: PrivacyList, with userIds: T, retryOnFailure: Bool = true) where T: Collection, T.Element == UserID {
+    func replaceUserIDs<T>(in privacyList: PrivacyList, with userIds: T, retryOnFailure: Bool = true, setActiveType: Bool = true) where T: Collection, T.Element == UserID {
         DDLogInfo("privacy/update-list/\(privacyList.type)\nOld: \(privacyList.items.map({ $0.userId }))\nNew: \(userIds)")
 
         privacyList.update(with: userIds)
 
         if privacyList.state == .needsUpstreamSync || privacyList.canBeSetAsFeedAudience {
             updateSettingValue(forPrivacyList: privacyList)
-            upload(privacyList: privacyList, retryOnFailure: retryOnFailure)
+            upload(privacyList: privacyList, retryOnFailure: retryOnFailure, setActiveType: setActiveType)
         }
     }
 

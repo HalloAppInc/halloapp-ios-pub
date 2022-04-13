@@ -149,17 +149,20 @@ class ChangeDestinationViewController: UIViewController {
                         cell.configure(
                             title: PrivacyList.name(forPrivacyListType: .all),
                             subtitle: Localizations.feedPrivacyShareWithAllContacts,
+                            privacyListType: .all,
                             isSelected: isDestinationUserFeed && activePrivacyListType == .all,
                             hasNext: true)
                     case 1:
                         cell.configure(
                             title: PrivacyList.name(forPrivacyListType: .whitelist),
                             subtitle: activePrivacyListType == .whitelist ? privacySettings.longFeedSetting : Localizations.feedPrivacyShareWithSelected,
+                            privacyListType: .whitelist,
                             isSelected: isDestinationUserFeed && activePrivacyListType == .whitelist,
                             hasNext: true)
                     default:
                         break
                     }
+                    cell.delegate = self
                 }
 
                 return cell
@@ -315,33 +318,14 @@ extension ChangeDestinationViewController: UICollectionViewDelegate {
             switch indexPath.row {
             case 0:
                 privacySettings.setFeedSettingToAllContacts()
-                if searchController.isActive {
-                    dismiss(animated: true)
-                }
-
-                let controller = ContactSelectionViewController.forAllContacts(PrivacyListType.all, in: privacySettings, doneAction: { [weak self] in
-                    self?.dismiss(animated: false)
-                    self?.destination = .userFeed
-                    self?.backAction()
-                    privacySettings.setFeedSettingToAllContacts()
-                }, dismissAction: nil)
-
-                present(UINavigationController(rootViewController: controller), animated: true)
             case 1:
-                if searchController.isActive {
-                    dismiss(animated: true)
-                }
-
-                let controller = ContactSelectionViewController.forPrivacyList(privacySettings.whitelist, in: privacySettings, doneAction: { [weak self] in
-                    self?.dismiss(animated: false)
-                    self?.destination = .userFeed
-                    self?.backAction()
-                }, dismissAction: nil)
-
-                present(UINavigationController(rootViewController: controller), animated: true)
+                MainAppContext.shared.privacySettings.activeType = .whitelist
             default:
                 return
             }
+            dismiss(animated: false)
+            destination = .userFeed
+            backAction()
         } else {
             guard let selectableDestination = dataSource.itemIdentifier(for: indexPath) else { return }
             destination = .groupFeed(selectableDestination.id)
@@ -364,6 +348,42 @@ extension ChangeDestinationViewController: UISearchBarDelegate {
 extension ChangeDestinationViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
         dataSource.apply(makeSnapshot(searchString: searchController.searchBar.text))
+    }
+}
+
+extension ChangeDestinationViewController: ContactsCellDelegate {
+    fileprivate func didTapViewList(_ contactsCell: ContactsCell, privacyListType: PrivacyListType) {
+        let privacySettings = MainAppContext.shared.privacySettings
+        switch privacyListType {
+        case .all:
+            privacySettings.setFeedSettingToAllContacts()
+            if searchController.isActive {
+                dismiss(animated: true)
+            }
+
+            let controller = ContactSelectionViewController.forAllContacts(PrivacyListType.all, in: privacySettings, doneAction: { [weak self] in
+                self?.dismiss(animated: false)
+                self?.destination = .userFeed
+                self?.backAction()
+                privacySettings.setFeedSettingToAllContacts()
+            }, dismissAction: nil)
+
+            present(UINavigationController(rootViewController: controller), animated: true)
+        case .whitelist:
+            if searchController.isActive {
+                dismiss(animated: true)
+            }
+
+            let controller = ContactSelectionViewController.forPrivacyList(privacySettings.whitelist, in: privacySettings, setActiveType: true, doneAction: { [weak self] in
+                self?.dismiss(animated: false)
+                self?.destination = .userFeed
+                self?.backAction()
+            }, dismissAction: nil)
+
+            present(UINavigationController(rootViewController: controller), animated: true)
+        default:
+            return
+        }
     }
 }
 
@@ -446,7 +466,13 @@ fileprivate class BackgroundDecorationView: UICollectionReusableView {
     }
 }
 
+fileprivate protocol ContactsCellDelegate: AnyObject {
+    func didTapViewList(_ contactsCell: ContactsCell, privacyListType: PrivacyListType)
+}
+
 fileprivate class ContactsCell: UICollectionViewCell {
+    var delegate:ContactsCellDelegate?
+    var privacyListType: PrivacyListType?
     static var reuseIdentifier: String {
         return String(describing: ContactsCell.self)
     }
@@ -476,16 +502,23 @@ fileprivate class ContactsCell: UICollectionViewCell {
         return label
     }()
 
-    private lazy var nextView: UIView = {
+    private lazy var nextView: UIButton = {
+        let nextViewButton = UIButton()
+        nextViewButton.addTarget(self, action: #selector(didTapViewList), for: .touchUpInside)
+        nextViewButton.translatesAutoresizingMaskIntoConstraints = false
         let imageConf = UIImage.SymbolConfiguration(pointSize: 18)
         let image = UIImage(systemName: "chevron.right", withConfiguration: imageConf)!.withRenderingMode(.alwaysTemplate)
-        let imageView = UIImageView(image: image)
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.tintColor = .primaryBlackWhite.withAlphaComponent(0.3)
-        imageView.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-
-        return imageView
+        nextViewButton.setImage(image, for: .normal)
+        nextViewButton.layer.cornerRadius = 11
+        nextViewButton.widthAnchor.constraint(equalToConstant: 40).isActive = true
+        return nextViewButton
     }()
+
+    @objc func didTapViewList(_ sender: UITapGestureRecognizer) {
+        if let privacyListType = privacyListType {
+            delegate?.didTapViewList(self, privacyListType: privacyListType)
+        }
+    }
 
     private lazy var selectedView: UIView = {
         let imageConf = UIImage.SymbolConfiguration(pointSize: 18, weight: .bold)
@@ -495,6 +528,19 @@ fileprivate class ContactsCell: UICollectionViewCell {
         imageView.tintColor = .primaryBlue
         imageView.setContentHuggingPriority(.defaultHigh, for: .horizontal)
 
+        return imageView
+    }()
+
+    private lazy var settingImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.tintColor = .clear
+        imageView.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        imageView.layer.cornerRadius = 17
+        NSLayoutConstraint.activate([
+            imageView.widthAnchor.constraint(equalToConstant: 30),
+            imageView.heightAnchor.constraint(equalToConstant: 30)
+        ])
         return imageView
     }()
 
@@ -533,25 +579,40 @@ fileprivate class ContactsCell: UICollectionViewCell {
         vStack.distribution = .fillProportionally
         vStack.spacing = 1
 
-        let hStack = UIStackView(arrangedSubviews: [selectedView, vStack, nextView])
+        let hStack = UIStackView(arrangedSubviews: [selectedView, settingImageView, vStack, nextView])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.axis = .horizontal
         hStack.alignment = .center
         hStack.spacing = 10
 
         contentView.addSubview(hStack)
-
+        nextView.topAnchor.constraint(equalTo: hStack.topAnchor).isActive = true
+        nextView.bottomAnchor.constraint(equalTo: hStack.bottomAnchor).isActive = true
         hStack.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
         hStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
         hStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 11).isActive = true
-        hStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -11).isActive = true
+        hStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor).isActive = true
     }
 
-    func configure(title: String, subtitle: String, isSelected: Bool, hasNext: Bool) {
+    func configure(title: String, subtitle: String, privacyListType: PrivacyListType, isSelected: Bool, hasNext: Bool) {
         titleView.text = title
         subtitleView.text = subtitle
         selectedView.tintColor = isSelected ? .primaryBlue : .clear
         nextView.isHidden = !hasNext
+        self.privacyListType = privacyListType
+        configureSettingsImage(for: privacyListType)
+    }
+
+    func configureSettingsImage(for privacyListType: PrivacyListType) {
+        switch privacyListType {
+        case .all:
+            settingImageView.image = UIImage(named: "PrivacySettingMyContacts")?.withTintColor(.primaryBlue)
+        case .whitelist:
+            settingImageView.image = UIImage(named: "PrivacySettingFavorite")
+            settingImageView.backgroundColor = .favoritesBg
+        default:
+            break
+        }
     }
 }
 

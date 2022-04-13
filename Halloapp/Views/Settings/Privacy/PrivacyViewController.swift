@@ -152,7 +152,7 @@ class PrivacyViewController: UITableViewController {
         }
 
         let privacySettings = MainAppContext.shared.privacySettings
-        let vc = ContactSelectionViewController.forPrivacyList(privacySettings.blocked, in: privacySettings) { [weak self] in
+        let vc = ContactSelectionViewController.forPrivacyList(privacySettings.blocked, in: privacySettings, setActiveType: false) { [weak self] in
             self?.reloadPrivacyValues()
             self?.dismiss(animated: true)
         }

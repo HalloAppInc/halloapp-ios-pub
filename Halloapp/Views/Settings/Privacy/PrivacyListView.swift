@@ -16,10 +16,10 @@ struct PrivacyListView: UIViewControllerRepresentable {
 
     @EnvironmentObject var privacySettings: PrivacySettings
 
-    private let privacyList: PrivacyList
+    private let privacyList: PrivacyList?
     private let dismissAction: () -> ()
 
-    init(_ privacyList: PrivacyList, dismissAction: @escaping () -> ()) {
+    init(_ privacyList: PrivacyList?, dismissAction: @escaping () -> ()) {
         self.privacyList = privacyList
         self.dismissAction = dismissAction
     }
@@ -29,7 +29,11 @@ struct PrivacyListView: UIViewControllerRepresentable {
             let vc = PrivacyPermissionDeniedController()
             return UINavigationController(rootViewController: vc)
         }
-        let vc = ContactSelectionViewController.forPrivacyList(privacyList, in: privacySettings, dismissAction: dismissAction)
+        if let privacyList = privacyList {
+            let vc = ContactSelectionViewController.forPrivacyList(privacyList, in: privacySettings, setActiveType: false, dismissAction: dismissAction)
+            return UINavigationController(rootViewController: vc)
+        }
+        let vc = ContactSelectionViewController.forAllContacts(.all, in: MainAppContext.shared.privacySettings, dismissAction: dismissAction)
         return UINavigationController(rootViewController: vc)
     }
 

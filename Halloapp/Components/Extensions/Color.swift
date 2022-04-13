@@ -82,4 +82,9 @@ extension Color {
     static var mediaEditGrid: Color {
         Color("MediaEditGrid")
     }
+
+    // MARK: Favorites
+    static var favoritesBg: Color {
+        Color("FavoritesBg")
+    }
 }

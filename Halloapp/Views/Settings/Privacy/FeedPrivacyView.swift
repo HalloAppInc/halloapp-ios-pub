@@ -21,6 +21,7 @@ struct FeedPrivacyView: View {
 
     @State private var isBlacklistScreenPresented: Bool = false
     @State private var isWhitelistScreenPresented: Bool = false
+    @State private var isAllContactsSelected: Bool = false
     @State private var shouldShowEnableContactPermissionView: Bool = false
 
     init(privacySettings: PrivacySettings) {
@@ -57,12 +58,13 @@ struct FeedPrivacyView: View {
                 Button(action: {
                         self.selectAllContacts()
                         self.shouldShowEnableContactPermissionView = !ContactStore.contactsAccessAuthorized
+                        self.isAllContactsSelected = true
                 }) {
                     HStack {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(self.privacySettings.activeType == .all ? .blue : .clear)
 
+                        Image("PrivacySettingMyContacts")
+                            .renderingMode(.template)
+                            .foregroundColor(.primaryBlue)
                         VStack(alignment: .leading) {
                             Text(PrivacyList.name(forPrivacyListType: .all))
                                 .font(.body)
@@ -73,6 +75,10 @@ struct FeedPrivacyView: View {
                         }
 
                         Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .renderingMode(.template)
+                            .foregroundColor(.primaryBlackWhite.opacity(0.3))
                     }
                 }
                 .frame(height: 54)
@@ -85,13 +91,19 @@ struct FeedPrivacyView: View {
                 .sheet(isPresented: self.$shouldShowEnableContactPermissionView) {
                     PrivacyPermissionDeniedView(dismissAction: { self.shouldShowEnableContactPermissionView = false })
                 }
+                .sheet(isPresented: self.$isAllContactsSelected) {
+                    PrivacyListView(nil , dismissAction: { self.isAllContactsSelected = false })
+                        .environmentObject(self.privacySettings)
+                        .edgesIgnoringSafeArea(.bottom)
+                }
 
                 Button(action: { self.isWhitelistScreenPresented = true }) {
                     HStack {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(self.privacySettings.activeType == .whitelist ? .blue : .clear)
-
+                        Image("PrivacySettingFavorite")
+                            .renderingMode(.template)
+                            .foregroundColor(Color.white)
+                            .background(Color.favoritesBg)
+                            .clipShape(Circle())
                         VStack(alignment: .leading) {
                             Text(PrivacyList.name(forPrivacyListType: .whitelist))
                                 .font(.body)
