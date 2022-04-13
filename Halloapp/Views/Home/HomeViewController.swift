@@ -166,6 +166,28 @@ class HomeViewController: UITabBarController {
             })
         )
 
+        cancellableSet.insert(MainAppContext.shared.openPostInFeed.sink(receiveValue: { [weak self] postID in
+            guard let self = self else {
+                return
+            }
+            self.dismiss(animated: false)
+            self.switchTo(tab: .home)
+
+            guard let feedNavigationController = self.selectedViewController as? UINavigationController else {
+                DDLogError("HomeViewController/openPostInFeed/unexpected view controller hierarchy")
+                return
+            }
+
+            feedNavigationController.popToRootViewController(animated: false)
+
+            guard let feedViewController = feedNavigationController.topViewController as? FeedCollectionViewController else {
+                DDLogError("HomeViewController/openPostInFeed/unexpected view controller hierarchy")
+                return
+            }
+
+            feedViewController.scrollTo(postId: postID)
+        }))
+
         // When the app just started (had been force-quit before)
         if let metadata = NotificationMetadata.fromUserDefaults() {
             processNotification(metadata: metadata)

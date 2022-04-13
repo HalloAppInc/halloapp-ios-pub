@@ -44,6 +44,7 @@ class MainAppContext: AppContext {
     let groupFeedFromGroupTabPresentRequest = CurrentValueSubject<GroupID?, Never>(nil)
     let openChatThreadRequest = PassthroughSubject<UserID, Never>()
     let mediaDidStartPlaying = PassthroughSubject<URL?, Never>()
+    let openPostInFeed = PassthroughSubject<FeedPostID, Never>()
 
     let didPrivacySettingChange = PassthroughSubject<UserID, Never>()
 
