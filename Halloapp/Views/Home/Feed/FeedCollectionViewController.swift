@@ -729,7 +729,6 @@ extension FeedCollectionViewController {
 
     func configure(cell: FeedPostCollectionViewCell, withActiveFeedPost feedPost: FeedPost) {
         let postId = feedPost.id
-        let isGroupPost = feedPost.groupId != nil
 
         cell.configure(
             with: feedPost,
