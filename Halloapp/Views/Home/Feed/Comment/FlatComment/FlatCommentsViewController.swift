@@ -799,6 +799,15 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
 
     override var canBecomeFirstResponder: Bool {
         get {
+            if let groupID = feedPost?.groupId {
+                // don't allow commenting if user is no longer part of this feed post's group
+                if let _ = MainAppContext.shared.chatData.chatGroupMember(groupId: groupID, memberUserId: MainAppContext.shared.userData.userId) {
+                    return true
+                } else {
+                    return false
+                }
+            }
+            
             return true
         }
     }
