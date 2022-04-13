@@ -115,7 +115,9 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
             MainAppContext.shared.feedData.didGetRemoveHomeTabIndicator.send()
         }
         let fabAccessoryState: FloatingMenu.AccessoryState = scrollView.contentOffset.y <= 0 ? .accessorized : .plain
-        floatingMenu.setAccessoryState(fabAccessoryState, animated: true)
+        DispatchQueue.main.async { [weak self] in
+            self?.floatingMenu.setAccessoryState(fabAccessoryState, animated: true)
+        }
     }
 
     // MARK: FeedCollectionViewController
