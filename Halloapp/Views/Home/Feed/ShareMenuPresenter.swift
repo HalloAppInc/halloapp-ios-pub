@@ -79,13 +79,16 @@ extension ShareMenuPresenter {
         guard proceedIfConnected() else {
             return
         }
+        let toast = Toast(type: .activityIndicator, text: Localizations.externalShareLinkRevoking)
+        toast.show(shouldAutodismiss: false)
         MainAppContext.shared.feedData.revokeExternalShareUrl(for: postID) { [weak self] result in
             DispatchQueue.main.async { [weak self] in
                 switch result {
                 case .success(_):
-                    // No-op on success
+                    toast.update(type: .icon(UIImage(systemName: "checkmark")), text: Localizations.externalShareLinkRevoked)
                     break
                 case .failure(_):
+                    toast.hide()
                     let actionSheet = UIAlertController(title: nil, message: Localizations.externalShareRevokeFailed, preferredStyle: .alert)
                     actionSheet.addAction(UIAlertAction(title: Localizations.buttonOK, style: .cancel))
                     self?.present(actionSheet, animated: true)
@@ -98,7 +101,21 @@ extension ShareMenuPresenter {
 extension Localizations {
 
     static var externalShareLinkUploading: String = {
-        NSLocalizedString("your.post.externalshare.uploading", value: "Creating post...", comment: "Notification that post is uploading ")
+        NSLocalizedString("your.post.externalshare.uploading",
+                          value: "Creating link...",
+                          comment: "Notification that post is uploading ")
+    }()
+
+    static var externalShareLinkRevoking: String = {
+        NSLocalizedString("your.post.externalshare.revoking",
+                          value: "Revoking link...",
+                          comment: "Notification revoking an external share link is in progress")
+    }()
+
+    static var externalShareLinkRevoked: String = {
+        NSLocalizedString("your.post.externalshare.revoke.success",
+                          value: "Link revoked",
+                          comment: "Notification that a link was successfully revoked")
     }()
 
     static var externalShareCopyLink: String = {
