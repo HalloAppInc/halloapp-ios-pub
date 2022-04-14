@@ -138,10 +138,6 @@ public final class CryptoData {
                 DDLogInfo("CryptoData/update/\(contentID)/group/\(groupID)/skipping already decrypted")
                 return
             }
-            guard let timeReceived = groupFeedItemDecryption.timeReceived, timeReceived.timeIntervalSinceNow > -self.deadline else {
-                DDLogInfo("CryptoData/update/\(contentID)/group/\(groupID)/skipping past deadline")
-                return
-            }
             groupFeedItemDecryption.rerequestCount = Int32(rerequestCount)
             groupFeedItemDecryption.decryptionError = error
             groupFeedItemDecryption.timeDecrypted = error == "" ? Date() : nil
