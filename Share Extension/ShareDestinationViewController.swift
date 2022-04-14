@@ -53,6 +53,7 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
     private let contacts: [ABContact]
     private let allGroups: [GroupListSyncItem]
     private var groups: [GroupListSyncItem]
+    private var feedPrivacyTypes: [PrivacyListType]
     private var filteredContacts: [ABContact] = []
     private var filteredGroups: [GroupListSyncItem] = []
     private var searchController: UISearchController!
@@ -129,6 +130,7 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
         hasMoreGroups = allGroups.count > 6
         groups = hasMoreGroups ? [GroupListSyncItem](allGroups[..<6]) : allGroups
 
+        feedPrivacyTypes = [PrivacyListType.all, PrivacyListType.whitelist]
         super.init(nibName: nil, bundle: nil)
 
         DDLogInfo("ShareDestinationViewController/init loaded \(groups.count) groups and \(contacts.count) contacts")
@@ -295,7 +297,7 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
     private func destinationForRow(at indexPath: IndexPath) -> ShareDestination? {
         switch indexPath.section {
         case 0:
-            return .feed
+            return .feed(feedPrivacyTypes[indexPath.row])
         case 1:
             return .group(isFiltering ? filteredGroups[indexPath.row] : groups[indexPath.row])
         case 2:
@@ -307,8 +309,15 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
 
     private func indexPath(for destination: ShareDestination) -> IndexPath? {
         switch destination {
-        case .feed:
-            return IndexPath(row: 0, section: 0)
+        case .feed(let privacyListType):
+            switch privacyListType {
+            case .all:
+                return IndexPath(row: 0, section: 0)
+            case .whitelist:
+                return IndexPath(row: 1, section: 0)
+            default:
+                return IndexPath(row: 0, section: 0)
+            }
         case .group(let item):
             if isFiltering {
                 guard let idx = filteredGroups.firstIndex(where: { $0.id == item.id }) else { return nil }
@@ -350,7 +359,7 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
         case 0:
-            return 1
+            return 2
         case 1:
             return isFiltering ? filteredGroups.count : groups.count
         case 2:
@@ -376,12 +385,21 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
 
         guard let destination = destinationForRow(at: indexPath) else { return cell }
         let isSelected = selected.contains { $0 == destination }
-
         switch destination {
-        case .feed:
-            cell.configureHome(isSelected: isSelected) {
-                // TODO
+        case .feed(let privacyListType):
+            switch privacyListType {
+            case .all:
+                cell.configureHome(isSelected: isSelected) {
+                    // TODO
+                }
+            case .whitelist:
+                cell.configureFavorites(isSelected: isSelected) {
+                    // TODO
+                }
+            default:
+                break
             }
+            
         case .group(let group):
             cell.configure(group, isSelected: isSelected)
         case .contact(let contact):
@@ -403,6 +421,21 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
             selected.remove(at: idx)
         } else {
             selected.append(destination)
+        }
+
+        // Home and Favorites need to be mutually exclusive
+        switch destination {
+        case .feed(let privacyListType):
+            switch privacyListType {
+            case .all:
+                selected.removeAll(where: {$0 == .feed(.whitelist)})
+            case .whitelist:
+                selected.removeAll(where: {$0 == .feed(.all)})
+            default:
+                break
+            }
+        default:
+            break
         }
 
         onSelectionChange(destinations: selected)
@@ -529,6 +562,35 @@ fileprivate class DestinationCell: UITableViewCell {
 
         return container
     }()
+
+    private lazy var favoritesView: UIView = {
+        let imageView = UIImageView(image: Self.favoritesIcon)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.tintColor = .white
+        imageView.contentMode = .scaleAspectFit
+
+        let container = UIView()
+        container.translatesAutoresizingMaskIntoConstraints = false
+        container.backgroundColor = .favoritesBg
+        container.layer.cornerRadius = 6
+        container.clipsToBounds = true
+        container.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        container.isHidden = true
+
+        container.addSubview(imageView)
+
+        NSLayoutConstraint.activate([
+            container.widthAnchor.constraint(equalToConstant: 34),
+            container.heightAnchor.constraint(equalTo: container.widthAnchor),
+            imageView.widthAnchor.constraint(equalToConstant: 34),
+            imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor),
+            imageView.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+            imageView.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+        ])
+
+        return container
+    }()
+
     private var avatar: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
@@ -598,6 +660,7 @@ fileprivate class DestinationCell: UITableViewCell {
         
         cancellable?.cancel()
         homeView.isHidden = true
+        favoritesView.isHidden = true
         avatar.isHidden = true
         subtitle.isHidden = true
         moreButton.isHidden = true
@@ -612,7 +675,7 @@ fileprivate class DestinationCell: UITableViewCell {
         labels.distribution = .fill
         labels.spacing = 3
 
-        let stack = UIStackView(arrangedSubviews: [homeView, avatar, labels, moreButton, selectedView])
+        let stack = UIStackView(arrangedSubviews: [homeView, favoritesView, avatar, labels, moreButton, selectedView])
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.axis = .horizontal
         stack.alignment = .center
@@ -637,22 +700,30 @@ fileprivate class DestinationCell: UITableViewCell {
         self.more = more
 
         title.text = Localizations.home
+        subtitle.text = Localizations.feedPrivacyShareWithAllContacts
         homeView.isHidden = false
         subtitle.isHidden = false
 //        moreButton.isHidden = false
 
-        switch ShareExtensionContext.shared.privacySettings.activeType {
-        case .all:
-            subtitle.text = Localizations.feedPrivacyShareWithAllContacts
-        case .blacklist:
-            subtitle.text = Localizations.feedPrivacyShareWithContactsExcept
-        case .whitelist:
-            subtitle.text = Localizations.feedPrivacyShareWithSelected
-        default:
-            subtitle.isHidden = true
+        configureSelected(isSelected)
+        if isSelected {
+            ShareExtensionContext.shared.privacySettings.activeType = .all
         }
+    }
+
+    public func configureFavorites(isSelected: Bool, more: @escaping () -> Void) {
+        self.more = more
+
+        title.text = Localizations.favoritesTitle
+        subtitle.text = Localizations.feedPrivacyShareWithSelected
+        favoritesView.isHidden = false
+        subtitle.isHidden = false
+//        moreButton.isHidden = false
 
         configureSelected(isSelected)
+        if isSelected {
+            ShareExtensionContext.shared.privacySettings.activeType = .whitelist
+        }
     }
 
     public func configure(_ group: GroupListSyncItem, isSelected: Bool) {
@@ -735,6 +806,10 @@ fileprivate class DestinationCell: UITableViewCell {
 
     static var homeIcon: UIImage {
         UIImage(named: "HomeFill")!.withRenderingMode(.alwaysTemplate)
+    }
+
+    static var favoritesIcon: UIImage {
+       UIImage(named: "PrivacySettingFavorite")!.withRenderingMode(.alwaysOriginal)
     }
 
     private static var more: UIImage {

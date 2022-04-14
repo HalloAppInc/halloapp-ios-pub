@@ -19,14 +19,14 @@ enum ShareError: Error {
 }
 
 enum ShareDestination: Equatable, Hashable {
-    case feed
+    case feed(PrivacyListType)
     case group(GroupListSyncItem)
     case contact(ABContact)
 
     static func == (lhs: ShareDestination, rhs: ShareDestination) -> Bool {
         switch (lhs, rhs) {
-        case (.feed, .feed):
-            return true
+        case (.feed(let lf), .feed(let rf)):
+            return lf == rf
         case (.group(let lg), .group(let rg)):
             return lg.id == rg.id
         case (.contact(let lc), .contact(let rc)):
