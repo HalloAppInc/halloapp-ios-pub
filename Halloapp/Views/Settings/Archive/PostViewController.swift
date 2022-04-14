@@ -15,6 +15,7 @@ import UIKit
 class PostViewController: UIViewController, UserMenuHandler, ShareMenuPresenter {
 
     private let post: FeedPostDisplayable
+    private let showFooter: Bool
 
     private lazy var backBtn: UIView = {
         let background = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 0.1)
@@ -74,12 +75,17 @@ class PostViewController: UIViewController, UserMenuHandler, ShareMenuPresenter 
         return scrollView
     }()
 
-    init(post: FeedPostDisplayable) {
+    class func viewController(for post: FeedPostDisplayable, showFooter: Bool = false) -> UIViewController {
+        let navigationController = UINavigationController(rootViewController: PostViewController(post: post, showFooter: showFooter))
+        navigationController.modalPresentationStyle = .overFullScreen
+        navigationController.modalTransitionStyle = .crossDissolve
+        return navigationController
+    }
+
+    private init(post: FeedPostDisplayable, showFooter: Bool = false) {
         self.post = post
-        
+        self.showFooter = showFooter
         super.init(nibName: nil, bundle: nil)
-        modalPresentationStyle = .overFullScreen
-        modalTransitionStyle = .crossDissolve
     }
 
     required init?(coder: NSCoder) {
@@ -92,9 +98,11 @@ class PostViewController: UIViewController, UserMenuHandler, ShareMenuPresenter 
         view.addSubview(backgroundView)
         backgroundView.constrain(to: view)
 
-        view.addSubview(backBtn)
-        backBtn.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 2).isActive = true
-        backBtn.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
+        navigationItem.standardAppearance = .transparentAppearance
+        navigationItem.compactAppearance = .transparentAppearance
+        navigationItem.scrollEdgeAppearance = .transparentAppearance
+
+        navigationItem.leftBarButtonItem = UIBarButtonItem(customView: backBtn)
 
         setupPostActions()
 
@@ -117,7 +125,7 @@ class PostViewController: UIViewController, UserMenuHandler, ShareMenuPresenter 
         let contentWidth = view.frame.width - view.layoutMargins.left - view.layoutMargins.right
         let gutterWidth = (1 - FeedPostCollectionViewCell.LayoutConstants.backgroundPanelHMarginRatio) * view.layoutMargins.left
         postView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, showGroupName: true, showArchivedDate: true)
-        postView.isShowingFooter = false
+        postView.isShowingFooter = showFooter
 
         postView.delegate = self
     }
@@ -147,8 +155,7 @@ extension PostViewController: UIGestureRecognizerDelegate {
 extension PostViewController {
     private func setupPostActions() {
         postView.showUserAction = { [weak self] userId in
-            guard let self = self else { return }
-            self.present(UserFeedViewController(userId: userId), animated: true)
+            self?.navigationController?.pushViewController(UserFeedViewController(userId: userId), animated: true)
         }
 
         postView.showMoreAction = { [weak self] userId in
@@ -192,6 +199,22 @@ extension PostViewController {
             }
             self.presentShareMenu(for: post)
         }
+
+        postView.commentAction = { [weak self] in
+            guard let self = self, let post = self.post as? FeedPost else {
+                return
+            }
+            self.navigationController?.pushViewController(FlatCommentsViewController(feedPostId: post.id), animated: true)
+        }
+
+        postView.showSeenByAction = { [weak self] in
+            guard let self = self, let post = self.post as? FeedPost else {
+                return
+            }
+            let viewController = PostDashboardViewController(feedPost: post)
+            viewController.delegate = self
+            self.present(UINavigationController(rootViewController: viewController), animated: true)
+        }
     }
 
     private func mediaAuthorizationFailed() {
@@ -207,8 +230,17 @@ extension PostViewController {
 
     private func deletePost() {
         let alert = UIAlertController(title: nil, message: Localizations.deletePostConfirmationPrompt, preferredStyle: .actionSheet)
-        alert.addAction(UIAlertAction(title: Localizations.deletePostButtonTitle, style: .destructive) { _ in
-            MainAppContext.shared.feedData.deletePosts(with: [self.post.id])
+        alert.addAction(UIAlertAction(title: Localizations.deletePostButtonTitle, style: .destructive) { [post] _ in
+            guard let post = post as? FeedPost else {
+                DDLogWarn("Attempting to delete an external share post")
+                return
+            }
+            // If the post is expired, delete it, otherwise, retract it
+            if post.timestamp > FeedData.cutoffDate {
+                MainAppContext.shared.feedData.retract(post: post)
+            } else {
+                MainAppContext.shared.feedData.deletePosts(with: [post.id])
+            }
             self.dismiss(animated: true)
         })
         alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
@@ -310,5 +342,31 @@ extension PostViewController: FeedPostViewDelegate {
         UIView.animate(withDuration: 0.35) {
             animationBlock()
         }
+    }
+}
+
+// MARK: PostDashboardViewControllerDelegate
+
+extension PostViewController: PostDashboardViewControllerDelegate {
+
+    func postDashboardViewController(_ controller: PostDashboardViewController, didRequestPerformAction action: PostDashboardViewController.UserAction) {
+        let actionToPerformOnDashboardDismiss: () -> ()
+        switch action {
+        case .profile(let userId):
+            actionToPerformOnDashboardDismiss = {
+                self.navigationController?.pushViewController(UserFeedViewController(userId: userId), animated: true)
+            }
+
+        case .message(let userId):
+            actionToPerformOnDashboardDismiss = {
+                self.navigationController?.pushViewController(ChatViewController(for: userId, with: controller.feedPost.id), animated: true)
+            }
+
+        case .blacklist(let userId):
+            actionToPerformOnDashboardDismiss = {
+                MainAppContext.shared.privacySettings.hidePostsFrom(userId: userId)
+            }
+        }
+        controller.dismiss(animated: true, completion: actionToPerformOnDashboardDismiss)
     }
 }

@@ -138,7 +138,7 @@ class SettingsArchiveViewController: UIViewController, UICollectionViewDelegate,
             media.loadImage()
         }
 
-        present(PostViewController(post: post), animated: true)
+        present(PostViewController.viewController(for: post), animated: true)
     }
 }
 
