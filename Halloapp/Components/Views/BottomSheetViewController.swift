@@ -81,7 +81,8 @@ private class BottomSheetPresentationController: UIPresentationController, UIAda
         case hidden, expanded
 
         func transform(for sheetBackgroundView: BottomSheetBackgroundView) -> CGAffineTransform {
-            sheetBackgroundView.window?.layoutIfNeeded()
+            // resolve size of sheet
+            sheetBackgroundView.superview?.layoutIfNeeded()
             switch self {
             case .hidden:
                 let translation = sheetBackgroundView.bounds.height - BottomSheetBackgroundView.additionalBottomPadding
