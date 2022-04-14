@@ -112,6 +112,8 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
     private var postLinkPreviewView: PostLinkPreviewView?
     private var mediaViewHeightConstraint: NSLayoutConstraint?
 
+    private var canSaveMedia = false
+
     var didChangeMediaIndex: ((Int) -> Void)?
 
     private func setupView() {
@@ -276,6 +278,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         layoutMargins.bottom = post.hideFooterSeparator ? LayoutConstants.bottomMarginNoSeparator : LayoutConstants.bottomMarginWithSeparator
 
         postId = post.id
+        canSaveMedia = post.canSaveMedia
     }
 
     public static func obtainCryptoResultString(for contentID: String) -> String {
@@ -307,23 +310,18 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
     }
 
     func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
-        guard let postId = postId else { return }
-        guard let media = MainAppContext.shared.feedData.media(postID: postId) else { return }
-
-        presentMedia(media, index: index, delegate: view)
+        presentMedia(view.media, index: index, delegate: view)
     }
 
     func mediaCarouselView(_ view: MediaCarouselView, didDoubleTapMediaAtIndex index: Int) {
-        guard let postId = postId else { return }
-        guard let media = MainAppContext.shared.feedData.media(postID: postId) else { return }
+        let media = view.media
         guard media[index].type == .video else { return }
 
         presentMedia(media, index: index, delegate: view)
     }
 
     func mediaCarouselView(_ view: MediaCarouselView, didZoomMediaAtIndex index: Int, withScale scale: CGFloat) {
-        guard let postId = postId else { return }
-        guard let media = MainAppContext.shared.feedData.media(postID: postId) else { return }
+        let media = view.media
         guard media[index].type == .video else { return }
         guard scale > scaleThreshold else { return }
 
@@ -331,9 +329,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
     }
 
     private func presentMedia(_ media: [FeedMedia], index: Int, delegate transitionDelegate: MediaExplorerTransitionDelegate? = nil) {
-        guard let postId = postId, let post = MainAppContext.shared.feedData.feedPost(with: postId) else { return }
-
-        let explorerController = MediaExplorerController(media: media, index: index, canSaveMedia: post.canSaveMedia)
+        let explorerController = MediaExplorerController(media: media, index: index, canSaveMedia: canSaveMedia)
         explorerController.delegate = transitionDelegate
 
         if let controller = findController() {

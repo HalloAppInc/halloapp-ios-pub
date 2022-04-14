@@ -72,7 +72,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         case main = 0
     }
 
-    private var media: [FeedMedia]
+    private(set) var media: [FeedMedia]
     private var playbackInfo: VideoPlaybackInfo? = nil
     public var shouldAutoPlay = false
 
