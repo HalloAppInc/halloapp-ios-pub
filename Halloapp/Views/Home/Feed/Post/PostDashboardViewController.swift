@@ -299,14 +299,6 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
                             delegate.postDashboardViewController(self, didRequestPerformAction: .message(receipt.userId))
                         }))
                     }
-                    // Hide from Contact
-                    // This options isn't shown for group feed posts to avoid confusion:
-                    // blacklisted contacts still able to see user's posts in the group.
-                    if feedPost.audienceType != .group {
-                        actionSheet.addAction(UIAlertAction(title: Localizations.actionHideMyPosts, style: .destructive, handler: { (_) in
-                            self.promptToAddToBlacklist(userId: receipt.userId, contactName: contactName)
-                        }))
-                    }
                     actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
                     present(actionSheet, animated: true) {
                         tableView.deselectRow(at: indexPath, animated: true)
@@ -338,15 +330,6 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
             }
         }
         tableView.deselectRow(at: indexPath, animated: true)
-    }
-
-    private func promptToAddToBlacklist(userId: UserID, contactName: String) {
-        let actionSheet = UIAlertController(title: Localizations.hideMyPostsConfirmation(contactName: contactName), message: nil, preferredStyle: .actionSheet)
-        actionSheet.addAction(UIAlertAction(title: Localizations.actionHideMyPosts, style: .destructive, handler: { (_) in
-            self.delegate?.postDashboardViewController(self, didRequestPerformAction: .blacklist(userId))
-        }))
-        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
-        present(actionSheet, animated: true, completion: nil)
     }
 
 }
@@ -425,10 +408,6 @@ private extension Localizations {
 
     static var actionMessage: String {
         NSLocalizedString("mypost.action.message", value: "Message", comment: "One of the contact actions in My Post screen. Verb.")
-    }
-
-    static var actionHideMyPosts: String {
-        NSLocalizedString("mypost.action.hide.my.posts", value: "Hide My Posts", comment: "One of the contact actions in My Post screen.")
     }
 
     static func hideMyPostsConfirmation(contactName: String) -> String {
