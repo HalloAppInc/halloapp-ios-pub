@@ -366,7 +366,7 @@ class DataStore: NotificationServiceExtensionDataStore {
             chatMessage.senderClientVersion = metadata.senderClientVersion
             chatMessage.serverMsgPb = metadata.serverMsgPb
             chatMessage.serverTimestamp = metadata.timestamp
-            chatMessage.timestamp = Date()
+            chatMessage.timestamp = metadata.timestamp ?? Date()
             let serialID = AppContext.shared.getchatMsgSerialId()
             DDLogInfo("SharedDataStore/message/\(messageId)/created/serialId \(serialID)")
             chatMessage.serialID = serialID
