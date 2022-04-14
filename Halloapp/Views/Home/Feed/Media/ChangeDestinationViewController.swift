@@ -64,7 +64,7 @@ class ChangeDestinationViewController: UIViewController {
             var groupHeight: NSCollectionLayoutDimension = .absolute(ContactSelectionViewController.rowHeight)
 
             if !self.isSearching && sectionIndex == 0 {
-                item.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 7, trailing: 0)
+                item.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
                 groupHeight = .absolute(ContactSelectionViewController.rowHeight + 7)
             }
 
@@ -85,9 +85,17 @@ class ChangeDestinationViewController: UIViewController {
                 section.decorationItems = [backgroundDecoration]
             }
 
+            if sectionIndex == 0 {
+                let backgroundDecoration = NSCollectionLayoutDecorationItem.background(elementKind: ContactsCellBackgroundDecorationView.elementKind)
+                backgroundDecoration.contentInsets = NSDirectionalEdgeInsets(top: 44, leading: 16, bottom: 0, trailing: 16)
+
+                section.decorationItems = [backgroundDecoration]
+            }
+
             return section
         }
 
+        layout.register(ContactsCellBackgroundDecorationView.self, forDecorationViewOfKind: ContactsCellBackgroundDecorationView.elementKind)
         layout.register(BackgroundDecorationView.self, forDecorationViewOfKind: BackgroundDecorationView.elementKind)
 
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
@@ -323,7 +331,7 @@ extension ChangeDestinationViewController: UICollectionViewDelegate {
             default:
                 return
             }
-            dismiss(animated: false)
+            dismiss(animated: true)
             destination = .userFeed
             backAction()
         } else {
@@ -423,6 +431,47 @@ fileprivate class HeaderView: UICollectionReusableView {
     }
 }
 
+fileprivate class ContactsCellBackgroundDecorationView: UICollectionReusableView {
+    static var elementKind: String {
+        return String(describing: ContactsCellBackgroundDecorationView.self)
+    }
+
+    override var bounds: CGRect {
+        didSet {
+            configure()
+        }
+    }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        backgroundColor = .feedPostBackground
+        layer.cornerRadius = 10
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    private func configure() {
+        for view in subviews {
+            view.removeFromSuperview()
+        }
+        let height = ContactSelectionViewController.rowHeight + 7
+        let color = UIColor.separator
+        let count = Int(bounds.height / height)
+
+        if count > 0 {
+            for i in 1..<count {
+                let position = height * CGFloat(i)
+                let separatorView = UIView(frame: CGRect(x: 0, y: position, width: bounds.width, height: 0.5))
+                separatorView.backgroundColor = color
+
+                addSubview(separatorView)
+            }
+        }
+    }
+}
+
 fileprivate class BackgroundDecorationView: UICollectionReusableView {
     static var elementKind: String {
         return String(describing: BackgroundDecorationView.self)
@@ -448,8 +497,7 @@ fileprivate class BackgroundDecorationView: UICollectionReusableView {
         for view in subviews {
             view.removeFromSuperview()
         }
-
-        let height = ContactSelectionViewController.rowHeight
+        let height = ContactSelectionViewController.rowHeight + 7
         let inset = CGFloat(44)
         let color = UIColor.separator
         let count = Int(bounds.height / height)
@@ -511,6 +559,7 @@ fileprivate class ContactsCell: UICollectionViewCell {
         nextViewButton.setImage(image, for: .normal)
         nextViewButton.layer.cornerRadius = 11
         nextViewButton.widthAnchor.constraint(equalToConstant: 40).isActive = true
+        nextViewButton.tintColor = .primaryBlackWhite.withAlphaComponent(0.3)
         return nextViewButton
     }()
 
@@ -534,14 +583,31 @@ fileprivate class ContactsCell: UICollectionViewCell {
     private lazy var settingImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.tintColor = .clear
         imageView.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-        imageView.layer.cornerRadius = 17
-        NSLayoutConstraint.activate([
-            imageView.widthAnchor.constraint(equalToConstant: 30),
-            imageView.heightAnchor.constraint(equalToConstant: 30)
-        ])
+        imageView.contentMode = .scaleAspectFit
+
         return imageView
+    }()
+
+    private lazy var settingImageViewContainer: UIView = {
+        let container = UIView()
+        container.translatesAutoresizingMaskIntoConstraints = false
+        container.backgroundColor = .clear
+        container.clipsToBounds = true
+        container.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+
+        container.addSubview(settingImageView)
+
+        NSLayoutConstraint.activate([
+            container.widthAnchor.constraint(equalToConstant: 30),
+            container.heightAnchor.constraint(equalTo: container.widthAnchor),
+            settingImageView.widthAnchor.constraint(equalToConstant: 30),
+            settingImageView.heightAnchor.constraint(equalTo: settingImageView.widthAnchor),
+            settingImageView.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+            settingImageView.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+        ])
+
+        return container
     }()
 
     override init(frame: CGRect) {
@@ -561,13 +627,11 @@ fileprivate class ContactsCell: UICollectionViewCell {
 
     private func setup() {
         layer.cornerRadius = 10
-        layer.shadowRadius = 0
-        layer.shadowColor = UIColor.black.cgColor
         layer.shadowOpacity = 0.15
         layer.shadowOffset = CGSize(width: 0, height: 0.5)
         layer.masksToBounds = false
 
-        contentView.backgroundColor = .feedPostBackground
+        contentView.backgroundColor = .clear
         contentView.layer.cornerRadius = 10
         contentView.layer.masksToBounds = true
 
@@ -579,7 +643,7 @@ fileprivate class ContactsCell: UICollectionViewCell {
         vStack.distribution = .fillProportionally
         vStack.spacing = 1
 
-        let hStack = UIStackView(arrangedSubviews: [selectedView, settingImageView, vStack, nextView])
+        let hStack = UIStackView(arrangedSubviews: [selectedView, settingImageViewContainer, vStack, nextView])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.axis = .horizontal
         hStack.alignment = .center
@@ -607,9 +671,12 @@ fileprivate class ContactsCell: UICollectionViewCell {
         switch privacyListType {
         case .all:
             settingImageView.image = UIImage(named: "PrivacySettingMyContacts")?.withTintColor(.primaryBlue)
+            settingImageViewContainer.backgroundColor = .clear
+            settingImageViewContainer.layer.cornerRadius = 0
         case .whitelist:
             settingImageView.image = UIImage(named: "PrivacySettingFavorite")
-            settingImageView.backgroundColor = .favoritesBg
+            settingImageViewContainer.backgroundColor = .favoritesBg
+            settingImageViewContainer.layer.cornerRadius = 15
         default:
             break
         }

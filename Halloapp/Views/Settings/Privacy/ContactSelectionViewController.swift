@@ -630,7 +630,7 @@ extension ContactSelectionViewController {
                     return
                 }
 
-                privacySettings.replaceUserIDs(in: privacyList, with: userIDs, setActiveType: false)
+                privacySettings.replaceUserIDs(in: privacyList, with: userIDs, setActiveType: setActiveType)
 
                 if let doneAction = doneAction {
                     doneAction()
