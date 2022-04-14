@@ -35,6 +35,7 @@ protocol FeedPostDisplayable {
     var hasAudio: Bool { get }
     var canDeletePost: Bool { get }
     var canSharePost: Bool { get }
+    var canComment: Bool { get }
     var posterFullName: String { get }
 
     func userAvatar(using avatarStore: AvatarStore) -> UserAvatar
@@ -109,6 +110,10 @@ extension FeedPost: FeedPostDisplayable {
     var canSharePost: Bool {
         let isOwnPost = userId == MainAppContext.shared.userData.userId
         return isOwnPost && ServerProperties.externalSharingEnabled
+    }
+
+    var canComment: Bool {
+        return true
     }
 
     var posterFullName: String {

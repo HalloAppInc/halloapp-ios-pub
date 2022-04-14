@@ -127,6 +127,10 @@ class ExternalSharePost: FeedPostDisplayable {
         return false
     }
 
+    var canComment: Bool {
+        return false
+    }
+
     var posterFullName: String {
         let fullName = MainAppContext.shared.contactStore.fullNameIfAvailable(for: userId,
                                                                               ownName: Localizations.meCapitalized,

@@ -903,6 +903,8 @@ final class FeedItemFooterView: UIView {
         facePileView.isHidden = true
         separator.isHidden = post.hideFooterSeparator
 
+        commentButton.isEnabled = post.canComment
+
         if case .normal = state, post.canSharePost {
             shareButton.isHidden = false
             facePileShareButtonConstraint.priority = .defaultHigh
