@@ -16,6 +16,7 @@ class PostViewController: UIViewController, UserMenuHandler, ShareMenuPresenter 
 
     private let post: FeedPostDisplayable
     private let showFooter: Bool
+    private var currentMediaIndex = 0
 
     private lazy var backBtn: UIView = {
         let background = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 0.1)
@@ -230,6 +231,37 @@ extension PostViewController {
             viewController.delegate = self
             self.present(UINavigationController(rootViewController: viewController), animated: true)
         }
+
+        postView.messageAction = { [weak self] in
+            guard let self = self, let post = self.post as? FeedPost else {
+                return
+            }
+            let chatViewController = ChatViewController(for: post.userId,
+                                                        with: post.id,
+                                                        at: Int32(self.currentMediaIndex))
+            self.navigationController?.pushViewController(chatViewController, animated: true)
+        }
+
+        postView.showGroupFeedAction = { [weak self] groupID in
+            guard let self = self, MainAppContext.shared.chatData.chatGroup(groupId: groupID) != nil else {
+                return
+            }
+            self.navigationController?.pushViewController(GroupFeedViewController(groupId: groupID), animated: true)
+        }
+
+        let postID = post.id
+
+        postView.retrySendingAction = {
+            MainAppContext.shared.feedData.retryPosting(postId: postID)
+        }
+
+        postView.cancelSendingAction = {
+            MainAppContext.shared.feedData.cancelMediaUpload(postId: postID)
+        }
+
+        postView.deleteAction = {
+            MainAppContext.shared.feedData.deleteUnsentPost(postID: postID)
+        }
     }
 
     private func mediaAuthorizationFailed() {
@@ -351,7 +383,9 @@ extension PostViewController: FeedPostViewDelegate {
         }
     }
 
-    func feedPostView(_ cell: FeedPostView, didChangeMediaIndex index: Int) {}
+    func feedPostView(_ cell: FeedPostView, didChangeMediaIndex index: Int) {
+        currentMediaIndex = index
+    }
 
     func feedPostViewDidRequestTextExpansion(_ cell: FeedPostView, animations animationBlock: @escaping () -> Void) {
         UIView.animate(withDuration: 0.35) {

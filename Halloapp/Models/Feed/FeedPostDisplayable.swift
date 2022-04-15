@@ -36,6 +36,7 @@ protocol FeedPostDisplayable {
     var canDeletePost: Bool { get }
     var canSharePost: Bool { get }
     var canComment: Bool { get }
+    var canReplyPrivately: Bool { get }
     var posterFullName: String { get }
 
     func userAvatar(using avatarStore: AvatarStore) -> UserAvatar
@@ -114,6 +115,10 @@ extension FeedPost: FeedPostDisplayable {
 
     var canComment: Bool {
         return true
+    }
+
+    var canReplyPrivately: Bool {
+        return MainAppContext.shared.contactStore.isContactInAddressBook(userId: userId)
     }
 
     var posterFullName: String {

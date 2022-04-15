@@ -920,6 +920,7 @@ final class FeedItemFooterView: UIView {
 
             commentButton.badge = post.hasComments ? (post.unreadCount > 0 ? .unread : .read) : .hidden
             messageButton.alpha = sender == .contact ? 1 : 0
+            messageButton.isEnabled = post.canReplyPrivately
             if sender == .ownPost {
                 facePileView.isHidden = false
                 facePileView.configure(with: post)
