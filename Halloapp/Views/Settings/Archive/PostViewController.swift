@@ -45,10 +45,9 @@ class PostViewController: UIViewController, UserMenuHandler, ShareMenuPresenter 
     }()
 
     private lazy var backgroundView: UIView = {
-        let view = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 0.1)
-        view.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.3)
+        let view = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
+        view.backgroundColor = .label.withAlphaComponent(0.3)
         view.translatesAutoresizingMaskIntoConstraints = false
-
         return view
     }()
 
