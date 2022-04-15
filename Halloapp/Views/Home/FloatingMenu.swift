@@ -106,13 +106,14 @@ final class FloatingMenuButton: UIView {
 protocol FloatingMenuPresenter: UIViewController {
     var floatingMenu: FloatingMenu { get }
     func makeTriggerButton() -> FloatingMenuButton
-    func toggledFloatingMenu(_ menu: FloatingMenu, to state: FloatingMenu.ExpansionState) -> Future<Void, Never>
+    func toggledFloatingMenu(to state: FloatingMenu.ExpansionState) -> Future<Void, Never>
+    func floatingMenuExpansionStateWillChange(to state: FloatingMenu.ExpansionState)
 }
 
 // MARK: - FloatingMenuPresenter default implementation
 
 extension FloatingMenuPresenter {
-    func toggledFloatingMenu(_ menu: FloatingMenu, to state: FloatingMenu.ExpansionState) -> Future<Void, Never> {
+    func toggledFloatingMenu(to state: FloatingMenu.ExpansionState) -> Future<Void, Never> {
         switch state {
         case .collapsed:
             guard presentedViewController === floatingMenu else { return Future<Void, Never>.guarantee(()) }
@@ -188,7 +189,7 @@ final class FloatingMenu: UIViewController, UIViewControllerTransitioningDelegat
     @discardableResult
     func toggle() -> Future<Void, Never> {
         let nextState = isCollapsed ? ExpansionState.expanded : ExpansionState.collapsed
-        return presenter?.toggledFloatingMenu(self, to: nextState) ?? Future<Void, Never>.guarantee(())
+        return presenter?.toggledFloatingMenu(to: nextState) ?? Future<Void, Never>.guarantee(())
     }
 
     /// - note: `fileprivate` protection because we only want to call this method during view controller presentation.
@@ -197,7 +198,10 @@ final class FloatingMenu: UIViewController, UIViewControllerTransitioningDelegat
         guard newState != expansionState else {
             return Future<Void, Never>.guarantee(())
         }
+        
         expansionState = newState
+        presenter?.floatingMenuExpansionStateWillChange(to: newState)
+        
         if animated {
             return animateLayout()
         } else {
@@ -278,7 +282,7 @@ final class FloatingMenu: UIViewController, UIViewControllerTransitioningDelegat
         super.touchesBegan(touches, with: event)
         
         if !isCollapsed {
-            _ = presenter?.toggledFloatingMenu(self, to: .collapsed)
+            _ = presenter?.toggledFloatingMenu(to: .collapsed)
         }
     }
 

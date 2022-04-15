@@ -426,6 +426,14 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
                                              accessoryView: labelContainer,
                                           expandedRotation: 45)
     }
+    
+    func floatingMenuExpansionStateWillChange(to state: FloatingMenu.ExpansionState) {
+        if case .expanded = state {
+            cancelNewPostsIndicatorRemoval()
+        } else {
+            scheduleNewPostsIndicatorRemoval()
+        }
+    }
 
     private func updateFloatingActionMenu() {
         floatingMenu.triggerButton.isHidden = !userBelongsToGroup
@@ -442,6 +450,14 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
             trigger.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
             trigger.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor, constant: -20)
         ])
+    }
+    
+    override func showNewPostsIndicator() {
+        super.showNewPostsIndicator()
+        
+        if presentedViewController === floatingMenu {
+            cancelNewPostsIndicatorRemoval()
+        }
     }
 
     private func presentNewPostViewController(source: NewPostMediaSource) {

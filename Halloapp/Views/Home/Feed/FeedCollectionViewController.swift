@@ -203,7 +203,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
 
         isVisible = true
         checkForOnscreenCells()
-        removeNewPostsIndicatorAfterSeen()
+        scheduleNewPostsIndicatorRemoval()
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -494,40 +494,81 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
     // MARK: New Posts Indicator
 
     private let newPostsIndicator = NewPostsIndicator()
+    /// Allows us to delay and cancel the removal of the indicator.
+    private var removeNewPostsIndicatorItem: DispatchWorkItem?
 
     func showNewPostsIndicator() {
-        guard !view.subviews.contains(newPostsIndicator) else { return }
+        guard newPostsIndicator.superview !== view else {
+            return
+        }
+        
         newPostsIndicator.translatesAutoresizingMaskIntoConstraints = false
-
+        view.addSubview(newPostsIndicator)
+        NSLayoutConstraint.activate([
+            newPostsIndicator.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            newPostsIndicator.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            newPostsIndicator.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+        ])
+        
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(newPostsIndicatorTapped))
         newPostsIndicator.isUserInteractionEnabled = true
         newPostsIndicator.addGestureRecognizer(tapGesture)
-
-        view.addSubview(newPostsIndicator)
+        
         newPostsIndicator.alpha = 0
-        newPostsIndicator.constrain([.leading, .trailing, .top], to: view.safeAreaLayoutGuide)
-
-        UIView.animate(withDuration: 0.35) { () -> Void in
+        UIView.animate(withDuration: 0.2) { () -> Void in
             self.newPostsIndicator.alpha = 1.0
         }
         
-        removeNewPostsIndicatorAfterSeen()
+        scheduleNewPostsIndicatorRemoval()
     }
 
-    private func removeNewPostsIndicatorAfterSeen() {
-        guard isVisible, view.subviews.contains(newPostsIndicator) else { return }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
-            self?.removeNewPostsIndicator()
+    /**
+     Schedules the removal of the "New Posts" indicator for 5 seconds from the time of calling this method.
+     */
+    func scheduleNewPostsIndicatorRemoval() {
+        guard
+            isVisible,
+            newPostsIndicator.superview === view,
+            removeNewPostsIndicatorItem == nil
+        else {
+            return
+        }
+        
+        let operation = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            
+            self.removeNewPostsIndicatorItem = nil
+            self.removeNewPostsIndicator()
+        }
+        
+        removeNewPostsIndicatorItem = operation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: operation)
+    }
+    
+    /**
+     Cancels the removal of the "New Posts" indicator. Does nothing if the removal is not already scheduled.
+     */
+    func cancelNewPostsIndicatorRemoval() {
+        removeNewPostsIndicatorItem?.cancel()
+        removeNewPostsIndicatorItem = nil
+    }
+
+    private func removeNewPostsIndicator(animated: Bool = true) {
+        guard animated else {
+            newPostsIndicator.removeFromSuperview()
+            return
+        }
+        
+        UIView.animate(withDuration: 0.2) {
+            self.newPostsIndicator.alpha = 0
+        } completion: { _ in
+            self.newPostsIndicator.removeFromSuperview()
         }
     }
 
-    private func removeNewPostsIndicator() {
-        guard view.subviews.contains(newPostsIndicator) else { return }
-        newPostsIndicator.removeFromSuperview()
-    }
-
-    @objc func newPostsIndicatorTapped() {
-        removeNewPostsIndicator()
+    @objc
+    func newPostsIndicatorTapped() {
+        removeNewPostsIndicator(animated: false)
         scrollToTop(animated: true)
     }
 

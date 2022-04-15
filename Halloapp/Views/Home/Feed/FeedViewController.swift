@@ -339,6 +339,16 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
                                           expandedRotation: 45)
     }
     
+    func floatingMenuExpansionStateWillChange(to state: FloatingMenu.ExpansionState) {
+        if case .expanded = state {
+            // keep the indicator visible while the menu is expanded
+            cancelNewPostsIndicatorRemoval()
+        } else {
+            // remove the indicator x seconds after we dismiss the menu
+            scheduleNewPostsIndicatorRemoval()
+        }
+    }
+    
     private func installFloatingActionMenu() {
         let trigger = floatingMenu.triggerButton
         
@@ -349,6 +359,15 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
             trigger.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
             trigger.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor, constant: -20),
         ])
+    }
+    
+    override func showNewPostsIndicator() {
+        super.showNewPostsIndicator()
+        
+        if presentedViewController === floatingMenu {
+            // case where the FAB was already displayed when the indicator appeared
+            cancelNewPostsIndicatorRemoval()
+        }
     }
 
     private let settingsURL = URL(string: UIApplication.openSettingsURLString)
