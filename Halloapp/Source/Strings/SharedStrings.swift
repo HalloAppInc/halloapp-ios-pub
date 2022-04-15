@@ -185,15 +185,19 @@ extension Localizations {
         NSLocalizedString("title.privacy", value: "Privacy", comment: "Row in Settings screen")
     }
 
+    static var titleEditFavorites: String {
+        NSLocalizedString("title.edit.favorites", value: "Edit your Favorites list", comment: "Button to edit favorites list")
+    }
+
     static var favoritesTitle: String {
         NSLocalizedString("feed.privacy.list.only.title", value: "Favorites", comment: "Title of the alert shown to user indicating their post is only shown to their favorites audience")
     }
 
     static var favoritesDescriptionOwn: String {
-        NSLocalizedString("feed.privacy.list.own.only.description", value: "This post is only shared with a custom group of contacts. You can adjust your audience whenever you make a new post, or under Settings > Privacy.", comment: "Description of the alert shown to user indicating their post is only shown to their favorites audience")
+        NSLocalizedString("feed.privacy.list.own.only.description", value: "Only the people on your Favorites list can view this post.", comment: "Description of the alert shown to user indicating their post is only shown to their favorites audience")
     }
 
     static var favoritesDescriptionNotOwn: String {
-        NSLocalizedString("feed.privacy.list.notOwn.only.description", value: "This post is only shared with a limited audience. You can adjust your audience in privacy settings at any time.", comment: "Description of the alert shown to user indicating their post is only shown to their favorites audience")
+        NSLocalizedString("feed.privacy.list.notOwn.only.description", value: "Only the people on %@'s Favorites list can view this post.", comment: "Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience")
     }
 }

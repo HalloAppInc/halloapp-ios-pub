@@ -24,6 +24,8 @@ final class ContactSelectionViewController: UIViewController {
     var isEditModeOn = false {
         didSet {
             editSelectionRow.isHidden = isEditModeOn
+            header = isEditModeOn ? PrivacyList.details(forPrivacyListType: privacyListType) : Localizations.favoritesTitle
+            collectionView.reloadData()
         }
     }
     private lazy var editSelectionLabel: UILabel = {
@@ -91,14 +93,15 @@ final class ContactSelectionViewController: UIViewController {
 
         self.style = style
         self.privacyListType = privacyListType
-        self.header = header
         self.manager = manager
         self.saveAction = saveAction
         self.dismissAction = dismissAction
-        self.isEditModeOn = false
         super.init(nibName: nil, bundle: nil)
         self.title = title
-        editSelectionRow.isHidden = privacyListType == .whitelist ? false : true
+        // If favorites list if empty, turn on edit mode
+        self.isEditModeOn = manager.selectedUserIDs.isEmpty ? true : false
+        self.header = isEditModeOn ? PrivacyList.details(forPrivacyListType: privacyListType) : Localizations.favoritesTitle
+        editSelectionRow.isHidden = (privacyListType == .whitelist && !isEditModeOn) ? false : true
         collectionView.delegate = self
 
         cancellableSet.insert(
@@ -148,7 +151,7 @@ final class ContactSelectionViewController: UIViewController {
         let source = UICollectionViewDiffableDataSource<String, SelectableContact>(collectionView: collectionView) { [weak self] collectionView, indexPath, contact in
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: SelectableContactReuse, for: indexPath)
             if let self = self, let itemCell = cell as? SelectableContactCell {
-                itemCell.configure(with: contact, isSelected: self.manager.selectedUserIDs.contains(contact.userID), style: self.style)
+                itemCell.configure(with: contact, isSelected: self.manager.selectedUserIDs.contains(contact.userID), style: self.style, isEditModeOn: self.isEditModeOn)
             }
             return cell
         }
@@ -175,7 +178,7 @@ final class ContactSelectionViewController: UIViewController {
     }()
 
     private let style: Style
-    private let header: String?
+    private var header: String?
     private let manager: ContactSelectionManager
     private lazy var collectionView: UICollectionView = {
         let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
@@ -201,7 +204,6 @@ final class ContactSelectionViewController: UIViewController {
 
         let globalHeaderSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(20))
         let globalHeader = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: globalHeaderSize, elementKind: PrivacySettingsHeaderView.elementKind, alignment: .top)
-        globalHeader.pinToVisibleBounds = true
         globalHeader.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16)
         let layoutConfig = UICollectionViewCompositionalLayoutConfiguration()
         layoutConfig.boundarySupplementaryItems = [globalHeader]
@@ -333,7 +335,7 @@ final class ContactSelectionViewController: UIViewController {
 extension ContactSelectionViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         guard let contact = dataSource.itemIdentifier(for: indexPath) else { return }
-        if style == .all {
+        if style == .all || !isEditModeOn {
             return
         }
         searchController?.searchBar.text = ""
@@ -489,8 +491,8 @@ final class SelectableContactCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func configure(with contact: SelectableContact, isSelected: Bool, style: ContactSelectionViewController.Style) {
-        contactView.configure(with: contact, isSelected: isSelected, style: style)
+    func configure(with contact: SelectableContact, isSelected: Bool, style: ContactSelectionViewController.Style, isEditModeOn: Bool) {
+        contactView.configure(with: contact, isSelected: isSelected, style: style, isEditModeOn: isEditModeOn)
     }
 
     private let contactView = ContactSelectionView(frame: .zero)
@@ -550,7 +552,7 @@ final class ContactSelectionView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func configure(with contact: SelectableContact, isSelected: Bool, style: ContactSelectionViewController.Style) {
+    func configure(with contact: SelectableContact, isSelected: Bool, style: ContactSelectionViewController.Style, isEditModeOn: Bool) {
         nameLabel.text = contact.name
         subtitleLabel.text = contact.phoneNumber ?? ""
         avatarView.configure(with: contact.userID, using: MainAppContext.shared.avatarStore)
@@ -561,6 +563,7 @@ final class ContactSelectionView: UIView {
             case .`default`:
                 accessoryImageView.tintColor = .primaryBlue
                 accessoryImageView.image = Self.checkmarkChecked
+                accessoryImageView.isHidden = !isEditModeOn
             case .destructive:
                 accessoryImageView.tintColor = .lavaOrange
                 accessoryImageView.image = Self.xmarkChecked
@@ -574,6 +577,7 @@ final class ContactSelectionView: UIView {
             default:
                 accessoryImageView.tintColor = .primaryBlackWhite.withAlphaComponent(0.2)
                 accessoryImageView.image = Self.checkmarkUnchecked
+                accessoryImageView.isHidden = !isEditModeOn
             }
         }
     }
@@ -625,12 +629,13 @@ extension ContactSelectionViewController {
             privacyListType: privacyList.type,
             saveAction: { vc, userIDs in
 
-                if privacyList.type == .whitelist, userIDs.isEmpty {
-                    vc.presentNoContactSelectedAlert()
-                    return
+                // If the favorites list is empty, default to MyContacts
+                if privacyList.type == .whitelist, userIDs.isEmpty, setActiveType {
+                    MainAppContext.shared.privacySettings.activeType = .all
+                    privacySettings.replaceUserIDs(in: privacyList, with: userIDs, setActiveType: false)
+                } else {
+                    privacySettings.replaceUserIDs(in: privacyList, with: userIDs, setActiveType: setActiveType)
                 }
-
-                privacySettings.replaceUserIDs(in: privacyList, with: userIDs, setActiveType: setActiveType)
 
                 if let doneAction = doneAction {
                     doneAction()

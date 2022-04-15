@@ -326,14 +326,32 @@ extension ChangeDestinationViewController: UICollectionViewDelegate {
             switch indexPath.row {
             case 0:
                 privacySettings.setFeedSettingToAllContacts()
+                dismiss(animated: true)
+                destination = .userFeed
+                backAction()
             case 1:
-                MainAppContext.shared.privacySettings.activeType = .whitelist
+                // if favorites list is empty.. open up edit flow with edit mode on
+                if MainAppContext.shared.privacySettings.whitelist.userIds.isEmpty {
+                    if searchController.isActive {
+                        dismiss(animated: true)
+                    }
+
+                    let controller = ContactSelectionViewController.forPrivacyList(privacySettings.whitelist, in: privacySettings, setActiveType: true, doneAction: { [weak self] in
+                        self?.dismiss(animated: false)
+                        self?.destination = .userFeed
+                        self?.backAction()
+                    }, dismissAction: nil)
+
+                    present(UINavigationController(rootViewController: controller), animated: true)
+                } else {
+                    MainAppContext.shared.privacySettings.activeType = .whitelist
+                    dismiss(animated: true)
+                    destination = .userFeed
+                    backAction()
+                }
             default:
                 return
             }
-            dismiss(animated: true)
-            destination = .userFeed
-            backAction()
         } else {
             guard let selectableDestination = dataSource.itemIdentifier(for: indexPath) else { return }
             destination = .groupFeed(selectableDestination.id)

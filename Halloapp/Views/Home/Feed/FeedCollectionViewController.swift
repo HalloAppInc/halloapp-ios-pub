@@ -766,14 +766,19 @@ extension FeedCollectionViewController {
             if feedPost.userId == MainAppContext.shared.userData.userId {
                 description = Localizations.favoritesDescriptionOwn
             } else {
-                description = Localizations.favoritesDescriptionNotOwn
+                let format = Localizations.favoritesDescriptionNotOwn
+                description = String(format: format, MainAppContext.shared.contactStore.fullName(for: feedPost.userId))
             }
            let alert = UIAlertController(title: Localizations.favoritesTitle, message: description, preferredStyle: .alert)
-           alert.addAction(.init(title: Localizations.titlePrivacy, style: .default, handler: { [weak self] _ in
-               guard let self = self else { return }
-               let privacyVC = UIHostingController(rootView: FeedPrivacyView(privacySettings: MainAppContext.shared.privacySettings))
-               self.navigationController?.pushViewController(privacyVC, animated: true)
-           }))
+            if feedPost.userId != MainAppContext.shared.userData.userId {
+                alert.addAction(.init(title: Localizations.titleEditFavorites, style: .default, handler: { [weak self] _ in
+                    guard let self = self else { return }
+                    let privacyVC = ContactSelectionViewController.forPrivacyList(MainAppContext.shared.privacySettings.whitelist, in: MainAppContext.shared.privacySettings, setActiveType: false, doneAction: { [weak self] in
+                        self?.dismiss(animated: false)
+                    }, dismissAction: nil)
+                    self.present(UINavigationController(rootViewController: privacyVC), animated: true)
+                }))
+            }
            alert.addAction(.init(title: Localizations.buttonOK, style: .default, handler: nil))
            self.present(alert, animated: true, completion: nil)
         }
