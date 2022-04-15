@@ -64,10 +64,7 @@ class PostViewController: UIViewController, UserMenuHandler, ShareMenuPresenter 
 
         let scrollView = UIScrollView()
         scrollView.translatesAutoresizingMaskIntoConstraints = false
-        scrollView.isDirectionalLockEnabled = true
-        scrollView.bounces = true
-        scrollView.alwaysBounceVertical = false
-        scrollView.contentInsetAdjustmentBehavior = .never
+        scrollView.alwaysBounceVertical = true
         scrollView.addGestureRecognizer(closingTapRecognizer)
         scrollView.delegate = self
 
@@ -325,7 +322,7 @@ extension PostViewController {
 // MARK: UIScrollViewDelegate
 extension PostViewController: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if scrollView.contentOffset.y < -100 {
+        if scrollView.contentOffset.y < -scrollView.adjustedContentInset.top - 100 {
             dismiss(animated: true)
         }
     }
