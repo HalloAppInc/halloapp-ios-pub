@@ -92,6 +92,8 @@ class PostViewController: UIViewController, UserMenuHandler, ShareMenuPresenter 
     }
 
     override func viewDidLoad() {
+        super.viewDidLoad()
+
         view.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
         view.backgroundColor = .clear
         view.addSubview(backgroundView)
@@ -105,21 +107,13 @@ class PostViewController: UIViewController, UserMenuHandler, ShareMenuPresenter 
 
         setupPostActions()
 
-        scrollView.addSubview(postView)
-        view.addSubview(scrollView)
-
-        scrollView.contentInset = UIEdgeInsets(top: 52, left: 0, bottom: 0, right: 0)
-        scrollView.constrain(to: view)
-
         postView.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+        scrollView.addSubview(postView)
+        postView.constrain(to: scrollView.contentLayoutGuide)
+        postView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor).isActive = true
 
-        NSLayoutConstraint.activate([
-            postView.widthAnchor.constraint(equalTo: view.widthAnchor),
-            postView.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
-            postView.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
-            postView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: 48),
-            postView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
-        ])
+        view.addSubview(scrollView)
+        scrollView.constrain(to: view)
 
         let contentWidth = view.frame.width - view.layoutMargins.left - view.layoutMargins.right
         let gutterWidth = (1 - FeedPostCollectionViewCell.LayoutConstants.backgroundPanelHMarginRatio) * view.layoutMargins.left
@@ -135,6 +129,16 @@ class PostViewController: UIViewController, UserMenuHandler, ShareMenuPresenter 
         if let post = post as? ExternalSharePost {
             post.downloadMedia()
         }
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+
+        // Vertically center post in scrollview
+        let scrollViewHeight = scrollView.frame.height
+        let postHeight = postView.bounds.height
+        let safeAreaInsets = view.safeAreaInsets
+        scrollView.contentInset.top = (scrollViewHeight - postHeight) * 0.5 - safeAreaInsets.top
     }
 
     @objc private func backAction() {
