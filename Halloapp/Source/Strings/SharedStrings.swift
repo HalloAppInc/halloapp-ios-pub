@@ -201,6 +201,10 @@ extension Localizations {
         NSLocalizedString("feed.privacy.list.notOwn.only.description", value: "Only the people on %@'s Favorites list can view this post.", comment: "Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience")
     }
 
+    static var favoritesTitleAlt: String {
+        return NSLocalizedString("feed.privacy.list.only.details", value: "Who will see this post", comment: "Header for the favorites list when editing contacts to share with.")
+    }
+ 
     static var setFavorites: String {
         NSLocalizedString("feed.privacy.list.set.favorites", value: "Set Favorites", comment: "Button to edit favorites")
     }

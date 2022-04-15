@@ -173,7 +173,7 @@ extension PrivacyList {
         case .blacklist:
             return NSLocalizedString("feed.privacy.list.except.details", value: "Select who won't see this post", comment: "Header for the list when selecting contacts to not share with.")
         case .whitelist:
-            return NSLocalizedString("feed.privacy.list.only.details", value: "Who will see this post", comment: "Header for the list when selecting contacts to share with.")
+            return Localizations.favoritesTitleAlt
         case .muted:
             return nil
         case .blocked:

@@ -21,10 +21,10 @@ final class ContactSelectionViewController: UIViewController {
     }
     var privacyListType: PrivacyListType
 
-    var isEditModeOn = false {
+    var showOnlySelectedContacts = false {
         didSet {
-            editSelectionRow.isHidden = isEditModeOn
-            header = isEditModeOn ? PrivacyList.details(forPrivacyListType: privacyListType) : Localizations.favoritesTitle
+            editSelectionRow.isHidden = isEditLinkHidden()
+            header = getGlobalHeader()
             collectionView.reloadData()
         }
     }
@@ -33,9 +33,9 @@ final class ContactSelectionViewController: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = true
         label.font = UIFont.systemFont(ofSize: 17)
         label.textColor = .systemBlue
-        label.text = Localizations.editFavorites
+        label.text = getEditLabel()
 
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.didTapEditFavorites(_:)))
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.didTapEdit(_:)))
         label.isUserInteractionEnabled = true
         label.addGestureRecognizer(tapGesture)
         label.setContentHuggingPriority(.defaultHigh, for: .horizontal)
@@ -54,9 +54,15 @@ final class ContactSelectionViewController: UIViewController {
         return hStack
     }()
 
-    @objc func didTapEditFavorites(_ sender: UITapGestureRecognizer) {
-        isEditModeOn = true
+    @objc func didTapEdit(_ sender: UITapGestureRecognizer) {
+        showOnlySelectedContacts = false
+        updateSearchResultsController(showOnlySelectedContacts: showOnlySelectedContacts)
         dataSource.apply(makeDataSnapshot(searchString: nil))
+    }
+    
+    private func updateSearchResultsController(showOnlySelectedContacts: Bool) {
+        let searchResultsController = searchController?.searchResultsController as? ContactSelectionViewController
+        searchResultsController?.showOnlySelectedContacts = showOnlySelectedContacts
     }
 
     init(
@@ -90,18 +96,18 @@ final class ContactSelectionViewController: UIViewController {
             searchResultsController.searchController = searchController
             return searchController
         }()
-
         self.style = style
         self.privacyListType = privacyListType
         self.manager = manager
         self.saveAction = saveAction
         self.dismissAction = dismissAction
         super.init(nibName: nil, bundle: nil)
+
         self.title = title
-        // If favorites list if empty, turn on edit mode
-        self.isEditModeOn = manager.selectedUserIDs.isEmpty ? true : false
-        self.header = isEditModeOn ? PrivacyList.details(forPrivacyListType: privacyListType) : Localizations.favoritesTitle
-        editSelectionRow.isHidden = (privacyListType == .whitelist && !isEditModeOn) ? false : true
+        self.showOnlySelectedContacts = self.shouldOnlyShowSelectedContacts()
+        updateSearchResultsController(showOnlySelectedContacts: showOnlySelectedContacts)
+        self.header = getGlobalHeader()
+        editSelectionRow.isHidden = isEditLinkHidden()
         collectionView.delegate = self
 
         cancellableSet.insert(
@@ -111,6 +117,38 @@ final class ContactSelectionViewController: UIViewController {
                 }
             }
         )
+    }
+
+    private func shouldOnlyShowSelectedContacts() -> Bool {
+        // If favorites/blocked list if empty, turn on edit mode
+        manager.selectedUserIDs.isEmpty ? false : true
+    }
+
+    private func getGlobalHeader() -> String {
+        if privacyListType == .blocked {
+            return PrivacyList.name(forPrivacyListType: privacyListType)
+        }
+        return showOnlySelectedContacts ? Localizations.favoritesTitle : Localizations.favoritesTitleAlt
+    }
+
+    private func isEditLinkHidden() -> Bool {
+        // If the list is not editable, do not ever show the edit link
+        if !isListEditable() { return true }
+        // If we are showing only selected contacts, show the edit link
+        return showOnlySelectedContacts ? false : true
+    }
+
+    private func isListEditable() -> Bool {
+        // Currently in the app, only whitelist and blocked list are editable
+        return privacyListType == .whitelist || privacyListType == .blocked
+    }
+
+    private func getEditLabel() -> String {
+        if privacyListType == .whitelist {
+            return Localizations.editFavorites
+        } else {
+            return Localizations.editBlocked
+        }
     }
 
     required init?(coder: NSCoder) {
@@ -151,7 +189,7 @@ final class ContactSelectionViewController: UIViewController {
         let source = UICollectionViewDiffableDataSource<String, SelectableContact>(collectionView: collectionView) { [weak self] collectionView, indexPath, contact in
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: SelectableContactReuse, for: indexPath)
             if let self = self, let itemCell = cell as? SelectableContactCell {
-                itemCell.configure(with: contact, isSelected: self.manager.selectedUserIDs.contains(contact.userID), style: self.style, isEditModeOn: self.isEditModeOn)
+                itemCell.configure(with: contact, isSelected: self.manager.selectedUserIDs.contains(contact.userID), style: self.style, showOnlySelectedContacts: self.showOnlySelectedContacts)
             }
             return cell
         }
@@ -247,7 +285,7 @@ final class ContactSelectionViewController: UIViewController {
         var snapshot = NSDiffableDataSourceSnapshot<String, SelectableContact>()
         var contacts: [SelectableContact]
         //if in edit mode, only show selected contacts
-        if !isEditModeOn && privacyListType == .whitelist {
+        if isListEditable(), showOnlySelectedContacts {
             contacts = manager.contacts(searchString: searchString).filter { manager.selectedUserIDs.contains($0.userID) }
         } else {
             contacts = manager.contacts(searchString: searchString)
@@ -276,12 +314,14 @@ final class ContactSelectionViewController: UIViewController {
     // MARK: Top Nav Button Actions
 
     @objc private func didTapDone() {
-        isEditModeOn = false
+        showOnlySelectedContacts = true
+        updateSearchResultsController(showOnlySelectedContacts: showOnlySelectedContacts)
         saveAction?(self, manager.selectedUserIDs)
     }
 
     @objc private func didTapCancel() {
-        isEditModeOn = false
+        showOnlySelectedContacts = true
+        updateSearchResultsController(showOnlySelectedContacts: showOnlySelectedContacts)
         if let dismissAction = dismissAction {
             dismissAction()
         } else if let navigationController = navigationController, navigationController.viewControllers.count > 1 {
@@ -335,7 +375,7 @@ final class ContactSelectionViewController: UIViewController {
 extension ContactSelectionViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         guard let contact = dataSource.itemIdentifier(for: indexPath) else { return }
-        if style == .all || !isEditModeOn {
+        if style == .all || showOnlySelectedContacts {
             return
         }
         searchController?.searchBar.text = ""
@@ -491,8 +531,8 @@ final class SelectableContactCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func configure(with contact: SelectableContact, isSelected: Bool, style: ContactSelectionViewController.Style, isEditModeOn: Bool) {
-        contactView.configure(with: contact, isSelected: isSelected, style: style, isEditModeOn: isEditModeOn)
+    func configure(with contact: SelectableContact, isSelected: Bool, style: ContactSelectionViewController.Style, showOnlySelectedContacts: Bool) {
+        contactView.configure(with: contact, isSelected: isSelected, style: style, showOnlySelectedContacts: showOnlySelectedContacts)
     }
 
     private let contactView = ContactSelectionView(frame: .zero)
@@ -552,7 +592,7 @@ final class ContactSelectionView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func configure(with contact: SelectableContact, isSelected: Bool, style: ContactSelectionViewController.Style, isEditModeOn: Bool) {
+    func configure(with contact: SelectableContact, isSelected: Bool, style: ContactSelectionViewController.Style, showOnlySelectedContacts: Bool) {
         nameLabel.text = contact.name
         subtitleLabel.text = contact.phoneNumber ?? ""
         avatarView.configure(with: contact.userID, using: MainAppContext.shared.avatarStore)
@@ -563,7 +603,7 @@ final class ContactSelectionView: UIView {
             case .`default`:
                 accessoryImageView.tintColor = .primaryBlue
                 accessoryImageView.image = Self.checkmarkChecked
-                accessoryImageView.isHidden = !isEditModeOn
+                accessoryImageView.isHidden = showOnlySelectedContacts
             case .destructive:
                 accessoryImageView.tintColor = .lavaOrange
                 accessoryImageView.image = Self.xmarkChecked
@@ -577,7 +617,7 @@ final class ContactSelectionView: UIView {
             default:
                 accessoryImageView.tintColor = .primaryBlackWhite.withAlphaComponent(0.2)
                 accessoryImageView.image = Self.checkmarkUnchecked
-                accessoryImageView.isHidden = !isEditModeOn
+                accessoryImageView.isHidden = showOnlySelectedContacts
             }
         }
     }
@@ -689,7 +729,7 @@ class ContactSelectionManager {
 
         guard !searchItems.isEmpty else { return allContacts }
 
-        return allContacts.filter { contact in
+        let returningContacts = allContacts.filter { contact in
             let allTokens = [contact.name] + contact.searchTokens
             for token in allTokens {
                 for item in searchItems {
@@ -698,6 +738,7 @@ class ContactSelectionManager {
             }
             return false
         }
+        return returningContacts
     }
 
     func toggleSelection(for userID: UserID) {
@@ -727,5 +768,9 @@ extension Localizations {
     }
     static var editFavorites: String {
         NSLocalizedString("edit.favorites", value: "Edit Favorites", comment: "link, tapping on which launched the flow to edit favorites")
+    }
+
+    static var editBlocked: String {
+        NSLocalizedString("edit.blocked", value: "Edit", comment: "link, tapping on which launched the flow to edit blocked contacts")
     }
 }
