@@ -200,4 +200,16 @@ extension Localizations {
     static var favoritesDescriptionNotOwn: String {
         NSLocalizedString("feed.privacy.list.notOwn.only.description", value: "Only the people on %@'s Favorites list can view this post.", comment: "Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience")
     }
+
+    static var setFavorites: String {
+        NSLocalizedString("feed.privacy.list.set.favorites", value: "Set Favorites", comment: "Button to edit favorites")
+    }
+
+    static var setFavoritesDescription: String {
+        NSLocalizedString("feed.privacy.list.set.favorites.description", value: "Now you can create a list of your favorite contacts, and share your HalloApp posts just with them.", comment: "Description of the new Favorites functionality.")
+    }
+
+    static var dismissEditFavorites: String {
+        NSLocalizedString("feed.privacy.list.dismiss.edit.favorites", value: "Not Now", comment: "Button to dismiss edit favorites modal")
+    }
 }

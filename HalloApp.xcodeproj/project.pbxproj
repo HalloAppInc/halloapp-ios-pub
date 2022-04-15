@@ -31,6 +31,7 @@
 		323D787927D7D71300C29FA1 /* MessageCellViewAudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = 323D787827D7D71300C29FA1 /* MessageCellViewAudio.swift */; };
 		323D787D27D7E25000C29FA1 /* MessageCellViewLinkPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 323D787C27D7E25000C29FA1 /* MessageCellViewLinkPreview.swift */; };
 		323E88DB26CC430600202655 /* Feed3ToFeed4.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 323E88DA26CC430600202655 /* Feed3ToFeed4.xcmappingmodel */; };
+		323F99ED2808D0B100C8AB69 /* FavoritesInformationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 323F99EC2808D0B100C8AB69 /* FavoritesInformationViewController.swift */; };
 		3243C42B27D7D03300B994F4 /* MessageCellViewMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3243C42A27D7D03300B994F4 /* MessageCellViewMedia.swift */; };
 		324455E1275994D50031CD60 /* MessageViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 324455E0275994D50031CD60 /* MessageViewCell.swift */; };
 		3250C60327D0101C0032FEC4 /* PhoneInputViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3250C5FD27D010090032FEC4 /* PhoneInputViewController.swift */; };
@@ -586,6 +587,7 @@
 		323D787C27D7E25000C29FA1 /* MessageCellViewLinkPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageCellViewLinkPreview.swift; sourceTree = "<group>"; };
 		323E88D626CC175900202655 /* Feed4.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed4.xcdatamodel; sourceTree = "<group>"; };
 		323E88DA26CC430600202655 /* Feed3ToFeed4.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = Feed3ToFeed4.xcmappingmodel; sourceTree = "<group>"; };
+		323F99EC2808D0B100C8AB69 /* FavoritesInformationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesInformationViewController.swift; sourceTree = "<group>"; };
 		3243C42A27D7D03300B994F4 /* MessageCellViewMedia.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageCellViewMedia.swift; sourceTree = "<group>"; };
 		324455E0275994D50031CD60 /* MessageViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageViewCell.swift; sourceTree = "<group>"; };
 		324918192764265600E9090F /* pt */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pt; path = pt.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -2008,6 +2010,7 @@
 				762EDBDC244E5A7800986617 /* HomeViewController.swift */,
 				680FB660250C45C000CA5D40 /* OverlayView.swift */,
 				68CD603325E463FA0056D13E /* ConnectionBanner.swift */,
+				323F99EC2808D0B100C8AB69 /* FavoritesInformationViewController.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -2738,6 +2741,7 @@
 				2446D67C24CB54F8005BAD3C /* VideoUtils.swift in Sources */,
 				F41FAA4227E52B7E00FC5090 /* BottomSheetViewController.swift in Sources */,
 				761EE21E24B5135400B30632 /* MFMessageComposeView.swift in Sources */,
+				323F99ED2808D0B100C8AB69 /* FavoritesInformationViewController.swift in Sources */,
 				F850677A26A7FDDF00A120EC /* AudioView.swift in Sources */,
 				EAA424FB24ECF1480025CBBE /* ChatGroupMember+CoreDataProperties.swift in Sources */,
 				F8E6DCDF271EB06F005EECC5 /* TimeInterval.swift in Sources */,
