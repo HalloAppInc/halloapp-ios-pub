@@ -100,7 +100,11 @@ class PostViewController: UIViewController, UserMenuHandler, ShareMenuPresenter 
         navigationItem.compactAppearance = .transparentAppearance
         navigationItem.scrollEdgeAppearance = .transparentAppearance
 
-        navigationItem.leftBarButtonItem = UIBarButtonItem(customView: backBtn)
+        view.addSubview(backBtn)
+        NSLayoutConstraint.activate([
+            backBtn.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
+            backBtn.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+        ])
 
         setupPostActions()
 
@@ -125,6 +129,17 @@ class PostViewController: UIViewController, UserMenuHandler, ShareMenuPresenter 
 
         if let post = post as? ExternalSharePost {
             post.downloadMedia()
+        }
+
+        navigationController?.setNavigationBarHidden(true, animated: animated)
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+
+        // Do not show the nav bar if we are being dismissed
+        if !(navigationController?.isBeingDismissed ?? false) {
+            navigationController?.setNavigationBarHidden(false, animated: animated)
         }
     }
 
