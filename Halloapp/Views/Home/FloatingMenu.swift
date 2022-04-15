@@ -321,6 +321,9 @@ final class FloatingMenu: UIViewController, UIViewControllerTransitioningDelegat
     // NB: Not in use as of 3/8/22. We used to show a "New Post" menu header but it was confusing users.
     private var expandedHeader: UIView?
 
+    private var anchorButtonBottomConstraint: NSLayoutConstraint?
+    private var anchorButtonTrailingConstraint: NSLayoutConstraint?
+    
     private func setup() {
         for button in allButtons.reversed() {
             button.menu = self
@@ -340,8 +343,38 @@ final class FloatingMenu: UIViewController, UIViewControllerTransitioningDelegat
         if let header = expandedHeader {
             view.addSubview(header)
         }
+        
+        let bottomConstraint = anchorButton.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        let trailingConstraint = anchorButton.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        NSLayoutConstraint.activate([
+            bottomConstraint,
+            trailingConstraint,
+        ])
 
+        anchorButtonBottomConstraint = bottomConstraint
+        anchorButtonTrailingConstraint = trailingConstraint
+        
         view.setNeedsLayout()
+    }
+    
+    /**
+     Ensures that `anchorButton` is in the same position as `triggerButton`.
+     
+     - note: Ideally we'd not have to use something like this and instead apply constraints during the vc transition,
+             but that seems to cause some strange layout issues after the menu is dismissed.
+     */
+    func positionAnchorButton() {
+        let bottomDistance = view.bounds.maxY - triggerButton.frame.maxY
+        
+        let trailingDistance: CGFloat
+        if case .rightToLeft = view.effectiveUserInterfaceLayoutDirection {
+            trailingDistance = triggerButton.frame.minX - view.bounds.minX
+        } else {
+            trailingDistance = view.bounds.maxX - triggerButton.frame.maxX
+        }
+        
+        anchorButtonBottomConstraint?.constant = -bottomDistance
+        anchorButtonTrailingConstraint?.constant = -trailingDistance
     }
     
     func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
@@ -370,10 +403,7 @@ fileprivate final class FloatingMenuPresentController: NSObject, UIViewControlle
         
         transitionContext.containerView.addSubview(menu.view)
         // align the menu w/ the trigger button that's on the presenting vc
-        NSLayoutConstraint.activate([
-            menu.anchorButton.trailingAnchor.constraint(equalTo: menu.triggerButton.trailingAnchor),
-            menu.anchorButton.bottomAnchor.constraint(equalTo: menu.triggerButton.bottomAnchor),
-        ])
+        menu.positionAnchorButton()
         
         menu.triggerButton.layer.shadowOpacity = 0
         menu.view.layoutIfNeeded()
@@ -393,11 +423,14 @@ fileprivate final class FloatingMenuDismissController: NSObject, UIViewControlle
     }
     
     func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
-        let from = transitionContext.viewController(forKey: .from) as! FloatingMenu
+        guard let menu = transitionContext.viewController(forKey: .from) as? FloatingMenu else {
+            transitionContext.completeTransition(false)
+            return
+        }
         
-        dismissFinishedListener = from.setExpansionState(.collapsed, animated: true).sink {
-            from.triggerButton.layer.shadowOpacity = FloatingMenu.ShadowOpacity
-            from.anchorButton.layer.shadowOpacity = 0
+        dismissFinishedListener = menu.setExpansionState(.collapsed, animated: true).sink {
+            menu.triggerButton.layer.shadowOpacity = FloatingMenu.ShadowOpacity
+            menu.anchorButton.layer.shadowOpacity = 0
             
             transitionContext.completeTransition(true)
         }
