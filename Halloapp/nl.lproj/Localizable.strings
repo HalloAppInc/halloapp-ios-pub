@@ -506,7 +506,7 @@
 "Delete" = "Verwijderen";
 
 /* link, tapping on which launched the flow to edit favorites */
-"edit.favorites" = "Favorieten Bijwerken";
+"edit.favorites" = "Favorieten Aanpassen";
 
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Om connectie te maken, moeten jullie telefoonnummers uitwisselen";
@@ -625,20 +625,20 @@
 /* Title for the list when selecting contacts to not share with. */
 "feed.privacy.list.except.title" = "Verberg Posts Voor...";
 
-/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
-"feed.privacy.list.notOwn.only.description" = "Deze post wordt alleen gedeeld met een beperkt publiek. Je kunt je publiek op ieder moment aanpassen in de privacy-instellingen.";
+/* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
+"feed.privacy.list.notOwn.only.description" = "Alleen de mensen op de Favorietenlijst van %@ kunnen deze post bekijken.";
 
 /* Settings > Privacy > Posts > Favorites privacy setting. */
 "feed.privacy.list.only" = "Favorieten";
 
-/* Header for the list when selecting contacts to share with. */
+/* Header for the favorites list when editing contacts to share with. */
 "feed.privacy.list.only.details" = "Wie kan deze post zien";
 
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.only.title" = "Favorieten";
 
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
-"feed.privacy.list.own.only.description" = "Deze post wordt alleen gedeeld met een aangepaste groep contacten. Je kunt je publiek aanpassen wanneer je een nieuw bericht plaatst, of onder Instellingen > Privacy.";
+"feed.privacy.list.own.only.description" = "Alleen de mensen op je Favorietenlijst kunnen deze post bekijken.";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Mijn Contacten";
@@ -1003,14 +1003,14 @@
 /* Message action. Verb. */
 "message.reply" = "Beantwoorden";
 
-/* One of the contact actions in My Post screen. */
-"mypost.action.hide.my.posts" = "Mijn Posts Verbergen";
-
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Bericht Sturen";
 
 /* One of the contact actions in My Post screen. */
 "mypost.action.view.profile" = "Profiel bekijken";
+
+/* Message displayed to say when posts will disappear for posts shared with contacts. */
+"mypost.contacts.disappear.time.label" = "Je post verdwijnt na 30 dagen. Je contacten die lid worden van HalloApp kunnen je niet-verlopen posts zien.";
 
 /* Generic message displayed to say when posts will disappear. */
 "mypost.disappear.time.label" = "Je post verdwijnt na 30 dagen.";
@@ -1565,6 +1565,9 @@
 /* Title for the picker screen. */
 "title.comments.picker" = "Nieuwe Reactie";
 
+/* Button to edit favorites list */
+"title.edit.favorites" = "Favorietenlijst Aanpassen";
+
 /* Second tab in the main app interface. */
 "title.groups" = "Groepen";
 
@@ -1649,6 +1652,9 @@
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "Deze post verwijderen? Dit kan niet ongedaan worden gemaakt.";
 
+/* Displayed when a post fails to delete */
+"your.post.deletepost.error" = "Verwijderen van post mislukt";
+
 /* Button to open the system share sheet with an external post link */
 "your.post.externalshare.button" = "Extern Delen";
 
@@ -1670,9 +1676,15 @@
 /* Message that revoking external share link failed. */
 "your.post.externalshare.revoke.error" = "Intrekken van link voor extern delen mislukt";
 
+/* Notification that a link was successfully revoked */
+"your.post.externalshare.revoke.success" = "Link ingetrokken";
+
+/* Notification revoking an external share link is in progress */
+"your.post.externalshare.revoking" = "Link wordt ingetrokken...";
+
 /* Text introducing external share link, part of what is shared */
 "your.post.externalshare.title" = "Bekijk mijn post op HalloApp:";
 
 /* Notification that post is uploading */
-"your.post.externalshare.uploading" = "Post wordt aangemaakt...";
+"your.post.externalshare.uploading" = "Link wordt aangemaakt...";
 

@@ -85,6 +85,15 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Yalnızca seçilen kişilerle paylaş";
 
+/* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
+"feed.privacy.list.notOwn.only.description" = "Yalnızca %@ kişisinin Yakınlar listesindekiler bu gönderiyi görebilir.";
+
+/* Title of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.only.title" = "Yakınlar";
+
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.own.only.description" = "Yalnızca Yakınlar listendekiler bu gönderiyi görebilir.";
+
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Yeni bir gruba eklendin";
 
@@ -149,10 +158,19 @@
 "notification.voicecall.missed" = "☎️ Cevapsız çağrı";
 
 /* New post notification text when post is a voice note. */
-"notification.voicenote" = "🎤 Sesli mesaj";
+"notification.voicecomment" = "🎤 Sesli yorum";
+
+/* New post notification text when post is a voice note. */
+"notification.voicenote" = "🎤 Sesli not";
+
+/* New post notification text when post is a voice note. */
+"notification.voicepost" = "🎤 Sesli gönderi";
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "HalloApp'teki gerçek ilişkiler ağıma katıl. halloapp.com/dl adresinden ücretsiz indir.";
+
+/* Button to edit favorites list */
+"title.edit.favorites" = "Yakınlar listesini düzenle";
 
 /* Row in Settings screen */
 "title.privacy" = "Gizlilik";

@@ -85,14 +85,14 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Alleen delen met geselecteerde contacten";
 
-/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
-"feed.privacy.list.notOwn.only.description" = "Deze post wordt alleen gedeeld met een beperkt publiek. Je kunt je publiek op ieder moment aanpassen in de privacy-instellingen.";
+/* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
+"feed.privacy.list.notOwn.only.description" = "Alleen de mensen op de Favorietenlijst van %@ kunnen deze post bekijken.";
 
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.only.title" = "Favorieten";
 
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
-"feed.privacy.list.own.only.description" = "Deze post wordt alleen gedeeld met een aangepaste groep contacten. Je kunt je publiek aanpassen wanneer je een nieuw bericht plaatst, of onder Instellingen > Privacy.";
+"feed.privacy.list.own.only.description" = "Alleen de mensen op je Favorietenlijst kunnen deze post bekijken.";
 
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Je bent toegevoegd aan een nieuwe groep";
@@ -168,6 +168,9 @@
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Sluit je aan bij mijn netwerk voor échte relaties op HalloApp. Download gratis op halloapp.com/dl";
+
+/* Button to edit favorites list */
+"title.edit.favorites" = "Favorietenlijst Aanpassen";
 
 /* Row in Settings screen */
 "title.privacy" = "Privacy";

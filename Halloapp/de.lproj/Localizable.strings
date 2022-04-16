@@ -622,13 +622,13 @@
 /* Title for the list when selecting contacts to not share with. */
 "feed.privacy.list.except.title" = "Beiträge ausblenden für...";
 
-/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+/* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
 "feed.privacy.list.notOwn.only.description" = "Dieser Beitrag wird nur mit einem begrenzten Benutzerkreis geteilt. Du kannst deine Zielgruppe in den Privatsphäre-Einstellungen jederzeit anpassen.";
 
 /* Settings > Privacy > Posts > Favorites privacy setting. */
 "feed.privacy.list.only" = "Favoriten\n";
 
-/* Header for the list when selecting contacts to share with. */
+/* Header for the favorites list when editing contacts to share with. */
 "feed.privacy.list.only.details" = "Wer wird diesen Beitrag sehen";
 
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
@@ -999,9 +999,6 @@
 
 /* Message action. Verb. */
 "message.reply" = "Antworten";
-
-/* One of the contact actions in My Post screen. */
-"mypost.action.hide.my.posts" = "Meine Beiträge verbergen";
 
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Nachricht senden";

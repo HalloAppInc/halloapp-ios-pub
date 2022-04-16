@@ -175,9 +175,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>&lt;$user$&gt; and %d other replied to &lt;$author$&gt;'s post</string>
+			<string>&lt;$user$&gt; ve %d diğer kişi, &lt;$author$&gt; kişisinin gönderisini yanıtladı</string>
 			<key>other</key>
-			<string>&lt;$user$&gt; and %d others replied to &lt;$author$&gt;'s post</string>
+			<string>&lt;$user$&gt; ve %d diğer kişi, &lt;$author$&gt; kişisinin gönderisini yanıtladı</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>

@@ -85,7 +85,7 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Compartilhar apenas com contatos selecionados";
 
-/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+/* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
 "feed.privacy.list.notOwn.only.description" = "Esta postagem é compartilhada apenas com um público limitado. Você pode ajustar seu público nas configurações de privacidade a qualquer momento.";
 
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */

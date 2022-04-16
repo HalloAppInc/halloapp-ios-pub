@@ -505,6 +505,9 @@
 /* Title for generic delete button. */
 "Delete" = "Eliminar";
 
+/* link, tapping on which launched the flow to edit blocked contacts */
+"edit.blocked" = "Editar";
+
 /* link, tapping on which launched the flow to edit favorites */
 "edit.favorites" = "Editar favoritos";
 
@@ -616,6 +619,9 @@
 /* Header for the list of all contacts on HallAapp. */
 "feed.privacy.list.all.details" = "Mis contactos de HalloApp";
 
+/* Button to dismiss edit favorites modal */
+"feed.privacy.list.dismiss.edit.favorites" = "Ahora no";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.except" = "Mis contactos excepto ...";
 
@@ -625,13 +631,13 @@
 /* Title for the list when selecting contacts to not share with. */
 "feed.privacy.list.except.title" = "Esconder publicaciones de...";
 
-/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+/* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
 "feed.privacy.list.notOwn.only.description" = "Esta publicación solo se comparte con una audiencia limitada. Puedes cambiar tu audiencia en la configuración de privacidad en cualquier momento.";
 
 /* Settings > Privacy > Posts > Favorites privacy setting. */
 "feed.privacy.list.only" = "Favoritos";
 
-/* Header for the list when selecting contacts to share with. */
+/* Header for the favorites list when editing contacts to share with. */
 "feed.privacy.list.only.details" = "Selecciona quién verá esta publicación";
 
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
@@ -639,6 +645,12 @@
 
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.own.only.description" = "Esta publicación solo se comparte con un grupo personalizado de contactos. Puedes cambiar tu audiencia cada vez que realices una nueva publicación, o en Configuración > Privacidad.";
+
+/* Button to edit favorites */
+"feed.privacy.list.set.favorites" = "Configura Favoritos";
+
+/* Description of the new Favorites functionality. */
+"feed.privacy.list.set.favorites.description" = "Ahora puedes crear una lista de tus contactos favoritos y compartir tus publicaciones de HalloApp solo con ellos.";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Mis contactos";
@@ -1002,9 +1014,6 @@
 
 /* Message action. Verb. */
 "message.reply" = "Responder";
-
-/* One of the contact actions in My Post screen. */
-"mypost.action.hide.my.posts" = "Ocultar mis publicaciones";
 
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Enviar un mensaje";
@@ -1568,6 +1577,9 @@
 /* Title for the picker screen. */
 "title.comments.picker" = "Nuevo comentario";
 
+/* Button to edit favorites list */
+"title.edit.favorites" = "Edita tu lista de Favoritos";
+
 /* Second tab in the main app interface. */
 "title.groups" = "Grupos";
 
@@ -1652,6 +1664,9 @@
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "¿Eliminar esta publicación? Está acción no se puede deshacer.";
 
+/* Displayed when a post fails to delete */
+"your.post.deletepost.error" = "Error al borrar publicación";
+
 /* Button to open the system share sheet with an external post link */
 "your.post.externalshare.button" = "Compartir externamente";
 
@@ -1672,6 +1687,12 @@
 
 /* Message that revoking external share link failed. */
 "your.post.externalshare.revoke.error" = "No se pudo revocar el enlace para compartir externamente";
+
+/* Notification that a link was successfully revoked */
+"your.post.externalshare.revoke.success" = "Enlace revocado";
+
+/* Notification revoking an external share link is in progress */
+"your.post.externalshare.revoking" = "Revocando enlace...\n";
 
 /* Text introducing external share link, part of what is shared */
 "your.post.externalshare.title" = "Mira mi publicación en HalloApp:";

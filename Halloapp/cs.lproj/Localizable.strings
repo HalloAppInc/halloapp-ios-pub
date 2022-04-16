@@ -553,7 +553,7 @@
 /* Settings > Privacy > Posts > Favorites privacy setting. */
 "feed.privacy.list.only" = "Sdílet pouze s...";
 
-/* Header for the list when selecting contacts to share with. */
+/* Header for the favorites list when editing contacts to share with. */
 "feed.privacy.list.only.details" = "Vyberte, kdo tento příspěvek uvidí";
 
 /* Possible Feed Privacy setting value. */
@@ -888,9 +888,6 @@
 
 /* Message action. Verb. */
 "message.reply" = "Odpovědět";
-
-/* One of the contact actions in My Post screen. */
-"mypost.action.hide.my.posts" = "Skrýt moje příspěvky";
 
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Zpráva";

@@ -85,8 +85,14 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Поделиться только с выбранными контактами";
 
+/* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
+"feed.privacy.list.notOwn.only.description" = "Только люди из %@а списка избранных могут просматривать эту публикацию.";
+
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.only.title" = "Избранное";
+
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.own.only.description" = "Эту публикацию могут просматривать только люди из вашего списка избранных.";
 
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Поиск";
@@ -151,6 +157,9 @@
 
 /* Title of alert when user is not logged in */
 "share.notlogged.title" = "Не выполнен вход";
+
+/* Button to edit favorites list */
+"title.edit.favorites" = "Отредактировать свой список Избранного";
 
 /* Row in Settings screen */
 "title.privacy" = "Конфиденциальность";

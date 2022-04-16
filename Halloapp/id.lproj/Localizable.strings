@@ -556,7 +556,7 @@
 /* Settings > Privacy > Posts > Favorites privacy setting. */
 "feed.privacy.list.only" = "Hanya Bagikan Dengan...";
 
-/* Header for the list when selecting contacts to share with. */
+/* Header for the favorites list when editing contacts to share with. */
 "feed.privacy.list.only.details" = "Pilih siapa yang akan melihat postingan ini";
 
 /* Possible Feed Privacy setting value. */
@@ -894,9 +894,6 @@
 
 /* Message action. Verb. */
 "message.reply" = "Balas";
-
-/* One of the contact actions in My Post screen. */
-"mypost.action.hide.my.posts" = "Sembunyikan Pos Saya";
 
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Pesan";

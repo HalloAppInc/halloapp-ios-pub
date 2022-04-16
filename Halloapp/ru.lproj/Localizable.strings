@@ -142,6 +142,9 @@
 /* Label for button that toggles speakerphone status during call */
 "call.button.speaker" = "громкая связь";
 
+/* Text indicating that calls are end-to-end encrypted */
+"call.encryption.text" = "Сквозное шифрование";
+
 /* Title for call history event. Appears next to details of a successful call. */
 "call.history.video.call" = "Видеозвонок";
 
@@ -421,6 +424,9 @@
 /* Title for audio post composer */
 "composer.audio.title" = "Новая аудиозапись";
 
+/* Title on edit button */
+"composer.button.edit" = "Редактировать";
+
 /* Title warning that a voice recording will be deleted */
 "composer.delete.recording.title" = "Удалить запись?";
 
@@ -499,8 +505,23 @@
 /* Title for generic delete button. */
 "Delete" = "Удалить";
 
+/* link, tapping on which launched the flow to edit favorites */
+"edit.favorites" = "Изменить избранное";
+
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Для установки связи вам нужно обменяться номерами телефонов";
+
+/* Description of an externally shared post containing an audio post */
+"externalShare.og.description.audio" = "Аудио пост";
+
+/* Description of an externally shared post containing photos/videos */
+"externalShare.og.description.media" = "Медиа пост";
+
+/* Description of an externally shared post containing just text */
+"externalShare.og.description.text" = "Текстовый пост";
+
+/* Title for posts that are externally shared, 'John Smith's HalloApp Post' */
+"externalShare.og.title3" = "Пост от %@ в HalloApp";
 
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Камера";
@@ -592,6 +613,9 @@
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.all" = "Мои телефонные контакты";
 
+/* Header for the list of all contacts on HallAapp. */
+"feed.privacy.list.all.details" = "Мои контакты HalloApp";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.except" = "Мои контакты, за исключением...";
 
@@ -601,14 +625,20 @@
 /* Title for the list when selecting contacts to not share with. */
 "feed.privacy.list.except.title" = "Скрыть посты от ...";
 
+/* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
+"feed.privacy.list.notOwn.only.description" = "Только люди из списка избранных %@ могут просматривать эту публикацию.";
+
 /* Settings > Privacy > Posts > Favorites privacy setting. */
 "feed.privacy.list.only" = "Делиться только с...";
 
-/* Header for the list when selecting contacts to share with. */
+/* Header for the favorites list when editing contacts to share with. */
 "feed.privacy.list.only.details" = "Выберите, кто увидит этот пост";
 
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.only.title" = "Избранное";
+
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.own.only.description" = "Эту публикацию могут просматривать только люди из вашего списка избранных.";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Мои телефонные контакты";
@@ -907,6 +937,9 @@
 /* Button title. Refers to resetting photo / video to original version. */
 "media.button.reset" = "Сбросить";
 
+/* Button title. Refers to undoing an edit of a photo. */
+"media.button.undo" = "Отменить";
+
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.camera.access.request" = "У HalloApp нет доступа к Вашей камере. Чтобы предоставить его, откройте \"Настройки\" и переведите переключатель возле пункта \"Камера\" в активное положение";
 
@@ -970,17 +1003,20 @@
 /* Message action. Verb. */
 "message.reply" = "Ответить";
 
-/* One of the contact actions in My Post screen. */
-"mypost.action.hide.my.posts" = "Скрыть мои публикации";
-
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Сообщение";
 
 /* One of the contact actions in My Post screen. */
 "mypost.action.view.profile" = "Просмотреть профиль";
 
+/* Message displayed to say when posts will disappear for posts shared with contacts. */
+"mypost.contacts.disappear.time.label" = "Ваш пост исчезнет через 30 дней. Ваши контакты, которые присоединяются к HalloApp, могут видеть ваши сообщения с неистекшим сроком действия.";
+
 /* Generic message displayed to say when posts will disappear. */
 "mypost.disappear.time.label" = "Твои посты исчезнут через 30 дней.";
+
+/* Message displayed to say when posts will disappear for posts shared with favorites. */
+"mypost.favorites.disappear.time.label" = "Ваше сообщение было опубликовано в Избранном и исчезнет через 30 дней.";
 
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
 "mypost.hide.posts.confirmation" = "Вы точно хотите скрыть все свои будущие публикации от %@? Вы сможете изменить этот параметр в любое время.";
@@ -1529,6 +1565,9 @@
 /* Title for the picker screen. */
 "title.comments.picker" = "Новый Комментарий ";
 
+/* Button to edit favorites list */
+"title.edit.favorites" = "Отредактировать свой список Избранного";
+
 /* Second tab in the main app interface. */
 "title.groups" = "Группы";
 
@@ -1571,6 +1610,9 @@
 /* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
 "unknown.contact.not.in.contact.book" = "Этого номера нет в вашей контактной книге.";
 
+/* Alert appearing after clicking an external share link that failed to load */
+"urlrouter.externalShare.failed" = "Не удалось загрузить пост";
+
 /* Button to confirm blocking user via profile page */
 "user.block" = "Блокировать";
 
@@ -1610,6 +1652,9 @@
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "Удалить этот пост? Это действие нельзя отменить.";
 
+/* Displayed when a post fails to delete */
+"your.post.deletepost.error" = "Ошибка удаления сообщения";
+
 /* Button to open the system share sheet with an external post link */
 "your.post.externalshare.button" = "Поделиться";
 
@@ -1619,9 +1664,27 @@
 /* Success toast when external share link is copied */
 "your.post.externalshare.copylink.success" = "Скопировано";
 
+/* Message on header of post menu explaining external share */
+"your.post.externalshare.description2" = "Любой, у кого есть ссылка, может увидеть ваш пост. Срок действия ссылки истекает вместе с вашим сообщением. Предварительный просмотр ссылки не зашифрован.";
+
 /* Message that external share failed. */
 "your.post.externalshare.error" = "Не удалось загрузить сообщение для публикации";
 
+/* Button to invalidate an external share link */
+"your.post.externalshare.revoke" = "Отозвать ссылку";
+
+/* Message that revoking external share link failed. */
+"your.post.externalshare.revoke.error" = "Не удалось отозвать ссылку";
+
+/* Notification that a link was successfully revoked */
+"your.post.externalshare.revoke.success" = "Ссылка отозвана";
+
+/* Notification revoking an external share link is in progress */
+"your.post.externalshare.revoking" = "Отзыв ссылки...";
+
 /* Text introducing external share link, part of what is shared */
 "your.post.externalshare.title" = "Посмотрите мой пост на HalloApp:";
+
+/* Notification that post is uploading */
+"your.post.externalshare.uploading" = "Создание ссылки...";
 

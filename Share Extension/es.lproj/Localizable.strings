@@ -85,14 +85,26 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Compartir solamente con contactos seleccionados";
 
-/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+/* Button to dismiss edit favorites modal */
+"feed.privacy.list.dismiss.edit.favorites" = "Ahora no";
+
+/* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
 "feed.privacy.list.notOwn.only.description" = "Esta publicación solo se comparte con una audiencia limitada. Puedes cambiar tu audiencia en la configuración de privacidad en cualquier momento.";
+
+/* Header for the favorites list when editing contacts to share with. */
+"feed.privacy.list.only.details" = "Selecciona quién verá esta publicación";
 
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.only.title" = "Favoritos";
 
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.own.only.description" = "Esta publicación solo se comparte con un grupo personalizado de contactos. Puedes cambiar tu audiencia cada vez que realices una nueva publicación, o en Configuración > Privacidad.";
+
+/* Button to edit favorites */
+"feed.privacy.list.set.favorites" = "Configura Favoritos";
+
+/* Description of the new Favorites functionality. */
+"feed.privacy.list.set.favorites.description" = "Ahora puedes crear una lista de tus contactos favoritos y compartir tus publicaciones de HalloApp solo con ellos.";
 
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Búsqueda";
@@ -157,6 +169,9 @@
 
 /* Title of alert when user is not logged in */
 "share.notlogged.title" = "No has iniciado sesión";
+
+/* Button to edit favorites list */
+"title.edit.favorites" = "Edita tu lista de Favoritos";
 
 /* Row in Settings screen */
 "title.privacy" = "Privacidad";

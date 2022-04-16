@@ -85,7 +85,7 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "به اشتراک گذاشتن فقط با مخاطبین انتخابی";
 
-/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+/* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
 "feed.privacy.list.notOwn.only.description" = "این پست فقط برای به اشتراک گذاشتن با گروه خاص از مخاطبین است. میتوانید برای تغییر آن به حریم خصوصی در تنظیمات مراجعه کنید.";
 
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
@@ -168,6 +168,9 @@
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "به شبکه دوست‌های واقعی من در هالواپ بپیوندید. لینک دانلود رایگان halloapp.com/dl";
+
+/* Button to edit favorites list */
+"title.edit.favorites" = "ویرایش لیست مخاطبین محبوب‌";
 
 /* Row in Settings screen */
 "title.privacy" = "حریم خصوصی";

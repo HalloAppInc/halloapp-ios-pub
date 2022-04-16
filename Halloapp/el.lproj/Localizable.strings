@@ -664,9 +664,6 @@
 /* Message action. Verb. */
 "message.reply" = "Απάντηση";
 
-/* One of the contact actions in My Post screen. */
-"mypost.action.hide.my.posts" = "Απόκρυψη Δημοσιεύσεών Μου";
-
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Μήνυμα";
 

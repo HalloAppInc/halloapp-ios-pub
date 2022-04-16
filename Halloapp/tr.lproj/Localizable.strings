@@ -56,7 +56,7 @@
 "app.name.halloapp" = "HalloApp";
 
 /* Placeholder text for when the archive is empty */
-"archive.empty.placeholder" = "Arşivlenmiş gönderilerin burada görünecek";
+"archive.empty.placeholder" = "30 gün sonra gönderilerin burada arşivlenecek";
 
 /* Archive navigation label */
 "archive.title.label" = "Arşiv";
@@ -142,6 +142,9 @@
 /* Label for button that toggles speakerphone status during call */
 "call.button.speaker" = "Hoparlör";
 
+/* Text indicating that calls are end-to-end encrypted */
+"call.encryption.text" = "Uçtan uca şifreli";
+
 /* Title for call history event. Appears next to details of a successful call. */
 "call.history.video.call" = "Görüntülü arama";
 
@@ -154,6 +157,24 @@
 /* Title for call history event. Appears next to details of a missed call. */
 "call.history.voice.call.missed" = "Cevapsız sesli arama";
 
+/* Status display when user mutes their own audio during a call. */
+"call.mute.local.audio" = "Mikrofon kapalı";
+
+/* Status display when user mutes their own audio and video during a call. */
+"call.mute.local.audio.video" = "Kamera ve mikrofon kapalı";
+
+/* Status display when user mutes their own video during a call. */
+"call.mute.local.video" = "Kamera kapalı";
+
+/* Status display when peer mutes audio during a call. */
+"call.mute.remote.audio" = "%@, bu aramayı sessize aldı";
+
+/* Status display when peer mutes both audio and video during a call. */
+"call.mute.remote.audio.video" = "%@ kişisinin kamera ve mikrofonu kapalı";
+
+/* Status display when peer mutes video during a call. */
+"call.mute.remote.video" = "%@ kişisinin kamerası kapalı";
+
 /* Status displayed when the other side is busy. */
 "call.status.busy" = "Başka bir aramada";
 
@@ -164,13 +185,16 @@
 "call.status.connecting" = "Bağlanıyor...";
 
 /* Status displayed when call fails. */
-"call.status.failed" = "Başarısız";
+"call.status.failed" = "Arama başarısız";
 
 /* Status displayed when call is on hold. */
 "call.status.held" = "Beklemede";
 
 /* Status displayed when incoming call starts */
 "call.status.incoming" = "Gelen çağrı";
+
+/* Status displayed when the other side mutes the audio. */
+"call.status.muted" = "Arama sessizde";
 
 /* Status displayed when reconnecting during call */
 "call.status.reconnecting" = "Yeniden bağlanıyor...";
@@ -216,6 +240,15 @@
 
 /* Label for creating a new group */
 "chat.create.new.group" = "Yeni grup oluştur";
+
+/* Button to retract a chat message for everyone */
+"chat.delete.everyone" = "Herkesten sil";
+
+/* Button to locally delete a chat message */
+"chat.delete.me" = "Benden sil";
+
+/* Title of deletion menu */
+"chat.delete.title" = "Seçilen mesajları sil?";
 
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
 "chat.encryption.label" = "Sohbetler uçtan uca şifrelenir ve HalloApp'in bunlara erişimi yoktur. Daha fazlasını öğrenmek için dokun.";
@@ -287,7 +320,10 @@
 "chat.invite.friends" = "Arkadaşlarını davet et";
 
 /* Message text shown in a message that have audio media but no text */
-"chat.message.audio" = "Sesli mesaj";
+"chat.message.audio" = "Sesli not";
+
+/* Message text shown for quoted audio posts */
+"chat.message.audiopost" = "Sesli gönderi";
 
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "Bu mesaj silindi";
@@ -388,6 +424,9 @@
 /* Title for audio post composer */
 "composer.audio.title" = "Yeni sesli mesaj";
 
+/* Title on edit button */
+"composer.button.edit" = "Düzenle";
+
 /* Title warning that a voice recording will be deleted */
 "composer.delete.recording.title" = "Ses kaydını sil?";
 
@@ -466,14 +505,29 @@
 /* Title for generic delete button. */
 "Delete" = "Sil";
 
+/* link, tapping on which launched the flow to edit favorites */
+"edit.favorites" = "Yakınları düzenle";
+
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "İletişim kurmak için birbirinize telefon numaralarınızı vermelisiniz";
+
+/* Description of an externally shared post containing an audio post */
+"externalShare.og.description.audio" = "Sesli gönderi";
+
+/* Description of an externally shared post containing photos/videos */
+"externalShare.og.description.media" = "Görsel içeren gönderi";
+
+/* Description of an externally shared post containing just text */
+"externalShare.og.description.text" = "Metin gönderisi";
+
+/* Title for posts that are externally shared, 'John Smith's HalloApp Post' */
+"externalShare.og.title3" = "%@ kişisinin HalloApp Gönderisi";
 
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Kamera";
 
 /* VoiceOver label for photo button in floating compose post menu in Home view. */
-"fab.accessibility.photo.library" = "Fotoğraf galerisi";
+"fab.accessibility.photo.library" = "Galeri";
 
 /* VoiceOver label for text post button in floating compose post menu in Home view. */
 "fab.accessibility.text" = "Metin";
@@ -545,10 +599,10 @@
 "feed.posting" = "Paylaşılıyor...";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.all" = "Bütün kişilerinle paylaş";
+"feed.privacy.descr.all" = "Bütün kişilerimle paylaş";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.except" = "Seçtiğin kişiler hariç, kişilerinle paylaş";
+"feed.privacy.descr.except" = "Seçtiğim kişiler hariç, kişilerimle paylaş";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Yalnızca seçtiğin kişilerle paylaş";
@@ -557,7 +611,10 @@
 "feed.privacy.header" = "Gönderimi kimler görebilir";
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
-"feed.privacy.list.all" = "Rehberimdeki kişiler";
+"feed.privacy.list.all" = "Kişilerim";
+
+/* Header for the list of all contacts on HallAapp. */
+"feed.privacy.list.all.details" = "HalloApp kişilerim";
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.except" = "... hariç kişilerim";
@@ -568,14 +625,23 @@
 /* Title for the list when selecting contacts to not share with. */
 "feed.privacy.list.except.title" = "Gönderileri şundan gizle: ";
 
-/* Settings > Privacy > Posts > Favorites privacy setting. */
-"feed.privacy.list.only" = "Yalnızca ... kişisiyle paylaş";
+/* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
+"feed.privacy.list.notOwn.only.description" = "Yalnızca %@ kişisinin Yakınlar listesindekiler bu gönderiyi görebilir.";
 
-/* Header for the list when selecting contacts to share with. */
-"feed.privacy.list.only.details" = "Bu gönderiyi kimlerin göreceğini seçin";
+/* Settings > Privacy > Posts > Favorites privacy setting. */
+"feed.privacy.list.only" = "Yakınlar";
+
+/* Header for the favorites list when editing contacts to share with. */
+"feed.privacy.list.only.details" = "Bu gönderiyi kim görecek";
+
+/* Title of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.only.title" = "Yakınlar";
+
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.own.only.description" = "Yalnızca Yakınlar listendekiler bu gönderiyi görebilir.";
 
 /* Possible Feed Privacy setting value. */
-"feed.privacy.value.my.contacts" = "Rehberimdeki kişiler";
+"feed.privacy.value.my.contacts" = "Kişilerim";
 
 /* Possible Feed Privacy setting value. Can be longer. */
 "feed.privacy.value.n.contacts.excluded" = "feed.privacy.value.n.contacts.excluded";
@@ -594,6 +660,12 @@
 
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
 "feed.welcome.post.title" = "Gerçek bağların alanı HalloApp'e hoş geldin ✨\n ";
+
+/* Text for 'more' cell prompting users to open the invite screen */
+"feedInviteCarousel.searchPrompt" = "Daha fazla arkadaş ve yakın ara";
+
+/* Title for section of contacts to invite in feed */
+"feedInviteCarousel.title" = "HalloApp aile ve arkadaşlar için eğlencelidir";
 
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Yorum yap";
@@ -716,7 +788,7 @@
 "group.invite.title" = "Grup daveti";
 
 /* Title of invite sheet */
-"group.invitesheet.title" = "Bu ilişimi ailen ve arkadaşlarınla paylaş; otomatik olarak HalloApp'a katılsınlar";
+"group.invitesheet.title" = "Bu ilişimi ailen ve arkadaşlarınla paylaş; otomatik olarak HalloApp grubuna katılsınlar";
 
 /* Section header describing options to share link */
 "group.invitesheet.use.link.via" = "... kullanarak ilişimi paylaş";
@@ -737,7 +809,7 @@
 "group.preview.join.error.title" = "Gruba katılma başarısız";
 
 /* Label for joining group action */
-"group.preview.join.group" = "GRUBA KATIL";
+"group.preview.join.group" = "Gruba katıl";
 
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Grup bilgisi için dokun";
@@ -767,7 +839,7 @@
 "home.calls.fail.audio.title" = "HalloApp araması sırasında ses kaydı yapılamaz.";
 
 /* Text shown to users on call failure. */
-"home.calls.fail.text" = "Lütfen daha sonra dene.";
+"home.calls.fail.text" = "Telefonunun internete bağlandığından emin ol ve yeniden dene";
 
 /* Title of failed call screen alert. */
 "home.calls.fail.title" = "Arama yapılamadı.";
@@ -824,16 +896,22 @@
 "invite.text.specific" = "Merhaba %1$@! Seni, sevdiklerimizle gerçek bağlantılar kurabildiğimiz bir uygulama olan HalloApp'e davet ediyorum. Kaydolmak için %2$@ numarasını kullan. halloapp.com/dl adresinden uygulamayı indir.";
 
 /* Title for the screen that allows to select contact to invite. */
-"invite.title" = "Davet et";
+"invite.title" = "Arkadaşını davet et";
 
 /* Title of cell at the top of the invite screen */
 "invite.via.link" = "İlişim yoluyla davet et";
+
+/* Contacts including this in their name are excluded from the invite carousel */
+"invitemanager.spam" = "İstenmeyen";
 
 /* Text shown when inviting to a group using a QR code */
 "join.group.using.qr.code" = "HalloApp'teki grubuma katıl!";
 
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Ara";
+
+/* Text with hyperlink to halloapp's faq on encryption. */
+"learn.more" = "Daha fazlasını öğren";
 
 /* Link text to open invite flow */
 "link.invite.friend" = "Bir arkadaşını davet et.";
@@ -858,6 +936,9 @@
 
 /* Button title. Refers to resetting photo / video to original version. */
 "media.button.reset" = "Sıfırla";
+
+/* Button title. Refers to undoing an edit of a photo. */
+"media.button.undo" = "Geri al";
 
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.camera.access.request" = "HalloApp'in kamerana erişimi yok. Erişimi etkinleştirmek için Ayarlar'a dokun ve Kamera'yı aç.";
@@ -895,8 +976,14 @@
 /* Label indicating that media was successfully saved to the camera roll */
 "media.save.saved" = "Galeriye kaydedildi";
 
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.annotate" = "Açıklama ekle";
+
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Kapat";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.draw" = "Çiz";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.flip" = "Çevir";
@@ -916,17 +1003,20 @@
 /* Message action. Verb. */
 "message.reply" = "Yanıtla";
 
-/* One of the contact actions in My Post screen. */
-"mypost.action.hide.my.posts" = "Gönderilerimi gizle";
-
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Mesaj";
 
 /* One of the contact actions in My Post screen. */
 "mypost.action.view.profile" = "Profili görüntüle";
 
+/* Message displayed to say when posts will disappear for posts shared with contacts. */
+"mypost.contacts.disappear.time.label" = "Gönderin 30 gün sonra kaybolacak. HalloApp'e katılan kişilerin, süresi dolmamış gönderilerini görebilir.";
+
 /* Generic message displayed to say when posts will disappear. */
-"mypost.disappear.time.label" = "Gönderilerin, 30 gün sonra kaybolacak.";
+"mypost.disappear.time.label" = "Gönderin, 30 gün sonra kaybolacak.";
+
+/* Message displayed to say when posts will disappear for posts shared with favorites. */
+"mypost.favorites.disappear.time.label" = "Gönderin Yakınlarla paylaşıldı ve 30 gün sonra kaybolacak.";
 
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
 "mypost.hide.posts.confirmation" = "Gelecekteki bütün gönderilerini %@ kişisinden gizlemek istediğine emin misin? Bunu daha sonra değiştirebilirsin.";
@@ -1004,7 +1094,13 @@
 "notification.voicecall.missed" = "☎️ Cevapsız çağrı";
 
 /* New post notification text when post is a voice note. */
-"notification.voicenote" = "🎤Sesli mesaj";
+"notification.voicecomment" = "🎤 Sesli yorum";
+
+/* New post notification text when post is a voice note. */
+"notification.voicenote" = "🎤 Sesli not";
+
+/* New post notification text when post is a voice note. */
+"notification.voicepost" = "🎤 Sesli gönderi";
 
 /* Text for new user popup pointing at activity center icon */
 "nux.activity.center.icon" = "Hallo!";
@@ -1087,6 +1183,9 @@
 /* Generic setting value telling how many contacts are blocked or muted. */
 "privacy.n.contacts" = "privacy.n.contacts";
 
+/* Error banner displayed when there is a failure syncing preivacy settings, displayed on the privacy view */
+"privacy.sync.failure" = "Gizlilik ayarları senkronize edilemedi. Lütfen daha sonra tekrar dene.";
+
 /* Title for the button allowing to delete current profile photo. */
 "profile.delete.photo" = "Fotoğrafı sil";
 
@@ -1150,6 +1249,9 @@
 
 /* Title for the screen allowing to edit profile name */
 "profile.title.your.name" = "Adın";
+
+/* Title for the button allowing the user to view their own profile photo. */
+"profile.view.photo" = "Fotoğrafı gör";
 
 /* Disclaimer text about receiving SMS verification code */
 "registration.code.disclaimer" = "Bir onay kodu alacaksın. Bu mesaj ücretli olabilir.";
@@ -1335,7 +1437,7 @@
 "settings.account.export.navbar" = "Verileri dışa aktar";
 
 /* Label for when the date at which the exported user data will be available is not determined. */
-"settings.account.export.not.found" = "Hazırlanma tarihi belirlenemedi";
+"settings.account.export.not.found" = "Verilerinin kullanıma sunulacağı tarih belirlenemedi.";
 
 /* Button to open the user data exported from HalloApp. */
 "settings.account.export.open.data" = "Dışa aktarılan verileri aç";
@@ -1403,6 +1505,18 @@
 /* Link to expand truncated text. */
 "textlabel.more" = "...daha fazla";
 
+/* Same as profile.header.call.user, but capitalized */
+"textview.context.menu.audio.call.user" = "Sesli arama";
+
+/* Same as profile.header.message.user, but capitalized */
+"textview.context.menu.message.user" = "Mesaj";
+
+/* Same as profile.header.call.user, but capitalized */
+"textview.context.menu.video.call.user" = "Görüntülü arama";
+
+/* Link to expand truncated text. */
+"textview.more" = "Daha fazla";
+
 /* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
 "thread.list.preview.already.user.default" = "%@ HalloApp'te";
 
@@ -1448,6 +1562,9 @@
 /* Title for the picker screen. */
 "title.comments.picker" = "Yeni yorum";
 
+/* Button to edit favorites list */
+"title.edit.favorites" = "Yakınlar listesini düzenle";
+
 /* Second tab in the main app interface. */
 "title.groups" = "Gruplar";
 
@@ -1473,7 +1590,7 @@
 "title.storage" = "Depolama";
 
 /* Title for the screen with information about who saw your post. */
-"title.your.post" = "... tarafından görüldü ";
+"title.your.post" = "... tarafından görüldü";
 
 /* Indicates which switch a user needs to turn on to enable contacts permissions. */
 "turn.on.contacts" = "\"Kişilerim\"i aç";
@@ -1485,10 +1602,13 @@
 "unknown.contact" = "Bilinmeyen kişi";
 
 /* Text for action label that lets the user accept messages from unknown contacts */
-"unknown.contact.accept.to.message" = "Cevaplamak için mesajı kabul et";
+"unknown.contact.accept.to.message" = "Mesajı kabul et";
 
 /* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
 "unknown.contact.not.in.contact.book" = "Gönderici, kişi listende değil";
+
+/* Alert appearing after clicking an external share link that failed to load */
+"urlrouter.externalShare.failed" = "Gönderi yüklemesi başarısız";
 
 /* Button to confirm blocking user via profile page */
 "user.block" = "Engelle";
@@ -1529,9 +1649,39 @@
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "Bu gönderi silinsin mi? Bu eylem geri alınamaz.";
 
+/* Displayed when a post fails to delete */
+"your.post.deletepost.error" = "Gönderi silinirken hata oluştu";
+
 /* Button to open the system share sheet with an external post link */
 "your.post.externalshare.button" = "Harici olarak paylaş ";
 
+/* Title for button in action sheet prompting user to share post to external sites */
+"your.post.externalshare.copylink" = "Paylaşmak için ilişimi kopyala";
+
+/* Success toast when external share link is copied */
+"your.post.externalshare.copylink.success" = "Panoya kopyalandı";
+
+/* Message on header of post menu explaining external share */
+"your.post.externalshare.description2" = "İlişime sahip herkes gönderini görebilir. İlişim, yayınınla birlikte sona erer. İlişimin önizlemesi şifrelenmemiştir.";
+
 /* Message that external share failed. */
 "your.post.externalshare.error" = "Harici paylaşım için gönderi yüklenemedi";
+
+/* Button to invalidate an external share link */
+"your.post.externalshare.revoke" = "İlişimi iptal et ";
+
+/* Message that revoking external share link failed. */
+"your.post.externalshare.revoke.error" = "Harici paylaşım için ilişim iptal edilemedi";
+
+/* Notification that a link was successfully revoked */
+"your.post.externalshare.revoke.success" = "İlişim iptal edildi";
+
+/* Notification revoking an external share link is in progress */
+"your.post.externalshare.revoking" = "İlişim iptal ediliyor...";
+
+/* Text introducing external share link, part of what is shared */
+"your.post.externalshare.title" = "HalloApp'teki gönderime bak";
+
+/* Notification that post is uploading */
+"your.post.externalshare.uploading" = "İlişim yaratılıyor...";
 

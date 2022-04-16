@@ -5,10 +5,10 @@
 "NSCameraUsageDescription" = "Bu, doğrudan HalloApp içinden fotoğraf ve video çekmeni sağlar.";
 
 /* Privacy - Contacts Usage Description */
-"NSContactsUsageDescription" = "Arkadaşlarının gönderilerini görmek ve kendi gönderilerini onlarla paylaşmak için kişilerini HalloApp sunucularına yükle.";
+"NSContactsUsageDescription" = "Ailen ve arkadaşlarının gönderilerini görebilmek ve paylaşabilmek için HalloApp'in kişilerine erişmesine izin ver.";
 
 /* Privacy - Microphone Usage Description */
-"NSMicrophoneUsageDescription" = "Bu, sesli videolar kaydetmeni sağlar.";
+"NSMicrophoneUsageDescription" = "Bu, arama yapmanızı, sesli gönderiler ve mesajlar göndermenizi ve sesli videolar kaydetmenizi sağlar.";
 
 /* Privacy - Photo Library Usage Description */
 "NSPhotoLibraryUsageDescription" = "Burası, galerindeki fotoğraf ve videolarını arkadaşlarınla paylaşmanı, çektiklerini galerinde saklamanı sağlar.";

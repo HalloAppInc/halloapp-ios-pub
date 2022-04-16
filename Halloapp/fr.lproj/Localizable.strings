@@ -553,7 +553,7 @@
 /* Settings > Privacy > Posts > Favorites privacy setting. */
 "feed.privacy.list.only" = "Partagez uniquement avec...";
 
-/* Header for the list when selecting contacts to share with. */
+/* Header for the favorites list when editing contacts to share with. */
 "feed.privacy.list.only.details" = "Choisis ceux qui verront cette publication";
 
 /* Possible Feed Privacy setting value. */
@@ -888,9 +888,6 @@
 
 /* Message action. Verb. */
 "message.reply" = "Répondre";
-
-/* One of the contact actions in My Post screen. */
-"mypost.action.hide.my.posts" = "Masquer mes publications";
 
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Envoyer un message";

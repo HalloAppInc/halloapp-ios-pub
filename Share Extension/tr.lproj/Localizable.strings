@@ -85,6 +85,15 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Yalnızca seçilen kişilerle paylaş";
 
+/* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
+"feed.privacy.list.notOwn.only.description" = "Yalnızca %@ kişisinin Yakınlar listesindekiler bu gönderiyi görebilir.";
+
+/* Title of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.only.title" = "Yakınlar";
+
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.own.only.description" = "Yalnızca Yakınlar listendekiler bu gönderiyi görebilir.";
+
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Ara";
 
@@ -122,10 +131,10 @@
 "share.composer.uploading.fail.title" = "Yükleme başarısız";
 
 /* Contacts category label */
-"share.destination.contacts" = "Kişiler";
+"share.destination.contacts" = "Yeni kişiler";
 
 /* Groups category label */
-"share.destination.groups" = "Gruplar";
+"share.destination.groups" = "Grupların";
 
 /* Share on the home feed label */
 "share.destination.home" = "Ana sayfa";
@@ -148,6 +157,9 @@
 
 /* Title of alert when user is not logged in */
 "share.notlogged.title" = "Oturum açmadın.";
+
+/* Button to edit favorites list */
+"title.edit.favorites" = "Yakınlar listesini düzenle";
 
 /* Row in Settings screen */
 "title.privacy" = "Gizlilik";
