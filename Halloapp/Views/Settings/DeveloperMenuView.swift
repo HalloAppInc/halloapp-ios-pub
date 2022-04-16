@@ -23,6 +23,7 @@ private enum MenuTitles {
     static var startZeroZoneDemo: String { "Start Welcome Posts Demo" }
     static var clearPushNamesAndNumbers: String { "Clear Pushnames/numbers" }
     static var clearHiddenSuggestedContacts: String { "Clear hidden suggested contacts" }
+    static var resetFavoritesZeroState: String { "Reset Favorites Zero State" }
     static var logOut: String { "Log Out" }
 }
 
@@ -167,6 +168,13 @@ struct DeveloperMenuView: View {
                     self.dismiss?()
                 } label: {
                     Text(MenuTitles.clearHiddenSuggestedContacts)
+                }
+
+                Button(action: {
+                    AppContext.shared.userDefaults.set(false, forKey: "hasFavoritesModalBeenShown")
+                    self.dismiss?()
+                }) {
+                    Text(MenuTitles.resetFavoritesZeroState)
                 }
 
                 // Log Out

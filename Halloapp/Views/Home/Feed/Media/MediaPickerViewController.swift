@@ -491,6 +491,13 @@ class MediaPickerViewController: UIViewController {
             let isVideoCallOngoing = activeCall?.isVideoCall ?? false
             self?.cameraButton.isEnabled = !isVideoCallOngoing
         }
+
+        //Show the favorites education modal only once to the user
+        if !AppContext.shared.userDefaults.bool(forKey: "hasFavoritesModalBeenShown") {
+            AppContext.shared.userDefaults.set(true, forKey: "hasFavoritesModalBeenShown")
+            let vc = FavoritesInformationViewController()
+            self.present(vc, animated: true)
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {

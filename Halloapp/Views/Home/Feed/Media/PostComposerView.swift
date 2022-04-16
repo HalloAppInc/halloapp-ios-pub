@@ -444,6 +444,13 @@ class PostComposerViewController: UIViewController {
         }.store(in: &cancellableSet)
 
         updateChangeDestinationBtn()
+
+        //Show the favorites education modal only once to the user
+        if !AppContext.shared.userDefaults.bool(forKey: "hasFavoritesModalBeenShown") {
+            AppContext.shared.userDefaults.set(true, forKey: "hasFavoritesModalBeenShown")
+            let vc = FavoritesInformationViewController()
+            self.present(vc, animated: true)
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {

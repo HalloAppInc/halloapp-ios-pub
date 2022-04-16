@@ -12,15 +12,28 @@ import UIKit
 
 class FavoritesInformationViewController: UIViewController {
 
+    override init(nibName: String?, bundle: Bundle?) {
+        super.init(nibName: nibName, bundle: bundle)
+        modalPresentationStyle = .overCurrentContext
+        modalTransitionStyle = .crossDissolve
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupView()
     }
 
     func setupView() {
-        view.backgroundColor = UIColor.primaryBg.withAlphaComponent(0.1)
+        view.backgroundColor = UIColor.primaryBlackWhite.withAlphaComponent(0.5)
 
         navigationController?.setNavigationBarHidden(true, animated: true)
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.didTapBackground(_:)))
+        view.isUserInteractionEnabled = true
+        view.addGestureRecognizer(tapGesture)
 
         view.addSubview(mainView)
         NSLayoutConstraint.activate([
@@ -118,7 +131,7 @@ class FavoritesInformationViewController: UIViewController {
         return label
     }()
     
-    private let setFavoritesButton: UIButton = {
+    private lazy var setFavoritesButton: UIButton = {
         let setFavoritesButton = UIButton()
         setFavoritesButton.clipsToBounds = true
         setFavoritesButton.setTitleColor(.white, for: .normal)
@@ -129,7 +142,10 @@ class FavoritesInformationViewController: UIViewController {
         setFavoritesButton.setTitle(Localizations.setFavorites, for: .normal)
         setFavoritesButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 50).isActive = true
         setFavoritesButton.layer.cornerRadius = 10
-        setFavoritesButton.addTarget(self, action: #selector(didTapSetFavorites), for: [.touchUpInside])
+
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.didTapSetFavorites(_:)))
+        setFavoritesButton.isUserInteractionEnabled = true
+        setFavoritesButton.addGestureRecognizer(tapGesture)
         return setFavoritesButton
     }()
     
@@ -149,14 +165,20 @@ class FavoritesInformationViewController: UIViewController {
         return notNowLink
     }()
 
-   @objc func didTapSetFavorites() {
-        let privacyVC = ContactSelectionViewController.forPrivacyList(MainAppContext.shared.privacySettings.whitelist, in: MainAppContext.shared.privacySettings, setActiveType: false, doneAction: { [weak self] in
-                            self?.dismiss(animated: false)
-                        }, dismissAction: nil)
-       present(UINavigationController(rootViewController: privacyVC), animated: true)
+    @objc func didTapSetFavorites(_ sender: UITapGestureRecognizer) {
+        let presentingViewController = presentingViewController
+        dismiss(animated: false)
+        let privacyVC = ContactSelectionViewController.forPrivacyList(MainAppContext.shared.privacySettings.whitelist, in: MainAppContext.shared.privacySettings, setActiveType: true, doneAction: { [weak self] in
+            presentingViewController?.dismiss(animated: false)
+            }, dismissAction: nil)
+        presentingViewController?.present(UINavigationController(rootViewController: privacyVC), animated: true)
    }
     
     @objc func didTapNotNow(_ sender: UITapGestureRecognizer) {
+        dismiss(animated: true)
+    }
+
+    @objc func didTapBackground(_ sender: UITapGestureRecognizer) {
         dismiss(animated: true)
     }
 
