@@ -1357,7 +1357,23 @@ extension ProtoService: HalloService {
     }
 
     func externalSharePost(blobID: String, completion: @escaping ServiceRequestCompletion<Server_ExternalSharePostContainer>) {
-        enqueue(request: ProtoExternalShareGetRequest(blobID: blobID, completion: completion))
+        if connectionState == .connecting {
+            // Set a reasonable timeout, so that we don't mistakenly display an external share post out of context
+            let requestStart = Date()
+            execute(whenConnectionStateIs: .connected, onQueue: .main) { [weak self] in
+                guard let self = self else {
+                    completion(.failure(RequestError.canceled))
+                    return
+                }
+                guard requestStart.timeIntervalSinceNow > -10 else {
+                    completion(.failure(RequestError.timeout))
+                    return
+                }
+                self.enqueue(request: ProtoExternalShareGetRequest(blobID: blobID, completion: completion))
+            }
+        } else {
+            enqueue(request: ProtoExternalShareGetRequest(blobID: blobID, completion: completion))
+        }
     }
 
     static func externalShareKeys(from key: [UInt8]) -> (iv: [UInt8], aesKey: [UInt8], hmacKey: [UInt8])? {
