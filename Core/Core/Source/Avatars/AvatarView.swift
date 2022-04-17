@@ -132,7 +132,12 @@ public class AvatarView: UIView {
             }
         }
     }
-    
+
+    public func configure(image: UIImage?) {
+        avatar.image = image
+        avatarUpdatingCancellable?.cancel()
+    }
+
     public func prepareForReuse() {
         avatarUpdatingCancellable?.cancel()
         avatar.image = AvatarView.defaultImage

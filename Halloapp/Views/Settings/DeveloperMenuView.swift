@@ -24,6 +24,7 @@ private enum MenuTitles {
     static var clearPushNamesAndNumbers: String { "Clear Pushnames/numbers" }
     static var clearHiddenSuggestedContacts: String { "Clear hidden suggested contacts" }
     static var resetFavoritesZeroState: String { "Reset Favorites Zero State" }
+    static var addFavoritesNotification: String { "Add favorites notification" }
     static var logOut: String { "Log Out" }
 }
 
@@ -172,9 +173,17 @@ struct DeveloperMenuView: View {
 
                 Button(action: {
                     AppContext.shared.userDefaults.set(false, forKey: "hasFavoritesModalBeenShown")
+                    AppContext.shared.userDefaults.set(false, forKey: "hasFavoritesNotificationBeenSent")
                     self.dismiss?()
                 }) {
                     Text(MenuTitles.resetFavoritesZeroState)
+                }
+
+                Button {
+                    MainAppContext.shared.feedData.updateFavoritesPromoNotification()
+                    dismiss?()
+                } label: {
+                    Text(MenuTitles.addFavoritesNotification)
                 }
 
                 // Log Out

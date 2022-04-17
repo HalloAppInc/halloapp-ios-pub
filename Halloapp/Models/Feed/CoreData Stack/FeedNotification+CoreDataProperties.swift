@@ -22,6 +22,7 @@ extension FeedNotification {
         case otherComment = 4     // comment on the post your commented on
         case mentionComment = 5   // mentioned in a comment
         case mentionPost = 6   // mentioned in a post
+        case favoritesPromo = 7 // Promo for new favorites
     }
 
     enum MediaType: Int16 {
@@ -87,6 +88,9 @@ extension FeedNotification {
 
     var formattedText: NSAttributedString {
         get {
+            let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
+            let boldFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
+
             var eventText: String
             switch self.event {
             case .comment:
@@ -153,10 +157,17 @@ extension FeedNotification {
                                                   value: "<$author$> mentioned you in a post",
                                                   comment: "Text for feed notification displayed in Activity Center.")
                 }
+            case .favoritesPromo:
+                let attributedText = NSMutableAttributedString()
+                let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
+                attributedText.append(NSAttributedString(string: NSLocalizedString("activityCenter.promo.favorites",
+                                                                                   value: "Check out the new Favorites feature!",
+                                                                                   comment: "First tab in the main app interface."),
+                                                         attributes: [.font: baseFont]))
+                return attributedText
             }
 
-            let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
-            let boldFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
+
             let result = NSMutableAttributedString(string: eventText, attributes: [ .font: baseFont ])
 
             let authorRange = (result.string as NSString).range(of: "<$author$>")

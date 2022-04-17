@@ -243,6 +243,9 @@ extension SceneDelegate: UIWindowSceneDelegate {
         // Check pasteboard for group invite link on first launch in the ievent user
         // installed app via group invite link.
         checkPasteboardForGroupInviteLinkIfNecessary()
+        
+        // Add a notification introducing Favorites. Delete it after 30 days.
+        MainAppContext.shared.feedData.updateFavoritesPromoNotification()
     }
 
     func sceneWillResignActive(_ scene: UIScene) {

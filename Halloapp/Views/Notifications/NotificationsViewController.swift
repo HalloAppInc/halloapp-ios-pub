@@ -248,7 +248,16 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let notification = displayedItems[indexPath.row]
         tableView.deselectRow(at: indexPath, animated: true)
-        
+
+        if case .singleNotification(let notif) = notification.content, notif.event == .favoritesPromo {
+            MainAppContext.shared.feedData.markNotificationsAsRead(for: "favorites")
+            let presentingViewController = presentingViewController
+            self.dismiss(animated: false)
+            let privacyVC = FavoritesInformationViewController()
+            presentingViewController?.present(UINavigationController(rootViewController: privacyVC), animated: true)
+            return
+        }
+
         guard let postId = notification.postId, MainAppContext.shared.feedData.feedPost(with: postId) != nil else {
             return
         }
@@ -405,7 +414,9 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
         
         mediaPreviewWidthAnchor?.constant = item.image == nil ? 0 : 44
         
-        if let userId = item.userID {
+        if case .singleNotification(let notif) = item.content, notif.event == .favoritesPromo {
+            contactImage.configure(image: UIImage(named: "PrivacySettingFavoritesWithBackground"))
+        } else if let userId = item.userID {
             contactImage.configure(with: userId, using: MainAppContext.shared.avatarStore)
         }
     }
