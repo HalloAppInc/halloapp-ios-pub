@@ -35,6 +35,7 @@ class MediaAlbumsViewController: UIViewController {
     }
     
     override func viewDidLoad() {
+        view.backgroundColor = .feedBackground
         fetch()
     }
 
