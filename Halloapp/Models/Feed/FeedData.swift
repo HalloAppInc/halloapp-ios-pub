@@ -4278,7 +4278,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             let notifications = self.notifications(for: "favorites", in: managedObjectContext)
             if notifications.count > 0 {
                 notifications.forEach {
-                    if $0.timestamp > FeedData.cutoffDate {
+                    if $0.timestamp < FeedData.cutoffDate {
                         managedObjectContext.delete($0)
                     }
                 }
