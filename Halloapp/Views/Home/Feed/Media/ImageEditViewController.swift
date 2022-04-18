@@ -288,8 +288,8 @@ struct ImageEditView: View {
                                     deleteBinFrame: deleteBinFrame,
                                     isOverDeleteBin: $isOverDeleteBin
                                 )
-                                    .clipped()
-                                    .offset(Scaler.scale(offset: media.offset, containerSize: outer.size, imageSize: image.size))
+                                .offset(Scaler.scale(offset: media.offset, containerSize: outer.size, imageSize: image.size))
+                                .clipped()
                             )
                             .overlay(GeometryReader { inner in
                                 CropRegion(
@@ -464,6 +464,8 @@ fileprivate struct DrawingBoard: View {
                             .fixedSize()
                             .font(Font(textFont as CTFont))
                             .foregroundColor(Color(annotation.color))
+                            .frame(minWidth: 128, minHeight: 128)
+                            .contentShape(Rectangle())
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .rotationEffect(.degrees(scaled.rotation))
                             .offset(x: x, y: y)
@@ -832,15 +834,18 @@ fileprivate struct CropGestureView: UIViewRepresentable {
         dragRecognizer.delegate = context.coordinator
         dragRecognizer.maximumNumberOfTouches = 1
         view.addGestureRecognizer(dragRecognizer)
+        context.coordinator.dragRecognizer = dragRecognizer
 
         let pinchDragRecognizer = UIPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.onPinchDrag))
         pinchDragRecognizer.delegate = context.coordinator
         pinchDragRecognizer.minimumNumberOfTouches = 2
         view.addGestureRecognizer(pinchDragRecognizer)
+        context.coordinator.pinchDragRecognizer = pinchDragRecognizer
 
         let zoomRecognizer = UIPinchGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.onZoom(sender:)))
         zoomRecognizer.delegate = context.coordinator
         view.addGestureRecognizer(zoomRecognizer)
+        context.coordinator.zoomRecognizer = zoomRecognizer
 
         return view
     }
@@ -865,6 +870,9 @@ fileprivate struct CropGestureView: UIViewRepresentable {
     class Coordinator: NSObject, UIGestureRecognizerDelegate {
         private let parent: CropGestureView
 
+        var dragRecognizer: UIPanGestureRecognizer?
+        var pinchDragRecognizer: UIPanGestureRecognizer?
+        var zoomRecognizer: UIPinchGestureRecognizer?
         var actions: Actions?
 
         init(_ view: CropGestureView) {
@@ -924,7 +932,12 @@ fileprivate struct CropGestureView: UIViewRepresentable {
         }
 
         func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-            return !(isDragRecognizer(gestureRecognizer) || isDragRecognizer(otherGestureRecognizer))
+            return (gestureRecognizer == zoomRecognizer && otherGestureRecognizer == pinchDragRecognizer) ||
+                   (gestureRecognizer == pinchDragRecognizer && otherGestureRecognizer == zoomRecognizer)
+        }
+
+        func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+            return otherGestureRecognizer != zoomRecognizer && otherGestureRecognizer != pinchDragRecognizer && otherGestureRecognizer != dragRecognizer
         }
     }
 }
