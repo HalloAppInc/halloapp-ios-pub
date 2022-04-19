@@ -128,8 +128,13 @@ class PostViewController: UIViewController, UserMenuHandler, ShareMenuPresenter 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 
-        if let post = post as? ExternalSharePost {
-            post.downloadMedia()
+        if let feedPost = post as? FeedPost {
+            // Load downloaded images into memory.
+            MainAppContext.shared.feedData.loadImages(postID: feedPost.id)
+            // Initiate download for images that were not yet downloaded.
+            MainAppContext.shared.feedData.downloadMedia(in: [feedPost])
+        } else if let externalSharePost = post as? ExternalSharePost {
+            externalSharePost.downloadMedia()
         }
 
         navigationController?.setNavigationBarHidden(true, animated: animated)
