@@ -85,6 +85,10 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
                 self.processNotification(metadata: metadata)
             }
         }
+        
+        // needed for presenting the FAB while the call bar is active
+        navigationController?.definesPresentationContext = false
+        tabBarController?.definesPresentationContext = true
     }
 
     override func viewDidAppear(_ animated: Bool) {

@@ -162,7 +162,7 @@ final class FloatingMenu: UIViewController, UIViewControllerTransitioningDelegat
         
         super.init(nibName: nil, bundle: nil)
         
-        modalPresentationStyle = .custom
+        modalPresentationStyle = .overCurrentContext
         transitioningDelegate = self
         setup()
     }
@@ -400,7 +400,7 @@ fileprivate final class FloatingMenuPresentController: NSObject, UIViewControlle
             transitionContext.completeTransition(false)
             return
         }
-        
+
         transitionContext.containerView.addSubview(menu.view)
         // align the menu w/ the trigger button that's on the presenting vc
         menu.positionAnchorButton()
