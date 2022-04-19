@@ -101,12 +101,6 @@ class PostViewController: UIViewController, UserMenuHandler, ShareMenuPresenter 
         navigationItem.compactAppearance = .transparentAppearance
         navigationItem.scrollEdgeAppearance = .transparentAppearance
 
-        view.addSubview(backBtn)
-        NSLayoutConstraint.activate([
-            backBtn.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
-            backBtn.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-        ])
-
         setupPostActions()
 
         postView.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
@@ -123,6 +117,12 @@ class PostViewController: UIViewController, UserMenuHandler, ShareMenuPresenter 
         postView.isShowingFooter = showFooter
 
         postView.delegate = self
+
+        view.addSubview(backBtn)
+        NSLayoutConstraint.activate([
+            backBtn.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
+            backBtn.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+        ])
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -156,7 +156,7 @@ class PostViewController: UIViewController, UserMenuHandler, ShareMenuPresenter 
         let scrollViewHeight = scrollView.frame.height
         let postHeight = postView.bounds.height
         let safeAreaInsets = view.safeAreaInsets
-        scrollView.contentInset.top = (scrollViewHeight - postHeight) * 0.5 - safeAreaInsets.top
+        scrollView.contentInset.top = max(backBtn.frame.maxY, (scrollViewHeight - postHeight) * 0.5) - safeAreaInsets.top
     }
 
     @objc private func backAction() {
