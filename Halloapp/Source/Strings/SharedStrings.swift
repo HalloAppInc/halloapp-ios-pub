@@ -210,7 +210,7 @@ extension Localizations {
     }
 
     static var setFavoritesDescription: String {
-        NSLocalizedString("feed.privacy.list.set.favorites.description", value: "Now you can create a list of your favorite contacts, and share your HalloApp posts just with them.", comment: "Description of the new Favorites functionality.")
+        NSLocalizedString("feed.privacy.list.set.favorites.description", value: "Now you can create a list of your favorite contacts, and share your HalloApp posts with them.", comment: "Description of the new Favorites functionality.")
     }
 
     static var dismissEditFavorites: String {
