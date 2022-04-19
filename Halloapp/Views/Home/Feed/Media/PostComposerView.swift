@@ -195,7 +195,7 @@ class PostComposerViewController: UIViewController {
 
     private var changeDestinationIconConstraint: NSLayoutConstraint?
     private lazy var changeDestinationIcon: UIImageView = {
-        let iconImage = UIImage(named: "settingsAccount")?
+        let iconImage = UIImage(named: "PrivacySettingMyContacts")?
             .withTintColor(.white, renderingMode: .alwaysOriginal)
         let icon = UIImageView(image: iconImage)
         icon.translatesAutoresizingMaskIntoConstraints = false
@@ -215,7 +215,7 @@ class PostComposerViewController: UIViewController {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = .white
-        label.font = .systemFont(ofSize: 15, weight: .medium)
+        label.font = .systemFont(ofSize: 14, weight: .medium)
 
         return label
     }()
@@ -237,18 +237,18 @@ class PostComposerViewController: UIViewController {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setBackgroundColor(.primaryBlue, for: .normal)
-        button.layer.cornerRadius = 11
+        button.layer.cornerRadius = 14
         button.layer.masksToBounds = true
         button.addTarget(self, action: #selector(changeDestinationAction), for: .touchUpInside)
 
         button.addSubview(stack)
 
         NSLayoutConstraint.activate([
-            stack.heightAnchor.constraint(equalToConstant: 25),
+            stack.heightAnchor.constraint(equalToConstant: 28),
             stack.topAnchor.constraint(equalTo: button.topAnchor),
-            stack.bottomAnchor.constraint(equalTo: button.bottomAnchor, constant: -1),
-            stack.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: 11),
-            stack.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -11),
+            stack.bottomAnchor.constraint(equalTo: button.bottomAnchor),
+            stack.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: 10),
+            stack.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -10),
         ])
 
         return button
@@ -500,10 +500,10 @@ class PostComposerViewController: UIViewController {
 
             switch privacy {
             case .all:
-                changeDestinationIcon.image = UIImage(named: "settingsAccount")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+                changeDestinationIcon.image = UIImage(named: "PrivacySettingMyContacts")?.withTintColor(.white, renderingMode: .alwaysOriginal)
                 changeDestinationButton.setBackgroundColor(.primaryBlue, for: .normal)
             case .whitelist:
-                changeDestinationIcon.image = UIImage(named: "PrivacySettingFavoritesWithBackground")
+                changeDestinationIcon.image = UIImage(named: "PrivacySettingFavoritesInversed")
                 changeDestinationButton.setBackgroundColor(.favoritesBg, for: .normal)
             default:
                 changeDestinationIcon.image = UIImage(named: "settingsSettings")?.withTintColor(.white, renderingMode: .alwaysOriginal)
