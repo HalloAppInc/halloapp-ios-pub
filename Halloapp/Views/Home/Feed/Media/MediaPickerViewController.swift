@@ -137,7 +137,7 @@ class MediaPickerViewController: UIViewController {
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.allowsMultipleSelection = true
         collectionView.register(AssetViewCell.self, forCellWithReuseIdentifier: AssetViewCell.reuseIdentifier)
-        collectionView.contentInset = UIEdgeInsets(top: 80, left: 0, bottom: 50, right: 0)
+        collectionView.contentInset = UIEdgeInsets(top: 80, left: 0, bottom: 80, right: 0)
         collectionView.dataSource = self
 
         return collectionView
@@ -194,19 +194,24 @@ class MediaPickerViewController: UIViewController {
     }()
 
     private lazy var actionsContainerView: UIView = {
-        let effect = UIBlurEffect(style: .systemUltraThinMaterial)
-        let container = BlurView(effect: effect, intensity: 1)
-        container.translatesAutoresizingMaskIntoConstraints = false
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
 
-        container.contentView.addSubview(albumsButton)
-        container.contentView.addSubview(nextButton)
+        let row = UIStackView(arrangedSubviews: [albumsButton, spacer, nextButton])
+        row.translatesAutoresizingMaskIntoConstraints = false
+        row.axis = .horizontal
+        row.alignment = .center
+
+        let container = UIView()
+        container.translatesAutoresizingMaskIntoConstraints = false
+        container.backgroundColor = .feedBackground
+        container.addSubview(row)
 
         NSLayoutConstraint.activate([
-            container.heightAnchor.constraint(equalToConstant: 85),
-            albumsButton.centerYAnchor.constraint(equalTo: container.contentView.centerYAnchor, constant: -9),
-            albumsButton.leadingAnchor.constraint(equalTo: container.contentView.leadingAnchor, constant: 24),
-            nextButton.centerYAnchor.constraint(equalTo: container.contentView.centerYAnchor, constant: -9),
-            nextButton.trailingAnchor.constraint(equalTo: container.contentView.trailingAnchor, constant: -18),
+            row.heightAnchor.constraint(equalToConstant: 80),
+            row.topAnchor.constraint(equalTo: container.topAnchor),
+            row.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 24),
+            row.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -18),
         ])
 
         return container
@@ -303,8 +308,6 @@ class MediaPickerViewController: UIViewController {
         stack.spacing = 6
         stack.isUserInteractionEnabled = false
 
-
-
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setBackgroundColor(.primaryBlue, for: .normal)
@@ -388,9 +391,9 @@ class MediaPickerViewController: UIViewController {
 
     private var customNavigationContentTopConstraint: NSLayoutConstraint?
     private lazy var customNavigationBar: UIView = {
-        let effect = UIBlurEffect(style: .systemUltraThinMaterial)
-        let container = BlurView(effect: effect, intensity: 1)
+        let container = UIView()
         container.translatesAutoresizingMaskIntoConstraints = false
+        container.backgroundColor = .feedBackground
 
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
@@ -408,15 +411,15 @@ class MediaPickerViewController: UIViewController {
         rowsView.alignment = .fill
         rowsView.spacing = -4
 
-        container.contentView.addSubview(rowsView)
+        container.addSubview(rowsView)
 
         NSLayoutConstraint.activate([
             navigationRow.heightAnchor.constraint(equalToConstant: 44),
             titleLabel.centerXAnchor.constraint(equalTo: navigationRow.centerXAnchor),
             titleLabel.centerYAnchor.constraint(equalTo: navigationRow.centerYAnchor),
-            rowsView.leadingAnchor.constraint(equalTo: container.contentView.leadingAnchor, constant: 8),
-            rowsView.trailingAnchor.constraint(equalTo: container.contentView.trailingAnchor, constant: -8),
-            rowsView.bottomAnchor.constraint(equalTo: container.contentView.bottomAnchor, constant: -9),
+            rowsView.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 8),
+            rowsView.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -8),
+            rowsView.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -9),
         ])
 
         customNavigationContentTopConstraint = rowsView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8)
@@ -447,6 +450,8 @@ class MediaPickerViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        view.backgroundColor = .feedBackground
+
         view.addSubview(collectionView)
         view.addSubview(actionsContainerView)
         view.addSubview(limitedAccessBubble)
@@ -455,6 +460,7 @@ class MediaPickerViewController: UIViewController {
         collectionView.constrain(to: view)
 
         NSLayoutConstraint.activate([
+            actionsContainerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -80),
             actionsContainerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             actionsContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             actionsContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),

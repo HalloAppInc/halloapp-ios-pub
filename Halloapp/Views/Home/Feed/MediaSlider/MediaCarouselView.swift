@@ -46,7 +46,7 @@ struct MediaCarouselViewConfiguration {
     }
 
     static var `composer`: MediaCarouselViewConfiguration {
-        get { MediaCarouselViewConfiguration(disablePlayback: false, pageIndicatorTintAlpha: 0.3, currentPageIndicatorTintAlpha: 1.0) }
+        get { MediaCarouselViewConfiguration(disablePlayback: false, cornerRadius: 20, pageIndicatorTintAlpha: 0.3, currentPageIndicatorTintAlpha: 1.0) }
     }
 
     static var minimal: MediaCarouselViewConfiguration {
@@ -441,7 +441,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
             snapshot.appendItems(media)
         }
 
-        dataSource.apply(snapshot, animatingDifferences: false)
+        dataSource.apply(snapshot, animatingDifferences: animated)
         collectionView.collectionViewLayout.invalidateLayout()
         self.media = media
 

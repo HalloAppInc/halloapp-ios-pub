@@ -270,9 +270,9 @@ class PostComposerViewController: UIViewController {
 
     private var customNavigationContentTopConstraint: NSLayoutConstraint?
     private lazy var customNavigationBar: UIView = {
-        let effect = UIBlurEffect(style: .systemUltraThinMaterial)
-        let container = BlurView(effect: effect, intensity: 1)
+        let container = UIView()
         container.translatesAutoresizingMaskIntoConstraints = false
+        container.backgroundColor = .feedBackground
 
         let navigationRow = UIView()
         navigationRow.translatesAutoresizingMaskIntoConstraints = false
@@ -285,7 +285,7 @@ class PostComposerViewController: UIViewController {
         rowsView.alignment = .fill
         rowsView.spacing = -4
 
-        container.contentView.addSubview(rowsView)
+        container.addSubview(rowsView)
 
         NSLayoutConstraint.activate([
             navigationRow.heightAnchor.constraint(equalToConstant: 44),
@@ -293,9 +293,9 @@ class PostComposerViewController: UIViewController {
             backButton.centerYAnchor.constraint(equalTo: navigationRow.centerYAnchor),
             titleLabel.centerXAnchor.constraint(equalTo: navigationRow.centerXAnchor),
             titleLabel.centerYAnchor.constraint(equalTo: navigationRow.centerYAnchor),
-            rowsView.leadingAnchor.constraint(equalTo: container.contentView.leadingAnchor, constant: 8),
-            rowsView.trailingAnchor.constraint(equalTo: container.contentView.trailingAnchor, constant: -8),
-            rowsView.bottomAnchor.constraint(equalTo: container.contentView.bottomAnchor, constant: -9),
+            rowsView.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 8),
+            rowsView.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -8),
+            rowsView.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -9),
         ])
 
         customNavigationContentTopConstraint = rowsView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8)
@@ -620,8 +620,8 @@ fileprivate struct PostComposerLayoutConstants {
     static let horizontalPadding = MediaCarouselViewConfiguration.default.cellSpacing * 0.5
     static let verticalPadding = MediaCarouselViewConfiguration.default.cellSpacing * 0.5
     static let controlSpacing: CGFloat = 9
-    static let controlRadius: CGFloat = 18
-    static let controlSize: CGFloat = 36
+    static let controlRadius: CGFloat = 17
+    static let controlSize: CGFloat = 34
     static let backgroundRadius: CGFloat = 20
 
     static let postTextHorizontalPadding: CGFloat = 16
@@ -1477,7 +1477,7 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
             deleteBackground.translatesAutoresizingMaskIntoConstraints = false
             deleteBackground.isUserInteractionEnabled = false
 
-            let deleteImageConfiguration = UIImage.SymbolConfiguration(weight: .bold)
+            let deleteImageConfiguration = UIImage.SymbolConfiguration(weight: .heavy)
             let deleteImage = UIImage(systemName: "xmark", withConfiguration: deleteImageConfiguration)?.withTintColor(.white, renderingMode: .alwaysOriginal)
 
             let deleteButton = UIButton(type: .custom)
@@ -1512,7 +1512,7 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
             editButton.layer.cornerRadius = 15
             editButton.clipsToBounds = true
             editButton.imageEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 12)
-            editButton.contentEdgeInsets = UIEdgeInsets(top: 0, left: 4, bottom: 0, right: 6)
+            editButton.contentEdgeInsets = UIEdgeInsets(top: 0, left: 4, bottom: 1, right: 6)
             editButton.addTarget(context.coordinator, action: #selector(context.coordinator.cropAction), for: .touchUpInside)
             editButton.insertSubview(editBackground, at: 0)
             if let imageView = editButton.imageView {
@@ -1551,21 +1551,24 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
                 let button = UIButton(type: .system)
                 button.translatesAutoresizingMaskIntoConstraints = false
                 button.setTitle(Localizations.addMore, for: .normal)
+                button.setTitleColor(.label.withAlphaComponent(0.4), for: .normal)
                 button.titleLabel?.font = .systemFont(ofSize: 14)
-                button.titleLabel?.textColor = .label.withAlphaComponent(0.4)
                 button.addTarget(context.coordinator, action: #selector(context.coordinator.moreAction), for: .touchUpInside)
 
                 items.append(MediaCarouselSupplementaryItem(anchors: [.trailing], view: button))
             }
 
             if numberOfPages < 10 {
-                let imageConf = UIImage.SymbolConfiguration(pointSize: 27)
-                let image = UIImage(systemName: "plus.circle.fill", withConfiguration: imageConf)
+                let imageConf = UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)
+                let image = UIImage(systemName: "plus", withConfiguration: imageConf)
                 let moreButton = UIButton(type: .custom)
                 moreButton.translatesAutoresizingMaskIntoConstraints = false
-                moreButton.setImage(image?.withTintColor(.systemGray3, renderingMode: .alwaysOriginal), for: .normal)
-                moreButton.widthAnchor.constraint(equalToConstant: 32).isActive = true
-                moreButton.heightAnchor.constraint(equalToConstant: 32).isActive = true
+                moreButton.setImage(image?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
+                moreButton.setBackgroundColor(.systemGray3, for: .normal)
+                moreButton.widthAnchor.constraint(equalToConstant: 28).isActive = true
+                moreButton.heightAnchor.constraint(equalToConstant: 28).isActive = true
+                moreButton.layer.cornerRadius = 14
+                moreButton.layer.masksToBounds = true
                 moreButton.addTarget(context.coordinator, action: #selector(context.coordinator.moreAction), for: .touchUpInside)
 
                 items.append(MediaCarouselSupplementaryItem(anchors: [.trailing], view: moreButton))
