@@ -637,25 +637,43 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         return Mentions.mentionableUsers(forPostID: feedPostId)
     }
 
-    @objc func getMessageOptions(_ gestureRecognizer: UILongPressGestureRecognizer) {
-        if let indexPath = collectionView.indexPathForItem(at: gestureRecognizer.location(in: collectionView)) {
-            if let cell = collectionView.cellForItem(at: indexPath) as? MessageCellViewBase, let comment = fetchedResultsController?.object(at: indexPath), comment.status != .retracted, comment.userId == MainAppContext.shared.userData.userId {
-                // Only the author can delete a comment
-                guard comment.userId == MainAppContext.shared.userData.userId else { return }
-                cell.markViewSelected()
-                UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
-                // Setup action sheet
-                let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-                actionSheet.addAction(UIAlertAction(title: Localizations.messageDelete, style: .destructive) { [weak self] _ in
-                    guard let self = self else { return }
-                    self.presentDeleteConfirmationActionSheet(indexPath: indexPath, cell: cell, comment: comment)
-                })
-                actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel) { _ in
-                    cell.markViewUnselected()
-                })
-                self.present(actionSheet, animated: true)
-            }
+    func comment(at indexPath: IndexPath) -> FeedPostComment? {
+        guard let identifier = dataSource.itemIdentifier(for: indexPath) else {
+            return nil
         }
+
+        switch identifier {
+        case .comment(let feedPostComment), .retracted(let feedPostComment), .media(let feedPostComment),
+                .audio(let feedPostComment), .text(let feedPostComment), .linkPreview(let feedPostComment),
+                .quoted(let feedPostComment):
+            return feedPostComment
+        case .unreadCountHeader(_):
+            return nil
+        }
+    }
+
+    @objc func getMessageOptions(_ gestureRecognizer: UILongPressGestureRecognizer) {
+        guard let indexPath = collectionView.indexPathForItem(at: gestureRecognizer.location(in: collectionView)),
+              let cell = collectionView.cellForItem(at: indexPath) as? MessageCellViewBase,
+              let comment = comment(at: indexPath),
+              comment.status != .retracted,
+              // Only the author can delete a comment
+              comment.userId == MainAppContext.shared.userData.userId else {
+            return
+        }
+
+        cell.markViewSelected()
+        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+
+        // Setup action sheet
+        let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        actionSheet.addAction(UIAlertAction(title: Localizations.messageDelete, style: .destructive) { [weak self] _ in
+            self?.presentDeleteConfirmationActionSheet(indexPath: indexPath, cell: cell, comment: comment)
+        })
+        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel) { _ in
+            cell.markViewUnselected()
+        })
+        present(actionSheet, animated: true)
     }
 
     private func presentDeleteConfirmationActionSheet(indexPath: IndexPath, cell: MessageCellViewBase, comment: FeedPostComment) {

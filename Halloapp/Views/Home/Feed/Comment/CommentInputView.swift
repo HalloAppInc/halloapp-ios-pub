@@ -1431,7 +1431,12 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
     private func updateBottomInset(from keyboardEndFrame: CGRect) {
         let screenSize = UIScreen.main.bounds.size
-        let newBottomInset = screenSize.height - keyboardEndFrame.origin.y
+        let keyboardMinY = keyboardEndFrame.minY
+        guard keyboardMinY > 0 else {
+            DDLogWarn("CommentInputView/InvalidKeyboardSize")
+            return
+        }
+        let newBottomInset = screenSize.height - keyboardMinY
         if newBottomInset > 0 {
             // If newBottomInset is 0.0, the first responder is going away entirely. However we don't
             // want to change _bottomInset immediately because the user could be interactively popping
