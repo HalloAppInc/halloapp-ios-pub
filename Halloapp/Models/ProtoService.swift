@@ -1357,7 +1357,7 @@ extension ProtoService: HalloService {
     }
 
     func externalSharePost(blobID: String, completion: @escaping ServiceRequestCompletion<Server_ExternalSharePostContainer>) {
-        if connectionState == .connecting {
+        if isReachable {
             // Set a reasonable timeout, so that we don't mistakenly display an external share post out of context
             let requestStart = Date()
             execute(whenConnectionStateIs: .connected, onQueue: .main) { [weak self] in
