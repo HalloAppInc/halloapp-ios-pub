@@ -148,7 +148,8 @@
 /* Groups category label */
 "share.destination.groups" = "Grupos";
 
-/* Share on the home feed label */
+/* Share on the home feed label with all my contacts
+   Share to all contacts */
 "share.destination.home" = "Inicio";
 
 /* Alert title when a direct to contact sharing is missing

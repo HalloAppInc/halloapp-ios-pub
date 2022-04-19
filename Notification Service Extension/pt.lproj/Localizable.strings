@@ -85,14 +85,26 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Partilhar apenas com contatos selecionados";
 
+/* Button to dismiss edit favorites modal */
+"feed.privacy.list.dismiss.edit.favorites" = "Agora não";
+
 /* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
-"feed.privacy.list.notOwn.only.description" = "Esta postagem é compartilhada apenas com um público limitado. Você pode ajustar seu público nas configurações de privacidade a qualquer momento.";
+"feed.privacy.list.notOwn.only.description" = "Apenas as pessoas na lista de Favoritos de %@ podem ver esta postagem.";
+
+/* Header for the favorites list when editing contacts to share with. */
+"feed.privacy.list.only.details" = "Selecione quem verá esta postagem";
 
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.only.title" = "Favoritos";
 
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
-"feed.privacy.list.own.only.description" = "Esta postagem é compartilhada apenas com um grupo personalizado de contatos. Você pode ajustar seu público sempre que fizer uma nova postagem ou em Configurações > Privacidade.";
+"feed.privacy.list.own.only.description" = "Apenas as pessoas na tua lista de Favoritos podem ver esta postagem.";
+
+/* Button to edit favorites */
+"feed.privacy.list.set.favorites" = "Definir favoritos";
+
+/* Description of the new Favorites functionality. */
+"feed.privacy.list.set.favorites.description" = "Agora você pode criar uma lista de seus contatos favoritos e compartilhar suas postagens do HalloApp apenas com eles.";
 
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Foi adicionado a um novo grupo";
@@ -168,6 +180,9 @@
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Junte-se à minha rede de relacionamento real no HalloApp. Baixe gratuitamente no site halloapp.com/dl";
+
+/* Button to edit favorites list */
+"title.edit.favorites" = "Edite sua lista de Favoritos";
 
 /* Row in Settings screen */
 "title.privacy" = "Privacidade";

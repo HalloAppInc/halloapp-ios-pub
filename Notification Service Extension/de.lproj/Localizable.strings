@@ -85,14 +85,26 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Nur mit ausgewählten Kontakten teilen";
 
+/* Button to dismiss edit favorites modal */
+"feed.privacy.list.dismiss.edit.favorites" = "Jetzt nicht";
+
 /* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
-"feed.privacy.list.notOwn.only.description" = "Dieser Beitrag wird nur mit einem begrenzten Benutzerkreis geteilt. Du kannst deine Zielgruppe in den Privatsphäre-Einstellungen jederzeit anpassen.";
+"feed.privacy.list.notOwn.only.description" = "Nur die Personen auf %@'s Favoritenliste können diesen Beitrag sehen.";
+
+/* Header for the favorites list when editing contacts to share with. */
+"feed.privacy.list.only.details" = "Wer wird diesen Beitrag sehen";
 
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.only.title" = "Favoriten";
 
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
-"feed.privacy.list.own.only.description" = "Dieser Beitrag wird nur mit einer benutzerdefinierten Gruppe von Kontakten geteilt. Du kannst deine Zielgruppe anpassen, wann immer du einen neuen Beitrag teilst, oder unter den Einstellungen > Privatsphäre.";
+"feed.privacy.list.own.only.description" = "Nur die Personen auf deiner Favoritenliste können diesen Beitrag sehen.";
+
+/* Button to edit favorites */
+"feed.privacy.list.set.favorites" = "Favoriten festlegen";
+
+/* Description of the new Favorites functionality. */
+"feed.privacy.list.set.favorites.description" = "Jetzt kannst du eine Liste deiner bevorzugten Kontakte erstellen und deine HalloApp-Beiträge nur mit ihnen teilen.";
 
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Du wurdest einer neuen Gruppe hinzugefügt";
@@ -168,6 +180,9 @@
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Mach mit bei meinem HalloApp-Netzwerk für echte Beziehungen! Kostenlos herunterladen auf halloapp.com/dl";
+
+/* Button to edit favorites list */
+"title.edit.favorites" = "Favoritenliste bearbeiten";
 
 /* Row in Settings screen */
 "title.privacy" = "Privatsphäre";

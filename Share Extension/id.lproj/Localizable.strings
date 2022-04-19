@@ -127,7 +127,8 @@
 /* Groups category label */
 "share.destination.groups" = "Grupmu";
 
-/* Share on the home feed label */
+/* Share on the home feed label with all my contacts
+   Share to all contacts */
 "share.destination.home" = "Beranda";
 
 /* Alert title when a direct to contact sharing is missing

@@ -136,7 +136,8 @@
 /* Groups category label */
 "share.destination.groups" = "Grupların";
 
-/* Share on the home feed label */
+/* Share on the home feed label with all my contacts
+   Share to all contacts */
 "share.destination.home" = "Ana sayfa";
 
 /* Alert title when a direct to contact sharing is missing

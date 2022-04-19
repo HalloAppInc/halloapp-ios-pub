@@ -37,6 +37,9 @@
 /* Message shown when a user first joins */
 "activity.center.welcome.item" = "Herzlich willkommen bei HalloApp!";
 
+/* First tab in the main app interface. */
+"activityCenter.promo.favorites" = "Probiere die neue Favoritenfunktion aus!";
+
 /* Text label for action button to add the contact to the address book */
 "add.to.contact.book" = "Zu meinen Kontakten hinzufügen";
 
@@ -141,6 +144,9 @@
 
 /* Label for button that toggles speakerphone status during call */
 "call.button.speaker" = "Lautsprecher";
+
+/* Text indicating that calls are end-to-end encrypted */
+"call.encryption.text" = "Ende-zu-Ende-verschlüsselt";
 
 /* Title for call history event. Appears next to details of a successful call. */
 "call.history.video.call" = "Videoanruf";
@@ -502,6 +508,9 @@
 /* Title for generic delete button. */
 "Delete" = "Löschen";
 
+/* link, tapping on which launched the flow to edit blocked contacts */
+"edit.blocked" = "Bearbeiten";
+
 /* link, tapping on which launched the flow to edit favorites */
 "edit.favorites" = "Favoriten bearbeiten";
 
@@ -613,6 +622,9 @@
 /* Header for the list of all contacts on HallAapp. */
 "feed.privacy.list.all.details" = "Meine HalloApp-Kontakte";
 
+/* Button to dismiss edit favorites modal */
+"feed.privacy.list.dismiss.edit.favorites" = "Jetzt nicht";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.except" = "Meine Kontakte außer...";
 
@@ -623,7 +635,7 @@
 "feed.privacy.list.except.title" = "Beiträge ausblenden für...";
 
 /* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
-"feed.privacy.list.notOwn.only.description" = "Dieser Beitrag wird nur mit einem begrenzten Benutzerkreis geteilt. Du kannst deine Zielgruppe in den Privatsphäre-Einstellungen jederzeit anpassen.";
+"feed.privacy.list.notOwn.only.description" = "Nur die Personen auf %@'s Favoritenliste können diesen Beitrag sehen.";
 
 /* Settings > Privacy > Posts > Favorites privacy setting. */
 "feed.privacy.list.only" = "Favoriten\n";
@@ -635,7 +647,13 @@
 "feed.privacy.list.only.title" = "Favoriten";
 
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
-"feed.privacy.list.own.only.description" = "Dieser Beitrag wird nur mit einer benutzerdefinierten Gruppe von Kontakten geteilt. Du kannst deine Zielgruppe anpassen, wann immer du einen neuen Beitrag teilst, oder unter den Einstellungen > Privatsphäre.";
+"feed.privacy.list.own.only.description" = "Nur die Personen auf deiner Favoritenliste können diesen Beitrag sehen.";
+
+/* Button to edit favorites */
+"feed.privacy.list.set.favorites" = "Favoriten festlegen";
+
+/* Description of the new Favorites functionality. */
+"feed.privacy.list.set.favorites.description" = "Jetzt kannst du eine Liste deiner bevorzugten Kontakte erstellen und deine HalloApp-Beiträge nur mit ihnen teilen.";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Meine Kontakte";
@@ -1169,7 +1187,7 @@
 "post.has.been.deleted.by.you" = "Du hast deinen Beitrag gelöscht";
 
 /* Header when selecting all or some contacts to share with */
-"post.privacy.header.contacts" = "Wer sieht diesen Beitrag";
+"post.privacy.header.contacts" = "Wer wird diesen Beitrag sehen";
 
 /* Header when selecting a group to share with */
 "post.privacy.header.groups" = "Nur mit einer Gruppe teilen";
@@ -1562,6 +1580,9 @@
 /* Title for the picker screen. */
 "title.comments.picker" = "Neuer Kommentar";
 
+/* Button to edit favorites list */
+"title.edit.favorites" = "Favoritenliste bearbeiten";
+
 /* Second tab in the main app interface. */
 "title.groups" = "Gruppen";
 
@@ -1646,6 +1667,9 @@
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "Diesen Beitrag löschen? Diese Aktion kann nicht widerrufen werden.";
 
+/* Displayed when a post fails to delete */
+"your.post.deletepost.error" = "Fehler beim Löschen des Beitrags";
+
 /* Button to open the system share sheet with an external post link */
 "your.post.externalshare.button" = "Extern teilen";
 
@@ -1667,6 +1691,15 @@
 /* Message that revoking external share link failed. */
 "your.post.externalshare.revoke.error" = "Link für externe Freigabe konnte nicht widerrufen werden";
 
+/* Notification that a link was successfully revoked */
+"your.post.externalshare.revoke.success" = "Link widerrufen";
+
+/* Notification revoking an external share link is in progress */
+"your.post.externalshare.revoking" = "Link wird widerrufen...";
+
 /* Text introducing external share link, part of what is shared */
 "your.post.externalshare.title" = "Schau dir meinen Beitrag auf HalloApp an:";
+
+/* Notification that post is uploading */
+"your.post.externalshare.uploading" = "Link wird erstellt...";
 

@@ -37,6 +37,9 @@
 /* Message shown when a user first joins */
 "activity.center.welcome.item" = "Добро пожаловать в HalloApp!";
 
+/* First tab in the main app interface. */
+"activityCenter.promo.favorites" = "Оцените новую фичу «Избранное»!";
+
 /* Text label for action button to add the contact to the address book */
 "add.to.contact.book" = "Добавить в Книгу контактов";
 
@@ -505,6 +508,9 @@
 /* Title for generic delete button. */
 "Delete" = "Удалить";
 
+/* link, tapping on which launched the flow to edit blocked contacts */
+"edit.blocked" = "Редактировать";
+
 /* link, tapping on which launched the flow to edit favorites */
 "edit.favorites" = "Изменить избранное";
 
@@ -616,6 +622,9 @@
 /* Header for the list of all contacts on HallAapp. */
 "feed.privacy.list.all.details" = "Мои контакты HalloApp";
 
+/* Button to dismiss edit favorites modal */
+"feed.privacy.list.dismiss.edit.favorites" = "Не сейчас";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.except" = "Мои контакты, за исключением...";
 
@@ -639,6 +648,12 @@
 
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.own.only.description" = "Эту публикацию могут просматривать только люди из вашего списка избранных.";
+
+/* Button to edit favorites */
+"feed.privacy.list.set.favorites" = "Настроить Избранное";
+
+/* Description of the new Favorites functionality. */
+"feed.privacy.list.set.favorites.description" = "Теперь вы можете создать список своих любимых контактов и делиться своими сообщениями HalloApp только с ними.";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Мои телефонные контакты";

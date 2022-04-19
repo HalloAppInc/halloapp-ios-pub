@@ -37,6 +37,9 @@
 /* Message shown when a user first joins */
 "activity.center.welcome.item" = "به هالواپ خوش‌آمدید!";
 
+/* First tab in the main app interface. */
+"activityCenter.promo.favorites" = "ویژگی جدید لیست مخاطبین را مشاهده کنید!";
+
 /* Text label for action button to add the contact to the address book */
 "add.to.contact.book" = "افزودن به لیست تلفن‌ها";
 
@@ -505,6 +508,9 @@
 /* Title for generic delete button. */
 "Delete" = "حذف";
 
+/* link, tapping on which launched the flow to edit blocked contacts */
+"edit.blocked" = "ویرایش";
+
 /* link, tapping on which launched the flow to edit favorites */
 "edit.favorites" = "ویرایش مخاطبین محبوب";
 
@@ -616,6 +622,9 @@
 /* Header for the list of all contacts on HallAapp. */
 "feed.privacy.list.all.details" = "مخاطبین هالواپ من";
 
+/* Button to dismiss edit favorites modal */
+"feed.privacy.list.dismiss.edit.favorites" = "الآن نه";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.except" = "مخاطب‌ها به جز...";
 
@@ -639,6 +648,12 @@
 
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.own.only.description" = "این پست فقط برای به اشتراک گذاشتن با گروه خاص از مخاطبین است. میتوانید مخاطبین خود را موقع تنظیم پست تغییر دهید و یا به حریم خصوصی در تنظیمات مراجعه کنید.";
+
+/* Button to edit favorites */
+"feed.privacy.list.set.favorites" = "تنظیم مخاطبین محبوب";
+
+/* Description of the new Favorites functionality. */
+"feed.privacy.list.set.favorites.description" = "اکنون میتوانید مخاطبین محبوبتان را تعیین کنید و پست‌های هالواپتان را فقط با آن‌ها به اشتراک بگذارید.";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "مخاطب‌های تلفن";

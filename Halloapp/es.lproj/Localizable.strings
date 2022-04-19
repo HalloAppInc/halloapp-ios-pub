@@ -37,6 +37,9 @@
 /* Message shown when a user first joins */
 "activity.center.welcome.item" = "¡Bienvenido(a) a HalloApp!";
 
+/* First tab in the main app interface. */
+"activityCenter.promo.favorites" = "¡Mira la nueva función en Favoritos!";
+
 /* Text label for action button to add the contact to the address book */
 "add.to.contact.book" = "Añadir a libreta de contactos";
 
@@ -761,7 +764,7 @@
 "group.feed.welcome.post.body" = "Comparte este enlace con tus amigos y ellos se unirán a tu grupo de forma automática.";
 
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
-"group.feed.welcome.post.title" = "Invita a un amigo(a) a este grupo";
+"group.feed.welcome.post.title" = "Invita a tus amistades a este grupo";
 
 /* Action label for inviting others to join the group via link */
 "group.info.invite.to.group.via.link" = "Invitar al grupo a través de un enlace";
@@ -977,7 +980,7 @@
 "media.save.camera.roll" = "Guardar en mi rollo de cámara";
 
 /* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
-"media.save.needs.permissions" = "Necesita permisos de fotos";
+"media.save.needs.permissions" = "Necesitamos permisos para guardar fotos";
 
 /* Description telling the user why the photos couldn't be saved */
 "media.save.no.access" = "No se pueden guardar las fotos sin acceso al rollo de cámara.";
@@ -1025,7 +1028,7 @@
 "mypost.contacts.disappear.time.label" = "Tu publicación desaparecerá después de 30 días. Tus contactos que se unan a HalloApp podrán ver tus publicaciones vigentes.";
 
 /* Generic message displayed to say when posts will disappear. */
-"mypost.disappear.time.label" = "Tus publicaciones se borrarán después de 30 días.";
+"mypost.disappear.time.label" = "Tus publicaciones solo estarán disponibles por 30 días.";
 
 /* Message displayed to say when posts will disappear for posts shared with favorites. */
 "mypost.favorites.disappear.time.label" = "Tu publicación se compartió con tus Favoritos y desaparecerá después de 30 días.";

@@ -82,7 +82,8 @@
 /* Groups category label */
 "share.destination.groups" = "Ομάδες";
 
-/* Share on the home feed label */
+/* Share on the home feed label with all my contacts
+   Share to all contacts */
 "share.destination.home" = "Αρχική";
 
 /* Destination screen title */

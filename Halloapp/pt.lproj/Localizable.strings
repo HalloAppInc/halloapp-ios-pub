@@ -37,6 +37,9 @@
 /* Message shown when a user first joins */
 "activity.center.welcome.item" = "Bem-vindo ao HalloApp!";
 
+/* First tab in the main app interface. */
+"activityCenter.promo.favorites" = "Confira o novo recurso Favoritos!";
+
 /* Text label for action button to add the contact to the address book */
 "add.to.contact.book" = "Adicionar Contato";
 
@@ -141,6 +144,9 @@
 
 /* Label for button that toggles speakerphone status during call */
 "call.button.speaker" = "alto falante";
+
+/* Text indicating that calls are end-to-end encrypted */
+"call.encryption.text" = "Criptografia de ponta a ponta";
 
 /* Title for call history event. Appears next to details of a successful call. */
 "call.history.video.call" = "Chamada de vídeo ";
@@ -502,6 +508,9 @@
 /* Title for generic delete button. */
 "Delete" = "Apagar";
 
+/* link, tapping on which launched the flow to edit blocked contacts */
+"edit.blocked" = "Editar";
+
 /* link, tapping on which launched the flow to edit favorites */
 "edit.favorites" = "Editar Favoritos ";
 
@@ -613,6 +622,9 @@
 /* Header for the list of all contacts on HallAapp. */
 "feed.privacy.list.all.details" = "Meus contatos do HalloApp";
 
+/* Button to dismiss edit favorites modal */
+"feed.privacy.list.dismiss.edit.favorites" = "Agora não";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.except" = "Os meus contatos, exceto...";
 
@@ -623,10 +635,10 @@
 "feed.privacy.list.except.title" = "Ocultar postagens de ...";
 
 /* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
-"feed.privacy.list.notOwn.only.description" = "Esta postagem é compartilhada apenas com um público limitado. Você pode ajustar seu público nas configurações de privacidade a qualquer momento.";
+"feed.privacy.list.notOwn.only.description" = "Apenas as pessoas na lista de Favoritos de %@ podem ver esta postagem.";
 
 /* Settings > Privacy > Posts > Favorites privacy setting. */
-"feed.privacy.list.only" = "Partilhar apenas com...";
+"feed.privacy.list.only" = "Favoritos";
 
 /* Header for the favorites list when editing contacts to share with. */
 "feed.privacy.list.only.details" = "Selecione quem verá esta postagem";
@@ -635,7 +647,13 @@
 "feed.privacy.list.only.title" = "Favoritos";
 
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
-"feed.privacy.list.own.only.description" = "Esta postagem é compartilhada apenas com um grupo personalizado de contatos. Você pode ajustar seu público sempre que fizer uma nova postagem ou em Configurações > Privacidade.";
+"feed.privacy.list.own.only.description" = "Apenas as pessoas na tua lista de Favoritos podem ver esta postagem.";
+
+/* Button to edit favorites */
+"feed.privacy.list.set.favorites" = "Definir favoritos";
+
+/* Description of the new Favorites functionality. */
+"feed.privacy.list.set.favorites.description" = "Agora você pode criar uma lista de seus contatos favoritos e compartilhar suas postagens do HalloApp apenas com eles.";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Meus Contatos";
@@ -890,7 +908,7 @@
 "invite.text" = "Junte-se a mim no HalloApp — uma maneira simples, privada e segura de manter contato com amigos e familiares. Obtenha-o em https://halloapp.com/dl";
 
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
-"invite.text.specific" = "Ei %1$@, tenho um convite para se juntar a mim no HalloApp — uma rede de relacionamento real para aqueles mais próximos de mim. Use %2$@ para se registar. Obtenha-o em https://halloapp.com/dl";
+"invite.text.specific" = "Ei %1$@, tenho um convite para tu se juntar a mim no HalloApp — uma rede de relacionamento real para aqueles mais próximos de mim. Use %2$@ para se cadastrar. Obtenha-o em https://halloapp.com/dl";
 
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Convidar Amigos";
@@ -1010,7 +1028,7 @@
 "mypost.contacts.disappear.time.label" = "Sua postagem desaparecerá após 30 dias. Seus contatos que ingressam no HalloApp podem ver suas postagens não expiradas.";
 
 /* Generic message displayed to say when posts will disappear. */
-"mypost.disappear.time.label" = "As suas publicações desaparecerão após 30 dias.";
+"mypost.disappear.time.label" = "Sua postagem desaparecerá após 30 dias.";
 
 /* Message displayed to say when posts will disappear for posts shared with favorites. */
 "mypost.favorites.disappear.time.label" = "Sua postagem foi compartilhada com seus Favoritos e desaparecerá após 30 dias.";
@@ -1562,6 +1580,9 @@
 /* Title for the picker screen. */
 "title.comments.picker" = "Novo Comentário";
 
+/* Button to edit favorites list */
+"title.edit.favorites" = "Edite sua lista de Favoritos";
+
 /* Second tab in the main app interface. */
 "title.groups" = "Grupos";
 
@@ -1646,6 +1667,9 @@
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "Apagar esta publicação? Essa ação não pode ser revertida.";
 
+/* Displayed when a post fails to delete */
+"your.post.deletepost.error" = "Erro ao excluir postagem";
+
 /* Button to open the system share sheet with an external post link */
 "your.post.externalshare.button" = "Partilhar Externamente";
 
@@ -1667,6 +1691,15 @@
 /* Message that revoking external share link failed. */
 "your.post.externalshare.revoke.error" = "Falha ao revogar link para partilhamento externo";
 
+/* Notification that a link was successfully revoked */
+"your.post.externalshare.revoke.success" = "Link revogado";
+
+/* Notification revoking an external share link is in progress */
+"your.post.externalshare.revoking" = "Revogando link...";
+
 /* Text introducing external share link, part of what is shared */
 "your.post.externalshare.title" = "Confira meu post no HalloApp:";
+
+/* Notification that post is uploading */
+"your.post.externalshare.uploading" = "A criar link...";
 

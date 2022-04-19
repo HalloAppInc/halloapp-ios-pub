@@ -85,14 +85,26 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "به اشتراک گذاشتن فقط با مخاطبین انتخابی";
 
+/* Button to dismiss edit favorites modal */
+"feed.privacy.list.dismiss.edit.favorites" = "الآن نه";
+
 /* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
 "feed.privacy.list.notOwn.only.description" = "این پست فقط برای به اشتراک گذاشتن با گروه خاص از مخاطبین است. میتوانید برای تغییر آن به حریم خصوصی در تنظیمات مراجعه کنید.";
+
+/* Header for the favorites list when editing contacts to share with. */
+"feed.privacy.list.only.details" = "انتخاب کسانی که پست شما را میبینند";
 
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.only.title" = "محبوب‌ها";
 
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.own.only.description" = "این پست فقط برای به اشتراک گذاشتن با گروه خاص از مخاطبین است. میتوانید مخاطبین خود را موقع تنظیم پست تغییر دهید و یا به حریم خصوصی در تنظیمات مراجعه کنید.";
+
+/* Button to edit favorites */
+"feed.privacy.list.set.favorites" = "تنظیم مخاطبین محبوب";
+
+/* Description of the new Favorites functionality. */
+"feed.privacy.list.set.favorites.description" = "اکنون میتوانید مخاطبین محبوبتان را تعیین کنید و پست‌های هالواپتان را فقط با آن‌ها به اشتراک بگذارید.";
 
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "شما به یک گروه دعوت شده‌اید";

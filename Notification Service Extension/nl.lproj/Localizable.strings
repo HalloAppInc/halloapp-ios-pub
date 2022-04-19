@@ -85,14 +85,26 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Alleen delen met geselecteerde contacten";
 
+/* Button to dismiss edit favorites modal */
+"feed.privacy.list.dismiss.edit.favorites" = "Niet Nu";
+
 /* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
 "feed.privacy.list.notOwn.only.description" = "Alleen de mensen op de Favorietenlijst van %@ kunnen deze post bekijken.";
+
+/* Header for the favorites list when editing contacts to share with. */
+"feed.privacy.list.only.details" = "Wie kan deze post zien";
 
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.only.title" = "Favorieten";
 
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.own.only.description" = "Alleen de mensen op je Favorietenlijst kunnen deze post bekijken.";
+
+/* Button to edit favorites */
+"feed.privacy.list.set.favorites" = "Favorieten Instellen";
+
+/* Description of the new Favorites functionality. */
+"feed.privacy.list.set.favorites.description" = "Je kunt nu een lijst maken van je favoriete contacten en je HalloApp-posts alleen met hen delen.";
 
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Je bent toegevoegd aan een nieuwe groep";

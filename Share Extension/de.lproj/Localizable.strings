@@ -85,14 +85,26 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Nur mit ausgewählten Kontakten teilen";
 
+/* Button to dismiss edit favorites modal */
+"feed.privacy.list.dismiss.edit.favorites" = "Jetzt nicht";
+
 /* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
-"feed.privacy.list.notOwn.only.description" = "Dieser Beitrag wird nur mit einem begrenzten Benutzerkreis geteilt. Du kannst deine Zielgruppe in den Privatsphäre-Einstellungen jederzeit anpassen.";
+"feed.privacy.list.notOwn.only.description" = "Nur die Personen auf %@'s Favoritenliste können diesen Beitrag sehen.";
+
+/* Header for the favorites list when editing contacts to share with. */
+"feed.privacy.list.only.details" = "Wer wird diesen Beitrag sehen";
 
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.only.title" = "Favoriten";
 
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
-"feed.privacy.list.own.only.description" = "Dieser Beitrag wird nur mit einer benutzerdefinierten Gruppe von Kontakten geteilt. Du kannst deine Zielgruppe anpassen, wann immer du einen neuen Beitrag teilst, oder unter den Einstellungen > Privatsphäre.";
+"feed.privacy.list.own.only.description" = "Nur die Personen auf deiner Favoritenliste können diesen Beitrag sehen.";
+
+/* Button to edit favorites */
+"feed.privacy.list.set.favorites" = "Favoriten festlegen";
+
+/* Description of the new Favorites functionality. */
+"feed.privacy.list.set.favorites.description" = "Jetzt kannst du eine Liste deiner bevorzugten Kontakte erstellen und deine HalloApp-Beiträge nur mit ihnen teilen.";
 
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Suchen";
@@ -136,7 +148,8 @@
 /* Groups category label */
 "share.destination.groups" = "Deine Gruppen";
 
-/* Share on the home feed label */
+/* Share on the home feed label with all my contacts
+   Share to all contacts */
 "share.destination.home" = "Home";
 
 /* Alert title when a direct to contact sharing is missing
@@ -157,6 +170,9 @@
 
 /* Title of alert when user is not logged in */
 "share.notlogged.title" = "Du bist nicht eingeloggt.";
+
+/* Button to edit favorites list */
+"title.edit.favorites" = "Favoritenliste bearbeiten";
 
 /* Row in Settings screen */
 "title.privacy" = "Privatsphäre";

@@ -85,14 +85,26 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Поделиться только с выбранными контактами";
 
+/* Button to dismiss edit favorites modal */
+"feed.privacy.list.dismiss.edit.favorites" = "Не сейчас";
+
 /* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
 "feed.privacy.list.notOwn.only.description" = "Только люди из %@а списка избранных могут просматривать эту публикацию.";
+
+/* Header for the favorites list when editing contacts to share with. */
+"feed.privacy.list.only.details" = "Выберите, кто увидит этот пост";
 
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.only.title" = "Избранное";
 
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.own.only.description" = "Эту публикацию могут просматривать только люди из вашего списка избранных.";
+
+/* Button to edit favorites */
+"feed.privacy.list.set.favorites" = "Настроить Избранное";
+
+/* Description of the new Favorites functionality. */
+"feed.privacy.list.set.favorites.description" = "Теперь вы можете создать список своих любимых контактов и делиться своими сообщениями HalloApp только с ними.";
 
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Поиск";
@@ -136,7 +148,8 @@
 /* Groups category label */
 "share.destination.groups" = "Группы";
 
-/* Share on the home feed label */
+/* Share on the home feed label with all my contacts
+   Share to all contacts */
 "share.destination.home" = "Главная";
 
 /* Alert title when a direct to contact sharing is missing

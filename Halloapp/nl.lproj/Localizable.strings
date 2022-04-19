@@ -37,6 +37,9 @@
 /* Message shown when a user first joins */
 "activity.center.welcome.item" = "Welkom op HalloApp!";
 
+/* First tab in the main app interface. */
+"activityCenter.promo.favorites" = "Probeer de nieuwe functie Favorieten!";
+
 /* Text label for action button to add the contact to the address book */
 "add.to.contact.book" = "Toevoegen aan mijn Contactenlijst";
 
@@ -505,6 +508,9 @@
 /* Title for generic delete button. */
 "Delete" = "Verwijderen";
 
+/* link, tapping on which launched the flow to edit blocked contacts */
+"edit.blocked" = "Aanpassen";
+
 /* link, tapping on which launched the flow to edit favorites */
 "edit.favorites" = "Favorieten Aanpassen";
 
@@ -616,6 +622,9 @@
 /* Header for the list of all contacts on HallAapp. */
 "feed.privacy.list.all.details" = "Mijn HalloApp Contacten";
 
+/* Button to dismiss edit favorites modal */
+"feed.privacy.list.dismiss.edit.favorites" = "Niet Nu";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.except" = "Mijn Contacten, Behalve...";
 
@@ -639,6 +648,12 @@
 
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.own.only.description" = "Alleen de mensen op je Favorietenlijst kunnen deze post bekijken.";
+
+/* Button to edit favorites */
+"feed.privacy.list.set.favorites" = "Favorieten Instellen";
+
+/* Description of the new Favorites functionality. */
+"feed.privacy.list.set.favorites.description" = "Je kunt nu een lijst maken van je favoriete contacten en je HalloApp-posts alleen met hen delen.";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Mijn Contacten";
