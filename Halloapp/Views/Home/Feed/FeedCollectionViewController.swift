@@ -811,6 +811,7 @@ extension FeedCollectionViewController {
                 description = String(format: format, MainAppContext.shared.contactStore.fullName(for: feedPost.userId))
             }
            let alert = UIAlertController(title: Localizations.favoritesTitle, message: description, preferredStyle: .alert)
+            alert.view.tintColor = .primaryBlue
             if feedPost.userId != MainAppContext.shared.userData.userId {
                 alert.addAction(.init(title: Localizations.titleEditFavorites, style: .default, handler: { [weak self] _ in
                     guard let self = self else { return }

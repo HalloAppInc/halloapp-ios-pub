@@ -18,7 +18,7 @@ private extension Localizations {
     }
 
     static var home: String {
-        NSLocalizedString("share.destination.home", value: "Home", comment: "Share on the home feed label")
+        NSLocalizedString("share.destination.home", value: "My Contacts", comment: "Share to all contacts")
     }
 }
 
@@ -32,8 +32,8 @@ class ShareDestinationRowView: UICollectionView {
             }
 
             switch destination {
-            case .feed:
-                cell.configureHome()
+            case .feed(let privacyType):
+                cell.configureHome(privacyType: privacyType)
             case .group(let group):
                 cell.configure(group)
             case .contact(let contact):
@@ -94,13 +94,15 @@ fileprivate class DestinationViewCell: UICollectionViewCell {
     public var removeAction: (() -> ())?
     private var cancellable: AnyCancellable?
 
+    private lazy var homeImageView: UIImageView = {
+        let homeImageView = UIImageView(image: Self.homeIcon)
+        homeImageView.translatesAutoresizingMaskIntoConstraints = false
+        homeImageView.tintColor = .avatarHomeIcon
+        homeImageView.contentMode = .scaleAspectFit
+        return homeImageView
+    }()
 
     private lazy var homeView: UIView = {
-        let imageView = UIImageView(image: Self.homeIcon)
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.tintColor = .avatarHomeIcon
-        imageView.contentMode = .scaleAspectFit
-
         let container = UIView()
         container.translatesAutoresizingMaskIntoConstraints = false
         container.backgroundColor = .avatarHomeBg
@@ -108,15 +110,15 @@ fileprivate class DestinationViewCell: UICollectionViewCell {
         container.clipsToBounds = true
         container.isHidden = true
 
-        container.addSubview(imageView)
+        container.addSubview(homeImageView)
 
         NSLayoutConstraint.activate([
             container.widthAnchor.constraint(equalToConstant: 34),
             container.heightAnchor.constraint(equalTo: container.widthAnchor),
-            imageView.widthAnchor.constraint(equalToConstant: 24),
-            imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor),
-            imageView.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-            imageView.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            homeImageView.widthAnchor.constraint(equalToConstant: 24),
+            homeImageView.heightAnchor.constraint(equalTo: homeImageView.widthAnchor),
+            homeImageView.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+            homeImageView.centerYAnchor.constraint(equalTo: container.centerYAnchor),
         ])
 
         return container
@@ -195,8 +197,17 @@ fileprivate class DestinationViewCell: UICollectionViewCell {
         homeView.isHidden = true
     }
 
-    public func configureHome() {
-        title.text = Localizations.home
+    public func configureHome(privacyType: PrivacyListType) {
+        switch privacyType {
+        case .whitelist:
+            title.text = Localizations.favoritesTitle
+            homeImageView.image = Self.favoritesIcon
+            homeView.backgroundColor = .favoritesBg
+        default:
+            title.text = Localizations.home
+            homeImageView.image = Self.homeIcon
+            homeView.backgroundColor = .avatarHomeBg
+        }
         homeView.isHidden = false
     }
 
@@ -272,6 +283,10 @@ fileprivate class DestinationViewCell: UICollectionViewCell {
 
     static var homeIcon: UIImage {
         UIImage(named: "HomeFill")!.withRenderingMode(.alwaysTemplate)
+    }
+
+    static var favoritesIcon: UIImage {
+       UIImage(named: "PrivacySettingFavoritesWithBackground")!.withRenderingMode(.alwaysOriginal)
     }
 
     private static var removeIcon: UIImage {

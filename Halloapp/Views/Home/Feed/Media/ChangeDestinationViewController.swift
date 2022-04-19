@@ -515,7 +515,7 @@ fileprivate class BackgroundDecorationView: UICollectionReusableView {
         for view in subviews {
             view.removeFromSuperview()
         }
-        let height = ContactSelectionViewController.rowHeight + 7
+        let height = ContactSelectionViewController.rowHeight
         let inset = CGFloat(44)
         let color = UIColor.separator
         let count = Int(bounds.height / height)
@@ -604,28 +604,11 @@ fileprivate class ContactsCell: UICollectionViewCell {
         imageView.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         imageView.contentMode = .scaleAspectFit
 
-        return imageView
-    }()
-
-    private lazy var settingImageViewContainer: UIView = {
-        let container = UIView()
-        container.translatesAutoresizingMaskIntoConstraints = false
-        container.backgroundColor = .clear
-        container.clipsToBounds = true
-        container.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-
-        container.addSubview(settingImageView)
-
         NSLayoutConstraint.activate([
-            container.widthAnchor.constraint(equalToConstant: 30),
-            container.heightAnchor.constraint(equalTo: container.widthAnchor),
-            settingImageView.widthAnchor.constraint(equalToConstant: 30),
-            settingImageView.heightAnchor.constraint(equalTo: settingImageView.widthAnchor),
-            settingImageView.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-            settingImageView.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            imageView.widthAnchor.constraint(equalToConstant: 30),
+            imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor)
         ])
-
-        return container
+        return imageView
     }()
 
     override init(frame: CGRect) {
@@ -661,7 +644,7 @@ fileprivate class ContactsCell: UICollectionViewCell {
         vStack.distribution = .fillProportionally
         vStack.spacing = 1
 
-        let hStack = UIStackView(arrangedSubviews: [selectedView, settingImageViewContainer, vStack, nextView])
+        let hStack = UIStackView(arrangedSubviews: [selectedView, settingImageView, vStack, nextView])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.axis = .horizontal
         hStack.alignment = .center
@@ -689,12 +672,8 @@ fileprivate class ContactsCell: UICollectionViewCell {
         switch privacyListType {
         case .all:
             settingImageView.image = UIImage(named: "PrivacySettingMyContacts")?.withTintColor(.primaryBlue)
-            settingImageViewContainer.backgroundColor = .clear
-            settingImageViewContainer.layer.cornerRadius = 0
         case .whitelist:
-            settingImageView.image = UIImage(named: "PrivacySettingFavorite")
-            settingImageViewContainer.backgroundColor = .favoritesBg
-            settingImageViewContainer.layer.cornerRadius = 15
+            settingImageView.image = UIImage(named: "PrivacySettingFavoritesWithBackground")
         default:
             break
         }

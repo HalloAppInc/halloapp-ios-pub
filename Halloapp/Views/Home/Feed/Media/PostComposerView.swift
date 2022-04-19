@@ -503,7 +503,7 @@ class PostComposerViewController: UIViewController {
                 changeDestinationIcon.image = UIImage(named: "settingsAccount")?.withTintColor(.white, renderingMode: .alwaysOriginal)
                 changeDestinationButton.setBackgroundColor(.primaryBlue, for: .normal)
             case .whitelist:
-                changeDestinationIcon.image = UIImage(named: "PrivacySettingFavorite")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+                changeDestinationIcon.image = UIImage(named: "PrivacySettingFavoritesWithBackground")
                 changeDestinationButton.setBackgroundColor(.favoritesBg, for: .normal)
             default:
                 changeDestinationIcon.image = UIImage(named: "settingsSettings")?.withTintColor(.white, renderingMode: .alwaysOriginal)

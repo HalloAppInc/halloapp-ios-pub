@@ -19,7 +19,7 @@ private extension Localizations {
     }
 
     static var home: String {
-        NSLocalizedString("share.destination.home", value: "Home", comment: "Share on the home feed label")
+        NSLocalizedString("share.destination.home", value: "My Contacts", comment: "Share on the home feed label with all my contacts")
     }
 
     static var contacts: String {
@@ -805,11 +805,11 @@ fileprivate class DestinationCell: UITableViewCell {
     }
 
     static var homeIcon: UIImage {
-        UIImage(named: "HomeFill")!.withRenderingMode(.alwaysTemplate)
+        UIImage(named: "PrivacySettingMyContacts")!.withRenderingMode(.alwaysTemplate)
     }
 
     static var favoritesIcon: UIImage {
-       UIImage(named: "PrivacySettingFavorite")!.withRenderingMode(.alwaysOriginal)
+       UIImage(named: "PrivacySettingFavoritesWithBackground")!.withRenderingMode(.alwaysOriginal)
     }
 
     private static var more: UIImage {

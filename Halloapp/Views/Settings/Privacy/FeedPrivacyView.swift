@@ -99,11 +99,9 @@ struct FeedPrivacyView: View {
 
                 Button(action: { self.isWhitelistScreenPresented = true }) {
                     HStack {
-                        Image("PrivacySettingFavorite")
-                            .renderingMode(.template)
-                            .foregroundColor(Color.white)
-                            .background(Color.favoritesBg)
-                            .clipShape(Circle())
+                        Image("PrivacySettingFavoritesWithBackground")
+                            .resizable()
+                            .frame(width: 26, height: 26)
                         VStack(alignment: .leading) {
                             Text(PrivacyList.name(forPrivacyListType: .whitelist))
                                 .font(.body)

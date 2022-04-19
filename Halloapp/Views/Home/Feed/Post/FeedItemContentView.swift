@@ -521,7 +521,7 @@ final class FeedItemHeaderView: UIView {
         let privacyIndicatorButton = UIButton()
         privacyIndicatorButton.addTarget(self, action: #selector(showPrivacyIndicatorTapped), for: .touchUpInside)
         privacyIndicatorButton.translatesAutoresizingMaskIntoConstraints = false
-        let image = UIImage(named: "PrivacySettingFavorite")
+        let image = UIImage(named: "PrivacySettingFavoritesWithBackground")
         privacyIndicatorButton.setImage(image, for: .normal)
         privacyIndicatorButton.backgroundColor = .favoritesBg
         privacyIndicatorButton.layer.cornerRadius = 11

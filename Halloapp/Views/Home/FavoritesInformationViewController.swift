@@ -84,7 +84,7 @@ class FavoritesInformationViewController: UIViewController {
     }()
 
     private lazy var favoritesImageView: UIView = {
-        let imageView = UIImageView(image: UIImage(named: "PrivacySettingFavorite")!.withRenderingMode(.alwaysOriginal))
+        let imageView = UIImageView(image: UIImage(named: "PrivacySettingFavoritesWithBackground")!.withRenderingMode(.alwaysOriginal))
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.tintColor = .white
         imageView.contentMode = .scaleAspectFit
