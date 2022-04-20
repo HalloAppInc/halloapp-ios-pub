@@ -421,7 +421,7 @@ private class FeedPostMenuCell: UICollectionViewCell {
         layer.cornerRadius = 10
 
         let backgroundView = UIView()
-        backgroundView.backgroundColor = .primaryWhiteBlack
+        backgroundView.backgroundColor = .feedPostMenuCellBackground
         self.backgroundView = backgroundView
 
         let selectedBackgroundView = UIView()

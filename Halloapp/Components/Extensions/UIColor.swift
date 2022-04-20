@@ -329,4 +329,12 @@ extension UIColor {
     class var favoritesBg: UIColor {
         UIColor(named: "FavoritesBg")!
     }
+
+    class var bottomSheetBackground: UIColor {
+        UIColor(named: "BottomSheetBackground")!
+    }
+
+    class var feedPostMenuCellBackground: UIColor {
+        UIColor(named: "FeedPostMenuCellBackground")!
+    }
 }

@@ -110,9 +110,9 @@ private class BottomSheetPresentationController: UIPresentationController, UIAda
             let alpha: CGFloat
             switch traitCollection.userInterfaceStyle {
             case .dark:
-                alpha = 0.288
+                alpha = 0.75
             default:
-                alpha = 0.12
+                alpha = 0.5
             }
             return .black.withAlphaComponent(alpha)
         })
@@ -382,7 +382,7 @@ private class BottomSheetBackgroundView: UIView {
     init(contentView: UIView) {
         super.init(frame: .zero)
 
-        backgroundColor = .feedBackground
+        backgroundColor = .bottomSheetBackground
 
         // mimic outset border with shadow
         layer.shadowOffset = .zero
