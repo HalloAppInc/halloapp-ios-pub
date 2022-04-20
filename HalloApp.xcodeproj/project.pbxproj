@@ -1,5 +1,3 @@
-
-
 // !$*UTF8*$!
 {
 	archiveVersion = 1;
@@ -1273,7 +1271,6 @@
 			isa = PBXGroup;
 			children = (
 				329E043B268248D600C2D250 /* Global */,
-				329E044426824A7200C2D250 /* Models */,
 				329E044726824AE100C2D250 /* Views */,
 				329E03FA268247BD00C2D250 /* AppDelegate.swift */,
 				329E03FC268247BD00C2D250 /* SceneDelegate.swift */,
@@ -1313,13 +1310,6 @@
 				329E043D2682490300C2D250 /* AppClipContext.swift */,
 			);
 			path = Global;
-			sourceTree = "<group>";
-		};
-		329E044426824A7200C2D250 /* Models */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Models;
 			sourceTree = "<group>";
 		};
 		329E044726824AE100C2D250 /* Views */ = {

@@ -174,12 +174,12 @@
 		6A6BBAEE2767A2930063E8BC /* Call+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Call+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		6A6BBAF12767A4B10063E8BC /* MainDataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainDataStore.swift; sourceTree = "<group>"; };
 		6A6BBAFE276925CE0063E8BC /* NotificationSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettings.swift; sourceTree = "<group>"; };
-		6A958D77270764E6007C89C6 /* SenderStateBundle+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SenderStateBundle+CoreDataClass.swift"; path = "Core/Source/Chat/SenderStateBundle+CoreDataClass.swift"; sourceTree = "<group>"; };
-		6A958D78270764E6007C89C6 /* SenderStateBundle+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SenderStateBundle+CoreDataProperties.swift"; path = "Core/Source/Chat/SenderStateBundle+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		6A958D79270764E6007C89C6 /* GroupMessageKey+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "GroupMessageKey+CoreDataClass.swift"; path = "Core/Source/Chat/GroupMessageKey+CoreDataClass.swift"; sourceTree = "<group>"; };
-		6A958D7A270764E6007C89C6 /* GroupMessageKey+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "GroupMessageKey+CoreDataProperties.swift"; path = "Core/Source/Chat/GroupMessageKey+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		6A958D7B270764E6007C89C6 /* GroupSessionKeyBundle+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "GroupSessionKeyBundle+CoreDataClass.swift"; path = "Core/Source/Chat/GroupSessionKeyBundle+CoreDataClass.swift"; sourceTree = "<group>"; };
-		6A958D7C270764E6007C89C6 /* GroupSessionKeyBundle+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "GroupSessionKeyBundle+CoreDataProperties.swift"; path = "Core/Source/Chat/GroupSessionKeyBundle+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		6A958D77270764E6007C89C6 /* SenderStateBundle+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SenderStateBundle+CoreDataClass.swift"; sourceTree = "<group>"; };
+		6A958D78270764E6007C89C6 /* SenderStateBundle+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SenderStateBundle+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		6A958D79270764E6007C89C6 /* GroupMessageKey+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GroupMessageKey+CoreDataClass.swift"; sourceTree = "<group>"; };
+		6A958D7A270764E6007C89C6 /* GroupMessageKey+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GroupMessageKey+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		6A958D7B270764E6007C89C6 /* GroupSessionKeyBundle+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GroupSessionKeyBundle+CoreDataClass.swift"; sourceTree = "<group>"; };
+		6A958D7C270764E6007C89C6 /* GroupSessionKeyBundle+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GroupSessionKeyBundle+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		6AB4BBB926EFD7CF006D66AD /* MediaHash.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = MediaHash.xcdatamodel; sourceTree = "<group>"; };
 		6AB4BBBD26EFDBF7006D66AD /* MediaHashStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaHashStore.swift; sourceTree = "<group>"; };
 		6AE2FEA226071AB300F7A5B7 /* SharedFeedPost+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SharedFeedPost+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -366,6 +366,12 @@
 		76608ECB24EC2B2100DD61C3 /* Chat */ = {
 			isa = PBXGroup;
 			children = (
+				6A958D77270764E6007C89C6 /* SenderStateBundle+CoreDataClass.swift */,
+				6A958D78270764E6007C89C6 /* SenderStateBundle+CoreDataProperties.swift */,
+				6A958D79270764E6007C89C6 /* GroupMessageKey+CoreDataClass.swift */,
+				6A958D7A270764E6007C89C6 /* GroupMessageKey+CoreDataProperties.swift */,
+				6A958D7B270764E6007C89C6 /* GroupSessionKeyBundle+CoreDataClass.swift */,
+				6A958D7C270764E6007C89C6 /* GroupSessionKeyBundle+CoreDataProperties.swift */,
 				6A482E4D27CD85700023CABF /* GroupFeedHistoryDecryption+CoreDataClass.swift */,
 				6A482E4E27CD85700023CABF /* GroupFeedHistoryDecryption+CoreDataProperties.swift */,
 				68B5851C26C1D8800055FB66 /* CryptoData.swift */,
@@ -383,12 +389,6 @@
 		768123AE2485D9C7008C5216 = {
 			isa = PBXGroup;
 			children = (
-				6A958D77270764E6007C89C6 /* SenderStateBundle+CoreDataClass.swift */,
-				6A958D78270764E6007C89C6 /* SenderStateBundle+CoreDataProperties.swift */,
-				6A958D79270764E6007C89C6 /* GroupMessageKey+CoreDataClass.swift */,
-				6A958D7A270764E6007C89C6 /* GroupMessageKey+CoreDataProperties.swift */,
-				6A958D7B270764E6007C89C6 /* GroupSessionKeyBundle+CoreDataClass.swift */,
-				6A958D7C270764E6007C89C6 /* GroupSessionKeyBundle+CoreDataProperties.swift */,
 				768123BA2485D9C7008C5216 /* Core */,
 				768123B92485D9C7008C5216 /* Products */,
 				7904EFB5FE9F0DA682540C44 /* Frameworks */,
