@@ -144,16 +144,40 @@ class MediaPickerViewController: UIViewController {
     }()
 
     private lazy var nextButton: UIButton = {
-        let attributedTitle = NSMutableAttributedString(string: Localizations.buttonNext)
-        attributedTitle.addAttribute(.kern, value: 0.5, range: NSRange(location: 0, length: Localizations.buttonNext.count))
+        let attributedTitle = NSAttributedString(string: Localizations.buttonNext,
+                                                 attributes: [.kern: 0.5, .foregroundColor: UIColor.white])
+        let disabledAttributedTitle = NSAttributedString(string: Localizations.buttonNext,
+                                                         attributes: [.kern: 0.5, .foregroundColor: UIColor.gray])
 
-        let button = UIButton(type: .system)
+        class MediaPickerButton: UIButton {
+
+            override init(frame: CGRect) {
+                super.init(frame: frame)
+                updateBackgrounds()
+            }
+
+            required init?(coder: NSCoder) {
+                fatalError("init(coder:) has not been implemented")
+            }
+
+            private func updateBackgrounds() {
+                setBackgroundColor(.primaryBlue, for: .normal)
+                setBackgroundColor(.label.withAlphaComponent(0.19), for: .disabled)
+            }
+
+            override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+                super.traitCollectionDidChange(previousTraitCollection)
+                if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+                    updateBackgrounds()
+                }
+            }
+        }
+
+        let button = MediaPickerButton(type: .custom)
         button.translatesAutoresizingMaskIntoConstraints = false
+        // Attributed strings do not respect button title colors
         button.setAttributedTitle(attributedTitle, for: .normal)
-        button.setBackgroundColor(.primaryBlue, for: .normal)
-        button.setBackgroundColor(.black.withAlphaComponent(0.19), for: .disabled)
-        button.setTitleColor(.white, for: .normal)
-        button.setTitleColor(.white.withAlphaComponent(0.5), for: .disabled)
+        button.setAttributedTitle(disabledAttributedTitle, for: .disabled)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
         button.layer.cornerRadius = 22
         button.layer.masksToBounds = true
