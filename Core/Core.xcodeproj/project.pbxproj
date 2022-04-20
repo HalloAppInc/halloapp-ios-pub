@@ -127,7 +127,6 @@
 		6832F50824FEE9DF00A9C202 /* ProtoCommonRequests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoCommonRequests.swift; sourceTree = "<group>"; };
 		68567EDF26C493C800A3800F /* MessageDecryption+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MessageDecryption+CoreDataClass.swift"; sourceTree = "<group>"; };
 		68567EE126C4940100A3800F /* MessageDecryption+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MessageDecryption+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		686A10392591539E00F7B53F /* swift-noise-protocol */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "swift-noise-protocol"; path = "../swift-noise-protocol"; sourceTree = "<group>"; };
 		688D8A1D24ED979400258BB9 /* MentionText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MentionText.swift; sourceTree = "<group>"; };
 		688D8A1F24ED9B3300258BB9 /* Proto+Mentions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Proto+Mentions.swift"; sourceTree = "<group>"; };
 		68A64E7F24D2128300F40F1F /* NSAttributedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSAttributedString.swift; sourceTree = "<group>"; };
@@ -375,7 +374,6 @@
 				6A958D7A270764E6007C89C6 /* GroupMessageKey+CoreDataProperties.swift */,
 				6A958D7B270764E6007C89C6 /* GroupSessionKeyBundle+CoreDataClass.swift */,
 				6A958D7C270764E6007C89C6 /* GroupSessionKeyBundle+CoreDataProperties.swift */,
-				686A10392591539E00F7B53F /* swift-noise-protocol */,
 				768123BA2485D9C7008C5216 /* Core */,
 				768123B92485D9C7008C5216 /* Products */,
 				7904EFB5FE9F0DA682540C44 /* Frameworks */,

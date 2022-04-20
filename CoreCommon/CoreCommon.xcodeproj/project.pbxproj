@@ -16,7 +16,6 @@
 		328D13C527C02C9700AA9F18 /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = 328D13C427C02C9700AA9F18 /* SwiftProtobuf */; };
 		328D13C827C02CB500AA9F18 /* PhoneNumberKit in Frameworks */ = {isa = PBXBuildFile; productRef = 328D13C727C02CB500AA9F18 /* PhoneNumberKit */; };
 		328D13CB27C02D2600AA9F18 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 328D13CA27C02D2600AA9F18 /* Alamofire */; };
-		328D13CE27C02D8200AA9F18 /* SwiftNoise in Frameworks */ = {isa = PBXBuildFile; productRef = 328D13CD27C02D8200AA9F18 /* SwiftNoise */; };
 		328D13D127C02DAE00AA9F18 /* CocoaLumberjack in Frameworks */ = {isa = PBXBuildFile; productRef = 328D13D027C02DAE00AA9F18 /* CocoaLumberjack */; };
 		328D13D327C02DAE00AA9F18 /* CocoaLumberjackSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 328D13D227C02DAE00AA9F18 /* CocoaLumberjackSwift */; };
 		328D13D627C02E5300AA9F18 /* Zip in Frameworks */ = {isa = PBXBuildFile; productRef = 328D13D527C02E5300AA9F18 /* Zip */; };
@@ -74,6 +73,7 @@
 		32CE965E27CFEE4400B4A2C1 /* OneTimePreKey+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32CE965327CFEE4400B4A2C1 /* OneTimePreKey+CoreDataClass.swift */; };
 		32CE966027CFF6DB00B4A2C1 /* ProtoServiceCoreCommon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32CE965F27CFF6DB00B4A2C1 /* ProtoServiceCoreCommon.swift */; };
 		32CE966227CFF74900B4A2C1 /* CoreServiceCommon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32CE966127CFF74800B4A2C1 /* CoreServiceCommon.swift */; };
+		F404FC292810AD11008313FF /* SwiftNoise in Frameworks */ = {isa = PBXBuildFile; productRef = F404FC282810AD11008313FF /* SwiftNoise */; };
 		F4585C7627E152F700BF6ED6 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = F4585C7527E152F700BF6ED6 /* Sentry */; };
 		F4585C7C27E156B600BF6ED6 /* SentryLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4585C7B27E156B600BF6ED6 /* SentryLogger.swift */; };
 /* End PBXBuildFile section */
@@ -138,6 +138,7 @@
 		32CE965327CFEE4400B4A2C1 /* OneTimePreKey+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "OneTimePreKey+CoreDataClass.swift"; path = "CoreCommon/Source/Keys/CoreData Stack/OneTimePreKey+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		32CE965F27CFF6DB00B4A2C1 /* ProtoServiceCoreCommon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtoServiceCoreCommon.swift; sourceTree = "<group>"; };
 		32CE966127CFF74800B4A2C1 /* CoreServiceCommon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreServiceCommon.swift; sourceTree = "<group>"; };
+		F404FC262810AC74008313FF /* swift-noise-protocol */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = "swift-noise-protocol"; path = "../swift-noise-protocol"; sourceTree = "<group>"; };
 		F4585C7B27E156B600BF6ED6 /* SentryLogger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SentryLogger.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -149,7 +150,7 @@
 				328D13D627C02E5300AA9F18 /* Zip in Frameworks */,
 				328D13CB27C02D2600AA9F18 /* Alamofire in Frameworks */,
 				3250C61627D030950032FEC4 /* CryptoSwift in Frameworks */,
-				328D13CE27C02D8200AA9F18 /* SwiftNoise in Frameworks */,
+				F404FC292810AD11008313FF /* SwiftNoise in Frameworks */,
 				328D13D327C02DAE00AA9F18 /* CocoaLumberjackSwift in Frameworks */,
 				F4585C7627E152F700BF6ED6 /* Sentry in Frameworks */,
 				328D13C527C02C9700AA9F18 /* SwiftProtobuf in Frameworks */,
@@ -277,8 +278,10 @@
 		328D13A627C02AB000AA9F18 = {
 			isa = PBXGroup;
 			children = (
+				F404FC252810AC74008313FF /* Packages */,
 				328D13B227C02AB000AA9F18 /* CoreCommon */,
 				328D13B127C02AB000AA9F18 /* Products */,
+				F404FC272810AD11008313FF /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -348,6 +351,21 @@
 			path = CoreDataStack;
 			sourceTree = "<group>";
 		};
+		F404FC252810AC74008313FF /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				F404FC262810AC74008313FF /* swift-noise-protocol */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		F404FC272810AD11008313FF /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -380,13 +398,13 @@
 				328D13C427C02C9700AA9F18 /* SwiftProtobuf */,
 				328D13C727C02CB500AA9F18 /* PhoneNumberKit */,
 				328D13CA27C02D2600AA9F18 /* Alamofire */,
-				328D13CD27C02D8200AA9F18 /* SwiftNoise */,
 				328D13D027C02DAE00AA9F18 /* CocoaLumberjack */,
 				328D13D227C02DAE00AA9F18 /* CocoaLumberjackSwift */,
 				328D13D527C02E5300AA9F18 /* Zip */,
 				328D13D827C02E6F00AA9F18 /* Sodium */,
 				3250C61527D030950032FEC4 /* CryptoSwift */,
 				F4585C7527E152F700BF6ED6 /* Sentry */,
+				F404FC282810AD11008313FF /* SwiftNoise */,
 			);
 			productName = CoreCommon;
 			productReference = 328D13B027C02AB000AA9F18 /* CoreCommon.framework */;
@@ -420,7 +438,6 @@
 				328D13C327C02C9700AA9F18 /* XCRemoteSwiftPackageReference "swift-protobuf" */,
 				328D13C627C02CB500AA9F18 /* XCRemoteSwiftPackageReference "PhoneNumberKit" */,
 				328D13C927C02D2600AA9F18 /* XCRemoteSwiftPackageReference "Alamofire" */,
-				328D13CC27C02D8200AA9F18 /* XCRemoteSwiftPackageReference "swift-noise-protocol" */,
 				328D13CF27C02DAE00AA9F18 /* XCRemoteSwiftPackageReference "CocoaLumberjack" */,
 				328D13D427C02E5300AA9F18 /* XCRemoteSwiftPackageReference "Zip" */,
 				328D13D727C02E6F00AA9F18 /* XCRemoteSwiftPackageReference "swift-sodium" */,
@@ -847,14 +864,6 @@
 				version = 5.6.1;
 			};
 		};
-		328D13CC27C02D8200AA9F18 /* XCRemoteSwiftPackageReference "swift-noise-protocol" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/samueltangz/swift-noise-protocol.git";
-			requirement = {
-				kind = revision;
-				revision = 88208be166a6101402bf898d7eb477c35c49d00b;
-			};
-		};
 		328D13CF27C02DAE00AA9F18 /* XCRemoteSwiftPackageReference "CocoaLumberjack" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/CocoaLumberjack/CocoaLumberjack";
@@ -910,11 +919,6 @@
 			package = 328D13C927C02D2600AA9F18 /* XCRemoteSwiftPackageReference "Alamofire" */;
 			productName = Alamofire;
 		};
-		328D13CD27C02D8200AA9F18 /* SwiftNoise */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 328D13CC27C02D8200AA9F18 /* XCRemoteSwiftPackageReference "swift-noise-protocol" */;
-			productName = SwiftNoise;
-		};
 		328D13D027C02DAE00AA9F18 /* CocoaLumberjack */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 328D13CF27C02DAE00AA9F18 /* XCRemoteSwiftPackageReference "CocoaLumberjack" */;
@@ -934,6 +938,10 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 328D13D727C02E6F00AA9F18 /* XCRemoteSwiftPackageReference "swift-sodium" */;
 			productName = Sodium;
+		};
+		F404FC282810AD11008313FF /* SwiftNoise */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SwiftNoise;
 		};
 		F4585C7527E152F700BF6ED6 /* Sentry */ = {
 			isa = XCSwiftPackageProductDependency;
