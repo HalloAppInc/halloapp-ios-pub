@@ -252,12 +252,15 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
 
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {
         super.scrollViewDidScroll(scrollView)
-        let fabAccessoryState: FloatingMenu.AccessoryState = scrollView.contentOffset.y <= 0 ? .accessorized : .plain
         
-        DispatchQueue.main.async { [weak self] in
-            // if we didn't use a DispatchQueue here, we'd get some issues when restoring scroll position
-            self?.floatingMenu.setAccessoryState(fabAccessoryState, animated: true)
+        guard scrollView.contentSize.height > scrollView.bounds.size.height else {
+            DispatchQueue.main.async { [weak self] in self?.floatingMenu.setAccessoryState(.accessorized, animated: true) }
+            return
         }
+        
+        let fabAccessoryState: FloatingMenu.AccessoryState = scrollView.contentOffset.y <= 0 ? .accessorized : .plain
+        // if we didn't use a DispatchQueue here, we'd get some issues when restoring scroll position
+        DispatchQueue.main.async { [weak self] in self?.floatingMenu.setAccessoryState(fabAccessoryState, animated: true) }
     }
 
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
