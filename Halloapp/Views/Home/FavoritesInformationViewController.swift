@@ -168,7 +168,7 @@ class FavoritesInformationViewController: UIViewController {
     @objc func didTapSetFavorites(_ sender: UITapGestureRecognizer) {
         let presentingViewController = presentingViewController
         dismiss(animated: false)
-        let privacyVC = ContactSelectionViewController.forPrivacyList(MainAppContext.shared.privacySettings.whitelist, in: MainAppContext.shared.privacySettings, setActiveType: true, doneAction: { [weak self] in
+        let privacyVC = ContactSelectionViewController.forPrivacyList(MainAppContext.shared.privacySettings.whitelist, in: MainAppContext.shared.privacySettings, setActiveType: true, doneAction: {
             presentingViewController?.dismiss(animated: false)
             }, dismissAction: nil)
         presentingViewController?.present(UINavigationController(rootViewController: privacyVC), animated: true)
