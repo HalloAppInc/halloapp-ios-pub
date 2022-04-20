@@ -317,7 +317,7 @@ final class FeedEventCollectionViewCell: UICollectionViewCell {
             textLabel.textColor = .secondaryLabel
         case .event:
             bubble.backgroundColor = isThemed ? UIColor.feedPostEventThemedBg : UIColor.feedPostEventDefaultBg
-            textLabel.textColor = isThemed ? UIColor.feedPostEventText : UIColor.black.withAlphaComponent(0.6)
+            textLabel.textColor = isThemed ? UIColor.feedPostEventText : UIColor.primaryBlackWhite.withAlphaComponent(0.6)
         case .deletedPostsMerge:
             bubble.backgroundColor = UIColor.feedPostEventDeletedBg
             textLabel.textColor = .secondaryLabel
