@@ -111,6 +111,9 @@ open class AppContextCommon {
         osLogger.logFormatter = LogFormatter()
         DDLog.add(osLogger)
 
+        // Print app version in logs
+        DDLogInfo("HalloApp \(Self.appVersionForService)")
+
         userData = UserData(storeDirectoryURL: Self.sharedDirectoryURL, isAppClip: Self.isAppClip)
 
         #if !DEBUG
