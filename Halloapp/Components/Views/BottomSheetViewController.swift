@@ -384,11 +384,6 @@ private class BottomSheetBackgroundView: UIView {
 
         backgroundColor = .bottomSheetBackground
 
-        // mimic outset border with shadow
-        layer.shadowOffset = .zero
-        layer.shadowOpacity = 1.0
-        layer.shadowRadius = 1.0 / UIScreen.main.scale
-
         layer.cornerRadius = 20
 
         addSubview(handle)
@@ -407,28 +402,9 @@ private class BottomSheetBackgroundView: UIView {
             contentView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -Self.additionalBottomPadding),
             contentView.trailingAnchor.constraint(equalTo: trailingAnchor),
         ])
-
-        updateShadowColor()
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: layer.cornerRadius).cgPath
-    }
-
-    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        super.traitCollectionDidChange(previousTraitCollection)
-
-        if traitCollection.hasDifferentColorAppearance(comparedTo: traitCollection) {
-            updateShadowColor()
-        }
-    }
-
-    private func updateShadowColor() {
-        layer.shadowColor = UIColor.label.resolvedColor(with: traitCollection).withAlphaComponent(0.64).cgColor
     }
 }
