@@ -2465,7 +2465,6 @@
 			);
 			mainGroup = EAF3A1B62334191E00805FF9;
 			packageReferences = (
-				76E5153124A1770A003F1273 /* XCRemoteSwiftPackageReference "Alamofire" */,
 				685B509925E075FE00F782F9 /* XCRemoteSwiftPackageReference "Reachability" */,
 				68929F9D2734AD3B00F79288 /* XCRemoteSwiftPackageReference "MarkdownKit" */,
 				6A081C4F273C154600E9E29A /* XCRemoteSwiftPackageReference "WebRTC" */,
@@ -4839,14 +4838,6 @@
 			requirement = {
 				kind = exactVersion;
 				version = 96.0.0;
-			};
-		};
-		76E5153124A1770A003F1273 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
-			requirement = {
-				kind = exactVersion;
-				version = 5.5.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
