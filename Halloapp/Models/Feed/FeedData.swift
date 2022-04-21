@@ -4069,10 +4069,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             let postData = post.postData
             let expiry = postData.timestamp.addingTimeInterval(-FeedData.postExpiryTimeInterval)
+            var blob = postData.clientPostContainerBlob
+            // Populate groupID, which is not available on PostData
+            if let groupID = post.groupId {
+                blob.groupID = groupID
+            }
+
             let encryptedBlob: Data
             let key: Data
             do {
-                (encryptedBlob, key) = try ExternalSharePost.encypt(blob: postData.clientPostContainerBlob)
+                (encryptedBlob, key) = try ExternalSharePost.encypt(blob: blob)
             } catch {
                 DDLogError("FeedData/externalShareUrl/error encrypting post \(error)")
                 completion(.failure(error))
