@@ -1015,7 +1015,7 @@ fileprivate struct PostComposerView: View {
                         .padding(.horizontal, mediaCount > 0 ? 0 : PostComposerLayoutConstants.horizontalPadding)
                         .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
                     }
-                    .frame(minHeight: scrollGeometry.size.height-80)
+                    .frame(height: scrollGeometry.size.height - 80)
                     .padding(.top, 80)
                     .background(
                         YOffsetGetter(coordinateSpace: .named(PostComposerLayoutConstants.mainScrollCoordinateSpace))
