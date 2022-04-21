@@ -564,6 +564,9 @@ final class FeedItemHeaderView: UIView {
         let contentStackViewCenterYConstraint = contentStackView.centerYAnchor.constraint(equalTo: centerYAnchor)
         contentStackViewCenterYConstraint.priority = .defaultLow
 
+        let minimizeHeightConstraint = heightAnchor.constraint(equalToConstant: 0)
+        minimizeHeightConstraint.priority = UILayoutPriority(1)
+
         NSLayoutConstraint.activate([
             avatarViewButton.topAnchor.constraint(equalTo: topAnchor),
             avatarViewButton.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -574,6 +577,7 @@ final class FeedItemHeaderView: UIView {
             contentStackView.topAnchor.constraint(greaterThanOrEqualTo: topAnchor),
             contentStackView.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor),
             contentStackViewCenterYConstraint,
+            minimizeHeightConstraint,
         ])
 
         configureContentStackView()
