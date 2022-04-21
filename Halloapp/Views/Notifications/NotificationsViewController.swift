@@ -252,9 +252,8 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         if case .singleNotification(let notif) = notification.content, notif.event == .favoritesPromo {
             MainAppContext.shared.feedData.markNotificationsAsRead(for: "favorites")
             let presentingViewController = presentingViewController
-            self.dismiss(animated: false)
-            let privacyVC = FavoritesInformationViewController()
-            presentingViewController?.present(UINavigationController(rootViewController: privacyVC), animated: true)
+            self.dismiss(animated: true)
+            presentingViewController?.present(FavoritesInformationViewController(), animated: true)
             return
         }
 
