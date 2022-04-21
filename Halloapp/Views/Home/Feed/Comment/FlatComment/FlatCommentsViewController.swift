@@ -717,9 +717,14 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         if highlightedCommentId != nil {
             return
         }
+        var areAllCommentsUnread = false
+        if let commentCount = feedPost?.comments?.count, let unreadCount = feedPost?.unreadCount, commentCount == unreadCount {
+            areAllCommentsUnread = true
+        }
         // When data changes, if the jump button is not visible, the user is viewing the bottom of the comments,
         // we scroll to bottom so they can see the new comments as they come in.
-        guard !jumpButton.isHidden else {
+        // Do not scroll to bottom if all comments are unread
+        guard (!jumpButton.isHidden || areAllCommentsUnread) else {
             scrollToLastComment()
             return
         }
@@ -904,6 +909,7 @@ extension FlatCommentsViewController: MessageCommentHeaderViewDelegate {
 
 extension FlatCommentsViewController: MessageViewDelegate {
     func messageView(_ view: MediaCarouselView, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int) {
+        messageInputView.hideKeyboard()
         var canSavePost = false
         if let post = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
             canSavePost = post.canSaveMedia
