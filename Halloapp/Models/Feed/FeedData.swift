@@ -37,7 +37,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         static let persistentStoreUserID = "feed.store.userID"
     }
 
-    private static let externalShareThumbSize: CGFloat = 1200
+    private static let externalShareThumbSize: CGFloat = 800
 
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.feed")
     private lazy var downloadManager: FeedDownloadManager = {
