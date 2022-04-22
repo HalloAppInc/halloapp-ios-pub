@@ -166,7 +166,9 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
             DDLogInfo("ChatListViewController/sink/didAddressBookChange")
             DispatchQueue.main.async { [weak self] in
                 MainAppContext.shared.chatData.pruneEmptyChatThreads()
-                self?.reloadData()
+                if let self = self, self.isVisible {
+                    self.reloadData()
+                }
             }
         })
 
