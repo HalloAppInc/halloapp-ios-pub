@@ -17,7 +17,7 @@ public class ExternalShareInfo: NSManagedObject {
     private static let shareURLTestHost = "share-test.halloapp.com"
 
     public class var externalShareHost: String {
-        ServerProperties.isInternalUser ? shareURLTestHost : shareURLHost
+        AppContextCommon.shared.coreServiceCommon.useTestServer ? shareURLTestHost : shareURLHost
     }
 
     public var externalShareURL: URL? {
