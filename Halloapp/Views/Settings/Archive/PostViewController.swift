@@ -133,8 +133,6 @@ class PostViewController: UIViewController, UserMenuHandler, ShareMenuPresenter 
             MainAppContext.shared.feedData.loadImages(postID: feedPost.id)
             // Initiate download for images that were not yet downloaded.
             MainAppContext.shared.feedData.downloadMedia(in: [feedPost])
-        } else if let externalSharePost = post as? ExternalSharePost {
-            externalSharePost.downloadMedia()
         }
 
         navigationController?.setNavigationBarHidden(true, animated: animated)

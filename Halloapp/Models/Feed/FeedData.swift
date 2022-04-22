@@ -913,7 +913,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     @discardableResult private func process(posts xmppPosts: [PostData],
                                             receivedIn groupID: GroupID?,
                                             using managedObjectContext: NSManagedObjectContext,
-                                            presentLocalNotifications: Bool) -> [FeedPost] {
+                                            presentLocalNotifications: Bool,
+                                            fromExternalShare: Bool) -> [FeedPost] {
         guard !xmppPosts.isEmpty else { return [] }
 
         let postIds = Set(xmppPosts.map{ $0.id })
@@ -922,10 +923,19 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         var sharedPosts: [FeedPostID] = []
 
         for xmppPost in xmppPosts {
-
             if let existingPost = existingPosts[xmppPost.id] {
-                // If status = .none for an existing post, we need to process the newly received post.
-                if existingPost.status == .none {
+                if fromExternalShare {
+                    // Ignore any posts externally shared that are already in the app
+                    DDLogInfo("FeedData/process-posts/existing [\(existingPost.id)]/skipping update from external share")
+                    continue
+                } else if !fromExternalShare, existingPost.fromExternalShare {
+                    // Always update any existing externally shared posts
+                    DDLogInfo("FeedData/process-posts/existing [\(existingPost.id)]/updating existing external share post")
+                    existingPost.fromExternalShare = false
+                    newPosts.append(existingPost)
+                    continue
+                } else if existingPost.status == .none {
+                    // If status = .none for an existing post, we need to process the newly received post.
                     DDLogInfo("FeedData/process-posts/existing [\(existingPost.id)]/status is none/need to update")
                 } else if existingPost.status == .rerequesting && xmppPost.status == .received {
                     // If status = .rerequesting for an existing post.
@@ -976,6 +986,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.groupId = groupID
             feedPost.rawText = xmppPost.text
             feedPost.timestamp = xmppPost.timestamp
+             // This is safe to always update as we skip processing any existing posts if fromExternalShare
+            feedPost.fromExternalShare = fromExternalShare
             if case .moment = xmppPost.content {
                 feedPost.isMoment = true
             }
@@ -1066,8 +1078,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 feedMedia.chunkSize = xmppMedia.chunkSize
                 feedMedia.blobSize = xmppMedia.blobSize
             }
-
-            newPosts.append(feedPost)
+            if !fromExternalShare {
+                newPosts.append(feedPost)
+            }
         }
         DDLogInfo("FeedData/process-posts/finished \(newPosts.count) new items, \(xmppPosts.count - newPosts.count) duplicates, \(sharedPosts.count) shared (old)")
         save(managedObjectContext)
@@ -1373,7 +1386,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
         
         performSeriallyOnBackgroundContext { (managedObjectContext) in
-            let posts = self.process(posts: feedPosts, receivedIn: groupID, using: managedObjectContext, presentLocalNotifications: presentLocalNotifications)
+            let posts = self.process(posts: feedPosts,
+                                     receivedIn: groupID,
+                                     using: managedObjectContext,
+                                     presentLocalNotifications: presentLocalNotifications,
+                                     fromExternalShare: false)
             self.generateNotifications(for: posts, using: managedObjectContext)
 
             let comments = self.process(comments: comments, receivedIn: groupID, using: managedObjectContext, presentLocalNotifications: presentLocalNotifications)
@@ -1907,6 +1924,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     func sendSeenReceiptIfNecessary(for feedPost: FeedPost) {
         guard feedPost.status == .incoming || feedPost.status == .rerequesting else { return }
+        guard !feedPost.fromExternalShare else { return }
 
         let postId = feedPost.id
         updateFeedPost(with: postId) { [weak self] (post) in
@@ -4189,21 +4207,39 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    func externalSharePost(with blobID: String, key: Data, completion: @escaping (Result<ExternalSharePost, Error>) -> Void) {
-        let mainQueueCompletion: (Result<ExternalSharePost, Error>) -> Void = { result in
+    func externalSharePost(with blobID: String, key: Data, completion: @escaping (Result<FeedPost, Error>) -> Void) {
+        let mainQueueCompletion: (Result<FeedPost, Error>) -> Void = { result in
             DispatchQueue.main.async {
                 completion(result)
             }
         }
         let transform: (Server_ExternalSharePostContainer) -> Void = { externalSharePostContainer in
-            do {
-                let postContainerBlob = try ExternalSharePost.decrypt(encryptedBlob: externalSharePostContainer.blob, key: key)
-                mainQueueCompletion(.success(ExternalSharePost(name: externalSharePostContainer.name,
-                                                               avatarID: externalSharePostContainer.avatarID,
-                                                               postContainerBlob: postContainerBlob)))
-            } catch {
-                DDLogError("FeedData/externalSharePost/decryptionError: \(error)")
-                mainQueueCompletion(.failure(error))
+            self.performSeriallyOnBackgroundContext { [weak self] context in
+                guard let self = self else {
+                    mainQueueCompletion(.failure(RequestError.malformedResponse))
+                    return
+                }
+                do {
+                    let postContainerBlob = try ExternalSharePost.decrypt(encryptedBlob: externalSharePostContainer.blob, key: key)
+                    guard let postData = PostData(blob: postContainerBlob) else {
+                        mainQueueCompletion(.failure(RequestError.malformedResponse))
+                        return
+                    }
+                    self.process(posts: [postData],
+                                 receivedIn: nil,
+                                 using: context,
+                                 presentLocalNotifications: false,
+                                 fromExternalShare: true)
+                    guard let post = self.feedPost(with: postData.id) else {
+                        mainQueueCompletion(.failure(RequestError.malformedResponse))
+                        return
+                    }
+                    mainQueueCompletion(.success(post))
+                } catch {
+                    DDLogError("FeedData/externalSharePost/decryptionError: \(error)")
+                    mainQueueCompletion(.failure(error))
+                }
+
             }
         }
 

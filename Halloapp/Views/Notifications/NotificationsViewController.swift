@@ -73,7 +73,8 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         let fetchRequest: NSFetchRequest<FeedActivity> = FeedActivity.fetchRequest()
         if !ContactStore.contactsAccessAuthorized {
             let eligiblePostIdsFetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-            eligiblePostIdsFetchRequest.predicate = NSPredicate(format: "userID = %@ || groupID != nil", MainAppContext.shared.userData.userId)
+            eligiblePostIdsFetchRequest.predicate = NSPredicate(format: "(userID = %@ || groupID != nil) && fromExternalShare == NO",
+                                                                MainAppContext.shared.userData.userId)
             do {
                 let eligiblePosts = try MainAppContext.shared.feedData.viewContext.fetch(eligiblePostIdsFetchRequest)
                 let eligiblePostIds = eligiblePosts.compactMap {$0.id}

@@ -209,7 +209,23 @@ public struct PostData {
         self.init(id: id, userId: userId, content: processedContent, timestamp: timestamp, status: status, isShared: isShared, audience: audience)
     }
 
-    public static func extractContent(postId: FeedPostID, payload: Data) -> PostContent? {
+    public init?(blob: Clients_PostContainerBlob) {
+        // Re-convert the postContainer to data so that we can save it for unsupported posts
+        guard let payload = try? blob.postContainer.serializedData(),
+              let content = Self.extractContent(postId: blob.postID, postContainer: blob.postContainer, payload: payload) else {
+            return nil
+        }
+
+        self.init(id: blob.postID,
+                  userId: String(blob.uid),
+                  content: content,
+                  timestamp: Date(timeIntervalSince1970: TimeInterval(blob.timestamp)),
+                  status: .received,
+                  isShared: false,
+                  audience: nil as FeedAudience?)
+    }
+
+    private static func extractContent(postId: FeedPostID, payload: Data) -> PostContent? {
         guard let protoContainer = try? Clients_Container(serializedData: payload) else {
             DDLogError("Could not deserialize post [\(postId)]")
             return nil
@@ -223,7 +239,7 @@ public struct PostData {
         }
     }
 
-    public static func extractContent(postId: FeedPostID, postContainer post: Clients_PostContainer, payload: Data) -> PostContent? {
+    private static func extractContent(postId: FeedPostID, postContainer post: Clients_PostContainer, payload: Data) -> PostContent? {
         switch post.post {
         case .text(let clientText):
             return .text(clientText.mentionText, clientText.linkPreviewData)

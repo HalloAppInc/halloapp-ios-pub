@@ -186,27 +186,6 @@ class FeedMedia: Identifiable, Hashable {
         }
     }
 
-    init(_ media: ExternalShareMedia, feedPostId: FeedPostID, order: Int){
-        id = "\(feedPostId)-\(order)"
-        status = media.status
-        self.order = order
-        type = media.type
-        size = media.size
-        fileURL = media.fileURL
-        isMediaAvailable = media.ready.value
-
-        if !media.ready.value {
-            status = .downloading
-            pendingMediaReadyCancelable = media.ready.sink { [weak self] ready in
-                guard ready, let self = self else { return }
-
-                self.status = .downloaded
-                self.fileURL = media.fileURL
-            }
-            pendingMediaProgress = media.progress
-        }
-    }
-
     private func updateWhenReady(media: PendingMedia) {
         self.status = .downloading
         

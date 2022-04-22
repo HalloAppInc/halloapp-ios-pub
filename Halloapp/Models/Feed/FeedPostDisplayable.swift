@@ -115,7 +115,7 @@ extension FeedPost: FeedPostDisplayable {
     }
 
     var canComment: Bool {
-        return true
+        return !fromExternalShare
     }
 
     var canReplyPrivately: Bool {
