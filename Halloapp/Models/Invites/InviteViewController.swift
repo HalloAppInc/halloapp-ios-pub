@@ -711,6 +711,24 @@ extension Localizations {
                    value: "Hey %1$@, I have an invite for you to join me on HalloApp - a real-relationship network for those closest to me. Use %2$@ to register. Get it at https://halloapp.com/dl",
                  comment: "Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number.")
     }
+    
+    static var specificInviteTextVariation1: String {
+        NSLocalizedString("invite.text.specific.1",
+                   value: "Hey %@, I’m on HalloApp. Download to join me https://halloapp.com/install",
+                 comment: "Version of an invitation to join HalloApp. The argument is the invitee's name.")
+    }
+    
+    static var specificInviteTextVariation2: String {
+        NSLocalizedString("invite.text.specific.2",
+                   value: "Hey %@, let’s keep in touch on HalloApp. Download at https://halloapp.com/kit (HalloApp is a new, private social app for close friends and family, with no ads or algorithms).",
+                 comment: "Version of an invitation to join HalloApp. The argument is the invitee's name.")
+    }
+    
+    static var specificInviteTextVariation3: String {
+        NSLocalizedString("invite.text.specific.3",
+                   value: "I am inviting you to install HalloApp. Download for free here: https://halloapp.com/free",
+                 comment: "Version of an invitation to join HalloApp.")
+    }
 
     static func outOfInvitesWith(date: Date) -> String {
         let dateFormatter = DateFormatter()
