@@ -104,7 +104,7 @@
 "feed.privacy.list.set.favorites" = "Favoriten festlegen";
 
 /* Description of the new Favorites functionality. */
-"feed.privacy.list.set.favorites.description" = "Jetzt kannst du eine Liste deiner bevorzugten Kontakte erstellen und deine HalloApp-Beiträge nur mit ihnen teilen.";
+"feed.privacy.list.set.favorites.description" = "Du kannst nun eine Liste deiner bevorzugten Kontakte erstellen und deine HalloApp-Beiträge nur mit ihnen teilen.";
 
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Suchen";
@@ -150,7 +150,7 @@
 
 /* Share on the home feed label with all my contacts
    Share to all contacts */
-"share.destination.home" = "Home";
+"share.destination.home" = "Meine Kontakte";
 
 /* Alert title when a direct to contact sharing is missing
    Alert title when a direct to group sharing is missing */

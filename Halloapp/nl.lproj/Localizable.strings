@@ -509,10 +509,10 @@
 "Delete" = "Verwijderen";
 
 /* link, tapping on which launched the flow to edit blocked contacts */
-"edit.blocked" = "Aanpassen";
+"edit.blocked" = "Bewerken";
 
 /* link, tapping on which launched the flow to edit favorites */
-"edit.favorites" = "Favorieten Aanpassen";
+"edit.favorites" = "Favorieten Bewerken";
 
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Om connectie te maken, moeten jullie telefoonnummers uitwisselen";
@@ -527,7 +527,7 @@
 "externalShare.og.description.text" = "Tekstpost";
 
 /* Title for posts that are externally shared, 'John Smith's HalloApp Post' */
-"externalShare.og.title3" = "HalloApp Post van %@";
+"externalShare.og.title3" = "HalloApp-post van %@";
 
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Camera";
@@ -635,7 +635,7 @@
 "feed.privacy.list.except.title" = "Verberg Posts Voor...";
 
 /* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
-"feed.privacy.list.notOwn.only.description" = "Alleen de mensen op de Favorietenlijst van %@ kunnen deze post bekijken.";
+"feed.privacy.list.notOwn.only.description" = "Alleen de personen op de Favorietenlijst van %@ kunnen deze post bekijken.";
 
 /* Settings > Privacy > Posts > Favorites privacy setting. */
 "feed.privacy.list.only" = "Favorieten";
@@ -647,13 +647,13 @@
 "feed.privacy.list.only.title" = "Favorieten";
 
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
-"feed.privacy.list.own.only.description" = "Alleen de mensen op je Favorietenlijst kunnen deze post bekijken.";
+"feed.privacy.list.own.only.description" = "Alleen de personen op je Favorietenlijst kunnen deze post bekijken.";
 
 /* Button to edit favorites */
 "feed.privacy.list.set.favorites" = "Favorieten Instellen";
 
 /* Description of the new Favorites functionality. */
-"feed.privacy.list.set.favorites.description" = "Je kunt nu een lijst maken van je favoriete contacten en je HalloApp-posts alleen met hen delen.";
+"feed.privacy.list.set.favorites.description" = "Je kunt nu een lijst van je favoriete contacten maken en je HalloApp-posts alleen met hen delen.";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Mijn Contacten";
@@ -1581,7 +1581,7 @@
 "title.comments.picker" = "Nieuwe Reactie";
 
 /* Button to edit favorites list */
-"title.edit.favorites" = "Favorietenlijst Aanpassen";
+"title.edit.favorites" = "Favorietenlijst Bewerken";
 
 /* Second tab in the main app interface. */
 "title.groups" = "Groepen";

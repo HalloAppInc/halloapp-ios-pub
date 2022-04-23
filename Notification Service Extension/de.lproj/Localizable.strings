@@ -104,7 +104,7 @@
 "feed.privacy.list.set.favorites" = "Favoriten festlegen";
 
 /* Description of the new Favorites functionality. */
-"feed.privacy.list.set.favorites.description" = "Jetzt kannst du eine Liste deiner bevorzugten Kontakte erstellen und deine HalloApp-Beiträge nur mit ihnen teilen.";
+"feed.privacy.list.set.favorites.description" = "Du kannst nun eine Liste deiner bevorzugten Kontakte erstellen und deine HalloApp-Beiträge nur mit ihnen teilen.";
 
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Du wurdest einer neuen Gruppe hinzugefügt";

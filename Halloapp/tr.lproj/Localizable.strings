@@ -599,7 +599,7 @@
 "feed.posting" = "Paylaşılıyor...";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.all" = "Bütün kişilerimle paylaş";
+"feed.privacy.descr.all" = "Kişilerimle paylaş";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.except" = "Seçtiğim kişiler hariç, kişilerimle paylaş";

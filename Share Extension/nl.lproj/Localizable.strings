@@ -89,7 +89,7 @@
 "feed.privacy.list.dismiss.edit.favorites" = "Niet Nu";
 
 /* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
-"feed.privacy.list.notOwn.only.description" = "Alleen de mensen op de Favorietenlijst van %@ kunnen deze post bekijken.";
+"feed.privacy.list.notOwn.only.description" = "Alleen de personen op de Favorietenlijst van %@ kunnen deze post bekijken.";
 
 /* Header for the favorites list when editing contacts to share with. */
 "feed.privacy.list.only.details" = "Wie kan deze post zien";
@@ -98,13 +98,13 @@
 "feed.privacy.list.only.title" = "Favorieten";
 
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
-"feed.privacy.list.own.only.description" = "Alleen de mensen op je Favorietenlijst kunnen deze post bekijken.";
+"feed.privacy.list.own.only.description" = "Alleen de personen op je Favorietenlijst kunnen deze post bekijken.";
 
 /* Button to edit favorites */
 "feed.privacy.list.set.favorites" = "Favorieten Instellen";
 
 /* Description of the new Favorites functionality. */
-"feed.privacy.list.set.favorites.description" = "Je kunt nu een lijst maken van je favoriete contacten en je HalloApp-posts alleen met hen delen.";
+"feed.privacy.list.set.favorites.description" = "Je kunt nu een lijst van je favoriete contacten maken en je HalloApp-posts alleen met hen delen.";
 
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Zoeken";
@@ -150,7 +150,7 @@
 
 /* Share on the home feed label with all my contacts
    Share to all contacts */
-"share.destination.home" = "Home";
+"share.destination.home" = "Mijn Contacten";
 
 /* Alert title when a direct to contact sharing is missing
    Alert title when a direct to group sharing is missing */
@@ -172,7 +172,7 @@
 "share.notlogged.title" = "Je bent niet ingelogd";
 
 /* Button to edit favorites list */
-"title.edit.favorites" = "Favorietenlijst Aanpassen";
+"title.edit.favorites" = "Favorietenlijst Bewerken";
 
 /* Row in Settings screen */
 "title.privacy" = "Privacy";

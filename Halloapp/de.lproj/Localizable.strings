@@ -653,7 +653,7 @@
 "feed.privacy.list.set.favorites" = "Favoriten festlegen";
 
 /* Description of the new Favorites functionality. */
-"feed.privacy.list.set.favorites.description" = "Jetzt kannst du eine Liste deiner bevorzugten Kontakte erstellen und deine HalloApp-Beiträge nur mit ihnen teilen.";
+"feed.privacy.list.set.favorites.description" = "Du kannst nun eine Liste deiner bevorzugten Kontakte erstellen und deine HalloApp-Beiträge nur mit ihnen teilen.";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Meine Kontakte";
@@ -1311,7 +1311,7 @@
 "registration.invalidphone" = "Ups!";
 
 /* Popup that appears when user tries to register invalid number */
-"registration.invalidphone.only" = "Die von dir eingegebene Handynummer ist ungültig. Bitte überprüfe die Nummer noch einmal.";
+"registration.invalidphone.only" = "Die eingegebene Handynummer ist ungültig. Bitte prüfe die Nummer und versuche es noch einmal.";
 
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Wenn du einem Gruppeneinladungslink gefolgt bist, um dich zu registrieren, klicke bitte erneut auf den Link, um die Registrierung abzuschließen und der Gruppe beizutreten.";

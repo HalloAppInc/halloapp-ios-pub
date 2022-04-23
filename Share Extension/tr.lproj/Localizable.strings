@@ -138,7 +138,7 @@
 
 /* Share on the home feed label with all my contacts
    Share to all contacts */
-"share.destination.home" = "Ana sayfa";
+"share.destination.home" = "Kişilerim";
 
 /* Alert title when a direct to contact sharing is missing
    Alert title when a direct to group sharing is missing */

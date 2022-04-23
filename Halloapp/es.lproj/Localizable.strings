@@ -101,7 +101,7 @@
 "button.invite" = "Invitar";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
-"button.learn.more" = "Saber más";
+"button.learn.more" = "Más información";
 
 /* Title for generic More button. Mostly used to complete some modal flow. */
 "button.more" = "Más";
@@ -910,6 +910,15 @@
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
 "invite.text.specific" = "Hola %1$@, tengo una invitación para que te unas a HalloApp (una red social de relaciones reales para aquellos más cercanos a mí). Usa %2$@ para registrarte. Bájala en https://halloapp.com/dl";
 
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.1" = "Hey %@, estoy en HalloApp. Descarga la app para unirte a mí https://halloapp.com/install";
+
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.2" = "Oye, %@, sigamos en contacto en HalloApp. Descárgala en https://halloapp.com/kit (HalloApp es una nueva aplicación social privada para amigos cercanos y familiares, sin anuncios ni algoritmos).";
+
+/* Version of an invitation to join HalloApp. */
+"invite.text.specific.3" = "Te invito a instalar HalloApp. Descárgala gratis aquí: https://halloapp.com/free";
+
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Invitar";
 
@@ -926,7 +935,7 @@
 "label.search" = "Búsqueda";
 
 /* Text with hyperlink to halloapp's faq on encryption. */
-"learn.more" = "Conoce más";
+"learn.more" = "Más información.";
 
 /* Link text to open invite flow */
 "link.invite.friend" = "Invita a un amigo(a)";
@@ -980,7 +989,7 @@
 "media.save.camera.roll" = "Guardar en mi rollo de cámara";
 
 /* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
-"media.save.needs.permissions" = "Necesitamos permisos para guardar fotos";
+"media.save.needs.permissions" = "Necesitamos permiso para guardar fotos";
 
 /* Description telling the user why the photos couldn't be saved */
 "media.save.no.access" = "No se pueden guardar las fotos sin acceso al rollo de cámara.";
