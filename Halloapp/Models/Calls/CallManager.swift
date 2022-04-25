@@ -930,8 +930,8 @@ final class CallManager: NSObject, CXProviderDelegate {
 
 extension CallManager: HalloCallDelegate {
     func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveIncomingCallPush incomingCallPush: Server_IncomingCallPush) {
-        DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCallPush/begin")
         let callID = incomingCallPush.callID
+        DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCallPush/begin/callID: \(callID)")
 
         // Lets run this synchronously on a queue as explained in the incomingCall function below.
         delegateQueue.sync {
@@ -956,6 +956,7 @@ extension CallManager: HalloCallDelegate {
                 }
             } else if activeCall != nil {
                 MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .busy)
+                provider.reportCall(with: callID.callUUID, endedAt: Date(), reason: .declinedElsewhere)
                 MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
                     call.endReason = .busy
                 }
@@ -984,8 +985,8 @@ extension CallManager: HalloCallDelegate {
     }
 
     func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveIncomingCall incomingCall: Server_IncomingCall) {
-        DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/begin")
         let callID = incomingCall.callID
+        DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/begin/callID: \(callID)")
         let webrtcOffer = incomingCall.webrtcOffer
 
         let reportIncomingCallCompletion: (() -> Void) = {
@@ -1064,6 +1065,7 @@ extension CallManager: HalloCallDelegate {
                 }
             } else if activeCall != nil {
                 MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .busy)
+                provider.reportCall(with: callID.callUUID, endedAt: Date(), reason: .declinedElsewhere)
                 MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
                     call.endReason = .busy
                 }
