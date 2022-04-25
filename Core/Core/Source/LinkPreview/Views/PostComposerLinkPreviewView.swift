@@ -6,13 +6,23 @@
 //  Copyright © 2021 HalloApp, Inc. All rights reserved.
 //
 
-import Core
 import CoreCommon
 import Combine
-import LinkPresentation
 import UIKit
 
-class PostComposerLinkPreviewView: UIView {
+private extension Localizations {
+    static var loadingPreview: String {
+        NSLocalizedString("loading.preview", value: "Loading Preview...", comment: "Displayed while waiting for link preview to load")
+    }
+}
+
+extension UIColor {
+    class var commentVoiceNoteBackground: UIColor {
+        UIColor(named: "CommentVoiceNoteBackground")!
+    }
+}
+
+public class PostComposerLinkPreviewView: UIView {
 
     private let didFinish: ((Bool, LinkPreviewData?, UIImage?) -> Void)
     private var latestURL: URL?
@@ -39,8 +49,9 @@ class PostComposerLinkPreviewView: UIView {
         return closeButton
     }()
 
-    private lazy var linkView: LPLinkView = {
-        let linkView = LPLinkView()
+    private lazy var linkView: PostLinkPreviewView = {
+        let linkView = PostLinkPreviewView()
+        linkView.translatesAutoresizingMaskIntoConstraints = false
         return linkView
     }()
 
@@ -69,23 +80,27 @@ class PostComposerLinkPreviewView: UIView {
         fatalError("Use init(didFinish:)")
     }
 
-    init(didFinish: @escaping ((Bool, LinkPreviewData?, UIImage?) -> Void)) {
+    public init(didFinish: @escaping ((Bool, LinkPreviewData?, UIImage?) -> Void)) {
         self.didFinish = didFinish
         super.init(frame: .zero)
         preservesSuperviewLayoutMargins = true
         self.addSubview(vStack)
 
-        vStack.heightAnchor.constraint(equalToConstant: 250).isActive = true
-        vStack.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
-        vStack.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
+        NSLayoutConstraint.activate([
+            titleLabel.heightAnchor.constraint(equalToConstant: 250),
+            vStack.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+            vStack.trailingAnchor.constraint(equalTo: self.trailingAnchor)
+        ])
 
         self.addSubview(linkPreviewCloseButton)
 
-        linkPreviewCloseButton.trailingAnchor.constraint(equalTo: vStack.trailingAnchor, constant: -4).isActive = true
-        linkPreviewCloseButton.topAnchor.constraint(equalTo: vStack.topAnchor, constant: 4).isActive = true
+        NSLayoutConstraint.activate([
+            linkPreviewCloseButton.trailingAnchor.constraint(equalTo: vStack.trailingAnchor, constant: -12),
+            linkPreviewCloseButton.topAnchor.constraint(equalTo: vStack.topAnchor, constant: 12)
+        ])
     }
 
-    func updateLink(url: URL?) {
+    public func updateLink(url: URL?) {
         latestURL = url
         if !linkDetectionTimer.isValid {
             // Start timer for 1 second before fetching link preview.
@@ -103,7 +118,7 @@ class PostComposerLinkPreviewView: UIView {
         // After waiting for 1 second, if the url did not change, fetch link preview info
             if latestURL == linkPreviewUrl {
                 // Have we already fetched the link? then do not fetch again
-                if linkView.metadata.originalURL == latestURL {
+                if linkView.linkPreviewData?.url == latestURL {
                     return
                 }
                 fetchURLPreview()
@@ -118,10 +133,8 @@ class PostComposerLinkPreviewView: UIView {
         self.titleLabel.isHidden = false
         self.vStack.removeArrangedSubview(linkView)
         linkView.removeFromSuperview()
-        let metadataProvider = LPMetadataProvider()
-        metadataProvider.timeout = 10
-        metadataProvider.startFetchingMetadata(for: url) { (metadata, error) in
-            guard let data = metadata, error == nil else {
+        LinkPreviewMetadataProvider.startFetchingMetadata(for: url) { linkPreviewData, previewImage, error in
+            guard let data = linkPreviewData, error == nil else {
                 // Error fetching link preview.. remove link preview loading state
                 DispatchQueue.main.async { [weak self] in
                     guard let self = self else { return }
@@ -130,27 +143,20 @@ class PostComposerLinkPreviewView: UIView {
                 }
                 return
             }
+            self.linkPreviewData = data
+            self.linkViewImage = previewImage
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
+                self.linkView.configure(linkPreviewData: data, previewImage: previewImage)
                 self.titleLabel.isHidden = true
-                self.linkView.metadata = data
-                self.linkView.preservesSuperviewLayoutMargins = true
-                self.vStack.insertArrangedSubview(self.linkView, at: self.vStack.arrangedSubviews.count)
-                self.linkView.leadingAnchor.constraint(equalTo: self.vStack.leadingAnchor).isActive = true
-                self.linkView.trailingAnchor.constraint(equalTo: self.vStack.trailingAnchor).isActive = true
-
-                self.linkPreviewData = LinkPreviewData(id : nil, url: url, title: data.title ?? "", description: "", previewImages: [])
-
-                if let imageProvider = data.imageProvider {
-                    imageProvider.loadObject(ofClass: UIImage.self) { (image, error) in
-                        if let image = image as? UIImage {
-                            self.linkViewImage = image
-                            self.didFinish(false, self.linkPreviewData, self.linkViewImage)
-                        }
-                    }
-                } else {
-                    self.didFinish(false, self.linkPreviewData, self.linkViewImage)
-                }
+                self.vStack.addArrangedSubview(self.linkView)
+                NSLayoutConstraint.activate([
+                   self.linkView.leadingAnchor.constraint(equalTo: self.vStack.leadingAnchor),
+                   self.linkView.trailingAnchor.constraint(equalTo: self.vStack.trailingAnchor),
+                   self.linkView.topAnchor.constraint(equalTo: self.vStack.topAnchor),
+                   self.linkView.bottomAnchor.constraint(equalTo: self.vStack.bottomAnchor)
+                ])
+                self.didFinish(false, self.linkPreviewData, self.linkViewImage)
             }
         }
     }

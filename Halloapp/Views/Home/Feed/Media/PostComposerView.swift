@@ -867,7 +867,7 @@ fileprivate struct PostComposerView: View {
     }
 
     var postTextView: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: 30) {
             ZStack (alignment: .topLeading) {
                 if (inputToPost.value.text.isEmpty) {
                     Text(mediaCount > 0 ? Localizations.writeDescription : Localizations.writePost)

@@ -7,14 +7,22 @@
 //
 
 import Combine
-import LinkPresentation
 import UIKit
 import SwiftUI
 
-class PostLinkPreviewView: UIView {
 
-    private var imageLoadingCancellable: AnyCancellable?
-    private var linkPreviewURL: URL?
+extension UIColor {
+    class var linkPreviewPostBackground: UIColor {
+        UIColor(named: "LinkPreviewPostBackground")!
+    }
+}
+
+public class PostLinkPreviewView: UIView {
+
+    public var imageLoadingCancellable: AnyCancellable?
+    public var linkPreviewURL: URL?
+    public var linkPreviewData: LinkPreviewData?
+    private var textStackHeightConstraint: NSLayoutConstraint?
     private var contentHeightConstraint: NSLayoutConstraint?
     private var previewImageHeightConstraint: NSLayoutConstraint?
 
@@ -34,6 +42,7 @@ class PostLinkPreviewView: UIView {
         previewImageView.setContentHuggingPriority(UILayoutPriority(1), for: .vertical)
         previewImageView.setContentCompressionResistancePriority(UILayoutPriority(1), for: .vertical)
         previewImageView.tintColor = .systemGray3
+        previewImageView.contentMode = .scaleAspectFill
         return previewImageView
     }()
 
@@ -41,8 +50,7 @@ class PostLinkPreviewView: UIView {
         let titleLabel = UILabel()
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.numberOfLines = 2
-        titleLabel.font = .systemFont(forTextStyle: .callout, weight: .semibold)
-        titleLabel.textAlignment = .natural
+        titleLabel.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
         return titleLabel
     }()
 
@@ -84,6 +92,9 @@ class PostLinkPreviewView: UIView {
         return textStack
     }()
 
+    public var url: String? { get { urlLabel.text } set { urlLabel.text = newValue } }
+    public var title: String? { get { titleLabel.text } set { titleLabel.text = newValue }}
+
     private func commonInit() {
         preservesSuperviewLayoutMargins = true
 
@@ -105,9 +116,25 @@ class PostLinkPreviewView: UIView {
         textStack.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(textStack)
 
-        contentView.constrainMargins(to: self)
+        let topC = contentView.topAnchor.constraint(equalTo: self.topAnchor)
+        topC.isActive = true
+        topC.priority = .required
+        
+        let bottomC = contentView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
+        bottomC.isActive = true
+        bottomC.priority = .required
+        
+        let leadingC = contentView.leadingAnchor.constraint(equalTo: self.leadingAnchor)
+        leadingC.isActive = true
+        leadingC.priority = .required
+        
+        let trailingC = contentView.trailingAnchor.constraint(equalTo: self.trailingAnchor)
+        trailingC.isActive = true
+        trailingC.priority = .required
 
         contentHeightConstraint = contentView.heightAnchor.constraint(equalToConstant: 250)
+        textStackHeightConstraint = contentView.heightAnchor.constraint(equalToConstant: 72)
+        textStackHeightConstraint?.priority = UILayoutPriority(rawValue: 999)
         previewImageHeightConstraint = previewImageView.heightAnchor.constraint(equalToConstant: 0)
 
         NSLayoutConstraint.activate([
@@ -126,61 +153,59 @@ class PostLinkPreviewView: UIView {
         isUserInteractionEnabled = true
     }
 
-    func configure(feedLinkPreview: LinkPreviewDisplayable) {
-        if feedLinkPreview.url != linkPreviewURL {
-            imageLoadingCancellable?.cancel()
-            imageLoadingCancellable = nil
+    func configure(linkPreviewData: LinkPreviewData, previewImage: UIImage?) {
+        self.linkPreviewData = linkPreviewData
+        urlLabel.text = linkPreviewData.url.host
+        titleLabel.text = linkPreviewData.title
+        if let previewImage = previewImage {
+            let linkPreviewMedia = PendingMedia(type: .image)
+            linkPreviewMedia.image = previewImage
+            if linkPreviewMedia.ready.value {
+                activateViewConstraints(isImagePresent: true)
+                previewImageView.image = linkPreviewMedia.image
+            } else {
+              self.imageLoadingCancellable =
+                  linkPreviewMedia.ready.sink { [weak self] ready in
+                      guard let self = self else { return }
+                      guard ready else { return }
+                      self.previewImageView.image = linkPreviewMedia.image
+                      self.activateViewConstraints(isImagePresent: true)
+                  }
+            }
+            activateViewConstraints(isImagePresent: true)
+        } else {
+            activateViewConstraints(isImagePresent: false)
         }
-        linkPreviewURL = feedLinkPreview.url
+    }
 
-        urlLabel.text = feedLinkPreview.url?.host
-        titleLabel.text = feedLinkPreview.title
-
-        if let media = feedLinkPreview.feedMedia {
-            configureMedia(media: media)
+    public func activateViewConstraints(isImagePresent: Bool) {
+        if isImagePresent {
             previewImageView.isHidden = false
             previewImageHeightConstraint?.isActive = false
+            textStackHeightConstraint?.isActive = false
             contentHeightConstraint?.isActive = true
         } else {
             previewImageView.isHidden = true
             previewImageHeightConstraint?.isActive = true
+            textStackHeightConstraint?.isActive = true
             contentHeightConstraint?.isActive = false
         }
     }
 
-    private func configureMedia(media: FeedMedia) {
-        showPlaceholderImage()
-        if media.isMediaAvailable {
-            if let image = media.image {
-                show(image: image)
-            } else {
-                showPlaceholderImage()
-                MainAppContext.shared.errorLogger?.logError(FeedMediaError.missingImage)
-            }
-        } else if imageLoadingCancellable == nil {
-            showPlaceholderImage()
-            // capture a strong reference to media so it is not deallocated while the image is loading
-            imageLoadingCancellable = media.imageDidBecomeAvailable.sink { [weak self, media] _ in
-                guard let self = self, let image = media.image else { return }
-                self.imageLoadingCancellable = nil
-                self.show(image: image)
-            }
-        }
+    @objc private func previewTapped(sender: UITapGestureRecognizer) {
+        // if let url = linkPreviewURL {
+            // TODO: make preview clickble
+            // URLRouter.shared.handleOrOpen(url: url)
+        // }
     }
 
-    private func showPlaceholderImage() {
+    public func showPlaceholderImage() {
         previewImageView.contentMode = .center
         previewImageView.image = UIImage(systemName: "photo")?.withConfiguration(UIImage.SymbolConfiguration(textStyle: .largeTitle))
     }
 
-    private func show(image: UIImage) {
+    public func show(image: UIImage) {
         previewImageView.contentMode = .scaleAspectFill
         previewImageView.image = image
-    }
-
-    @objc private func previewTapped(sender: UITapGestureRecognizer) {
-        if let url = linkPreviewURL {
-            URLRouter.shared.handleOrOpen(url: url)
-        }
     }
 }
