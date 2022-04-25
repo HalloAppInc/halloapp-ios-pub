@@ -2992,6 +2992,8 @@ extension ChatData {
                 self.updateUnreadChatsThreadCount()
             }
         }
+
+        MainAppContext.shared.mainDataStore.deleteCalls(with: chatThreadId)
     }
 
     public func deleteChatMessage(with id: ChatMessageID) {

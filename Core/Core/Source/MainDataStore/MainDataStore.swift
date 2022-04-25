@@ -179,6 +179,26 @@ open class MainDataStore {
         }
     }
 
+    public func deleteCalls(with peerUserID: UserID) {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            DDLogInfo("MainDataStore/deleteCalls/peerUserID: \(peerUserID)")
+
+            let fetchRequest: NSFetchRequest<Call> = Call.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "peerUserID == %@", peerUserID)
+
+            do {
+                let calls = try managedObjectContext.fetch(fetchRequest)
+                calls.forEach {
+                    managedObjectContext.delete($0)
+                }
+            } catch {
+                DDLogError("MainDataStore/deleteCalls/error  [\(error)]/peerUserID: \(peerUserID)")
+                fatalError("Failed to delete call history: \(peerUserID)")
+            }
+        }
+    }
+
     public func saveGroupHistoryInfo(id: String, groupID: GroupID, payload: Data) {
         performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
             guard let self = self else { return }
