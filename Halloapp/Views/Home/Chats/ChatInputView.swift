@@ -10,7 +10,6 @@ import CocoaLumberjackSwift
 import Combine
 import Core
 import CoreCommon
-import LinkPresentation
 import MarkdownKit
 import UIKit
 
@@ -469,11 +468,8 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     func fetchURLPreview() {
         guard let url = linkPreviewUrl else { return }
         removeLinkPreviewPanel()
-        let metadataProvider = LPMetadataProvider()
-        metadataProvider.timeout = 10
-
-        metadataProvider.startFetchingMetadata(for: url) { (metadata, error) in
-            guard let data = metadata, error == nil else {
+        LinkPreviewMetadataProvider.startFetchingMetadata(for: url) { linkPreviewData, previewImage, error in
+            guard let data = linkPreviewData, error == nil else {
                 // Error fetching link preview.. remove link preview loading state
                 self.invalidLinkPreviewUrl = url
                 DispatchQueue.main.async { [weak self] in
@@ -483,27 +479,20 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
               return
             }
             self.invalidLinkPreviewUrl = nil
-            // If image is not present, fallback on icon.
-            if let imageProvider = data.imageProvider ?? data.iconProvider {
-                imageProvider.loadObject(ofClass: UIImage.self) { (image, error) in
-                    DispatchQueue.main.async { [weak self] in
-                        guard let self = self else { return }
-                        self.activityIndicator.stopAnimating()
-                        if let image = image as? UIImage {
-                            self.linkPreviewMediaView.isHidden = false
-                            self.linkPreviewMediaView.image = image
-                        }
-                        
-                        self.linkPreviewPanel.isHidden = false
-                        self.linkImageView.isHidden = false
-                        self.linkPreviewTitleLabel.text = data.title
-                        self.linkPreviewURLLabel.text = data.url?.host
-                        self.linkPreviewData = LinkPreviewData(id : nil, url: url, title: data.title ?? "", description: "", previewImages: [])
-                        self.updateBorderRadius()
-                    }
+            if let previewImage = previewImage {
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+                    self.activityIndicator.stopAnimating()
+                    self.linkPreviewMediaView.isHidden = false
+                    self.linkPreviewMediaView.image = previewImage
+                    self.linkPreviewPanel.isHidden = false
+                    self.linkImageView.isHidden = false
+                    self.linkPreviewTitleLabel.text = data.title
+                    self.linkPreviewURLLabel.text = data.url.host
+                    self.linkPreviewData = LinkPreviewData(id : nil, url: url, title: data.title ?? "", description: "", previewImages: [])
+                    self.updateBorderRadius()
                 }
             } else {
-                // No Image info
                 DispatchQueue.main.async { [weak self] in
                     guard let self = self else { return }
                     self.activityIndicator.stopAnimating()
@@ -511,7 +500,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
                     self.linkImageView.isHidden = false
                     self.linkPreviewMediaView.isHidden = true
                     self.linkPreviewTitleLabel.text = data.title
-                    self.linkPreviewURLLabel.text = data.url?.host
+                    self.linkPreviewURLLabel.text = data.url.host
                     self.linkPreviewData = LinkPreviewData(id : nil, url: data.url, title: data.title ?? "", description: "", previewImages: [])
                     self.updateBorderRadius()
                 }
@@ -522,7 +511,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         updateBorderRadius()
     }
 
-    private func resetLinkDetection() {
+    public func resetLinkDetection() {
         linkDetectionTimer.invalidate()
         linkPreviewUrl = nil
         linkPreviewData = nil
@@ -536,6 +525,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         linkImageView.isHidden = true
         linkPreviewMediaView.image = nil
         linkPreviewPanel.isHidden = true
+        invalidLinkPreviewUrl = nil
         updatePostButtons()
         setNeedsUpdateHeight()
         updateBorderRadius()

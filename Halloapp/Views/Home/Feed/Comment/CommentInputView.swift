@@ -11,7 +11,6 @@ import CocoaLumberjackSwift
 import Combine
 import Core
 import CoreCommon
-import LinkPresentation
 import UIKit
 import CoreGraphics
 
@@ -1090,40 +1089,31 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
                 setLinkDetectionTimers(url: url)
             }
         }
-
     }
 
     func fetchURLPreview() {
         guard let url = linkPreviewUrl else { return }
         removeLinkPreviewPanel()
-        let metadataProvider = LPMetadataProvider()
-        metadataProvider.timeout = 10
-
-        metadataProvider.startFetchingMetadata(for: url) { (metadata, error) in
-            guard let data = metadata, error == nil else {
-                // Error fetching link preview.. remove link preview loading state
+        LinkPreviewMetadataProvider.startFetchingMetadata(for: url) { linkPreviewData, previewImage, error in
+            guard let data = linkPreviewData, error == nil else {
                 self.invalidLinkPreviewUrl = url
                 DispatchQueue.main.async { [weak self] in
                     guard let self = self else { return }
                     self.resetLinkDetection()
                 }
-              return
+                return
             }
-            // If image is not present, fallback on icon.
-            if let imageProvider = data.imageProvider ?? data.iconProvider {
-                imageProvider.loadObject(ofClass: UIImage.self) { (image, error) in
-                    DispatchQueue.main.async { [weak self] in
-                        guard let self = self else { return }
-                        self.activityIndicator.stopAnimating()
-                        if let image = image as? UIImage {
-                            self.linkPreviewMediaView.isHidden = false
-                            self.linkPreviewMediaView.image = image
-                        }
-                        self.linkImageView.isHidden = false
-                        self.linkPreviewTitleLabel.text = data.title
-                        self.linkPreviewURLLabel.text = data.url?.host
-                        self.linkPreviewData = LinkPreviewData(id : nil, url: url, title: data.title ?? "", description: "", previewImages: [])
-                    }
+            self.linkPreviewData = data
+            self.invalidLinkPreviewUrl = nil
+            if let previewImage = previewImage {
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+                    self.activityIndicator.stopAnimating()
+                    self.linkPreviewMediaView.isHidden = false
+                    self.linkPreviewMediaView.image = previewImage
+                    self.linkImageView.isHidden = false
+                    self.linkPreviewTitleLabel.text = data.title
+                    self.linkPreviewURLLabel.text = data.url.host
                 }
             } else {
                 // No Image info
@@ -1133,8 +1123,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
                     self.linkImageView.isHidden = false
                     self.linkPreviewMediaView.isHidden = true
                     self.linkPreviewTitleLabel.text = data.title
-                    self.linkPreviewURLLabel.text = data.url?.host
-                    self.linkPreviewData = LinkPreviewData(id : nil, url: url, title: data.title ?? "", description: "", previewImages: [])
+                    self.linkPreviewURLLabel.text = data.url.host
                 }
             }
         }
@@ -1177,6 +1166,8 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         removeQuotedReplyPanel()
         self.inputTextViewDidChange(self.textView)
         self.setNeedsUpdateHeight(animationDuration: 0.25)
+        resetLinkDetection()
+        invalidLinkPreviewUrl = nil
     }
 
     var text: String! {

@@ -1177,6 +1177,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                                                    chatReplyMessageMediaIndex: chatReplyMessageMediaIndex)
 
         chatInputView.closeQuoteFeedPanel()
+        chatInputView.resetLinkDetection()
 
         feedPostId = nil
         feedPostMediaIndex = 0
