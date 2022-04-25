@@ -935,8 +935,10 @@ extension FeedCollectionViewController {
             for media in media {
                 if media.type == .image {
                     PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: media.url)
+                    AppContext.shared.eventMonitor.count(.mediaSaved(type: .image, source: .post))
                 } else if media.type == .video {
                     PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: media.url)
+                    AppContext.shared.eventMonitor.count(.mediaSaved(type: .video, source: .post))
                 }
             }
             

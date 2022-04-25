@@ -901,7 +901,7 @@ extension FlatCommentsViewController: MessageCommentHeaderViewDelegate {
             canSavePost = post.canSaveMedia
         }
 
-        let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost)
+        let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost, source: .post)
         controller.delegate = view
         present(controller, animated: true)
     }
@@ -915,7 +915,7 @@ extension FlatCommentsViewController: MessageViewDelegate {
             canSavePost = post.canSaveMedia
         }
         guard let media = MainAppContext.shared.feedData.media(commentID: feedPostCommentID) else { return }
-        let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost)
+        let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost, source: .comment)
         controller.delegate = view
         present(controller, animated: true)
     }

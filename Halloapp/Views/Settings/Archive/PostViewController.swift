@@ -315,8 +315,10 @@ extension PostViewController {
 
                 if item.type == .image {
                     PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: url)
+                    AppContext.shared.eventMonitor.count(.mediaSaved(type: .image, source: .post))
                 } else if item.type == .video {
                     PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
+                    AppContext.shared.eventMonitor.count(.mediaSaved(type: .video, source: .post))
                 }
             }
         }, completionHandler: { [weak self] success, error in

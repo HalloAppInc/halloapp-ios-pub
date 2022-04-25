@@ -177,7 +177,9 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         return container
     }()
 
-    init(media: [FeedMedia], index: Int, canSaveMedia: Bool) {
+    private var source: MediaItemSource = .unknown
+
+    init(media: [FeedMedia], index: Int, canSaveMedia: Bool, source: MediaItemSource) {
         self.media = media.filter({ $0.type != .audio }).map { item in
             let type: MediaExplorerMediaType = (item.type == .image ? .image : .video)
             let progress = MainAppContext.shared.feedData.downloadTask(for: item)?.downloadProgress.eraseToAnyPublisher()
@@ -194,6 +196,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         }
         self.currentIndex = index
         self.canSaveMedia = canSaveMedia
+        self.source = source
 
         super.init(nibName: nil, bundle: nil)
 
@@ -207,6 +210,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
             let image: UIImage? = $0.type == .image ? UIImage(contentsOfFile: url.path) : nil
             return MediaExplorerMedia(url: url, image: image, type: ($0.type == .image ? .image : .video), size: $0.size)
         }
+        self.source = .chat
         self.currentIndex = index
 
         super.init(nibName: nil, bundle: nil)
@@ -230,6 +234,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
             return MediaExplorerMedia(url: url, image: image, type: ($0.type == .image ? .image : .video), size: .zero)
         }
         self.currentIndex = index
+        self.source = .chat
 
         super.init(nibName: nil, bundle: nil)
 
@@ -325,10 +330,12 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
             if currentMedia.type == .image {
                 if let url = currentMedia.url {
                     PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: url)
+                    AppContext.shared.eventMonitor.count(.mediaSaved(type: .image, source: self.source))
                 }
             } else if currentMedia.type == .video {
                 if let url = currentMedia.url {
                     PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
+                    AppContext.shared.eventMonitor.count(.mediaSaved(type: .video, source: self.source))
                 }
             }
         }, completionHandler: { [weak self] success, error in

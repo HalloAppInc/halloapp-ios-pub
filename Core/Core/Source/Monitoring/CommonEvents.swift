@@ -9,6 +9,13 @@
 import CoreCommon
 import Foundation
 
+public enum MediaItemSource {
+    case unknown
+    case post
+    case comment
+    case chat
+}
+
 public extension CountableEvent {
     static func decryption(error: DecryptionError?, sender: UserAgent?) -> CountableEvent {
         var extraDimensions = ["result": error?.rawValue ?? "success"]
@@ -42,5 +49,30 @@ public extension CountableEvent {
         extraDimensions["version"] = AppContext.appVersionForService
         extraDimensions["item_type"] = itemType.rawString
         return CountableEvent(namespace: "crypto", metric: "group_encryption", extraDimensions: extraDimensions)
+    }
+
+    static func mediaSaved(type: Clients_MediaType, source: MediaItemSource) -> CountableEvent {
+        var extraDimensions = [String: String]()
+        switch type {
+        case .image:
+            extraDimensions["type"] = "image"
+        case .video:
+            extraDimensions["type"] = "video"
+        case .audio:
+            extraDimensions["type"] = "audio"
+        case .unspecified, .UNRECOGNIZED:
+            extraDimensions["type"] = "unknown"
+        }
+        switch source {
+        case .unknown:
+            extraDimensions["source"] = "unknown"
+        case .post:
+            extraDimensions["source"] = "post"
+        case .comment:
+            extraDimensions["source"] = "comment"
+        case .chat:
+            extraDimensions["source"] = "chat"
+        }
+        return CountableEvent(namespace: "media", metric: "saved_media", extraDimensions: extraDimensions)
     }
 }

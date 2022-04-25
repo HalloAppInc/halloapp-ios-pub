@@ -329,7 +329,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
     }
 
     private func presentMedia(_ media: [FeedMedia], index: Int, delegate transitionDelegate: MediaExplorerTransitionDelegate? = nil) {
-        let explorerController = MediaExplorerController(media: media, index: index, canSaveMedia: canSaveMedia)
+        let explorerController = MediaExplorerController(media: media, index: index, canSaveMedia: canSaveMedia, source: .post)
         explorerController.delegate = transitionDelegate
 
         if let controller = findController() {

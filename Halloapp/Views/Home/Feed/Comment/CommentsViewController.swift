@@ -1035,7 +1035,7 @@ extension CommentsViewController: CommentViewDelegate {
             canSavePost = post.canSaveMedia
         }
         guard let media = MainAppContext.shared.feedData.media(commentID: feedPostCommentID) else { return }
-        let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost)
+        let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost, source: .comment)
         controller.delegate = view
         present(controller, animated: true)
     }
@@ -1056,7 +1056,7 @@ extension CommentsViewController: MediaCarouselViewDelegate {
             canSavePost = post.canSaveMedia
         }
 
-        let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost)
+        let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost, source: .post)
         controller.delegate = view
 
         present(controller, animated: true)
