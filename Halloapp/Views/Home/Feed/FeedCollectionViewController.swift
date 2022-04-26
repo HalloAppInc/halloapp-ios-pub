@@ -1021,9 +1021,11 @@ extension FeedCollectionViewController {
         MainAppContext.shared.feedData.retract(post: feedPost) { [weak self] result in
             switch result {
             case .failure(_):
-                let alert = UIAlertController(title: Localizations.deletePostError, message: nil, preferredStyle: .alert)
-                alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
-                self?.present(alert, animated: true, completion: nil)
+                DispatchQueue.main.async {
+                    let alert = UIAlertController(title: Localizations.deletePostError, message: nil, preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
+                    self?.present(alert, animated: true, completion: nil)
+                }
             default:
                 break
             }
