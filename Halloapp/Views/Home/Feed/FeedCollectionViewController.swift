@@ -334,7 +334,14 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         snapshot.appendItems(items)
 
         // TODO: See if we can improve this animation
-        snapshot.reloadItems(newlyDeletedPosts + newlyDecryptedPosts)
+        // Ensure no duplicates, which will crash the app
+        var itemsToReload: [FeedDisplayItem] = newlyDeletedPosts
+        newlyDeletedPosts.forEach {
+            if !itemsToReload.contains($0) {
+                itemsToReload.append($0)
+            }
+        }
+        snapshot.reloadItems(itemsToReload)
         deletedPostIDs.formUnion(newlyDeletedPosts.compactMap { $0.post?.id })
         waitingPostIds = waitingPostIds.subtracting(newlyDecryptedPosts.compactMap { $0.post?.id })
 
