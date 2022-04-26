@@ -248,6 +248,8 @@ public struct PostData {
                 return .unsupported(payload)
             }
             return .voiceNote(media)
+        case .secretPost(let secretPost):
+            return .unsupported(payload)
         case .none:
             return .unsupported(payload)
         }

@@ -400,30 +400,41 @@ public struct Clients_PostContainer {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var post: Clients_PostContainer.OneOf_Post? = nil
+  public var post: OneOf_Post? {
+    get {return _storage._post}
+    set {_uniqueStorage()._post = newValue}
+  }
 
   public var text: Clients_Text {
     get {
-      if case .text(let v)? = post {return v}
+      if case .text(let v)? = _storage._post {return v}
       return Clients_Text()
     }
-    set {post = .text(newValue)}
+    set {_uniqueStorage()._post = .text(newValue)}
   }
 
   public var album: Clients_Album {
     get {
-      if case .album(let v)? = post {return v}
+      if case .album(let v)? = _storage._post {return v}
       return Clients_Album()
     }
-    set {post = .album(newValue)}
+    set {_uniqueStorage()._post = .album(newValue)}
   }
 
   public var voiceNote: Clients_VoiceNote {
     get {
-      if case .voiceNote(let v)? = post {return v}
+      if case .voiceNote(let v)? = _storage._post {return v}
       return Clients_VoiceNote()
     }
-    set {post = .voiceNote(newValue)}
+    set {_uniqueStorage()._post = .voiceNote(newValue)}
+  }
+
+  public var secretPost: Clients_SecretPost {
+    get {
+      if case .secretPost(let v)? = _storage._post {return v}
+      return Clients_SecretPost()
+    }
+    set {_uniqueStorage()._post = .secretPost(newValue)}
   }
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -432,6 +443,7 @@ public struct Clients_PostContainer {
     case text(Clients_Text)
     case album(Clients_Album)
     case voiceNote(Clients_VoiceNote)
+    case secretPost(Clients_SecretPost)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Clients_PostContainer.OneOf_Post, rhs: Clients_PostContainer.OneOf_Post) -> Bool {
@@ -451,6 +463,10 @@ public struct Clients_PostContainer {
         guard case .voiceNote(let l) = lhs, case .voiceNote(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
+      case (.secretPost, .secretPost): return {
+        guard case .secretPost(let l) = lhs, case .secretPost(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
       default: return false
       }
     }
@@ -458,6 +474,8 @@ public struct Clients_PostContainer {
   }
 
   public init() {}
+
+  fileprivate var _storage = _StorageClass.defaultInstance
 }
 
 public struct Clients_PostContainerBlob {
@@ -929,6 +947,27 @@ public struct Clients_EncryptedPayload {
   public init() {}
 }
 
+public struct Clients_SecretPost {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var post: Clients_PostContainer {
+    get {return _storage._post ?? Clients_PostContainer()}
+    set {_uniqueStorage()._post = newValue}
+  }
+  /// Returns true if `post` has been explicitly set.
+  public var hasPost: Bool {return _storage._post != nil}
+  /// Clears the value of `post`. Subsequent reads from it will return its default value.
+  public mutating func clearPost() {_uniqueStorage()._post = nil}
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _storage = _StorageClass.defaultInstance
+}
+
 public struct Clients_VoiceNote {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1120,6 +1159,7 @@ extension Clients_SenderKey: @unchecked Sendable {}
 extension Clients_SenderState: @unchecked Sendable {}
 extension Clients_EncryptedPayload: @unchecked Sendable {}
 extension Clients_EncryptedPayload.OneOf_Payload: @unchecked Sendable {}
+extension Clients_SecretPost: @unchecked Sendable {}
 extension Clients_VoiceNote: @unchecked Sendable {}
 extension Clients_Link: @unchecked Sendable {}
 extension Clients_MemberDetails: @unchecked Sendable {}
@@ -1691,83 +1731,133 @@ extension Clients_PostContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
     1: .same(proto: "text"),
     2: .same(proto: "album"),
     3: .standard(proto: "voice_note"),
+    4: .standard(proto: "secret_post"),
   ]
 
+  fileprivate class _StorageClass {
+    var _post: Clients_PostContainer.OneOf_Post?
+
+    static let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _post = source._post
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try {
-        var v: Clients_Text?
-        var hadOneofValue = false
-        if let current = self.post {
-          hadOneofValue = true
-          if case .text(let m) = current {v = m}
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try {
+          var v: Clients_Text?
+          var hadOneofValue = false
+          if let current = _storage._post {
+            hadOneofValue = true
+            if case .text(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._post = .text(v)
+          }
+        }()
+        case 2: try {
+          var v: Clients_Album?
+          var hadOneofValue = false
+          if let current = _storage._post {
+            hadOneofValue = true
+            if case .album(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._post = .album(v)
+          }
+        }()
+        case 3: try {
+          var v: Clients_VoiceNote?
+          var hadOneofValue = false
+          if let current = _storage._post {
+            hadOneofValue = true
+            if case .voiceNote(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._post = .voiceNote(v)
+          }
+        }()
+        case 4: try {
+          var v: Clients_SecretPost?
+          var hadOneofValue = false
+          if let current = _storage._post {
+            hadOneofValue = true
+            if case .secretPost(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._post = .secretPost(v)
+          }
+        }()
+        default: break
         }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.post = .text(v)
-        }
-      }()
-      case 2: try {
-        var v: Clients_Album?
-        var hadOneofValue = false
-        if let current = self.post {
-          hadOneofValue = true
-          if case .album(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.post = .album(v)
-        }
-      }()
-      case 3: try {
-        var v: Clients_VoiceNote?
-        var hadOneofValue = false
-        if let current = self.post {
-          hadOneofValue = true
-          if case .voiceNote(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.post = .voiceNote(v)
-        }
-      }()
-      default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    switch self.post {
-    case .text?: try {
-      guard case .text(let v)? = self.post else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    }()
-    case .album?: try {
-      guard case .album(let v)? = self.post else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    }()
-    case .voiceNote?: try {
-      guard case .voiceNote(let v)? = self.post else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-    }()
-    case nil: break
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      switch _storage._post {
+      case .text?: try {
+        guard case .text(let v)? = _storage._post else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+      }()
+      case .album?: try {
+        guard case .album(let v)? = _storage._post else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+      }()
+      case .voiceNote?: try {
+        guard case .voiceNote(let v)? = _storage._post else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+      }()
+      case .secretPost?: try {
+        guard case .secretPost(let v)? = _storage._post else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+      }()
+      case nil: break
+      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Clients_PostContainer, rhs: Clients_PostContainer) -> Bool {
-    if lhs.post != rhs.post {return false}
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._post != rhs_storage._post {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -2551,6 +2641,74 @@ extension Clients_EncryptedPayload: SwiftProtobuf.Message, SwiftProtobuf._Messag
 
   public static func ==(lhs: Clients_EncryptedPayload, rhs: Clients_EncryptedPayload) -> Bool {
     if lhs.payload != rhs.payload {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Clients_SecretPost: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".SecretPost"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "post"),
+  ]
+
+  fileprivate class _StorageClass {
+    var _post: Clients_PostContainer? = nil
+
+    static let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _post = source._post
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularMessageField(value: &_storage._post) }()
+        default: break
+        }
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      try { if let v = _storage._post {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+      } }()
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Clients_SecretPost, rhs: Clients_SecretPost) -> Bool {
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._post != rhs_storage._post {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

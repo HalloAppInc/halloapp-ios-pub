@@ -547,13 +547,55 @@ public struct Server_Post {
   /// Clears the value of `mediaCounters`. Subsequent reads from it will return its default value.
   public mutating func clearMediaCounters() {self._mediaCounters = nil}
 
+  public var tag: Server_Post.Tag = .empty
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum Tag: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case empty // = 0
+    case secretPost // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .empty
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .empty
+      case 1: self = .secretPost
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .empty: return 0
+      case .secretPost: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
 
   public init() {}
 
   fileprivate var _audience: Server_Audience? = nil
   fileprivate var _mediaCounters: Server_MediaCounters? = nil
 }
+
+#if swift(>=4.2)
+
+extension Server_Post.Tag: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_Post.Tag] = [
+    .empty,
+    .secretPost,
+  ]
+}
+
+#endif  // swift(>=4.2)
 
 public struct Server_Comment {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -6399,6 +6441,7 @@ extension Server_MediaCounters: @unchecked Sendable {}
 extension Server_Audience: @unchecked Sendable {}
 extension Server_Audience.TypeEnum: @unchecked Sendable {}
 extension Server_Post: @unchecked Sendable {}
+extension Server_Post.Tag: @unchecked Sendable {}
 extension Server_Comment: @unchecked Sendable {}
 extension Server_ShareStanza: @unchecked Sendable {}
 extension Server_FeedItem: @unchecked Sendable {}
@@ -7311,6 +7354,7 @@ extension Server_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     6: .standard(proto: "publisher_name"),
     7: .standard(proto: "enc_payload"),
     8: .standard(proto: "media_counters"),
+    9: .same(proto: "tag"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -7327,6 +7371,7 @@ extension Server_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
       case 6: try { try decoder.decodeSingularStringField(value: &self.publisherName) }()
       case 7: try { try decoder.decodeSingularBytesField(value: &self.encPayload) }()
       case 8: try { try decoder.decodeSingularMessageField(value: &self._mediaCounters) }()
+      case 9: try { try decoder.decodeSingularEnumField(value: &self.tag) }()
       default: break
       }
     }
@@ -7361,6 +7406,9 @@ extension Server_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     try { if let v = self._mediaCounters {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
     } }()
+    if self.tag != .empty {
+      try visitor.visitSingularEnumField(value: self.tag, fieldNumber: 9)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -7373,9 +7421,17 @@ extension Server_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     if lhs.publisherName != rhs.publisherName {return false}
     if lhs.encPayload != rhs.encPayload {return false}
     if lhs._mediaCounters != rhs._mediaCounters {return false}
+    if lhs.tag != rhs.tag {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
+}
+
+extension Server_Post.Tag: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "EMPTY"),
+    1: .same(proto: "SECRET_POST"),
+  ]
 }
 
 extension Server_Comment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
@@ -14786,3 +14842,4 @@ extension Server_MarketingAlert.TypeEnum: SwiftProtobuf._ProtoNameProviding {
     2: .same(proto: "SHARE_POST"),
   ]
 }
+
