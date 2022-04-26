@@ -40,6 +40,7 @@ public struct ServerProperties {
         case isMediaDrawingEnabled = "draw_media"
         case isGroupCommentNotificationsEnabled = "group_comments_notification"
         case inviteStrings = "invite_strings"
+        case nseRuntimeSec = "nse_runtime_sec"
     }
 
     private struct UserDefaultsKey {
@@ -78,6 +79,7 @@ public struct ServerProperties {
         static let externalSharingEnabled = false
         static let isMediaDrawingEnabled = false
         static let isGroupCommentNotificationsEnabled = false
+        static let nseRuntimeSec = 17.0
     }
 
     // MARK: Storage
@@ -312,6 +314,10 @@ public struct ServerProperties {
 
     public static var isGroupCommentNotificationsEnabled: Bool {
         ServerProperties.bool(forKey: .isGroupCommentNotificationsEnabled) ?? Defaults.isGroupCommentNotificationsEnabled
+    }
+
+    public static var nseRuntimeSec: TimeInterval {
+        ServerProperties.double(forKey: .nseRuntimeSec) ?? Defaults.nseRuntimeSec
     }
     
     public static var inviteString: String? {
