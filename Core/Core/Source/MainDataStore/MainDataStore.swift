@@ -195,6 +195,7 @@ open class MainDataStore {
                 calls.forEach {
                     managedObjectContext.delete($0)
                 }
+                self.save(managedObjectContext)
             } catch {
                 DDLogError("MainDataStore/deleteCalls/error  [\(error)]/peerUserID: \(peerUserID)")
                 fatalError("Failed to delete call history: \(peerUserID)")

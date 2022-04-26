@@ -489,7 +489,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
                     self.linkImageView.isHidden = false
                     self.linkPreviewTitleLabel.text = data.title
                     self.linkPreviewURLLabel.text = data.url.host
-                    self.linkPreviewData = LinkPreviewData(id : nil, url: url, title: data.title ?? "", description: "", previewImages: [])
+                    self.linkPreviewData = LinkPreviewData(id : nil, url: url, title: data.title, description: "", previewImages: [])
                     self.updateBorderRadius()
                 }
             } else {
@@ -501,7 +501,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
                     self.linkPreviewMediaView.isHidden = true
                     self.linkPreviewTitleLabel.text = data.title
                     self.linkPreviewURLLabel.text = data.url.host
-                    self.linkPreviewData = LinkPreviewData(id : nil, url: data.url, title: data.title ?? "", description: "", previewImages: [])
+                    self.linkPreviewData = LinkPreviewData(id : nil, url: data.url, title: data.title, description: "", previewImages: [])
                     self.updateBorderRadius()
                 }
             }
