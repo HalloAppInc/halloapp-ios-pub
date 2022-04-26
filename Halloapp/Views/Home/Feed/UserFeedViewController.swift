@@ -88,30 +88,6 @@ class UserFeedViewController: FeedCollectionViewController {
 
         isUserBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(userId)
 
-        headerViewController = ProfileHeaderViewController()
-        headerViewController.delegate = self
-        if isOwnFeed {
-            title = Localizations.titleMyPosts
-            
-            headerViewController.isEditingAllowed = true
-            cancellables.insert(MainAppContext.shared.userData.userNamePublisher.sink(receiveValue: { [weak self] (userName) in
-                guard let self = self else { return }
-                self.headerViewController.configureForCurrentUser(withName: userName)
-                self.viewIfLoaded?.setNeedsLayout()
-            }))
-        } else {
-            headerViewController.configureOrRefresh(userID: userId)
-            setupMoreButton()
-        }
-
-        collectionViewDataSource?.supplementaryViewProvider = { [weak self] (collectionView, kind, path) -> UICollectionReusableView? in
-            guard let self = self else {
-                return UICollectionReusableView()
-            }
-            return self.collectionView(collectionView, viewForSupplementaryElementOfKind: kind, at: path)
-        }
-        collectionView.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: Constants.sectionHeaderReuseIdentifier)
-
         if !isOwnFeed {
             // need to refresh when user is not in address book but gets added via the More menu
             MainAppContext.shared.contactStore.didDiscoverNewUsers.sink { [weak self] (newUserIDs) in
@@ -133,6 +109,34 @@ class UserFeedViewController: FeedCollectionViewController {
                 }
             }.store(in: &cancellables)
         }
+    }
+
+    override func setupCollectionView() {
+        super.setupCollectionView()
+
+        headerViewController = ProfileHeaderViewController()
+        headerViewController.delegate = self
+        if isOwnFeed {
+            title = Localizations.titleMyPosts
+
+            headerViewController.isEditingAllowed = true
+            cancellables.insert(MainAppContext.shared.userData.userNamePublisher.sink(receiveValue: { [weak self] (userName) in
+                guard let self = self else { return }
+                self.headerViewController.configureForCurrentUser(withName: userName)
+                self.viewIfLoaded?.setNeedsLayout()
+            }))
+        } else {
+            headerViewController.configureOrRefresh(userID: userId)
+            setupMoreButton()
+        }
+
+        collectionViewDataSource?.supplementaryViewProvider = { [weak self] (collectionView, kind, path) -> UICollectionReusableView? in
+            guard let self = self else {
+                return UICollectionReusableView()
+            }
+            return self.collectionView(collectionView, viewForSupplementaryElementOfKind: kind, at: path)
+        }
+        collectionView.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: Constants.sectionHeaderReuseIdentifier)
     }
     
     private func setupMoreButton() {

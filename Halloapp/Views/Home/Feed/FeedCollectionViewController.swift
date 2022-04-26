@@ -93,24 +93,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
 
         view.backgroundColor = .feedBackground
 
-        collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: feedLayout)
-        collectionViewDataSource = makeCollectionViewDataSource()
-
-        collectionView.delegate = self
-        collectionView.dataSource = collectionViewDataSource
-        collectionView.allowsSelection = false
-        collectionView.showsVerticalScrollIndicator = false
-        collectionView.backgroundColor = .clear
-        collectionView.preservesSuperviewLayoutMargins = true
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
-        collectionView.register(FeedPostCollectionViewCell.self, forCellWithReuseIdentifier: FeedPostCollectionViewCell.reuseIdentifier)
-        collectionView.register(FeedEventCollectionViewCell.self, forCellWithReuseIdentifier: FeedEventCollectionViewCell.reuseIdentifier)
-        collectionView.register(FeedWelcomeCell.self, forCellWithReuseIdentifier: FeedWelcomeCell.reuseIdentifier)
-        collectionView.register(GroupFeedWelcomeCell.self, forCellWithReuseIdentifier: GroupFeedWelcomeCell.reuseIdentifier)
-        collectionView.register(FeedInviteCarouselCell.self, forCellWithReuseIdentifier: FeedInviteCarouselCell.reuseIdentifier)
-
-        view.addSubview(collectionView)
-        collectionView.constrain(to: view)
+        setupCollectionView()
 
         setupNoConnectionBanner()
 
@@ -195,6 +178,27 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         )
 
         update(with: feedDataSource.displayItems, animated: false)
+    }
+
+    func setupCollectionView() {
+        collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: feedLayout)
+        collectionViewDataSource = makeCollectionViewDataSource()
+
+        collectionView.delegate = self
+        collectionView.dataSource = collectionViewDataSource
+        collectionView.allowsSelection = false
+        collectionView.showsVerticalScrollIndicator = false
+        collectionView.backgroundColor = .clear
+        collectionView.preservesSuperviewLayoutMargins = true
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.register(FeedPostCollectionViewCell.self, forCellWithReuseIdentifier: FeedPostCollectionViewCell.reuseIdentifier)
+        collectionView.register(FeedEventCollectionViewCell.self, forCellWithReuseIdentifier: FeedEventCollectionViewCell.reuseIdentifier)
+        collectionView.register(FeedWelcomeCell.self, forCellWithReuseIdentifier: FeedWelcomeCell.reuseIdentifier)
+        collectionView.register(GroupFeedWelcomeCell.self, forCellWithReuseIdentifier: GroupFeedWelcomeCell.reuseIdentifier)
+        collectionView.register(FeedInviteCarouselCell.self, forCellWithReuseIdentifier: FeedInviteCarouselCell.reuseIdentifier)
+
+        view.addSubview(collectionView)
+        collectionView.constrain(to: view)
     }
 
     override func viewWillAppear(_ animated: Bool) {
