@@ -1135,22 +1135,29 @@ extension FeedCollectionViewController {
         }
 
         var snapshot = collectionViewDataSource.snapshot()
+        var updateSnapshot = false
         if inviteContactsManager.randomSelection.isEmpty {
             snapshot.deleteItems([.inviteCarousel])
+            updateSnapshot = true
         } else {
-            // If the cell is visible, update directly.
-            if let indexPath = collectionViewDataSource.indexPath(for: .inviteCarousel),
-               let cell = collectionView.cellForItem(at: indexPath) as? FeedInviteCarouselCell {
-                cell.configure(with: inviteContactsManager.randomSelection, invitedContacts: invitedContacts, animated: true)
-            } else {
-                if #available(iOS 15.0, *) {
-                    snapshot.reconfigureItems([.inviteCarousel])
+            if let indexPath = collectionViewDataSource.indexPath(for: .inviteCarousel) {
+                // If the cell is visible, update directly.
+                if let cell = collectionView.cellForItem(at: indexPath) as? FeedInviteCarouselCell {
+                    cell.configure(with: inviteContactsManager.randomSelection, invitedContacts: invitedContacts, animated: true)
                 } else {
-                    snapshot.reloadItems([.inviteCarousel])
+                    if #available(iOS 15.0, *) {
+                        snapshot.reconfigureItems([.inviteCarousel])
+                    } else {
+                        snapshot.reloadItems([.inviteCarousel])
+                    }
+                    updateSnapshot = true
                 }
             }
         }
-        collectionViewDataSource.apply(snapshot)
+
+        if updateSnapshot {
+            collectionViewDataSource.apply(snapshot)
+        }
     }
 }
 
