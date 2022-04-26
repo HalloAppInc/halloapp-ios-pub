@@ -4284,11 +4284,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             if !AppContext.shared.userDefaults.bool(forKey: "hasFavoritesNotificationBeenSent") {
                 AppContext.shared.userDefaults.set(true, forKey: "hasFavoritesNotificationBeenSent")
                 let userId = self.userData.userId
-                let notification = FeedNotification(context: managedObjectContext)
-                notification.postId = String("favorites")
+                let notification = FeedActivity(context: managedObjectContext)
+                notification.postID = String("favorites")
                 notification.event = .favoritesPromo
                 notification.timestamp = Date()
-                notification.userId = userId
+                notification.userID = userId
                 self.save(managedObjectContext)
             }
         }
