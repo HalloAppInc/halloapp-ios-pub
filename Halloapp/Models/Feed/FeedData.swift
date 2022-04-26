@@ -1402,6 +1402,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         if comment.parent != nil && comment.parent?.userId == selfId {
             return .reply
         }
+
         // Someone commented on your post.
         else if comment.post.userId == selfId {
             return .comment
@@ -1415,6 +1416,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         // Someone commented on the post you've commented before.
         if comment.post.comments?.contains(where: { $0.userId == selfId }) ?? false {
             return .otherComment
+        }
+
+        // Notify group comments by contacts on group posts
+        let isKnownPublisher = AppContext.shared.contactStore.contact(withUserId: comment.userId) != nil
+        let isGroupComment = comment.post.groupId != nil
+        if ServerProperties.isGroupCommentNotificationsEnabled  && isGroupComment && isKnownPublisher {
+            return .groupComment
         }
 
         return nil

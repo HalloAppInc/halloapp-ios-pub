@@ -186,6 +186,8 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
                 switch eventType {
                 case .otherComment:
                     displayItems.append(contentsOf: otherCommentItems(for: notifications))
+                case .groupComment:
+                    displayItems.append(contentsOf: groupCommentItems(for: notifications))
                 default:
                     displayItems.append(contentsOf: defaultItems(for: notifications))
                 }
@@ -232,6 +234,30 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         }()
         if let itemForNonContactComments = itemForNonContactComments {
             items.append(itemForNonContactComments)
+        }
+
+        return items
+    }
+
+    private func groupCommentItems(for postNotifications: [FeedActivity]) -> [ActivityCenterItem] {
+        var items: [ActivityCenterItem] = []
+
+        // Aggregate all group comments from posts into a single item
+        let itemForGroupComments: ActivityCenterItem? = {
+            let usersWhoCommented = Set<UserID>(postNotifications.map { $0.userID })
+            if usersWhoCommented.count > 1 {
+                // Aggregate comments from multiple non-contacts
+                return ActivityCenterItem(content: .unknownCommenters(postNotifications))
+            } else if let notification = postNotifications.first {
+                // If one user has commented, show his or her latest comment
+                return ActivityCenterItem(content: .singleNotification(notification))
+            } else {
+                // No comments from non-contacts
+                return nil
+            }
+        }()
+        if let itemForGroupComments = itemForGroupComments {
+            items.append(itemForGroupComments)
         }
 
         return items

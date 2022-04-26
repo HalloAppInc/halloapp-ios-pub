@@ -118,7 +118,7 @@ struct ActivityCenterItem: Hashable {
     
     private func textForUnknownCommenters(with notifications: [FeedActivity]) -> NSAttributedString {
         let format = NSLocalizedString("n.others.replied", comment: "Summary when multiple commenters commented on the same post you commented on")
-        let numberOfOtherCommenters = notifications.count - 1 // Subtract 1 because text is "<$user$> and %d others replied..."
+        let numberOfOtherCommenters = Set<UserID>(notifications.map { $0.userID }).count - 1 // Subtract 1 because text is "<$user$> and %d others replied..."
         let localizedString = String.localizedStringWithFormat(format, numberOfOtherCommenters)
         
         let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
@@ -244,6 +244,17 @@ extension FeedActivity {
                     eventText =  NSLocalizedString("feed.notification..other.comment.no.text",
                                                    value: "<$author$> also commented",
                                                    comment: "Text for feed notification displayed in Activity Center.")
+                }
+
+            case .groupComment:
+                if !(rawText?.isEmpty ?? true) {
+                    eventText = NSLocalizedString("feed.group.notification.other.comment.w.text",
+                                                  value: "<$author$> commented: <$text$>",
+                                                  comment: "Text for group feed notification displayed in Activity Center.")
+                } else {
+                    eventText =  NSLocalizedString("feed.group.notification.other.comment.no.text",
+                                                   value: "<$author$> commented",
+                                                   comment: "Text for group feed notification displayed in Activity Center.")
                 }
 
             case .mentionComment:
