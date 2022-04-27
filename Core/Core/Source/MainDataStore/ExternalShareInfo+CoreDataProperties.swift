@@ -16,8 +16,8 @@ extension ExternalShareInfo {
         return NSFetchRequest<ExternalShareInfo>(entityName: "ExternalShareInfo")
     }
 
-    @NSManaged public var feedPostID: String?
-    @NSManaged public var blobID: String?
-    @NSManaged public var key: Data?
+    @NSManaged public var feedPostID: String
+    @NSManaged public var blobID: String
+    @NSManaged public var key: Data
 
 }

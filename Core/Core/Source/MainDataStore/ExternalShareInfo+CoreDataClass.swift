@@ -21,9 +21,6 @@ public class ExternalShareInfo: NSManagedObject {
     }
 
     public var externalShareURL: URL? {
-        guard let blobID = blobID, let key = key else {
-            return nil
-        }
         return URL(string: "https://\(Self.externalShareHost)/\(blobID)#k\(key.base64urlEncodedString())")
     }
 }
