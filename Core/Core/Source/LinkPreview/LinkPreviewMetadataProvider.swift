@@ -97,15 +97,22 @@ public class LinkPreviewMetadataProvider {
         completion?(linkPreviewData, previewImage, error)
     }
 
-    private static func downloadImage(imageUrl: String, completion: ((UIImage) -> ())?) {
+    private static func downloadImage(imageUrl: String, completion: ((UIImage?) -> ())?) {
         DDLogInfo("LinkPreviewMetadataProvider/parseImageURL/fetching image")
         let imageUrl = URL(string: imageUrl)
         guard let imageUrl = imageUrl else {
+            DDLogInfo("LinkPreviewMetadataProvider/parseImageURL/fetching image error/invalid url")
+            if let completion = completion {
+                completion(nil)
+            }
             return
         }
         let task = URLSession.shared.dataTask(with: imageUrl) { (data, response, error) in
             guard let data = data, let image = UIImage(data: data) else {
                 DDLogError("LinkPreviewMetadataProvider/parseImageURL/unable to fetch image")
+                if let completion = completion {
+                    completion(nil)
+                }
                 return
             }
             DDLogInfo("LinkPreviewMetadataProvider/downloadImage/success")
@@ -171,6 +178,9 @@ public class LinkPreviewMetadataProvider {
             if let imageUrl = parseUrl(element: try document.select("link[rel=icon]").first(), key: "href"), !imageUrl.isEmpty {
                 return imageUrl
             }
+            if let imageUrl = parseUrl(element: try document.select("link[rel=shortcut icon]").first(), key: "href"), !imageUrl.isEmpty {
+                return imageUrl
+            }
         } catch {
             DDLogError("LinkPreviewMetadataProvider/parseImageURL/error")
         }
@@ -178,6 +188,12 @@ public class LinkPreviewMetadataProvider {
     }
 
     private static func parseUrl(element: Element?, key: String) -> String? {
-        return try? element?.absUrl(key)
+        guard let attribute = try? element?.attr(key) else {
+            return nil
+        }
+        if !attribute.isEmpty {
+            return try? element?.absUrl(key)
+        }
+        return nil
     }
 }
