@@ -336,7 +336,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         // TODO: See if we can improve this animation
         // Ensure no duplicates, which will crash the app
         var itemsToReload: [FeedDisplayItem] = newlyDeletedPosts
-        newlyDeletedPosts.forEach {
+        newlyDecryptedPosts.forEach {
             if !itemsToReload.contains($0) {
                 itemsToReload.append($0)
             }
