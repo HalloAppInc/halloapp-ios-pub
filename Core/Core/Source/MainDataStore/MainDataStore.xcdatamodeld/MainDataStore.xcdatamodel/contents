@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19557.2" systemVersion="20G95" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="20086" systemVersion="21E258" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="Call" representedClassName="Call" syncable="YES">
         <attribute name="answered" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="callID" attributeType="String"/>
@@ -110,7 +110,7 @@
         <attribute name="userID" optional="YES" attributeType="String"/>
     </entity>
     <entity name="ContentPublishInfo" representedClassName="ContentPublishInfo" syncable="YES">
-        <attribute name="audienceTypeValue" attributeType="String"/>
+        <attribute name="audienceTypeValue" optional="YES" attributeType="String"/>
         <attribute name="receiptInfo" optional="YES" attributeType="Transformable" valueTransformerName="FeedPostReceiptInfoTransformer"/>
         <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="info" inverseEntity="FeedPost"/>
     </entity>
