@@ -82,6 +82,14 @@ open class ProtoServiceCore: ProtoServiceCoreCommon {
             self.isLogUploadInProgress = false
         }
     }
+
+    public func uploadOneTimePreKeysIfNecessary() {
+        guard UserDefaults.shared.bool(forKey: AppContextCommon.shared.keyData.userDefaultsKeyForOneTimePreKeys) else {
+            DDLogError("ProtoServiceCore/uploadOneTimePreKeysIfNecessary/finished uploading OneTimePreKeys")
+            return
+        }
+        AppContextCommon.shared.keyData.uploadMoreOneTimePreKeys()
+    }
 }
 
 extension ProtoServiceCore: CoreService {

@@ -21,6 +21,7 @@ public class KeyData {
     let oneTimePreKeysToUpload: Int32 = 100
     let thresholdToUploadMoreOTPKeys: Int32 = 5
     var isOneTimePreKeyUploadInProgress = false
+    public let userDefaultsKeyForOneTimePreKeys = "serverRequestedOneTimeKeys"
 
     private struct UserDefaultsKey {
         static let identityKeyVerificationDate = "com.halloapp.identity.key.verification.date"
@@ -114,7 +115,7 @@ public class KeyData {
         }
     }
     
-    private func uploadMoreOneTimePreKeys() {
+    public func uploadMoreOneTimePreKeys() {
         guard !isOneTimePreKeyUploadInProgress else {
             DDLogInfo("KeyData/uploadMoreOneTimePreKeys/skipping (already in progress)")
             return
@@ -122,6 +123,7 @@ public class KeyData {
 
         DDLogInfo("KeyStore/uploadMoreOneTimePreKeys")
         isOneTimePreKeyUploadInProgress = true
+        UserDefaults.shared.set(true, forKey: userDefaultsKeyForOneTimePreKeys)
 
         guard let userKeyBundle = keyStore.keyBundle() else {
             DDLogError("KeyStore/uploadMoreOneTimePreKeys/error [noKeysFound]")
@@ -142,6 +144,7 @@ public class KeyData {
                 switch result {
                 case .success:
                     DDLogInfo("KeyStore/uploadMoreOneTimePreKeys/complete")
+                    UserDefaults.shared.set(false, forKey: self.userDefaultsKeyForOneTimePreKeys)
                 case .failure(let error):
                     DDLogError("KeyStore/uploadMoreOneTimePreKeys/error \(error)")
                 }

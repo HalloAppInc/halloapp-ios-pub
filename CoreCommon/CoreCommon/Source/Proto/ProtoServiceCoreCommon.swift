@@ -467,11 +467,17 @@ extension ProtoServiceCoreCommon: CoreServiceCommon {
     }
 
     public func requestAddOneTimeKeys(_ keys: [PreKey], completion: @escaping ServiceRequestCompletion<Void>) {
-        enqueue(request: ProtoWhisperAddOneTimeKeysRequest(preKeys: keys, completion: completion))
+        // Wait until connected to upload one-time-keys - else, it will fail anyways.
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            self.enqueue(request: ProtoWhisperAddOneTimeKeysRequest(preKeys: keys, completion: completion))
+        }
     }
 
     public func requestCountOfOneTimeKeys(completion: @escaping ServiceRequestCompletion<Int32>) {
-        enqueue(request: ProtoWhisperGetCountOfOneTimeKeysRequest(completion: completion))
+        // Wait until connected to request key bundle - else, it will fail anyways.
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            self.enqueue(request: ProtoWhisperGetCountOfOneTimeKeysRequest(completion: completion))
+        }
     }
 
     // MARK: Groups

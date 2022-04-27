@@ -71,6 +71,7 @@ final class ProtoService: ProtoServiceCore {
         MainAppContext.shared.startReportingEvents()
         clearSilentChatRerequestRecords()
         uploadLogsToServerIfNecessary()
+        uploadOneTimePreKeysIfNecessary()
     }
 
     override func authenticationSucceeded(with authResult: Server_AuthResult) {
