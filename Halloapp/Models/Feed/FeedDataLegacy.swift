@@ -43,8 +43,8 @@ final class FeedDataLegacy {
 
     private lazy var persistentContainer: NSPersistentContainer = {
         let storeDescription = NSPersistentStoreDescription(url: persistentStoreURL)
-        storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
-        storeDescription.setOption(NSNumber(booleanLiteral: false), forKey: NSInferMappingModelAutomaticallyOption)
+        storeDescription.shouldMigrateStoreAutomatically = true
+        storeDescription.shouldInferMappingModelAutomatically = true
         storeDescription.setValue(NSString("WAL"), forPragmaNamed: "journal_mode")
         storeDescription.setValue(NSString("1"), forPragmaNamed: "secure_delete")
         let container = NSPersistentContainer(name: "Feed")
