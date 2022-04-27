@@ -78,20 +78,55 @@ open class MainDataStore {
 
     private func initBgContext() {
         if bgContext == nil {
-            bgContext = persistentContainer.newBackgroundContext()
-            bgContext?.automaticallyMergesChangesFromParent = true
+            bgContext = newBackgroundContext()
         }
     }
 
     public final func save(_ managedObjectContext: NSManagedObjectContext) {
         DDLogInfo("MainDataStore/will-save")
         do {
-            managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
             try managedObjectContext.save()
             DDLogInfo("MainDataStore/did-save")
         } catch {
             DDLogError("MainDataStore/save-error error=[\(error)]")
         }
+    }
+
+    public final func saveSeriallyOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) throws {
+        try backgroundProcessingQueue.sync {
+            let context = newBackgroundContext()
+            block(context)
+            do {
+                try context.save()
+                DDLogInfo("MainDataStore/saveSeriallyOnBackgroundContextAndWait - Success")
+            } catch {
+                DDLogError("MainDataStore/saveSeriallyOnBackgroundContextAndWait - Error [\(error)]")
+                throw error
+            }
+        }
+    }
+
+    public final func saveSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void,
+                                                      completion: ((Result<Void, Error>) -> Void)? = nil) {
+        backgroundProcessingQueue.async { [self] in
+            let context = newBackgroundContext()
+            block(context)
+            do {
+                try context.save()
+                DDLogInfo("MainDataStore/saveSeriallyOnBackgroundContext - Success")
+                completion?(.success(()))
+            } catch {
+                DDLogError("MainDataStore/saveSeriallyOnBackgroundContext - Error [\(error)]")
+                completion?(.failure(error))
+            }
+        }
+    }
+
+    private final func newBackgroundContext() -> NSManagedObjectContext {
+        let context = persistentContainer.newBackgroundContext()
+        context.automaticallyMergesChangesFromParent = true
+        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        return context
     }
 
     // MARK: Metadata

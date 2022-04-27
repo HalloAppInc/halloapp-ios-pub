@@ -123,21 +123,19 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         processUnsupportedItems()
     }
 
-    func migrateLegacyPosts(_ legacyPosts: [FeedPostLegacy]) {
-        mainDataStore.performSeriallyOnBackgroundContextAndWait { context in
+    func migrateLegacyPosts(_ legacyPosts: [FeedPostLegacy]) throws {
+        try mainDataStore.saveSeriallyOnBackgroundContextAndWait { context in
             DDLogInfo("FeedData/migrateLegacyPosts/begin [\(legacyPosts.count)]")
             legacyPosts.forEach { self.migrateLegacyPost($0, in: context) }
             DDLogInfo("FeedData/migrateLegacyPosts/finished [\(legacyPosts.count)]")
-            mainDataStore.save(context)
         }
     }
 
-    func migrateLegacyNotifications(_ legacyNotifications: [FeedNotification]) {
-        mainDataStore.performSeriallyOnBackgroundContextAndWait { context in
+    func migrateLegacyNotifications(_ legacyNotifications: [FeedNotification]) throws {
+        try mainDataStore.saveSeriallyOnBackgroundContextAndWait { context in
             DDLogInfo("FeedData/migrateLegacyNotifications/begin [\(legacyNotifications.count)]")
             legacyNotifications.forEach { self.migrateLegacyNotification($0, in: context) }
             DDLogInfo("FeedData/migrateLegacyNotifications/finished [\(legacyNotifications.count)]")
-            mainDataStore.save(context)
         }
     }
 

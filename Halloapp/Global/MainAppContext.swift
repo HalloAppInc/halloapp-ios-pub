@@ -223,13 +223,16 @@ class MainAppContext: AppContext {
         let feedLegacy = FeedDataLegacy(persistentStoreURL: Self.feedStoreURLLegacy)
 
         DDLogInfo("MainAppContext/migrateFeedData/starting")
-        feedData.migrateLegacyPosts(feedLegacy.fetchPosts())
-        feedData.migrateLegacyNotifications(feedLegacy.fetchNotifications())
-
-        DDLogInfo("MainAppContext/migrateFeedData/destroying-store")
-        feedLegacy.destroyStore()
-
-        DDLogInfo("MainAppContext/migrateFeedData/finished")
+        do {
+            try feedData.migrateLegacyPosts(feedLegacy.fetchPosts())
+            try feedData.migrateLegacyNotifications(feedLegacy.fetchNotifications())
+            DDLogInfo("MainAppContext/migrateFeedData/destroying-store")
+            feedLegacy.destroyStore()
+            DDLogInfo("MainAppContext/migrateFeedData/finished successfully")
+        } catch {
+            errorLogger?.logError(error)
+            DDLogError("MainAppContext/migrateFeedData/failed [\(error)]")
+        }
     }
 
     private func migrateChatDataIfNecessary() {
@@ -240,15 +243,18 @@ class MainAppContext: AppContext {
         let chatLegacy = ChatDataLegacy(persistentStoreURL: Self.chatStoreURLLegacy)
 
         DDLogInfo("MainAppContext/migrateChatData/starting")
-        chatData.migrateLegacyGroups(chatLegacy.fetchGroups())
-        chatData.migrateLegacyThreads(chatLegacy.fetchThreads())
-        chatData.migrateLegacyMessages(chatLegacy.fetchMessages())
-        chatData.migrateLegacyChatEvents(chatLegacy.fetchEvents())
-
-        DDLogInfo("MainAppContext/migrateChatData/destroying-store")
-        chatLegacy.destroyStore()
-
-        DDLogInfo("MainAppContext/migrateChatData/finished")
+        do {
+            try chatData.migrateLegacyGroups(chatLegacy.fetchGroups())
+            try chatData.migrateLegacyThreads(chatLegacy.fetchThreads())
+            try chatData.migrateLegacyMessages(chatLegacy.fetchMessages())
+            try chatData.migrateLegacyChatEvents(chatLegacy.fetchEvents())
+            DDLogInfo("MainAppContext/migrateChatData/destroying-store")
+            chatLegacy.destroyStore()
+            DDLogInfo("MainAppContext/migrateChatData/finished successfully")
+        } catch {
+            errorLogger?.logError(error)
+            DDLogError("MainAppContext/migrateChatData/failed [\(error)]")
+        }
     }
 
     // Process persistent history to merge changes from other coordinators.

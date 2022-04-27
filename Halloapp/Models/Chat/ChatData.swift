@@ -510,39 +510,35 @@ class ChatData: ObservableObject {
         processUnsupportedItems()
     }
 
-    func migrateLegacyMessages(_ legacyMessages: [ChatMessageLegacy]) {
-        mainDataStore.performSeriallyOnBackgroundContextAndWait { context in
+    func migrateLegacyMessages(_ legacyMessages: [ChatMessageLegacy]) throws {
+        try mainDataStore.saveSeriallyOnBackgroundContextAndWait { context in
             DDLogInfo("ChatData/migrateLegacyMessages/begin [\(legacyMessages.count)]")
             legacyMessages.forEach { self.migrateLegacyMessage($0, in: context) }
             DDLogInfo("ChatData/migrateLegacyMessages/finished [\(legacyMessages.count)]")
-            mainDataStore.save(context)
         }
     }
 
-    func migrateLegacyThreads(_ legacyThreads: [ChatThreadLegacy]) {
-        mainDataStore.performSeriallyOnBackgroundContextAndWait { context in
+    func migrateLegacyThreads(_ legacyThreads: [ChatThreadLegacy]) throws {
+        try mainDataStore.saveSeriallyOnBackgroundContextAndWait { context in
             DDLogInfo("ChatData/migrateLegacyThreads/begin [\(legacyThreads.count)]")
             legacyThreads.forEach { self.migrateLegacyThread($0, in: context) }
             DDLogInfo("ChatData/migrateLegacyThreads/finished [\(legacyThreads.count)]")
-            mainDataStore.save(context)
         }
     }
 
-    func migrateLegacyGroups(_ legacyGroups: [ChatGroupLegacy]) {
-        mainDataStore.performSeriallyOnBackgroundContextAndWait { context in
+    func migrateLegacyGroups(_ legacyGroups: [ChatGroupLegacy]) throws {
+        try mainDataStore.saveSeriallyOnBackgroundContextAndWait { context in
             DDLogInfo("ChatData/migrateLegacyGroups/begin [\(legacyGroups.count)]")
             legacyGroups.forEach { self.migrateLegacyGroup($0, in: context) }
             DDLogInfo("ChatData/migrateLegacyGroups/finished [\(legacyGroups.count)]")
-            mainDataStore.save(context)
         }
     }
 
-    func migrateLegacyChatEvents(_ legacyChatEvents: [ChatEventLegacy]) {
-        mainDataStore.performSeriallyOnBackgroundContextAndWait { context in
+    func migrateLegacyChatEvents(_ legacyChatEvents: [ChatEventLegacy]) throws {
+        try mainDataStore.saveSeriallyOnBackgroundContextAndWait { context in
             DDLogInfo("ChatData/migrateLegacyGroups/begin [\(legacyChatEvents.count)]")
             legacyChatEvents.forEach { self.migrateLegacyChatEvent($0, in: context) }
             DDLogInfo("ChatData/migrateLegacyGroups/finished [\(legacyChatEvents.count)]")
-            mainDataStore.save(context)
         }
     }
 
