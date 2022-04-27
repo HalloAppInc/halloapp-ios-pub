@@ -147,10 +147,6 @@ public class PostLinkPreviewView: UIView {
             textStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             textStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
         ])
-
-        let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(previewTapped(sender:)))
-        addGestureRecognizer(tapGestureRecognizer)
-        isUserInteractionEnabled = true
     }
 
     func configure(linkPreviewData: LinkPreviewData, previewImage: UIImage?) {
@@ -190,13 +186,6 @@ public class PostLinkPreviewView: UIView {
             textStackHeightConstraint?.isActive = true
             contentHeightConstraint?.isActive = false
         }
-    }
-
-    @objc private func previewTapped(sender: UITapGestureRecognizer) {
-        // if let url = linkPreviewURL {
-            // TODO: make preview clickble
-            // URLRouter.shared.handleOrOpen(url: url)
-        // }
     }
 
     public func showPlaceholderImage() {

@@ -58,6 +58,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
     private let scaleThreshold: CGFloat = 1.3
     private var postId: FeedPostID? = nil
+    private var linkPreviewURL: URL?
 
     private enum LayoutConstants {
         static let topMargin: CGFloat = 5
@@ -269,6 +270,10 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             let postLinkPreviewView = postLinkPreviewView ?? PostLinkPreviewView()
             self.postLinkPreviewView = postLinkPreviewView
             postLinkPreviewView.configure(feedLinkPreview: feedLinkPreview)
+            let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(previewTapped(sender:)))
+            postLinkPreviewView.addGestureRecognizer(tapGestureRecognizer)
+            postLinkPreviewView.isUserInteractionEnabled = true
+            linkPreviewURL = feedLinkPreview.url
             vStack.insertArrangedSubview(postLinkPreviewView, at: vStack.arrangedSubviews.count)
         } else {
             postLinkPreviewView?.removeFromSuperview()
@@ -279,6 +284,12 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
         postId = post.id
         canSaveMedia = post.canSaveMedia
+    }
+
+    @objc private func previewTapped(sender: UITapGestureRecognizer) {
+         if let linkPreviewURL = linkPreviewURL {
+             URLRouter.shared.handleOrOpen(url: linkPreviewURL)
+         }
     }
 
     public static func obtainCryptoResultString(for contentID: String) -> String {

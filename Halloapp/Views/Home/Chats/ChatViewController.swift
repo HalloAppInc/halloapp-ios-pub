@@ -1502,6 +1502,9 @@ extension ChatViewController: CNContactViewControllerDelegate {
 
 // MARK: PostComposerView Delegates
 extension ChatViewController: PostComposerViewDelegate {
+    func composerDidTapLinkPreview(controller: PostComposerViewController, url: URL) {
+        URLRouter.shared.handleOrOpen(url: url)
+    }
 
     func composerDidTapShare(controller: PostComposerViewController, destination: PostComposerDestination, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData? = nil, linkPreviewMedia: PendingMedia? = nil) {
         sendMessage(text: mentionText.trimmed().collapsedText, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)

@@ -11,6 +11,7 @@ protocol PostComposerViewDelegate: AnyObject {
     func composerDidTapShare(controller: PostComposerViewController, destination: PostComposerDestination, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?)
     func composerDidTapBack(controller: PostComposerViewController, destination: PostComposerDestination, media: [PendingMedia], voiceNote: PendingMedia?)
     func willDismissWithInput(mentionInput: MentionInput)
+    func composerDidTapLinkPreview(controller: PostComposerViewController, url: URL)
 }
 
 enum PostComposerDestination: Equatable {
@@ -409,7 +410,8 @@ class PostComposerViewController: UIViewController {
                         self.alertVideoLengthOverLimit()
                     }
                 }
-            }
+            },
+            previewTapped: { [weak self] in self?.previewTapped() }
         )
 
         let postComposerViewController = UIHostingController(rootView: postComposerView)
@@ -472,6 +474,12 @@ class PostComposerViewController: UIViewController {
                                      destination: configuration.destination,
                                      media: mediaItems.invalidated ? [] : mediaItems.value,
                                      voiceNote: audioComposerRecorder.voiceNote)
+    }
+
+    @objc private func previewTapped() {
+        if let url = linkPreviewData.value?.url {
+            delegate?.composerDidTapLinkPreview(controller: self, url: url)
+        }
     }
 
     @objc private func changeDestinationAction() {
@@ -664,6 +672,7 @@ fileprivate struct PostComposerView: View {
     private let crop: (Int, @escaping ([PendingMedia], Int, Bool) -> Void) -> Void
     private let goBack: () -> Void
     private let share: () -> Void
+    private let previewTapped: () -> Void
 
     @Environment(\.colorScheme) var colorScheme
     @ObservedObject private var mediaState = ObservableMediaState()
@@ -719,7 +728,8 @@ fileprivate struct PostComposerView: View {
         configuration: PostComposerViewConfiguration,
         crop: @escaping (Int, @escaping ([PendingMedia], Int, Bool) -> Void) -> Void,
         goBack: @escaping () -> Void,
-        share: @escaping () -> Void
+        share: @escaping () -> Void,
+        previewTapped: @escaping () -> Void
     ) {
         self.privacySettings = MainAppContext.shared.privacySettings
         self.mediaItems = mediaItems
@@ -736,6 +746,7 @@ fileprivate struct PostComposerView: View {
         self.goBack = goBack
         self.share = share
         self.configuration = configuration
+        self.previewTapped = previewTapped
 
         let mediaReadyAndNotFailedPublisher = Publishers.CombineLatest(mediaState.$isReady, mediaState.$numberOfFailedItems)
             .map { (mediaIsReady, numberOfFailedUploads) in mediaIsReady && numberOfFailedUploads == 0 }
@@ -897,6 +908,12 @@ fileprivate struct PostComposerView: View {
                     .padding(.leading, 8)
                     .padding(.trailing, 8)
                     .padding(.bottom, 8)
+                    .gesture(
+                        TapGesture()
+                            .onEnded() { _ in
+                                self.previewTapped()
+                            }
+                    )
             }
         }
     }

@@ -302,4 +302,8 @@ extension NewPostViewController: PostComposerViewDelegate {
     func willDismissWithInput(mentionInput: MentionInput) {
         state.pendingInput = mentionInput
     }
+
+    func composerDidTapLinkPreview(controller: PostComposerViewController, url: URL) {
+        URLRouter.shared.handleOrOpen(url: url)
+    }
 }
