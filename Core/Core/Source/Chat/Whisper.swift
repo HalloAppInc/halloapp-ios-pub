@@ -396,7 +396,9 @@ final class Whisper {
         let S_recipient = signedPreKey.privateKey
         let O_recipient: Data?
 
-        if let oneTimeKeyID = oneTimeKeyID, oneTimeKeyID >= 0 {
+        // oneTimeKeyID's start from 1 always.
+        // If the ID is zero or negative - then we leave the oneTimeKey out of master secret computation.
+        if let oneTimeKeyID = oneTimeKeyID, oneTimeKeyID > 0 {
             guard let oneTimePreKeys = userKeys.oneTimePreKeys else {
                 return .failure(.missingOneTimeKey)
             }
