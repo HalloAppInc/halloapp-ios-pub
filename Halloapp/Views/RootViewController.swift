@@ -17,6 +17,7 @@ enum UserInterfaceState {
     case registration
     case mainInterface
     case initial
+    case migrating
 }
 
 protocol RootViewControllerDelegate: AnyObject {
@@ -132,6 +133,9 @@ final class RootViewController: UIViewController {
 
         case .expiredVersion:
             return ExpiredVersionViewController()
+
+        case .migrating:
+            return MigrationViewController()
         }
     }
 

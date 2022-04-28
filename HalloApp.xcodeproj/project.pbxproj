@@ -381,6 +381,7 @@
 		F404FC5D2810BA1A008313FF /* CoreCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F404FC382810B135008313FF /* CoreCommon.framework */; };
 		F404FC5E2810BA1A008313FF /* CoreCommon.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F404FC382810B135008313FF /* CoreCommon.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F4063F2F276836F50068B9ED /* ShareButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4063F2E276836F50068B9ED /* ShareButton.swift */; };
+		F408E27B281B0BDE00A49B29 /* MigrationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F408E27A281B0BDE00A49B29 /* MigrationViewController.swift */; };
 		F40F7C6B274C8159008144DE /* PostAudioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40F7C6A274C8158008144DE /* PostAudioView.swift */; };
 		F40F7C8727570707008144DE /* AudioPostComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40F7C8627570707008144DE /* AudioPostComposer.swift */; };
 		F41F82972798D2AC0021BF40 /* GroupInviteSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41F82962798D2AC0021BF40 /* GroupInviteSheetViewController.swift */; };
@@ -1086,6 +1087,7 @@
 		F404FC372810B135008313FF /* Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F404FC382810B135008313FF /* CoreCommon.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CoreCommon.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F4063F2E276836F50068B9ED /* ShareButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareButton.swift; sourceTree = "<group>"; };
+		F408E27A281B0BDE00A49B29 /* MigrationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationViewController.swift; sourceTree = "<group>"; };
 		F40F7C6A274C8158008144DE /* PostAudioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostAudioView.swift; sourceTree = "<group>"; };
 		F40F7C8627570707008144DE /* AudioPostComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPostComposer.swift; sourceTree = "<group>"; };
 		F41F82962798D2AC0021BF40 /* GroupInviteSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupInviteSheetViewController.swift; sourceTree = "<group>"; };
@@ -2016,6 +2018,7 @@
 				680FB660250C45C000CA5D40 /* OverlayView.swift */,
 				68CD603325E463FA0056D13E /* ConnectionBanner.swift */,
 				323F99EC2808D0B100C8AB69 /* FavoritesInformationViewController.swift */,
+				F408E27A281B0BDE00A49B29 /* MigrationViewController.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -2828,6 +2831,7 @@
 				322DDDE52739A2A6006BE1E0 /* ChatLinkPreviewView.swift in Sources */,
 				32C83FC42690463C00BEB4F5 /* PrivacyPermissionDeniedController.swift in Sources */,
 				7653F2FA255DB4E7001CC946 /* FeedCollectionViewController.swift in Sources */,
+				F408E27B281B0BDE00A49B29 /* MigrationViewController.swift in Sources */,
 				EA8D4721233C25B8006E2BA5 /* VerificationViewController.swift in Sources */,
 				68C8264B251A77A000BB8F3A /* NUX.swift in Sources */,
 				3283059727D2A88E00AD661A /* MessageCellViewText.swift in Sources */,

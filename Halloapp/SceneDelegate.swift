@@ -25,6 +25,10 @@ class SceneDelegate: UIResponder {
 
     private func state(isLoggedIn: Bool? = nil, isAppVersionKnownExpired: Bool? = nil) -> UserInterfaceState
     {
+        if MainAppContext.shared.migrationInProgress.value {
+            return .migrating
+        }
+
         if isAppVersionKnownExpired ?? MainAppContext.shared.coreService.isAppVersionKnownExpired.value {
             return .expiredVersion
         }
@@ -197,6 +201,12 @@ extension SceneDelegate: UIWindowSceneDelegate {
                     self.presentCameraPermissionsAlertController()
                 }
             })
+
+        cancellables.insert(
+            MainAppContext.shared.migrationInProgress.sink(receiveValue: { _ in
+                self.transition(to: self.state())
+            })
+        )
 
         MainAppContext.shared.callManager.callViewDelegate = self
         rootViewController.delegate = self

@@ -45,6 +45,7 @@ class MainAppContext: AppContext {
     let openChatThreadRequest = PassthroughSubject<UserID, Never>()
     let mediaDidStartPlaying = PassthroughSubject<URL?, Never>()
     let openPostInFeed = PassthroughSubject<FeedPostID, Never>()
+    let migrationInProgress = CurrentValueSubject<Bool, Never>(false)
 
     let didPrivacySettingChange = PassthroughSubject<UserID, Never>()
 
@@ -175,8 +176,21 @@ class MainAppContext: AppContext {
         }
 
         // CoreData migrations (moving feed/chat to MainDataStore)
-        migrateFeedDataIfNecessary()
-        migrateChatDataIfNecessary()
+        let shouldMigrateFeedData = self.shouldMigrateFeedData
+        let shouldMigrateChatData = self.shouldMigrateChatData
+
+        if shouldMigrateFeedData || shouldMigrateChatData {
+            self.migrationInProgress.send(true)
+            DispatchQueue.main.async {
+                if shouldMigrateFeedData {
+                    self.migrateFeedData()
+                }
+                if shouldMigrateChatData {
+                    self.migrateChatData()
+                }
+                self.migrationInProgress.send(false)
+            }
+        }
     }
 
     private func performAppUpdateMigrationIfNecessary() {
@@ -215,11 +229,11 @@ class MainAppContext: AppContext {
         }
     }
 
-    private func migrateFeedDataIfNecessary() {
-        guard FileManager.default.fileExists(atPath: Self.feedStoreURLLegacy.path) else {
-            DDLogInfo("MainAppContext/migrateFeedData/skipping [not found]")
-            return
-        }
+    private var shouldMigrateFeedData: Bool {
+        return FileManager.default.fileExists(atPath: Self.feedStoreURLLegacy.path)
+    }
+
+    private func migrateFeedData() {
         let feedLegacy = FeedDataLegacy(persistentStoreURL: Self.feedStoreURLLegacy)
 
         DDLogInfo("MainAppContext/migrateFeedData/starting")
@@ -235,11 +249,11 @@ class MainAppContext: AppContext {
         }
     }
 
-    private func migrateChatDataIfNecessary() {
-        guard FileManager.default.fileExists(atPath: Self.chatStoreURLLegacy.path) else {
-            DDLogInfo("MainAppContext/migrateChatData/skipping [not found]")
-            return
-        }
+    var shouldMigrateChatData: Bool {
+        return FileManager.default.fileExists(atPath: Self.chatStoreURLLegacy.path)
+    }
+
+    private func migrateChatData() {
         let chatLegacy = ChatDataLegacy(persistentStoreURL: Self.chatStoreURLLegacy)
 
         DDLogInfo("MainAppContext/migrateChatData/starting")
