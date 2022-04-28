@@ -4249,7 +4249,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         let thumbnailMedia = media(for: post)
             .filter { [.image, .video].contains($0.type) }
             .sorted { return $0.order < $1.order }
-            .first { $0.fileURL != nil }
+            .first { $0.fileURL != nil } ?? post.linkPreview?.feedMedia
 
         guard let thumbnailMedia = thumbnailMedia, let fileURL = thumbnailMedia.fileURL else {
             return nil
