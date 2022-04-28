@@ -115,17 +115,41 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Mijn app bijwerken.";
 
-/* Displayed while waiting for link preview to load */
-"loading.preview" = "Voorbeeld wordt geladen...";
-
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Ik";
 
 /* Button title. Refers to discarding photo/video edits in media composer. */
 "media.button.discard" = "Weggooien";
 
+/* Button title. Refers to resetting photo / video to original version. */
+"media.button.reset" = "Resetten";
+
+/* Button title. Refers to undoing an edit of a photo. */
+"media.button.undo" = "Ongedaan maken";
+
+/* Confirmation prompt in media composer. */
+"media.discard.confirmation" = "Wil je je wijzigingen weggooien?";
+
+/* Accessibility label for X (Close) button in media editor. */
+"media.voiceover.button.close" = "Sluiten";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.draw" = "Tekenen";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.flip" = "Omdraaien";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.mute" = "Dempen";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.rotate" = "Draaien";
+
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Sluit je aan bij mijn netwerk voor échte relaties op HalloApp. Download gratis op halloapp.com/dl";
+
+/* Title on edit button */
+"share.composer.button.edit" = "Bewerken";
 
 /* Label above the list with whom you share */
 "share.composer.destinations.label" = "Delen met";

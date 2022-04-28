@@ -550,6 +550,12 @@
 /* Shown while content is being retracted from feed */
 "feed.deleting" = "Удаляем...";
 
+/* Text for group feed notification displayed in Activity Center. */
+"feed.group.notification.other.comment.no.text" = "<$author$> прокомментировал(-а)";
+
+/* Text for group feed notification displayed in Activity Center. */
+"feed.group.notification.other.comment.w.text" = "<$author$> прокомментировал(-а): <$text$>";
+
 /* Text shown in indicator when new posts come in while user is scrolled down */
 "feed.new.posts.indicator" = "Новые публикации";
 
@@ -910,6 +916,15 @@
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
 "invite.text.specific" = "Привет, %1$@, приглашаю тебя присоединиться ко мне в HalloApp — подлинной сети отношений между близкими мне людьми. Используй %2$@ для регистрации. Получи его по адресу https://halloapp.com/dl";
 
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.1" = "Привет, %@, я использую HalloApp. Скачайте, чтобы присоединиться ко мне https://halloapp.com/install";
+
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.2" = "Привет, %@, давайте поддерживать связь с HalloApp. Загрузите по адресу https://halloapp.com/kit (HalloApp — это новое частное социальное приложение для близких друзей и семьи, без рекламы и алгоритмов).";
+
+/* Version of an invitation to join HalloApp. */
+"invite.text.specific.3" = "Я приглашаю вас установить HalloApp. Скачать бесплатно здесь: https://halloapp.com/free";
+
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Пригласить друзей";
 
@@ -936,9 +951,6 @@
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Обнови свое приложение.";
-
-/* Displayed while waiting for link preview to load */
-"loading.preview" = "Загрузка предварительного просмотра...";
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Я";

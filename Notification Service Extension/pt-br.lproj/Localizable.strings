@@ -104,7 +104,7 @@
 "feed.privacy.list.set.favorites" = "Definir Favoritos";
 
 /* Description of the new Favorites functionality. */
-"feed.privacy.list.set.favorites.description" = "Agora você pode criar uma lista de seus contatos favoritos e compartilhar suas postagens do HalloApp apenas com eles.";
+"feed.privacy.list.set.favorites.description" = "Agora você pode criar uma lista de seus contatos favoritos e compartilhar suas postagens do HalloApp com eles.";
 
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Você foi adicionado a um novo grupo";
@@ -117,9 +117,6 @@
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Atualize seu aplicativo.";
-
-/* Displayed while waiting for link preview to load */
-"loading.preview" = "Carregando visualização...";
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Eu";

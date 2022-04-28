@@ -550,6 +550,12 @@
 /* Shown while content is being retracted from feed */
 "feed.deleting" = "Eliminando...";
 
+/* Text for group feed notification displayed in Activity Center. */
+"feed.group.notification.other.comment.no.text" = "<$author$> comentó";
+
+/* Text for group feed notification displayed in Activity Center. */
+"feed.group.notification.other.comment.w.text" = "<$author$> comentó: <$text$>";
+
 /* Text shown in indicator when new posts come in while user is scrolled down */
 "feed.new.posts.indicator" = "Nuevas publicaciones";
 
@@ -945,9 +951,6 @@
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Actualiza tu aplicación.";
-
-/* Displayed while waiting for link preview to load */
-"loading.preview" = "Cargando vista previa...";
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Yo";

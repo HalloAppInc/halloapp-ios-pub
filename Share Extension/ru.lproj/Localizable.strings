@@ -115,9 +115,6 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Обнови свое приложение.";
 
-/* Displayed while waiting for link preview to load */
-"loading.preview" = "Загрузка предварительного просмотра...";
-
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Я";
 

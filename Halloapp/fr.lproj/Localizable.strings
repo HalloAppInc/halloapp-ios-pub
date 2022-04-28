@@ -817,9 +817,6 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Mettre à jour ton application.";
 
-/* Displayed while waiting for link preview to load */
-"loading.preview" = "Chargement de l'aperçu...";
-
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Moi";
 

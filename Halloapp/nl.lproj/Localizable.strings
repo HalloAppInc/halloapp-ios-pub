@@ -550,6 +550,12 @@
 /* Shown while content is being retracted from feed */
 "feed.deleting" = "Wordt verwijderd...";
 
+/* Text for group feed notification displayed in Activity Center. */
+"feed.group.notification.other.comment.no.text" = "<$author$> heeft gereageerd";
+
+/* Text for group feed notification displayed in Activity Center. */
+"feed.group.notification.other.comment.w.text" = "<$author$> heeft gereageerd: <$text$>";
+
 /* Text shown in indicator when new posts come in while user is scrolled down */
 "feed.new.posts.indicator" = "Nieuwe Posts";
 
@@ -910,6 +916,15 @@
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
 "invite.text.specific" = "Hey %1$@, ik wil je graag uitnodigen voor HalloApp - een netwerk voor échte relaties die het dichtst bij me staan. Gebruik %2$@ om je te registreren. Download de app op https://halloapp.com/dl";
 
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.1" = "Hey %@, ik zit op HalloApp. Kom er ook bij en download de app https://halloapp.com/install";
+
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.2" = "Hey %@, laten we met elkaar in contact blijven via HalloApp. Download op https://halloapp.com/kit (HalloApp is een nieuwe, privé sociale app voor goede vrienden en familie, zonder advertenties of algoritmes).";
+
+/* Version of an invitation to join HalloApp. */
+"invite.text.specific.3" = "Ik nodig je uit om HalloApp te installeren. Download hier gratis: https://halloapp.com/free";
+
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Vrienden uitnodigen";
 
@@ -936,9 +951,6 @@
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Mijn app bijwerken.";
-
-/* Displayed while waiting for link preview to load */
-"loading.preview" = "Voorbeeld wordt geladen...";
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Ik";

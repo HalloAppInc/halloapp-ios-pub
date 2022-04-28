@@ -104,7 +104,7 @@
 "feed.privacy.list.set.favorites" = "Favoriten festlegen";
 
 /* Description of the new Favorites functionality. */
-"feed.privacy.list.set.favorites.description" = "Du kannst nun eine Liste deiner bevorzugten Kontakte erstellen und deine HalloApp-Beiträge nur mit ihnen teilen.";
+"feed.privacy.list.set.favorites.description" = "Du kannst nun eine Favoritenliste erstellen und deine HalloApp-Beiträge nur mit deinen Favoriten teilen.";
 
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Suchen";
@@ -114,9 +114,6 @@
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Meine App aktualisieren.";
-
-/* Displayed while waiting for link preview to load */
-"loading.preview" = "Vorschau wird geladen...";
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Ich";

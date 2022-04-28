@@ -550,6 +550,12 @@
 /* Shown while content is being retracted from feed */
 "feed.deleting" = "در حال پاک کردن...";
 
+/* Text for group feed notification displayed in Activity Center. */
+"feed.group.notification.other.comment.no.text" = "<$author$> نظر نوشته است";
+
+/* Text for group feed notification displayed in Activity Center. */
+"feed.group.notification.other.comment.w.text" = "<$author$> نظر نوشت: <$text$>";
+
 /* Text shown in indicator when new posts come in while user is scrolled down */
 "feed.new.posts.indicator" = "پست جدید";
 
@@ -910,6 +916,15 @@
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
 "invite.text.specific" = "سلام %1$@، شما را دعوت میکنم به من در هالواپ ملحق شوید - یک شبکه برای آشنایانم. از %2$@ برای ثبت نام استفاده کنید. آن را از https://halloapp.com/dl نصب کنید";
 
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.1" = "سلام @%, من در هالواپ هستم. میتوانید دانلود کنید و به من ملحق شوید https://halloapp.com/install";
+
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.2" = "سلام @%, بیایید از طریق هالواپ در تماس باشیم. از https://halloapp.com/kit دانلود کنید (هالواپ وسیله ارتباطی جدید برای دوستان و آشنایان، بدون هیچ تبلیغات و یا الگوریتم است).";
+
+/* Version of an invitation to join HalloApp. */
+"invite.text.specific.3" = "من شما را به دانلود هالواپ دعوت میکنم. به صورت رایگان از https://halloapp.com/free دانلود کنید";
+
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "دعوت";
 
@@ -936,9 +951,6 @@
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "برنامه را به روز رسانی کنید.";
-
-/* Displayed while waiting for link preview to load */
-"loading.preview" = "بارگذاری پیش‌نمایش...";
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "من";

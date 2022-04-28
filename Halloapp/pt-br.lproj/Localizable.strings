@@ -550,6 +550,12 @@
 /* Shown while content is being retracted from feed */
 "feed.deleting" = "Excluindo...";
 
+/* Text for group feed notification displayed in Activity Center. */
+"feed.group.notification.other.comment.no.text" = "<$autor$> comentou";
+
+/* Text for group feed notification displayed in Activity Center. */
+"feed.group.notification.other.comment.w.text" = "<$autor$> comentou: <$texto$>";
+
 /* Text shown in indicator when new posts come in while user is scrolled down */
 "feed.new.posts.indicator" = "Novas postagens";
 
@@ -653,7 +659,7 @@
 "feed.privacy.list.set.favorites" = "Definir Favoritos";
 
 /* Description of the new Favorites functionality. */
-"feed.privacy.list.set.favorites.description" = "Agora você pode criar uma lista de seus contatos favoritos e compartilhar suas postagens do HalloApp apenas com eles.";
+"feed.privacy.list.set.favorites.description" = "Agora você pode criar uma lista de seus contatos favoritos e compartilhar suas postagens do HalloApp com eles.";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Meus Contatos ";
@@ -910,6 +916,15 @@
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
 "invite.text.specific" = "Ei, %1$@, tenho um convite para você se juntar a mim no HalloApp — uma rede de relacionamento real para aqueles mais próximos a mim. Use %2$@ para se cadastrar. Baixe o aplicativo no link a seguir: https://halloapp.com/dl";
 
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.1" = "Ei %@, estou no HalloApp. Baixe para se juntar a mim no link seguinte: https://halloapp.com/install";
+
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.2" = "Ei %@, vamos manter contato no HalloApp. Baixe-o em https://halloapp.com/kit (HalloApp é um novo aplicativo social privado para amigos próximos e familiares, sem anúncios ou algoritmos).";
+
+/* Version of an invitation to join HalloApp. */
+"invite.text.specific.3" = "Estou convidando você a instalar o HalloApp. Baixe-o gratuitamente aqui: https://halloapp.com/free";
+
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Convidar amigos";
 
@@ -936,9 +951,6 @@
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Atualize seu aplicativo.";
-
-/* Displayed while waiting for link preview to load */
-"loading.preview" = "Carregando visualização...";
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Eu";
