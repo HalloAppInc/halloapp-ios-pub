@@ -27,7 +27,7 @@ class NotificationService: UNNotificationServiceExtension  {
     }()
 
     // NSE can run upto 30 seconds in most cases and 10 seconds should usually be good enough.
-    let extensionRunTimeSec = ServerProperties.nseRuntimeSec
+    private lazy var extensionRunTimeSec = ServerProperties.nseRuntimeSec
     let finalCleanupRunTimeSec = 3.0
     var contentHandler: ((UNNotificationContent) -> Void)!
     private var service: CoreService? = nil
