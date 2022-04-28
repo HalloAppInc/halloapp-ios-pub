@@ -222,9 +222,7 @@ class PostComposerViewController: UIViewController {
     }()
 
     private lazy var changeDestinationButton: UIButton = {
-        let arrowConfig = UIImage.SymbolConfiguration(pointSize: 14, weight: .medium)
-        let arrowImage = UIImage(systemName: "chevron.down", withConfiguration: arrowConfig)?
-            .withTintColor(.white, renderingMode: .alwaysOriginal)
+        let arrowImage = UIImage(named: "ArrowDownSmall")?.withTintColor(.white, renderingMode: .alwaysOriginal)
         let arrow = UIImageView(image: arrowImage)
         arrow.translatesAutoresizingMaskIntoConstraints = false
 
@@ -1518,7 +1516,7 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
             editBackground.translatesAutoresizingMaskIntoConstraints = false
             editBackground.isUserInteractionEnabled = false
 
-            let editImageConfiguration = UIImage.SymbolConfiguration(pointSize: 18)
+            let editImageConfiguration = UIImage.SymbolConfiguration(pointSize: 22)
             let editImage = UIImage(systemName: "pencil.circle.fill", withConfiguration: editImageConfiguration)?.withTintColor(.white, renderingMode: .alwaysOriginal)
 
             let editButton = UIButton(type: .custom)
@@ -1526,7 +1524,7 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
             editButton.setImage(editImage, for: .normal)
             editButton.setTitle(Localizations.edit, for: .normal)
             editButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .medium)
-            editButton.layer.cornerRadius = 15
+            editButton.layer.cornerRadius = PostComposerLayoutConstants.controlRadius
             editButton.clipsToBounds = true
             editButton.imageEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 12)
             editButton.contentEdgeInsets = UIEdgeInsets(top: 0, left: 4, bottom: 1, right: 6)
@@ -1541,7 +1539,7 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
 
             editBackground.constrain(to: editButton)
             NSLayoutConstraint.activate([
-                editButton.heightAnchor.constraint(equalToConstant: 30)
+                editButton.heightAnchor.constraint(equalToConstant: PostComposerLayoutConstants.controlSize)
             ])
 
             let topTrailingActions = UIStackView(arrangedSubviews: [deleteButton])
@@ -1581,7 +1579,7 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
                 let moreButton = UIButton(type: .custom)
                 moreButton.translatesAutoresizingMaskIntoConstraints = false
                 moreButton.setImage(image?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
-                moreButton.setBackgroundColor(.systemGray3, for: .normal)
+                moreButton.setBackgroundColor(.composerMore, for: .normal)
                 moreButton.widthAnchor.constraint(equalToConstant: 28).isActive = true
                 moreButton.heightAnchor.constraint(equalToConstant: 28).isActive = true
                 moreButton.layer.cornerRadius = 14
@@ -1605,8 +1603,10 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
         DDLogInfo("MediaPreviewSlider/updateUIView")
         uiView.shouldAutoPlay = shouldAutoPlay
 
+        let count = context.coordinator.mediaCount
         if context.coordinator.apply(media: mediaItems) {
-            uiView.refreshData(media: feedMediaItems, index: currentPosition.value, animated: true)
+            // only animate adding/removing of media items
+            uiView.refreshData(media: feedMediaItems, index: currentPosition.value, animated: count != mediaItems.count)
         }
     }
 
@@ -1638,6 +1638,10 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
         private var parent: MediaPreviewSlider
         private var state: [MediaState]?
 
+        public var mediaCount: Int {
+            state?.count ?? 0
+        }
+
         init(_ view: MediaPreviewSlider) {
             parent = view
         }
@@ -1658,7 +1662,10 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
             for (i, item) in newState.enumerated() {
                 if currentState[i] != item {
                     state = newState
-                    return true
+
+                    // don't need to refresh the carousel media on url change
+                    // it handles this case itself
+                    return currentState[i].fileURL != nil
                 }
             }
 

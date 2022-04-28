@@ -937,7 +937,7 @@ fileprivate class ImageCell: UICollectionViewCell {
         background.translatesAutoresizingMaskIntoConstraints = false
         background.isUserInteractionEnabled = false
 
-        let imageConfig = UIImage.SymbolConfiguration(pointSize: 18)
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: 22)
         let image = UIImage(systemName: "pencil.circle.fill", withConfiguration: imageConfig)?.withTintColor(.white, renderingMode: .alwaysOriginal)
 
         let button = UIButton(type: .custom)
@@ -945,7 +945,7 @@ fileprivate class ImageCell: UICollectionViewCell {
         button.setImage(image, for: .normal)
         button.setTitle(Localizations.edit, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .medium)
-        button.layer.cornerRadius = 15
+        button.layer.cornerRadius = 17
         button.clipsToBounds = true
         button.imageEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 12)
         button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 4, bottom: 1, right: 6)
@@ -961,7 +961,7 @@ fileprivate class ImageCell: UICollectionViewCell {
 
         background.constrain(to: button)
         NSLayoutConstraint.activate([
-            button.heightAnchor.constraint(equalToConstant: 30)
+            button.heightAnchor.constraint(equalToConstant: 34)
         ])
 
         return button

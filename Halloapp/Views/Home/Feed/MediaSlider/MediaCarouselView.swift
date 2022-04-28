@@ -398,6 +398,13 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         for view in trailingViews {
             pageControlStack.addArrangedSubview(view)
         }
+
+        if (pageControlStack.arrangedSubviews.count > 0) {
+            let viewsCount = leadingViews.count + trailingViews.count
+            pageControlStack.isLayoutMarginsRelativeArrangement = true
+            pageControlStack.layoutMargins.top = LayoutConstants.pageControlSpacingTop
+            pageControlStack.layoutMargins.bottom = viewsCount > 0 ? 0 : -LayoutConstants.pageControlSpacingBottom
+        }
     }
     
     private func displayPageControl() {
@@ -421,9 +428,6 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
             pageControl.centerXAnchor.constraint(equalTo: container.centerXAnchor),
         ])
 
-        pageControlStack.isLayoutMarginsRelativeArrangement = true
-        pageControlStack.layoutMargins.top = LayoutConstants.pageControlSpacingTop
-        pageControlStack.layoutMargins.bottom = -LayoutConstants.pageControlSpacingBottom
         pageControlStack.addArrangedSubview(container)
     }
 

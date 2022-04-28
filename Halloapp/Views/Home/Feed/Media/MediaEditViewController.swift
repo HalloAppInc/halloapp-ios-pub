@@ -78,6 +78,7 @@ class MediaEditViewController: UIViewController {
         undoButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
         undoButton.setTitle(Localizations.buttonUndo, for: .normal)
         undoButton.setTitleColor(.white, for: .normal)
+        undoButton.setTitleColor(.white.withAlphaComponent(0.6), for: .highlighted)
         undoButton.setImage(UIImage(named: "Undo")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
         undoButton.titleEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 0)
         undoButton.addTarget(self, action: #selector(undoAction), for: .touchUpInside)
@@ -95,7 +96,9 @@ class MediaEditViewController: UIViewController {
         doneBtn.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
         doneBtn.setTitle(Localizations.buttonDone, for: .normal)
         doneBtn.setTitleColor(.white, for: .normal)
+        doneBtn.setTitleColor(.white.withAlphaComponent(0.6), for: .highlighted)
         doneBtn.setBackgroundColor(.primaryBlue, for: .normal)
+        doneBtn.contentEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 1, right: 0)
         doneBtn.layer.cornerRadius = 22
         doneBtn.layer.masksToBounds = true
         doneBtn.addTarget(self, action: #selector(doneAction), for: .touchUpInside)

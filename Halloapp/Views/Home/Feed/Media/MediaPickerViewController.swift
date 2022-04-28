@@ -319,9 +319,7 @@ class MediaPickerViewController: UIViewController {
     }()
 
     private lazy var changeDestinationButton: UIButton = {
-        let arrowConfig = UIImage.SymbolConfiguration(pointSize: 14, weight: .medium)
-        let arrowImage = UIImage(systemName: "chevron.down", withConfiguration: arrowConfig)?
-            .withTintColor(.white, renderingMode: .alwaysOriginal)
+        let arrowImage = UIImage(named: "ArrowDownSmall")?.withTintColor(.white, renderingMode: .alwaysOriginal)
         let arrow = UIImageView(image: arrowImage)
         arrow.translatesAutoresizingMaskIntoConstraints = false
 
@@ -988,6 +986,7 @@ class MediaPickerViewController: UIViewController {
     }
 
     @objc private func cancelAction() {
+        privacyCancellable?.cancel() // prevent blue pill changing during closing animation
         didFinish(self, config.destination, [], true)
     }
 
