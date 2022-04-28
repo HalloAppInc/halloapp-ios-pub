@@ -405,7 +405,9 @@ class ImageServer {
     }
 
     private func process(image url: URL, completion: @escaping (Result<(URL, CGSize), Error>) -> Void) {
-        completion(self.resize(image: url).flatMap(self.save(image:)))
+        completion(autoreleasepool {
+            self.resize(image: url).flatMap(self.save(image:))
+        })
     }
 
     private func save(image: UIImage) -> Result<(URL, CGSize), Error> {

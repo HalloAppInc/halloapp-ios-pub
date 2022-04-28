@@ -181,10 +181,12 @@ class MediaEdit : ObservableObject {
 
             // Keeps reference to self, otherwise cropping might not happen
             PendingMedia.queue.async {
-                guard let image = self.crop() else {
-                    return self.media.error.send(PendingMediaError.processingError)
+                autoreleasepool {
+                    guard let image = self.crop() else {
+                        return self.media.error.send(PendingMediaError.processingError)
+                    }
+                    self.media.image = image
                 }
-                self.media.image = image
             }
         case .video:
             guard let originalVideoURL = media.originalVideoURL else { return media }
@@ -238,35 +240,81 @@ class MediaEdit : ObservableObject {
 
     func updateImage() {
         guard type == .image else { return }
-        guard let image = original?.cgImage else { return }
+        guard var orientation = original?.imageOrientation else { return }
+        guard let cgImage = original?.cgImage else { return }
 
-        var rotations = numberOfRotations
-
-        switch original?.imageOrientation {
-        case .right:
-            rotations += 3
-        case .left:
-            rotations += 1
-        case .down:
-            rotations += 2
-        default:
-            break
+        if numberOfRotations >= 1 {
+            for _ in 1...numberOfRotations {
+                switch orientation {
+                case .up:
+                    orientation = .left
+                case .down:
+                    orientation = .right
+                case .left:
+                    orientation = .down
+                case .right:
+                    orientation = .up
+                case .upMirrored:
+                    orientation = .leftMirrored
+                case .downMirrored:
+                    orientation = .rightMirrored
+                case .leftMirrored:
+                    orientation = .downMirrored
+                case .rightMirrored:
+                    orientation = .upMirrored
+                default:
+                    break
+                }
+            }
         }
 
-        let size = (rotations % 2) == 0 ? CGSize(width: image.width, height: image.height) : CGSize(width: image.height, height: image.width)
-
-        let transform = CGAffineTransform(translationX: size.width / 2, y: size.height / 2)
-            .scaledBy(x: vFlipped ? -1 : 1, y: hFlipped ? -1 : 1)
-            .rotated(by: CGFloat(rotations) * .pi / 2)
-            .translatedBy(x: -CGFloat(image.width) / 2, y: -CGFloat(image.height) / 2)
-
-        let ciimage = CIImage(cgImage: image).transformed(by: transform)
-        guard let transformed = CIContext().createCGImage(ciimage, from: CGRect(x: 0, y: 0, width: size.width, height: size.height), format: .RGBA8, colorSpace: image.colorSpace) else {
-            self.image = nil
-            return
+        if vFlipped {
+            switch orientation {
+            case .up:
+                orientation = .upMirrored
+            case .down:
+                orientation = .downMirrored
+            case .left:
+                orientation = .rightMirrored
+            case .right:
+                orientation = .leftMirrored
+            case .upMirrored:
+                orientation = .up
+            case .downMirrored:
+                orientation = .down
+            case .leftMirrored:
+                orientation = .right
+            case .rightMirrored:
+                orientation = .left
+            default:
+                break
+            }
         }
 
-        self.image = UIImage(cgImage: transformed)
+        if hFlipped {
+            switch orientation {
+            case .up:
+                orientation = .downMirrored
+            case .down:
+                orientation = .upMirrored
+            case .left:
+                orientation = .leftMirrored
+            case .right:
+                orientation = .rightMirrored
+            case .upMirrored:
+                orientation = .down
+            case .downMirrored:
+                orientation = .up
+            case .leftMirrored:
+                orientation = .left
+            case .rightMirrored:
+                orientation = .right
+            default:
+                break
+            }
+        }
+
+        image = UIImage(cgImage: cgImage, scale: 1, orientation: orientation)
     }
 
     private func initialCrop() -> CGRect {
@@ -409,18 +457,18 @@ class MediaEdit : ObservableObject {
 
     func crop() -> UIImage? {
         guard type == .image else { return nil }
-        guard let image = image?.cgImage else { return nil }
+        guard let image = image else { return nil }
 
         let contextCenterX = cropRect.size.width / 2
         let contextCenterY = cropRect.size.height / 2
-        let imgCenterX = CGFloat(image.width) / 2
-        let imgCenterY = CGFloat(image.height) / 2
+        let imgCenterX = CGFloat(image.size.width) / 2
+        let imgCenterY = CGFloat(image.size.height) / 2
         let cropOffsetX = cropRect.midX - imgCenterX
-        let cropOffsetY = (CGFloat(image.height) - cropRect.midY) - imgCenterY
+        let cropOffsetY = (CGFloat(image.size.height) - cropRect.midY) - imgCenterY
 
         let transformImage = CGAffineTransform(translationX: contextCenterX, y: contextCenterY)
-            .translatedBy(x: -cropOffsetX, y: -cropOffsetY)
-            .translatedBy(x: offset.x, y: -offset.y)
+            .translatedBy(x: -cropOffsetX, y: cropOffsetY)
+            .translatedBy(x: offset.x, y: offset.y)
             .scaledBy(x: scale, y: scale)
             .translatedBy(x: -imgCenterX, y: -imgCenterY)
 
@@ -435,12 +483,8 @@ class MediaEdit : ObservableObject {
 
         return UIGraphicsImageRenderer(size: cropRect.size, format: format).image { ctx in
             ctx.cgContext.saveGState()
-            // fix coordinate system
-            ctx.cgContext.translateBy(x: 0, y: cropRect.size.height)
-            ctx.cgContext.scaleBy(x: 1, y: -1)
-
             ctx.cgContext.concatenate(transformImage)
-            ctx.cgContext.draw(image, in: CGRect(x: 0, y: 0, width: image.width, height: image.height))
+            image.draw(at: .zero)
             ctx.cgContext.restoreGState()
 
             for item in layers {
@@ -477,8 +521,8 @@ class MediaEdit : ObservableObject {
                     ctx.cgContext.translateBy(x: annotation.location.x, y: annotation.location.y)
                     ctx.cgContext.rotate(by: annotation.rotation * CGFloat.pi / 180)
 
-                    let width = CGFloat(image.width)
-                    let height = CGFloat(image.height)
+                    let width = CGFloat(image.size.width)
+                    let height = CGFloat(image.size.height)
                     let frame = CGRect(x:  -width / 2, y:  -annotation.font.pointSize / 2, width: width, height: height)
                     annotation.text.draw(with: frame, options: .usesLineFragmentOrigin, attributes: attrs, context: nil)
 

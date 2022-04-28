@@ -37,6 +37,10 @@ private extension Localizations {
         NSLocalizedString("share.composer.uploading.fail.message", value: "Please try again later.", comment: "Alert dialog message shown when uploading fails.")
     }
 
+    static var edit: String {
+        NSLocalizedString("share.composer.button.edit", value: "Edit", comment: "Title on edit button")
+    }
+
     static var shareWith: String {
         NSLocalizedString("share.composer.destinations.label", value: "Share with", comment: "Label above the list with whom you share")
     }
@@ -860,11 +864,15 @@ extension ShareComposerViewController: UICollectionViewDataSource, UICollectionV
         switch media[indexPath.row].type {
         case .image:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ImageCell.reuseIdentifier, for: indexPath) as! ImageCell
-            cell.configure(media[indexPath.row])
+            cell.configure(media[indexPath.row]) { [weak self] in
+                self?.edit(index: indexPath.row)
+            }
             return cell
         case .video:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: VideoCell.reuseIdentifier, for: indexPath) as! VideoCell
-            cell.configure(media[indexPath.row])
+            cell.configure(media[indexPath.row]) { [weak self] in
+                self?.edit(index: indexPath.row)
+            }
             return cell
         case .audio:
             return collectionView.dequeueReusableCell(withReuseIdentifier: EmptyCell.reuseIdentifier, for: indexPath)
@@ -873,6 +881,29 @@ extension ShareComposerViewController: UICollectionViewDataSource, UICollectionV
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         return collectionView.bounds.size
+    }
+
+    private func edit(index: Int) {
+        let controller = MediaEditViewController(mediaToEdit: media, selected: index, maxAspectRatio: nil) { [weak self] controller, media, selected, cancel in
+            controller.dismiss(animated: true)
+
+            guard let self = self else { return }
+            guard !cancel else { return }
+
+            self.media = media
+
+            let readyPublisher = Publishers.MergeMany(media.map { $0.ready.filter { $0 } }).allSatisfy { $0 } .eraseToAnyPublisher()
+            self.cancellableSet.insert(readyPublisher.sink { [weak self] ready in
+                guard let self = self else { return }
+                guard ready else { return }
+
+                self.collectionView.reloadData()
+                self.collectionView.scrollToItem(at: IndexPath(row: selected, section: 0), at: .centeredHorizontally, animated: false)
+            })
+
+        }.withNavigationController()
+
+        present(controller, animated: true)
     }
 }
 
@@ -887,7 +918,59 @@ fileprivate class ImageCell: UICollectionViewCell {
         return String(describing: ImageCell.self)
     }
 
-    private var imageView: UIImageView!
+    private lazy var imageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.contentMode = .scaleAspectFit
+        imageView.clipsToBounds = true
+
+        return imageView
+    }()
+
+    private lazy var editButton: UIButton = {
+        let background = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 1)
+        background.translatesAutoresizingMaskIntoConstraints = false
+        background.isUserInteractionEnabled = false
+
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: 18)
+        let image = UIImage(systemName: "pencil.circle.fill", withConfiguration: imageConfig)?.withTintColor(.white, renderingMode: .alwaysOriginal)
+
+        let button = UIButton(type: .custom)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(image, for: .normal)
+        button.setTitle(Localizations.edit, for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .medium)
+        button.layer.cornerRadius = 15
+        button.clipsToBounds = true
+        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 12)
+        button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 4, bottom: 1, right: 6)
+        button.addTarget(self, action: #selector(editAction), for: .touchUpInside)
+
+        button.insertSubview(background, at: 0)
+        if let imageView = button.imageView {
+            button.bringSubviewToFront(imageView)
+        }
+        if let titleLabel = button.titleLabel {
+            button.bringSubviewToFront(titleLabel)
+        }
+
+        background.constrain(to: button)
+        NSLayoutConstraint.activate([
+            button.heightAnchor.constraint(equalToConstant: 30)
+        ])
+
+        return button
+    }()
+
+    private lazy var editButtonTrailing: NSLayoutConstraint = {
+        editButton.trailingAnchor.constraint(equalTo: imageView.trailingAnchor)
+    }()
+
+    private lazy var editButtonBottom: NSLayoutConstraint = {
+        editButton.bottomAnchor.constraint(equalTo: imageView.bottomAnchor)
+    }()
+
+    private var onEdit: (() -> Void)?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -900,12 +983,17 @@ fileprivate class ImageCell: UICollectionViewCell {
     }
 
     private func setup() {
-        imageView = UIImageView(frame: contentView.bounds.insetBy(dx: 8, dy: 8))
-        imageView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
-        imageView.contentMode = .scaleAspectFit
-        imageView.clipsToBounds = true
-
         contentView.addSubview(imageView)
+        contentView.addSubview(editButton)
+
+        NSLayoutConstraint.activate([
+            imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
+            imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
+            imageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
+            imageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
+            editButtonTrailing,
+            editButtonBottom,
+        ])
     }
 
     override func prepareForReuse() {
@@ -916,14 +1004,33 @@ fileprivate class ImageCell: UICollectionViewCell {
     // Loading image on demand instead of using 'media.image'
     // makes it easier for the system to clear memory and avoid
     // going over memory limit (120MB on iPhone 11 & iOS 14)
-    func configure(_ media: PendingMedia) {
+    func configure(_ media: PendingMedia, onEdit: @escaping () -> Void) {
         guard media.type == .image else { return }
         guard let url = media.fileURL else { return }
 
+        self.onEdit = onEdit
+
         let maxSize = min(UIScreen.main.bounds.width, UIScreen.main.bounds.height) * UIScreen.main.scale * 0.75
+
         imageView.image = UIImage.thumbnail(contentsOf: url, maxPixelSize: maxSize)
-        
-        imageView.roundCorner(15)
+
+        // required to ensure that everything is in place for getting the correct sizes
+        DispatchQueue.main.async {
+            self.configureAfterImageLoad()
+        }
+    }
+
+    private func configureAfterImageLoad() {
+        imageView.roundCorner(20)
+
+        if let imageRect = imageView.getImageRect() {
+            editButtonTrailing.constant = imageRect.maxX - imageView.bounds.width - 9
+            editButtonBottom.constant = imageRect.maxY - imageView.bounds.height - 9
+        }
+    }
+
+    @objc func editAction() {
+        onEdit?()
     }
 }
 
@@ -935,9 +1042,55 @@ class VideoCell: UICollectionViewCell {
     private lazy var videoView: VideoView = {
         let view = VideoView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.roundCorner(15)
+        view.roundCorner(20)
         return view
     }()
+
+    private lazy var editButton: UIButton = {
+        let background = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 1)
+        background.translatesAutoresizingMaskIntoConstraints = false
+        background.isUserInteractionEnabled = false
+
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: 18)
+        let image = UIImage(systemName: "pencil.circle.fill", withConfiguration: imageConfig)?.withTintColor(.white, renderingMode: .alwaysOriginal)
+
+        let button = UIButton(type: .custom)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(image, for: .normal)
+        button.setTitle(Localizations.edit, for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .medium)
+        button.layer.cornerRadius = 15
+        button.clipsToBounds = true
+        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 12)
+        button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 4, bottom: 1, right: 6)
+        button.addTarget(self, action: #selector(editAction), for: .touchUpInside)
+
+        button.insertSubview(background, at: 0)
+        if let imageView = button.imageView {
+            button.bringSubviewToFront(imageView)
+        }
+        if let titleLabel = button.titleLabel {
+            button.bringSubviewToFront(titleLabel)
+        }
+
+        background.constrain(to: button)
+        NSLayoutConstraint.activate([
+            button.heightAnchor.constraint(equalToConstant: 30)
+        ])
+
+        return button
+    }()
+
+    private lazy var editButtonTrailing: NSLayoutConstraint = {
+        editButton.trailingAnchor.constraint(equalTo: videoView.trailingAnchor)
+    }()
+
+    private lazy var editButtonBottom: NSLayoutConstraint = {
+        editButton.bottomAnchor.constraint(equalTo: videoView.bottomAnchor)
+    }()
+
+    private var videoRectDidChangeCancellable: AnyCancellable?
+    private var onEdit: (() -> Void)?
 
     override func prepareForReuse() {
         super.prepareForReuse()
@@ -963,19 +1116,35 @@ class VideoCell: UICollectionViewCell {
 
     public func setup() {
         contentView.addSubview(videoView)
+        contentView.addSubview(editButton)
 
         NSLayoutConstraint.activate([
             videoView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
             videoView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
             videoView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             videoView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
+            editButtonTrailing,
+            editButtonBottom,
         ])
     }
 
-    func configure(_ media: PendingMedia) {
+    func configure(_ media: PendingMedia, onEdit: @escaping () -> Void) {
         guard media.type == .video else { return }
         guard let url = media.fileURL else { return }
         videoView.player = AVPlayer(url: url)
+
+
+        editButtonTrailing.constant = videoView.videoRect.maxX - videoView.bounds.width - 9
+        editButtonBottom.constant = videoView.videoRect.maxY - videoView.bounds.height - 9
+
+        videoRectDidChangeCancellable?.cancel()
+        videoRectDidChangeCancellable = videoView.videoRectDidChange.sink { [weak self] rect in
+            guard let self = self else { return }
+            self.editButtonTrailing.constant = rect.maxX - self.videoView.bounds.width - 9
+            self.editButtonBottom.constant = rect.maxY - self.videoView.bounds.height - 9
+        }
+
+        self.onEdit = onEdit
     }
 
     func play(time: CMTime = .zero) {
@@ -995,6 +1164,10 @@ class VideoCell: UICollectionViewCell {
     func isPlaying() -> Bool {
         guard let player = videoView.player else { return false }
         return player.rate > 0
+    }
+
+    @objc func editAction() {
+        onEdit?()
     }
 }
 

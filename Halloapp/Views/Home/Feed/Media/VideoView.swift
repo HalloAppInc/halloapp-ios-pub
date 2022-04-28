@@ -6,11 +6,14 @@
 //
 
 import AVFoundation
+import Combine
 import Foundation
 import UIKit
 
 class VideoView: UIView {
     enum PlaybackControls { case simple, advanced }
+
+    public var videoRectDidChange = PassthroughSubject<CGRect, Never>()
 
     private var rateObservation: NSKeyValueObservation?
     private var videoRectObservation: NSKeyValueObservation?
@@ -37,6 +40,10 @@ class VideoView: UIView {
 
     var playerLayer: AVPlayerLayer {
         return layer as! AVPlayerLayer
+    }
+
+    var videoRect: CGRect {
+        return playerLayer.videoRect
     }
 
     // Override UIView property
@@ -129,6 +136,8 @@ class VideoView: UIView {
             let mask = CAShapeLayer()
             mask.path = UIBezierPath(roundedRect: self.playerLayer.videoRect, cornerRadius: radius).cgPath
             self.playerLayer.mask = mask
+
+            self.videoRectDidChange.send(self.playerLayer.videoRect)
         }
     }
 

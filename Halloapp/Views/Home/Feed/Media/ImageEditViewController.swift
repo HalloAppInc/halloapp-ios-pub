@@ -363,6 +363,7 @@ struct ImageEditView: View {
             }
             .padding(8)
             .edgesIgnoringSafeArea(.bottom)
+            .background(Color.black)
         }
     }
 }

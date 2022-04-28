@@ -299,6 +299,7 @@ class MediaEditViewController: UIViewController {
         case .video:
             let muteBtn = UIBarButtonItem(image: muteIcon(media[selected].muted), style: .plain, target: self, action: #selector(toggleMuteAction))
             muteBtn.accessibilityLabel = Localizations.voiceOverButtonMute
+            muteBtn.tintColor = .white
             navigationItem.rightBarButtonItems = [muteBtn]
 
             mutedCancellable = media[selected].$muted.sink { [weak self] in
@@ -433,7 +434,26 @@ class MediaEditViewController: UIViewController {
         guard !processing else { return }
         processing = true
 
-        didFinish(self, media.map { $0.process() }, selected, false)
+        let group = DispatchGroup()
+        var results: [PendingMedia] = []
+
+        for item in media {
+            group.enter()
+
+            DispatchQueue.global(qos: .userInitiated).async {
+                let pending = item.process()
+
+                DispatchQueue.main.async {
+                    results.append(pending)
+                    group.leave()
+                }
+            }
+        }
+
+        group.notify(queue: DispatchQueue.main) { [weak self] in
+            guard let self = self else { return }
+            self.didFinish(self, results, self.selected, false)
+        }
     }
 }
 

@@ -420,6 +420,27 @@
 		F893C86F25E5213000068F00 /* VideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F893C86E25E5213000068F00 /* VideoView.swift */; };
 		F89589562732A58300874054 /* ChangeDestinationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F89589552732A58300874054 /* ChangeDestinationViewController.swift */; };
 		F8B0F7612745785400235CCF /* ShareDataLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8B0F7602745785400235CCF /* ShareDataLoader.swift */; };
+		F8BD92412819BC8900F35E7A /* Gotham-ThinIta.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBC9244E2EB700986617 /* Gotham-ThinIta.otf */; };
+		F8BD92422819BC8900F35E7A /* Gotham-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBBB244E2EB500986617 /* Gotham-Medium.otf */; };
+		F8BD92432819BC8900F35E7A /* Gotham-LightIta.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBC5244E2EB600986617 /* Gotham-LightIta.otf */; };
+		F8BD92442819BC8900F35E7A /* Gotham-UltraIta.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBBC244E2EB600986617 /* Gotham-UltraIta.otf */; };
+		F8BD92452819BC8900F35E7A /* Gotham-Thin.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBC4244E2EB600986617 /* Gotham-Thin.otf */; };
+		F8BD92462819BC8900F35E7A /* Gotham-BoldIta.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBBF244E2EB600986617 /* Gotham-BoldIta.otf */; };
+		F8BD92472819BC8900F35E7A /* Gotham-XLightIta.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBBD244E2EB600986617 /* Gotham-XLightIta.otf */; };
+		F8BD92482819BC8900F35E7A /* Gotham-Black.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBC7244E2EB700986617 /* Gotham-Black.otf */; };
+		F8BD92492819BC8900F35E7A /* Gotham-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBC2244E2EB600986617 /* Gotham-Light.otf */; };
+		F8BD924A2819BC8900F35E7A /* Gotham-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBC8244E2EB700986617 /* Gotham-Bold.otf */; };
+		F8BD924B2819BC8900F35E7A /* Gotham-BookIta.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBC3244E2EB600986617 /* Gotham-BookIta.otf */; };
+		F8BD924C2819BC8900F35E7A /* Gotham-XLight.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBBE244E2EB600986617 /* Gotham-XLight.otf */; };
+		F8BD924D2819BC8900F35E7A /* Gotham-Book.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBC1244E2EB600986617 /* Gotham-Book.otf */; };
+		F8BD924E2819BC8900F35E7A /* Gotham-BlackIta.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBBA244E2EB500986617 /* Gotham-BlackIta.otf */; };
+		F8BD924F2819BC8900F35E7A /* Gotham-Ultra.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBC0244E2EB600986617 /* Gotham-Ultra.otf */; };
+		F8BD92502819BC8900F35E7A /* Gotham-MediumIta.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBC6244E2EB600986617 /* Gotham-MediumIta.otf */; };
+		F8BD92512819BFCE00F35E7A /* Quicksand-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6878E00F2798E962008BB351 /* Quicksand-Regular.ttf */; };
+		F8BD92522819BFCE00F35E7A /* Quicksand-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6878E0122798E962008BB351 /* Quicksand-SemiBold.ttf */; };
+		F8BD92532819BFCE00F35E7A /* Quicksand-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6878E0102798E962008BB351 /* Quicksand-Light.ttf */; };
+		F8BD92542819BFCE00F35E7A /* Quicksand-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6878E00D2798E962008BB351 /* Quicksand-Medium.ttf */; };
+		F8BD92552819BFCE00F35E7A /* Quicksand-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6878E0112798E962008BB351 /* Quicksand-Bold.ttf */; };
 		F8BE61A727A05DC40061FFC2 /* ChatListSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8BE61A627A05DC40061FFC2 /* ChatListSync.swift */; };
 		F8C92C9A24CF17BC00B1D4E6 /* MediaEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */; };
 		F8D876332746603700E69F41 /* AudioSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8D876322746603700E69F41 /* AudioSessionManager.swift */; };
@@ -429,6 +450,13 @@
 		F8E60547266F931E00DDEB2A /* ImageEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8E60546266F931E00DDEB2A /* ImageEditViewController.swift */; };
 		F8E6054A2671F6A700DDEB2A /* MediaEdit.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8E605492671F6A700DDEB2A /* MediaEdit.swift */; };
 		F8E6DCDF271EB06F005EECC5 /* TimeInterval.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8E6DCDE271EB06F005EECC5 /* TimeInterval.swift */; };
+		F8EC3A7B281820470041D8E3 /* MediaEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */; };
+		F8EC3A7C281820C60041D8E3 /* MediaEdit.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8E605492671F6A700DDEB2A /* MediaEdit.swift */; };
+		F8EC3A7D281820F70041D8E3 /* UIButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C8245D4DE500DD9D1A /* UIButton.swift */; };
+		F8EC3A7E281821310041D8E3 /* ImageEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8E60546266F931E00DDEB2A /* ImageEditViewController.swift */; };
+		F8EC3A7F2818214A0041D8E3 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764AB41E24A6C5F300D4E354 /* Color.swift */; };
+		F8EC3A80281821660041D8E3 /* VideoEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F84A8E5825D408C3003A8528 /* VideoEditViewController.swift */; };
+		F8EC3A81281821810041D8E3 /* TimeInterval.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8E6DCDE271EB06F005EECC5 /* TimeInterval.swift */; };
 		F8FAA14526CCF5B5008282EF /* AudioRecorderControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8FAA14426CCF5B5008282EF /* AudioRecorderControlView.swift */; };
 		F8FDA7AC26F84F0700D8B839 /* AudioRecorderTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8FDA7AB26F84F0700D8B839 /* AudioRecorderTimeView.swift */; };
 /* End PBXBuildFile section */
@@ -2466,11 +2494,32 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F8BD924F2819BC8900F35E7A /* Gotham-Ultra.otf in Resources */,
+				F8BD924A2819BC8900F35E7A /* Gotham-Bold.otf in Resources */,
 				7688FA4025489E26006B86B3 /* Localizable.strings in Resources */,
+				F8BD92482819BC8900F35E7A /* Gotham-Black.otf in Resources */,
+				F8BD92462819BC8900F35E7A /* Gotham-BoldIta.otf in Resources */,
+				F8BD92502819BC8900F35E7A /* Gotham-MediumIta.otf in Resources */,
+				F8BD92412819BC8900F35E7A /* Gotham-ThinIta.otf in Resources */,
 				24AA69DC24DDC6DA00ED65CE /* SharedAssets.xcassets in Resources */,
+				F8BD924D2819BC8900F35E7A /* Gotham-Book.otf in Resources */,
+				F8BD92552819BFCE00F35E7A /* Quicksand-Bold.ttf in Resources */,
+				F8BD92542819BFCE00F35E7A /* Quicksand-Medium.ttf in Resources */,
+				F8BD92422819BC8900F35E7A /* Gotham-Medium.otf in Resources */,
 				2446D66924C7E48E005BAD3C /* ExtensionPreprocessing.js in Resources */,
+				F8BD92522819BFCE00F35E7A /* Quicksand-SemiBold.ttf in Resources */,
+				F8BD92432819BC8900F35E7A /* Gotham-LightIta.otf in Resources */,
+				F8BD92452819BC8900F35E7A /* Gotham-Thin.otf in Resources */,
+				F8BD924C2819BC8900F35E7A /* Gotham-XLight.otf in Resources */,
+				F8BD92532819BFCE00F35E7A /* Quicksand-Light.ttf in Resources */,
 				687D5EC7265317F8008A3A65 /* InfoPlist.strings in Resources */,
+				F8BD92512819BFCE00F35E7A /* Quicksand-Regular.ttf in Resources */,
+				F8BD92492819BC8900F35E7A /* Gotham-Light.otf in Resources */,
+				F8BD92442819BC8900F35E7A /* Gotham-UltraIta.otf in Resources */,
+				F8BD92472819BC8900F35E7A /* Gotham-XLightIta.otf in Resources */,
+				F8BD924E2819BC8900F35E7A /* Gotham-BlackIta.otf in Resources */,
 				F82D303A27733437006D1245 /* Localizable.stringsdict in Resources */,
+				F8BD924B2819BC8900F35E7A /* Gotham-BookIta.otf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2582,13 +2631,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F8EC3A80281821660041D8E3 /* VideoEditViewController.swift in Sources */,
 				2446D67F24CB5810005BAD3C /* ImageServer.swift in Sources */,
 				2446D68124CB5867005BAD3C /* VideoUtils.swift in Sources */,
 				76C64E0E24E5AD85007C0F6F /* MediaUploader.swift in Sources */,
 				24009EB824BE399F00155DE2 /* ShareComposerViewController.swift in Sources */,
 				76936FB824F03C37006DBC2D /* UIView.swift in Sources */,
+				F8EC3A7D281820F70041D8E3 /* UIButton.swift in Sources */,
+				F8EC3A7B281820470041D8E3 /* MediaEditViewController.swift in Sources */,
 				68D2915125096F0700AF5061 /* MentionPickerView.swift in Sources */,
 				24009EBA24BE3FA200155DE2 /* ShareDestinationViewController.swift in Sources */,
+				F8EC3A7C281820C60041D8E3 /* MediaEdit.swift in Sources */,
 				EAAFC9F02708267C004EAE29 /* HAMarkdown.swift in Sources */,
 				2446D68624CB6DA9005BAD3C /* ContactTableViewCell.swift in Sources */,
 				F86919E026395EB300B01306 /* UIFont.swift in Sources */,
@@ -2596,9 +2649,12 @@
 				E598D4C2265F0558001A436A /* ConversationID.swift in Sources */,
 				76B5B524250086330055E712 /* UIColor.swift in Sources */,
 				2446D68B24CF732B005BAD3C /* DataStore.swift in Sources */,
+				F8EC3A81281821810041D8E3 /* TimeInterval.swift in Sources */,
+				F8EC3A7F2818214A0041D8E3 /* Color.swift in Sources */,
 				24009E8D24B6643700155DE2 /* ShareExtensionContext.swift in Sources */,
 				F82D303727722522006D1245 /* ShareDestinationRowView.swift in Sources */,
 				2446D68424CB682C005BAD3C /* AppExtensionContext.swift in Sources */,
+				F8EC3A7E281821310041D8E3 /* ImageEditViewController.swift in Sources */,
 				F86919DD26395E2500B01306 /* VideoView.swift in Sources */,
 				F86919DF26395E8D00B01306 /* BlurView.swift in Sources */,
 				F8DFCD88262EF4C0003F850F /* ShareViewController.swift in Sources */,
