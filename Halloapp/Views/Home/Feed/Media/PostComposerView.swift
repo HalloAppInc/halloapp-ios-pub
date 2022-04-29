@@ -520,8 +520,8 @@ class PostComposerViewController: UIViewController {
 
             changeDestinationLabel.text = PrivacyList.name(forPrivacyListType: privacy)
         case .groupFeed(let groupId):
+            changeDestinationButton.setBackgroundColor(.primaryBlue, for: .normal)
             let avatarData = MainAppContext.shared.avatarStore.groupAvatarData(for: groupId)
-
             if let image = avatarData.image {
                 changeDestinationIcon.image = image
                 changeDestinationIcon.layer.cornerRadius = 6
