@@ -973,11 +973,13 @@ class ChatData: ObservableObject {
     }
 
     func processInboundPendingChatMsgMedia() {
+        DDLogDebug("ChatData/processInboundPendingChatMsgMedia")
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
             guard self.currentlyDownloading.count <= self.maxNumDownloads else { return }
 
             let pendingMessagesWithMedia = self.pendingIncomingChatMessagesMedia(in: managedObjectContext)
+            DDLogDebug("ChatData/processInboundPendingChatMsgMedia/NumPendingMessagesWithMedia: \(pendingMessagesWithMedia.count)")
             
             for chatMessage in pendingMessagesWithMedia {
                 
