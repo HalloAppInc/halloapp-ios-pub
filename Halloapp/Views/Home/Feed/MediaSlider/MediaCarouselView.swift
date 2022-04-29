@@ -153,13 +153,18 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
     private class MediaCarouselCollectionViewLayout: UICollectionViewFlowLayout {
 
         override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
-            return collectionView?.bounds.size != newBounds.size
+            return super.shouldInvalidateLayout(forBoundsChange: newBounds) || collectionView?.bounds.size != newBounds.size
         }
 
         override func invalidationContext(forBoundsChange newBounds: CGRect) -> UICollectionViewLayoutInvalidationContext {
-            let invalidationContext = UICollectionViewFlowLayoutInvalidationContext()
-            invalidationContext.invalidateFlowLayoutDelegateMetrics = true
-            return invalidationContext
+            if collectionView?.bounds.size != newBounds.size {
+                let invalidationContext = UICollectionViewFlowLayoutInvalidationContext()
+                invalidationContext.invalidateFlowLayoutDelegateMetrics = true
+                invalidationContext.invalidateFlowLayoutAttributes = true
+                return invalidationContext
+            } else {
+                return super.invalidationContext(forBoundsChange: newBounds)
+            }
         }
     }
     
@@ -446,7 +451,6 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         }
 
         dataSource.apply(snapshot, animatingDifferences: animated)
-        collectionView.collectionViewLayout.invalidateLayout()
         self.media = media
 
         updatePageControl()
@@ -519,7 +523,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         if configuration.isPagingEnabled {
-            let size = CGSize(width: self.bounds.size.width, height: collectionView.bounds.height)
+            let size = CGSize(width: self.bounds.size.width, height: collectionView.frame.height)
             return size
         }
             
