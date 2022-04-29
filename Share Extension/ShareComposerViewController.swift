@@ -250,6 +250,7 @@ class ShareComposerViewController: UIViewController {
                 textViewPlaceholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: 14),
             ])
         } else {
+            contentView.spacing = 0
             contentView.backgroundColor = .feedPostBackground
             contentView.layer.cornerRadius = 15
             contentView.layer.shadowColor = UIColor.black.cgColor
@@ -271,7 +272,6 @@ class ShareComposerViewController: UIViewController {
                 textView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
                 textViewPlaceholder.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: 25),
                 textViewPlaceholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: 20),
-                linkPreviewView.heightAnchor.constraint(equalToConstant: 150),
                 linkPreviewView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
                 linkPreviewView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
             ])
@@ -310,6 +310,13 @@ class ShareComposerViewController: UIViewController {
         NSLayoutConstraint.activate(constraints)
         destinationRow.update(with: destinations)
         handleKeyboardUpdates()
+
+        if media.count == 0 {
+            // ensures that layout is done before getting focus
+            DispatchQueue.main.async {
+                self.textView.becomeFirstResponder()
+            }
+        }
     }
 
     private func handleKeyboardUpdates() {
@@ -354,10 +361,8 @@ class ShareComposerViewController: UIViewController {
     }
 
     private func computeCardViewHeight() -> CGFloat {
-        let maxHeight = view.bounds.height - 320
-
         if media.count == 0 {
-            return min(maxHeight, 400)
+            return min(view.bounds.height - 420, 400)
         }
 
         let ratios: [CGFloat] = media.compactMap {
@@ -367,18 +372,21 @@ class ShareComposerViewController: UIViewController {
 
         guard let maxRatio = ratios.max() else { return 0 }
 
-        return min(maxHeight, view.bounds.width * maxRatio)
+        return min(view.bounds.height - 320, view.bounds.width * maxRatio)
     }
 
     private func computeTextViewHeight() -> CGFloat {
-        let size = textView.sizeThatFits(CGSize(width: textView.frame.size.width, height: CGFloat.greatestFiniteMagnitude))
+        var width = textView.frame.size.width > 0 ? textView.frame.size.width : UIScreen.main.bounds.width * 0.9
+        width += textView.textContainerInset.left + textView.textContainerInset.right
+        let size = textView.sizeThatFits(CGSize(width: width, height: CGFloat.greatestFiniteMagnitude))
 
         if media.count > 0 {
             return max(48, min(size.height, 250))
         } else if let linkPreviewView = linkPreviewView, !linkPreviewView.isHidden {
-            return max(size.height, 100)
+            let previewHeight = linkPreviewView.frame.size.height > 0 ? linkPreviewView.frame.size.height : 250
+            return computeCardViewHeight() - previewHeight - 10
         } else {
-            return max(size.height, 400)
+            return computeCardViewHeight()
         }
     }
 
@@ -488,13 +496,14 @@ class ShareComposerViewController: UIViewController {
         if let url = detectLink(text: textView.text), let linkPreviewView = linkPreviewView {
             linkPreviewView.updateLink(url: url)
             linkPreviewView.isHidden = false
-            textView.heightAnchor.constraint(equalToConstant: computeTextViewHeight()).isActive = true
         } else {
             // TODO reset link preview info
             if let linkPreviewView = linkPreviewView {
                 linkPreviewView.isHidden = true
             }
         }
+
+        textViewHeightConstraint.constant = computeTextViewHeight()
     }
 
     private func detectLink(text: String) -> URL? {
@@ -804,10 +813,6 @@ extension ShareComposerViewController: UITextViewDelegate {
         updateMentionPickerContent()
         updateLinkPreviewViewIfNecessary()
         updateWithMarkdown()
-
-        if media.count == 0 {
-            cardViewHeightConstraint.constant = computeCardViewHeight()
-        }
     }
 
     func textViewDidChangeSelection(_ textView: UITextView) {
