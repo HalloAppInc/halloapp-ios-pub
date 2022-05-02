@@ -103,9 +103,11 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        
-        let bottomInset = view.bounds.maxX - floatingMenu.triggerButton.frame.minX
-        collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: bottomInset, right: 0)
+
+        let bottomInset = view.bounds.maxY - floatingMenu.triggerButton.frame.minY - collectionView.safeAreaInsets.bottom
+        if bottomInset != collectionView.contentInset.bottom {
+            collectionView.contentInset.bottom = bottomInset
+        }
     }
 
     deinit {
@@ -119,7 +121,7 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
             MainAppContext.shared.feedData.didGetRemoveHomeTabIndicator.send()
         }
         
-        guard scrollView.contentSize.height > scrollView.bounds.size.height else {
+        guard scrollView.contentSize.height > scrollView.bounds.inset(by: scrollView.adjustedContentInset).height else {
             DispatchQueue.main.async { [weak self] in self?.floatingMenu.setAccessoryState(.accessorized, animated: true) }
             return
         }

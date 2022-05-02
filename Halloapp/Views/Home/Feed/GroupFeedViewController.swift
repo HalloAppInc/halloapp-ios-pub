@@ -218,9 +218,11 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        let bottomInset = view.bounds.maxX - floatingMenu.triggerButton.frame.minX
-        collectionView.contentInset.bottom = bottomInset
-        
+        let bottomInset = view.bounds.maxY - floatingMenu.triggerButton.frame.minY - collectionView.safeAreaInsets.bottom
+        if bottomInset != collectionView.contentInset.bottom {
+            collectionView.contentInset.bottom = bottomInset
+        }
+
         guard collectionView.contentSize != .zero, shouldRestoreScrollPosition, let scrollPosition = Self.cachedScrollPositions[groupId] else {
             return
         }
@@ -252,8 +254,8 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
 
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {
         super.scrollViewDidScroll(scrollView)
-        
-        guard scrollView.contentSize.height > scrollView.bounds.size.height else {
+
+        guard scrollView.contentSize.height > scrollView.bounds.inset(by: scrollView.adjustedContentInset).height else {
             DispatchQueue.main.async { [weak self] in self?.floatingMenu.setAccessoryState(.accessorized, animated: true) }
             return
         }
