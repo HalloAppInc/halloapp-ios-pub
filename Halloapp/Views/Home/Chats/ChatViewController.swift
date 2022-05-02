@@ -601,8 +601,8 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         present(controller, animated: true)
     }
 
-    private func presentMediaExplorer(media: [ChatQuotedMedia], At index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
-        let controller = MediaExplorerController(media: media, index: index)
+    private func presentMediaExplorer(quotedMedia: [CommonMedia], At index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
+        let controller = MediaExplorerController(quotedMedia: quotedMedia, index: index)
         controller.delegate = delegate
 
         present(controller, animated: true)
@@ -1639,7 +1639,7 @@ extension ChatViewController: InboundMsgViewCellDelegate {
         guard let quoted = message.quoted else { return }
         guard quoted.media != nil else { return }
 
-        presentMediaExplorer(media: quoted.orderedMedia, At: index, withDelegate: delegate)
+        presentMediaExplorer(quotedMedia: quoted.orderedMedia, At: index, withDelegate: delegate)
     }
 
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, didLongPressOn msgId: String) {
@@ -1707,7 +1707,7 @@ extension ChatViewController: OutboundMsgViewCellDelegate {
         guard let quoted = message.quoted else { return }
         guard quoted.media != nil else { return }
 
-        presentMediaExplorer(media: quoted.orderedMedia, At: index, withDelegate: delegate)
+        presentMediaExplorer(quotedMedia: quoted.orderedMedia, At: index, withDelegate: delegate)
     }
 
     func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, didLongPressOn msgId: String) {

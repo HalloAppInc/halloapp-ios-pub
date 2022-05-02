@@ -227,10 +227,10 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         transitioningDelegate = self
     }
 
-    init(media: [ChatQuotedMedia], index: Int) {
-        self.media = media.map {
-            let url = $0.mediaUrl
-            let image: UIImage? = $0.type == .image ? UIImage(contentsOfFile: url.path) : nil
+    init(quotedMedia: [CommonMedia], index: Int) {
+        media = quotedMedia.map {
+            let url = $0.mediaURL
+            let image: UIImage? = $0.type == .image ? url.flatMap { UIImage(contentsOfFile: $0.path) } : nil
             return MediaExplorerMedia(url: url, image: image, type: ($0.type == .image ? .image : .video), size: .zero)
         }
         self.currentIndex = index
