@@ -2916,126 +2916,6 @@ public struct Server_ExternalSharePostContainer {
   fileprivate var _ogTagInfo: Server_OgTagInfo? = nil
 }
 
-public struct Server_WebClientInfo {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  public var action: Server_WebClientInfo.Action = .unknownAction
-
-  public var staticKey: Data = Data()
-
-  public var result: Server_WebClientInfo.Result = .unknown
-
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  public enum Action: SwiftProtobuf.Enum {
-    public typealias RawValue = Int
-    case unknownAction // = 0
-
-    /// Used by web client
-    case addKey // = 1
-
-    /// Used by web client
-    case isKeyAuthenticated // = 2
-
-    /// Used by mobile client
-    case authenticateKey // = 3
-
-    /// Used by web client and mobile client
-    case removeKey // = 4
-    case UNRECOGNIZED(Int)
-
-    public init() {
-      self = .unknownAction
-    }
-
-    public init?(rawValue: Int) {
-      switch rawValue {
-      case 0: self = .unknownAction
-      case 1: self = .addKey
-      case 2: self = .isKeyAuthenticated
-      case 3: self = .authenticateKey
-      case 4: self = .removeKey
-      default: self = .UNRECOGNIZED(rawValue)
-      }
-    }
-
-    public var rawValue: Int {
-      switch self {
-      case .unknownAction: return 0
-      case .addKey: return 1
-      case .isKeyAuthenticated: return 2
-      case .authenticateKey: return 3
-      case .removeKey: return 4
-      case .UNRECOGNIZED(let i): return i
-      }
-    }
-
-  }
-
-  public enum Result: SwiftProtobuf.Enum {
-    public typealias RawValue = Int
-    case unknown // = 0
-    case ok // = 1
-    case authenticated // = 2
-    case notAuthenticated // = 3
-    case UNRECOGNIZED(Int)
-
-    public init() {
-      self = .unknown
-    }
-
-    public init?(rawValue: Int) {
-      switch rawValue {
-      case 0: self = .unknown
-      case 1: self = .ok
-      case 2: self = .authenticated
-      case 3: self = .notAuthenticated
-      default: self = .UNRECOGNIZED(rawValue)
-      }
-    }
-
-    public var rawValue: Int {
-      switch self {
-      case .unknown: return 0
-      case .ok: return 1
-      case .authenticated: return 2
-      case .notAuthenticated: return 3
-      case .UNRECOGNIZED(let i): return i
-      }
-    }
-
-  }
-
-  public init() {}
-}
-
-#if swift(>=4.2)
-
-extension Server_WebClientInfo.Action: CaseIterable {
-  // The compiler won't synthesize support with the UNRECOGNIZED case.
-  public static var allCases: [Server_WebClientInfo.Action] = [
-    .unknownAction,
-    .addKey,
-    .isKeyAuthenticated,
-    .authenticateKey,
-    .removeKey,
-  ]
-}
-
-extension Server_WebClientInfo.Result: CaseIterable {
-  // The compiler won't synthesize support with the UNRECOGNIZED case.
-  public static var allCases: [Server_WebClientInfo.Result] = [
-    .unknown,
-    .ok,
-    .authenticated,
-    .notAuthenticated,
-  ]
-}
-
-#endif  // swift(>=4.2)
-
 public struct Server_Iq {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -3361,14 +3241,6 @@ public struct Server_Iq {
     set {payload = .externalSharePostContainer(newValue)}
   }
 
-  public var webClientInfo: Server_WebClientInfo {
-    get {
-      if case .webClientInfo(let v)? = payload {return v}
-      return Server_WebClientInfo()
-    }
-    set {payload = .webClientInfo(newValue)}
-  }
-
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Payload: Equatable {
@@ -3413,7 +3285,6 @@ public struct Server_Iq {
     case truncWhisperKeysCollection(Server_TruncWhisperKeysCollection)
     case externalSharePost(Server_ExternalSharePost)
     case externalSharePostContainer(Server_ExternalSharePostContainer)
-    case webClientInfo(Server_WebClientInfo)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Iq.OneOf_Payload, rhs: Server_Iq.OneOf_Payload) -> Bool {
@@ -3575,10 +3446,6 @@ public struct Server_Iq {
       }()
       case (.externalSharePostContainer, .externalSharePostContainer): return {
         guard case .externalSharePostContainer(let l) = lhs, case .externalSharePostContainer(let r) = rhs else { preconditionFailure() }
-        return l == r
-      }()
-      case (.webClientInfo, .webClientInfo): return {
-        guard case .webClientInfo(let l) = lhs, case .webClientInfo(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -5178,8 +5045,6 @@ public struct Server_HomeFeedRerequest {
 
   public var rerequestType: Server_HomeFeedRerequest.RerequestType = .unknownType
 
-  public var contentType: Server_HomeFeedRerequest.ContentType = .unknown
-
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   /// To capture the type of decryption failure.
@@ -5218,37 +5083,6 @@ public struct Server_HomeFeedRerequest {
 
   }
 
-  public enum ContentType: SwiftProtobuf.Enum {
-    public typealias RawValue = Int
-    case unknown // = 0
-    case post // = 1
-    case comment // = 2
-    case UNRECOGNIZED(Int)
-
-    public init() {
-      self = .unknown
-    }
-
-    public init?(rawValue: Int) {
-      switch rawValue {
-      case 0: self = .unknown
-      case 1: self = .post
-      case 2: self = .comment
-      default: self = .UNRECOGNIZED(rawValue)
-      }
-    }
-
-    public var rawValue: Int {
-      switch self {
-      case .unknown: return 0
-      case .post: return 1
-      case .comment: return 2
-      case .UNRECOGNIZED(let i): return i
-      }
-    }
-
-  }
-
   public init() {}
 }
 
@@ -5260,15 +5094,6 @@ extension Server_HomeFeedRerequest.RerequestType: CaseIterable {
     .unknownType,
     .payload,
     .senderState,
-  ]
-}
-
-extension Server_HomeFeedRerequest.ContentType: CaseIterable {
-  // The compiler won't synthesize support with the UNRECOGNIZED case.
-  public static var allCases: [Server_HomeFeedRerequest.ContentType] = [
-    .unknown,
-    .post,
-    .comment,
   ]
 }
 
@@ -6688,9 +6513,6 @@ extension Server_OgTagInfo: @unchecked Sendable {}
 extension Server_ExternalSharePost: @unchecked Sendable {}
 extension Server_ExternalSharePost.Action: @unchecked Sendable {}
 extension Server_ExternalSharePostContainer: @unchecked Sendable {}
-extension Server_WebClientInfo: @unchecked Sendable {}
-extension Server_WebClientInfo.Action: @unchecked Sendable {}
-extension Server_WebClientInfo.Result: @unchecked Sendable {}
 extension Server_Iq: @unchecked Sendable {}
 extension Server_Iq.OneOf_Payload: @unchecked Sendable {}
 extension Server_Iq.TypeEnum: @unchecked Sendable {}
@@ -6727,7 +6549,6 @@ extension Server_GroupFeedRerequest.RerequestType: @unchecked Sendable {}
 extension Server_GroupFeedRerequest.ContentType: @unchecked Sendable {}
 extension Server_HomeFeedRerequest: @unchecked Sendable {}
 extension Server_HomeFeedRerequest.RerequestType: @unchecked Sendable {}
-extension Server_HomeFeedRerequest.ContentType: @unchecked Sendable {}
 extension Server_SeenReceipt: @unchecked Sendable {}
 extension Server_DeliveryReceipt: @unchecked Sendable {}
 extension Server_PlayedReceipt: @unchecked Sendable {}
@@ -10945,69 +10766,6 @@ extension Server_ExternalSharePostContainer: SwiftProtobuf.Message, SwiftProtobu
   }
 }
 
-extension Server_WebClientInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".WebClientInfo"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "action"),
-    2: .standard(proto: "static_key"),
-    3: .same(proto: "result"),
-  ]
-
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularEnumField(value: &self.action) }()
-      case 2: try { try decoder.decodeSingularBytesField(value: &self.staticKey) }()
-      case 3: try { try decoder.decodeSingularEnumField(value: &self.result) }()
-      default: break
-      }
-    }
-  }
-
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if self.action != .unknownAction {
-      try visitor.visitSingularEnumField(value: self.action, fieldNumber: 1)
-    }
-    if !self.staticKey.isEmpty {
-      try visitor.visitSingularBytesField(value: self.staticKey, fieldNumber: 2)
-    }
-    if self.result != .unknown {
-      try visitor.visitSingularEnumField(value: self.result, fieldNumber: 3)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  public static func ==(lhs: Server_WebClientInfo, rhs: Server_WebClientInfo) -> Bool {
-    if lhs.action != rhs.action {return false}
-    if lhs.staticKey != rhs.staticKey {return false}
-    if lhs.result != rhs.result {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension Server_WebClientInfo.Action: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "UNKNOWN_ACTION"),
-    1: .same(proto: "ADD_KEY"),
-    2: .same(proto: "IS_KEY_AUTHENTICATED"),
-    3: .same(proto: "AUTHENTICATE_KEY"),
-    4: .same(proto: "REMOVE_KEY"),
-  ]
-}
-
-extension Server_WebClientInfo.Result: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "UNKNOWN"),
-    1: .same(proto: "OK"),
-    2: .same(proto: "AUTHENTICATED"),
-    3: .same(proto: "NOT_AUTHENTICATED"),
-  ]
-}
-
 extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".Iq"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -11052,7 +10810,6 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
     42: .standard(proto: "trunc_whisper_keys_collection"),
     43: .standard(proto: "external_share_post"),
     44: .standard(proto: "external_share_post_container"),
-    45: .standard(proto: "web_client_info"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -11570,19 +11327,6 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
           self.payload = .externalSharePostContainer(v)
         }
       }()
-      case 45: try {
-        var v: Server_WebClientInfo?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .webClientInfo(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .webClientInfo(v)
-        }
-      }()
       default: break
       }
     }
@@ -11755,10 +11499,6 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
     case .externalSharePostContainer?: try {
       guard case .externalSharePostContainer(let v)? = self.payload else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 44)
-    }()
-    case .webClientInfo?: try {
-      guard case .webClientInfo(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 45)
     }()
     case nil: break
     }
@@ -13516,7 +13256,6 @@ extension Server_HomeFeedRerequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "id"),
     2: .standard(proto: "rerequest_type"),
-    4: .standard(proto: "content_type"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -13527,7 +13266,6 @@ extension Server_HomeFeedRerequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
       case 2: try { try decoder.decodeSingularEnumField(value: &self.rerequestType) }()
-      case 4: try { try decoder.decodeSingularEnumField(value: &self.contentType) }()
       default: break
       }
     }
@@ -13540,16 +13278,12 @@ extension Server_HomeFeedRerequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
     if self.rerequestType != .unknownType {
       try visitor.visitSingularEnumField(value: self.rerequestType, fieldNumber: 2)
     }
-    if self.contentType != .unknown {
-      try visitor.visitSingularEnumField(value: self.contentType, fieldNumber: 4)
-    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Server_HomeFeedRerequest, rhs: Server_HomeFeedRerequest) -> Bool {
     if lhs.id != rhs.id {return false}
     if lhs.rerequestType != rhs.rerequestType {return false}
-    if lhs.contentType != rhs.contentType {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -13560,14 +13294,6 @@ extension Server_HomeFeedRerequest.RerequestType: SwiftProtobuf._ProtoNameProvid
     0: .same(proto: "UNKNOWN_TYPE"),
     1: .same(proto: "PAYLOAD"),
     2: .same(proto: "SENDER_STATE"),
-  ]
-}
-
-extension Server_HomeFeedRerequest.ContentType: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "UNKNOWN"),
-    1: .same(proto: "POST"),
-    2: .same(proto: "COMMENT"),
   ]
 }
 
@@ -15116,3 +14842,4 @@ extension Server_MarketingAlert.TypeEnum: SwiftProtobuf._ProtoNameProviding {
     2: .same(proto: "SHARE_POST"),
   ]
 }
+
