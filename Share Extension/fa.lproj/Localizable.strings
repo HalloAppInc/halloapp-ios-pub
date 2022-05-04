@@ -121,8 +121,38 @@
 /* Button title. Refers to discarding photo/video edits in media composer. */
 "media.button.discard" = "لغو";
 
+/* Button title. Refers to resetting photo / video to original version. */
+"media.button.reset" = "بازنشانی";
+
+/* Button title. Refers to undoing an edit of a photo. */
+"media.button.undo" = "بازگشت";
+
+/* Confirmation prompt in media composer. */
+"media.discard.confirmation" = "میخواهید ویرایش را لغو کنید؟";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.annotate" = "ویرایش";
+
+/* Accessibility label for X (Close) button in media editor. */
+"media.voiceover.button.close" = "بستن";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.draw" = "نقاشی";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.flip" = "وارونه";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.mute" = "بی صدا";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.rotate" = "چرخاندن";
+
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "به شبکه دوست‌های واقعی من در هالواپ بپیوندید. لینک دانلود رایگان halloapp.com/dl";
+
+/* Title on edit button */
+"share.composer.button.edit" = "ویرایش";
 
 /* Label above the list with whom you share */
 "share.composer.destinations.label" = "به اشتراک گذاشتن با";

@@ -782,7 +782,7 @@
 "group.invite.link.copied" = "In die Zwischenablage kopiert";
 
 /* Text to describe what the group invite link is */
-"group.invite.link.description" = "Jeder auf HalloApp kann der Gruppe über diesen Link beitreten.";
+"group.invite.link.description" = "Jeder HalloApp-Nutzer kann diesem Link folgen, um dieser Gruppe beizutreten. Sie erhalten jedoch nicht automatisch Inhalte, die vor dem Beitritt zur Gruppe veröffentlicht wurden.";
 
 /* Text label above the group link section in group invite screen */
 "group.invite.link.label" = "GRUPPENLINK";
@@ -1013,7 +1013,7 @@
 "media.voiceover.button.draw" = "Zeichnen";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
-"media.voiceover.button.flip" = "Umdrehen";
+"media.voiceover.button.flip" = "Spiegeln";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.mute" = "Stumm";
@@ -1029,6 +1029,9 @@
 
 /* Message action. Verb. */
 "message.reply" = "Antworten";
+
+/* Text on loading screen while migrating data */
+"migration.inProgress" = "Daten optimieren…";
 
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Nachricht senden";
@@ -1222,8 +1225,7 @@
 /* A label for the button which leads to the page showing groups in common */
 "profile.groups.in.common" = "Gemeinsame Gruppen";
 
-/* This is a verb.  The text is clickable, under a contact name and starts a video call with that contact. It should not be translated as a noun.
-   This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun. */
+/* This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun. */
 "profile.header.call.user" = "Sprachanruf";
 
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */

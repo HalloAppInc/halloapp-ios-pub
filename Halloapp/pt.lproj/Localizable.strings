@@ -1030,6 +1030,9 @@
 /* Message action. Verb. */
 "message.reply" = "Responder";
 
+/* Text on loading screen while migrating data */
+"migration.inProgress" = "Otimizando dados…";
+
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Enviar mensagem";
 
@@ -1222,8 +1225,7 @@
 /* A label for the button which leads to the page showing groups in common */
 "profile.groups.in.common" = "Grupos em comum";
 
-/* This is a verb.  The text is clickable, under a contact name and starts a video call with that contact. It should not be translated as a noun.
-   This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun. */
+/* This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun. */
 "profile.header.call.user" = "chamada de voz";
 
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */

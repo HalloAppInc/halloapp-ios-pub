@@ -121,8 +121,38 @@
 /* Button title. Refers to discarding photo/video edits in media composer. */
 "media.button.discard" = "Descartar";
 
+/* Button title. Refers to resetting photo / video to original version. */
+"media.button.reset" = "Redefinir";
+
+/* Button title. Refers to undoing an edit of a photo. */
+"media.button.undo" = "Desfazer";
+
+/* Confirmation prompt in media composer. */
+"media.discard.confirmation" = "Gostaria de descartar as suas edições?";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.annotate" = "Anotar";
+
+/* Accessibility label for X (Close) button in media editor. */
+"media.voiceover.button.close" = "Fechar";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.draw" = "Desenhar";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.flip" = "Virar";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.mute" = "Mudo";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.rotate" = "Girar";
+
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Junte-se à minha rede de relacionamento real no HalloApp. Baixe gratuitamente no site halloapp.com/dl";
+
+/* Title on edit button */
+"share.composer.button.edit" = "Editar";
 
 /* Label above the list with whom you share */
 "share.composer.destinations.label" = "Partilhar com";

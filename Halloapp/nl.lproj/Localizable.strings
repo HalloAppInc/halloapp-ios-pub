@@ -782,7 +782,7 @@
 "group.invite.link.copied" = "Gekopieerd Naar Klembord";
 
 /* Text to describe what the group invite link is */
-"group.invite.link.description" = "Iedereen met HalloApp kan deze link gebruiken om deel te nemen aan deze groep.";
+"group.invite.link.description" = "Iedereen met HalloApp kan deze link gebruiken om deel te nemen aan deze groep. Ze zullen echter niet automatisch de inhoud van de groep van vóór hun deelname ontvangen.";
 
 /* Text label above the group link section in group invite screen */
 "group.invite.link.label" = "GROEPSLINK";
@@ -1030,6 +1030,9 @@
 /* Message action. Verb. */
 "message.reply" = "Beantwoorden";
 
+/* Text on loading screen while migrating data */
+"migration.inProgress" = "Gegevens Optimaliseren…";
+
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Bericht Sturen";
 
@@ -1222,8 +1225,7 @@
 /* A label for the button which leads to the page showing groups in common */
 "profile.groups.in.common" = "Gemeenschappelijke Groepen";
 
-/* This is a verb.  The text is clickable, under a contact name and starts a video call with that contact. It should not be translated as a noun.
-   This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun. */
+/* This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun. */
 "profile.header.call.user" = "bellen";
 
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */

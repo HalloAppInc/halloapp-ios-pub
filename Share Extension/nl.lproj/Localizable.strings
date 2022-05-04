@@ -130,6 +130,9 @@
 /* Confirmation prompt in media composer. */
 "media.discard.confirmation" = "Wil je je wijzigingen weggooien?";
 
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.annotate" = "Tekst toevoegen";
+
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Sluiten";
 
