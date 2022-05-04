@@ -823,7 +823,7 @@ class MediaPickerViewController: UIViewController {
 
     @objc private func cameraAction() {
         let controller = CameraViewController(
-            showCancelButton: false,
+            configuration: .init(showCancelButton: false),
             didFinish: { [weak self] in self?.dismiss(animated: true) },
             didPickImage: { [weak self] image in
                 guard let self = self else { return }

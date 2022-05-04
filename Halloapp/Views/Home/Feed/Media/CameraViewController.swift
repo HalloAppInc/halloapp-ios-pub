@@ -38,8 +38,22 @@ fileprivate struct CameraViewLayoutConstants {
     static let buttonColorDark = Color(.sRGB, white: 0.176)
 }
 
+extension CameraViewController {
+    enum Format { case normal, square }
+    
+    class Configuration: ObservableObject {
+        let showCancelButton: Bool
+        let format: Format
+        
+        init(showCancelButton: Bool = true, format: Format = .normal) {
+            self.showCancelButton = showCancelButton
+            self.format = format
+        }
+    }
+}
+
 class CameraViewController: UIViewController {
-    private var showCancelButton = false
+    let configuration: Configuration
     private let didFinish: () -> Void
     private let didPickImage: DidPickImageCallback
     private let didPickVideo: DidPickVideoCallback
@@ -47,12 +61,12 @@ class CameraViewController: UIViewController {
     private var defaultBackButton: UIBarButtonItem?
     private var landscapeBackButton: UIBarButtonItem?
 
-    init(showCancelButton: Bool,
+    init(configuration: Configuration,
          didFinish: @escaping () -> Void,
          didPickImage: @escaping DidPickImageCallback,
          didPickVideo: @escaping DidPickVideoCallback) {
 
-        self.showCancelButton = showCancelButton
+        self.configuration = configuration
         self.didFinish = didFinish
         self.didPickImage = didPickImage
         self.didPickVideo = didPickVideo
@@ -79,7 +93,7 @@ class CameraViewController: UIViewController {
                 self?.setTitle(orientation: orientation)
                 self?.setBackBarButton(orientation: orientation)
             }
-        )
+        ).environmentObject(configuration)
 
         let cameraViewController = UIHostingController(rootView: cameraView)
         addChild(cameraViewController)
@@ -94,7 +108,7 @@ class CameraViewController: UIViewController {
     }
 
     private func backAction() {
-        if showCancelButton {
+        if configuration.showCancelButton {
             cancelAction()
         } else {
             navigationController?.popViewController(animated: true)
@@ -142,7 +156,7 @@ class CameraViewController: UIViewController {
         guard let defaultBackButton = defaultBackButton,
             let landscapeBackButton = landscapeBackButton else { return }
 
-        if showCancelButton {
+        if configuration.showCancelButton {
             if orientation.isLandscape {
                 navigationItem.leftBarButtonItem = landscapeBackButton
             } else if orientation.isPortrait {
@@ -200,7 +214,7 @@ fileprivate class CameraModel: ObservableObject {
     
     private func orientation(from data: CMDeviceMotion) -> UIDeviceOrientation {
         let gravity = data.gravity
-        let threshold = 0.6
+        let threshold = 0.75
         
         if gravity.x >= threshold {
             return .landscapeRight
@@ -236,6 +250,7 @@ fileprivate struct CameraView: View {
                                         width: 2 * CameraViewLayoutConstants.captureButtonSize,
                                        height: 2 * CameraViewLayoutConstants.captureButtonSize)
 
+    @EnvironmentObject var configuration: CameraViewController.Configuration
     @Environment(\.colorScheme) var colorScheme
     @ObservedObject var cameraState = CameraModel()
     @ObservedObject var alertState = AlertStateModel()
@@ -244,8 +259,9 @@ fileprivate struct CameraView: View {
     @State var rotationAngle = Angle(degrees: 0)
 
     private let plainButtonStyle = PlainButtonStyle()
-    private static func getCameraControllerHeight(_ width: CGFloat) -> CGFloat {
-        return ((width - 4 * CameraViewLayoutConstants.horizontalPadding) * 4 / 3).rounded()
+    private func getCameraControllerHeight(_ width: CGFloat) -> CGFloat {
+        let aspectRatio: CGFloat = configuration.format == .normal ? 4 / 3 : 1
+        return ((width - 4 * CameraViewLayoutConstants.horizontalPadding) * aspectRatio).rounded()
     }
 
     private func updateRotationAngle(orientation: UIDeviceOrientation) {
@@ -311,9 +327,10 @@ fileprivate struct CameraView: View {
                         goBack: self.goBack,
                         cameraState: self.cameraState,
                         alertState: self.alertState)
-                    .frame(maxWidth: .infinity, maxHeight: CameraView.getCameraControllerHeight(geometry.size.width))
+                    .frame(maxWidth: .infinity, maxHeight: getCameraControllerHeight(geometry.size.width))
                     .padding(.horizontal, CameraViewLayoutConstants.horizontalPadding)
                     .padding(.vertical, CameraViewLayoutConstants.verticalPadding)
+                    
 
                     self.controls
                 }
@@ -393,12 +410,14 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
     let didPickVideo: DidPickVideoCallback
     let goBack: () -> Void
 
+    @EnvironmentObject var configuration: CameraViewController.Configuration
     @ObservedObject var cameraState: CameraModel
     var alertState: AlertStateModel
 
     func makeUIViewController(context: Context) -> CameraController {
         let controller = CameraController(cameraDelegate: context.coordinator,
-                                             orientation: cameraState.orientation)
+                                             orientation: cameraState.orientation,
+                                                  format: configuration.format)
         
         return controller
     }
@@ -427,7 +446,7 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
             cameraState.shouldRecordVideo != context.coordinator.isRecordingVideo {
 
             if cameraState.shouldRecordVideo {
-                cameraController.startRecordingVideo(CameraControllerRepresentable.videoOutputURL)
+                cameraController.startRecordingVideo(to: CameraControllerRepresentable.videoOutputURL)
                 if cameraController.isRecordingVideo {
                     context.coordinator.isRecordingVideo = true
                 } else {
@@ -482,8 +501,8 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
                 parent.cameraState.shouldTakePhoto = true
             }
         }
-
-        func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
+        
+        func finishedTakingPhoto(_ photo: AVCapturePhoto, error: Error?, cropRect: CGRect?) {
             DDLogInfo("CameraControllerRepresentable/Coordinator/photoOutput")
 
             defer {
@@ -492,7 +511,7 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
                     self.parent.cameraState.shouldTakePhoto = false
                 }
             }
-
+            
             guard error == nil else {
                 DDLogError("CameraControllerRepresentable/Coordinator/photoOutput: \(error!)")
                 return showCameraFailureAlert(mediaType: .photo)
@@ -502,20 +521,32 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
                 DDLogError("CameraControllerRepresentable/Coordinator/photoOutput: fileDataRepresentation returned nil")
                 return showCameraFailureAlert(mediaType: .photo)
             }
-
-            guard let uiImage = UIImage(data: photoData) else {
+            
+            guard var uiImage = UIImage(data: photoData) else {
                 DDLogError("CameraControllerRepresentable/Coordinator/photoOutput: could not init UIImage from photoData")
                 return showCameraFailureAlert(mediaType: .photo)
             }
-
+            
+            if let cropRect = cropRect, let cgImage = uiImage.cgImage {
+                // crop to square
+                let width = CGFloat(cgImage.width)
+                let height = CGFloat(cgImage.height)
+                let finalCropRect = CGRect(x: cropRect.origin.x * width,
+                                           y: cropRect.origin.y * height,
+                                       width: cropRect.size.width * width,
+                                      height: cropRect.size.height * height)
+                
+                if let croppedCGImage = cgImage.cropping(to: finalCropRect) {
+                    uiImage = UIImage(cgImage: croppedCGImage, scale: 1.0, orientation: uiImage.imageOrientation)
+                }
+            }
+            
             DispatchQueue.main.async {
                 self.parent.didPickImage(uiImage)
             }
         }
-
-        func fileOutput(_ output: AVCaptureFileOutput,
-                        didFinishRecordingTo outputFileURL: URL,
-                        from connections: [AVCaptureConnection], error: Error?) {
+        
+        func finishedRecordingVideo(to outputFileURL: URL, error: Error?) {
             DDLogInfo("CameraControllerRepresentable/Coordinator/fileOutput")
 
             defer {
@@ -524,7 +555,7 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
                     self.parent.cameraState.shouldRecordVideo = false
                 }
             }
-
+            
             if error != nil {
                 DDLogError("CameraControllerRepresentable/Coordinator/fileOutput: \(error!)")
             }

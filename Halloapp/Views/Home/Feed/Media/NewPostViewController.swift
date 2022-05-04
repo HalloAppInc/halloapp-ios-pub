@@ -169,7 +169,7 @@ final class NewPostViewController: UIViewController {
 
     private func makeNewCameraViewController() -> UIViewController {
         return CameraViewController(
-            showCancelButton: state.isPostComposerCancellable,
+            configuration: .init(showCancelButton: state.isPostComposerCancellable, format: .normal),
             didFinish: { [weak self] in self?.cleanupAndFinish() },
             didPickImage: { [weak self] uiImage in self?.onCameraImagePicked(uiImage) },
             didPickVideo: { [weak self] videoURL in self?.onCameraVideoPicked(videoURL) }
