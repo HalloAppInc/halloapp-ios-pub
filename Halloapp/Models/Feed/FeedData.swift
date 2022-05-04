@@ -1549,8 +1549,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 $0.read = true
             }
             self.save(managedObjectContext)
-
-            UNUserNotificationCenter.current().removeDeliveredFeedNotifications(commentIds: notifications.compactMap({ $0.commentID }))
+            UNUserNotificationCenter.current().removeDeliveredCommentNotifications(commentIds: notifications.compactMap({ $0.commentID }))
         }
     }
 

@@ -523,6 +523,7 @@ final class NotificationProtoService: ProtoServiceCore {
         notificationContent.badge = AppExtensionContext.shared.applicationIconBadgeNumber as NSNumber?
         notificationContent.sound = UNNotificationSound.default
         notificationContent.userInfo[NotificationMetadata.contentTypeKey] = metadata.contentType.rawValue
+        notificationContent.userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
         self.pendingNotificationContent[metadata.contentId] = notificationContent
         return notificationContent
     }
@@ -534,6 +535,7 @@ final class NotificationProtoService: ProtoServiceCore {
         notificationContent.badge = AppExtensionContext.shared.applicationIconBadgeNumber as NSNumber?
         notificationContent.sound = UNNotificationSound.default
         notificationContent.userInfo[NotificationMetadata.contentTypeKey] = metadata.contentType.rawValue
+        notificationContent.userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
         self.pendingNotificationContent[metadata.contentId] = notificationContent
         return notificationContent
     }
@@ -546,6 +548,7 @@ final class NotificationProtoService: ProtoServiceCore {
             notificationContent.populate(from: metadata, contactStore: AppExtensionContext.shared.contactStore)
             notificationContent.badge = AppExtensionContext.shared.applicationIconBadgeNumber as NSNumber?
             notificationContent.sound = UNNotificationSound.default
+            notificationContent.userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
             self.pendingNotificationContent[metadata.contentId] = notificationContent
 
             let notificationCenter = UNUserNotificationCenter.current()
@@ -586,6 +589,7 @@ final class NotificationProtoService: ProtoServiceCore {
                 notificationContent.populateFeedCommentBody(from: commentData, using: metadata, contactStore: AppExtensionContext.shared.contactStore)
                 notificationContent.badge = AppExtensionContext.shared.applicationIconBadgeNumber as NSNumber?
                 notificationContent.sound = UNNotificationSound.default
+                notificationContent.userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
                 self.pendingNotificationContent[metadata.contentId] = notificationContent
 
                 let notificationCenter = UNUserNotificationCenter.current()

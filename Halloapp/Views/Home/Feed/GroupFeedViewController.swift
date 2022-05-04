@@ -161,7 +161,7 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
         updateTopNavShadow()
 
         MainAppContext.shared.chatData.syncGroupIfNeeded(for: groupId)
-        UNUserNotificationCenter.current().removeDeliveredChatNotifications(groupId: groupId)
+        UNUserNotificationCenter.current().removeDeliveredGroupPostNotifications(groupId: groupId)
         updateFloatingActionMenu()
     }
 
@@ -510,7 +510,7 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
     private func markAllPostsAsViewed() {
         for feedPost in feedDataSource.posts {
             MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
-            UNUserNotificationCenter.current().removeDeliveredFeedNotifications(postId: feedPost.id)
+            UNUserNotificationCenter.current().removeDeliveredPostNotifications(postId: feedPost.id)
         }
     }
 }

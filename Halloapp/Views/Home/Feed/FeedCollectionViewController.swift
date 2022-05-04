@@ -621,7 +621,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         guard let cell = self.collectionView.cellForItem(at: indexPath) else { return }
         guard self.isOnscreen(cell: cell) else { return }
         MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
-        UNUserNotificationCenter.current().removeDeliveredFeedNotifications(postId: feedPost.id)
+        UNUserNotificationCenter.current().removeDeliveredPostNotifications(postId: feedPost.id)
     }
     
     private func isOnscreen(cell: UICollectionViewCell) -> Bool {

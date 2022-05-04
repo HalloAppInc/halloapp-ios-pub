@@ -123,30 +123,31 @@ extension UNUserNotificationCenter {
         }
     }
 
-    func removeDeliveredFeedNotifications(postId: FeedPostID) {
-        removeDeliveredNotifications { (notificationMetadata) -> (Bool) in
-            return notificationMetadata.feedPostId == postId
-        }
+    func removeDeliveredPostNotifications(postId: FeedPostID) {
+        removeDeliveredNotifications(withIdentifiers: [postId])
     }
 
-    func removeDeliveredFeedNotifications(commentIds: [FeedPostCommentID]) {
-        removeDeliveredNotifications { (notificationMetadata) -> (Bool) in
-            guard let commentId = notificationMetadata.feedPostCommentId else {
-                return false
-            }
-            return commentIds.contains(commentId)
-        }
+    func removeDeliveredPostNotifications(postIds: [FeedPostID]) {
+        removeDeliveredNotifications(withIdentifiers: postIds)
+    }
+
+    func removeDeliveredCommentNotifications(commentId: FeedPostCommentID) {
+        removeDeliveredNotifications(withIdentifiers: [commentId])
+    }
+
+    func removeDeliveredCommentNotifications(commentIds: [FeedPostCommentID]) {
+        removeDeliveredNotifications(withIdentifiers: commentIds)
     }
 
     func removeDeliveredChatNotifications(fromUserId: UserID) {
         removeDeliveredNotifications { (notificationMetadata) -> (Bool) in
-            return notificationMetadata.fromId == fromUserId
+            return notificationMetadata.fromId == fromUserId && notificationMetadata.isChatNotification
         }
     }
 
-    func removeDeliveredChatNotifications(groupId: GroupID) {
+    func removeDeliveredGroupPostNotifications(groupId: GroupID) {
         removeDeliveredNotifications { (notificationMetadata) -> (Bool) in
-            return notificationMetadata.groupId == groupId
+            return notificationMetadata.groupId == groupId && notificationMetadata.isPostNotification
         }
     }
 }

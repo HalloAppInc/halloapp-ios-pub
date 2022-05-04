@@ -663,6 +663,24 @@ class NotificationMetadata: Codable {
 
 extension NotificationMetadata {
 
+    var isPostNotification: Bool {
+        switch contentType {
+        case .feedPost, .groupFeedPost, .feedPostRetract, .groupFeedPostRetract:
+            return true
+        case .feedComment, .groupFeedComment, .feedCommentRetract, .groupFeedCommentRetract, .chatMessage, .groupChatMessage, .chatMessageRetract, .groupChatMessageRetract, .newFriend, .newInvitee, .newContact, .groupAdd, .chatRerequest, .missedAudioCall, .missedVideoCall:
+            return false
+        }
+    }
+
+    var isCommentNotification: Bool {
+        switch contentType {
+        case .feedComment, .groupFeedComment, .feedCommentRetract, .groupFeedCommentRetract:
+            return true
+        case .feedPost, .groupFeedPost, .feedPostRetract, .groupFeedPostRetract, .chatMessage, .groupChatMessage, .chatMessageRetract, .groupChatMessageRetract, .newFriend, .newInvitee, .newContact, .groupAdd, .chatRerequest, .missedAudioCall, .missedVideoCall:
+            return false
+        }
+    }
+
     var isFeedNotification: Bool {
         switch contentType {
         case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .feedPostRetract, .feedCommentRetract, .groupFeedPostRetract, .groupFeedCommentRetract:
