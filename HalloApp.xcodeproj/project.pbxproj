@@ -23,6 +23,7 @@
 		24AA69DC24DDC6DA00ED65CE /* SharedAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1C82334192000805FF9 /* SharedAssets.xcassets */; };
 		24D743E024B3D199001111BF /* Share Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 24D743D624B3D199001111BF /* Share Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		320AC73927D17EC30069048D /* HalloAppClip.app in Embed AppClip */ = {isa = PBXBuildFile; fileRef = 329E03F8268247BC00C2D250 /* HalloAppClip.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		32151C1D28207B330057D794 /* ChatViewControllerNew.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32151C1C28207B330057D794 /* ChatViewControllerNew.swift */; };
 		321A70112704FF13005603B8 /* FeedLinkPreview+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 321A70102704FF13005603B8 /* FeedLinkPreview+CoreDataProperties.swift */; };
 		321A70132704FF3B005603B8 /* FeedLinkPreview+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 321A70122704FF3B005603B8 /* FeedLinkPreview+CoreDataClass.swift */; };
 		322DDDE52739A2A6006BE1E0 /* ChatLinkPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 322DDDE42739A2A6006BE1E0 /* ChatLinkPreviewView.swift */; };
@@ -604,6 +605,7 @@
 		24AA69D224DCC1B500ED65CE /* XMPPChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPChatMessage.swift; sourceTree = "<group>"; };
 		24D743D624B3D199001111BF /* Share Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Share Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		24D743DD24B3D199001111BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		32151C1C28207B330057D794 /* ChatViewControllerNew.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewControllerNew.swift; sourceTree = "<group>"; };
 		321A700E2704FD3A005603B8 /* Feed5.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed5.xcdatamodel; sourceTree = "<group>"; };
 		321A70102704FF13005603B8 /* FeedLinkPreview+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedLinkPreview+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		321A70122704FF3B005603B8 /* FeedLinkPreview+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedLinkPreview+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -1870,6 +1872,7 @@
 				EA79C6FC2554E89400E0525F /* Localizations+Chat.swift */,
 				322DDDE42739A2A6006BE1E0 /* ChatLinkPreviewView.swift */,
 				68610B8E27A12DD3007019F4 /* ChatCallCell.swift */,
+				32151C1C28207B330057D794 /* ChatViewControllerNew.swift */,
 			);
 			path = Chats;
 			sourceTree = "<group>";
@@ -2839,6 +2842,7 @@
 				68B5C232264DC710004C7939 /* QRCodeScannerViewController.swift in Sources */,
 				EA62C28C2563577D008EA9C9 /* MsgUIProtocol.swift in Sources */,
 				76DFA00524195F2400F49CA4 /* XMPPContactSyncRequest.swift in Sources */,
+				32151C1D28207B330057D794 /* ChatViewControllerNew.swift in Sources */,
 				E5FC71E9268A986000B72B12 /* ExportDataView.swift in Sources */,
 				EAD476D324588E0000EF8591 /* ChatMediaSlider.swift in Sources */,
 				761905A32459EB07008FC600 /* InputTextView.swift in Sources */,

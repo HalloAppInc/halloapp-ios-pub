@@ -24,13 +24,15 @@ private enum MenuTitles {
     static var clearPushNamesAndNumbers: String { "Clear Pushnames/numbers" }
     static var clearHiddenSuggestedContacts: String { "Clear hidden suggested contacts" }
     static var resetFavoritesZeroState: String { "Reset Favorites Zero State" }
-    static var addFavoritesNotification: String { "Add favorites notification" }
+    static var addFavoritesNotification: String { "Add Favorites Notification" }
+    static var enableNewChat: String { "Enable New Chat" }
     static var logOut: String { "Log Out" }
 }
 
 struct DeveloperMenuView: View {
 
     @State var useTestServer = MainAppContext.shared.coreService.useTestServer
+    @State var enableNewChat = AppContext.shared.userDefaults.bool(forKey: "enableNewChat")
 
     // TODO: Temporarily turn off and potentially remove
 //    @ObservedObject var videoSettings = VideoSettings.shared
@@ -185,6 +187,11 @@ struct DeveloperMenuView: View {
                 } label: {
                     Text(MenuTitles.addFavoritesNotification)
                 }
+
+                Toggle(MenuTitles.enableNewChat, isOn: $enableNewChat)
+                    .onReceive(Just(self.enableNewChat)) { value in
+                        AppContext.shared.userDefaults.set(value, forKey: "enableNewChat")
+                    }
 
                 // Log Out
                 Button(action: {

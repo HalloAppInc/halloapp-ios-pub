@@ -198,10 +198,16 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
                 guard let conversationID = ConversationID(rawConversationID), conversationID.conversationType == .chat else { return }
                 
                 self?.view.window?.rootViewController?.dismiss(animated: true, completion: nil)
-                
-                let vc = ChatViewController(for: conversationID.id, with: nil, at: 0)
-                vc.delegate = self
-                self?.navigationController?.pushViewController(vc, animated: true)
+                guard let self = self else { return }
+                if AppContext.shared.userDefaults.bool(forKey: "enableNewChat") {
+                    let vc = ChatViewControllerNew(for: conversationID.id, with: nil, at: 0)
+                    vc.delegate = self
+                    self.navigationController?.pushViewController(vc, animated: true)
+                } else {
+                    let vc = ChatViewController(for: conversationID.id, with: nil, at: 0)
+                    vc.delegate = self
+                    self.navigationController?.pushViewController(vc, animated: true)
+                }
             })
         )
         
@@ -497,9 +503,15 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         DDLogInfo("ChatListViewController/routeTo/\(userID)")
 
         navigationController?.popToRootViewController(animated: false)
-        let vc = ChatViewController(for: userID, with: nil, at: 0)
-        vc.delegate = self
-        navigationController?.pushViewController(vc, animated: animated)
+        if AppContext.shared.userDefaults.bool(forKey: "enableNewChat") {
+            let vc = ChatViewControllerNew(for: userID, with: nil, at: 0)
+            vc.delegate = self
+            self.navigationController?.pushViewController(vc, animated: animated)
+        } else {
+            let vc = ChatViewController(for: userID, with: nil, at: 0)
+            vc.delegate = self
+            self.navigationController?.pushViewController(vc, animated: animated)
+        }
     }
 
 }
@@ -555,9 +567,15 @@ extension ChatListViewController: UITableViewDelegate {
 
         guard let chatWithUserId = chatThread.userID else { return }
 
-        let vc = ChatViewController(for: chatWithUserId, with: nil, at: 0)
-        vc.delegate = self
-        navigationController?.pushViewController(vc, animated: true)
+        if AppContext.shared.userDefaults.bool(forKey: "enableNewChat") {
+            let vc = ChatViewControllerNew(for: chatWithUserId, with: nil, at: 0)
+            vc.delegate = self
+            self.navigationController?.pushViewController(vc, animated: true)
+        } else {
+            let vc = ChatViewController(for: chatWithUserId, with: nil, at: 0)
+            vc.delegate = self
+            self.navigationController?.pushViewController(vc, animated: true)
+        }
 
         tableView.deselectRow(at: indexPath, animated: true)
     }
