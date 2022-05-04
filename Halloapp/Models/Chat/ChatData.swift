@@ -5179,9 +5179,10 @@ extension ChatData: HalloChatDelegate {
             if let serverPost = post.serverPost {
                 var serverGroupFeedItem = Server_GroupFeedItem()
                 switch post.content {
-                case .unsupported, .waiting:
+                case .unsupported, .waiting, .moment:
                     // This cannot happen - since we are always sharing our own content.
                     // our own content can never be unsupported or waiting
+                    // moments are only for the home feed
                     DDLogError("ChatData/shareGroupFeedItems/\(groupID)/post: \(post.id)/invalid content here: \(post.content)")
                     continue
                 case .retracted:

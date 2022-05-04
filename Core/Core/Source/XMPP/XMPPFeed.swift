@@ -19,6 +19,7 @@ public enum PostContent {
     case retracted
     case unsupported(Data)
     case voiceNote(FeedMediaData)
+    case moment(FeedMediaData)
     case waiting
 }
 
@@ -48,7 +49,7 @@ public struct PostData {
 
     public var text: String? {
         switch content {
-        case .retracted, .unsupported, .voiceNote, .waiting:
+        case .retracted, .unsupported, .voiceNote, .waiting, .moment:
             return nil
         case .text(let mentionText, _):
             return mentionText.collapsedText
@@ -63,6 +64,8 @@ public struct PostData {
             return media
         case .voiceNote(let mediaItem):
             return [mediaItem]
+        case .moment(let media):
+            return [media]
         case .retracted, .text, .unsupported, .waiting:
             return []
         }
@@ -71,7 +74,7 @@ public struct PostData {
     public var orderedMentions: [FeedMentionProtocol] {
         let mentions: [Int: MentionedUser] = {
             switch content {
-            case .retracted, .unsupported, .voiceNote, .waiting:
+            case .retracted, .unsupported, .voiceNote, .waiting, .moment:
                 return [:]
             case .album(let mentionText, _):
                 return mentionText.mentions
@@ -88,7 +91,7 @@ public struct PostData {
     
     public var linkPreviewData: [LinkPreviewData] {
         switch content {
-        case .retracted, .unsupported, .album, .voiceNote, .waiting:
+        case .retracted, .unsupported, .album, .voiceNote, .waiting, .moment:
             return []
         case .text(_, let linkPreviewData):
             return linkPreviewData
@@ -116,6 +119,11 @@ public struct PostData {
             return MediaCounters()
         case .voiceNote:
             return MediaCounters(numImages: 0, numVideos: 0, numAudio: 1)
+        case .moment(let media):
+            // can only be an image for now, but leaving this in for eventual video support
+            return MediaCounters(numImages: media.type == .image ? 1 : 0,
+                                 numVideos: media.type == .video ? 1 : 0,
+                                  numAudio: 0)
         }
     }
 
@@ -248,8 +256,11 @@ public struct PostData {
                 return .unsupported(payload)
             }
             return .voiceNote(media)
-        case .moment(_):
-            return .unsupported(payload)
+        case .moment(let moment):
+            guard let media = FeedMediaData(id: "\(postId)-moment", clientImage: moment.image) else {
+                return .unsupported(payload)
+            }
+            return .moment(media)
         case .none:
             return .unsupported(payload)
         }

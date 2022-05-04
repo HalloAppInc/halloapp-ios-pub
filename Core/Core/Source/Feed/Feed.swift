@@ -469,6 +469,17 @@ public extension PostData {
                 voiceNote.audio = audio
             }
             container.post = .voiceNote(voiceNote)
+        case .moment(let mediaItem):
+            var moment = Clients_Moment()
+            var image = Clients_Image()
+            if let resource = mediaItem.protoResource {
+                image.img = resource
+                image.width = Int32(mediaItem.size.width)
+                image.height = Int32(mediaItem.size.height)
+            }
+            
+            moment.image = image
+            container.post = .moment(moment)
         case .retracted, .unsupported, .waiting:
             break
         }

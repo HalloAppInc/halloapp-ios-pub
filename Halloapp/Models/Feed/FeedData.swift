@@ -31,6 +31,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     let shouldReloadView = PassthroughSubject<Void, Never>()
 
     let didGetRemoveHomeTabIndicator = PassthroughSubject<Void, Never>()
+    
+    @Published private(set) var validMomentExists: Bool = false
 
     private struct UserDefaultsKey {
         static let persistentStoreUserID = "feed.store.userID"
@@ -315,7 +317,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     continue
                 }
                 switch postData.content {
-                case .album, .text, .retracted, .voiceNote:
+                case .album, .text, .retracted, .voiceNote, .moment:
                     DDLogInfo("FeedData/processUnsupportedItems/posts/migrating [\(post.id)]")
                 case .unsupported:
                     DDLogInfo("FeedData/processUnsupportedItems/posts/skipping [still unsupported] [\(post.id)]")
@@ -493,7 +495,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         reloadGroupFeedUnreadCounts()
     }
-
+    
     private lazy var fetchedResultsController: NSFetchedResultsController<FeedPost> = newFetchedResultsController()
 
     private func newFetchedResultsController() -> NSFetchedResultsController<FeedPost> {
@@ -974,9 +976,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.groupId = groupID
             feedPost.rawText = xmppPost.text
             feedPost.timestamp = xmppPost.timestamp
+            if case .moment = xmppPost.content {
+                feedPost.isMoment = true
+            }
 
             switch xmppPost.content {
-            case .album, .text, .voiceNote:
+            case .album, .text, .voiceNote, .moment:
                 // Mark our own posts as seen in case server sends us old posts following re-registration
                 if feedPost.userId == userData.userId {
                     feedPost.status = .seen
@@ -1712,6 +1717,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
             
             self.checkForUnreadFeed()
+            if feedPost.isMoment {
+                self.refreshValidMoment()
+            }
             
             completion()
         }
@@ -1812,6 +1820,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         self.processPostRetract(postId) {
                             completion?(.success(()))
                         }
+                        
                     case .failure(let error):
                         DDLogError("FeedData/retract/postId \(feedPost.id), retract request failed")
                         self.updateFeedPost(with: postId) { (post) in
@@ -2482,7 +2491,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     
     let didSendGroupFeedPost = PassthroughSubject<FeedPost, Never>()
 
-    func post(text: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?, to destination: FeedPostDestination) {
+    func post(text: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?, to destination: FeedPostDestination, isMoment: Bool = false) {
         let postId: FeedPostID = PacketID.generate()
 
         // Create and save new FeedPost object.
@@ -2497,7 +2506,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         feedPost.rawText = text.collapsedText
         feedPost.status = .sending
         feedPost.timestamp = Date()
-
+        feedPost.isMoment = isMoment
+        
         // Add mentions
         feedPost.mentions = text.mentionsArray.map {
             return MentionData(
@@ -2936,6 +2946,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     feedPost.status = .sent
 
                     MainAppContext.shared.endBackgroundTask(postId)
+                }
+                
+                if post.isMoment {
+                    self.validMomentExists = true
                 }
 
             case .failure(let error):
@@ -4265,8 +4279,27 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             return nil
         }
     }
+    
+    // MARK: - Secret posts
+    
+    func refreshValidMoment() {
+        let context = viewContext
+        let request = FeedPost.fetchRequest()
 
-    // MARK: Notifications
+        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            NSPredicate(format: "userID == %@", MainAppContext.shared.userData.userId),
+            NSPredicate(format: "isMoment == YES"),
+            NSPredicate(format: "statusValue != %d", FeedPost.Status.retracted.rawValue),
+        ])
+
+        if let results = try? context.fetch(request), !results.isEmpty {
+            validMomentExists = true
+        } else {
+            validMomentExists = false
+        }
+    }
+
+    // MARK: - Notifications
 
     func updateFavoritesPromoNotification() {
         performSeriallyOnBackgroundContext { (managedObjectContext) in

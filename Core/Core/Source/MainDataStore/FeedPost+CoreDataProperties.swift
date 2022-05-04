@@ -30,6 +30,7 @@ public extension FeedPost {
     }
 
     @NSManaged var id: FeedPostID
+    @NSManaged var isMoment: Bool
     @NSManaged var rawText: String?
     @NSManaged var timestamp: Date
     @NSManaged var userID: UserID
@@ -92,6 +93,11 @@ public extension FeedPost {
     private var postContent: PostContent {
         guard !isPostRetracted else {
             return .retracted
+        }
+        
+        if isMoment, let media = media?.first {
+            let mediaData = FeedMediaData(from: media)
+            return .moment(mediaData)
         }
 
         let mentionText = MentionText(

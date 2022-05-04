@@ -496,6 +496,10 @@ extension ProtoServiceCore: CoreService {
         serverPost.id = post.id
         serverPost.publisherUid = Int64(post.userId) ?? 0
         serverPost.timestamp = Int64(post.timestamp.timeIntervalSince1970)
+        
+        if case .moment(_) = post.content {
+            serverPost.tag = .secretPost
+        }
 
         // Add media counters.
         serverPost.mediaCounters = post.serverMediaCounters

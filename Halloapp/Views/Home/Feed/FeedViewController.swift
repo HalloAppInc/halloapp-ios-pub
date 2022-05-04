@@ -30,6 +30,7 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
     }()
 
     private var showContactsPermissionDialogIfNecessary = true
+    private var momentTestButton: UIButton?
 
     // MARK: UIViewController
 
@@ -56,7 +57,8 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         inviteButton.isBadgeHidden = true
         inviteButton.addTarget(self, action: #selector(didTapInviteButtion), for: .touchUpInside)
 
-        self.navigationItem.rightBarButtonItems = [UIBarButtonItem(customView: notificationButton), UIBarButtonItem(customView: inviteButton)]
+        navigationItem.rightBarButtonItems = [UIBarButtonItem(customView: notificationButton), UIBarButtonItem(customView: inviteButton)]
+        installMomentTestButton()
 
         if let feedActivities = MainAppContext.shared.feedData.activityObserver {
             notificationCount = feedActivities.unreadCount
@@ -89,6 +91,36 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         // needed for presenting the FAB while the call bar is active
         navigationController?.definesPresentationContext = false
         tabBarController?.definesPresentationContext = true
+    }
+    
+    private func installMomentTestButton() {
+        let isSimulator: Bool
+        #if targetEnvironment(simulator)
+            isSimulator = true
+        #else
+            isSimulator = false
+        #endif
+        
+        // only for testing since notifications logic isn't ready yet
+        guard isSimulator || ServerProperties.isInternalUser else {
+            return
+        }
+        
+        let momentButton = UIButton(type: .system)
+        momentButton.setTitle("🤫", for: .normal)
+        momentButton.addTarget(self, action: #selector(createNewMoment), for: .touchUpInside)
+        // TODO: - add this button when the rest of the UI is ready
+        //navigationItem.rightBarButtonItems?.insert(UIBarButtonItem(customView: momentButton), at: 0)
+        
+        momentTestButton = momentButton
+        
+        MainAppContext.shared.feedData.$validMomentExists.sink { [weak self] _ in
+            DispatchQueue.main.async {
+                self?.updateMomentButton()
+            }
+        }.store(in: &cancellables)
+        
+        MainAppContext.shared.feedData.refreshValidMoment()
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -174,10 +206,10 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         if canInvite, !items.isEmpty, !inviteContactsManager.randomSelection.isEmpty, !isZeroZone {
             result.insert(.inviteCarousel, at: min(4, result.count))
         }
-
+        
         return result
     }
-    
+
     // MARK: UI Actions
 
     @objc private func didTapNotificationButton() {
@@ -414,6 +446,13 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         overlayContainer.display(alert)
     }
     
+    private func updateMomentButton() {
+        // only one at a time
+        let exists = MainAppContext.shared.feedData.validMomentExists
+        momentTestButton?.isEnabled = !exists
+        momentTestButton?.alpha = exists ? 0.5 : 1.0
+    }
+    
     private func updateContactPermissionsExplanationAlert() {
         let contentView = FeedPermissionExplanationAlert(learnMoreAction: nil, notNowAction: FeedPermissionExplanationAlert.Action(title: Localizations.buttonNotNow, handler: { [weak self] _ in
             self?.dismissOverlay()
@@ -482,6 +521,27 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
             newPostViewController.modalPresentationStyle = .fullScreen
             present(newPostViewController, animated: true)
         }
+    }
+    
+    @objc
+    private func createNewMoment() {
+        let source: NewPostMediaSource
+        #if targetEnvironment(simulator)
+        source = .library
+        #else
+        source = .camera
+        #endif
+        
+        let vc = NewPostViewController(source: source,
+                                  destination: .userFeed,
+                                     isMoment: true) { [weak self] didPost in
+            self?.dismiss(animated: true)
+            if didPost {
+                self?.scrollToTop(animated: true)
+            }
+        }
+            
+        present(vc, animated: true)
     }
 
     // MARK: Notification Handling

@@ -1506,7 +1506,14 @@ extension ChatViewController: PostComposerViewDelegate {
         URLRouter.shared.handleOrOpen(url: url)
     }
 
-    func composerDidTapShare(controller: PostComposerViewController, destination: PostComposerDestination, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData? = nil, linkPreviewMedia: PendingMedia? = nil) {
+    func composerDidTapShare(controller: PostComposerViewController,
+                            destination: PostComposerDestination,
+                               isMoment: Bool,
+                            mentionText: MentionText,
+                                  media: [PendingMedia],
+                        linkPreviewData: LinkPreviewData? = nil,
+                       linkPreviewMedia: PendingMedia? = nil) {
+        
         sendMessage(text: mentionText.trimmed().collapsedText, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
         view.window?.rootViewController?.dismiss(animated: true, completion: nil)
     }

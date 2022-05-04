@@ -59,6 +59,8 @@ class ExternalSharePost: FeedPostDisplayable {
             mediaData = []
             mentionText = nil
             linkPreviews = nil
+        case .moment:
+            fatalError("Cannot share a moment externally...")
         }
 
         media = mediaData
@@ -74,7 +76,7 @@ class ExternalSharePost: FeedPostDisplayable {
     var groupId: GroupID? {
         return nil
     }
-
+    
     var unreadCount: Int32 {
         return 0
     }

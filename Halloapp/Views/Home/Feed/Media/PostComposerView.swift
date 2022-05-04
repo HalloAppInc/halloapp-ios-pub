@@ -8,7 +8,8 @@ import SwiftUI
 import UIKit
 
 protocol PostComposerViewDelegate: AnyObject {
-    func composerDidTapShare(controller: PostComposerViewController, destination: PostComposerDestination, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?)
+    // TODO: maybe have the configuration encapsulate all the details and pass that in?
+    func composerDidTapShare(controller: PostComposerViewController, destination: PostComposerDestination, isMoment: Bool, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?)
     func composerDidTapBack(controller: PostComposerViewController, destination: PostComposerDestination, media: [PendingMedia], voiceNote: PendingMedia?)
     func willDismissWithInput(mentionInput: MentionInput)
     func composerDidTapLinkPreview(controller: PostComposerViewController, url: URL)
@@ -26,25 +27,36 @@ class PostComposerViewConfiguration: ObservableObject {
     var mediaEditMaxAspectRatio: CGFloat?
     var imageServerMaxAspectRatio: CGFloat?
     var maxVideoLength: TimeInterval
-
+    let isMoment: Bool
+    
     init(
         destination: PostComposerDestination,
         mediaCarouselMaxAspectRatio: CGFloat = 1.25,
         mediaEditMaxAspectRatio: CGFloat? = nil,
         imageServerMaxAspectRatio: CGFloat? = 1.25,
-        maxVideoLength: TimeInterval = 500) {
+        maxVideoLength: TimeInterval = 500,
+        isMoment: Bool = false) {
         
         self.destination = destination
         self.mediaCarouselMaxAspectRatio = mediaCarouselMaxAspectRatio
         self.mediaEditMaxAspectRatio = mediaEditMaxAspectRatio
         self.imageServerMaxAspectRatio = imageServerMaxAspectRatio
         self.maxVideoLength = maxVideoLength
+        self.isMoment = isMoment
     }
     
     static var userPost: PostComposerViewConfiguration {
         PostComposerViewConfiguration(
             destination: .userFeed,
             maxVideoLength: ServerProperties.maxFeedVideoDuration
+        )
+    }
+    
+    static var moment: PostComposerViewConfiguration {
+        PostComposerViewConfiguration(
+            destination: .userFeed,
+            maxVideoLength: ServerProperties.maxFeedVideoDuration,
+            isMoment: true
         )
     }
 
@@ -115,6 +127,10 @@ private extension Localizations {
 
     static var newPostTitle: String {
         NSLocalizedString("composer.post.title", value: "New Post", comment: "Composer New Post title.")
+    }
+    
+    static var newMomentTitle: String {
+        NSLocalizedString("composer.moment.post.title", value: "New Moment", comment: "Composer New Moment Post title.")
     }
 
     static var newMessageTitle: String {
@@ -239,7 +255,10 @@ class PostComposerViewController: UIViewController {
         button.layer.cornerRadius = 14
         button.layer.masksToBounds = true
         button.addTarget(self, action: #selector(changeDestinationAction), for: .touchUpInside)
-
+        // moments posts go to all contacts, for now
+        // TODO: - un-comment this line
+        //button.isEnabled = !configuration.isMoment
+        
         button.addSubview(stack)
 
         NSLayoutConstraint.activate([
@@ -433,7 +452,7 @@ class PostComposerViewController: UIViewController {
         case .chat(_):
             titleLabel.text = Localizations.newMessageTitle
         default:
-            titleLabel.text = Localizations.newPostTitle
+            titleLabel.text = configuration.isMoment ? Localizations.newMomentTitle : Localizations.newPostTitle
         }
         
         MainAppContext.shared.privacySettings.feedPrivacySettingDidChange.sink { [weak self] in
@@ -567,7 +586,13 @@ class PostComposerViewController: UIViewController {
         // if no link preview or link preview not yet loaded, send without link preview.
         // if the link preview does not have an image... send immediately
         if link.value == "" || linkPreviewData.value == nil ||  linkPreviewImage.value == nil {
-            delegate?.composerDidTapShare(controller: self, destination: configuration.destination, mentionText: mentionText, media: allMediaItems, linkPreviewData: linkPreviewData.value, linkPreviewMedia: nil)
+            delegate?.composerDidTapShare(controller: self,
+                                         destination: configuration.destination,
+                                            isMoment: configuration.isMoment,
+                                         mentionText: mentionText,
+                                               media: allMediaItems,
+                                     linkPreviewData: linkPreviewData.value,
+                                    linkPreviewMedia: nil)
         } else {
             // if link preview has an image, load the image before sending.
             loadLinkPreviewImageAndShare(mentionText: mentionText, mediaItems: allMediaItems)
@@ -579,13 +604,25 @@ class PostComposerViewController: UIViewController {
         let linkPreviewMedia = PendingMedia(type: .image)
         linkPreviewMedia.image = linkPreviewImage.value
         if linkPreviewMedia.ready.value {
-            self.delegate?.composerDidTapShare(controller: self, destination: configuration.destination, mentionText: mentionText, media: mediaItems, linkPreviewData: linkPreviewData.value, linkPreviewMedia: linkPreviewMedia)
+            self.delegate?.composerDidTapShare(controller: self,
+                                              destination: configuration.destination,
+                                                 isMoment: false,
+                                              mentionText: mentionText,
+                                                    media: mediaItems,
+                                          linkPreviewData: linkPreviewData.value,
+                                         linkPreviewMedia: linkPreviewMedia)
         } else {
             self.cancellableSet.insert(
                 linkPreviewMedia.ready.sink { [weak self] ready in
                     guard let self = self else { return }
                     guard ready else { return }
-                    self.delegate?.composerDidTapShare(controller: self, destination: self.configuration.destination, mentionText: mentionText, media: mediaItems, linkPreviewData: self.linkPreviewData.value, linkPreviewMedia: linkPreviewMedia)
+                    self.delegate?.composerDidTapShare(controller: self,
+                                                      destination: self.configuration.destination,
+                                                         isMoment: false,
+                                                      mentionText: mentionText,
+                                                            media: mediaItems,
+                                                  linkPreviewData: self.linkPreviewData.value,
+                                                 linkPreviewMedia: linkPreviewMedia)
                 }
             )
         }
@@ -968,6 +1005,7 @@ fileprivate struct PostComposerView: View {
                                         onCrop: cropMedia
                                     )
                                     .frame(height: self.getMediaSliderHeight(width: scrollGeometry.size.width), alignment: .center)
+                                    .environmentObject(configuration)
                                 }
                                 .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding)
                                 .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
@@ -1009,7 +1047,7 @@ fileprivate struct PostComposerView: View {
                                                     .foregroundColor(.blue)
                                             }
                                             .padding(.leading, 10)
-
+                                            
                                             Spacer()
                                             shareButton
                                         }
@@ -1052,9 +1090,11 @@ fileprivate struct PostComposerView: View {
                     } else {
                         HStack(spacing: 0) {
                             ZStack(alignment: .leading) {
-                                postTextView
-                                    // hide vs remove to maintain sizing
-                                    .opacity(audioComposerRecorder.recorderControlsExpanded ? 0 : 1)
+                                if !configuration.isMoment {
+                                    postTextView
+                                        // hide vs remove to maintain sizing
+                                        .opacity(audioComposerRecorder.recorderControlsExpanded ? 0 : 1)
+                                }
                                 if audioComposerRecorder.recorderControlsExpanded {
                                     HStack {
                                         AudioPostComposerDurationView(time: audioComposerRecorder.duration)
@@ -1078,7 +1118,7 @@ fileprivate struct PostComposerView: View {
                                 }
                             }
                             .zIndex(1)
-                            if voiceNotesEnabled, inputToPost.value.text.isEmpty, !audioComposerRecorder.recorderControlsLocked {
+                            if voiceNotesEnabled, inputToPost.value.text.isEmpty, !audioComposerRecorder.recorderControlsLocked, !configuration.isMoment {
                                 AudioComposerRecorderControl(recorder: audioComposerRecorder)
                                     .frame(width: 24, height: 24)
                                     .padding(.horizontal, PostComposerLayoutConstants.postTextHorizontalPadding)
@@ -1091,8 +1131,14 @@ fileprivate struct PostComposerView: View {
                         .shadow(color: .black.opacity(self.colorScheme == .dark ? 0 : 0.04), radius: 2, y: 1)
                         .zIndex(1)
                     }
+                    
+                    if configuration.isMoment {
+                        // want the share button to be on the right, not centered
+                        Spacer()
+                    }
                     shareButton
                         .offset(y: -2)
+                        .offset(x: configuration.isMoment ? -15 : 0)
                 }
                 .padding(10)
             }
@@ -1470,6 +1516,7 @@ fileprivate struct LinkPreview: UIViewRepresentable {
 }
 
 fileprivate struct MediaPreviewSlider: UIViewRepresentable {
+    @EnvironmentObject var configuration: PostComposerViewConfiguration
     @Binding var mediaItems: [PendingMedia]
     @Binding var shouldAutoPlay: Bool
     @Binding var presentMediaPicker: Bool
@@ -1536,6 +1583,8 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
             if let titleLabel = editButton.titleLabel {
                 editButton.bringSubviewToFront(titleLabel)
             }
+            
+            editButton.isHidden = self.configuration.isMoment
 
             editBackground.constrain(to: editButton)
             NSLayoutConstraint.activate([
@@ -1561,7 +1610,11 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
         }
         configuration.pageControlViewsProvider = { numberOfPages in
             var items: [MediaCarouselSupplementaryItem] = []
-
+            guard !self.configuration.isMoment else {
+                // no paging for moments
+                return items
+            }
+            
             if numberOfPages == 1 {
                 let button = UIButton(type: .system)
                 button.translatesAutoresizingMaskIntoConstraints = false

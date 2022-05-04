@@ -47,7 +47,12 @@ struct NewPostState {
 
     var isPostComposerCancellable: Bool {
         // We can only return to the library picker (UIImagePickerController freezes after choosing an image 🙄).
-        return mediaSource != .library
+        switch mediaSource {
+        case .library:
+            return false
+        default:
+            return true
+        }
     }
 }
 
@@ -60,10 +65,11 @@ final class NewPostViewController: UIViewController {
         return .portrait
     }
 
-    init(source: NewPostMediaSource, destination: FeedPostDestination, didFinish: @escaping ((Bool) -> Void)) {
+    init(source: NewPostMediaSource, destination: FeedPostDestination, isMoment: Bool = false, didFinish: @escaping ((Bool) -> Void)) {
         self.didFinish = didFinish
         self.state = NewPostState(mediaSource: source)
         self.destination = destination
+        self.isMoment = isMoment
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -85,6 +91,7 @@ final class NewPostViewController: UIViewController {
 
     private let didFinish: ((Bool) -> Void)
     private var state: NewPostState
+    private let isMoment: Bool
     private var destination: FeedPostDestination
 
     private lazy var containedNavigationController = {
@@ -145,6 +152,10 @@ final class NewPostViewController: UIViewController {
 
         if case .groupFeed(let groupId) = destination {
             configuration = .groupPost(id: groupId)
+        }
+        
+        if isMoment {
+            configuration = .moment
         }
 
         return PostComposerViewController(
@@ -262,7 +273,13 @@ extension NewPostViewController: UIImagePickerControllerDelegate {
 extension NewPostViewController: UINavigationControllerDelegate {}
 
 extension NewPostViewController: PostComposerViewDelegate {
-    func composerDidTapShare(controller: PostComposerViewController, destination: PostComposerDestination, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData? = nil, linkPreviewMedia: PendingMedia? = nil) {
+    func composerDidTapShare(controller: PostComposerViewController,
+                            destination: PostComposerDestination,
+                               isMoment: Bool = false,
+                            mentionText: MentionText,
+                                  media: [PendingMedia],
+                        linkPreviewData: LinkPreviewData? = nil,
+                       linkPreviewMedia: PendingMedia? = nil) {
 
         switch destination {
         case .userFeed:
@@ -273,7 +290,12 @@ extension NewPostViewController: PostComposerViewDelegate {
             break
         }
 
-        MainAppContext.shared.feedData.post(text: mentionText, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia : linkPreviewMedia, to: self.destination)
+        MainAppContext.shared.feedData.post(text: mentionText,
+                                           media: media,
+                                 linkPreviewData: linkPreviewData,
+                                linkPreviewMedia: linkPreviewMedia,
+                                              to: self.destination,
+                                        isMoment: isMoment)
         cleanupAndFinish(didPost: true)
     }
 
