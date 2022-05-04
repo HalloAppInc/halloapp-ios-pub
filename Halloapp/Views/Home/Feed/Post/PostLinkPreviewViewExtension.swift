@@ -16,33 +16,26 @@ extension PostLinkPreviewView {
             imageLoadingCancellable = nil
         }
         linkPreviewURL = feedLinkPreview.url
-
-        url = feedLinkPreview.url?.host
-        title = feedLinkPreview.title
-
+        linkPreviewData = LinkPreviewData(id: feedLinkPreview.id, url: feedLinkPreview.url, title: feedLinkPreview.title ?? "", description: feedLinkPreview.desc ?? "", previewImages: [])
         if let media = feedLinkPreview.feedMedia {
+            configureView(mediaSize: feedLinkPreview.feedMedia?.size)
             configureMedia(media: media)
-            self.activateViewConstraints(isImagePresent: true)
         } else {
-            self.activateViewConstraints(isImagePresent: false)
+            configureView()
         }
     }
 
     private func configureMedia(media: FeedMedia) {
-        showPlaceholderImage()
         if media.isMediaAvailable {
             if let image = media.image {
                 show(image: image)
             } else {
-                showPlaceholderImage()
                 MainAppContext.shared.errorLogger?.logError(FeedMediaError.missingImage)
             }
         } else if imageLoadingCancellable == nil {
-            showPlaceholderImage()
             // capture a strong reference to media so it is not deallocated while the image is loading
-            imageLoadingCancellable = media.imageDidBecomeAvailable.sink { [weak self, media] _ in
+            imageLoadingCancellable = media.imageDidBecomeAvailable.sink { [weak self] _ in
                 guard let self = self, let image = media.image else { return }
-                self.imageLoadingCancellable = nil
                 self.show(image: image)
             }
         }

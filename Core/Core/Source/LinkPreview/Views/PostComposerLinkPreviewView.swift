@@ -87,7 +87,7 @@ public class PostComposerLinkPreviewView: UIView {
         self.addSubview(vStack)
 
         NSLayoutConstraint.activate([
-            titleLabel.heightAnchor.constraint(equalToConstant: 250),
+            titleLabel.heightAnchor.constraint(equalToConstant: 234),
             vStack.leadingAnchor.constraint(equalTo: self.leadingAnchor),
             vStack.trailingAnchor.constraint(equalTo: self.trailingAnchor)
         ])
@@ -95,8 +95,8 @@ public class PostComposerLinkPreviewView: UIView {
         self.addSubview(linkPreviewCloseButton)
 
         NSLayoutConstraint.activate([
-            linkPreviewCloseButton.trailingAnchor.constraint(equalTo: vStack.trailingAnchor, constant: -12),
-            linkPreviewCloseButton.topAnchor.constraint(equalTo: vStack.topAnchor, constant: 12)
+            linkPreviewCloseButton.trailingAnchor.constraint(equalTo: vStack.trailingAnchor, constant: -10),
+            linkPreviewCloseButton.topAnchor.constraint(equalTo: vStack.topAnchor, constant: 10)
         ])
     }
 

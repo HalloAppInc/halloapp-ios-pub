@@ -157,6 +157,7 @@ class ExternalShareLinkPreview: LinkPreviewDisplayable {
     let id: FeedLinkPreviewID
     let url: URL?
     let title: String?
+    let desc: String?
     let media: [ExternalShareMedia]?
 
     init(linkPreviewData: LinkPreviewData, postID: FeedPostID) {
@@ -164,6 +165,7 @@ class ExternalShareLinkPreview: LinkPreviewDisplayable {
         self.id = id
         url = linkPreviewData.url
         title = linkPreviewData.title
+        desc = linkPreviewData.description
         // By default, link preview media is populated with an id of "", which causes issues in the media downloader
         media = linkPreviewData.previewImages.map { ExternalShareMedia(feedMediaData: $0, id: id) }
     }

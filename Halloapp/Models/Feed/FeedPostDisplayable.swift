@@ -49,6 +49,7 @@ protocol LinkPreviewDisplayable {
     var id: FeedLinkPreviewID { get }
     var url: URL? { get }
     var title: String? { get }
+    var desc: String? { get }
     var feedMedia: FeedMedia? { get }
 }
 
