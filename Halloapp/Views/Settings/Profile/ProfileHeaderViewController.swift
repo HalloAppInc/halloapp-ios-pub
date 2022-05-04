@@ -542,11 +542,11 @@ extension Localizations {
     }
 
     static var profileHeaderAudioCallUser: String {
-        NSLocalizedString("profile.header.call.user", value: "voice call", comment: "This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun.")
+        NSLocalizedString("profile.header.call.user", value: "voice", comment: "This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun.")
     }
 
     static var profileHeaderVideoCallUser: String {
-        NSLocalizedString("profile.header.call.user", value: "video call", comment: "This is a verb.  The text is clickable, under a contact name and starts a video call with that contact. It should not be translated as a noun.")
+        NSLocalizedString("profile.header.video.call.user", value: "video", comment: "This is a verb.  The text is clickable, under a contact name and starts a video call with that contact. It should not be translated as a noun.")
     }
     
     static var unBlockedUser: String {
