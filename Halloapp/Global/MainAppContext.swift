@@ -238,8 +238,12 @@ class MainAppContext: AppContext {
 
         DDLogInfo("MainAppContext/migrateFeedData/starting")
         do {
-            try feedData.migrateLegacyPosts(feedLegacy.fetchPosts())
-            try feedData.migrateLegacyNotifications(feedLegacy.fetchNotifications())
+            try autoreleasepool {
+                try feedData.migrateLegacyPosts(feedLegacy.fetchPosts())
+            }
+            try autoreleasepool {
+                try feedData.migrateLegacyNotifications(feedLegacy.fetchNotifications())
+            }
             DDLogInfo("MainAppContext/migrateFeedData/destroying-store")
             feedLegacy.destroyStore()
             DDLogInfo("MainAppContext/migrateFeedData/finished successfully")
@@ -258,10 +262,18 @@ class MainAppContext: AppContext {
 
         DDLogInfo("MainAppContext/migrateChatData/starting")
         do {
-            try chatData.migrateLegacyGroups(chatLegacy.fetchGroups())
-            try chatData.migrateLegacyThreads(chatLegacy.fetchThreads())
-            try chatData.migrateLegacyMessages(chatLegacy.fetchMessages())
-            try chatData.migrateLegacyChatEvents(chatLegacy.fetchEvents())
+            try autoreleasepool {
+                try chatData.migrateLegacyGroups(chatLegacy.fetchGroups())
+            }
+            try autoreleasepool {
+                try chatData.migrateLegacyThreads(chatLegacy.fetchThreads())
+            }
+            try autoreleasepool {
+                try chatData.migrateLegacyMessages(chatLegacy.fetchMessages())
+            }
+            try autoreleasepool {
+                try chatData.migrateLegacyChatEvents(chatLegacy.fetchEvents())
+            }
             DDLogInfo("MainAppContext/migrateChatData/destroying-store")
             chatLegacy.destroyStore()
             DDLogInfo("MainAppContext/migrateChatData/finished successfully")
