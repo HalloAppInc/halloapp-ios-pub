@@ -64,4 +64,11 @@ class MessageCellViewText: MessageCellViewBase {
         configureText(comment: comment)
         super.configureCell()
     }
+
+    override func configureWith(chatMessage: ChatMessage) {
+        timeLabel.text = chatMessage.timestamp?.chatTimestamp()
+        super.configureWith(chatMessage: chatMessage)
+        configureText(chatMessage: chatMessage)
+        super.configureCell()
+    }
 }

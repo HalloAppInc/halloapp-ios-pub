@@ -189,16 +189,24 @@ class MessageCellViewBase: UICollectionViewCell {
 
     public func configureText(comment: FeedPostComment) {
         let cryptoResultString: String = FeedItemContentView.obtainCryptoResultString(for: comment.id)
-        let feedPostCommentText = comment.rawText + cryptoResultString
-        if !feedPostCommentText.isEmpty  {
+        configureText(text: comment.rawText, cryptoResultString: cryptoResultString, mentions: comment.mentions)
+    }
+
+    public func configureText(chatMessage: ChatMessage) {
+        // TODO Calculate chat crypto result here
+        configureText(text: chatMessage.rawText, cryptoResultString: "", mentions: chatMessage.mentions)
+    }
+
+    func configureText(text: String?, cryptoResultString: String, mentions: [MentionData]) {
+        if let messageText = text, !messageText.isEmpty  {
             textLabel.isHidden = false
             let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
-                feedPostCommentText,
-                mentions: comment.mentions)
+                messageText +  cryptoResultString,
+                mentions: mentions)
 
             let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
             var font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize + 1)
-            if comment.rawText.containsOnlyEmoji {
+            if messageText.containsOnlyEmoji {
                 font = UIFont.preferredFont(forTextStyle: .largeTitle)
             }
             let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
@@ -224,6 +232,14 @@ class MessageCellViewBase: UICollectionViewCell {
         userNameColorAssignment = userColorAssignment
         nameLabel.textColor = userNameColorAssignment
         timeLabel.text = comment.timestamp.chatTimestamp()
+        if let userId = feedPostComment?.userId, !isOwnMessage {
+            nameLabel.text =  MainAppContext.shared.contactStore.fullName(for: userId)
+        }
+    }
+
+    func configureWith(chatMessage: ChatMessage) {
+        isOwnMessage = chatMessage.fromUserId == MainAppContext.shared.userData.userId
+        timeLabel.text = chatMessage.timestamp?.chatTimestamp()
     }
 
     func configureCell() {
@@ -235,9 +251,6 @@ class MessageCellViewBase: UICollectionViewCell {
         } else {
             bubbleView.backgroundColor = UIColor.messageNotOwnBackground
             nameRow.isHidden = false
-            if let userId = feedPostComment?.userId {
-                nameLabel.text =  MainAppContext.shared.contactStore.fullName(for: userId)
-            }
             rightAlignedConstraint.priority = UILayoutPriority(1)
             leftAlignedConstraint.priority = UILayoutPriority(800)
         }
