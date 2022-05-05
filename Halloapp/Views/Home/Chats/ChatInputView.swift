@@ -197,7 +197,10 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         removeVoiceNoteButton.leadingAnchor.constraint(equalTo: textInputRow.leadingAnchor).isActive = true
         removeVoiceNoteButton.centerYAnchor.constraint(equalTo: textInputRow.centerYAnchor).isActive = true
 
-        textViewContainerHeightConstraint = textViewContainer.heightAnchor.constraint(equalToConstant: 115)
+        recalculateSingleLineHeight()
+
+        textViewContainerHeightConstraint = textViewContainer.heightAnchor.constraint(equalToConstant: textView1LineHeight)
+        textViewContainerHeightConstraint?.isActive = true
 
         contentView.addSubview(vStack)
 
@@ -225,6 +228,11 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
 
         voiceNoteRecorder.delegate = self
         recordVoiceNoteControl.delegate = self
+    }
+
+    private func recalculateSingleLineHeight() {
+        textView5LineHeight = textView.bestHeight(for: "\n\n\n\n")
+        textView1LineHeight = textView.bestHeight(for: nil)
     }
 
     private func updateBorderRadius() {
@@ -724,6 +732,8 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     }()
     
     private var textViewContainerHeightConstraint: NSLayoutConstraint?
+    private var textView1LineHeight: CGFloat = 0
+    private var textView5LineHeight: CGFloat = 0
     
     private lazy var textInputRow: UIStackView = {
         // use a separate holder to keep the buttons at the bottom while textview is expanding
@@ -753,7 +763,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     
     private lazy var textView: InputTextView = {
         let view = InputTextView(frame: .zero)
-        view.isScrollEnabled = false
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = .clear
         view.font = UIFont.preferredFont(forTextStyle: .subheadline)
@@ -1471,10 +1480,15 @@ extension ChatInputView: InputTextViewDelegate {
 
     // unused
     func maximumHeight(for inputTextView: InputTextView) -> CGFloat {
-        return 120
+        var maxHeight = self.textView5LineHeight
+        let screenHeight = UIScreen.main.bounds.height
+        maxHeight = ceil(max(min(maxHeight, 0.3 * screenHeight), self.textView1LineHeight))
+        return maxHeight
     }
     
     func inputTextView(_ inputTextView: InputTextView, needsHeightChangedTo newHeight: CGFloat) {
+        textViewContainerHeightConstraint?.constant = newHeight
+        setNeedsUpdateHeight()
     }
     
     func inputTextViewShouldBeginEditing(_ inputTextView: InputTextView) -> Bool {
@@ -1498,19 +1512,6 @@ extension ChatInputView: InputTextViewDelegate {
         placeholder.isHidden = !inputTextView.text.isEmpty
         textIsUneditedReplyMention = false
         updateMentionPickerContent()
-        
-        if textView.contentSize.height >= 115 {
-            textViewContainerHeightConstraint?.constant = 115
-            textViewContainerHeightConstraint?.isActive = true
-            textView.isScrollEnabled = true
-        } else {
-            if textView.isScrollEnabled {
-                textViewContainerHeightConstraint?.constant = textView.contentSize.height
-                textView.isScrollEnabled = false
-            } else {
-                textViewContainerHeightConstraint?.isActive = false
-            }
-        }
         
         if typingThrottleTimer == nil && !text.isEmpty {
             delegate?.chatInputView(self, isTyping: true)
