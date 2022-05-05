@@ -105,6 +105,7 @@ public class PostLinkPreviewView: UIView {
         }
     }
     
+
     public func configureView(mediaSize: CGSize? = nil) {
         guard let linkPreviewData = linkPreviewData else {
             return

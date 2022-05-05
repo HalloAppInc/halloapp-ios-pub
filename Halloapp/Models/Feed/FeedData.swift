@@ -2968,7 +2968,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 if post.isMoment {
                     self.validMomentExists = true
                 }
-
             case .failure(let error):
                 DDLogError("FeedData/send-post/postID: \(postId) error \(error)")
                 self.contentInFlight.remove(postId)
@@ -4334,6 +4333,18 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         } else {
             validMomentExists = false
         }
+    }
+    
+    func latestValidMoment() -> FeedPost? {
+        let request = FeedPost.fetchRequest()
+        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            NSPredicate(format: "userID == %@", MainAppContext.shared.userData.userId),
+            NSPredicate(format: "isMoment == YES"),
+            NSPredicate(format: "statusValue != %d", FeedPost.Status.retracted.rawValue),
+        ])
+        
+        request.fetchLimit = 1
+        return try? viewContext.fetch(request).first
     }
 
     // MARK: - Notifications

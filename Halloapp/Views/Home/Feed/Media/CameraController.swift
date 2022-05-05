@@ -984,6 +984,8 @@ class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
                 self?.videoWritten = false
             }
         }
+        
+        AudioServicesPlaySystemSound(1118)
     }
 }
 

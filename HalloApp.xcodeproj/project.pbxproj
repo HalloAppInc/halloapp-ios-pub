@@ -263,6 +263,9 @@
 		76FE37ED2523EC9600372FB1 /* ContactPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */; };
 		A111BDFC27C96D9100E5DB4E /* UserMenuHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A111BDFB27C96D9100E5DB4E /* UserMenuHandler.swift */; };
 		A17DCD7027C0885F00E00073 /* ExpandableTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17DCD6F27C0885F00E00073 /* ExpandableTextView.swift */; };
+		A1AFE7742819F485008BBC80 /* MomentCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AFE7732819F485008BBC80 /* MomentCollectionViewCell.swift */; };
+		A1AFE776281FAA6B008BBC80 /* MomentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AFE775281FAA6B008BBC80 /* MomentViewController.swift */; };
+		A1AFE7782821E135008BBC80 /* MomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AFE7772821E135008BBC80 /* MomentView.swift */; };
 		A1C18C7C27A1EC9100A76102 /* HalloCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C18C7B27A1EC9100A76102 /* HalloCode.swift */; };
 		A1C18C7F27A1ED8C00A76102 /* HalloCodeTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C18C7E27A1ED8C00A76102 /* HalloCodeTest.swift */; };
 		A1EE101827ECDE0F00148CEB /* UnknownContactSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1EE101527ECDE0E00148CEB /* UnknownContactSheetViewController.swift */; };
@@ -975,6 +978,9 @@
 		76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContactPickerViewController.swift; path = HalloApp/Components/Views/ContactPickerViewController.swift; sourceTree = SOURCE_ROOT; };
 		A111BDFB27C96D9100E5DB4E /* UserMenuHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserMenuHandler.swift; path = Halloapp/Views/Home/UserMenuHandler.swift; sourceTree = SOURCE_ROOT; };
 		A17DCD6F27C0885F00E00073 /* ExpandableTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpandableTextView.swift; sourceTree = "<group>"; };
+		A1AFE7732819F485008BBC80 /* MomentCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentCollectionViewCell.swift; sourceTree = "<group>"; };
+		A1AFE775281FAA6B008BBC80 /* MomentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentViewController.swift; sourceTree = "<group>"; };
+		A1AFE7772821E135008BBC80 /* MomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentView.swift; sourceTree = "<group>"; };
 		A1C18C7B27A1EC9100A76102 /* HalloCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloCode.swift; sourceTree = "<group>"; };
 		A1C18C7E27A1ED8C00A76102 /* HalloCodeTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloCodeTest.swift; sourceTree = "<group>"; };
 		A1EE101527ECDE0E00148CEB /* UnknownContactSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnknownContactSheetViewController.swift; sourceTree = "<group>"; };
@@ -1480,6 +1486,7 @@
 			children = (
 				76271388252D250E00389FBC /* FacePileView.swift */,
 				7653F301255DB7FE001CC946 /* FeedPostCollectionViewCell.swift */,
+				A1AFE7792821E144008BBC80 /* Moment */,
 				76271383252D24AD00389FBC /* FeedItemContentView.swift */,
 				764F7750246226120063645A /* PostDashboardViewController.swift */,
 				E5AFB4C626BC5C74002CE127 /* FeedPostView.swift */,
@@ -1658,6 +1665,16 @@
 				E5230B1D267AABA60046A2EB /* Intents.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		A1AFE7792821E144008BBC80 /* Moment */ = {
+			isa = PBXGroup;
+			children = (
+				A1AFE7772821E135008BBC80 /* MomentView.swift */,
+				A1AFE7732819F485008BBC80 /* MomentCollectionViewCell.swift */,
+				A1AFE775281FAA6B008BBC80 /* MomentViewController.swift */,
+			);
+			path = Moment;
 			sourceTree = "<group>";
 		};
 		E5230B1F267AABA60046A2EB /* Intents Extension */ = {
@@ -2793,6 +2810,7 @@
 				E5AFB4C726BC5C74002CE127 /* FeedPostView.swift in Sources */,
 				EAEE49E3276C13E10042E654 /* ChatHeaderView.swift in Sources */,
 				3250C60327D0101C0032FEC4 /* PhoneInputViewController.swift in Sources */,
+				A1AFE776281FAA6B008BBC80 /* MomentViewController.swift in Sources */,
 				32C83FCB2694DB1D00BEB4F5 /* InvitePermissionDeniedViewController.swift in Sources */,
 				32C83FDA2698171700BEB4F5 /* PrivacyPermissionDeniedView.swift in Sources */,
 				686CDFBC2548A6C200DB7266 /* RegistrationDemo.swift in Sources */,
@@ -2840,6 +2858,7 @@
 				76DFA00524195F2400F49CA4 /* XMPPContactSyncRequest.swift in Sources */,
 				32151C1D28207B330057D794 /* ChatViewControllerNew.swift in Sources */,
 				E5FC71E9268A986000B72B12 /* ExportDataView.swift in Sources */,
+				A1AFE7782821E135008BBC80 /* MomentView.swift in Sources */,
 				EAD476D324588E0000EF8591 /* ChatMediaSlider.swift in Sources */,
 				761905A32459EB07008FC600 /* InputTextView.swift in Sources */,
 				F8606DD1257E7340006CD1A6 /* MediaExplorerVideoCell.swift in Sources */,
@@ -2905,6 +2924,7 @@
 				321A70132704FF3B005603B8 /* FeedLinkPreview+CoreDataClass.swift in Sources */,
 				F84A8E5925D408C3003A8528 /* VideoEditViewController.swift in Sources */,
 				68C0B9D427FA737E00F3A092 /* ChatDataLegacy.swift in Sources */,
+				A1AFE7742819F485008BBC80 /* MomentCollectionViewCell.swift in Sources */,
 				F881ED77261B1F6F0013599F /* Upload+CoreDataProperties.swift in Sources */,
 				7639BA39251944920023850E /* NextLevelSessionExporter.swift in Sources */,
 				321A70112704FF13005603B8 /* FeedLinkPreview+CoreDataProperties.swift in Sources */,

@@ -94,7 +94,7 @@ final class NewPostViewController: UIViewController {
     private let isMoment: Bool
     private var destination: FeedPostDestination
 
-    private lazy var containedNavigationController = {
+    private(set) lazy var containedNavigationController = {
         return makeNavigationController()
     }()
 
@@ -169,7 +169,7 @@ final class NewPostViewController: UIViewController {
 
     private func makeNewCameraViewController() -> UIViewController {
         return CameraViewController(
-            configuration: .init(showCancelButton: state.isPostComposerCancellable, format: .normal),
+            configuration: .init(showCancelButton: state.isPostComposerCancellable, format: isMoment ? .square : .normal),
             didFinish: { [weak self] in self?.cleanupAndFinish() },
             didPickImage: { [weak self] uiImage in self?.onCameraImagePicked(uiImage) },
             didPickVideo: { [weak self] videoURL in self?.onCameraVideoPicked(videoURL) }

@@ -196,6 +196,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         collectionView.register(FeedWelcomeCell.self, forCellWithReuseIdentifier: FeedWelcomeCell.reuseIdentifier)
         collectionView.register(GroupFeedWelcomeCell.self, forCellWithReuseIdentifier: GroupFeedWelcomeCell.reuseIdentifier)
         collectionView.register(FeedInviteCarouselCell.self, forCellWithReuseIdentifier: FeedInviteCarouselCell.reuseIdentifier)
+        collectionView.register(MomentCollectionViewCell.self, forCellWithReuseIdentifier: MomentCollectionViewCell.reuseIdentifier)
 
         view.addSubview(collectionView)
         collectionView.constrain(to: view)
@@ -364,6 +365,39 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
                 }
             }
         }
+    }
+    
+    func showSecretPostView(for post: FeedPost) {
+        if MainAppContext.shared.feedData.validMomentExists {
+            let vc = MomentViewController(post: post)
+            present(vc, animated: true)
+        } else {
+            let newPostVC = NewPostViewController(source: .camera,
+                                             destination: .userFeed,
+                                                isMoment: true, didFinish: { [weak self] didPost in
+                
+                if didPost {
+                    self?.startUnlockTransition(for: post)
+                } else {
+                    self?.dismiss(animated: true)
+                }
+            })
+            
+            present(newPostVC, animated: true)
+        }
+    }
+    
+    private func startUnlockTransition(for post: FeedPost) {
+        guard
+            let latest = MainAppContext.shared.feedData.latestValidMoment(),
+            let newPostVC = presentedViewController as? NewPostViewController
+        else {
+            dismiss(animated: true)
+            return
+        }
+        
+        let momentVC = MomentViewController(post: post, unlockingPost: latest)
+        newPostVC.containedNavigationController.pushViewController(momentVC, animated: true)
     }
 
     // MARK: Post Actions
@@ -687,12 +721,19 @@ extension FeedCollectionViewController {
                     (cell as? FeedEventCollectionViewCell)?.configure(with: Localizations.deletedPost(from: feedPost.userId), type: .deletedPost, tapFunction: nil, thisEvent: item)
                     return cell
                 }
-                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedPostCollectionViewCell.reuseIdentifier, for: indexPath)
-                if let postCell = cell as? FeedPostCollectionViewCell {
-                    self?.configure(cell: postCell, withActiveFeedPost: feedPost)
+                let cell: UICollectionViewCell
+                if feedPost.isMoment {
+                    cell = collectionView.dequeueReusableCell(withReuseIdentifier: MomentCollectionViewCell.reuseIdentifier, for: indexPath)
+                    if let postCell = cell as? MomentCollectionViewCell {
+                        self?.configure(cell: postCell, withSecretFeedPost: feedPost)
+                    }
                 } else {
-                    DDLogError("FeedCollectionViewController/error FeedPostCollectionViewCell reuse identifier not registered correctly")
+                    cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedPostCollectionViewCell.reuseIdentifier, for: indexPath)
+                    if let postCell = cell as? FeedPostCollectionViewCell {
+                        self?.configure(cell: postCell, withActiveFeedPost: feedPost)
+                    }
                 }
+                
                 return cell
             case .welcome:
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedWelcomeCell.reuseIdentifier, for: indexPath)
@@ -776,6 +817,13 @@ extension FeedCollectionViewController {
             {
                 feedCell.refreshFooter(using: feedPost, contentWidth: cellContentWidth)
             }
+        }
+    }
+    
+    func configure(cell: MomentCollectionViewCell, withSecretFeedPost feedPost: FeedPost) {
+        cell.configure(with: feedPost, contentWidth: cellContentWidth)
+        cell.momentView.action = { [weak self] in
+            self?.showSecretPostView(for: feedPost)
         }
     }
 
