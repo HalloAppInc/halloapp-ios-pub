@@ -19,7 +19,6 @@
 		2446D68424CB682C005BAD3C /* AppExtensionContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7681242C2486EAC2008C5216 /* AppExtensionContext.swift */; };
 		2446D68624CB6DA9005BAD3C /* ContactTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F774D246224C30063645A /* ContactTableViewCell.swift */; };
 		2446D68B24CF732B005BAD3C /* DataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2446D68A24CF732B005BAD3C /* DataStore.swift */; };
-		24AA69D324DCC1B500ED65CE /* XMPPChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24AA69D224DCC1B500ED65CE /* XMPPChatMessage.swift */; };
 		24AA69DC24DDC6DA00ED65CE /* SharedAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1C82334192000805FF9 /* SharedAssets.xcassets */; };
 		24D743E024B3D199001111BF /* Share Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 24D743D624B3D199001111BF /* Share Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		320AC73927D17EC30069048D /* HalloAppClip.app in Embed AppClip */ = {isa = PBXBuildFile; fileRef = 329E03F8268247BC00C2D250 /* HalloAppClip.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -602,7 +601,6 @@
 		2446D67B24CB54F8005BAD3C /* VideoUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoUtils.swift; sourceTree = "<group>"; };
 		2446D67D24CB558F005BAD3C /* ImageServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageServer.swift; sourceTree = "<group>"; };
 		2446D68A24CF732B005BAD3C /* DataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataStore.swift; sourceTree = "<group>"; };
-		24AA69D224DCC1B500ED65CE /* XMPPChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPChatMessage.swift; sourceTree = "<group>"; };
 		24D743D624B3D199001111BF /* Share Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Share Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		24D743DD24B3D199001111BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		32151C1C28207B330057D794 /* ChatViewControllerNew.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewControllerNew.swift; sourceTree = "<group>"; };
@@ -1790,7 +1788,6 @@
 			children = (
 				EA796B8E2469B99A00BC795E /* CoreData Stack */,
 				EA35856F2450BE2900E6E8AB /* ChatData.swift */,
-				24AA69D224DCC1B500ED65CE /* XMPPChatMessage.swift */,
 				EAA424F024EC71450025CBBE /* XMPPGroup.swift */,
 				F8DFCDA826304B3A003F850F /* GroupListSync.swift */,
 				E598D4BF265F0188001A436A /* ConversationID.swift */,
@@ -2813,7 +2810,6 @@
 				761B3957241D815800858251 /* SyncManager.swift in Sources */,
 				F4B91DF8278FCEEB00DF70C1 /* CADisplayLink.swift in Sources */,
 				76538094243D4B33000AD9A1 /* FeedNotification+CoreDataProperties.swift in Sources */,
-				24AA69D324DCC1B500ED65CE /* XMPPChatMessage.swift in Sources */,
 				76538097243D4B33000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */,
 				32C83FB7268FA44F00BEB4F5 /* FeedPermissionDeniedController.swift in Sources */,
 				76A9244B244EC49000794859 /* UIView.swift in Sources */,
