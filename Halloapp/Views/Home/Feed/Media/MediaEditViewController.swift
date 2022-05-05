@@ -80,7 +80,8 @@ class MediaEditViewController: UIViewController {
         undoButton.setTitleColor(.white, for: .normal)
         undoButton.setTitleColor(.white.withAlphaComponent(0.6), for: .highlighted)
         undoButton.setImage(UIImage(named: "Undo")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
-        undoButton.titleEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 0)
+        // right negative padding should be equal to the left padding or the text might get cut off by ellipsis
+        undoButton.titleEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: -8)
         undoButton.addTarget(self, action: #selector(undoAction), for: .touchUpInside)
 
         NSLayoutConstraint.activate([
@@ -112,7 +113,6 @@ class MediaEditViewController: UIViewController {
         let buttonsView = UIStackView(arrangedSubviews: [undoButton, spacer, doneBtn])
         buttonsView.translatesAutoresizingMaskIntoConstraints = false
         buttonsView.axis = .horizontal
-        buttonsView.distribution = .equalSpacing
         buttonsView.alignment = .center
 
         return buttonsView
