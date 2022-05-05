@@ -3131,17 +3131,19 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         return
                     }
                     self.send(post: feedPost)
-                    let numPhotos = mediaItemsToUpload.filter { $0.type == .image }.count
-                    let numVideos = mediaItemsToUpload.filter { $0.type == .video }.count
-                    AppContext.shared.eventMonitor.observe(
-                        .mediaUpload(
-                            postID: postId,
-                            duration: Date().timeIntervalSince(startTime),
-                            numPhotos: numPhotos,
-                            numVideos: numVideos,
-                            totalSize: totalUploadSize))
                 }
             }
+
+            let numPhotos = mediaItemsToUpload.filter { $0.type == .image }.count
+            let numVideos = mediaItemsToUpload.filter { $0.type == .video }.count
+            AppContext.shared.eventMonitor.observe(
+                .mediaUpload(
+                    postID: postId,
+                    duration: Date().timeIntervalSince(startTime),
+                    numPhotos: numPhotos,
+                    numVideos: numVideos,
+                    totalSize: totalUploadSize,
+                    status: numberOfFailedUploads == 0 ? .ok : .fail))
         }
     }
 

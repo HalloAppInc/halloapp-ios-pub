@@ -104,13 +104,14 @@ private extension DiscreteEvent {
 
     private var eData: Server_EventData.OneOf_Edata {
         switch self {
-        case .mediaUpload(let postID, let duration, let numPhotos, let numVideos, let totalSize):
+        case .mediaUpload(let postID, let duration, let numPhotos, let numVideos, let totalSize, let status):
             var upload = Server_MediaUpload()
             upload.id = postID
             upload.durationMs = UInt32(duration * 1000)
             upload.numPhotos = UInt32(numPhotos)
             upload.numVideos = UInt32(numVideos)
             upload.totalSize = UInt32(totalSize)
+            upload.status = status == .ok ? .ok : .fail
             return .mediaUpload(upload)
 
         case .mediaDownload(let postID, let duration, let numPhotos, let numVideos, let totalSize):

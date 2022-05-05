@@ -20,8 +20,12 @@ public enum DecryptionReportContentType: String {
     case groupHistory
 }
 
+public enum MediaDiscreteEventStatus: String {
+    case ok, fail
+}
+
 public enum DiscreteEvent {
-    case mediaUpload(postID: String, duration: TimeInterval, numPhotos: Int, numVideos: Int, totalSize: Int)
+    case mediaUpload(postID: String, duration: TimeInterval, numPhotos: Int, numVideos: Int, totalSize: Int, status: MediaDiscreteEventStatus)
     case mediaDownload(postID: String, duration: TimeInterval, numPhotos: Int, numVideos: Int, totalSize: Int)
     case pushReceived(id: String, timestamp: Date)
     case decryptionReport(id: String, contentType: DecryptionReportContentType, result: String, clientVersion: String, sender: UserAgent, rerequestCount: Int, timeTaken: TimeInterval, isSilent: Bool)
@@ -44,7 +48,11 @@ extension DiscreteEvent: Codable {
             let numPhotos = try container.decode(Int.self, forKey: .numPhotos)
             let numVideos = try container.decode(Int.self, forKey: .numVideos)
             let totalSize = try container.decode(Int.self, forKey: .totalSize)
-            self = .mediaUpload(postID: postID, duration: duration, numPhotos: numPhotos, numVideos: numVideos, totalSize: totalSize)
+            // TODO(stefan): after June 10th 2022, make the code below strict
+            // missing status or wrong value should crash and not report ok
+            let statusString = try? container.decode(String.self, forKey: .status)
+            let status = MediaDiscreteEventStatus(rawValue: statusString ?? MediaDiscreteEventStatus.ok.rawValue) ?? .ok
+            self = .mediaUpload(postID: postID, duration: duration, numPhotos: numPhotos, numVideos: numVideos, totalSize: totalSize, status: status)
         case .mediaDownload:
             let postID = try container.decode(String.self, forKey: .id)
             let duration = try container.decode(TimeInterval.self, forKey: .duration)
@@ -119,13 +127,14 @@ extension DiscreteEvent: Codable {
             try container.encode(numPhotos, forKey: .numPhotos)
             try container.encode(numVideos, forKey: .numVideos)
             try container.encode(totalSize, forKey: .totalSize)
-        case .mediaUpload(let postID, let duration, let numPhotos, let numVideos, let totalSize):
+        case .mediaUpload(let postID, let duration, let numPhotos, let numVideos, let totalSize, let status):
             try container.encode(EventType.mediaUpload, forKey: .eventType)
             try container.encode(postID, forKey: .id)
             try container.encode(duration, forKey: .duration)
             try container.encode(numPhotos, forKey: .numPhotos)
             try container.encode(numVideos, forKey: .numVideos)
             try container.encode(totalSize, forKey: .totalSize)
+            try container.encode(status.rawValue, forKey: .status)
         case .pushReceived(let id, let timestamp):
             try container.encode(EventType.pushReceived, forKey: .eventType)
             try container.encode(id, forKey: .id)
@@ -204,6 +213,7 @@ extension DiscreteEvent: Codable {
         case webrtcStats
         case numExpected
         case numDecrypted
+        case status
     }
 
     private enum EventType: String, Codable {
