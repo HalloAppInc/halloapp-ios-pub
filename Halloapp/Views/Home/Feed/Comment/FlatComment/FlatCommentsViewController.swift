@@ -74,9 +74,10 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     private var cancellableSet: Set<AnyCancellable> = []
     private var parentCommentID: FeedPostCommentID?
 
-    var highlightedCommentId: FeedPostCommentID?
-    private var commentToScrollTo: FeedPostCommentID?
+    private var initiallyScrolledCommentID: FeedPostCommentID?
+    var initiallyHighlightedCommentID: FeedPostCommentID?
     private var isFirstLaunch: Bool = true
+    private var scrollToLastCommentOnNextUpdate = false
 
     // Key used to encode/decode array of comment drafts from `UserDefaults`.
     static let postCommentDraftKey = "posts.comments.drafts"
@@ -412,34 +413,18 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         super.viewDidAppear(animated)
         // TODO @dini check if post is available first
         MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: feedPostId)
-        resetCommentHighlightingIfNeeded()
+
+        if let commentID = initiallyHighlightedCommentID {
+            highlightComment(id: commentID)
+            initiallyHighlightedCommentID = nil
+        }
 
         // Add jump to last message button
         guard let keyWindow = UIApplication.shared.windows.filter({$0.isKeyWindow}).first else { return }
         keyWindow.addSubview(jumpButton)
         jumpButton.trailingAnchor.constraint(equalTo: keyWindow.trailingAnchor).isActive = true
-        jumpButtonConstraint = jumpButton.bottomAnchor.constraint(equalTo: keyWindow.bottomAnchor, constant: -100)
+        jumpButtonConstraint = jumpButton.bottomAnchor.constraint(equalTo: keyWindow.bottomAnchor, constant: -(messageInputView.bottomInset + 50))
         jumpButtonConstraint?.isActive = true
-    }
-
-    private func resetCommentHighlightingIfNeeded() {
-        if let commentId = highlightedCommentId, fetchedResultsController?.fetchedObjects?.firstIndex(where: {$0.id == commentId }) != nil {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
-                guard let self = self else { return }
-                self.unhighlightComment(commentId)
-            }
-            highlightedCommentId = nil
-        }
-    }
-
-    private func unhighlightComment(_ commentId: FeedPostCommentID) {
-        for cell in collectionView.visibleCells.compactMap({ $0 as? MessageCellViewBase }) {
-            if cell.feedPostComment?.id == commentId && cell.isCellHighlighted {
-                UIView.animate(withDuration: 0.25) {
-                    cell.isCellHighlighted = false
-                }
-            }
-        }
     }
 
     private var postLoadingCancellable: AnyCancellable?
@@ -462,15 +447,22 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
             MainAppContext.shared.feedData.downloadMedia(in: comments)
         }
         // Coming from notification
-        if let highlightedCommentId = highlightedCommentId {
-            commentToScrollTo = highlightedCommentId
-        } else if feedPost.unreadCount > 0 {
-            setScrollToFirstUnreadComment()
+        if let initiallyHighlightedCommentID = initiallyHighlightedCommentID {
+            initiallyScrolledCommentID = initiallyHighlightedCommentID
+        } else if feedPost.unreadCount > 0, let comments = fetchedResultsController?.fetchedObjects, !comments.isEmpty {
+            initiallyScrolledCommentID = comments[max(0, min(comments.endIndex - Int(feedPost.unreadCount) + 1, comments.count - 1))].id
+        } else {
+            initiallyScrolledCommentID = fetchedResultsController?.fetchedObjects?.last?.id
         }
     }
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+
+        if let commentID = initiallyScrolledCommentID {
+            scrollToComment(id: commentID)
+            initiallyScrolledCommentID = nil
+        }
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -551,7 +543,6 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                 guard let self = self else { return }
                 DispatchQueue.main.async {
                     self.updateScrollingWhenDataChanges()
-                    self.scrollToTarget(withAnimation: true)
                     self.isFirstLaunch = false
                 }
             }
@@ -714,101 +705,101 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     // MARK: Scrolling and Highlighting
 
     private func updateScrollingWhenDataChanges() {
-        if highlightedCommentId != nil {
+        jumpButtonUnreadCount = feedPost?.unreadCount ?? 0
+        updateJumpButtonText()
+
+        guard !isFirstLaunch else {
             return
         }
-        var areAllCommentsUnread = false
-        if let commentCount = feedPost?.comments?.count, let unreadCount = feedPost?.unreadCount, commentCount == unreadCount {
-            areAllCommentsUnread = true
-        }
+
         // When data changes, if the jump button is not visible, the user is viewing the bottom of the comments,
         // we scroll to bottom so they can see the new comments as they come in.
         // Do not scroll to bottom if all comments are unread
-        guard (!jumpButton.isHidden || areAllCommentsUnread) else {
+        if scrollToLastCommentOnNextUpdate || jumpButton.alpha == 0 {
+            scrollToLastCommentOnNextUpdate = false
             scrollToLastComment()
             return
-        }
-        // if the jump button is visible, update jump button counter, letting them know new comments have come.
-        // We do not scroll to the bottom so the user can continue viewing at the current position.
-        jumpButtonUnreadCount = feedPost?.unreadCount ?? 0
-        if self.jumpButtonUnreadCount > 0 {
-            jumpButtonUnreadCountLabel.text =  String(jumpButtonUnreadCount)
-        } else {
-            jumpButtonUnreadCountLabel.text = ""
         }
     }
 
     func updateJumpButtonVisibility() {
-        let windowHeight = view.window?.bounds.height ?? UIScreen.main.bounds.height
-        let fromTheBottom =  windowHeight*1.5 - messageInputView.bottomInset
-        if collectionView.contentSize.height - collectionView.contentOffset.y > fromTheBottom {
-            let aboveMessageInput = messageInputView.bottomInset + 50
-            jumpButtonConstraint?.constant = -aboveMessageInput
-            jumpButton.isHidden = false
+        let hideJumpButton: Bool
+        if let lastComment = fetchedResultsController?.fetchedObjects?.last,
+           let lastCommentIndexPath = indexPath(for: lastComment.id),
+           let lastCommentLayoutAttributes = collectionView.layoutAttributesForItem(at: lastCommentIndexPath) {
+            // Display jump button when the last comment is no longer visible
+            let insetBounds = collectionView.bounds.inset(by: collectionView.adjustedContentInset)
+            hideJumpButton = insetBounds.intersects(lastCommentLayoutAttributes.frame)
         } else {
-            jumpButton.isHidden = true
-            jumpButtonUnreadCount = 0
-            jumpButtonUnreadCountLabel.text = nil
+            hideJumpButton = true
         }
+
+        let jumpButtonAlpha: CGFloat = hideJumpButton ? 0.0 : 1.0
+        if jumpButton.alpha != jumpButtonAlpha {
+            UIView.animate(withDuration: 0.25, delay: 0.0, options: .curveEaseInOut) {
+                self.jumpButton.alpha = jumpButtonAlpha
+            }
+        }
+
+        // Mark all comments as read on scrolling to bottom
+        if !hideJumpButton {
+            jumpButtonUnreadCount = 0
+            MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: feedPostId)
+            updateJumpButtonText()
+        }
+
+        jumpButtonConstraint?.constant = -(messageInputView.bottomInset + 50)
+    }
+
+    private func updateJumpButtonText() {
+        jumpButtonUnreadCountLabel.text = jumpButtonUnreadCount > 0 ? String(jumpButtonUnreadCount) : nil
     }
 
     @objc private func scrollToLastComment() {
         // Find the last comment and scroll to it
-        guard let comments = fetchedResultsController?.fetchedObjects else { return }
-        let commentToScrollToIndex = comments.count - 1
-        guard commentToScrollToIndex > 0 else { return }
-        // On tapping jumpButton, user is taken to the last comment.
-        // Mark all comments as read
-        jumpButtonUnreadCount = 0
-        MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: feedPostId)
-        commentToScrollTo = comments[commentToScrollToIndex].id
-        scrollToTarget(withAnimation: true)
+        guard let comment = fetchedResultsController?.fetchedObjects?.last else {
+            return
+        }
+
+        scrollToComment(id: comment.id, animated: true)
+        updateJumpButtonText()
     }
 
-    private func setScrollToFirstUnreadComment() {
-        guard let comments = fetchedResultsController?.fetchedObjects, let feedPost = feedPost else { return }
-        var commentToScrollToIndex = (comments.count - 1)
-        if feedPost.unreadCount > 1 {
-            commentToScrollToIndex -= Int(feedPost.unreadCount - 1)
+    private func scrollToComment(id: FeedPostCommentID, animated: Bool = false, highlightAfterScroll: Bool = false) {
+        guard let indexPath = indexPath(for: id) else {
+            DDLogDebug("FlatCommentsView/scrollToComment failed for \(id)")
+            return
         }
-        if commentToScrollToIndex < 0 { return }
-        commentToScrollTo = comments[commentToScrollToIndex].id
+        DDLogDebug("FlatCommentsView/scrollToComment:\(id) animated:\(animated)")
+        collectionView.scrollToItem(at: indexPath, at: .centeredVertically, animated: animated)
+        if !animated {
+            // Attempt to get a more exact position than provided from estimated sizes.
+            // Not compatible with animation, but useful for finding initial scroll positions
+            collectionView.layoutIfNeeded()
+            collectionView.scrollToItem(at: indexPath, at: .centeredVertically, animated: false)
+        }
+
+        if highlightAfterScroll {
+            highlightComment(id: id)
+        }
     }
 
-    private func scrollToTarget(withAnimation: Bool) {
-        DDLogDebug("FlatCommentsView/scrollToTarget/withAnimation: \(withAnimation)")
-        let animated = withAnimation && isViewLoaded && view.window != nil && transitionCoordinator == nil
-        DDLogDebug("FlatCommentsView/scrollToTarget/commentToScrollTo: \(commentToScrollTo ?? "")")
-        if let commentId = commentToScrollTo  {
-            scroll(toComment: commentId, animated: animated, highlightAfterScroll: commentId)
+    private func highlightComment(id: FeedPostCommentID) {
+        guard let indexPath = indexPath(for: id),
+              let cell = collectionView.cellForItem(at: indexPath) as? MessageCellViewBase else {
+            DDLogDebug("FlatCommentsView/highlightComment failed for \(id)")
+            return
         }
 
-       func scroll(toComment commentId: FeedPostCommentID, animated: Bool, highlightAfterScroll: FeedPostCommentID?) {
-            DDLogDebug("FlatCommentsView/scroll/called/toComment: \(commentId)")
-            guard let index = fetchedResultsController?.fetchedObjects?.firstIndex(where: {$0.id == commentId }) else {
-                return
-            }
-            let commentObj = fetchedResultsController?.fetchedObjects?[index]
-            if let commentObj = commentObj, let indexp = dataSource.indexPath(for: messagerow(for: commentObj)) {
-               DDLogDebug("FlatCommentsView/scroll/scrolling/toComment: \(commentId)")
-                collectionView.scrollToItem(at: indexp, at: .centeredVertically, animated: animated)
-                // if this comment needs to be highlighted after scroll, reset commentToScrollTo after highlighting
-                if let highlightedCommentId = highlightedCommentId, highlightedCommentId == commentId {
-                    DDLogDebug("FlatCommentsView/scroll/highlighting/called/toComment: \(commentId)")
-                    guard let cell = collectionView.cellForItem(at: indexp) as? MessageCellViewBase else { return }
-                        DDLogDebug("FlatCommentsView/scroll/highlighting/toComment: \(commentId)")
-                    UIView.animate(withDuration: 0.5) {
-                        cell.isCellHighlighted = true
-                    } completion: { _ in
-                        self.resetCommentHighlightingIfNeeded()
-                    }
-                    commentToScrollTo = nil
-                } else {
-                    // comment does not need highlighting, we can safely reset commentToScrollTo
-                    commentToScrollTo = nil
-                }
-            }
+        DDLogDebug("FlatCommentsView/highlightComment: \(id)")
+        cell.runHighlightAnimation()
+    }
+
+    private func indexPath(for id: FeedPostCommentID) -> IndexPath? {
+        guard let comment = fetchedResultsController?.fetchedObjects?.first(where: { $0.id == id }) else {
+            return nil
         }
+        return dataSource.indexPath(for: messagerow(for: comment))
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -934,9 +925,7 @@ extension FlatCommentsViewController: MessageViewDelegate {
     }
     
     func messageView(_ messageViewCell: MessageCellViewBase, jumpTo feedPostCommentID: FeedPostCommentID) {
-        highlightedCommentId = feedPostCommentID
-        commentToScrollTo = feedPostCommentID
-        scrollToTarget(withAnimation: true)
+        scrollToComment(id: feedPostCommentID, animated: true, highlightAfterScroll: true)
     }
 }
 
@@ -993,34 +982,41 @@ extension FlatCommentsViewController: TextLabelDelegate {
 extension FlatCommentsViewController: CommentInputViewDelegate {
 
     func commentInputView(_ inputView: CommentInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve) {
-            self.updateCollectionViewContentOffset(forKeyboardHeight: inputView.bottomInset)
-            // Manually adjust insets to account for inputView
-            let bottomContentInset = inputView.bottomInset - collectionView.safeAreaInsets.bottom
-            collectionView.contentInset.bottom = bottomContentInset
-            collectionView.verticalScrollIndicatorInsets.bottom = bottomContentInset
-            updateJumpButtonVisibility()
+        let animationOptions: UIView.AnimationOptions
+        switch animationCurve {
+        case .linear:
+            animationOptions = .curveLinear
+        case .easeIn:
+            animationOptions = .curveEaseIn
+        case .easeOut:
+            animationOptions = .curveEaseOut
+        case .easeInOut:
+            animationOptions = .curveEaseInOut
+        @unknown default:
+            animationOptions = .curveLinear
         }
 
-        func updateCollectionViewContentOffset(forKeyboardHeight keyboardHeight: CGFloat) {
-            let bottomInset = keyboardHeight
-            let currentInset = self.collectionView.adjustedContentInset
-            var contentOffset = self.collectionView.contentOffset
+        let bottomInset = inputView.bottomInset
+        let adjustedBottomInset = bottomInset - collectionView.safeAreaInsets.bottom
+        let previousBottomInset = collectionView.contentInset.bottom
 
-            DDLogDebug("FlatCommentsView/keyboard Bottom inset: [\(bottomInset)]  Current insets: [\(currentInset)]")
+        if initiallyScrolledCommentID == nil {
+            UIView.animate(withDuration: animationDuration, delay: 0.0, options: animationOptions) { [collectionView] in
+                collectionView.contentInset.bottom = adjustedBottomInset
+                collectionView.verticalScrollIndicatorInsets.bottom = adjustedBottomInset
 
-            if bottomInset > currentInset.bottom && currentInset.bottom == collectionView.safeAreaInsets.bottom {
-                // Because of the SwiftUI the accessory view appears with a slight delay
-                // and bottom inset increased from 0 to some value. Do not scroll when that happens.
-                return
+                if previousBottomInset < adjustedBottomInset {
+                    // ensure scroll offsets keep us in bounds
+                    let maxOffset = max(collectionView.contentSize.height - collectionView.bounds.height + bottomInset,
+                                        -collectionView.adjustedContentInset.top)
+                    collectionView.contentOffset.y = min(collectionView.contentOffset.y + adjustedBottomInset - previousBottomInset,
+                                                         maxOffset)
+                }
             }
-
-            contentOffset.y += bottomInset - currentInset.bottom
-
-            contentOffset.y = min(contentOffset.y, collectionView.contentSize.height - (collectionView.frame.height - currentInset.top - bottomInset))
-            contentOffset.y = max(contentOffset.y, -currentInset.top)
-
-            DDLogDebug("FlatCommentsView/keyboard Content offset: [\(collectionView.contentOffset)] -> [\(contentOffset)]")
-            self.collectionView.contentOffset = contentOffset
+        } else {
+            collectionView.contentInset.bottom = adjustedBottomInset
+            collectionView.verticalScrollIndicatorInsets.bottom = adjustedBottomInset
+        }
     }
 
     func commentInputView(_ inputView: CommentInputView, wantsToSend text: MentionText, andMedia media: PendingMedia?, linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?) {
@@ -1130,18 +1126,14 @@ extension FlatCommentsViewController: CommentInputViewDelegate {
         if let media = media {
             sendMedia.append(media)
         }
-        commentToScrollTo = MainAppContext.shared.feedData.post(comment: text, media: sendMedia, linkPreviewData: linkPreviewData, linkPreviewMedia : linkPreviewMedia, to: feedPostId, replyingTo: parentCommentID)
+        MainAppContext.shared.feedData.post(comment: text,
+                                            media: sendMedia,
+                                            linkPreviewData: linkPreviewData,
+                                            linkPreviewMedia: linkPreviewMedia,
+                                            to: feedPostId,
+                                            replyingTo: parentCommentID)
+        scrollToLastCommentOnNextUpdate = true
         parentCommentID = nil
         messageInputView.clear()
-    }
-}
-
-fileprivate extension NSFetchedResultsController {
-    @objc func getOptionalObject(at indexPath: IndexPath) -> AnyObject? {
-        guard indexPath.row >= 0 else { return nil }
-        guard let sections = sections, indexPath.section < sections.count else { return nil }
-        let sectionInfo = sections[indexPath.section]
-        guard sectionInfo.numberOfObjects > indexPath.row else { return nil }
-        return object(at: indexPath)
     }
 }

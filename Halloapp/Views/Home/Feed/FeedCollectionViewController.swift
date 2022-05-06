@@ -407,7 +407,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
 
         if ServerProperties.isFlatCommentsEnabled {
             let commentsViewController = FlatCommentsViewController(feedPostId: postId)
-            commentsViewController.highlightedCommentId = commentId
+            commentsViewController.initiallyHighlightedCommentID = commentId
             navigationController?.pushViewController(commentsViewController, animated: true)
         } else {
             let commentsViewController = CommentsViewController(feedPostId: postId)

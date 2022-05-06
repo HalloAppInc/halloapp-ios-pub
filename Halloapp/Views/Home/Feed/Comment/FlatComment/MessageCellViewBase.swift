@@ -21,6 +21,7 @@ class MessageCellViewBase: UICollectionViewCell {
     public var userNameColorAssignment: UIColor = UIColor.primaryBlue
     weak var delegate: MessageViewDelegate?
     public var isReplyTriggered = false // track if swiping gesture on cell is enough to trigger reply
+    private var highlightAnimator: UIViewPropertyAnimator?
 
     // MARK: Name Row
 
@@ -127,14 +128,29 @@ class MessageCellViewBase: UICollectionViewCell {
         return view
     }()
 
-    var isCellHighlighted: Bool = false {
-        didSet {
-            if isCellHighlighted {
-                bubbleView.backgroundColor = .systemGray4
-            } else {
-                bubbleView.backgroundColor = isOwnMessage ? UIColor.messageOwnBackground : UIColor.messageNotOwnBackground
+    public func runHighlightAnimation() {
+        highlightAnimator = UIViewPropertyAnimator.runningPropertyAnimator(withDuration: 0.5, delay: 0.0) {
+            self.bubbleView.backgroundColor = UIColor {
+                switch $0.userInterfaceStyle {
+                case .dark:
+                    return .systemGray2.resolvedColor(with: $0)
+                default:
+                    return .systemGray4.resolvedColor(with: $0)
+                }
             }
+        } completion: { [weak self] _ in
+            guard let self = self else {
+                return
+            }
+            self.highlightAnimator = UIViewPropertyAnimator.runningPropertyAnimator(withDuration: 0.25, delay: 0.0, animations: {
+                self.configureCellBackgroundColor()
+            })
         }
+    }
+
+    private func cancelHighlightAnimation() {
+        highlightAnimator?.stopAnimation(true)
+        highlightAnimator = nil
     }
     
     public lazy var messageRow: UIStackView = {
@@ -243,6 +259,7 @@ class MessageCellViewBase: UICollectionViewCell {
     }
 
     func configureCell() {
+        cancelHighlightAnimation()
         if isOwnMessage {
             bubbleView.backgroundColor = UIColor.messageOwnBackground
             nameRow.isHidden = true
