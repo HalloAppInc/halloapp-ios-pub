@@ -58,7 +58,12 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         inviteButton.addTarget(self, action: #selector(didTapInviteButtion), for: .touchUpInside)
 
         navigationItem.rightBarButtonItems = [UIBarButtonItem(customView: notificationButton), UIBarButtonItem(customView: inviteButton)]
+
         installMomentTestButton()
+        MainAppContext.shared.feedData.validMoment.sink { [weak self] _ in
+            DispatchQueue.main.async { self?.updateMomentButton() }
+        }.store(in: &cancellables)
+        MainAppContext.shared.feedData.refreshValidMoment()
 
         if let feedActivities = MainAppContext.shared.feedData.activityObserver {
             notificationCount = feedActivities.unreadCount
@@ -113,14 +118,6 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         //navigationItem.rightBarButtonItems?.insert(UIBarButtonItem(customView: momentButton), at: 0)
         
         momentTestButton = momentButton
-        
-        MainAppContext.shared.feedData.$validMomentExists.sink { [weak self] _ in
-            DispatchQueue.main.async {
-                self?.updateMomentButton()
-            }
-        }.store(in: &cancellables)
-        
-        MainAppContext.shared.feedData.refreshValidMoment()
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -448,7 +445,7 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
     
     private func updateMomentButton() {
         // only one at a time
-        let exists = MainAppContext.shared.feedData.validMomentExists
+        let exists = MainAppContext.shared.feedData.validMoment.value != nil
         momentTestButton?.isEnabled = !exists
         momentTestButton?.alpha = exists ? 0.5 : 1.0
     }

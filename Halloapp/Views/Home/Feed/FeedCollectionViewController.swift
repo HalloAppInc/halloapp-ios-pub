@@ -368,7 +368,12 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
     }
     
     func showSecretPostView(for post: FeedPost) {
-        if MainAppContext.shared.feedData.validMomentExists {
+        guard post.userId != MainAppContext.shared.userData.userId else {
+            present(MomentViewController(post: post), animated: true)
+            return
+        }
+
+        if let _ = MainAppContext.shared.feedData.validMoment.value {
             let vc = MomentViewController(post: post)
             present(vc, animated: true)
         } else {
@@ -651,11 +656,18 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
     }
 
     private func didShowCell(atIndexPath indexPath: IndexPath) {
-        guard let feedPost = feedDataSource.item(at: indexPath.item)?.post else { return }
-        guard let cell = self.collectionView.cellForItem(at: indexPath) else { return }
-        guard self.isOnscreen(cell: cell) else { return }
-        MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
+        guard
+            let feedPost = feedDataSource.item(at: indexPath.item)?.post,
+            let cell = self.collectionView.cellForItem(at: indexPath),
+            isOnscreen(cell: cell)
+        else {
+            return
+        }
+
         UNUserNotificationCenter.current().removeDeliveredPostNotifications(postId: feedPost.id)
+        if !feedPost.isMoment {
+            MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
+        }
     }
     
     private func isOnscreen(cell: UICollectionViewCell) -> Bool {
