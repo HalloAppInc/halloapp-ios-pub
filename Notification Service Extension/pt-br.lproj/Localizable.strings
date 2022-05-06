@@ -133,6 +133,9 @@
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ acabou de aceitar seu convite para se juntar ao HalloApp 🎉";
 
+/* New moment notification text to be shown to the user. */
+"notification.moment" = "Novo Momento";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notificação.n.fotos";
 

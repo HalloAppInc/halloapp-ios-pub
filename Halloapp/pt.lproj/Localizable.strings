@@ -232,6 +232,9 @@
 /* No comment provided by engineer. */
 "camera.init.error.8" = "Erro ao gravar vídeo";
 
+/* No comment provided by engineer. */
+"camera.init.error.9" = "Não foi possível gravar áudio";
+
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Erro de inicialização";
 
@@ -453,6 +456,9 @@
 
 /* Composer New Message title. */
 "composer.message.title" = "Nova mensagem";
+
+/* Composer New Moment Post title. */
+"composer.moment.post.title" = "Novo momento";
 
 /* Placeholder text for media caption field in post composer. */
 "composer.placeholder.media.description" = "Escreva uma descrição";
@@ -1033,6 +1039,15 @@
 /* Text on loading screen while migrating data */
 "migration.inProgress" = "Otimizando dados…";
 
+/* For indicating that there was an error while uploading the post. */
+"moment.uploading.failure" = "Erro";
+
+/* For indicating that a post is uploading. */
+"moment.uploading.progress" = "Enviando...";
+
+/* For indicating that a post has been successfully uploaded and shared. */
+"moment.uploading.success" = "Compartilhado!";
+
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Enviar mensagem";
 
@@ -1092,6 +1107,9 @@
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ acabou de aceitar o seu convite para se juntar ao HalloApp 🎉";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment" = "Novo momento";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notificação.n.fotos";
@@ -1155,6 +1173,9 @@
 
 /* Text for new user popup pointing at new post button */
 "nux.new.post.button" = "Toque aqui para partilhar uma atualização com seus amigos e familiares no HalloApp";
+
+/* Text that indicates an open action. */
+"open.title" = "Abrir";
 
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "Por favor, habilite o acesso em Configurações";
@@ -1233,6 +1254,9 @@
 
 /* Text for unblocking user under profile header */
 "profile.header.unblock.user" = "Desbloquear ";
+
+/* This is a verb.  The text is clickable, under a contact name and starts a video call with that contact. It should not be translated as a noun. */
+"profile.header.video.call.user" = "Vídeo";
 
 /* Item in Profile > Calls screen. */
 "profile.help.calls" = "Chamadas";
@@ -1365,6 +1389,9 @@
 
 /* Text shown to instruct using a QR code for joining a group */
 "scan.to.join.group.using.qr.code" = "Para participar, escaneie este código QR com a câmera do seu telefone.";
+
+/* Text placed on the blurred overlay of a secret post. */
+"secret.post.entice" = "%@ compartilhou um momento";
 
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Por favor selecione pelo menos um contato.";

@@ -230,7 +230,10 @@
 "camera.init.error.7" = "Fotos können nicht aufgenommen werden";
 
 /* No comment provided by engineer. */
-"camera.init.error.8" = "Videos können nicht aufgenommen werden";
+"camera.init.error.8" = "Videoaufnahme nicht möglich";
+
+/* No comment provided by engineer. */
+"camera.init.error.9" = "Audioaufnahme nicht möglich";
 
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Initialisierungsfehler";
@@ -453,6 +456,9 @@
 
 /* Composer New Message title. */
 "composer.message.title" = "Neue Nachricht";
+
+/* Composer New Moment Post title. */
+"composer.moment.post.title" = "Neuer Moment";
 
 /* Placeholder text for media caption field in post composer. */
 "composer.placeholder.media.description" = "Beschreibung hinzufügen";
@@ -1033,6 +1039,15 @@
 /* Text on loading screen while migrating data */
 "migration.inProgress" = "Daten optimieren…";
 
+/* For indicating that there was an error while uploading the post. */
+"moment.uploading.failure" = "Fehler beim Hochladen";
+
+/* For indicating that a post is uploading. */
+"moment.uploading.progress" = "Wird hochgeladen...";
+
+/* For indicating that a post has been successfully uploaded and shared. */
+"moment.uploading.success" = "Geteilt!";
+
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Nachricht senden";
 
@@ -1156,6 +1171,9 @@
 /* Text for new user popup pointing at new post button */
 "nux.new.post.button" = "Tippe hier, um ein Update mit deinen Freunden und deiner Familie auf HalloApp zu teilen";
 
+/* Text that indicates an open action. */
+"open.title" = "Öffnen";
+
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "Bitte über die Einstellungen den Zugriff zulassen";
 
@@ -1226,13 +1244,16 @@
 "profile.groups.in.common" = "Gemeinsame Gruppen";
 
 /* This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun. */
-"profile.header.call.user" = "Sprachanruf";
+"profile.header.call.user" = "Anrufen";
 
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
 "profile.header.message.user" = "Nachricht senden";
 
 /* Text for unblocking user under profile header */
 "profile.header.unblock.user" = "Entblocken";
+
+/* This is a verb.  The text is clickable, under a contact name and starts a video call with that contact. It should not be translated as a noun. */
+"profile.header.video.call.user" = "Video";
 
 /* Item in Profile > Calls screen. */
 "profile.help.calls" = "Anrufe";
@@ -1365,6 +1386,9 @@
 
 /* Text shown to instruct using a QR code for joining a group */
 "scan.to.join.group.using.qr.code" = "Um beizutreten, scanne diesen QR-Code mit deiner Handykamera.";
+
+/* Text placed on the blurred overlay of a secret post. */
+"secret.post.entice" = "%@ hat einen Moment geteilt";
 
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Bitte wähle mindestens einen Kontakt aus.";

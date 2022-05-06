@@ -232,6 +232,9 @@
 /* No comment provided by engineer. */
 "camera.init.error.8" = "No se puede grabar videos";
 
+/* No comment provided by engineer. */
+"camera.init.error.9" = "No se pudo grabar el audio";
+
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Error al inicializar";
 
@@ -453,6 +456,9 @@
 
 /* Composer New Message title. */
 "composer.message.title" = "Nuevo mensaje";
+
+/* Composer New Moment Post title. */
+"composer.moment.post.title" = "Nuevo momento";
 
 /* Placeholder text for media caption field in post composer. */
 "composer.placeholder.media.description" = "Escribe una descripción";
@@ -1233,6 +1239,9 @@
 
 /* Text for unblocking user under profile header */
 "profile.header.unblock.user" = "Desbloquear";
+
+/* This is a verb.  The text is clickable, under a contact name and starts a video call with that contact. It should not be translated as a noun. */
+"profile.header.video.call.user" = "Video";
 
 /* Item in Profile > Calls screen. */
 "profile.help.calls" = "Llamadas";

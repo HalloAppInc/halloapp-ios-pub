@@ -232,6 +232,9 @@
 /* No comment provided by engineer. */
 "camera.init.error.8" = "Kan geen video opnemen";
 
+/* No comment provided by engineer. */
+"camera.init.error.9" = "Kan geen audio opnemen";
+
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Initialisatiefout";
 
@@ -453,6 +456,9 @@
 
 /* Composer New Message title. */
 "composer.message.title" = "Nieuw Bericht";
+
+/* Composer New Moment Post title. */
+"composer.moment.post.title" = "Nieuw Moment";
 
 /* Placeholder text for media caption field in post composer. */
 "composer.placeholder.media.description" = "Voeg een omschrijving toe";
@@ -944,7 +950,7 @@
 "learn.more" = "Meer informatie.";
 
 /* Link text to open invite flow */
-"link.invite.friend" = "Nodig een vriend uit";
+"link.invite.friend" = "Nodig vrienden uit";
 
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Meer informatie";
@@ -1032,6 +1038,15 @@
 
 /* Text on loading screen while migrating data */
 "migration.inProgress" = "Gegevens Optimaliseren…";
+
+/* For indicating that there was an error while uploading the post. */
+"moment.uploading.failure" = "Fout";
+
+/* For indicating that a post is uploading. */
+"moment.uploading.progress" = "Uploaden...";
+
+/* For indicating that a post has been successfully uploaded and shared. */
+"moment.uploading.success" = "Gedeeld!";
 
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Bericht Sturen";
@@ -1156,6 +1171,9 @@
 /* Text for new user popup pointing at new post button */
 "nux.new.post.button" = "Tik om een update te delen met je vrienden & familie op HalloApp";
 
+/* Text that indicates an open action. */
+"open.title" = "Openen";
+
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "Geef toegang via Instellingen";
 
@@ -1233,6 +1251,9 @@
 
 /* Text for unblocking user under profile header */
 "profile.header.unblock.user" = "Deblokkeren";
+
+/* This is a verb.  The text is clickable, under a contact name and starts a video call with that contact. It should not be translated as a noun. */
+"profile.header.video.call.user" = "videobellen";
 
 /* Item in Profile > Calls screen. */
 "profile.help.calls" = "Oproepen";
@@ -1365,6 +1386,9 @@
 
 /* Text shown to instruct using a QR code for joining a group */
 "scan.to.join.group.using.qr.code" = "Scan deze QR-code met de camera van je telefoon om deel te nemen.";
+
+/* Text placed on the blurred overlay of a secret post. */
+"secret.post.entice" = "%@ heeft een moment gedeeld";
 
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Selecteer ten minste één contact.";
