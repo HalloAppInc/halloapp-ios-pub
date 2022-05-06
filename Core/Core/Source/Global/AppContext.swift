@@ -232,7 +232,7 @@ open class AppContext: AppContextCommon {
                 }
             }
         }
-        mainDataStoreImpl = MainDataStore(userData: userData)
+        mainDataStoreImpl = MainDataStore(userData: userData, appTarget: appTarget, userDefaults: userDefaults)
         contactStoreImpl = contactStoreClass.init(userData: userData)
         privacySettingsImpl = PrivacySettings(contactStore: contactStoreImpl)
         messageCrypterImpl = MessageCrypter(service: coreService, keyStore: keyStore)

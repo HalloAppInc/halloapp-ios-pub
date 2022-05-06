@@ -8,6 +8,7 @@
 
 import CocoaLumberjackSwift
 import CoreData
+import CoreCommon
 
 open class SharedDataStore {
 
@@ -21,8 +22,16 @@ open class SharedDataStore {
     class var persistentStoreURL: URL {
         fatalError("Must implement in a subclass")
     }
-    
+
     class var dataDirectoryURL: URL {
+        fatalError("Must implement in a subclass")
+    }
+
+    public var source: AppTarget {
+        fatalError("Must implement in a subclass")
+    }
+
+    public var mediaDirectory: MediaDirectory {
         fatalError("Must implement in a subclass")
     }
 
@@ -44,7 +53,7 @@ open class SharedDataStore {
         }
         return container
     }()
-    
+
     public final func fileURL(forRelativeFilePath relativePath: String) -> URL {
         return Self.dataDirectoryURL.appendingPathComponent(relativePath)
     }
@@ -77,7 +86,7 @@ open class SharedDataStore {
     }
 
     private lazy var bgContext: NSManagedObjectContext = { persistentContainer.newBackgroundContext() }()
-    
+
     public func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
         self.backgroundProcessingQueue.async {
             self.bgContext.performAndWait { block(self.bgContext) }
@@ -85,12 +94,12 @@ open class SharedDataStore {
     }
 
     // MARK: Fetching Data
-    
+
     public final func posts() -> [SharedFeedPost] {
         let managedObjectContext = persistentContainer.viewContext
         let fetchRequest: NSFetchRequest<SharedFeedPost> = SharedFeedPost.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedFeedPost.timestamp, ascending: true)]
-        
+
         do {
             let posts = try managedObjectContext.fetch(fetchRequest)
             return posts
@@ -99,14 +108,14 @@ open class SharedDataStore {
             fatalError("Failed to fetch shared posts.")
         }
     }
-    
+
     public final func comments() -> [SharedFeedComment] {
         let managedObjectContext = persistentContainer.viewContext
         let fetchRequest: NSFetchRequest<SharedFeedComment> = SharedFeedComment.fetchRequest()
         // Important to fetch these in ascending order - since there could be replies to comments.
         // We fetch the parent comment using parentId and use it to store a reference in our entity.
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedFeedComment.timestamp, ascending: true)]
-        
+
         do {
             let comments = try managedObjectContext.fetch(fetchRequest)
             return comments
@@ -115,13 +124,13 @@ open class SharedDataStore {
             fatalError("Failed to fetch shared posts.")
         }
     }
-    
+
     public final func messages() -> [SharedChatMessage] {
         let managedObjectContext = persistentContainer.viewContext
         let fetchRequest: NSFetchRequest<SharedChatMessage> = SharedChatMessage.fetchRequest()
         // Important to fetch these in ascending order - since there could be quoted content referencing previous messages
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedChatMessage.timestamp, ascending: true)]
-        
+
         do {
             let messages = try managedObjectContext.fetch(fetchRequest)
             return messages
@@ -174,7 +183,7 @@ open class SharedDataStore {
         let managedObjectContext = persistentContainer.viewContext
         let fetchRequest: NSFetchRequest<SharedServerMessage> = SharedServerMessage.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedServerMessage.timestamp, ascending: true)]
-        
+
         do {
             let messages = try managedObjectContext.fetch(fetchRequest)
             return messages
@@ -200,12 +209,12 @@ open class SharedDataStore {
                 }
                 managedObjectContext.delete(post)
             }
-            
+
             // Delete comments
             for comment in comments {
                 managedObjectContext.delete(comment)
             }
-            
+
             self.save(managedObjectContext)
             
             DispatchQueue.main.async {
@@ -322,6 +331,14 @@ open class ShareExtensionDataStore: SharedDataStore {
         AppContext.sharedDirectoryURL.appendingPathComponent("ShareExtension")
     }
 
+    public override var source: AppTarget {
+        return .shareExtension
+    }
+
+    public override var mediaDirectory: MediaDirectory {
+        return .shareExtensionMedia
+    }
+
     public override init() {}
 }
 
@@ -333,6 +350,14 @@ open class NotificationServiceExtensionDataStore: SharedDataStore {
 
     public override class var dataDirectoryURL: URL {
         AppContext.sharedDirectoryURL.appendingPathComponent("NotificationServiceExtension")
+    }
+
+    public override var source: AppTarget {
+        return .notificationExtension
+    }
+
+    public override var mediaDirectory: MediaDirectory {
+        return .notificationExtensionMedia
     }
 
     public override init() {}

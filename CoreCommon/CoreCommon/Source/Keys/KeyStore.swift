@@ -28,7 +28,7 @@ open class KeyStore {
         self.userData = userData
         // Before fetching the latest context for this target.
         // Let us update their last history timestamp: this will be useful when pruning old transactions later.
-        userDefaults.updateLastHistoryTransactionTimestamp(for: appTarget, to: Date())
+        userDefaults.updateLastHistoryTransactionTimestamp(for: appTarget, dataStore: .keyStore, to: Date())
         self.bgContext = persistentContainer.newBackgroundContext()
         // Set the context name and transaction author name.
         // This is used later to filter out transactions made by own context.
@@ -51,10 +51,10 @@ open class KeyStore {
         performSeriallyOnBackgroundContext({ managedObjectContext in
             do {
                 // Merges latest transactions from other contexts into the current target context.
-                let merger = PersistentHistoryMerger(backgroundContext: managedObjectContext, currentTarget: self.appTarget)
+                let merger = PersistentHistoryMerger(backgroundContext: managedObjectContext, viewContext: self.viewContext, dataStore: .keyStore, currentTarget: self.appTarget)
                 let historyMerged = try merger.merge()
                 // Prunes transactions that have been merged into all possible contexts: MainApp, NotificationExtension, ShareExtension
-                let cleaner = PersistentHistoryCleaner(context: managedObjectContext, targets: AppTarget.allCases)
+                let cleaner = PersistentHistoryCleaner(context: managedObjectContext, targets: AppTarget.allCases, dataStore: .keyStore)
                 try cleaner.clean()
 
                 self.save(managedObjectContext)

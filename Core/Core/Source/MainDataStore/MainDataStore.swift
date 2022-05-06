@@ -19,6 +19,9 @@ open class MainDataStore {
     public let userData: UserData
 
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.mainDataStore")
+    private let bgQueueKey = DispatchSpecificKey<String>()
+    private let bgQueueValue = "com.halloapp.mainDataStore"
+    public let appTarget: AppTarget
 
     public let willClearStore = PassthroughSubject<Void, Never>()
     public let didClearStore = PassthroughSubject<Void, Never>()
@@ -35,6 +38,8 @@ open class MainDataStore {
         let storeDescription = NSPersistentStoreDescription(url: MainDataStore.persistentStoreURL)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSInferMappingModelAutomaticallyOption)
+        storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSPersistentHistoryTrackingKey)
+        storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
         storeDescription.setValue(NSString("WAL"), forPragmaNamed: "journal_mode")
         storeDescription.setValue(NSString("1"), forPragmaNamed: "secure_delete")
         let modelURL = Bundle(for: MainDataStore.self).url(forResource: "MainDataStore", withExtension: "momd")!
@@ -52,10 +57,50 @@ open class MainDataStore {
     public var viewContext: NSManagedObjectContext
     private var bgContext: NSManagedObjectContext? = nil
 
-    required public init(userData: UserData) {
+    required public init(userData: UserData, appTarget: AppTarget, userDefaults: UserDefaults) {
         self.userData = userData
         persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
         viewContext = persistentContainer.viewContext
+
+        // Before fetching the latest context for this target.
+        // Let us update their last history timestamp: this will be useful when pruning old transactions later.
+        userDefaults.updateLastHistoryTransactionTimestamp(for: appTarget, dataStore: .mainDataStore, to: Date())
+        self.bgContext = persistentContainer.newBackgroundContext()
+        // Set the context name and transaction author name.
+        // This is used later to filter out transactions made by own context.
+        self.bgContext?.name = appTarget.rawValue + "-context"
+        self.bgContext?.transactionAuthor = appTarget.rawValue
+        self.appTarget = appTarget
+        // Add observer to notify us when persistentStore records changes.
+        // These notifications are triggered for all cross process writes to the store.
+        NotificationCenter.default.addObserver(self, selector: #selector(processStoreRemoteChanges), name: .NSPersistentStoreRemoteChange, object: persistentContainer.persistentStoreCoordinator)
+        backgroundProcessingQueue.setSpecific(key: bgQueueKey, value: bgQueueValue)
+    }
+
+    // Process persistent history to merge changes from other coordinators.
+    @objc private func processStoreRemoteChanges(_ notification: Notification) {
+        DDLogInfo("MainDataStore/processStoreRemoteChanges/notification: \(notification)")
+        processPersistentHistory()
+    }
+    // Merge Persistent history and clear merged transactions.
+    @objc private func processPersistentHistory() {
+        performSeriallyOnBackgroundContext({ managedObjectContext in
+            do {
+                // Merges latest transactions from other contexts into the current target context.
+                let merger = PersistentHistoryMerger(backgroundContext: managedObjectContext, viewContext: self.viewContext, dataStore: .mainDataStore, currentTarget: self.appTarget)
+                let historyMerged = try merger.merge()
+                // Prunes transactions that have been merged into all possible contexts: MainApp, NotificationExtension, ShareExtension
+                let cleaner = PersistentHistoryCleaner(context: managedObjectContext, targets: AppTarget.allCases, dataStore: .mainDataStore)
+                try cleaner.clean()
+
+                self.save(managedObjectContext)
+                if historyMerged {
+                    DDLogInfo("MainDataStore/processPersistentHistory/historyMerged: \(historyMerged)")
+                }
+            } catch {
+                DDLogError("MainDataStore/processPersistentHistory failed with error: \(error)")
+            }
+        })
     }
 
     public func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
@@ -126,6 +171,10 @@ open class MainDataStore {
         let context = persistentContainer.newBackgroundContext()
         context.automaticallyMergesChangesFromParent = true
         context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        // Set the context name and transaction author name.
+        // This is used later to filter out transactions made by own context.
+        context.name = appTarget.rawValue + "-context"
+        context.transactionAuthor = appTarget.rawValue
         return context
     }
 
@@ -285,6 +334,26 @@ open class MainDataStore {
         } catch {
             DDLogError("FeedData/fetchAndUpdateRetryCount/error  [\(error)]")
             fatalError("Failed to fetchAndUpdateRetryCount.")
+        }
+    }
+
+    // MARK: CommonMedia
+
+    public func commonMediaObject(forObjectId objectId: NSManagedObjectID, in managedObjectContext: NSManagedObjectContext) throws -> CommonMedia? {
+        return try managedObjectContext.existingObject(with: objectId) as? CommonMedia
+    }
+
+    public func commonMediaItems(predicate: NSPredicate? = nil, in managedObjectContext: NSManagedObjectContext) -> [CommonMedia] {
+        let managedObjectContext = managedObjectContext
+        let fetchRequest: NSFetchRequest<CommonMedia> = CommonMedia.fetchRequest()
+        fetchRequest.predicate = predicate
+        fetchRequest.returnsObjectsAsFaults = false
+        do {
+            let commonMediaItems = try managedObjectContext.fetch(fetchRequest)
+            return commonMediaItems
+        } catch {
+            DDLogError("FeedData/fetch-commonMediaItems/error  [\(error)]")
+            fatalError("Failed to fetch commonMediaItems.")
         }
     }
 

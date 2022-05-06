@@ -17,22 +17,28 @@ public enum AppTarget: String, CaseIterable {
     case notificationExtension
 }
 
+public enum DataStore: String {
+    case mainDataStore
+    case keyStore
+    case notificationStore
+}
+
 
 extension UserDefaults {
 
-    func lastHistoryTransactionTimestamp(for target: AppTarget) -> Date? {
-        let key = "lastHistoryTransactionTimeStamp-\(target.rawValue)"
+    func lastHistoryTransactionTimestamp(for target: AppTarget, dataStore: DataStore) -> Date? {
+        let key = "lastHistoryTransactionTimeStamp-\(dataStore.rawValue)-\(target.rawValue)"
         return object(forKey: key) as? Date
     }
 
-    public func updateLastHistoryTransactionTimestamp(for target: AppTarget, to newValue: Date?) {
-        let key = "lastHistoryTransactionTimeStamp-\(target.rawValue)"
+    public func updateLastHistoryTransactionTimestamp(for target: AppTarget, dataStore: DataStore, to newValue: Date?) {
+        let key = "lastHistoryTransactionTimeStamp-\(dataStore.rawValue)-\(target.rawValue)"
         set(newValue, forKey: key)
     }
 
-    func lastCommonTransactionTimestamp(in targets: [AppTarget]) -> Date? {
+    func lastCommonTransactionTimestamp(in targets: [AppTarget], dataStore: DataStore) -> Date? {
         let timestamp = targets
-            .map { lastHistoryTransactionTimestamp(for: $0) ?? .distantPast }
+            .map { lastHistoryTransactionTimestamp(for: $0, dataStore: dataStore) ?? .distantPast }
             .min() ?? .distantPast
         return timestamp > .distantPast ? timestamp : nil
     }
@@ -42,30 +48,34 @@ public struct PersistentHistoryMerger {
 
     let backgroundContext: NSManagedObjectContext
     let currentTarget: AppTarget
+    let dataStore: DataStore
+    let viewContext: NSManagedObjectContext
 
-    public init(backgroundContext: NSManagedObjectContext, currentTarget: AppTarget) {
+    public init(backgroundContext: NSManagedObjectContext, viewContext: NSManagedObjectContext, dataStore: DataStore, currentTarget: AppTarget) {
         self.backgroundContext = backgroundContext
         self.currentTarget = currentTarget
+        self.dataStore = dataStore
+        self.viewContext = viewContext
     }
 
     public func merge() throws -> Bool {
-        let fromDate = UserDefaults.shared.lastHistoryTransactionTimestamp(for: currentTarget) ?? .distantPast
+        let fromDate = UserDefaults.shared.lastHistoryTransactionTimestamp(for: currentTarget, dataStore: dataStore) ?? .distantPast
         let fetcher = PersistentHistoryFetcher(context: backgroundContext, fromDate: fromDate)
         let history = try fetcher.fetch()
 
         guard !history.isEmpty else {
-            DDLogInfo("PersistentHistoryMerger/No history transactions found to merge for target \(currentTarget)")
+            DDLogInfo("PersistentHistoryMerger/dataStore: \(dataStore)/No history transactions found to merge for target \(currentTarget)")
             return false
         }
-        DDLogInfo("PersistentHistoryMerger/Merging \(history.count) transactions for target \(currentTarget)")
+        DDLogInfo("PersistentHistoryMerger/dataStore: \(dataStore)/Merging \(history.count) transactions for target \(currentTarget)")
         // Merges the current collection of history transactions into the managed object context.
         history.forEach { transaction in
             guard let userInfo = transaction.objectIDNotification().userInfo else { return }
-            NSManagedObjectContext.mergeChanges(fromRemoteContextSave: userInfo, into: [backgroundContext])
+            NSManagedObjectContext.mergeChanges(fromRemoteContextSave: userInfo, into: [backgroundContext, viewContext])
         }
 
         guard let lastTimestamp = history.last?.timestamp else { return false }
-        UserDefaults.shared.updateLastHistoryTransactionTimestamp(for: currentTarget, to: lastTimestamp)
+        UserDefaults.shared.updateLastHistoryTransactionTimestamp(for: currentTarget, dataStore: dataStore, to: lastTimestamp)
         return true
     }
 }
@@ -86,7 +96,6 @@ struct PersistentHistoryFetcher {
         guard let historyResult = try context.execute(fetchRequest) as? NSPersistentHistoryResult, let history = historyResult.result as? [NSPersistentHistoryTransaction] else {
             throw Error.historyTransactionConvertionFailed
         }
-
         return history
     }
 
@@ -103,7 +112,6 @@ struct PersistentHistoryFetcher {
                 // Only look at transactions not from our current context.
                 predicates.append(NSPredicate(format: "%K != %@", #keyPath(NSPersistentHistoryTransaction.contextName), contextName))
             }
-
             fetchRequest.predicate = NSCompoundPredicate(type: .and, subpredicates: predicates)
             historyFetchRequest.fetchRequest = fetchRequest
         }
@@ -115,26 +123,28 @@ public struct PersistentHistoryCleaner {
 
     let context: NSManagedObjectContext
     let targets: [AppTarget]
+    let dataStore: DataStore
 
-    public init(context: NSManagedObjectContext, targets: [AppTarget]) {
+    public init(context: NSManagedObjectContext, targets: [AppTarget], dataStore: DataStore) {
         self.context = context
         self.targets = targets
+        self.dataStore = dataStore
     }
 
     // Cleans up the persistent history by deleting the transactions that have been merged into each target.
     public func clean() throws {
-        guard let timestamp = UserDefaults.shared.lastCommonTransactionTimestamp(in: targets) else {
-            DDLogInfo("PersistentHistoryCleaner/Cancelling deletions as there is no common transaction timestamp")
+        guard let timestamp = UserDefaults.shared.lastCommonTransactionTimestamp(in: targets, dataStore: dataStore) else {
+            DDLogInfo("PersistentHistoryCleaner/dataStore: \(dataStore)/Cancelling deletions as there is no common transaction timestamp")
             return
         }
 
         let deleteHistoryRequest = NSPersistentHistoryChangeRequest.deleteHistory(before: timestamp)
-        DDLogInfo("PersistentHistoryCleaner/Deleting persistent history using common timestamp \(timestamp)")
+        DDLogInfo("PersistentHistoryCleaner/dataStore: \(dataStore)/Deleting persistent history using common timestamp \(timestamp)")
         try context.execute(deleteHistoryRequest)
 
         targets.forEach { target in
             // Reset the dates as we would otherwise end up in an infinite loop.
-            UserDefaults.shared.updateLastHistoryTransactionTimestamp(for: target, to: nil)
+            UserDefaults.shared.updateLastHistoryTransactionTimestamp(for: target, dataStore: dataStore, to: nil)
         }
     }
 }
