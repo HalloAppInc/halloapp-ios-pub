@@ -58,7 +58,8 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         inviteButton.addTarget(self, action: #selector(didTapInviteButtion), for: .touchUpInside)
 
         navigationItem.rightBarButtonItems = [UIBarButtonItem(customView: notificationButton), UIBarButtonItem(customView: inviteButton)]
-        installMomentTestButton()
+
+        MainAppContext.shared.feedData.refreshValidMoment()
 
         if let feedActivities = MainAppContext.shared.feedData.activityObserver {
             notificationCount = feedActivities.unreadCount
@@ -92,35 +93,15 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         navigationController?.definesPresentationContext = false
         tabBarController?.definesPresentationContext = true
     }
-    
-    private func installMomentTestButton() {
-        let isSimulator: Bool
-        #if targetEnvironment(simulator)
-            isSimulator = true
-        #else
-            isSimulator = false
-        #endif
-        
-        // only for testing since notifications logic isn't ready yet
-        guard isSimulator || ServerProperties.isInternalUser else {
-            return
-        }
-        
-        let momentButton = UIButton(type: .system)
-        momentButton.setTitle("🤫", for: .normal)
-        momentButton.addTarget(self, action: #selector(createNewMoment), for: .touchUpInside)
-        // TODO: - add this button when the rest of the UI is ready
-        //navigationItem.rightBarButtonItems?.insert(UIBarButtonItem(customView: momentButton), at: 0)
-        
-        momentTestButton = momentButton
-        
-        MainAppContext.shared.feedData.$validMomentExists.sink { [weak self] _ in
-            DispatchQueue.main.async {
-                self?.updateMomentButton()
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+
+        for cell in self.collectionView.visibleCells {
+            if let promptCell = cell as? MomentPromptCollectionViewCell {
+                promptCell.promptView.stopSession()
             }
-        }.store(in: &cancellables)
-        
-        MainAppContext.shared.feedData.refreshValidMoment()
+        }
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -130,6 +111,16 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
 
         if isNearTop(100) {
             MainAppContext.shared.feedData.didGetRemoveHomeTabIndicator.send()
+        }
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+
+        for cell in self.collectionView.visibleCells {
+            if let promptCell = cell as? MomentPromptCollectionViewCell {
+                promptCell.promptView.startSession()
+            }
         }
     }
     
@@ -206,7 +197,25 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         if canInvite, !items.isEmpty, !inviteContactsManager.randomSelection.isEmpty, !isZeroZone {
             result.insert(.inviteCarousel, at: min(4, result.count))
         }
-        
+
+        if ServerProperties.isInternalUser, MainAppContext.shared.feedData.latestValidMoment() == nil {
+            // in this case we don't care about the moment's status (could have failed to upload),
+            // as long as the user tried to post one, we won't display the prompt
+            let promptTimestamp = MainAppContext.shared.feedData.momentPromptTimestamp()
+            let index = result.firstIndex {
+                switch $0 {
+                case .post(let post) where post.timestamp < promptTimestamp:
+                    return true
+                case .event(let event) where event.timestamp < promptTimestamp:
+                    return true
+                default:
+                    return false
+                }
+            }
+
+            result.insert(.momentPrompt, at: index ?? 0)
+        }
+
         return result
     }
 
@@ -448,7 +457,7 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
     
     private func updateMomentButton() {
         // only one at a time
-        let exists = MainAppContext.shared.feedData.validMomentExists
+        let exists = MainAppContext.shared.feedData.validMoment.value != nil
         momentTestButton?.isEnabled = !exists
         momentTestButton?.alpha = exists ? 0.5 : 1.0
     }
@@ -521,27 +530,6 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
             newPostViewController.modalPresentationStyle = .fullScreen
             present(newPostViewController, animated: true)
         }
-    }
-    
-    @objc
-    private func createNewMoment() {
-        let source: NewPostMediaSource
-        #if targetEnvironment(simulator)
-        source = .library
-        #else
-        source = .camera
-        #endif
-        
-        let vc = NewPostViewController(source: source,
-                                  destination: .userFeed,
-                                     isMoment: true) { [weak self] didPost in
-            self?.dismiss(animated: true)
-            if didPost {
-                self?.scrollToTop(animated: true)
-            }
-        }
-            
-        present(vc, animated: true)
     }
 
     // MARK: Notification Handling

@@ -13,7 +13,7 @@ import CoreCommon
 
 class MomentView: UIView {
     typealias LayoutConstants = FeedPostCollectionViewCell.LayoutConstants
-    
+
     enum Style { case normal, minimal }
     enum State { case locked, unlocked, indeterminate }
     
@@ -92,7 +92,7 @@ class MomentView: UIView {
     
     private var cancellables: Set<AnyCancellable> = []
     var action: (() -> Void)?
-    
+
     init(style: Style = .normal) {
         self.style = style
         
@@ -178,6 +178,7 @@ class MomentView: UIView {
     func configure(with post: FeedPost) {
         feedPost = post
         mediaView.refreshData(media: post.feedMedia, index: 0, animated: false)
+
         dayOfWeekLabel.text = DateFormatter.dateTimeFormatterDayOfWeekLong.string(from: post.timestamp)
         dateLabel.text = DateFormatter.dateTimeFormatterShortDate.string(from: post.timestamp)
 

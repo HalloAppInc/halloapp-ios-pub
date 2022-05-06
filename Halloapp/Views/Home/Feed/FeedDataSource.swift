@@ -11,6 +11,7 @@ import Core
 import CoreCommon
 import CoreData
 import UIKit
+import Combine
 
 protocol FeedDataSourceDelegate: AnyObject {
     func itemsDidChange(_ items: [FeedDisplayItem])
@@ -34,12 +35,24 @@ final class FeedDataSource: NSObject {
     init(fetchRequest: NSFetchRequest<FeedPost>) {
         self.fetchRequest = fetchRequest
         super.init()
+
+        NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification, object: nil).sink { [weak self] _ in
+            self?.verifyOldestUnexpiredMoment()
+        }.store(in: &cancellables)
+
+        MainAppContext.shared.feedData.validMoment.sink { [weak self] _ in
+            // in this case we want to refresh since we want the prompt cell to be
+            // inserted again
+            self?.refresh()
+        }.store(in: &cancellables)
     }
 
     weak var delegate: FeedDataSourceDelegate?
+    private var cancellables: Set<AnyCancellable> = []
     
     private(set) var displayItems = [FeedDisplayItem]()
     var deletionLabelToExpand: FeedDisplayItem?
+    private var oldestUnexpiredMoment: Date?
 
     var events = [FeedEvent]()
 
@@ -74,7 +87,7 @@ final class FeedDataSource: NSObject {
         do {
             try fetchedResultsController?.performFetch()
             let posts = fetchedResultsController?.fetchedObjects ?? []
-            displayItems = FeedDataSource.makeDisplayItems(orderedPosts: posts, orderedEvents: events)
+            displayItems = makeDisplayItems(orderedPosts: posts, orderedEvents: events)
             if let modifiedItems = delegate?.modifyItems(displayItems) {
                 displayItems = modifiedItems
             }
@@ -86,7 +99,7 @@ final class FeedDataSource: NSObject {
 
     func refresh() {
         let posts = fetchedResultsController?.fetchedObjects ?? []
-        displayItems = FeedDataSource.makeDisplayItems(orderedPosts: posts, orderedEvents: events)
+        displayItems = makeDisplayItems(orderedPosts: posts, orderedEvents: events)
         if let modifiedItems = delegate?.modifyItems(displayItems) {
             displayItems = modifiedItems
         }
@@ -129,7 +142,7 @@ final class FeedDataSource: NSObject {
         return fetchedResultsController
     }
 
-    private static func mergeDeletionPosts(originalItems: [FeedDisplayItem])->[FeedDisplayItem] {
+    private func mergeDeletionPosts(originalItems: [FeedDisplayItem])->[FeedDisplayItem] {
         var displayItems = originalItems
         var count = 0
         var begin = 0
@@ -145,7 +158,10 @@ final class FeedDataSource: NSObject {
             }
             if ((!isRetracted) || (num == displayItems.count && isRetracted)) {
                 if count >= 3 {
-                    let newEvent = FeedEvent(description: deletedPostWithNumber(from: num-begin), timestamp: displayItems[begin].post?.timestamp ?? Date(), isThemed: false, containingItems: Array(displayItems[begin..<num]))
+                    let newEvent = FeedEvent(description: Self.deletedPostWithNumber(from: num-begin),
+                                               timestamp: displayItems[begin].post?.timestamp ?? Date(),
+                                                isThemed: false,
+                                         containingItems: Array(displayItems[begin..<num]))
                     var pos = num - 1
                     while pos >= begin {
                         displayItems.remove(at: pos)
@@ -163,11 +179,31 @@ final class FeedDataSource: NSObject {
     }
 
     /// Merges lists of posts and events (sorted by descending timestamp) into a single display item list
-    private static func makeDisplayItems(orderedPosts: [FeedPost], orderedEvents: [FeedEvent]) -> [FeedDisplayItem]
-    {
+    private func makeDisplayItems(orderedPosts: [FeedPost], orderedEvents: [FeedEvent]) -> [FeedDisplayItem] {
         var originalItems = [FeedDisplayItem]()
+        let momentCutoff = FeedData.momentCutoffDate
 
-        originalItems.append(contentsOf: orderedPosts.map { FeedDisplayItem.post($0) })
+        var oldestUnexpiredMoment: Date?
+        // remove moments that are older than a day; a user's own moments remain visible in the archive
+        let filteredPosts = orderedPosts.filter {
+            if !$0.isMoment {
+                return true
+            } else if $0.timestamp < momentCutoff {
+                return false
+            }
+
+            // post is a moment and is valid
+            if let currentOldest = oldestUnexpiredMoment {
+                oldestUnexpiredMoment = $0.timestamp < currentOldest ? $0.timestamp : currentOldest
+            } else {
+                oldestUnexpiredMoment = $0.timestamp
+            }
+
+            return true
+        }
+        self.oldestUnexpiredMoment = oldestUnexpiredMoment
+
+        originalItems.append(contentsOf: filteredPosts.map { FeedDisplayItem.post($0) })
         originalItems.append(contentsOf: orderedEvents.map { FeedDisplayItem.event($0) })
         
         originalItems = originalItems.sorted {
@@ -180,12 +216,31 @@ final class FeedDataSource: NSObject {
         let displayItems = mergeDeletionPosts(originalItems: originalItems)
         return displayItems
     }
+
+    /**
+     Checks if the oldest unexpired moment in the feed is still valid. If not, refresh.
+
+     - note: Right now this is called when the app enters the foreground. Can go a bit further and
+             schedule a `DispatchItem` or `Timer` so that the feed will update while the app is active.
+     */
+    private func verifyOldestUnexpiredMoment() {
+        guard
+            let oldestUnexpiredMoment = oldestUnexpiredMoment,
+            let expiration = Calendar.current.date(byAdding: .day, value: 1, to: oldestUnexpiredMoment)
+        else {
+            return
+        }
+
+        if expiration < Date() {
+            refresh()
+        }
+    }
 }
 
 extension FeedDataSource: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         let posts = (controller.fetchedObjects as? [FeedPost]) ?? []
-        displayItems = FeedDataSource.makeDisplayItems(orderedPosts: posts, orderedEvents: events)
+        displayItems = makeDisplayItems(orderedPosts: posts, orderedEvents: events)
         if let modifiedItems = delegate?.modifyItems(displayItems) {
             displayItems = modifiedItems
         }
@@ -210,7 +265,7 @@ extension FeedDataSource {
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "groupID == %@ && timestamp >= %@ && fromExternalShare == NO",
                                              groupID,
-                                             FeedData.cutoffDate as NSDate)
+                                             FeedData.postCutoffDate as NSDate)
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
         return fetchRequest
     }
@@ -219,7 +274,7 @@ extension FeedDataSource {
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "(groupID == nil || statusValue != %d) && timestamp >= %@ && fromExternalShare == NO",
                                              FeedPost.Status.retracted.rawValue,
-                                             FeedData.cutoffDate as NSDate)
+                                             FeedData.postCutoffDate as NSDate)
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
         fetchRequest.relationshipKeyPathsForPrefetching = ["mentions", "media", "linkPreviews"]
         return fetchRequest
@@ -230,7 +285,7 @@ extension FeedDataSource {
         fetchRequest.predicate = NSPredicate(format: "userID == %@ && (groupID == nil || statusValue != %d) && timestamp >= %@ && fromExternalShare == NO",
                                              userID,
                                              FeedPost.Status.retracted.rawValue,
-                                             FeedData.cutoffDate as NSDate)
+                                             FeedData.postCutoffDate as NSDate)
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
         return fetchRequest
     }
@@ -239,7 +294,7 @@ extension FeedDataSource {
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
         fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
             NSPredicate(format: "userID == %@", MainAppContext.shared.userData.userId),
-            NSPredicate(format: "timestamp < %@", FeedData.cutoffDate as NSDate),
+            NSPredicate(format: "timestamp < %@", FeedData.postCutoffDate as NSDate),
             NSPredicate(format: "fromExternalShare == NO"),
         ])
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
@@ -262,6 +317,7 @@ enum FeedDisplayItem: Hashable, Equatable {
     case welcome
     case groupWelcome(GroupID)
     case inviteCarousel
+    case momentPrompt
 
     var post: FeedPost? {
         switch self {
@@ -270,6 +326,7 @@ enum FeedDisplayItem: Hashable, Equatable {
         case .welcome: return nil
         case .groupWelcome: return nil
         case .inviteCarousel: return nil
+        case .momentPrompt: return nil
         }
     }
     
@@ -280,6 +337,7 @@ enum FeedDisplayItem: Hashable, Equatable {
         case .welcome: return nil
         case .groupWelcome: return nil
         case .inviteCarousel: return nil
+        case .momentPrompt: return nil
         }
     }
     
@@ -290,6 +348,7 @@ enum FeedDisplayItem: Hashable, Equatable {
         case .welcome: return nil
         case .groupWelcome(let groupID): return groupID
         case .inviteCarousel: return nil
+        case .momentPrompt: return nil
         }
     }
 }

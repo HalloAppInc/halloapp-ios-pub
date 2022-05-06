@@ -365,6 +365,11 @@ fileprivate struct CameraView: View {
     }
 
     private func captureLongPressed() {
+        guard configuration.format == .normal else {
+            // no video for moments as of now
+            return
+        }
+
         defer {
             withAnimation {
                 captureButtonColor = .lavaOrange

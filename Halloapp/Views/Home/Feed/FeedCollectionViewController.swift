@@ -197,6 +197,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         collectionView.register(GroupFeedWelcomeCell.self, forCellWithReuseIdentifier: GroupFeedWelcomeCell.reuseIdentifier)
         collectionView.register(FeedInviteCarouselCell.self, forCellWithReuseIdentifier: FeedInviteCarouselCell.reuseIdentifier)
         collectionView.register(MomentCollectionViewCell.self, forCellWithReuseIdentifier: MomentCollectionViewCell.reuseIdentifier)
+        collectionView.register(MomentPromptCollectionViewCell.self, forCellWithReuseIdentifier: MomentPromptCollectionViewCell.reuseIdentifier)
 
         view.addSubview(collectionView)
         collectionView.constrain(to: view)
@@ -368,7 +369,12 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
     }
     
     func showSecretPostView(for post: FeedPost) {
-        if MainAppContext.shared.feedData.validMomentExists {
+        guard post.userId != MainAppContext.shared.userData.userId else {
+            present(MomentViewController(post: post), animated: true)
+            return
+        }
+
+        if let _ = MainAppContext.shared.feedData.validMoment.value {
             let vc = MomentViewController(post: post)
             present(vc, animated: true)
         } else {
@@ -398,6 +404,27 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         
         let momentVC = MomentViewController(post: post, unlockingPost: latest)
         newPostVC.containedNavigationController.pushViewController(momentVC, animated: true)
+    }
+
+    @objc
+    func createNewMoment() {
+        let source: NewPostMediaSource
+        #if targetEnvironment(simulator)
+        source = .library
+        #else
+        source = .camera
+        #endif
+
+        let vc = NewPostViewController(source: source,
+                                  destination: .userFeed,
+                                     isMoment: true) { [weak self] didPost in
+            self?.dismiss(animated: true)
+            if didPost {
+                self?.scrollToTop(animated: true)
+            }
+        }
+
+        present(vc, animated: true)
     }
 
     // MARK: Post Actions
@@ -651,11 +678,18 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
     }
 
     private func didShowCell(atIndexPath indexPath: IndexPath) {
-        guard let feedPost = feedDataSource.item(at: indexPath.item)?.post else { return }
-        guard let cell = self.collectionView.cellForItem(at: indexPath) else { return }
-        guard self.isOnscreen(cell: cell) else { return }
-        MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
+        guard
+            let feedPost = feedDataSource.item(at: indexPath.item)?.post,
+            let cell = self.collectionView.cellForItem(at: indexPath),
+            isOnscreen(cell: cell)
+        else {
+            return
+        }
+
         UNUserNotificationCenter.current().removeDeliveredPostNotifications(postId: feedPost.id)
+        if !feedPost.isMoment {
+            MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
+        }
     }
     
     private func isOnscreen(cell: UICollectionViewCell) -> Bool {
@@ -793,6 +827,22 @@ extension FeedCollectionViewController {
                         AppContext.shared.contactStore.hideContactFromSuggestedInvites(normalizedPhoneNumber: contact.normalizedPhoneNumber)
                     }
                 }
+                return cell
+            case .momentPrompt:
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MomentPromptCollectionViewCell.reuseIdentifier, for: indexPath)
+
+                let promptCell = cell as? MomentPromptCollectionViewCell
+                promptCell?.promptView.openSettings = {
+                    guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+                    if UIApplication.shared.canOpenURL(url) {
+                        UIApplication.shared.open(url)
+                    }
+                }
+
+                promptCell?.promptView.openCamera = { [weak self] in
+                    self?.createNewMoment()
+                }
+
                 return cell
             }
         }
@@ -1087,9 +1137,17 @@ extension FeedCollectionViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         willShowCell(atIndexPath: indexPath)
         checkForOnscreenCells()
+
+        if let cell = cell as? MomentPromptCollectionViewCell {
+            cell.promptView.startSession()
+        }
     }
 
     func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        if let cell = cell as? MomentPromptCollectionViewCell {
+            cell.promptView.stopSession()
+        }
+
         guard let feedCell = cell as? FeedPostCollectionViewCell else {
             return
         }

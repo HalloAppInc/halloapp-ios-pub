@@ -266,6 +266,7 @@
 		A1AFE7742819F485008BBC80 /* MomentCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AFE7732819F485008BBC80 /* MomentCollectionViewCell.swift */; };
 		A1AFE776281FAA6B008BBC80 /* MomentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AFE775281FAA6B008BBC80 /* MomentViewController.swift */; };
 		A1AFE7782821E135008BBC80 /* MomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AFE7772821E135008BBC80 /* MomentView.swift */; };
+		A1AFE77B28243E42008BBC80 /* MomentPromptCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AFE77A28243E42008BBC80 /* MomentPromptCollectionViewCell.swift */; };
 		A1C18C7C27A1EC9100A76102 /* HalloCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C18C7B27A1EC9100A76102 /* HalloCode.swift */; };
 		A1C18C7F27A1ED8C00A76102 /* HalloCodeTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C18C7E27A1ED8C00A76102 /* HalloCodeTest.swift */; };
 		A1EE101827ECDE0F00148CEB /* UnknownContactSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1EE101527ECDE0E00148CEB /* UnknownContactSheetViewController.swift */; };
@@ -981,6 +982,7 @@
 		A1AFE7732819F485008BBC80 /* MomentCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentCollectionViewCell.swift; sourceTree = "<group>"; };
 		A1AFE775281FAA6B008BBC80 /* MomentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentViewController.swift; sourceTree = "<group>"; };
 		A1AFE7772821E135008BBC80 /* MomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentView.swift; sourceTree = "<group>"; };
+		A1AFE77A28243E42008BBC80 /* MomentPromptCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentPromptCollectionViewCell.swift; sourceTree = "<group>"; };
 		A1C18C7B27A1EC9100A76102 /* HalloCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloCode.swift; sourceTree = "<group>"; };
 		A1C18C7E27A1ED8C00A76102 /* HalloCodeTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloCodeTest.swift; sourceTree = "<group>"; };
 		A1EE101527ECDE0E00148CEB /* UnknownContactSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnknownContactSheetViewController.swift; sourceTree = "<group>"; };
@@ -1672,6 +1674,7 @@
 			children = (
 				A1AFE7772821E135008BBC80 /* MomentView.swift */,
 				A1AFE7732819F485008BBC80 /* MomentCollectionViewCell.swift */,
+				A1AFE77A28243E42008BBC80 /* MomentPromptCollectionViewCell.swift */,
 				A1AFE775281FAA6B008BBC80 /* MomentViewController.swift */,
 			);
 			path = Moment;
@@ -3032,6 +3035,7 @@
 				F4F157DC276AA5B7002FDB9E /* DeleteAccountTextView.swift in Sources */,
 				EAA4C0A12739F505002F1628 /* AddGroupMembersWelcomeView.swift in Sources */,
 				EA039C6326C49BC4002CC4CF /* EditGroupDescViewController.swift in Sources */,
+				A1AFE77B28243E42008BBC80 /* MomentPromptCollectionViewCell.swift in Sources */,
 				EACC34CB24FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataClass.swift in Sources */,
 				F41FAA5227E54F2900FC5090 /* FeedPostMenuViewController.swift in Sources */,
 				76C64E0D24E5AD85007C0F6F /* MediaUploader.swift in Sources */,

@@ -256,8 +256,7 @@ class PostComposerViewController: UIViewController {
         button.layer.masksToBounds = true
         button.addTarget(self, action: #selector(changeDestinationAction), for: .touchUpInside)
         // moments posts go to all contacts, for now
-        // TODO: - un-comment this line
-        //button.isEnabled = !configuration.isMoment
+        button.isEnabled = !configuration.isMoment
         
         button.addSubview(stack)
 

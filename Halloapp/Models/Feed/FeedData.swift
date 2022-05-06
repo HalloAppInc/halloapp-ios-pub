@@ -32,7 +32,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     let didGetRemoveHomeTabIndicator = PassthroughSubject<Void, Never>()
     
-    @Published private(set) var validMomentExists: Bool = false
+    let validMoment = CurrentValueSubject<FeedPostID?, Never>(nil)
 
     private struct UserDefaultsKey {
         static let persistentStoreUserID = "feed.store.userID"
@@ -71,11 +71,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogInfo("Feed: Got event for didConnect")
 
                 self.deleteExpiredPosts()
+                self.deleteExpiredMoments()
+
                 self.performSeriallyOnBackgroundContext { managedObjectContext in
                     self.getArchivedPosts { [weak self] posts in
                         self?.deleteAssociatedData(for: posts, in: managedObjectContext)
                     }
-                    self.deleteNotifications(olderThan: Self.cutoffDate, in: managedObjectContext)
+                    self.deleteNotifications(olderThan: Self.postCutoffDate, in: managedObjectContext)
                 }
                 self.resendStuckItems()
                 self.resendPendingReadReceipts()
@@ -98,6 +100,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             self.contactStore.didDiscoverNewUsers.sink { (userIds) in
                 userIds.forEach({ self.sharePastPostsWith(userId: $0) })
             })
+
+        NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification, object: nil).sink { [weak self] _ in
+            // on the app's enter, we check the status of the user's moment
+            self?.refreshValidMoment()
+        }.store(in: &cancellableSet)
 
         fetchFeedPosts()
     }
@@ -515,6 +522,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         DDLogDebug("FeedData/frc/did-change")
+        refreshValidMoment()
         setNeedsReloadGroupFeedUnreadCounts()
     }
 
@@ -526,7 +534,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         // Fetch all feedposts in the group that have not expired yet.
         fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
             NSPredicate(format: "groupID == %@", groupID),
-            NSPredicate(format: "timestamp >= %@", Self.cutoffDate as NSDate)
+            NSPredicate(format: "timestamp >= %@", Self.postCutoffDate as NSDate)
         ])
         // Fetch feedposts in reverse timestamp order.
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false)]
@@ -584,13 +592,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             if !archived {
                 fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
                     predicate,
-                    NSPredicate(format: "timestamp >= %@", Self.cutoffDate as NSDate)
+                    NSPredicate(format: "timestamp >= %@", Self.postCutoffDate as NSDate)
                 ])
             } else {
                 fetchRequest.predicate = predicate
             }
         } else {
-            fetchRequest.predicate = NSPredicate(format: "timestamp >= %@", Self.cutoffDate as NSDate)
+            fetchRequest.predicate = NSPredicate(format: "timestamp >= %@", Self.postCutoffDate as NSDate)
         }
         
         fetchRequest.sortDescriptors = sortDescriptors
@@ -2961,12 +2969,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 self.updateFeedPost(with: postId) { (feedPost) in
                     feedPost.timestamp = timestamp
                     feedPost.status = .sent
+                    if post.isMoment {
+                        self.validMoment.send(feedPost.id)
+                    }
 
                     MainAppContext.shared.endBackgroundTask(postId)
-                }
-                
-                if post.isMoment {
-                    self.validMomentExists = true
                 }
             case .failure(let error):
                 DDLogError("FeedData/send-post/postID: \(postId) error \(error)")
@@ -3987,13 +3994,17 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     
     /// Cutoff date at which posts expire and are sent to the archive.
     static let postExpiryTimeInterval = -Date.days(31)
-    static let cutoffDate = Date(timeIntervalSinceNow: postExpiryTimeInterval)
+    static let postCutoffDate = Date(timeIntervalSinceNow: postExpiryTimeInterval)
+    static var momentCutoffDate: Date {
+        let momentExpiryTimeInterval = -Date.days(1)
+        return Date(timeIntervalSinceNow: momentExpiryTimeInterval)
+    }
 
     private func deleteExpiredPosts() {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
-            DDLogInfo("FeedData/delete-expired  date=[\(Self.cutoffDate)]")
-            let expiredPosts = self.getPosts(olderThan: Self.cutoffDate, in: managedObjectContext)
+            DDLogInfo("FeedData/delete-expired  date=[\(Self.postCutoffDate)]")
+            let expiredPosts = self.getPosts(olderThan: Self.postCutoffDate, in: managedObjectContext)
 
             let postsToDeleteIncludingUser = expiredPosts.map({ $0.id }) // extract ids before objs get deleted
 
@@ -4012,13 +4023,31 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             self.reloadGroupFeedUnreadCounts()
         }
     }
+
+    private func deleteExpiredMoments() {
+        performSeriallyOnBackgroundContext { [weak self] context in
+            guard let self = self else {
+                return
+            }
+            DDLogInfo("FeedData/delete-expired-moments  date=[\(Self.momentCutoffDate)]")
+
+            let expiredMoments = self.getPosts(olderThan: Self.momentCutoffDate, in: context)
+            let momentsToDelete = expiredMoments
+                .filter { $0.isMoment && $0.userId != MainAppContext.shared.userData.userId }
+                .map { $0.id }
+
+            self.deletePosts(with: momentsToDelete, in: context)
+            self.deleteAssociatedData(for: momentsToDelete, in: context)
+            self.save(context)
+        }
+    }
     
     /// Gets expired posts that were posted by the user.
     /// - Parameter completion: Callback function that returns the array of feed post ids
     func getArchivedPosts(completion: @escaping ([FeedPostID]) -> ()) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            DDLogInfo("FeedData/get-archived  date=[\(Self.cutoffDate)]")
-            let expiredPosts = self.getPosts(olderThan: Self.cutoffDate, in: managedObjectContext)
+            DDLogInfo("FeedData/get-archived  date=[\(Self.postCutoffDate)]")
+            let expiredPosts = self.getPosts(olderThan: Self.postCutoffDate, in: managedObjectContext)
             
             let archivedPostIDs = expiredPosts
                 .filter({ $0.userId == MainAppContext.shared.userData.userId })
@@ -4319,19 +4348,32 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     // MARK: - Secret posts
     
     func refreshValidMoment() {
-        let context = viewContext
-        let request = FeedPost.fetchRequest()
+        performSeriallyOnBackgroundContext { [weak self] context in
+            DDLogInfo("FeedData/refreshValidMoment/start")
+            if let lastValidMomentID = self?.validMoment.value, let lastValidMoment = self?.feedPost(with: lastValidMomentID)  {
+                if lastValidMoment.status != .retracted, lastValidMoment.timestamp > Self.momentCutoffDate {
+                    // return if the current moment is still valid
+                    DDLogInfo("FeedData/refreshValidMoment/existing moment still valid")
+                    return
+                }
+            }
 
-        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-            NSPredicate(format: "userID == %@", MainAppContext.shared.userData.userId),
-            NSPredicate(format: "isMoment == YES"),
-            NSPredicate(format: "statusValue != %d", FeedPost.Status.retracted.rawValue),
-        ])
+            let request = FeedPost.fetchRequest()
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+                NSPredicate(format: "userID == %@", MainAppContext.shared.userData.userId),
+                NSPredicate(format: "isMoment == YES"),
+                NSPredicate(format: "statusValue != %d", FeedPost.Status.retracted.rawValue),
+                NSPredicate(format: "timestamp > %@", Self.momentCutoffDate as NSDate),
+            ])
 
-        if let results = try? context.fetch(request), !results.isEmpty {
-            validMomentExists = true
-        } else {
-            validMomentExists = false
+            if let results = try? context.fetch(request), let first = results.first, first.id != self?.validMoment.value {
+                // only publish if it's a different value
+                self?.validMoment.send(first.id)
+                DDLogInfo("FeedData/refreshValidMoment/sending valid")
+            } else if let _ = self?.validMoment.value {
+                self?.validMoment.send(nil)
+                DDLogInfo("FeedData/refreshValidMoment/sending nil")
+            }
         }
     }
     
@@ -4341,10 +4383,53 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             NSPredicate(format: "userID == %@", MainAppContext.shared.userData.userId),
             NSPredicate(format: "isMoment == YES"),
             NSPredicate(format: "statusValue != %d", FeedPost.Status.retracted.rawValue),
+            NSPredicate(format: "timestamp > %@", Self.momentCutoffDate as NSDate),
         ])
         
         request.fetchLimit = 1
         return try? viewContext.fetch(request).first
+    }
+
+    func momentWasViewed(_ moment: FeedPost) {
+        guard moment.userId != MainAppContext.shared.userData.userId else {
+            return
+        }
+        DDLogInfo("FeedData/momentWasViewed/starting update block")
+
+        updateFeedPost(with: moment.id) { [weak self] moment in
+            self?.internalSendSeenReceipt(for: moment)
+            guard let context = moment.managedObjectContext else {
+                DDLogError("FeedData/momentWasViewed/post in update block has no moc")
+                return
+            }
+
+            self?.deletePosts(with: [moment.id], in: context)
+            self?.deleteAssociatedData(for: [moment.id], in: context)
+        }
+    }
+
+    /**
+     Get the timestamp for where the moment prompt should appear in the feed.
+
+     If the last timestamp was from a different day, the timestamp will be reset to the current time,
+     meaning that the prompt will appear at the top of the feed.
+     */
+    func momentPromptTimestamp() -> Date {
+        let previous = MainAppContext.shared.userDefaults.double(forKey: "momentPrompt")
+        guard previous != .zero else {
+            let new = Date()
+            MainAppContext.shared.userDefaults.set(new.timeIntervalSince1970, forKey: "momentPrompt")
+            return new
+        }
+
+        let date = Date(timeIntervalSince1970: previous)
+        let now = Date()
+        if Calendar.current.isDate(date, inSameDayAs: now) {
+            return date
+        } else {
+            MainAppContext.shared.userDefaults.set(now.timeIntervalSince1970, forKey: "momentPrompt")
+            return now
+        }
     }
 
     // MARK: - Notifications
@@ -4354,7 +4439,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             let notifications = self.notifications(for: "favorites", in: managedObjectContext)
             if notifications.count > 0 {
                 notifications.forEach {
-                    if $0.timestamp < FeedData.cutoffDate {
+                    if $0.timestamp < FeedData.postCutoffDate {
                         managedObjectContext.delete($0)
                     }
                 }
