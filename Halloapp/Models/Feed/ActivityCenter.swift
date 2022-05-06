@@ -20,35 +20,23 @@ struct ActivityCenterItem: Hashable {
     /// Initializer is failable so that there must always be at least one `FeedActivity`
     init?(content: Content) {
         self.content = content
-    }
-    
-    /// Value describing whether the notification has been read or not. When multiple notifications are grouped together,
-    /// this value is the `&&` of all the individual notifications read status.
-    var read: Bool {
-        get {
+
+        // precompute read, as computed properties are not included in diffs
+        read = {
             var feedNotifications: [FeedActivity] = []
-            
+
             switch content {
                 case .singleNotification(let notification): feedNotifications.append(notification)
                 case .unknownCommenters(let notifications): feedNotifications.append(contentsOf: notifications)
             }
-            
-            for notification in feedNotifications {
-                if notification.read != true {
-                    return false
-                }
-            }
-            
-            return true
-        }
-        
-        set {
-            switch content {
-                case .singleNotification(let notification): notification.read = newValue
-                case .unknownCommenters(let notifications): notifications.forEach { $0.read = newValue }
-            }
-        }
+
+            return feedNotifications.allSatisfy { $0.read }
+        }()
     }
+    
+    /// Value describing whether the notification has been read or not. When multiple notifications are grouped together,
+    /// this value is the `&&` of all the individual notifications read status.
+    let read: Bool
     
     /// The text that will be displayed in the notification tableview cell.
     var text: NSAttributedString {
