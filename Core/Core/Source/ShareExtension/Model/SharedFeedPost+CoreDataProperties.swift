@@ -37,6 +37,7 @@ extension SharedFeedPost {
     @NSManaged private var privacyListTypeValue: String?
     @NSManaged public var audienceUserIds: [UserID]?
     @NSManaged public var rawData: Data?
+    @NSManaged public var isMoment: Bool
 
     // TODO(murali@): update attribute name in the entity.
     public var audienceType: AudienceType? {

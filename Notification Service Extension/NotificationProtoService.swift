@@ -312,7 +312,8 @@ final class NotificationProtoService: ProtoServiceCore {
                 return
             }
             let notificationContent = self.extractNotificationContent(for: metadata, using: postData)
-            if let firstMediaItem = sharedFeedPost.orderedMedia.first as? SharedMedia {
+            if let firstMediaItem = sharedFeedPost.orderedMedia.first as? SharedMedia, !sharedFeedPost.isMoment {
+                // TODO: in the case of a moment, we need to handle the preview better (maybe display a blurred image?)
                 let downloadTask = self.startDownloading(media: firstMediaItem)
                 downloadTask?.feedMediaObjectId = firstMediaItem.objectID
             } else {

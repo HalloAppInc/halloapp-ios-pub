@@ -4440,6 +4440,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 feedPost.rawData = rawData
                 feedPost.status = .unsupported
             }
+            feedPost.isMoment = post.isMoment
+
             // Clear cached media if any.
             cachedMedia[postId] = nil
 

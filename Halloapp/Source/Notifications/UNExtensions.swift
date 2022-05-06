@@ -252,4 +252,10 @@ extension Localizations {
             value: "📹 Missed video call",
             comment: "Missed video call notification text to be shown to the user.")
     }
+
+    static var newMomentNotificationSubtitle: String {
+        NSLocalizedString("notification.moment",
+                   value: "New moment",
+                 comment: "New moment notification text to be shown to the user.")
+    }
 }
