@@ -27,6 +27,7 @@ class Toast: UIView {
 
     private let iconImageView: UIImageView = {
         let iconImageView = UIImageView()
+        iconImageView.setContentHuggingPriority(UILayoutPriority(999), for: .horizontal)
         iconImageView.setContentCompressionResistancePriority(UILayoutPriority(999), for: .horizontal)
         iconImageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 13, weight: .bold)
         iconImageView.tintColor = .label.withAlphaComponent(0.7)
@@ -38,6 +39,7 @@ class Toast: UIView {
         let fd = UIFont.systemFont(ofSize: 17, weight: .medium).fontDescriptor.withSymbolicTraits(.traitExpanded)
         textLabel.font = UIFont(descriptor: fd!, size: 17)
         textLabel.numberOfLines = 0
+        textLabel.setContentCompressionResistancePriority(UILayoutPriority(999), for: .horizontal)
         textLabel.textColor = .label.withAlphaComponent(0.7)
         return textLabel
     }()
