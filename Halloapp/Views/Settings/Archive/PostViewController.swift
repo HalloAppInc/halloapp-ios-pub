@@ -286,7 +286,7 @@ extension PostViewController {
                 return
             }
             // If the post is expired, delete it, otherwise, retract it
-            if post.timestamp > FeedData.postCutoffDate {
+            if post.timestamp > FeedData.cutoffDate {
                 MainAppContext.shared.feedData.retract(post: post)
             } else {
                 MainAppContext.shared.feedData.deletePosts(with: [post.id])

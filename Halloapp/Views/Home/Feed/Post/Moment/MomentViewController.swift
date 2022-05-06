@@ -62,7 +62,6 @@ class MomentViewController: UIViewController {
         view.translatesAutoresizingMaskIntoConstraints = false
         view.configure(with: post)
         view.isHidden = post.userID != MainAppContext.shared.userData.userId
-        view.addTarget(self, action: #selector(seenByPushed), for: .touchUpInside)
         return view
     }()
     
@@ -106,14 +105,6 @@ class MomentViewController: UIViewController {
         installDismissButton()
         installUnlockingPost()
     }
-
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-
-        post.feedMedia.first?.$isMediaAvailable.sink { [weak self] _ in
-            self?.expireMomentIfReady()
-        }.store(in: &cancellables)
-    }
     
     private func installUnlockingPost() {
         guard let unlockingPost = unlockingPost else {
@@ -156,13 +147,6 @@ class MomentViewController: UIViewController {
             button.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 15),
             button.topAnchor.constraint(equalTo: view.topAnchor, constant: 20),
         ])
-    }
-
-    @objc
-    private func seenByPushed(_ sender: AnyObject) {
-        let viewController = PostDashboardViewController(feedPost: post)
-        //viewController.delegate = self
-        present(UINavigationController(rootViewController: viewController), animated: true)
     }
     
     private func showMoreMenu() {
@@ -225,7 +209,6 @@ class MomentViewController: UIViewController {
         case .sent:
             unlockingPostProgressLabel.text = Localizations.momentUploadingSuccess
             momentView.setState(.unlocked, animated: true)
-            expireMomentIfReady()
         case .sending:
             unlockingPostProgressLabel.text = Localizations.momentUploadingProgress
         case .sendError:
@@ -233,19 +216,6 @@ class MomentViewController: UIViewController {
         default:
             break
         }
-    }
-
-    private func expireMomentIfReady() {
-        guard
-            post.userId != MainAppContext.shared.userData.userId,
-            post.feedMedia.first?.isMediaAvailable ?? true,
-            case .unlocked = momentView.state,
-            case .sent = unlockingPost?.status ?? .sent
-        else {
-            return
-        }
-
-        MainAppContext.shared.feedData.momentWasViewed(post)
     }
 }
 

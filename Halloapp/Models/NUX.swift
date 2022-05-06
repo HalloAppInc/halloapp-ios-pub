@@ -176,7 +176,7 @@ final class NUX {
 
     // expiring welcome posts mean not showing them, it does not delete them
     private func expireWelcomePosts() {
-        let cutoffDate = FeedData.postCutoffDate
+        let cutoffDate = FeedData.cutoffDate
 
         for (key, value) in welcomePostsDict {
             guard value.show else { return }
