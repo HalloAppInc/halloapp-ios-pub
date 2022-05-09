@@ -454,6 +454,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         } else {
             initiallyScrolledCommentID = fetchedResultsController?.fetchedObjects?.last?.id
         }
+        MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: feedPostId)
     }
 
     override func viewDidLayoutSubviews() {

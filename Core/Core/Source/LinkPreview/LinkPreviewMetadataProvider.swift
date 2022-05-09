@@ -52,7 +52,7 @@ public class LinkPreviewMetadataProvider {
                     return
                 }
                 do {
-                    let document: Document = try SwiftSoup.parse(html, "https://")
+                    let document: Document = try SwiftSoup.parse(html, "https://" + (url.host ?? ""))
                     let title = parseTitle(document: document)
                     let description = parseDescription(document: document)
                     let imageUrl = parseImageURL(document: document)
