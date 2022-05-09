@@ -130,9 +130,7 @@ class FeedMedia: Identifiable, Hashable {
         }
         type = feedPostMedia.type
         size = feedPostMedia.size
-        if let relativePath = feedPostMedia.relativeFilePath {
-            fileURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativePath, isDirectory: false)
-        }
+        fileURL = feedPostMedia.mediaURL
         if [.audio, .video].contains(type) {
             isMediaAvailable = fileURL != nil
         }

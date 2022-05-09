@@ -565,7 +565,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         let isVoiceNote = media?.count == 1 && media?.first?.type == .audio
 
         if isVoiceNote, let item = media?.first {
-            let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(item.relativeFilePath ?? "", isDirectory: false)
+            let url = item.mediaURL ?? MainAppContext.chatMediaDirectoryURL
 
             voiceNoteView.delegate = self
             voiceNoteView.state = .played
@@ -609,7 +609,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             
             for med in mediaArr {
                 
-                let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(med.relativeFilePath ?? "", isDirectory: false)
+                let fileURL = med.mediaURL ?? MainAppContext.chatMediaDirectoryURL
                 
                 if med.type == .image {
                     if let image = UIImage(contentsOfFile: fileURL.path) {

@@ -554,10 +554,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         let isVoiceNote = media?.count == 1 && media?.first?.type == .audio
 
         if isVoiceNote, let item = media?.first {
-            var url: URL? = nil
-            if let path = item.relativeFilePath {
-                url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(path, isDirectory: false)
-            }
+            var url: URL? = item.mediaURL
 
             voiceNoteView.delegate = self
 
@@ -643,7 +640,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             
             for med in mediaArr {
                 
-                let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(med.relativeFilePath ?? "", isDirectory: false)
+                let fileURL = med.mediaURL ?? MainAppContext.chatMediaDirectoryURL
                 
                 if med.type == .image {
                     if let image = UIImage(contentsOfFile: fileURL.path) {
@@ -696,8 +693,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     }
 
     func updateMedia(_ media: CommonMedia) {
-        guard let relativeFilePath = media.relativeFilePath else { return }
-        let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
+        guard let url = media.mediaURL else { return }
 
         switch media.type {
         case .video:
@@ -716,8 +712,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     }
     
     func updateLinkPreviewMedia(_ media: CommonMedia) {
-        guard let relativeFilePath = media.relativeFilePath else { return }
-        let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
+        guard let url = media.mediaURL else { return }
 
         switch media.type {
         case .image:
