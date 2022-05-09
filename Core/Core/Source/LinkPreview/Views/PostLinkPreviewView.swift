@@ -99,7 +99,7 @@ public class PostLinkPreviewView: UIView {
     
     public func setViewConfiguration(mediaSize: CGSize?) {
         if let mediaSize = mediaSize {
-            configuration = (mediaSize.width == mediaSize.height) ? .squareImage : .rectangleImage
+            configuration = (mediaSize.width / mediaSize.height) >= 1.25 ? .rectangleImage : .squareImage
         } else {
             configuration = .noImage
         }
