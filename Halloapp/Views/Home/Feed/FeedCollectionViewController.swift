@@ -749,25 +749,28 @@ extension FeedCollectionViewController {
                     (cell as? FeedEventCollectionViewCell)?.configure(with: event.description, type: .event, isThemed: event.isThemed, tapFunction: nil, thisEvent: item)
                 }
                 return cell
+            case .moment(let feedPost):
+                guard !feedPost.isPostRetracted else {
+                    let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedEventCollectionViewCell.reuseIdentifier, for: indexPath)
+                    (cell as? FeedEventCollectionViewCell)?.configure(with: Localizations.deletedPost(from: feedPost.userId), type: .deletedPost, tapFunction: nil, thisEvent: item)
+                    return cell
+                }
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MomentCollectionViewCell.reuseIdentifier, for: indexPath)
+                if let postCell = cell as? MomentCollectionViewCell {
+                    self?.configure(cell: postCell, withSecretFeedPost: feedPost)
+                }
+                return cell
             case .post(let feedPost):
                 guard !feedPost.isPostRetracted else {
                     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedEventCollectionViewCell.reuseIdentifier, for: indexPath)
                     (cell as? FeedEventCollectionViewCell)?.configure(with: Localizations.deletedPost(from: feedPost.userId), type: .deletedPost, tapFunction: nil, thisEvent: item)
                     return cell
                 }
-                let cell: UICollectionViewCell
-                if feedPost.isMoment {
-                    cell = collectionView.dequeueReusableCell(withReuseIdentifier: MomentCollectionViewCell.reuseIdentifier, for: indexPath)
-                    if let postCell = cell as? MomentCollectionViewCell {
-                        self?.configure(cell: postCell, withSecretFeedPost: feedPost)
-                    }
-                } else {
-                    cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedPostCollectionViewCell.reuseIdentifier, for: indexPath)
-                    if let postCell = cell as? FeedPostCollectionViewCell {
-                        self?.configure(cell: postCell, withActiveFeedPost: feedPost)
-                    }
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedPostCollectionViewCell.reuseIdentifier, for: indexPath)
+                if let postCell = cell as? FeedPostCollectionViewCell {
+                    self?.configure(cell: postCell, withActiveFeedPost: feedPost)
                 }
-                
+
                 return cell
             case .welcome:
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedWelcomeCell.reuseIdentifier, for: indexPath)

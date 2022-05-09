@@ -145,9 +145,6 @@ class MainAppContext: AppContext {
         callManager = CallManager(service: service)
         AudioSessionManager.initialize()
 
-        performAppUpdateMigrationIfNecessary()
-        migrateUploadDataIfNecessary()
-
         // Add observer to notify us when persistentStore records changes.
         // These notifications are triggered for all cross process writes to the store.
 
@@ -189,7 +186,13 @@ class MainAppContext: AppContext {
                     self.migrateChatData()
                 }
                 self.migrationInProgress.send(false)
+
+                self.performAppUpdateMigrationIfNecessary()
+                self.migrateUploadDataIfNecessary()
             }
+        } else {
+            performAppUpdateMigrationIfNecessary()
+            migrateUploadDataIfNecessary()
         }
     }
 

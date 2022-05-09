@@ -181,11 +181,31 @@ final class FeedDataSource: NSObject {
     /// Merges lists of posts and events (sorted by descending timestamp) into a single display item list
     private func makeDisplayItems(orderedPosts: [FeedPost], orderedEvents: [FeedEvent]) -> [FeedDisplayItem] {
         var originalItems = [FeedDisplayItem]()
-        let momentCutoff = FeedData.momentCutoffDate
+        let filteredPosts = filterOutMoments(orderedPosts)
 
-        var oldestUnexpiredMoment: Date?
-        // remove moments that are older than a day; a user's own moments remain visible in the archive
-        let filteredPosts = orderedPosts.filter {
+        originalItems.append(contentsOf: filteredPosts.map { $0.isMoment ? .moment($0) : .post($0) })
+        originalItems.append(contentsOf: orderedEvents.map { FeedDisplayItem.event($0) })
+        
+        originalItems = originalItems.sorted {
+            let t1 = $0.post?.timestamp ?? $0.event?.timestamp ?? Date()
+            let t2 = $1.post?.timestamp ?? $1.event?.timestamp ?? Date()
+            return t1 > t2
+        }
+
+        //merge consecutive deletion posts when the count of consecutive deletion posts >=3
+        let displayItems = mergeDeletionPosts(originalItems: originalItems)
+        return displayItems
+    }
+
+    /**
+     Filters out expired moments.
+     */
+    private func filterOutMoments(_ orderedPosts: [FeedPost]) -> [FeedPost] {
+        let momentCutoff = FeedData.momentCutoffDate
+        oldestUnexpiredMoment = nil
+
+        return orderedPosts.filter {
+            // remove moments that are older than a day; a user's own moments remain visible in the archive
             if !$0.isMoment {
                 return true
             } else if $0.timestamp < momentCutoff {
@@ -201,20 +221,6 @@ final class FeedDataSource: NSObject {
 
             return true
         }
-        self.oldestUnexpiredMoment = oldestUnexpiredMoment
-
-        originalItems.append(contentsOf: filteredPosts.map { FeedDisplayItem.post($0) })
-        originalItems.append(contentsOf: orderedEvents.map { FeedDisplayItem.event($0) })
-        
-        originalItems = originalItems.sorted {
-            let t1 = $0.post?.timestamp ?? $0.event?.timestamp ?? Date()
-            let t2 = $1.post?.timestamp ?? $1.event?.timestamp ?? Date()
-            return t1 > t2
-        }
-
-        //merge consecutive deletion posts when the count of consecutive deletion posts >=3
-        let displayItems = mergeDeletionPosts(originalItems: originalItems)
-        return displayItems
     }
 
     /**
@@ -313,6 +319,7 @@ enum FeedDisplaySection {
 
 enum FeedDisplayItem: Hashable, Equatable {
     case post(FeedPost)
+    case moment(FeedPost)
     case event(FeedEvent)
     case welcome
     case groupWelcome(GroupID)
@@ -322,6 +329,7 @@ enum FeedDisplayItem: Hashable, Equatable {
     var post: FeedPost? {
         switch self {
         case .post(let post): return post
+        case .moment(let post): return post
         case .event: return nil
         case .welcome: return nil
         case .groupWelcome: return nil
@@ -333,6 +341,7 @@ enum FeedDisplayItem: Hashable, Equatable {
     var event: FeedEvent? {
         switch self {
         case .post: return nil
+        case .moment: return nil
         case .event(let event): return event
         case .welcome: return nil
         case .groupWelcome: return nil
@@ -344,6 +353,7 @@ enum FeedDisplayItem: Hashable, Equatable {
     var groupWelcome: GroupID? {
         switch self {
         case .post: return nil
+        case .moment: return nil
         case .event: return nil
         case .welcome: return nil
         case .groupWelcome(let groupID): return groupID

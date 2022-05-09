@@ -945,6 +945,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 } else if existingPost.status == .none {
                     // If status = .none for an existing post, we need to process the newly received post.
                     DDLogInfo("FeedData/process-posts/existing [\(existingPost.id)]/status is none/need to update")
+                } else if existingPost.status == .unsupported {
+                    // If status = .unsupported, populate it
+                    DDLogInfo("FeedData/process-posts/existing [\(existingPost.id)]/status is unsupported/need to update")
                 } else if existingPost.status == .rerequesting && xmppPost.status == .received {
                     // If status = .rerequesting for an existing post.
                     // We check if we already used the unencrypted payload as fallback.
@@ -1145,6 +1148,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     // If status = .none for an existing comment, we need to process the newly received comment.
                     if existingComment.status == .none {
                         DDLogInfo("FeedData/process-comments/existing [\(existingComment.id)]/status is none/need to update")
+                    } else if existingComment.status == .unsupported {
+                        DDLogInfo("FeedData/process-comments/existing [\(existingComment.id)]/status is unsupported/need to update")
                     } else if existingComment.status == .rerequesting && xmppComment.status == .received {
                         // If status = .rerequesting for an existing comment.
                         // We check if we already used the unencrypted payload as fallback.
