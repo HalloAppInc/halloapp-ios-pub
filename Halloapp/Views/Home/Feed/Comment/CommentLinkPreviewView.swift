@@ -15,7 +15,7 @@ class CommentLinkPreviewView: UIView {
 
     private var imageLoadingCancellable: AnyCancellable?
     private var media: FeedMedia?
-    private var feedLinkPreview: CommonLinkPreview?
+    private var linkPreview: CommonLinkPreview?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -27,14 +27,10 @@ class CommentLinkPreviewView: UIView {
         commonInit()
     }
 
-    func configure(feedLinkPreview: CommonLinkPreview) {
-        if feedLinkPreview.media != nil {
-            let media = MainAppContext.shared.feedData.media(feedLinkPreviewID: feedLinkPreview.id)
-            self.media = media?.first
-        }
-        self.feedLinkPreview  = feedLinkPreview
-        titleLabel.text = feedLinkPreview.title
-        urlLabel.text = feedLinkPreview.url?.host
+    func configure(linkPreview: CommonLinkPreview) {
+        self.linkPreview  = linkPreview
+        titleLabel.text = linkPreview.title
+        urlLabel.text = linkPreview.url?.host
         configureMedia()
     }
 
@@ -142,30 +138,39 @@ class CommentLinkPreviewView: UIView {
     }
 
     @objc private func previewTapped(sender: UITapGestureRecognizer) {
-        if let url = feedLinkPreview?.url {
+        if let url = linkPreview?.url {
             URLRouter.shared.handleOrOpen(url: url)
         }
     }
 
     private func configureMedia() {
-        guard let media = media else {
+        // no media
+        guard let media = linkPreview?.media?.first else {
             placeholderImageView.isHidden = true
             mediaView.isHidden = true
             return
         }
-        if media.isMediaAvailable {
-            if let image = media.image {
-                show(image: image)
-            } else {
-                showPlaceholderImage()
-                MainAppContext.shared.errorLogger?.logError(FeedMediaError.missingImage)
-            }
-        } else if imageLoadingCancellable == nil {
+
+        if let mediaURL = media.mediaURL {
+            loadMedia(mediaURL: mediaURL)
+        } else {
             showPlaceholderImage()
-            imageLoadingCancellable = media.imageDidBecomeAvailable.sink { [weak self] (image) in
+            imageLoadingCancellable = media.publisher(for: \.relativeFilePath).sink { [weak self] path in
                 guard let self = self else { return }
-                self.show(image: image)
+                guard path != nil else { return }
+                if let mediaURL = media.mediaURL {
+                    self.loadMedia(mediaURL: mediaURL)
+                }
             }
+        }
+    }
+
+    private func loadMedia(mediaURL: URL) {
+        if let image = UIImage(contentsOfFile: mediaURL.path) {
+            show(image: image)
+        } else {
+            showPlaceholderImage()
+            DDLogError("CommentLinkPreviewView/loadMedia/missing image")
         }
     }
 

@@ -56,19 +56,23 @@ class MessageCellViewLinkPreview: MessageCellViewBase {
         self.addGestureRecognizer(panGestureRecognizer)
     }
 
-    override func configureWithComment(comment: FeedPostComment, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
-        super.configureWithComment(comment: comment, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
-
+    override func configureWith(comment: FeedPostComment, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
+        MainAppContext.shared.feedData.downloadMedia(in: [comment])
+        super.configureWith(comment: comment, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
         configureText(comment: comment)
-        configureLinkPreviewView(comment: comment)
+        if let feedLinkPreviews = comment.linkPreviews, let feedLinkPreview = feedLinkPreviews.first {
+            MainAppContext.shared.feedData.loadImages(feedLinkPreviewID: feedLinkPreview.id)
+            linkPreviewView.configure(linkPreview: feedLinkPreview)
+        }
         super.configureCell()
     }
 
-    func configureLinkPreviewView(comment: FeedPostComment) {
-        guard let feedLinkPreviews = comment.linkPreviews, let feedLinkPreview = feedLinkPreviews.first else {
-            return
+    override func configureWith(message: ChatMessage) {
+        super.configureWith(message: message)
+        configureText(chatMessage: message)
+        if let feedLinkPreviews = message.linkPreviews, let feedLinkPreview = feedLinkPreviews.first {
+            linkPreviewView.configure(linkPreview: feedLinkPreview)
         }
-        MainAppContext.shared.feedData.loadImages(feedLinkPreviewID: feedLinkPreview.id)
-        linkPreviewView.configure(feedLinkPreview: feedLinkPreview)
+        super.configureCell()
     }
 }

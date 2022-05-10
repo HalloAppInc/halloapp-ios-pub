@@ -389,7 +389,7 @@ class CommentView: UIView {
         // Set Name
         MainAppContext.shared.feedData.loadImages(feedLinkPreviewID: feedLinkPreview.id)
         let commentLinkPreviewView = CommentLinkPreviewView()
-        commentLinkPreviewView.configure(feedLinkPreview: feedLinkPreview)
+        commentLinkPreviewView.configure(linkPreview: feedLinkPreview)
         vStack.insertArrangedSubview(commentLinkPreviewView, at: vStack.arrangedSubviews.count - 1)
         commentLinkPreviewView.topAnchor.constraint(equalTo: vStack.topAnchor, constant: 20).isActive = true
         vStack.setCustomSpacing(4, after: commentLinkPreviewView)

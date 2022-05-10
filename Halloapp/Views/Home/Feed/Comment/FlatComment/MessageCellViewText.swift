@@ -59,16 +59,16 @@ class MessageCellViewText: MessageCellViewBase {
         self.addGestureRecognizer(panGestureRecognizer)
     }
 
-    override func configureWithComment(comment: FeedPostComment, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
-        super.configureWithComment(comment: comment, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
+    override func configureWith(comment: FeedPostComment, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
+        super.configureWith(comment: comment, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
         configureText(comment: comment)
         super.configureCell()
     }
 
-    override func configureWith(chatMessage: ChatMessage) {
-        timeLabel.text = chatMessage.timestamp?.chatTimestamp()
-        super.configureWith(chatMessage: chatMessage)
-        configureText(chatMessage: chatMessage)
+    override func configureWith(message: ChatMessage) {
+        timeLabel.text = message.timestamp?.chatTimestamp()
+        super.configureWith(message: message)
+        configureText(chatMessage: message)
         super.configureCell()
     }
 }

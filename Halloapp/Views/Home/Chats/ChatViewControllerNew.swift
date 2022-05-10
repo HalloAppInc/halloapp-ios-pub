@@ -186,6 +186,16 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     }
 
     private func messagerow(for chatMessage: ChatMessage) -> MessageRow {
+        // Media
+        if chatMessage.media?.first?.type == .audio {
+            return MessageRow.audio(chatMessage)
+        } else if chatMessage.media?.first?.type == .video || chatMessage.media?.first?.type == .image {
+            return MessageRow.media(chatMessage)
+        }
+        // Link Preview
+        if let feedLinkPreviews = chatMessage.linkPreviews, feedLinkPreviews.first != nil {
+            return MessageRow.linkPreview(chatMessage)
+        }
         return MessageRow.text(chatMessage)
     }
 
@@ -200,7 +210,6 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     override func viewDidLoad() {
-        super.viewDidLoad()
         guard let fromUserId = fromUserId else { return }
 
         // Setup title view
@@ -243,7 +252,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     }
 
     private func configureCell(itemCell: MessageCellViewBase, for chatMessage: ChatMessage) {
-        itemCell.configureWith(chatMessage: chatMessage)
+        itemCell.configureWith(message: chatMessage)
         itemCell.textLabel.delegate = self
     }
 

@@ -96,50 +96,54 @@ class MessageCellViewAudio: MessageCellViewBase {
         self.addGestureRecognizer(panGestureRecognizer)
     }
 
-    override func configureWithComment(comment: FeedPostComment, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
-        super.configureWithComment(comment: comment, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
+    override func configureWith(comment: FeedPostComment, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
+        super.configureWith(comment: comment, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
         audioMediaStatusCancellable?.cancel()
 
-        configureAudio(comment: comment)
-        configureCell()
-    }
-
-    func configureAudio(comment: FeedPostComment) {
-        guard let commentMedia = comment.media, commentMedia.count > 0 else {
-            return
-        }
-        guard let media = MainAppContext.shared.feedData.media(commentID: comment.id) else {
-            return
-        }
-        guard media.count == 1 && media[0].type == .audio else { return }
         // Download any pending media, comes in handy for media coming in while user is viewing comments
         MainAppContext.shared.feedData.downloadMedia(in: [comment])
         MainAppContext.shared.feedData.loadImages(commentID: comment.id)
-        let audioMedia = media[0]
-        if audioView.url != audioMedia.fileURL {
-            audioTimeLabel.text = "0:00"
-            audioView.url = audioMedia.fileURL
+        if comment.media?.count == 1, let media = comment.media?.first, media.type == .audio {
+            configureAudio(audioMedia: media,
+                                isOwn: comment.userId == MainAppContext.shared.userData.userId,
+                                isPlayed: comment.status == .played)
         }
+        configureCell()
+    }
 
-        if !audioView.isPlaying {
-            let isOwn = comment.userId == MainAppContext.shared.userData.userId
-            audioView.state = comment.status == .played || isOwn ? .played : .normal
+    override func configureWith(message: ChatMessage) {
+        if audioMediaStatusCancellable != nil {
+            audioMediaStatusCancellable?.cancel()
+            audioMediaStatusCancellable = nil
         }
+        super.configureWith(message: message)
+        if message.media?.count == 1, let media = message.media?.first, media.type == .audio {
+            configureAudio(audioMedia: media,
+                           isOwn: message.fromUserId == MainAppContext.shared.userData.userId,
+                           isPlayed: [.played, .sentPlayedReceipt].contains(message.incomingStatus))
+        }
+        super.configureCell()
+    }
 
-        if audioMedia.fileURL == nil {
+    private func configureAudio(audioMedia: CommonMedia, isOwn: Bool, isPlayed: Bool) {
+        if let mediaURL = audioMedia.mediaURL {
+            audioView.url = mediaURL
+            if !audioView.isPlaying {
+                audioView.state = isPlayed || isOwn ? .played : .normal
+            }
+        } else {
             audioView.state = .loading
-
-            audioMediaStatusCancellable = audioMedia.mediaStatusDidChange.sink { [weak self] mediaItem in
+            audioMediaStatusCancellable = audioMedia.publisher(for: \.relativeFilePath).sink { [weak self] path in
                 guard let self = self else { return }
-                guard let url = mediaItem.fileURL else { return }
-                self.audioView.url = url
-
-                let isOwn = comment.userId == MainAppContext.shared.userData.userId
-                self.audioView.state = comment.status == .played || isOwn ? .played : .normal
+                guard path != nil else { return }
+                self.audioView.url = audioMedia.mediaURL
+                if !self.audioView.isPlaying {
+                    self.audioView.state = isPlayed || isOwn ? .played : .normal
+                }
             }
         }
     }
-    
+
     // Adjusting constraint priorities here in a single place to be able to easily see relative priorities.
     override func configureCell() {
         super.configureCell()
@@ -156,11 +160,16 @@ extension MessageCellViewAudio: AudioViewDelegate {
     func audioView(_ view: AudioView, at time: String) {
         audioTimeLabel.text = time
     }
+
     func audioViewDidStartPlaying(_ view: AudioView) {
-        guard let commentId = feedPostComment?.id else { return }
-        audioView.state = .played
-        MainAppContext.shared.feedData.markCommentAsPlayed(commentId: commentId)
+        if let commentId = feedPostComment?.id {
+            MainAppContext.shared.feedData.markCommentAsPlayed(commentId: commentId)
+        } else if let messageID = chatMessage?.id {
+            audioView.state = .played
+            MainAppContext.shared.chatData.markPlayedMessage(for: messageID)
+        }
     }
+
     func audioViewDidEndPlaying(_ view: AudioView, completed: Bool) {
     }
 }

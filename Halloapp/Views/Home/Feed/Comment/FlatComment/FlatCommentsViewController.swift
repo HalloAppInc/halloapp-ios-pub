@@ -199,7 +199,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         }
 
         let isPreviousMessageFromSameSender = isPreviousMessageSameSender(currentComment: comment)
-        itemCell.configureWithComment(comment: comment, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
+        itemCell.configureWith(comment: comment, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
         itemCell.delegate = self
         itemCell.textLabel.delegate = self
     }

@@ -16,6 +16,7 @@ class MessageCellViewBase: UICollectionViewCell {
     lazy var leftAlignedConstraint = messageRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor)
 
     var feedPostComment: FeedPostComment?
+    var chatMessage: ChatMessage?
     public var isOwnMessage: Bool = false
     public var isPreviousMessageOwnMessage: Bool = false
     public var userNameColorAssignment: UIColor = UIColor.primaryBlue
@@ -241,7 +242,13 @@ class MessageCellViewBase: UICollectionViewCell {
         super.layoutSubviews()
     }
 
-    func configureWithComment(comment: FeedPostComment, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        chatMessage = nil
+        feedPostComment = nil
+    }
+
+    func configureWith(comment: FeedPostComment, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
         feedPostComment = comment
         isOwnMessage = comment.userId == MainAppContext.shared.userData.userId
         isPreviousMessageOwnMessage = isPreviousMessageFromSameSender
@@ -253,9 +260,10 @@ class MessageCellViewBase: UICollectionViewCell {
         }
     }
 
-    func configureWith(chatMessage: ChatMessage) {
-        isOwnMessage = chatMessage.fromUserId == MainAppContext.shared.userData.userId
-        timeLabel.text = chatMessage.timestamp?.chatTimestamp()
+    func configureWith(message: ChatMessage) {
+        chatMessage = message
+        isOwnMessage = message.fromUserId == MainAppContext.shared.userData.userId
+        timeLabel.text = message.timestamp?.chatTimestamp()
     }
 
     func configureCell() {

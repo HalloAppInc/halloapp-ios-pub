@@ -176,7 +176,7 @@ class MessageViewCell: MessageCellViewBase {
         ])
     }
 
-    override func configureWithComment(comment: FeedPostComment, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
+    override func configureWith(comment: FeedPostComment, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
         audioMediaStatusCancellable?.cancel()
         feedPostComment = comment
         isOwnMessage = comment.userId == MainAppContext.shared.userData.userId
@@ -344,7 +344,7 @@ class MessageViewCell: MessageCellViewBase {
         }
         hasLinkPreview = true
         MainAppContext.shared.feedData.loadImages(feedLinkPreviewID: feedLinkPreview.id)
-        linkPreviewView.configure(feedLinkPreview: feedLinkPreview)
+        linkPreviewView.configure(linkPreview: feedLinkPreview)
     }
 }
 
