@@ -696,6 +696,9 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         if [.retracting, .retracted].contains(chatMessage.outgoingStatus) {
             textView.textColor = UIColor.chatTime
             text = Localizations.chatMessageDeleted
+            // TODO: this does not resize the cell automatically. talk to team to fix this.
+            mediaImageView.isHidden = true
+            linkPreviewRow.isHidden = true
         }
 
         var isLargeFontEmoji = false

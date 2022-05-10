@@ -3234,6 +3234,11 @@ extension ChatData {
         chatMessage.chatReplyMessageMediaIndex = 0
         
         self.deleteMedia(in: chatMessage)
+
+        // delete link previews.
+        chatMessage.linkPreviews?.forEach { linkPreview in
+            chatMessage.managedObjectContext?.delete(linkPreview)
+        }
         chatMessage.media = nil
         chatMessage.quoted = nil
     }
@@ -3252,6 +3257,23 @@ extension ChatData {
                 }
             }
             chatMessage.managedObjectContext?.delete(media)
+        }
+
+        // Delete link previews in messages.
+        chatMessage.linkPreviews?.forEach { linkPreview in
+            linkPreview.media?.forEach { (media) in
+                if media.relativeFilePath != nil {
+                    let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(media.relativeFilePath!, isDirectory: false)
+                    do {
+                        DDLogDebug("ChatData/deleteMedia ")
+                        try FileManager.default.removeItem(at: fileURL)
+                    }
+                    catch {
+                        DDLogError("ChatData/deleteMedia/error [\(error)]")
+                    }
+                }
+                chatMessage.managedObjectContext?.delete(media)
+            }
         }
 
         // quoted media item will be deleted - when the main chat message containing that media object is deleted.
