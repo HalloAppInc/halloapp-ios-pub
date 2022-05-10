@@ -45,6 +45,8 @@ public class FeedDownloadManager {
         fileprivate var encryptedFilePath: String?
         public var decryptedFilePath: String?
         public var fileSize: Int?
+        public var isPartialChunkedDownload = false
+        public var downloadedChunkSet: BitSet?
 
         fileprivate var filename: String {
             get {
@@ -114,14 +116,18 @@ public class FeedDownloadManager {
             return (fileURL, [.removePreviousFile, .createIntermediateDirectories])
         }
 
+        let streamingInitialDownloadSize = ServerProperties.streamingInitialDownloadSize
+        task.isPartialChunkedDownload = task.mediaData.blobVersion == .chunked && task.mediaData.blobSize > streamingInitialDownloadSize
+        let headers: HTTPHeaders = task.isPartialChunkedDownload ? ["Range": "bytes=0-\(streamingInitialDownloadSize)"] : []
+
         // Resume from existing partial data if possible
         let request: Alamofire.DownloadRequest = {
-            if let resumeData = try? Data(contentsOf: resumeDataFileURL(forMediaFilename: task.filename)) {
+            if !task.isPartialChunkedDownload, let resumeData = try? Data(contentsOf: resumeDataFileURL(forMediaFilename: task.filename)) {
                 DDLogInfo("FeedDownloadManager/\(task.id)/resuming")
                 return AF.download(resumingWith: resumeData, to: destination)
             } else {
                 DDLogInfo("FeedDownloadManager/\(task.id)/initiating")
-                return AF.download(downloadURL, to: destination)
+                return AF.download(downloadURL, headers: headers, to: destination)
             }
         }()
 
@@ -193,6 +199,7 @@ public class FeedDownloadManager {
     }
 
     private func saveResumeData(_ resumeData: Data, for task: Task) {
+        guard !task.isPartialChunkedDownload else { return }
         do {
             let fileURL = self.resumeDataFileURL(forMediaFilename: task.filename)
             try FileManager.default.createDirectory(
@@ -458,6 +465,13 @@ public class FeedDownloadManager {
             return
         }
 
+        guard let encryptedFileSize = try? FileManager.default.attributesOfItem(atPath: encryptedFileURL.path)[FileAttributeKey.size] as? Int else {
+            DDLogError("FeedDownloadManager/\(task.id)/decryptChunkedMedia/error Error reading encrypted file size.")
+            task.error = .unknownError
+            self.taskFailed(task)
+            return
+        }
+
         guard let encryptedFileHandle = try? FileHandle(forReadingFrom: encryptedFileURL) else {
             DDLogError("FeedDownloadManager/\(task.id)/decryptChunkedMedia/error Could not open encrypted file")
             task.error = .unknownError
@@ -485,23 +499,37 @@ public class FeedDownloadManager {
         }
 
         let ts = Date()
-        var fileSize: UInt64 = 0
+        var decryptedFileSize: UInt64 = 0
         do {
+            let toDecryptChunkCount: Int32 = {
+                let downloadedChunkCount = encryptedFileSize / Int(chunkedParameters.chunkSize)
+                if encryptedFileSize < chunkedParameters.blobSize && downloadedChunkCount < chunkedParameters.totalChunkCount {
+                    return Int32(downloadedChunkCount)
+                } else {
+                    return chunkedParameters.totalChunkCount
+                }
+            }()
+
             try ChunkedMediaCrypter.decryptChunkedMedia(
                 mediaType: task.mediaData.type,
                 mediaKey: mediaKey,
                 sha256Hash: sha256Hash,
                 chunkedParameters: chunkedParameters,
                 readChunkData: { _, chunkSize in encryptedFileHandle.readData(ofLength: chunkSize) },
-                writeChunkData: { chunkData, _ in decryptedFileHandle.write(chunkData)})
-            fileSize = decryptedFileHandle.offsetInFile
+                writeChunkData: { chunkData, _ in decryptedFileHandle.write(chunkData) },
+                toDecryptChunkCount: toDecryptChunkCount
+            )
+            decryptedFileSize = decryptedFileHandle.offsetInFile
+            let chunkSet = BitSet(count: Int(chunkedParameters.totalChunkCount))
+            (0..<Int(toDecryptChunkCount)).forEach { chunkSet[$0] = true }
+            task.downloadedChunkSet = chunkSet
         } catch {
             task.error = .decryptionFailed
             DDLogError("FeedDownloadManager/\(task.id)/decryptChunkedMedia/decrypt/failed [\(error)]")
             self.taskFailed(task)
             return
         }
-        DDLogInfo("FeedDownloadManager/\(task.id)/decryptChunkedMedia/decrypt/finished full-fileSize=[\(fileSize)] duration: \(-ts.timeIntervalSinceNow) s")
+        DDLogInfo("FeedDownloadManager/\(task.id)/decryptChunkedMedia/decrypt/finished decrypted-fileSize=[\(decryptedFileSize)] duration=[\(-ts.timeIntervalSinceNow)] s")
 
         decryptionSuccessful = true
         task.decryptedFilePath = relativePath(from: decryptedFileURL)

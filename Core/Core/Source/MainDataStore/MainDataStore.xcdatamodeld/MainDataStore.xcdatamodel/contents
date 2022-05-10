@@ -75,6 +75,7 @@
     <entity name="CommonMedia" representedClassName="CommonMedia" syncable="YES">
         <attribute name="blobSize" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="blobVersionValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="chunkSet" optional="YES" attributeType="Binary"/>
         <attribute name="chunkSize" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="height" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="key" optional="YES" attributeType="String"/>
@@ -235,7 +236,7 @@
         <element name="ChatMessage" positionX="-9" positionY="144" width="128" height="359"/>
         <element name="ChatQuoted" positionX="0" positionY="153" width="128" height="119"/>
         <element name="CommonLinkPreview" positionX="-45" positionY="63" width="128" height="149"/>
-        <element name="CommonMedia" positionX="-36" positionY="72" width="128" height="344"/>
+        <element name="CommonMedia" positionX="-36" positionY="72" width="128" height="359"/>
         <element name="CommonThread" positionX="27" positionY="180" width="128" height="209"/>
         <element name="ContentPublishInfo" positionX="36" positionY="108" width="128" height="74"/>
         <element name="ContentResendInfo" positionX="-63" positionY="45" width="128" height="119"/>

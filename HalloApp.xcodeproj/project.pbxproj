@@ -78,6 +78,7 @@
 		32ECB6DB27725E2C004DABBA /* MessageCommentHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32ECB6DA27725E2C004DABBA /* MessageCommentHeaderView.swift */; };
 		32ECB6E9277515DD004DABBA /* QuotedMessageCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32ECB6E8277515DD004DABBA /* QuotedMessageCellView.swift */; };
 		33816C0D2664E5B500E05E21 /* GroupsInCommonViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33816C0C2664E5B500E05E21 /* GroupsInCommonViewController.swift */; };
+		5B493BCC27FF316500FDEA0D /* ChunkedMediaResourceLoaderDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B493BCB27FF316400FDEA0D /* ChunkedMediaResourceLoaderDelegate.swift */; };
 		5B649728276B91BA000031C2 /* Feed6ToFeed7.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 5B649727276B91B9000031C2 /* Feed6ToFeed7.xcmappingmodel */; };
 		5B64B56224F3FA2E00BCBEA8 /* CameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B64B56124F3FA2E00BCBEA8 /* CameraController.swift */; };
 		5BF5D12324F5295300F272D8 /* CameraViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF5D12224F5295300F272D8 /* CameraViewController.swift */; };
@@ -671,6 +672,7 @@
 		32ECB6DA27725E2C004DABBA /* MessageCommentHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageCommentHeaderView.swift; sourceTree = "<group>"; };
 		32ECB6E8277515DD004DABBA /* QuotedMessageCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotedMessageCellView.swift; sourceTree = "<group>"; };
 		33816C0C2664E5B500E05E21 /* GroupsInCommonViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupsInCommonViewController.swift; sourceTree = "<group>"; };
+		5B493BCB27FF316400FDEA0D /* ChunkedMediaResourceLoaderDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChunkedMediaResourceLoaderDelegate.swift; sourceTree = "<group>"; };
 		5B649727276B91B9000031C2 /* Feed6ToFeed7.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = Feed6ToFeed7.xcmappingmodel; sourceTree = "<group>"; };
 		5B64B56124F3FA2E00BCBEA8 /* CameraController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraController.swift; sourceTree = "<group>"; };
 		5BD8B040276B6105006755BC /* Feed7.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed7.xcdatamodel; sourceTree = "<group>"; };
@@ -2088,6 +2090,7 @@
 		EAC4AF21233E8D9700739B2B /* Network */ = {
 			isa = PBXGroup;
 			children = (
+				5B493BCB27FF316400FDEA0D /* ChunkedMediaResourceLoaderDelegate.swift */,
 				EAC4AF22233E8DAB00739B2B /* ChatMediaDownloader.swift */,
 				2446D67D24CB558F005BAD3C /* ImageServer.swift */,
 				76C64E0C24E5AD85007C0F6F /* MediaUploader.swift */,
@@ -2750,6 +2753,7 @@
 				2446D67E24CB558F005BAD3C /* ImageServer.swift in Sources */,
 				F470251027ED31A6008CD37F /* URLRouter.swift in Sources */,
 				68E5E9DA25F6FAF100250762 /* FeedDataSource.swift in Sources */,
+				5B493BCC27FF316500FDEA0D /* ChunkedMediaResourceLoaderDelegate.swift in Sources */,
 				EA45713D23EB7F47008C2E44 /* MediaCarouselView.swift in Sources */,
 				F40F7C8727570707008144DE /* AudioPostComposer.swift in Sources */,
 				EA52EB18245A012700FB03F6 /* NewChatViewController.swift in Sources */,

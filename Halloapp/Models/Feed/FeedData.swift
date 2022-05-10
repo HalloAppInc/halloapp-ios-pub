@@ -2396,8 +2396,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             if task.error == nil {
                 DDLogInfo("FeedData/download-task/\(task.id)/complete [\(task.decryptedFilePath!)]")
-                feedPostMedia.status = .downloaded
+                feedPostMedia.status = task.isPartialChunkedDownload ? .downloadedPartial : .downloaded
                 feedPostMedia.relativeFilePath = task.decryptedFilePath
+                if task.isPartialChunkedDownload, let chunkSet = task.downloadedChunkSet {
+                    DDLogDebug("FeedData/download-task/\(task.id)/feedDownloadManager chunkSet=[\(chunkSet)]")
+                    feedPostMedia.chunkSet = chunkSet.data
+                }
             } else {
                 DDLogError("FeedData/download-task/\(task.id)/error [\(task.error!)]")
                 feedPostMedia.status = .downloadError
@@ -2416,7 +2420,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             self.save(managedObjectContext)
 
             // Step 2: Update media preview for all notifications for the given post.
-            if feedPostMedia.status == .downloaded && feedPostMedia.order == 0 {
+            if [.downloaded, .downloadedPartial].contains(feedPostMedia.status) && feedPostMedia.order == 0 {
                 self.updateNotificationMediaPreview(with: feedPostMedia, using: managedObjectContext)
                 if managedObjectContext.hasChanges {
                     self.save(managedObjectContext)
@@ -2451,6 +2455,40 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 let fileUrl = MainAppContext.mediaDirectoryURL.appendingPathComponent(path, isDirectory: false)
                 MainAppContext.shared.mediaHashStore.update(url: fileUrl, blobVersion: feedPostMedia.blobVersion, key: feedPostMedia.key, sha256: feedPostMedia.sha256, downloadURL: downloadUrl)
             }
+        }
+    }
+
+    public func markStreamingMediaAsDownloaded(feedPostID: FeedPostID, order: Int16) {
+        mainDataStore.saveSeriallyOnBackgroundContext({ [weak self] managedObjectContext in
+            guard let self = self else { return }
+            guard let feedPost = self.feedPost(with: feedPostID, in: managedObjectContext),
+                  let feedPostMedia = feedPost.media?.first(where: { $0.order == order }) else {
+                DDLogError("FeedData/markStreamingMediaAsDownloaded/error No media with feedPostID=[\(feedPostID)] order=[\(order)]")
+                return
+            }
+            feedPostMedia.status = .downloaded
+        }, completion: { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success:
+                DispatchQueue.main.async {
+                    self.reloadMedia(feedPostId: feedPostID, order: Int(order))
+                }
+            case .failure(let error):
+                DDLogError("FeedData/markStreamingMediaAsDownloaded/error Could not save context \(error)")
+            }
+        })
+    }
+
+    public func updateStreamingMediaChunks(feedPostID: FeedPostID, order: Int16, chunkSetData: Data) {
+        mainDataStore.saveSeriallyOnBackgroundContext{ [weak self] managedObjectContext in
+            guard let self = self else { return }
+            guard let feedPost = self.feedPost(with: feedPostID, in: managedObjectContext),
+                  let feedPostMedia = feedPost.media?.first(where: { $0.order == order }) else {
+                DDLogError("FeedData/updateStreamingMediaChunks/error No media with feedPostID=[\(feedPostID)] order=[\(order)]")
+                return
+            }
+            feedPostMedia.chunkSet = chunkSetData
         }
     }
 

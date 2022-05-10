@@ -6,6 +6,7 @@
 //
 
 import AVKit
+import CocoaLumberjackSwift
 import Core
 import CoreCommon
 import Combine
@@ -21,6 +22,7 @@ class MediaExplorerVideoCell: UICollectionViewCell {
     private var readyCancellable: AnyCancellable?
     private var progressCancellable: AnyCancellable?
     private var mediaPlaybackCancellable: AnyCancellable?
+    private var streamingResourceLoaderDelegate: AVAssetResourceLoaderDelegate?
 
     private lazy var video: VideoView = {
         let view = VideoView(playbackControls: .advanced)
@@ -69,7 +71,17 @@ class MediaExplorerVideoCell: UICollectionViewCell {
         didSet {
             guard let media = media else { return }
 
-            if let url = media.url {
+            if let url = media.url,
+               let chunkedInfo = media.chunkedInfo,
+               chunkedInfo.blobVersion == .chunked,
+               let remoteURL = chunkedInfo.remoteURL,
+               let placeholderURL = ChunkedMediaResourceLoaderDelegate.remoteURLToPlaceholderURL(from: remoteURL),
+               let streamingResourceLoaderDelegate = try? ChunkedMediaResourceLoaderDelegate(chunkedInfo: chunkedInfo, fileURL: url) {
+                self.streamingResourceLoaderDelegate = streamingResourceLoaderDelegate
+                let videoAsset = AVURLAsset(url: placeholderURL)
+                videoAsset.resourceLoader.setDelegate(streamingResourceLoaderDelegate, queue: ChunkedMediaResourceLoaderDelegate.resourceLoadingingQueue)
+                show(videoAsset: videoAsset)
+            } else if let url = media.url {
                 show(url: url)
             } else {
                 show(progress: media.progress.value)
@@ -123,6 +135,18 @@ class MediaExplorerVideoCell: UICollectionViewCell {
     deinit {
         video.player?.pause()
         video.player = nil
+    }
+
+    func show(videoAsset: AVURLAsset) {
+        placeHolderView.isHidden = true
+        progressView.isHidden = true
+        video.isHidden = false
+
+        let item = AVPlayerItem(asset: videoAsset)
+        let player = AVQueuePlayer(playerItem: item)
+        player.automaticallyWaitsToMinimizeStalling = false
+        looper = AVPlayerLooper(player: player, templateItem: item)
+        video.player = player
     }
 
     func show(url: URL) {

@@ -453,6 +453,11 @@ public class ChunkedMediaCrypter: MediaCrypter {
         public var sha256: Data
     }
 
+    public enum Error: Swift.Error {
+        case encryptedChunkSizeMismatch(expected: Int, actual: Int)
+        case plaintextChunkSizeMismatch(estmated: Int, actual: Int)
+    }
+
     public static func encryptChunkedMedia(mediaType: CommonMediaType,
                                            chunkedParameters: ChunkedMediaParameters,
                                            readChunkData: ReadChunkData,
@@ -468,12 +473,14 @@ public class ChunkedMediaCrypter: MediaCrypter {
                 let plaintextChunk = try readChunkData((chunkOffset: chunkPlaintextOffset, chunkSize: Int(chunkPlaintextSize)))
                 if (chunkIndex < chunkedParameters.regularChunkCount && plaintextChunk.count != Int(chunkPlaintextSize)) ||
                     (chunkIndex == chunkedParameters.regularChunkCount && abs(plaintextChunk.count - Int(chunkPlaintextSize)) >= ChunkedMediaParameters.BLOCK_SIZE) {
-                    DDLogDebug("ChunkedMedia/encryptChunkedMedia/debug  Unexpected plaintext size got=[\(plaintextChunk.count)] estimated=[\(chunkPlaintextSize)]")
+                    DDLogError("ChunkedMedia/encryptChunkedMedia/error Unexpected plaintext size got=[\(plaintextChunk.count)] estimated=[\(chunkPlaintextSize)]")
+                    throw Error.plaintextChunkSizeMismatch(estmated: Int(chunkPlaintextSize), actual: plaintextChunk.count)
                 }
 
                 let encryptedChunk = try encrypter.encrypt(plaintextChunk: plaintextChunk, chunkIndex: Int(chunkIndex))
                 if encryptedChunk.count != chunkCiphertextSize {
-                    DDLogDebug("ChunkedMedia/encryptChunkedMedia/debug  Unexpected ciphertext size got=[\(encryptedChunk.count)] expected=[\(chunkCiphertextSize)]")
+                    DDLogError("ChunkedMedia/encryptChunkedMedia/error Unexpected ciphertext size got=[\(encryptedChunk.count)] expected=[\(chunkCiphertextSize)]")
+                    throw Error.encryptedChunkSizeMismatch(expected: Int(chunkCiphertextSize), actual: encryptedChunk.count)
                 }
                 try writeChunkData((chunkData: encryptedChunk, chunkOffset: chunkCiphertextOffset))
             }
@@ -486,9 +493,19 @@ public class ChunkedMediaCrypter: MediaCrypter {
                                            sha256Hash: Data,
                                            chunkedParameters: ChunkedMediaParameters,
                                            readChunkData: ReadChunkData,
-                                           writeChunkData: WriteChunkData) throws {
+                                           writeChunkData: WriteChunkData,
+                                           toDecryptChunkCount: Int32? = nil) throws {
+
+        let toProcessChunkCount: Int32 = {
+            if let initialChunkCount = toDecryptChunkCount, initialChunkCount < chunkedParameters.totalChunkCount {
+                return initialChunkCount
+            } else {
+                return chunkedParameters.totalChunkCount
+            }
+        }()
+        let shouldValidateHash = toProcessChunkCount == chunkedParameters.totalChunkCount
         let decrypter = ChunkedMediaCrypter(mediaType: mediaType, mediaKey: mediaKey)
-        for chunkIndex in 0..<chunkedParameters.totalChunkCount {
+        for chunkIndex in 0..<toProcessChunkCount {
             let chunkPlaintextSize = chunkedParameters.getChunkPtSize(chunkIndex: chunkIndex)
             let chunkPlaintextOffset = Int(chunkIndex) * Int(chunkedParameters.regularChunkPtSize)
             let chunkCiphertextSize = chunkedParameters.getChunkSize(chunkIndex: chunkIndex)
@@ -497,25 +514,29 @@ public class ChunkedMediaCrypter: MediaCrypter {
             try autoreleasepool {
                 let encryptedChunk = try readChunkData((chunkOffset: chunkCiphertextOffset, chunkSize: Int(chunkCiphertextSize)))
                 if encryptedChunk.count != chunkCiphertextSize {
-                    DDLogDebug("ChunkedMedia/decryptChunkedMedia/debug Unexpected ciphertext chunk size got=[\(encryptedChunk.count)] expected=[\(chunkCiphertextSize)]")
+                    DDLogError("ChunkedMedia/decryptChunkedMedia/error Unexpected ciphertext chunk size got=[\(encryptedChunk.count)] expected=[\(chunkCiphertextSize)]")
+                    throw Error.encryptedChunkSizeMismatch(expected: Int(chunkCiphertextSize), actual: encryptedChunk.count)
                 }
 
-                let decryptedChunk = try decrypter.decrypt(encryptedChunk: encryptedChunk, chunkIndex: Int(chunkIndex))
+                let decryptedChunk = try decrypter.decrypt(encryptedChunk: encryptedChunk, chunkIndex: Int(chunkIndex), shouldUpdateHash: shouldValidateHash)
                 if (chunkIndex < chunkedParameters.regularChunkCount && decryptedChunk.count != Int(chunkPlaintextSize)) ||
                     (chunkIndex == chunkedParameters.regularChunkCount && abs(decryptedChunk.count - Int(chunkPlaintextSize)) >= ChunkedMediaParameters.BLOCK_SIZE) {
-                    DDLogDebug("ChunkedMedia/decryptChunkedMedia/debug Unexpected plaintext chunk size got=[\(decryptedChunk.count)] expected=[\(chunkPlaintextSize)]")
+                    DDLogError("ChunkedMedia/decryptChunkedMedia/error Unexpected plaintext chunk size got=[\(decryptedChunk.count)] expected=[\(chunkPlaintextSize)]")
+                    throw Error.plaintextChunkSizeMismatch(estmated: Int(chunkPlaintextSize), actual: decryptedChunk.count)
                 }
                 try writeChunkData((chunkData: decryptedChunk, chunkOffset: chunkPlaintextOffset))
             }
         }
-        try decrypter.hashFinalizeAndVerify(sha256Hash: sha256Hash)
+        if shouldValidateHash {
+            try decrypter.hashFinalizeAndVerify(sha256Hash: sha256Hash)
+        }
     }
 
     private let mediaType: CommonMediaType
     public let mediaKey: Data
     private var hashContext: CC_SHA256_CTX
 
-    fileprivate init(mediaType: CommonMediaType, mediaKey: Data) {
+    public init(mediaType: CommonMediaType, mediaKey: Data) {
         self.mediaType = mediaType
         self.mediaKey = mediaKey
         self.hashContext = CC_SHA256_CTX.init()
@@ -569,14 +590,17 @@ public class ChunkedMediaCrypter: MediaCrypter {
         return encryptedChunk
     }
 
-    fileprivate func decrypt(encryptedChunk: Data, chunkIndex: Int) throws -> Data {
+    public func decrypt(encryptedChunk: Data, chunkIndex: Int, shouldUpdateHash: Bool = true) throws -> Data {
+        DDLogInfo("StreamingMediaChunkDecrypter/decrypt chunkIndex=[\(chunkIndex)] encryptedChunkLength=[\(encryptedChunk.count)]")
         let expandedKey = try expandedKey(chunkIndex: chunkIndex)
 
         let IV = expandedKey[0...15]
         let AESKey = expandedKey[16...47]
         let SHA256Key = expandedKey[48...79]
 
-        try hashUpdate(input: encryptedChunk)
+        if shouldUpdateHash {
+            try hashUpdate(input: encryptedChunk)
+        }
 
         let attachedMAC = encryptedChunk.suffix(32)
         let encryptedData = encryptedChunk.dropLast(32)

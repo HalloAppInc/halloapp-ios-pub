@@ -34,6 +34,8 @@ class FeedMedia: Identifiable, Hashable {
     private var pendingMediaReadyCancelable: AnyCancellable?
     private var pendingMediaProgress: CurrentValueSubject<Float, Never>?
 
+    var chunkedInfo: ChunkedMediaInfo? = nil
+
     @Published private(set) var isMediaAvailable: Bool = false
     var isDownloadRequired: Bool {
         get { status == .downloading || status == .none || status == .downloadError}
@@ -135,6 +137,7 @@ class FeedMedia: Identifiable, Hashable {
             isMediaAvailable = fileURL != nil
         }
         status = feedPostMedia.status
+        chunkedInfo = ChunkedMediaInfo(commonMedia: feedPostMedia)
     }
 
     func reload(from feedPostMedia: CommonMedia) {
@@ -166,6 +169,7 @@ class FeedMedia: Identifiable, Hashable {
         // TODO: other kinds of updates possible?
 
         self.status = feedPostMedia.status
+        self.chunkedInfo = ChunkedMediaInfo(commonMedia: feedPostMedia)
     }
 
     init(_ media: PendingMedia, feedPostId: FeedPostID) {

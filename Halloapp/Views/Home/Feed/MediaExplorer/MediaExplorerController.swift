@@ -192,7 +192,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
                 update = item.videoDidBecomeAvailable.map { _ in (item.fileURL, item.image, item.size) }.eraseToAnyPublisher()
             }
 
-            return MediaExplorerMedia(url: item.fileURL, image: item.image, type: type, size: item.size, update: update, progress: progress)
+            return MediaExplorerMedia(url: item.fileURL, image: item.image, type: type, size: item.size, chunkedInfo: item.chunkedInfo, update: update, progress: progress)
         }
         self.currentIndex = index
         self.canSaveMedia = canSaveMedia
@@ -837,14 +837,17 @@ class MediaExplorerMedia {
     var ready = CurrentValueSubject<Bool, Never>(false)
     var progress = CurrentValueSubject<Float, Never>(0)
 
+    var chunkedInfo: ChunkedMediaInfo?
+
     private var updateCancellable: AnyCancellable?
     private var progressCancellable: AnyCancellable?
 
-    init(url: URL? = nil, image: UIImage? = nil, type: MediaExplorerMediaType, size: CGSize, update: AnyPublisher<(URL?, UIImage?, CGSize), Never>? = nil, progress: AnyPublisher<Float, Never>? = nil) {
+    init(url: URL? = nil, image: UIImage? = nil, type: MediaExplorerMediaType, size: CGSize, chunkedInfo: ChunkedMediaInfo? = nil, update: AnyPublisher<(URL?, UIImage?, CGSize), Never>? = nil, progress: AnyPublisher<Float, Never>? = nil) {
         self.url = url
         self.image = image
         self.type = type
         self.size = size
+        self.chunkedInfo = chunkedInfo
 
         listen(update: update, progress: progress)
     }

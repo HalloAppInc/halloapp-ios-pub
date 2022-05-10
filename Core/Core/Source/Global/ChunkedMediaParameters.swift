@@ -137,4 +137,8 @@ public class ChunkedMediaParameters: CustomStringConvertible {
     public func isChunkIndexInBounds(chunkIndex: Int32) -> Bool {
         return chunkIndex >= 0 && chunkIndex > totalChunkCount
     }
+
+    public func preconditionChunkIndexInBounds(chunkIndex: Int32) {
+        precondition(0 <= chunkIndex && chunkIndex < totalChunkCount)
+    }
 }

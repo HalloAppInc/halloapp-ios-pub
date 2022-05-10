@@ -33,6 +33,7 @@ public extension CommonMedia {
         case downloaded = 5
         case downloadError = 6
         case downloadFailure = 7
+        case downloadedPartial = 8
     }
 
     @nonobjc class func fetchRequest() -> NSFetchRequest<CommonMedia> {
@@ -105,6 +106,7 @@ public extension CommonMedia {
     }
     @NSManaged var chunkSize: Int32
     @NSManaged var blobSize: Int64
+    @NSManaged var chunkSet: Data?
 }
 
 extension CommonMedia: FeedMediaProtocol {
@@ -147,7 +149,7 @@ public extension CommonMedia {
                 return .none
             case .uploadError, .uploaded, .uploading:
                 return .none
-            case .downloaded:
+            case .downloaded, .downloadedPartial:
                 return .downloaded
             case .downloading:
                 return .pending
@@ -180,7 +182,7 @@ public extension CommonMedia {
             switch status {
             case .none:
                 return .none
-            case .downloadError, .downloadFailure, .downloaded, .downloading:
+            case .downloadError, .downloadFailure, .downloaded, .downloading, .downloadedPartial:
                 return .none
             case .uploaded:
                 return .uploaded
