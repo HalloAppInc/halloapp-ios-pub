@@ -393,7 +393,8 @@ class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
             return false
         }
     }
-    
+
+    @MainActor
     private func setupSession() async {
         guard
             await checkVideoPermissions(),
