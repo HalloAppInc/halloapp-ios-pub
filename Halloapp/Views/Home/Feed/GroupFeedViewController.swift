@@ -12,6 +12,7 @@ import Core
 import CoreCommon
 import CoreData
 import UIKit
+import UserNotifications
 
 class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
 
@@ -162,6 +163,7 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
 
         MainAppContext.shared.chatData.syncGroupIfNeeded(for: groupId)
         UNUserNotificationCenter.current().removeDeliveredGroupPostNotifications(groupId: groupId)
+        UNUserNotificationCenter.current().removeDeliveredGroupAddNotification(groupId: groupId)
         updateFloatingActionMenu()
     }
 
@@ -511,6 +513,7 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
         for feedPost in feedDataSource.posts {
             MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
             UNUserNotificationCenter.current().removeDeliveredPostNotifications(postId: feedPost.id)
+            UNUserNotificationCenter.current().removeDeliveredGroupAddNotification(groupId: feedPost.groupID)
         }
     }
 }

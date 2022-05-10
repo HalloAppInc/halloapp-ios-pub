@@ -687,6 +687,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         }
 
         UNUserNotificationCenter.current().removeDeliveredPostNotifications(postId: feedPost.id)
+        UNUserNotificationCenter.current().removeDeliveredGroupAddNotification(groupId: feedPost.groupID)
         if !feedPost.isMoment {
             MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
         }

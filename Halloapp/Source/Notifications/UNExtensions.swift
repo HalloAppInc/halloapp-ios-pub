@@ -149,6 +149,14 @@ extension UNUserNotificationCenter {
         removeDeliveredNotifications { (notificationMetadata) -> (Bool) in
             return notificationMetadata.groupId == groupId && notificationMetadata.isPostNotification
         }
+        removeDeliveredGroupAddNotification(groupId: groupId)
+    }
+
+    func removeDeliveredGroupAddNotification(groupId: GroupID?) {
+        guard let groupId = groupId else {
+            return
+        }
+        removeDeliveredNotifications(withIdentifiers: [groupId])
     }
 }
 

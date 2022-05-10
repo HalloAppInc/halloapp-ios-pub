@@ -398,7 +398,7 @@ class NotificationMetadata: Codable {
         case .groupStanza(let groupStanza):
             let addedToNewGroup = groupStanza.members.contains(where: { $0.action == .add && $0.uid == Int64(AppContext.shared.userData.userId) })
             if addedToNewGroup {
-                contentId = msg.id
+                contentId = groupStanza.gid
                 contentType = .groupAdd
                 fromId = UserID(groupStanza.senderUid)
                 timestamp = Date()
