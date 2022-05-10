@@ -210,6 +210,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     override func viewDidLoad() {
+        super.viewDidLoad()
         guard let fromUserId = fromUserId else { return }
 
         // Setup title view
