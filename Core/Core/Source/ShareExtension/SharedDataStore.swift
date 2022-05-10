@@ -13,9 +13,9 @@ import CoreCommon
 open class SharedDataStore {
 
     public enum PostOrMessageOrLinkPreview {
-        case post(SharedFeedPost)
-        case message(SharedChatMessage)
-        case linkPreview(SharedFeedLinkPreview)
+        case post(FeedPost)
+        case message(ChatMessage)
+        case linkPreview(CommonLinkPreview)
     }
 
     // MARK: Customization Points

@@ -1457,7 +1457,7 @@ class ChatData: ObservableObject {
         let messages = sharedDataStore.messages()
         DDLogInfo("ChatData/mergeData - \(sharedDataStore.source)/begin")
         let chatMessageIds = sharedDataStore.chatMessageIds()
-        DDLogInfo("ChatData/mergeData/chatMessageIds: \(chatMessageIds.count)")
+        DDLogInfo("ChatData/mergeData/chatMessageIds: \(chatMessageIds)")
 
         guard !messages.isEmpty || !chatMessageIds.isEmpty else {
             DDLogDebug("ChatData/mergeData/ Nothing to merge")
@@ -1471,6 +1471,8 @@ class ChatData: ObservableObject {
         }
 
         mainDataStore.saveSeriallyOnBackgroundContext ({ managedObjectContext in
+            self.mergeMediaItems(forMsgIds: chatMessageIds, from: sharedDataStore, using: managedObjectContext)
+            // TODO: murali@: remove the additional merge below and test.
             self.mergeMediaItems(from: sharedDataStore, using: managedObjectContext)
         }) { [self] result in
             switch result {
@@ -1812,21 +1814,44 @@ class ChatData: ObservableObject {
         }
     }
 
-    private func mergeMediaItems(from sharedDataStore: SharedDataStore, using managedObjectContext: NSManagedObjectContext) {
-        let mediaDirectory = sharedDataStore.mediaDirectory
-        DDLogInfo("FeedData/mergeMediaItems from \(mediaDirectory)/begin")
-
-        let mediaPredicate = NSPredicate(format: "mediaDirectoryValue == \(mediaDirectory.rawValue)")
-        let extensionMediaItems = mainDataStore.commonMediaItems(predicate: mediaPredicate, in: managedObjectContext)
-        DDLogInfo("FeedData/mergeMediaItems/extensionMediaItems: \(extensionMediaItems.count)")
-        extensionMediaItems.forEach { media in
-            if media.message != nil || media.chatQuoted != nil || media.linkPreview?.message != nil {
-                DDLogDebug("FeedData/mergeMediaItems/media: \(String(describing: media.relativeFilePath))")
+    private func mergeMediaItems(forMsgIds chatMessageIds: [ChatMessageID], from sharedDataStore: SharedDataStore, using managedObjectContext: NSManagedObjectContext) {
+        chatMessageIds.forEach { chatMessageId in
+            DDLogInfo("FeedData/mergeMediaItems for chatMessageId: \(chatMessageId)/begin")
+            guard let chatMessage = self.chatMessage(with: chatMessageId, in: managedObjectContext) else {
+                return
+            }
+            chatMessage.media?.forEach { media in
+                DDLogDebug("ChatData/mergeMediaItems/media: \(String(describing: media.relativeFilePath))")
                 if let relativeFilePath = media.relativeFilePath {
                     do {
                         let sourceUrl = sharedDataStore.fileURL(forRelativeFilePath: relativeFilePath)
                         let encryptedFileUrl = media.outgoingStatus == .error ? sourceUrl.appendingPathExtension("enc") : nil
-                        DDLogInfo("ChatData/mergeSharedData/sourceUrl: \(sourceUrl), encryptedFileUrl: \(encryptedFileUrl?.absoluteString ?? "[nil]"), \(media.status)")
+                        DDLogInfo("ChatData/mergeMediaItems/sourceUrl: \(sourceUrl), encryptedFileUrl: \(encryptedFileUrl?.absoluteString ?? "[nil]"), \(media.status)")
+                        try copyFiles(toChatMedia: media, fileUrl: sourceUrl, encryptedFileUrl: encryptedFileUrl)
+                    } catch {
+                        DDLogError("ChatData/mergeMediaItems/link-preview-media/copy-media/error [\(error)]")
+                    }
+                }
+            }
+            DDLogInfo("FeedData/mergeMediaItems for chatMessageId: \(chatMessageId)/done")
+        }
+    }
+
+    private func mergeMediaItems(from sharedDataStore: SharedDataStore, using managedObjectContext: NSManagedObjectContext) {
+        let mediaDirectory = sharedDataStore.mediaDirectory
+        DDLogInfo("ChatData/mergeMediaItems from \(mediaDirectory)/begin")
+
+        let mediaPredicate = NSPredicate(format: "mediaDirectoryValue == \(mediaDirectory.rawValue)")
+        let extensionMediaItems = mainDataStore.commonMediaItems(predicate: mediaPredicate, in: managedObjectContext)
+        DDLogInfo("ChatData/mergeMediaItems/extensionMediaItems: \(extensionMediaItems.count)")
+        extensionMediaItems.forEach { media in
+            if media.message != nil || media.chatQuoted != nil || media.linkPreview?.message != nil {
+                DDLogDebug("ChatData/mergeMediaItems/media: \(String(describing: media.relativeFilePath))")
+                if let relativeFilePath = media.relativeFilePath {
+                    do {
+                        let sourceUrl = sharedDataStore.fileURL(forRelativeFilePath: relativeFilePath)
+                        let encryptedFileUrl = media.outgoingStatus == .error ? sourceUrl.appendingPathExtension("enc") : nil
+                        DDLogInfo("ChatData/mergeMediaItems/sourceUrl: \(sourceUrl), encryptedFileUrl: \(encryptedFileUrl?.absoluteString ?? "[nil]"), \(media.status)")
                         try copyFiles(toChatMedia: media, fileUrl: sourceUrl, encryptedFileUrl: encryptedFileUrl)
                     } catch {
                         DDLogError("ChatData/mergeSharedData/link-preview-media/copy-media/error [\(error)]")
@@ -1834,7 +1859,7 @@ class ChatData: ObservableObject {
                 }
             }
         }
-        DDLogInfo("FeedData/mergeMediaItems from \(mediaDirectory)/done")
+        DDLogInfo("ChatData/mergeMediaItems from \(mediaDirectory)/done")
     }
 
     // This function can nicely copy references to quoted feed post or quoted message to the new chatMessage.

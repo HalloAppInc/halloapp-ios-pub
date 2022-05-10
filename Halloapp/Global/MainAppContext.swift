@@ -131,9 +131,7 @@ class MainAppContext: AppContext {
 
     required init(serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type, appTarget: AppTarget) {
         super.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass, appTarget: appTarget)
-        // This is needed to encode/decode protobuf in FeedPostInfo.
-        ValueTransformer.setValueTransformer(FeedPostReceiptInfoTransformer(), forName: .feedPostReceiptInfoTransformer)
-        ValueTransformer.setValueTransformer(MentionValueTransformer(), forName: .mentionValueTransformer)
+        
         feedData = FeedData(service: service, contactStore: contactStore, mainDataStore: mainDataStore, userData: userData)
         chatData = ChatData(service: service, contactStore: contactStore, mainDataStore: mainDataStore, userData: userData)
         syncManager = SyncManager(contactStore: contactStore, service: service, userData: userData)
@@ -165,6 +163,10 @@ class MainAppContext: AppContext {
         // NotificationCenter.default.addObserver(self, selector: #selector(processStoreRemoteChanges),
         //                                       name: .NSPersistentStoreRemoteChange,
         //                                       object: notificationServiceExtensionDataStore.persistentContainer.persistentStoreCoordinator)
+
+         NotificationCenter.default.addObserver(self, selector: #selector(processStoreRemoteChanges),
+                                                name: .NSPersistentStoreRemoteChange,
+                                                object: mainDataStore.persistentContainer.persistentStoreCoordinator)
 
         let oneHour = TimeInterval(60*60)
         migrateLegacyCryptoDataIfNecessary()
