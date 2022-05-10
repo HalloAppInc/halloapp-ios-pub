@@ -1274,6 +1274,22 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
+    public func reportDecryptionResult(error: DecryptionError?, messageID: String, timestamp: Date, sender: UserAgent?, rerequestCount: Int, contentType: DecryptionReportContentType) {
+        AppContext.shared.eventMonitor.count(.decryption(error: error, sender: sender))
+
+        if let sender = sender {
+            AppContext.shared.cryptoData.update(
+                messageID: messageID,
+                timestamp: timestamp,
+                result: error?.rawValue ?? "success",
+                rerequestCount: rerequestCount,
+                sender: sender,
+                contentType: contentType)
+        } else {
+            DDLogError("proto/reportDecryptionResult/\(messageID)/decrypt/stats/error missing sender user agent")
+        }
+    }
+
     public func sendChatMessage(_ message: ChatMessageProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
         execute(whenConnectionStateIs: .connected, onQueue: .main) {
             guard let fromUserID = self.credentials?.userID else {

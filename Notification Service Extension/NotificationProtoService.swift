@@ -17,7 +17,11 @@ import CallKit
 
 final class NotificationProtoService: ProtoServiceCore {
 
-    private lazy var dataStore = DataStore()
+    private lazy var notificationDataStore = DataStore()
+    private lazy var mainDataStore = AppContext.shared.mainDataStore
+    private lazy var coreFeedData = AppContext.shared.coreFeedData
+    private lazy var coreChatData = AppContext.shared.coreChatData
+
     private lazy var downloadManager: FeedDownloadManager = {
         let tempDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
         let downloadManager = FeedDownloadManager(mediaDirectoryURL: tempDirectoryURL)
@@ -182,7 +186,7 @@ final class NotificationProtoService: ProtoServiceCore {
             // abort everything and just report the call to the main app.
             // else just save and move-on.
             hasAckBeenDelegated = true
-            dataStore.saveServerMsg(contentId: msg.id, serverMsgPb: serverMsgPb)
+            notificationDataStore.saveServerMsg(contentId: msg.id, serverMsgPb: serverMsgPb)
             // Ack the message and then start reporting the call.
             ack()
             if !incomingCall.isTooLate {
@@ -200,7 +204,7 @@ final class NotificationProtoService: ProtoServiceCore {
             DDLogDebug("didReceiveRequest/error missing messageId [\(msg)]")
             // TODO: murali: we need to handle some silent push messages here like: uploadLogs/rerequests/contactHash etc.
             // We need to migrate everything to shared container for some of these. revisit then.
-            dataStore.saveServerMsg(contentId: msg.id, serverMsgPb: serverMsgPb)
+            notificationDataStore.saveServerMsg(contentId: msg.id, serverMsgPb: serverMsgPb)
             return
         }
 
@@ -210,21 +214,27 @@ final class NotificationProtoService: ProtoServiceCore {
                 DDLogError("didReceiveRequest/error Invalid fields in metadata.")
                 return
             }
-            if let sharedPost = dataStore.sharedFeedPost(for: metadata.contentId), sharedPost.status == .received {
-                DDLogError("didReceiveRequest/error duplicate feedPost [\(metadata.contentId)]")
-                return
+            mainDataStore.performSeriallyOnBackgroundContext { context in
+                if let feedPost = self.coreFeedData.feedPost(with: metadata.contentId, in: context), feedPost.status != .rerequesting {
+                    DDLogError("didReceiveRequest/error duplicate feedPost [\(metadata.contentId)]")
+                    return
+                }
+                hasAckBeenDelegated = true
+                self.processPostData(postData: postData, status: .received, metadata: metadata, ack: ack)
             }
-            hasAckBeenDelegated = true
-            processPostData(postData: postData, status: .received, metadata: metadata, ack: ack)
 
         case .feedComment:
             guard let commentData = metadata.commentData() else {
                 DDLogError("didReceiveRequest/error Invalid fields in metadata.")
                 return
             }
-            if let sharedComment = dataStore.sharedFeedComment(for: metadata.contentId), sharedComment.status == .received {
-                DDLogError("didReceiveRequest/error duplicate feedComment [\(metadata.contentId)]")
-                return
+            mainDataStore.performSeriallyOnBackgroundContext { context in
+                if let feedComment = self.coreFeedData.feedComment(with: metadata.contentId, in: context), feedComment.status != .rerequesting {
+                    DDLogError("didReceiveRequest/error duplicate feedComment [\(metadata.contentId)]")
+                    return
+                }
+                hasAckBeenDelegated = true
+                self.processCommentData(commentData: commentData, status: .received, metadata: metadata, ack: ack)
             }
             hasAckBeenDelegated = true
             processCommentData(commentData: commentData, status: .received, metadata: metadata, ack: ack)
@@ -238,54 +248,59 @@ final class NotificationProtoService: ProtoServiceCore {
                 contentType = .comment
             }
 
-            if let sharedPost = dataStore.sharedFeedPost(for: metadata.contentId), sharedPost.status == .received {
-                DDLogError("didReceiveRequest/error duplicate groupFeedPost [\(metadata.contentId)]")
-                return
-            } else if let sharedComment = dataStore.sharedFeedComment(for: metadata.contentId), sharedComment.status == .received {
-                DDLogError("didReceiveRequest/error duplicate groupFeedComment [\(metadata.contentId)]")
-                return
-            }
-
-            // Decrypt and process the payload now
-            do {
-                guard let serverGroupFeedItemPb = metadata.serverGroupFeedItemPb else {
-                    DDLogError("MetadataError/could not find serverGroupFeedItem stanza, contentId: \(metadata.contentId), contentType: \(metadata.contentType)")
+            mainDataStore.performSeriallyOnBackgroundContext { context in
+                if let feedPost = self.coreFeedData.feedPost(with: metadata.contentId, in: context), feedPost.status != .rerequesting {
+                    DDLogError("didReceiveRequest/error duplicate groupFeedPost [\(metadata.contentId)]")
+                    return
+                } else if let feedComment = self.coreFeedData.feedComment(with: metadata.contentId, in: context), feedComment.status != .rerequesting {
+                    DDLogError("didReceiveRequest/error duplicate groupFeedComment [\(metadata.contentId)]")
                     return
                 }
-                let serverGroupFeedItem = try Server_GroupFeedItem(serializedData: serverGroupFeedItemPb)
-                DDLogInfo("NotificationExtension/requesting decryptGroupFeedItem \(metadata.contentId)")
-                hasAckBeenDelegated = true
-                decryptAndProcessGroupFeedItem(contentID: metadata.contentId, contentType: contentType, item: serverGroupFeedItem, metadata: metadata, ack: ack)
-            } catch {
-                DDLogError("NotificationExtension/ChatMessage/Failed serverChatStanzaStr: \(String(describing: metadata.serverChatStanzaPb)), error: \(error)")
+
+                // Decrypt and process the payload now
+                do {
+                    guard let serverGroupFeedItemPb = metadata.serverGroupFeedItemPb else {
+                        DDLogError("MetadataError/could not find serverGroupFeedItem stanza, contentId: \(metadata.contentId), contentType: \(metadata.contentType)")
+                        return
+                    }
+                    let serverGroupFeedItem = try Server_GroupFeedItem(serializedData: serverGroupFeedItemPb)
+                    DDLogInfo("NotificationExtension/requesting decryptGroupFeedItem \(metadata.contentId)")
+                    hasAckBeenDelegated = true
+                    self.decryptAndProcessGroupFeedItem(contentID: metadata.contentId, contentType: contentType, item: serverGroupFeedItem, metadata: metadata, ack: ack)
+                } catch {
+                    DDLogError("NotificationExtension/ChatMessage/Failed serverChatStanzaStr: \(String(describing: metadata.serverChatStanzaPb)), error: \(error)")
+                }
             }
 
         case .chatMessage:
             let messageId = metadata.messageId
             // Check if message has already been received and decrypted successfully.
             // If yes - then dismiss notification, else continue processing.
-            if let sharedChatMessage = dataStore.sharedChatMessage(for: messageId), sharedChatMessage.status == .received {
-                DDLogError("didReceiveRequest/error duplicate message ID that was already decrypted[\(String(describing: metadata.messageId))]")
-                return
-            }
-            do {
-                guard let serverChatStanzaPb = metadata.serverChatStanzaPb else {
-                    DDLogError("MetadataError/could not find server_chat stanza, contentId: \(metadata.contentId), contentType: \(metadata.contentType)")
+            mainDataStore.performSeriallyOnBackgroundContext { context in
+                if let chatMessage = self.coreChatData.chatMessage(with: messageId, in: context), chatMessage.incomingStatus != .rerequesting {
+                    DDLogError("didReceiveRequest/error duplicate message ID that was already decrypted[\(messageId)]")
                     return
                 }
-                let serverChatStanza = try Server_ChatStanza(serializedData: serverChatStanzaPb)
-                DDLogInfo("NotificationExtension/requesting decryptChat \(metadata.contentId)")
-                hasAckBeenDelegated = true
-                // this function acks and sends rerequests accordingly.
-                decryptAndProcessChat(messageId: messageId, serverChatStanza: serverChatStanza, metadata: metadata)
-            } catch {
-                DDLogError("NotificationExtension/ChatMessage/Failed serverChatStanzaStr: \(String(describing: metadata.serverChatStanzaPb)), error: \(error)")
+
+                do {
+                    guard let serverChatStanzaPb = metadata.serverChatStanzaPb else {
+                        DDLogError("MetadataError/could not find server_chat stanza, contentId: \(metadata.contentId), contentType: \(metadata.contentType)")
+                        return
+                    }
+                    let serverChatStanza = try Server_ChatStanza(serializedData: serverChatStanzaPb)
+                    DDLogInfo("NotificationExtension/requesting decryptChat \(metadata.contentId)")
+                    hasAckBeenDelegated = true
+                    // this function acks and sends rerequests accordingly.
+                    self.decryptAndProcessChat(messageId: messageId, serverChatStanza: serverChatStanza, metadata: metadata)
+                } catch {
+                    DDLogError("NotificationExtension/ChatMessage/Failed serverChatStanzaStr: \(String(describing: metadata.serverChatStanzaPb)), error: \(error)")
+                }
             }
 
         case .newInvitee, .newFriend, .newContact, .groupAdd:
             // save server message stanzas to process for these notifications.
             presentNotification(for: metadata)
-            dataStore.saveServerMsg(notificationMetadata: metadata)
+            notificationDataStore.saveServerMsg(notificationMetadata: metadata)
 
         case .chatMessageRetract, .feedCommentRetract, .feedPostRetract, .groupFeedPostRetract, .groupFeedCommentRetract, .groupChatMessageRetract:
             // removeNotification if available.
@@ -293,10 +308,10 @@ final class NotificationProtoService: ProtoServiceCore {
             // eitherway store it to clean it up further at the end.
             pendingRetractNotificationIds.append(metadata.contentId)
             // save these messages to be processed by the main app.
-            dataStore.saveServerMsg(contentId: msg.id, serverMsgPb: serverMsgPb)
+            notificationDataStore.saveServerMsg(contentId: msg.id, serverMsgPb: serverMsgPb)
 
-        default:
-            dataStore.saveServerMsg(contentId: msg.id, serverMsgPb: serverMsgPb)
+        case .groupChatMessage, .chatRerequest, .missedAudioCall, .missedVideoCall:
+            notificationDataStore.saveServerMsg(contentId: msg.id, serverMsgPb: serverMsgPb)
 
         }
     }
@@ -304,33 +319,58 @@ final class NotificationProtoService: ProtoServiceCore {
     // MARK: Handle Post or Comment content.
 
     private func processPostData(postData: PostData?, status: SharedFeedPost.Status, metadata: NotificationMetadata, ack: @escaping () -> ()) {
-        dataStore.save(postData: postData, status: status, notificationMetadata: metadata) { sharedFeedPost in
-            ack()
-            // If we failed to get postData successfully - then just return!
-            guard let postData = postData else {
-                DDLogError("NotificationExtension/processPostDataAndInvokeHandler/failed to get postData, contentId: \(metadata.contentId)")
-                return
-            }
-            let notificationContent = self.extractNotificationContent(for: metadata, using: postData)
-            if let firstMediaItem = sharedFeedPost.orderedMedia.first as? SharedMedia, !sharedFeedPost.isMoment {
-                // TODO: in the case of a moment, we need to handle the preview better (maybe display a blurred image?)
-                let downloadTask = self.startDownloading(media: firstMediaItem)
-                downloadTask?.feedMediaObjectId = firstMediaItem.objectID
-            } else {
-                self.presentNotification(for: metadata.contentId, with: notificationContent)
+        guard let postData = postData else {
+            DDLogError("NotificationExtension/processPostDataAndInvokeHandler/failed to get postData, contentId: \(metadata.contentId)")
+            return
+        }
+        self.coreFeedData.savePostData(postData: postData, in: metadata.groupId) { result in
+            switch result {
+            case .success:
+                DDLogInfo("NotificationExtension/processPostData/success saving post [\(postData.id)]")
+                var nsePosts = AppContext.shared.userDefaults.value(forKey: AppContext.nsePostsKey) as? [FeedPostID] ?? []
+                nsePosts.append(postData.id)
+                AppContext.shared.userDefaults.set(Array(Set(nsePosts)), forKey: AppContext.nsePostsKey)
+                ack()
+                // Download media and then present the notification.
+                self.mainDataStore.performSeriallyOnBackgroundContext { context in
+                    guard let post = self.coreFeedData.feedPost(with: postData.id, in: context) else {
+                        return
+                    }
+                    let notificationContent = self.extractNotificationContent(for: metadata, using: postData)
+                    if let firstOrderedMediaItem = post.orderedMedia.first,
+                       let firstMediaItem = post.media?.filter({ $0.id == firstOrderedMediaItem.id }).first {
+                        let downloadTask = self.startDownloading(media: firstMediaItem)
+                        downloadTask?.feedMediaObjectId = firstMediaItem.objectID
+                    }  else if let firstMediaItem = post.linkPreviews?.first?.media?.first {
+                        let downloadTask = self.startDownloading(media: firstMediaItem)
+                        downloadTask?.feedMediaObjectId = firstMediaItem.objectID
+                    } else {
+                        self.presentNotification(for: metadata.contentId, with: notificationContent)
+                    }
+                }
+            case .failure(let error):
+                DDLogError("NotificationExtension/processPostData/error saving post [\(postData.id)]/error: \(error)")
             }
         }
     }
 
     private func processCommentData(commentData: CommentData?, status: SharedFeedComment.Status, metadata: NotificationMetadata, ack: @escaping () -> ()) {
-        dataStore.save(commentData: commentData, status: status, notificationMetadata: metadata) { sharedFeedComment in
-            ack()
-            // If we failed to get commentData successfully - then just return!
-            guard let commentData = commentData else {
-                DDLogError("NotificationExtension/processCommentDataAndInvokeHandler/failed to get postData, contentId: \(metadata.contentId)")
-                return
+        guard let commentData = commentData else {
+            DDLogError("NotificationExtension/processCommentData/failed to get commentData, contentId: \(metadata.contentId)")
+            return
+        }
+        self.coreFeedData.saveCommentData(commentData: commentData, in: metadata.groupId) { result in
+            switch result {
+            case .success:
+                DDLogInfo("NotificationExtension/processCommentData/success saving comment [\(commentData.id)]")
+                var nseComments = AppContext.shared.userDefaults.value(forKey: AppContext.nseCommentsKey) as? [FeedPostCommentID] ?? []
+                nseComments.append(commentData.id)
+                AppContext.shared.userDefaults.set(Array(Set(nseComments)), forKey: AppContext.nseCommentsKey)
+                ack()
+                self.presentCommentNotification(for: metadata, using: commentData)
+            case .failure(let error):
+                DDLogError("NotificationExtension/processCommentData/error saving comment [\(commentData.id)]/error: \(error)")
             }
-            self.presentCommentNotification(for: metadata, using: commentData)
         }
     }
 
@@ -398,41 +438,49 @@ final class NotificationProtoService: ProtoServiceCore {
     // Decrypt, process, save, rerequest and ack chats!
     private func decryptAndProcessChat(messageId: String, serverChatStanza: Server_ChatStanza, metadata: NotificationMetadata) {
         let fromUserID = metadata.fromId
-        AppExtensionContext.shared.messageCrypter.decrypt(
-            EncryptedData(
-                data: serverChatStanza.encPayload,
-                identityKey: serverChatStanza.publicKey.isEmpty ? nil : serverChatStanza.publicKey,
-                oneTimeKeyId: Int(serverChatStanza.oneTimePreKeyID)),
-            from: fromUserID) { result in
-
-            // TODO: Refactor this now that we don't send plaintext (success/failure values mutually exclusive)
-            let container: Clients_ChatContainer?
-            let messageStatus: SharedChatMessage.Status
-            let decryptionFailure: DecryptionFailure?
-
-            switch result {
-            case .success(let decryptedData):
+        decryptChat(serverChatStanza, from: fromUserID) { (content, context, decryptionFailure) in
+            if let content = content, let context = context {
                 DDLogInfo("NotificationExtension/decryptChat/successful/messageId \(messageId)")
-                messageStatus = .received
-                decryptionFailure = nil
-
-                if let clientChatContainer = Clients_ChatContainer(containerData: decryptedData) {
-                    container = clientChatContainer
-                } else {
-                    container = nil
+                let chatMessage = XMPPChatMessage(content: content,
+                                                  context: context,
+                                                  timestamp: serverChatStanza.timestamp,
+                                                  from: fromUserID,
+                                                  to: AppContext.shared.userData.userId,
+                                                  id: messageId,
+                                                  retryCount: metadata.retryCount,
+                                                  rerequestCount: metadata.rerequestCount)
+                self.coreChatData.saveChatMessage(chatMessage: .decrypted(chatMessage)) { result in
+                    self.incrementApplicationIconBadgeNumber()
+                    var nseChatMsgs = AppContext.shared.userDefaults.value(forKey: AppContext.nseMessagesKey) as? [ChatMessageID] ?? []
+                    nseChatMsgs.append(messageId)
+                    AppContext.shared.userDefaults.set(Array(Set(nseChatMsgs)), forKey: AppContext.nseMessagesKey)
                 }
-            case .failure(let decryptionError):
-                self.logChatPushDecryptionError(with: metadata, error: decryptionError.error)
-                DDLogError("NotificationExtension/decryptChat/failed decryption, error: \(decryptionError)")
-                messageStatus = .decryptionError
-                decryptionFailure = decryptionError
-                container = nil
+            } else {
+                DDLogError("NotificationExtension/decryptChat/failed decryption, error: \(String(describing: decryptionFailure))")
+                let tombstone = ChatMessageTombstone(id: messageId,
+                                                     from: fromUserID,
+                                                     to: AppContext.shared.userData.userId,
+                                                     timestamp: Date(timeIntervalSince1970: TimeInterval(serverChatStanza.timestamp)))
+                self.coreChatData.saveChatMessage(chatMessage: .notDecrypted(tombstone)) { result in
+                    var nseChatMsgs = AppContext.shared.userDefaults.value(forKey: AppContext.nseMessagesKey) as? [ChatMessageID] ?? []
+                    nseChatMsgs.append(messageId)
+                    AppContext.shared.userDefaults.set(Array(Set(nseChatMsgs)), forKey: AppContext.nseMessagesKey)
+                }
             }
 
-            self.dataStore.save(container: container, metadata: metadata, status: messageStatus, failure: decryptionFailure) { sharedChatMessage in
-                self.incrementApplicationIconBadgeNumber()
-                self.processChat(chatMessage: sharedChatMessage, container: container, metadata: metadata)
+            if let senderClientVersion = metadata.senderClientVersion {
+                DDLogInfo("NotificationExtension/decryptAndProcessChat/report result \(String(describing: decryptionFailure?.error))/ msg: \(messageId)")
+                self.reportDecryptionResult(
+                    error: decryptionFailure?.error,
+                    messageID: messageId,
+                    timestamp: Date(timeIntervalSince1970: TimeInterval(serverChatStanza.timestamp)),
+                    sender: UserAgent(string: senderClientVersion),
+                    rerequestCount: Int(metadata.rerequestCount),
+                    contentType: .chat)
+            } else {
+                DDLogError("NotificationExtension/decryptAndProcessChat/could not report result, messageId: \(messageId)")
             }
+            self.processChat(chatContent: content, failure: decryptionFailure, metadata: metadata)
         }
     }
 
@@ -444,63 +492,53 @@ final class NotificationProtoService: ProtoServiceCore {
     }
 
     // Process Chats - ack/rerequest/download media if necessary.
-    private func processChat(chatMessage: SharedChatMessage, container: Clients_ChatContainer?, metadata: NotificationMetadata) {
+    private func processChat(chatContent: ChatContent?, failure: DecryptionFailure?, metadata: NotificationMetadata) {
         let messageId = metadata.messageId
 
-        // Send rerequest and ack for the message as necessary.
-        switch chatMessage.status {
-        case .decryptionError:
+        if let failure = failure {
+            self.logChatPushDecryptionError(with: metadata, error: failure.error)
             // We must first rerequest messages and then ack them.
-            if let failedEphemeralKey = chatMessage.ephemeralKey, let serverMsgPb = chatMessage.serverMsgPb {
-                do {
-                    let serverMsg = try Server_Msg(serializedData: serverMsgPb)
-                    let fromUserID = UserID(serverMsg.fromUid)
-                    rerequestMessage(serverMsg.id, senderID: fromUserID, failedEphemeralKey: failedEphemeralKey, contentType: .chat) { [weak self] result in
-                        guard let self = self else { return }
-                        switch result {
-                        case .success(_):
-                            DDLogInfo("NotificationExtension/processChat/sendRerequest/success sent rerequest, messageId: \(messageId)")
-                            self.dataStore.updateMessageStatus(for: messageId, status: .rerequesting)
-                            self.sendAck(messageID: messageId)
-                        case .failure(let error):
-                            DDLogError("NotificationExtension/processChat/sendRerequest/failure sending rerequest, messageId: \(messageId), error: \(error)")
-                        }
+            if let failedEphemeralKey = failure.ephemeralKey {
+                let fromUserID = metadata.fromId
+                rerequestMessage(messageId, senderID: fromUserID, failedEphemeralKey: failedEphemeralKey, contentType: .chat) { [weak self] result in
+                    guard let self = self else { return }
+                    switch result {
+                    case .success(_):
+                        DDLogInfo("NotificationExtension/processChat/sendRerequest/success sent rerequest, messageId: \(messageId)")
+                        self.sendAck(messageID: messageId)
+                    case .failure(let error):
+                        DDLogError("NotificationExtension/processChat/sendRerequest/failure sending rerequest, messageId: \(messageId), error: \(error)")
                     }
-                } catch {
-                    DDLogError("NotificationExtension/processChat/sendRerequest/Unable to initialize Server_Msg")
                 }
             } else {
                 DDLogError("NotificationExtension/processChat/error: missing rerequest data, messageId: \(messageId)")
                 sendAck(messageID: messageId)
             }
-        case .received:
-            sendAck(messageId: messageId) { [weak self] result in
-                guard let self = self else { return }
-                switch result {
-                case .success(_):
-                    DDLogInfo("NotificationExtension/processChat/sendAck/success sent ack, messageId: \(messageId)")
-                    self.dataStore.updateMessageStatus(for: messageId, status: .acked)
-                case .failure(let error):
-                    DDLogError("NotificationExtension/processChat/sendAck/failure sending ack, messageId: \(messageId), error: \(error)")
-                }
-            }
-        default:
-            DDLogError("NotificationExtension/processChat/invalid status: \(chatMessage.status)/messageId: \(messageId)")
+        } else {
+            sendAck(messageID: messageId)
         }
 
         // If we failed to get decrypted chat content successfully - then just return!
-        guard let chatContent = container?.chatContent else {
+        guard let chatContent = chatContent else {
             DDLogError("DecryptionError/decryptChat/failed to get chat content, messageId: \(messageId)")
             return
         }
 
-        let notificationContent = extractNotificationContent(for: metadata, using: chatContent)
-        if let firstMediaItem = chatMessage.orderedMedia.first as? SharedMedia {
-            let downloadTask = startDownloading(media: firstMediaItem)
-            downloadTask?.feedMediaObjectId = firstMediaItem.objectID
-            DDLogInfo("NotificationExtension/decryptChat/downloadingMedia/messageId \(messageId), downloadTask: \(String(describing: downloadTask?.id))")
-        } else {
-            presentNotification(for: metadata.contentId, with: notificationContent)
+        mainDataStore.performSeriallyOnBackgroundContext { context in
+            guard let chatMessage = self.coreChatData.chatMessage(with: messageId, in: context) else {
+                return
+            }
+            let notificationContent = self.extractNotificationContent(for: metadata, using: chatContent)
+            if let firstOrderedMediaItem = chatMessage.orderedMedia.first,
+               let firstMediaItem = chatMessage.media?.filter({ $0.id == firstOrderedMediaItem.id }).first {
+                let downloadTask = self.startDownloading(media: firstMediaItem)
+                downloadTask?.feedMediaObjectId = firstMediaItem.objectID
+            } else if let firstMediaItem = chatMessage.linkPreviews?.first?.media?.first {
+                let downloadTask = self.startDownloading(media: firstMediaItem)
+                downloadTask?.feedMediaObjectId = firstMediaItem.objectID
+            } else {
+                self.presentNotification(for: metadata.contentId, with: notificationContent)
+            }
         }
     }
 
@@ -690,7 +728,7 @@ extension NotificationProtoService: FeedDownloadManagerDelegate {
 
         // Copy downloaded media to shared file storage and update db with path to the media.
         if let objectId = task.feedMediaObjectId,
-           let feedMediaItem = try? dataStore.sharedMediaObject(forObjectId: objectId) {
+           let feedMediaItem = try? mainDataStore.commonMediaObject(forObjectId: objectId) {
 
             if let error = task.error {
                 DDLogError("ProtoService/media/download/error \(error)")
@@ -725,15 +763,16 @@ extension NotificationProtoService: FeedDownloadManagerDelegate {
                    let content = pendingNotificationContent[contentId] {
                     presentNotification(for: contentId, with: content, using: [attachment])
                 }
-                let destinationUrl = dataStore.fileURL(forRelativeFilePath: relativeFilePath)
+                let destinationUrl = notificationDataStore.fileURL(forRelativeFilePath: relativeFilePath)
                 SharedDataStore.preparePathForWriting(destinationUrl)
 
                 try FileManager.default.copyItem(at: fileURL, to: destinationUrl)
                 DDLogDebug("ProtoService/attach-media/copied [\(fileURL)] to [\(destinationUrl)]")
 
                 feedMediaItem.relativeFilePath = relativeFilePath
+                feedMediaItem.mediaDirectory = .notificationExtensionMedia
                 feedMediaItem.status = .downloaded
-                dataStore.save(feedMediaItem.managedObjectContext!)
+                mainDataStore.save(feedMediaItem.managedObjectContext!)
             } catch {
                 DDLogError("ProtoService/media/copy-media/error [\(error)]")
             }

@@ -36,6 +36,14 @@ open class AppContext: AppContextCommon {
     private static let notificationsDatabaseFilename = "notifications.sqlite"
     private static let userDefaultsUserIDKey = "main.store.userID"
 
+    // Key to store content-ids from notification extension - used to refresh ui
+    public static let nsePostsKey = "nsePostsKey"
+    public static let nseCommentsKey = "nseCommentsKey"
+    public static let nseMessagesKey = "nseMessagesKey"
+    // Key to store content-ids from share extension - used to refresh ui
+    public static let shareExtensionPostsKey = "sharePostsKey"
+    public static let shareExtensionMessagesKey = "shareMessagesKey"
+
     // Temporary hack until we move all data to the mainDataStore.
     // Once we have that i can create a new entity for this that can be easily updated for retracted or expired posts.
     public static let commentedGroupPostsKey = "commentedGroupPosts"
@@ -95,6 +103,16 @@ open class AppContext: AppContextCommon {
     private var mainDataStoreImpl: MainDataStore!
     open var mainDataStore: MainDataStore {
         mainDataStoreImpl
+    }
+
+    private(set) var coreFeedDataImpl: CoreFeedData!
+    open var coreFeedData: CoreFeedData {
+        coreFeedDataImpl
+    }
+
+    private(set) var coreChatDataImpl: CoreChatData!
+    open var coreChatData: CoreChatData {
+        coreChatDataImpl
     }
 
     // MARK: Event monitoring
@@ -239,6 +257,8 @@ open class AppContext: AppContextCommon {
         keyStore.delegate = messageCrypter
         mediaHashStoreImpl = MediaHashStore(persistentStoreURL: AppContext.mediaHashStoreURL)
         notificationStoreImpl = NotificationStore(appTarget: appTarget, userDefaults: userDefaults)
+        coreFeedDataImpl = CoreFeedData(mainDataStore: mainDataStore)
+        coreChatDataImpl = CoreChatData(mainDataStore: mainDataStore)
 
         DispatchQueue.global(qos: .background).async {
             self.migrateLogFilesIfNeeded()

@@ -66,6 +66,8 @@ public protocol QuotedMedia {
     var width: Float { get }
 
     var relativeFilePath: String? { get }
+
+    var mediaDirectory: MediaDirectory { get }
 }
 
 // Protocol for quoted content in chats.

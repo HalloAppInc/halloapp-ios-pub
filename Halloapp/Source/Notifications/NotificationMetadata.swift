@@ -109,6 +109,7 @@ class NotificationMetadata: Codable {
     var pushName: String?
     var serverMsgPb: Data?
     var rerequestCount: Int32 = 0
+    var retryCount: Int32 = 0
     var messageTypeRawValue: Int = Server_Msg.TypeEnum.normal.rawValue
 
     // Chat specific fields
@@ -252,6 +253,7 @@ class NotificationMetadata: Codable {
         }
         messageId = msg.id
         rerequestCount = msg.rerequestCount
+        retryCount = msg.retryCount
         messageTypeRawValue = msg.type.rawValue
         switch msg.payload {
 

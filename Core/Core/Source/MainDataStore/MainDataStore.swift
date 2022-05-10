@@ -339,8 +339,8 @@ open class MainDataStore {
 
     // MARK: CommonMedia
 
-    public func commonMediaObject(forObjectId objectId: NSManagedObjectID, in managedObjectContext: NSManagedObjectContext) throws -> CommonMedia? {
-        return try managedObjectContext.existingObject(with: objectId) as? CommonMedia
+    public func commonMediaObject(forObjectId objectId: NSManagedObjectID) throws -> CommonMedia? {
+        return try persistentContainer.viewContext.existingObject(with: objectId) as? CommonMedia
     }
 
     public func commonMediaItems(predicate: NSPredicate? = nil, in managedObjectContext: NSManagedObjectContext) -> [CommonMedia] {

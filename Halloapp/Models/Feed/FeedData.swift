@@ -4466,22 +4466,61 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     // MARK: Merge Data
     
     let didMergeFeedPost = PassthroughSubject<FeedPostID, Never>()
-    
+
     func mergeData(from sharedDataStore: SharedDataStore, completion: @escaping () -> ()) {
         let posts = sharedDataStore.posts()
         let comments = sharedDataStore.comments()
-        guard !posts.isEmpty || !comments.isEmpty else {
-            DDLogDebug("FeedData/merge-data/ Nothing to merge")
+
+        DDLogInfo("FeedData/mergeData - \(sharedDataStore.source)/begin")
+        let postIds = sharedDataStore.postIds()
+        let commentIds = sharedDataStore.commentIds()
+        DDLogInfo("FeedData/mergeData/postIds: \(postIds.count)/commentIds: \(commentIds.count)")
+
+        guard !postIds.isEmpty || !commentIds.isEmpty || !posts.isEmpty || !comments.isEmpty else {
+            DDLogDebug("FeedData/mergeData/ Nothing to merge")
             completion()
             return
         }
-        
+
         performSeriallyOnBackgroundContext { managedObjectContext in
-            self.merge(posts: posts, comments: comments, from: sharedDataStore, using: managedObjectContext, completion: completion)
+            self.merge(posts: posts, comments: comments, from: sharedDataStore, using: managedObjectContext)
+        }
+
+        mainDataStore.saveSeriallyOnBackgroundContext ({ managedObjectContext in
+            self.mergeMediaItems(from: sharedDataStore, using: managedObjectContext)
+        }) { [self] result in
+            switch result {
+            case .success:
+                mainDataStore.performSeriallyOnBackgroundContext { [self] context in
+                    // Posts
+                    let feedPosts = feedPosts(with: Set(postIds), in: context, archived: false)
+                    generateNotifications(for: feedPosts, using: context)
+                    // Notify about new posts all interested parties.
+                    feedPosts.forEach({
+                        cachedMedia[$0.id] = nil
+                        didMergeFeedPost.send($0.id)
+                    })
+                    // Comments
+                    let feedPostComments = feedComments(with: Set(commentIds), in: context)
+                    generateNotifications(for: feedPostComments, using: context)
+                    // Notify about new comments all interested parties.
+                    feedPostComments.forEach({
+                        cachedMedia[$0.id] = nil
+                        didReceiveFeedPostComment.send($0)
+                    })
+                }
+
+                sharedDataStore.clearPostIds()
+                sharedDataStore.clearCommentIds()
+            case .failure(let error):
+                DDLogDebug("FeedData/mergeData/error: \(error)")
+            }
+            DDLogInfo("FeedData/mergeData - \(sharedDataStore.source)/done")
+            completion()
         }
     }
 
-    private func merge(posts: [SharedFeedPost], comments: [SharedFeedComment], from sharedDataStore: SharedDataStore, using managedObjectContext: NSManagedObjectContext, completion: @escaping () -> ()) {
+    private func merge(posts: [SharedFeedPost], comments: [SharedFeedComment], from sharedDataStore: SharedDataStore, using managedObjectContext: NSManagedObjectContext) {
         let postIds = Set(posts.map{ $0.id })
         let existingPosts = feedPosts(with: postIds, in: managedObjectContext).reduce(into: [FeedPostID: FeedPost]()) { $0[$1.id] = $1 }
         var addedPostIDs = Set<FeedPostID>()
@@ -4547,7 +4586,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
                 feedPost.info = feedPostInfo
             }
-            
+
             // Process link preview if present
             post.linkPreviews?.forEach { linkPreviewData in
                 DDLogDebug("FeedData/merge-data/post/\(postId)/add-link-preview [\(String(describing: linkPreviewData.url))]")
@@ -4638,8 +4677,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     }
                 }
             }
-            
-            newMergedPosts.append(feedPost.id)            
+
+            newMergedPosts.append(feedPost.id)
         }
 
         // Merge comments after posts.
@@ -4659,10 +4698,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         DDLogInfo("FeedData/merge-data/finished")
 
         sharedDataStore.delete(posts: posts, comments: comments) {
-            completion()
         }
     }
-    
+
     /// Creates new comment with data from shared feed comment and increments parent post's unread count. Does not save context.
     func merge(sharedComment: SharedFeedComment, into managedObjectContext: NSManagedObjectContext) -> FeedPostComment? {
         let postId = sharedComment.postId
@@ -4673,7 +4711,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             DDLogError("FeedData/merge/comment/error  Missing FeedPost with id [\(postId)]")
             return nil
         }
-        
+
         // Fetch parentCommentId
         var parentComment: FeedPostComment?
         if let parentCommentId = sharedComment.parentCommentId {
@@ -4692,7 +4730,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 return nil
             }
         }
-        
+
         // Process link preview if present
         var linkPreviews = Set<CommonLinkPreview>()
         sharedComment.linkPreviews?.forEach { sharedLinkPreviewData in
@@ -4770,7 +4808,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         feedComment.timestamp = sharedComment.timestamp
         // Clear cached media if any.
         cachedMedia[commentId] = nil
-        
+
         if let rawData = sharedComment.rawData {
             feedComment.rawData = rawData
             feedComment.status = .unsupported
@@ -4779,6 +4817,56 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         feedPost.unreadCount += 1
 
         return feedComment
+    }
+
+    private func mergeMediaItems(from sharedDataStore: SharedDataStore, using managedObjectContext: NSManagedObjectContext) {
+        let mediaDirectory = sharedDataStore.mediaDirectory
+        DDLogInfo("FeedData/mergeMediaItems from \(mediaDirectory)/begin")
+
+        let mediaPredicate = NSPredicate(format: "mediaDirectoryValue == \(mediaDirectory.rawValue)")
+        let extensionMediaItems = mainDataStore.commonMediaItems(predicate: mediaPredicate, in: managedObjectContext)
+        DDLogInfo("FeedData/mergeMediaItems/extensionMediaItems: \(extensionMediaItems.count)")
+        extensionMediaItems.forEach { media in
+            // Copy only posts/comments/linkPreviews to posts and comments.
+            // Ideally - we should just have the extension write to a common media directory and we use that everywhere.
+            // Will do that separately - since that will need some more changes.
+            if media.post != nil || media.comment != nil || media.linkPreview?.post != nil || media.linkPreview?.comment != nil {
+                DDLogDebug("FeedData/mergeMediaItems/media: \(String(describing: media.relativeFilePath))")
+                copyMediaItem(from: media, sharedDataStore: sharedDataStore)
+            }
+        }
+        DDLogInfo("FeedData/mergeMediaItems from \(mediaDirectory)/done")
+    }
+
+    private func copyMediaItem(from media: CommonMedia, sharedDataStore: SharedDataStore) {
+        // Copy media if there's a local copy (outgoing posts or incoming posts with downloaded media).
+        if let relativeFilePath = media.relativeFilePath {
+
+            // current media URL
+            let extensionMediaURL = sharedDataStore.fileURL(forRelativeFilePath: relativeFilePath)
+            let extensionEncryptedMediaURL = extensionMediaURL.appendingPathExtension("enc")
+
+            // final media URL
+            let mainappMediaURL = self.downloadManager.fileURL(forRelativeFilePath: relativeFilePath)
+            let mainappEncryptedMediaURL = mainappMediaURL.appendingPathExtension("enc")
+            DDLogInfo("FeedData/copyMediaItem/extension: \(extensionMediaURL)/mainapp: \(mainappMediaURL)")
+
+            do {
+                // create directories if necessary
+                try FileManager.default.createDirectory(at: mainappMediaURL.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
+                if media.status == .uploadError {
+                    try FileManager.default.copyItem(at: extensionEncryptedMediaURL, to: mainappEncryptedMediaURL)
+                    return
+                }
+                // copy unencrypted file
+                try FileManager.default.copyItem(at: extensionMediaURL, to: mainappMediaURL)
+            } catch {
+                DDLogError("FeedData/copy-media-error [\(error)]")
+            }
+
+            // Set mediaDirectory properly
+            media.mediaDirectory = .media
+        }
     }
 }
 

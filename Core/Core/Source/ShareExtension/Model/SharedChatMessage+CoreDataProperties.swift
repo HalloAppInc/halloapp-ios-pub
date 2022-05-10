@@ -94,7 +94,7 @@ extension SharedChatMessage: ChatMessageProtocol {
         timestamp.timeIntervalSince1970
     }
     
-    var linkPreviewData: [LinkPreviewProtocol] {
+    public var linkPreviewData: [LinkPreviewProtocol] {
         switch content {
         case .album, .voiceNote, .unsupported:
             return []

@@ -47,6 +47,15 @@ public struct PostData {
 
     public var audience: FeedAudience?
 
+    public var isMoment: Bool {
+        switch content {
+        case .text, .album, .retracted, .unsupported, .voiceNote, .waiting:
+            return false
+        case .moment:
+            return true
+        }
+    }
+
     public var text: String? {
         switch content {
         case .retracted, .unsupported, .voiceNote, .waiting, .moment:
@@ -451,6 +460,17 @@ public struct CommentData {
     public let parentId: FeedPostCommentID?
     public var content: CommentContent
 
+    // TODO: murali@: fix this to return nil - update coredata field accordingly.
+    public var text: String {
+        switch content {
+        case .retracted, .unsupported, .voiceNote, .waiting:
+            return ""
+        case .text(let mentionText, _):
+            return mentionText.collapsedText
+        case .album(let mentionText, _):
+            return mentionText.collapsedText
+        }
+    }
     
     public var orderedMedia: [FeedMediaProtocol] {
         switch content {

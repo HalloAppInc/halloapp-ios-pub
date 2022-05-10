@@ -95,6 +95,64 @@ open class SharedDataStore {
 
     // MARK: Fetching Data
 
+    private var postsUserDefaultsKey: String? {
+        switch source {
+        case .mainApp:
+            return nil
+        case .shareExtension:
+            return AppContext.shareExtensionPostsKey
+        case .notificationExtension:
+            return AppContext.nsePostsKey
+        }
+    }
+
+    private var commentsUserDefaultsKey: String? {
+        switch source {
+        case .mainApp:
+            return nil
+        case .shareExtension:
+            return nil
+        case .notificationExtension:
+            return AppContext.nseCommentsKey
+        }
+    }
+
+    private var messagesUserDefaultsKey: String? {
+        switch source {
+        case .mainApp:
+            return nil
+        case .shareExtension:
+            return AppContext.shareExtensionMessagesKey
+        case .notificationExtension:
+            return AppContext.nseMessagesKey
+        }
+    }
+
+    // MARK: Fetching Data
+    public final func postIds() -> [FeedPostID] {
+        guard let postsUserDefaultsKey = postsUserDefaultsKey else {
+            DDLogError("SharedDataStore/postsUserDefaultsKey is missing")
+            return []
+        }
+        return AppContext.shared.userDefaults.value(forKey: postsUserDefaultsKey) as? [FeedPostID] ?? []
+    }
+
+    public final func commentIds() -> [FeedPostCommentID] {
+        guard let commentsUserDefaultsKey = commentsUserDefaultsKey else {
+            DDLogError("SharedDataStore/commentsUserDefaultsKey is missing")
+            return []
+        }
+        return AppContext.shared.userDefaults.value(forKey: commentsUserDefaultsKey) as? [FeedPostCommentID] ?? []
+    }
+
+    public final func chatMessageIds() -> [ChatMessageID] {
+        guard let messagesUserDefaultsKey = messagesUserDefaultsKey else {
+            DDLogError("SharedDataStore/messagesUserDefaultsKey is missing")
+            return []
+        }
+        return AppContext.shared.userDefaults.value(forKey: messagesUserDefaultsKey) as? [FeedPostCommentID] ?? []
+    }
+
     public final func posts() -> [SharedFeedPost] {
         let managedObjectContext = persistentContainer.viewContext
         let fetchRequest: NSFetchRequest<SharedFeedPost> = SharedFeedPost.fetchRequest()
@@ -197,6 +255,30 @@ open class SharedDataStore {
 
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.data-store")
 
+    public final func clearPostIds() {
+        guard let postsUserDefaultsKey = postsUserDefaultsKey else {
+            DDLogError("SharedDataStore/postsUserDefaultsKey is missing")
+            return
+        }
+        AppContext.shared.userDefaults.removeObject(forKey: postsUserDefaultsKey)
+    }
+
+    public final func clearCommentIds() {
+        guard let commentsUserDefaultsKey = commentsUserDefaultsKey else {
+            DDLogError("SharedDataStore/commentsUserDefaultsKey is missing")
+            return
+        }
+        AppContext.shared.userDefaults.removeObject(forKey: commentsUserDefaultsKey)
+    }
+
+    public final func clearChatMessageIds() {
+        guard let messagesUserDefaultsKey = messagesUserDefaultsKey else {
+            DDLogError("SharedDataStore/messagesUserDefaultsKey is missing")
+            return
+        }
+        AppContext.shared.userDefaults.removeObject(forKey: messagesUserDefaultsKey)
+    }
+
     public final func delete(posts: [SharedFeedPost], comments: [SharedFeedComment], completion: @escaping (() -> Void)) {
         performSeriallyOnBackgroundContext { (managedObjectContext) in
             let posts = posts.compactMap({ managedObjectContext.object(with: $0.objectID) as? SharedFeedPost })
@@ -216,7 +298,7 @@ open class SharedDataStore {
             }
 
             self.save(managedObjectContext)
-            
+
             DispatchQueue.main.async {
                 completion()
             }

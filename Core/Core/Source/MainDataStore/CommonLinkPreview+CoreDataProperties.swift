@@ -22,4 +22,15 @@ public extension CommonLinkPreview {
     @NSManaged var media: Set<CommonMedia>?
     @NSManaged var post: FeedPost?
     @NSManaged var message: ChatMessage?
+
+    var contentOwnerID: String? {
+        if let post = post {
+            return post.id
+        } else if let comment = comment {
+            return comment.id
+        } else if let message = message {
+            return message.id
+        }
+        return nil
+    }
 }

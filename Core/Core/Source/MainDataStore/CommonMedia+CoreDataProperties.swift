@@ -117,9 +117,9 @@ extension CommonMedia: FeedMediaProtocol {
             } else if let feeLinkPreview = linkPreview {
                 return "\(feeLinkPreview.id)-\(order)"
             } else if let message = message {
-                return "\(message.id)-order"
+                return "\(message.id)-\(order)"
             } else if let quoted = chatQuoted {
-                return "\(quoted.message?.id ?? UUID().uuidString)-quoted-order"
+                return "\(quoted.message?.id ?? UUID().uuidString)-quoted-\(order)"
             } else {
                 DDLogError("CommonMedia/id not associated with known entity")
                 return ""
@@ -219,5 +219,18 @@ public extension CommonMedia {
         case pending = 1
         case uploaded = 2
         case error = 3
+    }
+
+    var contentOwnerID: String? {
+        if let post = post {
+            return post.id
+        } else if let comment = comment {
+            return comment.id
+        } else if let message = message {
+            return message.id
+        } else if let linkPreview = linkPreview {
+            return linkPreview.contentOwnerID
+        }
+        return nil
     }
 }

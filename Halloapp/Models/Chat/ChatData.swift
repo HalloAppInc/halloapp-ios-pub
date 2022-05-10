@@ -203,7 +203,7 @@ class ChatData: ObservableObject {
                     guard let feedPost = MainAppContext.shared.feedData.feedPost(with: postID) else { return }
                     guard let groupID = feedPost.groupId else { return }
                     let isInbound = feedPost.userId != MainAppContext.shared.userData.userId
-                    DDLogInfo("ChatData/didMergeFeedPost")
+                    DDLogInfo("ChatData/didMergeFeedPost: \(postID)")
 
                     self.didGetAGroupFeed.send(groupID)
 
@@ -1463,19 +1463,51 @@ class ChatData: ObservableObject {
     
     func mergeData(from sharedDataStore: SharedDataStore, completion: @escaping (() -> ())) {
         let messages = sharedDataStore.messages()
-        guard !messages.isEmpty else {
-            DDLogDebug("ChatData/merge-data/ Nothing to merge")
+        DDLogInfo("ChatData/mergeData - \(sharedDataStore.source)/begin")
+        let chatMessageIds = sharedDataStore.chatMessageIds()
+        DDLogInfo("ChatData/mergeData/chatMessageIds: \(chatMessageIds.count)")
+
+        guard !messages.isEmpty || !chatMessageIds.isEmpty else {
+            DDLogDebug("ChatData/mergeData/ Nothing to merge")
             completion()
             return
         }
 
         performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
             guard let self = self else { return }
-            self.merge(messages: messages, from: sharedDataStore, using: managedObjectContext, completion: completion)
+            self.merge(messages: messages, from: sharedDataStore, using: managedObjectContext)
+        }
+
+        mainDataStore.saveSeriallyOnBackgroundContext ({ managedObjectContext in
+            self.mergeMediaItems(from: sharedDataStore, using: managedObjectContext)
+        }) { [self] result in
+            switch result {
+            case .success:
+                mainDataStore.performSeriallyOnBackgroundContext { [self] context in
+                    // Messages
+                    let messages = chatMessages(with: Set(chatMessageIds), in: context)
+                    unreadMessageCount += messages.count
+                    updateUnreadChatsThreadCount()
+                    messages.forEach { chatMsg in
+                        didGetAChatMsg.send(chatMsg.fromUserId)
+                    }
+
+                    // send pending chat messages
+                    processPendingChatMsgs()
+                    // download chat message media
+                    processInboundPendingChatMsgMedia()
+                    processInboundPendingChaLinkPreviewMedia()
+                }
+                sharedDataStore.clearChatMessageIds()
+            case .failure(let error):
+                DDLogDebug("ChatData/mergeData/error: \(error)")
+            }
+            DDLogInfo("ChatData/mergeData - \(sharedDataStore.source)/done")
+            completion()
         }
     }
 
-    private func merge(messages: [SharedChatMessage], from sharedDataStore: SharedDataStore, using managedObjectContext: NSManagedObjectContext, completion: @escaping (() -> ())) {
+    private func merge(messages: [SharedChatMessage], from sharedDataStore: SharedDataStore, using managedObjectContext: NSManagedObjectContext) {
         var mergedMessages = [(SharedChatMessage, ChatMessage)]()
         for message in messages {
             let messageId: ChatMessageID = message.id
@@ -1769,7 +1801,6 @@ class ChatData: ObservableObject {
         DDLogInfo("ChatData/mergeSharedData/finished")
 
         sharedDataStore.delete(messages: messages) {
-            completion()
         }
     }
 
@@ -1787,6 +1818,31 @@ class ChatData: ObservableObject {
         } else {
             DDLogError("ChatData/reportDecryptionResult/\(messageID)/decrypt/error missing sender user agent")
         }
+    }
+
+    private func mergeMediaItems(from sharedDataStore: SharedDataStore, using managedObjectContext: NSManagedObjectContext) {
+        let mediaDirectory = sharedDataStore.mediaDirectory
+        DDLogInfo("FeedData/mergeMediaItems from \(mediaDirectory)/begin")
+
+        let mediaPredicate = NSPredicate(format: "mediaDirectoryValue == \(mediaDirectory.rawValue)")
+        let extensionMediaItems = mainDataStore.commonMediaItems(predicate: mediaPredicate, in: managedObjectContext)
+        DDLogInfo("FeedData/mergeMediaItems/extensionMediaItems: \(extensionMediaItems.count)")
+        extensionMediaItems.forEach { media in
+            if media.message != nil || media.chatQuoted != nil || media.linkPreview?.message != nil {
+                DDLogDebug("FeedData/mergeMediaItems/media: \(String(describing: media.relativeFilePath))")
+                if let relativeFilePath = media.relativeFilePath {
+                    do {
+                        let sourceUrl = sharedDataStore.fileURL(forRelativeFilePath: relativeFilePath)
+                        let encryptedFileUrl = media.outgoingStatus == .error ? sourceUrl.appendingPathExtension("enc") : nil
+                        DDLogInfo("ChatData/mergeSharedData/sourceUrl: \(sourceUrl), encryptedFileUrl: \(encryptedFileUrl?.absoluteString ?? "[nil]"), \(media.status)")
+                        try copyFiles(toChatMedia: media, fileUrl: sourceUrl, encryptedFileUrl: encryptedFileUrl)
+                    } catch {
+                        DDLogError("ChatData/mergeSharedData/link-preview-media/copy-media/error [\(error)]")
+                    }
+                }
+            }
+        }
+        DDLogInfo("FeedData/mergeMediaItems from \(mediaDirectory)/done")
     }
 
     // This function can nicely copy references to quoted feed post or quoted message to the new chatMessage.
@@ -2839,6 +2895,10 @@ extension ChatData {
     
     func chatMessage(with id: String, in managedObjectContext: NSManagedObjectContext) -> ChatMessage? {
         return self.chatMessages(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext).first
+    }
+
+    func chatMessages(with ids: Set<FeedPostCommentID>, in managedObjectContext: NSManagedObjectContext) -> [ChatMessage] {
+        return self.chatMessages(predicate: NSPredicate(format: "id in %@", ids), in: managedObjectContext)
     }
     
     func chatLinkPreview(with id: String, in managedObjectContext: NSManagedObjectContext) -> CommonLinkPreview? {

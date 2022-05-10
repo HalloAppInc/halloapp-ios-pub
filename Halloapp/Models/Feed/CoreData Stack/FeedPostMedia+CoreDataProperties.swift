@@ -126,4 +126,8 @@ extension FeedPostMedia: QuotedMedia {
     public var quotedMediaType: CommonMediaType {
         return type
     }
+
+    public var mediaDirectory: MediaDirectory {
+        return .media
+    }
 }

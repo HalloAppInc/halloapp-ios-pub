@@ -52,6 +52,9 @@ public protocol ChatMessageProtocol {
     var context: ChatContext { get }
 
     var timeIntervalSince1970: TimeInterval? { get }
+
+    var orderedMedia: [ChatMediaProtocol] { get }
+    var linkPreviewData: [LinkPreviewProtocol] { get }
 }
 
 public enum ChatContent {

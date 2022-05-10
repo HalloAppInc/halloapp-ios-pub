@@ -438,10 +438,6 @@ final class ProtoService: ProtoServiceCore {
             return true
         }
 
-        if let message = MainAppContext.shared.shareExtensionDataStore.sharedChatMessage(for: msgId), message.status != .rerequesting {
-            DDLogInfo("ProtoService/isMessageDecryptedAndSaved/msgId \(msgId) - message needs to be stored from nse.")
-            return true
-        }
         DDLogInfo("ProtoService/isMessageDecryptedAndSaved/msgId \(msgId) - message is missing.")
         return false
     }
@@ -1144,22 +1140,6 @@ final class ProtoService: ProtoServiceCore {
         }
 
         self.enqueue(request: request)
-    }
-
-    private func reportDecryptionResult(error: DecryptionError?, messageID: String, timestamp: Date, sender: UserAgent?, rerequestCount: Int, contentType: DecryptionReportContentType) {
-        AppContext.shared.eventMonitor.count(.decryption(error: error, sender: sender))
-
-        if let sender = sender {
-            MainAppContext.shared.cryptoData.update(
-                messageID: messageID,
-                timestamp: timestamp,
-                result: error?.rawValue ?? "success",
-                rerequestCount: rerequestCount,
-                sender: sender,
-                contentType: contentType)
-        } else {
-            DDLogError("proto/didReceive/\(messageID)/decrypt/stats/error missing sender user agent")
-        }
     }
 
     // i dont think this is the right place to generate local notifications.

@@ -119,5 +119,9 @@ extension ChatMedia: QuotedMedia {
     public var quotedMediaType: CommonMediaType {
         return type
     }
+
+    public var mediaDirectory: MediaDirectory {
+        return .chatMedia
+    }
 }
 
