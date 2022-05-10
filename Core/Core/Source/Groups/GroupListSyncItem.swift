@@ -22,35 +22,23 @@ public struct GroupListSyncItem: Codable {
         self.lastActivityTimestamp = lastActivityTimestamp
     }
 
-    private static var fileUrl: URL {
-        AppContext.sharedDirectoryURL.appendingPathComponent("group-list.json", isDirectory: false)
-    }
-
     public static func load() -> [GroupListSyncItem] {
-        guard let data = try? Data(contentsOf: fileUrl) else {
-            DDLogWarn("group-list/load/error file does not exist.")
-            return []
+        DDLogInfo("GroupListSyncItem/load/begin")
+        // Do some cleanup
+        cleanup()
+        let groups = AppContext.shared.mainDataStore.groups(in: AppContext.shared.mainDataStore.viewContext)
+        let groupListItems = groups.map { group -> GroupListSyncItem in
+            let users = group.orderedMembers.map{ $0.userID }
+            let thread = AppContext.shared.mainDataStore.groupThread(for: group.id, in: AppContext.shared.mainDataStore.viewContext)
+            return GroupListSyncItem(id: group.id, name: group.name, users: users, lastActivityTimestamp: thread?.lastFeedTimestamp)
         }
-
-        do {
-            // file:///private/var/mobile/Containers/Shared/AppGroup/C5984765-4F4C-437C-92AC-468B65B4C264/group-list.json
-            DDLogInfo("group-list/will be loaded from \(fileUrl.description)")
-            return try JSONDecoder().decode([GroupListSyncItem].self, from: data)
-        } catch {
-            DDLogError("group-list/load/error \(error)")
-            try? FileManager.default.removeItem(at: fileUrl)
-            return []
-        }
+        DDLogInfo("GroupListSyncItem/load/groupListItems: \(groupListItems.count)/done")
+        return groupListItems
     }
 
-    public static func save(_ items: [GroupListSyncItem]) {
-        do {
-            let data = try JSONEncoder().encode(items)
-            try data.write(to: fileUrl)
-
-            DDLogInfo("group-list/saved to \(fileUrl.description)")
-        } catch {
-            DDLogError("group-list/save/error \(error)")
-        }
+    public static func cleanup() {
+        let fileURL = AppContext.sharedDirectoryURL.appendingPathComponent("group-list.json", isDirectory: false)
+        try? FileManager.default.removeItem(at: fileURL)
+        DDLogInfo("GroupListSyncItem/cleanup/fileURL: \(fileURL)")
     }
 }

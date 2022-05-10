@@ -446,12 +446,10 @@
 		F8BD92532819BFCE00F35E7A /* Quicksand-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6878E0102798E962008BB351 /* Quicksand-Light.ttf */; };
 		F8BD92542819BFCE00F35E7A /* Quicksand-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6878E00D2798E962008BB351 /* Quicksand-Medium.ttf */; };
 		F8BD92552819BFCE00F35E7A /* Quicksand-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6878E0112798E962008BB351 /* Quicksand-Bold.ttf */; };
-		F8BE61A727A05DC40061FFC2 /* ChatListSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8BE61A627A05DC40061FFC2 /* ChatListSync.swift */; };
 		F8C92C9A24CF17BC00B1D4E6 /* MediaEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */; };
 		F8D876332746603700E69F41 /* AudioSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8D876322746603700E69F41 /* AudioSessionManager.swift */; };
 		F8DA6F38252370BE007833A7 /* MediaExplorerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DA6F37252370BE007833A7 /* MediaExplorerController.swift */; };
 		F8DFCD88262EF4C0003F850F /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DFCD87262EF4C0003F850F /* ShareViewController.swift */; };
-		F8DFCDAD26304B4F003F850F /* GroupListSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DFCDA826304B3A003F850F /* GroupListSync.swift */; };
 		F8E60547266F931E00DDEB2A /* ImageEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8E60546266F931E00DDEB2A /* ImageEditViewController.swift */; };
 		F8E6054A2671F6A700DDEB2A /* MediaEdit.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8E605492671F6A700DDEB2A /* MediaEdit.swift */; };
 		F8E6DCDF271EB06F005EECC5 /* TimeInterval.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8E6DCDE271EB06F005EECC5 /* TimeInterval.swift */; };
@@ -1132,12 +1130,10 @@
 		F893C86E25E5213000068F00 /* VideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoView.swift; sourceTree = "<group>"; };
 		F89589552732A58300874054 /* ChangeDestinationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangeDestinationViewController.swift; sourceTree = "<group>"; };
 		F8B0F7602745785400235CCF /* ShareDataLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareDataLoader.swift; sourceTree = "<group>"; };
-		F8BE61A627A05DC40061FFC2 /* ChatListSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatListSync.swift; sourceTree = "<group>"; };
 		F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaEditViewController.swift; sourceTree = "<group>"; };
 		F8D876322746603700E69F41 /* AudioSessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionManager.swift; sourceTree = "<group>"; };
 		F8DA6F37252370BE007833A7 /* MediaExplorerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaExplorerController.swift; sourceTree = "<group>"; };
 		F8DFCD87262EF4C0003F850F /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
-		F8DFCDA826304B3A003F850F /* GroupListSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupListSync.swift; sourceTree = "<group>"; };
 		F8E60546266F931E00DDEB2A /* ImageEditViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageEditViewController.swift; sourceTree = "<group>"; };
 		F8E605492671F6A700DDEB2A /* MediaEdit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaEdit.swift; sourceTree = "<group>"; };
 		F8E6DCDE271EB06F005EECC5 /* TimeInterval.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeInterval.swift; sourceTree = "<group>"; };
@@ -1809,10 +1805,8 @@
 				EA796B8E2469B99A00BC795E /* CoreData Stack */,
 				EA35856F2450BE2900E6E8AB /* ChatData.swift */,
 				EAA424F024EC71450025CBBE /* XMPPGroup.swift */,
-				F8DFCDA826304B3A003F850F /* GroupListSync.swift */,
 				E598D4BF265F0188001A436A /* ConversationID.swift */,
 				E537A1B626792AEF0008B286 /* ChatDraft.swift */,
-				F8BE61A627A05DC40061FFC2 /* ChatListSync.swift */,
 				68C0B9D327FA737E00F3A092 /* ChatDataLegacy.swift */,
 			);
 			path = Chat;
@@ -2759,7 +2753,6 @@
 				EA45713D23EB7F47008C2E44 /* MediaCarouselView.swift in Sources */,
 				F40F7C8727570707008144DE /* AudioPostComposer.swift in Sources */,
 				EA52EB18245A012700FB03F6 /* NewChatViewController.swift in Sources */,
-				F8BE61A727A05DC40061FFC2 /* ChatListSync.swift in Sources */,
 				6829F78324CFA41F00207F6B /* FeedMention+CoreDataProperties.swift in Sources */,
 				324455E1275994D50031CD60 /* MessageViewCell.swift in Sources */,
 				68A64E9224D33E0F00F40F1F /* MentionPickerView.swift in Sources */,
@@ -3001,7 +2994,6 @@
 				680FB661250C45C000CA5D40 /* OverlayView.swift in Sources */,
 				EABB650326D989B900367F44 /* UISearchBar.swift in Sources */,
 				76A92444244E659600794859 /* FeedViewController.swift in Sources */,
-				F8DFCDAD26304B4F003F850F /* GroupListSync.swift in Sources */,
 				EAA424FE24ECF1480025CBBE /* ChatGroup+CoreDataClass.swift in Sources */,
 				6829F78724D0A62800207F6B /* UserFeedViewController.swift in Sources */,
 				EABDC977253424E1005FE00A /* InboundMsgViewCell.swift in Sources */,

@@ -332,7 +332,7 @@ open class MainDataStore {
                 return result
             }
         } catch {
-            DDLogError("FeedData/fetchAndUpdateRetryCount/error  [\(error)]")
+            DDLogError("MainDataStore/fetchAndUpdateRetryCount/error  [\(error)]")
             fatalError("Failed to fetchAndUpdateRetryCount.")
         }
     }
@@ -352,9 +352,59 @@ open class MainDataStore {
             let commonMediaItems = try managedObjectContext.fetch(fetchRequest)
             return commonMediaItems
         } catch {
-            DDLogError("FeedData/fetch-commonMediaItems/error  [\(error)]")
+            DDLogError("MainDataStore/fetch-commonMediaItems/error  [\(error)]")
             fatalError("Failed to fetch commonMediaItems.")
         }
+    }
+
+    // MARK: Groups
+    public func groups(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext) -> [Group] {
+        let managedObjectContext = managedObjectContext ?? viewContext
+        let fetchRequest: NSFetchRequest<Group> = Group.fetchRequest()
+        fetchRequest.predicate = predicate
+        fetchRequest.sortDescriptors = sortDescriptors
+        fetchRequest.returnsObjectsAsFaults = false
+
+        do {
+            let groups = try managedObjectContext.fetch(fetchRequest)
+            return groups
+        } catch {
+            DDLogError("MainDataStore/fetch-groups/error  [\(error)]")
+            fatalError("Failed to fetch chat groups")
+        }
+    }
+
+    public func chatThreads(in context: NSManagedObjectContext) -> [CommonThread] {
+        let request = CommonThread.fetchRequest()
+        request.predicate = NSPredicate(format: "groupID == nil")
+        do {
+            return try context.fetch(request)
+        } catch {
+            DDLogError("MainDataStore/fetch-chatThreads/error  [\(error)]")
+        }
+        return []
+    }
+
+    public func groupThreads(in context: NSManagedObjectContext) -> [CommonThread] {
+        let request = CommonThread.fetchRequest()
+        request.predicate = NSPredicate(format: "groupID != nil")
+        do {
+            return try context.fetch(request)
+        } catch {
+            DDLogError("MainDataStore/fetch-groupThreads/error  [\(error)]")
+        }
+        return []
+    }
+
+    public func groupThread(for id: GroupID, in context: NSManagedObjectContext) -> CommonThread? {
+        let request = CommonThread.fetchRequest()
+        request.predicate = NSPredicate(format: "groupID == %@", id)
+        do {
+            return try context.fetch(request).first
+        } catch {
+            DDLogError("MainDataStore/fetch-groupThread/error  [\(error)]")
+        }
+        return nil
     }
 
     public func deleteAllEntities() {

@@ -56,8 +56,6 @@ class ChatData: ObservableObject {
     private let contactStore: ContactStoreMain
     private var service: HalloService
     private let mediaUploader: MediaUploader
-    private let groupListSync = GroupListSync()
-    private let chatListSync = ChatListSync()
     
     private var currentlyChattingWithUserId: String? = nil
     private var isSubscribedToCurrentUser: Bool = false
@@ -466,12 +464,6 @@ class ChatData: ObservableObject {
         )
 
         resetUnreadForDeletedSampleGroup()
-        
-        performSeriallyOnBackgroundContext { [weak self] (context) in
-            guard let self = self else { return }
-            self.groupListSync.listenForChanges(using: context, userId: self.userData.userId)
-            self.chatListSync.listenForChanges(using: context)
-        }
 
         DispatchQueue.main.async {
             self.cleanUpOldUploadData()

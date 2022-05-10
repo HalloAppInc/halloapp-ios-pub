@@ -19,35 +19,24 @@ public struct ChatListSyncItem: Codable {
         self.timestamp = timestamp
     }
 
-    private static var fileUrl: URL {
-        AppContext.sharedDirectoryURL.appendingPathComponent("chat-list.json", isDirectory: false)
-    }
-
     public static func load() -> [ChatListSyncItem] {
-        guard let data = try? Data(contentsOf: fileUrl) else {
-            DDLogWarn("chat-list/load/error file does not exist.")
-            return []
+        DDLogInfo("ChatListSyncItem/load/begin")
+        // Do some cleanup
+        cleanup()
+        let chatThreads = AppContext.shared.mainDataStore.chatThreads(in: AppContext.shared.mainDataStore.viewContext)
+        let chatListItems = chatThreads.compactMap { chatThread -> ChatListSyncItem? in
+            guard let userID = chatThread.userID else {
+                return nil
+            }
+            return ChatListSyncItem(userId: userID, timestamp: chatThread.lastMsgTimestamp)
         }
-
-        do {
-            // file:///private/var/mobile/Containers/Shared/AppGroup/C5984765-4F4C-437C-92AC-468B65B4C264/group-list.json
-            DDLogInfo("chat-list/will be loaded from \(fileUrl.description)")
-            return try JSONDecoder().decode([ChatListSyncItem].self, from: data)
-        } catch {
-            DDLogError("chat-list/load/error \(error)")
-            try? FileManager.default.removeItem(at: fileUrl)
-            return []
-        }
+        DDLogInfo("ChatListSyncItem/load/chatListItems: \(chatListItems.count)/done")
+        return chatListItems
     }
 
-    public static func save(_ items: [ChatListSyncItem]) {
-        do {
-            let data = try JSONEncoder().encode(items)
-            try data.write(to: fileUrl)
-
-            DDLogInfo("chat-list/saved to \(fileUrl.description)")
-        } catch {
-            DDLogError("chat-list/save/error \(error)")
-        }
+    public static func cleanup() {
+        let fileURL = AppContext.sharedDirectoryURL.appendingPathComponent("chat-list.json", isDirectory: false)
+        try? FileManager.default.removeItem(at: fileURL)
+        DDLogInfo("ChatListSyncItem/cleanup/fileURL: \(fileURL)")
     }
 }
