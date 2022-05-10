@@ -438,6 +438,10 @@ final class ProtoService: ProtoServiceCore {
             return true
         }
 
+        if let message = MainAppContext.shared.shareExtensionDataStore.sharedChatMessage(for: msgId), message.status != .rerequesting {
+            DDLogInfo("ProtoService/isMessageDecryptedAndSaved/msgId \(msgId) - message needs to be stored from nse.")
+            return true
+        }
         DDLogInfo("ProtoService/isMessageDecryptedAndSaved/msgId \(msgId) - message is missing.")
         return false
     }

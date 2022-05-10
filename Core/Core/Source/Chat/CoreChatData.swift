@@ -12,7 +12,7 @@ import CoreData
 import CocoaLumberjackSwift
 
 
-// TODO: (murali@): reuse this logic in FeedData
+// TODO: (murali@): reuse this logic in ChatData
 
 public class CoreChatData {
     private let mainDataStore: MainDataStore
