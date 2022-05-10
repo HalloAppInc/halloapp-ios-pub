@@ -339,6 +339,11 @@ final class NotificationProtoService: ProtoServiceCore {
                     let notificationContent = self.extractNotificationContent(for: metadata, using: postData)
                     if let firstOrderedMediaItem = post.orderedMedia.first,
                        let firstMediaItem = post.media?.filter({ $0.id == firstOrderedMediaItem.id }).first {
+                        // Present notification immediately if the post is moment.
+                        // Continue downloading media in the background.
+                        if post.isMoment {
+                            self.presentNotification(for: metadata.contentId, with: notificationContent)
+                        }
                         let downloadTask = self.startDownloading(media: firstMediaItem)
                         downloadTask?.feedMediaObjectId = firstMediaItem.objectID
                     }  else if let firstMediaItem = post.linkPreviews?.first?.media?.first {
