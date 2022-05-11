@@ -206,6 +206,8 @@ class ShareComposerViewController: UIViewController {
         view.addSubview(destinationRow)
         view.addSubview(destinationRowLabel)
 
+        textViewHeightConstraint = textView.heightAnchor.constraint(equalToConstant: computeTextViewHeight())
+
         if media.count > 0 {
             contentView.spacing = 10
 
@@ -238,6 +240,7 @@ class ShareComposerViewController: UIViewController {
             bottomConstraint = bottomRowContainer.bottomAnchor.constraint(equalTo: destinationRowLabel.topAnchor, constant: -8)
 
             constraints.append(contentsOf: [
+                textViewHeightConstraint,
                 collectionView.widthAnchor.constraint(equalTo: contentView.widthAnchor),
                 bottomRowContainer.topAnchor.constraint(equalTo: scrollView.bottomAnchor),
                 bottomRowContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -258,30 +261,27 @@ class ShareComposerViewController: UIViewController {
             contentView.layer.shadowOffset = CGSize(width: 0, height: 5)
             contentView.layer.shadowRadius = 10
             contentView.clipsToBounds = true
+            contentView.alignment = .fill
+            contentView.isLayoutMarginsRelativeArrangement = true
+            contentView.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
 
-            textView.textContainerInset = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
+            textView.textContainerInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
             linkPreviewView = makeLinkPreviewView()
             contentView.addArrangedSubview(textView)
             contentView.addArrangedSubview(linkPreviewView)
 
+
             bottomConstraint = scrollView.bottomAnchor.constraint(equalTo: destinationRowLabel.topAnchor, constant: -8)
 
             constraints.append(contentsOf: [
-                textView.topAnchor.constraint(equalTo: contentView.topAnchor),
-                textView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-                textView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
                 textViewPlaceholder.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: 25),
                 textViewPlaceholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: 20),
-                linkPreviewView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
-                linkPreviewView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
             ])
         }
 
-        textViewHeightConstraint = textView.heightAnchor.constraint(equalToConstant: computeTextViewHeight())
         cardViewHeightConstraint = contentView.heightAnchor.constraint(equalToConstant: computeCardViewHeight())
 
         constraints.append(contentsOf: [
-            textViewHeightConstraint,
             cardViewHeightConstraint,
             bottomConstraint,
 
