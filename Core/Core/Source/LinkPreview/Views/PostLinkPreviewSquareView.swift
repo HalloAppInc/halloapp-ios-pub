@@ -102,9 +102,10 @@ class PostLinkPreviewSquareView: UIView {
     private lazy var imageTitleDescriptionView: UIView = {
         let imageTitleDescriptionView = UIView()
         imageTitleDescriptionView.translatesAutoresizingMaskIntoConstraints = false
+        imageTitleDescriptionView.backgroundColor = .linkPreviewPostSquareBackground
         return imageTitleDescriptionView
     }()
-    
+
     public func configure(url: URL, title: String, description: String, previewImage: UIImage?) {
         showPlaceholderImage()
         let contentView = UIStackView()
@@ -144,10 +145,11 @@ class PostLinkPreviewSquareView: UIView {
             contentView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
             contentView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
             contentView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+            imageTitleDescriptionView.heightAnchor.constraint(equalToConstant: 151),
             previewImageView.leadingAnchor.constraint(equalTo: imageTitleDescriptionView.leadingAnchor),
             previewImageView.topAnchor.constraint(equalTo: imageTitleDescriptionView.topAnchor),
+            previewImageView.bottomAnchor.constraint(equalTo: imageTitleDescriptionView.bottomAnchor),
             previewImageView.widthAnchor.constraint(equalToConstant: 151),
-            previewImageView.heightAnchor.constraint(equalTo: previewImageView.widthAnchor),
             titleDescriptionStack.leadingAnchor.constraint(equalTo: previewImageView.trailingAnchor),
             titleDescriptionStack.centerYAnchor.constraint(equalTo: imageTitleDescriptionView.centerYAnchor),
             titleDescriptionStack.trailingAnchor.constraint(equalTo: imageTitleDescriptionView.trailingAnchor),
