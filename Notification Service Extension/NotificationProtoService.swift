@@ -558,6 +558,58 @@ final class NotificationProtoService: ProtoServiceCore {
         AppExtensionContext.shared.errorLogger?.logError(customError)
     }
 
+    // Download media items from home-feed post/group-feed post/chat messages.
+    // Must be called only after presenting the notification to the user.
+    private func downloadRemainingMedia(for contentID: String, with content: UNNotificationContent) {
+        let contentTypeRaw = content.userInfo[NotificationMetadata.contentTypeKey] as? String ?? "unknown"
+        switch NotificationContentType(rawValue: contentTypeRaw) {
+        case .feedPost, .groupFeedPost:
+            mainDataStore.performSeriallyOnBackgroundContext { context in
+                guard let post = self.coreFeedData.feedPost(with: contentID, in: context) else {
+                    return
+                }
+                post.media?.forEach { media in
+                    if media.status != .downloaded {
+                        let downloadTask = self.startDownloading(media: media)
+                        downloadTask?.feedMediaObjectId = media.objectID
+                    }
+                }
+
+                post.linkPreviews?.forEach { linkPreview in
+                    linkPreview.media?.forEach { media in
+                        if media.status != .downloaded {
+                            let downloadTask = self.startDownloading(media: media)
+                            downloadTask?.feedMediaObjectId = media.objectID
+                        }
+                    }
+                }
+            }
+        case .chatMessage:
+            mainDataStore.performSeriallyOnBackgroundContext { context in
+                guard let chatMessage = self.coreChatData.chatMessage(with: contentID, in: context) else {
+                    return
+                }
+                chatMessage.media?.forEach { media in
+                    if media.status != .downloaded {
+                        let downloadTask = self.startDownloading(media: media)
+                        downloadTask?.feedMediaObjectId = media.objectID
+                    }
+                }
+
+                chatMessage.linkPreviews?.forEach { linkPreview in
+                    linkPreview.media?.forEach { media in
+                        if media.status != .downloaded {
+                            let downloadTask = self.startDownloading(media: media)
+                            downloadTask?.feedMediaObjectId = media.objectID
+                        }
+                    }
+                }
+            }
+        default:
+            break
+        }
+    }
+
     // MARK: Present or Update Notifications
 
     private func extractNotificationContent(for metadata: NotificationMetadata, using postData: PostData) -> UNMutableNotificationContent {
@@ -646,10 +698,11 @@ final class NotificationProtoService: ProtoServiceCore {
     }
 
     // Used to present post/chat notifications.
+    // Presents notification and downloads remaining content if any.
     private func presentNotification(for identifier: String, with content: UNNotificationContent, using attachments: [UNNotificationAttachment] = []) {
         runIfNotificationWasNotPresented(for: identifier) { [self] in
             let contentTypeRaw = content.userInfo[NotificationMetadata.contentTypeKey] as? String ?? "unknown"
-            switch NotificationContentType.init(rawValue: contentTypeRaw) {
+            switch NotificationContentType(rawValue: contentTypeRaw) {
             case .feedPost, .groupFeedPost:
                 guard NotificationSettings.isPostsEnabled else {
                     DDLogDebug("ProtoService/PostNotification - skip due to userPreferences")
@@ -672,6 +725,9 @@ final class NotificationProtoService: ProtoServiceCore {
             let notificationCenter = UNUserNotificationCenter.current()
             notificationCenter.add(UNNotificationRequest(identifier: identifier, content: notificationContent, trigger: nil))
             recordPresentingNotification(for: identifier, type: contentTypeRaw)
+
+            // Start downloading remaining media only after presenting the notification.
+            downloadRemainingMedia(for: identifier, with: content)
         }
     }
 
