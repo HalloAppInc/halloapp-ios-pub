@@ -186,7 +186,10 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     }
 
     private func messagerow(for chatMessage: ChatMessage) -> MessageRow {
-        // Quoted Comment
+        if [.retracted, .retracting].contains(chatMessage.outgoingStatus) || [.retracted, .rerequesting, .unsupported].contains(chatMessage.incomingStatus) {
+            return MessageRow.chatMessage(chatMessage)
+       }
+        // Quoted Message
         if chatMessage.chatReplyMessageID != nil {
             return MessageRow.quoted(chatMessage)
         }

@@ -48,6 +48,7 @@ class MessageViewCell: MessageCellViewBase {
         contentView.preservesSuperviewLayoutMargins = false
         nameContentTimeRow.addArrangedSubview(nameRow)
         nameContentTimeRow.addArrangedSubview(textRow)
+        nameContentTimeRow.addArrangedSubview(timeRow)
         contentView.addSubview(messageRow)
         messageRow.constrain([.top], to: contentView)
         messageRow.constrain(anchor: .bottom, to: contentView, priority: UILayoutPriority(rawValue: 999))
@@ -80,36 +81,46 @@ class MessageViewCell: MessageCellViewBase {
         nameLabel.textColor = userNameColorAssignment
         timeLabel.text = comment.timestamp.chatTimestamp()
         setNameLabel(for: comment.userId)
+        configureCell()
         // Set up retracted comment
         if comment.status == .retracted || comment.status == .retracting {
-            configureCell()
-            configureRetractedComment()
+            configureRetracted(text: Localizations.commentDeleted)
         } else if comment.status == .rerequesting {
-            configureCell()
-            configureWaitingComment()
+            configureWaiting(text: Localizations.feedCommentWaiting)
         } else if comment.status == .unsupported {
-            configureCell()
-            configureUnsupportedComment(comment: comment)
+            let cryptoResultString: String = FeedItemContentView.obtainCryptoResultString(for: comment.id)
+            configureUnsupportedComment(text: Localizations.commentIsNotSupported + cryptoResultString)
         }
     }
 
-    private func configureRetractedComment() {
+    override func configureWith(message: ChatMessage) {
+        timeLabel.text = message.timestamp?.chatTimestamp()
+        configureCell()
+        if [.retracted, .retracting].contains(message.outgoingStatus) || [.retracted].contains(message.incomingStatus) {
+            configureRetracted(text: Localizations.chatMessageDeleted)
+        } else if message.incomingStatus == .rerequesting {
+            configureWaiting(text: Localizations.chatMessageWaiting)
+        } else if message.incomingStatus == .unsupported {
+            configureUnsupportedComment(text: Localizations.chatMessageUnsupported)
+        }
+    }
+
+    private func configureRetracted(text: String) {
         hasText = true
-        textLabel.text = Localizations.commentDeleted
+        textLabel.text = text
         textLabel.textColor = UIColor.chatTime
     }
 
-    private func configureWaitingComment() {
-        let waitingString = "🕓 " + Localizations.feedCommentWaiting
+    private func configureWaiting(text: String) {
+        let waitingString = "🕓 " + text
         let attributedString = Localizations.appendLearnMoreLabel(to: waitingString)
         hasText = true
         textLabel.attributedText = attributedString.with(font: UIFont.preferredFont(forTextStyle: .subheadline).withItalicsIfAvailable, color: .secondaryLabel)
         textLabel.textColor = UIColor.chatTime
     }
 
-    private func configureUnsupportedComment(comment: FeedPostComment) {
-        let cryptoResultString: String = FeedItemContentView.obtainCryptoResultString(for: comment.id)
-        let attributedString = NSMutableAttributedString(string: "⚠️ " + Localizations.commentIsNotSupported + cryptoResultString)
+    private func configureUnsupportedComment(text: String) {
+        let attributedString = NSMutableAttributedString(string: "⚠️ " +  text)
         hasText = true
         textLabel.attributedText = attributedString.with(font: UIFont.preferredFont(forTextStyle: .subheadline).withItalicsIfAvailable, color: .secondaryLabel)
         textLabel.textColor = UIColor.chatTime
