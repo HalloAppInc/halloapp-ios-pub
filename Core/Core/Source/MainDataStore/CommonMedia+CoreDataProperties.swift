@@ -21,6 +21,7 @@ public enum MediaDirectory: Int16 {
     case chatMedia = 1
     case shareExtensionMedia = 2
     case notificationExtensionMedia = 3
+    case commonMedia = 4
 }
 
 public extension CommonMedia {

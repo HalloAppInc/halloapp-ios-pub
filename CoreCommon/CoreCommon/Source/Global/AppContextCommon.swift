@@ -76,6 +76,10 @@ open class AppContextCommon {
         sharedDirectoryURL.appendingPathComponent(AppContextCommon.keysDatabaseFilename)
     }()
 
+    public static let commonMediaStoreURL = {
+        sharedDirectoryURL.appendingPathComponent("CommonMediaStore")
+    }()
+
     // MARK: Initializer
     open class var shared: AppContextCommon {
         get {

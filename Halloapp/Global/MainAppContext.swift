@@ -164,9 +164,9 @@ class MainAppContext: AppContext {
         //                                       name: .NSPersistentStoreRemoteChange,
         //                                       object: notificationServiceExtensionDataStore.persistentContainer.persistentStoreCoordinator)
 
-         NotificationCenter.default.addObserver(self, selector: #selector(processStoreRemoteChanges),
-                                                name: .NSPersistentStoreRemoteChange,
-                                                object: mainDataStore.persistentContainer.persistentStoreCoordinator)
+         // NotificationCenter.default.addObserver(self, selector: #selector(processStoreRemoteChanges),
+         //                                       name: .NSPersistentStoreRemoteChange,
+         //                                       object: mainDataStore.persistentContainer.persistentStoreCoordinator)
 
         let oneHour = TimeInterval(60*60)
         migrateLegacyCryptoDataIfNecessary()

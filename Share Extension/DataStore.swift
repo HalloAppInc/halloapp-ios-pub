@@ -212,7 +212,7 @@ class DataStore: ShareExtensionDataStore {
                 DDLogDebug("SharedDataStore/attach-media/ copied [\(sourceUrl)] to [\(destinationUrl)]")
 
                 feedMedia.relativeFilePath = relativeFilePath
-                feedMedia.mediaDirectory = .shareExtensionMedia
+                feedMedia.mediaDirectory = .commonMedia
             }
 
             // Copy encrypted media file.

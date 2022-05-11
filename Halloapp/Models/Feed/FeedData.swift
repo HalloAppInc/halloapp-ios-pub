@@ -4527,9 +4527,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         mainDataStore.saveSeriallyOnBackgroundContext ({ managedObjectContext in
-            self.mergeMediaItems(forPosts: postIds, from: sharedDataStore, using: managedObjectContext)
-            self.mergeMediaItems(forComments: commentIds, from: sharedDataStore, using: managedObjectContext)
-            // TODO: murali@: remove the additional merge below and test.
+            // TODO: murali@: we dont need the following merge in the future - leaving it in for now.
             self.mergeMediaItems(from: sharedDataStore, using: managedObjectContext)
         }) { [self] result in
             switch result {
@@ -4652,7 +4650,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     // Copy media if there'a a local copy (outgoing posts or incoming posts with downloaded media).
                     if let relativeFilePath = previewMedia.relativeFilePath {
                         let pendingMedia = PendingMedia(type: media.type)
-                        pendingMedia.fileURL = sharedDataStore.fileURL(forRelativeFilePath: relativeFilePath)
+                        pendingMedia.fileURL = sharedDataStore.legacyFileURL(forRelativeFilePath: relativeFilePath)
                         if media.status == .uploadError {
                             // Only copy encrypted file if media failed to upload so that upload could be retried.
                             pendingMedia.encryptedFileUrl = pendingMedia.fileURL!.appendingPathExtension("enc")
@@ -4703,7 +4701,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 // Copy media if there'a a local copy (outgoing posts or incoming posts with downloaded media).
                 if let relativeFilePath = media.relativeFilePath {
                     let pendingMedia = PendingMedia(type: feedMedia.type)
-                    pendingMedia.fileURL = sharedDataStore.fileURL(forRelativeFilePath: relativeFilePath)
+                    pendingMedia.fileURL = sharedDataStore.legacyFileURL(forRelativeFilePath: relativeFilePath)
                     if feedMedia.status == .uploadError {
                         // Only copy encrypted file if media failed to upload so that upload could be retried.
                         pendingMedia.encryptedFileUrl = pendingMedia.fileURL!.appendingPathExtension("enc")
@@ -4863,7 +4861,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     private func mergeMediaItems(from sharedDataStore: SharedDataStore, using managedObjectContext: NSManagedObjectContext) {
-        let mediaDirectory = sharedDataStore.mediaDirectory
+        let mediaDirectory = sharedDataStore.oldMediaDirectory
         DDLogInfo("FeedData/mergeMediaItems from \(mediaDirectory)/begin")
 
         let mediaPredicate = NSPredicate(format: "mediaDirectoryValue == \(mediaDirectory.rawValue)")
@@ -4879,32 +4877,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
         }
         DDLogInfo("FeedData/mergeMediaItems from \(mediaDirectory)/done")
-    }
-
-    private func mergeMediaItems(forPosts postIds: [FeedPostID], from sharedDataStore: SharedDataStore, using managedObjectContext: NSManagedObjectContext) {
-        postIds.forEach { postId in
-            DDLogInfo("FeedData/mergeMediaItems for postId: \(postId)/begin")
-            guard let feedPost = self.feedPost(with: postId, in: managedObjectContext, archived: false) else {
-                return
-            }
-            feedPost.media?.forEach { media in
-                copyMediaItem(from: media, sharedDataStore: sharedDataStore)
-            }
-            DDLogInfo("FeedData/mergeMediaItems for postId: \(postId)/done")
-        }
-    }
-
-    private func mergeMediaItems(forComments commentIds: [FeedPostCommentID], from sharedDataStore: SharedDataStore, using managedObjectContext: NSManagedObjectContext) {
-        commentIds.forEach { commentId in
-            DDLogInfo("FeedData/mergeMediaItems for commentId: \(commentId)/begin")
-            guard let feedPostComment = self.feedComment(with: commentId, in: managedObjectContext) else {
-                return
-            }
-            feedPostComment.media?.forEach { media in
-                copyMediaItem(from: media, sharedDataStore: sharedDataStore)
-            }
-            DDLogInfo("FeedData/mergeMediaItems for commentId: \(commentId)/done")
-        }
     }
 
     private func copyMediaItem(from media: CommonMedia, sharedDataStore: SharedDataStore) {

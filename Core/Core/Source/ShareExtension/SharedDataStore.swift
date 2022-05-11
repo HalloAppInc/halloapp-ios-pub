@@ -27,11 +27,15 @@ open class SharedDataStore {
         fatalError("Must implement in a subclass")
     }
 
+    class var mediaDirectoryURL: URL {
+        fatalError("Must implement in a subclass")
+    }
+
     public var source: AppTarget {
         fatalError("Must implement in a subclass")
     }
 
-    public var mediaDirectory: MediaDirectory {
+    public var oldMediaDirectory: MediaDirectory {
         fatalError("Must implement in a subclass")
     }
 
@@ -54,8 +58,12 @@ open class SharedDataStore {
         return container
     }()
 
-    public final func fileURL(forRelativeFilePath relativePath: String) -> URL {
+    public final func legacyFileURL(forRelativeFilePath relativePath: String) -> URL {
         return Self.dataDirectoryURL.appendingPathComponent(relativePath)
+    }
+
+    public final func fileURL(forRelativeFilePath relativePath: String) -> URL {
+        return Self.mediaDirectoryURL.appendingPathComponent(relativePath)
     }
 
     public final class func relativeFilePath(forFilename filename: String, mediaType: CommonMediaType) -> String {
@@ -413,11 +421,15 @@ open class ShareExtensionDataStore: SharedDataStore {
         AppContext.sharedDirectoryURL.appendingPathComponent("ShareExtension")
     }
 
+    public override class var mediaDirectoryURL: URL {
+        AppContext.commonMediaStoreURL
+    }
+
     public override var source: AppTarget {
         return .shareExtension
     }
 
-    public override var mediaDirectory: MediaDirectory {
+    public override var oldMediaDirectory: MediaDirectory {
         return .shareExtensionMedia
     }
 
@@ -434,11 +446,15 @@ open class NotificationServiceExtensionDataStore: SharedDataStore {
         AppContext.sharedDirectoryURL.appendingPathComponent("NotificationServiceExtension")
     }
 
+    public override class var mediaDirectoryURL: URL {
+        AppContext.commonMediaStoreURL
+    }
+
     public override var source: AppTarget {
         return .notificationExtension
     }
 
-    public override var mediaDirectory: MediaDirectory {
+    public override var oldMediaDirectory: MediaDirectory {
         return .notificationExtensionMedia
     }
 

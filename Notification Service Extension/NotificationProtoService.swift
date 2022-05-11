@@ -775,7 +775,7 @@ extension NotificationProtoService: FeedDownloadManagerDelegate {
                 DDLogDebug("ProtoService/attach-media/copied [\(fileURL)] to [\(destinationUrl)]")
 
                 feedMediaItem.relativeFilePath = relativeFilePath
-                feedMediaItem.mediaDirectory = .notificationExtensionMedia
+                feedMediaItem.mediaDirectory = .commonMedia
                 feedMediaItem.status = .downloaded
                 mainDataStore.save(feedMediaItem.managedObjectContext!)
             } catch {

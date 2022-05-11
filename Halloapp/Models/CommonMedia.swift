@@ -26,6 +26,8 @@ extension MediaDirectory {
             return ShareExtensionDataStore.dataDirectoryURL
         case .notificationExtensionMedia:
             return NotificationServiceExtensionDataStore.dataDirectoryURL
+        case .commonMedia:
+            return AppContext.commonMediaStoreURL
         }
     }
 

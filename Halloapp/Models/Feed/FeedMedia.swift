@@ -133,6 +133,7 @@ class FeedMedia: Identifiable, Hashable {
         type = feedPostMedia.type
         size = feedPostMedia.size
         fileURL = feedPostMedia.mediaURL
+        DDLogDebug("FeedMedia/init/media_id: \(String(describing: id))/url: \(String(describing: fileURL))")
         if [.audio, .video].contains(type) {
             isMediaAvailable = fileURL != nil
         }
