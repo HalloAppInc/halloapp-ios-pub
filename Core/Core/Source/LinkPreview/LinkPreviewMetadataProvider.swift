@@ -24,15 +24,41 @@ public class LinkPreviewMetadataProvider {
     // We're setting the user agent to WhatsApp to get mobile optimized metadata.
     static let userAgent = "WhatsApp/2"
 
+    // If the scheme is missing / if the scheme is http, we convert to https to be able to make a request
+    private static func processURLIfNecessary(url: URL?) -> URL? {
+        guard let url = url else {
+            return nil
+        }
+        if url.scheme != nil, url.scheme?.lowercased() != "http" {
+            return url
+        }
+
+        if var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false), urlComponents != nil, let newScheme = fallbackScheme(currentScheme: url.scheme?.lowercased()) {
+            urlComponents.scheme = newScheme
+            return urlComponents.url
+        }
+        return nil
+    }
+
+    private static func fallbackScheme(currentScheme: String?) -> String? {
+        switch currentScheme {
+        case nil, "http", "https":
+            return "https"
+        case .some(_):
+            return nil
+        }
+    }
+
     public static func startFetchingMetadata(for url: URL?, completion: ((LinkPreviewData?, UIImage?, PreviewFetchError?) -> ())?) {
         var timeoutWorkItem: DispatchWorkItem?
         let previewFetchWorkItem: DispatchWorkItem = DispatchWorkItem {
-            guard let url = url else {
+            guard let requestURL = processURLIfNecessary(url: url) else {
                 DDLogInfo("LinkPreviewMetadataProvider/startFetchingMetadata/ no url found")
                 handleCompletion(linkPreviewData: nil, previewImage: nil, error: PreviewFetchError.urlNotFound, dispatchWorkItemToCancel: timeoutWorkItem, completion: completion)
                 return
             }
-            var request = URLRequest(url: url)
+            DDLogInfo("LinkPreviewMetadataProvider/startFetchingMetadata/ url \(requestURL)")
+            var request = URLRequest(url: requestURL)
             request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
             let task = URLSession.shared.dataTask(with: request) { data, response, error in
                 guard let data = data, error == nil else {
@@ -57,7 +83,7 @@ public class LinkPreviewMetadataProvider {
                     let description = parseDescription(document: document)
                     let imageUrl = parseImageURL(document: document)
 
-                    let linkPreviewData = LinkPreviewData(id: nil, url: url, title: title ?? "", description: description ?? "", previewImages: [])
+                    let linkPreviewData = LinkPreviewData(id: nil, url: requestURL, title: title ?? "", description: description ?? "", previewImages: [])
                     if let imageUrl = imageUrl, imageUrl != "" {
                         downloadImage(imageUrl: imageUrl) { previewImage in
                             if let completion = completion {
