@@ -82,8 +82,13 @@ public class LinkPreviewMetadataProvider {
                     let title = parseTitle(document: document)
                     let description = parseDescription(document: document)
                     let imageUrl = parseImageURL(document: document)
+                    guard let title = title, !title.isEmpty else {
+                        DDLogInfo("LinkPreviewMetadataProvider/startFetchingMetadata/ title not found")
+                        handleCompletion(linkPreviewData: nil, previewImage: nil, error: nil, dispatchWorkItemToCancel: timeoutWorkItem, completion: completion)
+                        return
+                    }
 
-                    let linkPreviewData = LinkPreviewData(id: nil, url: requestURL, title: title ?? "", description: description ?? "", previewImages: [])
+                    let linkPreviewData = LinkPreviewData(id: nil, url: requestURL, title: title, description: description ?? "", previewImages: [])
                     if let imageUrl = imageUrl, imageUrl != "" {
                         downloadImage(imageUrl: imageUrl) { previewImage in
                             if let completion = completion {
