@@ -1404,10 +1404,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                                      using: managedObjectContext,
                                      presentLocalNotifications: presentLocalNotifications,
                                      fromExternalShare: false)
-            self.generateNotifications(for: posts, using: managedObjectContext)
+            self.generateNotifications(for: posts, using: managedObjectContext, markAsRead: !presentLocalNotifications)
 
             let comments = self.process(comments: comments, receivedIn: groupID, using: managedObjectContext, presentLocalNotifications: presentLocalNotifications)
-            self.generateNotifications(for: comments, using: managedObjectContext)
+            self.generateNotifications(for: comments, using: managedObjectContext, markAsRead: !presentLocalNotifications)
             ack?()
         }
     }
@@ -1461,7 +1461,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return nil
     }
 
-    private func generateNotifications(for posts: [FeedPost], using managedObjectContext: NSManagedObjectContext) {
+    private func generateNotifications(for posts: [FeedPost], using managedObjectContext: NSManagedObjectContext, markAsRead: Bool = false) {
         guard !posts.isEmpty else { return }
 
         for post in posts {
@@ -1490,6 +1490,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             } else {
                 notification.mediaType = .none
             }
+            notification.read = markAsRead
             DDLogInfo("FeedData/generateNotifications  New notification [\(notification)]")
 
             // Step 3. Generate media preview for the notification.
@@ -1501,7 +1502,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    private func generateNotifications(for comments: [FeedPostComment], using managedObjectContext: NSManagedObjectContext) {
+    private func generateNotifications(for comments: [FeedPostComment], using managedObjectContext: NSManagedObjectContext, markAsRead: Bool = false) {
         guard !comments.isEmpty else { return }
 
         for comment in comments {
@@ -1530,6 +1531,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             } else {
                 notification.mediaType = .none
             }
+            notification.read = markAsRead
             DDLogInfo("FeedData/generateNotifications  New notification [\(notification)]")
 
             // Step 3. Generate media preview for the notification.

@@ -935,7 +935,7 @@ final class ProtoService: ProtoServiceCore {
                     AppContext.shared.cryptoData.receivedFeedHistoryItems(groupID: groupID, timestamp: Date(), newlyDecrypted: items.items.count, newRerequests: 0)
                     let group = HalloGroup(id: items.gid, name: items.name, avatarID: items.avatarID)
                     for content in self.payloadContents(for: items.items, status: .received) {
-                        let payload = HalloServiceFeedPayload(content: content, group: group, isEligibleForNotification: isEligibleForNotification)
+                        let payload = HalloServiceFeedPayload(content: content, group: group, isEligibleForNotification: false)
                         self.feedDelegate?.halloService(self, didReceiveFeedPayload: payload, ack: nil)
                     }
                     DDLogInfo("proto/didReceive/\(msg.id)/groupFeedHistory/success/finished processing items, count: \(items.items.count)")
