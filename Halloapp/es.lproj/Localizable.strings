@@ -238,6 +238,9 @@
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Error al inicializar";
 
+/* Title of the button that allows camera permissions. */
+"camera.permission.allow.access" = "Permitir acceso";
+
 /* No comment provided by engineer. */
 "Cancel" = "Cancelar";
 
@@ -931,6 +934,9 @@
 /* Version of an invitation to join HalloApp. */
 "invite.text.specific.3" = "Te invito a instalar HalloApp. Descárgala gratis aquí: https://halloapp.com/free";
 
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.4" = "Hey %@! Únete a mí en HalloApp, y comparte momentos verdaderos con amistades reales. Échale un vistazo: https://halloapp.com/new";
+
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Invitar";
 
@@ -1039,6 +1045,15 @@
 /* Text on loading screen while migrating data */
 "migration.inProgress" = "Optimizando datos...";
 
+/* For indicating that there was an error while uploading the post. */
+"moment.uploading.failure" = "Error";
+
+/* For indicating that a post is uploading. */
+"moment.uploading.progress" = "Cargando...";
+
+/* For indicating that a post has been successfully uploaded and shared. */
+"moment.uploading.success" = "¡Compartido!";
+
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Enviar un mensaje";
 
@@ -1098,6 +1113,9 @@
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ acaba de aceptar tu invitación a HalloApp 🎉";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment" = "Nuevo momento";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
@@ -1161,6 +1179,12 @@
 
 /* Text for new user popup pointing at new post button */
 "nux.new.post.button" = "Toca para compartir una novedad con tus amigos y familia en HalloApp";
+
+/* Title of the button that opens the camera. */
+"open.camera" = "Abrir cámara";
+
+/* Text that indicates an open action. */
+"open.title" = "Abre";
 
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "Por favor, otorga acceso en configuración";
@@ -1375,6 +1399,9 @@
 /* Text shown to instruct using a QR code for joining a group */
 "scan.to.join.group.using.qr.code" = "Para unirte, escanea el código QR con la cámara de tu teléfono.";
 
+/* Text placed on the blurred overlay of a secret post. */
+"secret.post.entice" = "%@ compartió un momento";
+
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Por favor, selecciona al menos un contacto.";
 
@@ -1521,6 +1548,12 @@
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Únete a mi red social de relaciones reales, HalloApp. Baja la aplicación gratis en halloapp.com/dl";
+
+/* Alert that tells the user to allow camera access to share a moment. */
+"share.moment.camera.permission" = "Permitir acceso a la cámara para compartir momento";
+
+/* Prompt for the user to share a moment. */
+"share.moment.prompt" = "Comparte momento";
 
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "toca para devolver la llamada";

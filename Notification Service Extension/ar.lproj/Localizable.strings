@@ -1,140 +1,137 @@
 /* Title for alert shown when there's no internet connectivity */
-"alert.no.internet.title" = "Geen internetverbinding";
+"alert.no.internet.title" = "لا يوجد اتصال بالإنترنت";
 
 /* Message to tell the user to try again when they have internet connectivity again */
-"alert.no.internet.try.again" = "Controleer of je internetverbinding hebt en probeer het opnieuw.";
+"alert.no.internet.try.again" = "يُرجى التحقق من وجود اتصال بالإنترنت، ثم إعادة المحاولة.";
 
 /* Company name */
-"app.name.halloapp" = "HalloApp";
+"app.name.halloapp" = "هالوآب";
 
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
-"button.add" = "Toevoegen";
+"button.add" = "إضافة";
 
 /* Title for generic Cancel button. Mostly used in popups and as such. */
-"button.cancel" = "Annuleren";
+"button.cancel" = "إلغاء";
 
 /* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
-"button.cancel.capitalized" = "ANNULEREN";
+"button.cancel.capitalized" = "إلغاء";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
-"button.continue" = "Doorgaan";
+"button.continue" = "المتابعة";
 
 /* Title for generic Create button */
-"button.create" = "Aanmaken";
+"button.create" = "إنشاء";
 
 /* Title for generic Dismiss button. Mostly used to complete some modal flow. */
-"button.dismiss" = "Negeren";
+"button.dismiss" = "تجاهل";
 
 /* Title for generic Done button. Mostly used to complete some modal flow. */
-"button.done" = "Klaar";
+"button.done" = "تم";
 
 /* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
-"button.go.to.settings" = "Ga naar Instellingen";
+"button.go.to.settings" = "الانتقال إلى الإعدادات";
 
 /* Title for generic Invite button. */
-"button.invite" = "Uitnodigen";
+"button.invite" = "دعوة";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
-"button.learn.more" = "Meer Informatie";
+"button.learn.more" = "تعرّف على المزيد";
 
 /* Title for generic More button. Mostly used to complete some modal flow. */
-"button.more" = "Meer";
+"button.more" = "المزيد";
 
 /* Title for generic Next button. Mostly used to proceed to next screen in flow. */
-"button.next" = "Volgende";
+"button.next" = "التالي";
 
 /* Title for generic Not Now button. Mostly used to complete some modal flow. */
-"button.not.now" = "Niet nu";
+"button.not.now" = "ليس الآن";
 
 /* Title for generic OK button. Mostly used in popups and as such. */
-"button.ok" = "OK";
+"button.ok" = "موافق";
 
 /* Title for generic Remove button. Mostly used to complete some modal flow. */
-"button.remove" = "Verwijderen";
+"button.remove" = "إزالة";
 
 /* Title for generic Save button. Mostly used to complete some modal flow. */
-"button.save" = "Opslaan";
+"button.save" = "حفظ";
 
 /* Title for generic Send button. Mostly used to complete some modal flow. */
-"button.send" = "Verzenden";
+"button.send" = "إرسال";
 
 /* Title for generic Share button. Mostly used to complete some modal flow. */
-"button.share" = "Delen";
+"button.share" = "مشاركة";
 
 /* Title for generic Stop button. Currently used to stop an audio recording) */
-"button.stop" = "Stop";
+"button.stop" = "إيقاف";
 
 /* Title for generic Update button. Mostly used to complete some modal flow. */
-"button.update" = "Bijwerken";
+"button.update" = "تحديث";
 
 /* Alert message when missing microphone access */
-"chat.mic.access.denied.message" = "Om audio op te nemen, tik op Instellingen en zet Microfoon aan";
+"chat.mic.access.denied.message" = "لتمكين تسجيل الصوت، يُرجى النقر على الإعدادات ثم تفعيل الميكروفون";
 
 /* Alert title when missing microphone access */
-"chat.mic.access.denied.title" = "Kan geen toegang krijgen tot microfoon";
+"chat.mic.access.denied.title" = "تعذّر الوصول إلى الميكروفون";
 
 /* Title for generic delete button. */
-"Delete" = "Verwijderen";
+"Delete" = "حذف";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.all" = "Delen met al mijn contacten";
+"feed.privacy.descr.all" = "المشاركة مع جميع جهات اتصالي";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.except" = "Delen met mijn contacten behalve personen die ik selecteer";
+"feed.privacy.descr.except" = "المشاركة مع جهات اتصالي باستثناء مَن أحددهم";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.only" = "Alleen delen met geselecteerde contacten";
+"feed.privacy.descr.only" = "المشاركة مع جهات الاتصال المحددة فقط";
 
 /* Button to dismiss edit favorites modal */
-"feed.privacy.list.dismiss.edit.favorites" = "Niet Nu";
+"feed.privacy.list.dismiss.edit.favorites" = "ليس الآن";
 
 /* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
-"feed.privacy.list.notOwn.only.description" = "Alleen de personen op de Favorietenlijst van %@ kunnen deze post bekijken.";
+"feed.privacy.list.notOwn.only.description" = "سيظهر هذا المنشور فقط للأشخاص ضمن قائمة جهات اتصال %@ المفضلة.";
 
 /* Header for the favorites list when editing contacts to share with. */
-"feed.privacy.list.only.details" = "Wie kan deze post zien";
+"feed.privacy.list.only.details" = "الأشخاص الذين سيظهر لهم المنشور";
 
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
-"feed.privacy.list.only.title" = "Favorieten";
+"feed.privacy.list.only.title" = "المفضلة";
 
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
-"feed.privacy.list.own.only.description" = "Alleen de personen op je Favorietenlijst kunnen deze post bekijken.";
+"feed.privacy.list.own.only.description" = "سيظهر هذا المنشور فقط للأشخاص ضمن قائمة جهات اتصالك المفضلة.";
 
 /* Button to edit favorites */
-"feed.privacy.list.set.favorites" = "Favorieten Instellen";
+"feed.privacy.list.set.favorites" = "ضبط المفضلة";
 
 /* Description of the new Favorites functionality. */
-"feed.privacy.list.set.favorites.description" = "Je kunt nu een lijst van je favoriete contacten maken en je HalloApp-posts alleen met hen delen.";
+"feed.privacy.list.set.favorites.description" = "يمكنك الآن إنشاء قائمة بجهات اتصالك المفضلة، ومشاركة منشوراتك على هالوآب معها.";
 
 /* Text shown in notification when the user is added to a new group */
-"groups.add.notification" = "Je bent toegevoegd aan een nieuwe groep";
+"groups.add.notification" = "تمت إضافتك إلى مجموعة جديدة";
 
 /* Generic label for search, mostly used as placeholder text for searchbar */
-"label.search" = "Zoeken";
+"label.search" = "بحث";
 
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
-"link.learnMore" = "Meer informatie";
+"link.learnMore" = "تعرّف على المزيد";
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
-"link.update.your.app" = "Mijn app bijwerken.";
+"link.update.your.app" = "تحديث التطبيق";
 
 /* Displayed in place of own name (e.g., next to own comments) */
-"meCapitalized" = "Ik";
+"meCapitalized" = "أنا";
 
 /* Button title. Refers to discarding photo/video edits in media composer. */
-"media.button.discard" = "Weggooien";
+"media.button.discard" = "إلغاء";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
-"notification.commented.with.text" = "Heeft gereageerd: %@";
+"notification.commented.with.text" = "التعليق: %@";
 
 /* Content for unknown contact notification. */
-"notification.contact.unknown.content" = "Eén van je contacten gebruikt nu HalloApp";
+"notification.contact.unknown.content" = "إحدى جهات اتصالك على هالوآب الآن";
 
 /* Content for inviter notification. */
-"notification.invite.accepted.content" = "%@ heeft je uitnodiging voor HalloApp geaccepteerd 🎉";
-
-/* New moment notification text to be shown to the user. */
-"notification.moment" = "Nieuw moment";
+"notification.invite.accepted.content" = "%@ قبل دعوتك للانضمام إلى هالوآب 🎉";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
@@ -143,50 +140,50 @@
 "notification.n.videos" = "notification.n.videos";
 
 /* Title for the new comment notification. */
-"notification.new.comment" = "Nieuwe Reactie";
+"notification.new.comment" = "تعليق جديد";
 
 /* Content for contact notification. */
-"notification.new.contact.content" = "%@ gebruikt nu HalloApp";
+"notification.new.contact.content" = "%@ على هالوآب الآن";
 
 /* Content for friend notification. */
-"notification.new.friend.content" = "%@ gebruikt nu HalloApp";
+"notification.new.friend.content" = "%@ على هالوآب الآن";
 
 /* Fallback text for new message notification. */
-"notification.new.message" = "Nieuw Bericht";
+"notification.new.message" = "رسالة جديدة";
 
 /* Title for the new feed post notification. */
-"notification.new.post" = "Nieuwe Post";
+"notification.new.post" = "منشور جديد";
 
 /* New post notification text when post is one photo without caption. */
-"notification.one.photo" = "📷 foto";
+"notification.one.photo" = "📷 صورة";
 
 /* New post notification text when post is one video without caption. */
-"notification.one.video" = "📹 video";
+"notification.one.video" = "📹 فيديو";
 
 /* Missed video call notification text to be shown to the user. */
-"notification.videocall.missed" = "📹 Gemiste video-oproep";
+"notification.videocall.missed" = "📹 مكالمة فيديو فائتة";
 
 /* Missed voice call notification text to be shown to the user. */
-"notification.voicecall.missed" = "☎️ Gemiste spraakoproep";
+"notification.voicecall.missed" = "☎️ مكالمة صوتية فائتة";
 
 /* New post notification text when post is a voice note. */
-"notification.voicecomment" = "🎤 Audioreactie";
+"notification.voicecomment" = "🎤 تعليق صوتي";
 
 /* New post notification text when post is a voice note. */
-"notification.voicenote" = "🎤 Audiobericht";
+"notification.voicenote" = "🎤 رسالة صوتية";
 
 /* New post notification text when post is a voice note. */
-"notification.voicepost" = "🎤 Audiopost";
+"notification.voicepost" = "🎤 منشور صوتي";
 
 /* String to auto-fill if a user tried to share to a friend. */
-"settings.share.text" = "Sluit je aan bij mijn netwerk voor échte relaties op HalloApp. Download gratis op halloapp.com/dl";
+"settings.share.text" = "انضم إلى شبكة العلاقات الفعلية الخاصة بي على هالوآب. قم بتنزيل التطبيق مجانًا من halloapp.com/dl";
 
 /* Button to edit favorites list */
-"title.edit.favorites" = "Favorietenlijst Bewerken";
+"title.edit.favorites" = "تعديل قائمة المفضلة";
 
 /* Row in Settings screen */
-"title.privacy" = "Privacy";
+"title.privacy" = "الخصوصية";
 
 /* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "Onbekend Contact";
+"unknown.contact" = "جهة اتصال مجهولة";
 

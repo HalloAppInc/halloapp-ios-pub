@@ -1,0 +1,215 @@
+/* Title for alert shown when there's no internet connectivity */
+"alert.no.internet.title" = "لا يوجد اتصال بالإنترنت";
+
+/* Message to tell the user to try again when they have internet connectivity again */
+"alert.no.internet.try.again" = "يُرجى التحقق من وجود اتصال بالإنترنت، ثم إعادة المحاولة.";
+
+/* Company name */
+"app.name.halloapp" = "هالوآب";
+
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "إضافة";
+
+/* Title for generic Cancel button. Mostly used in popups and as such. */
+"button.cancel" = "إلغاء";
+
+/* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel.capitalized" = "إلغاء";
+
+/* Title for generic Continue button. Mostly used to complete some modal flow. */
+"button.continue" = "المتابعة";
+
+/* Title for generic Create button */
+"button.create" = "إنشاء";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "تجاهل";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "تم";
+
+/* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
+"button.go.to.settings" = "الانتقال إلى الإعدادات";
+
+/* Title for generic Invite button. */
+"button.invite" = "دعوة";
+
+/* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
+"button.learn.more" = "تعرّف على المزيد";
+
+/* Title for generic More button. Mostly used to complete some modal flow. */
+"button.more" = "المزيد";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "التالي";
+
+/* Title for generic Not Now button. Mostly used to complete some modal flow. */
+"button.not.now" = "ليس الآن";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "موافق";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "إزالة";
+
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "حفظ";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "إرسال";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "مشاركة";
+
+/* Title for generic Stop button. Currently used to stop an audio recording) */
+"button.stop" = "إيقاف";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "تحديث";
+
+/* Alert message when missing microphone access */
+"chat.mic.access.denied.message" = "لتمكين تسجيل الصوت، يُرجى النقر على الإعدادات ثم تفعيل الميكروفون";
+
+/* Alert title when missing microphone access */
+"chat.mic.access.denied.title" = "تعذّر الوصول إلى الميكروفون";
+
+/* Title for generic delete button. */
+"Delete" = "حذف";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.all" = "المشاركة مع جميع جهات اتصالي";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.except" = "المشاركة مع جهات اتصالي باستثناء مَن أحددهم";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.only" = "المشاركة مع جهات الاتصال المحددة فقط";
+
+/* Button to dismiss edit favorites modal */
+"feed.privacy.list.dismiss.edit.favorites" = "ليس الآن";
+
+/* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
+"feed.privacy.list.notOwn.only.description" = "سيظهر هذا المنشور فقط للأشخاص ضمن قائمة جهات اتصال %@ المفضلة.";
+
+/* Header for the favorites list when editing contacts to share with. */
+"feed.privacy.list.only.details" = "الأشخاص الذين سيظهر لهم المنشور";
+
+/* Title of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.only.title" = "المفضلة";
+
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.own.only.description" = "سيظهر هذا المنشور فقط للأشخاص ضمن قائمة جهات اتصالك المفضلة.";
+
+/* Button to edit favorites */
+"feed.privacy.list.set.favorites" = "ضبط المفضلة";
+
+/* Description of the new Favorites functionality. */
+"feed.privacy.list.set.favorites.description" = "يمكنك الآن إنشاء قائمة بجهات اتصالك المفضلة، ومشاركة منشوراتك على هالوآب معها.";
+
+/* Generic label for search, mostly used as placeholder text for searchbar */
+"label.search" = "بحث";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "تعرّف على المزيد";
+
+/* Link that when tapped will open App Store so user can update to the latest version of the app. */
+"link.update.your.app" = "تحديث التطبيق";
+
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "أنا";
+
+/* Button title. Refers to discarding photo/video edits in media composer. */
+"media.button.discard" = "إلغاء";
+
+/* Button title. Refers to resetting photo / video to original version. */
+"media.button.reset" = "إعادة التعيين";
+
+/* Button title. Refers to undoing an edit of a photo. */
+"media.button.undo" = "تراجع";
+
+/* Confirmation prompt in media composer. */
+"media.discard.confirmation" = "هل تريد إلغاء تعديلاتك؟";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.annotate" = "إضافة نص";
+
+/* Accessibility label for X (Close) button in media editor. */
+"media.voiceover.button.close" = "إغلاق";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.draw" = "رسم";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.flip" = "قلب";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.mute" = "كتم";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.rotate" = "تدوير";
+
+/* String to auto-fill if a user tried to share to a friend. */
+"settings.share.text" = "انضم إلى شبكة العلاقات الفعلية الخاصة بي على هالوآب. قم بتنزيل التطبيق مجانًا من halloapp.com/dl";
+
+/* Title on edit button */
+"share.composer.button.edit" = "تعديل";
+
+/* Label above the list with whom you share */
+"share.composer.destinations.label" = "المشاركة مع";
+
+/* Placeholder for media caption. */
+"share.composer.placeholder" = "اكتب وصفًا";
+
+/* Placeholder when sharing text only. */
+"share.composer.placeholder.text" = "اكتب منشورًا";
+
+/* Alert dialog message shown when uploading fails. */
+"share.composer.uploading.fail.message" = "يُرجى إعادة المحاولة لاحقًا.";
+
+/* Alert dialog title shown when uploading fails. */
+"share.composer.uploading.fail.title" = "تعذّر التحميل";
+
+/* Contacts category label */
+"share.destination.contacts" = "جهات اتصال حديثة";
+
+/* Groups category label */
+"share.destination.groups" = "مجموعاتك";
+
+/* Share on the home feed label with all my contacts
+   Share to all contacts */
+"share.destination.home" = "جهات اتصالي";
+
+/* Alert title when a direct to contact sharing is missing
+   Alert title when a direct to group sharing is missing */
+"share.destination.missing.group" = "مجموعة مفقودة %@";
+
+/* Show more groups in the share group selection */
+"share.destination.more" = "عرض المزيد...";
+
+/* Share on the home feed selection cell */
+"share.destination.new" = "منشور جديد";
+
+/* Destination screen title */
+"share.destination.title" = "هالوآب";
+
+/* Message of alert when user is not logged in */
+"share.notlogged.message" = "يُرجى فتح هالوآب وتسجيل الدخول.";
+
+/* Title of alert when user is not logged in */
+"share.notlogged.title" = "لم يتم تسجيل دخولك";
+
+/* Button to edit favorites list */
+"title.edit.favorites" = "تعديل قائمة المفضلة";
+
+/* Row in Settings screen */
+"title.privacy" = "الخصوصية";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "جهة اتصال مجهولة";
+
+/* How many bytes from total have been uploaded */
+"uploading.bytes.progress" = "%1$@ من %2$@";
+
+/* Message how many items are currently being upload */
+"uploading.n.items" = "uploading.n.items";
+

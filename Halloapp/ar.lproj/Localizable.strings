@@ -1,0 +1,1719 @@
+/* No comment provided by engineer. */
+"%" = "%";
+
+/* No comment provided by engineer. */
+"%@" = "%@";
+
+/* No comment provided by engineer. */
+"• %@" = "• %@";
+
+/* About screen: body text. */
+"about.body.1" = "هالوآب في انتظاركم! وقد صممناه لكم ولأحبائكم. فقد قمنا بإعادة تطبيقات التواصل الاجتماعي إلى الهدف الأصلي المنشود منها، مع إضافة مستوى من الأمان والخصوصية نعتقد أنه من حق الجميع في كل أنحاء العالم أن يتمتعوا به. هالوآب لا يستخدم مطلقًا معلوماتكم الشخصية أو يعرض لكم إعلانات. وبدلاً من ذلك، فإننا نخطط لتقديم ميزات إضافية بتكلفة بسيطة.";
+
+/* About screen: body text. */
+"about.body.2" = "شكرًا لاستخدام هالوآب ومشاركته مع الأصدقاء وأفراد العائلة. ونحن مستمرون في العمل على تطويره بشكل أسبوعي.";
+
+/* About screen: footer text. Parameter is support email address. */
+"about.footer" = "إذا كان لديك أي أسئلة أو ملاحظات، يمكنك مراسلتنا بالبريد الإلكتروني على %@";
+
+/* About screen: greeting. */
+"about.hallo" = "هالو";
+
+/* About screen: navigation bar title. */
+"about.title" = "نبذة عن هالوآب";
+
+/* Longer title for the button that confirms marking all items in the activity center as read. */
+"activity.center.button.mark.all.read" = "تحديد الكل كمقروء";
+
+/* Short title for the button in activity center. */
+"activity.center.button.read.all" = "قراءة الكل";
+
+/* Message shown when a user first joins from a friend's invitation (e.g., 'You accepted David's invite 🎉' */
+"activity.center.invite.accepted.item" = "لقد قبلت دعوة %@ 🎉";
+
+/* Title for the activity center screen. */
+"activity.center.title" = "النشاط";
+
+/* Message shown when a user first joins */
+"activity.center.welcome.item" = "أهلاً بك في هالوآب!";
+
+/* First tab in the main app interface. */
+"activityCenter.promo.favorites" = "اطلع على ميزة \"المفضلة\" الجديدة!";
+
+/* Text label for action button to add the contact to the address book */
+"add.to.contact.book" = "إضافة إلى قائمة جهات الاتصال";
+
+/* Title for alert shown when there's no internet connectivity */
+"alert.no.internet.title" = "لا يوجد اتصال بالإنترنت";
+
+/* Message to tell the user to try again when they have internet connectivity again */
+"alert.no.internet.try.again" = "يُرجى التحقق من وجود اتصال بالإنترنت، ثم إعادة المحاولة.";
+
+/* Title of view where users can invite friends and family. */
+"app.ios.invite.friends" = "دعوة أفراد العائلة والأصدقاء";
+
+/* Translation of iPhone settings app. */
+"app.ios.settings" = "الإعدادات";
+
+/* Company name */
+"app.name.halloapp" = "هالوآب";
+
+/* Placeholder text for when the archive is empty */
+"archive.empty.placeholder" = "ستتم أرشفة منشوراتك هنا بعد 30 يومًا";
+
+/* Archive navigation label */
+"archive.title.label" = "الأرشيف";
+
+/* Label shown on the cancel action */
+"audio.control.cancel" = "مرر للإلغاء";
+
+/* Text to show on banner when no connection is available */
+"banner.no.connection" = "لا يوجد اتصال";
+
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "إضافة";
+
+/* Title for generic Cancel button. Mostly used in popups and as such. */
+"button.cancel" = "إلغاء";
+
+/* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel.capitalized" = "إلغاء";
+
+/* Title for generic Continue button. Mostly used to complete some modal flow. */
+"button.continue" = "المتابعة";
+
+/* Title for generic Create button */
+"button.create" = "إنشاء";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "تجاهل";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "تم";
+
+/* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
+"button.go.to.settings" = "الانتقال إلى الإعدادات";
+
+/* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
+"button.install" = "تثبيت";
+
+/* Title for generic Invite button. */
+"button.invite" = "دعوة";
+
+/* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
+"button.learn.more" = "تعرّف على المزيد";
+
+/* Title for generic More button. Mostly used to complete some modal flow. */
+"button.more" = "المزيد";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "التالي";
+
+/* Title for generic Not Now button. Mostly used to complete some modal flow. */
+"button.not.now" = "ليس الآن";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "موافق";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "إزالة";
+
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "حفظ";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "إرسال";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "مشاركة";
+
+/* Title for generic Stop button. Currently used to stop an audio recording) */
+"button.stop" = "إيقاف";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "تحديث";
+
+/* Label for button that opens chat during call */
+"call.button.chat" = "دردشة";
+
+/* Label for button that ends call */
+"call.button.end" = "إنهاء المكالمة";
+
+/* Label for button that toggles mute status during call */
+"call.button.mute" = "كتم";
+
+/* Label for button that toggles speakerphone status during call */
+"call.button.speaker" = "الميكروفون";
+
+/* Text indicating that calls are end-to-end encrypted */
+"call.encryption.text" = "مشفرة تشفيرًا تامًا";
+
+/* Title for call history event. Appears next to details of a successful call. */
+"call.history.video.call" = "مكالمة فيديو";
+
+/* Title for call history event. Appears next to details of a missed call. */
+"call.history.video.call.missed" = "مكالمة فيديو فائتة";
+
+/* Title for call history event. Appears next to details of a successful call. */
+"call.history.voice.call" = "مكالمة صوتية";
+
+/* Title for call history event. Appears next to details of a missed call. */
+"call.history.voice.call.missed" = "مكالمة صوتية فائتة";
+
+/* Status display when user mutes their own audio during a call. */
+"call.mute.local.audio" = "تم إيقاف الميكروفون";
+
+/* Status display when user mutes their own audio and video during a call. */
+"call.mute.local.audio.video" = "تم إيقاف الكاميرا والميكروفون";
+
+/* Status display when user mutes their own video during a call. */
+"call.mute.local.video" = "تم إيقاف الكاميرا";
+
+/* Status display when peer mutes audio during a call. */
+"call.mute.remote.audio" = "قام %@ بكتم هذه المكالمة";
+
+/* Status display when peer mutes both audio and video during a call. */
+"call.mute.remote.audio.video" = "تم إيقاف الكاميرا والميكروفون لدى %@";
+
+/* Status display when peer mutes video during a call. */
+"call.mute.remote.video" = "تم إيقاف الكاميرا لدى %@";
+
+/* Status displayed when the other side is busy. */
+"call.status.busy" = "في مكالمة أخرى";
+
+/* Status displayed when outgoing call starts */
+"call.status.calling" = "مكالمة صادرة...";
+
+/* Status displayed while call is connecting */
+"call.status.connecting" = "جارٍ الاتصال...";
+
+/* Status displayed when call fails. */
+"call.status.failed" = "تعذّر الاتصال";
+
+/* Status displayed when call is on hold. */
+"call.status.held" = "قيد الانتظار";
+
+/* Status displayed when incoming call starts */
+"call.status.incoming" = "مكالمة واردة";
+
+/* Status displayed when the other side mutes the audio. */
+"call.status.muted" = "تم كتم المكالمة";
+
+/* Status displayed when reconnecting during call */
+"call.status.reconnecting" = "جارٍ إعادة الاتصال...";
+
+/* Status displayed while outgoing call is ringing */
+"call.status.ringing" = "رنين...";
+
+/* Generic error when trying to use camera */
+"camera.error" = "خطأ في الكاميرا";
+
+/* No comment provided by engineer. */
+"camera.init.error.1" = "يتعذر تشغيل الكاميرا الخلفية";
+
+/* No comment provided by engineer. */
+"camera.init.error.2" = "يتعذر تشغيل الكاميرا الأمامية";
+
+/* No comment provided by engineer. */
+"camera.init.error.3" = "يتعذر تشغيل الميكروفون";
+
+/* No comment provided by engineer. */
+"camera.init.error.4" = "يتعذر الوصول إلى الكاميرا الخلفية";
+
+/* No comment provided by engineer. */
+"camera.init.error.5" = "يتعذر الوصول إلى الكاميرا الأمامية";
+
+/* No comment provided by engineer. */
+"camera.init.error.6" = "يتعذر الوصول إلى الميكروفون";
+
+/* No comment provided by engineer. */
+"camera.init.error.7" = "يتعذر التقاط صور";
+
+/* No comment provided by engineer. */
+"camera.init.error.8" = "يتعذر تسجيل الفيديو";
+
+/* Title for a popup alerting about camera initialization error. */
+"camera.init.error.title" = "خطأ في التشغيل";
+
+/* No comment provided by engineer. */
+"Cancel" = "إلغاء";
+
+/* Text shown at the top of the chat screen informing the user that the contact is blocked */
+"chat.blocked.contact.label" = "جهة الاتصال محظورة، انقر لرفع الحظر";
+
+/* Label for creating a new group */
+"chat.create.new.group" = "إنشاء مجموعة جديدة";
+
+/* Button to retract a chat message for everyone */
+"chat.delete.everyone" = "الحذف لدى الجميع";
+
+/* Button to locally delete a chat message */
+"chat.delete.me" = "الحذف لديّ";
+
+/* Title of deletion menu */
+"chat.delete.title" = "حذف الرسالة المحددة؟";
+
+/* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
+"chat.encryption.label" = "الدردشات مشفرة تشفيرًا تامًا ولا يمكن لهالوآب الوصول إليها. انقر للمزيد من المعلومات.";
+
+/* Text shown in Chat when the security keys of the contact user is chatting with, have changed */
+"chat.event.security.keys.changed" = "تغيرت أرقام الأمان مع %@";
+
+/* Message text shown with the user who joined the group via invite link */
+"chat.group.event.join" = "%@  انضم إلى المجموعة من خلال رابط الدعوة";
+
+/* Message text shown when you join a group via invite link */
+"chat.group.event.join.you" = "أنت انضممت إلى المجموعة من خلال رابط الدعوة";
+
+/* Message text shown with the user who left the group */
+"chat.group.event.member.left" = "%@ غادر";
+
+/* Message text shown when you leave a group */
+"chat.group.event.member.left.you" = "أنت غادرت";
+
+/* Action label for adding members to a group */
+"chat.group.info.add.members" = "إضافة أعضاء";
+
+/* Label shown in the members list when member is an admin */
+"chat.group.info.admin.label" = "المشرف";
+
+/* Text label for a color selection of group feed background color */
+"chat.group.info.bg.color.label" = "اللون";
+
+/* Text label for default selection of group feed background color */
+"chat.group.info.bg.default.label" = "تلقائي";
+
+/* Text for menu option of demoting a group member */
+"chat.group.info.demote" = "إزالة من منصب مشرف";
+
+/* Action label for leaving group */
+"chat.group.info.leave.group" = "مغادرة المجموعة";
+
+/* Text for menu option of making a group member admin */
+"chat.group.info.make.group.admin" = "التعيين كمشرف للمجموعة";
+
+/* Text for menu option of messaging user */
+"chat.group.info.message.user" = "رسالة";
+
+/* Text label shown when the user is not a member of the group */
+"chat.group.info.not.a.member.label" = "لست من أعضاء هذه المجموعة";
+
+/* Text for menu option of removing a group member */
+"chat.group.info.remove.from.group" = "إزالة من المجموعة";
+
+/* Title of screen that shows group information */
+"chat.group.info.title" = "معلومات المجموعة";
+
+/* Text for menu option of viewing profile */
+"chat.group.info.view.profile" = "عرض الملف الشخصي";
+
+/* Confirmation message presented when leaving a group */
+"chat.group.leave.group.confirmation" = "مغادرة \"%@\"؟";
+
+/* Label shown above group name input box */
+"chat.group.name.label" = "اسم المجموعة";
+
+/* Title for group photo actions */
+"chat.group.photo.label" = "صورة المجموعة";
+
+/* Action to take a picture or choose a photo from the library to use for the group photo */
+"chat.group.take.or.choose.photo" = "التقاط أو اختيار صورة";
+
+/* Label for inviting friends */
+"chat.invite.friends" = "دعوة الأصدقاء";
+
+/* Message text shown in a message that have audio media but no text */
+"chat.message.audio" = "رسالة صوتية";
+
+/* Message text shown for quoted audio posts */
+"chat.message.audiopost" = "منشور صوتي";
+
+/* Message text shown for the message that was deleted */
+"chat.message.deleted" = "تم حذف هذه الرسالة";
+
+/* Message text shown in a message that have photo media but no text */
+"chat.message.photo" = "صورة";
+
+/* Text shown when chat input box is empty */
+"chat.message.placeholder" = "اكتب رسالة";
+
+/* Text shown in place of a received message we are not able to process yet. */
+"chat.message.unsupported" = "لا يدعم إصدار هالوآب الذي تستخدمه نوع الرسائل هذا.";
+
+/* Message text shown in a message that have video media but no text */
+"chat.message.video" = "فيديو";
+
+/* Text shown in place of a received message we are not able to decrypt yet. */
+"chat.message.waiting" = "بانتظار هذه الرسالة. قد يستغرق الأمر بعض الوقت.";
+
+/* Alert message when missing microphone access */
+"chat.mic.access.denied.message" = "لتمكين تسجيل الصوت، يُرجى النقر على الإعدادات ثم تفعيل الميكروفون";
+
+/* Alert title when missing microphone access */
+"chat.mic.access.denied.title" = "يتعذّر الوصول إلى الميكروفون";
+
+/* Text below the contact's name when the contact is online in the Chat Screen */
+"chat.online.label" = "متصل";
+
+/* Label shown when user is typing */
+"chat.typing.capitalized" = "جارٍ الكتابة...";
+
+/* Text shown when user is about to remove the chat */
+"chats.list.remove.message" = "عند حذف هذه الدردشة سيتم مسح سجل الدردشة والمحتوى الخاص بها من جهازك.";
+
+/* Button revealed when user swipes on their comment. */
+"comment.delete" = "حذف";
+
+/* Title for the button in comment deletion confirmation prompt. */
+"comment.delete.action" = "حذف التعليق";
+
+/* Confirmation text displayed at comment deletion prompt */
+"comment.delete.confirmation" = "حذف هذا التعليق؟ لا يمكن التراجع عن هذا الإجراء.";
+
+/* Text displayed in place of deleted comment. */
+"comment.deleted" = "تم حذف هذا التعليق";
+
+/* Text displayed in place of a comment that is currently being deleted. */
+"comment.deleting" = "جارٍ حذف التعليق";
+
+/* Text displayed in place of comment timestamp while comment is being posted. */
+"comment.posting" = "جارٍ النشر...";
+
+/* Title for the button displayed under feed post comment. Verb. */
+"comment.reply" = "ردّ";
+
+/* Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment. */
+"comment.replying.myself" = "الرد على نفسي";
+
+/* Text in the reply panel about keyboard. Reply refers to replying to someone's feed post comment. */
+"comment.replying.someone" = "الرد على %@";
+
+/* Title for the button in comment resend confirmation prompt. */
+"comment.resend.action" = "إعادة إرسال";
+
+/* Confirmation prompt for when resending comment that previously failed to send. */
+"comment.resend.confirmation" = "إعادة إرسال التعليق";
+
+/* Text displayed in gray inside of the comment input field when there is no user input. */
+"comment.textfield.placeholder" = "إضافة تعليق";
+
+/* Header that appears above all the unread comments in the comments view when there are more than one unread message */
+"comment.unread.messages.header.plural" = "%@ من التعليقات غير المقروءة";
+
+/* Header that appears above one single unread message in the comments view. */
+"comment.unread.messages.header.single" = "تعليق غير مقروء %@";
+
+/* Text displayed in place of a comment that is not supported in the current app version. */
+"comment.unsupported" = "لا يدعم إصدار هالوآب الذي تستخدمه نوع التعليقات هذا.";
+
+/* Warning text displayed in Comments when post wasn't available. */
+"comments.post.loading.failed" = "حدث خطأ أثناء محاولة تحميل هذا المنشور. يُرجى إعادة المحاولة لاحقًا.";
+
+/* Accessibility label for add images button */
+"composer.audio.a11y.addImages" = "إضافة صور";
+
+/* Accessibility label for sharing a post */
+"composer.audio.a11y.shareRecording" = "مشاركة";
+
+/* Accessibility label for starting an audio recording */
+"composer.audio.a11y.startRecording" = "بدء التسجيل";
+
+/* Accessibility label for stopping an audio recording */
+"composer.audio.a11y.stopRecording" = "إيقاف التسجيل";
+
+/* Instructions for audio post composer */
+"composer.audio.instructions" = "انقر للتسجيل";
+
+/* Title for audio post composer */
+"composer.audio.title" = "منشور صوتي جديد";
+
+/* Title on edit button */
+"composer.button.edit" = "تعديل";
+
+/* Title warning that a voice recording will be deleted */
+"composer.delete.recording.title" = "حذف التسجيل الصوتي؟";
+
+/* Warning message shown to the user before discarding a voice post */
+"composer.deletevoicenote.message" = "لن يتم حفظ التسجيل الصوتي إذا ألغيت هذا المنشور.";
+
+/* Title for alert when closing the post composer with a voice note */
+"composer.deletevoicenote.title" = "إلغاء المنشور؟";
+
+/* Label shown when only single media item selected */
+"composer.label.more" = "إضافة المزيد";
+
+/* Alert message in composer when a video is too long */
+"composer.max.video.length.message" = "يُرجى تحديد فيديو آخر أو النقر على زر التعديل.";
+
+/* Alert title in composer when a video is too long */
+"composer.max.video.length.title" = "يتجاوز طول هذا الفيديو %.0f ثانية";
+
+/* Composer subtitle for messages. */
+"composer.message.subtitle" = "جارٍ الإرسال إلى %@";
+
+/* Composer New Message title. */
+"composer.message.title" = "رسالة جديدة";
+
+/* Placeholder text for media caption field in post composer. */
+"composer.placeholder.media.description" = "اكتب وصفًا";
+
+/* Placeholder text in text post composer screen. */
+"composer.placeholder.text.post" = "اكتب منشورًا";
+
+/* Composer New Post title. */
+"composer.post.title" = "منشور جديد";
+
+/* Feed Privacy indicator in post composer. */
+"composer.privacy.value.excluded" = "المشاركة مع بعض جهات اتصالي";
+
+/* Feed Privacy indicator in post composer. */
+"composer.privacy.value.my.contacts" = "المشاركة مع جهات اتصالي";
+
+/* Feed Privacy indicator in post composer. */
+"composer.privacy.value.n.selected" = "composer.privacy.value.n.selected";
+
+/* Show the user that the title is tappable */
+"composer.subtitle.cta" = "انقر للتغيير";
+
+/* No comment provided by engineer. */
+"CONNECTION" = "الاتصال";
+
+/* Shown when user denies contacts permission */
+"contacts.access.denied" = "امنح هالوآب إذن الوصول إلى جهات اتصالك لتتمكن من إرسال التحديثات وتلقيها";
+
+/* Message requesting the user enable contacts permission */
+"contacts.permission.explanation" = "لمساعدتك على التواصل مع الأصدقاء والعائلة، ننصحك بالسماح لهالوآب بالوصول إلى جهات اتصالك.";
+
+/* Title for modal view when showing how to change contact permissions. */
+"contacts.permission.explanation.title" = "جهات الاتصال";
+
+/* Title for tutorial explaining how user can enable contacts permission */
+"contacts.permission.tutorial.title" = "كيفية تفعيل إذن \"جهات الاتصال\"";
+
+/* The default name given to new groups when the user is in Zero Zone (no contacts) */
+"create.group.default.name.my.new.group" = "مجموعتي الجديدة";
+
+/* Placeholder text shown inside the group description input box when it's empty */
+"create.group.description.placeholder" = "إضافة وصف (اختياري)";
+
+/* Alert message telling the user to try creating the group again after an error */
+"create.group.error" = "حدث خطأ أثناء إنشاء المجموعة، يُرجى إعادة المحاولة";
+
+/* Placeholder text shown inside the group name input box when it's empty */
+"create.group.name.placeholder" = "تسمية المجموعة";
+
+/* Title of group creation screen */
+"create.group.title" = "معلومات المجموعة";
+
+/* Title for generic delete button. */
+"Delete" = "حذف";
+
+/* link, tapping on which launched the flow to edit blocked contacts */
+"edit.blocked" = "تعديل";
+
+/* link, tapping on which launched the flow to edit favorites */
+"edit.favorites" = "تعديل المفضلة";
+
+/* Text to show on profile for users you are not connected with */
+"exchange.phone.numbers.to.connect" = "للتواصل، يجب تبادل أرقام الهاتف";
+
+/* Description of an externally shared post containing an audio post */
+"externalShare.og.description.audio" = "منشور صوتي";
+
+/* Description of an externally shared post containing photos/videos */
+"externalShare.og.description.media" = "منشور وسائط";
+
+/* Description of an externally shared post containing just text */
+"externalShare.og.description.text" = "منشور نصّي";
+
+/* Title for posts that are externally shared, 'John Smith's HalloApp Post' */
+"externalShare.og.title3" = "منشور %@ على هالوآب";
+
+/* VoiceOver label for camera button in floating compose post menu in Home view. */
+"fab.accessibility.camera" = "الكاميرا";
+
+/* VoiceOver label for photo button in floating compose post menu in Home view. */
+"fab.accessibility.photo.library" = "المعرض";
+
+/* VoiceOver label for text post button in floating compose post menu in Home view. */
+"fab.accessibility.text" = "نص";
+
+/* VoiceOver label for audio post button in floating compose post menu in Home view. */
+"fab.accessibility.voice" = "رسالة صوتية";
+
+/* Label for floating compose post menu on Group screen. */
+"fab.post.button" = "منشور";
+
+/* Text shown in place of a received post we are not able to decrypt yet. */
+"feed.comment.waiting" = "بانتظار هذا التعليق. قد يستغرق الأمر بعض الوقت.";
+
+/* Shown while content is being retracted from feed */
+"feed.deleting" = "جارٍ الحذف...";
+
+/* Text for group feed notification displayed in Activity Center. */
+"feed.group.notification.other.comment.no.text" = "تعليق من <$author$>";
+
+/* Text for group feed notification displayed in Activity Center. */
+"feed.group.notification.other.comment.w.text" = "تعليق <$author$>: ‏<$text$>";
+
+/* Text shown in indicator when new posts come in while user is scrolled down */
+"feed.new.posts.indicator" = "منشورات جديدة";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification..other.comment.no.text" = "تعليق آخر من <$author$>";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.commented.no.text" = "تعليق من <$author$> على منشورك";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.commented.w.text" = "تعليق <$author$>: ‏<$text$>";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.deleted.comment" = "<$author$> حذف تعليقًا";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.deleted.post" = "تعليق من <$author$>. تم حذف هذا المنشور.";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.mention.comment.no.text" = "تمت الإشارة إليك في تعليق <$author$>";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.mention.comment.w.text" = "تمت الإشارة إليك في تعليق <$author$>: ‏<$text$>";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.mention.post.no.text" = "تمت الإشارة إليك في منشور <$author$>";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.mention.post.w.text" = "تمت الإشارة إليك في منشور <$author$>: ‏<$text$>";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.other.comment.w.text" = "تعليق آخر من <$author$>: ‏<$text$>";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.replied.no.text" = "رد من <$author$> على تعليقك";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.replied.w.text" = "رد <$author$>: ‏<$text$>";
+
+/* Archived date timestamp */
+"feed.post.archived.timestamp" = "تمت أرشفة %@";
+
+/* Shown when post fails or is canceled. */
+"feed.post.failed" = "تعذّر النشر.";
+
+/* Shown when receiving a new (unsupported) type of post. */
+"feed.post.unsupported" = "لا يدعم إصدار هالوآب الذي تستخدمه نوع المنشورات هذا.";
+
+/* Text shown in place of a received post we are not able to decrypt yet. */
+"feed.post.waiting" = "بانتظار هذا المنشور. قد يستغرق الأمر بعض الوقت.";
+
+/* Shown while content is being posted to feed */
+"feed.posting" = "جارٍ النشر...";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.all" = "المشاركة مع جميع جهات اتصالي";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.except" = "المشاركة مع جهات اتصالي باستثناء مَن أحددهم";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.only" = "المشاركة مع جهات الاتصال المحددة فقط";
+
+/* Header describing what these options are for */
+"feed.privacy.header" = "لمن ستظهر منشوراتي";
+
+/* Settings > Privacy > Posts: one of the possible setting values. */
+"feed.privacy.list.all" = "جهات اتصالي";
+
+/* Header for the list of all contacts on HallAapp. */
+"feed.privacy.list.all.details" = "جهات اتصالي على هالوآب";
+
+/* Button to dismiss edit favorites modal */
+"feed.privacy.list.dismiss.edit.favorites" = "ليس الآن";
+
+/* Settings > Privacy > Posts: one of the possible setting values. */
+"feed.privacy.list.except" = "جهات اتصالي باستثناء...";
+
+/* Header for the list when selecting contacts to not share with. */
+"feed.privacy.list.except.details" = "تحديد الأشخاص الذين لن يظهر لهم المنشور";
+
+/* Title for the list when selecting contacts to not share with. */
+"feed.privacy.list.except.title" = "إخفاء المنشور عن...";
+
+/* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
+"feed.privacy.list.notOwn.only.description" = "سيظهر هذا المنشور فقط للأشخاص ضمن قائمة جهات اتصال %@ المفضلة.";
+
+/* Settings > Privacy > Posts > Favorites privacy setting. */
+"feed.privacy.list.only" = "المفضلة";
+
+/* Header for the favorites list when editing contacts to share with. */
+"feed.privacy.list.only.details" = "الأشخاص الذين سيظهر لهم المنشور";
+
+/* Title of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.only.title" = "المفضلة";
+
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.own.only.description" = "سيظهر هذا المنشور فقط للأشخاص ضمن قائمة جهات اتصالك المفضلة.";
+
+/* Button to edit favorites */
+"feed.privacy.list.set.favorites" = "ضبط المفضلة";
+
+/* Description of the new Favorites functionality. */
+"feed.privacy.list.set.favorites.description" = "يمكنك الآن إنشاء قائمة بجهات اتصالك المفضلة، ومشاركة منشوراتك على هالوآب معها.";
+
+/* Possible Feed Privacy setting value. */
+"feed.privacy.value.my.contacts" = "جهات اتصالي";
+
+/* Possible Feed Privacy setting value. Can be longer. */
+"feed.privacy.value.n.contacts.excluded" = "feed.privacy.value.n.contacts.excluded";
+
+/* Possible Feed Privacy setting value. Can be longer. */
+"feed.privacy.value.n.contacts.selected" = "feed.privacy.value.n.contacts.selected";
+
+/* Possible Feed Privacy setting value. Keep short. */
+"feed.privacy.value.n.excluded" = "feed.privacy.value.n.excluded";
+
+/* Possible Feed Privacy setting value. Keep short. */
+"feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
+
+/* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.body" = "يتيح لك التطبيق استخدام رقم هاتفك للتواصل مع الأصدقاء والعائلة بدون أي إعلانات أو علامات تجارية أو تسجيلات إعجاب أو مشاهير.\n\nهالوآب مصمم لتمكينك من التواصل مع المقرّبين منك، وبخصوصية تامة. أرسل دعوات لأصدقائك الفعليين لبدء استخدام التطبيق.\n";
+
+/* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.title" = "مرحبًا بك في هالوآب، تطبيق المحادثة مع معارفك الحقيقيين ✨";
+
+/* Text for 'more' cell prompting users to open the invite screen */
+"feedInviteCarousel.searchPrompt" = "البحث عن المزيد من الأصدقاء وأفراد العائلة";
+
+/* Title for section of contacts to invite in feed */
+"feedInviteCarousel.title" = "استمتع بهالوآب مع الأصدقاء والعائلة";
+
+/* Button under someone's post. Verb. */
+"feedpost.button.comment" = "تعليق";
+
+/* Button under someoneelse's post. Verb. */
+"feedpost.button.reply" = "الرد بشكل خاص";
+
+/* Placeholder text shown in group description input box when there's no description */
+"group.add.description" = "إضافة وصف للمجموعة";
+
+/* Label shown above background selection row */
+"group.background.label" = "الخلفية";
+
+/* Label for choosing a color at the group background preview screen */
+"group.bg.pick.a.color.label" = "اختيار لون";
+
+/* Title of group background screen */
+"group.bg.title" = "الخلفية";
+
+/* Label shown above group description input box */
+"group.description.label" = "وصف المجموعة";
+
+/* Message text shown with the user who added a group member */
+"group.event.added.member" = "%1$@ أضاف %2$@";
+
+/* Message text shown when you add a group member */
+"group.event.added.member.you" = "أنت أضفت %1@";
+
+/* Message text shown with the user who changed the group avatar */
+"group.event.changed.avatar" = "%@ غيّر صورة المجموعة";
+
+/* Message text shown with the user who changed the group avatar */
+"group.event.changed.avatar.you" = "أنت غيّرت صورة المجموعة";
+
+/* Message text shown with the user who changed the background */
+"group.event.changed.background" = "%@ غيّر لون الخلفية";
+
+/* Message text shown when you change the background */
+"group.event.changed.background.you" = "أنت غيّرت لون الخلفية";
+
+/* Message text shown with the user who changed the group description */
+"group.event.changed.description" = "%1@ غيّر وصف المجموعة";
+
+/* Message text shown when you change the group description */
+"group.event.changed.description.you" = "أنت غيّرت وصف المجموعة";
+
+/* Message text shown with the user who changed the group name */
+"group.event.changed.name" = "%1$@ غيّر اسم المجموعة إلى \"%2$@\"";
+
+/* Message text shown when you change the group name */
+"group.event.changed.name.you" = "أنت غيّرت اسم المجموعة إلى \"%1@\"";
+
+/* Message text shown with the user who created the group */
+"group.event.created.group" = "%1$@ أنشأ المجموعة \"%2$@\"";
+
+/* Message text shown when you create a group */
+"group.event.created.group.you" = "أنت أنشأت المجموعة \"%1@\"";
+
+/* Message text shown with the user who demoted a group admin */
+"group.event.demoted.member" = "%1$@ أزال %2$@ من منصب مشرف";
+
+/* Message text shown when you demote a group admin */
+"group.event.demoted.member.you" = "أنت أزلت %1@ من منصب مشرف";
+
+/* Message text shown with the user who promoted a group member */
+"group.event.promoted.member" = "%1$@ عيّن %2$@ مشرفًا";
+
+/* Message text shown when you promote a group member */
+"group.event.promoted.member.you" = "أنت عيّنت %1@ مشرفًا";
+
+/* Message text shown with the user who removed a group member */
+"group.event.removed.member" = "%1$@ أزال %2$@";
+
+/* Message text shown when you remove a group member */
+"group.event.removed.member.you" = "أنت أزلت %1@";
+
+/* Indicates how many members are in the group */
+"group.feed.n.members" = "group.feed.n.members";
+
+/* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
+"group.feed.welcome.post.body" = "شارك هذا الرابط مع الأصدقاء وسيمكنهم الانضمام لمجموعتك تلقائيًا.";
+
+/* Title of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
+"group.feed.welcome.post.title" = "دعوة صديق إلى مجموعتك";
+
+/* Action label for inviting others to join the group via link */
+"group.info.invite.to.group.via.link" = "الدعوة إلى المجموعة عبر رابط";
+
+/* Label for copying link */
+"group.invite.copy.link" = "نسخ الرابط";
+
+/* Text shown when link is copied */
+"group.invite.link.copied" = "تم نسخ الرابط إلى الحافظة";
+
+/* Text to describe what the group invite link is */
+"group.invite.link.description" = "أي شخص يستخدم هالوآب يمكنه اتباع هذا الرابط للانضمام لهذه المجموعة. ومع ذلك، لن يتلقّى المستخدم المحتوى الذي تم نشره قبل انضمامه للمجموعة.";
+
+/* Text label above the group link section in group invite screen */
+"group.invite.link.label" = "رابط المجموعة";
+
+/* Text shown when link is reset */
+"group.invite.link.reset" = "تمت إعادة ضبط الرابط";
+
+/* Label for opening QR screen */
+"group.invite.qr.code" = "رمز الاستجابة السريعة";
+
+/* Label for resetting link */
+"group.invite.reset.link" = "إعادة ضبط الرابط";
+
+/* Warning shown when user clicks on reset link action */
+"group.invite.reset.link.warning" = "إذا تمت إعادة ضبط رابط الدعوة هذا، لن يتمكن أحد من استخدامه للانضمام للمجموعة.";
+
+/* Label for sharing link */
+"group.invite.share.link" = "مشاركة الرابط";
+
+/* Text shown before the sharing link */
+"group.invite.share.link.message" = "انقر على هذا الرابط للانضمام إلى مجموعتي في هالوآب:";
+
+/* Title of group invite screen */
+"group.invite.title" = "الدعوة إلى المجموعة";
+
+/* Title of invite sheet */
+"group.invitesheet.title" = "شارِك هذا الرابط مع الأصدقاء والعائلة لينضموا إلى مجموعة هالوآب هذه تلقائيًا";
+
+/* Section header describing options to share link */
+"group.invitesheet.use.link.via" = "مشاركة الرابط باستخدام...";
+
+/* Label shown above group members list */
+"group.members.label" = "الأعضاء";
+
+/* Text for alert box when the user clicks on an invalid group invite link */
+"group.preview.get.info.error.invalid.link" = "رابط الدعوة إلى المجموعة غير صالح";
+
+/* Text for alert box when the user can't join the group via group link when the group is full */
+"group.preview.join.error.group.full" = "المجموعة مكتملة العدد";
+
+/* Text for alert box when the user can't join the group via group link when link is invalid */
+"group.preview.join.error.invalid.link" = "الرابط غير صالح";
+
+/* Title for alert box when the user can't join the group via group link */
+"group.preview.join.error.title" = "يتعذّر الانضمام للمجموعة";
+
+/* Label for joining group action */
+"group.preview.join.group" = "الانضمام للمجموعة";
+
+/* Text shown to tell user the group title is tappable */
+"group.title.tap.for.info" = "انقر هنا لعرض معلومات المجموعة";
+
+/* Text shown in notification when the user is added to a new group */
+"groups.add.notification" = "تمت إضافتك إلى مجموعة جديدة";
+
+/* A label to show that the groups below are groups in common */
+"groups.common" = "المجموعات المشتركة";
+
+/* Text shown when user is about to remove the group */
+"groups.list.remove.message" = "هل تريد فعلاً إزالة هذه المجموعة ومحتواها من جهازك؟";
+
+/* The name of the group that is created for the user when they are new and in the zero zone (no contacts and no content) */
+"groups.NUX.user.group.name" = "مجموعة %@";
+
+/* A label on the header to indicate which person I have groups in common with */
+"groups.title" = "مع %@";
+
+/* Text shown in the email body when sending logs from the help screen */
+"help.send.logs.email.body" = "يُرجى إضافة تعليق أو وصف للمشكلة في المساحة أعلاه.\n\nالإصدار %1$@ - %2$@\n%3$@";
+
+/* Text shown to users on failed audio capture alert during a call. */
+"home.calls.fail.audio.text" = "يُرجى إعادة المحاولة لاحقًا.";
+
+/* Title of failed audio capture alert during a call. */
+"home.calls.fail.audio.title" = "لا يمكن تسجيل الصوت أثناء مكالمة هالوآب.";
+
+/* Text shown to users on call failure. */
+"home.calls.fail.text" = "تحقق من اتصال هاتفك بالإنترنت ثم حاول مرة أخرى.";
+
+/* Title of failed call screen alert. */
+"home.calls.fail.title" = "تعذّر إجراء المكالمة.";
+
+/* Text shown to users trying to open the call screen. */
+"home.calls.notice.text" = "ليس مكالمة جارية حاليًا.";
+
+/* Title for exit button that closes the app */
+"home.update.notice.button.exit" = "إغلاق";
+
+/* Text shown to users who have old versions of the app */
+"home.update.notice.text" = "يُرجى التحديث إلى آخر إصدار من هالوآب";
+
+/* Title of update notice shown to users who have old versions of the app */
+"home.update.notice.title" = "هذا الإصدار قديم";
+
+/* Text shown to users on video call failure. */
+"home.video.calls.fail.text" = "قريبًا...";
+
+/* Title of failed video call screen alert. */
+"home.video.calls.fail.title" = "مكالمات الفيديو غير مدعومة حاليًا.";
+
+/* Title of action sheet that allows the user to choose between sms and whatsapp to invite contact */
+"invite.action.sheet.title" = "دعوة %@ عبر...";
+
+/* Displayed below contact name in contact list that is displayed when inviting someone to HalloApp. */
+"invite.already.halloapp.user" = "من مستخدمي هالوآب بالفعل";
+
+/* Title for button that launches system SMS app to send invite. As short as possible! */
+"invite.app.sms" = "الرسائل";
+
+/* Title for button that launches WhatsApp to send invite. Should match WhatsApp localization. */
+"invite.app.whatsapp" = "واتساب";
+
+/* Shows number of current HalloApp users who have this contact in their list */
+"invite.contact.count" = "%d من جهات الاتصال على هالوآب";
+
+/* Body of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
+"invite.error.alert.message" = "حدث خطأ، يُرجى إعادة المحاولة لاحقًا.";
+
+/* Title of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
+"invite.error.alert.title" = "تعذّر إرسال الدعوة";
+
+/* Displayed when user does not have any invites left. Parameter is date. */
+"invite.out.of.invites.w.date" = "لقد استخدمت كافة الدعوات، الرجاء المحاولة لاحقًا بعد %@";
+
+/* Displayed white user is inviting someone. */
+"invite.please.wait" = "يُرجى الانتظار...";
+
+/* Text of invitation to join HalloApp. */
+"invite.text" = "يمكنك الانضمام مع إلى هالوآب، وهو تطبيق بسيط ويتمتع بالخصوصية والأمان يتيح لك التواصل مع الأصدقاء والعائلة. يمكنك تنزيله من https://halloapp.com/dl";
+
+/* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
+"invite.text.specific" = "مرحبًا %1$@، هذه دعوة مني لتنضم إليّ في استخدام هالوآب - وهو عبارة عن شبكة للعلاقات الفعلية بين الأشخاص المقربين. استخدم %2$@ للتسجيل في التطبيق. يمكنك تنزيله من https://halloapp.com/dl";
+
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.1" = "أهلاً %@، أنا أستخدم هالوآب. يمكنك تنزيل التطبيق للانضمام معي عبر https://halloapp.com/install";
+
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.2" = "أهلاً %@، هيّا نتواصل معًا عبر هالوآب. يمكنك تنزيل التطبيق عبر https://halloapp.com/kit (هالوآب هو تطبيق جديد للتواصل الاجتماعي ويتميز بالخصوصية فهو مصمم للأصدقاء المقربين وأفراد العائلة، ويخلو من الإعلانات أو اللوغاريتمات).";
+
+/* Version of an invitation to join HalloApp. */
+"invite.text.specific.3" = "هذه دعوة مني لتثبيت هالوآب. يمكنك تنزيله مجانًا من هنا: https://halloapp.com/free";
+
+/* Title for the screen that allows to select contact to invite. */
+"invite.title" = "دعوة الأصدقاء";
+
+/* Title of cell at the top of the invite screen */
+"invite.via.link" = "الدعوة عبر الرابط";
+
+/* Contacts including this in their name are excluded from the invite carousel */
+"invitemanager.spam" = "محتوى عشوائي";
+
+/* Text shown when inviting to a group using a QR code */
+"join.group.using.qr.code" = "انضم إلى مجموعتي على هالوآب!";
+
+/* Generic label for search, mostly used as placeholder text for searchbar */
+"label.search" = "بحث";
+
+/* Text with hyperlink to halloapp's faq on encryption. */
+"learn.more" = "تعرّف على المزيد.";
+
+/* Link text to open invite flow */
+"link.invite.friend" = "دعوة صديق";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "تعرّف على المزيد";
+
+/* Link that when tapped will open App Store so user can update to the latest version of the app. */
+"link.update.your.app" = "تحديث التطبيق";
+
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "أنا";
+
+/* Refers to albums in Photo Library. */
+"media.albums" = "الألبومات";
+
+/* Button title. Refers to discarding photo/video edits in media composer. */
+"media.button.discard" = "إلغاء";
+
+/* Button title. Refers to resetting photo / video to original version. */
+"media.button.reset" = "إعادة التعيين";
+
+/* Button title. Refers to undoing an edit of a photo. */
+"media.button.undo" = "تراجع";
+
+/* Alert asking to enable Camera permission after attempting to use in-app camera. */
+"media.camera.access.request" = "لم يتم منح هالوآب إذن الوصول إلى الكاميرا. لتمكين الوصول، انقر على \"الإعدادات\" وشغِّل الكاميرا";
+
+/* Confirmation prompt in media composer. */
+"media.discard.confirmation" = "هل تريد إلغاء تعديلاتك؟";
+
+/* Alert asking to enable Camera permission after attempting to use in-app camera. */
+"media.mic.access.request.body" = "لتسجيل الفيديوهات مع تضمين الصوت، يحتاج هالوآب إلى إذن الوصول إلى الميكروفون. لتمكين الوصول، انقر على \"الإعدادات\" وشغِّل الميكروفون.";
+
+/* Alert asking to enable Microphone permission after attempting to use in-app camera. */
+"media.mic.access.request.title" = "هل تريد تضمين الصوت مع الفيديوهات؟";
+
+/* Error text displayed in post composer when some of the media selected couldn't be sent. */
+"media.prepare.failed.n.count" = "media.prepare.failed.n.count";
+
+/* Button that, when pressed, saves all the post's media to the user's camera roll */
+"media.save.all" = "حفظ الكل في المعرض؟";
+
+/* Button that, when pressed, saves the post's media to the user's camera roll. Singular version for media.save.all */
+"media.save.all.singular" = "حفظ ملف الوسائط في المعرض";
+
+/* Button that lets the user save the current media displayed to their camera roll */
+"media.save.camera.roll" = "الحفظ في المعرض";
+
+/* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
+"media.save.needs.permissions" = "أذونات الوصول إلى الصور مطلوبة";
+
+/* Description telling the user why the photos couldn't be saved */
+"media.save.no.access" = "لا يمكن حفظ الصور بدون الوصول إلى المعرض.";
+
+/* Alert displayed explaining to the user that the media save operation failed */
+"media.save.not.saved" = "تعذّر حفظ الصورة";
+
+/* Label indicating that media was successfully saved to the camera roll */
+"media.save.saved" = "تم الحفظ في المعرض";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.annotate" = "إضافة نص";
+
+/* Accessibility label for X (Close) button in media editor. */
+"media.voiceover.button.close" = "إغلاق";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.draw" = "رسم";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.flip" = "قلب";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.mute" = "كتم";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.rotate" = "تدوير";
+
+/* Message action. Verb. */
+"message.copy" = "نسخ";
+
+/* Message action. Verb. */
+"message.delete" = "حذف";
+
+/* Message action. Verb. */
+"message.reply" = "ردّ";
+
+/* Text on loading screen while migrating data */
+"migration.inProgress" = "جارٍ تحسين البيانات...";
+
+/* One of the contact actions in My Post screen. Verb. */
+"mypost.action.message" = "رسالة";
+
+/* One of the contact actions in My Post screen. */
+"mypost.action.view.profile" = "عرض الملف الشخصي";
+
+/* Message displayed to say when posts will disappear for posts shared with contacts. */
+"mypost.contacts.disappear.time.label" = "ستظهر منشوراتك لمدة ٣٠ يومًا. وسيكون بمقدور جهات اتصالك التي تنضم إلى هالوآب رؤية منشوراتك التي لم تنتهِ صلاحيتها.";
+
+/* Generic message displayed to say when posts will disappear. */
+"mypost.disappear.time.label" = "سيظهر منشورك لمدة ٣٠ يومًا.";
+
+/* Message displayed to say when posts will disappear for posts shared with favorites. */
+"mypost.favorites.disappear.time.label" = "تمت مشاركة منشورك مع جهات الاتصال المفضلة وسيظهر لمدة 30 يومًا.";
+
+/* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
+"mypost.hide.posts.confirmation" = "هل تريد فعلاً إخفاء كافة منشوراتك المستقبلية عن %@؟ يمكنك تغيير ذلك لاحقًا.";
+
+/* Placeholder text displayed in My Post Info screen when no one has seen the post yet. */
+"mypost.not.viewed.yet" = "لم يشاهد أحد منشورك بعد";
+
+/* Your Post screen: label for the row that opens the invite screen */
+"mypost.row.invite.to.halloapp" = "دعوة إلى هالوآب";
+
+/* Your Post screen: label for the row that opens the privacy screen */
+"mypost.row.manage.privacy" = "إدارة الخصوصية";
+
+/* Indicates how many invites are remaining */
+"n.invites.count" = "n.invites.count";
+
+/* Indicates how many invites are remaining */
+"n.invites.remaining" = "n.invites.remaining";
+
+/* Summary when multiple commenters commented on the same post you commented on */
+"n.others.replied" = "n.others.replied";
+
+/* Displayed in place of deleted feed posts. */
+"n.posts.deleted" = "تم حذف %@ من المنشورات";
+
+/* Placeholder text shown in the middle of the Add New Group Members screen when user have no contacts (in ZeroZone) to add */
+"new.group.members.empty.placeholder" = "ستظهر جهات اتصالك على هالوآب هنا";
+
+/* Alert text shown when max group size is reached when selecting/adding group members */
+"new.group.members.max.size.alert" = "أقصى حجم للمجموعة هو %d";
+
+/* Title for alert that pops up when user attempts to save an empty contact list */
+"no.contact.selected" = "لم يتم تحديد جهات اتصال";
+
+/* Text shown to indicate user is not in the group anymore */
+"not.in.group.banner.text" = "لم تعد عضوًا في هذه المجموعة";
+
+/* Push notification for a new comment. Parameter is the text of the comment */
+"notification.commented.with.text" = "التعليق: %@";
+
+/* Content for unknown contact notification. */
+"notification.contact.unknown.content" = "إحدى جهات اتصالك على هالوآب الآن";
+
+/* Content for inviter notification. */
+"notification.invite.accepted.content" = "%@ قبل دعوتك للانضمام إلى هالوآب 🎉";
+
+/* New post notification text when post is multiple photos without caption. */
+"notification.n.photos" = "notification.n.photos";
+
+/* New post notification text when post is multiple videos without caption. */
+"notification.n.videos" = "notification.n.videos";
+
+/* Title for the new comment notification. */
+"notification.new.comment" = "تعليق جديد";
+
+/* Content for contact notification. */
+"notification.new.contact.content" = "%@ على هالوآب الآن";
+
+/* Content for friend notification. */
+"notification.new.friend.content" = "%@ على هالوآب الآن";
+
+/* Fallback text for new message notification. */
+"notification.new.message" = "رسالة جديدة";
+
+/* Title for the new feed post notification. */
+"notification.new.post" = "منشور جديد";
+
+/* New post notification text when post is one photo without caption. */
+"notification.one.photo" = "📷 صورة";
+
+/* New post notification text when post is one video without caption. */
+"notification.one.video" = "📹 فيديو";
+
+/* Missed video call notification text to be shown to the user. */
+"notification.videocall.missed" = "📹 مكالمة فيديو فائتة";
+
+/* Missed voice call notification text to be shown to the user. */
+"notification.voicecall.missed" = "☎️ مكالمة صوتية فائتة";
+
+/* New post notification text when post is a voice note. */
+"notification.voicecomment" = "🎤 تعليق صوتي";
+
+/* New post notification text when post is a voice note. */
+"notification.voicenote" = "🎤 رسالة صوتية";
+
+/* New post notification text when post is a voice note. */
+"notification.voicepost" = "🎤 منشور صوتي";
+
+/* Text for new user popup pointing at activity center icon */
+"nux.activity.center.icon" = "هالو!";
+
+/* Shown on chats list when there are no contacts or messages to display */
+"nux.chat.empty" = "ستظهر جهات الاتصال والرسائل هنا";
+
+/* Text for new user popup pointing at chat list */
+"nux.chat.list" = "ستظهر هنا الرسائل الواردة من أصدقائك وعائلتك. عند انضمام شخص جديد إلى هالوآب، يمكنك رؤيته هنا.\n";
+
+/* Shown on groups in common when there are no groups to display */
+"nux.groups.common.list.empty" = "ليس لديك مجموعات مشتركة";
+
+/* Shown on groups list when there are no groups to display */
+"nux.groups.list.empty" = "ستظهر مجموعاتك هنا";
+
+/* Shown on home feed when no posts are available */
+"nux.home.feed.empty" = "ستظهر منشورات جهات اتصال هاتفك هنا";
+
+/* Text for new user popup pointing at new post button */
+"nux.new.post.button" = "انقر هنا لمشاركة تحديث مع أصدقائك وعائلتك على هالوآب";
+
+/* Message in media picker when access is denied. */
+"picker.access.denied.message" = "يُرجى منح إذن الوصول من الإعدادات";
+
+/* An option to give access from settings */
+"picker.access.denied.settings" = "الإعدادات";
+
+/* Alert title in media picker when access is denied. */
+"picker.access.denied.title" = "تم رفض الوصول إلى الصور";
+
+/* Message shown only limited access to media. */
+"picker.access.limited.message" = "لقد منحت هالوآب إذن الوصول إلى عدد محدد من الصور والفيديوهات.";
+
+/* Alert message in media picker when unable to load media file. */
+"picker.media.fail.message" = "يُرجى إعادة المحاولة أو اختيار صورة أخرى أو فيديو آخر.";
+
+/* Alert title in media picker when unable to load media file. */
+"picker.media.fail.title" = "تعذّر تحميل الوسائط";
+
+/* Button shown to update limited access to media. */
+"picker.media.limit.button" = "تحديث";
+
+/* An option to update limited access. */
+"picker.media.limit.settings" = "تغيير الإعدادات";
+
+/* Alert title in media picker when selecting over limit. */
+"picker.media.limit.title" = "تم اختيار الحد الأقصى من العناصر";
+
+/* An option to update limited access. */
+"picker.media.limit.updateSelection" = "تعديل اختيار الصور والفيديوهات";
+
+/* Message in media picker when selecting over limit. */
+"picker.media.n.limit" = "picker.media.n.limit";
+
+/* Title for the picker screen. */
+"post.controller.picker.title" = "منشور جديد";
+
+/* Displayed in place of a deleted feed post. */
+"post.has.been.deleted" = "تم حذف هذا المنشور";
+
+/* Displayed in place of a deleted feed post. */
+"post.has.been.deleted.by.author" = "%@ حذف منشوره";
+
+/* Displayed in place of a deleted feed post. */
+"post.has.been.deleted.by.you" = "أنت حذفت منشورك";
+
+/* Header when selecting all or some contacts to share with */
+"post.privacy.header.contacts" = "لمن سيظهر المنشور";
+
+/* Header when selecting a group to share with */
+"post.privacy.header.groups" = "المشاركة مع مجموعة فقط";
+
+/* Controller title for changing destination and privacy */
+"post.privacy.title" = "المشاركة مع...";
+
+/* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
+"privacy.list.blocked" = "محظورة";
+
+/* Generic setting value telling how many contacts are blocked or muted. */
+"privacy.n.contacts" = "privacy.n.contacts";
+
+/* Error banner displayed when there is a failure syncing preivacy settings, displayed on the privacy view */
+"privacy.sync.failure" = "تعذّرت مزامنة إعدادات الخصوصية. يُرجى إعادة المحاولة لاحقًا.";
+
+/* Title for the button allowing to delete current profile photo. */
+"profile.delete.photo" = "حذف الصورة";
+
+/* A label for the button which leads to the page showing groups in common */
+"profile.groups.in.common" = "المجموعات المشتركة";
+
+/* This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun. */
+"profile.header.call.user" = "مكالمة صوتية";
+
+/* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
+"profile.header.message.user" = "رسالة";
+
+/* Text for unblocking user under profile header */
+"profile.header.unblock.user" = "رفع الحظر";
+
+/* Item in Profile > Calls screen. */
+"profile.help.calls" = "المكالمات";
+
+/* Item in Profile > Help screen. */
+"profile.help.faq" = "الأسئلة الشائعة";
+
+/* Item in Profile > Help screen. */
+"profile.help.feedback" = "إرسال التعليقات والسجلات";
+
+/* Item in Profile > Help screen. */
+"profile.help.pp" = "سياسة الخصوصية";
+
+/* Item in Profile > Help screen. */
+"profile.help.share.logs" = "مشاركة السجلات";
+
+/* Item in Profile > Help screen. */
+"profile.help.tos" = "شروط الخدمة";
+
+/* Displays remaining number of characters user is allowed to enter while editing their profile name, as well as maximum allowed name length. */
+"profile.name.length" = "%1$d/%2$d";
+
+/* Row in Profile screen. */
+"profile.row.about" = "حول هالوآب";
+
+/* Row in Profile Screen */
+"profile.row.account" = "الحساب";
+
+/* Row in Profile screen. */
+"profile.row.archive" = "الأرشيف";
+
+/* Row in Profile screen. */
+"profile.row.help" = "المساعدة";
+
+/* Row in Profile screen. */
+"profile.row.invite" = "دعوة إلى هالوآب";
+
+/* Row in Settings screen */
+"profile.row.my.posts" = "منشوراتي";
+
+/* Row in Profile Screen. */
+"profile.row.share" = "مشاركة هالوآب";
+
+/* Title for the button allowing to select a new profile photo. */
+"profile.take.choose.photo" = "التقاط أو اختيار صورة";
+
+/* Title for the screen allowing to edit profile name */
+"profile.title.your.name" = "اسمك";
+
+/* Title for the button allowing the user to view their own profile photo. */
+"profile.view.photo" = "عرض الصورة";
+
+/* Disclaimer text about receiving SMS verification code */
+"registration.code.disclaimer" = "ستتلقى رمز التأكيد. \nقد تطبق رسوم من شركة الاتصالات التابع لها.";
+
+/* Error message to display when user enters incorrect verification code */
+"registration.code.incorrect" = "الرمز الذي أدخلته غير صحيح";
+
+/* Instructions for filling in SMS verification code. Parameter is formatted phone number */
+"registration.code.instructions" = "أدخل رمز التأكيد الذي أرسلناه إلى %@";
+
+/* Error message to display when we cannot send a verification code */
+"registration.code.request.error" = "تعذّر إرسال الرمز. يُرجى إعادة المحاولة لاحقًا.";
+
+/* Button label to resend verification code */
+"registration.code.resend" = "إعادة إرسال الرمز عبر رسالة نصية";
+
+/* Button label to resend verification code by voice call */
+"registration.code.resend.by.voice" = "الاتصال بي";
+
+/* Text explaining why we need contact permissions */
+"registration.contacts.content" = "للتواصل مع أصدقائك وأفراد عائلتك يجب أن تمنح التطبيق إذن الوصول إلى جهات اتصالك.";
+
+/* Title for text explaining why we need contact permissions */
+"registration.contacts.title" = "أمر أخير";
+
+/* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
+"registration.free.app.notice" = "مجانًا على App Store لهواتف iPhone";
+
+/* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
+"registration.group.name" = "أنت مدعو للانضمام إلى المجموعة %@";
+
+/* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
+"registration.install.app.to.continue" = "تثبيت هالوآب للمتابعة";
+
+/* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
+"registration.install.app.to.join.group" = "يجب تثبيت هالوآب لفتح %@";
+
+/* Title for popup that appears when user tries to register invalid number */
+"registration.invalidphone" = "عذرًا!";
+
+/* Popup that appears when user tries to register invalid number */
+"registration.invalidphone.only" = "رقم الهاتف الذي أدخلته غير صالح. يُرجى إعادة التحقق.";
+
+/* Popup that appears when user tries to register uninvited number */
+"registration.invite.only" = "إذا استخدمت رابط الدعوة إلى المجموعة للتسجيل، يُرجى النقر على الرابط مرة أخرى لإكمال التسجيل والانضمام إلى المجموعة.";
+
+/* Placeholder text for name entry */
+"registration.nameEntry.placeholder" = "اسمك";
+
+/* Placeholder text for phone entry */
+"registration.phoneEntry.placeholder" = "رقم الهاتف";
+
+/* Text for modal describing how we use contacts data */
+"registration.privacy.content" = "لا يستخدم هالوآب حقل رقم الهاتف إلا لمطابقتك بأصدقائك على هالوآب، ولا يسجل أي بيانات إضافية من قائمة جهات اتصالك.";
+
+/* Title for modal describing how we use contacts data */
+"registration.privacy.title" = "خصوصيتك على رأس أولوياتنا";
+
+/* Title for popup that appears when user tries to register uninvited number */
+"registration.shucks" = "عذرًا!";
+
+/* Shown above name and phone inputs */
+"registration.welcome" = "أهلاً!";
+
+/* Instructions for how to use the safety number verification UI */
+"safety.number.instructions" = "للتحقق من أن اتصالك بـ %@ آمن، يجب التأكد من مطابقة الأرقام أعلاه للأرقام المعروضة على جهازه، أو يمكنك مسح رمز الاستجابة السريعة على هاتفه.";
+
+/* Message to show when safety number cannot be succesfully verified */
+"safety.number.not.verified" = "تعذّر التحقق من رقم الأمان لـ %@";
+
+/* Title for button that will open QR code scanner used to verify a contact's safety number */
+"safety.number.scan" = "انقر للمسح";
+
+/* Title for screen that allows users to verify a contact's safety number */
+"safety.number.title" = "التحقق من رقم الأمان";
+
+/* Message to show when safety number is succesfully verified */
+"safety.number.verified" = "تم التحقق من رمز الأمان لـ %@!";
+
+/* Text shown to instruct using a QR code for joining a group */
+"scan.to.join.group.using.qr.code" = "للانضمام، يمكنك مسح رمز الاستجابة السريعة هذا بكاميرا الهاتف.";
+
+/* Message that pops up when user attempts to save an empty contact list */
+"select.at.least.one.contact" = "يُرجى تحديد جهة اتصال واحدة على الأقل.";
+
+/* body of the marketing alert sent to users */
+"server.marketing.body" = "أرسل دعوات للأصدقاء للاستمتاع بتطبيق هالوآب!";
+
+/* body of the marketing alert to encourage more posting */
+"server.marketing.post.body" = "نشاطك الحالي قد يكون مثيرًا لاهتمام الأصدقاء.";
+
+/* title of the marketing alert to encourage more posting */
+"server.marketing.post.title" = "هل تتساءل عن الأشياء التي يمكنك مشاركتها؟";
+
+/* title of the marketing alert sent to users */
+"server.marketing.title" = "هالو!";
+
+/* fallback text in notification for a new comment */
+"server.new.comment" = "تعليق جديد";
+
+/* fallback text in notification when a new contact joins */
+"server.new.contact" = "%@ على هالوآب الآن";
+
+/* fallback text in notification when user is added to a new group */
+"server.new.group" = "تمت إضافتك إلى مجموعة جديدة";
+
+/* fallback text in notification when an invitee joins */
+"server.new.inviter" = "%@ قبل دعوتك للانضمام إلى هالوآب 🎉";
+
+/* fallback text in notification for a new chat message */
+"server.new.message" = "رسالة جديدة";
+
+/* fallback text in notification for a new feed post */
+"server.new.post" = "منشور جديد";
+
+/* text in the sms sent with verification code */
+"server.sms.verification" = "رمز تأكيد هالوآب";
+
+/* text in the voice call sent with verification code */
+"server.voicecall.verification" = "رمز تأكيد هالوآب الخاص بك هو";
+
+/* Displayed while syncing account immediately after registration */
+"setting.up.halloapp" = "جارٍ إعداد هالوآب";
+
+/* Title of alert telling the user they're about to delete their account */
+"settings.account.delete.action.title" = "حذف الحساب";
+
+/* Action that will occur when users delete their account */
+"settings.account.delete.bullet1" = "حذف معلومات الحساب وصورة ملفك الشخصي";
+
+/* Action that will occur when users delete their account */
+"settings.account.delete.bullet2" = "حذفك من جميع مجموعات هالوآب";
+
+/* Action that will occur when users delete their account */
+"settings.account.delete.bullet3" = "حذف سجلّ الرسائل على هذا الهاتف";
+
+/* Button to continue to the next step of deleting account after warning */
+"settings.account.delete.continue.title" = "المتابعة";
+
+/* Label telling the user that their account has been deleted */
+"settings.account.delete.deleted" = "تم حذف الحساب";
+
+/* Alert telling user that their account could not be deleted, and that it's likely due to their phone number */
+"settings.account.delete.error" = "حدث خطأ أثناء حذف حسابك. يُرجى التأكد من أن رقم هاتفك صحيح.";
+
+/* Text field label asking for feedback before deleting account */
+"settings.account.delete.feedback.prompt" = "هل لديك تعليقات لفريق هالوآب؟ (اختياري)";
+
+/* Label above list of things that will happen if they delete their account */
+"settings.account.delete.header" = "سيؤدي حذف حسابك إلى ما يلي:";
+
+/* Alert message telling the user that account deletion is irreversible */
+"settings.account.delete.irreversible.label" = "لا يمكن التراجع عن هذا الإجراء";
+
+/* Text field placeholder for collecting feedback before deleing account */
+"settings.account.delete.phone.number.placeholder" = "تعليقات";
+
+/* Text field label for account deletion phone number */
+"settings.account.delete.phone.number.prompt" = "أدخِل رقم الهاتف للتاكيد";
+
+/* String that's displayed when a spinner is not available to indicate that the view is waiting for a response from the server */
+"settings.account.delete.spinner.replacement" = "في انتظار استجابة الخادم";
+
+/* Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account */
+"settings.account.deleted.message" = "لن تتمكن من تسجيل الدخول إلا بعد إعادة تشغيل التطبيق";
+
+/* Alert title telling the user that their account was successfully deleted */
+"settings.account.deleted.title" = "تم حذف الحساب بنجاح";
+
+/* Label telling the user when their data export will be made available. %1$@ is a date. */
+"settings.account.export.date.available" = "لأسباب تتعلق بالأمان، ستتوفر بياناتك بتاريخ %1$@";
+
+/* Label alerting the user that we were unable to retrieve the data. */
+"settings.account.export.error" = "حدث خطأ أثناء استرداد بياناتك.";
+
+/* Explanation about what the data export function is. English language version taken from WhatsApp. */
+"settings.account.export.explanation" = "يمكنك إنشاء تقرير بمعلومات وإعدادات حسابك على هالوآب، حيث يمكنك الوصول إلى ذلك التقرير أو نقله إلى تطبيق آخر. ولا يشمل هذا التقرير رسائلك.";
+
+/* String indicating device is awaiting a server response. Only visible in iOS 13. */
+"settings.account.export.loading" = "جارٍ تحميل البيانات...";
+
+/* Navigation bar title informing the user that this page lets them export their user data. */
+"settings.account.export.navbar" = "نقل البيانات";
+
+/* Label for when the date at which the exported user data will be available is not determined. */
+"settings.account.export.not.found" = "تعذّر تحديد التاريخ الذي ستتوفّر فيه البيانات.";
+
+/* Button to open the user data exported from HalloApp. */
+"settings.account.export.open.data" = "فتح البيانات المنقولة";
+
+/* Navigation bar title informing the user that this page lets them export their user data. */
+"settings.account.export.request.button" = "طلب نقل البيانات";
+
+/* Label informing the user that they have requested their data. */
+"settings.account.export.requested" = "تم طلب البيانات";
+
+/* Button to delete a user's account. */
+"settings.account.list.delete.account" = "حذف";
+
+/* Row to export user data for GDPR compliance. */
+"settings.account.list.export.data" = "نقل";
+
+/* Title for settings page containing account options. */
+"settings.account.list.title" = "الحساب";
+
+/* App version text in Profile > Help. */
+"settings.app.version" = "إصدار هالوآب رقم %@";
+
+/* Settings menu section. */
+"settings.notifications" = "إشعارات";
+
+/* Settings > Notifications: label for the toggle that turns new comment notifications on or off. */
+"settings.notifications.comments" = "التعليقات";
+
+/* Instructions for enabling notifications permissions */
+"settings.notifications.disabled.instructions" = "يُرجى تفعيل الإشعارات من الإعدادات.";
+
+/* Settings > Notifications: label for the toggle that turns new post notifications on or off. */
+"settings.notifications.posts" = "المنشورات";
+
+/* Settings menu section */
+"settings.privacy" = "الخصوصية";
+
+/* Settings > Privacy: name of a setting that defines who can see your posts. */
+"settings.privacy.posts" = "المنشورات";
+
+/* String to auto-fill if a user tried to share to a friend. */
+"settings.share.text" = "انضم إلى شبكة العلاقات الفعلية الخاصة بي على هالوآب. قم بتنزيل التطبيق مجانًا من halloapp.com/dl";
+
+/* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
+"tap.return.call" = "انقر للعودة إلى المكالمة";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.add.reading.list" = "إضافة إلى قائمة القراءة";
+
+/* One of the items in context menu presented upon long press on linkified phone number in text. Parameter is the phone number. */
+"textlabel.context.menu.call.number" = "الاتصال برقم %@";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.copy.link" = "نسخ الرابط";
+
+/* One of the items in context menu presented upon long press on linkified phone number in text. */
+"textlabel.context.menu.copy.phone.number" = "نسخ رقم الهاتف";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.open.link" = "فتح الرابط";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.share" = "مشاركة...";
+
+/* Link to expand truncated text. */
+"textlabel.more" = "...المزيد";
+
+/* Same as profile.header.call.user, but capitalized */
+"textview.context.menu.audio.call.user" = "مكالمة صوتية";
+
+/* Same as profile.header.message.user, but capitalized */
+"textview.context.menu.message.user" = "رسالة";
+
+/* Same as profile.header.call.user, but capitalized */
+"textview.context.menu.video.call.user" = "مكالمة فيديو";
+
+/* Link to expand truncated text. */
+"textview.more" = "المزيد";
+
+/* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
+"thread.list.preview.already.user.default" = "%@ من مستخدمي هالوآب";
+
+/* Default preview text shown for a symmetric contact who just joined Halloapp */
+"thread.list.preview.new.user.default" = "%@ من مستخدمي هالوآب🎉";
+
+/* Last seen timestamp: full date in short format and time */
+"timestamp.last.seen.date.at.time" = "آخر ظهور %1$@ الساعة %2$@";
+
+/* Last seen timestamp: day of week and time */
+"timestamp.last.seen.dayofweek.at.time" = "آخر ظهور %1$@ الساعة %2$@";
+
+/* Last seen timestamp: today at specific time. */
+"timestamp.last.seen.today.at" = "آخر ظهور اليوم، الساعة %@";
+
+/* Last seen timestamp: yesterday at specific time. */
+"timestamp.last.seen.yesterday.at" = "آخر ظهور أمس، الساعة %@";
+
+/* Capitalized translation of `Now` to be used as timestamp. */
+"timestamp.now.capitalized" = "الآن";
+
+/* Lowercase translation of `Now` to be used as timestamp. */
+"timestamp.now.lowercase" = "الآن";
+
+/* Timestamp: `Today` */
+"timestamp.today" = "اليوم";
+
+/* Timestamp: `Yesterday` */
+"timestamp.yesterday" = "الأمس";
+
+/* Screen title */
+"title.camera" = "الكاميرا";
+
+/* Title for new message screen where user chooses who to message */
+"title.chat.new.message" = "رسالة جديدة";
+
+/* Third tab in the main app interface. */
+"title.chats" = "الدردشات";
+
+/* Title for the Comments screen. */
+"title.comments" = "التعليقات";
+
+/* Title for the picker screen. */
+"title.comments.picker" = "تعليق جديد";
+
+/* Button to edit favorites list */
+"title.edit.favorites" = "تعديل قائمة المفضلة";
+
+/* Second tab in the main app interface. */
+"title.groups" = "المجموعات";
+
+/* First tab in the main app interface. */
+"title.home" = "الرئيسية";
+
+/* Row in Settings screen */
+"title.notifications" = "إشعارات";
+
+/* Row in Settings screen */
+"title.privacy" = "الخصوصية";
+
+/* Title of screen where user can add members during group creation flow */
+"title.select.group.members.create.title" = "إضافة أعضاء";
+
+/* Title of screen where user chooses members to add to either a new group or an existing one */
+"title.select.group.members.title" = "إضافة أعضاء جدد";
+
+/* Fourth tab in the main app interface */
+"title.settings" = "الإعدادات";
+
+/* Row in Settings screen */
+"title.storage" = "التخزين";
+
+/* Title for the screen with information about who saw your post. */
+"title.your.post" = "شاهَدَه";
+
+/* Indicates which switch a user needs to turn on to enable contacts permissions. */
+"turn.on.contacts" = "تفعيل إذن \"جهات الاتصال\"";
+
+/* Instructs user to tap a button (e.g., Tap “Go to Settings” below.) */
+"tutorial.tap.below" = "انقر على \"%@\" أدناه.";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "جهة اتصال مجهولة";
+
+/* Text for action label that lets the user accept messages from unknown contacts */
+"unknown.contact.accept.to.message" = "قبول الرسالة";
+
+/* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
+"unknown.contact.not.in.contact.book" = "هذا المُرسِل ليس ضمن قائمة جهات اتصالك.";
+
+/* Alert appearing after clicking an external share link that failed to load */
+"urlrouter.externalShare.failed" = "تعذّر تحميل المنشور";
+
+/* Button to confirm blocking user via profile page */
+"user.block" = "حظر";
+
+/* Message asking if the user is sure they want to block this user */
+"user.block.message" = "هل تريد فعلاً حظر %@ على هالوآب؟ يمكنك تغيير ذلك لاحقًا.";
+
+/* Option when user taps more on profile page */
+"user.option.block" = "الحظر على هالوآب";
+
+/* Option when User clicks on the phone number on profile page and this can let the user copy the phone number */
+"user.option.copy.phone.number" = "نسخ رقم الهاتف";
+
+/* Option when user taps more on profile page */
+"user.option.unblock" = "رفع الحظر على هالوآب";
+
+/* Button to confirm unblocking user via profile page */
+"user.unblock" = "رفع الحظر";
+
+/* Message asking if the user is sure they want to unblock this user */
+"user.unblock.message" = "هل تريد فعلاً رفع الحظر عن %@ على هالوآب؟ يمكنك تغيير ذلك لاحقًا.";
+
+/* Button to start voice call. Should be translated as verb. */
+"user.voice.call" = "اتصال";
+
+/* Reference to the user, second person pronoun */
+"user.you" = "أنت";
+
+/* Capitalized reference to the user, second person pronoun */
+"user.you.capitalized" = "أنت";
+
+/* No comment provided by engineer. */
+"VIDEO" = "فيديو";
+
+/* Title for the button that confirms intent to delete your own post. */
+"your.post.deletepost.button" = "حذف المنشور";
+
+/* Post deletion confirmation. Displayed as action sheet title. */
+"your.post.deletepost.confirmation" = "حذف هذا المنشور؟ لا يمكن التراجع عن هذا الإجراء.";
+
+/* Displayed when a post fails to delete */
+"your.post.deletepost.error" = "حدث خطأ أثناء حذف المنشور";
+
+/* Button to open the system share sheet with an external post link */
+"your.post.externalshare.button" = "المشاركة خارج هالوآب";
+
+/* Title for button in action sheet prompting user to share post to external sites */
+"your.post.externalshare.copylink" = "انسخ الرابط لمشاركته";
+
+/* Success toast when external share link is copied */
+"your.post.externalshare.copylink.success" = "تم نسخ الرابط إلى الحافظة";
+
+/* Message on header of post menu explaining external share */
+"your.post.externalshare.description2" = "أي شخص لديه الرابط يمكنه رؤية منشورك. وتنتهي صلاحية الرابط بانتهاء صلاحية المنشور. علمًا بأن معاينة الرابط غير مشفّرة.";
+
+/* Message that external share failed. */
+"your.post.externalshare.error" = "تعذّر تحميل المنشور للمشاركة خارج هالوآب";
+
+/* Button to invalidate an external share link */
+"your.post.externalshare.revoke" = "إلغاء الرابط";
+
+/* Message that revoking external share link failed. */
+"your.post.externalshare.revoke.error" = "تعذّر إلغاء رابط المشاركة الخارجية";
+
+/* Notification that a link was successfully revoked */
+"your.post.externalshare.revoke.success" = "تم إلغاء الرابط";
+
+/* Notification revoking an external share link is in progress */
+"your.post.externalshare.revoking" = "جارٍ إلغاء الرابط...";
+
+/* Text introducing external share link, part of what is shared */
+"your.post.externalshare.title" = "الاطلاع على منشوري في هالوآب:";
+
+/* Notification that post is uploading */
+"your.post.externalshare.uploading" = "جارٍ إنشاء الرابط...";
+

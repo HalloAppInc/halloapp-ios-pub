@@ -1,0 +1,90 @@
+/* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
+"button.install" = "تثبيت";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "التالي";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "موافق";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "تحديث";
+
+/* Title for exit button that closes the app */
+"home.update.notice.button.exit" = "إغلاق";
+
+/* Text shown to users who have old versions of the app */
+"home.update.notice.text" = "يُرجى التحديث إلى آخر إصدار من هالوآب";
+
+/* Title of update notice shown to users who have old versions of the app */
+"home.update.notice.title" = "هذا الإصدار قديم";
+
+/* Disclaimer text about receiving SMS verification code */
+"registration.code.disclaimer" = "ستتلقى رمز التأكيد. \nقد تطبق رسوم من شركة الاتصالات التابع لها.";
+
+/* Error message to display when user enters incorrect verification code */
+"registration.code.incorrect" = "الرمز الذي أدخلته غير صحيح";
+
+/* Instructions for filling in SMS verification code. Parameter is formatted phone number */
+"registration.code.instructions" = "أدخل رمز التأكيد الذي أرسلناه إلى %@";
+
+/* Error message to display when we cannot send a verification code */
+"registration.code.request.error" = "تعذّر إرسال الرمز. يُرجى إعادة المحاولة لاحقًا.";
+
+/* Button label to resend verification code */
+"registration.code.resend" = "إعادة إرسال الرمز عبر رسالة نصية";
+
+/* Button label to resend verification code by voice call */
+"registration.code.resend.by.voice" = "الاتصال بي";
+
+/* Text explaining why we need contact permissions */
+"registration.contacts.content" = "للتواصل مع أصدقائك وأفراد عائلتك يجب أن تمنح التطبيق إذن الوصول إلى جهات اتصالك.";
+
+/* Title for text explaining why we need contact permissions */
+"registration.contacts.title" = "أمر أخير";
+
+/* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
+"registration.free.app.notice" = "مجانًا على App Store لهواتف iPhone";
+
+/* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
+"registration.group.name" = "أنت مدعو للانضمام إلى المجموعة %@";
+
+/* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
+"registration.install.app.to.continue" = "تثبيت هالوآب للمتابعة";
+
+/* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
+"registration.install.app.to.join.group" = "يجب تثبيت هالوآب للانضمام إلى %@";
+
+/* Title for popup that appears when user tries to register invalid number */
+"registration.invalidphone" = "عذرًا!";
+
+/* Popup that appears when user tries to register invalid number */
+"registration.invalidphone.only" = "رقم الهاتف الذي أدخلته غير صالح. يُرجى إعادة التحقق.";
+
+/* Popup that appears when user tries to register uninvited number */
+"registration.invite.only" = "إذا استخدمت رابط الدعوة إلى المجموعة للتسجيل، يُرجى النقر على الرابط مرة أخرى لإكمال التسجيل والانضمام إلى المجموعة.";
+
+/* Placeholder text for name entry */
+"registration.nameEntry.placeholder" = "اسمك";
+
+/* Placeholder text for phone entry */
+"registration.phoneEntry.placeholder" = "رقم الهاتف";
+
+/* Text for modal describing how we use contacts data */
+"registration.privacy.content" = "لا يستخدم هالوآب حقل رقم الهاتف إلا لمطابقتك بأصدقائك على هالوآب، ولا يسجل أي بيانات إضافية من قائمة جهات اتصالك.";
+
+/* Title for modal describing how we use contacts data */
+"registration.privacy.title" = "خصوصيتك على رأس أولوياتنا";
+
+/* Title for popup that appears when user tries to register uninvited number */
+"registration.shucks" = "عذرًا!";
+
+/* Shown above name and phone inputs */
+"registration.welcome" = "أهلاً!";
+
+/* Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account */
+"settings.account.deleted.message" = "لن تتمكن من تسجيل الدخول إلا بعد إعادة تشغيل التطبيق";
+
+/* Alert title telling the user that their account was successfully deleted */
+"settings.account.deleted.title" = "تم حذف الحساب بنجاح";
+

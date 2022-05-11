@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>chat.n.users.typing</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%@ %#@n_users@</string>
+		<key>n_users</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>جارٍ الكتابة...</string>
+			<key>many</key>
+			<string>جارٍ الكتابة...</string>
+			<key>one</key>
+			<string>جارٍ الكتابة...</string>
+			<key>other</key>
+			<string>جارٍ الكتابة...</string>
+			<key>two</key>
+			<string>جارٍ الكتابة...</string>
+			<key>zero</key>
+			<string>جارٍ الكتابة...</string>
+		</dict>
+	</dict>
+	<key>composer.privacy.value.n.selected</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_selected@</string>
+		<key>n_selected</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>المشاركة مع %d من جهات اتصالي</string>
+			<key>many</key>
+			<string>المشاركة مع %d من جهات اتصالي</string>
+			<key>one</key>
+			<string>المشاركة مع %d من جهات اتصالي</string>
+			<key>other</key>
+			<string>المشاركة مع %d من جهات اتصالي</string>
+			<key>two</key>
+			<string>المشاركة مع %d من جهات اتصالي</string>
+			<key>zero</key>
+			<string>المشاركة مع %d من جهات اتصالي</string>
+		</dict>
+	</dict>
+	<key>feed.privacy.value.n.contacts.excluded</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_excluded@</string>
+		<key>n_excluded</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>%d جهات اتصال مستبعدة</string>
+			<key>many</key>
+			<string>%d جهة اتصال مستبعدة</string>
+			<key>one</key>
+			<string>جهة اتصال مستبعدة %d</string>
+			<key>other</key>
+			<string>%d جهة اتصال مستبعدة</string>
+			<key>two</key>
+			<string>جهتا اتصال %d مستبعدتان</string>
+			<key>zero</key>
+			<string>%d من جهات الاتصال المستبعدة</string>
+		</dict>
+	</dict>
+	<key>feed.privacy.value.n.contacts.selected</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_selected@</string>
+		<key>n_selected</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>تم اختيار %d جهات اتصال</string>
+			<key>many</key>
+			<string>تم اختيار %d جهة اتصال</string>
+			<key>one</key>
+			<string>تم اختيار جهة اتصال %d</string>
+			<key>other</key>
+			<string>تم اختيار %d جهة اتصال</string>
+			<key>two</key>
+			<string>تم اختيار جهتي اتصال %d</string>
+			<key>zero</key>
+			<string>تم اختيار %d من جهات الاتصال</string>
+		</dict>
+	</dict>
+	<key>feed.privacy.value.n.excluded</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_excluded@</string>
+		<key>n_excluded</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>تم استبعاد %d</string>
+			<key>many</key>
+			<string>تم استبعاد %d</string>
+			<key>one</key>
+			<string>تم استبعاد %d</string>
+			<key>other</key>
+			<string>تم استبعاد %d</string>
+			<key>two</key>
+			<string>تم استبعاد %d</string>
+			<key>zero</key>
+			<string>تم استبعاد %d</string>
+		</dict>
+	</dict>
+	<key>feed.privacy.value.n.selected</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_selected@</string>
+		<key>n_selected</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>تم تحديد %d</string>
+			<key>many</key>
+			<string>تم تحديد %d</string>
+			<key>one</key>
+			<string>تم تحديد %d</string>
+			<key>other</key>
+			<string>تم تحديد %d</string>
+			<key>two</key>
+			<string>تم تحديد %d</string>
+			<key>zero</key>
+			<string>تم تحديد %d</string>
+		</dict>
+	</dict>
+	<key>group.feed.n.members</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_members@</string>
+		<key>n_members</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>%d أعضاء</string>
+			<key>many</key>
+			<string>%d عضوًا</string>
+			<key>one</key>
+			<string>عضو %d</string>
+			<key>other</key>
+			<string>%d عضو</string>
+			<key>two</key>
+			<string>عضوان %d</string>
+			<key>zero</key>
+			<string>No members</string>
+		</dict>
+	</dict>
+	<key>media.prepare.failed.n.count</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@mediaCount@</string>
+		<key>mediaCount</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>تعذّر إعداد %d ملفات وسائط. يُرجى إعادة المحاولة أو تحديد صورة مختلفة أو فيديو آخر.</string>
+			<key>many</key>
+			<string>تعذّر إعداد %d ملف وسائط. يُرجى إعادة المحاولة أو تحديد صورة مختلفة أو فيديو آخر.</string>
+			<key>one</key>
+			<string>تعذّر إعداد ملف وسائط %d. يُرجى إعادة المحاولة أو تحديد صورة مختلفة أو فيديو آخر.</string>
+			<key>other</key>
+			<string>تعذّر إعداد %d ملف وسائط. يُرجى إعادة المحاولة أو تحديد صورة مختلفة أو فيديو آخر.</string>
+			<key>two</key>
+			<string>تعذّر إعداد ملفي وسائط %d. يُرجى إعادة المحاولة أو تحديد صورة مختلفة أو فيديو آخر.</string>
+			<key>zero</key>
+			<string>تعذّر إعداد %d من ملفات الوسائط. يُرجى إعادة المحاولة أو تحديد صورة مختلفة أو فيديو آخر.</string>
+		</dict>
+	</dict>
+	<key>n.invites.count</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_invites_count@</string>
+		<key>n_invites_count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>لديك %d دعوات</string>
+			<key>many</key>
+			<string>لديك %d دعوة</string>
+			<key>one</key>
+			<string>لديك دعوة %d</string>
+			<key>other</key>
+			<string>لديك %d دعوة</string>
+			<key>two</key>
+			<string>لديك دعوتان %d</string>
+			<key>zero</key>
+			<string>لديك %d من الدعوات</string>
+		</dict>
+	</dict>
+	<key>n.invites.remaining</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_invites_remaining@</string>
+		<key>n_invites_remaining</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>تبقى لديك %d دعوات</string>
+			<key>many</key>
+			<string>تبقى لديك %d دعوة</string>
+			<key>one</key>
+			<string>تبقى لديك دعوة %d</string>
+			<key>other</key>
+			<string>تبقى لديك %d دعوة</string>
+			<key>two</key>
+			<string>تبقى لديك دعوتان %d</string>
+			<key>zero</key>
+			<string>تبقى لديك %d من الدعوات</string>
+		</dict>
+	</dict>
+	<key>n.others.replied</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_others_replied@</string>
+		<key>n_others_replied</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>قام &lt;$user$&gt; و%d آخرون بالرد على منشور &lt;$author$&gt;</string>
+			<key>many</key>
+			<string>قام &lt;$user$&gt; و%d آخرون بالرد على منشور &lt;$author$&gt;</string>
+			<key>one</key>
+			<string>قام &lt;$user$&gt; و%d آخر بالرد على منشور &lt;$author$&gt;</string>
+			<key>other</key>
+			<string>قام &lt;$user$&gt; و%d آخرون بالرد على منشور &lt;$author$&gt;</string>
+			<key>two</key>
+			<string>قام &lt;$user$&gt; و%d آخرَان بالرد على منشور &lt;$author$&gt;</string>
+			<key>zero</key>
+			<string>قام &lt;$user$&gt; و%d من الآخرين بالرد على منشور &lt;$author$&gt;</string>
+		</dict>
+	</dict>
+	<key>notification.n.photos</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@num_photos@</string>
+		<key>num_photos</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>📷 %d صور</string>
+			<key>many</key>
+			<string>📷 %d صورة</string>
+			<key>one</key>
+			<string>📷 صورة %d</string>
+			<key>other</key>
+			<string>📷 %d صورة</string>
+			<key>two</key>
+			<string>📷 صورتان %d</string>
+			<key>zero</key>
+			<string>📷 %d من الصور</string>
+		</dict>
+	</dict>
+	<key>notification.n.videos</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@num_videos@</string>
+		<key>num_videos</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>📹 %d فيديوهات</string>
+			<key>many</key>
+			<string>📹 %d فيديو</string>
+			<key>one</key>
+			<string>📹 فيديو %</string>
+			<key>other</key>
+			<string>📹 %d فيديو</string>
+			<key>two</key>
+			<string>📹 فيديوهان %</string>
+			<key>zero</key>
+			<string>📹 %d من الفيديوهات</string>
+		</dict>
+	</dict>
+	<key>picker.media.n.limit</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@max_photos@</string>
+		<key>max_photos</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>يمكنك تحديد حتى % عناصر</string>
+			<key>many</key>
+			<string>يمكنك تحديد حتى %d عنصرًا</string>
+			<key>one</key>
+			<string>يمكنك تحديد عنصر %</string>
+			<key>other</key>
+			<string>يمكنك تحديد حتى %d عنصر</string>
+			<key>two</key>
+			<string>يمكنك تحديد حتى عنصرين %</string>
+			<key>zero</key>
+			<string>يمكنك تحديد % من العناصر</string>
+		</dict>
+	</dict>
+	<key>privacy.n.contacts</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>%d جهات اتصال</string>
+			<key>many</key>
+			<string>%d جهة اتصال</string>
+			<key>one</key>
+			<string>جهة اتصال %d</string>
+			<key>other</key>
+			<string>%d جهة اتصال</string>
+			<key>two</key>
+			<string>جهتا اتصال %d</string>
+			<key>zero</key>
+			<string>None</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

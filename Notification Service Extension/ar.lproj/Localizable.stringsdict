@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>notification.n.photos</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@num_photos@</string>
+		<key>num_photos</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>📷 %d صور</string>
+			<key>many</key>
+			<string>📷 %d صورة</string>
+			<key>one</key>
+			<string>📷 صورة %d</string>
+			<key>other</key>
+			<string>📷 %d صورة</string>
+			<key>two</key>
+			<string>📷 صورتان %d</string>
+			<key>zero</key>
+			<string>📷 %d من الصور</string>
+		</dict>
+	</dict>
+	<key>notification.n.videos</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@num_videos@</string>
+		<key>num_videos</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>📹 %d مقاطع فيديو</string>
+			<key>many</key>
+			<string>📹 %d مقطع فيديو</string>
+			<key>one</key>
+			<string>📹 مقطع فيديو %d</string>
+			<key>other</key>
+			<string>📹 %d مقطع فيديو</string>
+			<key>two</key>
+			<string>📹 مقطعا فيديو %d</string>
+			<key>zero</key>
+			<string>📹 %d من مقاطع الفيديو</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

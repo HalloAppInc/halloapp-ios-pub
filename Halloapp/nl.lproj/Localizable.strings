@@ -238,6 +238,9 @@
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Initialisatiefout";
 
+/* Title of the button that allows camera permissions. */
+"camera.permission.allow.access" = "Toegang toestaan";
+
 /* No comment provided by engineer. */
 "Cancel" = "Annuleren";
 
@@ -1108,6 +1111,9 @@
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ heeft je uitnodiging voor HalloApp geaccepteerd 🎉";
 
+/* New moment notification text to be shown to the user. */
+"notification.moment" = "Nieuw moment";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
 
@@ -1170,6 +1176,9 @@
 
 /* Text for new user popup pointing at new post button */
 "nux.new.post.button" = "Tik om een update te delen met je vrienden & familie op HalloApp";
+
+/* Title of the button that opens the camera. */
+"open.camera" = "Camera Openen";
 
 /* Text that indicates an open action. */
 "open.title" = "Openen";
@@ -1536,6 +1545,12 @@
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Sluit je aan bij mijn netwerk voor échte relaties op HalloApp. Download gratis op halloapp.com/dl";
+
+/* Alert that tells the user to allow camera access to share a moment. */
+"share.moment.camera.permission" = "Geef toegang tot de camera om een moment te delen";
+
+/* Prompt for the user to share a moment. */
+"share.moment.prompt" = "Deel een moment";
 
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "tik om terug te gaan naar oproep";

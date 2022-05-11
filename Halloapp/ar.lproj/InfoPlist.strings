@@ -1,0 +1,15 @@
+/* Bundle name */
+"CFBundleName" = "هالوآب";
+
+/* Privacy - Camera Usage Description */
+"NSCameraUsageDescription" = "يتيح لك هذا التقاط الصور والفيديوهات من داخل هالوآب مباشرةً.";
+
+/* Privacy - Contacts Usage Description */
+"NSContactsUsageDescription" = "يجب السماح لهالوآب بالوصول إلى جهات اتصالك لتتمكن أنت وأصدقاؤك وعائلتك من رؤية منشورات بعضكم البعض.";
+
+/* Privacy - Microphone Usage Description */
+"NSMicrophoneUsageDescription" = "يتيح لك هذا إجراء المكالمات وإرسال المنشورات والرسائل الصوتية وتسجيل الفيديوهات مع تضمين الصوت.";
+
+/* Privacy - Photo Library Usage Description */
+"NSPhotoLibraryUsageDescription" = "يتيح لك هذا مشاركة الصور والفيديوهات من مكتبتك وحفظ الملفات التي تلتقطها.";
+
