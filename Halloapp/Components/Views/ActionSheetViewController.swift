@@ -15,11 +15,13 @@ class ActionSheetAction {
     }
 
     let title: String
+    let image: UIImage?
     let style: Style
     fileprivate let handler: ((ActionSheetAction) -> Void)?
 
-    init(title: String, style: Style, handler: ((ActionSheetAction) -> Void)? = nil) {
+    init(title: String, image: UIImage? = nil, style: Style, handler: ((ActionSheetAction) -> Void)? = nil) {
         self.title = title
+        self.image = image
         self.style = style
         self.handler = handler
     }
@@ -110,7 +112,11 @@ class ActionSheetViewController: UIViewController, UIViewControllerTransitioning
         previousHeaderSubview?.lastBaselineAnchor.constraint(equalTo: headerContentView.lastBaselineAnchor,
                                                              constant: -17).isActive = true
 
-        primaryActionGroupView.addArrangedSubview(headerContentView)
+        if !headerContentView.subviews.isEmpty {
+            // TODO: look into this...
+            // not having this check completely breaks layout if neither label has text
+            primaryActionGroupView.addArrangedSubview(headerContentView)
+        }
 
         // Primary Actions
 
@@ -130,7 +136,6 @@ class ActionSheetViewController: UIViewController, UIViewControllerTransitioning
             }
             cancelActionGroupView.addArrangedSubview(ActionView(action: action))
         }
-
         // Insert all action group views
         var previousActionGroupView: UIView? = nil
         for actionGroupView in [primaryActionGroupView, cancelActionGroupView] {
@@ -235,6 +240,7 @@ class ActionSheetViewController: UIViewController, UIViewControllerTransitioning
 
     private class ActionView: UIView {
         private var titleLabel = UILabel()
+        private var imageView: UIImageView?
         private var highlightBackgroundView = UIVisualEffectView()
 
         var isHighlighted = false {
@@ -279,24 +285,51 @@ class ActionSheetViewController: UIViewController, UIViewControllerTransitioning
 
             let heightConstraint = heightAnchor.constraint(equalToConstant: 57)
             heightConstraint.priority = .defaultLow
+            var imageConstraints = configureImage()
 
+            if let imageView = imageView {
+                imageConstraints.append(titleLabel.leadingAnchor.constraint(equalTo: imageView.trailingAnchor, constant: 12))
+            } else {
+                imageConstraints.append(titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor))
+            }
+            
             NSLayoutConstraint.activate([
                 highlightBackgroundView.leadingAnchor.constraint(equalTo: leadingAnchor),
                 highlightBackgroundView.trailingAnchor.constraint(equalTo: trailingAnchor),
                 highlightBackgroundView.topAnchor.constraint(equalTo: topAnchor),
                 highlightBackgroundView.bottomAnchor.constraint(equalTo: bottomAnchor),
-                titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
                 titleLabel.topAnchor.constraint(greaterThanOrEqualTo: topAnchor, constant: 8),
                 titleLabel.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -8),
                 titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
                 titleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: 12),
                 titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -12),
                 heightConstraint,
-            ])
+            ] + imageConstraints)
 
             isAccessibilityElement = true
             accessibilityTraits = .button
             accessibilityLabel = action.title
+        }
+        
+        private func configureImage() -> [NSLayoutConstraint] {
+            guard let image = action.image else {
+                return []
+            }
+            
+            let imageView = UIImageView(image: image)
+            imageView.contentMode = .scaleAspectFit
+            imageView.translatesAutoresizingMaskIntoConstraints = false
+            addSubview(imageView)
+            self.imageView = imageView
+            
+            let constraints = [
+                imageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
+                imageView.heightAnchor.constraint(equalToConstant: 27),
+                imageView.widthAnchor.constraint(equalToConstant: 27),
+                imageView.centerYAnchor.constraint(equalTo: centerYAnchor),
+            ]
+            
+            return constraints
         }
 
         required init?(coder: NSCoder) {

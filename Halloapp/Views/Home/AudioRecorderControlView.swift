@@ -42,6 +42,10 @@ class AudioRecorderControlView: UIView {
     private let configuration: Configuration
 
     private var lockButtonAnimator: UIViewPropertyAnimator?
+    
+    override var intrinsicContentSize: CGSize {
+        return mainButton.intrinsicContentSize
+    }
 
     private lazy var mainButton: UIImageView = {
         let imageView = UIImageView(image: UIImage(named: "Microphone")?.withRenderingMode(.alwaysTemplate))
@@ -370,8 +374,9 @@ class AudioRecorderControlView: UIView {
         expandingContainer.layer.cornerRadius = expandingContainerWidth.constant / 2
         blurredBackground.layer.cornerRadius = expandingContainerWidth.constant / 2
         layoutIfNeeded()
-
-        UIView.animate(withDuration: 0.3) {
+        
+        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.75, initialSpringVelocity: 0) {
+            // using the same animation parameters as the FAB
             self.expandingContainerWidth.constant = self.configuration.expandMaxSize
             self.expandingContainerHeight.constant = self.configuration.expandMaxSize
             self.expandingContainer.layer.cornerRadius = self.expandingContainerWidth.constant / 2

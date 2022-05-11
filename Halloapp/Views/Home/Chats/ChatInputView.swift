@@ -43,14 +43,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     weak var delegate: ChatInputViewDelegate?
     weak var mentionsDelegate: ChatInputViewMentionsDelegate?
 
-    static private let voiceNoteDurationFormatter: DateComponentsFormatter = {
-        let formatter = DateComponentsFormatter()
-        formatter.zeroFormattingBehavior = .pad
-        formatter.allowedUnits = [.second, .minute]
-
-        return formatter
-    }()
-
     private var previousHeight: CGFloat = 0
     
     private var isVisible: Bool = false
@@ -1128,7 +1120,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
                 text.append(NSAttributedString(string: message))
 
                 if FileManager.default.fileExists(atPath: url.path) {
-                    let duration = Self.voiceNoteDurationFormatter.string(from: AVURLAsset(url: url).duration.seconds) ?? ""
+                    let duration = ContentInputView.voiceNoteDurationFormatter.string(from: AVURLAsset(url: url).duration.seconds) ?? ""
                     text.append(NSAttributedString(string: " (" + duration + ")"))
                 }
 
@@ -1657,11 +1649,5 @@ extension ChatInputView: AudioViewDelegate {
     }
 
     func audioViewDidEndPlaying(_ view: AudioView, completed: Bool) {
-    }
-}
-
-extension Localizations {
-    static var chatInputPlaceholder: String {
-        NSLocalizedString("chat.message.placeholder", value: "Write a message", comment: "Text shown when chat input box is empty")
     }
 }

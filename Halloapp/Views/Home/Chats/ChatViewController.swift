@@ -59,6 +59,8 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     private var currentUnseenGroupChatThreadsList: [GroupID: Int] = [:]
 
     private var cancellableSet: Set<AnyCancellable> = []
+    
+    private var transitionSnapshot: UIView?
 
     // MARK: Lifecycle
 
@@ -116,9 +118,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         tableView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
         tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
         tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
-
-        tableView.backgroundColor = UIColor.primaryBg
-
+        tableView.backgroundColor = .primaryBg
         tableView.rowHeight = UITableView.automaticDimension
 
         DispatchQueue.main.async { [weak self] in
@@ -216,24 +216,30 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard(_:)))
         view.addGestureRecognizer(tapGesture)
-        
-        if let feedPostId = self.feedPostId, let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
-            let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.rawText, mentions: feedPost.orderedMentions)
-            let mediaType: CommonMediaType?
-            let mediaUrl: URL?
-            if let mediaItem = feedPost.media?.first(where: { $0.order == self.feedPostMediaIndex }) {
-                mediaType = mediaItem.type
-                mediaUrl = MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
-            } else {
-                mediaType = nil
-                mediaUrl = nil
+
+        if let feedPostId = self.feedPostId {
+            if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
+                let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.rawText, mentions: feedPost.orderedMentions)
+                if let mediaItem = feedPost.media?.first(where: { $0.order == self.feedPostMediaIndex }), let mediaType = CommonMediaType(rawValue: mediaItem.type.rawValue){
+                    
+                    let mediaUrl = MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
+                    let info = QuotedItemPanel.PostInfo(userID: feedPost.userId,
+                                                          text: mentionText?.string ?? "",
+                                                     mediaType: mediaType,
+                                                     mediaLink: mediaUrl)
+                    let panel = QuotedItemPanel()
+                    panel.postInfo = info
+                    contentInputView.display(context: panel)
+                } else {
+                    let info = QuotedItemPanel.PostInfo(userID: feedPost.userId,
+                                                          text: mentionText?.string ?? "",
+                                                     mediaType: nil,
+                                                     mediaLink: nil)
+                    let panel = QuotedItemPanel()
+                    panel.postInfo = info
+                    contentInputView.display(context: panel)
+                }
             }
-            chatInputView.showQuoteFeedPanel(with: feedPost.userId,
-                                             text: mentionText?.string ?? "",
-                                             mediaType: mediaType,
-                                             mediaUrl: mediaUrl,
-                                             from: self,
-                                             isQuotedFeedPost: true)
         }
 
         cancellableSet.insert(
@@ -325,10 +331,10 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        chatInputView.willAppear(in: self)
+        
         scrollToBottomIfNecessary()
+        removeTransitionSnapshot()
     }
-
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
@@ -341,13 +347,14 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
             UNUserNotificationCenter.current().removeDeliveredChatNotifications(fromUserId: chatWithUserId)
         }
-        chatInputView.didAppear(in: self)
         
         guard let keyWindow = UIApplication.shared.windows.filter({$0.isKeyWindow}).first else { return }
         keyWindow.addSubview(jumpButton)
         jumpButton.trailingAnchor.constraint(equalTo: keyWindow.trailingAnchor).isActive = true
         jumpButtonConstraint = jumpButton.bottomAnchor.constraint(equalTo: keyWindow.bottomAnchor, constant: -100)
         jumpButtonConstraint?.isActive = true
+        
+        updateJumpButtonVisibility()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -357,15 +364,39 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         }
         pauseVoiceNotes()
         MainAppContext.shared.chatData.setCurrentlyChattingWithUserId(for: nil)
-        chatInputView.willDisappear(in: self)
         
         jumpButton.removeFromSuperview()
-        
         navigationController?.navigationBar.backItem?.backBarButtonItem = UIBarButtonItem()
+        
+        applyTransitionSnapshot()
+    }
+    
+    private func removeTransitionSnapshot() {
+        transitionSnapshot?.removeFromSuperview()
+        contentInputView.isHidden = false
+    }
+    
+    private func applyTransitionSnapshot() {
+        // do this to maintain the blur effect of `contentInputView` during dismissal
+        guard let container = transitionCoordinator?.view(forKey: .from) else {
+            return
+        }
+        
+        let snapshot = UIScreen.main.snapshotView(afterScreenUpdates: false)
+        container.addSubview(snapshot)
+        
+        contentInputView.isHidden = true
+        self.transitionSnapshot = snapshot
     }
     
     deinit {
         DDLogDebug("ChatViewController/deinit/\(fromUserId ?? "")")
+        
+        if let fromUserId = fromUserId {
+            MainAppContext.shared.chatData.sendChatState(type: .oneToOne,
+                                                           id: fromUserId,
+                                                        state: .available)
+        }
     }
 
     @objc private func audioCallButtonTapped() {
@@ -459,16 +490,15 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         navigationController?.navigationBar.backItem?.backBarButtonItem = backButton
     }
 
-    /// Saves the text currently in the `ChatInputView` into `UserDefaults` to be restored on the next time the user opens the view.
+    /// Saves the text currently in the `ContentInputView` into `UserDefaults` to be restored on the next time the user opens the view.
     /// - Parameter id: The UserID of the other user in the chat.
     private func saveChatDraft(id: UserID) {
-        guard !chatInputView.text.isEmpty else {
+        guard !contentInputView.textView.text.isEmpty else {
             removeChatDraft()
             return
         }
         
-        let draft = ChatDraft(chatID: id, text: chatInputView.text, replyContext: encodeReplyData())
-        
+        let draft = ChatDraft(chatID: id, text: contentInputView.textView.text, replyContext: encodeReplyData())
         var draftsArray = [ChatDraft]()
         
         if let draftsDecoded: [ChatDraft] = try? AppContext.shared.userDefaults.codable(forKey: "chats.drafts") {
@@ -480,7 +510,6 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         }
         
         draftsArray.append(draft)
-        
         try? AppContext.shared.userDefaults.setCodable(draftsArray, forKey: "chats.drafts")
     }
     
@@ -539,7 +568,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         return nil
     }
     
-    /// Restores the text from `UserDefaults` into the `ChatInputView` so the user can continue what they last wrote.
+    /// Restores the text from `UserDefaults` into the `ContentInputView` so the user can continue what they last wrote.
     /// - Parameter id: The UserID of the other user in the chat.
     private func loadChatDraft(id: UserID) {
         guard let draftsArray: [ChatDraft] = try? AppContext.shared.userDefaults.codable(forKey: "chats.drafts") else { return }
@@ -547,7 +576,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             existingDraft.chatID == fromUserId
         }) else { return }
         
-        chatInputView.setDraftText(text: draft.text)
+        contentInputView.set(draft: draft.text)
         
         if let reply = draft.replyContext {
             handleDraftQuotedReply(reply: reply)
@@ -623,7 +652,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         if showUnknownContactActionBanner {
             present(unknownContactSheet, animated: true)
         }
-        
+
         var headerHeight: CGFloat = 90
         if isUserBlocked {
             headerHeight = 130
@@ -1056,12 +1085,11 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     }
 
     private func updateJumpButtonVisibility() {
-        let fromTheBottom = UIScreen.main.bounds.height*1.5 - chatInputView.bottomInset
+        let fromTheBottom = UIScreen.main.bounds.height * 1.5 - tableView.contentInset.bottom
 
         if tableView.contentSize.height - tableView.contentOffset.y > fromTheBottom {
-            // using chatInput instead of tableView.contentInset.bottom since for some reason that changes when entering app from a notification
-            let aboveChatInput = chatInputView.bottomInset + 50
-            jumpButtonConstraint?.constant = -aboveChatInput
+            let aboveAccessoryView = tableView.contentInset.bottom + 50
+            jumpButtonConstraint?.constant = -aboveAccessoryView
             jumpButton.isHidden = false
         } else {
             jumpButton.isHidden = true
@@ -1109,25 +1137,23 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     // MARK: Input view
 
     public func showKeyboard() {
-        chatInputView.showKeyboard(from: self)
+        contentInputView.textView.becomeFirstResponder()
     }
 
-    lazy var chatInputView: ChatInputView = {
-        let inputView = ChatInputView(frame: CGRect(x: 0, y: 0, width: self.view.frame.size.width, height: 90))
+    lazy var contentInputView: ContentInputView = {
+        let inputView = ContentInputView(options: .chat)
+        inputView.autoresizingMask = [.flexibleHeight]
         inputView.delegate = self
-
         if let fromUserId = fromUserId {
             if let url = AudioRecorder.voiceNote(from: MainAppContext.shared.userData.userId, to: fromUserId) {
                 inputView.show(voiceNote: url)
             }
         }
-
         return inputView
     }()
 
     override var inputAccessoryView: UIView? {
-        chatInputView.setInputViewWidth(view.bounds.size.width)
-        return chatInputView
+        return contentInputView
     }
 
     override var canBecomeFirstResponder: Bool {
@@ -1136,57 +1162,26 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         }
     }
 
-    func updateTableViewContentInsets(with keyboardHeight: CGFloat, adjustContentOffset: Bool) {
-        let topInset = tableView.contentInset.top
-        let extraBottomInset: CGFloat = 10 // extra margin for the bottom of the table
-        let bottomInset = keyboardHeight - tableView.safeAreaInsets.bottom + extraBottomInset
-        let currentInset = tableView.contentInset
-        var contentOffset = tableView.contentOffset
-        var adjustContentOffset = adjustContentOffset
-        if bottomInset > currentInset.bottom && currentInset.bottom == 0 {
-            // Because of the SwiftUI the accessory view appears with a slight delay
-            // and bottom inset increased from 0 to some value. Do not scroll when that happens.
-            adjustContentOffset = false
-        }
-        
-        if adjustContentOffset {
-            contentOffset.y += bottomInset - currentInset.bottom
-        }
-        if (adjustContentOffset) {
-            tableView.contentOffset = contentOffset
-        }
-        // Setting contentInset below will also adjust contentOffset as needed if it is outside of the
-        // UITableView's scrollable range.
-        tableView.contentInset = UIEdgeInsets(top: topInset, left: 0, bottom: bottomInset, right: 0)
-        let scrollIndicatorInsets = UIEdgeInsets(top: topInset, left: 0, bottom: bottomInset, right: 0)
-        tableView.scrollIndicatorInsets = scrollIndicatorInsets
-    }
-
     func sendMessage(text: String, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?) {
         guard let sendToUserId = self.fromUserId else { return }
 
         MainAppContext.shared.chatData.sendMessage(toUserId: sendToUserId,
-                                                   text: text,
-                                                   media: media,
-                                                   linkPreviewData: linkPreviewData,
-                                                   linkPreviewMedia : linkPreviewMedia,
-                                                   feedPostId: feedPostId,
-                                                   feedPostMediaIndex: feedPostMediaIndex,
-                                                   chatReplyMessageID: chatReplyMessageID,
-                                                   chatReplyMessageSenderID: chatReplyMessageSenderID,
-                                                   chatReplyMessageMediaIndex: chatReplyMessageMediaIndex)
-
-        chatInputView.closeQuoteFeedPanel()
-        chatInputView.resetLinkDetection()
-
+                                                       text: text,
+                                                      media: media,
+                                            linkPreviewData: linkPreviewData,
+                                           linkPreviewMedia: linkPreviewMedia,
+                                                 feedPostId: feedPostId,
+                                         feedPostMediaIndex: feedPostMediaIndex,
+                                         chatReplyMessageID: chatReplyMessageID,
+                                   chatReplyMessageSenderID: chatReplyMessageSenderID,
+                                 chatReplyMessageMediaIndex: chatReplyMessageMediaIndex)
+        
         feedPostId = nil
         feedPostMediaIndex = 0
 
         chatReplyMessageID = nil
         chatReplyMessageSenderID = nil
         chatReplyMessageMediaIndex = 0
-
-        chatInputView.text = ""
         
         removeChatDraft()
 
@@ -1202,7 +1197,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             if cancel {
                 self.dismiss(animated: true)
             } else {
-                self.presentMediaComposer(pickerController: controller, media: media)
+                self.presentMediaComposer(media: media)
             }
         }
 
@@ -1214,19 +1209,21 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         }
     }
 
-    private func presentMediaComposer(pickerController: MediaPickerViewController, media: [PendingMedia]) {
+    private func presentMediaComposer(media: [PendingMedia]) {
         let composerController = PostComposerViewController(
             mediaToPost: media,
-            initialInput: MentionInput(text: chatInputView.text, mentions: MentionRangeMap(), selectedRange: NSRange()),
+            initialInput: MentionInput(text: contentInputView.textView.text, mentions: MentionRangeMap(), selectedRange: NSRange()),
             configuration: .message(id: fromUserId),
             initialPostType: .library,
             voiceNote: nil,
             delegate: self)
-        pickerController.present(UINavigationController(rootViewController: composerController), animated: false)
+        
+        let presenter = presentedViewController ?? self
+        presenter.present(UINavigationController(rootViewController: composerController), animated: false)
     }
 
     @objc func dismissKeyboard (_ sender: UITapGestureRecognizer) {
-        chatInputView.hideKeyboard()
+        contentInputView.textView.resignFirstResponder()
     }
 }
 
@@ -1597,20 +1594,42 @@ extension ChatViewController {
         
         if let mediaItem = chatMessage.media?.first(where: { $0.order == chatReplyMessageMediaIndex }) {
             let mediaUrl = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
-            
-            chatInputView.showQuoteFeedPanel(with: userID, text: chatMessage.rawText ?? "", mediaType: mediaItem.type, mediaUrl: mediaUrl, from: self, isQuotedFeedPost: false)
+            let info = QuotedItemPanel.PostInfo(userID: userID,
+                                                  text: chatMessage.rawText ?? "",
+                                             mediaType: mediaItem.type,
+                                             mediaLink: mediaUrl)
+            let panel = QuotedItemPanel()
+            panel.postInfo = info
+            contentInputView.display(context: panel)
         } else {
-            chatInputView.showQuoteFeedPanel(with: userID, text: chatMessage.rawText ?? "", mediaType: nil, mediaUrl: nil, from: self, isQuotedFeedPost: false)
+            let info = QuotedItemPanel.PostInfo(userID: userID,
+                                                  text: chatMessage.rawText ?? "",
+                                             mediaType: nil,
+                                             mediaLink: nil)
+            let panel = QuotedItemPanel()
+            panel.postInfo = info
+            contentInputView.display(context: panel)
         }
     }
 
     private func handleDraftQuotedReply(reply: ReplyContext) {
-        chatInputView.showQuoteFeedPanel(with: reply.replySenderID,
-                                         text: reply.text,
-                                         mediaType: reply.media?.type,
-                                         mediaUrl: reply.media.flatMap { URL(string: $0.mediaURL) },
-                                         from: self,
-                                         isQuotedFeedPost: reply.feedPostID != nil)
+        if let mediaURLString = reply.media?.mediaURL, let mediaURL = URL(string: mediaURLString) {
+            let info = QuotedItemPanel.PostInfo(userID: reply.replySenderID,
+                                                  text: reply.text,
+                                             mediaType: reply.media?.type,
+                                             mediaLink: mediaURL)
+            let panel = QuotedItemPanel()
+            panel.postInfo = info
+            contentInputView.display(context: panel)
+        } else {
+            let info = QuotedItemPanel.PostInfo(userID: reply.replySenderID,
+                                                  text: reply.text,
+                                             mediaType: nil,
+                                             mediaLink: nil)
+            let panel = QuotedItemPanel()
+            panel.postInfo = info
+            contentInputView.display(context: panel)
+        }
     }
 }
 
@@ -1803,92 +1822,164 @@ extension ChatViewController: ChatCallViewDelegate {
     }
 }
 
-// MARK: ChatInputView Delegates
-extension ChatViewController: ChatInputViewDelegate {
-    func chatInputView(_ inputView: ChatInputView, didInterruptRecorder recorder: AudioRecorder) {
-        guard let to = fromUserId else { return }
-        guard let url = recorder.saveVoiceNote(from: MainAppContext.shared.userData.userId, to: to) else { return }
+// MARK: - content input view delegate methods
 
-        DispatchQueue.main.async {
-            self.chatInputView.show(voiceNote: url)
-        }
+extension ChatViewController: ContentInputDelegate {
+    func inputView(_ inputView: ContentInputView, possibleMentionsFor input: String) -> [MentionableUser] {
+        return []
     }
     
-    func chatInputView(_ inputView: ChatInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve) {
-        var animationDuration = animationDuration
-        if transitionCoordinator != nil {
-            animationDuration = 0
-        }
-        var adjustContentOffset = true
-        // Prevent the content offset from changing when the user drags the keyboard down.
-        if tableView.panGestureRecognizer.state == .ended || self.tableView.panGestureRecognizer.state == .changed {
-            adjustContentOffset = false
-        }
-        
-        let updateBlock = {
-            self.updateTableViewContentInsets(with: inputView.bottomInset, adjustContentOffset: adjustContentOffset)
-            self.updateJumpButtonVisibility()
-        }
-        if animationDuration > 0 {
-            updateBlock()
-        } else {
-            UIView.performWithoutAnimation(updateBlock)
-        }
-    }
-    
-    func chatInputView(_ inputView: ChatInputView, isTyping: Bool) {
+    func inputView(_ inputView: ContentInputView, isTyping: Bool) {
         guard let userID = fromUserId else { return }
-        if isTyping {
-            MainAppContext.shared.chatData.sendChatState(type: .oneToOne, id: userID, state: .typing)
-        } else {
-            MainAppContext.shared.chatData.sendChatState(type: .oneToOne, id: userID, state: .available)
+        let state: ChatState = isTyping ? .typing : .available
+        
+        MainAppContext.shared.chatData.sendChatState(type: .oneToOne,
+                                                       id: userID,
+                                                    state: state)
+    }
+    
+    func inputView(_ inputView: ContentInputView, didPost content: ContentInputView.InputContent) {
+        sendMessage(text: content.mentionText.trimmed().collapsedText,
+                   media: content.media,
+         linkPreviewData: content.linkPreview?.data,
+        linkPreviewMedia: content.linkPreview?.media)
+    }
+    
+    func inputView(_ inputView: ContentInputView, didChangeHeightTo height: CGFloat) {
+        if let coordinator = transitionCoordinator, coordinator.isInteractive {
+            return
+        }
+        
+        let newInsets = UIEdgeInsets(top: tableView.contentInset.top,
+                                    left: 0,
+                                  bottom: (height - view.safeAreaInsets.bottom) + 10,
+                                   right: 0)
+        
+        var newOffset = tableView.contentOffset
+        newOffset.y += newInsets.bottom - tableView.contentInset.bottom
+        
+        if tableView.contentInset.bottom != 0, tableView.contentInset != newInsets {
+            // not having the second condition causes inertial scrolling to break
+            tableView.setContentOffset(newOffset, animated: false)
+        }
+        
+        tableView.contentInset = newInsets
+        tableView.scrollIndicatorInsets = newInsets
+        
+        updateJumpButtonVisibility()
+    }
+    
+    func inputView(_ inputView: ContentInputView, didClose panel: InputContextPanel) {
+        if panel.isKind(of: QuotedItemPanel.self) {
+            feedPostId = nil
+            feedPostMediaIndex = 0
+            
+            chatReplyMessageID = nil
+            chatReplyMessageSenderID = nil
+            chatReplyMessageMediaIndex = 0
         }
     }
     
-    func chatInputViewCloseQuotePanel(_ inputView: ChatInputView) {
-        feedPostId = nil
-        feedPostMediaIndex = 0
+    func inputViewDidSelectCamera(_ inputView: ContentInputView) {
+        presentCameraViewController()
+    }
+    
+    func inputViewDidSelectContentOptions(_ inputView: ContentInputView) {
+        let action = ActionSheetViewController(title: "", message: "")
+        let cameraImage = UIImage(systemName: "camera.fill")?.withRenderingMode(.alwaysOriginal)
+                                                             .withTintColor(.primaryBlue)
+        let pickerImage = UIImage(systemName: "photo.fill.on.rectangle.fill")?.withRenderingMode(.alwaysOriginal)
+                                                                              .withTintColor(.primaryBlue)
         
-        chatReplyMessageID = nil
-        chatReplyMessageSenderID = nil
-        chatReplyMessageMediaIndex = 0
+        action.addAction(ActionSheetAction(title: "Camera", image: cameraImage, style: .default) { _ in
+            self.presentCameraViewController()
+        })
+        
+        action.addAction(ActionSheetAction(title: "Photo & Video Library", image: pickerImage, style: .default) { _ in
+            self.presentMediaPicker()
+        })
+        
+        action.addAction(ActionSheetAction(title: "Cancel", style: .cancel))
+        
+        navigationController?.present(action, animated: true)
     }
     
-    func chatInputViewDidSelectMediaPicker(_ inputView: ChatInputView) {
-        presentMediaPicker()
+    private func presentCameraViewController() {
+        let vc = CameraViewController(configuration: .init(showCancelButton: true, format: .normal),
+                                          didFinish: { [weak self] in self?.dismiss(animated: true)},
+                                       didPickImage: { [weak self] image in self?.didTake(photo: image)},
+                                       didPickVideo: { [weak self] videoURL in self?.didTake(video: videoURL)})
+        
+        present(UINavigationController(rootViewController: vc), animated: true)
     }
     
-    func chatInputViewDidPasteImage(_ inputView: ChatInputView, media: PendingMedia) {
+    private func didTake(photo: UIImage) {
+        let media = PendingMedia(type: .image)
+        media.image = photo
+        
+        presentComposerViewController(media: [media])
+    }
+    
+    private func didTake(video url: URL) {
+        let media = PendingMedia(type: .video)
+        media.originalVideoURL = url
+        media.fileURL = url
+        
+        presentComposerViewController(media: [media])
+    }
+    
+    private func presentComposerViewController(media: [PendingMedia]) {
         let composerController = PostComposerViewController(
-            mediaToPost: [media],
-            initialInput: MentionInput(text: chatInputView.text, mentions: MentionRangeMap(), selectedRange: NSRange()),
-            configuration: .message(id: fromUserId),
-            initialPostType: .library,
-            voiceNote: nil,
-            delegate: self)
-        present(UINavigationController(rootViewController: composerController), animated: false)
+            mediaToPost: media,
+           initialInput: MentionInput(text: contentInputView.textView.text, mentions: MentionRangeMap(), selectedRange: NSRange()),
+          configuration: .message(id: fromUserId),
+        initialPostType: .library,
+              voiceNote: nil,
+               delegate: self)
+        
+        let presenter = presentedViewController ?? self
+        presenter.present(UINavigationController(rootViewController: composerController), animated: false)
     }
+    
+    func inputView(_ inputView: ContentInputView, didInterrupt recorder: AudioRecorder) {
+        guard
+            let fromID = fromUserId,
+            let url = recorder.saveVoiceNote(from: MainAppContext.shared.userData.userId, to: fromID)
+        else {
+            return
+        }
 
-    func chatInputViewMicrophoneAccessDenied(_ inputView: ChatInputView) {
-        let alert = UIAlertController(title: Localizations.micAccessDeniedTitle, message: Localizations.micAccessDeniedMessage, preferredStyle: .alert)
+        DispatchQueue.main.async { [weak self] in
+            self?.contentInputView.show(voiceNote: url)
+        }
+    }
+    
+    func inputViewMicrophoneAccessDenied(_ inputView: ContentInputView) {
+        let alert = UIAlertController(title: Localizations.micAccessDeniedTitle,
+                                    message: Localizations.micAccessDeniedMessage,
+                             preferredStyle: .alert)
+               
         alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
-        alert.addAction(UIAlertAction(title: Localizations.settingsAppName, style: .default, handler: { _ in
-            guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else { return }
-            UIApplication.shared.open(settingsUrl)
-        }))
+        alert.addAction(UIAlertAction(title: Localizations.settingsAppName, style: .default) { _ in
+            if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(settingsURL)
+            }
+        })
 
         present(alert, animated: true)
     }
-
-    func chatInputViewMicrophoneAccessDeniedDuringCall(_ inputView: ChatInputView) {
-        let alert = UIAlertController(title: Localizations.failedActionDuringCallTitle, message: Localizations.failedActionDuringCallNoticeText, preferredStyle: .alert)
+    
+    func inputViewMicrophoneAccessDeniedDuringCall(_ inputView: ContentInputView) {
+        let alert = UIAlertController(title: Localizations.failedActionDuringCallTitle,
+                                    message: Localizations.failedActionDuringCallNoticeText,
+                             preferredStyle: .alert)
+                
         alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: { _ in }))
         present(alert, animated: true)
     }
-
-    func chatInputView(_ inputView: ChatInputView, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?) {
-        let text = mentionText.trimmed().collapsedText
-        sendMessage(text: text, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
+    
+    func inputView(_ inputView: ContentInputView, didPaste image: PendingMedia) {
+        presentComposerViewController(media: [image])
     }
 }
 
@@ -1910,6 +2001,176 @@ class UnselectableUITextView: UITextView {
         let startIndex = offset(from: beginningOfDocument, to: range.start)
         return attributedText.attribute(.link, at: startIndex, effectiveRange: nil) != nil
     }
+}
+
+// MARK: - quoted item panel implementation
+
+fileprivate class QuotedItemPanel: UIView, InputContextPanel {
+    struct PostInfo {
+        let userID: String
+        let text: String
+        let mediaType: CommonMediaType?
+        let mediaLink: URL?
+    }
+    
+    var postInfo: PostInfo? {
+        didSet { configure() }
+    }
+    
+    override init(frame: CGRect) {
+        super.init(frame: .zero)
+        
+        addSubview(stackView)
+        NSLayoutConstraint.activate([
+            stackView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 8),
+            stackView.topAnchor.constraint(equalTo: self.topAnchor, constant: 8),
+            stackView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -8),
+            stackView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -8)
+        ])
+    }
+    
+    required init(coder: NSCoder) {
+        fatalError("Feed post panel coder init not implemented...")
+    }
+    
+    private func configure() {
+        guard let postInfo = postInfo else {
+            return
+        }
+
+        quoteFeedPanelNameLabel.text = MainAppContext.shared.contactStore.fullName(for: postInfo.userID)
+        let ham = HAMarkdown(font: UIFont.preferredFont(forTextStyle: .subheadline), color: UIColor.secondaryLabel)
+        quoteFeedPanelTextLabel.attributedText = ham.parse(postInfo.text)
+        
+        if postInfo.userID == MainAppContext.shared.userData.userId {
+            quoteFeedPanelNameLabel.textColor = .chatOwnMsg
+        } else {
+            quoteFeedPanelNameLabel.textColor = .label
+        }
+        
+        subviews.first?.backgroundColor = quoteFeedPanelNameLabel.textColor.withAlphaComponent(0.1)
+        if let mediaType = postInfo.mediaType, let mediaLink = postInfo.mediaLink {
+            configureMedia(mediaType, mediaLink)
+        }
+    }
+    
+    private func configureMedia(_ mediaType: CommonMediaType, _ url: URL) {
+        quoteFeedPanelImage.isHidden = false
+        switch mediaType {
+        case .image:
+            if let image = UIImage(contentsOfFile: url.path) {
+                quoteFeedPanelImage.contentMode = .scaleAspectFill
+                quoteFeedPanelImage.image = image
+            }
+        case .video:
+            if let image = VideoUtils.videoPreviewImage(url: url) {
+                quoteFeedPanelImage.contentMode = .scaleAspectFill
+                quoteFeedPanelImage.image = image
+            }
+        case .audio:
+            quoteFeedPanelImage.isHidden = true
+            let text = NSMutableAttributedString()
+            if let icon = UIImage(named: "Microphone")?.withTintColor(.systemGray) {
+                let attachment = NSTextAttachment(image: icon)
+                attachment.bounds = CGRect(x: 0, y: -3, width: 16, height: 16)
+                text.append(NSAttributedString(attachment: attachment))
+            }
+
+            text.append(NSAttributedString(string: Localizations.chatMessageAudio))
+
+            if FileManager.default.fileExists(atPath: url.path) {
+                let seconds = AVURLAsset(url: url).duration.seconds
+                let duration = ContentInputView.voiceNoteDurationFormatter.string(from: seconds) ?? ""
+                text.append(NSAttributedString(string: " (" + duration + ")"))
+            }
+
+            quoteFeedPanelTextLabel.attributedText = text.with(font: UIFont.preferredFont(forTextStyle: .subheadline),
+                                                              color: UIColor.secondaryLabel)
+        }
+    }
+    
+    private lazy var stackView: UIStackView = {
+        let stack = UIStackView()
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        
+        stack.addArrangedSubview(quoteFeedPanelTextMediaContent)
+        stack.addArrangedSubview(closeButton)
+        stack.axis = .horizontal
+        stack.alignment = .top
+        stack.spacing = 8
+        
+        stack.layer.cornerRadius = 15
+        stack.clipsToBounds = true
+        
+        return stack
+    }()
+    
+    private lazy var quoteFeedPanelTextMediaContent: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ quoteFeedPanelTextContent, quoteFeedPanelImage ])
+        view.axis = .horizontal
+        view.alignment = .top
+        view.spacing = 3
+        
+        view.layoutMargins = UIEdgeInsets(top: 8, left: 5, bottom: 8, right: 8)
+        view.isLayoutMarginsRelativeArrangement = true
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        quoteFeedPanelImage.widthAnchor.constraint(equalToConstant: 60).isActive = true
+        quoteFeedPanelImage.heightAnchor.constraint(equalToConstant: 60).isActive = true
+
+        return view
+    }()
+    
+    private lazy var quoteFeedPanelTextContent: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ quoteFeedPanelNameLabel, quoteFeedPanelTextLabel ])
+        view.axis = .vertical
+        view.spacing = 3
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 5, bottom: 10, right: 0)
+        view.isLayoutMarginsRelativeArrangement = true
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private lazy var quoteFeedPanelNameLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.font = UIFont.preferredFont(forTextStyle: .headline)
+        label.textColor = UIColor.label
+        
+        return label
+    }()
+    
+    private lazy var quoteFeedPanelTextLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 2
+        label.font = UIFont.preferredFont(forTextStyle: .subheadline)
+        label.textColor = UIColor.secondaryLabel
+        
+        return label
+    }()
+    
+    private lazy var quoteFeedPanelImage: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFill
+        
+        imageView.layer.cornerRadius = 5
+        imageView.layer.masksToBounds = true
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        
+        imageView.isHidden = true
+        
+        return imageView
+    }()
+
+    private(set) lazy var closeButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage(systemName: "xmark"), for: .normal)
+        button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 0, bottom: 0, right: 10)
+        button.tintColor = UIColor.systemGray
+        button.setContentHuggingPriority(.required, for: .horizontal)
+        
+        return button
+    }()
 }
 
 extension Localizations {
