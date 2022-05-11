@@ -186,6 +186,10 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     }
 
     private func messagerow(for chatMessage: ChatMessage) -> MessageRow {
+        // Quoted Comment
+        if chatMessage.chatReplyMessageID != nil {
+            return MessageRow.quoted(chatMessage)
+        }
         // Media
         if chatMessage.media?.first?.type == .audio {
             return MessageRow.audio(chatMessage)

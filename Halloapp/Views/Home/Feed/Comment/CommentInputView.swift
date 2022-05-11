@@ -795,7 +795,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         if !vStack.subviews.contains(quotedPanel){
             vStack.insertArrangedSubview(quotedPanel, at: 0)
         }
-        quotedCellView.configureWithComment(comment: comment, userColorAssignment: userColorAssignment)
+        quotedCellView.configureWith(comment: comment, userColorAssignment: userColorAssignment)
         textView.becomeFirstResponder()
     }
 

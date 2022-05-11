@@ -144,12 +144,25 @@ class QuotedMessageCellView: UIView {
         super.layoutSubviews()
     }
 
-    func configureWithComment(comment: FeedPostComment, userColorAssignment: UIColor) {
+    func configureWith(comment: FeedPostComment, userColorAssignment: UIColor) {
+        // Download any pending media, comes in handy for media coming in while user is viewing comments
+        MainAppContext.shared.feedData.downloadMedia(in: [comment])
+        MainAppContext.shared.feedData.loadImages(commentID: comment.id)
         hasText = false
         hasMedia = false
         setNameLabel(for: comment.userId, userColorAssignment: userColorAssignment)
-        configureText(comment: comment)
-        configureMedia(comment: comment)
+        configureText(text: comment.rawText, mentions: comment.mentions)
+        configureMedia(media: comment.media)
+        configureCell()
+        textLabel.textColor = UIColor.quotedMessageText
+    }
+
+    func configureWith(message: ChatMessage) {
+        hasText = false
+        hasMedia = false
+        setNameLabel(for: message.fromUserId)
+        configureText(text: message.rawText ?? "", mentions: message.mentions)
+        configureMedia(media: message.media)
         configureCell()
         textLabel.textColor = UIColor.quotedMessageText
     }
@@ -165,16 +178,18 @@ class QuotedMessageCellView: UIView {
         }
     }
 
-    private func setNameLabel(for userID: String, userColorAssignment: UIColor) {
+    private func setNameLabel(for userID: String, userColorAssignment: UIColor? = nil) {
         nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, showPushNumber: true)
-        nameLabel.textColor = userColorAssignment.withAlphaComponent(0.8)
+        if let userColorAssignment = userColorAssignment {
+            nameLabel.textColor = userColorAssignment.withAlphaComponent(0.8)
+        }
     }
 
-    private func configureText(comment: FeedPostComment) {
-        if !comment.rawText.isEmpty  {
+    private func configureText(text: String, mentions: [MentionData]) {
+        if !text.isEmpty  {
             let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
-                comment.rawText,
-                mentions: comment.mentions)
+                text,
+                mentions: mentions)
 
             let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
             let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 3)
@@ -188,69 +203,59 @@ class QuotedMessageCellView: UIView {
         }
     }
 
-    private func configureMedia(comment: FeedPostComment) {
-        guard let commentMedia = comment.media, commentMedia.count > 0 else {
-            return
-        }
-        guard let media = MainAppContext.shared.feedData.media(commentID: comment.id) else {
+    private func configureMedia(media: Set<CommonMedia>?) {
+        guard let media = media, media.count > 0 else {
             return
         }
         // Check for voice note
-        if let audioMedia = getCommentAudioMedia(media: media) {
-            configureAudio(media: audioMedia)
+        if isAudioNote(media: media) {
+            textLabel.attributedText = getPlaceholderMediaText(mediaType: .audio)
+            hasText = true
             return
         }
-        // Download any pending media, comes in handy for media coming in while user is viewing comments
-        MainAppContext.shared.feedData.downloadMedia(in: [comment])
-        MainAppContext.shared.feedData.loadImages(commentID: comment.id)
         hasMedia = true
         if let media = media.first {
             showMedia(media: media)
             // if quoted comment does not contain text, we need placeholder text
-            if comment.rawText.isEmpty {
-                textLabel.attributedText = getPlaceholderMediaText(media: media)
+            if !hasText {
+                textLabel.attributedText = getPlaceholderMediaText(mediaType: media.type)
                 hasText = true
             }
         }
     }
 
-    private func getCommentAudioMedia(media: [FeedMedia]) ->  FeedMedia? {
-        var audioMedia: FeedMedia?
-        if media.count == 1 && media[0].type == .audio {
-            audioMedia = media[0]
-        }
-        return audioMedia
+    private func isAudioNote(media: Set<CommonMedia>) -> Bool {
+        return media.count == 1 && media.first?.type == .audio
     }
 
-    private func configureAudio(media: FeedMedia) {
-        textLabel.attributedText = getPlaceholderMediaText(media: media)
-        hasText = true
-    }
-
-    private func showMedia(media: FeedMedia) {
-        if media.isMediaAvailable {
+    private func showMedia(media: CommonMedia) {
+        if media.mediaURL != nil {
             displayMediaView(media: media)
         } else {
-            imageLoadingCancellable = media.imageDidBecomeAvailable.sink { [weak self] (image) in
+            imageLoadingCancellable = media.publisher(for: \.relativeFilePath).sink { [weak self] path in
                 guard let self = self else { return }
-                self.displayMediaView(media: media)
+                guard path != nil else { return }
+                if media.mediaURL != nil {
+                    self.displayMediaView(media: media)
+                }
             }
         }
     }
 
-    private func displayMediaView(media: FeedMedia) {
+    private func displayMediaView(media: CommonMedia) {
+        guard let mediaURL = media.mediaURL else { return }
         if media.type == .image {
-            self.mediaView.image = media.image
+            guard let image = UIImage(contentsOfFile: mediaURL.path) else { return }
+            self.mediaView.image = image
         } else if media.type == .video {
-            guard let url = media.fileURL else { return }
-            self.mediaView.image = VideoUtils.videoPreviewImage(url: url)
+            self.mediaView.image = VideoUtils.videoPreviewImage(url: mediaURL)
         }
     }
 
-    private func getPlaceholderMediaText(media: FeedMedia) -> NSMutableAttributedString {
+    private func getPlaceholderMediaText(mediaType: CommonMediaType) -> NSMutableAttributedString {
         var mediaIcon: UIImage?
         var messageText = ""
-        switch media.type {
+        switch mediaType {
         case .image:
             mediaIcon = UIImage(named: "messagesPhoto")?.withTintColor(UIColor.quotedMessageText)
             messageText = Localizations.chatMessagePhoto

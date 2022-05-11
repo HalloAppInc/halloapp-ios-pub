@@ -27,6 +27,10 @@ class MessageCellViewQuoted: MessageCellViewBase {
     lazy var quotedMediaMessageMinWidthConstraint = quotedMessageView.widthAnchor.constraint(greaterThanOrEqualToConstant: CGFloat(MinWidthOfQuotedMediaMessageBubble).rounded())
     lazy var quotedMessageMinWidthConstraint = quotedMessageView.widthAnchor.constraint(greaterThanOrEqualToConstant: CGFloat(MinWidthOfQuotedMessageBubble).rounded())
 
+    var hasMedia: Bool = false
+    var hasAudio: Bool = false
+    var hasLinkPreview: Bool = false
+
     // MARK: Media
 
     private lazy var mediaCarouselView: MediaCarouselView = {
@@ -112,7 +116,11 @@ class MessageCellViewQuoted: MessageCellViewBase {
         textRow.removeFromSuperview()
         nameContentTimeRow.removeArrangedSubview(audioTimeRow)
         audioTimeRow.removeFromSuperview()
-        
+
+        hasMedia = false
+        hasAudio = false
+        hasLinkPreview = false
+
         mediaWidthConstraint.isActive = false
         mediaHeightConstraint.isActive = false
         audioWidthConstraint.isActive = false
@@ -154,37 +162,29 @@ class MessageCellViewQuoted: MessageCellViewBase {
     }
 
     override func configureWith(comment: FeedPostComment, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
+        super.configureWith(comment: comment, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
+        MainAppContext.shared.feedData.downloadMedia(in: [comment])
+        MainAppContext.shared.feedData.loadImages(commentID: comment.id)
         audioMediaStatusCancellable?.cancel()
-        feedPostComment = comment
-        isOwnMessage = comment.userId == MainAppContext.shared.userData.userId
-        isPreviousMessageOwnMessage = isPreviousMessageFromSameSender
-        userNameColorAssignment = userColorAssignment
-        nameLabel.textColor = userNameColorAssignment
-        timeLabel.text = comment.timestamp.chatTimestamp()
+
         setNameLabel(for: comment.userId)
         guard feedPostComment?.parent != nil else { return }
-
         nameContentTimeRow.addArrangedSubview(nameRow)
-        configureQuotedComment(comment: comment, parentUserColorAssignment: parentUserColorAssignment)
-        configureCell()
-    }
+        configureText(comment: comment)
 
-    private func configureQuotedComment(comment: FeedPostComment, parentUserColorAssignment: UIColor) {
-        var hasMedia: Bool = false
-        var hasAudio: Bool = false
-        var hasLinkPreview: Bool = false
+        // Configure parent comment view
         if let parentComment = comment.parent {
-            quotedMessageView.configureWithComment(comment: parentComment, userColorAssignment: parentUserColorAssignment)
+            quotedMessageView.configureWith(comment: parentComment, userColorAssignment: parentUserColorAssignment)
             nameContentTimeRow.addArrangedSubview(quotedMessageView)
         }
+        //Configure media view
         if let media = MainAppContext.shared.feedData.media(commentID: comment.id) {
             if let commentMedia = comment.media, commentMedia.count > 0 {
-                MainAppContext.shared.feedData.downloadMedia(in: [comment])
-                MainAppContext.shared.feedData.loadImages(commentID: comment.id)
-                
                 // Audio comment
-                if commentHasAudio(media: media) {
-                    configureAudio(comment: comment, audioMedia: media[0])
+                if comment.media?.count == 1, let media = comment.media?.first, media.type == .audio {
+                    configureAudio(audioMedia: media,
+                                   isOwn: comment.userId == MainAppContext.shared.userData.userId,
+                                   isPlayed: comment.status == .played)
                     nameContentTimeRow.addArrangedSubview(audioView)
                     hasAudio = true
                 } else {
@@ -193,22 +193,67 @@ class MessageCellViewQuoted: MessageCellViewBase {
                     hasMedia = true
                 }
             }
-            configureText(comment: comment)
-            nameContentTimeRow.addArrangedSubview(textRow)
-            nameContentTimeRow.addArrangedSubview(audioTimeRow)
         }
-        
-        if let feedLinkPreviews = comment.linkPreviews, let feedLinkPreview = feedLinkPreviews.first {
-            MainAppContext.shared.feedData.loadImages(feedLinkPreviewID: feedLinkPreview.id)
-            linkPreviewView.configure(linkPreview: feedLinkPreview)
+        // Configure link preview
+        configureLinkPreview(linkPreviews: comment.linkPreviews)
+        configureCell()
+    }
+
+    override func configureWith(message: ChatMessage) {
+        super.configureWith(message: message)
+        audioMediaStatusCancellable?.cancel()
+        guard message.chatReplyMessageID != nil else { return }
+        configureText(chatMessage: message)
+        // Configure parent chat view
+        if let chatReplyMessageID = message.chatReplyMessageID, let replyMessage = MainAppContext.shared.chatData.chatMessage(with: chatReplyMessageID, in: MainAppContext.shared.chatData.viewContext) {
+            quotedMessageView.configureWith(message: replyMessage)
+            nameContentTimeRow.addArrangedSubview(quotedMessageView)
+        }
+        // Configure media view
+        if let chatMedia = chatMessage?.media, chatMedia.count > 0 {
+            if chatMedia.count == 1, let media = chatMedia.first, media.type == .audio {
+                configureAudio(audioMedia: media,
+                               isOwn: message.fromUserId == MainAppContext.shared.userData.userId,
+                               isPlayed: [.played, .sentPlayedReceipt].contains(message.incomingStatus))
+                nameContentTimeRow.addArrangedSubview(audioView)
+                hasAudio = true
+            } else {
+                // TODO handle chat media management
+                hasMedia = true
+            }
+        }
+        // Configure link preview
+        configureLinkPreview(linkPreviews: message.linkPreviews)
+        configureCell()
+    }
+
+    private func configureLinkPreview(linkPreviews: Set<CommonLinkPreview>?) {
+        if let linkPreviews = linkPreviews, let linkPreview = linkPreviews.first {
+            MainAppContext.shared.feedData.loadImages(feedLinkPreviewID: linkPreview.id)
+            linkPreviewView.configure(linkPreview: linkPreview)
             hasLinkPreview = true
         }
-        
+    }
+
+    // Adjusting constraint priorities here in a single place to be able to easily see relative priorities.
+    override func configureCell() {
+        configureQuotedMessage()
+        super.configureCell()
+        if isOwnMessage {
+            quotedMessageView.bubbleView.backgroundColor = UIColor.quotedMessageOwnBackground
+        } else {
+            quotedMessageView.bubbleView.backgroundColor = UIColor.quotedMessageNotOwnBackground
+        }
+    }
+
+    private func configureQuotedMessage() {
+        nameContentTimeRow.addArrangedSubview(textRow)
+        nameContentTimeRow.addArrangedSubview(audioTimeRow)
         if hasMedia {
             mediaWidthConstraint.isActive = true
         } else if hasAudio {
             audioWidthConstraint.isActive = true
-        }else if quotedMessageView.hasMedia ||  hasLinkPreview {
+        } else if quotedMessageView.hasMedia ||  hasLinkPreview {
             // If quoted comments have media, set the min width of the comment.
             quotedMediaMessageMinWidthConstraint .isActive = true
         } else if !quotedMessageView.hasMedia {
@@ -218,49 +263,26 @@ class MessageCellViewQuoted: MessageCellViewBase {
             mediaHeightConstraint.isActive = true
         }
     }
-    // Adjusting constraint priorities here in a single place to be able to easily see relative priorities.
-    override func configureCell() {
-        super.configureCell()
-        if isOwnMessage {
-            quotedMessageView.bubbleView.backgroundColor = UIColor.quotedMessageOwnBackground
-        } else {
-            quotedMessageView.bubbleView.backgroundColor = UIColor.quotedMessageNotOwnBackground
-        }
-    }
 
     private func setNameLabel(for userID: String) {
         nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
     }
 
-    private func commentHasAudio(media: [FeedMedia]) -> Bool {
-        if media.count == 1 && media[0].type == .audio {
-            return true
+    private func configureAudio(audioMedia: CommonMedia, isOwn: Bool, isPlayed: Bool) {
+        if let mediaURL = audioMedia.mediaURL {
+            audioView.url = mediaURL
+            if !audioView.isPlaying {
+                audioView.state = isPlayed || isOwn ? .played : .normal
+            }
         } else {
-            return false
-        }
-    }
-
-    func configureAudio(comment: FeedPostComment, audioMedia: FeedMedia) {
-        if audioView.url != audioMedia.fileURL {
-            audioTimeLabel.text = "0:00"
-            audioView.url = audioMedia.fileURL
-        }
-
-        if !audioView.isPlaying {
-            let isOwn = comment.userId == MainAppContext.shared.userData.userId
-            audioView.state = comment.status == .played || isOwn ? .played : .normal
-        }
-
-        if audioMedia.fileURL == nil {
             audioView.state = .loading
-
-            audioMediaStatusCancellable = audioMedia.mediaStatusDidChange.sink { [weak self] mediaItem in
+            audioMediaStatusCancellable = audioMedia.publisher(for: \.relativeFilePath).sink { [weak self] path in
                 guard let self = self else { return }
-                guard let url = mediaItem.fileURL else { return }
-                self.audioView.url = url
-
-                let isOwn = comment.userId == MainAppContext.shared.userData.userId
-                self.audioView.state = comment.status == .played || isOwn ? .played : .normal
+                guard path != nil else { return }
+                self.audioView.url = audioMedia.mediaURL
+                if !self.audioView.isPlaying {
+                    self.audioView.state = isPlayed || isOwn ? .played : .normal
+                }
             }
         }
     }
