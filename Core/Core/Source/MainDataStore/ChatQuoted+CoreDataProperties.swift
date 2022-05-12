@@ -11,6 +11,7 @@ import CoreData
 public enum ChatQuoteType: Int16 {
     case feedpost = 0
     case message = 1
+    case moment = 3
 }
 
 public extension ChatQuoted {

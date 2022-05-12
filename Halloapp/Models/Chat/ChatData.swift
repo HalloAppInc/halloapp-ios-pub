@@ -2253,7 +2253,29 @@ extension ChatData {
         
         addIntent(toUserId: toUserId)
     }
-    
+
+    /// - note: The message send back through `completion` should be used on the main thread.
+    func sendMomentReply(to userID: UserID, postID: FeedPostID, text: String, completion: ((ChatMessage?) -> Void)? = nil) {
+        performSeriallyOnBackgroundContext { context in
+            let id = self.createChatMsg(toUserId: userID,
+                                            text: text,
+                                           media: [],
+                                 linkPreviewData: nil,
+                                linkPreviewMedia: nil,
+                                      feedPostId: postID,
+                              feedPostMediaIndex: 0,
+                                   isMomentReply: true,
+                      chatReplyMessageMediaIndex: 0,
+                                           using: context)
+
+            let message = self.chatMessage(with: id, in: self.viewContext)
+            DispatchQueue.main.async {
+                completion?(message)
+            }
+        }
+    }
+
+    @discardableResult
     func createChatMsg( toUserId: String,
                         text: String,
                         media: [PendingMedia],
@@ -2261,10 +2283,11 @@ extension ChatData {
                         linkPreviewMedia : PendingMedia?,
                         feedPostId: String?,
                         feedPostMediaIndex: Int32,
+                        isMomentReply: Bool = false,
                         chatReplyMessageID: String? = nil,
                         chatReplyMessageSenderID: UserID? = nil,
                         chatReplyMessageMediaIndex: Int32,
-                        using context: NSManagedObjectContext) {
+                        using context: NSManagedObjectContext) -> ChatMessageID {
         
         let messageId = PacketID.generate()
         let isMsgToYourself: Bool = toUserId == userData.userId
@@ -2332,9 +2355,15 @@ extension ChatData {
                 DDLogError("ChatData/createChatMsg/\(messageId)/copy-media/error [\(error)]")
             }
         }
-        
-        // Create and save Quoted FeedPost
-        if let feedPostId = feedPostId, let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
+
+        if isMomentReply, let _ = feedPostId {
+            // quoted moment; feed post has already been deleted at this point
+            let quoted = ChatQuoted(context: context)
+            quoted.type = .moment
+            quoted.userID = toUserId
+            quoted.message = chatMessage
+        } else if let feedPostId = feedPostId, let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
+            // Create and save Quoted FeedPost
             let quoted = ChatQuoted(context: context)
             quoted.type = .feedpost
             quoted.userID = feedPost.userId
@@ -2424,6 +2453,8 @@ extension ChatData {
         if !isMsgToYourself {
             processPendingChatMsgs()
         }
+
+        return messageId
     }
 
     private func generateLinkPreview(messageId: ChatMessageID, chatMessage: ChatMessage, isMsgToYourself: Bool, linkPreviewData: LinkPreviewProtocol, linkPreviewMedia: PendingMedia?, using context: NSManagedObjectContext) {
