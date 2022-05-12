@@ -515,7 +515,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
             DDLogError("FlatCommentsViewController/initFetchedResultsController/failed to fetch post \(feedPostId)")
         }
     }
-    
+
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChangeContentWith snapshot: NSDiffableDataSourceSnapshotReference) {
         switch controller {
         case fetchedResultsController:

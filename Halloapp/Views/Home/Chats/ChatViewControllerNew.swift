@@ -31,7 +31,18 @@ fileprivate enum MessageRow: Hashable, Equatable {
     case quoted(ChatMessage)
     case unreadCountHeader(Int32)
     case chatCall
-    case chatEvent
+    case chatEvent(ChatEvent)
+
+    var timestamp: Date? {
+        switch self {
+        case .chatEvent(let data):
+            return data.timestamp
+        case .chatMessage(let data), .retracted(let data), .media(let data), .audio(let data), .text(let data), .linkPreview(let data), .quoted(let data):
+            return data.timestamp
+        case .unreadCountHeader(_), .chatCall:
+            return nil
+        }
+    }
 }
 
 
@@ -52,8 +63,10 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     static private let messageCellViewAudioReuseIdentifier = "MessageCellViewAudio"
     static private let messageCellViewLinkPreviewReuseIdentifier = "MessageCellViewLinkPreview"
     static private let messageCellViewQuotedReuseIdentifier = "MessageCellViewQuoted"
+    static private let messageCellViewEventReuseIdentifier = "MessageCellViewEvent"
 
     private var chatMessageFetchedResultsController: NSFetchedResultsController<ChatMessage>?
+    private var chatEventFetchedResultsController: NSFetchedResultsController<ChatEvent>?
 
     private lazy var titleView: ChatTitleView = {
         let titleView = ChatTitleView()
@@ -78,6 +91,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         collectionView.register(MessageCellViewLinkPreview.self, forCellWithReuseIdentifier: ChatViewControllerNew.messageCellViewLinkPreviewReuseIdentifier)
         collectionView.register(MessageCellViewQuoted.self, forCellWithReuseIdentifier: ChatViewControllerNew.messageCellViewQuotedReuseIdentifier)
         collectionView.register(MessageUnreadHeaderView.self, forCellWithReuseIdentifier: MessageUnreadHeaderView.elementKind)
+        collectionView.register(MessageCellViewEvent.self, forCellWithReuseIdentifier: ChatViewControllerNew.messageCellViewEventReuseIdentifier)
         collectionView.register(MessageTimeHeaderView.self, forSupplementaryViewOfKind: MessageTimeHeaderView.elementKind, withReuseIdentifier: MessageTimeHeaderView.elementKind)
         collectionView.delegate = self
         return collectionView
@@ -136,9 +150,19 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                         self.configureCell(itemCell: itemCell, for: chatMessage)
                     }
                     return cell
-                case .unreadCountHeader(_), .chatCall, .chatEvent:
+                case .chatEvent(let chatEvent):
+                    // Check why this is needed
+//                    guard let chatEvent = chatEventFetchedResultsController?.optionalObject(at: chatEvent.indexPath) as? ChatEvent else { break }
+
+                    if chatEvent.type == .whisperKeysChange, let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ChatViewControllerNew.messageCellViewEventReuseIdentifier, for: indexPath) as? MessageCellViewEvent {
+                        let fullname = MainAppContext.shared.contactStore.fullName(for: chatEvent.userID)
+                        cell.configure(headerText: Localizations.chatEventSecurityKeysChanged(name: fullname))
+                        return cell
+                    }
+                case .unreadCountHeader(_), .chatCall:
                     return UICollectionViewCell()
                 }
+                return UICollectionViewCell()
             })
         dataSource.supplementaryViewProvider = { [weak self] ( view, kind, index) in
             if kind == MessageTimeHeaderView.elementKind {
@@ -157,32 +181,46 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         return dataSource
     }()
 
-    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChangeContentWith snapshot: NSDiffableDataSourceSnapshotReference) {
-        switch controller {
-        case chatMessageFetchedResultsController:
-            var snapshot = ChatMessageSnapshot()
-            if let sections = chatMessageFetchedResultsController?.sections {
-                snapshot.appendSections(sections.map { $0.name } )
-                for section in sections {
-                    if let chatMessages = section.objects as? [ChatMessage] {
-                        chatMessages.forEach { chatMessage in
-                            let messageRow = messagerow(for: chatMessage)
-                            snapshot.appendItems([messageRow], toSection: section.name)
-                        }
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        updateCollectionViewData()
+    }
+
+    func updateCollectionViewData() {
+        var snapshot = ChatMessageSnapshot()
+        if let sections = chatMessageFetchedResultsController?.sections {
+            snapshot.appendSections(sections.map { $0.name } )
+            for section in sections {
+                if let chatMessages = section.objects as? [ChatMessage] {
+                    chatMessages.forEach { chatMessage in
+                        let messageRow = messagerow(for: chatMessage)
+                        snapshot.appendItems([messageRow], toSection: section.name)
                     }
                 }
             }
-            dataSource.apply(snapshot, animatingDifferences: true) { // [weak self] in
-                // guard let self = self else { return }
-                // DispatchQueue.main.async {
-                    //self.updateScrollingWhenDataChanges()
-                    //self.scrollToTarget(withAnimation: true)
-                    //self.isFirstLaunch = false
-                // }
-            }
-        default:
-            break
         }
+        if let sections = chatEventFetchedResultsController?.sections {
+            for section in sections {
+                if !snapshot.sectionIdentifiers.contains(section.name) {
+                    snapshot.appendSections([section.name])
+                }
+                if let chatEvents = section.objects as? [ChatEvent] {
+                    chatEvents.forEach { chatEvent in
+                        let eventMessageRow = MessageRow.chatEvent(chatEvent)
+                        // Add the new event
+                        snapshot.appendItems([eventMessageRow], toSection: section.name)
+                        // Sort items based on timestamp
+                        let sortedRows = snapshot.itemIdentifiers(inSection: section.name).sorted {
+                            ($0.timestamp ?? .distantFuture) < ($1.timestamp ?? .distantFuture)
+                        }
+                        // Update snapshot with sorted items
+                        snapshot.deleteItems(snapshot.itemIdentifiers(inSection: section.name))
+                        snapshot.appendItems(sortedRows, toSection: section.name)
+                    }
+                }
+            }
+        }
+        // Apply the new snapshot
+        dataSource.apply(snapshot, animatingDifferences: true)
     }
 
     private func messagerow(for chatMessage: ChatMessage) -> MessageRow {
@@ -234,9 +272,11 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     private func setupUI() {
         collectionView.dataSource = dataSource
         setupChatMessageFetchedResultsController()
-        
+        setupChatEventFetchedResultsController()
+        updateCollectionViewData()
     }
 
+    // MARK: Chat Message FetchedResults
     private func setupChatMessageFetchedResultsController() {
         let fetchChatMessageRequest: NSFetchRequest<ChatMessage> = ChatMessage.fetchRequest()
         guard let fromUserId = fromUserId else {
@@ -256,6 +296,25 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             try chatMessageFetchedResultsController?.performFetch()
         } catch {
             DDLogError("ChatViewControllerNew/initFetchedResultsController/failed to fetch  chat messages for user:\(currentUserID)")
+        }
+    }
+
+    // MARK: Chat Event FetchedResults
+    private func setupChatEventFetchedResultsController() {
+        guard let userID = fromUserId else { return }
+        let fetchRequest: NSFetchRequest<ChatEvent> = ChatEvent.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "userID = %@", userID)
+        fetchRequest.sortDescriptors = [
+            NSSortDescriptor(keyPath: \ChatEvent.timestamp, ascending: true)
+        ]
+
+        chatEventFetchedResultsController = NSFetchedResultsController<ChatEvent>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.mainDataStore.viewContext, sectionNameKeyPath: "headerTime", cacheName: nil)
+        chatEventFetchedResultsController?.delegate = self
+        do {
+            DDLogError("ChatViewControllerNew/initFetchedResultsController/fetching chat events from user: \(userID) to user: \(MainAppContext.shared.userData.userId)")
+            try chatEventFetchedResultsController!.performFetch()
+        } catch {DDLogError("ChatViewControllerNew/initFetchedResultsController/failed to fetch  chat eventsfrom user: \(userID) to user: \(MainAppContext.shared.userData.userId)")
+            return
         }
     }
 
@@ -306,6 +365,14 @@ extension ChatMessage {
           return timestamp?.chatMsgGroupingTimestamp(Date())
       }
   }
+}
+
+extension ChatEvent {
+    @objc var headerTime: String? {
+        get {
+            return timestamp.chatMsgGroupingTimestamp(Date())
+        }
+    }
 }
 
 extension ChatViewControllerNew: TextLabelDelegate {

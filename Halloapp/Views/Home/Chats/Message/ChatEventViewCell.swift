@@ -68,13 +68,3 @@ class ChatEventViewCell: UITableViewCell {
     }()
 
 }
-
-fileprivate extension Localizations {
-
-    static func chatEventSecurityKeysChanged(name: String) -> String {
-        return String(
-            format: NSLocalizedString("chat.event.security.keys.changed", value: "Security keys with %@ changed", comment: "Text shown in Chat when the security keys of the contact user is chatting with, have changed"),
-            name)
-    }
-
-}
