@@ -635,10 +635,6 @@ private extension Localizations {
         return NSLocalizedString("textlabel.context.menu.add.reading.list", value: "Add to Reading List", comment: "One of the items in context menu presented upon long press on web link.")
     }
 
-    static var copyLink: String {
-        return NSLocalizedString("textlabel.context.menu.copy.link", value: "Copy Link", comment: "One of the items in context menu presented upon long press on web link.")
-    }
-
     static var share: String {
         return NSLocalizedString("textlabel.context.menu.share", value: "Share...", comment: "One of the items in context menu presented upon long press on web link.")
     }

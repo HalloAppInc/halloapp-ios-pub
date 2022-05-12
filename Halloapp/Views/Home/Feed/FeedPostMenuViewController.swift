@@ -356,7 +356,7 @@ private class FeedPostMenuDescriptionCell: UICollectionViewCell {
     private let iconImageView: UIImageView = {
         let iconImageView = UIImageView()
         iconImageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 17, weight: .regular)
-        iconImageView.tintColor = .label.withAlphaComponent(0.4)
+        iconImageView.tintColor = .label.withAlphaComponent(0.3)
         return iconImageView
     }()
 
@@ -365,7 +365,7 @@ private class FeedPostMenuDescriptionCell: UICollectionViewCell {
         titleLabel.font = .systemFont(ofSize: 13, weight: .regular)
         titleLabel.numberOfLines = 0
         titleLabel.textAlignment = .center
-        titleLabel.textColor = .label.withAlphaComponent(0.4)
+        titleLabel.textColor = .label.withAlphaComponent(0.35)
         return titleLabel
     }()
 

@@ -20,12 +20,12 @@ extension ShareMenuPresenter {
         let postID = feedPost.id
         present(FeedPostMenuViewController(menu: FeedPostMenuViewController.Menu() {
             FeedPostMenuViewController.Section(postPreview: .init(image: MainAppContext.shared.feedData.externalShareThumbnail(for: feedPost),
-                                                                  title: Localizations.externalShareTitle(name: MainAppContext.shared.userData.name),
+                                                                  title: MainAppContext.shared.userData.name,
                                                                   subtitle: feedPost.externalShareDescription))
             FeedPostMenuViewController.Section {
                 FeedPostMenuViewController.Item(style: .standard,
                                                 icon: UIImage(systemName: "square.and.arrow.up"),
-                                                title: Localizations.externalShareButton) { [weak self] _ in
+                                                title: Localizations.buttonShare) { [weak self] _ in
                     self?.generateExternalShareLink(postID: postID, success: { [weak self] url, toast in
                         toast.hide()
                         let shareText = "\(Localizations.externalShareText) \(url)"
@@ -35,7 +35,7 @@ extension ShareMenuPresenter {
                 }
                 FeedPostMenuViewController.Item(style: .standard,
                                                 icon: UIImage(named: "ExternalShareLink"),
-                                                title: Localizations.externalShareCopyLink) { [weak self] _ in
+                                                title: Localizations.copyLink) { [weak self] _ in
                     self?.generateExternalShareLink(postID: postID, success: { url, toast in
                         toast.update(type: .icon(UIImage(systemName: "checkmark")), text: Localizations.externalShareLinkCopied)
                         UIPasteboard.general.url = url
@@ -118,12 +118,6 @@ extension Localizations {
                           comment: "Notification that a link was successfully revoked")
     }()
 
-    static var externalShareCopyLink: String = {
-        NSLocalizedString("your.post.externalshare.copylink",
-                          value: "Copy Link to Share",
-                          comment: "Title for button in action sheet prompting user to share post to external sites")
-    }()
-
     static var externalShareLinkCopied: String {
         NSLocalizedString("your.post.externalshare.copylink.success",
                           value: "Copied to Clipboard",
@@ -146,12 +140,6 @@ extension Localizations {
         NSLocalizedString("your.post.externalshare.description2",
                           value: "Anyone with the link can see your post. Link expires with your post. Link preview is unencrypted.",
                           comment: "Message on header of post menu explaining external share")
-    }()
-
-    static var externalShareButton: String = {
-        NSLocalizedString("your.post.externalshare.button",
-                          value: "Share Externally",
-                          comment: "Button to open the system share sheet with an external post link")
     }()
 
     static var externalShareRevoke: String = {

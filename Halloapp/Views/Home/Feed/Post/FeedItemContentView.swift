@@ -775,51 +775,35 @@ final class FeedItemFooterView: UIView {
         setupView()
     }
 
-    // Gotham Medium, 15 pt (Subhead)
     lazy var commentButton: ButtonWithBadge = {
-        let isLTR = self.effectiveUserInterfaceLayoutDirection == .leftToRight
-        let spacing: CGFloat = isLTR ? 4 : -4
         let stringComment = NSLocalizedString("feedpost.button.comment", value: "Comment", comment: "Button under someone's post. Verb.")
         let button = ButtonWithBadge(type: .system)
+        setupButton(button)
         button.setTitle(stringComment, for: .normal)
         button.setImage(UIImage(named: "FeedPostComment"), for: .normal)
-        button.imageView?.tintColor = .label.withAlphaComponent(0.75)
-        button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .footnote, weight: .medium, maximumPointSize: 18)
-        button.titleLabel?.adjustsFontForContentSizeCategory = true
-        button.titleLabel?.lineBreakMode = .byWordWrapping
-        button.contentEdgeInsets.top = 15
-        button.contentEdgeInsets.bottom = 9
-        if isLTR {
+
+        if effectiveUserInterfaceLayoutDirection == .leftToRight {
             button.contentEdgeInsets.left = 20
         } else {
             button.contentEdgeInsets.right = 20
         }
-        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: spacing/2, bottom: 0, right: -spacing/2)
-        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -spacing/2, bottom: 0, right: spacing/2)
         button.contentHorizontalAlignment = .leading
         return button
     }()
 
     // Gotham Medium, 15 pt (Subhead)
     lazy var messageButton: UIButton = {
-        let isLTR = self.effectiveUserInterfaceLayoutDirection == .leftToRight
-        let spacing: CGFloat = isLTR ? 6 : -6
         let stringMessage = NSLocalizedString("feedpost.button.reply", value: "Reply Privately", comment: "Button under someoneelse's post. Verb.")
         let button = UIButton(type: .system)
+        setupButton(button, spacing: 6)
         button.setTitle(stringMessage, for: .normal)
         button.setImage(UIImage(named: "FeedPostReply"), for: .normal)
-        button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .footnote, weight: .medium, maximumPointSize: 18)
-        button.titleLabel?.adjustsFontForContentSizeCategory = true
-        button.titleLabel?.lineBreakMode = .byWordWrapping
-        button.contentEdgeInsets.top = 15
-        button.contentEdgeInsets.bottom = 9
-        if isLTR {
+
+        if effectiveUserInterfaceLayoutDirection == .leftToRight {
             button.contentEdgeInsets.right = 20
         } else {
             button.contentEdgeInsets.left = 20
         }
-        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: spacing/2, bottom: 0, right: -spacing/2)
-        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -spacing/2, bottom: 0, right: spacing/2)
         button.contentHorizontalAlignment = .trailing
         return button
     }()
@@ -841,19 +825,16 @@ final class FeedItemFooterView: UIView {
 
     lazy var shareButton: UIButton = {
         let shareButton = UIButton(type: .system)
+        setupButton(shareButton)
         shareButton.addTarget(self, action: #selector(shareButtonAction), for: .touchUpInside)
-        shareButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
         let shareIcon = UIImage(systemName: "square.and.arrow.up")?
-            .withConfiguration(UIImage.SymbolConfiguration(pointSize: 13, weight: .semibold))
+            .withConfiguration(UIImage.SymbolConfiguration(pointSize: 12, weight: .semibold))
         shareButton.setImage(shareIcon, for: .normal)
-        shareButton.tintColor = .label.withAlphaComponent(0.75)
+        shareButton.setTitle(Localizations.buttonShare, for: .normal)
+        // Slightly adjust image vertical alignment
+        shareButton.imageEdgeInsets.top = -1
+        shareButton.imageEdgeInsets.bottom = 1
         return shareButton
-    }()
-
-    private lazy var facePileShareButtonConstraint: NSLayoutConstraint = {
-        let constraint = shareButton.leadingAnchor.constraint(equalTo: facePileView.trailingAnchor, constant: 4)
-        constraint.priority = .defaultHigh
-        return constraint
     }()
 
     var buttonStack: UIStackView!
@@ -879,17 +860,28 @@ final class FeedItemFooterView: UIView {
         shareButton.translatesAutoresizingMaskIntoConstraints = false
         addSubview(shareButton)
 
-        let facePileTrailingConstraint = facePileView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8)
-        facePileTrailingConstraint.priority = UILayoutPriority(500)
-
         NSLayoutConstraint.activate([
-            facePileTrailingConstraint,
+            facePileView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
             facePileView.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 3),
 
-            facePileShareButtonConstraint,
-            shareButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -4),
+            shareButton.trailingAnchor.constraint(equalTo: facePileView.leadingAnchor, constant: -32),
             shareButton.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 2),
         ])
+    }
+
+    private func setupButton(_ button: UIButton, spacing: CGFloat = 4) {
+        // Gotham Medium, 15 pt (Subhead)
+        let font = UIFont.gothamFont(forTextStyle: .footnote, weight: .medium, maximumPointSize: 18)
+        button.imageView?.tintColor = .label.withAlphaComponent(0.75)
+        button.titleLabel?.font = font
+        button.titleLabel?.adjustsFontForContentSizeCategory = true
+        button.titleLabel?.lineBreakMode = .byWordWrapping
+        button.contentEdgeInsets.top = 15
+        button.contentEdgeInsets.bottom = 9
+        let isLTR = effectiveUserInterfaceLayoutDirection == .leftToRight
+        let adjustedSpacing = isLTR ? spacing : -spacing
+        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: adjustedSpacing / 2, bottom: 0, right: -adjustedSpacing / 2)
+        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -adjustedSpacing / 2, bottom: 0, right: adjustedSpacing / 2)
     }
 
     private class func senderCategory(for post: FeedPostDisplayable) -> SenderCategory {
@@ -922,10 +914,8 @@ final class FeedItemFooterView: UIView {
 
         if case .normal = state, post.canSharePost {
             shareButton.isHidden = false
-            facePileShareButtonConstraint.priority = .defaultHigh
         } else {
             shareButton.isHidden = true
-            facePileShareButtonConstraint.priority = .defaultLow
         }
 
         switch state {

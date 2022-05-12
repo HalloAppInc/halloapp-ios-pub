@@ -11,15 +11,25 @@ import Core
 import CoreCommon
 
 extension FeedPost {
+
+    private static let maxExternalShareDescriptionLength = 100
+
     var canSaveMedia: Bool {
         return groupID != nil
     }
 
     var externalShareDescription: String {
+        if let mentionText = MainAppContext.shared.contactStore.textWithMentions(rawText, mentions: orderedMentions)?.string,
+           !mentionText.isEmpty {
+            if mentionText.count > Self.maxExternalShareDescriptionLength {
+                return "\(mentionText.prefix(Self.maxExternalShareDescriptionLength))…"
+            } else {
+                return mentionText
+            }
+        }
+
         let media = media ?? []
-        if media.isEmpty {
-            return Localizations.externalShareTextPostDescription
-        } else if media.count == 1, media.first?.type == .audio {
+        if media.count == 1, media.first?.type == .audio {
             return Localizations.externalShareAudioPostDescription
         } else {
             return Localizations.externalShareMediaPostDescription

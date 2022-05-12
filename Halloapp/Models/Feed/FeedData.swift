@@ -4218,42 +4218,43 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             }
 
-            if let image = externalShareThumbnail(for: post) {
-                let relativePath = "externalsharethumb-\(UUID().uuidString).jpg"
-                let uploadFileURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativePath)
-                if image.save(to: uploadFileURL) {
-                    let imageSize = image.size
-                    let groupID = "\(post.id)-external"
-                    mediaUploader.upload(media: SimpleMediaUploadable(encryptedFilePath: relativePath),
-                                         groupId: groupID,
-                                         didGetURLs: { _ in }) { [weak mediaUploader] result in
-                        // By default, completed tasks are not cleard from the media uploader.
-                        // This needs to be dispatched on a different queue as clearTasks is synchronous on
-                        // mediauploader's queue, which this completion is dispatched on.
-                        DispatchQueue.main.async {
-                            mediaUploader?.clearTasks(withGroupID: groupID)
-                        }
-                        do {
-                            try FileManager.default.removeItem(at: uploadFileURL)
-                        } catch {
-                            DDLogError("FeedData/externalShareUrl/could not clean up thumbnail at \(uploadFileURL): \(error)")
-                        }
-                        switch result {
-                        case .success(let details):
-                            uploadPostForExternalShare(details.downloadURL, imageSize)
-                            break
-                        case .failure(let error):
-                            DDLogError("FeedData/externalShareUrl/Error uploading thumbnail: \(error)")
-                            uploadPostForExternalShare(nil, nil)
-                            break
-                        }
+            let image: UIImage = {
+                let image = externalShareThumbnail(for: post)
+                // return light mode version if from our asset catalog
+                return image.imageAsset?.image(with: UITraitCollection(userInterfaceStyle: .light)) ?? image
+            }()
+            let relativePath = "externalsharethumb-\(UUID().uuidString).jpg"
+            let uploadFileURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativePath)
+            if image.save(to: uploadFileURL) {
+                let imageSize = image.size
+                let groupID = "\(post.id)-external"
+                mediaUploader.upload(media: SimpleMediaUploadable(encryptedFilePath: relativePath),
+                                     groupId: groupID,
+                                     didGetURLs: { _ in }) { [weak mediaUploader] result in
+                    // By default, completed tasks are not cleard from the media uploader.
+                    // This needs to be dispatched on a different queue as clearTasks is synchronous on
+                    // mediauploader's queue, which this completion is dispatched on.
+                    DispatchQueue.main.async {
+                        mediaUploader?.clearTasks(withGroupID: groupID)
                     }
-                    // don't fall through to no image case - this will happen via the image upload completion handler
-                    return
+                    do {
+                        try FileManager.default.removeItem(at: uploadFileURL)
+                    } catch {
+                        DDLogError("FeedData/externalShareUrl/could not clean up thumbnail at \(uploadFileURL): \(error)")
+                    }
+                    switch result {
+                    case .success(let details):
+                        uploadPostForExternalShare(details.downloadURL, imageSize)
+                        break
+                    case .failure(let error):
+                        DDLogError("FeedData/externalShareUrl/Error uploading thumbnail: \(error)")
+                        uploadPostForExternalShare(nil, nil)
+                        break
+                    }
                 }
+            } else {
+                uploadPostForExternalShare(nil, nil)
             }
-
-            uploadPostForExternalShare(nil, nil)
         }
     }
 
@@ -4369,25 +4370,42 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    func externalShareThumbnail(for post: FeedPost) -> UIImage? {
-        let thumbnailMedia = media(for: post)
+    func externalShareThumbnail(for post: FeedPost) -> UIImage {
+        let media = media(for: post)
+
+        var thumbnailMedia = media
             .filter { [.image, .video].contains($0.type) }
-            .sorted { return $0.order < $1.order }
-            .first { $0.fileURL != nil } ?? post.linkPreview?.feedMedia
+            .sorted { $0.order < $1.order }
 
-        guard let thumbnailMedia = thumbnailMedia, let fileURL = thumbnailMedia.fileURL else {
-            return nil
+        if let linkPreviewMedia = post.linkPreview?.feedMedia {
+            thumbnailMedia.append(linkPreviewMedia)
         }
 
-        switch thumbnailMedia.type {
-        case .image:
-            return UIImage.thumbnail(contentsOf: fileURL, maxPixelSize: Self.externalShareThumbSize)
-        case .video:
-            return VideoUtils.videoPreviewImage(url: fileURL, size: CGSize(width: Self.externalShareThumbSize,
-                                                                           height: Self.externalShareThumbSize))
-        case .audio:
-            return nil
+        // Display a thumb from the first image or video, if available
+        if let thumbnailMedia = thumbnailMedia.first(where: { $0.fileURL != nil }), let fileURL = thumbnailMedia.fileURL {
+            switch thumbnailMedia.type {
+            case .image:
+                if let thumb = UIImage.thumbnail(contentsOf: fileURL, maxPixelSize: Self.externalShareThumbSize) {
+                    return thumb
+                }
+            case .video:
+                if let thumb = VideoUtils.videoPreviewImage(url: fileURL, size: CGSize(width: Self.externalShareThumbSize,
+                                                                                       height: Self.externalShareThumbSize)) {
+                    return thumb
+                }
+            case .audio:
+                // Audio is filtered out
+                break
+            }
         }
+
+        // Display an audio icon for audio posts
+        if media.contains(where: { $0.type == .audio }) {
+            return UIImage(named: "ExternalShareAudioPostThumb")!
+        }
+
+        // Display a generic icon for text posts / if creating a thumb failed
+        return UIImage(named: "ExternalShareTextPostThumb")!
     }
     
     // MARK: - Secret posts

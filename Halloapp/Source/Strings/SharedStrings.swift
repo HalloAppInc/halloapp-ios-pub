@@ -114,6 +114,10 @@ extension Localizations {
     static var labelSearch: String {
         NSLocalizedString("label.search", value: "Search", comment: "Generic label for search, mostly used as placeholder text for searchbar")
     }
+
+    static var copyLink: String {
+        return NSLocalizedString("button.copy.link", value: "Copy Link", comment: "Title for generic copy URL button")
+    }
     
     // MARK: Links
 
