@@ -2518,10 +2518,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func generateMediaPreview(for notifications: [FeedActivity], feedPost: FeedPost, using managedObjectContext: NSManagedObjectContext) {
         guard let postMedia = feedPost.orderedMedia.first as? CommonMedia else { return }
-        guard let mediaPath = postMedia.relativeFilePath else { return }
+        guard let mediaURL = postMedia.mediaURL else { return }
 
         DDLogInfo("FeedData/generateMediaPreview/feedPost \(feedPost.id), mediaType: \(postMedia.type)")
-        let mediaURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaPath, isDirectory: false)
         switch postMedia.type {
         case .image:
             self.updateMediaPreview(for: notifications, usingImageAt: mediaURL)

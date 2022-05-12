@@ -163,8 +163,9 @@ class FeedMedia: Identifiable, Hashable {
         assert(feedPostMedia.size == self.size)
         guard feedPostMedia.status != self.status else { return }
         // Media was downloaded
-        if self.fileURL == nil && feedPostMedia.relativeFilePath != nil {
-            self.fileURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(feedPostMedia.relativeFilePath!, isDirectory: false)
+        if self.fileURL == nil,
+           let mediaURL = feedPostMedia.mediaURL {
+            self.fileURL = mediaURL
         }
 
         // TODO: other kinds of updates possible?

@@ -3125,7 +3125,9 @@ extension ChatData {
             return
         }
         cleanUpOldUploadData(directoryURL: MainAppContext.chatMediaDirectoryURL)
+        cleanUpOldUploadData(directoryURL: MainAppContext.commonMediaStoreURL)
         MainAppContext.shared.feedData.cleanUpOldUploadData(directoryURL: MainAppContext.mediaDirectoryURL)
+        MainAppContext.shared.feedData.cleanUpOldUploadData(directoryURL: MainAppContext.commonMediaStoreURL)
         MainAppContext.shared.userDefaults?.setValue(Date().timeIntervalSince1970, forKey: MainAppContext.MediaUploadDataLastCleanUpTime)
     }
 
@@ -3278,8 +3280,7 @@ extension ChatData {
     private func deleteMedia(in chatMessage: ChatMessage) {
         DDLogDebug("ChatData/deleteMedia/message \(chatMessage.id) ")
         chatMessage.media?.forEach { (media) in
-            if media.relativeFilePath != nil {
-                let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(media.relativeFilePath!, isDirectory: false)
+            if let fileURL = media.mediaURL {
                 do {
                     DDLogDebug("ChatData/deleteMedia ")
                     try FileManager.default.removeItem(at: fileURL)
@@ -3294,8 +3295,7 @@ extension ChatData {
         // Delete link previews in messages.
         chatMessage.linkPreviews?.forEach { linkPreview in
             linkPreview.media?.forEach { (media) in
-                if media.relativeFilePath != nil {
-                    let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(media.relativeFilePath!, isDirectory: false)
+                if let fileURL = media.mediaURL {
                     do {
                         DDLogDebug("ChatData/deleteMedia ")
                         try FileManager.default.removeItem(at: fileURL)

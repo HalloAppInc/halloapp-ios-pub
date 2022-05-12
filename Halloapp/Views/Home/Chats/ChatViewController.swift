@@ -222,7 +222,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                 let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.rawText, mentions: feedPost.orderedMentions)
                 if let mediaItem = feedPost.media?.first(where: { $0.order == self.feedPostMediaIndex }), let mediaType = CommonMediaType(rawValue: mediaItem.type.rawValue){
                     
-                    let mediaUrl = MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
+                    let mediaUrl = mediaItem.mediaURL ?? MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
                     let info = QuotedItemPanel.PostInfo(userID: feedPost.userId,
                                                           text: mentionText?.string ?? "",
                                                      mediaType: mediaType,
@@ -546,7 +546,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                 let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.rawText, mentions: feedPost.orderedMentions)
                 if let mediaItem = feedPost.media?.first(where: { $0.order == self.feedPostMediaIndex }) {
                     let mediaType = mediaItem.type
-                    let mediaUrl = MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
+                    let mediaUrl = mediaItem.mediaURL ?? MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
                     
                     let reply = ReplyContext(feedPostID: feedPostId,
                                              replySenderID: feedPost.userId,
@@ -1593,7 +1593,7 @@ extension ChatViewController {
         guard let userID = chatReplyMessageSenderID else { return }
         
         if let mediaItem = chatMessage.media?.first(where: { $0.order == chatReplyMessageMediaIndex }) {
-            let mediaUrl = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
+            let mediaUrl = mediaItem.mediaURL ?? MainAppContext.chatMediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
             let info = QuotedItemPanel.PostInfo(userID: userID,
                                                   text: chatMessage.rawText ?? "",
                                              mediaType: mediaItem.type,

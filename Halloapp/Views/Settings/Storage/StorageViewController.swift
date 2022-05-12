@@ -68,12 +68,15 @@ class StorageViewController: UITableViewController {
     private static func getSpaceUsage() -> String {
         let feedMediaUsage = ByteCountFormatter.string(fromByteCount: Int64(getSpaceOfDir(at: MainAppContext.mediaDirectoryURL)), countStyle: ByteCountFormatter.CountStyle.decimal)
         let chatMediaUsage = ByteCountFormatter.string(fromByteCount: Int64(getSpaceOfDir(at: MainAppContext.chatMediaDirectoryURL)), countStyle: ByteCountFormatter.CountStyle.decimal)
+        let commonMediaStoreUsage = ByteCountFormatter.string(fromByteCount: Int64(getSpaceOfDir(at: MainAppContext.commonMediaStoreURL)), countStyle: ByteCountFormatter.CountStyle.decimal)
       
         return [
             "FEED MEDIA",
             feedMediaUsage,
             "CHAT MEDIA",
-            chatMediaUsage
+            chatMediaUsage,
+            "COMMON MEDIA",
+            commonMediaStoreUsage
         ]
         .joined(separator: "\n\n")
     }

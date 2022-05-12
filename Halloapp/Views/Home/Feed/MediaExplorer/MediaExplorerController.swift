@@ -206,7 +206,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
     init(media: [CommonMedia], index: Int, startTime: CMTime = .zero) {
         self.media = media.map {
-            let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent($0.relativeFilePath ?? "", isDirectory: false)
+            let url = $0.mediaURL ?? MainAppContext.chatMediaDirectoryURL
             let image: UIImage? = $0.type == .image ? UIImage(contentsOfFile: url.path) : nil
             return MediaExplorerMedia(url: url, image: image, type: ($0.type == .image ? .image : .video), size: $0.size)
         }
@@ -612,7 +612,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     func explorerMedia(at indexPath: IndexPath) -> MediaExplorerMedia {
         if let controller = fetchedResultsController {
             let chatMedia = controller.object(at: indexPath)
-            let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(chatMedia.relativeFilePath ?? "", isDirectory: false)
+            let url = chatMedia.mediaURL ?? MainAppContext.chatMediaDirectoryURL.appendingPathComponent(chatMedia.relativeFilePath ?? "", isDirectory: false)
             let image: UIImage? = chatMedia.type == .image ? UIImage(contentsOfFile: url.path) : nil
             let type: MediaExplorerMediaType = chatMedia.type == .image ? .image : .video
             let update = chatMediaUpdated
@@ -620,7 +620,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
                     mediaIndexPath == indexPath && media.relativeFilePath != nil
                 }
                 .map { (media, mediaIndexPath) -> (URL?, UIImage?, CGSize) in
-                    let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(chatMedia.relativeFilePath ?? "", isDirectory: false)
+                    let url = chatMedia.mediaURL ?? MainAppContext.chatMediaDirectoryURL.appendingPathComponent(chatMedia.relativeFilePath ?? "", isDirectory: false)
                     let image: UIImage? = chatMedia.type == .image ? UIImage(contentsOfFile: url.path) : nil
 
                     return (url, image, media.size)

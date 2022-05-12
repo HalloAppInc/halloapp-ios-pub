@@ -150,7 +150,7 @@ class ChatLinkPreviewView: UIView {
         mediaView.tintColor = .systemGray3
         mediaView.isHidden = false
 
-        let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(media.relativeFilePath ?? "", isDirectory: false)
+        let fileURL = media.mediaURL ?? MainAppContext.chatMediaDirectoryURL.appendingPathComponent(media.relativeFilePath ?? "", isDirectory: false)
 
         if media.type == .image {
             if let image = UIImage(contentsOfFile: fileURL.path) {
@@ -163,6 +163,7 @@ class ChatLinkPreviewView: UIView {
                     DispatchQueue.main.async {
                         self.progressView.setProgress(Float(progress), animated: true)
                         if let relativeFilePath = relativeFilePath {
+                            // TODO: Assumes mediaDirectory to always be chat - update to use CommonMedia.
                             let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
                             if let image = UIImage(contentsOfFile: fileURL.path) {
                                 self.show(image: image)
