@@ -97,9 +97,12 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
 
-        for cell in self.collectionView.visibleCells {
-            if let promptCell = cell as? MomentPromptCollectionViewCell {
-                promptCell.promptView.stopSession()
+        // Its possible this is called before viewDidLoad, which means the collectionView can be nil
+        if let collectionView = collectionView {
+            for cell in collectionView.visibleCells {
+                if let promptCell = cell as? MomentPromptCollectionViewCell {
+                    promptCell.promptView.stopSession()
+                }
             }
         }
     }
