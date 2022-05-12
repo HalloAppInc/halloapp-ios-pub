@@ -572,8 +572,7 @@ class NotificationMetadata: Codable {
                     body = "\(mediaIcon) \(body)"
                 }
             }
-        case .moment(let media):
-            let knownMediaType = NotificationMediaType(feedMediaType: media.type)
+        case .moment(_):
             subtitle = Localizations.newMomentNotificationSubtitle
             body = ""
         case .voiceNote:

@@ -554,7 +554,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         let isVoiceNote = media?.count == 1 && media?.first?.type == .audio
 
         if isVoiceNote, let item = media?.first {
-            var url: URL? = item.mediaURL
+            let url = item.mediaURL
 
             voiceNoteView.delegate = self
 

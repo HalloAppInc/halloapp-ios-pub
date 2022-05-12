@@ -33,7 +33,7 @@ public class LinkPreviewMetadataProvider {
             return url
         }
 
-        if var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false), urlComponents != nil, let newScheme = fallbackScheme(currentScheme: url.scheme?.lowercased()) {
+        if var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false), let newScheme = fallbackScheme(currentScheme: url.scheme?.lowercased()) {
             urlComponents.scheme = newScheme
             return urlComponents.url
         }

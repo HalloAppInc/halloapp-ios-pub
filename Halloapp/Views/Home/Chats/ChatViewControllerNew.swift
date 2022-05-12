@@ -172,13 +172,13 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                     }
                 }
             }
-            dataSource.apply(snapshot, animatingDifferences: true) { [weak self] in
-                guard let self = self else { return }
-                DispatchQueue.main.async {
+            dataSource.apply(snapshot, animatingDifferences: true) { // [weak self] in
+                // guard let self = self else { return }
+                // DispatchQueue.main.async {
                     //self.updateScrollingWhenDataChanges()
                     //self.scrollToTarget(withAnimation: true)
                     //self.isFirstLaunch = false
-                }
+                // }
             }
         default:
             break

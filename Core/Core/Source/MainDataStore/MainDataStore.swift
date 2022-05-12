@@ -359,7 +359,6 @@ open class MainDataStore {
 
     // MARK: Groups
     public func groups(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext) -> [Group] {
-        let managedObjectContext = managedObjectContext ?? viewContext
         let fetchRequest: NSFetchRequest<Group> = Group.fetchRequest()
         fetchRequest.predicate = predicate
         fetchRequest.sortDescriptors = sortDescriptors

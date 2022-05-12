@@ -242,7 +242,7 @@ class ContentInputView: UIView {
         return textView
     }()
     
-    private let plusButton: UIButton = {
+    private lazy var plusButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
         let config = UIImage.SymbolConfiguration(pointSize: 21, weight: .medium)
@@ -267,7 +267,7 @@ class ContentInputView: UIView {
         return control
     }()
     
-    private let photoButton: UIButton = {
+    private lazy var photoButton: UIButton = {
         let button = UIButton(type: .system)
         let config = UIImage.SymbolConfiguration(pointSize: 16)
         button.translatesAutoresizingMaskIntoConstraints = false
