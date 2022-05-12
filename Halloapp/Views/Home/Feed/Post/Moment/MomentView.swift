@@ -11,6 +11,30 @@ import Combine
 import Core
 import CoreCommon
 
+// MARK: - computed properties
+
+extension MomentView {
+    private var cornerRadius: CGFloat {
+        style == .minimal ? 10 : LayoutConstants.backgroundCornerRadius
+    }
+
+    private var innerCornerRadius: CGFloat {
+        cornerRadius - 5
+    }
+
+    private var mediaPadding: CGFloat {
+        style == .minimal ? 5 : 7
+    }
+
+    private var footerPadding: CGFloat {
+        style == .minimal ? 10 : 14
+    }
+
+    private var avatarDiameter: CGFloat {
+        92
+    }
+}
+
 class MomentView: UIView {
     typealias LayoutConstants = FeedPostCollectionViewCell.LayoutConstants
 
@@ -21,12 +45,20 @@ class MomentView: UIView {
     private(set) var state: State = .locked
     
     private(set) var feedPost: FeedPost?
-    let mediaView: MediaCarouselView
+
+    private(set) lazy var mediaView: MediaCarouselView = {
+        var config = MediaCarouselViewConfiguration.default
+        config.cornerRadius = innerCornerRadius
+        let view = MediaCarouselView(media: [], initialIndex: nil, configuration: config)
+        view.delegate = self
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
     
     private lazy var blurView: UIVisualEffectView = {
         let view = UIVisualEffectView(effect: UIBlurEffect(style: .regular))
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.layer.cornerRadius = LayoutConstants.backgroundCornerRadius
+        view.layer.cornerRadius = innerCornerRadius
         view.layer.cornerCurve = .continuous
         view.layer.masksToBounds = true
         return view
@@ -35,27 +67,31 @@ class MomentView: UIView {
     private lazy var avatarView: AvatarView = {
         let view = AvatarView()
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.layer.shadowOpacity = 1
+        view.layer.shadowColor = UIColor.black.withAlphaComponent(0.2).cgColor
+        view.layer.shadowRadius = 1
+        view.layer.shadowOffset = .init(width: 0, height: 1)
+
+        let diameter = avatarDiameter
+        view.layer.shadowPath = UIBezierPath(ovalIn: CGRect(origin: .zero, size: .init(width: diameter, height: diameter))).cgPath
         return view
     }()
     
-    private lazy var actionButton: CapsuleButton = {
-        let button = CapsuleButton(type: .system)
-        button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 20, bottom: 10, right: 20)
-        button.setTitle(Localizations.open, for: .normal)
-        button.setBackgroundColor(.systemBlue, for: .normal)
-        button.setTitleColor(.white, for: .normal)
-        button.layer.masksToBounds = true
-        button.layer.cornerRadius = button.bounds.height / 2
-        button.addTarget(self, action: #selector(actionButtonPushed), for: .touchUpInside)
-        
-        return button
+    private lazy var actionButton: ShadowedCapsuleButton = {
+        let view = ShadowedCapsuleButton()
+        view.button.setTitle(Localizations.open, for: .normal)
+        view.button.addTarget(self, action: #selector(actionButtonPushed), for: .touchUpInside)
+        return view
     }()
     
     private lazy var promptLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(forTextStyle: .body, weight: .regular, maximumPointSize: 33)
+        label.font = .systemFont(forTextStyle: .body, pointSizeChange: -2, weight: .regular, maximumPointSize: 30)
         label.textColor = .white
-        
+        label.shadowColor = .black.withAlphaComponent(0.2)
+        label.shadowOffset = .init(width: 0, height: 1)
+        label.textAlignment = .center
+        label.numberOfLines = 0
         return label
     }()
     
@@ -65,20 +101,20 @@ class MomentView: UIView {
         stack.axis = .vertical
         stack.distribution = .equalSpacing
         stack.alignment = .center
-        stack.spacing = 12
+        stack.spacing = 15
         
         return stack
     }()
     
     private lazy var dayOfWeekLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 17)
+        label.font = .systemFont(forTextStyle: .body, pointSizeChange: -2, weight: .regular, maximumPointSize: 26)
         return label
     }()
     
     private(set) lazy var dateLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 17)
+        label.font = .systemFont(forTextStyle: .body, pointSizeChange: -2, weight: .regular, maximumPointSize: 26)
         return label
     }()
     
@@ -95,39 +131,31 @@ class MomentView: UIView {
 
     init(style: Style = .normal) {
         self.style = style
-        
-        let cornerRadius: CGFloat = style == .minimal ? 10 : LayoutConstants.backgroundCornerRadius
-        let footerSpacing: CGFloat = style == .minimal ? 10 : 14
-        let mediaSpacing: CGFloat = style == .minimal ? 5 : 9
-        
-        var mediaConfig = MediaCarouselViewConfiguration.default
-        mediaConfig.cornerRadius = cornerRadius
-        mediaView = MediaCarouselView(media: [], initialIndex: nil, configuration: mediaConfig)
-        
         super.init(frame: .zero)
         layer.cornerRadius = cornerRadius
         layer.cornerCurve = .circular
         backgroundColor = .feedPostBackground
-        
-        mediaView.delegate = self
-        mediaView.translatesAutoresizingMaskIntoConstraints = false
+
         addSubview(mediaView)
         addSubview(footerView)
-        
-        let mediaHeight = mediaView.heightAnchor.constraint(equalTo: mediaView.widthAnchor)
-        let footerBottom = footerView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -footerSpacing)
-        mediaHeight.priority = .defaultHigh
-        footerBottom.priority = .defaultHigh
+
+        let footerPadding = footerPadding
+        let mediaPadding = mediaPadding
+
+        let mediaHeightConstraint = mediaView.heightAnchor.constraint(equalTo: mediaView.widthAnchor)
+        let footerBottomConstraint = footerView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -footerPadding)
+        mediaHeightConstraint.priority = .defaultHigh
+        footerBottomConstraint.priority = .defaultHigh
         
         NSLayoutConstraint.activate([
-            mediaView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: mediaSpacing),
-            mediaView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -mediaSpacing),
-            mediaView.topAnchor.constraint(equalTo: topAnchor, constant: mediaSpacing),
-            mediaHeight,
+            mediaView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: mediaPadding),
+            mediaView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -mediaPadding),
+            mediaView.topAnchor.constraint(equalTo: topAnchor, constant: mediaPadding),
+            mediaHeightConstraint,
             footerView.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor),
-            footerView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -footerSpacing - 10),
-            footerView.topAnchor.constraint(equalTo: mediaView.bottomAnchor, constant: footerSpacing),
-            footerBottom,
+            footerView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -footerPadding - 10),
+            footerView.topAnchor.constraint(equalTo: mediaView.bottomAnchor, constant: footerPadding - 5),
+            footerBottomConstraint,
         ])
         
         layer.shadowOpacity = 0.75
@@ -143,6 +171,12 @@ class MomentView: UIView {
         } else {
             footerView.isHidden = true
         }
+
+        MainAppContext.shared.feedData.validMoment.sink { [weak self] id in
+            let title = id == nil ? Localizations.unlock : Localizations.open
+            self?.actionButton.button.setTitle(title, for: .normal)
+            self?.setNeedsLayout()
+        }.store(in: &cancellables)
     }
 
     private func installDetailViews() {
@@ -151,6 +185,7 @@ class MomentView: UIView {
         addSubview(blurView)
         addSubview(overlayStack)
 
+        let diameter = avatarDiameter
         NSLayoutConstraint.activate([
             blurView.leadingAnchor.constraint(equalTo: mediaView.leadingAnchor),
             blurView.topAnchor.constraint(equalTo: mediaView.topAnchor),
@@ -161,8 +196,8 @@ class MomentView: UIView {
             overlayStack.trailingAnchor.constraint(equalTo: blurView.trailingAnchor),
             overlayStack.bottomAnchor.constraint(lessThanOrEqualTo: blurView.bottomAnchor),
             overlayStack.centerYAnchor.constraint(equalTo: blurView.centerYAnchor),
-            avatarView.widthAnchor.constraint(equalToConstant: 85),
-            avatarView.heightAnchor.constraint(equalToConstant: 85),
+            avatarView.widthAnchor.constraint(equalToConstant: diameter),
+            avatarView.heightAnchor.constraint(equalToConstant: diameter),
         ])
     }
     
@@ -172,19 +207,26 @@ class MomentView: UIView {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: LayoutConstants.backgroundCornerRadius).cgPath
+        layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: cornerRadius).cgPath
     }
     
     func configure(with post: FeedPost) {
         feedPost = post
         mediaView.refreshData(media: post.feedMedia, index: 0, animated: false)
 
-        dayOfWeekLabel.text = DateFormatter.dateTimeFormatterDayOfWeekLong.string(from: post.timestamp)
-        dateLabel.text = DateFormatter.dateTimeFormatterShortDate.string(from: post.timestamp)
+        for media in post.feedMedia where !media.isMediaAvailable {
+            media.loadImage()
+        }
+
+        dayOfWeekLabel.text = DateFormatter.dateTimeFormatterTime.string(from: post.timestamp)
+        dateLabel.text = DateFormatter.dateTimeFormatterDayOfWeekLong.string(from: post.timestamp)
 
         avatarView.configure(with: post.userID, using: MainAppContext.shared.avatarStore)
         let name = MainAppContext.shared.contactStore.firstName(for: post.userID)
         promptLabel.text = String(format: Localizations.secretPostEntice, name)
+
+        let buttonTitle = MainAppContext.shared.feedData.validMoment.value == nil ? Localizations.unlock : Localizations.open
+        actionButton.button.setTitle(buttonTitle, for: .normal)
         
         let isOwnPost = post.userID == MainAppContext.shared.userData.userId
         blurView.isHidden = isOwnPost
@@ -241,10 +283,51 @@ extension MomentView: MediaCarouselViewDelegate {
     }
 }
 
-fileprivate class CapsuleButton: UIButton {
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        layer.cornerRadius = min(bounds.width, bounds.height) / 2.0
+// MARK: - ShadowedCapsuleButton implementation
+
+extension MomentView {
+    ///
+    class ShadowedCapsuleButton: UIView {
+        let button: UIButton
+
+        override init(frame: CGRect) {
+            button = UIButton(type: .system)
+            super.init(frame: frame)
+
+            button.translatesAutoresizingMaskIntoConstraints = false
+            addSubview(button)
+
+            NSLayoutConstraint.activate([
+                button.leadingAnchor.constraint(equalTo: leadingAnchor),
+                button.trailingAnchor.constraint(equalTo: trailingAnchor),
+                button.topAnchor.constraint(equalTo: topAnchor),
+                button.bottomAnchor.constraint(equalTo: bottomAnchor),
+            ])
+
+            layer.shadowOpacity = 1
+            layer.shadowColor = UIColor.black.withAlphaComponent(0.2).cgColor
+            layer.shadowRadius = 1
+            layer.shadowOffset = .init(width: 0, height: 1)
+            layer.masksToBounds = false
+            clipsToBounds = false
+
+            button.layer.masksToBounds = true
+            button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 20, bottom: 8, right: 20)
+            button.setBackgroundColor(.systemBlue, for: .normal)
+            button.setTitleColor(.white, for: .normal)
+            button.titleLabel?.font = .systemFont(forTextStyle: .body, weight: .medium, maximumPointSize: 30)
+        }
+
+        required init?(coder: NSCoder) {
+            fatalError("ShadowedCapsuleButton coder init not implemented...")
+        }
+
+        override func layoutSubviews() {
+            super.layoutSubviews()
+
+            button.layer.cornerRadius = min(bounds.width, bounds.height) / 2.0
+            layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: button.layer.cornerRadius).cgPath
+        }
     }
 }
 
@@ -261,5 +344,11 @@ extension Localizations {
         NSLocalizedString("open.title",
                    value: "Open",
                  comment: "Text that indicates an open action.")
+    }
+
+    static var unlock: String {
+        NSLocalizedString("unlock.title",
+                   value: "Unlock",
+                 comment: "Text that indicates the unlock action for a moment.")
     }
 }

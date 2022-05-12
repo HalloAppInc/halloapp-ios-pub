@@ -126,10 +126,6 @@ class MomentViewController: UIViewController {
         unlockingMomentView.configure(with: unlockingPost)
         momentView.setState(unlockingPost.status == .sent ? .unlocked : .indeterminate)
         
-        for media in unlockingPost.feedMedia where !media.isMediaAvailable {
-            media.loadImage()
-        }
-        
         NSLayoutConstraint.activate([
             headerView.topAnchor.constraint(equalTo: unlockingMomentStack.bottomAnchor, constant: 25),
             unlockingMomentStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),

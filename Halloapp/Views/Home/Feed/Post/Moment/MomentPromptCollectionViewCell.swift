@@ -74,7 +74,7 @@ final class MomentPromptView: UIView {
     private lazy var previewView: AVCapturePreviewView = {
         let view = AVCapturePreviewView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.layer.cornerRadius = FeedPostCollectionViewCell.LayoutConstants.backgroundCornerRadius
+        view.layer.cornerRadius = FeedPostCollectionViewCell.LayoutConstants.backgroundCornerRadius - 5
         view.layer.cornerCurve = .continuous
         view.layer.masksToBounds = true
         return view
@@ -83,7 +83,7 @@ final class MomentPromptView: UIView {
     private lazy var blurView: UIVisualEffectView = {
         let view = UIVisualEffectView(effect: UIBlurEffect(style: .regular))
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.layer.cornerRadius = FeedPostCollectionViewCell.LayoutConstants.backgroundCornerRadius
+        view.layer.cornerRadius = FeedPostCollectionViewCell.LayoutConstants.backgroundCornerRadius - 5
         view.layer.masksToBounds = true
         return view
     }()
@@ -92,7 +92,7 @@ final class MomentPromptView: UIView {
         let stack = UIStackView(arrangedSubviews: [displayLabel, actionButton])
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.axis = .vertical
-        stack.distribution = .equalSpacing
+        stack.distribution = .equalCentering
         stack.alignment = .center
         stack.spacing = 15
         stack.isLayoutMarginsRelativeArrangement = true
@@ -102,22 +102,19 @@ final class MomentPromptView: UIView {
 
     private lazy var displayLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(forTextStyle: .body, weight: .regular, maximumPointSize: 30)
+        label.font = .systemFont(forTextStyle: .body, pointSizeChange: -2, weight: .regular, maximumPointSize: 30)
         label.textColor = .white
+        label.shadowColor = .black.withAlphaComponent(0.2)
+        label.shadowOffset = .init(width: 0, height: 1)
         label.numberOfLines = 0
         label.textAlignment = .center
         return label
     }()
 
-    private lazy var actionButton: CapsuleButton = {
-        let button = CapsuleButton()
-        button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 20, bottom: 10, right: 20)
-        button.setBackgroundColor(.systemBlue, for: .normal)
-        button.setTitleColor(.white, for: .normal)
-        button.layer.masksToBounds = true
-        button.addTarget(self, action: #selector(actionButtonPushed), for: .touchUpInside)
-        button.titleLabel?.font = .systemFont(forTextStyle: .body, weight: .medium, maximumPointSize: 30)
-        return button
+    private lazy var actionButton: MomentView.ShadowedCapsuleButton = {
+        let view = MomentView.ShadowedCapsuleButton()
+        view.button.addTarget(self, action: #selector(actionButtonPushed), for: .touchUpInside)
+        return view
     }()
 
     var openSettings: (() -> Void)?
@@ -155,7 +152,7 @@ final class MomentPromptView: UIView {
         addSubview(blurView)
         addSubview(overlayStack)
 
-        let spacing: CGFloat = 10
+        let spacing: CGFloat = 7
 
         NSLayoutConstraint.activate([
             previewView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: spacing),
@@ -233,18 +230,18 @@ final class MomentPromptView: UIView {
 
     private func displayPermissionDeniedState() {
         displayLabel.text = Localizations.shareMomentCameraAccess
-        actionButton.setTitle(Localizations.buttonGoToSettings, for: .normal)
+        actionButton.button.setTitle(Localizations.buttonGoToSettings, for: .normal)
         previewView.backgroundColor = .black
     }
 
     private func displayPermissionNotDeterminedState() {
         displayLabel.text = Localizations.shareMomentCameraAccess
-        actionButton.setTitle(Localizations.allowCameraAccess, for: .normal)
+        actionButton.button.setTitle(Localizations.allowCameraAccess, for: .normal)
     }
 
     private func displayPermissionAllowedState() {
         displayLabel.text = Localizations.shareMoment
-        actionButton.setTitle(Localizations.openCamera, for: .normal)
+        actionButton.button.setTitle(Localizations.openCamera, for: .normal)
     }
 
     @objc
