@@ -39,6 +39,7 @@ public struct ServerProperties {
         case externalSharingEnabled = "external_sharing"
         case isMediaDrawingEnabled = "draw_media"
         case isGroupCommentNotificationsEnabled = "group_comments_notification"
+        case isHomeCommentNotificationsEnabled = "home_feed_comment_notifications"
         case inviteStrings = "invite_strings"
         case nseRuntimeSec = "nse_runtime_sec"
     }
@@ -79,6 +80,7 @@ public struct ServerProperties {
         static let externalSharingEnabled = false
         static let isMediaDrawingEnabled = false
         static let isGroupCommentNotificationsEnabled = false
+        static let isHomeCommentNotificationsEnabled = false
         static let nseRuntimeSec = 17.0
     }
 
@@ -314,6 +316,10 @@ public struct ServerProperties {
 
     public static var isGroupCommentNotificationsEnabled: Bool {
         ServerProperties.bool(forKey: .isGroupCommentNotificationsEnabled) ?? Defaults.isGroupCommentNotificationsEnabled
+    }
+
+    public static var isHomeCommentNotificationsEnabled: Bool {
+        ServerProperties.bool(forKey: .isHomeCommentNotificationsEnabled) ?? Defaults.isHomeCommentNotificationsEnabled
     }
 
     public static var nseRuntimeSec: TimeInterval {

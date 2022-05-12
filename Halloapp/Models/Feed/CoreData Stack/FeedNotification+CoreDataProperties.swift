@@ -130,6 +130,17 @@ extension FeedNotification {
                                                    comment: "Text for group feed notification displayed in Activity Center.")
                 }
 
+            case .homeFeedComment:
+                if !(self.text?.isEmpty ?? true) {
+                    eventText = NSLocalizedString("feed.home.notification.other.comment.w.text",
+                                                  value: "<$author$> commented: <$text$>",
+                                                  comment: "Text for home feed notification displayed in Activity Center.")
+                } else {
+                    eventText =  NSLocalizedString("feed.home.notification.other.comment.no.text",
+                                                   value: "<$author$> commented",
+                                                   comment: "Text for home feed notification displayed in Activity Center.")
+                }
+
             case .mentionComment:
                 if !(self.text?.isEmpty ?? true) {
                     eventText = NSLocalizedString("feed.notification.mention.comment.w.text",

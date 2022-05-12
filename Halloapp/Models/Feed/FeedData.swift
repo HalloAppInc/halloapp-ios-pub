@@ -1458,6 +1458,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             return .groupComment
         }
 
+        // Notify comments on home feed from contacts.
+        if ServerProperties.isHomeCommentNotificationsEnabled && isKnownPublisher {
+            return .homeFeedComment
+        }
+
         return nil
     }
 
@@ -1623,6 +1628,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         // Notify group comments on group posts after user has commented on it.
         let interestedPosts = AppContext.shared.userDefaults.value(forKey: AppContext.commentedGroupPostsKey) as? [FeedPostID] ?? []
         if Set(interestedPosts).contains(comment.post.id) {
+            return true
+        }
+
+        // Notify comments on home feed from contacts.
+        if ServerProperties.isHomeCommentNotificationsEnabled && isKnownPublisher {
             return true
         }
 

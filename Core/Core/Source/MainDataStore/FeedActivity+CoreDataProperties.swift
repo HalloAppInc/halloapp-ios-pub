@@ -22,6 +22,7 @@ public extension FeedActivity {
         case mentionPost = 6      // mentioned in a post
         case favoritesPromo = 7   // Promo for new favorites
         case groupComment = 8   // batch and show comment related activity on group post
+        case homeFeedComment = 9 // batch and show home feed comment related activity on home feed post.
     }
 
     enum MediaType: Int16 {

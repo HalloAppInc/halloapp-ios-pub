@@ -188,7 +188,9 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
                 case .otherComment:
                     displayItems.append(contentsOf: otherCommentItems(for: notifications))
                 case .groupComment:
-                    displayItems.append(contentsOf: groupCommentItems(for: notifications))
+                    displayItems.append(contentsOf: mergedCommentItems(for: notifications))
+                case .homeFeedComment:
+                    displayItems.append(contentsOf: mergedCommentItems(for: notifications))
                 default:
                     displayItems.append(contentsOf: defaultItems(for: notifications))
                 }
@@ -240,7 +242,7 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         return items
     }
 
-    private func groupCommentItems(for postNotifications: [FeedActivity]) -> [ActivityCenterItem] {
+    private func mergedCommentItems(for postNotifications: [FeedActivity]) -> [ActivityCenterItem] {
         var items: [ActivityCenterItem] = []
 
         // Aggregate all group comments from posts into a single item

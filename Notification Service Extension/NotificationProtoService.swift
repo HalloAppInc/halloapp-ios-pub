@@ -673,7 +673,9 @@ final class NotificationProtoService: ProtoServiceCore {
         let interestedPosts = AppContext.shared.userDefaults.value(forKey: AppContext.commentedGroupPostsKey) as? [FeedPostID] ?? []
         let isGroupCommentOnInterestedPost = Set(interestedPosts).contains(commentData.feedPostId)
 
-        if isImportantComment || isUserMentioned || isGroupCommentFromContact || isGroupCommentOnInterestedPost {
+        let isHomeFeedCommentFromContact = ServerProperties.isHomeCommentNotificationsEnabled && isKnownPublisher
+
+        if isImportantComment || isUserMentioned || isGroupCommentFromContact || isGroupCommentOnInterestedPost || isHomeFeedCommentFromContact {
             runIfNotificationWasNotPresented(for: metadata.contentId) { [self] in
                 guard NotificationSettings.isCommentsEnabled else {
                     DDLogDebug("ProtoService/CommentNotification - skip due to userPreferences")
