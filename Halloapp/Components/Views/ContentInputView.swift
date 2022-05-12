@@ -27,6 +27,23 @@ protocol ContentInputDelegate: AnyObject {
     func inputViewMicrophoneAccessDeniedDuringCall(_ inputView: ContentInputView)
 }
 
+// MARK: - default implementations for delegates
+
+extension ContentInputDelegate {
+    func inputView(_ inputView: ContentInputView, isTyping: Bool) { }
+    func inputView(_ inputView: ContentInputView, possibleMentionsFor input: String) -> [MentionableUser] { [] }
+    func inputView(_ inputView: ContentInputView, didPost content: ContentInputView.InputContent) { }
+    func inputView(_ inputView: ContentInputView, didChangeHeightTo height: CGFloat) { }
+    func inputView(_ inputView: ContentInputView, didClose panel: InputContextPanel) { }
+    func inputViewDidSelectCamera(_ inputView: ContentInputView) { }
+    func inputViewDidSelectContentOptions(_ inputView: ContentInputView) { }
+    func inputView(_ inputView: ContentInputView, didPaste image: PendingMedia) { }
+
+    func inputView(_ inputView: ContentInputView, didInterrupt recorder: AudioRecorder) { }
+    func inputViewMicrophoneAccessDenied(_ inputView: ContentInputView) { }
+    func inputViewMicrophoneAccessDeniedDuringCall(_ inputView: ContentInputView) { }
+}
+
 protocol InputContextPanel: UIView {
     var closeButton: UIButton { get }
 }
@@ -42,6 +59,8 @@ extension ContentInputView {
         static let chat: Options = [typingIndication]
         static let comments: Options = [mentions]
     }
+
+    enum Style { case normal, minimal }
     
     private enum ContentState {
         /// No content; shows the placeholder.
@@ -92,6 +111,7 @@ extension ContentInputView {
 
 class ContentInputView: UIView {
     let options: Options
+    let style: Style
     private var contentState: ContentState = .none {
         didSet {
             if oldValue != contentState { refreshButtons() }
@@ -144,10 +164,15 @@ class ContentInputView: UIView {
         
         let edgePadding: CGFloat = 13
         let padding: CGFloat = 11
-        
-        let placeHolderTrailing = placeHolder.trailingAnchor.constraint(equalTo: photoButton.leadingAnchor,
+
+        textViewLeadingConstraint = placeHolder.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: edgePadding)
+
+        let textViewPlusButton = placeHolder.leadingAnchor.constraint(equalTo: plusButton.trailingAnchor, constant: padding)
+        textViewPlusButton.priority = .defaultHigh
+
+        let textViewPhotoButton = placeHolder.trailingAnchor.constraint(equalTo: photoButton.leadingAnchor,
                                                                        constant: -padding - 4)
-        placeHolderTrailing.priority = .defaultHigh
+        textViewPhotoButton.priority = .defaultHigh
         
         textViewPostButtonConstraint = placeHolder.trailingAnchor.constraint(equalTo: postButton.leadingAnchor,
                                                                             constant: -padding - 2)
@@ -158,9 +183,9 @@ class ContentInputView: UIView {
             // positioning
             plusButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: edgePadding),
             plusButton.centerYAnchor.constraint(equalTo: placeHolder.centerYAnchor),
-            placeHolder.leadingAnchor.constraint(equalTo: plusButton.trailingAnchor, constant: padding),
             placeHolder.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -Self.textViewPadding),
-            placeHolderTrailing,
+            textViewPlusButton,
+            textViewPhotoButton,
             photoButton.centerYAnchor.constraint(equalTo: placeHolder.centerYAnchor),
             voiceNoteControl.centerYAnchor.constraint(equalTo: placeHolder.centerYAnchor),
             voiceNoteControl.leadingAnchor.constraint(equalTo: photoButton.trailingAnchor, constant: padding + 2),
@@ -290,6 +315,8 @@ class ContentInputView: UIView {
         button.tintColor = .white
         button.addTarget(self, action: #selector(tappedPost), for: .touchUpInside)
         button.setBackgroundColor(.primaryBlue, for: .normal)
+        button.setBackgroundColor(.systemGray, for: .disabled)
+        button.isEnabled = false
         button.isHidden = true
         
         return button
@@ -364,6 +391,8 @@ class ContentInputView: UIView {
     }()
     
     private(set) var contextPanel: InputContextPanel?
+    /// Used when `style` is `.minimal`; we want the text view to be attached to the left edge.
+    private var textViewLeadingConstraint: NSLayoutConstraint?
     private var textViewPostButtonConstraint: NSLayoutConstraint?
 
     private lazy var voiceNoteRecorder: AudioRecorder = {
@@ -372,6 +401,23 @@ class ContentInputView: UIView {
         
         return recorder
     }()
+
+    private(set) lazy var blurView: BlurView = {
+        // note that a `.prominent` blur doesn't seem to snapshot well when performing a vc transition.
+        // `.regular` is better, but it's not seamless.
+        let blurView = BlurView(effect: UIBlurEffect(style: .prominent), intensity: 0.9)
+        blurView.translatesAutoresizingMaskIntoConstraints = false
+
+        return blurView
+    }()
+
+    var placeholderText: String {
+        get { placeHolder.text }
+        set {
+            placeHolder.text = newValue
+            setNeedsLayout()
+        }
+    }
     
     private var typingDebounceTimer: Timer?
     private var typingThrottleTimer: Timer?
@@ -380,7 +426,8 @@ class ContentInputView: UIView {
         return textView.intrinsicContentSize
     }
     
-    init(options: Options) {
+    init(style: Style = .normal, options: Options) {
+        self.style = style
         self.options = options
         super.init(frame: .zero)
         backgroundColor = nil
@@ -395,18 +442,27 @@ class ContentInputView: UIView {
         textView.linkPreviewMetadata.sink { [weak self] fetchState in
             self?.updateLinkPreviewPanel(with: fetchState)
         }.store(in: &cancellables)
+
+        if case .minimal = style {
+            adjustForMinimalStyle()
+        }
     }
     
     required init?(coder: NSCoder) {
         fatalError()
     }
+
+    private func adjustForMinimalStyle() {
+        photoButton.isHidden = true
+        voiceNoteControl.isHidden = true
+        plusButton.isHidden = true
+        postButton.isHidden = false
+
+        textViewLeadingConstraint?.isActive = true
+        textViewPostButtonConstraint?.isActive = true
+    }
     
     private func configureBlur() {
-        // note that a `.prominent` blur doesn't seem to snapshot well when performing a vc transition.
-        // `.regular` is better, but it's not seamless.
-        let blurView = BlurView(effect: UIBlurEffect(style: .prominent), intensity: 0.9)
-        blurView.translatesAutoresizingMaskIntoConstraints = false
-        
         // unused right now, but the purpose of this view is to try and get the background of the entire
         // input view to be as close as possible to that of the view behind it (the blur distorts the color).
         let backgroundView = UIView()
@@ -487,6 +543,32 @@ class ContentInputView: UIView {
     }
 
     private func refreshButtons() {
+        switch style {
+        case .minimal:
+            refreshButtonsForMinimalState()
+        case .normal:
+            refreshButtonsForNormalState()
+        }
+
+        setNeedsLayout()
+    }
+
+    private func refreshButtonsForMinimalState() {
+        // the rest of the views are hidden on init
+        var hidePlaceholder = false
+
+        switch contentState {
+        case .text, .invalidText:
+            hidePlaceholder = true
+        default:
+            break
+        }
+
+        placeHolder.isHidden = hidePlaceholder
+        postButton.isEnabled = contentState == .text
+    }
+
+    private func refreshButtonsForNormalState() {
         var hidePlaceholder = true
         var hideTextView = false
         var hidePhotoButton = true
@@ -496,6 +578,7 @@ class ContentInputView: UIView {
         var hideVoiceNoteTimeLabel = true
         var hidePlaybackView = true
         var hideDeleteRecordingButton = true
+        var enablePostButton = false
 
         switch contentState {
         case .none:
@@ -507,6 +590,7 @@ class ContentInputView: UIView {
         case .text:
             hidePostButton = false
             hideVoiceControl = true
+            enablePostButton = true
         case .audioRecording:
             hideTextView = true
             hideVoiceNoteTimeLabel = false
@@ -517,6 +601,7 @@ class ContentInputView: UIView {
             hidePostButton = false
             hideVoiceNoteTimeLabel = false
             hideStopVoiceRecordingButton = false
+            enablePostButton = true
         case .audioPlayback:
             hideTextView = true
             hideVoiceControl = true
@@ -524,6 +609,7 @@ class ContentInputView: UIView {
             hideVoiceControl = true
             hideDeleteRecordingButton = false
             hidePlaybackView = false
+            enablePostButton = true
         }
 
         placeHolder.isHidden = hidePlaceholder
@@ -540,9 +626,8 @@ class ContentInputView: UIView {
         deleteAudioRecordingButton.isHidden = hideDeleteRecordingButton
 
         postButton.isHidden = hidePostButton
+        postButton.isEnabled = enablePostButton
         textViewPostButtonConstraint?.isActive = contentState == .text
-
-        setNeedsLayout()
     }
     
     /**

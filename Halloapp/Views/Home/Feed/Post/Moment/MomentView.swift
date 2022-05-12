@@ -173,9 +173,11 @@ class MomentView: UIView {
         }
 
         MainAppContext.shared.feedData.validMoment.sink { [weak self] id in
-            let title = id == nil ? Localizations.unlock : Localizations.open
-            self?.actionButton.button.setTitle(title, for: .normal)
-            self?.setNeedsLayout()
+            DispatchQueue.main.async {
+                let title = id == nil ? Localizations.unlock : Localizations.open
+                self?.actionButton.button.setTitle(title, for: .normal)
+                self?.setNeedsLayout()
+            }
         }.store(in: &cancellables)
     }
 

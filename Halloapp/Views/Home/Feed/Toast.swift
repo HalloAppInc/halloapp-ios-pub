@@ -141,7 +141,8 @@ class Toast: UIView {
         }
     }
 
-    func show(shouldAutodismiss: Bool = true) {
+    /// - Parameter viewController: Use this when displaying over a modally presented view controller.
+    func show(viewController: UIViewController? = nil, shouldAutodismiss: Bool = true) {
         hideTimer?.invalidate()
 
         guard window == nil else {
@@ -161,7 +162,7 @@ class Toast: UIView {
             }
         }
 
-        guard let rootView = keyWindow?.rootViewController?.view else {
+        guard let rootView = viewController?.view ?? keyWindow?.rootViewController?.view else {
             DDLogError("Unable to find view to present toast")
             return
         }

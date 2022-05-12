@@ -2254,23 +2254,24 @@ extension ChatData {
         addIntent(toUserId: toUserId)
     }
 
-    /// - note: The message send back through `completion` should be used on the main thread.
-    func sendMomentReply(to userID: UserID, postID: FeedPostID, text: String, completion: ((ChatMessage?) -> Void)? = nil) {
-        performSeriallyOnBackgroundContext { context in
-            let id = self.createChatMsg(toUserId: userID,
-                                            text: text,
-                                           media: [],
-                                 linkPreviewData: nil,
-                                linkPreviewMedia: nil,
-                                      feedPostId: postID,
-                              feedPostMediaIndex: 0,
-                                   isMomentReply: true,
-                      chatReplyMessageMediaIndex: 0,
-                                           using: context)
+    /// - Returns: A chat message object that should be used on the main thread.
+    @discardableResult
+    func sendMomentReply(to userID: UserID, postID: FeedPostID, text: String) async -> ChatMessage? {
+        await withCheckedContinuation { continuation in
+            performSeriallyOnBackgroundContext { context in
+                let id = self.createChatMsg(toUserId: userID,
+                                                text: text,
+                                               media: [],
+                                     linkPreviewData: nil,
+                                    linkPreviewMedia: nil,
+                                          feedPostId: postID,
+                                  feedPostMediaIndex: 0,
+                                       isMomentReply: true,
+                          chatReplyMessageMediaIndex: 0,
+                                               using: context)
 
-            let message = self.chatMessage(with: id, in: self.viewContext)
-            DispatchQueue.main.async {
-                completion?(message)
+                let message = self.chatMessage(with: id, in: self.viewContext)
+                continuation.resume(returning: message)
             }
         }
     }

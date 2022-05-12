@@ -68,7 +68,31 @@ class MomentViewController: UIViewController {
     }()
     
     private var cancellables: Set<AnyCancellable> = []
-    
+
+    private lazy var contentInputView: ContentInputView = {
+        let view = ContentInputView(style: .minimal, options: [])
+        view.autoresizingMask = [.flexibleHeight]
+        view.backgroundColor = .feedBackground
+        view.blurView.isHidden = true
+        view.delegate = self
+        let name = MainAppContext.shared.contactStore.firstName(for: post.userID)
+        view.placeholderText = String(format: Localizations.privateReplyPlaceholder, name)
+
+        return view
+    }()
+
+    override var canBecomeFirstResponder: Bool {
+        true
+    }
+
+    private var showAccessoryView = false
+    override var inputAccessoryView: UIView? {
+        showAccessoryView ? contentInputView : nil
+    }
+
+    private var toast: Toast?
+    private var replyCancellable: AnyCancellable?
+
     init(post: FeedPost, unlockingPost: FeedPost? = nil) {
         self.post = post
         self.unlockingPost = unlockingPost
@@ -106,6 +130,26 @@ class MomentViewController: UIViewController {
         
         installDismissButton()
         installUnlockingPost()
+
+        post.feedMedia.first?.$isMediaAvailable.sink { [weak self] isAvailable in
+            DispatchQueue.main.async {
+                self?.refreshAccessoryView(show: true)
+            }
+        }.store(in: &cancellables)
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+
+        toast?.show()
+        refreshAccessoryView(show: true)
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+
+        toast?.hide()
+        refreshAccessoryView(show: false)
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -114,6 +158,24 @@ class MomentViewController: UIViewController {
         post.feedMedia.first?.$isMediaAvailable.sink { [weak self] _ in
             self?.expireMomentIfReady()
         }.store(in: &cancellables)
+    }
+
+    private func refreshAccessoryView(show: Bool) {
+        guard
+            post.userID != MainAppContext.shared.userData.userId,
+            showAccessoryView != show,
+            post.feedMedia.first?.isMediaAvailable ?? false,
+            case .unlocked = momentView.state
+        else {
+            // we want to show the accessory view when:
+            // 1. post isn't locked (not blurred)
+            // 2. media is available
+            // 3. someone else's post
+            return
+        }
+
+        showAccessoryView = show
+        reloadInputViews()
     }
     
     private func installUnlockingPost() {
@@ -222,6 +284,7 @@ class MomentViewController: UIViewController {
         case .sent:
             unlockingPostProgressLabel.text = Localizations.momentUploadingSuccess
             momentView.setState(.unlocked, animated: true)
+            refreshAccessoryView(show: true)
             expireMomentIfReady()
         case .sending:
             unlockingPostProgressLabel.text = Localizations.momentUploadingProgress
@@ -244,6 +307,59 @@ class MomentViewController: UIViewController {
 
         MainAppContext.shared.feedData.momentWasViewed(post)
     }
+
+    private func showToast() {
+        toast = Toast(type: .activityIndicator, text: Localizations.sending)
+        toast?.show(viewController: self, shouldAutodismiss: false)
+    }
+
+    private func finalizeToast(success: Bool) {
+        let icon = success ? UIImage(systemName: "checkmark") : UIImage(systemName: "xmark")
+        let text = success ? Localizations.sent : Localizations.failedToSend
+
+        toast?.update(type: .icon(icon), text: text, shouldAutodismiss: true)
+        toast = nil
+    }
+
+    private func beginObserving(message: ChatMessage) {
+        replyCancellable?.cancel()
+        replyCancellable = message.publisher(for: \.outgoingStatusValue).sink { [weak self] _ in
+            let success: Bool?
+            switch message.outgoingStatus {
+            case .sentOut, .delivered, .seen, .played:
+                success = true
+            case .error, .retracted:
+                success = false
+            case .none, .pending, .retracting:
+                success = nil
+            }
+
+            if let success = success {
+                self?.finalizeToast(success: success)
+                self?.replyCancellable?.cancel()
+                self?.replyCancellable = nil
+            }
+        }
+    }
+}
+
+// MARK: - ContentInputView delegate methods
+
+extension MomentViewController: ContentInputDelegate {
+    func inputView(_ inputView: ContentInputView, didPost content: ContentInputView.InputContent) {
+        contentInputView.textView.resignFirstResponder()
+        let text = content.mentionText.trimmed().collapsedText
+        showToast()
+
+        Task {
+            guard let message = await MainAppContext.shared.chatData.sendMomentReply(to: post.userID, postID: post.id, text: text) else {
+                finalizeToast(success: false)
+                return
+            }
+
+            beginObserving(message: message)
+        }
+    }
 }
 
 // MARK: - localization
@@ -265,5 +381,29 @@ extension Localizations {
         NSLocalizedString("moment.uploading.failure",
                    value: "Error",
                  comment: "For indicating that there was an error while uploading the post.")
+    }
+
+    static var privateReplyPlaceholder: String {
+        NSLocalizedString("private.reply.placeholder",
+                   value: "Reply to %@",
+                 comment: "Placeholder text for the text field for private replies. The argument is the first name of the contact.")
+    }
+
+    static var sending: String {
+        NSLocalizedString("sending.title",
+                   value: "Sending",
+                 comment: "Indicates that an item is in the process of being sent.")
+    }
+
+    static var sent: String {
+        NSLocalizedString("sent.title",
+                   value: "Sent",
+                 comment: "Indicates that an item has successfully been sent.")
+    }
+
+    static var failedToSend: String {
+        NSLocalizedString("failed.to.send",
+                   value: "Failed to send",
+                 comment: "Indicates that an item has failed to be sent.")
     }
 }
