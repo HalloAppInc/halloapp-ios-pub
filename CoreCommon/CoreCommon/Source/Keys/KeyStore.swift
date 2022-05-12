@@ -57,7 +57,10 @@ open class KeyStore {
                 let cleaner = PersistentHistoryCleaner(context: managedObjectContext, targets: AppTarget.allCases, dataStore: .keyStore)
                 try cleaner.clean()
 
-                self.save(managedObjectContext)
+                if managedObjectContext.hasChanges {
+                    self.save(managedObjectContext)
+                }
+
                 if historyMerged {
                     // Call delegate only if there were actual transactions that were merged
                     self.delegate?.keyStoreContextChanged()

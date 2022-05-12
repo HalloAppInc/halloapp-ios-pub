@@ -93,7 +93,10 @@ open class MainDataStore {
                 let cleaner = PersistentHistoryCleaner(context: managedObjectContext, targets: AppTarget.allCases, dataStore: .mainDataStore)
                 try cleaner.clean()
 
-                self.save(managedObjectContext)
+                if managedObjectContext.hasChanges {
+                    self.save(managedObjectContext)
+                }
+
                 if historyMerged {
                     DDLogInfo("MainDataStore/processPersistentHistory/historyMerged: \(historyMerged)")
                 }
