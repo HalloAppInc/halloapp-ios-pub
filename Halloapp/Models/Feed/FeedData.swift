@@ -210,6 +210,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         post.unreadCount = Int32(legacy.unreadCount)
         post.rawData = legacy.rawData
         post.statusValue = Int16(legacy.statusValue)
+        post.lastUpdated = legacy.timestamp
         DDLogInfo("FeedData/migrateLegacyPost/finished/\(legacy.id)")
     }
 
@@ -258,6 +259,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             comment.replies = Set(replies).union(comment.replies ?? [])
         }
         comment.post = post
+        post.lastUpdated = post.lastUpdated.flatMap { max($0, comment.timestamp) } ?? comment.timestamp
         DDLogInfo("FeedData/migrateLegacyComment/finished/\(legacy.id)")
     }
 
@@ -301,6 +303,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         linkPreview.post = post
         linkPreview.comment = comment
         DDLogInfo("FeedData/migrateLegacyLinkPreview/finished/\(legacy.id)")
+    }
+
+    func migrateFeedPostLastUpdated() {
+        try? mainDataStore.saveSeriallyOnBackgroundContextAndWait { context in
+            self.feedPosts(predicate: NSPredicate(format: "lastUpdated == nil"), in: context).forEach { feedPost in
+                // We make the assumption that any comment timestamp is after the feedPost timestamp
+                feedPost.lastUpdated = feedPost.comments?.map(\.timestamp).max() ?? feedPost.timestamp
+            }
+        }
     }
 
     // MARK: Fetched Results Controller
@@ -1244,6 +1255,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 comment.parent = parentComment
                 comment.post = feedPost
                 comment.timestamp = xmppComment.timestamp
+                feedPost.lastUpdated = feedPost.lastUpdated.flatMap { max($0, comment.timestamp) } ?? comment.timestamp
                 // Clear cached media if any.
                 cachedMedia[comment.id] = nil
 
@@ -1339,6 +1351,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 newComments.append(comment)
 
                 // Increase unread comments counter on post.
+                feedPost.lastUpdated = feedPost.lastUpdated.flatMap { max($0, comment.timestamp) } ?? comment.timestamp
                 feedPost.unreadCount += 1
             }
 
@@ -2586,6 +2599,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         feedPost.status = .sending
         feedPost.timestamp = Date()
         feedPost.isMoment = isMoment
+        feedPost.lastUpdated = Date()
         
         // Add mentions
         feedPost.mentions = text.mentionsArray.map {
@@ -2726,6 +2740,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         feedComment.post = feedPost
         feedComment.status = .sending
         feedComment.timestamp = Date()
+        feedPost.lastUpdated = feedPost.lastUpdated.flatMap { max($0, feedComment.timestamp) } ?? feedComment.timestamp
         feedComment.mentions = comment.mentions.map { (index, user) in
             return MentionData(
                 index: index,
@@ -4874,6 +4889,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
         }()
         feedComment.timestamp = sharedComment.timestamp
+        feedPost.lastUpdated = feedPost.lastUpdated.flatMap { max($0, feedComment.timestamp) } ?? feedComment.timestamp
         // Clear cached media if any.
         cachedMedia[commentId] = nil
 
@@ -4882,6 +4898,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedComment.status = .unsupported
         }
         // Increase unread comments counter on post.
+        feedPost.lastUpdated = feedPost.lastUpdated.flatMap { max($0, feedComment.timestamp) } ?? feedComment.timestamp
         feedPost.unreadCount += 1
 
         return feedComment

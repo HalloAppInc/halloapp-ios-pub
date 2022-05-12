@@ -50,6 +50,8 @@ public extension FeedPost {
     @NSManaged var contentResendInfo: Set<ContentResendInfo>?
     @NSManaged var statusValue: Int16
     @NSManaged var fromExternalShare: Bool
+    @NSManaged var lastUpdated: Date?
+
     var status: Status {
         get {
             return Status(rawValue: self.statusValue)!

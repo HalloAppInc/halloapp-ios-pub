@@ -239,6 +239,7 @@ class DataStore: ShareExtensionDataStore {
             feedPost.rawText = text.collapsedText
             feedPost.timestamp = Date()
             feedPost.status = .sending
+            feedPost.lastUpdated = Date()
 
             // Add mentions
             feedPost.mentions = text.mentionsArray.map {

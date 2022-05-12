@@ -191,10 +191,12 @@ class MainAppContext: AppContext {
 
                 self.performAppUpdateMigrationIfNecessary()
                 self.migrateUploadDataIfNecessary()
+                self.migrateFeedPostLastUpdatedIfNecessary()
             }
         } else {
             performAppUpdateMigrationIfNecessary()
             migrateUploadDataIfNecessary()
+            migrateFeedPostLastUpdatedIfNecessary()
         }
     }
 
@@ -231,6 +233,14 @@ class MainAppContext: AppContext {
         cryptoData.integrateEarlierResults(from: legacyCryptoData) {
             DDLogInfo("MainAppContext/migrateLegacyCryptoData/complete [destroying old store]")
             legacyCryptoData.destroyStore()
+        }
+    }
+
+    private func migrateFeedPostLastUpdatedIfNecessary() {
+        let key = "migration.feedpostlastupdated.complete"
+        if !userDefaults.bool(forKey: key) {
+            feedData.migrateFeedPostLastUpdated()
+            userDefaults.set(true, forKey: key)
         }
     }
 

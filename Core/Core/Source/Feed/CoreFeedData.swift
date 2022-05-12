@@ -88,6 +88,7 @@ public class CoreFeedData {
             feedPost.rawText = postData.text
             feedPost.timestamp = postData.timestamp
             feedPost.isMoment = postData.isMoment
+            feedPost.lastUpdated = Date()
 
             // Status
             switch postData.content {
@@ -221,6 +222,7 @@ public class CoreFeedData {
                 feedPost.userId = ""
                 feedPost.timestamp = Date()
                 feedPost.groupId = groupID
+                feedPost.lastUpdated = Date()
             } else {
                 DDLogError("CoreFeedData/saveCommentData/missing-post [\(commentData.feedPostId)]/skip comment")
                 return
