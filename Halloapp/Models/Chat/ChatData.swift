@@ -964,6 +964,295 @@ class ChatData: ObservableObject {
         }
     }
 
+    // TODO: Will unify the download logic for media-items across the entire app.
+    // Should be called on the same queue with the coreDataObject since objects are not supposed to be accessed across queues.
+    func downloadMedia(in chatMessage: ChatMessage) {
+        guard let media = chatMessage.media else { return }
+
+        let sortedMedia = media.sorted(by: { $0.order < $1.order })
+        for mediaItem in sortedMedia {
+            guard let url = mediaItem.url else { continue }
+            guard mediaItem.incomingStatus == .pending else { continue }
+            guard !self.currentlyDownloading.contains(url) else { continue }
+            if mediaItem.numTries > self.maxTries {
+                DDLogDebug("ChatData/downloadMedia/\(chatMessage.id)/media/order/\(mediaItem.order)/reached maxTries: \(self.maxTries), numTries: \(mediaItem.numTries)")
+                continue
+            }
+
+            DDLogDebug("ChatData/downloadMedia/\(chatMessage.id)/media/order/\(mediaItem.order)")
+
+            guard let url = mediaItem.url else { continue }
+
+            self.appendToCurrentDownloads(url: url)
+
+            let threadId = chatMessage.fromUserId
+            let messageId = chatMessage.id
+            let order = mediaItem.order
+            let key = mediaItem.key
+            let sha = mediaItem.sha256
+            let type: CommonMediaType = {
+                switch mediaItem.type {
+                case .image:
+                    return .image
+                case .video:
+                    return .video
+                case .audio:
+                    return .audio
+                }
+            } ()
+            let blobVersion = mediaItem.blobVersion
+            let chunkSize = mediaItem.chunkSize
+            let blobSize = mediaItem.blobSize
+
+            // save attempts
+            self.updateChatMessage(with: messageId) { [weak self] (chatMessage) in
+                guard let self = self else { return }
+                if let index = chatMessage.media?.firstIndex(where: { $0.order == order } ), (chatMessage.media?[index].numTries ?? 0) < self.maxTries {
+                    chatMessage.media?[index].numTries += 1
+                }
+            }
+
+            _ = ChatMediaDownloader(url: url, progressHandler: { [weak self] progress in
+                guard let self = self else { return }
+                self.didGetMediaDownloadProgress.send((messageId, Int(order), progress))
+            }, completion: { [weak self] (outputUrl) in
+                guard let self = self else { return }
+                self.removeFromCurrentDownloads(url: url)
+
+                var encryptedData: Data
+                do {
+                    encryptedData = try Data(contentsOf: outputUrl)
+                } catch {
+                    return
+                }
+
+                // Decrypt data
+                guard let mediaKey = Data(base64Encoded: key), let sha256Hash = Data(base64Encoded: sha) else {
+                    return
+                }
+
+                var decryptedData: Data
+                do {
+                    switch blobVersion {
+                    case .chunked:
+                        let chunkedParameters = try ChunkedMediaParameters(blobSize: blobSize, chunkSize: chunkSize)
+                        decryptedData = Data(capacity: Int(chunkedParameters.estimatedPtSize))
+                        try ChunkedMediaCrypter.decryptChunkedMedia(
+                            mediaType: type,
+                            mediaKey: mediaKey,
+                            sha256Hash: sha256Hash,
+                            chunkedParameters: chunkedParameters,
+                            readChunkData: { chunkOffset, chunkSize in return encryptedData[chunkOffset..<chunkOffset + chunkSize] },
+                            writeChunkData: { chunkData, _ in decryptedData.append(chunkData)})
+
+                    case .default:
+                        decryptedData = try MediaCrypter.decrypt(data: encryptedData, mediaKey: mediaKey, sha256hash: sha256Hash, mediaType: type)
+                    }
+                } catch {
+                    DDLogDebug("ChatData/downloadMedia/\(chatMessage.id)/media/order/\(mediaItem.order)/could not decrypt media data")
+                    return
+                }
+
+                MainAppContext.shared.mediaHashStore.update(data: decryptedData, blobVersion: blobVersion, key: key, sha256: sha, downloadURL: url)
+
+                let fileExtension: String = {
+                    switch type {
+                    case .image:
+                        return "jpg"
+                    case .video:
+                        return "mp4"
+                    case .audio:
+                        return "aac"
+                    }
+                } ()
+                let filename = "\(messageId)-\(order).\(fileExtension)"
+
+                let fileURL = MainAppContext.chatMediaDirectoryURL
+                    .appendingPathComponent(threadId, isDirectory: true)
+                    .appendingPathComponent(filename, isDirectory: false)
+
+                // create intermediate directories
+                if !FileManager.default.fileExists(atPath: fileURL.path) {
+                    do {
+                        try FileManager.default.createDirectory(atPath: fileURL.path, withIntermediateDirectories: true, attributes: nil)
+                    } catch {
+                        DDLogError(error.localizedDescription)
+                    }
+                }
+
+                // delete the file if it already exists, ie. previous attempts
+                do {
+                    if FileManager.default.fileExists(atPath: fileURL.path) {
+                        DDLogDebug("ChatData/downloadMedia/\(chatMessage.id)/media/order/\(mediaItem.order)/previous file exists, try removing first: \(fileURL.path)")
+                        try FileManager.default.removeItem(atPath: fileURL.path)
+                    }
+                }
+                catch {
+                    DDLogError("ChatData/downloadMedia/\(chatMessage.id)/media/order/\(mediaItem.order)/remove previous file error: \(error)")
+                }
+
+                do {
+                    try decryptedData.write(to: fileURL, options: [])
+                }
+                catch {
+                    DDLogError("ChatData/downloadMedia/\(chatMessage.id)/media/order/\(mediaItem.order)/can't write error: \(error)")
+                    return
+                }
+
+                self.updateChatMessage(with: messageId, block: { [weak self] (chatMessage) in
+                    guard let self = self else { return }
+                    if let index = chatMessage.media?.firstIndex(where: { $0.order == order } ) {
+                        let relativePath = self.relativePath(from: fileURL)
+                        chatMessage.media?[index].relativeFilePath = relativePath
+                        chatMessage.media?[index].mediaDirectory = .chatMedia
+                        chatMessage.media?[index].incomingStatus = .downloaded
+
+                        // hack: force a change so frc can pick up the change
+                        let fromUserId = chatMessage.fromUserId
+                        chatMessage.fromUserId = fromUserId
+                    }
+                }) { [weak self] in
+                    guard let self = self else { return }
+                    self.processInboundPendingChatMsgMedia()
+                }
+            })
+        }
+    }
+
+    func downloadMedia(in linkPreview: CommonLinkPreview) {
+        guard let media = linkPreview.media else { return }
+
+        let sortedMedia = media.sorted(by: { $0.order < $1.order })
+
+        for mediaItem in sortedMedia {
+            guard let url = mediaItem.url else { continue }
+            guard mediaItem.incomingStatus == .pending else { continue }
+            guard !self.currentlyDownloading.contains(url) else { continue }
+            if mediaItem.numTries > self.maxTries {
+                DDLogDebug("ChatData/downloadMedia/\(linkPreview.id)/media/order/\(mediaItem.order)/reached maxTries: \(self.maxTries), numTries: \(mediaItem.numTries)")
+                continue
+            }
+
+            DDLogDebug("ChatData/downloadMedia/\(linkPreview.id)/media/order/\(mediaItem.order)")
+            guard let url = mediaItem.url else { continue }
+
+            self.appendToCurrentDownloads(url: url)
+
+            guard let chatMessage = linkPreview.message else { return }
+            let threadId = chatMessage.fromUserId
+            let linkPreviewId = linkPreview.id
+            let order = mediaItem.order
+            let key = mediaItem.key
+            let sha = mediaItem.sha256
+            let type: CommonMediaType = {
+                switch mediaItem.type {
+                case .image:
+                    return .image
+                case .video:
+                    return .video
+                case .audio:
+                    return .audio
+                }
+            } ()
+
+            // save attempts
+            self.updateLinkPreview(with: linkPreviewId) { [weak self] (linkPreview) in
+                guard let self = self else { return }
+                if let index = linkPreview.media?.firstIndex(where: { $0.order == order } ), (linkPreview.media?[index].numTries ?? 0) < self.maxTries {
+                    linkPreview.media?[index].numTries += 1
+                }
+            }
+
+            _ = ChatMediaDownloader(url: url, progressHandler: { [weak self] progress in
+                guard let self = self else { return }
+                self.didGetLinkPreviewMediaDownloadProgress.send((linkPreviewId, Int(order), progress, mediaItem.relativeFilePath))
+            }, completion: { [weak self] (outputUrl) in
+                guard let self = self else { return }
+                self.removeFromCurrentDownloads(url: url)
+
+                var encryptedData: Data
+                do {
+                    encryptedData = try Data(contentsOf: outputUrl)
+                } catch {
+                    return
+                }
+
+                // Decrypt data
+                guard let mediaKey = Data(base64Encoded: key), let sha256Hash = Data(base64Encoded: sha) else {
+                    return
+                }
+
+                var decryptedData: Data
+                do {
+                    decryptedData = try MediaCrypter.decrypt(data: encryptedData, mediaKey: mediaKey, sha256hash: sha256Hash, mediaType: type)
+                } catch {
+                    DDLogDebug("ChatData/downloadMedia/\(linkPreview.id)/media/order/\(mediaItem.order)/could not decrypt media data")
+                    return
+                }
+
+                MainAppContext.shared.mediaHashStore.update(data: decryptedData, blobVersion: .default, key: key, sha256: sha, downloadURL: url)
+
+                let fileExtension: String = {
+                    switch type {
+                    case .image:
+                        return "jpg"
+                    case .video:
+                        return "mp4"
+                    case .audio:
+                        return "aac"
+                    }
+                } ()
+                let filename = "\(linkPreviewId)-\(order).\(fileExtension)"
+
+                let fileURL = MainAppContext.chatMediaDirectoryURL
+                    .appendingPathComponent(threadId, isDirectory: true)
+                    .appendingPathComponent(filename, isDirectory: false)
+
+                // create intermediate directories
+                if !FileManager.default.fileExists(atPath: fileURL.path) {
+                    do {
+                        try FileManager.default.createDirectory(atPath: fileURL.path, withIntermediateDirectories: true, attributes: nil)
+                    } catch {
+                        DDLogError(error.localizedDescription)
+                    }
+                }
+
+                // delete the file if it already exists, ie. previous attempts
+                do {
+                    if FileManager.default.fileExists(atPath: fileURL.path) {
+                        DDLogDebug("ChatData/downloadMedia/\(linkPreview.id)/media/order/\(mediaItem.order)/previous file exists, try removing first: \(fileURL.path)")
+                        try FileManager.default.removeItem(atPath: fileURL.path)
+                    }
+                }
+                catch {
+                    DDLogError("ChatData/downloadMedia/\(linkPreview.id)/media/order/\(mediaItem.order)/remove previous file error: \(error)")
+                }
+
+                do {
+                    try decryptedData.write(to: fileURL, options: [])
+                }
+                catch {
+                    DDLogError("ChatData/downloadMedia/\(linkPreview.id)/media/order/\(mediaItem.order)/can't write error: \(error)")
+                    return
+                }
+
+                self.updateLinkPreview(with: linkPreviewId, block: { [weak self] (chatLinkPreview) in
+                    guard let self = self else { return }
+                    if let index = chatLinkPreview.media?.firstIndex(where: { $0.order == order } ) {
+                        let relativePath = self.relativePath(from: fileURL)
+                        chatLinkPreview.media?[index].relativeFilePath = relativePath
+                        chatLinkPreview.media?[index].mediaDirectory = .chatMedia
+                        chatLinkPreview.media?[index].incomingStatus = .downloaded
+                        self.didGetLinkPreviewMediaDownloadProgress.send((linkPreviewId, Int(order), 1.0, relativePath))
+                    }
+                }) { [weak self] in
+                    guard let self = self else { return }
+                    self.processInboundPendingChaLinkPreviewMedia()
+                }
+            })
+        }
+    }
+
     func processInboundPendingChatMsgMedia() {
         DDLogDebug("ChatData/processInboundPendingChatMsgMedia")
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
@@ -972,164 +1261,13 @@ class ChatData: ObservableObject {
 
             let pendingMessagesWithMedia = self.pendingIncomingChatMessagesMedia(in: managedObjectContext)
             DDLogDebug("ChatData/processInboundPendingChatMsgMedia/NumPendingMessagesWithMedia: \(pendingMessagesWithMedia.count)")
-            
+
             for chatMessage in pendingMessagesWithMedia {
-                
-                guard let media = chatMessage.media else { continue }
-                
-                let sortedMedia = media.sorted(by: { $0.order < $1.order })
-                guard let med = sortedMedia.first(where: {
-                    guard let url = $0.url else { return false }
-                    guard $0.incomingStatus == .pending else { return false }
-                    guard !self.currentlyDownloading.contains(url) else { return false }
-                    if $0.numTries > self.maxTries {
-                        DDLogDebug("ChatData/processInboundPendingChatMsgMedia/\(chatMessage.id)/media/order/\($0.order)/reached maxTries: \(self.maxTries), numTries: \($0.numTries)")
-                        return false
-                    }
-                    return true
-                } ) else { continue }
-                
-                DDLogDebug("ChatData/processInboundPendingChatMsgMedia/\(chatMessage.id)/media/order/\(med.order)")
-                
-                guard let url = med.url else { continue }
-                
-                self.appendToCurrentDownloads(url: url)
-
-                let threadId = chatMessage.fromUserId
-                let messageId = chatMessage.id
-                let order = med.order
-                let key = med.key
-                let sha = med.sha256
-                let type: CommonMediaType = {
-                    switch med.type {
-                    case .image:
-                        return .image
-                    case .video:
-                        return .video
-                    case .audio:
-                        return .audio
-                    }
-                } ()
-                let blobVersion = med.blobVersion
-                let chunkSize = med.chunkSize
-                let blobSize = med.blobSize
-            
-                // save attempts
-                self.updateChatMessage(with: messageId) { (chatMessage) in
-                    if let index = chatMessage.media?.firstIndex(where: { $0.order == order } ), (chatMessage.media?[index].numTries ?? 0) < 9999 {
-                        chatMessage.media?[index].numTries += 1
-                    }
-                }
-                                
-                _ = ChatMediaDownloader(url: url, progressHandler: { [weak self] progress in
-                    guard let self = self else { return }
-                    self.didGetMediaDownloadProgress.send((messageId, Int(order), progress))
-                }, completion: { [weak self] (outputUrl) in
-                    guard let self = self else { return }
-                    self.removeFromCurrentDownloads(url: url)
-                    
-                    var encryptedData: Data
-                    do {
-                        encryptedData = try Data(contentsOf: outputUrl)
-                    } catch {
-                        return
-                    }
-
-                    // Decrypt data
-                    guard let mediaKey = Data(base64Encoded: key), let sha256Hash = Data(base64Encoded: sha) else {
-                        return
-                    }
-
-                    var decryptedData: Data
-                    do {
-                        switch blobVersion {
-                        case .chunked:
-                            let chunkedParameters = try ChunkedMediaParameters(blobSize: blobSize, chunkSize: chunkSize)
-                            decryptedData = Data(capacity: Int(chunkedParameters.estimatedPtSize))
-                            try ChunkedMediaCrypter.decryptChunkedMedia(
-                                mediaType: type,
-                                mediaKey: mediaKey,
-                                sha256Hash: sha256Hash,
-                                chunkedParameters: chunkedParameters,
-                                readChunkData: { chunkOffset, chunkSize in return encryptedData[chunkOffset..<chunkOffset + chunkSize] },
-                                writeChunkData: { chunkData, _ in decryptedData.append(chunkData)})
-
-                        case .default:
-                            decryptedData = try MediaCrypter.decrypt(data: encryptedData, mediaKey: mediaKey, sha256hash: sha256Hash, mediaType: type)
-                        }
-                    } catch {
-                        DDLogDebug("ChatData/processInboundPendingChatMsgMedia/\(chatMessage.id)/media/order/\(med.order)/could not decrypt media data")
-                        return
-                    }
-
-                    MainAppContext.shared.mediaHashStore.update(data: decryptedData, blobVersion: blobVersion, key: key, sha256: sha, downloadURL: url)
-
-                    let fileExtension: String = {
-                        switch type {
-                        case .image:
-                            return "jpg"
-                        case .video:
-                            return "mp4"
-                        case .audio:
-                            return "aac"
-                        }
-                    } ()
-                    let filename = "\(messageId)-\(order).\(fileExtension)"
-                    
-                    let fileURL = MainAppContext.chatMediaDirectoryURL
-                        .appendingPathComponent(threadId, isDirectory: true)
-                        .appendingPathComponent(filename, isDirectory: false)
-                    
-                    // create intermediate directories
-                    if !FileManager.default.fileExists(atPath: fileURL.path) {
-                        do {
-                            try FileManager.default.createDirectory(atPath: fileURL.path, withIntermediateDirectories: true, attributes: nil)
-                        } catch {
-                            DDLogError(error.localizedDescription)
-                        }
-                    }
-                    
-                    // delete the file if it already exists, ie. previous attempts
-                    do {
-                        if FileManager.default.fileExists(atPath: fileURL.path) {
-                            DDLogDebug("ChatData/processInboundPendingChatMsgMedia/\(chatMessage.id)/media/order/\(med.order)/previous file exists, try removing first: \(fileURL.path)")
-                            try FileManager.default.removeItem(atPath: fileURL.path)
-                        }
-                    }
-                    catch {
-                        DDLogError("ChatData/processInboundPendingChatMsgMedia/\(chatMessage.id)/media/order/\(med.order)/remove previous file error: \(error)")
-                    }
-
-                    do {
-                        try decryptedData.write(to: fileURL, options: [])
-                    }
-                    catch {
-                        DDLogError("ChatData/processInboundPendingChatMsgMedia/\(chatMessage.id)/media/order/\(med.order)/can't write error: \(error)")
-                        return
-                    }
-                    
-                    self.updateChatMessage(with: messageId, block: { [weak self] (chatMessage) in
-                        guard let self = self else { return }
-                        if let index = chatMessage.media?.firstIndex(where: { $0.order == order } ) {
-                            let relativePath = self.relativePath(from: fileURL)
-                            chatMessage.media?[index].relativeFilePath = relativePath
-                            chatMessage.media?[index].mediaDirectory = .chatMedia
-                            chatMessage.media?[index].incomingStatus = .downloaded
-                            
-                            // hack: force a change so frc can pick up the change
-                            let fromUserId = chatMessage.fromUserId
-                            chatMessage.fromUserId = fromUserId
-                        }
-                    }) { [weak self] in
-                        guard let self = self else { return }
-                        self.processInboundPendingChatMsgMedia()
-                    }
-                })
-
+                self.downloadMedia(in: chatMessage)
             }
         }
     }
-    
+
     func processInboundPendingChaLinkPreviewMedia() {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
@@ -1138,136 +1276,7 @@ class ChatData: ObservableObject {
             let pendingLinkPreivewsWithMedia = self.pendingIncomingLinkPreviewMedia(in: managedObjectContext)
 
             for linkPreview in pendingLinkPreivewsWithMedia {
-                guard let media = linkPreview.media else { continue }
-                let sortedMedia = media.sorted(by: { $0.order < $1.order })
-                guard let med = sortedMedia.first(where: {
-                    guard let url = $0.url else { return false }
-                    guard $0.incomingStatus == .pending else { return false }
-                    guard !self.currentlyDownloading.contains(url) else { return false }
-                    if $0.numTries > self.maxTries {
-                        DDLogDebug("ChatData/processInboundPendingChaLinkPreviewMedia/\(linkPreview.id)/media/order/\($0.order)/reached maxTries: \(self.maxTries), numTries: \($0.numTries)")
-                        return false
-                    }
-                    return true
-                } ) else { continue }
-
-                DDLogDebug("ChatData/processInboundPendingChaLinkPreviewMedia/\(linkPreview.id)/media/order/\(med.order)")
-                guard let url = med.url else { continue }
-
-                self.appendToCurrentDownloads(url: url)
-
-                guard let chatMessage = linkPreview.message else { return }
-                let threadId = chatMessage.fromUserId
-                let linkPreviewId = linkPreview.id
-                let order = med.order
-                let key = med.key
-                let sha = med.sha256
-                let type: CommonMediaType = {
-                    switch med.type {
-                    case .image:
-                        return .image
-                    case .video:
-                        return .video
-                    case .audio:
-                        return .audio
-                    }
-                } ()
-
-                // save attempts
-                self.updateLinkPreview(with: linkPreviewId) { (linkPreview) in
-                    if let index = linkPreview.media?.firstIndex(where: { $0.order == order } ), (linkPreview.media?[index].numTries ?? 0) < 9999 {
-                        linkPreview.media?[index].numTries += 1
-                    }
-                }
-
-                _ = ChatMediaDownloader(url: url, progressHandler: { [weak self] progress in
-                    guard let self = self else { return }
-                    self.didGetLinkPreviewMediaDownloadProgress.send((linkPreviewId, Int(order), progress, med.relativeFilePath))
-                }, completion: { [weak self] (outputUrl) in
-                    guard let self = self else { return }
-                    self.removeFromCurrentDownloads(url: url)
-
-                    var encryptedData: Data
-                    do {
-                        encryptedData = try Data(contentsOf: outputUrl)
-                    } catch {
-                        return
-                    }
-
-                    // Decrypt data
-                    guard let mediaKey = Data(base64Encoded: key), let sha256Hash = Data(base64Encoded: sha) else {
-                        return
-                    }
-
-                    var decryptedData: Data
-                    do {
-                        decryptedData = try MediaCrypter.decrypt(data: encryptedData, mediaKey: mediaKey, sha256hash: sha256Hash, mediaType: type)
-                    } catch {
-                        DDLogDebug("ChatData/processInboundPendingChaLinkPreviewMedia/\(linkPreview.id)/media/order/\(med.order)/could not decrypt media data")
-                        return
-                    }
-
-                    MainAppContext.shared.mediaHashStore.update(data: decryptedData, blobVersion: .default, key: key, sha256: sha, downloadURL: url)
-
-                    let fileExtension: String = {
-                        switch type {
-                        case .image:
-                            return "jpg"
-                        case .video:
-                            return "mp4"
-                        case .audio:
-                            return "aac"
-                        }
-                    } ()
-                    let filename = "\(linkPreviewId)-\(order).\(fileExtension)"
-
-                    let fileURL = MainAppContext.chatMediaDirectoryURL
-                        .appendingPathComponent(threadId, isDirectory: true)
-                        .appendingPathComponent(filename, isDirectory: false)
-
-                    // create intermediate directories
-                    if !FileManager.default.fileExists(atPath: fileURL.path) {
-                        do {
-                            try FileManager.default.createDirectory(atPath: fileURL.path, withIntermediateDirectories: true, attributes: nil)
-                        } catch {
-                            DDLogError(error.localizedDescription)
-                        }
-                    }
-
-                    // delete the file if it already exists, ie. previous attempts
-                    do {
-                        if FileManager.default.fileExists(atPath: fileURL.path) {
-                            DDLogDebug("ChatData/processInboundPendingChaLinkPreviewMedia/\(linkPreview.id)/media/order/\(med.order)/previous file exists, try removing first: \(fileURL.path)")
-                            try FileManager.default.removeItem(atPath: fileURL.path)
-                        }
-                    }
-                    catch {
-                        DDLogError("ChatData/processInboundPendingChaLinkPreviewMedia/\(linkPreview.id)/media/order/\(med.order)/remove previous file error: \(error)")
-                    }
-
-                    do {
-                        try decryptedData.write(to: fileURL, options: [])
-                    }
-                    catch {
-                        DDLogError("ChatData/processInboundPendingChaLinkPreviewMedia/\(linkPreview.id)/media/order/\(med.order)/can't write error: \(error)")
-                        return
-                    }
-
-                    self.updateLinkPreview(with: linkPreviewId, block: { [weak self] (chatLinkPreview) in
-                        guard let self = self else { return }
-                        if let index = chatLinkPreview.media?.firstIndex(where: { $0.order == order } ) {
-                            let relativePath = self.relativePath(from: fileURL)
-                            chatLinkPreview.media?[index].relativeFilePath = relativePath
-                            chatLinkPreview.media?[index].mediaDirectory = .chatMedia
-                            chatLinkPreview.media?[index].incomingStatus = .downloaded
-                            self.didGetLinkPreviewMediaDownloadProgress.send((linkPreviewId, Int(order), 1.0, relativePath))
-                        }
-                    }) { [weak self] in
-                        guard let self = self else { return }
-                        self.processInboundPendingChaLinkPreviewMedia()
-                    }
-                })
-
+                self.downloadMedia(in: linkPreview)
             }
         }
     }
@@ -3580,8 +3589,13 @@ extension ChatData {
         }
 
         showOneToOneNotification(for: xmppChatMessage)
+        // download media for this chat message.
+        downloadMedia(in: chatMessage)
+        chatMessage.linkPreviews?.forEach { linkPreview in
+            downloadMedia(in: linkPreview)
+        }
 
-        // download chat message media
+        // download any other pending chat message media
         processInboundPendingChatMsgMedia()
         processInboundPendingChaLinkPreviewMedia()
 

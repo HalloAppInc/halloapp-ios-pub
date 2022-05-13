@@ -2416,6 +2416,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             guard feedPostMedia.relativeFilePath == nil else {
                 DDLogError("FeedData/download-task/\(task.id)/error File already exists media=[\(feedPostMedia)]")
+                self.notifyUIaboutMediaDownload(feedMedia: feedPostMedia)
                 return
             }
 
@@ -2453,32 +2454,35 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
 
             // Step 3: Notify UI about finished download.
-            if let  feedPost = feedPostMedia.post {
-                let feedPostId = feedPost.id
-                let mediaOrder = Int(feedPostMedia.order)
-                DispatchQueue.main.async {
-                    self.reloadMedia(feedPostId: feedPostId, order: mediaOrder)
-                }
-            }
-            else if let  feedComment = feedPostMedia.comment {
-                let feedCommentId = feedComment.id
-                let mediaOrder = Int(feedPostMedia.order)
-                DispatchQueue.main.async {
-                    self.reloadMedia(feedCommentID: feedCommentId, order: mediaOrder)
-                }
-            }
-            else if let feedLinkPreview = feedPostMedia.linkPreview {
-                let feedLinkPreviewId = feedLinkPreview.id
-                let mediaOrder = Int(feedPostMedia.order)
-                DispatchQueue.main.async {
-                    self.reloadMedia(feedLinkPreviewID: feedLinkPreviewId, order: mediaOrder)
-                }
-            }
+            self.notifyUIaboutMediaDownload(feedMedia: feedPostMedia)
+
             // Step 4: Update upload data to avoid duplicate uploads
             // TODO Nandini : check this for comment media
             if let path = feedPostMedia.relativeFilePath, let downloadUrl = feedPostMedia.url {
                 let fileUrl = MainAppContext.mediaDirectoryURL.appendingPathComponent(path, isDirectory: false)
                 MainAppContext.shared.mediaHashStore.update(url: fileUrl, blobVersion: feedPostMedia.blobVersion, key: feedPostMedia.key, sha256: feedPostMedia.sha256, downloadURL: downloadUrl)
+            }
+        }
+    }
+
+    private func notifyUIaboutMediaDownload(feedMedia: CommonMedia) {
+        if let  feedPost = feedMedia.post {
+            let feedPostId = feedPost.id
+            let mediaOrder = Int(feedMedia.order)
+            DispatchQueue.main.async {
+                self.reloadMedia(feedPostId: feedPostId, order: mediaOrder)
+            }
+        } else if let  feedComment = feedMedia.comment {
+            let feedCommentId = feedComment.id
+            let mediaOrder = Int(feedMedia.order)
+            DispatchQueue.main.async {
+                self.reloadMedia(feedCommentID: feedCommentId, order: mediaOrder)
+            }
+        } else if let feedLinkPreview = feedMedia.linkPreview {
+            let feedLinkPreviewId = feedLinkPreview.id
+            let mediaOrder = Int(feedMedia.order)
+            DispatchQueue.main.async {
+                self.reloadMedia(feedLinkPreviewID: feedLinkPreviewId, order: mediaOrder)
             }
         }
     }
