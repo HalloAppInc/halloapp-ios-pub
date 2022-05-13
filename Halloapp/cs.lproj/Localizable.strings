@@ -283,7 +283,7 @@
 /* Message text shown in a message that have photo media but no text */
 "chat.message.photo" = "Fotka";
 
-/* Text shown when chat input box is empty */
+/* Text shown when content input text field is empty for chat screens. */
 "chat.message.placeholder" = "Napište zprávu";
 
 /* Text shown in place of a received message we are not able to process yet. */
@@ -1344,9 +1344,6 @@
 
 /* One of the items in context menu presented upon long press on linkified phone number in text. Parameter is the phone number. */
 "textlabel.context.menu.call.number" = "Zavolat %@";
-
-/* One of the items in context menu presented upon long press on web link. */
-"textlabel.context.menu.copy.link" = "Zkopírovat odkaz";
 
 /* One of the items in context menu presented upon long press on linkified phone number in text. */
 "textlabel.context.menu.copy.phone.number" = "Zkopírovat telefonní číslo";

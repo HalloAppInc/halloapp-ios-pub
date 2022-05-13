@@ -82,6 +82,9 @@
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Continuar";
 
+/* Title for generic copy URL button */
+"button.copy.link" = "Copiar link";
+
 /* Title for generic Create button */
 "button.create" = "Criar";
 
@@ -238,6 +241,9 @@
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Erro de inicialização";
 
+/* Title of the button that allows camera permissions. */
+"camera.permission.allow.access" = "Permitir acesso";
+
 /* No comment provided by engineer. */
 "Cancel" = "Cancelar";
 
@@ -337,7 +343,7 @@
 /* Message text shown in a message that have photo media but no text */
 "chat.message.photo" = "Foto";
 
-/* Text shown when chat input box is empty */
+/* Text shown when content input text field is empty for chat screens. */
 "chat.message.placeholder" = "Escreva uma mensagem";
 
 /* Text shown in place of a received message we are not able to process yet. */
@@ -931,6 +937,9 @@
 /* Version of an invitation to join HalloApp. */
 "invite.text.specific.3" = "Estou convidando você a instalar o HalloApp. Baixe-o gratuitamente aqui: https://halloapp.com/free";
 
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.4" = "Ei %@! Junte-se a mim no HalloApp e compartilhe momentos reais com amigos reais. Confira: https://halloapp.com/new";
+
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Convidar Amigos";
 
@@ -1173,6 +1182,9 @@
 
 /* Text for new user popup pointing at new post button */
 "nux.new.post.button" = "Toque aqui para partilhar uma atualização com seus amigos e familiares no HalloApp";
+
+/* Title of the button that opens the camera. */
+"open.camera" = "Abrir Câmera";
 
 /* Text that indicates an open action. */
 "open.title" = "Abrir";
@@ -1540,6 +1552,12 @@
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Junte-se à minha rede de relacionamento real no HalloApp. Baixe gratuitamente em halloapp.com/dl";
 
+/* Alert that tells the user to allow camera access to share a moment. */
+"share.moment.camera.permission" = "Permitir acesso à câmera para compartilhar um momento";
+
+/* Prompt for the user to share a moment. */
+"share.moment.prompt" = "Compartilhe um momento";
+
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "toque para retornar à chamada";
 
@@ -1548,9 +1566,6 @@
 
 /* One of the items in context menu presented upon long press on linkified phone number in text. Parameter is the phone number. */
 "textlabel.context.menu.call.number" = "Ligar para %@";
-
-/* One of the items in context menu presented upon long press on web link. */
-"textlabel.context.menu.copy.link" = "Copiar link";
 
 /* One of the items in context menu presented upon long press on linkified phone number in text. */
 "textlabel.context.menu.copy.phone.number" = "Copiar número de telefone";
@@ -1666,6 +1681,9 @@
 /* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
 "unknown.contact.not.in.contact.book" = "Este usuário não está em sua lista de contatos.";
 
+/* Text that indicates the unlock action for a moment. */
+"unlock.title" = "Desbloquear";
+
 /* Alert appearing after clicking an external share link that failed to load */
 "urlrouter.externalShare.failed" = "Falha ao carregar a postagem";
 
@@ -1710,12 +1728,6 @@
 
 /* Displayed when a post fails to delete */
 "your.post.deletepost.error" = "Erro ao excluir postagem";
-
-/* Button to open the system share sheet with an external post link */
-"your.post.externalshare.button" = "Partilhar Externamente";
-
-/* Title for button in action sheet prompting user to share post to external sites */
-"your.post.externalshare.copylink" = "Copiar link para partilhar";
 
 /* Success toast when external share link is copied */
 "your.post.externalshare.copylink.success" = "Copiado para a área de transferência";

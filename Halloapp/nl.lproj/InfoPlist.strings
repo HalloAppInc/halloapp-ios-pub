@@ -8,7 +8,7 @@
 "NSContactsUsageDescription" = "Geef HalloApp toegang tot je contacten zodat je posts kunt delen en zien van je vrienden en familie.";
 
 /* Privacy - Microphone Usage Description */
-"NSMicrophoneUsageDescription" = "Dit zorgt ervoor dat je kunt bellen, audioposts en spraakberichten kunt verzenden en video's met geluid kunt opnemen.";
+"NSMicrophoneUsageDescription" = "Dit zorgt ervoor dat je kunt bellen, audioposts en audioberichten kunt verzenden en video's met geluid kunt opnemen.";
 
 /* Privacy - Photo Library Usage Description */
 "NSPhotoLibraryUsageDescription" = "Dit zorgt ervoor dat je foto's en video's uit je bibliotheek kunt delen en gemaakte items kunt opslaan.";

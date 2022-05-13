@@ -82,6 +82,9 @@
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Continuar";
 
+/* Title for generic copy URL button */
+"button.copy.link" = "Copiar enlace";
+
 /* Title for generic Create button */
 "button.create" = "Crear";
 
@@ -340,7 +343,7 @@
 /* Message text shown in a message that have photo media but no text */
 "chat.message.photo" = "Foto";
 
-/* Text shown when chat input box is empty */
+/* Text shown when content input text field is empty for chat screens. */
 "chat.message.placeholder" = "Escribe un mensaje";
 
 /* Text shown in place of a received message we are not able to process yet. */
@@ -1564,9 +1567,6 @@
 /* One of the items in context menu presented upon long press on linkified phone number in text. Parameter is the phone number. */
 "textlabel.context.menu.call.number" = "Llamar a %@";
 
-/* One of the items in context menu presented upon long press on web link. */
-"textlabel.context.menu.copy.link" = "Copiar enlace";
-
 /* One of the items in context menu presented upon long press on linkified phone number in text. */
 "textlabel.context.menu.copy.phone.number" = "Copiar número de teléfono";
 
@@ -1725,12 +1725,6 @@
 
 /* Displayed when a post fails to delete */
 "your.post.deletepost.error" = "Error al borrar publicación";
-
-/* Button to open the system share sheet with an external post link */
-"your.post.externalshare.button" = "Compartir externamente";
-
-/* Title for button in action sheet prompting user to share post to external sites */
-"your.post.externalshare.copylink" = "Copiar enlace para compartir";
 
 /* Success toast when external share link is copied */
 "your.post.externalshare.copylink.success" = "Copiado al portapapeles";

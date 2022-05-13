@@ -331,7 +331,7 @@
 /* Message text shown in a message that have photo media but no text */
 "chat.message.photo" = "Fotoğraf";
 
-/* Text shown when chat input box is empty */
+/* Text shown when content input text field is empty for chat screens. */
 "chat.message.placeholder" = "Bir mesaj yaz";
 
 /* Text shown in place of a received message we are not able to process yet. */
@@ -1486,9 +1486,6 @@
 /* One of the items in context menu presented upon long press on linkified phone number in text. Parameter is the phone number. */
 "textlabel.context.menu.call.number" = "%@ kişisini ara";
 
-/* One of the items in context menu presented upon long press on web link. */
-"textlabel.context.menu.copy.link" = "İlişimi kopyala";
-
 /* One of the items in context menu presented upon long press on linkified phone number in text. */
 "textlabel.context.menu.copy.phone.number" = "Telefon numarasını kopyala";
 
@@ -1647,12 +1644,6 @@
 
 /* Displayed when a post fails to delete */
 "your.post.deletepost.error" = "Gönderi silinirken hata oluştu";
-
-/* Button to open the system share sheet with an external post link */
-"your.post.externalshare.button" = "Harici olarak paylaş ";
-
-/* Title for button in action sheet prompting user to share post to external sites */
-"your.post.externalshare.copylink" = "Paylaşmak için ilişimi kopyala";
 
 /* Success toast when external share link is copied */
 "your.post.externalshare.copylink.success" = "Panoya kopyalandı";

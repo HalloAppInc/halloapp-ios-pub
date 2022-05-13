@@ -19,6 +19,9 @@
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Weiter";
 
+/* Title for generic copy URL button */
+"button.copy.link" = "Link kopieren";
+
 /* Title for generic Create button */
 "button.create" = "Erstellen";
 

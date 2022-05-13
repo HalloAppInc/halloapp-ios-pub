@@ -19,6 +19,9 @@
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "ادامه";
 
+/* Title for generic copy URL button */
+"button.copy.link" = "کپی لینک";
+
 /* Title for generic Create button */
 "button.create" = "ایجاد";
 
@@ -132,6 +135,9 @@
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ دعوت شما را به هالواپ قبول کرد 🎉";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment" = "لحظه جدید";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";

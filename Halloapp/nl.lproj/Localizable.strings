@@ -82,6 +82,9 @@
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Doorgaan";
 
+/* Title for generic copy URL button */
+"button.copy.link" = "Link Kopiëren";
+
 /* Title for generic Create button */
 "button.create" = "Aanmaken";
 
@@ -329,7 +332,7 @@
 "chat.invite.friends" = "Vrienden Uitnodigen";
 
 /* Message text shown in a message that have audio media but no text */
-"chat.message.audio" = "Spraakbericht";
+"chat.message.audio" = "Audiobericht";
 
 /* Message text shown for quoted audio posts */
 "chat.message.audiopost" = "Audiopost";
@@ -340,8 +343,8 @@
 /* Message text shown in a message that have photo media but no text */
 "chat.message.photo" = "Foto";
 
-/* Text shown when chat input box is empty */
-"chat.message.placeholder" = "Typ een bericht";
+/* Text shown when content input text field is empty for chat screens. */
+"chat.message.placeholder" = "Nieuw Bericht";
 
 /* Text shown in place of a received message we are not able to process yet. */
 "chat.message.unsupported" = "Je versie van HalloApp ondersteunt dit type bericht niet.";
@@ -553,6 +556,9 @@
 /* Label for floating compose post menu on Group screen. */
 "fab.post.button" = "Post";
 
+/* Indicates that an item has failed to be sent. */
+"failed.to.send" = "Verzenden mislukt";
+
 /* Text shown in place of a received post we are not able to decrypt yet. */
 "feed.comment.waiting" = "Wachten op deze reactie. Dit kan even duren.";
 
@@ -564,6 +570,12 @@
 
 /* Text for group feed notification displayed in Activity Center. */
 "feed.group.notification.other.comment.w.text" = "<$author$> heeft gereageerd: <$text$>";
+
+/* Text for home feed notification displayed in Activity Center. */
+"feed.home.notification.other.comment.no.text" = "<$author$> heeft gereageerd";
+
+/* Text for home feed notification displayed in Activity Center. */
+"feed.home.notification.other.comment.w.text" = "<$author$> heeft gereageerd: <$text$>";
 
 /* Text shown in indicator when new posts come in while user is scrolled down */
 "feed.new.posts.indicator" = "Nieuwe Posts";
@@ -920,19 +932,22 @@
 "invite.please.wait" = "Even geduld...";
 
 /* Text of invitation to join HalloApp. */
-"invite.text" = "Kom ook op HalloApp - een eenvoudige, privé en veilige manier om in contact te blijven met vrienden en familie. Download de app op https://halloapp.com/dl";
+"invite.text" = "Doe met me mee op HalloApp - een eenvoudige, privé en veilige manier om in contact te blijven met vrienden en familie. Download de app op https://halloapp.com/dl";
 
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
 "invite.text.specific" = "Hey %1$@, ik wil je graag uitnodigen voor HalloApp - een netwerk voor échte relaties die het dichtst bij me staan. Gebruik %2$@ om je te registreren. Download de app op https://halloapp.com/dl";
 
 /* Version of an invitation to join HalloApp. The argument is the invitee's name. */
-"invite.text.specific.1" = "Hey %@, ik zit op HalloApp. Kom er ook bij en download de app https://halloapp.com/install";
+"invite.text.specific.1" = "Hey %@, ik zit op HalloApp. Doe met me mee en download de app https://halloapp.com/install";
 
 /* Version of an invitation to join HalloApp. The argument is the invitee's name. */
 "invite.text.specific.2" = "Hey %@, laten we met elkaar in contact blijven via HalloApp. Download op https://halloapp.com/kit (HalloApp is een nieuwe, privé sociale app voor goede vrienden en familie, zonder advertenties of algoritmes).";
 
 /* Version of an invitation to join HalloApp. */
 "invite.text.specific.3" = "Ik nodig je uit om HalloApp te installeren. Download hier gratis: https://halloapp.com/free";
+
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.4" = "Hey %@! Doe met me mee op HalloApp en deel echte momenten met echte vrienden. Bekijk het hier: https://halloapp.com/new";
 
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Vrienden uitnodigen";
@@ -1058,7 +1073,7 @@
 "mypost.action.view.profile" = "Profiel bekijken";
 
 /* Message displayed to say when posts will disappear for posts shared with contacts. */
-"mypost.contacts.disappear.time.label" = "Je post verdwijnt na 30 dagen. Je contacten die lid worden van HalloApp kunnen je niet-verlopen posts zien.";
+"mypost.contacts.disappear.time.label" = "Je post verdwijnt na 30 dagen. Je telefooncontacten die lid worden van HalloApp kunnen je niet-verlopen posts zien.";
 
 /* Generic message displayed to say when posts will disappear. */
 "mypost.disappear.time.label" = "Je post verdwijnt na 30 dagen.";
@@ -1246,6 +1261,9 @@
 /* Error banner displayed when there is a failure syncing preivacy settings, displayed on the privacy view */
 "privacy.sync.failure" = "Synchroniseren van privacy-instellingen mislukt. Probeer het later opnieuw.";
 
+/* Placeholder text for the text field for private replies. The argument is the first name of the contact. */
+"private.reply.placeholder" = "Antwoord op %@";
+
 /* Title for the button allowing to delete current profile photo. */
 "profile.delete.photo" = "Foto Verwijderen";
 
@@ -1401,6 +1419,12 @@
 
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Selecteer ten minste één contact.";
+
+/* Indicates that an item is in the process of being sent. */
+"sending.title" = "Wordt verzonden";
+
+/* Indicates that an item has successfully been sent. */
+"sent.title" = "Verzonden";
 
 /* body of the marketing alert sent to users */
 "server.marketing.body" = "Nodig je vrienden uit voor HalloApp!";
@@ -1561,9 +1585,6 @@
 /* One of the items in context menu presented upon long press on linkified phone number in text. Parameter is the phone number. */
 "textlabel.context.menu.call.number" = "Bel %@";
 
-/* One of the items in context menu presented upon long press on web link. */
-"textlabel.context.menu.copy.link" = "Link Kopiëren";
-
 /* One of the items in context menu presented upon long press on linkified phone number in text. */
 "textlabel.context.menu.copy.phone.number" = "Telefoonnummer Kopiëren";
 
@@ -1678,6 +1699,9 @@
 /* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
 "unknown.contact.not.in.contact.book" = "Deze afzender staat niet in je contactenlijst.";
 
+/* Text that indicates the unlock action for a moment. */
+"unlock.title" = "Ontgrendelen";
+
 /* Alert appearing after clicking an external share link that failed to load */
 "urlrouter.externalShare.failed" = "Laden van post mislukt";
 
@@ -1722,12 +1746,6 @@
 
 /* Displayed when a post fails to delete */
 "your.post.deletepost.error" = "Verwijderen van post mislukt";
-
-/* Button to open the system share sheet with an external post link */
-"your.post.externalshare.button" = "Extern Delen";
-
-/* Title for button in action sheet prompting user to share post to external sites */
-"your.post.externalshare.copylink" = "Kopieer Link om te Delen";
 
 /* Success toast when external share link is copied */
 "your.post.externalshare.copylink.success" = "Gekopieerd naar Klembord";

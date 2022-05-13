@@ -82,6 +82,9 @@
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Weiter";
 
+/* Title for generic copy URL button */
+"button.copy.link" = "Link kopieren";
+
 /* Title for generic Create button */
 "button.create" = "Erstellen";
 
@@ -238,6 +241,9 @@
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Initialisierungsfehler";
 
+/* Title of the button that allows camera permissions. */
+"camera.permission.allow.access" = "Zugriff erlauben";
+
 /* No comment provided by engineer. */
 "Cancel" = "Abbrechen";
 
@@ -337,8 +343,8 @@
 /* Message text shown in a message that have photo media but no text */
 "chat.message.photo" = "Foto";
 
-/* Text shown when chat input box is empty */
-"chat.message.placeholder" = "Nachricht eingeben";
+/* Text shown when content input text field is empty for chat screens. */
+"chat.message.placeholder" = "Neue Nachricht";
 
 /* Text shown in place of a received message we are not able to process yet. */
 "chat.message.unsupported" = "Deine HalloApp-Version unterstützt diese Art von Nachricht nicht.";
@@ -931,6 +937,9 @@
 /* Version of an invitation to join HalloApp. */
 "invite.text.specific.3" = "Ich lade dich ein, HalloApp zu installieren. Hier kostenlos herunterladen:\nhttps://halloapp.com/free";
 
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.4" = "Hey %@! Mach mit bei HalloApp und teile echte Momente mit echten Freunden. Schau es dir an: https://halloapp.com/new";
+
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Freunde einladen";
 
@@ -1108,6 +1117,9 @@
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ hat deine HalloApp-Einladung angenommen 🎉";
 
+/* New moment notification text to be shown to the user. */
+"notification.moment" = "Neuer Moment";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "Benachrichtigung.n.Fotos";
 
@@ -1170,6 +1182,9 @@
 
 /* Text for new user popup pointing at new post button */
 "nux.new.post.button" = "Tippe hier, um ein Update mit deinen Freunden und deiner Familie auf HalloApp zu teilen";
+
+/* Title of the button that opens the camera. */
+"open.camera" = "Kamera öffnen";
 
 /* Text that indicates an open action. */
 "open.title" = "Öffnen";
@@ -1537,6 +1552,12 @@
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Mach mit bei meinem HalloApp-Netzwerk für echte Beziehungen! Kostenlos herunterladen auf halloapp.com/dl";
 
+/* Alert that tells the user to allow camera access to share a moment. */
+"share.moment.camera.permission" = "Erlaube den Kamerazugriff, um einen Moment zu teilen";
+
+/* Prompt for the user to share a moment. */
+"share.moment.prompt" = "Teile einen Moment";
+
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "Tippen, um zum Anruf zurückzukehren";
 
@@ -1545,9 +1566,6 @@
 
 /* One of the items in context menu presented upon long press on linkified phone number in text. Parameter is the phone number. */
 "textlabel.context.menu.call.number" = "%@ anrufen";
-
-/* One of the items in context menu presented upon long press on web link. */
-"textlabel.context.menu.copy.link" = "Link kopieren";
 
 /* One of the items in context menu presented upon long press on linkified phone number in text. */
 "textlabel.context.menu.copy.phone.number" = "Handynummer kopieren";
@@ -1707,12 +1725,6 @@
 
 /* Displayed when a post fails to delete */
 "your.post.deletepost.error" = "Fehler beim Löschen des Beitrags";
-
-/* Button to open the system share sheet with an external post link */
-"your.post.externalshare.button" = "Extern teilen";
-
-/* Title for button in action sheet prompting user to share post to external sites */
-"your.post.externalshare.copylink" = "Link zum Teilen kopieren";
 
 /* Success toast when external share link is copied */
 "your.post.externalshare.copylink.success" = "In die Zwischenablage kopiert";

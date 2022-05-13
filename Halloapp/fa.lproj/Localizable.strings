@@ -82,6 +82,9 @@
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "ادامه";
 
+/* Title for generic copy URL button */
+"button.copy.link" = "کپی لینک";
+
 /* Title for generic Create button */
 "button.create" = "ایجاد";
 
@@ -232,8 +235,14 @@
 /* No comment provided by engineer. */
 "camera.init.error.8" = "فیلمبرداری غیر ممکن است";
 
+/* No comment provided by engineer. */
+"camera.init.error.9" = "خطا در ضبط صدا";
+
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "خطا در شروع";
+
+/* Title of the button that allows camera permissions. */
+"camera.permission.allow.access" = "اجازه دسترسی";
 
 /* No comment provided by engineer. */
 "Cancel" = "لغو";
@@ -334,7 +343,7 @@
 /* Message text shown in a message that have photo media but no text */
 "chat.message.photo" = "عکس";
 
-/* Text shown when chat input box is empty */
+/* Text shown when content input text field is empty for chat screens. */
 "chat.message.placeholder" = "ایجاد پیام";
 
 /* Text shown in place of a received message we are not able to process yet. */
@@ -453,6 +462,9 @@
 
 /* Composer New Message title. */
 "composer.message.title" = "پیام جدید";
+
+/* Composer New Moment Post title. */
+"composer.moment.post.title" = "لحظه جدید";
 
 /* Placeholder text for media caption field in post composer. */
 "composer.placeholder.media.description" = "نوشتن توضیحات";
@@ -925,6 +937,9 @@
 /* Version of an invitation to join HalloApp. */
 "invite.text.specific.3" = "من شما را به دانلود هالواپ دعوت میکنم. به صورت رایگان از https://halloapp.com/free دانلود کنید";
 
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.4" = "سلام @%! به من در هالواپ بپیوند و لحظه‌های جدیدت را با دوستان واقعیت به اشتراک بگذار. به این سایت برو: https://halloapp.com/new";
+
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "دعوت";
 
@@ -1033,6 +1048,15 @@
 /* Text on loading screen while migrating data */
 "migration.inProgress" = "بهینه‌سازی داده‌ها...";
 
+/* For indicating that there was an error while uploading the post. */
+"moment.uploading.failure" = "خطا";
+
+/* For indicating that a post is uploading. */
+"moment.uploading.progress" = "در حال بارگذاری...";
+
+/* For indicating that a post has been successfully uploaded and shared. */
+"moment.uploading.success" = "به اشتراک گذاشته شد!";
+
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "پیام";
 
@@ -1092,6 +1116,9 @@
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ دعوت شما را به هالواپ پذیرفت";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment" = "لحظه جدید";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
@@ -1155,6 +1182,12 @@
 
 /* Text for new user popup pointing at new post button */
 "nux.new.post.button" = "اینجا کلیک کنید برای به اشتراک گذاشتن اخبار با دوستان و ‌آشنایانتان در هالواپ";
+
+/* Title of the button that opens the camera. */
+"open.camera" = "باز کردن دوربین";
+
+/* Text that indicates an open action. */
+"open.title" = "باز کردن";
 
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "لطفاً از تنظیمات اجازه دسترسی بدهید";
@@ -1233,6 +1266,9 @@
 
 /* Text for unblocking user under profile header */
 "profile.header.unblock.user" = "رفع مسدودیت";
+
+/* This is a verb.  The text is clickable, under a contact name and starts a video call with that contact. It should not be translated as a noun. */
+"profile.header.video.call.user" = "ویدیو";
 
 /* Item in Profile > Calls screen. */
 "profile.help.calls" = "تماس‌ها";
@@ -1365,6 +1401,9 @@
 
 /* Text shown to instruct using a QR code for joining a group */
 "scan.to.join.group.using.qr.code" = "برای پیوستن، کد کیو آر را با دوربین موبایل خود اسکن کنید.";
+
+/* Text placed on the blurred overlay of a secret post. */
+"secret.post.entice" = "@% لحظه‌ای را به اشراک گذاشت";
 
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "لطفاً حداقل یک مخاطب انتخاب کنید.";
@@ -1513,6 +1552,12 @@
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "به شبکه ارتباطی من در هالواپ بپیوندید. برنامه را رایگان از halloapp.com/dl دانلود کنید";
 
+/* Alert that tells the user to allow camera access to share a moment. */
+"share.moment.camera.permission" = "اجازه دسترسی برای به اشتراک گذاشتن لحظه";
+
+/* Prompt for the user to share a moment. */
+"share.moment.prompt" = "به اشتراک گذاشتن لحظه";
+
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "برای بازگشت به تماس کلیک کنید";
 
@@ -1521,9 +1566,6 @@
 
 /* One of the items in context menu presented upon long press on linkified phone number in text. Parameter is the phone number. */
 "textlabel.context.menu.call.number" = "تماس با %@";
-
-/* One of the items in context menu presented upon long press on web link. */
-"textlabel.context.menu.copy.link" = "کپی لینک";
 
 /* One of the items in context menu presented upon long press on linkified phone number in text. */
 "textlabel.context.menu.copy.phone.number" = "کپی شماره تلفن";
@@ -1683,12 +1725,6 @@
 
 /* Displayed when a post fails to delete */
 "your.post.deletepost.error" = "خطا در حذف پست";
-
-/* Button to open the system share sheet with an external post link */
-"your.post.externalshare.button" = "به اشتراک گذاشتن خارج هالواپ";
-
-/* Title for button in action sheet prompting user to share post to external sites */
-"your.post.externalshare.copylink" = "کپی لینک برای به اشتراک گذاشتن";
 
 /* Success toast when external share link is copied */
 "your.post.externalshare.copylink.success" = "کپی شد";
