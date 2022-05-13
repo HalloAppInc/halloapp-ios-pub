@@ -240,8 +240,6 @@ final class NotificationProtoService: ProtoServiceCore {
                 hasAckBeenDelegated = true
                 self.processCommentData(commentData: commentData, status: .received, metadata: metadata, ack: ack)
             }
-            hasAckBeenDelegated = true
-            processCommentData(commentData: commentData, status: .received, metadata: metadata, ack: ack)
 
         // Separate out groupFeedItems: we need to decrypt them, process and populate content accordingly.
         case .groupFeedPost, .groupFeedComment:
