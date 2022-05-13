@@ -120,16 +120,19 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     // MARK: Quoted Row
     
     private lazy var quotedRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ quotedTextVStack, quotedImageView ])
+        let view = UIStackView(arrangedSubviews: [ quotedTextVStack, quotedImageView, quotedMomentView ])
         view.axis = .horizontal
         view.alignment = .top
         view.spacing = 10
         view.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 15)
         view.isLayoutMarginsRelativeArrangement = true
         view.translatesAutoresizingMaskIntoConstraints = false
-        
-        quotedImageView.widthAnchor.constraint(equalToConstant: Constants.QuotedMediaSize).isActive = true
-        quotedImageView.heightAnchor.constraint(equalToConstant: Constants.QuotedMediaSize).isActive = true
+
+        NSLayoutConstraint.activate([
+            quotedImageView.widthAnchor.constraint(equalToConstant: Constants.QuotedMediaSize),
+            quotedImageView.heightAnchor.constraint(equalToConstant: Constants.QuotedMediaSize),
+            quotedMomentView.widthAnchor.constraint(equalToConstant: Constants.QuotedMediaSize + 20),
+        ])
 
         let baseSubView = UIView(frame: view.bounds)
         baseSubView.layer.cornerRadius = 15
@@ -197,6 +200,13 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         
         view.delegate = self
         
+        return view
+    }()
+
+    private lazy var quotedMomentView: QuotedMomentView = {
+        let view = QuotedMomentView()
+        view.imageView.image = QuotedMomentView.expiredIndicator
+        view.isHidden = true
         return view
     }()
     
@@ -481,6 +491,12 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             guard let userID = quoted.userID else { return false }
             
             quotedNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
+            if case .moment = quoted.type {
+                // for outbound cells, the quoted moment is always expired, so there is no loading done here
+                quotedMomentView.isHidden = false
+                quotedRow.isHidden = false
+                return true
+            }
 
             if let mentionText = MainAppContext.shared.contactStore.textWithMentions(
                 quoted.rawText,
@@ -635,7 +651,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                 mediaImageView.heightAnchor.constraint(equalToConstant: preferredHeight).isActive = true
                 
                 mediaImageView.configure(with: sliderMediaArr, size: preferredSize)
-                
+
                 mediaImageView.isHidden = false
                 
                 if (isQuotedMessage) {
@@ -809,6 +825,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         quotedTextView.font = UIFont.preferredFont(forTextStyle: .footnote)
         quotedTextView.attributedText = nil
         quotedImageView.isHidden = true
+        quotedMomentView.isHidden = true
 
         mediaImageView.reset()
         mediaImageView.removeConstraints(mediaImageView.constraints)

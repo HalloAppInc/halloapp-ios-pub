@@ -125,7 +125,7 @@ extension FeedPost: ChatQuotedProtocol {
     }
 
     public var type: ChatQuoteType {
-        return .feedpost
+        return isMoment ? .moment : .feedpost
     }
 
     public var mediaList: [QuotedMedia] {

@@ -164,7 +164,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     // MARK: Quoted Row
     
     private lazy var quotedRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ quotedTextVStack, quotedImageView ])
+        let view = UIStackView(arrangedSubviews: [ quotedTextVStack, quotedImageView, quotedMomentView ])
         view.axis = .horizontal
         view.alignment = .top
         view.spacing = 10
@@ -174,8 +174,11 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         
         view.translatesAutoresizingMaskIntoConstraints = false
         
-        quotedImageView.widthAnchor.constraint(equalToConstant: Constants.QuotedMediaSize).isActive = true
-        quotedImageView.heightAnchor.constraint(equalToConstant: Constants.QuotedMediaSize).isActive = true
+        NSLayoutConstraint.activate([
+            quotedImageView.widthAnchor.constraint(equalToConstant: Constants.QuotedMediaSize),
+            quotedImageView.heightAnchor.constraint(equalToConstant: Constants.QuotedMediaSize),
+            quotedMomentView.widthAnchor.constraint(equalToConstant: Constants.QuotedMediaSize + 20),
+        ])
         
         let baseSubView = UIView(frame: view.bounds)
         baseSubView.layer.cornerRadius = 15
@@ -257,6 +260,12 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         view.layer.masksToBounds = true
         view.isHidden = true
                 
+        return view
+    }()
+
+    private lazy var quotedMomentView: QuotedMomentView = {
+        let view = QuotedMomentView()
+        view.isHidden = true
         return view
     }()
     
@@ -467,6 +476,11 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             guard let userID = quoted.userID else { return false }
             
             quotedNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
+            if case .moment = quoted.type {
+                configureQuotedMoment(quoted)
+                quotedRow.isHidden = false
+                return true
+            }
 
             if let mentionText = MainAppContext.shared.contactStore.textWithMentions(
                 quoted.rawText,
@@ -540,7 +554,35 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         
         return isQuotedMessage
     }
-    
+
+    /// - note: The logic in this method is a bit redundant, but I didn't want to make a ton of changes
+    ///         since all of this code is getting overhauled at the moment.
+    private func configureQuotedMoment(_ quoted: ChatQuoted) {
+        guard
+            let media = quoted.media,
+            let item = media.first(where: { $0.order == mediaIndex }),
+            let fileURL = item.mediaURL
+        else {
+            DDLogError("InboundMsgViewCell/configureQuotedMoment/no media")
+            return
+        }
+
+        quotedMomentView.isHidden = false
+        if let thumbnailData = item.previewData, item.type != .audio {
+            quotedMomentView.imageView.image = UIImage(data: thumbnailData)
+        } else {
+            switch item.type {
+            case .image:
+                if let image = UIImage(contentsOfFile: fileURL.path) {
+                    quotedMomentView.imageView.image = image
+                } else {
+                    DDLogError("IncomingMsgView/configureQuotedMoment/no-image/fileURL \(fileURL)")
+                }
+            default:
+                break
+            }
+        }
+    }
     
     func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, isPlayed: Bool, displayText: DisplayText, media: Set<CommonMedia>?, linkPreview: CommonLinkPreview?, timestamp: Date?) {
         if isPreviousMsgSameSender {
@@ -738,6 +780,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         quotedTextView.font = UIFont.preferredFont(forTextStyle: .footnote)
         quotedTextView.attributedText = nil
         quotedImageView.isHidden = true
+        quotedMomentView.isHidden = true
 
         mediaRow.isHidden = true
         mediaRow.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
