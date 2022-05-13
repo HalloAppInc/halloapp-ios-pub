@@ -218,12 +218,13 @@ final class NotificationProtoService: ProtoServiceCore {
                 DDLogError("didReceiveRequest/error Invalid fields in metadata.")
                 return
             }
+            hasAckBeenDelegated = true
             mainDataStore.performSeriallyOnBackgroundContext { context in
                 if let feedPost = self.coreFeedData.feedPost(with: metadata.contentId, in: context), feedPost.status != .rerequesting {
                     DDLogError("didReceiveRequest/error duplicate feedPost [\(metadata.contentId)]")
+                    ack()
                     return
                 }
-                hasAckBeenDelegated = true
                 self.processPostData(postData: postData, status: .received, metadata: metadata, ack: ack)
             }
 
@@ -232,12 +233,13 @@ final class NotificationProtoService: ProtoServiceCore {
                 DDLogError("didReceiveRequest/error Invalid fields in metadata.")
                 return
             }
+            hasAckBeenDelegated = true
             mainDataStore.performSeriallyOnBackgroundContext { context in
                 if let feedComment = self.coreFeedData.feedComment(with: metadata.contentId, in: context), feedComment.status != .rerequesting {
                     DDLogError("didReceiveRequest/error duplicate feedComment [\(metadata.contentId)]")
+                    ack()
                     return
                 }
-                hasAckBeenDelegated = true
                 self.processCommentData(commentData: commentData, status: .received, metadata: metadata, ack: ack)
             }
 
@@ -250,12 +252,15 @@ final class NotificationProtoService: ProtoServiceCore {
                 contentType = .comment
             }
 
+            hasAckBeenDelegated = true
             mainDataStore.performSeriallyOnBackgroundContext { context in
                 if let feedPost = self.coreFeedData.feedPost(with: metadata.contentId, in: context), feedPost.status != .rerequesting {
                     DDLogError("didReceiveRequest/error duplicate groupFeedPost [\(metadata.contentId)]")
+                    ack()
                     return
                 } else if let feedComment = self.coreFeedData.feedComment(with: metadata.contentId, in: context), feedComment.status != .rerequesting {
                     DDLogError("didReceiveRequest/error duplicate groupFeedComment [\(metadata.contentId)]")
+                    ack()
                     return
                 }
 
@@ -263,11 +268,11 @@ final class NotificationProtoService: ProtoServiceCore {
                 do {
                     guard let serverGroupFeedItemPb = metadata.serverGroupFeedItemPb else {
                         DDLogError("MetadataError/could not find serverGroupFeedItem stanza, contentId: \(metadata.contentId), contentType: \(metadata.contentType)")
+                        ack()
                         return
                     }
                     let serverGroupFeedItem = try Server_GroupFeedItem(serializedData: serverGroupFeedItemPb)
                     DDLogInfo("NotificationExtension/requesting decryptGroupFeedItem \(metadata.contentId)")
-                    hasAckBeenDelegated = true
                     self.decryptAndProcessGroupFeedItem(contentID: metadata.contentId, contentType: contentType, item: serverGroupFeedItem, metadata: metadata, ack: ack)
                 } catch {
                     DDLogError("NotificationExtension/ChatMessage/Failed serverChatStanzaStr: \(String(describing: metadata.serverChatStanzaPb)), error: \(error)")
@@ -278,20 +283,22 @@ final class NotificationProtoService: ProtoServiceCore {
             let messageId = metadata.messageId
             // Check if message has already been received and decrypted successfully.
             // If yes - then dismiss notification, else continue processing.
+            hasAckBeenDelegated = true
             mainDataStore.performSeriallyOnBackgroundContext { context in
                 if let chatMessage = self.coreChatData.chatMessage(with: messageId, in: context), chatMessage.incomingStatus != .rerequesting {
                     DDLogError("didReceiveRequest/error duplicate message ID that was already decrypted[\(messageId)]")
+                    ack()
                     return
                 }
 
                 do {
                     guard let serverChatStanzaPb = metadata.serverChatStanzaPb else {
                         DDLogError("MetadataError/could not find server_chat stanza, contentId: \(metadata.contentId), contentType: \(metadata.contentType)")
+                        ack()
                         return
                     }
                     let serverChatStanza = try Server_ChatStanza(serializedData: serverChatStanzaPb)
                     DDLogInfo("NotificationExtension/requesting decryptChat \(metadata.contentId)")
-                    hasAckBeenDelegated = true
                     // this function acks and sends rerequests accordingly.
                     self.decryptAndProcessChat(messageId: messageId, serverChatStanza: serverChatStanza, metadata: metadata)
                 } catch {
