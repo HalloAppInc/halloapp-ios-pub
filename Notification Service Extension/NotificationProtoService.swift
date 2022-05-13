@@ -122,7 +122,11 @@ final class NotificationProtoService: ProtoServiceCore {
     // MARK: Calls
 
     private func reportIncomingCall(serverMsgPb: Data) {
-        disconnectImmediately()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            // Adding artificial delay here to finish up sending acks.
+            // TODO: adding this to ensure things work - but we should get rid of this.
+            self.disconnect()
+        }
         // might have to add an artificial delay here to handle cleanup.
         if #available(iOSApplicationExtension 14.5, *) {
             DispatchQueue.main.async {

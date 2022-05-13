@@ -984,7 +984,8 @@ extension CallManager: HalloCallDelegate {
         }
     }
 
-    func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveIncomingCall incomingCall: Server_IncomingCall) {
+    func halloService(_ halloService: HalloService, from peerUserID: UserID,
+                      didReceiveIncomingCall incomingCall: Server_IncomingCall, ack: (() -> ())?) {
         let callID = incomingCall.callID
         DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/begin/callID: \(callID)")
         let webrtcOffer = incomingCall.webrtcOffer
@@ -1048,7 +1049,11 @@ extension CallManager: HalloCallDelegate {
                 return
             }
             // Save call to mainDataStore.
-            MainAppContext.shared.mainDataStore.saveCall(callID: callID, peerUserID: peerUserID, type: callType, direction: .incoming, timestamp: Date())
+            MainAppContext.shared.mainDataStore.saveCall(callID: callID, peerUserID: peerUserID,
+                                                         type: callType, direction: .incoming, timestamp: Date()) { _ in
+                // ack the message.
+                ack?()
+            }
 
             if activeCallID == incomingCall.callID {
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID) duplicate packet")

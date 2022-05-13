@@ -977,7 +977,8 @@ final class ProtoService: ProtoServiceCore {
             // Else - we need to record this as a missed call.
             if !incomingCall.isTooLate {
                 DDLogInfo("proto/didReceive/\(msg.id)/incomingCall/\(incomingCall.callID)")
-                callDelegate?.halloService(self, from: UserID(msg.fromUid), didReceiveIncomingCall: incomingCall)
+                hasAckBeenDelegated = true
+                callDelegate?.halloService(self, from: UserID(msg.fromUid), didReceiveIncomingCall: incomingCall, ack: ack)
                 readyToHandleCallMessages = true
             } else {
                 DDLogInfo("proto/didReceive/\(msg.id)/incomingCall/\(incomingCall.callID)/missedCall")
@@ -1101,7 +1102,9 @@ final class ProtoService: ProtoServiceCore {
                 DDLogInfo("proto/handlePendingCallMessages/callID: \(callID)/msg: \(pendingMsg.id)")
                 switch pendingMsg.payload {
                 case .incomingCall(let incomingCall):
-                    callDelegate?.halloService(self, from: UserID(pendingMsg.fromUid), didReceiveIncomingCall: incomingCall)
+                    // incomingCall messages are not expected here.
+                    DDLogError("proto/handlePendingCallMessages/callID: \(callID)/msg: \(pendingMsg.id)/error: unexpected incomingCall")
+                    callDelegate?.halloService(self, from: UserID(pendingMsg.fromUid), didReceiveIncomingCall: incomingCall, ack: nil)
                 case .answerCall(let answerCall):
                     callDelegate?.halloService(self, from: UserID(pendingMsg.fromUid), didReceiveAnswerCall: answerCall)
                 case .callRinging(let callRinging):
@@ -1868,7 +1871,12 @@ extension ProtoService: HalloService {
                 if let serverMsgPb = sharedServerMsg.msg {
                     let serverMsg = try Server_Msg(serializedData: serverMsgPb)
                     DDLogInfo("ProtoService/mergeData/handle serverMsg: \(serverMsg.id)")
-                    let ack = { sharedDataStore.delete(serverMessageObjectID: sharedServerMsg.objectID) { } }
+                    let ack = {
+                        // sometimes nse disconnects before sending acks.
+                        // so we need to send them again.
+                        self.sendAck(messageID: serverMsg.id)
+                        sharedDataStore.delete(serverMessageObjectID: sharedServerMsg.objectID) { }
+                    }
                     handleMessage(serverMsg, isEligibleForNotification: false, ack: ack)
                 }
             } catch {

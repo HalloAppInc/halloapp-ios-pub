@@ -501,7 +501,10 @@ extension AppDelegate: PKPushRegistryDelegate {
             switch msg.payload {
             case .incomingCall(let incomingCall):
                 DDLogInfo("appdelegate/voip-notifications/invoking delegate now for call from: \(fromUserID) using incomingCall")
-                service.callDelegate?.halloService(service, from: fromUserID, didReceiveIncomingCall: incomingCall)
+                service.callDelegate?.halloService(service, from: fromUserID, didReceiveIncomingCall: incomingCall) {
+                    // send ack for the message.
+                    service.sendAck(messageId: msg.id) { _ in }
+                }
                 service.readyToHandleCallMessages = true
             case .incomingCallPush(let incomingCallPush):
                 DDLogInfo("appdelegate/voip-notifications/invoking delegate now for call from: \(fromUserID) using incomingCallPush")
