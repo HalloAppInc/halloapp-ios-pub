@@ -55,14 +55,14 @@ fileprivate class PostReceiptsDataSource: UITableViewDiffableDataSource<Section,
 }
 
 protocol PostDashboardViewControllerDelegate: AnyObject {
-    func postDashboardViewController(_ controller: PostDashboardViewController, didRequestPerformAction action: PostDashboardViewController.UserAction)
+    func postDashboardViewController(didRequestPerformAction action: PostDashboardViewController.UserAction)
 }
 
 class PostDashboardViewController: UITableViewController, NSFetchedResultsControllerDelegate {
 
     enum UserAction {
         case profile(UserID)
-        case message(UserID)
+        case message(UserID, FeedPostID)
         case blacklist(UserID)
     }
 
@@ -291,12 +291,12 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
                     let actionSheet = UIAlertController(title: contactName, message: nil, preferredStyle: .actionSheet)
                     // View Profile
                     actionSheet.addAction(UIAlertAction(title: Localizations.actionViewProfile, style: .default, handler: { (_) in
-                        delegate.postDashboardViewController(self, didRequestPerformAction: .profile(receipt.userId))
+                        delegate.postDashboardViewController(didRequestPerformAction: .profile(receipt.userId))
                     }))
                     // Message
                     if isUserAContact {
-                        actionSheet.addAction(UIAlertAction(title: Localizations.actionMessage, style: .default, handler: { (_) in
-                            delegate.postDashboardViewController(self, didRequestPerformAction: .message(receipt.userId))
+                        actionSheet.addAction(UIAlertAction(title: Localizations.actionMessage, style: .default, handler: { [feedPost] (_) in
+                            delegate.postDashboardViewController(didRequestPerformAction: .message(receipt.userId, feedPost.id))
                         }))
                     }
                     actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))

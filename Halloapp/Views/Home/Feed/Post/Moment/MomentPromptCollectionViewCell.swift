@@ -54,9 +54,9 @@ class MomentPromptCollectionViewCell: UICollectionViewCell {
     override func layoutMarginsDidChange() {
         super.layoutMarginsDidChange()
 
-        previewViewLeading?.constant = layoutMargins.left * FeedPostCollectionViewCell.LayoutConstants.backgroundPanelHMarginRatio * 5
+        previewViewLeading?.constant = layoutMargins.left * FeedPostCollectionViewCell.LayoutConstants.backgroundPanelHMarginRatio * 4
 
-        previewViewTrailing?.constant = -layoutMargins.right * FeedPostCollectionViewCell.LayoutConstants.backgroundPanelHMarginRatio * 5
+        previewViewTrailing?.constant = -layoutMargins.right * FeedPostCollectionViewCell.LayoutConstants.backgroundPanelHMarginRatio * 4
     }
 }
 
@@ -237,6 +237,7 @@ final class MomentPromptView: UIView {
     private func displayPermissionNotDeterminedState() {
         displayLabel.text = Localizations.shareMomentCameraAccess
         actionButton.button.setTitle(Localizations.allowCameraAccess, for: .normal)
+        previewView.backgroundColor = .black
     }
 
     private func displayPermissionAllowedState() {

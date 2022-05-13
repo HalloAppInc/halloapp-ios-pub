@@ -403,7 +403,7 @@ extension PostViewController: FeedPostViewDelegate {
 
 extension PostViewController: PostDashboardViewControllerDelegate {
 
-    func postDashboardViewController(_ controller: PostDashboardViewController, didRequestPerformAction action: PostDashboardViewController.UserAction) {
+    func postDashboardViewController(didRequestPerformAction action: PostDashboardViewController.UserAction) {
         let actionToPerformOnDashboardDismiss: () -> ()
         switch action {
         case .profile(let userId):
@@ -411,9 +411,9 @@ extension PostViewController: PostDashboardViewControllerDelegate {
                 self.navigationController?.pushViewController(UserFeedViewController(userId: userId), animated: true)
             }
 
-        case .message(let userId):
+        case .message(let userId, let postId):
             actionToPerformOnDashboardDismiss = {
-                self.navigationController?.pushViewController(ChatViewController(for: userId, with: controller.feedPost.id), animated: true)
+                self.navigationController?.pushViewController(ChatViewController(for: userId, with: postId), animated: true)
             }
 
         case .blacklist(let userId):
@@ -421,6 +421,6 @@ extension PostViewController: PostDashboardViewControllerDelegate {
                 MainAppContext.shared.privacySettings.hidePostsFrom(userId: userId)
             }
         }
-        controller.dismiss(animated: true, completion: actionToPerformOnDashboardDismiss)
+        dismiss(animated: true, completion: actionToPerformOnDashboardDismiss)
     }
 }

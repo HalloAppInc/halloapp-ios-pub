@@ -29,14 +29,12 @@ class MomentCollectionViewCell: UICollectionViewCell {
         
         contentView.addSubview(momentView)
         momentView.translatesAutoresizingMaskIntoConstraints = false
-        
-        let ratio = MomentView.LayoutConstants.backgroundPanelHMarginRatio
+
         let spacing = MomentView.LayoutConstants.interCardSpacing
-        
         let leading = momentView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor,
-                                                         constant: layoutMargins.left * ratio * 3)
+                                                         constant: layoutMargins.left)
         let trailing = momentView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor,
-                                                           constant: -layoutMargins.right * ratio * 3)
+                                                           constant: -layoutMargins.right)
         NSLayoutConstraint.activate([
             leading,
             trailing,

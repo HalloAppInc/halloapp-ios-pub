@@ -11,10 +11,26 @@ import Combine
 import Core
 import CoreCommon
 
+protocol MomentViewControllerDelegate: PostDashboardViewControllerDelegate {
+
+}
+
 class MomentViewController: UIViewController {
 
     let post: FeedPost
     let unlockingPost: FeedPost?
+    weak var delegate: MomentViewControllerDelegate?
+
+    private var backgroundColor: UIColor {
+        UIColor { traits in
+            switch traits.userInterfaceStyle {
+            case .dark:
+                return .black.withAlphaComponent(0.8)
+            default:
+                return .feedBackground
+            }
+        }
+    }
     
     private(set) lazy var momentView: MomentView = {
         let view = MomentView()
@@ -54,6 +70,7 @@ class MomentViewController: UIViewController {
         view.translatesAutoresizingMaskIntoConstraints = false
         view.configure(with: post, contentWidth: view.bounds.width, showGroupName: false)
         view.showMoreAction = showMoreMenu
+        view.showUserAction = showUser
         return view
     }()
     
@@ -62,8 +79,8 @@ class MomentViewController: UIViewController {
         view.translatesAutoresizingMaskIntoConstraints = false
         view.configure(with: post)
         view.isHidden = post.userID != MainAppContext.shared.userData.userId
+        view.avatarViews.forEach { $0.borderColor = backgroundColor }
         view.addTarget(self, action: #selector(seenByPushed), for: .touchUpInside)
-
         return view
     }()
     
@@ -72,7 +89,7 @@ class MomentViewController: UIViewController {
     private lazy var contentInputView: ContentInputView = {
         let view = ContentInputView(style: .minimal, options: [])
         view.autoresizingMask = [.flexibleHeight]
-        view.backgroundColor = .feedBackground
+        view.backgroundColor = UIColor { $0.userInterfaceStyle == .dark ? .black : .feedBackground }
         view.blurView.isHidden = true
         view.delegate = self
         let name = MainAppContext.shared.contactStore.firstName(for: post.userID)
@@ -107,6 +124,13 @@ class MomentViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .feedBackground
 
+        // With the modal presentation, the system adjusts a black background, causing it to
+        // mismatch with the input accessory view
+        let backgroundView = UIView()
+        backgroundView.translatesAutoresizingMaskIntoConstraints = false
+        backgroundView.backgroundColor = backgroundColor
+        view.addSubview(backgroundView)
+
         view.addSubview(headerView)
         view.addSubview(momentView)
         view.addSubview(facePileView)
@@ -114,18 +138,22 @@ class MomentViewController: UIViewController {
         let centerYConstraint = momentView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         // post will be off-center if there's an uploading post in the top corner
         centerYConstraint.priority = .defaultLow
-        
+
         let spacing: CGFloat = 10
         NSLayoutConstraint.activate([
             centerYConstraint,
-            momentView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            momentView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            momentView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 15),
+            momentView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -15),
             headerView.leadingAnchor.constraint(equalTo: momentView.leadingAnchor),
             headerView.trailingAnchor.constraint(equalTo: momentView.trailingAnchor),
             headerView.bottomAnchor.constraint(equalTo: momentView.topAnchor, constant: -spacing),
             facePileView.leadingAnchor.constraint(greaterThanOrEqualTo: momentView.leadingAnchor),
             facePileView.trailingAnchor.constraint(equalTo: momentView.trailingAnchor),
             facePileView.topAnchor.constraint(equalTo: momentView.bottomAnchor, constant: spacing),
+            backgroundView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            backgroundView.topAnchor.constraint(equalTo: view.topAnchor),
+            backgroundView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            backgroundView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
         
         installDismissButton()
@@ -209,6 +237,7 @@ class MomentViewController: UIViewController {
         let button = UIButton(type: .system)
         button.setImage(image, for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(dismissPushed), for: .touchUpInside)
         view.addSubview(button)
         
         NSLayoutConstraint.activate([
@@ -220,8 +249,17 @@ class MomentViewController: UIViewController {
     @objc
     private func seenByPushed(_ sender: AnyObject) {
         let viewController = PostDashboardViewController(feedPost: post)
-        //viewController.delegate = self
+        viewController.delegate = self
         present(UINavigationController(rootViewController: viewController), animated: true)
+    }
+
+    @objc
+    private func dismissPushed(_ sender: UIButton) {
+        dismiss(animated: true)
+    }
+
+    private func showUser() {
+        delegate?.postDashboardViewController(didRequestPerformAction: .profile(post.userId))
     }
     
     private func showMoreMenu() {
@@ -340,6 +378,14 @@ class MomentViewController: UIViewController {
                 self?.replyCancellable = nil
             }
         }
+    }
+}
+
+// MARK: - PostDashboardViewController delegate methods
+
+extension MomentViewController: PostDashboardViewControllerDelegate {
+    func postDashboardViewController(didRequestPerformAction action: PostDashboardViewController.UserAction) {
+        delegate?.postDashboardViewController(didRequestPerformAction: action)
     }
 }
 

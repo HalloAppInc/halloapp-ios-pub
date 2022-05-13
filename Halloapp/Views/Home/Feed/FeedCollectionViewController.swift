@@ -369,13 +369,9 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
     }
     
     func showSecretPostView(for post: FeedPost) {
-        guard post.userId != MainAppContext.shared.userData.userId else {
-            present(MomentViewController(post: post), animated: true)
-            return
-        }
-
         if let _ = MainAppContext.shared.feedData.validMoment.value {
             let vc = MomentViewController(post: post)
+            vc.delegate = self
             present(vc, animated: true)
         } else {
             let newPostVC = NewPostViewController(source: .camera,
@@ -403,6 +399,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         }
         
         let momentVC = MomentViewController(post: post, unlockingPost: latest)
+        momentVC.delegate = self
         newPostVC.containedNavigationController.pushViewController(momentVC, animated: true)
     }
 
@@ -1207,9 +1204,9 @@ extension FeedCollectionViewController: FeedPostCollectionViewCellDelegate {
     }
 }
 
-extension FeedCollectionViewController: PostDashboardViewControllerDelegate {
+extension FeedCollectionViewController: PostDashboardViewControllerDelegate, MomentViewControllerDelegate {
 
-    func postDashboardViewController(_ controller: PostDashboardViewController, didRequestPerformAction action: PostDashboardViewController.UserAction) {
+    func postDashboardViewController(didRequestPerformAction action: PostDashboardViewController.UserAction) {
         let actionToPerformOnDashboardDismiss: () -> ()
         switch action {
         case .profile(let userId):
@@ -1217,9 +1214,9 @@ extension FeedCollectionViewController: PostDashboardViewControllerDelegate {
                 self.showUserFeed(for: userId)
             }
 
-        case .message(let userId):
+        case .message(let userId, let postId):
             actionToPerformOnDashboardDismiss = {
-                self.navigationController?.pushViewController(ChatViewController(for: userId, with: controller.feedPost.id), animated: true)
+                self.navigationController?.pushViewController(ChatViewController(for: userId, with: postId), animated: true)
             }
 
         case .blacklist(let userId):
@@ -1227,7 +1224,8 @@ extension FeedCollectionViewController: PostDashboardViewControllerDelegate {
                 MainAppContext.shared.privacySettings.hidePostsFrom(userId: userId)
             }
         }
-        controller.dismiss(animated: true, completion: actionToPerformOnDashboardDismiss)
+
+        dismiss(animated: true, completion: actionToPerformOnDashboardDismiss)
     }
 }
 
