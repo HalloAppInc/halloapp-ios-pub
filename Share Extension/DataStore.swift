@@ -444,7 +444,7 @@ class DataStore: ShareExtensionDataStore {
             }
 
             // Update Chat Thread
-            if let chatThread = AppContext.shared.mainDataStore.chatThread(type: .oneToOne, id: chatMessage.toUserID, in: managedObjectContext) {
+            if let chatThread = AppContext.shared.mainDataStore.chatThread(id: chatMessage.toUserID, in: managedObjectContext) {
                 chatThread.userID = chatMessage.toUserId
                 chatThread.lastMsgId = chatMessage.id
                 chatThread.lastMsgUserId = chatMessage.fromUserId

@@ -23,8 +23,7 @@ public struct ChatListSyncItem: Codable {
         DDLogInfo("ChatListSyncItem/load/begin")
         // Do some cleanup
         cleanup()
-        let chatThreads = AppContext.shared.mainDataStore.chatThreads(predicate: NSPredicate(format: "groupID == nil"),
-                                                                      in: AppContext.shared.mainDataStore.viewContext)
+        let chatThreads = AppContext.shared.mainDataStore.chatThreads(in: AppContext.shared.mainDataStore.viewContext)
         let chatListItems = chatThreads.compactMap { chatThread -> ChatListSyncItem? in
             guard let userID = chatThread.userID else {
                 return nil
