@@ -32,6 +32,7 @@ public struct ServerProperties {
         case callWaitTimeoutSec = "call_wait_timeout"
         case isflatCommentsEnabled = "flat_comments"
         case isVoicePostsEnabled = "voice_posts"
+        case isMomentsEnabled = "moments"
         case canHoldCalls = "call_hold"
         case streamingUploadChunkSize = "streaming_upload_chunk_size"
         case streamingInitialDownloadSize = "streaming_initial_download_size"
@@ -73,6 +74,7 @@ public struct ServerProperties {
         static let callWaitTimeoutSec = 60
         static let isflatCommentsEnabled = false
         static let isVoicePostsEnabled = false
+        static let isMomentsEnabled = false
         static let canHoldCalls = false
         static let streamingUploadChunkSize = 65536
         static let streamingInitialDownloadSize = 5242880
@@ -256,6 +258,10 @@ public struct ServerProperties {
 
     public static var isVoiceNotesEnabled: Bool {
         ServerProperties.bool(forKey: .isVoiceNotesEnabled) ?? Defaults.isVoiceNotesEnabled
+    }
+
+    public static var isMomentsEnabled: Bool {
+        ServerProperties.bool(forKey: .isMomentsEnabled) ?? Defaults.isMomentsEnabled
     }
 
     public static var isMediaCommentsEnabled: Bool {
