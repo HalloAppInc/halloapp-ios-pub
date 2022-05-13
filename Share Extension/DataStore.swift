@@ -443,14 +443,25 @@ class DataStore: ShareExtensionDataStore {
                 chatMessage.linkPreviews = linkPreviews
             }
 
-            let chatThread = CommonThread(context: managedObjectContext)
-            chatThread.userID = chatMessage.toUserId
-            chatThread.lastMsgId = chatMessage.id
-            chatThread.lastMsgUserId = chatMessage.fromUserId
-            chatThread.lastMsgText = chatMessage.rawText
-            chatThread.lastMsgMediaType = lastMsgMediaType
-            chatThread.lastMsgStatus = .none
-            chatThread.lastMsgTimestamp = chatMessage.timestamp
+            // Update Chat Thread
+            if let chatThread = AppContext.shared.mainDataStore.chatThread(type: .oneToOne, id: chatMessage.toUserID, in: managedObjectContext) {
+                chatThread.userID = chatMessage.toUserId
+                chatThread.lastMsgId = chatMessage.id
+                chatThread.lastMsgUserId = chatMessage.fromUserId
+                chatThread.lastMsgText = chatMessage.rawText
+                chatThread.lastMsgMediaType = lastMsgMediaType
+                chatThread.lastMsgStatus = .none
+                chatThread.lastMsgTimestamp = chatMessage.timestamp
+            } else {
+                let chatThread = CommonThread(context: managedObjectContext)
+                chatThread.userID = chatMessage.toUserId
+                chatThread.lastMsgId = chatMessage.id
+                chatThread.lastMsgUserId = chatMessage.fromUserId
+                chatThread.lastMsgText = chatMessage.rawText
+                chatThread.lastMsgMediaType = lastMsgMediaType
+                chatThread.lastMsgStatus = .none
+                chatThread.lastMsgTimestamp = chatMessage.timestamp
+            }
 
             self.save(managedObjectContext)
 

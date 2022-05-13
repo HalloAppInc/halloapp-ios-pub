@@ -376,9 +376,17 @@ open class MainDataStore {
         }
     }
 
-    public func chatThreads(in context: NSManagedObjectContext) -> [CommonThread] {
+    public func chatThread(type: ChatType, id: String, in managedObjectContext: NSManagedObjectContext) -> CommonThread? {
+        if type == .group {
+            return chatThreads(predicate: NSPredicate(format: "groupID == %@", id), in: managedObjectContext).first
+        } else {
+            return chatThreads(predicate: NSPredicate(format: "userID == %@", id), in: managedObjectContext).first
+        }
+    }
+
+    public func chatThreads(predicate: NSPredicate, in context: NSManagedObjectContext) -> [CommonThread] {
         let request = CommonThread.fetchRequest()
-        request.predicate = NSPredicate(format: "groupID == nil")
+        request.predicate = predicate
         do {
             return try context.fetch(request)
         } catch {
