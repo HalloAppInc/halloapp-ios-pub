@@ -1282,7 +1282,7 @@ fileprivate extension ChatViewController {
     private func setupCallHistoryFetchedResultsController() {
         guard let userID = fromUserId else { return }
         let fetchRequest: NSFetchRequest<Core.Call> = Core.Call.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "peerUserID == %@ && endReasonValue != @d", userID, EndCallReason.unknown.rawValue)
+        fetchRequest.predicate = NSPredicate(format: "peerUserID == %@ && endReasonValue != %d", userID, EndCallReason.unknown.rawValue)
         fetchRequest.sortDescriptors = [
             NSSortDescriptor(keyPath: \Core.Call.timestamp, ascending: true)
         ]
