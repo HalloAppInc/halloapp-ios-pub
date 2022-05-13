@@ -30,7 +30,7 @@ fileprivate enum MessageRow: Hashable, Equatable {
     case linkPreview(ChatMessage)
     case quoted(ChatMessage)
     case unreadCountHeader(Int32)
-    case chatCall
+    case chatCall(Core.Call)
     case chatEvent(ChatEvent)
 
     var timestamp: Date? {
@@ -39,8 +39,23 @@ fileprivate enum MessageRow: Hashable, Equatable {
             return data.timestamp
         case .chatMessage(let data), .retracted(let data), .media(let data), .audio(let data), .text(let data), .linkPreview(let data), .quoted(let data):
             return data.timestamp
-        case .unreadCountHeader(_), .chatCall:
+        case .chatCall(let data):
+            return data.timestamp
+        case .unreadCountHeader(_):
             return nil
+        }
+    }
+    
+    var headerTime: String {
+        switch self {
+        case .chatEvent(let data):
+            return data.timestamp.chatMsgGroupingTimestamp(Date())
+        case .chatMessage(let data), .retracted(let data), .media(let data), .audio(let data), .text(let data), .linkPreview(let data), .quoted(let data):
+            return data.timestamp?.chatMsgGroupingTimestamp(Date()) ?? ""
+        case .chatCall(let data):
+            return data.timestamp.chatMsgGroupingTimestamp(Date())
+        case .unreadCountHeader(_):
+            return ""
         }
     }
 }
@@ -64,9 +79,11 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     static private let messageCellViewLinkPreviewReuseIdentifier = "MessageCellViewLinkPreview"
     static private let messageCellViewQuotedReuseIdentifier = "MessageCellViewQuoted"
     static private let messageCellViewEventReuseIdentifier = "MessageCellViewEvent"
+    static private let messageCellViewCallReuseIdentifier = "MessageCellViewCall"
 
     private var chatMessageFetchedResultsController: NSFetchedResultsController<ChatMessage>?
     private var chatEventFetchedResultsController: NSFetchedResultsController<ChatEvent>?
+    private var callHistoryFetchedResultsController: NSFetchedResultsController<Core.Call>?
 
     private lazy var titleView: ChatTitleView = {
         let titleView = ChatTitleView()
@@ -92,6 +109,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         collectionView.register(MessageCellViewQuoted.self, forCellWithReuseIdentifier: ChatViewControllerNew.messageCellViewQuotedReuseIdentifier)
         collectionView.register(MessageUnreadHeaderView.self, forCellWithReuseIdentifier: MessageUnreadHeaderView.elementKind)
         collectionView.register(MessageCellViewEvent.self, forCellWithReuseIdentifier: ChatViewControllerNew.messageCellViewEventReuseIdentifier)
+        collectionView.register(MessageCellViewCall.self, forCellWithReuseIdentifier: ChatViewControllerNew.messageCellViewCallReuseIdentifier)
         collectionView.register(MessageTimeHeaderView.self, forSupplementaryViewOfKind: MessageTimeHeaderView.elementKind, withReuseIdentifier: MessageTimeHeaderView.elementKind)
         collectionView.delegate = self
         return collectionView
@@ -159,7 +177,12 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                         cell.configure(headerText: Localizations.chatEventSecurityKeysChanged(name: fullname))
                         return cell
                     }
-                case .unreadCountHeader(_), .chatCall:
+                case .chatCall(let chatCall):
+                    if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ChatViewControllerNew.messageCellViewCallReuseIdentifier, for: indexPath) as? MessageCellViewCall {
+                        cell.configure(headerText: "Placeholder Call Text")
+                        return cell
+                    }
+                case .unreadCountHeader(_):
                     return UICollectionViewCell()
                 }
                 return UICollectionViewCell()
@@ -167,10 +190,17 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         dataSource.supplementaryViewProvider = { [weak self] ( view, kind, index) in
             if kind == MessageTimeHeaderView.elementKind {
                 let headerView = view.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: MessageTimeHeaderView.elementKind, for: index)
-                if let messageTimeHeaderView = headerView as? MessageTimeHeaderView, let self = self, let sections = self.chatMessageFetchedResultsController?.sections{
-                    let section = sections[index.section ]
-                    messageTimeHeaderView.configure(headerText: section.name)
-                    return messageTimeHeaderView
+                if let messageTimeHeaderView = headerView as? MessageTimeHeaderView, let self = self {
+                    let sections = self.dataSource.snapshot().sectionIdentifiers
+                    if index.section < sections.count {
+                        let section = sections[index.section ]
+                        messageTimeHeaderView.configure(headerText: section)
+                        return messageTimeHeaderView
+                    } else {
+                        DDLogInfo("ChatViewControllerNew/configureHeader/time header info not available")
+                        return headerView
+                    }
+                    
                 } else {
                     DDLogInfo("ChatViewControllerNew/configureHeader/time header info not available")
                     return headerView
@@ -186,38 +216,35 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     }
 
     func updateCollectionViewData() {
+        var messageRows: [MessageRow] = []
         var snapshot = ChatMessageSnapshot()
-        if let sections = chatMessageFetchedResultsController?.sections {
-            snapshot.appendSections(sections.map { $0.name } )
-            for section in sections {
-                if let chatMessages = section.objects as? [ChatMessage] {
-                    chatMessages.forEach { chatMessage in
-                        let messageRow = messagerow(for: chatMessage)
-                        snapshot.appendItems([messageRow], toSection: section.name)
-                    }
-                }
+
+        if let chatMessages = chatMessageFetchedResultsController?.fetchedObjects {
+            chatMessages.forEach { chatMessage in
+                messageRows.append(messagerow(for: chatMessage))
             }
         }
-        if let sections = chatEventFetchedResultsController?.sections {
-            for section in sections {
-                if !snapshot.sectionIdentifiers.contains(section.name) {
-                    snapshot.appendSections([section.name])
-                }
-                if let chatEvents = section.objects as? [ChatEvent] {
-                    chatEvents.forEach { chatEvent in
-                        let eventMessageRow = MessageRow.chatEvent(chatEvent)
-                        // Add the new event
-                        snapshot.appendItems([eventMessageRow], toSection: section.name)
-                        // Sort items based on timestamp
-                        let sortedRows = snapshot.itemIdentifiers(inSection: section.name).sorted {
-                            ($0.timestamp ?? .distantFuture) < ($1.timestamp ?? .distantFuture)
-                        }
-                        // Update snapshot with sorted items
-                        snapshot.deleteItems(snapshot.itemIdentifiers(inSection: section.name))
-                        snapshot.appendItems(sortedRows, toSection: section.name)
-                    }
-                }
+        if let chatEvents = chatEventFetchedResultsController?.fetchedObjects {
+            chatEvents.forEach { chatEvent in
+                messageRows.append(MessageRow.chatEvent(chatEvent))
             }
+        }
+        if let chatCalls = callHistoryFetchedResultsController?.fetchedObjects {
+            chatCalls.forEach { chatCall in
+                messageRows.append(MessageRow.chatCall(chatCall))
+            }
+        }
+
+        // Sort all messages by timestamp
+        messageRows = messageRows.sorted {
+            ($0.timestamp ?? .distantFuture) < ($1.timestamp ?? .distantFuture)
+        }
+        // Insert all messages into snapshot sorted by timestamp and grouped into sections by headerTime
+        for messageRow in messageRows {
+            if !snapshot.sectionIdentifiers.contains(messageRow.headerTime) {
+                snapshot.appendSections([messageRow.headerTime])
+            }
+            snapshot.appendItems([messageRow], toSection: messageRow.headerTime)
         }
         // Apply the new snapshot
         dataSource.apply(snapshot, animatingDifferences: true)
@@ -273,6 +300,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         collectionView.dataSource = dataSource
         setupChatMessageFetchedResultsController()
         setupChatEventFetchedResultsController()
+        setupCallHistoryFetchedResultsController()
         updateCollectionViewData()
     }
 
@@ -289,7 +317,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             NSSortDescriptor(keyPath: \ChatMessage.serialID, ascending: true)
         ]
         
-        chatMessageFetchedResultsController = NSFetchedResultsController<ChatMessage>(fetchRequest: fetchChatMessageRequest, managedObjectContext: MainAppContext.shared.chatData.viewContext, sectionNameKeyPath: "headerTime", cacheName: nil)
+        chatMessageFetchedResultsController = NSFetchedResultsController<ChatMessage>(fetchRequest: fetchChatMessageRequest, managedObjectContext: MainAppContext.shared.chatData.viewContext, sectionNameKeyPath: nil, cacheName: nil)
         chatMessageFetchedResultsController?.delegate = self
         do {
             DDLogError("ChatViewControllerNew/initFetchedResultsController/fetching chat messages for user: \(currentUserID)")
@@ -308,12 +336,32 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             NSSortDescriptor(keyPath: \ChatEvent.timestamp, ascending: true)
         ]
 
-        chatEventFetchedResultsController = NSFetchedResultsController<ChatEvent>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.mainDataStore.viewContext, sectionNameKeyPath: "headerTime", cacheName: nil)
+        chatEventFetchedResultsController = NSFetchedResultsController<ChatEvent>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.mainDataStore.viewContext, sectionNameKeyPath: nil, cacheName: nil)
         chatEventFetchedResultsController?.delegate = self
         do {
             DDLogError("ChatViewControllerNew/initFetchedResultsController/fetching chat events from user: \(userID) to user: \(MainAppContext.shared.userData.userId)")
             try chatEventFetchedResultsController!.performFetch()
-        } catch {DDLogError("ChatViewControllerNew/initFetchedResultsController/failed to fetch  chat eventsfrom user: \(userID) to user: \(MainAppContext.shared.userData.userId)")
+        } catch {
+            DDLogError("ChatViewControllerNew/initFetchedResultsController/failed to fetch  chat events from user: \(userID) to user: \(MainAppContext.shared.userData.userId)")
+            return
+        }
+    }
+
+    private func setupCallHistoryFetchedResultsController() {
+        guard let userID = fromUserId else { return }
+        let fetchRequest: NSFetchRequest<Core.Call> = Core.Call.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "peerUserID == %@ && endReasonValue !=  %d", userID, EndCallReason.unknown.rawValue)
+        fetchRequest.sortDescriptors = [
+            NSSortDescriptor(keyPath: \Core.Call.timestamp, ascending: true)
+        ]
+
+        callHistoryFetchedResultsController = NSFetchedResultsController<Core.Call>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.mainDataStore.viewContext, sectionNameKeyPath: nil, cacheName: nil)
+        callHistoryFetchedResultsController?.delegate = self
+        do {
+            DDLogError("ChatViewControllerNew/initFetchedResultsController/fetching chat call info from user: \(userID) to user: \(MainAppContext.shared.userData.userId)")
+            try callHistoryFetchedResultsController!.performFetch()
+        } catch {
+            DDLogError("ChatViewControllerNew/initFetchedResultsController/failed to fetch  chat call info from user: \(userID) to user: \(MainAppContext.shared.userData.userId)")
             return
         }
     }
@@ -356,22 +404,6 @@ extension ChatViewControllerNew: ChatTitleViewDelegate {
         guard let userId = fromUserId else { return }
         let userViewController = UserFeedViewController(userId: userId)
         navigationController?.pushViewController(userViewController, animated: true)
-    }
-}
-
-extension ChatMessage {
-  @objc var headerTime: String? {
-      get {
-          return timestamp?.chatMsgGroupingTimestamp(Date())
-      }
-  }
-}
-
-extension ChatEvent {
-    @objc var headerTime: String? {
-        get {
-            return timestamp.chatMsgGroupingTimestamp(Date())
-        }
     }
 }
 
