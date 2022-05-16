@@ -206,6 +206,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     private lazy var quotedMomentView: QuotedMomentView = {
         let view = QuotedMomentView()
         view.imageView.image = QuotedMomentView.expiredIndicator
+        view.imageView.contentMode = .center
         view.isHidden = true
         return view
     }()

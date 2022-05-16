@@ -24,7 +24,6 @@ class QuotedMomentView: UIView {
         view.layer.masksToBounds = true
         view.layer.cornerRadius = Self.imageCornerRadius
         view.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 26, weight: .regular)
-        view.contentMode = .center
         view.tintColor = .white.withAlphaComponent(0.9)
         return view
     }()

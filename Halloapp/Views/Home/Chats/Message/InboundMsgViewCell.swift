@@ -265,6 +265,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
 
     private lazy var quotedMomentView: QuotedMomentView = {
         let view = QuotedMomentView()
+        view.imageView.contentMode = .scaleAspectFit
         view.isHidden = true
         return view
     }()
