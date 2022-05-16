@@ -4584,7 +4584,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     generateNotifications(for: feedPosts, using: context)
                     // Notify about new posts all interested parties.
                     feedPosts.forEach({
-                        cachedMedia[$0.id] = nil
+                        /*
+                         Do not invalidate cachedMedia. Anything currently bound to the existing media
+                         will no longer receive load callbacks, as they are not reloaded as the posts are
+                         not changing (as in the other places where this is set).
+
+                         The cache may still contain previous media data if the post is changed or deleted,
+                         but the UI state should still be consistent, as we've already sent change notifications
+                         to all of our contexts.
+                         */
+                        //cachedMedia[$0.id] = nil
                         didMergeFeedPost.send($0.id)
                     })
                     // Comments
@@ -4592,7 +4601,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     generateNotifications(for: feedPostComments, using: context)
                     // Notify about new comments all interested parties.
                     feedPostComments.forEach({
-                        cachedMedia[$0.id] = nil
+                        /*
+                         Do not invalidate cachedMedia. Anything currently bound to the existing media
+                         will no longer receive load callbacks, as they are not reloaded as the posts are
+                         not changing (as in the other places where this is set).
+
+                         The cache may still contain previous media data if the post is changed or deleted,
+                         but the UI state should still be consistent, as we've already sent change notifications
+                         to all of our contexts.
+                         */
+                        //cachedMedia[$0.id] = nil
                         didReceiveFeedPostComment.send($0)
                     })
                 }
