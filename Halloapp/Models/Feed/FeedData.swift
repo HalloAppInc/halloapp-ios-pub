@@ -650,8 +650,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    private func feedPosts(with ids: Set<FeedPostID>, in managedObjectContext: NSManagedObjectContext? = nil, archived: Bool = false) -> [FeedPost] {
-        return feedPosts(predicate: NSPredicate(format: "id in %@", ids), in: managedObjectContext, archived: archived)
+    private func feedPosts(with ids: Set<FeedPostID>, sortDescriptors: [NSSortDescriptor] = [NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: true)],
+                           in managedObjectContext: NSManagedObjectContext? = nil, archived: Bool = false) -> [FeedPost] {
+        return feedPosts(predicate: NSPredicate(format: "id in %@", ids), sortDescriptors: sortDescriptors, in: managedObjectContext, archived: archived)
     }
 
     func feedLinkPreview(with id: FeedLinkPreviewID, in managedObjectContext: NSManagedObjectContext? = nil) -> CommonLinkPreview? {
@@ -684,7 +685,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    private func feedComments(with ids: Set<FeedPostCommentID>, in managedObjectContext: NSManagedObjectContext? = nil) -> [FeedPostComment] {
+    private func feedComments(with ids: Set<FeedPostCommentID>,
+                              sortDescriptors: [NSSortDescriptor] = [NSSortDescriptor(keyPath: \FeedPostComment.timestamp, ascending: true)],
+                              in managedObjectContext: NSManagedObjectContext? = nil) -> [FeedPostComment] {
         let managedObjectContext = managedObjectContext ?? viewContext
         let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id in %@", ids)
@@ -4582,7 +4585,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     // Posts
                     let feedPosts = feedPosts(with: Set(postIds), in: context, archived: false)
                     generateNotifications(for: feedPosts, using: context)
-                    // Notify about new posts all interested parties.
+                    // Notify about new posts all interested parties in ascending order of timestamp.
                     feedPosts.forEach({
                         /*
                          Do not invalidate cachedMedia. Anything currently bound to the existing media
@@ -4596,7 +4599,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         //cachedMedia[$0.id] = nil
                         didMergeFeedPost.send($0.id)
                     })
-                    // Comments
+                    // Comments in ascending order of timestamp
                     let feedPostComments = feedComments(with: Set(commentIds), in: context)
                     generateNotifications(for: feedPostComments, using: context)
                     // Notify about new comments all interested parties.

@@ -246,7 +246,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         guard let index = feedDataSource.index(of: postId) else {
             return false
         }
-        
+
         let path = IndexPath(item: index, section: 0)
         collectionView.scrollToItem(at: path, at: .top, animated: animated)
         
@@ -359,6 +359,8 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
                 for item in items {
                     if id == item.post?.id {
                         self.feedPostIdToScrollTo = nil
+                        // Temporary fix to scroll to the desired post.
+                        self.view.layoutIfNeeded()
                         let result = self.scrollTo(postId: id)
                         DDLogInfo("FeedCollectionViewController/scroll-to/postId: \(id)/result: \(result)")
                         break

@@ -80,7 +80,7 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
             return nil
         }
         self.init(groupId: id)
-        self.feedPostIdToScrollTo = metadata.postData()?.id
+        self.feedPostIdToScrollTo = metadata.postId
     }
 
     required init?(coder: NSCoder) {

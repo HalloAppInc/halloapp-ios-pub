@@ -427,9 +427,14 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         switch metadata.contentType {
         case .groupFeedPost, .groupFeedComment:
             if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
-                let vc = GroupFeedViewController(groupId: groupId)
-                vc.delegate = self
-                self.navigationController?.pushViewController(vc, animated: false)
+                if let vc = GroupFeedViewController(metadata: metadata) {
+                    vc.delegate = self
+                    self.navigationController?.pushViewController(vc, animated: false)
+                } else {
+                    let vc = GroupFeedViewController(groupId: groupId)
+                    vc.delegate = self
+                    self.navigationController?.pushViewController(vc, animated: false)
+                }
             }
             break
         case .groupAdd:

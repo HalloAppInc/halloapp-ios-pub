@@ -568,6 +568,10 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
                 DDLogDebug("FeedViewController/scroll-to-post/immediate \(feedPostId)")
                 // Scroll to feed post now.
                 let result = scrollTo(postId: feedPost.id)
+                // If we could not display the feedPost then try to postpone the scrolling.
+                if !result {
+                    feedPostIdToScrollTo = feedPostId
+                }
                 DDLogDebug("FeedViewController/scroll-to-post/immediate \(feedPostId)/result: \(result)")
             } else {
                 DDLogDebug("FeedViewController/scroll-to-post/postpone \(feedPostId)")
