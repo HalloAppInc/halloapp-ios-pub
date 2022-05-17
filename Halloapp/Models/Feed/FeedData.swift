@@ -2387,6 +2387,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     DDLogDebug("FeedData/download-task/\(task.id)/feedDownloadManager chunkSet=[\(chunkSet)]")
                     feedPostMedia.chunkSet = chunkSet.data
                 }
+
+
             }
 
             self.save(managedObjectContext)

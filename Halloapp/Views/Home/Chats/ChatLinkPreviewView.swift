@@ -13,7 +13,7 @@ import Core
 
 class ChatLinkPreviewView: UIView {
 
-    private var imageLoadingCancellable: AnyCancellable?
+    private var cancellables: Set<AnyCancellable> = []
     private var media: CommonMedia?
     private var chatLinkPreview: CommonLinkPreview?
 
@@ -139,6 +139,9 @@ class ChatLinkPreviewView: UIView {
     }
 
     private func configureMedia() {
+        cancellables.forEach { $0.cancel() }
+        cancellables.removeAll()
+
         guard let media = media else {
             progressView.isHidden = true
             mediaView.isHidden = true
@@ -155,22 +158,26 @@ class ChatLinkPreviewView: UIView {
         if media.type == .image {
             if let image = UIImage(contentsOfFile: fileURL.path) {
                 self.show(image: image)
-            } else if imageLoadingCancellable == nil {
+            } else {
                 showPlaceholderImage()
-                guard let chatData = MainAppContext.shared.chatData else { return }
-                imageLoadingCancellable = chatData.didGetMediaDownloadProgress.sink { [weak self] (linkPreviewId, mediaOrder, progress) in
+
+                let mediaID = media.id
+
+                FeedDownloadManager.downloadProgress.receive(on: DispatchQueue.main).sink { [weak self] (id, progress) in
                     guard let self = self else { return }
-                    guard linkPreviewId == self.chatLinkPreview?.id else { return }
-                    DispatchQueue.main.async {
-                        guard let linkPreview = chatData.chatLinkPreview(with: linkPreviewId, in: chatData.viewContext) else { return }
-                        self.progressView.setProgress(Float(progress), animated: true)
-                        if let fileURL = linkPreview.media?.first(where: { $0.order == mediaOrder })?.mediaURL {
-                            if let image = UIImage(contentsOfFile: fileURL.path) {
-                                self.show(image: image)
-                            }
-                        }
+                    guard mediaID == id else { return }
+
+                    self.progressView.setProgress(progress, animated: true)
+                }.store(in: &cancellables)
+
+                FeedDownloadManager.mediaDidBecomeAvailable.receive(on: DispatchQueue.main).sink { [weak self] (id, url) in
+                    guard let self = self else { return }
+                    guard mediaID == id else { return }
+
+                    if let image = UIImage(contentsOfFile: url.path) {
+                        self.show(image: image)
                     }
-                }
+                }.store(in: &cancellables)
             }
         }
     }
@@ -184,8 +191,5 @@ class ChatLinkPreviewView: UIView {
         progressView.isHidden = true
         mediaView.image = image
         mediaView.isHidden = false
-        // Loading cancellable is no longer needed
-        imageLoadingCancellable?.cancel()
-        imageLoadingCancellable = nil
     }
 }

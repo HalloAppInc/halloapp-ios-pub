@@ -72,6 +72,9 @@ public class FeedDownloadManager {
         }
     }
 
+    public static let downloadProgress = PassthroughSubject<(String, Float), Never>()
+    public static let mediaDidBecomeAvailable = PassthroughSubject<(String, URL), Never>()
+
     weak public var delegate: FeedDownloadManagerDelegate!
     private let mediaDirectoryURL: URL
 
@@ -137,6 +140,7 @@ public class FeedDownloadManager {
                 DDLogDebug("FeedDownloadManager/\(task.id)/download/progress [\(progress.fractionCompleted)]")
                 task.fileSize = Int(progress.totalUnitCount)
                 task.downloadProgress.send(Float(progress.fractionCompleted))
+                Self.downloadProgress.send((task.mediaData.id, Float(progress.fractionCompleted)))
             }
             .responseURL { (afDownloadResponse) in
                 task.downloadProgress.send(completion: .finished)
@@ -433,8 +437,11 @@ public class FeedDownloadManager {
         }
         task.decryptedFilePath = relativePath(from: decryptedFileURL)
 
-        self.taskFinished(task)
+        if task.error == nil {
+            Self.mediaDidBecomeAvailable.send((task.mediaData.id, decryptedFileURL))
+        }
 
+        self.taskFinished(task)
     }
 
     private func decryptChunkedMedia(for task: Task) {
@@ -554,6 +561,11 @@ public class FeedDownloadManager {
 
         decryptionSuccessful = true
         task.decryptedFilePath = relativePath(from: decryptedFileURL)
+
+        if task.error == nil {
+            Self.mediaDidBecomeAvailable.send((task.mediaData.id, decryptedFileURL))
+        }
+
         self.taskFinished(task)
     }
 

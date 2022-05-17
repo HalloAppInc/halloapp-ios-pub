@@ -560,26 +560,31 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     func explorerMedia(at indexPath: IndexPath) -> MediaExplorerMedia {
         if let controller = fetchedResultsController {
             let chatMedia = controller.object(at: indexPath)
+            let chatMediaID = chatMedia.id
             let url = chatMedia.mediaURL ?? MainAppContext.chatMediaDirectoryURL.appendingPathComponent(chatMedia.relativeFilePath ?? "", isDirectory: false)
             let image: UIImage? = chatMedia.type == .image ? UIImage(contentsOfFile: url.path) : nil
             let type: MediaExplorerMediaType = chatMedia.type == .image ? .image : .video
+
             let update = chatMediaUpdated
                 .filter { media, mediaIndexPath in
                     mediaIndexPath == indexPath && media.relativeFilePath != nil
                 }
                 .map { (media, mediaIndexPath) -> (URL?, UIImage?, CGSize) in
-                    let url = chatMedia.mediaURL ?? MainAppContext.chatMediaDirectoryURL.appendingPathComponent(chatMedia.relativeFilePath ?? "", isDirectory: false)
-                    let image: UIImage? = chatMedia.type == .image ? UIImage(contentsOfFile: url.path) : nil
+                    var image: UIImage?
+                    if let url = chatMedia.mediaURL, type == .image {
+                        image = UIImage(contentsOfFile: url.path)
+                    }
 
                     return (url, image, media.size)
                 }
                 .eraseToAnyPublisher()
-            let progress = MainAppContext.shared.chatData.didGetMediaDownloadProgress
-                .filter { id, order, progress in
-                    chatMedia.order == order && chatMedia.message?.id == id
+
+            let progress = FeedDownloadManager.downloadProgress
+                .filter { id, progress in
+                    chatMediaID == id
                 }
-                .map { _, _, progress in
-                    Float(progress)
+                .map { _, progress in
+                    progress
                 }
                 .eraseToAnyPublisher()
 

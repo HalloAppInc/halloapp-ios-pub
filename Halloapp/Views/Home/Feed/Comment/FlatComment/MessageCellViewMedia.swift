@@ -7,6 +7,7 @@
 //
 
 import CocoaLumberjackSwift
+import Combine
 import Core
 import Foundation
 import UIKit
@@ -19,21 +20,6 @@ class MessageCellViewMedia: MessageCellViewBase {
     var MediaViewSpacing: CGFloat { return 6 }
     
     // MARK: Media
-
-    private lazy var mediaCarouselView: MediaCarouselView = {
-        var configuration = MediaCarouselViewConfiguration.default
-        configuration.cornerRadius = 8
-        configuration.alwaysScaleToFitContent = false
-        let mediaCarouselView = MediaCarouselView(media: [], configuration: configuration)
-        mediaCarouselView.delegate = self
-
-        NSLayoutConstraint.activate([
-            mediaCarouselView.widthAnchor.constraint(equalToConstant: MediaViewDimention),
-            mediaCarouselView.heightAnchor.constraint(equalToConstant: MediaViewDimention),
-        ])
-
-        return mediaCarouselView
-    }()
 
     private lazy var moreImagesLabel: UILabel = {
         var label = UILabel()
@@ -60,17 +46,20 @@ class MessageCellViewMedia: MessageCellViewBase {
         let container = UIView()
         container.translatesAutoresizingMaskIntoConstraints = false
 
-        for _ in 1...4 {
-            let imageView = makeImageView()
-            let videoIndicatorView = makeVideoIndicatorView()
+        for idx in 0..<4 {
+            let imageView = PreviewImageView()
+            imageView.layer.cornerRadius = MediaViewCorner
 
             imageViews.append(imageView)
-            videoIndicatorViews.append(videoIndicatorView)
-
-            imageView.addSubview(videoIndicatorView)
             container.addSubview(imageView)
 
-            videoIndicatorView.constrain(to: imageView)
+            imageView.onTap = { [weak self] in
+                guard let self = self else { return }
+
+                if let commentID = self.feedPostComment?.id {
+                    self.commentDelegate?.messageView(imageView, forComment: commentID, didTapMediaAtIndex: idx)
+                }
+            }
         }
 
         NSLayoutConstraint.activate([
@@ -92,13 +81,15 @@ class MessageCellViewMedia: MessageCellViewBase {
         return container
     }()
 
-    private var imageViews: [UIImageView] = []
+    private var imageViews: [PreviewImageView] = []
     private var imageViewsConstraints: [NSLayoutConstraint] = []
-    private var videoIndicatorViews: [UIView] = []
+    private var cancellables: Set<AnyCancellable> = []
     
     override func prepareForReuse() {
         super.prepareForReuse()
         textLabel.attributedText = nil
+        cancellables.forEach { $0.cancel() }
+        cancellables.removeAll()
     }
 
     override init(frame: CGRect) {
@@ -111,39 +102,10 @@ class MessageCellViewMedia: MessageCellViewBase {
         setupView()
     }
 
-    private func makeImageView() -> UIImageView {
-        let imageView = UIImageView()
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.contentMode = .scaleAspectFill
-        imageView.layer.cornerRadius = MediaViewCorner
-        imageView.layer.masksToBounds = true
-        imageView.isUserInteractionEnabled = true
-
-        return imageView
-    }
-
-    private func makeVideoIndicatorView() -> UIView {
-        let imageConfig = UIImage.SymbolConfiguration(pointSize: 32)
-        let image = UIImage(systemName: "play.fill", withConfiguration: imageConfig)?
-            .withTintColor(.white, renderingMode: .alwaysOriginal)
-        let indicatorView = UIImageView(image: image)
-        indicatorView.translatesAutoresizingMaskIntoConstraints = false
-        indicatorView.contentMode = .center
-        indicatorView.isUserInteractionEnabled = false
-
-        indicatorView.layer.shadowColor = UIColor.black.cgColor
-        indicatorView.layer.shadowOffset = CGSize(width: 0, height: 1)
-        indicatorView.layer.shadowOpacity = 0.3
-        indicatorView.layer.shadowRadius = 4
-
-        return indicatorView
-    }
-
     private func setupView() {
         backgroundColor = UIColor.feedBackground
         contentView.preservesSuperviewLayoutMargins = false
         nameContentTimeRow.addArrangedSubview(nameRow)
-        nameContentTimeRow.addArrangedSubview(mediaCarouselView)
         nameContentTimeRow.addArrangedSubview(imagesContainerView)
         nameContentTimeRow.addArrangedSubview(textRow)
         nameContentTimeRow.addArrangedSubview(timeRow)
@@ -168,23 +130,18 @@ class MessageCellViewMedia: MessageCellViewBase {
     override func configureWith(comment: FeedPostComment, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
         super.configureWith(comment: comment, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
         configureText(comment: comment)
-        configureMedia(comment: comment)
-        super.configureCell()
-    }
- 
-    private func configureMedia(comment: FeedPostComment) {
-        imagesContainerView.isHidden = true
 
-        guard let commentMedia = comment.media, commentMedia.count > 0 else {
-            return
+        if let media = comment.media?.sorted(by: { $0.order < $1.order }), media.count > 0 {
+            MainAppContext.shared.feedData.downloadMedia(in: [comment])
+            // required so that fullscreen open works
+            // TODO(stefan): remove it once fullscreen works only with CommonMedia
+            MainAppContext.shared.feedData.loadImages(commentID: comment.id)
+            configure(media: media)
+        } else {
+            DDLogError("MessageCellViewMedia/configure/error missing media for comment " + comment.id)
         }
-        guard let media = MainAppContext.shared.feedData.media(commentID: comment.id) else {
-            return
-        }
-        // Download any pending media, comes in handy for media coming in while user is viewing comments
-        MainAppContext.shared.feedData.downloadMedia(in: [comment])
-        MainAppContext.shared.feedData.loadImages(commentID: comment.id)
-        mediaCarouselView.configureMediaCarousel(media: media)
+
+        configureCell()
     }
 
     override func configureWith(message: ChatMessage) {
@@ -192,30 +149,27 @@ class MessageCellViewMedia: MessageCellViewBase {
         configureText(chatMessage: message)
 
         if let media = message.media?.sorted(by: { $0.order < $1.order }), media.count > 0 {
+            MainAppContext.shared.chatData.downloadMedia(in: message)
             configure(media: media)
         } else {
             DDLogError("MessageCellViewMedia/configure/error missing media for message " + message.id)
         }
 
-        super.configureCell()
+        configureCell()
+
+        // hide empty space above media on incomming messages
         nameRow.isHidden = true
     }
 
     private func configure(media: [CommonMedia]) {
-        mediaCarouselView.isHidden = true
-
         configureMediaLayout(for: media)
         load(media: media)
-
-        for (i, item) in media[0..<min(imageViews.count, media.count)].enumerated() {
-            videoIndicatorViews[i].isHidden = item.type != .video
-        }
 
         if media.count > imageViews.count {
             moreImagesView.isHidden = false
             moreImagesLabel.text = "+\(media.count - imageViews.count)"
         } else {
-            moreImagesView.isHidden = false
+            moreImagesView.isHidden = true
         }
     }
 
@@ -268,48 +222,179 @@ class MessageCellViewMedia: MessageCellViewBase {
     }
 
     private func load(media: [CommonMedia]) {
-        let id = chatMessage?.id
         let items = media[0..<min(imageViews.count, media.count)]
 
-        MessageCellViewMedia.mediaLoadingQueue.async { [weak self] in
+        for (idx, item) in items.enumerated() {
+            let imageView = imageViews[idx]
+
+            if let url = item.mediaURL {
+                display(url: url, type: item.type, in: imageView)
+            } else {
+                imageView.image = nil
+                imageView.isProgressHidden = false
+            }
+        }
+
+        listenForDownloadProgress(media: media)
+    }
+
+    private func listenForDownloadProgress(media: [CommonMedia]) {
+        var items: [String: (idx: Int, type: CommonMediaType)] = [:]
+        for (i, item) in media.enumerated() {
+            items[item.id] = (idx: i, type: item.type)
+        }
+
+        FeedDownloadManager.downloadProgress.receive(on: DispatchQueue.main).sink { [weak self] (id, progress) in
             guard let self = self else { return }
-            guard id == self.chatMessage?.id else { return }
+            guard let item = items[id] else { return }
+            guard self.imageViews.count > item.idx else { return }
 
-            for (i, item) in items.enumerated() {
-                guard let url = item.mediaURL else { continue }
+            self.imageViews[item.idx].progress = progress
+        }.store(in: &cancellables)
 
-                let image: UIImage?
-                switch item.type {
-                case .image:
-                    image = UIImage(contentsOfFile: url.path)
-                case .video:
-                    image = VideoUtils.videoPreviewImage(url: url)
-                case .audio:
-                    continue // this type is handled by another cell
-                }
+        FeedDownloadManager.mediaDidBecomeAvailable.receive(on: DispatchQueue.main).sink { [weak self] (id, url) in
+            guard let self = self else { return }
+            guard let item = items[id] else { return }
+            guard self.imageViews.count > item.idx else { return }
 
-                DispatchQueue.main.async {
-                    self.imageViews[i].image = image
-                }
+            self.display(url: url, type: item.type, in: self.imageViews[item.idx])
+        }.store(in: &cancellables)
+    }
+
+    private func display(url: URL, type: CommonMediaType, in imageView: PreviewImageView) {
+        let id: String? = chatMessage?.id ?? feedPostComment?.id
+
+        MessageCellViewMedia.mediaLoadingQueue.async {
+            let image: UIImage?
+            switch type {
+            case .image:
+                image = UIImage(contentsOfFile: url.path)
+            case .video:
+                image = VideoUtils.videoPreviewImage(url: url)
+            case .audio:
+                return // this type is handled by another cell
+            }
+
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                guard self.chatMessage?.id == id || self.feedPostComment?.id == id else { return }
+
+                imageView.isVideo = type == .video
+                imageView.isProgressHidden = true
+                imageView.image = image
             }
         }
     }
 }
 
-extension MessageCellViewMedia: MediaCarouselViewDelegate {
+fileprivate class PreviewImageView: UIImageView {
 
-    func mediaCarouselView(_ view: MediaCarouselView, indexChanged newIndex: Int) {
-    }
-
-    func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
-        if let commentID = feedPostComment?.id {
-            commentDelegate?.messageView(view, forComment: commentID, didTapMediaAtIndex: index)
+    var isVideo = false {
+        didSet {
+            videoIndicatorView.isHidden = !isVideo
         }
     }
 
-    func mediaCarouselView(_ view: MediaCarouselView, didDoubleTapMediaAtIndex index: Int) {
+    var progress: Float {
+        set {
+            progressView.setProgress(newValue, animated: true)
+        }
+        get {
+            progressView.progress
+        }
     }
 
-    func mediaCarouselView(_ view: MediaCarouselView, didZoomMediaAtIndex index: Int, withScale scale: CGFloat) {
+    var isProgressHidden = true {
+        didSet {
+            placeholderView.isHidden = isProgressHidden
+            progressView.isHidden = isProgressHidden
+        }
+    }
+
+    var onTap: (() -> Void)?
+
+    private lazy var videoIndicatorView: UIView = {
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: 32)
+        let image = UIImage(systemName: "play.fill", withConfiguration: imageConfig)?
+            .withTintColor(.white, renderingMode: .alwaysOriginal)
+
+        let indicatorView = UIImageView(image: image)
+        indicatorView.translatesAutoresizingMaskIntoConstraints = false
+        indicatorView.contentMode = .center
+        indicatorView.isUserInteractionEnabled = false
+
+        indicatorView.layer.shadowColor = UIColor.black.cgColor
+        indicatorView.layer.shadowOffset = CGSize(width: 0, height: 1)
+        indicatorView.layer.shadowOpacity = 0.3
+        indicatorView.layer.shadowRadius = 4
+        indicatorView.layer.shadowPath = UIBezierPath(ovalIn: indicatorView.bounds).cgPath
+
+        indicatorView.isHidden = true
+
+        return indicatorView
+    }()
+
+    private lazy var placeholderView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.image = UIImage(systemName: "photo")
+        imageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .largeTitle)
+        imageView.contentMode = .center
+        imageView.tintColor = .systemGray3
+
+        imageView.isHidden = true
+
+        return imageView
+    }()
+
+    private lazy var progressView: CircularProgressView = {
+        let progressView = CircularProgressView()
+        progressView.translatesAutoresizingMaskIntoConstraints = false
+        progressView.barWidth = 2
+        progressView.trackTintColor = .systemGray3
+
+        progressView.isHidden = true
+
+        return progressView
+    }()
+
+    init() {
+        super.init(frame: .zero)
+        setup()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setup()
+    }
+
+    private func setup() {
+        self.translatesAutoresizingMaskIntoConstraints = false
+        self.contentMode = .scaleAspectFill
+        self.layer.masksToBounds = true
+        self.isUserInteractionEnabled = true
+
+        addSubview(videoIndicatorView)
+        addSubview(placeholderView)
+        addSubview(progressView)
+
+        NSLayoutConstraint.activate([
+            videoIndicatorView.centerXAnchor.constraint(equalTo: centerXAnchor),
+            videoIndicatorView.centerYAnchor.constraint(equalTo: centerYAnchor),
+            placeholderView.centerXAnchor.constraint(equalTo: centerXAnchor),
+            placeholderView.centerYAnchor.constraint(equalTo: centerYAnchor),
+            progressView.centerXAnchor.constraint(equalTo: centerXAnchor),
+            progressView.centerYAnchor.constraint(equalTo: centerYAnchor),
+            progressView.widthAnchor.constraint(equalToConstant: 72),
+            progressView.heightAnchor.constraint(equalToConstant: 72),
+        ])
+
+        addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onTapAction)))
+    }
+
+    @objc private func onTapAction() {
+        if let onTap = onTap {
+            onTap()
+        }
     }
 }

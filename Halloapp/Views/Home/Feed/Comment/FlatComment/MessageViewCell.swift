@@ -12,7 +12,7 @@ import CoreCommon
 import UIKit
 
 protocol MessageViewCommentDelegate: AnyObject {
-    func messageView(_ view: MediaCarouselView, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int)
+    func messageView(_ view: MediaExplorerTransitionDelegate, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int)
     func messageView(_ messageViewCell: MessageCellViewBase, replyTo feedPostCommentID: FeedPostCommentID)
     func messageView(_ messageViewCell: MessageCellViewBase, didTapUserId userId: UserID)
     func messageView(_ messageViewCell: MessageCellViewBase, jumpTo feedPostCommentID: FeedPostCommentID)
@@ -135,23 +135,5 @@ class MessageViewCell: MessageCellViewBase {
 
     private func setNameLabel(for userID: String) {
         nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
-    }
-}
-
-extension MessageViewCell: MediaCarouselViewDelegate {
-
-    func mediaCarouselView(_ view: MediaCarouselView, indexChanged newIndex: Int) {
-    }
-
-    func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
-        if let commentID = feedPostComment?.id {
-            commentDelegate?.messageView(view, forComment: commentID, didTapMediaAtIndex: index)
-        }
-    }
-
-    func mediaCarouselView(_ view: MediaCarouselView, didDoubleTapMediaAtIndex index: Int) {
-    }
-
-    func mediaCarouselView(_ view: MediaCarouselView, didZoomMediaAtIndex index: Int, withScale scale: CGFloat) {
     }
 }

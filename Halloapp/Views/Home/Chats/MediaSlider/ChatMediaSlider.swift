@@ -22,7 +22,7 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate, MediaExplorerTransitionDele
     private var msgID: String?
     private var imageViewDict: [Int: UIImageView] = [:]
     private var imageViewButtonDict: [Int: UIButton] = [:]
-    private var downloadProgressIndicatorDict: [Int: CircularProgressView] = [:]
+    private var downloadProgressIndicatorDict: [String: CircularProgressView] = [:]
     
     private var cancellableSet: Set<AnyCancellable> = []
     
@@ -91,7 +91,7 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate, MediaExplorerTransitionDele
                 if imageView.image == nil {
                     shouldListenForProgress = true
                     let progressView = createProgressView()
-                    downloadProgressIndicatorDict[media.order] = progressView
+                    downloadProgressIndicatorDict[media.id] = progressView
                     
                     scrollView.addSubview(progressView)
                     progressView.centerXAnchor.constraint(equalTo: imageView.centerXAnchor).isActive = true
@@ -137,19 +137,15 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate, MediaExplorerTransitionDele
     }
     
     func listenForProgress() {
-        cancellableSet.insert(
-            MainAppContext.shared.chatData.didGetMediaDownloadProgress.sink { [weak self] (msgID, mediaOrder, progress) in
-                guard let self = self else { return }
-                guard self.msgID == msgID else { return }
-                guard let progressIndicator = self.downloadProgressIndicatorDict[mediaOrder] else { return }
-                DispatchQueue.main.async {
-                    progressIndicator.setProgress(Float(progress), animated: true)
-                    if progress >= 1 {
-                        progressIndicator.isHidden = true
-                    }
-                }
+        FeedDownloadManager.downloadProgress.receive(on: DispatchQueue.main).sink { [weak self] (id, progress) in
+            guard let self = self else { return }
+            guard let progressIndicator = self.downloadProgressIndicatorDict[id] else { return }
+
+            progressIndicator.setProgress(progress, animated: true)
+            if progress >= 1 {
+                progressIndicator.isHidden = true
             }
-        )
+        }.store(in: &cancellableSet)
     }
     
     func updateMedia(_ sliderMedia: SliderMedia) {
@@ -281,11 +277,13 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate, MediaExplorerTransitionDele
 }
 
 struct SliderMedia {
+    let id: String
     let image: UIImage?
     let type: CommonMediaType
     let order: Int
 
-    init(image: UIImage?, type: CommonMediaType, order: Int) {
+    init(id: String, image: UIImage?, type: CommonMediaType, order: Int) {
+        self.id = id
         self.image = image
         self.type = type
         self.order = order

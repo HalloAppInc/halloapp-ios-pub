@@ -381,6 +381,9 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         view.backgroundColor = UIColor.primaryBg
         view.addSubview(collectionView)
         collectionView.constrain(to: view)
+
+        updatePost()
+
         if let feedPost = feedPost {
             setupUI(with: feedPost)
         } else {
@@ -446,6 +449,8 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         // Setup the diffable data source so it can be used for first fetch of data
         collectionView.dataSource = dataSource
         initCommentsFetchedResultsController()
+        updateComments()
+
         // Initiate download of media that were not yet downloaded. TODO Ask if this is needed
         if let comments = fetchedResultsController?.fetchedObjects {
             MainAppContext.shared.feedData.downloadMedia(in: comments)
@@ -519,53 +524,61 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         }
     }
 
-    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChangeContentWith snapshot: NSDiffableDataSourceSnapshotReference) {
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         switch controller {
         case fetchedResultsController:
-            var snapshot = CommentSnapshot()
-            if let sections = fetchedResultsController?.sections {
-                snapshot.appendSections(sections.map { $0.name } )
-                for section in sections {
-                    if let comments = section.objects as? [FeedPostComment] {
-                        comments.forEach { comment in
-                            let messageRow = messagerow(for: comment)
-                            snapshot.appendItems([messageRow], toSection: section.name)
-                        }
-                    }
-                }
-                // Insert the unread messages header. We insert this header only on first launch to avoid
-                // the header jumping around as new comments come in while the user is viewing the comments - @Dini
-                if let unreadCount = self.feedPost?.unreadCount, unreadCount > 0, isFirstLaunch {
-                    let unreadHeaderIndex = snapshot.numberOfItems - Int(unreadCount)
-                    if unreadHeaderIndex > 0 && unreadHeaderIndex < (snapshot.numberOfItems) {
-                        let item = snapshot.itemIdentifiers[unreadHeaderIndex]
-                        snapshot.insertItems([MessageRow.unreadCountHeader(Int32(unreadCount))], beforeItem: item)
-                    }
-                }
-            }
-            dataSource.apply(snapshot, animatingDifferences: true) { [weak self] in
-                guard let self = self else { return }
-                DispatchQueue.main.async {
-                    self.updateScrollingWhenDataChanges()
-                    self.isFirstLaunch = false
-                }
-            }
+            updateComments()
         case feedPostFetchedResultsController:
-            guard let post = feedPostFetchedResultsController?.fetchedObjects?.first(where: {$0.id == feedPostId }) else { return }
-            if feedPost == nil {
-                feedPost = post
-            }
-            switch post.status {
-            case .retracted:
-                if let presentedVC = self.presentedViewController {
-                    presentedVC.dismiss(animated: false) {
-                        self.navigationController?.popViewController(animated: true)
+            updatePost()
+        default:
+            break
+        }
+    }
+
+    func updateComments() {
+        var snapshot = CommentSnapshot()
+        if let sections = fetchedResultsController?.sections {
+            snapshot.appendSections(sections.map { $0.name } )
+            for section in sections {
+                if let comments = section.objects as? [FeedPostComment] {
+                    comments.forEach { comment in
+                        let messageRow = messagerow(for: comment)
+                        snapshot.appendItems([messageRow], toSection: section.name)
                     }
-                } else {
+                }
+            }
+            // Insert the unread messages header. We insert this header only on first launch to avoid
+            // the header jumping around as new comments come in while the user is viewing the comments - @Dini
+            if let unreadCount = self.feedPost?.unreadCount, unreadCount > 0, isFirstLaunch {
+                let unreadHeaderIndex = snapshot.numberOfItems - Int(unreadCount)
+                if unreadHeaderIndex > 0 && unreadHeaderIndex < (snapshot.numberOfItems) {
+                    let item = snapshot.itemIdentifiers[unreadHeaderIndex]
+                    snapshot.insertItems([MessageRow.unreadCountHeader(Int32(unreadCount))], beforeItem: item)
+                }
+            }
+        }
+        dataSource.apply(snapshot, animatingDifferences: true) { [weak self] in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                self.updateScrollingWhenDataChanges()
+                self.isFirstLaunch = false
+            }
+        }
+    }
+
+    func updatePost() {
+        guard let post = feedPostFetchedResultsController?.fetchedObjects?.first(where: {$0.id == feedPostId }) else { return }
+        if feedPost == nil {
+            feedPost = post
+        }
+        switch post.status {
+        case .retracted:
+            if let presentedVC = self.presentedViewController {
+                presentedVC.dismiss(animated: false) {
                     self.navigationController?.popViewController(animated: true)
                 }
-            default:
-                break
+            } else {
+                self.navigationController?.popViewController(animated: true)
             }
         default:
             break
@@ -963,7 +976,7 @@ extension FlatCommentsViewController: MessageCommentHeaderViewDelegate {
 }
 
 extension FlatCommentsViewController: MessageViewCommentDelegate {
-    func messageView(_ view: MediaCarouselView, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int) {
+    func messageView(_ view: MediaExplorerTransitionDelegate, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int) {
         messageInputView.textView.resignFirstResponder()
         var canSavePost = false
         if let post = MainAppContext.shared.feedData.feedPost(with: feedPostId) {

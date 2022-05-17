@@ -631,15 +631,15 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                 
                 if med.type == .image {
                     if let image = UIImage(contentsOfFile: fileURL.path) {
-                        sliderMediaArr.append(SliderMedia(image: image, type: med.type, order: Int(med.order)))
+                        sliderMediaArr.append(SliderMedia(id: med.id, image: image, type: med.type, order: Int(med.order)))
                     } else {
-                        sliderMediaArr.append(SliderMedia(image: nil, type: med.type, order: Int(med.order)))
+                        sliderMediaArr.append(SliderMedia(id: med.id, image: nil, type: med.type, order: Int(med.order)))
                     }
                 } else if med.type == .video {
                     if let image = VideoUtils.videoPreviewImage(url: fileURL, size: preferredSize) {
-                        sliderMediaArr.append(SliderMedia(image: image, type: med.type, order: Int(med.order)))
+                        sliderMediaArr.append(SliderMedia(id: med.id, image: image, type: med.type, order: Int(med.order)))
                     } else {
-                        sliderMediaArr.append(SliderMedia(image: nil, type: med.type, order: Int(med.order)))
+                        sliderMediaArr.append(SliderMedia(id: med.id, image: nil, type: med.type, order: Int(med.order)))
                     }
                 }
             }

@@ -688,16 +688,16 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                 
                 if med.type == .image {
                     if let image = UIImage(contentsOfFile: fileURL.path) {
-                        sliderMediaArr.append(SliderMedia(image: image, type: med.type, order: Int(med.order)))
+                        sliderMediaArr.append(SliderMedia(id: med.id, image: image, type: med.type, order: Int(med.order)))
                     } else {
-                        sliderMediaArr.append(SliderMedia(image: nil, type: med.type, order: Int(med.order)))
+                        sliderMediaArr.append(SliderMedia(id: med.id, image: nil, type: med.type, order: Int(med.order)))
                     }
                 } else if med.type == .video {
                     // TODO: store thumbnails cause it's too slow to generate on the fly
                     if let image = VideoUtils.videoPreviewImage(url: fileURL, size: preferredSize) {
-                        sliderMediaArr.append(SliderMedia(image: image, type: med.type, order: Int(med.order)))
+                        sliderMediaArr.append(SliderMedia(id: med.id, image: image, type: med.type, order: Int(med.order)))
                     } else {
-                        sliderMediaArr.append(SliderMedia(image: nil, type: med.type, order: Int(med.order)))
+                        sliderMediaArr.append(SliderMedia(id: med.id, image: nil, type: med.type, order: Int(med.order)))
                     }
                 }
                 
@@ -742,11 +742,11 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         switch media.type {
         case .video:
             guard let image = VideoUtils.videoPreviewImage(url: url) else { return }
-            mediaImageView.updateMedia(SliderMedia(image: image, type: .video, order: Int(media.order)))
+            mediaImageView.updateMedia(SliderMedia(id: media.id, image: image, type: .video, order: Int(media.order)))
             break
         case .image:
             guard let image = UIImage(contentsOfFile: url.path) else { return }
-            mediaImageView.updateMedia(SliderMedia(image: image, type: .image, order: Int(media.order)))
+            mediaImageView.updateMedia(SliderMedia(id: media.id, image: image, type: .image, order: Int(media.order)))
         case .audio:
             voiceNoteView.url = url
             if voiceNoteView.state == .loading, let status = media.message?.incomingStatus {

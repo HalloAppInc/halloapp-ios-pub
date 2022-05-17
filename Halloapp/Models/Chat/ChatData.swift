@@ -39,7 +39,6 @@ class ChatData: ObservableObject {
     let didGetChatStateInfo = PassthroughSubject<Void, Never>()
     
     let didGetMediaUploadProgress = PassthroughSubject<(String, Float), Never>()
-    let didGetMediaDownloadProgress = PassthroughSubject<(String, Int, Double), Never>()
     
     let didGetAGroupFeed = PassthroughSubject<GroupID, Never>()
     let didGetAChatMsg = PassthroughSubject<UserID, Never>()
@@ -1022,13 +1021,12 @@ class ChatData: ObservableObject {
                 }
                 mediaDownloadGroup.enter()
                 var isDownloadInProgress = true
-                self.cancellableSet.insert(task.downloadProgress.sink() { progress in
+                self.cancellableSet.insert(task.downloadProgress.sink { progress in
                     if isDownloadInProgress && progress == 1 {
                         totalDownloadSize += task.fileSize ?? 0
                         mediaDownloadGroup.leave()
                         isDownloadInProgress = false
                     }
-                    self.didGetMediaDownloadProgress.send((contentID, Int(order), Double(progress)))
                 })
                 downloadStarted = true
                 task.feedMediaObjectId = mediaItem.objectID
@@ -1760,23 +1758,18 @@ extension ChatData: FeedDownloadManagerDelegate {
 
             // hack: force a change so frc can pick up the change
             // TODO: murali@: check with team on this.
-            let contentID: String
             if let chatMessage = chatMediaItem.message {
                 let fromUserId = chatMessage.fromUserId
                 chatMessage.fromUserId = fromUserId
-                contentID = chatMessage.id
             } else if let linkPreview = chatMediaItem.linkPreview,
                       let chatMessage = linkPreview.message {
                 let fromUserId = chatMessage.fromUserId
                 chatMessage.fromUserId = fromUserId
-                contentID = linkPreview.id
             } else {
                 return
             }
 
             self.save(managedObjectContext)
-            // Send final media progress.
-            self.didGetMediaDownloadProgress.send((contentID, Int(chatMediaItem.order), 1.0))
 
             // Update upload data to avoid duplicate uploads
             if let fileURL = chatMediaItem.mediaURL, let downloadURL = chatMediaItem.url {
