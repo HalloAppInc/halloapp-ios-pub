@@ -4156,7 +4156,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     
     private func deletePostComments(for posts: [FeedPostID], in managedObjectContext: NSManagedObjectContext) {
         posts.compactMap { id in
-            MainAppContext.shared.feedData.feedPost(with: id)
+            MainAppContext.shared.feedData.feedPost(with: id, in: managedObjectContext)
         }.flatMap { post in
             post.comments ?? []
         }.forEach({ comment in
