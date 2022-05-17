@@ -941,7 +941,7 @@ extension ContentInputView: AudioRecorderControlViewDelegate {
         }
     }
     
-    private func resetAfterPosting() {
+    public func resetAfterPosting() {
         textView.resetMentions()
         textView.resetLinkDetection()
         textView.text = ""

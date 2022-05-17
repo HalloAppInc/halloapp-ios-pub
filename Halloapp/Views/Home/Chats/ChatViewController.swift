@@ -1182,7 +1182,8 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         chatReplyMessageID = nil
         chatReplyMessageSenderID = nil
         chatReplyMessageMediaIndex = 0
-        
+
+        contentInputView.resetAfterPosting()
         removeChatDraft()
 
         if !firstActionHappened {
