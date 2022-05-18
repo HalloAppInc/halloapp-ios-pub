@@ -878,6 +878,18 @@ extension FeedCollectionViewController {
         cell.momentView.action = { [weak self] in
             self?.showSecretPostView(for: feedPost)
         }
+
+        cell.showUserAction = { [weak self, feedPost] in
+            self?.showUserFeed(for: feedPost.userId)
+        }
+
+        cell.showMoreAction = { [weak self, feedPost] in
+            self?.showMoreMenu(for: feedPost)
+        }
+
+        cell.showSeenByAction = { [weak self, feedPost] in
+            self?.showSeenByView(for: feedPost)
+        }
     }
 
     func configure(cell: FeedPostCollectionViewCell, withActiveFeedPost feedPost: FeedPost) {
