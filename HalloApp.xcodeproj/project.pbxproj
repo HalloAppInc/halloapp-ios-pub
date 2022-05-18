@@ -79,6 +79,7 @@
 		32E6970727B4442B00599CC7 /* MessageHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32E6970627B4442B00599CC7 /* MessageHeaderView.swift */; };
 		32ECB6DB27725E2C004DABBA /* MessageCommentHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32ECB6DA27725E2C004DABBA /* MessageCommentHeaderView.swift */; };
 		32ECB6E9277515DD004DABBA /* QuotedMessageCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32ECB6E8277515DD004DABBA /* QuotedMessageCellView.swift */; };
+		32F7C4FA2834CB6C00AA2ECB /* MessageCommentViewHeaderPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32F7C4F92834CB6C00AA2ECB /* MessageCommentViewHeaderPreview.swift */; };
 		33816C0D2664E5B500E05E21 /* GroupsInCommonViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33816C0C2664E5B500E05E21 /* GroupsInCommonViewController.swift */; };
 		5B493BCC27FF316500FDEA0D /* ChunkedMediaResourceLoaderDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B493BCB27FF316400FDEA0D /* ChunkedMediaResourceLoaderDelegate.swift */; };
 		5B649728276B91BA000031C2 /* Feed6ToFeed7.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 5B649727276B91B9000031C2 /* Feed6ToFeed7.xcmappingmodel */; };
@@ -690,6 +691,7 @@
 		32E6970627B4442B00599CC7 /* MessageHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageHeaderView.swift; sourceTree = "<group>"; };
 		32ECB6DA27725E2C004DABBA /* MessageCommentHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageCommentHeaderView.swift; sourceTree = "<group>"; };
 		32ECB6E8277515DD004DABBA /* QuotedMessageCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotedMessageCellView.swift; sourceTree = "<group>"; };
+		32F7C4F92834CB6C00AA2ECB /* MessageCommentViewHeaderPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageCommentViewHeaderPreview.swift; sourceTree = "<group>"; };
 		33816C0C2664E5B500E05E21 /* GroupsInCommonViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupsInCommonViewController.swift; sourceTree = "<group>"; };
 		5B493BCB27FF316400FDEA0D /* ChunkedMediaResourceLoaderDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChunkedMediaResourceLoaderDelegate.swift; sourceTree = "<group>"; };
 		5B649727276B91B9000031C2 /* Feed6ToFeed7.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = Feed6ToFeed7.xcmappingmodel; sourceTree = "<group>"; };
@@ -1323,6 +1325,7 @@
 				323D787827D7D71300C29FA1 /* MessageCellViewAudio.swift */,
 				323D787C27D7E25000C29FA1 /* MessageCellViewLinkPreview.swift */,
 				3283296D27DC0BA7003AD019 /* MessageCellViewQuoted.swift */,
+				32F7C4F92834CB6C00AA2ECB /* MessageCommentViewHeaderPreview.swift */,
 				328447BF282D8B6300F76AB5 /* MessageCellViewEvent.swift */,
 			);
 			path = FlatComment;
@@ -3048,6 +3051,7 @@
 				681E0DAA24C8E0190073A03E /* NewPostViewController.swift in Sources */,
 				EA35857A2450BE3300E6E8AB /* ChatInputView.swift in Sources */,
 				EA0B9917249C1FFB00B05094 /* Character.swift in Sources */,
+				32F7C4FA2834CB6C00AA2ECB /* MessageCommentViewHeaderPreview.swift in Sources */,
 				764AB42424A71D6900D4E354 /* PrivacyListView.swift in Sources */,
 				76A92449244EBCB600794859 /* ShapeView.swift in Sources */,
 				32C90672278CC9C500E292EE /* MessageTimeHeaderView.swift in Sources */,

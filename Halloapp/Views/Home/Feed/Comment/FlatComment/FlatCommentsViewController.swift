@@ -362,9 +362,18 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         fatalError("init(coder:) has not been implemented")
     }
 
+    private var commentsCenterYConstraint: NSLayoutConstraint?
+    private var headerCenterYConstraint: NSLayoutConstraint?
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationItem.title = Localizations.titleComments
+        navigationItem.titleView = commentsTitleView
+        commentsCenterYConstraint = commentsTitleLabel.centerYAnchor.constraint(equalTo: commentsTitleView.centerYAnchor)
+        headerCenterYConstraint = navigationHeaderView.centerYAnchor.constraint(equalTo: commentsTitleView.centerYAnchor)
+        let titleWidthConstraint = commentsTitleView.widthAnchor.constraint(equalToConstant: (view.frame.width))
+        titleWidthConstraint.priority = .defaultHigh // Lower priority to allow space for trailing button if necessary
+        titleWidthConstraint.isActive = true
+        commentsCenterYConstraint?.isActive = true
 
         // If we are the only view controller in our navigation stack, add a dismiss button
         if navigationController?.viewControllers.count == 1, navigationController?.topViewController === self {
@@ -438,6 +447,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
             postLoadingCancellable?.cancel()
             postLoadingCancellable = nil
         }
+        navigationHeaderView.configure(withPost: feedPost)
         messageInputView.isEnabled = true
         // Setup the diffable data source so it can be used for first fetch of data
         collectionView.dataSource = dataSource
@@ -803,8 +813,57 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         return dataSource.indexPath(for: messagerow(for: comment))
     }
 
+    let navigationHeaderView: MessageCommentViewHeaderPreview = {
+        let navigationHeaderView = MessageCommentViewHeaderPreview()
+        navigationHeaderView.translatesAutoresizingMaskIntoConstraints = false
+        return navigationHeaderView
+    }()
+
+    let commentsTitleLabel: UILabel = {
+        let commentsTitleLabel = UILabel()
+        commentsTitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        commentsTitleLabel.text = Localizations.titleComments
+        commentsTitleLabel.font = UIFont.gothamFont(ofFixedSize: 15, weight: .medium)
+        commentsTitleLabel.textColor = UIColor.label.withAlphaComponent(0.9)
+        commentsTitleLabel.numberOfLines = 1
+        commentsTitleLabel.textAlignment = .center
+        return commentsTitleLabel
+    }()
+
+    private lazy var commentsTitleView: UIStackView = {
+        let vStack = UIStackView(arrangedSubviews: [commentsTitleLabel, navigationHeaderView])
+        vStack.translatesAutoresizingMaskIntoConstraints = false
+        vStack.axis = .vertical
+        commentsTitleLabel.leadingAnchor.constraint(equalTo: vStack.leadingAnchor, constant: -50).isActive = true
+        return vStack
+    }()
+
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         updateJumpButtonVisibility()
+        let x = -(scrollView.adjustedContentInset.top)
+        // height of the header is approx 20.
+        let headerHeight = 20.0
+        
+        if scrollView.contentOffset.y < x + headerHeight  {
+            //  comment title scroll down and fade in
+            // headerView scroll out and fade out
+            UIView.animate(withDuration: 0.5, animations: {
+                self.commentsCenterYConstraint?.isActive = true
+                self.headerCenterYConstraint?.isActive = false
+                self.commentsTitleLabel.alpha = 1
+            })
+            
+            self.navigationHeaderView.alpha = 0
+        } else {
+            //  comment title scroll up and fade out
+            // headerView scroll in and fade in
+            UIView.animate(withDuration: 0.5, animations: {
+                self.commentsCenterYConstraint?.isActive = false
+                self.headerCenterYConstraint?.isActive = true
+                self.commentsTitleLabel.alpha = 0
+                self.navigationHeaderView.alpha = 1
+            })
+        }
     }
 
     // MARK: Input view
