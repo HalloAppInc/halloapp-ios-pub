@@ -332,13 +332,10 @@ final class NotificationProtoService: ProtoServiceCore {
             DDLogError("NotificationExtension/processPostDataAndInvokeHandler/failed to get postData, contentId: \(metadata.contentId)")
             return
         }
-        self.coreFeedData.savePostData(postData: postData, in: metadata.groupId) { result in
+        self.coreFeedData.savePostData(postData: postData, in: metadata.groupId, hasBeenProcessed: false) { result in
             switch result {
             case .success:
                 DDLogInfo("NotificationExtension/processPostData/success saving post [\(postData.id)]")
-                var nsePosts = AppContext.shared.userDefaults.value(forKey: AppContext.nsePostsKey) as? [FeedPostID] ?? []
-                nsePosts.append(postData.id)
-                AppContext.shared.userDefaults.set(Array(Set(nsePosts)), forKey: AppContext.nsePostsKey)
                 ack()
                 // Download media and then present the notification.
                 self.mainDataStore.performSeriallyOnBackgroundContext { context in
@@ -373,13 +370,10 @@ final class NotificationProtoService: ProtoServiceCore {
             DDLogError("NotificationExtension/processCommentData/failed to get commentData, contentId: \(metadata.contentId)")
             return
         }
-        self.coreFeedData.saveCommentData(commentData: commentData, in: metadata.groupId) { result in
+        self.coreFeedData.saveCommentData(commentData: commentData, in: metadata.groupId, hasBeenProcessed: false) { result in
             switch result {
             case .success:
                 DDLogInfo("NotificationExtension/processCommentData/success saving comment [\(commentData.id)]")
-                var nseComments = AppContext.shared.userDefaults.value(forKey: AppContext.nseCommentsKey) as? [FeedPostCommentID] ?? []
-                nseComments.append(commentData.id)
-                AppContext.shared.userDefaults.set(Array(Set(nseComments)), forKey: AppContext.nseCommentsKey)
                 ack()
                 self.presentCommentNotification(for: metadata, using: commentData)
             case .failure(let error):
@@ -463,11 +457,9 @@ final class NotificationProtoService: ProtoServiceCore {
                                                   id: messageId,
                                                   retryCount: metadata.retryCount,
                                                   rerequestCount: metadata.rerequestCount)
-                self.coreChatData.saveChatMessage(chatMessage: .decrypted(chatMessage)) { result in
+                self.coreChatData.saveChatMessage(chatMessage: .decrypted(chatMessage), hasBeenProcessed: false) { result in
                     self.incrementApplicationIconBadgeNumber()
-                    var nseChatMsgs = AppContext.shared.userDefaults.value(forKey: AppContext.nseMessagesKey) as? [ChatMessageID] ?? []
-                    nseChatMsgs.append(messageId)
-                    AppContext.shared.userDefaults.set(Array(Set(nseChatMsgs)), forKey: AppContext.nseMessagesKey)
+                    DDLogInfo("NotificationExtension/decryptChat/success/save message \(messageId)/result: \(result)")
                 }
             } else {
                 DDLogError("NotificationExtension/decryptChat/failed decryption, error: \(String(describing: decryptionFailure))")
@@ -475,10 +467,8 @@ final class NotificationProtoService: ProtoServiceCore {
                                                      from: fromUserID,
                                                      to: AppContext.shared.userData.userId,
                                                      timestamp: Date(timeIntervalSince1970: TimeInterval(serverChatStanza.timestamp)))
-                self.coreChatData.saveChatMessage(chatMessage: .notDecrypted(tombstone)) { result in
-                    var nseChatMsgs = AppContext.shared.userDefaults.value(forKey: AppContext.nseMessagesKey) as? [ChatMessageID] ?? []
-                    nseChatMsgs.append(messageId)
-                    AppContext.shared.userDefaults.set(Array(Set(nseChatMsgs)), forKey: AppContext.nseMessagesKey)
+                self.coreChatData.saveChatMessage(chatMessage: .notDecrypted(tombstone), hasBeenProcessed: false) { result in
+                    DDLogInfo("NotificationExtension/decryptChat/failed/save tombstone \(messageId)/result: \(result)")
                 }
             }
 

@@ -240,6 +240,7 @@ class DataStore: ShareExtensionDataStore {
             feedPost.timestamp = Date()
             feedPost.status = .sending
             feedPost.lastUpdated = Date()
+            feedPost.hasBeenProcessed = false
 
             // Add mentions
             feedPost.mentions = text.mentionsArray.map {
@@ -368,11 +369,6 @@ class DataStore: ShareExtensionDataStore {
                 feedPost.timestamp = timestamp
                 self.save(managedObjectContext)
 
-                // Update messageIds to be re-processed by the main-app.
-                var sharePostIds = AppContext.shared.userDefaults.value(forKey: AppContext.shareExtensionPostsKey) as? [FeedPostID] ?? []
-                sharePostIds.append(feedPost.id)
-                AppContext.shared.userDefaults.set(Array(Set(sharePostIds)), forKey: AppContext.shareExtensionPostsKey)
-
                 completion(.success(feedPost.id))
 
             case .failure(let error):
@@ -408,6 +404,7 @@ class DataStore: ShareExtensionDataStore {
             let serialID = AppContext.shared.getchatMsgSerialId()
             DDLogDebug("ChatData/createChatMsg/\(messageId)/serialId [\(serialID)]")
             chatMessage.serialID = serialID
+            chatMessage.hasBeenProcessed = false
 
             var lastMsgMediaType: CommonThread.LastMediaType = .none
             media.forEach { (mediaItem) in
@@ -504,11 +501,6 @@ class DataStore: ShareExtensionDataStore {
                         self.save(managedObjectContext)
                     }
                 }
-
-                // Update messageIds to be re-processed by the main-app.
-                var shareChatMsgIds = AppContext.shared.userDefaults.value(forKey: AppContext.shareExtensionMessagesKey) as? [ChatMessageID] ?? []
-                shareChatMsgIds.append(xmppChatMessage.id)
-                AppContext.shared.userDefaults.set(Array(Set(shareChatMsgIds)), forKey: AppContext.shareExtensionMessagesKey)
 
                 // ShareExtensions can die quickly. Give it some time to send enqueued posts or messages.
                 DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(500)) {

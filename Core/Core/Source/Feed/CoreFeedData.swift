@@ -48,7 +48,7 @@ public class CoreFeedData {
         }
     }
 
-    public func savePostData(postData: PostData, in groupID: GroupID?, completion: @escaping ((Result<Void, Error>) -> Void)) {
+    public func savePostData(postData: PostData, in groupID: GroupID?, hasBeenProcessed: Bool, completion: @escaping ((Result<Void, Error>) -> Void)) {
         mainDataStore.saveSeriallyOnBackgroundContext({ context in
 
             if let existingPost = self.feedPost(with: postData.id, in: context) {
@@ -89,6 +89,7 @@ public class CoreFeedData {
             feedPost.timestamp = postData.timestamp
             feedPost.isMoment = postData.isMoment
             feedPost.lastUpdated = Date()
+            feedPost.hasBeenProcessed = hasBeenProcessed
 
             // Status
             switch postData.content {
@@ -174,7 +175,7 @@ public class CoreFeedData {
         }, completion: completion)
     }
 
-    public func saveCommentData(commentData: CommentData, in groupID: GroupID?, completion: @escaping ((Result<Void, Error>) -> Void)) {
+    public func saveCommentData(commentData: CommentData, in groupID: GroupID?, hasBeenProcessed: Bool, completion: @escaping ((Result<Void, Error>) -> Void)) {
         mainDataStore.saveSeriallyOnBackgroundContext({ context in
 
             if let existingComment = self.feedComment(with: commentData.id, in: context) {
@@ -262,6 +263,7 @@ public class CoreFeedData {
             feedComment.post = feedPost
             feedComment.timestamp = commentData.timestamp
             feedComment.rawText = commentData.text
+            feedComment.hasBeenProcessed = hasBeenProcessed
 
             // Status
             switch commentData.content {

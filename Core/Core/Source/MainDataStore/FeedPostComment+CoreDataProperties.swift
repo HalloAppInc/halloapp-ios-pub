@@ -45,6 +45,7 @@ public extension FeedPostComment {
     @NSManaged var linkPreviews: Set<CommonLinkPreview>?
     @NSManaged var rawData: Data?
     @NSManaged var contentResendInfo: Set<ContentResendInfo>?
+    @NSManaged var hasBeenProcessed: Bool
     @NSManaged private var statusValue: Int16
     var status: Status {
         get {

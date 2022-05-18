@@ -75,6 +75,8 @@ public extension ChatMessage {
 
     @NSManaged var linkPreviews: Set<CommonLinkPreview>?
 
+    @NSManaged var hasBeenProcessed: Bool
+
     var incomingStatus: IncomingStatus {
         get {
             return IncomingStatus(rawValue: self.incomingStatusValue)!

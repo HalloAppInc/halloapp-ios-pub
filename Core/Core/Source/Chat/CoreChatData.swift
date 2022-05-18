@@ -21,16 +21,16 @@ public class CoreChatData {
         self.mainDataStore = mainDataStore
     }
 
-    public func saveChatMessage(chatMessage: IncomingChatMessage, completion: @escaping ((Result<Void, Error>) -> Void)) {
+    public func saveChatMessage(chatMessage: IncomingChatMessage, hasBeenProcessed: Bool, completion: @escaping ((Result<Void, Error>) -> Void)) {
         switch chatMessage {
         case .notDecrypted(let tombstone):
-            saveTombstone(tombstone, completion: completion)
+            saveTombstone(tombstone, hasBeenProcessed: hasBeenProcessed, completion: completion)
         case .decrypted(let chatMessageProtocol):
-            saveChatMessage(chatMessageProtocol, completion: completion)
+            saveChatMessage(chatMessageProtocol, hasBeenProcessed: hasBeenProcessed, completion: completion)
         }
     }
 
-    private func saveTombstone(_ tombstone: ChatMessageTombstone, completion: @escaping ((Result<Void, Error>) -> Void)) {
+    private func saveTombstone(_ tombstone: ChatMessageTombstone, hasBeenProcessed: Bool, completion: @escaping ((Result<Void, Error>) -> Void)) {
         mainDataStore.saveSeriallyOnBackgroundContext({ context in
             guard self.chatMessage(with: tombstone.id, in: context) == nil else {
                 DDLogInfo("CoreChatData/saveTombstone/skipping [already exists]")
@@ -48,10 +48,11 @@ public class CoreChatData {
             chatMessage.serialID = serialID
             chatMessage.incomingStatus = .rerequesting
             chatMessage.outgoingStatus = .none
+            chatMessage.hasBeenProcessed = hasBeenProcessed
         }, completion: completion)
     }
 
-    private func saveChatMessage(_ chatMessageProtocol: ChatMessageProtocol, completion: @escaping ((Result<Void, Error>) -> Void)) {
+    private func saveChatMessage(_ chatMessageProtocol: ChatMessageProtocol, hasBeenProcessed: Bool, completion: @escaping ((Result<Void, Error>) -> Void)) {
         mainDataStore.saveSeriallyOnBackgroundContext ({ context in
             let existingChatMessage = self.chatMessage(with: chatMessageProtocol.id, in: context)
             if let existingChatMessage = existingChatMessage {
@@ -87,6 +88,8 @@ public class CoreChatData {
 
             chatMessage.incomingStatus = .none
             chatMessage.outgoingStatus = .none
+
+            chatMessage.hasBeenProcessed = hasBeenProcessed
 
             if let ts = chatMessageProtocol.timeIntervalSince1970 {
                 chatMessage.timestamp = Date(timeIntervalSince1970: ts)

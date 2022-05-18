@@ -1465,14 +1465,8 @@ class ChatData: ObservableObject {
     func mergeData(from sharedDataStore: SharedDataStore, completion: @escaping (() -> ())) {
         let messages = sharedDataStore.messages()
         DDLogInfo("ChatData/mergeData - \(sharedDataStore.source)/begin")
-        let chatMessageIds = sharedDataStore.chatMessageIds()
-        DDLogInfo("ChatData/mergeData/chatMessageIds: \(chatMessageIds)")
-
-        guard !messages.isEmpty || !chatMessageIds.isEmpty else {
-            DDLogDebug("ChatData/mergeData/ Nothing to merge")
-            completion()
-            return
-        }
+        let sharedMessageIds = sharedDataStore.chatMessageIds()
+        DDLogInfo("ChatData/mergeData/sharedMessageIds: \(sharedMessageIds)")
 
         performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
             guard let self = self else { return }
@@ -1485,13 +1479,18 @@ class ChatData: ObservableObject {
         }) { [self] result in
             switch result {
             case .success:
-                mainDataStore.performSeriallyOnBackgroundContext { [self] context in
+                mainDataStore.saveSeriallyOnBackgroundContext { [self] context in
                     // Messages
-                    let messages = chatMessages(with: Set(chatMessageIds), in: context)
-                    unreadMessageCount += messages.count
+                    let sharedMessages = chatMessages(with: Set(sharedMessageIds), in: context)
+                    var mergedMessages = chatMessagesToProcess(in: context)
+                    mergedMessages.append(contentsOf: sharedMessages)
+                    let mergedMessageIds = mergedMessages.map { $0.id }
+
+                    unreadMessageCount += mergedMessages.count
                     updateUnreadChatsThreadCount()
-                    messages.forEach { chatMsg in
+                    mergedMessages.forEach { chatMsg in
                         didGetAChatMsg.send(chatMsg.fromUserId)
+                        chatMsg.hasBeenProcessed = true
                     }
 
                     // send pending chat messages
@@ -1499,6 +1498,7 @@ class ChatData: ObservableObject {
                     // download chat message media
                     processInboundPendingChatMsgMedia()
                     processInboundPendingChaLinkPreviewMedia()
+                    DDLogInfo("ChatData/mergeData/chatMessageIds: \(mergedMessageIds)")
                 }
                 sharedDataStore.clearChatMessageIds()
             case .failure(let error):
@@ -2933,6 +2933,10 @@ extension ChatData {
 
     func chatMessages(with ids: Set<FeedPostCommentID>, in managedObjectContext: NSManagedObjectContext) -> [ChatMessage] {
         return self.chatMessages(predicate: NSPredicate(format: "id in %@", ids), in: managedObjectContext)
+    }
+
+    func chatMessagesToProcess(in managedObjectContext: NSManagedObjectContext) -> [ChatMessage] {
+        return self.chatMessages(predicate: NSPredicate(format: "hasBeenProcessed == NO"), in: managedObjectContext)
     }
     
     func chatLinkPreview(with id: String, in managedObjectContext: NSManagedObjectContext) -> CommonLinkPreview? {

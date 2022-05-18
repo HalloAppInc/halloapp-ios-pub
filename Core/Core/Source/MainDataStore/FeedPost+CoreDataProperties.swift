@@ -51,6 +51,7 @@ public extension FeedPost {
     @NSManaged var statusValue: Int16
     @NSManaged var fromExternalShare: Bool
     @NSManaged var lastUpdated: Date?
+    @NSManaged var hasBeenProcessed: Bool
 
     var status: Status {
         get {

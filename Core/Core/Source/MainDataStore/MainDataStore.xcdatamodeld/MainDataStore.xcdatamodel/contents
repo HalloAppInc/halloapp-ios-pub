@@ -28,6 +28,7 @@
         <attribute name="feedPostID" optional="YES" attributeType="String"/>
         <attribute name="feedPostMediaIndex" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="fromUserID" attributeType="String"/>
+        <attribute name="hasBeenProcessed" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
         <attribute name="id" attributeType="String"/>
         <attribute name="incomingStatusValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="mentionsValue" optional="YES" attributeType="Transformable" valueTransformerName="MentionValueTransformer"/>
@@ -148,6 +149,7 @@
     <entity name="FeedPost" representedClassName="FeedPost" syncable="YES">
         <attribute name="fromExternalShare" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="groupID" optional="YES" attributeType="String"/>
+        <attribute name="hasBeenProcessed" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
         <attribute name="id" attributeType="String"/>
         <attribute name="isMoment" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="lastUpdated" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
@@ -170,6 +172,7 @@
         </uniquenessConstraints>
     </entity>
     <entity name="FeedPostComment" representedClassName="FeedPostComment" syncable="YES">
+        <attribute name="hasBeenProcessed" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
         <attribute name="id" attributeType="String"/>
         <attribute name="mentionsValue" optional="YES" attributeType="Transformable" valueTransformerName="MentionValueTransformer"/>
         <attribute name="rawData" optional="YES" attributeType="Binary"/>
@@ -234,7 +237,7 @@
     <elements>
         <element name="Call" positionX="-63" positionY="-18" width="128" height="149"/>
         <element name="ChatEvent" positionX="36" positionY="189" width="128" height="74"/>
-        <element name="ChatMessage" positionX="-9" positionY="144" width="128" height="359"/>
+        <element name="ChatMessage" positionX="-9" positionY="144" width="128" height="374"/>
         <element name="ChatQuoted" positionX="0" positionY="153" width="128" height="119"/>
         <element name="CommonLinkPreview" positionX="-45" positionY="63" width="128" height="149"/>
         <element name="CommonMedia" positionX="-36" positionY="72" width="128" height="359"/>
@@ -243,8 +246,8 @@
         <element name="ContentResendInfo" positionX="-63" positionY="45" width="128" height="119"/>
         <element name="ExternalShareInfo" positionX="-54" positionY="54" width="128" height="74"/>
         <element name="FeedActivity" positionX="18" positionY="99" width="128" height="179"/>
-        <element name="FeedPost" positionX="-18" positionY="81" width="128" height="284"/>
-        <element name="FeedPostComment" positionX="0" positionY="90" width="128" height="224"/>
+        <element name="FeedPost" positionX="-18" positionY="81" width="128" height="299"/>
+        <element name="FeedPostComment" positionX="0" positionY="90" width="128" height="239"/>
         <element name="Group" positionX="9" positionY="162" width="128" height="164"/>
         <element name="GroupEvent" positionX="45" positionY="198" width="128" height="134"/>
         <element name="GroupHistoryInfo" positionX="-63" positionY="45" width="128" height="89"/>

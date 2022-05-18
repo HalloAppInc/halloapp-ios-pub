@@ -655,6 +655,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return feedPosts(predicate: NSPredicate(format: "id in %@", ids), sortDescriptors: sortDescriptors, in: managedObjectContext, archived: archived)
     }
 
+    private func feedPostsToProcess(sortDescriptors: [NSSortDescriptor] = [NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: true)],
+                                              in managedObjectContext: NSManagedObjectContext? = nil, archived: Bool = false) -> [FeedPost] {
+        return feedPosts(predicate: NSPredicate(format: "hasBeenProcessed == NO"), sortDescriptors: sortDescriptors, in: managedObjectContext, archived: archived)
+    }
+
     func feedLinkPreview(with id: FeedLinkPreviewID, in managedObjectContext: NSManagedObjectContext? = nil) -> CommonLinkPreview? {
         let managedObjectContext = managedObjectContext ?? viewContext
         let fetchRequest: NSFetchRequest<CommonLinkPreview> = CommonLinkPreview.fetchRequest()
@@ -691,6 +696,21 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         let managedObjectContext = managedObjectContext ?? viewContext
         let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id in %@", ids)
+        fetchRequest.returnsObjectsAsFaults = false
+        do {
+            let comments = try managedObjectContext.fetch(fetchRequest)
+            return comments
+        }
+        catch {
+            DDLogError("FeedData/fetch-comments/error  [\(error)]")
+            fatalError("Failed to fetch feed post comments.")
+        }
+    }
+
+    private func feedCommentsToProcess(in managedObjectContext: NSManagedObjectContext? = nil) -> [FeedPostComment] {
+        let managedObjectContext = managedObjectContext ?? viewContext
+        let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "hasBeenProcessed == NO")
         fetchRequest.returnsObjectsAsFaults = false
         do {
             let comments = try managedObjectContext.fetch(fetchRequest)
@@ -4561,15 +4581,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         let comments = sharedDataStore.comments()
 
         DDLogInfo("FeedData/mergeData - \(sharedDataStore.source)/begin")
-        let postIds = sharedDataStore.postIds()
-        let commentIds = sharedDataStore.commentIds()
-        DDLogInfo("FeedData/mergeData/postIds: \(postIds)/commentIds: \(commentIds)")
-
-        guard !postIds.isEmpty || !commentIds.isEmpty || !posts.isEmpty || !comments.isEmpty else {
-            DDLogDebug("FeedData/mergeData/ Nothing to merge")
-            completion()
-            return
-        }
+        let sharedPostIds = sharedDataStore.postIds()
+        let sharedCommentIds = sharedDataStore.commentIds()
+        DDLogInfo("FeedData/mergeData/sharedPostIds: \(sharedPostIds)/sharedCommentIds: \(sharedCommentIds)")
 
         performSeriallyOnBackgroundContext { managedObjectContext in
             self.merge(posts: posts, comments: comments, from: sharedDataStore, using: managedObjectContext)
@@ -4581,12 +4595,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }) { [self] result in
             switch result {
             case .success:
-                mainDataStore.performSeriallyOnBackgroundContext { [self] context in
+                mainDataStore.saveSeriallyOnBackgroundContext { [self] context in
                     // Posts
-                    let feedPosts = feedPosts(with: Set(postIds), in: context, archived: false)
-                    generateNotifications(for: feedPosts, using: context)
-                    // Notify about new posts all interested parties in ascending order of timestamp.
-                    feedPosts.forEach({
+                    let sharedFeedPosts = feedPosts(with: Set(sharedPostIds), in: context, archived: false)
+                    var mergedFeedPosts = feedPostsToProcess(in: context)
+                    mergedFeedPosts.append(contentsOf: sharedFeedPosts)
+
+                    let postIds = mergedFeedPosts.map { $0.id }
+                    generateNotifications(for: mergedFeedPosts, using: context)
+                    // Notify about new posts all interested parties.
+                    mergedFeedPosts.forEach({
                         /*
                          Do not invalidate cachedMedia. Anything currently bound to the existing media
                          will no longer receive load callbacks, as they are not reloaded as the posts are
@@ -4598,12 +4616,18 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                          */
                         //cachedMedia[$0.id] = nil
                         didMergeFeedPost.send($0.id)
+                        $0.hasBeenProcessed = true
                     })
-                    // Comments in ascending order of timestamp
-                    let feedPostComments = feedComments(with: Set(commentIds), in: context)
-                    generateNotifications(for: feedPostComments, using: context)
+
+                    // Comments
+                    let sharedfeedPostComments = feedComments(with: Set(sharedCommentIds))
+                    var mergedfeedPostComments = feedCommentsToProcess(in: context)
+                    mergedfeedPostComments.append(contentsOf: sharedfeedPostComments)
+
+                    let commentIds = mergedfeedPostComments.map { $0.id }
+                    generateNotifications(for: mergedfeedPostComments, using: context)
                     // Notify about new comments all interested parties.
-                    feedPostComments.forEach({
+                    mergedfeedPostComments.forEach({
                         /*
                          Do not invalidate cachedMedia. Anything currently bound to the existing media
                          will no longer receive load callbacks, as they are not reloaded as the posts are
@@ -4615,7 +4639,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                          */
                         //cachedMedia[$0.id] = nil
                         didReceiveFeedPostComment.send($0)
+                        $0.hasBeenProcessed = true
                     })
+                    DDLogInfo("FeedData/mergeData/postIds: \(postIds)/commentIds: \(commentIds)")
                 }
 
                 sharedDataStore.clearPostIds()
