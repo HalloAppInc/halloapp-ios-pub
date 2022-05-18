@@ -13,33 +13,56 @@ class MessageCellViewEvent: UICollectionViewCell {
         return String(describing: MessageCellViewEvent.self)
     }
 
-    private var headerView: MessageHeaderView
+    var messageLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 12, weight: .regular)
+        label.alpha = 0.80
+        label.textColor = UIColor.black
+        label.textAlignment = .natural
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.numberOfLines = 1
+        return label
+    }()
+
+    private lazy var messageView: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ messageLabel])
+        view.layoutMargins = UIEdgeInsets(top: 6, left: 18, bottom: 6, right: 18)
+        view.isLayoutMarginsRelativeArrangement = true
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = UIColor.messageEventHeaderBackground
+        view.layer.cornerRadius = 7
+        view.layer.masksToBounds = false
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.layer.borderWidth = 0.5
+        view.layer.borderColor = UIColor.messageEventHeaderBorder.cgColor
+        view.layer.shadowColor = UIColor.black.cgColor
+        view.layer.shadowOpacity = 0.1
+        view.layer.shadowOffset = CGSize(width: 0, height: 1)
+        view.layer.shadowRadius = 0
+        return view
+    }()
 
     override init(frame: CGRect) {
-        headerView = MessageHeaderView()
         super.init(frame: frame)
         commonInit()
     }
 
     required init?(coder: NSCoder) {
-        headerView = MessageHeaderView()
         super.init(coder: coder)
         commonInit()
     }
 
     private func commonInit() {
         self.preservesSuperviewLayoutMargins = true
-        self.addSubview(headerView)
-        headerView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(messageView)
         NSLayoutConstraint.activate([
-            headerView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            headerView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            headerView.topAnchor.constraint(equalTo: topAnchor),
-            headerView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            messageView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            messageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
+            messageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6)
         ])
     }
 
     func configure(headerText: String) {
-        headerView.configure(headerText: headerText)
+        messageLabel.text = headerText
     }
 }

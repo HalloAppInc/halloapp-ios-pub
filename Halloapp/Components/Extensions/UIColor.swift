@@ -306,6 +306,14 @@ extension UIColor {
         UIColor(named: "TimeHeaderBackground")!
     }
 
+    class var messageEventHeaderBackground: UIColor {
+        UIColor(named: "MessageEventHeaderBackground")!
+    }
+
+    class var messageEventHeaderBorder: UIColor {
+        UIColor(named: "MessageEventHeaderBorder")!
+    }
+
     class var messageOwnBackground: UIColor {
         UIColor(named: "MessageOwnBackground")!
     }
