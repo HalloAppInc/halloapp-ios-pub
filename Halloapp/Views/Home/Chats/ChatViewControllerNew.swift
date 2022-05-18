@@ -63,11 +63,17 @@ fileprivate enum MessageRow: Hashable, Equatable {
 
 class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegate, UICollectionViewDelegate {
 
-    weak var delegate: ChatViewControllerDelegate?
+    weak var chatViewControllerDelegate: ChatViewControllerDelegate?
 
     /// The `userID` of the user the client is receiving messages from
     private var fromUserId: String?
     private var feedPostId: FeedPostID?
+    private var feedPostMediaIndex: Int32 = 0
+
+    private var chatReplyMessageID: String?
+    private var chatReplyMessageSenderID: String?
+    private var chatReplyMessageMediaIndex: Int32 = 0
+    private var firstActionHappened: Bool = false
 
     fileprivate typealias ChatDataSource = UICollectionViewDiffableDataSource<String, MessageRow>
     fileprivate typealias ChatMessageSnapshot = NSDiffableDataSourceSnapshot<String, MessageRow>
@@ -85,7 +91,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     private var chatEventFetchedResultsController: NSFetchedResultsController<ChatEvent>?
     private var callHistoryFetchedResultsController: NSFetchedResultsController<Core.Call>?
 
-    private var firstActionHappened: Bool = false
+    private var transitionSnapshot: UIView?
 
     private lazy var titleView: ChatTitleView = {
         let titleView = ChatTitleView()
@@ -314,8 +320,46 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         view.addSubview(collectionView)
         collectionView.constrain(to: view)
         setupUI()
-        
+        loadChatDraft(id: fromUserId)
     }
+
+    override func viewWillAppear(_ animated: Bool) {
+       super.viewWillAppear(animated)
+
+       removeTransitionSnapshot()
+   }
+
+   override func viewWillDisappear(_ animated: Bool) {
+       super.viewWillDisappear(animated)
+       if let id = fromUserId {
+           saveChatDraft(id: id)
+       }
+
+       pauseVoiceNotes()
+       MainAppContext.shared.chatData.setCurrentlyChattingWithUserId(for: nil)
+
+       navigationController?.navigationBar.backItem?.backBarButtonItem = UIBarButtonItem()
+
+       applyTransitionSnapshot()
+   }
+
+   private func removeTransitionSnapshot() {
+       transitionSnapshot?.removeFromSuperview()
+       contentInputView.isHidden = false
+   }
+
+   private func applyTransitionSnapshot() {
+       // do this to maintain the blur effect of `contentInputView` during dismissal
+       guard let container = transitionCoordinator?.view(forKey: .from) else {
+           return
+       }
+
+       let snapshot = UIScreen.main.snapshotView(afterScreenUpdates: false)
+       container.addSubview(snapshot)
+
+       contentInputView.isHidden = true
+       self.transitionSnapshot = snapshot
+   }
 
     private func setupUI() {
         collectionView.dataSource = dataSource
@@ -462,6 +506,96 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         }
 
     }
+    
+    // MARK: Input view
+    public func showKeyboard() {
+        contentInputView.textView.becomeFirstResponder()
+    }
+
+    lazy var contentInputView: ContentInputView = {
+        let inputView = ContentInputView(options: .chat)
+        inputView.autoresizingMask = [.flexibleHeight]
+        inputView.delegate = self
+        if let fromUserId = fromUserId {
+            if let url = AudioRecorder.voiceNote(from: MainAppContext.shared.userData.userId, to: fromUserId) {
+                inputView.show(voiceNote: url)
+            }
+        }
+        return inputView
+    }()
+
+    override var inputAccessoryView: UIView? {
+        return contentInputView
+    }
+
+    override var canBecomeFirstResponder: Bool {
+        get {
+            return true
+        }
+    }
+
+    func sendMessage(text: String, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?) {
+        guard let sendToUserId = self.fromUserId else { return }
+
+        MainAppContext.shared.chatData.sendMessage(toUserId: sendToUserId,
+                                                       text: text,
+                                                      media: media,
+                                            linkPreviewData: linkPreviewData,
+                                           linkPreviewMedia: linkPreviewMedia,
+                                                 feedPostId: feedPostId,
+                                         feedPostMediaIndex: feedPostMediaIndex,
+                                         chatReplyMessageID: chatReplyMessageID,
+                                   chatReplyMessageSenderID: chatReplyMessageSenderID,
+                                 chatReplyMessageMediaIndex: chatReplyMessageMediaIndex)
+
+        feedPostId = nil
+        feedPostMediaIndex = 0
+
+        chatReplyMessageID = nil
+        chatReplyMessageSenderID = nil
+        chatReplyMessageMediaIndex = 0
+
+        removeChatDraft()
+
+        if !firstActionHappened {
+            didAction()
+        }
+    }
+
+    private func presentMediaPicker() {
+        let vc = MediaPickerViewController(config: .chat(id: fromUserId)) { [weak self] controller, _, media, cancel in
+            guard let self = self else { return }
+            if cancel {
+                self.dismiss(animated: true)
+            } else {
+                self.presentMediaComposer(media: media)
+            }
+        }
+
+        present(UINavigationController(rootViewController: vc), animated: true)
+
+        if !firstActionHappened {
+            didAction()
+        }
+    }
+
+    private func didAction() {
+        chatViewControllerDelegate?.chatViewController(self, userActioned: true)
+        firstActionHappened = true
+    }
+
+    private func presentMediaComposer(media: [PendingMedia]) {
+        let composerController = PostComposerViewController(
+            mediaToPost: media,
+            initialInput: MentionInput(text: contentInputView.textView.text, mentions: MentionRangeMap(), selectedRange: NSRange()),
+            configuration: .message(id: fromUserId),
+            initialPostType: .library,
+            voiceNote: nil,
+            delegate: self)
+
+        let presenter = presentedViewController ?? self
+        presenter.present(UINavigationController(rootViewController: composerController), animated: false)
+    }
 }
 
 // MARK: ChatTitle Delegates
@@ -493,11 +627,335 @@ extension ChatViewControllerNew: TextLabelDelegate {
         label.numberOfLines = 0
         collectionView.collectionViewLayout.invalidateLayout()
     }
+    
+    private func pauseVoiceNotes() {
+        for cell in collectionView.visibleCells {
+            if let cell = cell as? MessageCellViewAudio {
+                cell.pauseVoiceNote()
+            }
+        }
+    }
+
+    // MARK : Drafts
+    /// Saves the text currently in the `ContentInputView` into `UserDefaults` to be restored on the next time the user opens the view.
+    /// - Parameter id: The UserID of the other user in the chat.
+    private func saveChatDraft(id: UserID) {
+        guard !contentInputView.textView.text.isEmpty else {
+            removeChatDraft()
+            return
+        }
+
+        let draft = ChatDraft(chatID: id, text: contentInputView.textView.text, replyContext: encodeReplyData())
+        var draftsArray = [ChatDraft]()
+
+        if let draftsDecoded: [ChatDraft] = try? AppContext.shared.userDefaults.codable(forKey: "chats.drafts") {
+            draftsArray = draftsDecoded
+        }
+
+        draftsArray.removeAll { existingDraft in
+            existingDraft.chatID == draft.chatID
+        }
+
+        draftsArray.append(draft)
+        try? AppContext.shared.userDefaults.setCodable(draftsArray, forKey: "chats.drafts")
+    }
+    
+    private func encodeReplyData() -> ReplyContext? {
+        if let replyMessageID = chatReplyMessageID,
+           let replySenderID = chatReplyMessageSenderID,
+           let replyMessage = MainAppContext.shared.chatData.chatMessage(with: replyMessageID, in: MainAppContext.shared.chatData.viewContext) {
+
+            if let replyMedia = replyMessage.media, !replyMedia.isEmpty {
+                let replyIndex = replyMedia.index(replyMedia.startIndex, offsetBy: Int(chatReplyMessageMediaIndex))
+                let mediaObject = replyMedia[replyIndex]
+                if let mediaURL = mediaObject.url?.absoluteString {
+                    let media = ChatReplyMedia(type: mediaObject.type, mediaURL: mediaURL)
+
+                    let reply = ReplyContext(replyMessageID: replyMessageID,
+                          replySenderID: replySenderID,
+                          mediaIndex: chatReplyMessageMediaIndex,
+                          text: replyMessage.rawText ?? "",
+                          media: media)
+
+                    return reply
+                }
+            }
+
+            let reply = ReplyContext(replyMessageID: replyMessageID,
+                  replySenderID: replySenderID,
+                  mediaIndex: chatReplyMessageMediaIndex,
+                  text: replyMessage.rawText ?? "",
+                  media: nil)
+
+            return reply
+        } else if let feedPostId = self.feedPostId {
+            if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
+                let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.rawText, mentions: feedPost.orderedMentions)
+                if let mediaItem = feedPost.media?.first(where: { $0.order == self.feedPostMediaIndex }) {
+                    let mediaType = mediaItem.type
+                    let mediaUrl = mediaItem.mediaURL ?? MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
+
+                    let reply = ReplyContext(feedPostID: feedPostId,
+                                             replySenderID: feedPost.userId,
+                                             mediaIndex: feedPostMediaIndex,
+                                             text: mentionText?.string ?? "",
+                                             media: ChatReplyMedia(type: mediaType, mediaURL: mediaUrl.absoluteString))
+                    return reply
+                } else {
+                    let reply = ReplyContext(feedPostID: feedPostId,
+                                             replySenderID: feedPost.userId,
+                                             mediaIndex: nil,
+                                             text: mentionText?.string ?? "",
+                                             media: nil)
+                    return reply
+                }
+            }
+        }
+
+        return nil
+    }
+
+    /// Restores the text from `UserDefaults` into the `ContentInputView` so the user can continue what they last wrote.
+    /// - Parameter id: The UserID of the other user in the chat.
+    private func loadChatDraft(id: UserID) {
+        guard let draftsArray: [ChatDraft] = try? AppContext.shared.userDefaults.codable(forKey: "chats.drafts") else { return }
+        guard let draft = draftsArray.first(where: { existingDraft in
+            existingDraft.chatID == fromUserId
+        }) else { return }
+
+        contentInputView.set(draft: draft.text)
+
+        if let reply = draft.replyContext {
+            // TODO
+            //handleDraftQuotedReply(reply: reply)
+            if let feedPostId = reply.feedPostID {
+                self.feedPostId = feedPostId
+                feedPostMediaIndex = reply.mediaIndex ?? 0
+            } else if let chatReplyMessageID = chatReplyMessageID {
+                self.chatReplyMessageID = chatReplyMessageID
+                chatReplyMessageSenderID = reply.replySenderID
+                chatReplyMessageMediaIndex = reply.mediaIndex ?? 0
+            } else {
+                DDLogWarn("ChatViewController/No feedPostId or chatReplyMessageId when restoring draft reply")
+            }
+        }
+    }
+
+    /// Removes any existing drafts for this chat if there are any.
+    private func removeChatDraft() {
+        var draftsArray: [ChatDraft] = []
+
+        if let draftsDecoded: [ChatDraft] = try? AppContext.shared.userDefaults.codable(forKey: "chats.drafts") {
+            draftsArray = draftsDecoded
+        }
+
+        draftsArray.removeAll { existingDraft in
+            existingDraft.chatID == fromUserId
+        }
+
+        try? AppContext.shared.userDefaults.setCodable(draftsArray, forKey: "chats.drafts")
+    }
 }
 
 // MARK: ChatCallView Delegates
 extension ChatViewControllerNew: ChatCallViewDelegate {
     func chatCallView(_ callView: ChatCallView, didTapCallButtonWithData callData: ChatCallData) {
         startCallIfPossible(with: callData.userID, type: callData.type)
+    }
+}
+
+// MARK: - content input view delegate methods
+extension ChatViewControllerNew: ContentInputDelegate {
+    func inputView(_ inputView: ContentInputView, possibleMentionsFor input: String) -> [MentionableUser] {
+        return []
+    }
+
+    func inputView(_ inputView: ContentInputView, isTyping: Bool) {
+        guard let userID = fromUserId else { return }
+        let state: ChatState = isTyping ? .typing : .available
+
+        MainAppContext.shared.chatData.sendChatState(type: .oneToOne,
+                                                       id: userID,
+                                                    state: state)
+    }
+
+    func inputView(_ inputView: ContentInputView, didPost content: ContentInputView.InputContent) {
+        sendMessage(text: content.mentionText.trimmed().collapsedText,
+                    media: content.media,
+                    linkPreviewData: content.linkPreview?.data,
+                    linkPreviewMedia: content.linkPreview?.media)
+    }
+
+    func inputView(_ inputView: ContentInputView, didChangeHeightTo height: CGFloat) {
+        if let coordinator = transitionCoordinator, coordinator.isInteractive {
+            return
+        }
+
+        let newInsets = UIEdgeInsets(top: collectionView.contentInset.top,
+                                    left: 0,
+                                  bottom: (height - view.safeAreaInsets.bottom) + 10,
+                                   right: 0)
+
+        var newOffset = collectionView.contentOffset
+        newOffset.y += newInsets.bottom - collectionView.contentInset.bottom
+
+        if collectionView.contentInset.bottom != 0, collectionView.contentInset != newInsets {
+            // not having the second condition causes inertial scrolling to break
+            collectionView.setContentOffset(newOffset, animated: false)
+        }
+
+        collectionView.contentInset = newInsets
+        collectionView.scrollIndicatorInsets = newInsets
+
+        // TODO updateJumpButtonVisibility()
+    }
+
+    func inputView(_ inputView: ContentInputView, didClose panel: InputContextPanel) {
+        // TODO
+//        if panel.isKind(of: QuotedItemPanel.self) {
+//            feedPostId = nil
+//            feedPostMediaIndex = 0
+//
+//            chatReplyMessageID = nil
+//            chatReplyMessageSenderID = nil
+//            chatReplyMessageMediaIndex = 0
+//        }
+    }
+
+    func inputViewDidSelectCamera(_ inputView: ContentInputView) {
+        presentCameraViewController()
+    }
+
+    func inputViewDidSelectContentOptions(_ inputView: ContentInputView) {
+        let action = ActionSheetViewController(title: "", message: "")
+        let cameraImage = UIImage(systemName: "camera.fill")?.withRenderingMode(.alwaysOriginal)
+                                                             .withTintColor(.primaryBlue)
+        let pickerImage = UIImage(systemName: "photo.fill.on.rectangle.fill")?.withRenderingMode(.alwaysOriginal)
+                                                                              .withTintColor(.primaryBlue)
+
+        action.addAction(ActionSheetAction(title: Localizations.fabAccessibilityCamera, image: cameraImage, style: .default) { _ in
+            self.presentCameraViewController()
+        })
+
+        action.addAction(ActionSheetAction(title: Localizations.photoAndVideoLibrary, image: pickerImage, style: .default) { _ in
+            self.presentMediaPicker()
+        })
+
+        action.addAction(ActionSheetAction(title: Localizations.buttonCancel, style: .cancel))
+
+        navigationController?.present(action, animated: true)
+    }
+
+    private func presentCameraViewController() {
+        let vc = CameraViewController(configuration: .init(showCancelButton: true, format: .normal),
+                                          didFinish: { [weak self] in self?.dismiss(animated: true)},
+                                       didPickImage: { [weak self] image in self?.didTake(photo: image)},
+                                       didPickVideo: { [weak self] videoURL in self?.didTake(video: videoURL)})
+
+        present(UINavigationController(rootViewController: vc), animated: true)
+    }
+
+    private func didTake(photo: UIImage) {
+        let media = PendingMedia(type: .image)
+        media.image = photo
+
+        presentComposerViewController(media: [media])
+    }
+
+    private func didTake(video url: URL) {
+        let media = PendingMedia(type: .video)
+        media.originalVideoURL = url
+        media.fileURL = url
+
+        presentComposerViewController(media: [media])
+    }
+
+    private func presentComposerViewController(media: [PendingMedia]) {
+        let composerController = PostComposerViewController(
+            mediaToPost: media,
+           initialInput: MentionInput(text: contentInputView.textView.text, mentions: MentionRangeMap(), selectedRange: NSRange()),
+          configuration: .message(id: fromUserId),
+        initialPostType: .library,
+              voiceNote: nil,
+               delegate: self)
+
+        let presenter = presentedViewController ?? self
+        presenter.present(UINavigationController(rootViewController: composerController), animated: false)
+    }
+
+    func inputView(_ inputView: ContentInputView, didInterrupt recorder: AudioRecorder) {
+        guard
+            let fromID = fromUserId,
+            let url = recorder.saveVoiceNote(from: MainAppContext.shared.userData.userId, to: fromID)
+        else {
+            return
+        }
+
+        DispatchQueue.main.async { [weak self] in
+            self?.contentInputView.show(voiceNote: url)
+        }
+    }
+
+    func inputViewMicrophoneAccessDenied(_ inputView: ContentInputView) {
+        let alert = UIAlertController(title: Localizations.micAccessDeniedTitle,
+                                    message: Localizations.micAccessDeniedMessage,
+                             preferredStyle: .alert)
+
+        alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+        alert.addAction(UIAlertAction(title: Localizations.settingsAppName, style: .default) { _ in
+            if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(settingsURL)
+            }
+        })
+
+        present(alert, animated: true)
+    }
+
+    func inputViewMicrophoneAccessDeniedDuringCall(_ inputView: ContentInputView) {
+        let alert = UIAlertController(title: Localizations.failedActionDuringCallTitle,
+                                    message: Localizations.failedActionDuringCallNoticeText,
+                             preferredStyle: .alert)
+
+        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: { _ in }))
+        present(alert, animated: true)
+    }
+
+    func inputView(_ inputView: ContentInputView, didPaste image: PendingMedia) {
+        presentComposerViewController(media: [image])
+    }
+}
+
+// MARK: PostComposerView Delegates
+extension ChatViewControllerNew: PostComposerViewDelegate {
+    func composerDidTapLinkPreview(controller: PostComposerViewController, url: URL) {
+        URLRouter.shared.handleOrOpen(url: url)
+    }
+
+    func composerDidTapShare(controller: PostComposerViewController,
+                            destination: PostComposerDestination,
+                               isMoment: Bool,
+                            mentionText: MentionText,
+                                  media: [PendingMedia],
+                        linkPreviewData: LinkPreviewData? = nil,
+                       linkPreviewMedia: PendingMedia? = nil) {
+
+        sendMessage(text: mentionText.trimmed().collapsedText, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
+        view.window?.rootViewController?.dismiss(animated: true, completion: nil)
+    }
+
+    func composerDidTapBack(controller: PostComposerViewController, destination: PostComposerDestination, media: [PendingMedia], voiceNote: PendingMedia?) {
+        controller.dismiss(animated: false)
+
+        let presentedVC = self.presentedViewController
+
+        if let viewControllers = (presentedVC as? UINavigationController)?.viewControllers {
+            if let mediaPickerController = viewControllers.last as? MediaPickerViewController {
+                mediaPickerController.reset(destination: nil, selected: media)
+            }
+        }
+    }
+
+    func willDismissWithInput(mentionInput: MentionInput) {
+
     }
 }

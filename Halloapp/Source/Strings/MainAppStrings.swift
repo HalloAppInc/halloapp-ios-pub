@@ -210,4 +210,9 @@ extension Localizations {
             format: NSLocalizedString("chat.event.security.keys.changed", value: "Security keys with %@ changed", comment: "Text shown in Chat when the security keys of the contact user is chatting with, have changed"),
             name)
     }
+
+    static var photoAndVideoLibrary: String {
+        return String(
+            format: NSLocalizedString("photo.and.video.library", value: "Photo & Video Library", comment: "button to launch photo and video library"))
+    }
 }

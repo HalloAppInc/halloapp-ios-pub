@@ -21,6 +21,7 @@ fileprivate struct Constants {
 
 protocol ChatViewControllerDelegate: AnyObject {
     func chatViewController(_ chatViewController: ChatViewController, userActioned: Bool)
+    func chatViewController(_ chatViewController: ChatViewControllerNew, userActioned: Bool)
 }
 
 class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
@@ -1896,15 +1897,15 @@ extension ChatViewController: ContentInputDelegate {
         let pickerImage = UIImage(systemName: "photo.fill.on.rectangle.fill")?.withRenderingMode(.alwaysOriginal)
                                                                               .withTintColor(.primaryBlue)
         
-        action.addAction(ActionSheetAction(title: "Camera", image: cameraImage, style: .default) { _ in
+        action.addAction(ActionSheetAction(title: Localizations.fabAccessibilityCamera, image: cameraImage, style: .default) { _ in
             self.presentCameraViewController()
         })
         
-        action.addAction(ActionSheetAction(title: "Photo & Video Library", image: pickerImage, style: .default) { _ in
+        action.addAction(ActionSheetAction(title: Localizations.photoAndVideoLibrary, image: pickerImage, style: .default) { _ in
             self.presentMediaPicker()
         })
         
-        action.addAction(ActionSheetAction(title: "Cancel", style: .cancel))
+        action.addAction(ActionSheetAction(title: Localizations.buttonCancel, style: .cancel))
         
         navigationController?.present(action, animated: true)
     }
