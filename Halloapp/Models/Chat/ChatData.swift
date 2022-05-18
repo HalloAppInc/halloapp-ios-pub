@@ -151,12 +151,6 @@ class ChatData: ObservableObject {
         )
 
         cancellableSet.insert(
-            service.didGetNewWhisperMessage.sink { [weak self] whisperMessage in
-                self?.handleIncomingWhisperMessage(whisperMessage)
-            }
-        )
-
-        cancellableSet.insert(
             // TODO: Move all presence logic to its own file.
             didUserPresenceChange.sink(receiveValue: { [weak self] presenceType in
                 DDLogInfo("ChatData/didUserPresenceChange: \(presenceType)")
@@ -3217,7 +3211,7 @@ extension ChatData {
             // delete all chat events and chat thread
             if let chatThread = self.chatThread(type: ChatType.oneToOne, id: chatThreadId, in: managedObjectContext) {
                 if let chatWithUserId = chatThread.userID {
-                    self.deleteChatEvents(userID: chatWithUserId)
+                    AppContext.shared.coreChatData.deleteChatEvents(userID: chatWithUserId)
                 }
 
                 managedObjectContext.delete(chatThread)
@@ -3352,30 +3346,6 @@ extension ChatData {
 }
 
 extension ChatData {
-
-    // MARK: Handle whisper messages
-    // This part is not great and should be in CoreModule - but since the groups list is stored in ChatData.
-    // This code is ending up here for now - should fix this soon.
-    private func handleIncomingWhisperMessage(_ whisperMessage: WhisperMessage) {
-        DDLogInfo("ChatData/handleIncomingWhisperMessage/begin")
-        switch whisperMessage {
-        case .update(let userID, _):
-            DDLogInfo("ChatData/handleIncomingWhisperMessage/execute update for \(userID)")
-            performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
-                guard let self = self else { return }
-                let groupIds = self.chatGroupIds(for: userID, in: managedObjectContext)
-                groupIds.forEach { groupId in
-                    DDLogInfo("ChatData/handleIncomingWhisperMessage/updateWhisperSession/addToPending \(userID) in \(groupId)")
-                    AppContext.shared.messageCrypter.addMembers(userIds: [userID], in: groupId)
-                }
-
-                self.recordNewChatEvent(userID: userID, type: .whisperKeysChange)
-            }
-        default:
-            DDLogInfo("ChatData/handleIncomingWhisperMessage/ignore")
-            break
-        }
-    }
 
     // MARK: 1-1 Process Inbound Messages
     
@@ -3881,52 +3851,6 @@ extension ChatData {
             }
         }
     }
-}
-
-// MARK: Chat Events
-extension ChatData {
-
-    private func recordNewChatEvent(userID: UserID, type: ChatEventType) {
-        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
-            guard let self = self else { return }
-            DDLogInfo("ChatData/recordNewChatEvent/for: \(userID)")
-
-            let appUserID = MainAppContext.shared.userData.userId
-            let predicate = NSPredicate(format: "(fromUserID = %@ AND toUserID = %@) || (toUserID = %@ && fromUserID = %@)", userID, appUserID, userID, appUserID)
-            guard self.chatMessages(predicate: predicate, limit: 1, in: managedObjectContext).count > 0 else {
-                DDLogInfo("ChatData/recordNewChatEvent/\(userID)/no messages yet, skip recording keys change event")
-                return
-            }
-
-            let chatEvent = ChatEvent(context: managedObjectContext)
-            chatEvent.userID = userID
-            chatEvent.type = type
-            chatEvent.timestamp = Date()
-            self.save(managedObjectContext)
-        }
-    }
-
-    private func deleteChatEvents(userID: UserID) {
-        DDLogInfo("ChatData/deleteChatEvents")
-        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
-            let fetchRequest = NSFetchRequest<ChatEvent>(entityName: ChatEvent.entity().name!)
-            fetchRequest.predicate = NSPredicate(format: "userID = %@", userID)
-
-            do {
-                let events = try managedObjectContext.fetch(fetchRequest)
-                DDLogInfo("ChatData/events/deleteChatEvents/count=[\(events.count)]")
-                events.forEach {
-                    managedObjectContext.delete($0)
-                }
-            }
-            catch {
-                DDLogError("ChatData/events/deleteChatEvents/error  [\(error)]")
-                return
-            }
-            self?.save(managedObjectContext)
-        }
-    }
-    
 }
 
 extension ChatData {

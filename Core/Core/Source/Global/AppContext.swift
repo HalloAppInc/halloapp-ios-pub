@@ -260,8 +260,8 @@ open class AppContext: AppContextCommon {
         keyStore.delegate = messageCrypter
         mediaHashStoreImpl = MediaHashStore(persistentStoreURL: AppContext.mediaHashStoreURL)
         notificationStoreImpl = NotificationStore(appTarget: appTarget, userDefaults: userDefaults)
-        coreFeedDataImpl = CoreFeedData(mainDataStore: mainDataStore)
-        coreChatDataImpl = CoreChatData(mainDataStore: mainDataStore)
+        coreFeedDataImpl = CoreFeedData(service: coreService, mainDataStore: mainDataStore)
+        coreChatDataImpl = CoreChatData(service: coreService, mainDataStore: mainDataStore)
 
         DispatchQueue.global(qos: .background).async {
             self.migrateLogFilesIfNeeded()

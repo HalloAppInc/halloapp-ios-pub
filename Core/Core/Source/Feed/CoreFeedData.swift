@@ -16,10 +16,12 @@ import CocoaLumberjackSwift
 // TODO: (murali@): reuse this logic in FeedData
 
 public class CoreFeedData {
+    private let service: CoreService
     private let mainDataStore: MainDataStore
 
-    public init(mainDataStore: MainDataStore) {
+    public init(service: CoreService, mainDataStore: MainDataStore) {
         self.mainDataStore = mainDataStore
+        self.service = service
     }
 
     public func feedPost(with feedPostId: FeedPostID, in managedObjectContext: NSManagedObjectContext) -> FeedPost? {

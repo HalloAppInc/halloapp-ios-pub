@@ -9,17 +9,52 @@
 import Foundation
 import CoreCommon
 import CoreData
+import Combine
 import CocoaLumberjackSwift
 
 
 // TODO: (murali@): reuse this logic in ChatData
 
 public class CoreChatData {
+    private let service: CoreService
     private let mainDataStore: MainDataStore
+    private var cancellableSet: Set<AnyCancellable> = []
 
-    public init(mainDataStore: MainDataStore) {
+    public init(service: CoreService, mainDataStore: MainDataStore) {
         self.mainDataStore = mainDataStore
+        self.service = service
+        cancellableSet.insert(
+            service.didGetNewWhisperMessage.sink { [weak self] whisperMessage in
+                self?.handleIncomingWhisperMessage(whisperMessage)
+            }
+        )
     }
+
+    // MARK: Handle whisper messages
+    // This part is not great and should be in CoreModule - but since the groups list is stored in ChatData.
+    // This code is ending up here for now - should fix this soon.
+    private func handleIncomingWhisperMessage(_ whisperMessage: WhisperMessage) {
+        DDLogInfo("ChatData/handleIncomingWhisperMessage/begin")
+        switch whisperMessage {
+        case .update(let userID, _):
+            DDLogInfo("ChatData/handleIncomingWhisperMessage/execute update for \(userID)")
+            mainDataStore.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+                guard let self = self else { return }
+                let groupIds = self.chatGroupIds(for: userID, in: managedObjectContext)
+                groupIds.forEach { groupId in
+                    DDLogInfo("ChatData/handleIncomingWhisperMessage/updateWhisperSession/addToPending \(userID) in \(groupId)")
+                    AppContext.shared.messageCrypter.addMembers(userIds: [userID], in: groupId)
+                }
+
+                self.recordNewChatEvent(userID: userID, type: .whisperKeysChange)
+            }
+        default:
+            DDLogInfo("ChatData/handleIncomingWhisperMessage/ignore")
+            break
+        }
+    }
+
+    // MARK: Save content
 
     public func saveChatMessage(chatMessage: IncomingChatMessage, hasBeenProcessed: Bool, completion: @escaping ((Result<Void, Error>) -> Void)) {
         switch chatMessage {
@@ -277,4 +312,91 @@ public class CoreChatData {
             return chatThreads(predicate: NSPredicate(format: "userID == %@", id), in: managedObjectContext).first
         }
     }
+
+    private func chatMessages(predicate: NSPredicate? = nil,
+                              sortDescriptors: [NSSortDescriptor]? = nil,
+                              limit: Int? = nil,
+                              in managedObjectContext: NSManagedObjectContext) -> [ChatMessage] {
+        let fetchRequest: NSFetchRequest<ChatMessage> = ChatMessage.fetchRequest()
+        fetchRequest.predicate = predicate
+        fetchRequest.sortDescriptors = sortDescriptors
+        if let fetchLimit = limit { fetchRequest.fetchLimit = fetchLimit }
+        fetchRequest.returnsObjectsAsFaults = false
+
+        do {
+            let chatMessages = try managedObjectContext.fetch(fetchRequest)
+            return chatMessages
+        }
+        catch {
+            DDLogError("ChatData/fetch-messages/error  [\(error)]")
+            fatalError("Failed to fetch chat messages")
+        }
+    }
+
+    func chatGroupIds(for memberUserId: UserID, in managedObjectContext: NSManagedObjectContext) -> [GroupID] {
+        let chatGroupMemberItems = chatGroupMembers(predicate: NSPredicate(format: "userID == %@", memberUserId), in: managedObjectContext)
+        return chatGroupMemberItems.map { $0.groupID }
+    }
+
+    private func chatGroupMembers(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext) -> [GroupMember] {
+        let managedObjectContext = managedObjectContext
+        let fetchRequest: NSFetchRequest<GroupMember> = GroupMember.fetchRequest()
+        fetchRequest.predicate = predicate
+        fetchRequest.sortDescriptors = sortDescriptors
+        fetchRequest.returnsObjectsAsFaults = false
+
+        do {
+            let chatGroupMembers = try managedObjectContext.fetch(fetchRequest)
+            return chatGroupMembers
+        }
+        catch {
+            DDLogError("ChatData/group/fetchGroupMembers/error  [\(error)]")
+            fatalError("Failed to fetch chat group members")
+        }
+    }
+}
+
+
+// MARK: Chat Events
+extension CoreChatData {
+
+    public func recordNewChatEvent(userID: UserID, type: ChatEventType) {
+        mainDataStore.saveSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            DDLogInfo("ChatData/recordNewChatEvent/for: \(userID)")
+
+            let appUserID = AppContext.shared.userData.userId
+            let predicate = NSPredicate(format: "(fromUserID = %@ AND toUserID = %@) || (toUserID = %@ AND fromUserID = %@)", userID, appUserID, userID, appUserID)
+            guard self.chatMessages(predicate: predicate, limit: 1, in: managedObjectContext).count > 0 else {
+                DDLogInfo("ChatData/recordNewChatEvent/\(userID)/no messages yet, skip recording keys change event")
+                return
+            }
+
+            let chatEvent = ChatEvent(context: managedObjectContext)
+            chatEvent.userID = userID
+            chatEvent.type = type
+            chatEvent.timestamp = Date()
+        }
+    }
+
+    public func deleteChatEvents(userID: UserID) {
+        DDLogInfo("ChatData/deleteChatEvents")
+        mainDataStore.saveSeriallyOnBackgroundContext { (managedObjectContext) in
+            let fetchRequest = NSFetchRequest<ChatEvent>(entityName: ChatEvent.entity().name!)
+            fetchRequest.predicate = NSPredicate(format: "userID = %@", userID)
+
+            do {
+                let events = try managedObjectContext.fetch(fetchRequest)
+                DDLogInfo("ChatData/events/deleteChatEvents/count=[\(events.count)]")
+                events.forEach {
+                    managedObjectContext.delete($0)
+                }
+            }
+            catch {
+                DDLogError("ChatData/events/deleteChatEvents/error  [\(error)]")
+                return
+            }
+        }
+    }
+
 }
