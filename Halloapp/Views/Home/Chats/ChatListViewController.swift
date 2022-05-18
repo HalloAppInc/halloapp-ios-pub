@@ -193,7 +193,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
                 guard let self = self else { return }
                 if AppContext.shared.userDefaults.bool(forKey: "enableNewChat") {
                     let vc = ChatViewControllerNew(for: conversationID.id, with: nil, at: 0)
-                    vc.delegate = self
+                    vc.chatViewControllerDelegate = self
                     self.navigationController?.pushViewController(vc, animated: true)
                 } else {
                     let vc = ChatViewController(for: conversationID.id, with: nil, at: 0)
@@ -494,7 +494,7 @@ extension ChatListViewController: UIViewControllerHandleTapNotification {
         navigationController?.popToRootViewController(animated: false)
         if AppContext.shared.userDefaults.bool(forKey: "enableNewChat") {
             let vc = ChatViewControllerNew(for: userID, with: nil, at: 0)
-            vc.delegate = self
+            vc.chatViewControllerDelegate = self
             self.navigationController?.pushViewController(vc, animated: animated)
         } else {
             let vc = ChatViewController(for: userID, with: nil, at: 0)
@@ -557,7 +557,7 @@ extension ChatListViewController: UITableViewDelegate {
 
         if AppContext.shared.userDefaults.bool(forKey: "enableNewChat") {
             let vc = ChatViewControllerNew(for: chatWithUserId, with: nil, at: 0)
-            vc.delegate = self
+            vc.chatViewControllerDelegate = self
             self.navigationController?.pushViewController(vc, animated: true)
         } else {
             let vc = ChatViewController(for: chatWithUserId, with: nil, at: 0)
@@ -653,6 +653,13 @@ extension ChatListViewController: NewChatViewControllerDelegate {
 
 extension ChatListViewController: ChatViewControllerDelegate {
     func chatViewController(_ controller: ChatViewController, userActioned: Bool) {
+        searchController.isActive = false
+        DispatchQueue.main.async {
+            self.scrollToTop(animated: false)
+        }
+    }
+
+    func chatViewController(_ controller: ChatViewControllerNew, userActioned: Bool) {
         searchController.isActive = false
         DispatchQueue.main.async {
             self.scrollToTop(animated: false)

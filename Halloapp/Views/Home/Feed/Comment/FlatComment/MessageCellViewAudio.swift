@@ -153,6 +153,10 @@ class MessageCellViewAudio: MessageCellViewBase {
             nameContentTimeRow.layoutMargins =  UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
         }
     }
+
+    func pauseVoiceNote() {
+        audioView.pause()
+    }
 }
 
 // MARK: AudioViewDelegate
