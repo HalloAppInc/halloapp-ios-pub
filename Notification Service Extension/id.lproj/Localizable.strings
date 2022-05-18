@@ -139,8 +139,20 @@
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 video";
 
+/* Missed video call notification text to be shown to the user. */
+"notification.videocall.missed" = "📹 Panggilan video tak terjawab";
+
+/* Missed voice call notification text to be shown to the user. */
+"notification.voicecall.missed" = "☎️ Panggilan suara tak terjawab";
+
+/* New post notification text when post is a voice note. */
+"notification.voicecomment" = "🎤 Komentar audio";
+
 /* New post notification text when post is a voice note. */
 "notification.voicenote" = "🎤 Pesan suara";
+
+/* New post notification text when post is a voice note. */
+"notification.voicepost" = "🎤 Postingan audio";
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Bergabunglah dengan jaringan relasi sungguhan saya di HalloApp. Unduh gratis di halloapp.com/dl";

@@ -37,6 +37,9 @@
 /* Message shown when a user first joins */
 "activity.center.welcome.item" = "Vítejte na HalloApp!";
 
+/* First tab in the main app interface. */
+"activityCenter.promo.favorites" = "Mrkni se na novou funkci Oblíbené!";
+
 /* Text label for action button to add the contact to the address book */
 "add.to.contact.book" = "Přidat do Seznamu kontaktů";
 
@@ -78,6 +81,9 @@
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Pokračovat";
+
+/* Title for generic copy URL button */
+"button.copy.link" = "Kopírovat odkaz";
 
 /* Title for generic Create button */
 "button.create" = "Vytvořit";
@@ -142,11 +148,41 @@
 /* Label for button that toggles speakerphone status during call */
 "call.button.speaker" = "reproduktor";
 
+/* Text indicating that calls are end-to-end encrypted */
+"call.encryption.text" = "End-to-end koncové šifrování";
+
+/* Title for call history event. Appears next to details of a successful call. */
+"call.history.video.call" = "Video hovor";
+
+/* Title for call history event. Appears next to details of a missed call. */
+"call.history.video.call.missed" = "Zmeškaný video hovor";
+
 /* Title for call history event. Appears next to details of a successful call. */
 "call.history.voice.call" = "Hlasový hovor";
 
 /* Title for call history event. Appears next to details of a missed call. */
 "call.history.voice.call.missed" = "Zmeškaný hlasový hovor";
+
+/* Status display when user mutes their own audio during a call. */
+"call.mute.local.audio" = "mikrofon je vypnutý";
+
+/* Status display when user mutes their own audio and video during a call. */
+"call.mute.local.audio.video" = "kamera a mikrofon jsou vypnuté";
+
+/* Status display when user mutes their own video during a call. */
+"call.mute.local.video" = "kamera je vypnutá";
+
+/* Status display when peer mutes audio during a call. */
+"call.mute.remote.audio" = "%@ ztlumil/a tento hovor";
+
+/* Status display when peer mutes both audio and video during a call. */
+"call.mute.remote.audio.video" = "Kamera a mikrofon uživatele %@ jsou vypnuté.";
+
+/* Status display when peer mutes video during a call. */
+"call.mute.remote.video" = "Kamera uživatele %@ je vypnutá";
+
+/* Status displayed when the other side is busy. */
+"call.status.busy" = "při jiném hovoru";
 
 /* Status displayed when outgoing call starts */
 "call.status.calling" = "hovor…";
@@ -155,10 +191,16 @@
 "call.status.connecting" = "připojování…";
 
 /* Status displayed when call fails. */
-"call.status.failed" = "nezdařilo se";
+"call.status.failed" = "hovor selhal";
+
+/* Status displayed when call is on hold. */
+"call.status.held" = "pozastaveno";
 
 /* Status displayed when incoming call starts */
 "call.status.incoming" = "příchozí hovor";
+
+/* Status displayed when the other side mutes the audio. */
+"call.status.muted" = "hovor ztlumen";
 
 /* Status displayed when reconnecting during call */
 "call.status.reconnecting" = "opětovné připojování…";
@@ -193,8 +235,14 @@
 /* No comment provided by engineer. */
 "camera.init.error.8" = "Nelze nahrát video";
 
+/* No comment provided by engineer. */
+"camera.init.error.9" = "Nelze nahrávat audio";
+
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Chyba inicializace";
+
+/* Title of the button that allows camera permissions. */
+"camera.permission.allow.access" = "Povolit přístup";
 
 /* No comment provided by engineer. */
 "Cancel" = "Storno";
@@ -204,6 +252,15 @@
 
 /* Label for creating a new group */
 "chat.create.new.group" = "Vytvořit novou skupinu";
+
+/* Button to retract a chat message for everyone */
+"chat.delete.everyone" = "Smazat pro všechny";
+
+/* Button to locally delete a chat message */
+"chat.delete.me" = "Smazat pro mě";
+
+/* Title of deletion menu */
+"chat.delete.title" = "Smazat vybranou zprávu?";
 
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
 "chat.encryption.label" = "Chaty jsou komplexně šifrovány a HalloApp k nim nemá přístup. Další informace zobrazíte klepnutím.";
@@ -277,6 +334,9 @@
 /* Message text shown in a message that have audio media but no text */
 "chat.message.audio" = "Hlasová poznámka";
 
+/* Message text shown for quoted audio posts */
+"chat.message.audiopost" = "Audio příspěvek";
+
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "Tato zpráva byla smazána";
 
@@ -284,7 +344,7 @@
 "chat.message.photo" = "Fotka";
 
 /* Text shown when content input text field is empty for chat screens. */
-"chat.message.placeholder" = "Napište zprávu";
+"chat.message.placeholder" = "Nová zpráva";
 
 /* Text shown in place of a received message we are not able to process yet. */
 "chat.message.unsupported" = "Vaše verze HalloApp nepodporuje tento typ zprávy.";
@@ -346,6 +406,12 @@
 /* Text displayed in gray inside of the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Přidat komentář";
 
+/* Header that appears above all the unread comments in the comments view when there are more than one unread message */
+"comment.unread.messages.header.plural" = "%@ Nepřečtené komentáře";
+
+/* Header that appears above one single unread message in the comments view. */
+"comment.unread.messages.header.single" = "%@ Nepřečtených komentářů";
+
 /* Text displayed in place of a comment that is not supported in the current app version. */
 "comment.unsupported" = "Vaše verze HalloApp nepodporuje tento typ komentáře.";
 
@@ -370,6 +436,9 @@
 /* Title for audio post composer */
 "composer.audio.title" = "Nový zvukový příspěvek";
 
+/* Title on edit button */
+"composer.button.edit" = "Upravit";
+
 /* Title warning that a voice recording will be deleted */
 "composer.delete.recording.title" = "Chcete odstranit hlasový záznam?";
 
@@ -393,6 +462,9 @@
 
 /* Composer New Message title. */
 "composer.message.title" = "Nová zpráva";
+
+/* Composer New Moment Post title. */
+"composer.moment.post.title" = "Nový moment";
 
 /* Placeholder text for media caption field in post composer. */
 "composer.placeholder.media.description" = "Napsat popis";
@@ -448,8 +520,26 @@
 /* Title for generic delete button. */
 "Delete" = "Odstranit";
 
+/* link, tapping on which launched the flow to edit blocked contacts */
+"edit.blocked" = "Upravit";
+
+/* link, tapping on which launched the flow to edit favorites */
+"edit.favorites" = "Upravit oblíbené";
+
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Pro spojení je nutné vyměnit si telefonní čísla";
+
+/* Description of an externally shared post containing an audio post */
+"externalShare.og.description.audio" = "Audio příspěvek";
+
+/* Description of an externally shared post containing photos/videos */
+"externalShare.og.description.media" = "Mediální příspěvek";
+
+/* Description of an externally shared post containing just text */
+"externalShare.og.description.text" = "Textový příspěvek";
+
+/* Title for posts that are externally shared, 'John Smith's HalloApp Post' */
+"externalShare.og.title3" = "HalloApp příspěvek od %@";
 
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Fotoaparát";
@@ -466,11 +556,26 @@
 /* Label for floating compose post menu on Group screen. */
 "fab.post.button" = "Příspěvek";
 
+/* Indicates that an item has failed to be sent. */
+"failed.to.send" = "Nepodařilo se odeslat";
+
 /* Text shown in place of a received post we are not able to decrypt yet. */
 "feed.comment.waiting" = "Čeká se na tento komentář. Může to chvíli trvat.";
 
 /* Shown while content is being retracted from feed */
 "feed.deleting" = "Mazání...";
+
+/* Text for group feed notification displayed in Activity Center. */
+"feed.group.notification.other.comment.no.text" = "<$author$> komentoval/a";
+
+/* Text for group feed notification displayed in Activity Center. */
+"feed.group.notification.other.comment.w.text" = "<$author$> komentoval/a: <$text$>";
+
+/* Text for home feed notification displayed in Activity Center. */
+"feed.home.notification.other.comment.no.text" = "<$author$> komentoval/a";
+
+/* Text for home feed notification displayed in Activity Center. */
+"feed.home.notification.other.comment.w.text" = "<$author$> komentoval/a: <$text$>";
 
 /* Text shown in indicator when new posts come in while user is scrolled down */
 "feed.new.posts.indicator" = "Nové příspěvky";
@@ -541,6 +646,12 @@
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.all" = "Moje kontakty";
 
+/* Header for the list of all contacts on HallAapp. */
+"feed.privacy.list.all.details" = "Moje kontakty v aplikaci HalloApp";
+
+/* Button to dismiss edit favorites modal */
+"feed.privacy.list.dismiss.edit.favorites" = "Teď ne";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.except" = "Moje kontakty kromě...";
 
@@ -550,11 +661,26 @@
 /* Title for the list when selecting contacts to not share with. */
 "feed.privacy.list.except.title" = "Skrýt příspěvky před…";
 
+/* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
+"feed.privacy.list.notOwn.only.description" = "Tento příspěvek si mohou zobrazit pouze lidé v seznamu oblíbených uživatele %@.";
+
 /* Settings > Privacy > Posts > Favorites privacy setting. */
-"feed.privacy.list.only" = "Sdílet pouze s...";
+"feed.privacy.list.only" = "Oblíbení";
 
 /* Header for the favorites list when editing contacts to share with. */
-"feed.privacy.list.only.details" = "Vyberte, kdo tento příspěvek uvidí";
+"feed.privacy.list.only.details" = "Kdo uvidí tento příspěvek";
+
+/* Title of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.only.title" = "Oblíbení";
+
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.own.only.description" = "Tento příspěvek mohou zobrazit pouze lidé z vašeho seznamu oblíbených.";
+
+/* Button to edit favorites */
+"feed.privacy.list.set.favorites" = "Nastavit Oblíbené";
+
+/* Description of the new Favorites functionality. */
+"feed.privacy.list.set.favorites.description" = "Nyní si můžeš vytvořit seznam svých oblíbených kontaktů a sdílet s nimi své příspěvky v aplikaci HalloApp.";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Moje kontakty";
@@ -576,6 +702,12 @@
 
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
 "feed.welcome.post.title" = "Vítá vás HalloApp, prostor pro skutečné vztahy ✨";
+
+/* Text for 'more' cell prompting users to open the invite screen */
+"feedInviteCarousel.searchPrompt" = "Vyhledávání dalších přátel a rodiny";
+
+/* Title for section of contacts to invite in feed */
+"feedInviteCarousel.title" = "HalloApp je zábava s přáteli a rodinou";
 
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Komentář";
@@ -671,7 +803,7 @@
 "group.invite.link.copied" = "Zkopírováno do schránky";
 
 /* Text to describe what the group invite link is */
-"group.invite.link.description" = "Tento odkaz může pro připojení k této skupině použít kdokoli s HalloApp.";
+"group.invite.link.description" = "Každý, kdo má aplikaci HalloApp, se může k této skupině připojit pomocí tohoto odkazu. Nebude však automaticky přijímat obsah zveřejněný před připojením ke skupině.";
 
 /* Text label above the group link section in group invite screen */
 "group.invite.link.label" = "SKUPINOVÝ ODKAZ";
@@ -696,6 +828,12 @@
 
 /* Title of group invite screen */
 "group.invite.title" = "Skupinová pozvánka";
+
+/* Title of invite sheet */
+"group.invitesheet.title" = "Sdílej tento odkaz s přáteli a rodinou a oni se budou moci automaticky připojit k této skupině HalloApp.";
+
+/* Section header describing options to share link */
+"group.invitesheet.use.link.via" = "Sdílej odkaz pomocí...";
 
 /* Label shown above group members list */
 "group.members.label" = "Členové";
@@ -797,7 +935,19 @@
 "invite.text" = "Přidejte se ke mně na HalloApp - jednoduchém, soukromém a bezpečném způsobu, jak zůstat v kontaktu s přáteli a rodinou. Získejte ji na https://halloapp.com/dl";
 
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
-"invite.text.specific" = "Ahoj %1$@, zvu tě, aby ses ke mě přidal/a na HalloApp - síť skutečných vztahů pro ty, kdo jsou mi nejbližší. Pro registraci použij %2$@. Stahuj na https://halloapp.com/dl";
+"invite.text.specific" = "Ahoj %1$@, mám pro tebe pozvánku, aby ses ke mně připojil na HalloApp - síť pro skutečné vztahy pro mé nejbližší. Pro registraci použij %2$@. Získej ji na adrese https://halloapp.com/dl";
+
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.1" = "Ahoj %@, jsem na HalloApp. Stáhni si ji taky a přidej se ke mně https://halloapp.com/install";
+
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.2" = "Ahoj %@, zůstaňme v kontaktu na HalloApp. Stáhni si ji na adrese https://halloapp.com/kit (HalloApp je nová, soukromá sociální aplikace pro blízké přátele a rodinu, bez reklam a algoritmů).";
+
+/* Version of an invitation to join HalloApp. */
+"invite.text.specific.3" = "Zvu tě k instalaci aplikace HalloApp. Ke stažení zdarma zde: https://halloapp.com/free";
+
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.4" = "Ahoj! Připoj se ke mně na HalloApp a sdílej skutečné momenty se skutečnými přáteli. Mrkni na to: https://halloapp.com/new";
 
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Pozvat přátele";
@@ -805,8 +955,17 @@
 /* Title of cell at the top of the invite screen */
 "invite.via.link" = "Pozvat přes odkaz";
 
+/* Contacts including this in their name are excluded from the invite carousel */
+"invitemanager.spam" = "spam";
+
+/* Text shown when inviting to a group using a QR code */
+"join.group.using.qr.code" = "Připoj se k mé skupině na HalloApp!";
+
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Hledat";
+
+/* Text with hyperlink to halloapp's faq on encryption. */
+"learn.more" = "Zjistit více";
 
 /* Link text to open invite flow */
 "link.invite.friend" = "Pozvat přítele";
@@ -828,6 +987,9 @@
 
 /* Button title. Refers to resetting photo / video to original version. */
 "media.button.reset" = "Obnovit";
+
+/* Button title. Refers to undoing an edit of a photo. */
+"media.button.undo" = "Zrušit";
 
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.camera.access.request" = "HalloApp nemá přístup k vašemu fotoaparátu. Pro povolení přístupu klepněte na Nastavení a zapněte Fotoaparát";
@@ -865,8 +1027,14 @@
 /* Label indicating that media was successfully saved to the camera roll */
 "media.save.saved" = "Uloženo do obsahu fotoaparátu";
 
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.annotate" = "Anotovat";
+
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Zavřít";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.draw" = "Přetáhnout";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.flip" = "Převrátit";
@@ -886,14 +1054,32 @@
 /* Message action. Verb. */
 "message.reply" = "Odpovědět";
 
+/* Text on loading screen while migrating data */
+"migration.inProgress" = "Optimalizace dat...";
+
+/* For indicating that there was an error while uploading the post. */
+"moment.uploading.failure" = "Chyba";
+
+/* For indicating that a post is uploading. */
+"moment.uploading.progress" = "Nahrávání...";
+
+/* For indicating that a post has been successfully uploaded and shared. */
+"moment.uploading.success" = "Sdíleno!";
+
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Zpráva";
 
 /* One of the contact actions in My Post screen. */
 "mypost.action.view.profile" = "Zobrazit profil";
 
+/* Message displayed to say when posts will disappear for posts shared with contacts. */
+"mypost.contacts.disappear.time.label" = "Tvůj příspěvek zmizí po 30 dnech. Tvé kontakty, které se připojí k aplikaci HalloApp, mohou vidět tvé nevypršené příspěvky.";
+
 /* Generic message displayed to say when posts will disappear. */
-"mypost.disappear.time.label" = "Vaše příspěvky zmizí za 30 dní.";
+"mypost.disappear.time.label" = "Tvůj příspěvek zmizí po 30 dnech.";
+
+/* Message displayed to say when posts will disappear for posts shared with favorites. */
+"mypost.favorites.disappear.time.label" = "Tvůj příspěvek byl sdílen s tvými oblíbenými a po 30 dnech zmizí.";
 
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
 "mypost.hide.posts.confirmation" = "Určitě si přejete skrýt veškeré vaše budoucí příspěvky před %@? Toto můžete později kdykoliv změnit.";
@@ -912,6 +1098,9 @@
 
 /* Indicates how many invites are remaining */
 "n.invites.remaining" = "n.invites.remaining";
+
+/* Summary when multiple commenters commented on the same post you commented on */
+"n.others.replied" = "n.dalších.odpovědělo";
 
 /* Displayed in place of deleted feed posts. */
 "n.posts.deleted" = "Následující počet příspěvků byl odstraněn: %@";
@@ -936,6 +1125,9 @@
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ právě přijal/a vaše pozvání přidat se na HalloApp 🎉";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment" = "Nový moment";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
@@ -964,8 +1156,20 @@
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 video";
 
+/* Missed video call notification text to be shown to the user. */
+"notification.videocall.missed" = "📹 Zmeškaný video hovor";
+
+/* Missed voice call notification text to be shown to the user. */
+"notification.voicecall.missed" = "☎️ Zmeškaný hlasový hovor";
+
 /* New post notification text when post is a voice note. */
-"notification.voicenote" = "🎤 Hlasová poznámka";
+"notification.voicecomment" = "🎤 Audio komentář";
+
+/* New post notification text when post is a voice note. */
+"notification.voicenote" = "🎤 Audio poznámka";
+
+/* New post notification text when post is a voice note. */
+"notification.voicepost" = "🎤 Audio příspěvek";
 
 /* Text for new user popup pointing at activity center icon */
 "nux.activity.center.icon" = "Hallo!";
@@ -987,6 +1191,12 @@
 
 /* Text for new user popup pointing at new post button */
 "nux.new.post.button" = "Klepněte a sdílejte aktualizaci s přáteli a rodinou na HalloApp";
+
+/* Title of the button that opens the camera. */
+"open.camera" = "Otevřít kameru";
+
+/* Text that indicates an open action. */
+"open.title" = "Otevřít";
 
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "Povolte prosím přístup v Nastavení";
@@ -1048,6 +1258,12 @@
 /* Generic setting value telling how many contacts are blocked or muted. */
 "privacy.n.contacts" = "privacy.n.contacts";
 
+/* Error banner displayed when there is a failure syncing preivacy settings, displayed on the privacy view */
+"privacy.sync.failure" = "Nepodařilo se synchronizovat nastavení soukromí. Zkus to prosím později.";
+
+/* Placeholder text for the text field for private replies. The argument is the first name of the contact. */
+"private.reply.placeholder" = "Odpovědět uživateli %@";
+
 /* Title for the button allowing to delete current profile photo. */
 "profile.delete.photo" = "Smazat fotku";
 
@@ -1055,13 +1271,16 @@
 "profile.groups.in.common" = "Společné skupiny";
 
 /* This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun. */
-"profile.header.call.user" = "volat";
+"profile.header.call.user" = "hlas";
 
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
 "profile.header.message.user" = "zpráva";
 
 /* Text for unblocking user under profile header */
 "profile.header.unblock.user" = "Odblokovat";
+
+/* This is a verb.  The text is clickable, under a contact name and starts a video call with that contact. It should not be translated as a noun. */
+"profile.header.video.call.user" = "video";
 
 /* Item in Profile > Calls screen. */
 "profile.help.calls" = "Hovory";
@@ -1110,6 +1329,9 @@
 
 /* Title for the screen allowing to edit profile name */
 "profile.title.your.name" = "Tvoje jméno";
+
+/* Title for the button allowing the user to view their own profile photo. */
+"profile.view.photo" = "Zobrazit fotku";
 
 /* Disclaimer text about receiving SMS verification code */
 "registration.code.disclaimer" = "Obdržíš ověřovací kód.\nMohou být uplatněny sazby telefonního operátora.";
@@ -1189,8 +1411,20 @@
 /* Message to show when safety number is succesfully verified */
 "safety.number.verified" = "Úspěšně ověřeno bezpečnostní číslo pro %@!";
 
+/* Text shown to instruct using a QR code for joining a group */
+"scan.to.join.group.using.qr.code" = "Chceš-li se připojit, naskenuj tento QR kód pomocí fotoaparátu v telefonu.";
+
+/* Text placed on the blurred overlay of a secret post. */
+"secret.post.entice" = "%@ sdílel/a moment";
+
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Vyberte alespoň jeden kontakt.";
+
+/* Indicates that an item is in the process of being sent. */
+"sending.title" = "Odesílání";
+
+/* Indicates that an item has successfully been sent. */
+"sent.title" = "Odesláno";
 
 /* body of the marketing alert sent to users */
 "server.marketing.body" = "Pozvěte přátele do aplikace HalloApp!";
@@ -1292,7 +1526,7 @@
 "settings.account.export.navbar" = "Export dat";
 
 /* Label for when the date at which the exported user data will be available is not determined. */
-"settings.account.export.not.found" = "Datum připravenosti nebylo možné stanovit.";
+"settings.account.export.not.found" = "Datum, kdy budou tvoje data k dispozici, nebylo možné určit.";
 
 /* Button to open the user data exported from HalloApp. */
 "settings.account.export.open.data" = "Otevřít exportovaná data";
@@ -1336,6 +1570,12 @@
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Připojte se k mé síti skutečných vztahů v aplikaci HalloApp. Můžete si ji stáhnout zdarma na adrese halloapp.com/dl";
 
+/* Alert that tells the user to allow camera access to share a moment. */
+"share.moment.camera.permission" = "Povolit přístup ke kameře pro sdílení momentu";
+
+/* Prompt for the user to share a moment. */
+"share.moment.prompt" = "Sdílet moment";
+
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "klepnutím se vrátíte k hovoru";
 
@@ -1356,6 +1596,18 @@
 
 /* Link to expand truncated text. */
 "textlabel.more" = "...více";
+
+/* Same as profile.header.call.user, but capitalized */
+"textview.context.menu.audio.call.user" = "Hlasový hovor";
+
+/* Same as profile.header.message.user, but capitalized */
+"textview.context.menu.message.user" = "Zpráva";
+
+/* Same as profile.header.call.user, but capitalized */
+"textview.context.menu.video.call.user" = "Video hovor";
+
+/* Link to expand truncated text. */
+"textview.more" = "více";
 
 /* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
 "thread.list.preview.already.user.default" = "%@ je na HalloApp";
@@ -1402,6 +1654,9 @@
 /* Title for the picker screen. */
 "title.comments.picker" = "Nový komentář";
 
+/* Button to edit favorites list */
+"title.edit.favorites" = "Upravit seznam Oblíbených";
+
 /* Second tab in the main app interface. */
 "title.groups" = "Skupiny";
 
@@ -1413,6 +1668,9 @@
 
 /* Row in Settings screen */
 "title.privacy" = "Soukromí";
+
+/* Title of screen where user can add members during group creation flow */
+"title.select.group.members.create.title" = "Přidat členy";
 
 /* Title of screen where user chooses members to add to either a new group or an existing one */
 "title.select.group.members.title" = "Přidání nových členů";
@@ -1440,6 +1698,12 @@
 
 /* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
 "unknown.contact.not.in.contact.book" = "Tento odesílatel není ve vašem seznamu kontaktů.";
+
+/* Text that indicates the unlock action for a moment. */
+"unlock.title" = "Odemknout";
+
+/* Alert appearing after clicking an external share link that failed to load */
+"urlrouter.externalShare.failed" = "Nepodařilo se načíst příspěvek";
 
 /* Button to confirm blocking user via profile page */
 "user.block" = "Blokovat";
@@ -1479,4 +1743,34 @@
 
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "Smazat tento příspěvek? Tuto akci nelze vrátit zpět.";
+
+/* Displayed when a post fails to delete */
+"your.post.deletepost.error" = "Chyba při mazání příspěvku";
+
+/* Success toast when external share link is copied */
+"your.post.externalshare.copylink.success" = "Zkopírováno do schránky";
+
+/* Message on header of post menu explaining external share */
+"your.post.externalshare.description2" = "Každý, kdo má přístup k odkazu, si může prohlédnout tvůj příspěvek. Platnost odkazu končí spolu s tvým příspěvkem. Náhled odkazu není šifrovaný.";
+
+/* Message that external share failed. */
+"your.post.externalshare.error" = "Nepodařilo se nahrát příspěvek pro externí sdílení";
+
+/* Button to invalidate an external share link */
+"your.post.externalshare.revoke" = "Odvolat odkaz";
+
+/* Message that revoking external share link failed. */
+"your.post.externalshare.revoke.error" = "Nepodařilo se odvolat odkaz na externí sdílení";
+
+/* Notification that a link was successfully revoked */
+"your.post.externalshare.revoke.success" = "Odkza odvolán";
+
+/* Notification revoking an external share link is in progress */
+"your.post.externalshare.revoking" = "Odvolávání odkazu...";
+
+/* Text introducing external share link, part of what is shared */
+"your.post.externalshare.title" = "Mrkni na můj příspěvek na HalloApp:";
+
+/* Notification that post is uploading */
+"your.post.externalshare.uploading" = "Vytváření odkazu...";
 

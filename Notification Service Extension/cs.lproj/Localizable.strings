@@ -19,6 +19,9 @@
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Pokračovat";
 
+/* Title for generic copy URL button */
+"button.copy.link" = "Kopírovat odkaz";
+
 /* Title for generic Create button */
 "button.create" = "Vytvořit";
 
@@ -85,6 +88,27 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Sdílet pouze s vybranými kontakty";
 
+/* Button to dismiss edit favorites modal */
+"feed.privacy.list.dismiss.edit.favorites" = "Teď ne";
+
+/* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
+"feed.privacy.list.notOwn.only.description" = "Tento příspěvek si mohou zobrazit pouze lidé v seznamu oblíbených uživatele %@.";
+
+/* Header for the favorites list when editing contacts to share with. */
+"feed.privacy.list.only.details" = "Kdo uvidí tento příspěvek";
+
+/* Title of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.only.title" = "Oblíbení";
+
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.own.only.description" = "Tento příspěvek mohou zobrazit pouze lidé z vašeho seznamu oblíbených.";
+
+/* Button to edit favorites */
+"feed.privacy.list.set.favorites" = "Nastavit Oblíbené";
+
+/* Description of the new Favorites functionality. */
+"feed.privacy.list.set.favorites.description" = "Nyní si můžeš vytvořit seznam svých oblíbených kontaktů a sdílet s nimi své příspěvky v aplikaci HalloApp.";
+
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Byli jste přidáni do nové skupiny";
 
@@ -111,6 +135,9 @@
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ právě přijal(a) tvoji pozvánku přidat se na HalloApp 🎉";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment" = "Nový moment";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "oznámení.n.fotky";
@@ -139,11 +166,26 @@
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 video";
 
+/* Missed video call notification text to be shown to the user. */
+"notification.videocall.missed" = "📹 Zmeškaný video hovor";
+
+/* Missed voice call notification text to be shown to the user. */
+"notification.voicecall.missed" = "☎️ Zmeškaný hlasový hovor";
+
 /* New post notification text when post is a voice note. */
-"notification.voicenote" = "🎤 Hlasová poznámka";
+"notification.voicecomment" = "🎤 Audio komentář";
+
+/* New post notification text when post is a voice note. */
+"notification.voicenote" = "🎤 Audio poznámka";
+
+/* New post notification text when post is a voice note. */
+"notification.voicepost" = "🎤 Audio příspěvek";
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Připojte se k mé síti skutečných vztahů v aplikaci HalloApp. Můžete si ji stáhnout zdarma na adrese halloapp.com/dl";
+
+/* Button to edit favorites list */
+"title.edit.favorites" = "Upravit seznam Oblíbených";
 
 /* Row in Settings screen */
 "title.privacy" = "Soukromí";

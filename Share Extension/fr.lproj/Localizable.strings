@@ -124,10 +124,6 @@
 /* Groups category label */
 "share.destination.groups" = "Tes groupes";
 
-/* Share on the home feed label with all my contacts
-   Share to all contacts */
-"share.destination.home" = "Accueil";
-
 /* Share on the home feed selection cell */
 "share.destination.new" = "Nouvelle publication";
 

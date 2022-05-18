@@ -5,7 +5,7 @@
 "NSCameraUsageDescription" = "Toto ti umožní pořizovat fotky a videa přímo z HalloApp.";
 
 /* Privacy - Contacts Usage Description */
-"NSContactsUsageDescription" = "Nahraj své kontakty na servery HalloApp, abys viděl(a) příspěvky svých přátel a umožnil(a) jim vidět ty tvoje.";
+"NSContactsUsageDescription" = "Povol aplikaci HalloApp přístup ke svým kontaktům, abys mohl/a sdílet a prohlížet příspěvky svých přátel a rodiny.";
 
 /* Privacy - Microphone Usage Description */
 "NSMicrophoneUsageDescription" = "Můžete tak volat, posílat zvukové příspěvky a zprávy a nahrávat videa se zvukem.";

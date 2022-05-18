@@ -154,9 +154,6 @@
 /* Status displayed while call is connecting */
 "call.status.connecting" = "connexion...";
 
-/* Status displayed when call fails. */
-"call.status.failed" = "échec";
-
 /* Status displayed when incoming call starts */
 "call.status.incoming" = "appel entrant";
 
@@ -282,9 +279,6 @@
 
 /* Message text shown in a message that have photo media but no text */
 "chat.message.photo" = "Photo";
-
-/* Text shown when content input text field is empty for chat screens. */
-"chat.message.placeholder" = "Rédiger un message";
 
 /* Text shown in place of a received message we are not able to process yet. */
 "chat.message.unsupported" = "Ta version de HalloApp ne prend pas en charge ce type de message.";
@@ -550,12 +544,6 @@
 /* Title for the list when selecting contacts to not share with. */
 "feed.privacy.list.except.title" = "Masquer les publications pour...";
 
-/* Settings > Privacy > Posts > Favorites privacy setting. */
-"feed.privacy.list.only" = "Partagez uniquement avec...";
-
-/* Header for the favorites list when editing contacts to share with. */
-"feed.privacy.list.only.details" = "Choisis ceux qui verront cette publication";
-
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Mes contacts";
 
@@ -669,9 +657,6 @@
 
 /* Text shown when link is copied */
 "group.invite.link.copied" = "Copié dans le presse-papiers";
-
-/* Text to describe what the group invite link is */
-"group.invite.link.description" = "Toute personne ayant HalloApp peut suivre ce lien pour rejoindre ce groupe.";
 
 /* Text label above the group link section in group invite screen */
 "group.invite.link.label" = "LIEN DU GROUPE";
@@ -796,9 +781,6 @@
 /* Text of invitation to join HalloApp. */
 "invite.text" = "Rejoignez-moi sur HalloApp – un moyen simple, confidentiel et sécurisé vous permettant de rester en contact avec vos amis et votre famille. Téléchargez sur https://halloapp.com/dl";
 
-/* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
-"invite.text.specific" = "Bonjour %1$@, j'ai une invitation pour que tu me rejoignes sur HalloApp – un réseau de relations authentiques pour tous mes proches. Utilise %2$@ pour t'inscrire. Télécharge l'appli sur https://halloapp.com/dl";
-
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Inviter des amis";
 
@@ -892,9 +874,6 @@
 /* One of the contact actions in My Post screen. */
 "mypost.action.view.profile" = "Consulter le profil";
 
-/* Generic message displayed to say when posts will disappear. */
-"mypost.disappear.time.label" = "Tes publications disparaîtront après 30 jours.";
-
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
 "mypost.hide.posts.confirmation" = "Êtes-vous sûr de vouloir masquer toutes vos futures publications de %@ ? Vous pouvez à tout moment modifier votre choix.";
 
@@ -963,9 +942,6 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 vidéo";
-
-/* New post notification text when post is a voice note. */
-"notification.voicenote" = "message vocale";
 
 /* Text for new user popup pointing at activity center icon */
 "nux.activity.center.icon" = "Hallo !";
@@ -1053,9 +1029,6 @@
 
 /* A label for the button which leads to the page showing groups in common */
 "profile.groups.in.common" = "Groupes en commun";
-
-/* This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun. */
-"profile.header.call.user" = "appeler";
 
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
 "profile.header.message.user" = "message";
@@ -1290,9 +1263,6 @@
 
 /* Navigation bar title informing the user that this page lets them export their user data. */
 "settings.account.export.navbar" = "Exporter les données";
-
-/* Label for when the date at which the exported user data will be available is not determined. */
-"settings.account.export.not.found" = "La date de disponibilité n'a pas pu être établie.";
 
 /* Button to open the user data exported from HalloApp. */
 "settings.account.export.open.data" = "Ouvrir les données exportées";

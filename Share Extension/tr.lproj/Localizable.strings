@@ -85,6 +85,9 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Yalnızca seçilen kişilerle paylaş";
 
+/* Button to dismiss edit favorites modal */
+"feed.privacy.list.dismiss.edit.favorites" = "Şimdi değil";
+
 /* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
 "feed.privacy.list.notOwn.only.description" = "Yalnızca %@ kişisinin Yakınlar listesindekiler bu gönderiyi görebilir.";
 
