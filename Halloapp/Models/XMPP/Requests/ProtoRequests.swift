@@ -510,6 +510,7 @@ extension Server_PushPref.Name {
 extension Server_GroupStanza.Action {
     init(_ groupAction: ChatGroupAction) {
         switch groupAction {
+        case .get: self = .get
         case .create: self = .create
         case .join: self = .join
         case .leave: self = .leave

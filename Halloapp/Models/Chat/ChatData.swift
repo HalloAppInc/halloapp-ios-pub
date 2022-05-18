@@ -4697,6 +4697,9 @@ extension ChatData {
             processGroupChangeAvatarAction(xmppGroup: xmppGroup, in: managedObjectContext)
         case .setBackground:
             processGroupSetBackgroundAction(xmppGroup: xmppGroup, in: managedObjectContext)
+        case .get:
+            // Sync group if we get a message from the server.
+            syncGroup(xmppGroup)
         default: break
         }
 

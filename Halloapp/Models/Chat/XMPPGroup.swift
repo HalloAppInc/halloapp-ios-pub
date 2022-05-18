@@ -43,7 +43,7 @@ struct XMPPGroup {
     private(set) var messageId: String? = nil
     private(set) var sender: UserID? = nil
     private(set) var senderName: String? = nil
-    private(set) var action: ChatGroupAction? = nil // getGroupInfo has no action
+    private(set) var action: ChatGroupAction? = nil
     private(set) var members: [XMPPGroupMember]? = nil
     private(set) var audienceHash: Data? = nil
 
@@ -76,7 +76,7 @@ struct XMPPGroup {
         self.action = {
             switch protoGroup.action {
             case .set: return nil
-            case .get: return nil
+            case .get: return .get
             case .create: return .create
             case .delete: return nil
             case .leave: return .leave

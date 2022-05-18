@@ -19,6 +19,7 @@ public enum GroupAction: String {
     case setBackground = "set_background"
     case modifyMembers = "modify_members"
     case modifyAdmins = "modify_admins"
+    case get = "get"
 }
 
 public enum GroupMemberType: Int {
