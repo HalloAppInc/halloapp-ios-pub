@@ -131,13 +131,6 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         setupFetchedResultsController()
         reloadData(animated: false)
 
-        // When the user was on this view
-        cancellableSet.insert(
-            MainAppContext.shared.didTapNotification.sink { [weak self] (metadata) in
-                guard let self = self else { return }
-                self.processNotification(metadata: metadata)
-            }
-        )
         cancellableSet.insert(
             MainAppContext.shared.chatData.didGetAGroupEvent.sink { [weak self] (groupId) in
                 guard let self = self else { return }
@@ -149,11 +142,6 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
                     }
                 }
         })
-
-        // When the user was not on this view, and HomeView sends user to here
-        if let metadata = NotificationMetadata.fromUserDefaults() {
-            processNotification(metadata: metadata)
-        }
 
         cancellableSet.insert(
             MainAppContext.shared.groupFeedFromGroupTabPresentRequest.sink { [weak self] (groupID) in
@@ -412,55 +400,6 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         return tableView.contentOffset.y < fromTop
     }
 
-    // MARK: Tap Notification
-    
-    private func processNotification(metadata: NotificationMetadata) {
-        guard metadata.isGroupNotification else {
-            return
-        }
-        
-        // If the user tapped on a notification, move to group feed
-        DDLogDebug("GroupsListViewController/processNotification/open group feed [\(metadata.groupId ?? "")], contentType: \(metadata.contentType)")
-
-        navigationController?.popToRootViewController(animated: false)
-        
-        switch metadata.contentType {
-        case .groupFeedPost, .groupFeedComment:
-            if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
-                if let vc = GroupFeedViewController(metadata: metadata) {
-                    vc.delegate = self
-                    self.navigationController?.pushViewController(vc, animated: false)
-                } else {
-                    let vc = GroupFeedViewController(groupId: groupId)
-                    vc.delegate = self
-                    self.navigationController?.pushViewController(vc, animated: false)
-                }
-            }
-            break
-        case .groupAdd:
-            if let groupId = metadata.groupId {
-                if let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
-                    openFeed(forGroupId: groupId)
-                } else {
-                    // for offline groupAdd notifications, the app needs some time to get and create the new group when the user
-                    // taps on the notification so we just wait for the group event here.
-                    DispatchQueue.main.async{
-                        self.groupIdToPresent = groupId
-                    }
-                }
-            }
-            metadata.removeFromUserDefaults()
-            break
-        case .groupChatMessage:
-            metadata.removeFromUserDefaults()
-            break
-        default:
-            break
-        }
-        
-//        metadata.removeFromUserDefaults()
-    }
-
     private func openFeed(forGroupId groupId: GroupID) {
         let vc = GroupFeedViewController(groupId: groupId)
         vc.delegate = self
@@ -489,6 +428,53 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         viewControllers.append(GroupFeedViewController(groupId: groupId, shouldShowInviteSheet: true))
 
         navigationController.setViewControllers(viewControllers, animated: true)
+    }
+}
+
+extension GroupsListViewController: UIViewControllerHandleTapNotification {
+    // MARK: Tap Notification
+
+    func processNotification(metadata: NotificationMetadata) {
+        guard metadata.isGroupNotification else {
+            return
+        }
+
+        metadata.removeFromUserDefaults()
+        // If the user tapped on a notification, move to group feed
+        DDLogDebug("GroupsListViewController/processNotification/open group feed [\(metadata.groupId ?? "")], contentType: \(metadata.contentType)")
+
+        navigationController?.popToRootViewController(animated: false)
+
+        switch metadata.contentType {
+        case .groupFeedPost, .groupFeedComment:
+            if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
+                if let vc = GroupFeedViewController(metadata: metadata) {
+                    vc.delegate = self
+                    self.navigationController?.pushViewController(vc, animated: false)
+                } else {
+                    let vc = GroupFeedViewController(groupId: groupId)
+                    vc.delegate = self
+                    self.navigationController?.pushViewController(vc, animated: false)
+                }
+            }
+            break
+        case .groupAdd:
+            if let groupId = metadata.groupId {
+                if let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
+                    openFeed(forGroupId: groupId)
+                } else {
+                    // for offline groupAdd notifications, the app needs some time to get and create the new group when the user
+                    // taps on the notification so we just wait for the group event here.
+                    DispatchQueue.main.async{
+                        self.groupIdToPresent = groupId
+                    }
+                }
+            }
+        case .groupChatMessage:
+            break
+        default:
+            break
+        }
     }
 }
 

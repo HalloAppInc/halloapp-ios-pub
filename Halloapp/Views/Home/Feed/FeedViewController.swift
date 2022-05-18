@@ -68,26 +68,12 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
             })
         }
 
-        cancellables.insert(
-            MainAppContext.shared.didTapNotification.sink { [weak self] (metadata) in
-                guard let self = self else { return }
-                self.processNotification(metadata: metadata)
-        })
-
         cancellables.insert(MainAppContext.shared.callManager.isAnyCallOngoing.sink(receiveValue: { [weak self] activeCall in
             let hasActiveCall = activeCall != nil
             let isVideoCallOngoing = activeCall?.isVideoCall ?? false
             self?.composeVoiceNoteButton?.button.isEnabled = !hasActiveCall
             self?.composeCamPostButton?.button.isEnabled = !isVideoCallOngoing
         }))
-
-        // When the user was not on this view, and HomeView sends user to here
-        if let metadata = NotificationMetadata.fromUserDefaults()  {
-            // dispatch_async is needed because collection view isn't ready to scroll to a given item at this point.
-            DispatchQueue.main.async {
-                self.processNotification(metadata: metadata)
-            }
-        }
         
         // needed for presenting the FAB while the call bar is active
         navigationController?.definesPresentationContext = false
@@ -119,7 +105,7 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-
+        DDLogInfo("FeedViewController/viewWillAppear")
         for cell in self.collectionView.visibleCells {
             if let promptCell = cell as? MomentPromptCollectionViewCell {
                 promptCell.promptView.startSession()
@@ -541,8 +527,10 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         notificationButton?.isBadgeHidden = unreadCount == 0
         showNUXIfNecessary()
     }
+}
 
-    private func processNotification(metadata: NotificationMetadata) {
+extension FeedViewController: UIViewControllerHandleTapNotification {
+    func processNotification(metadata: NotificationMetadata) {
         guard metadata.isFeedNotification else {
             return
         }

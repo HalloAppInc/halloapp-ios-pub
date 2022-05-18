@@ -237,7 +237,7 @@ class MainAppContext: AppContext {
     }
 
     private func migrateFeedPostLastUpdatedIfNecessary() {
-        let key = "migration.feedpostlastupdated.complete"
+        let key = "migration.feedpostlastupdated.complete.2"
         if !userDefaults.bool(forKey: key) {
             feedData.migrateFeedPostLastUpdated()
             userDefaults.set(true, forKey: key)

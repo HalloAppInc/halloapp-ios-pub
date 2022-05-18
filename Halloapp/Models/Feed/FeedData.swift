@@ -1031,6 +1031,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.groupId = groupID
             feedPost.rawText = xmppPost.text
             feedPost.timestamp = xmppPost.timestamp
+            feedPost.lastUpdated = xmppPost.timestamp
              // This is safe to always update as we skip processing any existing posts if fromExternalShare
             feedPost.fromExternalShare = fromExternalShare
             if case .moment = xmppPost.content {
@@ -4699,6 +4700,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             }()
             feedPost.timestamp = post.timestamp
+            feedPost.lastUpdated = post.timestamp
             if let rawData = post.rawData {
                 feedPost.rawData = rawData
                 feedPost.status = .unsupported
@@ -4940,7 +4942,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
         }()
         feedComment.timestamp = sharedComment.timestamp
-        feedPost.lastUpdated = feedPost.lastUpdated.flatMap { max($0, feedComment.timestamp) } ?? feedComment.timestamp
         // Clear cached media if any.
         cachedMedia[commentId] = nil
 

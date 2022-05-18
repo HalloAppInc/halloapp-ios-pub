@@ -58,8 +58,14 @@ final class FeedDataSource: NSObject {
 
     func index(of feedPostID: FeedPostID) -> Int? {
         return displayItems.firstIndex(where: {
-            guard case .post(let post) = $0 else { return false }
-            return post.id == feedPostID
+            switch $0 {
+            case .moment(let post):
+                return post.id == feedPostID
+            case .post(let post):
+                return post.id == feedPostID
+            case .event, .groupWelcome, .inviteCarousel, .momentPrompt, .welcome:
+                return false
+            }
         })
     }
 

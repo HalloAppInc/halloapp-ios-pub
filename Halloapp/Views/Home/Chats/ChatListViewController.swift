@@ -183,14 +183,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
             }
         )
 
-        // When the user was on this view
-        cancellableSet.insert(
-            MainAppContext.shared.didTapNotification.sink { [weak self] (metadata) in
-                guard let self = self else { return }
-                self.processNotification(metadata: metadata)
-            }
-        )
-
         cancellableSet.insert(
             MainAppContext.shared.didTapIntent.sink(receiveValue: { [weak self] intent in
                 guard let intent = intent as? INSendMessageIntent else { return }
@@ -210,11 +202,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
                 }
             })
         )
-        
-        // When the user was not on this view, and HomeView sends user to here
-        if let metadata = NotificationMetadata.fromUserDefaults() {
-            processNotification(metadata: metadata)
-        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -482,10 +469,12 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
         cell.configureTypingIndicator(typingIndicatorStr)
     }
-   
+}
+
+extension ChatListViewController: UIViewControllerHandleTapNotification {
     // MARK: Tap Notification
-    
-    private func processNotification(metadata: NotificationMetadata) {
+
+    func processNotification(metadata: NotificationMetadata) {
         // If the user tapped on the chat notification or inviter/friend notification - show the chat screen.
         guard metadata.isChatNotification || metadata.isContactNotification else {
             return
@@ -513,7 +502,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
             self.navigationController?.pushViewController(vc, animated: animated)
         }
     }
-
 }
 
 extension ChatListViewController: UIViewControllerScrollsToTop {

@@ -34,6 +34,11 @@ class HomeViewController: UITabBarController {
         self.commonSetup()
     }
 
+    private var feedController: UIViewController?
+    private var groupsController: UIViewController?
+    private var chatsController: UIViewController?
+    private var profileController: UIViewController?
+
     private func commonSetup() {
         self.delegate = self
 
@@ -60,12 +65,21 @@ class HomeViewController: UITabBarController {
         tabBar.tintColor = .primaryBlue
 
         updateTabBarBackgroundEffect()
-        
+
+        let feedNavController = feedNavigationController()
+        feedController = feedNavController
+        let groupsNavController = groupsNavigationController()
+        groupsController = groupsNavController
+        let chatsNavController = chatsNavigationController()
+        chatsController = chatsNavController
+        let profileNavController = profileNavigationController()
+        profileController = profileNavController
+
         tabBarViewControllers = [
-            feedNavigationController(),
-            groupsNavigationController(),
-            chatsNavigationController(),
-            profileNavigationController()
+            feedNavController,
+            groupsNavController,
+            chatsNavController,
+            profileNavController
         ]
         
         setViewControllers(tabBarViewControllers, animated: false)
@@ -286,10 +300,14 @@ class HomeViewController: UITabBarController {
     }
 
     private func processNotification(metadata: NotificationMetadata) {
-        if let selected = selectedViewController {
-            selected.dismiss(animated: false)
+        let oldSelectedIndex = selectedIndex
+        if let selected = selectedViewController, selected.presentedViewController != nil {
+            selected.dismiss(animated: false) {
+                self.processNotification(metadata: metadata)
+            }
+            return
         }
-        
+
         if metadata.isFeedNotification {
             selectedIndex = 0
         } else if metadata.isGroupAddNotification {
@@ -320,7 +338,8 @@ class HomeViewController: UITabBarController {
                 }
             }
         }
-        DDLogDebug("HomeViewController/processNotification/selectedIndex: \(selectedIndex)")
+        DDLogDebug("HomeViewController/processNotification/selectedIndex: \(selectedIndex)/oldSelectedIndex: \(oldSelectedIndex)")
+        ((selectedViewController as? UINavigationController)?.children.first as? UIViewControllerHandleTapNotification)?.processNotification(metadata: metadata)
     }
     
     private func presentGroupPreviewIfNeeded() {
