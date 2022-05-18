@@ -22,7 +22,7 @@ class QuotedMomentView: UIView {
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = .black.withAlphaComponent(0.75)
         view.layer.masksToBounds = true
-        view.layer.cornerRadius = Self.imageCornerRadius
+        view.layer.cornerRadius = QuotedMomentView.imageCornerRadius
         view.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 26, weight: .regular)
         view.tintColor = .white.withAlphaComponent(0.9)
         return view
