@@ -538,6 +538,9 @@ extension FeedViewController: UIViewControllerHandleTapNotification {
         metadata.removeFromUserDefaults()
         DDLogInfo("FeedViewController/notification/process type=\(metadata.contentType) contentId=\(metadata.contentId)")
 
+        // We still need to pop any view controllers on top of feedViewController if any.
+        self.navigationController?.popToRootViewController(animated: false)
+
         switch metadata.contentType {
         case .feedComment, .groupFeedComment:
             guard let commentData = metadata.commentData() else {
