@@ -94,11 +94,15 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         var rightBarButtons: [UIBarButtonItem] = []
         if ServerProperties.isAudioCallsEnabled {
             let image = UIImage(systemName: "phone.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))
-            rightBarButtons.append(UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(audioCallButtonTapped)))
+            let phoneButton = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(audioCallButtonTapped))
+            phoneButton.tintColor = .primaryBlue
+            rightBarButtons.append(phoneButton)
         }
         if ServerProperties.isVideoCallsEnabled {
             let image = UIImage(systemName: "video.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))
-            rightBarButtons.append(UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(videoCallButtonTapped)))
+            let videoButton = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(videoCallButtonTapped))
+            videoButton.tintColor = .primaryBlue
+            rightBarButtons.append(videoButton)
         }
         navigationItem.rightBarButtonItems = rightBarButtons
         checkAndUpdateCallButtons()
