@@ -865,12 +865,18 @@ final class FeedItemFooterView: UIView {
         shareButton.translatesAutoresizingMaskIntoConstraints = false
         addSubview(shareButton)
 
+        let shareButtonCenterXConstraint = shareButton.centerXAnchor.constraint(equalTo: centerXAnchor)
+        shareButtonCenterXConstraint.priority = .defaultLow
+
         NSLayoutConstraint.activate([
             facePileView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
             facePileView.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 3),
 
-            shareButton.trailingAnchor.constraint(equalTo: facePileView.leadingAnchor, constant: -32),
-            shareButton.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 2),
+            shareButton.topAnchor.constraint(equalTo: topAnchor),
+            shareButton.bottomAnchor.constraint(equalTo: bottomAnchor),
+            shareButtonCenterXConstraint,
+            shareButton.leadingAnchor.constraint(greaterThanOrEqualTo: commentButton.trailingAnchor, constant: 4),
+            shareButton.trailingAnchor.constraint(lessThanOrEqualTo: facePileView.leadingAnchor, constant: -24),
         ])
     }
 
