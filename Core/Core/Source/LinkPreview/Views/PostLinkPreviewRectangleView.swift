@@ -28,6 +28,7 @@ class PostLinkPreviewRectangleView: UIView {
         let titleLabel = UILabel()
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.numberOfLines = 2
+        titleLabel.textColor = .black
         titleLabel.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
         return titleLabel
     }()
@@ -35,7 +36,7 @@ class PostLinkPreviewRectangleView: UIView {
     private lazy var linkImageView: UIView = {
         let image = UIImage(named: "LinkIcon")?.withRenderingMode(.alwaysTemplate)
         let imageView = UIImageView(image: image)
-        imageView.tintColor = UIColor.label.withAlphaComponent(0.5)
+        imageView.tintColor = UIColor.black.withAlphaComponent(0.5)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
@@ -44,7 +45,7 @@ class PostLinkPreviewRectangleView: UIView {
         let urlLabel = UILabel()
         urlLabel.translatesAutoresizingMaskIntoConstraints = false
         urlLabel.font = UIFont.preferredFont(forTextStyle: .footnote)
-        urlLabel.textColor = .secondaryLabel
+        urlLabel.textColor = .black.withAlphaComponent(0.5)
         urlLabel.textAlignment = .natural
         urlLabel.numberOfLines = 1
         return urlLabel
@@ -71,10 +72,11 @@ class PostLinkPreviewRectangleView: UIView {
     }()
 
     public func configure(url: URL, title: String, previewImage: UIImage?) {
-        showPlaceholderImage()
         let contentView = UIStackView()
         contentView.axis = .vertical
         contentView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.backgroundColor = .linkPreviewPostSquareBackground
+        contentView.isLayoutMarginsRelativeArrangement = false
         
         addSubview(contentView)
         urlLabel.text = url.host

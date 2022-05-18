@@ -13,20 +13,10 @@ class PostLinkPreviewSquareView: UIView {
 
     public var imageLoadingCancellable: AnyCancellable?
 
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-    }
-
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-    }
-
     private lazy var previewImageView: UIImageView = {
         let previewImageView = UIImageView()
         previewImageView.translatesAutoresizingMaskIntoConstraints = false
         previewImageView.clipsToBounds = true
-        previewImageView.setContentHuggingPriority(UILayoutPriority(1), for: .vertical)
-        previewImageView.setContentCompressionResistancePriority(UILayoutPriority(1), for: .vertical)
         previewImageView.tintColor = .systemGray3
         previewImageView.contentMode = .scaleAspectFill
         return previewImageView
@@ -36,6 +26,7 @@ class PostLinkPreviewSquareView: UIView {
         let titleLabel = UILabel()
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.numberOfLines = 2
+        titleLabel.textColor = .black
         titleLabel.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
         return titleLabel
     }()
@@ -44,7 +35,7 @@ class PostLinkPreviewSquareView: UIView {
         let urlLabel = UILabel()
         urlLabel.translatesAutoresizingMaskIntoConstraints = false
         urlLabel.font = UIFont.preferredFont(forTextStyle: .footnote)
-        urlLabel.textColor = .secondaryLabel
+        urlLabel.textColor = .black.withAlphaComponent(0.5)
         urlLabel.textAlignment = .natural
         urlLabel.numberOfLines = 5
         return urlLabel
@@ -53,7 +44,7 @@ class PostLinkPreviewSquareView: UIView {
     private lazy var linkImageView: UIView = {
         let image = UIImage(named: "LinkIcon")?.withRenderingMode(.alwaysTemplate)
         let imageView = UIImageView(image: image)
-        imageView.tintColor = UIColor.label.withAlphaComponent(0.5)
+        imageView.tintColor = UIColor.black.withAlphaComponent(0.5)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
@@ -62,30 +53,22 @@ class PostLinkPreviewSquareView: UIView {
         let urlLabel = UILabel()
         urlLabel.translatesAutoresizingMaskIntoConstraints = false
         urlLabel.font = UIFont.preferredFont(forTextStyle: .footnote)
-        urlLabel.textColor = .secondaryLabel
+        urlLabel.textColor = .black.withAlphaComponent(0.5)
         urlLabel.textAlignment = .natural
         urlLabel.numberOfLines = 1
         return urlLabel
     }()
 
-    private var linkPreviewLinkStack: UIStackView {
-        let linkStack = UIStackView(arrangedSubviews: [ linkImageView, urlLabel ])
+    private lazy var linkPreviewLinkStack: UIStackView = {
+        let linkStack = UIStackView(arrangedSubviews: [ linkImageView, urlLabel, UIView() ])
         linkStack.translatesAutoresizingMaskIntoConstraints = false
         linkStack.spacing = 2
         linkStack.alignment = .center
         linkStack.axis = .horizontal
+        linkStack.isLayoutMarginsRelativeArrangement = true
+        linkStack.layoutMargins = UIEdgeInsets(top: 11, left: 20, bottom: 12, right: 20)
+        linkStack.backgroundColor = .linkPreviewPostSquareBackground
         return linkStack
-    }
-    
-    private lazy var titleUrlStack: UIStackView = {
-        let urlStack = UIStackView(arrangedSubviews: [ linkPreviewLinkStack ])
-        urlStack.translatesAutoresizingMaskIntoConstraints = false
-        urlStack.alignment = .leading
-        urlStack.axis = .vertical
-        urlStack.spacing = 2
-        urlStack.layoutMargins = UIEdgeInsets(top: 10, left: 20, bottom: 10, right: 20)
-        urlStack.isLayoutMarginsRelativeArrangement = true
-        return urlStack
     }()
 
     private lazy var titleDescriptionStack: UIStackView = {
@@ -99,30 +82,14 @@ class PostLinkPreviewSquareView: UIView {
         return urlStack
     }()
     
-    private lazy var imageTitleDescriptionView: UIView = {
-        let imageTitleDescriptionView = UIView()
-        imageTitleDescriptionView.translatesAutoresizingMaskIntoConstraints = false
-        imageTitleDescriptionView.backgroundColor = .linkPreviewPostSquareBackground
-        return imageTitleDescriptionView
-    }()
-
     public func configure(url: URL, title: String, description: String, previewImage: UIImage?) {
-        showPlaceholderImage()
-        let contentView = UIStackView()
-        contentView.axis = .vertical
-        contentView.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(contentView)
         urlLabel.text = url.host
         titleLabel.text = title
         descriptionLabel.text = description
-        
-        imageTitleDescriptionView.addSubview(previewImageView)
-        titleDescriptionStack.addArrangedSubview(titleLabel)
-        titleDescriptionStack.addArrangedSubview(descriptionLabel)
-        imageTitleDescriptionView.addSubview(titleDescriptionStack)
-        contentView.addArrangedSubview(imageTitleDescriptionView)
-        contentView.addArrangedSubview(titleUrlStack)
-
+        addSubview(previewImageView)
+        addSubview(titleDescriptionStack)
+        addSubview(linkPreviewLinkStack)
+        self.backgroundColor = .linkPreviewPostSquareDarkBackground
         if let previewImage = previewImage {
             let linkPreviewMedia = PendingMedia(type: .image)
             linkPreviewMedia.image = previewImage
@@ -139,20 +106,18 @@ class PostLinkPreviewSquareView: UIView {
                   }
             }
         }
-        
         NSLayoutConstraint.activate([
-            contentView.topAnchor.constraint(equalTo: self.topAnchor),
-            contentView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-            contentView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
-            contentView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            imageTitleDescriptionView.heightAnchor.constraint(equalToConstant: 151),
-            previewImageView.leadingAnchor.constraint(equalTo: imageTitleDescriptionView.leadingAnchor),
             previewImageView.widthAnchor.constraint(equalToConstant: 151),
-            previewImageView.heightAnchor.constraint(equalToConstant: 151),
-            titleDescriptionStack.leadingAnchor.constraint(equalTo: previewImageView.trailingAnchor),
-            titleDescriptionStack.centerYAnchor.constraint(equalTo: imageTitleDescriptionView.centerYAnchor),
-            titleDescriptionStack.trailingAnchor.constraint(equalTo: imageTitleDescriptionView.trailingAnchor),
-            contentView.heightAnchor.constraint(equalToConstant: 188),
+            previewImageView.heightAnchor.constraint(equalTo: previewImageView.widthAnchor),
+            previewImageView.topAnchor.constraint(equalTo: self.topAnchor),
+            previewImageView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+            previewImageView.bottomAnchor.constraint(equalTo: linkPreviewLinkStack.topAnchor),
+            previewImageView.trailingAnchor.constraint(equalTo: titleDescriptionStack.leadingAnchor),
+            titleDescriptionStack.centerYAnchor.constraint(equalTo: previewImageView.centerYAnchor),
+            titleDescriptionStack.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+            linkPreviewLinkStack.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+            linkPreviewLinkStack.bottomAnchor.constraint(equalTo: self.bottomAnchor),
+            linkPreviewLinkStack.trailingAnchor.constraint(equalTo: self.trailingAnchor)
         ])
     }
 

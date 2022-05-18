@@ -70,9 +70,9 @@ public class PostComposerLinkPreviewView: UIView {
         stack.layer.shadowOffset = CGSize(width: 0, height: 2)
         stack.layer.shadowRadius = 4
         stack.layer.shadowOpacity = 0.5
-        stack.isLayoutMarginsRelativeArrangement = true
         stack.clipsToBounds = true
         stack.distribution = .fillProportionally
+        stack.isLayoutMarginsRelativeArrangement = false
         return stack
     }()
 
@@ -87,7 +87,7 @@ public class PostComposerLinkPreviewView: UIView {
         self.addSubview(vStack)
 
         NSLayoutConstraint.activate([
-            titleLabel.heightAnchor.constraint(equalToConstant: 234),
+            titleLabel.heightAnchor.constraint(equalToConstant: 187),
             vStack.leadingAnchor.constraint(equalTo: leadingAnchor),
             vStack.trailingAnchor.constraint(equalTo: trailingAnchor),
             vStack.topAnchor.constraint(equalTo: topAnchor),

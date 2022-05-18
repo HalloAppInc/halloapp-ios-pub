@@ -674,7 +674,7 @@ fileprivate struct PostComposerLayoutConstants {
     static let postTextWithMeidaHeight: CGFloat = sendButtonHeight - 2 * postTextVerticalPadding
     static let postTextMaxHeight: CGFloat = 118 - 2 * postTextVerticalPadding
     static let postTextRadius: CGFloat = 26
-    static let postLinkPreviewHeight: CGFloat = 250
+    static let postLinkPreviewHeight: CGFloat = 187
 
     static let fontSize: CGFloat = 16
     static let fontSizeLarge: CGFloat = 20

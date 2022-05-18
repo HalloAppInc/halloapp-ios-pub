@@ -19,6 +19,10 @@ extension UIColor {
     class var linkPreviewPostSquareBackground: UIColor {
         UIColor(named: "LinkPreviewPostSquareBackground")!
     }
+
+    class var linkPreviewPostSquareDarkBackground: UIColor {
+        UIColor(named: "LinkPreviewPostSquareDarkBackground")!
+    }
 }
 
 public enum LinkPreviewConfiguration{
