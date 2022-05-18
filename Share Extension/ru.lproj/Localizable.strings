@@ -121,6 +121,9 @@
 /* Button title. Refers to discarding photo/video edits in media composer. */
 "media.button.discard" = "Отменить";
 
+/* Button title. Refers to resetting photo / video to original version. */
+"media.button.reset" = "Сбросить";
+
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Присоединяйся к моей сети настоящих отношений в HalloApp. Скачай бесплатно на halloapp.com/dl";
 

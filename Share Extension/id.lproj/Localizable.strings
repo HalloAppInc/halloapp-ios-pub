@@ -132,6 +132,9 @@
    Alert title when a direct to group sharing is missing */
 "share.destination.missing.group" = "Grup hilang %@";
 
+/* Show more groups in the share group selection */
+"share.destination.more" = "Tampilkan lainnya...";
+
 /* Share on the home feed selection cell */
 "share.destination.new" = "Postingan Baru";
 

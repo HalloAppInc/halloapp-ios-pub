@@ -85,6 +85,9 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Yalnızca seçilen kişilerle paylaş";
 
+/* Button to dismiss edit favorites modal */
+"feed.privacy.list.dismiss.edit.favorites" = "Şimdi değil";
+
 /* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
 "feed.privacy.list.notOwn.only.description" = "Yalnızca %@ kişisinin Yakınlar listesindekiler bu gönderiyi görebilir.";
 
@@ -93,6 +96,12 @@
 
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.own.only.description" = "Yalnızca Yakınlar listendekiler bu gönderiyi görebilir.";
+
+/* Button to edit favorites */
+"feed.privacy.list.set.favorites" = "Yakınlar listesini ayarla";
+
+/* Description of the new Favorites functionality. */
+"feed.privacy.list.set.favorites.description" = "Şimdi Yakınlar listeni oluşturabilir ve HalloApp gönderilerini listedekilerle paylaşabilirsin.";
 
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Yeni bir gruba eklendin";

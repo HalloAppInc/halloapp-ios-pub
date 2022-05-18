@@ -556,6 +556,9 @@
 /* Label for floating compose post menu on Group screen. */
 "fab.post.button" = "Beitrag";
 
+/* Indicates that an item has failed to be sent. */
+"failed.to.send" = "Senden fehlgeschlagen";
+
 /* Text shown in place of a received post we are not able to decrypt yet. */
 "feed.comment.waiting" = "Warte auf diesen Kommentar. Das kann eine Weile dauern.";
 
@@ -567,6 +570,12 @@
 
 /* Text for group feed notification displayed in Activity Center. */
 "feed.group.notification.other.comment.w.text" = "<$author$> kommentierte: <$text$>";
+
+/* Text for home feed notification displayed in Activity Center. */
+"feed.home.notification.other.comment.no.text" = "<$author$> kommentierte";
+
+/* Text for home feed notification displayed in Activity Center. */
+"feed.home.notification.other.comment.w.text" = "<$author$> kommentierte: <$text$>";
 
 /* Text shown in indicator when new posts come in while user is scrolled down */
 "feed.new.posts.indicator" = "Neue Beiträge";
@@ -611,7 +620,7 @@
 "feed.post.archived.timestamp" = "Archiviert am %@";
 
 /* Shown when post fails or is canceled. */
-"feed.post.failed" = "Das Posten ist fehlgeschlagen.";
+"feed.post.failed" = "Posten fehlgeschlagen.";
 
 /* Shown when receiving a new (unsupported) type of post. */
 "feed.post.unsupported" = "Deine HalloApp-Version unterstützt diese Art von Beitrag nicht.";
@@ -1252,6 +1261,9 @@
 /* Error banner displayed when there is a failure syncing preivacy settings, displayed on the privacy view */
 "privacy.sync.failure" = "Privatsphäre-Einstellungen konnten nicht synchronisiert werden. Bitte versuche es später noch einmal.";
 
+/* Placeholder text for the text field for private replies. The argument is the first name of the contact. */
+"private.reply.placeholder" = "Antwort an %@";
+
 /* Title for the button allowing to delete current profile photo. */
 "profile.delete.photo" = "Foto löschen";
 
@@ -1407,6 +1419,12 @@
 
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Bitte wähle mindestens einen Kontakt aus.";
+
+/* Indicates that an item is in the process of being sent. */
+"sending.title" = "Senden";
+
+/* Indicates that an item has successfully been sent. */
+"sent.title" = "Geschickt";
 
 /* body of the marketing alert sent to users */
 "server.marketing.body" = "Lade deine Freunde zu HalloApp ein!";
@@ -1680,6 +1698,9 @@
 
 /* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
 "unknown.contact.not.in.contact.book" = "Dieser Absender ist nicht in deinen Kontakten.";
+
+/* Text that indicates the unlock action for a moment. */
+"unlock.title" = "Entsperren";
 
 /* Alert appearing after clicking an external share link that failed to load */
 "urlrouter.externalShare.failed" = "Beitrag konnte nicht geladen werden";

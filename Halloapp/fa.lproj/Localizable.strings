@@ -556,6 +556,9 @@
 /* Label for floating compose post menu on Group screen. */
 "fab.post.button" = "پست";
 
+/* Indicates that an item has failed to be sent. */
+"failed.to.send" = "خطا در فرستادن";
+
 /* Text shown in place of a received post we are not able to decrypt yet. */
 "feed.comment.waiting" = "در انتظار این نظر. ممکن است طول بکشد.";
 
@@ -567,6 +570,12 @@
 
 /* Text for group feed notification displayed in Activity Center. */
 "feed.group.notification.other.comment.w.text" = "<$author$> نظر نوشت: <$text$>";
+
+/* Text for home feed notification displayed in Activity Center. */
+"feed.home.notification.other.comment.no.text" = "<$author$> نظر نوشته است";
+
+/* Text for home feed notification displayed in Activity Center. */
+"feed.home.notification.other.comment.w.text" = "<$author$> نظر نوشت: <$text$>";
 
 /* Text shown in indicator when new posts come in while user is scrolled down */
 "feed.new.posts.indicator" = "پست جدید";
@@ -1252,6 +1261,9 @@
 /* Error banner displayed when there is a failure syncing preivacy settings, displayed on the privacy view */
 "privacy.sync.failure" = "خطا در هماهنگ‌سازی تنظیمات حریم خصوصی. لطفاً بعداً مجدداً امتحان کنید.";
 
+/* Placeholder text for the text field for private replies. The argument is the first name of the contact. */
+"private.reply.placeholder" = "پاسخ به @%";
+
 /* Title for the button allowing to delete current profile photo. */
 "profile.delete.photo" = "حذف عکس";
 
@@ -1407,6 +1419,12 @@
 
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "لطفاً حداقل یک مخاطب انتخاب کنید.";
+
+/* Indicates that an item is in the process of being sent. */
+"sending.title" = "در حال فرستادن";
+
+/* Indicates that an item has successfully been sent. */
+"sent.title" = "فرستاده شد";
 
 /* body of the marketing alert sent to users */
 "server.marketing.body" = "دوستانتان را دعوت کنید تا از هالواپ لذت ببرند!";
@@ -1680,6 +1698,9 @@
 
 /* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
 "unknown.contact.not.in.contact.book" = "این فرستنده در لیست مخاطبین شما نیست.";
+
+/* Text that indicates the unlock action for a moment. */
+"unlock.title" = "باز کردن";
 
 /* Alert appearing after clicking an external share link that failed to load */
 "urlrouter.externalShare.failed" = "خطا در بارگذاری";

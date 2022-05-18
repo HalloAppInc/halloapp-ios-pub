@@ -139,9 +139,6 @@
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 vidéo";
 
-/* New post notification text when post is a voice note. */
-"notification.voicenote" = "message vocale";
-
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Rejoignez mon réseau de relations réelles sur HalloApp. Téléchargez-le gratuitement sur halloapp.com/dl";
 

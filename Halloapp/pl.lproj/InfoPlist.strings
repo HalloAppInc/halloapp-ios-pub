@@ -4,9 +4,6 @@
 /* Privacy - Camera Usage Description */
 "NSCameraUsageDescription" = "Umożliwia robienie zdjęć i nagrań bezpośrednio z poziomu aplikacji HalloApp.";
 
-/* Privacy - Contacts Usage Description */
-"NSContactsUsageDescription" = "Prześlij swoje kontakty na serwery HalloApp, aby zobaczyć wpisy swoich znajomych i pozwolić im zobaczyć Twoje.";
-
 /* Privacy - Microphone Usage Description */
 "NSMicrophoneUsageDescription" = "Pozwala to wykonywać połączenia, wysyłać posty i wiadomości audio, a także nagrywać wideo z dźwiękiem.";
 

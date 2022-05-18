@@ -156,7 +156,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>other</key>
-			<string>&lt;$user$&gt; and %d others replied to &lt;$author$&gt;'s post</string>
+			<string>&lt;$user$&gt; dan %d lainnya membalas postingan &lt;$author$&gt;</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>

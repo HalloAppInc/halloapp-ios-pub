@@ -143,10 +143,37 @@
 "call.button.speaker" = "speaker";
 
 /* Title for call history event. Appears next to details of a successful call. */
+"call.history.video.call" = "Panggilan video";
+
+/* Title for call history event. Appears next to details of a missed call. */
+"call.history.video.call.missed" = "Panggilan video tak terjawab";
+
+/* Title for call history event. Appears next to details of a successful call. */
 "call.history.voice.call" = "Panggilan suara";
 
 /* Title for call history event. Appears next to details of a missed call. */
 "call.history.voice.call.missed" = "Panggilan suara terlewatkan";
+
+/* Status display when user mutes their own audio during a call. */
+"call.mute.local.audio" = "mikrofon mati";
+
+/* Status display when user mutes their own audio and video during a call. */
+"call.mute.local.audio.video" = "kamera dan mikrofon mati";
+
+/* Status display when user mutes their own video during a call. */
+"call.mute.local.video" = "kamera mati";
+
+/* Status display when peer mutes audio during a call. */
+"call.mute.remote.audio" = "%@ membisukan panggilan ini";
+
+/* Status display when peer mutes both audio and video during a call. */
+"call.mute.remote.audio.video" = "Kamera dan mikrofon %@ mati";
+
+/* Status display when peer mutes video during a call. */
+"call.mute.remote.video" = "Kamera %@ mati";
+
+/* Status displayed when the other side is busy. */
+"call.status.busy" = "dalam panggilan lain";
 
 /* Status displayed when outgoing call starts */
 "call.status.calling" = "memanggil...";
@@ -162,6 +189,9 @@
 
 /* Status displayed when incoming call starts */
 "call.status.incoming" = "panggilan masuk";
+
+/* Status displayed when the other side mutes the audio. */
+"call.status.muted" = "panggilan dibisukan";
 
 /* Status displayed when reconnecting during call */
 "call.status.reconnecting" = "menyambungkan ulang...";
@@ -348,6 +378,12 @@
 
 /* Text displayed in gray inside of the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Tambahkan komentar";
+
+/* Header that appears above all the unread comments in the comments view when there are more than one unread message */
+"comment.unread.messages.header.plural" = "%@ Komentar yang Belum Dibaca";
+
+/* Header that appears above one single unread message in the comments view. */
+"comment.unread.messages.header.single" = "%@ Komentar yang Belum Dibaca";
 
 /* Text displayed in place of a comment that is not supported in the current app version. */
 "comment.unsupported" = "Versi HalloApp-mu tidak mendukung jenis komentar ini.";
@@ -700,6 +736,12 @@
 /* Title of group invite screen */
 "group.invite.title" = "Undang Grup";
 
+/* Title of invite sheet */
+"group.invitesheet.title" = "Bagikan tautan ini dengan teman & keluarga dan mereka akan bergabung dengan grup HalloApp ini secara otomatis";
+
+/* Section header describing options to share link */
+"group.invitesheet.use.link.via" = "Bagikan tautan menggunakan…";
+
 /* Label shown above group members list */
 "group.members.label" = "Anggota";
 
@@ -814,6 +856,9 @@
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Cari";
 
+/* Text with hyperlink to halloapp's faq on encryption. */
+"learn.more" = "Pelajari lebih lanjut.";
+
 /* Link text to open invite flow */
 "link.invite.friend" = "Undang teman";
 
@@ -871,8 +916,14 @@
 /* Label indicating that media was successfully saved to the camera roll */
 "media.save.saved" = "Tersimpan ke Rol Kamera";
 
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.annotate" = "Memberi Anotasi";
+
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Tutup";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.draw" = "Gambar";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.flip" = "Balik";
@@ -918,6 +969,9 @@
 
 /* Indicates how many invites are remaining */
 "n.invites.remaining" = "n.invites.remaining";
+
+/* Summary when multiple commenters commented on the same post you commented on */
+"n.others.replied" = "n.others.replied";
 
 /* Displayed in place of deleted feed posts. */
 "n.posts.deleted" = "%@ posting dihapus";
@@ -970,8 +1024,20 @@
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 video";
 
+/* Missed video call notification text to be shown to the user. */
+"notification.videocall.missed" = "📹 Panggilan video tak terjawab";
+
+/* Missed voice call notification text to be shown to the user. */
+"notification.voicecall.missed" = "☎️ Panggilan suara tak terjawab";
+
+/* New post notification text when post is a voice note. */
+"notification.voicecomment" = "🎤 Komentar audio";
+
 /* New post notification text when post is a voice note. */
 "notification.voicenote" = "🎤 Pesan suara";
+
+/* New post notification text when post is a voice note. */
+"notification.voicepost" = "🎤 Postingan audio";
 
 /* Text for new user popup pointing at activity center icon */
 "nux.activity.center.icon" = "Halo!";
@@ -1054,6 +1120,9 @@
 /* Generic setting value telling how many contacts are blocked or muted. */
 "privacy.n.contacts" = "privacy.n.contacts";
 
+/* Error banner displayed when there is a failure syncing preivacy settings, displayed on the privacy view */
+"privacy.sync.failure" = "Gagal menyinkronkan pengaturan privasi. Silakan coba lagi nanti.";
+
 /* Title for the button allowing to delete current profile photo. */
 "profile.delete.photo" = "Hapus Foto";
 
@@ -1116,6 +1185,9 @@
 
 /* Title for the screen allowing to edit profile name */
 "profile.title.your.name" = "Namamu";
+
+/* Title for the button allowing the user to view their own profile photo. */
+"profile.view.photo" = "Lihat Foto";
 
 /* Disclaimer text about receiving SMS verification code */
 "registration.code.disclaimer" = "Kamu akan menerima kode verifikasi.\nBiaya operator dapat berlaku.";
@@ -1366,6 +1438,18 @@
 /* Link to expand truncated text. */
 "textlabel.more" = "...lebih banyak";
 
+/* Same as profile.header.call.user, but capitalized */
+"textview.context.menu.audio.call.user" = "Panggilan video";
+
+/* Same as profile.header.message.user, but capitalized */
+"textview.context.menu.message.user" = "Pesan";
+
+/* Same as profile.header.call.user, but capitalized */
+"textview.context.menu.video.call.user" = "Panggilan video";
+
+/* Link to expand truncated text. */
+"textview.more" = "lainnya";
+
 /* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
 "thread.list.preview.already.user.default" = "%@ ada di HalloApp";
 
@@ -1422,6 +1506,9 @@
 
 /* Row in Settings screen */
 "title.privacy" = "Privasi";
+
+/* Title of screen where user can add members during group creation flow */
+"title.select.group.members.create.title" = "Tambahkan Anggota";
 
 /* Title of screen where user chooses members to add to either a new group or an existing one */
 "title.select.group.members.title" = "Tambah Anggota Baru";
@@ -1488,4 +1575,10 @@
 
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "Hapus unggahan ini? Tindakan ini tak bisa dibatalkan.";
+
+/* Success toast when external share link is copied */
+"your.post.externalshare.copylink.success" = "Salin ke Papan Klip";
+
+/* Message that external share failed. */
+"your.post.externalshare.error" = "Gagal mengunggah postingan ke bagikan eksternal";
 
