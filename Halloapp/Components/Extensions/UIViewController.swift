@@ -79,3 +79,8 @@ extension UIViewController {
         return viewController
     }
 }
+
+
+protocol UIViewControllerHandleTapNotification {
+    func processNotification(metadata: NotificationMetadata)
+}

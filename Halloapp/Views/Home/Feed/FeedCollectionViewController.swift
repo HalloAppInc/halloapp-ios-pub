@@ -349,7 +349,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
 
         collectionViewDataSource?.apply(snapshot, animatingDifferences: animated) { [weak self] in
             guard let self = self else { return }
-            
+
             self.loadedPostIDs = updatedPostIDs
             self.feedLayout.maintainVisualPosition = false
             self.didUpdateItems()
@@ -358,10 +358,12 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
                 DDLogInfo("FeedCollectionViewController/scroll-to/postId: \(id)")
                 for item in items {
                     if id == item.post?.id {
-                        self.feedPostIdToScrollTo = nil
                         // Temporary fix to scroll to the desired post.
                         self.view.layoutIfNeeded()
                         let result = self.scrollTo(postId: id)
+                        if result {
+                            self.feedPostIdToScrollTo = nil
+                        }
                         DDLogInfo("FeedCollectionViewController/scroll-to/postId: \(id)/result: \(result)")
                         break
                     }
