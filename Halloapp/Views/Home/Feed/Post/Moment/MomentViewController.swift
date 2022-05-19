@@ -74,17 +74,7 @@ class MomentViewController: UIViewController {
         view.showUserAction = { [weak self] in self?.showUser() }
         return view
     }()
-    
-    private lazy var facePileView: FacePileView = {
-        let view = FacePileView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.configure(with: post)
-        view.isHidden = post.userID != MainAppContext.shared.userData.userId
-        view.avatarViews.forEach { $0.borderColor = backgroundColor }
-        view.addTarget(self, action: #selector(seenByPushed), for: .touchUpInside)
-        return view
-    }()
-    
+
     private var cancellables: Set<AnyCancellable> = []
 
     private lazy var contentInputView: ContentInputView = {
@@ -140,7 +130,6 @@ class MomentViewController: UIViewController {
 
         view.addSubview(headerView)
         view.addSubview(momentView)
-        view.addSubview(facePileView)
         
         let centerYConstraint = momentView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         // post will be off-center if there's an uploading post in the top corner
@@ -149,14 +138,11 @@ class MomentViewController: UIViewController {
         let spacing: CGFloat = 10
         NSLayoutConstraint.activate([
             centerYConstraint,
-            momentView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 15),
-            momentView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -15),
-            headerView.leadingAnchor.constraint(equalTo: momentView.leadingAnchor),
-            headerView.trailingAnchor.constraint(equalTo: momentView.trailingAnchor),
+            momentView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 5),
+            momentView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -5),
+            headerView.leadingAnchor.constraint(equalTo: momentView.leadingAnchor, constant: 10),
+            headerView.trailingAnchor.constraint(equalTo: momentView.trailingAnchor, constant: -10),
             headerView.bottomAnchor.constraint(equalTo: momentView.topAnchor, constant: -spacing),
-            facePileView.leadingAnchor.constraint(greaterThanOrEqualTo: momentView.leadingAnchor),
-            facePileView.trailingAnchor.constraint(equalTo: momentView.trailingAnchor),
-            facePileView.topAnchor.constraint(equalTo: momentView.bottomAnchor, constant: spacing),
             backgroundView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             backgroundView.topAnchor.constraint(equalTo: view.topAnchor),
             backgroundView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
@@ -274,13 +260,6 @@ class MomentViewController: UIViewController {
             button.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 15),
             button.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
         ])
-    }
-
-    @objc
-    private func seenByPushed(_ sender: AnyObject) {
-        let viewController = PostDashboardViewController(feedPost: post)
-        viewController.delegate = self
-        present(UINavigationController(rootViewController: viewController), animated: true)
     }
 
     @objc
@@ -430,7 +409,7 @@ extension MomentViewController: UIGestureRecognizerDelegate {
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
         if gestureRecognizer.isKind(of: UITapGestureRecognizer.self) {
-            return !facePileView.frame.contains(touch.location(in: view))
+            return !headerView.bounds.contains(touch.location(in: headerView))
         }
 
         return true
@@ -616,7 +595,6 @@ extension MomentViewController {
     private func createPropertyAnimator() {
         dismissAnimator.propertyAnimator = UIViewPropertyAnimator(duration: 0.4, curve: .linear) {
             self.headerView.alpha = 0.25
-            self.facePileView.alpha = 0.25
         }
 
         dismissAnimator.propertyAnimator?.addCompletion { [weak self] _ in
