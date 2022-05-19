@@ -311,4 +311,5 @@ public enum EncryptionError: String, Error {
     case signing
     case missingAudienceHash
     case missingEncryptedSenderState
+    case invalidUid
 }

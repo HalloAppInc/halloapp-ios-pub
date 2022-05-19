@@ -332,7 +332,7 @@ final class GroupWhisperSession {
                 switch task {
                 case .encryption(let data, let potentialMemberUids, let completion):
                     DDLogInfo("GroupWhisperSession/\(groupID)/execute/encrypting")
-                    executeEncryption(data, pendingUids: groupKeyBundle.pendingUids, potentialMemberUids: potentialMemberUids,  completion: completion)
+                    checkAndExecuteEncryption(data, pendingUids: groupKeyBundle.pendingUids, potentialMemberUids: potentialMemberUids,  completion: completion)
                 case .decryption(let data, let userID, let incomingSenderState, let completion):
                     DDLogInfo("GroupWhisperSession/\(groupID)/execute/decrypting")
                     executeDecryption(data, from: userID, with: incomingSenderState, completion: completion)
@@ -421,6 +421,30 @@ final class GroupWhisperSession {
         }
     }
 
+    private func checkAndExecuteEncryption(_ data: Data, pendingUids: [UserID], potentialMemberUids: [UserID], completion: @escaping GroupEncryptionCompletion) {
+        // State will always be ready - when we run this function.
+        var groupKeyBundle = self.state.keyBundle
+        // Make sure pending UIDs are active group members before encrypting.
+        AppContext.shared.mainDataStore.performSeriallyOnBackgroundContext { [weak self] context in
+            guard let self = self else { return }
+            let memberUserIds = AppContext.shared.coreChatData.chatGroupMemberUserIds(for: self.groupID, in: context)
+            let memberSet = Set(memberUserIds)
+            let currentPendingUserIds = groupKeyBundle.pendingUids
+            let currentPendingUidSet = Set(currentPendingUserIds)
+            // Ensure PendingUidSet is a subset of group-members.
+            // Else - cleanup PendingUid list.
+            if !currentPendingUidSet.isSubset(of: memberSet) {
+                DDLogError("GroupWhisperSession/\(self.groupID)/error with pendingUids/currentPendingUserIds: \(currentPendingUserIds)/memberUserIds: \(memberUserIds)")
+                AppContext.shared.errorLogger?.logError(NSError(domain: "GroupWhisperEncryptionError", code: 1007))
+                let pendingUids = Array(currentPendingUidSet.intersection(memberSet))
+                // Cleanup pendingUids to only have members.
+                groupKeyBundle.pendingUids = pendingUids
+            }
+            self.state = .ready(keyBundle: groupKeyBundle)
+            self.executeEncryption(data, pendingUids: groupKeyBundle.pendingUids, potentialMemberUids: potentialMemberUids,  completion: completion)
+        }
+    }
+
     private func executeEncryption(_ data: Data, pendingUids: [UserID], potentialMemberUids: [UserID], completion: @escaping GroupEncryptionCompletion) {
         DDLogInfo("GroupWhisperSession/executeEncryption/\(groupID)/begin/pendingUids: \(pendingUids)")
         let keyBundle = self.state.keyBundle
@@ -478,9 +502,13 @@ final class GroupWhisperSession {
             let encryptCompletion: (Result<(EncryptedData, EncryptionLogInfo), EncryptionError>) -> Void = { [weak self] result in
                 guard let self = self else { return }
                 switch result {
-                case .failure(_):
+                case .failure(.invalidUid):
+                    // not really an error - so we dont count it towards failed encryptions.
+                    DDLogInfo("ProtoServiceCore/makeGroupEncryptedPayload/\(self.groupID)/encryptCompletion/accountDeleted/failed:  \(numberOfFailedEncrypts)")
+                    break
+                case .failure(let error):
                     numberOfFailedEncrypts += 1
-                    DDLogError("ProtoServiceCore/makeGroupEncryptedPayload/\(self.groupID)/encryptCompletion/error \(numberOfFailedEncrypts)")
+                    DDLogError("ProtoServiceCore/makeGroupEncryptedPayload/\(self.groupID)/encryptCompletion/error: \(error)/failed: \(numberOfFailedEncrypts)")
                 default:
                     break
                 }
@@ -720,14 +748,18 @@ final class GroupWhisperSession {
                         // It is possible that group-membership also changed at this point.
                         // So we should be sending our sender-state to some members if necessary.
                         // Let us pre-emptively send it to all members from whom we dont have an incoming session.
+                        // Also we remove non-members from our pendingUids list - since they are no longer members.
                         // This should help improve group-encryption when we have a lot of group-membership and posting activity going on.
                         let currentPending = groupKeyBundle.pendingUids
                         let oldMemberUids = groupKeyBundle.incomingSession?.senderStates.map { $0.key } ?? []
                         let newPendingUids = members.filter { member in
-                            // return true only if we dont have an incoming sender state for this user.
-                            !oldMemberUids.contains(member)
+                            // return true if we dont have an incoming sender state for this user.
+                            // or
+                            // return true if this was a pendingUid from the old state.
+                            // either-way we ensure that only members are being added to the pendingUid set.
+                            !oldMemberUids.contains(member) || currentPending.contains(member)
                         }
-                        groupKeyBundle.pendingUids = Array(Set(currentPending + newPendingUids))
+                        groupKeyBundle.pendingUids = newPendingUids
                         groupKeyBundle.outgoingSession?.audienceHash = hash
                         DDLogInfo("GroupWhisperSession/executeUpdateAudienceHash/\(self.groupID)/success, audienceHash: \(hash.toHexString())")
                         self.updateState(to: .ready(keyBundle: groupKeyBundle), saveToKeyStore: true)
@@ -903,10 +935,10 @@ final class GroupWhisperSession {
             switch state {
             case .awaitingSetup(_, _):
                 DDLogInfo("GroupWhisperSession/\(groupID)/set-state/saving keybundle \(state)")
-                keyStore.saveGroupSessionKeyBundle(groupID: groupID, state: .awaitingSetup, groupKeyBundle: state.keyBundle)
+                keyStore.checkAndSaveGroupSessionKeyBundle(groupID: groupID, state: .awaitingSetup, groupKeyBundle: state.keyBundle)
             case .ready(_):
                 DDLogInfo("GroupWhisperSession/\(groupID)/set-state/saving keybundle \(state)")
-                keyStore.saveGroupSessionKeyBundle(groupID: groupID, state: .ready, groupKeyBundle: state.keyBundle)
+                keyStore.checkAndSaveGroupSessionKeyBundle(groupID: groupID, state: .ready, groupKeyBundle: state.keyBundle)
             default:
                 break
             }
