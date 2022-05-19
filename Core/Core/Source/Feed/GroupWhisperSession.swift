@@ -53,6 +53,7 @@ private enum GroupCryptoTask {
     case updateAudienceHash
     case fetchSenderState(GroupSenderStateCompletion)
     case updateSenderState(UserID, Clients_SenderState)
+    case sync([UserID])
 }
 
 public struct GroupKeyBundle {
@@ -146,6 +147,13 @@ final class GroupWhisperSession {
         }
         sessionQueue.async {
             self.pendingTasks.append(.decryption(data, userID, senderState, dispatchedCompletion))
+            self.executeTasks()
+        }
+    }
+
+    public func syncGroup(members: [UserID]) {
+        sessionQueue.async {
+            self.pendingTasks.append(.sync(members))
             self.executeTasks()
         }
     }
@@ -305,6 +313,9 @@ final class GroupWhisperSession {
                 case .updateSenderState(let userID, let senderState):
                     DDLogInfo("GroupWhisperSession/\(groupID)/execute/updateSenderState")
                     updateIncomingSession(from: userID, with: senderState)
+                case .sync(let members):
+                    DDLogInfo("GroupWhisperSession/\(groupID)/execute/sync - \(members.count)")
+                    sync(members: members)
                 }
 
             // We pause all tasks in this state because we are working on a serviceRequest here.
@@ -343,6 +354,9 @@ final class GroupWhisperSession {
                 case .updateSenderState(let userID, let senderState):
                     DDLogInfo("GroupWhisperSession/\(groupID)/execute/updateSenderState")
                     updateIncomingSession(from: userID, with: senderState)
+                case .sync(let members):
+                    DDLogInfo("GroupWhisperSession/\(groupID)/execute/sync - \(members.count)")
+                    sync(members: members)
                 }
             }
             pendingTasks.removeFirst()
@@ -786,6 +800,40 @@ final class GroupWhisperSession {
             self.updateState(to: .ready(keyBundle: groupKeyBundle), saveToKeyStore: true)
         }
         DDLogInfo("GroupWhisperSession/updateIncomingSession/\(groupID)/from \(userID)/success")
+
+    }
+
+    private func sync(members: [UserID]) {
+        DDLogInfo("GroupWhisperSession/sync/\(groupID)/members: \(members)/begin")
+        let membersSet = Set(members)
+
+        var groupKeyBundle = self.state.keyBundle
+        if groupKeyBundle.incomingSession == nil {
+            groupKeyBundle.incomingSession = GroupIncomingSession(senderStates: [:])
+        }
+        // Clear out sender-states for non-members.
+        let currentUids = groupKeyBundle.incomingSession?.senderStates.map { $0.key }
+        currentUids?.forEach { userID in
+            if !membersSet.contains(userID) {
+                groupKeyBundle.incomingSession?.senderStates[userID] = nil
+            }
+        }
+        groupKeyBundle.pendingUids = groupKeyBundle.pendingUids.filter { membersSet.contains($0) }
+
+        switch self.state {
+        case .empty:
+            DDLogError("GroupWhisperSession/sync/\(groupID)/Invalid empty state")
+            return
+        case .awaitingSetup(let setupAttempts, _):
+            self.updateState(to: .awaitingSetup(attempts: setupAttempts, incomingSession: groupKeyBundle.incomingSession), saveToKeyStore: true)
+        case .retrievingKeys:
+            self.updateState(to: .retrievingKeys(incomingSession: groupKeyBundle.incomingSession))
+        case .updatingHash(let updateHashAttempts, _):
+            self.updateState(to: .updatingHash(attempts: updateHashAttempts, keyBundle: groupKeyBundle))
+        case .ready(_):
+            self.updateState(to: .ready(keyBundle: groupKeyBundle), saveToKeyStore: true)
+        }
+        DDLogInfo("GroupWhisperSession/sync/\(groupID)/success")
 
     }
 

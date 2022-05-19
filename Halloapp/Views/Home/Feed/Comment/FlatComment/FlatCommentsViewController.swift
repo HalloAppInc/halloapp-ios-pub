@@ -833,7 +833,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         let vStack = UIStackView(arrangedSubviews: [commentsTitleLabel, navigationHeaderView])
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.axis = .vertical
-        commentsTitleLabel.leadingAnchor.constraint(equalTo: vStack.leadingAnchor, constant: -50).isActive = true
+        commentsTitleLabel.leadingAnchor.constraint(equalTo: vStack.leadingAnchor).isActive = true
         return vStack
     }()
 

@@ -108,13 +108,13 @@ class MomentView: UIView {
     
     private lazy var dayOfWeekLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(forTextStyle: .body, pointSizeChange: -2, weight: .regular, maximumPointSize: 26)
+        label.font = .courierFont(forTextStyle: .body, pointSizeChange: -2, weight: .regular, maximumPointSize: 26)
         return label
     }()
     
-    private(set) lazy var dateLabel: UILabel = {
+    private(set) lazy var timeLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(forTextStyle: .body, pointSizeChange: -2, weight: .regular, maximumPointSize: 26)
+        label.font = .courierFont(forTextStyle: .body, pointSizeChange: -2, weight: .regular, maximumPointSize: 26)
         return label
     }()
     
@@ -154,7 +154,7 @@ class MomentView: UIView {
             mediaHeightConstraint,
             footerView.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor),
             footerView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -footerPadding - 10),
-            footerView.topAnchor.constraint(equalTo: mediaView.bottomAnchor, constant: footerPadding - 5),
+            footerView.topAnchor.constraint(equalTo: mediaView.bottomAnchor, constant: footerPadding),
             footerBottomConstraint,
         ])
         
@@ -183,7 +183,7 @@ class MomentView: UIView {
 
     private func installDetailViews() {
         footerView.addArrangedSubview(dayOfWeekLabel)
-        footerView.addArrangedSubview(dateLabel)
+        footerView.addArrangedSubview(timeLabel)
         addSubview(blurView)
         addSubview(overlayStack)
 
@@ -220,8 +220,8 @@ class MomentView: UIView {
             media.loadImage()
         }
 
-        dayOfWeekLabel.text = DateFormatter.dateTimeFormatterTime.string(from: post.timestamp)
-        dateLabel.text = DateFormatter.dateTimeFormatterDayOfWeekLong.string(from: post.timestamp)
+        dayOfWeekLabel.text = DateFormatter.dateTimeFormatterDayOfWeekLong.string(from: post.timestamp)
+        timeLabel.text = DateFormatter.dateTimeFormatterTime.string(from: post.timestamp)
 
         avatarView.configure(with: post.userID, using: MainAppContext.shared.avatarStore)
         let name = MainAppContext.shared.contactStore.firstName(for: post.userID)

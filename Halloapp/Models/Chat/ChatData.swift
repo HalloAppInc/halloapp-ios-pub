@@ -4044,10 +4044,13 @@ extension ChatData {
         MainAppContext.shared.chatData.getAndSyncGroup(groupId: groupId)
     }
 
+    // Sync group crypto state and remove non-members in sender-states and pendingUids string.
     func syncGroup(_ xmppGroup: XMPPGroup) {
-        DDLogInfo("ChatData/group/syncGroupInfo")
+        let groupID = xmppGroup.groupId
+        DDLogInfo("ChatData/group: \(groupID)/syncGroupInfo")
 
-        updateChatGroup(with: xmppGroup.groupId) { [weak self] (chatGroup) in
+        let memberUserIDs = xmppGroup.members?.map { $0.userId } ?? []
+        updateChatGroup(with: xmppGroup.groupId, block: { [weak self] (chatGroup) in
             guard let self = self else { return }
             chatGroup.lastSync = Date()
 
@@ -4093,7 +4096,7 @@ extension ChatData {
                         }
                     }
                 } else {
-                    DDLogDebug("ChatData/group/syncGroupInfo/new/add-member [\(inboundMember.userId)]")
+                    DDLogDebug("ChatData/group: \(groupID)/syncGroupInfo/new/add-member [\(inboundMember.userId)]")
                     self.processGroupAddMemberAction(chatGroup: chatGroup, xmppGroupMember: inboundMember, in: chatGroup.managedObjectContext!)
                 }
 
@@ -4107,7 +4110,10 @@ extension ChatData {
                 self.contactStore.addPushNames(contactNames)
             }
 
-        }
+        }, performAfterSave: {
+            AppContext.shared.messageCrypter.syncGroupSession(in: groupID, members: memberUserIDs)
+            DDLogInfo("ChatData/group: \(groupID)/syncGroupInfo/done")
+        })
     }
     
     // MARK: Group Background
