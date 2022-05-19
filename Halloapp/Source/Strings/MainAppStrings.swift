@@ -215,4 +215,14 @@ extension Localizations {
         return String(
             format: NSLocalizedString("photo.and.video.library", value: "Photo & Video Library", comment: "button to launch photo and video library"))
     }
+
+    static func unreadMessagesHeaderSinglular(unreadCount: String) -> String {
+        let format = NSLocalizedString("comment.unread.chat.messages.header.single", value: "%@ Unread Message", comment: "Header that appears above one single unread Message in the chat view.")
+        return String.localizedStringWithFormat(format, unreadCount)
+    }
+
+    static func unreadMessagesHeaderPlural(unreadCount: String) -> String {
+        let format = NSLocalizedString("comment.unread.chat.messages.header.plural", value: "%@ Unread Messages", comment: "Header that appears above all the unread Messages in the comments view when there are more than one unread message")
+        return String.localizedStringWithFormat(format, unreadCount)
+    }
 }

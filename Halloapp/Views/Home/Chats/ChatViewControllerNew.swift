@@ -9,6 +9,7 @@
 import Core
 import CoreCommon
 import CocoaLumberjackSwift
+import Combine
 import UIKit
 import CoreData
 
@@ -74,6 +75,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     private var chatReplyMessageSenderID: String?
     private var chatReplyMessageMediaIndex: Int32 = 0
     private var firstActionHappened: Bool = false
+    private var unreadCount: Int32?
 
     fileprivate typealias ChatDataSource = UICollectionViewDiffableDataSource<String, MessageRow>
     fileprivate typealias ChatMessageSnapshot = NSDiffableDataSourceSnapshot<String, MessageRow>
@@ -92,6 +94,8 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     private var callHistoryFetchedResultsController: NSFetchedResultsController<Core.Call>?
 
     private var transitionSnapshot: UIView?
+
+    private var cancellableSet: Set<AnyCancellable> = []
 
     private lazy var titleView: ChatTitleView = {
         let titleView = ChatTitleView()
@@ -190,8 +194,17 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                         cell.configure(headerText: "Placeholder Call Text")
                         return cell
                     }
-                case .unreadCountHeader(_):
-                    return UICollectionViewCell()
+                case .unreadCountHeader(let unreadCount):
+                    let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MessageUnreadHeaderView.elementKind,
+                        for: indexPath)
+                    if let itemCell = cell as? MessageUnreadHeaderView {
+                        if unreadCount == 1 {
+                            itemCell.configure(headerText: Localizations.unreadMessagesHeaderSinglular(unreadCount: String(unreadCount)))
+                        } else {
+                            itemCell.configure(headerText: Localizations.unreadMessagesHeaderPlural(unreadCount: String(unreadCount)))
+                        }
+                    }
+                    return cell
                 }
                 return UICollectionViewCell()
             })
@@ -254,6 +267,16 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             }
             snapshot.appendItems([messageRow], toSection: messageRow.headerTime)
         }
+
+        // Add in the unread count
+        if let unreadCount = unreadCount, unreadCount > 0 {
+            let unreadHeaderIndex = snapshot.numberOfItems - Int(unreadCount)
+            if unreadHeaderIndex > 0 && unreadHeaderIndex < (snapshot.numberOfItems) {
+                let item = snapshot.itemIdentifiers[unreadHeaderIndex]
+                snapshot.insertItems([MessageRow.unreadCountHeader(Int32(unreadCount))], beforeItem: item)
+            }
+        }
+
         // Apply the new snapshot
         dataSource.apply(snapshot, animatingDifferences: true)
     }
@@ -279,10 +302,11 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         return MessageRow.text(chatMessage)
     }
 
-    init(for fromUserId: String, with feedPostId: FeedPostID? = nil, at feedPostMediaIndex: Int32 = 0) {
+    init(for fromUserId: String, with feedPostId: FeedPostID? = nil, at feedPostMediaIndex: Int32 = 0, unreadCount: Int32? = 0) {
         DDLogDebug("ChatViewControllerNew/init/\(fromUserId) [\(MainAppContext.shared.contactStore.fullName(for: fromUserId))]")
         self.fromUserId = fromUserId
         self.feedPostId = feedPostId
+        self.unreadCount = unreadCount
         super.init(nibName: nil, bundle: nil)
         self.hidesBottomBarWhenPushed = true
     }
@@ -320,7 +344,42 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         view.addSubview(collectionView)
         collectionView.constrain(to: view)
         setupUI()
+
+        cancellableSet.insert(
+            MainAppContext.shared.chatData.didGetCurrentChatPresence.sink { [weak self] status, ts in
+                DDLogInfo("ChatViewController/didGetCurrentChatPresence")
+                guard let self = self else { return }
+                guard let userId = self.fromUserId else { return }
+                DispatchQueue.main.async {
+                    self.titleView.update(with: userId, status: status, lastSeen: ts)
+                }
+            }
+        )
+
+        cancellableSet.insert(
+            MainAppContext.shared.chatData.didGetChatStateInfo.sink { [weak self] chatStateInfo in
+                guard let self = self else { return }
+                DDLogInfo("ChatViewController/didGetChatStateInfo \(chatStateInfo)")
+                DispatchQueue.main.async {
+                    self.configureTitleViewWithTypingIndicator()
+                }
+            }
+        )
         loadChatDraft(id: fromUserId)
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        if let chatWithUserId = self.fromUserId {
+            MainAppContext.shared.chatData.markThreadAsRead(type: .oneToOne, for: chatWithUserId)
+            MainAppContext.shared.chatData.updateUnreadChatsThreadCount()
+            MainAppContext.shared.chatData.updateUnreadMessageCount()
+            MainAppContext.shared.chatData.subscribeToPresence(to: chatWithUserId)
+            MainAppContext.shared.chatData.setCurrentlyChattingWithUserId(for: chatWithUserId)
+
+            UNUserNotificationCenter.current().removeDeliveredChatNotifications(fromUserId: chatWithUserId)
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -331,6 +390,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
    override func viewWillDisappear(_ animated: Bool) {
        super.viewWillDisappear(animated)
+       MainAppContext.shared.chatData.setCurrentlyChattingWithUserId(for: nil)
        if let id = fromUserId {
            saveChatDraft(id: id)
        }
@@ -460,6 +520,17 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     private func showUserFeed(for userID: UserID) {
         let userViewController = UserFeedViewController(userId: userID)
         self.navigationController?.pushViewController(userViewController, animated: true)
+    }
+
+    private func configureTitleViewWithTypingIndicator() {
+        guard let userID = self.fromUserId else { return }
+        let typingIndicatorStr = MainAppContext.shared.chatData.getTypingIndicatorString(type: .oneToOne, id: userID)
+
+        if typingIndicatorStr == nil && !titleView.isShowingTypingIndicator {
+            return
+        }
+
+        titleView.showChatState(with: typingIndicatorStr)
     }
 
     @objc private func audioCallButtonTapped() {

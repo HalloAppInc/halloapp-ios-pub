@@ -7,10 +7,13 @@
 //
 
 import Core
+import Combine
 import Foundation
 import UIKit
 
 class MessageCellViewBase: UICollectionViewCell {
+
+    private var outgoingMessageStatusCancellable: AnyCancellable?
 
     lazy var rightAlignedConstraint = messageRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
     lazy var leftAlignedConstraint = messageRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor)
@@ -23,6 +26,7 @@ class MessageCellViewBase: UICollectionViewCell {
     weak var delegate: MessageViewDelegate?
     public var isReplyTriggered = false // track if swiping gesture on cell is enough to trigger reply
     private var highlightAnimator: UIViewPropertyAnimator?
+    private var pendingMessageIconTimer: Timer? = nil
 
     // MARK: Name Row
 
@@ -183,7 +187,20 @@ class MessageCellViewBase: UICollectionViewCell {
         ])
         return vStack
     }()
-    
+
+    private lazy var pendingMessageIconView: UIImageView = {
+        let view = UIImageView()
+        view.image = UIImage(named: "Clock")?.withTintColor(.systemGray2)
+        view.contentMode = .scaleAspectFill
+
+        view.translatesAutoresizingMaskIntoConstraints = false
+
+        let height = timeLabel.font.pointSize + 4
+        view.widthAnchor.constraint(equalToConstant: height).isActive = true
+        view.heightAnchor.constraint(equalTo: view.widthAnchor).isActive = true
+        return view
+    }()
+
     func markViewSelected() {
         UIView.animate(withDuration: 0.5, animations: {
             self.bubbleView.backgroundColor = .systemGray4
@@ -246,6 +263,10 @@ class MessageCellViewBase: UICollectionViewCell {
         super.prepareForReuse()
         chatMessage = nil
         feedPostComment = nil
+        if outgoingMessageStatusCancellable != nil {
+            outgoingMessageStatusCancellable?.cancel()
+            outgoingMessageStatusCancellable = nil
+        }
     }
 
     func configureWith(comment: FeedPostComment, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
@@ -264,6 +285,64 @@ class MessageCellViewBase: UICollectionViewCell {
         chatMessage = message
         isOwnMessage = message.fromUserId == MainAppContext.shared.userData.userId
         timeLabel.text = message.timestamp?.chatTimestamp()
+        if let chatMessage = chatMessage, chatMessage.fromUserId == MainAppContext.shared.userData.userId {
+             // outgoing message cell, track outgoing status
+             outgoingMessageStatusCancellable = chatMessage.publisher(for: \.outgoingStatusValue).sink { [weak self] outgoingStatusValue in
+                 guard let self = self else { return }
+                 DispatchQueue.main.async {
+                     self.setMessageOutgoingStatus()
+                 }
+             }
+         }
+     }
+
+    private func setMessageOutgoingStatus() {
+         guard let chatMessage = chatMessage, let timestamp =  chatMessage.timestamp?.chatTimestamp() else {
+             return
+         }
+
+         let result = NSMutableAttributedString(string: timestamp)
+         if let icon = statusIcon(chatMessage.outgoingStatus) {
+             let imageSize = icon.size
+             let font = UIFont.systemFont(ofSize: timeLabel.font.pointSize - 1)
+
+             let scale = font.capHeight / imageSize.height
+             let iconAttachment = NSTextAttachment(image: icon)
+             iconAttachment.bounds.size = CGSize(width: ceil(imageSize.width * scale), height: ceil(imageSize.height * scale))
+
+             result.append(NSAttributedString(string: "  "))
+             result.append(NSAttributedString(attachment: iconAttachment))
+         }
+         timeLabel.attributedText = result
+     }
+
+     func statusIcon(_ status: ChatMessage.OutgoingStatus) -> UIImage? {
+         if pendingMessageIconTimer != nil {
+             pendingMessageIconTimer?.invalidate()
+             pendingMessageIconView.removeFromSuperview()
+         }
+
+         switch status {
+         case .pending:
+             // TODO dini - this belongs in the update function instead of the icon getter.
+             pendingMessageIconTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { [weak self] _ in
+
+                 guard let self = self else { return }
+                  self.timeRow.addSubview(self.pendingMessageIconView)
+                  NSLayoutConstraint.activate([
+                      self.pendingMessageIconView.trailingAnchor.constraint(equalTo: self.timeLabel.trailingAnchor, constant: 3),
+                      self.pendingMessageIconView.bottomAnchor.constraint(equalTo: self.timeLabel.bottomAnchor)
+                  ])
+              }
+              return UIImage(named: "CheckmarkSingle")?.withTintColor(.clear)
+         case .sentOut:
+              return UIImage(named: "CheckmarkSingle")?.withTintColor(.systemGray)
+         case .delivered:
+              return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemGray)
+         case .seen, .played:
+              return UIImage(named: "CheckmarkDouble")?.withTintColor(traitCollection.userInterfaceStyle == .light ? UIColor.chatOwnMsg : UIColor.primaryBlue)
+         default: return nil
+         }
     }
 
     func configureCell() {

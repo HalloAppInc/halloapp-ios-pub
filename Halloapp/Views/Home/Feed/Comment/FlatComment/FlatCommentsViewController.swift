@@ -33,16 +33,14 @@ private extension Localizations {
                           comment: "Title for the button in comment deletion confirmation prompt.")
     }
 
-    static func unreadMessagesHeaderSingle(unreadCount: String) -> String {
-        return String(
-            format: NSLocalizedString("comment.unread.messages.header.single", value: "%@ Unread Comment", comment: "Header that appears above one single unread message in the comments view."),
-            unreadCount)
+    static func unreadCommentsHeaderSingle(unreadCount: String) -> String {
+        let format = NSLocalizedString("comment.unread.messages.header.single", value: "%@ Unread Comment", comment: "Header that appears above one single unread message in the comments view.")
+        return String.localizedStringWithFormat(format, unreadCount)
     }
 
-    static func unreadMessagesHeaderPlural(unreadCount: String) -> String {
-        return String(
-            format: NSLocalizedString("comment.unread.messages.header.plural", value: "%@ Unread Comments", comment: "Header that appears above all the unread comments in the comments view when there are more than one unread message"),
-            unreadCount)
+    static func unreadCommentsHeaderPlural(unreadCount: String) -> String {
+        let format = NSLocalizedString("comment.unread.messages.header.plural", value: "%@ Unread Comments", comment: "Header that appears above all the unread comments in the comments view when there are more than one unread message")
+        return String.localizedStringWithFormat(format, unreadCount)
     }
 }
 
@@ -263,9 +261,9 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                         for: indexPath)
                     if let itemCell = cell as? MessageUnreadHeaderView {
                         if unreadCount == 1 {
-                            itemCell.configure(headerText: Localizations.unreadMessagesHeaderSingle(unreadCount: String(unreadCount)))
+                            itemCell.configure(headerText: Localizations.unreadCommentsHeaderSingle(unreadCount: String(unreadCount)))
                         } else {
-                            itemCell.configure(headerText: Localizations.unreadMessagesHeaderPlural(unreadCount: String(unreadCount)))
+                            itemCell.configure(headerText: Localizations.unreadCommentsHeaderPlural(unreadCount: String(unreadCount)))
                         }
                     }
                     return cell
