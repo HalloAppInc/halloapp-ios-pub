@@ -101,7 +101,7 @@ class MessageCommentViewHeaderPreview: UICollectionReusableView {
         NSLayoutConstraint.activate([
             profilePictureButton.widthAnchor.constraint(equalToConstant: LayoutConstants.profilePictureSizeNormal),
             profilePictureButton.heightAnchor.constraint(equalTo: profilePictureButton.widthAnchor),
-            profilePictureButton.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 50),
+            profilePictureButton.leadingAnchor.constraint(equalTo: self.leadingAnchor),
             profilePictureButton.topAnchor.constraint(equalTo: self.topAnchor, constant: 8),
             profilePictureButton.bottomAnchor.constraint(lessThanOrEqualTo: self.layoutMarginsGuide.bottomAnchor),
             vStack.leadingAnchor.constraint(equalTo: profilePictureButton.trailingAnchor, constant: LayoutConstants.profilePictureTrailingSpaceNormal),
