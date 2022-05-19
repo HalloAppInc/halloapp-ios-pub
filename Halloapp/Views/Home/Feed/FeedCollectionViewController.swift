@@ -380,7 +380,8 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         } else {
             let newPostVC = NewPostViewController(source: .camera,
                                              destination: .userFeed,
-                                                isMoment: true, didFinish: { [weak self] didPost in
+                                           momentContext: .unlock(post.userID),
+                                               didFinish: { [weak self] didPost in
                 
                 if didPost {
                     self?.startUnlockTransition(for: post)
@@ -418,7 +419,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
 
         let vc = NewPostViewController(source: source,
                                   destination: .userFeed,
-                                     isMoment: true) { [weak self] didPost in
+                                momentContext: .normal) { [weak self] didPost in
             self?.dismiss(animated: true)
             if didPost {
                 self?.scrollToTop(animated: true)

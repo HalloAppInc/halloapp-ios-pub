@@ -30,6 +30,18 @@ extension Localizations {
                           value: "Voice recording will not be saved if you discard this post.",
                           comment: "Warning message shown to the user before discarding a voice post")
     }
+
+    static var newMomentCameraSubtitle: String {
+        NSLocalizedString("camera.moment.subtitle",
+                   value: "Moments disappear after 24 hours and can only be viewed once",
+                 comment: "Text shown on the camera screen when composing a new moment.")
+    }
+
+    static var newMomentCameraUnlockSubtitle: String {
+        NSLocalizedString("camera.moment.unlock.subtitle",
+                   value: "To see %@'s moment, share your own",
+                 comment: "Text shown on the camera screen when composing a new moment to unlock someone else's moment.")
+    }
 }
 
 enum NewPostMediaSource {
@@ -37,6 +49,11 @@ enum NewPostMediaSource {
     case camera
     case noMedia
     case voiceNote
+}
+
+enum NewMomentContext {
+    case normal
+    case unlock(UserID)
 }
 
 struct NewPostState {
@@ -65,11 +82,11 @@ final class NewPostViewController: UIViewController {
         return .portrait
     }
 
-    init(source: NewPostMediaSource, destination: FeedPostDestination, isMoment: Bool = false, didFinish: @escaping ((Bool) -> Void)) {
+    init(source: NewPostMediaSource, destination: FeedPostDestination, momentContext: NewMomentContext? = nil, didFinish: @escaping ((Bool) -> Void)) {
         self.didFinish = didFinish
         self.state = NewPostState(mediaSource: source)
         self.destination = destination
-        self.isMoment = isMoment
+        self.momentContext = momentContext
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -91,7 +108,7 @@ final class NewPostViewController: UIViewController {
 
     private let didFinish: ((Bool) -> Void)
     private var state: NewPostState
-    private let isMoment: Bool
+    private let momentContext: NewMomentContext?
     private var destination: FeedPostDestination
 
     private(set) lazy var containedNavigationController = {
@@ -154,7 +171,7 @@ final class NewPostViewController: UIViewController {
             configuration = .groupPost(id: groupId)
         }
         
-        if isMoment {
+        if let _ = momentContext {
             configuration = .moment
         }
 
@@ -168,8 +185,19 @@ final class NewPostViewController: UIViewController {
     }
 
     private func makeNewCameraViewController() -> UIViewController {
+        let cameraSubtitle: String?
+        switch momentContext {
+        case .normal:
+            cameraSubtitle = Localizations.newMomentCameraSubtitle
+        case .unlock(let userID):
+            let name = MainAppContext.shared.contactStore.firstName(for: userID)
+            cameraSubtitle = String(format: Localizations.newMomentCameraUnlockSubtitle, name)
+        case .none:
+            cameraSubtitle = nil
+        }
+
         return CameraViewController(
-            configuration: .init(showCancelButton: state.isPostComposerCancellable, format: isMoment ? .square : .normal),
+            configuration: .init(showCancelButton: state.isPostComposerCancellable, format: momentContext != nil ? .square : .normal, subtitle: cameraSubtitle),
             didFinish: { [weak self] in self?.cleanupAndFinish() },
             didPickImage: { [weak self] uiImage in self?.onCameraImagePicked(uiImage) },
             didPickVideo: { [weak self] videoURL in self?.onCameraVideoPicked(videoURL) }
