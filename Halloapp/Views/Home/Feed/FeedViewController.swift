@@ -80,19 +80,6 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         tabBarController?.definesPresentationContext = true
     }
 
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-
-        // Its possible this is called before viewDidLoad, which means the collectionView can be nil
-        if let collectionView = collectionView {
-            for cell in collectionView.visibleCells {
-                if let promptCell = cell as? MomentPromptCollectionViewCell {
-                    promptCell.promptView.stopSession()
-                }
-            }
-        }
-    }
-
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         updateContactPermissionsAlert()
@@ -106,11 +93,6 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         DDLogInfo("FeedViewController/viewWillAppear")
-        for cell in self.collectionView.visibleCells {
-            if let promptCell = cell as? MomentPromptCollectionViewCell {
-                promptCell.promptView.startSession()
-            }
-        }
     }
     
     override func viewDidLayoutSubviews() {
@@ -187,7 +169,7 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
             result.insert(.inviteCarousel, at: min(4, result.count))
         }
 
-        if ServerProperties.isMomentsEnabled, MainAppContext.shared.feedData.latestValidMoment() == nil {
+        if ServerProperties.isMomentsEnabled, MainAppContext.shared.feedData.validMoment.value == nil {
             // in this case we don't care about the moment's status (could have failed to upload),
             // as long as the user tried to post one, we won't display the prompt
             let promptTimestamp = MainAppContext.shared.feedData.momentPromptTimestamp()

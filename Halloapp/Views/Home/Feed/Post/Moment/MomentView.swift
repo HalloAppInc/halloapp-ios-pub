@@ -96,7 +96,7 @@ class MomentView: UIView {
     }()
     
     private lazy var overlayStack: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [avatarView, actionButton, promptLabel])
+        let stack = UIStackView(arrangedSubviews: [avatarView, promptLabel, actionButton])
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.axis = .vertical
         stack.distribution = .equalSpacing

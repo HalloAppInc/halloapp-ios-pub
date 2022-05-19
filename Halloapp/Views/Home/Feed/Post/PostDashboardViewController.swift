@@ -242,19 +242,7 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
         label.font = .systemFont(ofSize: 12)
         label.numberOfLines = 0
         label.translatesAutoresizingMaskIntoConstraints = false
-        
-        let message: String
-        switch feedPost.audienceType {
-        case .all:
-            message = Localizations.contactsMyPostDisappearTimeLabel
-        case .whitelist:
-            message = Localizations.favoritesMyPostDisappearTimeLabel
-        default:
-            // groups go here
-            message = Localizations.standardPostDisappearTimeLabel
-        }
-        
-        label.text = message
+        label.text = footerText()
         
         footerView.addSubview(label)
         NSLayoutConstraint.activate([
@@ -332,6 +320,21 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
         tableView.deselectRow(at: indexPath, animated: true)
     }
 
+    private func footerText() -> String {
+        if feedPost.isMoment {
+            return Localizations.momentPostDisappearTimeLabel
+        }
+
+        switch feedPost.audienceType {
+        case .all:
+            return Localizations.contactsMyPostDisappearTimeLabel
+        case .whitelist:
+            return Localizations.favoritesMyPostDisappearTimeLabel
+        default:
+            // groups go here
+            return Localizations.standardPostDisappearTimeLabel
+        }
+    }
 }
 
 fileprivate enum Section {
@@ -392,6 +395,12 @@ private extension Localizations {
         NSLocalizedString("mypost.disappear.time.label",
                    value: "Your post will disappear after 30 days.",
                  comment: "Generic message displayed to say when posts will disappear.")
+    }
+
+    static var momentPostDisappearTimeLabel: String {
+        NSLocalizedString("mymoment.disappear.time.label",
+                   value: "Your Moment was shared with your contacts list. Moments disappear after 24 hours and can only be viewed once.",
+                 comment: "Message displayed to say when moments will disappear.")
     }
 
     static var myPostRowManagePrivacy: String {

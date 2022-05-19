@@ -44,10 +44,12 @@ extension CameraViewController {
     class Configuration: ObservableObject {
         let showCancelButton: Bool
         let format: Format
+        let subtitle: String?
         
-        init(showCancelButton: Bool = true, format: Format = .normal) {
+        init(showCancelButton: Bool = true, format: Format = .normal, subtitle: String? = nil) {
             self.showCancelButton = showCancelButton
             self.format = format
+            self.subtitle = subtitle
         }
     }
 }
@@ -60,6 +62,16 @@ class CameraViewController: UIViewController {
 
     private var defaultBackButton: UIBarButtonItem?
     private var landscapeBackButton: UIBarButtonItem?
+
+    private lazy var subtitleLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.numberOfLines = 0
+        label.font = .systemFont(forTextStyle: .subheadline, weight: .regular, maximumPointSize: 24)
+        label.textColor = .secondaryLabel
+        label.textAlignment = .center
+        return label
+    }()
 
     init(configuration: Configuration,
          didFinish: @escaping () -> Void,
@@ -99,8 +111,21 @@ class CameraViewController: UIViewController {
         addChild(cameraViewController)
         view.addSubview(cameraViewController.view)
         cameraViewController.view.translatesAutoresizingMaskIntoConstraints = false
-        cameraViewController.view.constrain(to: view)
         cameraViewController.didMove(toParent: self)
+
+        view.addSubview(subtitleLabel)
+        subtitleLabel.text = configuration.subtitle
+
+        NSLayoutConstraint.activate([
+            subtitleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            subtitleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 65),
+            subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -65),
+            subtitleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            cameraViewController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            cameraViewController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            cameraViewController.view.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor),
+            cameraViewController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
     }
 
     @objc private func cancelAction() {
@@ -148,7 +173,12 @@ class CameraViewController: UIViewController {
         if orientation.isLandscape || orientation == .portraitUpsideDown {
             navigationItem.title = nil
         } else if orientation == .portrait {
-            navigationItem.title = NSLocalizedString("title.camera", value: "Camera", comment: "Screen title")
+            switch configuration.format {
+            case .normal:
+                navigationItem.title = NSLocalizedString("title.camera", value: "Camera", comment: "Camera screen title")
+            case .square:
+                navigationItem.title = NSLocalizedString("title.camera.moment", value: "New Moment", comment: "Camera screen title for a new moment")
+            }
         }
     }
 

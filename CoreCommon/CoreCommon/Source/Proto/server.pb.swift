@@ -3036,6 +3036,22 @@ extension Server_WebClientInfo.Result: CaseIterable {
 
 #endif  // swift(>=4.2)
 
+public struct Server_WebStanza {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  /// Used to identify the user. Must be set on every packet exchanged
+  public var staticKey: Data = Data()
+
+  /// between mobile and web client.
+  public var content: Data = Data()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public struct Server_Iq {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -4001,6 +4017,14 @@ public struct Server_Msg {
     set {_uniqueStorage()._payload = .callSdp(newValue)}
   }
 
+  public var webStanza: Server_WebStanza {
+    get {
+      if case .webStanza(let v)? = _storage._payload {return v}
+      return Server_WebStanza()
+    }
+    set {_uniqueStorage()._payload = .webStanza(newValue)}
+  }
+
   public var retryCount: Int32 {
     get {return _storage._retryCount}
     set {_uniqueStorage()._retryCount = newValue}
@@ -4060,6 +4084,7 @@ public struct Server_Msg {
     case muteCall(Server_MuteCall)
     case incomingCallPush(Server_IncomingCallPush)
     case callSdp(Server_CallSdp)
+    case webStanza(Server_WebStanza)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Msg.OneOf_Payload, rhs: Server_Msg.OneOf_Payload) -> Bool {
@@ -4229,6 +4254,10 @@ public struct Server_Msg {
       }()
       case (.callSdp, .callSdp): return {
         guard case .callSdp(let l) = lhs, case .callSdp(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.webStanza, .webStanza): return {
+        guard case .webStanza(let l) = lhs, case .webStanza(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -5951,6 +5980,8 @@ public struct Server_OtpRequest {
 
   public var hashcashSolutionTimeTakenMs: Int64 = 0
 
+  public var campaignID: String = String()
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum Method: SwiftProtobuf.Enum {
@@ -6168,6 +6199,8 @@ public struct Server_VerifyOtpRequest {
   public mutating func clearPushRegister() {self._pushRegister = nil}
 
   public var userAgent: String = String()
+
+  public var campaignID: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -6691,6 +6724,7 @@ extension Server_ExternalSharePostContainer: @unchecked Sendable {}
 extension Server_WebClientInfo: @unchecked Sendable {}
 extension Server_WebClientInfo.Action: @unchecked Sendable {}
 extension Server_WebClientInfo.Result: @unchecked Sendable {}
+extension Server_WebStanza: @unchecked Sendable {}
 extension Server_Iq: @unchecked Sendable {}
 extension Server_Iq.OneOf_Payload: @unchecked Sendable {}
 extension Server_Iq.TypeEnum: @unchecked Sendable {}
@@ -11008,6 +11042,44 @@ extension Server_WebClientInfo.Result: SwiftProtobuf._ProtoNameProviding {
   ]
 }
 
+extension Server_WebStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".WebStanza"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "static_key"),
+    2: .same(proto: "content"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBytesField(value: &self.staticKey) }()
+      case 2: try { try decoder.decodeSingularBytesField(value: &self.content) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.staticKey.isEmpty {
+      try visitor.visitSingularBytesField(value: self.staticKey, fieldNumber: 1)
+    }
+    if !self.content.isEmpty {
+      try visitor.visitSingularBytesField(value: self.content, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_WebStanza, rhs: Server_WebStanza) -> Bool {
+    if lhs.staticKey != rhs.staticKey {return false}
+    if lhs.content != rhs.content {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".Iq"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -11831,6 +11903,7 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     45: .standard(proto: "mute_call"),
     46: .standard(proto: "incoming_call_push"),
     47: .standard(proto: "call_sdp"),
+    48: .standard(proto: "web_stanza"),
     21: .standard(proto: "retry_count"),
     25: .standard(proto: "rerequest_count"),
   ]
@@ -12413,6 +12486,19 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
             _storage._payload = .callSdp(v)
           }
         }()
+        case 48: try {
+          var v: Server_WebStanza?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .webStanza(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .webStanza(v)
+          }
+        }()
         default: break
         }
       }
@@ -12613,6 +12699,10 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
       case .callSdp?: try {
         guard case .callSdp(let v)? = _storage._payload else { preconditionFailure() }
         try visitor.visitSingularMessageField(value: v, fieldNumber: 47)
+      }()
+      case .webStanza?: try {
+        guard case .webStanza(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 48)
       }()
       default: break
       }
@@ -14617,6 +14707,7 @@ extension Server_OtpRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     5: .standard(proto: "user_agent"),
     6: .standard(proto: "hashcash_solution"),
     7: .standard(proto: "hashcash_solution_time_taken_ms"),
+    8: .standard(proto: "campaign_id"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -14632,6 +14723,7 @@ extension Server_OtpRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
       case 5: try { try decoder.decodeSingularStringField(value: &self.userAgent) }()
       case 6: try { try decoder.decodeSingularStringField(value: &self.hashcashSolution) }()
       case 7: try { try decoder.decodeSingularInt64Field(value: &self.hashcashSolutionTimeTakenMs) }()
+      case 8: try { try decoder.decodeSingularStringField(value: &self.campaignID) }()
       default: break
       }
     }
@@ -14659,6 +14751,9 @@ extension Server_OtpRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     if self.hashcashSolutionTimeTakenMs != 0 {
       try visitor.visitSingularInt64Field(value: self.hashcashSolutionTimeTakenMs, fieldNumber: 7)
     }
+    if !self.campaignID.isEmpty {
+      try visitor.visitSingularStringField(value: self.campaignID, fieldNumber: 8)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -14670,6 +14765,7 @@ extension Server_OtpRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     if lhs.userAgent != rhs.userAgent {return false}
     if lhs.hashcashSolution != rhs.hashcashSolution {return false}
     if lhs.hashcashSolutionTimeTakenMs != rhs.hashcashSolutionTimeTakenMs {return false}
+    if lhs.campaignID != rhs.campaignID {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -14771,6 +14867,7 @@ extension Server_VerifyOtpRequest: SwiftProtobuf.Message, SwiftProtobuf._Message
     9: .standard(proto: "group_invite_token"),
     10: .standard(proto: "push_register"),
     11: .standard(proto: "user_agent"),
+    12: .standard(proto: "campaign_id"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -14790,6 +14887,7 @@ extension Server_VerifyOtpRequest: SwiftProtobuf.Message, SwiftProtobuf._Message
       case 9: try { try decoder.decodeSingularStringField(value: &self.groupInviteToken) }()
       case 10: try { try decoder.decodeSingularMessageField(value: &self._pushRegister) }()
       case 11: try { try decoder.decodeSingularStringField(value: &self.userAgent) }()
+      case 12: try { try decoder.decodeSingularStringField(value: &self.campaignID) }()
       default: break
       }
     }
@@ -14833,6 +14931,9 @@ extension Server_VerifyOtpRequest: SwiftProtobuf.Message, SwiftProtobuf._Message
     if !self.userAgent.isEmpty {
       try visitor.visitSingularStringField(value: self.userAgent, fieldNumber: 11)
     }
+    if !self.campaignID.isEmpty {
+      try visitor.visitSingularStringField(value: self.campaignID, fieldNumber: 12)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -14848,6 +14949,7 @@ extension Server_VerifyOtpRequest: SwiftProtobuf.Message, SwiftProtobuf._Message
     if lhs.groupInviteToken != rhs.groupInviteToken {return false}
     if lhs._pushRegister != rhs._pushRegister {return false}
     if lhs.userAgent != rhs.userAgent {return false}
+    if lhs.campaignID != rhs.campaignID {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

@@ -372,15 +372,19 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         }
     }
     
-    func showSecretPostView(for post: FeedPost) {
-        if let _ = MainAppContext.shared.feedData.validMoment.value {
-            let vc = MomentViewController(post: post)
+    func presentMomentViewController(for post: FeedPost) {
+        if let latest = MainAppContext.shared.feedData.fetchLatestMoment() {
+            let userID = MainAppContext.shared.userData.userId
+            let unlocker = (post.userId == userID || latest.status == .sent) ? nil : latest
+            // user may have uploaded using the prompt card and it's still pending, in this case we show the unlock flow
+            let vc = MomentViewController(post: post, unlockingPost: unlocker)
             vc.delegate = self
             present(vc, animated: true)
         } else {
             let newPostVC = NewPostViewController(source: .camera,
                                              destination: .userFeed,
-                                                isMoment: true, didFinish: { [weak self] didPost in
+                                           momentContext: .unlock(post.userID),
+                                               didFinish: { [weak self] didPost in
                 
                 if didPost {
                     self?.startUnlockTransition(for: post)
@@ -392,10 +396,17 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
             present(newPostVC, animated: true)
         }
     }
+
+    private func presentMomentViewController(_ post: FeedPost) {
+        let vc = MomentViewController(post: post)
+        vc.delegate = self
+
+        present(vc, animated: true)
+    }
     
     private func startUnlockTransition(for post: FeedPost) {
         guard
-            let latest = MainAppContext.shared.feedData.latestValidMoment(),
+            let latest = MainAppContext.shared.feedData.fetchLatestMoment(),
             let newPostVC = presentedViewController as? NewPostViewController
         else {
             dismiss(animated: true)
@@ -418,7 +429,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
 
         let vc = NewPostViewController(source: source,
                                   destination: .userFeed,
-                                     isMoment: true) { [weak self] didPost in
+                                momentContext: .normal) { [weak self] didPost in
             self?.dismiss(animated: true)
             if didPost {
                 self?.scrollToTop(animated: true)
@@ -837,13 +848,6 @@ extension FeedCollectionViewController {
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MomentPromptCollectionViewCell.reuseIdentifier, for: indexPath)
 
                 let promptCell = cell as? MomentPromptCollectionViewCell
-                promptCell?.promptView.openSettings = {
-                    guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
-                    if UIApplication.shared.canOpenURL(url) {
-                        UIApplication.shared.open(url)
-                    }
-                }
-
                 promptCell?.promptView.openCamera = { [weak self] in
                     self?.createNewMoment()
                 }
@@ -878,7 +882,7 @@ extension FeedCollectionViewController {
     func configure(cell: MomentCollectionViewCell, withSecretFeedPost feedPost: FeedPost) {
         cell.configure(with: feedPost, contentWidth: cellContentWidth)
         cell.momentView.action = { [weak self] in
-            self?.showSecretPostView(for: feedPost)
+            self?.presentMomentViewController(for: feedPost)
         }
 
         cell.showUserAction = { [weak self, feedPost] in
@@ -1154,17 +1158,9 @@ extension FeedCollectionViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         willShowCell(atIndexPath: indexPath)
         checkForOnscreenCells()
-
-        if let cell = cell as? MomentPromptCollectionViewCell {
-            cell.promptView.startSession()
-        }
     }
 
     func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        if let cell = cell as? MomentPromptCollectionViewCell {
-            cell.promptView.stopSession()
-        }
-
         guard let feedCell = cell as? FeedPostCollectionViewCell else {
             return
         }
@@ -1242,6 +1238,17 @@ extension FeedCollectionViewController: PostDashboardViewControllerDelegate, Mom
         }
 
         dismiss(animated: true, completion: actionToPerformOnDashboardDismiss)
+    }
+
+    func initialTransitionView(for post: FeedPost) -> MomentView? {
+        guard
+            let index = collectionViewDataSource?.indexPath(for: .moment(post)),
+            let cell = collectionView.cellForItem(at: index) as? MomentCollectionViewCell
+        else {
+            return nil
+        }
+
+        return cell.momentView
     }
 }
 
