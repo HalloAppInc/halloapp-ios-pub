@@ -556,7 +556,7 @@ extension ChatListViewController: UITableViewDelegate {
         guard let chatWithUserId = chatThread.userID else { return }
 
         if AppContext.shared.userDefaults.bool(forKey: "enableNewChat") {
-            let vc = ChatViewControllerNew(for: chatWithUserId, with: nil, at: 0)
+            let vc = ChatViewControllerNew(for: chatWithUserId, with: nil, at: 0, unreadCount: chatThread.unreadCount)
             vc.chatViewControllerDelegate = self
             self.navigationController?.pushViewController(vc, animated: true)
         } else {
