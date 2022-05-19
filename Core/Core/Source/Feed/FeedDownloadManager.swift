@@ -283,6 +283,20 @@ public class FeedDownloadManager {
             return
         }
 
+        guard let encryptedFileSize = try? FileManager.default.attributesOfItem(atPath: encryptedFileURL.path)[FileAttributeKey.size] as? Int else {
+            DDLogError("FeedDownloadManager/\(task.id)/decryptDataInChunks/error Error reading encrypted file size.")
+            task.error = .unknownError
+            self.taskFailed(task)
+            return
+        }
+
+        guard task.fileSize == encryptedFileSize else {
+            DDLogError("FeedDownloadManager/\(task.id)/decryptDataInChunks/size-mismatch/expected-fileSize: \(String(describing: task.fileSize))/encryptedFileSize: \(encryptedFileSize)")
+            task.error = .unknownError
+            self.taskFailed(task)
+            return
+        }
+
         do {
             // see comments under the function signature for more details about the logic below.
             encryptedFileHandle  = try FileHandle(forReadingFrom: encryptedFileURL)
@@ -302,7 +316,14 @@ public class FeedDownloadManager {
                 }
                 fileSize += curEncryptedDataChunk.count
             }
-            DDLogInfo("FeedDownloadManager/\(task.id)/verifyHash/wip fileSize=[\(fileSize)]")
+            let offset: UInt64
+            if #available(iOSApplicationExtension 13.4, *) {
+                offset = try encryptedFileHandle.offset()
+            } else {
+                // Fallback on earlier versions
+                offset = 0
+            }
+            DDLogInfo("FeedDownloadManager/\(task.id)/verifyHash/wip fileSize=[\(fileSize)]/offset: \(offset)")
 
             // Verify hash-sha256 here and only then proceed.
             try mediaChunkCrypter.hashUpdate(input: curEncryptedDataChunk)

@@ -2444,26 +2444,27 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 return
             }
 
-            if task.error == nil {
+            if let error = task.error {
+                DDLogError("FeedData/download-task/\(task.id)/error [\(task.error!)]")
+                feedPostMedia.status = .downloadError
+
+                // TODO: Do an exponential backoff on the client for 1 day and then show a manual retry button for the user.
+                // Mark as permanent failure if we encounter hashMismatch or MACMismatch.
+                switch error {
+                case .macMismatch, .hashMismatch, .decryptionFailed:
+                    DDLogInfo("FeedData/download-task/\(task.id)/error [\(task.error!) - fail permanently]")
+                    feedPostMedia.status = .downloadFailure
+                    AppContext.shared.errorLogger?.logError(error)
+                default:
+                    break
+                }
+            } else {
                 DDLogInfo("FeedData/download-task/\(task.id)/complete [\(task.decryptedFilePath!)]")
                 feedPostMedia.status = task.isPartialChunkedDownload ? .downloadedPartial : .downloaded
                 feedPostMedia.relativeFilePath = task.decryptedFilePath
                 if task.isPartialChunkedDownload, let chunkSet = task.downloadedChunkSet {
                     DDLogDebug("FeedData/download-task/\(task.id)/feedDownloadManager chunkSet=[\(chunkSet)]")
                     feedPostMedia.chunkSet = chunkSet.data
-                }
-            } else {
-                DDLogError("FeedData/download-task/\(task.id)/error [\(task.error!)]")
-                feedPostMedia.status = .downloadError
-
-                // TODO: Do an exponential backoff on the client for 1 day and then show a manual retry button for the user.
-                // Mark as permanent failure if we encounter hashMismatch or MACMismatch.
-                switch task.error {
-                case .macMismatch, .hashMismatch, .decryptionFailed:
-                    DDLogInfo("FeedData/download-task/\(task.id)/error [\(task.error!) - fail permanently]")
-                    feedPostMedia.status = .downloadFailure
-                default:
-                    break
                 }
             }
 
