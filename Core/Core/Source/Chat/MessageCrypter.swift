@@ -145,6 +145,16 @@ public final class MessageCrypter: KeyStoreDelegate {
         }
     }
 
+    public func syncGroupSession(
+        in groupID: GroupID,
+        members: [UserID])
+    {
+        queue.async {
+            let session = self.loadGroupSession(for: groupID)
+            session.syncGroup(members: members)
+        }
+    }
+
     public func updateAudienceHash(for groupID: GroupID) {
         queue.async {
             let session = self.loadGroupSession(for: groupID)
