@@ -848,13 +848,6 @@ extension FeedCollectionViewController {
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MomentPromptCollectionViewCell.reuseIdentifier, for: indexPath)
 
                 let promptCell = cell as? MomentPromptCollectionViewCell
-                promptCell?.promptView.openSettings = {
-                    guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
-                    if UIApplication.shared.canOpenURL(url) {
-                        UIApplication.shared.open(url)
-                    }
-                }
-
                 promptCell?.promptView.openCamera = { [weak self] in
                     self?.createNewMoment()
                 }
@@ -1165,17 +1158,9 @@ extension FeedCollectionViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         willShowCell(atIndexPath: indexPath)
         checkForOnscreenCells()
-
-        if let cell = cell as? MomentPromptCollectionViewCell {
-            cell.promptView.startSession()
-        }
     }
 
     func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        if let cell = cell as? MomentPromptCollectionViewCell {
-            cell.promptView.stopSession()
-        }
-
         guard let feedCell = cell as? FeedPostCollectionViewCell else {
             return
         }

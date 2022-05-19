@@ -80,19 +80,6 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         tabBarController?.definesPresentationContext = true
     }
 
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-
-        // Its possible this is called before viewDidLoad, which means the collectionView can be nil
-        if let collectionView = collectionView {
-            for cell in collectionView.visibleCells {
-                if let promptCell = cell as? MomentPromptCollectionViewCell {
-                    promptCell.promptView.stopSession()
-                }
-            }
-        }
-    }
-
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         updateContactPermissionsAlert()
@@ -106,11 +93,6 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         DDLogInfo("FeedViewController/viewWillAppear")
-        for cell in self.collectionView.visibleCells {
-            if let promptCell = cell as? MomentPromptCollectionViewCell {
-                promptCell.promptView.startSession()
-            }
-        }
     }
     
     override func viewDidLayoutSubviews() {
