@@ -1853,14 +1853,11 @@ class ChatData: ObservableObject {
 
         // TODO: Why Int16? - other classes have Int32 for the order attribute.
         var mediaIndex: Int16 = 0
-        var mediaFromDir = MediaDirectory.media
         // Ensure Id of the quoted object is not empty - postId/msgId.
         if let feedPostId = chatMessage.feedPostId, !feedPostId.isEmpty {
             mediaIndex = Int16(chatMessage.feedPostMediaIndex)
-            mediaFromDir = .media
         } else if let chatReplyMessageID = chatMessage.chatReplyMessageID, !chatReplyMessageID.isEmpty {
             mediaIndex = Int16(chatMessage.chatReplyMessageMediaIndex)
-            mediaFromDir = .chatMedia
         }
         if let chatQuotedMediaItem = chatQuoted.mediaList.first(where: { $0.order == mediaIndex }) {
             DDLogInfo("ChatData/copyQuoted/message/\(chatMessage.id), chatQuotedMediaIndex: \(chatQuotedMediaItem.order)")
@@ -1871,7 +1868,7 @@ class ChatData: ObservableObject {
             quotedMedia.height = Float(chatQuotedMediaItem.height)
             quotedMedia.chatQuoted = quoted
             do {
-                try copyMediaToQuotedMedia(fromDir: mediaFromDir, fromPath: chatQuotedMediaItem.relativeFilePath, to: quotedMedia)
+                try copyMediaToQuotedMedia(fromDir: chatQuotedMediaItem.mediaDirectory, fromPath: chatQuotedMediaItem.relativeFilePath, to: quotedMedia)
             } catch {
                 DDLogError("ChatData/new-msg/quoted/copy-media/error [\(error)]")
             }
@@ -2384,7 +2381,7 @@ extension ChatData {
                 quotedMedia.chatQuoted = quoted
 
                 do {
-                    try copyMediaToQuotedMedia(fromDir: .media, fromPath: feedPostMedia.relativeFilePath, to: quotedMedia)
+                    try copyMediaToQuotedMedia(fromDir: feedPostMedia.mediaDirectory, fromPath: feedPostMedia.relativeFilePath, to: quotedMedia)
                 }
                 catch {
                     DDLogError("ChatData/createChatMsg/\(messageId)/quoted/copy-media/error [\(error)]")
@@ -2422,7 +2419,7 @@ extension ChatData {
                 quotedMedia.chatQuoted = quoted
 
                 do {
-                    try copyMediaToQuotedMedia(fromDir: .chatMedia, fromPath: quotedChatMessageMedia.relativeFilePath, to: quotedMedia)
+                    try copyMediaToQuotedMedia(fromDir: quotedChatMessageMedia.mediaDirectory, fromPath: quotedChatMessageMedia.relativeFilePath, to: quotedMedia)
                 }
                 catch {
                     DDLogError("ChatData/createChatMsg/\(messageId)/quoted/copy-media/error [\(error)]")
