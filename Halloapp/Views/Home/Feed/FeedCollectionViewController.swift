@@ -374,9 +374,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
     
     func showSecretPostView(for post: FeedPost) {
         if let _ = MainAppContext.shared.feedData.validMoment.value {
-            let vc = MomentViewController(post: post)
-            vc.delegate = self
-            present(vc, animated: true)
+            presentMomentViewController(post)
         } else {
             let newPostVC = NewPostViewController(source: .camera,
                                              destination: .userFeed,
@@ -392,6 +390,13 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
             
             present(newPostVC, animated: true)
         }
+    }
+
+    private func presentMomentViewController(_ post: FeedPost) {
+        let vc = MomentViewController(post: post)
+        vc.delegate = self
+
+        present(vc, animated: true)
     }
     
     private func startUnlockTransition(for post: FeedPost) {
@@ -1243,6 +1248,17 @@ extension FeedCollectionViewController: PostDashboardViewControllerDelegate, Mom
         }
 
         dismiss(animated: true, completion: actionToPerformOnDashboardDismiss)
+    }
+
+    func initialTransitionView(for post: FeedPost) -> MomentView? {
+        guard
+            let index = feedDataSource.index(of: post.id),
+            let cell = collectionView.cellForItem(at: IndexPath(row: index, section: 0)) as? MomentCollectionViewCell
+        else {
+            return nil
+        }
+
+        return cell.momentView
     }
 }
 

@@ -12,13 +12,14 @@ import Core
 import CoreCommon
 
 protocol MomentViewControllerDelegate: PostDashboardViewControllerDelegate {
-
+    func initialTransitionView(for post: FeedPost) -> MomentView?
 }
 
 class MomentViewController: UIViewController {
 
     let post: FeedPost
     let unlockingPost: FeedPost?
+    let isFullScreen: Bool
     weak var delegate: MomentViewControllerDelegate?
 
     private var backgroundColor: UIColor {
@@ -31,7 +32,7 @@ class MomentViewController: UIViewController {
             }
         }
     }
-    
+
     private(set) lazy var momentView: MomentView = {
         let view = MomentView()
         view.configure(with: post)
@@ -89,7 +90,6 @@ class MomentViewController: UIViewController {
     private lazy var contentInputView: ContentInputView = {
         let view = ContentInputView(style: .minimal, options: [])
         view.autoresizingMask = [.flexibleHeight]
-        view.backgroundColor = UIColor { $0.userInterfaceStyle == .dark ? .black : .feedBackground }
         view.blurView.isHidden = true
         view.delegate = self
         let name = MainAppContext.shared.contactStore.firstName(for: post.userID)
@@ -97,6 +97,8 @@ class MomentViewController: UIViewController {
 
         return view
     }()
+
+    private lazy var dismissAnimator = DismissAnimator(referenceView: view)
 
     override var canBecomeFirstResponder: Bool {
         true
@@ -110,10 +112,14 @@ class MomentViewController: UIViewController {
     private var toast: Toast?
     private var replyCancellable: AnyCancellable?
 
-    init(post: FeedPost, unlockingPost: FeedPost? = nil) {
+    init(post: FeedPost, unlockingPost: FeedPost? = nil, isFullScreen: Bool = true) {
         self.post = post
         self.unlockingPost = unlockingPost
+        self.isFullScreen = isFullScreen
         super.init(nibName: nil, bundle: nil)
+
+        modalPresentationStyle = .custom
+        transitioningDelegate = self
     }
     
     required init?(coder: NSCoder) {
@@ -130,6 +136,7 @@ class MomentViewController: UIViewController {
         backgroundView.translatesAutoresizingMaskIntoConstraints = false
         backgroundView.backgroundColor = backgroundColor
         view.addSubview(backgroundView)
+        view.backgroundColor = nil
 
         view.addSubview(headerView)
         view.addSubview(momentView)
@@ -155,9 +162,19 @@ class MomentViewController: UIViewController {
             backgroundView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             backgroundView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
-        
-        installDismissButton()
+
         installUnlockingPost()
+
+        if isFullScreen {
+            // arrived from the feed
+            installDismissTap()
+            backgroundView.backgroundColor = backgroundColor.withAlphaComponent(0.97)
+        } else {
+            // arrived from the camera
+            installDismissButton()
+        }
+
+        contentInputView.backgroundColor = backgroundView.backgroundColor
 
         post.feedMedia.first?.$isMediaAvailable.sink { [weak self] isAvailable in
             DispatchQueue.main.async {
@@ -166,18 +183,13 @@ class MomentViewController: UIViewController {
         }.store(in: &cancellables)
     }
 
+    var attachment: UIAttachmentBehavior!
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 
         toast?.show()
         refreshAccessoryView(show: true)
-    }
-
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-
-        toast?.hide()
-        refreshAccessoryView(show: false)
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -186,6 +198,17 @@ class MomentViewController: UIViewController {
         post.feedMedia.first?.$isMediaAvailable.sink { [weak self] _ in
             self?.expireMomentIfReady()
         }.store(in: &cancellables)
+
+        let pan = UIPanGestureRecognizer(target: self, action: #selector(dismissPan))
+        pan.delegate = self
+        momentView.addGestureRecognizer(pan)
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+
+        toast?.hide()
+        refreshAccessoryView(show: false)
     }
 
     private func refreshAccessoryView(show: Bool) {
@@ -229,6 +252,13 @@ class MomentViewController: UIViewController {
         
         updateUploadState()
     }
+
+    private func installDismissTap() {
+        let tap = UITapGestureRecognizer(target: self, action: #selector(dismissTapped))
+        tap.cancelsTouchesInView = false
+        tap.delegate = self
+        view.addGestureRecognizer(tap)
+    }
     
     private func installDismissButton() {
         let config = UIImage.SymbolConfiguration(weight: .bold)
@@ -242,7 +272,7 @@ class MomentViewController: UIViewController {
         
         NSLayoutConstraint.activate([
             button.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 15),
-            button.topAnchor.constraint(equalTo: view.topAnchor, constant: 20),
+            button.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
         ])
     }
 
@@ -251,6 +281,15 @@ class MomentViewController: UIViewController {
         let viewController = PostDashboardViewController(feedPost: post)
         viewController.delegate = self
         present(UINavigationController(rootViewController: viewController), animated: true)
+    }
+
+    @objc
+    private func dismissTapped(_ sender: UITapGestureRecognizer) {
+        if contentInputView.textView.isFirstResponder {
+            contentInputView.textView.resignFirstResponder()
+        } else {
+            dismiss(animated: true)
+        }
     }
 
     @objc
@@ -381,6 +420,225 @@ class MomentViewController: UIViewController {
     }
 }
 
+// MARK: - UIGestureRecognizerDelegate delegate methods
+
+extension MomentViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        // don't want the pan being caused while the user is pinching to zoom
+        return !otherGestureRecognizer.isKind(of: UIPinchGestureRecognizer.self)
+    }
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        if gestureRecognizer.isKind(of: UITapGestureRecognizer.self) {
+            return !facePileView.frame.contains(touch.location(in: view))
+        }
+
+        return true
+    }
+}
+
+// MARK: - DismissAnimator implementation
+
+/// Used to encapsulate the other objects needed during dismissal.
+fileprivate class DismissAnimator: UIDynamicAnimator {
+    var snapshot: UIView?
+    var attachment: UIAttachmentBehavior?
+    var propertyAnimator: UIViewPropertyAnimator?
+
+    func reset() {
+        removeAllBehaviors()
+
+        snapshot?.removeFromSuperview()
+        snapshot = nil
+        attachment = nil
+
+        propertyAnimator?.stopAnimation(false)
+        propertyAnimator?.finishAnimation(at: .start)
+        propertyAnimator = nil
+    }
+}
+
+// MARK: - Interactive dismiss methods
+
+extension MomentViewController {
+    @objc
+    private func dismissPan(_ gesture: UIPanGestureRecognizer) {
+        guard !contentInputView.textView.isFirstResponder, isFullScreen else {
+            // don't allow the flick-to-dismiss when the keyboard is showing or when presented via the camera
+            return
+        }
+
+        switch gesture.state {
+        case .began:
+            dismissAnimator.reset()
+            installDismissSnapshot()
+            installAttachmentBehavior(gesture)
+            createPropertyAnimator()
+            refreshAccessoryView(show: false)
+        case .changed:
+            let anchor = gesture.location(in: view)
+            attachment.anchorPoint = anchor
+        case .ended:
+            dismissAnimator.removeAllBehaviors()
+
+            if !shouldCompleteInteractiveDismiss(gesture) {
+                return installSnapBehavior()
+            }
+
+            let velocity = gesture.velocity(in: view)
+            installPushBehavior(gesture, velocity: velocity)
+        default:
+            break
+        }
+    }
+
+    /**
+     Creates the attachment behavior that allows the snapshot to follow the user's finger and
+     rotate around an anchor point.
+     */
+    private func installAttachmentBehavior(_ gesture: UIPanGestureRecognizer) {
+        guard let snapshot = dismissAnimator.snapshot else {
+            return
+        }
+
+        let location = gesture.location(in: snapshot)
+        let offset = UIOffset(horizontal: location.x - snapshot.bounds.width / 2,
+                                vertical: location.y - snapshot.bounds.height / 2)
+
+        let anchor = gesture.location(in: view)
+        let attachment = UIAttachmentBehavior(item: snapshot, offsetFromCenter: offset, attachedToAnchor: anchor)
+
+        attachment.action = { [weak self] in
+            self?.updatePropertyAnimator()
+        }
+
+        dismissAnimator.addBehavior(attachment)
+        self.attachment = attachment
+    }
+
+    /**
+     Creates the behavior that snaps the view back in place if the conditions to complete the dismiss
+     interaction fail.
+     */
+    private func installSnapBehavior() {
+        guard let snapshot = dismissAnimator.snapshot else {
+            return
+        }
+
+        let snap = UISnapBehavior(item: snapshot, snapTo: momentView.center)
+        snap.damping = 1
+
+        snap.action = { [weak self] in
+            guard let self = self else {
+                return
+            }
+
+            self.updatePropertyAnimator()
+            // without rounding, these points never match up in this block
+            let r1 = CGPoint(x: round(snapshot.center.x), y: round(snapshot.center.y))
+            let r2 = CGPoint(x: round(self.momentView.center.x), y: round(self.momentView.center.y))
+
+            if r1 == r2 {
+                self.dismissAnimator.removeAllBehaviors()
+                self.dismissAnimator.snapshot?.removeFromSuperview()
+                self.dismissAnimator.snapshot = nil
+                self.momentView.isHidden = false
+
+                self.dismissAnimator.propertyAnimator?.isReversed = true
+                self.dismissAnimator.propertyAnimator?.startAnimation()
+
+                self.refreshAccessoryView(show: true)
+            }
+        }
+
+        dismissAnimator.addBehavior(snap)
+    }
+
+    private func shouldCompleteInteractiveDismiss(_ gesture: UIPanGestureRecognizer) -> Bool {
+        let translation = gesture.translation(in: view)
+        let velocity = gesture.velocity(in: view)
+
+        let translationThreshold: CGFloat = 300 * 300
+        let velocityThreshold: CGFloat = 800 * 800
+
+        let translationValue = translation.x * translation.x + translation.y * translation.y
+        let velocityValue = velocity.x * velocity.x + velocity.y * velocity.y
+
+        return translationValue > translationThreshold || velocityValue > velocityThreshold
+    }
+
+    /**
+     Completes the interactive dismiss animation by creating a behavior that pushes the snapshot off-screen.
+     */
+    private func installPushBehavior(_ gesture: UIPanGestureRecognizer, velocity: CGPoint) {
+        guard let snapshot = dismissAnimator.snapshot else {
+            return
+        }
+
+        let behavior = UIPushBehavior(items: [snapshot], mode: .instantaneous)
+        let magnitude = sqrt((velocity.x * velocity.x) + (velocity.y * velocity.y))
+        behavior.pushDirection = CGVector(dx: velocity.x / 5, dy: velocity.y / 5)
+        behavior.magnitude = magnitude / 10
+
+        let finalPoint = gesture.location(in: view)
+        let center = snapshot.center
+        let offset = UIOffset(horizontal: finalPoint.x - center.x, vertical: finalPoint.y - center.y)
+        behavior.setTargetOffsetFromCenter(offset, for: snapshot)
+
+        behavior.action = { [weak self] in
+            guard let self = self, !self.view.bounds.intersects(snapshot.frame) else {
+                return
+            }
+
+            self.dismiss(animated: true)
+        }
+
+        let gravity = UIGravityBehavior(items: [snapshot])
+        gravity.magnitude = 1.5
+
+        dismissAnimator.addBehavior(behavior)
+        dismissAnimator.addBehavior(gravity)
+
+        dismissAnimator.propertyAnimator?.startAnimation()
+    }
+
+    private func updatePropertyAnimator() {
+        guard let snapshot = dismissAnimator.snapshot else {
+            return
+        }
+
+        let center = CGPoint(x: view.bounds.width / 2, y: view.bounds.height / 2)
+        let distance = sqrt(pow(center.x - snapshot.center.x, 2) + pow(center.y - snapshot.center.y, 2))
+
+        dismissAnimator.propertyAnimator?.fractionComplete = distance / 100
+    }
+
+    private func createPropertyAnimator() {
+        dismissAnimator.propertyAnimator = UIViewPropertyAnimator(duration: 0.4, curve: .linear) {
+            self.headerView.alpha = 0.25
+            self.facePileView.alpha = 0.25
+        }
+
+        dismissAnimator.propertyAnimator?.addCompletion { [weak self] _ in
+            self?.dismissAnimator.propertyAnimator = nil
+        }
+
+        dismissAnimator.propertyAnimator?.startAnimation()
+        dismissAnimator.propertyAnimator?.pauseAnimation()
+    }
+
+    private func installDismissSnapshot() {
+        guard let snapshot = momentView.snapshotView(afterScreenUpdates: true) else {
+            return
+        }
+
+        snapshot.center = momentView.center
+        view.addSubview(snapshot)
+        momentView.isHidden = true
+        dismissAnimator.snapshot = snapshot
+    }
+}
+
 // MARK: - PostDashboardViewController delegate methods
 
 extension MomentViewController: PostDashboardViewControllerDelegate {
@@ -404,6 +662,106 @@ extension MomentViewController: ContentInputDelegate {
             }
 
             beginObserving(message: message)
+        }
+    }
+}
+
+// MARK: - UIViewControllerTransitioningDelegate methods
+
+extension MomentViewController: UIViewControllerTransitioningDelegate {
+    func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        return MomentPresenter(startView: delegate?.initialTransitionView(for: self.post))
+    }
+
+    func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        return MomentDismisser(startView: delegate?.initialTransitionView(for: self.post))
+    }
+}
+
+// MARK: - MomentPresenter implementation
+
+fileprivate class MomentPresenter: NSObject, UIViewControllerAnimatedTransitioning {
+    private weak var startView: MomentView?
+
+    init(startView: MomentView? = nil) {
+        super.init()
+        self.startView = startView
+    }
+
+    func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
+        0.3
+    }
+
+    func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
+        guard let to = transitionContext.viewController(forKey: .to) as? MomentViewController else {
+            return
+        }
+
+        to.view.alpha = 0
+        let startSnapshot = startView?.snapshotView(afterScreenUpdates: true)
+        transitionContext.containerView.addSubview(to.view)
+        to.view.layoutIfNeeded()
+        if let snapshot = startSnapshot {
+            transitionContext.containerView.addSubview(snapshot)
+        }
+
+        startView?.alpha = 0
+        if let originalFrame = startView?.frame, let startViewSuperview = startView?.superview {
+            startSnapshot?.frame = transitionContext.containerView.convert(originalFrame, from: startViewSuperview)
+        }
+
+        let finalSnapshot = to.momentView.snapshotView(afterScreenUpdates: true)
+        finalSnapshot?.frame = startSnapshot?.frame ?? .zero
+        if let snapshot = finalSnapshot {
+            transitionContext.containerView.addSubview(snapshot)
+        }
+
+        finalSnapshot?.alpha = 0
+        to.momentView.alpha = 0
+
+        UIView.animate(withDuration: transitionDuration(using: nil), delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: .curveEaseInOut) {
+            startSnapshot?.alpha = 0
+            to.view.alpha = 1
+            finalSnapshot?.alpha = 1
+
+            startSnapshot?.frame = to.momentView.frame
+            finalSnapshot?.frame = to.momentView.frame
+        } completion: { _ in
+            finalSnapshot?.alpha = 0
+            to.momentView.alpha = 1
+
+            startSnapshot?.removeFromSuperview()
+            finalSnapshot?.removeFromSuperview()
+
+            transitionContext.completeTransition(true)
+        }
+    }
+}
+
+// MARK: - MomentDismisser implementation
+
+fileprivate class MomentDismisser: NSObject, UIViewControllerAnimatedTransitioning {
+    private weak var startView: MomentView?
+
+    init(startView: MomentView? = nil) {
+        super.init()
+        self.startView = startView
+    }
+
+    func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
+        0.3
+    }
+
+    func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
+        guard let from = transitionContext.viewController(forKey: .from) else {
+            return
+        }
+
+        UIView.animate(withDuration: transitionDuration(using: nil), delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: .curveEaseInOut) {
+            from.view.alpha = 0
+            self.startView?.alpha = 1
+        } completion: { _ in
+            transitionContext.completeTransition(true)
         }
     }
 }
