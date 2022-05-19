@@ -1785,6 +1785,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.rawText = nil
             feedPost.status = .retracted
 
+            if feedPost.isMoment {
+                // make the prompt card appear the top of the feed
+                self.resetMomentPromptTimestamp()
+            }
+
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
             }
@@ -4522,6 +4527,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             MainAppContext.shared.userDefaults.set(now.timeIntervalSince1970, forKey: "momentPrompt")
             return now
         }
+    }
+
+    private func resetMomentPromptTimestamp() {
+        MainAppContext.shared.userDefaults.set(Double.zero, forKey: "momentPrompt")
     }
 
     // MARK: - Notifications

@@ -874,6 +874,8 @@ extension FeedCollectionViewController {
                let feedPost = feedDataSource.item(at: indexPath.item)?.post
             {
                 feedCell.refreshFooter(using: feedPost, contentWidth: cellContentWidth)
+            } else if let momentCell = collectionView.cellForItem(at: indexPath) as? MomentCollectionViewCell {
+                momentCell.refreshFooter()
             }
         }
     }

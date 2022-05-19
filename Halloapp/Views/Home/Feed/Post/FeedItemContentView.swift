@@ -498,7 +498,7 @@ final class FeedItemHeaderView: UIView {
         return label
     }()
 
-    private lazy var moreButton: UIView = {
+    private(set) lazy var moreButton: UIView = {
         let image = UIImage(systemName: "ellipsis")
         let button = UIButton()
         button.setImage(image, for: .normal)

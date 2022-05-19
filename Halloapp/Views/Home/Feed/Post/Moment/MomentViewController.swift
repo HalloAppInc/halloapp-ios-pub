@@ -70,8 +70,8 @@ class MomentViewController: UIViewController {
         let view = FeedItemHeaderView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.configure(with: post, contentWidth: view.bounds.width, showGroupName: false)
-        view.showMoreAction = { [weak self] in self?.showMoreMenu() }
         view.showUserAction = { [weak self] in self?.showUser() }
+        view.moreButton.isHidden = true
         return view
     }()
 
@@ -88,6 +88,7 @@ class MomentViewController: UIViewController {
         return view
     }()
 
+    private lazy var dismissPanGesture = UIPanGestureRecognizer(target: self, action: #selector(dismissPan))
     private lazy var dismissAnimator = DismissAnimator(referenceView: view)
 
     override var canBecomeFirstResponder: Bool {
@@ -160,6 +161,9 @@ class MomentViewController: UIViewController {
             installDismissButton()
         }
 
+        dismissPanGesture.delegate = self
+        momentView.addGestureRecognizer(dismissPanGesture)
+
         contentInputView.backgroundColor = backgroundView.backgroundColor
 
         post.feedMedia.first?.$isMediaAvailable.sink { [weak self] isAvailable in
@@ -184,10 +188,6 @@ class MomentViewController: UIViewController {
         post.feedMedia.first?.$isMediaAvailable.sink { [weak self] _ in
             self?.expireMomentIfReady()
         }.store(in: &cancellables)
-
-        let pan = UIPanGestureRecognizer(target: self, action: #selector(dismissPan))
-        pan.delegate = self
-        momentView.addGestureRecognizer(pan)
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -279,57 +279,6 @@ class MomentViewController: UIViewController {
     private func showUser() {
         delegate?.postDashboardViewController(didRequestPerformAction: .profile(post.userId))
     }
-    
-    private func showMoreMenu() {
-        let menu = FeedPostMenuViewController.Menu {
-            if post.canDeletePost {
-                FeedPostMenuViewController.Section {
-                    FeedPostMenuViewController.Item(style: .destructive,
-                                                     icon: UIImage(systemName: "trash"),
-                                                    title: Localizations.deletePostButtonTitle) { [weak self, post] _ in
-                        self?.handleDeletePostTapped(postID: post.id)
-                    }
-                }
-            }
-        }
-        
-        present(FeedPostMenuViewController(menu: menu), animated: true)
-    }
-    
-    private func handleDeletePostTapped(postID: FeedPostID) {
-        let actionSheet = UIAlertController(title: nil,
-                                          message: Localizations.deletePostConfirmationPrompt,
-                                   preferredStyle: .actionSheet)
-        actionSheet.addAction(UIAlertAction(title: Localizations.deletePostButtonTitle, style: .destructive) { _ in
-            self.reallyRetractPost(postID: postID)
-        })
-        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
-        actionSheet.view.tintColor = .systemBlue
-        
-        present(actionSheet, animated: true)
-    }
-
-    private func reallyRetractPost(postID: FeedPostID) {
-        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: postID) else {
-            dismiss(animated: true)
-            return
-        }
-        
-        MainAppContext.shared.feedData.retract(post: feedPost) { [weak self] result in
-            switch result {
-            case .failure(_):
-                DispatchQueue.main.async {
-                    let alert = UIAlertController(title: Localizations.deletePostError, message: nil, preferredStyle: .alert)
-                    alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
-                    self?.present(alert, animated: true, completion: nil)
-                }
-            default:
-                break
-            }
-        }
-        
-        dismiss(animated: true)
-    }
 
     private func updateUploadState() {
         guard let unlockingPost = unlockingPost else {
@@ -403,13 +352,31 @@ class MomentViewController: UIViewController {
 
 extension MomentViewController: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        // don't want the pan being caused while the user is pinching to zoom
-        return !otherGestureRecognizer.isKind(of: UIPinchGestureRecognizer.self)
+        if gestureRecognizer.isKind(of: UIPanGestureRecognizer.self), otherGestureRecognizer.isKind(of: UIPinchGestureRecognizer.self) {
+            // don't want the pan being caused while the user is pinching to zoom
+            return false
+        }
+
+        if gestureRecognizer.isKind(of: UITapGestureRecognizer.self), otherGestureRecognizer.isKind(of: UIPanGestureRecognizer.self) {
+            // don't want the tap-to-dismiss to work while the dismiss pan is active
+            return false
+        }
+
+        return true
     }
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
         if gestureRecognizer.isKind(of: UITapGestureRecognizer.self) {
-            return !headerView.bounds.contains(touch.location(in: headerView))
+            // prevent the dismiss tap from working when tapping on the moment, or when the dismiss pan is active
+            if [.began, .changed].contains(dismissPanGesture.state) {
+                return false
+            }
+
+            if momentView.isHidden {
+                return true
+            } else {
+                return !momentView.bounds.contains(touch.location(in: momentView))
+            }
         }
 
         return true
