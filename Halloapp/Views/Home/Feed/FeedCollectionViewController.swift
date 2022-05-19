@@ -243,13 +243,12 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
      */
     @discardableResult
     func scrollTo(postId: FeedPostID, animated: Bool = false) -> Bool {
-        guard let index = feedDataSource.index(of: postId) else {
+        guard let post = feedDataSource.posts.first(where: { $0.id == postId }),
+              let indexPath = collectionViewDataSource?.indexPath(for: post.isMoment ? .moment(post) : .post(post)) else {
             return false
         }
 
-        let path = IndexPath(item: index, section: 0)
-        collectionView.scrollToItem(at: path, at: .top, animated: animated)
-        
+        collectionView.scrollToItem(at: indexPath, at: .top, animated: animated)
         return true
     }
 

@@ -364,15 +364,14 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
 
     private var commentsCenterYConstraint: NSLayoutConstraint?
     private var headerCenterYConstraint: NSLayoutConstraint?
+    private var headerLeadingConstraint: NSLayoutConstraint?
 
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationItem.titleView = commentsTitleView
         commentsCenterYConstraint = commentsTitleLabel.centerYAnchor.constraint(equalTo: commentsTitleView.centerYAnchor)
         headerCenterYConstraint = navigationHeaderView.centerYAnchor.constraint(equalTo: commentsTitleView.centerYAnchor)
-        let titleWidthConstraint = commentsTitleView.widthAnchor.constraint(equalToConstant: (view.frame.width))
-        titleWidthConstraint.priority = .defaultHigh // Lower priority to allow space for trailing button if necessary
-        titleWidthConstraint.isActive = true
+        headerLeadingConstraint = navigationHeaderView.leadingAnchor.constraint(equalTo: commentsTitleView.leadingAnchor)
         commentsCenterYConstraint?.isActive = true
 
         // If we are the only view controller in our navigation stack, add a dismiss button
@@ -850,6 +849,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
             UIView.animate(withDuration: 0.5, animations: {
                 self.commentsCenterYConstraint?.isActive = true
                 self.headerCenterYConstraint?.isActive = false
+                self.headerLeadingConstraint?.isActive = false
                 self.commentsTitleLabel.alpha = 1
             })
             
@@ -860,6 +860,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
             UIView.animate(withDuration: 0.5, animations: {
                 self.commentsCenterYConstraint?.isActive = false
                 self.headerCenterYConstraint?.isActive = true
+                self.headerLeadingConstraint?.isActive = true
                 self.commentsTitleLabel.alpha = 0
                 self.navigationHeaderView.alpha = 1
             })
