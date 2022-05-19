@@ -70,8 +70,8 @@ class MomentViewController: UIViewController {
         let view = FeedItemHeaderView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.configure(with: post, contentWidth: view.bounds.width, showGroupName: false)
-        view.showMoreAction = showMoreMenu
-        view.showUserAction = showUser
+        view.showMoreAction = { [weak self] in self?.showMoreMenu() }
+        view.showUserAction = { [weak self] in self?.showUser() }
         return view
     }()
     

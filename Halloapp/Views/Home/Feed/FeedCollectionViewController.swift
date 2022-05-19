@@ -372,9 +372,14 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         }
     }
     
-    func showSecretPostView(for post: FeedPost) {
-        if let _ = MainAppContext.shared.feedData.validMoment.value {
-            presentMomentViewController(post)
+    func presentMomentViewController(for post: FeedPost) {
+        if let latest = MainAppContext.shared.feedData.fetchLatestMoment() {
+            let userID = MainAppContext.shared.userData.userId
+            let unlocker = (post.userId == userID || latest.status == .sent) ? nil : latest
+            // user may have uploaded using the prompt card and it's still pending, in this case we show the unlock flow
+            let vc = MomentViewController(post: post, unlockingPost: unlocker)
+            vc.delegate = self
+            present(vc, animated: true)
         } else {
             let newPostVC = NewPostViewController(source: .camera,
                                              destination: .userFeed,
@@ -401,7 +406,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
     
     private func startUnlockTransition(for post: FeedPost) {
         guard
-            let latest = MainAppContext.shared.feedData.latestValidMoment(),
+            let latest = MainAppContext.shared.feedData.fetchLatestMoment(),
             let newPostVC = presentedViewController as? NewPostViewController
         else {
             dismiss(animated: true)
@@ -884,7 +889,7 @@ extension FeedCollectionViewController {
     func configure(cell: MomentCollectionViewCell, withSecretFeedPost feedPost: FeedPost) {
         cell.configure(with: feedPost, contentWidth: cellContentWidth)
         cell.momentView.action = { [weak self] in
-            self?.showSecretPostView(for: feedPost)
+            self?.presentMomentViewController(for: feedPost)
         }
 
         cell.showUserAction = { [weak self, feedPost] in

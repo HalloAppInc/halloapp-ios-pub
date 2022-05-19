@@ -32,7 +32,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     let didGetRemoveHomeTabIndicator = PassthroughSubject<Void, Never>()
     
-    let validMoment = CurrentValueSubject<FeedPostID?, Never>(nil)
+    let validMoment = CurrentValueSubject<FeedPost?, Never>(nil)
 
     private struct UserDefaultsKey {
         static let persistentStoreUserID = "feed.store.userID"
@@ -1795,10 +1795,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
             
             self.checkForUnreadFeed()
-            if feedPost.isMoment {
-                self.refreshValidMoment()
-            }
-            
             completion()
         }
     }
@@ -2728,7 +2724,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         // set a merge policy so that we dont end up with duplicate feedposts.
         managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         save(managedObjectContext)
-
         
         if let linkPreview = linkPreview {
             // upload link preview media followed by comment media and send over the wire
@@ -3067,9 +3062,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 self.updateFeedPost(with: postId) { (feedPost) in
                     feedPost.timestamp = timestamp
                     feedPost.status = .sent
-                    if post.isMoment {
-                        self.validMoment.send(feedPost.id)
-                    }
 
                     MainAppContext.shared.endBackgroundTask(postId)
                 }
@@ -4462,38 +4454,22 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
     
     // MARK: - Secret posts
-    
+
     func refreshValidMoment() {
-        performSeriallyOnBackgroundContext { [weak self] context in
-            DDLogInfo("FeedData/refreshValidMoment/start")
-            if let lastValidMomentID = self?.validMoment.value, let lastValidMoment = self?.feedPost(with: lastValidMomentID)  {
-                if lastValidMoment.status != .retracted, lastValidMoment.timestamp > Self.momentCutoffDate {
-                    // return if the current moment is still valid
-                    DDLogInfo("FeedData/refreshValidMoment/existing moment still valid")
-                    return
-                }
-            }
+        if let validMoment = validMoment.value, validMoment.status != .retracted, !validMoment.isDeleted, validMoment.timestamp > Self.momentCutoffDate {
+            DDLogInfo("FeedData/refreshValidMoment/existing moment still valid")
+            return
+        }
 
-            let request = FeedPost.fetchRequest()
-            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-                NSPredicate(format: "userID == %@", MainAppContext.shared.userData.userId),
-                NSPredicate(format: "isMoment == YES"),
-                NSPredicate(format: "statusValue != %d", FeedPost.Status.retracted.rawValue),
-                NSPredicate(format: "timestamp > %@", Self.momentCutoffDate as NSDate),
-            ])
-
-            if let results = try? context.fetch(request), let first = results.first, first.id != self?.validMoment.value {
-                // only publish if it's a different value
-                self?.validMoment.send(first.id)
-                DDLogInfo("FeedData/refreshValidMoment/sending valid")
-            } else if let _ = self?.validMoment.value {
-                self?.validMoment.send(nil)
-                DDLogInfo("FeedData/refreshValidMoment/sending nil")
-            }
+        let moment = fetchLatestMoment()
+        if moment?.id != validMoment.value?.id {
+            DDLogInfo("FeedData/refreshValidMoment/sending \(moment?.id ?? "nil")")
+            self.validMoment.send(moment)
         }
     }
     
-    func latestValidMoment() -> FeedPost? {
+    func fetchLatestMoment(using context: NSManagedObjectContext? = nil) -> FeedPost? {
+        let context = context ?? viewContext
         let request = FeedPost.fetchRequest()
         request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
             NSPredicate(format: "userID == %@", MainAppContext.shared.userData.userId),
@@ -4503,7 +4479,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         ])
         
         request.fetchLimit = 1
-        return try? viewContext.fetch(request).first
+        return try? context.fetch(request).first
     }
 
     func momentWasViewed(_ moment: FeedPost) {
