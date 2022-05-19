@@ -1257,8 +1257,8 @@ extension FeedCollectionViewController: PostDashboardViewControllerDelegate, Mom
 
     func initialTransitionView(for post: FeedPost) -> MomentView? {
         guard
-            let index = feedDataSource.index(of: post.id),
-            let cell = collectionView.cellForItem(at: IndexPath(row: index, section: 0)) as? MomentCollectionViewCell
+            let index = collectionViewDataSource?.indexPath(for: .moment(post)),
+            let cell = collectionView.cellForItem(at: index) as? MomentCollectionViewCell
         else {
             return nil
         }
