@@ -648,11 +648,15 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         let isUserInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID)
         let isPushNumberMessagingAccepted = MainAppContext.shared.contactStore.isPushNumberMessagingAccepted(userID: userID)
         let haveMessagedBefore = MainAppContext.shared.chatData.haveMessagedBefore(userID: userID, in: MainAppContext.shared.chatData.viewContext)
+        let haveReceivedMessagesBefore = MainAppContext.shared.chatData.haveMessagedBefore(userID: userID, in: MainAppContext.shared.chatData.viewContext)
 
+        let pushNumberExist = MainAppContext.shared.contactStore.pushNumber(userID) != nil
         let showUnknownContactActionBanner = !isUserBlocked &&
                                              !isUserInAddressBook &&
                                              !isPushNumberMessagingAccepted &&
-                                             !haveMessagedBefore
+                                             !haveMessagedBefore &&
+                                             pushNumberExist &&
+                                             haveReceivedMessagesBefore
 
         if showUnknownContactActionBanner {
             present(unknownContactSheet, animated: true)

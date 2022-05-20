@@ -3004,6 +3004,12 @@ extension ChatData {
         return (chatMessages(predicate: predicate, limit: fetchLimit, in: managedObjectContext).count > 0) ? true : false
     }
 
+    func haveReceivedMessagesBefore(userID: UserID, in managedObjectContext: NSManagedObjectContext) -> Bool {
+        let predicate = NSPredicate(format: "fromUserID = %@ AND toUserID = %@", userID, userData.userId)
+        let fetchLimit = 1
+        return (chatMessages(predicate: predicate, limit: fetchLimit, in: managedObjectContext).count > 0) ? true : false
+    }
+
     // MARK: 1-1 Core Data Updating
 
     private func createNewChatMessageIfMissing(from: UserID, messageID: String, status: ChatMessage.IncomingStatus) {
