@@ -73,6 +73,7 @@ final class ProfileHeaderViewController: UIViewController, UserMenuHandler {
 
         headerView.isBlocked = isBlocked(userId: userID)
         headerView.isInAddressBook = isContactInAddressBook
+        headerView.isOwnProfile = userID == MainAppContext.shared.userData.userId
         var showPhoneLabel = false
 
         if isContactInAddressBook {
@@ -331,6 +332,12 @@ private final class ProfileHeaderView: UIView {
             updateActions()
         }
     }
+
+    var isOwnProfile: Bool = true {
+        didSet {
+            updateActions()
+        }
+    }
     
     var userID: UserID? = nil
     
@@ -354,7 +361,7 @@ private final class ProfileHeaderView: UIView {
     }
 
     private func updateActions() {
-        actionPanel.isHidden = isBlocked
+        actionPanel.isHidden = isBlocked || isOwnProfile
         unblockButton.isHidden = !isBlocked
         audioCallButton.isHidden = !ServerProperties.isAudioCallsEnabled
         videoCallButton.isHidden = !ServerProperties.isVideoCallsEnabled
