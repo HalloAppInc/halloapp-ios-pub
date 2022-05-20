@@ -78,7 +78,10 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     // Should always be called on the main queue.
     private func checkAndUpdateCallButtons() {
-        if fromUserId != MainAppContext.shared.userData.userId && MainAppContext.shared.callManager.activeCallID == nil {
+        if let fromUserId = fromUserId,
+           fromUserId != MainAppContext.shared.userData.userId,
+           MainAppContext.shared.callManager.activeCallID == nil,
+           MainAppContext.shared.contactStore.pushNumber(fromUserId) != nil {
             navigationItem.rightBarButtonItems?.forEach { $0.isEnabled = true }
         } else {
             navigationItem.rightBarButtonItems?.forEach { $0.isEnabled = false }
