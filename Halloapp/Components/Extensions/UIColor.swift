@@ -190,6 +190,16 @@ extension UIColor {
         UIColor(named: "ToastBackground")!
     }
 
+    // MARK: Moments
+
+    class var momentPolaroid: UIColor {
+        UIColor(named: "MomentPolaroid")!
+    }
+
+    class var momentFullscreenBg: UIColor {
+        UIColor(named: "MomentFullscreenBg")!
+    }
+
     // MARK: Notifications
     
     class var notificationBottomBarBackground: UIColor {

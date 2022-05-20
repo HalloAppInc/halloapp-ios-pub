@@ -177,7 +177,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         NSLayoutConstraint.activate([
             quotedImageView.widthAnchor.constraint(equalToConstant: Constants.QuotedMediaSize),
             quotedImageView.heightAnchor.constraint(equalToConstant: Constants.QuotedMediaSize),
-            quotedMomentView.widthAnchor.constraint(equalToConstant: Constants.QuotedMediaSize + 20),
+            quotedMomentView.widthAnchor.constraint(equalToConstant: Constants.QuotedMediaSize),
         ])
         
         let baseSubView = UIView(frame: view.bounds)
@@ -569,6 +569,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         }
 
         quotedMomentView.isHidden = false
+        quotedTextView.text = "Moment"
         if let thumbnailData = item.previewData, item.type != .audio {
             quotedMomentView.imageView.image = UIImage(data: thumbnailData)
         } else {

@@ -69,15 +69,15 @@ extension UIFont {
     }
 
     class func courierFont(ofFixedSize fontSize: CGFloat, weight: UIFont.Weight = .regular) -> UIFont {
-        let suffix: String
+        let name: String
         switch weight {
         case .semibold, .bold, .black, .heavy:
-            suffix = "-Bold"
+            name = "CourierNewPS-BoldMT"
         default:
-            suffix = ""
+            name = "CourierNewPSMT"
         }
 
-        guard let font = UIFont(name: "Courier" + suffix, size: fontSize) else {
+        guard let font = UIFont(name: name, size: fontSize) else {
             return UIFont.systemFont(ofSize: fontSize, weight: weight)
         }
 

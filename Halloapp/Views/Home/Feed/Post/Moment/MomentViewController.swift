@@ -22,17 +22,6 @@ class MomentViewController: UIViewController {
     let isFullScreen: Bool
     weak var delegate: MomentViewControllerDelegate?
 
-    private var backgroundColor: UIColor {
-        UIColor { traits in
-            switch traits.userInterfaceStyle {
-            case .dark:
-                return .black.withAlphaComponent(0.8)
-            default:
-                return .feedBackground
-            }
-        }
-    }
-
     private(set) lazy var momentView: MomentView = {
         let view = MomentView()
         view.configure(with: post)
@@ -119,13 +108,11 @@ class MomentViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .feedBackground
-
         // With the modal presentation, the system adjusts a black background, causing it to
         // mismatch with the input accessory view
         let backgroundView = UIView()
         backgroundView.translatesAutoresizingMaskIntoConstraints = false
-        backgroundView.backgroundColor = backgroundColor
+        backgroundView.backgroundColor = .momentFullscreenBg
         view.addSubview(backgroundView)
         view.backgroundColor = nil
 
@@ -139,8 +126,8 @@ class MomentViewController: UIViewController {
         let spacing: CGFloat = 10
         NSLayoutConstraint.activate([
             centerYConstraint,
-            momentView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 5),
-            momentView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -5),
+            momentView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 2),
+            momentView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -2),
             headerView.leadingAnchor.constraint(equalTo: momentView.leadingAnchor, constant: 10),
             headerView.trailingAnchor.constraint(equalTo: momentView.trailingAnchor, constant: -10),
             headerView.bottomAnchor.constraint(equalTo: momentView.topAnchor, constant: -spacing),
@@ -155,7 +142,7 @@ class MomentViewController: UIViewController {
         if isFullScreen {
             // arrived from the feed
             installDismissTap()
-            backgroundView.backgroundColor = backgroundColor.withAlphaComponent(0.97)
+            backgroundView.backgroundColor = .momentFullscreenBg.withAlphaComponent(0.97)
         } else {
             // arrived from the camera
             installDismissButton()
@@ -164,6 +151,8 @@ class MomentViewController: UIViewController {
         dismissPanGesture.delegate = self
         momentView.addGestureRecognizer(dismissPanGesture)
 
+        momentView.timeLabel.textColor = .black.withAlphaComponent(0.9)
+        momentView.dayOfWeekLabel.textColor = .black.withAlphaComponent(0.9)
         contentInputView.backgroundColor = backgroundView.backgroundColor
 
         post.feedMedia.first?.$isMediaAvailable.sink { [weak self] isAvailable in
@@ -224,11 +213,11 @@ class MomentViewController: UIViewController {
         view.addSubview(unlockingMomentStack)
         unlockingMomentView.configure(with: unlockingPost)
         momentView.setState(unlockingPost.status == .sent ? .unlocked : .indeterminate)
-        
+
         NSLayoutConstraint.activate([
-            headerView.topAnchor.constraint(equalTo: unlockingMomentStack.bottomAnchor, constant: 25),
-            unlockingMomentStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            unlockingMomentStack.topAnchor.constraint(equalTo: view.topAnchor, constant: 20),
+            headerView.topAnchor.constraint(equalTo: unlockingMomentStack.bottomAnchor, constant: 10),
+            unlockingMomentStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -15),
+            unlockingMomentStack.topAnchor.constraint(equalTo: view.topAnchor, constant: 15),
             unlockingMomentStack.widthAnchor.constraint(equalToConstant: 85),
         ])
         

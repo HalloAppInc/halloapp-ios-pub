@@ -131,7 +131,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         NSLayoutConstraint.activate([
             quotedImageView.widthAnchor.constraint(equalToConstant: Constants.QuotedMediaSize),
             quotedImageView.heightAnchor.constraint(equalToConstant: Constants.QuotedMediaSize),
-            quotedMomentView.widthAnchor.constraint(equalToConstant: Constants.QuotedMediaSize + 20),
+            quotedMomentView.widthAnchor.constraint(equalToConstant: Constants.QuotedMediaSize),
         ])
 
         let baseSubView = UIView(frame: view.bounds)
@@ -495,6 +495,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             if case .moment = quoted.type {
                 // for outbound cells, the quoted moment is always expired, so there is no loading done here
                 quotedMomentView.isHidden = false
+                quotedTextView.text = "Moment expired"
                 quotedRow.isHidden = false
                 return true
             }

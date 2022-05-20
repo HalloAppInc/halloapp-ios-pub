@@ -4530,6 +4530,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     private func resetMomentPromptTimestamp() {
+        DDLogInfo("FeedData/resetMomentPromptTimestamp")
         MainAppContext.shared.userDefaults.set(Double.zero, forKey: "momentPrompt")
     }
 

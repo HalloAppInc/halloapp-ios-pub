@@ -50,16 +50,18 @@ public struct PersistentHistoryMerger {
     let currentTarget: AppTarget
     let dataStore: DataStore
     let viewContext: NSManagedObjectContext
+    let userDefaults: UserDefaults
 
-    public init(backgroundContext: NSManagedObjectContext, viewContext: NSManagedObjectContext, dataStore: DataStore, currentTarget: AppTarget) {
+    public init(backgroundContext: NSManagedObjectContext, viewContext: NSManagedObjectContext, dataStore: DataStore, userDefaults: UserDefaults, currentTarget: AppTarget) {
         self.backgroundContext = backgroundContext
         self.currentTarget = currentTarget
         self.dataStore = dataStore
         self.viewContext = viewContext
+        self.userDefaults = userDefaults
     }
 
     public func merge() throws -> Bool {
-        let fromDate = UserDefaults.shared.lastHistoryTransactionTimestamp(for: currentTarget, dataStore: dataStore) ?? .distantPast
+        let fromDate = userDefaults.lastHistoryTransactionTimestamp(for: currentTarget, dataStore: dataStore) ?? .distantPast
         let fetcher = PersistentHistoryFetcher(context: backgroundContext, fromDate: fromDate)
         let history = try fetcher.fetch()
 
@@ -75,7 +77,7 @@ public struct PersistentHistoryMerger {
         }
 
         guard let lastTimestamp = history.last?.timestamp else { return false }
-        UserDefaults.shared.updateLastHistoryTransactionTimestamp(for: currentTarget, dataStore: dataStore, to: lastTimestamp)
+        userDefaults.updateLastHistoryTransactionTimestamp(for: currentTarget, dataStore: dataStore, to: lastTimestamp)
         return true
     }
 }
@@ -124,16 +126,18 @@ public struct PersistentHistoryCleaner {
     let context: NSManagedObjectContext
     let targets: [AppTarget]
     let dataStore: DataStore
+    let userDefaults: UserDefaults
 
-    public init(context: NSManagedObjectContext, targets: [AppTarget], dataStore: DataStore) {
+    public init(context: NSManagedObjectContext, targets: [AppTarget], dataStore: DataStore, userDefaults: UserDefaults) {
         self.context = context
         self.targets = targets
         self.dataStore = dataStore
+        self.userDefaults = userDefaults
     }
 
     // Cleans up the persistent history by deleting the transactions that have been merged into each target.
     public func clean() throws {
-        guard let timestamp = UserDefaults.shared.lastCommonTransactionTimestamp(in: targets, dataStore: dataStore) else {
+        guard let timestamp = userDefaults.lastCommonTransactionTimestamp(in: targets, dataStore: dataStore) else {
             DDLogInfo("PersistentHistoryCleaner/dataStore: \(dataStore)/Cancelling deletions as there is no common transaction timestamp")
             return
         }
@@ -144,7 +148,7 @@ public struct PersistentHistoryCleaner {
 
         targets.forEach { target in
             // Reset the dates as we would otherwise end up in an infinite loop.
-            UserDefaults.shared.updateLastHistoryTransactionTimestamp(for: target, dataStore: dataStore, to: nil)
+            userDefaults.updateLastHistoryTransactionTimestamp(for: target, dataStore: dataStore, to: nil)
         }
     }
 }

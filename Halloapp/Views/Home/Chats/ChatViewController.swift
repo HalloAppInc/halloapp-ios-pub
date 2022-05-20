@@ -78,7 +78,10 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     // Should always be called on the main queue.
     private func checkAndUpdateCallButtons() {
-        if fromUserId != MainAppContext.shared.userData.userId && MainAppContext.shared.callManager.activeCallID == nil {
+        if let fromUserId = fromUserId,
+           fromUserId != MainAppContext.shared.userData.userId,
+           MainAppContext.shared.callManager.activeCallID == nil,
+           MainAppContext.shared.contactStore.pushNumber(fromUserId) != nil {
             navigationItem.rightBarButtonItems?.forEach { $0.isEnabled = true }
         } else {
             navigationItem.rightBarButtonItems?.forEach { $0.isEnabled = false }
@@ -648,7 +651,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         let isUserInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID)
         let isPushNumberMessagingAccepted = MainAppContext.shared.contactStore.isPushNumberMessagingAccepted(userID: userID)
         let haveMessagedBefore = MainAppContext.shared.chatData.haveMessagedBefore(userID: userID, in: MainAppContext.shared.chatData.viewContext)
-        let haveReceivedMessagesBefore = MainAppContext.shared.chatData.haveMessagedBefore(userID: userID, in: MainAppContext.shared.chatData.viewContext)
+        let haveReceivedMessagesBefore = MainAppContext.shared.chatData.haveReceivedMessagesBefore(userID: userID, in: MainAppContext.shared.chatData.viewContext)
 
         let pushNumberExist = MainAppContext.shared.contactStore.pushNumber(userID) != nil
         let showUnknownContactActionBanner = !isUserBlocked &&
@@ -1115,7 +1118,9 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                 DDLogWarn("ChatViewController/Quoted feed post \(feedPostId) not found")
                 return
             }
-            present(PostViewController.viewController(for: feedPost), animated: true)
+
+            let vc = feedPost.isMoment ? MomentViewController(post: feedPost) : PostViewController.viewController(for: feedPost)
+            present(vc, animated: true)
         } else  if let chatReplyMessageID = message.chatReplyMessageID {
             guard let allMessages = fetchedResultsController?.fetchedObjects else { return }
             guard let replyMessage = allMessages.first(where: {$0.id == chatReplyMessageID}) else { return }

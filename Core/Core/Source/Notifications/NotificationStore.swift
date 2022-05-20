@@ -23,9 +23,11 @@ open class NotificationStore {
     private let bgQueueKey = DispatchSpecificKey<String>()
     private let bgQueueValue = "com.halloapp.notificationStore"
     private var bgContext: NSManagedObjectContext
+    private let userDefaults: UserDefaults
     public weak var delegate: NotificationStoreDelegate?
 
     required public init(appTarget: AppTarget, userDefaults: UserDefaults) {
+        self.userDefaults = userDefaults
         // Before fetching the latest context for this target.
         // Let us update their last history timestamp: this will be useful when pruning old transactions later.
         userDefaults.updateLastHistoryTransactionTimestamp(for: appTarget, dataStore: .notificationStore, to: Date())
@@ -51,10 +53,17 @@ open class NotificationStore {
         performSeriallyOnBackgroundContext({ managedObjectContext in
             do {
                 // Merges latest transactions from other contexts into the current target context.
-                let merger = PersistentHistoryMerger(backgroundContext: managedObjectContext, viewContext: self.viewContext, dataStore: .notificationStore, currentTarget: self.appTarget)
+                let merger = PersistentHistoryMerger(backgroundContext: managedObjectContext,
+                                                     viewContext: self.viewContext,
+                                                     dataStore: .notificationStore,
+                                                     userDefaults: self.userDefaults,
+                                                     currentTarget: self.appTarget)
                 let historyMerged = try merger.merge()
                 // Prunes transactions that have been merged into all possible contexts: MainApp, NotificationExtension, ShareExtension
-                let cleaner = PersistentHistoryCleaner(context: managedObjectContext, targets: AppTarget.allCases, dataStore: .notificationStore)
+                let cleaner = PersistentHistoryCleaner(context: managedObjectContext,
+                                                       targets: AppTarget.allCases,
+                                                       dataStore: .notificationStore,
+                                                       userDefaults: self.userDefaults)
                 try cleaner.clean()
 
                 if managedObjectContext.hasChanges {
