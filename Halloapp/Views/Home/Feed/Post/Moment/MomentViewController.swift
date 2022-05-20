@@ -615,6 +615,7 @@ extension MomentViewController: UIViewControllerTransitioningDelegate {
 // MARK: - MomentPresenter implementation
 
 fileprivate class MomentPresenter: NSObject, UIViewControllerAnimatedTransitioning {
+    static weak var fromViewSnapshot: UIView?
     private weak var startView: MomentView?
 
     init(startView: MomentView? = nil) {
@@ -631,42 +632,62 @@ fileprivate class MomentPresenter: NSObject, UIViewControllerAnimatedTransitioni
             return
         }
 
-        to.view.alpha = 0
-        let startSnapshot = startView?.snapshotView(afterScreenUpdates: true)
+        transitionContext.containerView.alpha = 0
         transitionContext.containerView.addSubview(to.view)
         to.view.layoutIfNeeded()
-        if let snapshot = startSnapshot {
-            transitionContext.containerView.addSubview(snapshot)
-        }
 
+        let momentCellSnapshot = startView?.snapshotView(afterScreenUpdates: true)
+        let finalMomentViewSnapshot = to.momentView.snapshotView(afterScreenUpdates: true)
+        to.view.alpha = 0
+        transitionContext.containerView.alpha = 1
         startView?.alpha = 0
-        if let originalFrame = startView?.frame, let startViewSuperview = startView?.superview {
-            startSnapshot?.frame = transitionContext.containerView.convert(originalFrame, from: startViewSuperview)
+
+        guard
+            let fromSnapshot = transitionContext.viewController(forKey: .from)?.view.snapshotView(afterScreenUpdates: true),
+            let momentCellSnapshot = momentCellSnapshot,
+            let finalMomentViewSnapshot = finalMomentViewSnapshot
+        else {
+            return performSimpleTransition(using: transitionContext)
         }
 
-        let finalSnapshot = to.momentView.snapshotView(afterScreenUpdates: true)
-        finalSnapshot?.frame = startSnapshot?.frame ?? .zero
-        if let snapshot = finalSnapshot {
-            transitionContext.containerView.addSubview(snapshot)
+        transitionContext.containerView.insertSubview(fromSnapshot, belowSubview: to.view)
+        transitionContext.containerView.addSubview(momentCellSnapshot)
+        transitionContext.containerView.addSubview(finalMomentViewSnapshot)
+
+        if let cellMomentViewFrame = startView?.frame, let momentCell = startView?.superview {
+            momentCellSnapshot.frame = transitionContext.containerView.convert(cellMomentViewFrame, from: momentCell)
         }
 
-        finalSnapshot?.alpha = 0
+        startView?.alpha = 1
+
+        finalMomentViewSnapshot.frame = momentCellSnapshot.frame
+        finalMomentViewSnapshot.alpha = 0.75
         to.momentView.alpha = 0
 
         UIView.animate(withDuration: transitionDuration(using: nil), delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: .curveEaseInOut) {
-            startSnapshot?.alpha = 0
+            momentCellSnapshot.alpha = 0
             to.view.alpha = 1
-            finalSnapshot?.alpha = 1
+            finalMomentViewSnapshot.alpha = 1
 
-            startSnapshot?.frame = to.momentView.frame
-            finalSnapshot?.frame = to.momentView.frame
+            momentCellSnapshot.frame = to.momentView.frame
+            finalMomentViewSnapshot.frame = to.momentView.frame
         } completion: { _ in
-            finalSnapshot?.alpha = 0
             to.momentView.alpha = 1
+            momentCellSnapshot.removeFromSuperview()
+            finalMomentViewSnapshot.removeFromSuperview()
 
-            startSnapshot?.removeFromSuperview()
-            finalSnapshot?.removeFromSuperview()
+            transitionContext.completeTransition(true)
+        }
 
+        Self.fromViewSnapshot = fromSnapshot
+    }
+
+    /// A simple fade that's used when not being presented from the feed.
+    private func performSimpleTransition(using transitionContext: UIViewControllerContextTransitioning) {
+        UIView.animate(withDuration: transitionDuration(using: nil), delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: .curveEaseInOut) {
+            self.startView?.alpha = 1
+            transitionContext.viewController(forKey: .to)?.view.alpha = 1
+        } completion: { _ in
             transitionContext.completeTransition(true)
         }
     }
@@ -694,6 +715,7 @@ fileprivate class MomentDismisser: NSObject, UIViewControllerAnimatedTransitioni
         UIView.animate(withDuration: transitionDuration(using: nil), delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: .curveEaseInOut) {
             from.view.alpha = 0
             self.startView?.alpha = 1
+            MomentPresenter.fromViewSnapshot?.alpha = 0
         } completion: { _ in
             transitionContext.completeTransition(true)
         }
