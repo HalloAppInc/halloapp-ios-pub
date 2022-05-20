@@ -354,10 +354,17 @@ private final class ProfileHeaderView: UIView {
     }
 
     private func updateActions() {
-        actionPanel.isHidden = isBlocked || !isInAddressBook
+        actionPanel.isHidden = isBlocked
         unblockButton.isHidden = !isBlocked
         audioCallButton.isHidden = !ServerProperties.isAudioCallsEnabled
         videoCallButton.isHidden = !ServerProperties.isVideoCallsEnabled
+        if isInAddressBook {
+            audioCallButton.enable()
+            videoCallButton.enable()
+        } else {
+            audioCallButton.disable()
+            videoCallButton.disable()
+        }
     }
     
     private func addCameraOverlayToAvatarViewButton() {
@@ -468,14 +475,14 @@ private final class ProfileHeaderView: UIView {
         return button
     }()
 
-    private(set) lazy var audioCallButton: UIControl = {
+    private(set) lazy var audioCallButton: LabeledIconButton = {
         let button = Self.makeActionButton(
             image: .init(systemName: "phone.fill")?.withRenderingMode(.alwaysTemplate),
             title: Localizations.profileHeaderAudioCallUser)
         return button
     }()
 
-    private(set) lazy var videoCallButton: UIControl = {
+    private(set) lazy var videoCallButton: LabeledIconButton = {
         let button = Self.makeActionButton(
             image: .init(systemName: "video.fill")?.withRenderingMode(.alwaysTemplate),
             title: Localizations.profileHeaderVideoCallUser)
@@ -493,7 +500,7 @@ private final class ProfileHeaderView: UIView {
         return button
     }()
 
-    static func makeActionButton(image: UIImage?, title: String) -> UIControl {
+    static func makeActionButton(image: UIImage?, title: String) -> LabeledIconButton {
         let button = LabeledIconButton(image: image, title: title)
         button.heightAnchor.constraint(greaterThanOrEqualToConstant: 55).isActive = true
         button.widthAnchor.constraint(greaterThanOrEqualToConstant: 65).isActive = true
@@ -606,6 +613,18 @@ final class LabeledIconButton: UIControl {
         label.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 4).isActive = true
         return view
     }()
+
+    public func disable() {
+        imageView.tintColor = .secondaryLabel
+        label.textColor = .secondaryLabel
+        self.isUserInteractionEnabled = false
+    }
+
+    public func enable() {
+        imageView.tintColor = .systemBlue
+        label.textColor = .systemBlue
+        self.isUserInteractionEnabled = true
+    }
 }
 
 private extension UIImage {
