@@ -241,6 +241,12 @@
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "خطا در شروع";
 
+/* Text shown on the camera screen when composing a new moment. */
+"camera.moment.subtitle" = "لحظه‌ها بعد از ۲۴ ساعت ناپدید میشوند و فقط یک بار قابل مشاهده هستند";
+
+/* Text shown on the camera screen when composing a new moment to unlock someone else's moment. */
+"camera.moment.unlock.subtitle" = "برای مشاهده لحظه @%، لحظه خودتان را به اشتراک بگذارید";
+
 /* No comment provided by engineer. */
 "Cancel" = "لغو";
 
@@ -402,6 +408,12 @@
 
 /* Text displayed in gray inside of the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "نوشتن نظر";
+
+/* Header that appears above all the unread Messages in the comments view when there are more than one unread message */
+"comment.unread.chat.messages.header.plural" = "@% پیام خوانده نشده";
+
+/* Header that appears above one single unread Message in the chat view. */
+"comment.unread.chat.messages.header.single" = "@% پیام خوانده نشده";
 
 /* Header that appears above all the unread comments in the comments view when there are more than one unread message */
 "comment.unread.messages.header.plural" = "@% نظر خوانده نشده";
@@ -1063,6 +1075,9 @@
 /* For indicating that a post has been successfully uploaded and shared. */
 "moment.uploading.success" = "به اشتراک گذاشته شد!";
 
+/* Message displayed to say when moments will disappear. */
+"mymoment.disappear.time.label" = "لحظه شما با لیست مخاطبینتان به اشتراک گذاشته شد. لحظه‌ها بعد از ۲۴ ساعت ناپدید میشوند و فقط یک بار قابل مشاهده هستند.";
+
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "پیام";
 
@@ -1638,6 +1653,9 @@
 
 /* Camera screen title */
 "title.camera" = "دوربین";
+
+/* Camera screen title for a new moment */
+"title.camera.moment" = "لحظه جدید";
 
 /* Title for new message screen where user chooses who to message */
 "title.chat.new.message" = "پیام جدید";
