@@ -358,6 +358,7 @@ private final class ProfileHeaderView: UIView {
         unblockButton.isHidden = !isBlocked
         audioCallButton.isHidden = !ServerProperties.isAudioCallsEnabled
         videoCallButton.isHidden = !ServerProperties.isVideoCallsEnabled
+
         if isInAddressBook {
             audioCallButton.enable()
             videoCallButton.enable()
@@ -617,13 +618,13 @@ final class LabeledIconButton: UIControl {
     public func disable() {
         imageView.tintColor = .secondaryLabel
         label.textColor = .secondaryLabel
-        self.isUserInteractionEnabled = false
+        self.isEnabled = false
     }
 
     public func enable() {
         imageView.tintColor = .systemBlue
         label.textColor = .systemBlue
-        self.isUserInteractionEnabled = true
+        self.isEnabled = true
     }
 }
 
