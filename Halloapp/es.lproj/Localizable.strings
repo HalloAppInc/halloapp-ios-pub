@@ -241,8 +241,11 @@
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Error al inicializar";
 
-/* Title of the button that allows camera permissions. */
-"camera.permission.allow.access" = "Permitir acceso";
+/* Text shown on the camera screen when composing a new moment. */
+"camera.moment.subtitle" = "Momentos desaparecen después de 24 horas y solo pueden ser vistos una vez";
+
+/* Text shown on the camera screen when composing a new moment to unlock someone else's moment. */
+"camera.moment.unlock.subtitle" = "Para ver el momento de %@ comparte el tuyo";
 
 /* No comment provided by engineer. */
 "Cancel" = "Cancelar";
@@ -1198,6 +1201,9 @@
 /* Text that indicates an open action. */
 "open.title" = "Abre";
 
+/* button to launch photo and video library */
+"photo.and.video.library" = "Biblioteca de fotos y videos";
+
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "Por favor, otorga acceso en configuración";
 
@@ -1570,9 +1576,6 @@
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Únete a mi red social de relaciones reales, HalloApp. Baja la aplicación gratis en halloapp.com/dl";
 
-/* Alert that tells the user to allow camera access to share a moment. */
-"share.moment.camera.permission" = "Permitir acceso a la cámara para compartir momento";
-
 /* Prompt for the user to share a moment. */
 "share.moment.prompt" = "Comparte momento";
 
@@ -1639,8 +1642,11 @@
 /* Timestamp: `Yesterday` */
 "timestamp.yesterday" = "Ayer";
 
-/* Screen title */
+/* Camera screen title */
 "title.camera" = "Cámara";
+
+/* Camera screen title for a new moment */
+"title.camera.moment" = "Nuevo momento";
 
 /* Title for new message screen where user chooses who to message */
 "title.chat.new.message" = "Nuevo mensaje";

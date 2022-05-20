@@ -241,9 +241,6 @@
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Chyba inicializace";
 
-/* Title of the button that allows camera permissions. */
-"camera.permission.allow.access" = "Povolit přístup";
-
 /* No comment provided by engineer. */
 "Cancel" = "Storno";
 
@@ -1570,9 +1567,6 @@
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Připojte se k mé síti skutečných vztahů v aplikaci HalloApp. Můžete si ji stáhnout zdarma na adrese halloapp.com/dl";
 
-/* Alert that tells the user to allow camera access to share a moment. */
-"share.moment.camera.permission" = "Povolit přístup ke kameře pro sdílení momentu";
-
 /* Prompt for the user to share a moment. */
 "share.moment.prompt" = "Sdílet moment";
 
@@ -1639,7 +1633,7 @@
 /* Timestamp: `Yesterday` */
 "timestamp.yesterday" = "Včera";
 
-/* Screen title */
+/* Camera screen title */
 "title.camera" = "Fotoaparát";
 
 /* Title for new message screen where user chooses who to message */

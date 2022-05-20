@@ -19,6 +19,9 @@
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Kontynuuj";
 
+/* Title for generic copy URL button */
+"button.copy.link" = "Skopiuj odnośnik";
+
 /* Title for generic Create button */
 "button.create" = "Utwórz";
 
@@ -85,6 +88,27 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Udostępniaj tylko wybranym kontaktom";
 
+/* Button to dismiss edit favorites modal */
+"feed.privacy.list.dismiss.edit.favorites" = "Nie teraz";
+
+/* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
+"feed.privacy.list.notOwn.only.description" = "Tylko osoby na liście ulubionych użytkownika %@ mogą zobaczyć ten wpis.";
+
+/* Header for the favorites list when editing contacts to share with. */
+"feed.privacy.list.only.details" = "Kto będzie widzieć ten wpis";
+
+/* Title of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.only.title" = "Ulubione";
+
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.own.only.description" = "Tylko osoby na Twojej liście ulubionych mogą zobaczyć ten wpis.";
+
+/* Button to edit favorites */
+"feed.privacy.list.set.favorites" = "Ustaw ulubione";
+
+/* Description of the new Favorites functionality. */
+"feed.privacy.list.set.favorites.description" = "Teraz możesz utworzyć listę ulubionych kontaktów i udostępnić im swoje wpisy w aplikacji HalloApp.";
+
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Szukaj";
 
@@ -100,8 +124,38 @@
 /* Button title. Refers to discarding photo/video edits in media composer. */
 "media.button.discard" = "Odrzuć";
 
+/* Button title. Refers to resetting photo / video to original version. */
+"media.button.reset" = "Zresetuj";
+
+/* Button title. Refers to undoing an edit of a photo. */
+"media.button.undo" = "Cofnij";
+
+/* Confirmation prompt in media composer. */
+"media.discard.confirmation" = "Czy chcesz porzucić swoje edycje?";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.annotate" = "Opisz";
+
+/* Accessibility label for X (Close) button in media editor. */
+"media.voiceover.button.close" = "Zamknij";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.draw" = "Rysuj";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.flip" = "Odwróć";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.mute" = "Wycisz";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.rotate" = "Obróć";
+
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Dołącz do mojej sieci prawdziwych relacji z bliskimi na HalloApp. Pobierz za darmo na halloapp.com/dl";
+
+/* Title on edit button */
+"share.composer.button.edit" = "Edytuj";
 
 /* Label above the list with whom you share */
 "share.composer.destinations.label" = "Udostępnij";
@@ -124,6 +178,17 @@
 /* Groups category label */
 "share.destination.groups" = "Twoje grupy";
 
+/* Share on the home feed label with all my contacts
+   Share to all contacts */
+"share.destination.home" = "Moje kontakty";
+
+/* Alert title when a direct to contact sharing is missing
+   Alert title when a direct to group sharing is missing */
+"share.destination.missing.group" = "Brakująca grupa %@";
+
+/* Show more groups in the share group selection */
+"share.destination.more" = "Pokaż więcej...";
+
 /* Share on the home feed selection cell */
 "share.destination.new" = "Nowy post";
 
@@ -135,6 +200,9 @@
 
 /* Title of alert when user is not logged in */
 "share.notlogged.title" = "Nie jesteś zalogowany(-a)";
+
+/* Button to edit favorites list */
+"title.edit.favorites" = "Edytuj listę ulubionych";
 
 /* Row in Settings screen */
 "title.privacy" = "Prywatność";

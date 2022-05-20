@@ -207,7 +207,7 @@
 	<key>n.others.replied</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>%#@n_others_replied@</string>
+		<string>%#@n_innych_odpowiedziało@</string>
 		<key>n_others_replied</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
@@ -215,13 +215,13 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>few</key>
-			<string>&lt;$user$&gt; and %d others replied to &lt;$author$&gt;'s post</string>
+			<string>Użytkownik &lt;$user$&gt; i %d inni odpowiedzieli na wpis użytkownika &lt;$author$&gt;</string>
 			<key>many</key>
-			<string>&lt;$user$&gt; and %d others replied to &lt;$author$&gt;'s post</string>
+			<string>Użytkownik &lt;$user$&gt; i %d innych odpowiedzieli na wpis użytkownika &lt;$author$&gt;</string>
 			<key>one</key>
-			<string>&lt;$user$&gt; and %d other replied to &lt;$author$&gt;'s post</string>
+			<string>Użytkownik &lt;$user$&gt; i %d inny odpowiedzieli na wpis użytkownika &lt;$author$&gt;</string>
 			<key>other</key>
-			<string>&lt;$user$&gt; and %d others replied to &lt;$author$&gt;'s post</string>
+			<string>Użytkownik &lt;$user$&gt; i %d innego odpowiedzieli na wpis użytkownika &lt;$author$&gt;</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>

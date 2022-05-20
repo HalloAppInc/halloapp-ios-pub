@@ -19,6 +19,9 @@
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Lanjut";
 
+/* Title for generic copy URL button */
+"button.copy.link" = "Salin Tautan";
+
 /* Title for generic Create button */
 "button.create" = "Buat";
 
@@ -85,6 +88,27 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Hanya bagikan dengan kontak pilihan";
 
+/* Button to dismiss edit favorites modal */
+"feed.privacy.list.dismiss.edit.favorites" = "Nanti";
+
+/* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
+"feed.privacy.list.notOwn.only.description" = "Hanya orang di daftar Favorit %@ dapat meilihat postingan ini.";
+
+/* Header for the favorites list when editing contacts to share with. */
+"feed.privacy.list.only.details" = "Yang akan melihat postingan ini";
+
+/* Title of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.only.title" = "Favorit";
+
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.own.only.description" = "Hanya orang di daftar Favorit Anda dapat melihat postingan ini.";
+
+/* Button to edit favorites */
+"feed.privacy.list.set.favorites" = "Atur Favorit";
+
+/* Description of the new Favorites functionality. */
+"feed.privacy.list.set.favorites.description" = "Sekarang Anda dapat membuat daftar kontak favorit dan membagikan postingan Anda dengan mereka.";
+
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Anda ditambahkan ke grup baru";
 
@@ -111,6 +135,9 @@
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ baru menerima undangan Anda untuk bergabung di HalloApp 🎉";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment" = "Momen baru";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
@@ -149,13 +176,16 @@
 "notification.voicecomment" = "🎤 Komentar audio";
 
 /* New post notification text when post is a voice note. */
-"notification.voicenote" = "🎤 Pesan suara";
+"notification.voicenote" = "🎤 Catatan audio";
 
 /* New post notification text when post is a voice note. */
 "notification.voicepost" = "🎤 Postingan audio";
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Bergabunglah dengan jaringan relasi sungguhan saya di HalloApp. Unduh gratis di halloapp.com/dl";
+
+/* Button to edit favorites list */
+"title.edit.favorites" = "Edit daftar Favorit Anda";
 
 /* Row in Settings screen */
 "title.privacy" = "Privasi";

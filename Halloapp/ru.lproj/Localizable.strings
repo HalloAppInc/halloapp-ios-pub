@@ -1573,7 +1573,7 @@
 /* Timestamp: `Yesterday` */
 "timestamp.yesterday" = "Вчера";
 
-/* Screen title */
+/* Camera screen title */
 "title.camera" = "Камера";
 
 /* Title for new message screen where user chooses who to message */

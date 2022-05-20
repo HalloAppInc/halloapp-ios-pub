@@ -19,6 +19,9 @@
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Kontynuuj";
 
+/* Title for generic copy URL button */
+"button.copy.link" = "Skopiuj odnośnik";
+
 /* Title for generic Create button */
 "button.create" = "Utwórz";
 
@@ -85,6 +88,27 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Udostępniaj tylko wybranym kontaktom";
 
+/* Button to dismiss edit favorites modal */
+"feed.privacy.list.dismiss.edit.favorites" = "Nie teraz";
+
+/* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
+"feed.privacy.list.notOwn.only.description" = "Tylko osoby na liście ulubionych użytkownika %@ mogą zobaczyć ten wpis.";
+
+/* Header for the favorites list when editing contacts to share with. */
+"feed.privacy.list.only.details" = "Kto będzie widzieć ten wpis";
+
+/* Title of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.only.title" = "Ulubione";
+
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.own.only.description" = "Tylko osoby na Twojej liście ulubionych mogą zobaczyć ten wpis.";
+
+/* Button to edit favorites */
+"feed.privacy.list.set.favorites" = "Ustaw ulubione";
+
+/* Description of the new Favorites functionality. */
+"feed.privacy.list.set.favorites.description" = "Teraz możesz utworzyć listę ulubionych kontaktów i udostępnić im swoje wpisy w aplikacji HalloApp.";
+
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Dodano Cię do nowej grupy";
 
@@ -111,6 +135,9 @@
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "Użytkownik %@ właśnie zaakceptował Twoje zaproszenie do HalloApp 🎉";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment" = "Nowy moment";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
@@ -139,8 +166,26 @@
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 wideo";
 
+/* Missed video call notification text to be shown to the user. */
+"notification.videocall.missed" = "📹 Nieodebrane połączenie wideo";
+
+/* Missed voice call notification text to be shown to the user. */
+"notification.voicecall.missed" = "☎️ Nieodebrane połączenie głosowe";
+
+/* New post notification text when post is a voice note. */
+"notification.voicecomment" = "🎤 Komentarz dźwiękowy";
+
+/* New post notification text when post is a voice note. */
+"notification.voicenote" = "🎤 Notatka dźwiękowa";
+
+/* New post notification text when post is a voice note. */
+"notification.voicepost" = "🎤 Wpis dźwiękowy";
+
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Dołącz do mojej sieci prawdziwych relacji z bliskimi na HalloApp. Pobierz za darmo na halloapp.com/dl";
+
+/* Button to edit favorites list */
+"title.edit.favorites" = "Edtyuj listę ulubionych";
 
 /* Row in Settings screen */
 "title.privacy" = "Prywatność";

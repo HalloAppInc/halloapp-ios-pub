@@ -4,6 +4,9 @@
 /* Privacy - Camera Usage Description */
 "NSCameraUsageDescription" = "Cette fonction vous permet de prendre des photos et des vidéos directement à partir de HalloApp.";
 
+/* Privacy - Contacts Usage Description */
+"NSContactsUsageDescription" = "Autorisez HalloApp à accéder à vos contacts pour pouvoir partager et voir les messages de vos amis et de votre famille.";
+
 /* Privacy - Microphone Usage Description */
 "NSMicrophoneUsageDescription" = "Cela te permet de passer des appels, d'envoyer des messages et des publications audio, ainsi que d'enregistrer des vidéos avec du son.";
 

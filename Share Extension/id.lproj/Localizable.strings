@@ -19,6 +19,9 @@
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Lanjut";
 
+/* Title for generic copy URL button */
+"button.copy.link" = "Salin Tautan";
+
 /* Title for generic Create button */
 "button.create" = "Buat";
 
@@ -85,6 +88,27 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Hanya bagikan dengan kontak pilihan";
 
+/* Button to dismiss edit favorites modal */
+"feed.privacy.list.dismiss.edit.favorites" = "Nanti";
+
+/* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
+"feed.privacy.list.notOwn.only.description" = "Hanya orang di daftar Favorit %@ dapat meilihat postingan ini.";
+
+/* Header for the favorites list when editing contacts to share with. */
+"feed.privacy.list.only.details" = "Yang akan melihat postingan ini";
+
+/* Title of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.only.title" = "Favorit";
+
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.own.only.description" = "Hanya orang di daftar Favorit Anda dapat melihat postingan ini.";
+
+/* Button to edit favorites */
+"feed.privacy.list.set.favorites" = "Atur Favorit";
+
+/* Description of the new Favorites functionality. */
+"feed.privacy.list.set.favorites.description" = "Sekarang Anda dapat membuat daftar kontak favorit dan membagikan postingan Anda dengan mereka.";
+
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Cari";
 
@@ -100,8 +124,38 @@
 /* Button title. Refers to discarding photo/video edits in media composer. */
 "media.button.discard" = "Buang";
 
+/* Button title. Refers to resetting photo / video to original version. */
+"media.button.reset" = "Atur ulang";
+
+/* Button title. Refers to undoing an edit of a photo. */
+"media.button.undo" = "Urungkan";
+
+/* Confirmation prompt in media composer. */
+"media.discard.confirmation" = "Apakah Anda ingin menghapus editan Anda?";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.annotate" = "Memberi Anotasi";
+
+/* Accessibility label for X (Close) button in media editor. */
+"media.voiceover.button.close" = "Tutup";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.draw" = "Gambar";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.flip" = "Balik";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.mute" = "Bisukan";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.rotate" = "Putar";
+
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Bergabunglah dengan jaringan relasi sungguhan saya di HalloApp. Unduh gratis di halloapp.com/dl";
+
+/* Title on edit button */
+"share.composer.button.edit" = "Edit";
 
 /* Label above the list with whom you share */
 "share.composer.destinations.label" = "Bagikan dengan";
@@ -126,7 +180,7 @@
 
 /* Share on the home feed label with all my contacts
    Share to all contacts */
-"share.destination.home" = "Beranda";
+"share.destination.home" = "Kontak Saya";
 
 /* Alert title when a direct to contact sharing is missing
    Alert title when a direct to group sharing is missing */
@@ -146,6 +200,9 @@
 
 /* Title of alert when user is not logged in */
 "share.notlogged.title" = "Kamu tidak masuk";
+
+/* Button to edit favorites list */
+"title.edit.favorites" = "Edit daftar Favorit Anda";
 
 /* Row in Settings screen */
 "title.privacy" = "Privasi";
