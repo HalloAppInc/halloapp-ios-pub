@@ -18,6 +18,7 @@ open class MainDataStore {
 
     public let userData: UserData
 
+    private let userDefaults: UserDefaults
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.mainDataStore")
     private let bgQueueKey = DispatchSpecificKey<String>()
     private let bgQueueValue = "com.halloapp.mainDataStore"
@@ -59,6 +60,7 @@ open class MainDataStore {
 
     required public init(userData: UserData, appTarget: AppTarget, userDefaults: UserDefaults) {
         self.userData = userData
+        self.userDefaults = userDefaults
         persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
         viewContext = persistentContainer.viewContext
 
@@ -87,10 +89,17 @@ open class MainDataStore {
         performSeriallyOnBackgroundContext({ managedObjectContext in
             do {
                 // Merges latest transactions from other contexts into the current target context.
-                let merger = PersistentHistoryMerger(backgroundContext: managedObjectContext, viewContext: self.viewContext, dataStore: .mainDataStore, currentTarget: self.appTarget)
+                let merger = PersistentHistoryMerger(backgroundContext: managedObjectContext,
+                                                     viewContext: self.viewContext,
+                                                     dataStore: .mainDataStore,
+                                                     userDefaults: self.userDefaults,
+                                                     currentTarget: self.appTarget)
                 let historyMerged = try merger.merge()
                 // Prunes transactions that have been merged into all possible contexts: MainApp, NotificationExtension, ShareExtension
-                let cleaner = PersistentHistoryCleaner(context: managedObjectContext, targets: AppTarget.allCases, dataStore: .mainDataStore)
+                let cleaner = PersistentHistoryCleaner(context: managedObjectContext,
+                                                       targets: AppTarget.allCases,
+                                                       dataStore: .mainDataStore,
+                                                       userDefaults: self.userDefaults)
                 try cleaner.clean()
 
                 if managedObjectContext.hasChanges {
