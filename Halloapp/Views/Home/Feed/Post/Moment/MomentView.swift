@@ -49,6 +49,7 @@ class MomentView: UIView {
     private(set) lazy var mediaView: MediaCarouselView = {
         var config = MediaCarouselViewConfiguration.default
         config.cornerRadius = innerCornerRadius
+        config.borderWidth = 0
         let view = MediaCarouselView(media: [], initialIndex: nil, configuration: config)
         view.delegate = self
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -86,10 +87,11 @@ class MomentView: UIView {
     
     private lazy var promptLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(forTextStyle: .body, pointSizeChange: -2, weight: .regular, maximumPointSize: 30)
+        label.font = .systemFont(forTextStyle: .title3, pointSizeChange: -4, weight: .medium, maximumPointSize: 23)
         label.textColor = .white
-        label.shadowColor = .black.withAlphaComponent(0.2)
-        label.shadowOffset = .init(width: 0, height: 1)
+        label.shadowColor = .black.withAlphaComponent(0.1)
+        label.shadowOffset = .init(width: 0, height: 0.5)
+        label.layer.shadowRadius = 1
         label.textAlignment = .center
         label.numberOfLines = 0
         return label
@@ -99,22 +101,26 @@ class MomentView: UIView {
         let stack = UIStackView(arrangedSubviews: [avatarView, promptLabel, actionButton])
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.axis = .vertical
-        stack.distribution = .equalSpacing
+        stack.isLayoutMarginsRelativeArrangement = true
+        stack.layoutMargins = UIEdgeInsets(top: 3, left: 20, bottom: 0, right: 20)
+        stack.distribution = .fill
         stack.alignment = .center
-        stack.spacing = 15
-        
+        stack.setCustomSpacing(20, after: avatarView)
+        stack.setCustomSpacing(10, after: promptLabel)
         return stack
     }()
     
-    private lazy var dayOfWeekLabel: UILabel = {
+    private(set) lazy var dayOfWeekLabel: UILabel = {
         let label = UILabel()
-        label.font = .courierFont(forTextStyle: .body, pointSizeChange: -2, weight: .regular, maximumPointSize: 26)
+        label.font = .courierFont(forTextStyle: .body, weight: .regular, maximumPointSize: 26)
+        label.textColor = .black.withAlphaComponent(0.9)
         return label
     }()
     
     private(set) lazy var timeLabel: UILabel = {
         let label = UILabel()
-        label.font = .courierFont(forTextStyle: .body, pointSizeChange: -2, weight: .regular, maximumPointSize: 26)
+        label.font = .courierFont(forTextStyle: .body, weight: .regular, maximumPointSize: 26)
+        label.textColor = .black.withAlphaComponent(0.9)
         return label
     }()
     
@@ -134,7 +140,7 @@ class MomentView: UIView {
         super.init(frame: .zero)
         layer.cornerRadius = cornerRadius
         layer.cornerCurve = .circular
-        backgroundColor = .feedPostBackground
+        backgroundColor = .momentPolaroid
 
         addSubview(mediaView)
         addSubview(footerView)
@@ -153,8 +159,8 @@ class MomentView: UIView {
             mediaView.topAnchor.constraint(equalTo: topAnchor, constant: mediaPadding),
             mediaHeightConstraint,
             footerView.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor),
-            footerView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -footerPadding - 10),
-            footerView.topAnchor.constraint(equalTo: mediaView.bottomAnchor, constant: footerPadding),
+            footerView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -footerPadding - 8),
+            footerView.topAnchor.constraint(equalTo: mediaView.bottomAnchor, constant: footerPadding - 2),
             footerBottomConstraint,
         ])
         
@@ -201,6 +207,8 @@ class MomentView: UIView {
             avatarView.widthAnchor.constraint(equalToConstant: diameter),
             avatarView.heightAnchor.constraint(equalToConstant: diameter),
         ])
+
+        footerView.setCustomSpacing(-1, after: dayOfWeekLabel)
     }
     
     required init?(coder: NSCoder) {
@@ -220,7 +228,7 @@ class MomentView: UIView {
             media.loadImage()
         }
 
-        dayOfWeekLabel.text = DateFormatter.dateTimeFormatterDayOfWeekLong.string(from: post.timestamp)
+        dayOfWeekLabel.text = DateFormatter.dateTimeFormatterDayOfWeekLong.string(from: post.timestamp).uppercased()
         timeLabel.text = DateFormatter.dateTimeFormatterTime.string(from: post.timestamp)
 
         avatarView.configure(with: post.userID, using: MainAppContext.shared.avatarStore)
@@ -306,18 +314,18 @@ extension MomentView {
                 button.bottomAnchor.constraint(equalTo: bottomAnchor),
             ])
 
-            layer.shadowOpacity = 1
-            layer.shadowColor = UIColor.black.withAlphaComponent(0.2).cgColor
-            layer.shadowRadius = 1
-            layer.shadowOffset = .init(width: 0, height: 1)
+//            layer.shadowOpacity = 1
+//            layer.shadowColor = UIColor.black.withAlphaComponent(0.2).cgColor
+//            layer.shadowRadius = 1
+//            layer.shadowOffset = .init(width: 0, height: 1)
             layer.masksToBounds = false
             clipsToBounds = false
 
             button.layer.masksToBounds = true
-            button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 20, bottom: 8, right: 20)
+            button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 17, bottom: 10, right: 17)
             button.setBackgroundColor(.systemBlue, for: .normal)
             button.setTitleColor(.white, for: .normal)
-            button.titleLabel?.font = .systemFont(forTextStyle: .body, weight: .medium, maximumPointSize: 30)
+            button.titleLabel?.font = .gothamFont(forTextStyle: .title3, pointSizeChange: -2, weight: .medium, maximumPointSize: 30)
         }
 
         required init?(coder: NSCoder) {
@@ -328,7 +336,8 @@ extension MomentView {
             super.layoutSubviews()
 
             button.layer.cornerRadius = min(bounds.width, bounds.height) / 2.0
-            layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: button.layer.cornerRadius).cgPath
+            // trying with no shadow for now; might change later
+            //layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: button.layer.cornerRadius).cgPath
         }
     }
 }

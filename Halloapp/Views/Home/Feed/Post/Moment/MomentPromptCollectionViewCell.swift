@@ -76,11 +76,12 @@ final class MomentPromptView: UIView {
         let stack = UIStackView(arrangedSubviews: [avatarView, displayLabel, actionButton])
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.axis = .vertical
-        stack.distribution = .equalSpacing
-        stack.alignment = .center
-        stack.spacing = 15
         stack.isLayoutMarginsRelativeArrangement = true
-        stack.layoutMargins = UIEdgeInsets(top: 10, left: 20, bottom: 10, right: 20)
+        stack.layoutMargins = UIEdgeInsets(top: 3, left: 20, bottom: 0, right: 20)
+        stack.distribution = .fill
+        stack.alignment = .center
+        stack.setCustomSpacing(20, after: avatarView)
+        stack.setCustomSpacing(10, after: displayLabel)
         return stack
     }()
 
@@ -99,10 +100,11 @@ final class MomentPromptView: UIView {
 
     private lazy var displayLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(forTextStyle: .body, pointSizeChange: -2, weight: .regular, maximumPointSize: 30)
+        label.font = .systemFont(forTextStyle: .title3, pointSizeChange: -4, weight: .medium, maximumPointSize: 23)
         label.textColor = .white
-        label.shadowColor = .black.withAlphaComponent(0.2)
-        label.shadowOffset = .init(width: 0, height: 1)
+        label.shadowColor = .black.withAlphaComponent(0.1)
+        label.shadowOffset = .init(width: 0, height: 0.5)
+        label.layer.shadowRadius = 1
         label.numberOfLines = 0
         label.textAlignment = .center
         label.text = Localizations.shareMoment
@@ -120,7 +122,7 @@ final class MomentPromptView: UIView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = .feedPostBackground
+
         layer.cornerRadius = FeedPostCollectionViewCell.LayoutConstants.backgroundCornerRadius
         layer.masksToBounds = false
         clipsToBounds = false
@@ -130,6 +132,7 @@ final class MomentPromptView: UIView {
         layer.shadowOffset = CGSize(width: 0, height: 5)
         layer.shadowRadius = 5
 
+        backgroundColor = .momentPolaroid
         installViews()
     }
 

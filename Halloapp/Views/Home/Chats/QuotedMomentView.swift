@@ -14,7 +14,7 @@ class QuotedMomentView: UIView {
     private static let imageCornerRadius: CGFloat = 5
 
     static var expiredIndicator: UIImage? {
-        UIImage(systemName: "timelapse")
+        UIImage(systemName: "hourglass.tophalf.filled")
     }
 
     private(set) lazy var imageView: UIImageView = {
@@ -31,16 +31,16 @@ class QuotedMomentView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        backgroundColor = .feedPostBackground
+        backgroundColor = .momentPolaroid
         layer.cornerRadius = Self.cornerRadius
 
         layer.shadowColor = UIColor.black.withAlphaComponent(0.2).cgColor
         layer.shadowOpacity = 1
         layer.shadowRadius = 1
-        layer.shadowOffset = .init(width: 0, height: 1)
+        layer.shadowOffset = .init(width: 0, height: 0.5)
 
         addSubview(imageView)
-        let padding: CGFloat = 5
+        let padding: CGFloat = 2
         NSLayoutConstraint.activate([
             imageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
             imageView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -padding),

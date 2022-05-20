@@ -1115,7 +1115,9 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                 DDLogWarn("ChatViewController/Quoted feed post \(feedPostId) not found")
                 return
             }
-            present(PostViewController.viewController(for: feedPost), animated: true)
+
+            let vc = feedPost.isMoment ? MomentViewController(post: feedPost) : PostViewController.viewController(for: feedPost)
+            present(vc, animated: true)
         } else  if let chatReplyMessageID = message.chatReplyMessageID {
             guard let allMessages = fetchedResultsController?.fetchedObjects else { return }
             guard let replyMessage = allMessages.first(where: {$0.id == chatReplyMessageID}) else { return }

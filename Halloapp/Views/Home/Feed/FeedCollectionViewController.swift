@@ -412,7 +412,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
             return
         }
         
-        let momentVC = MomentViewController(post: post, unlockingPost: latest)
+        let momentVC = MomentViewController(post: post, unlockingPost: latest, isFullScreen: false)
         momentVC.delegate = self
         newPostVC.containedNavigationController.pushViewController(momentVC, animated: true)
     }
