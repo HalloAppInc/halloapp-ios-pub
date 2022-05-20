@@ -112,6 +112,17 @@ class MomentCollectionViewCell: UICollectionViewCell {
         facePileView.configure(with: post)
     }
 
+    func refreshFooter() {
+        guard
+            let post = momentView.feedPost,
+            post.userId == MainAppContext.shared.userData.userId
+        else {
+            return
+        }
+
+        facePileView.configure(with: post)
+    }
+
     private func installHeaderAndFooter() {
         guard headerView.superview == nil else {
             return

@@ -89,9 +89,15 @@ extension KeyStore {
 extension KeyStore {
 
     // MARK: GroupKeys Saving
-    public func saveGroupSessionKeyBundle(groupID: GroupID, state: GroupSessionState, groupKeyBundle: GroupKeyBundle) {
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+    public func checkAndSaveGroupSessionKeyBundle(groupID: GroupID, state: GroupSessionState, groupKeyBundle: GroupKeyBundle) {
+        AppContext.shared.mainDataStore.performSeriallyOnBackgroundContext { context in
+            let groupMemberUserIds = AppContext.shared.coreChatData.chatGroupMemberUserIds(for: groupID, in: context)
+            self.saveGroupSessionKeyBundle(groupID: groupID, members: groupMemberUserIds, state: state, groupKeyBundle: groupKeyBundle)
+        }
+    }
 
+    private func saveGroupSessionKeyBundle(groupID: GroupID, members: [UserID], state: GroupSessionState, groupKeyBundle: GroupKeyBundle) {
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             // TODO: murali@: cleanup these logs.
             DDLogInfo("KeyStore/saveGroupSessionKeyBundle/groupID: \(groupID)/state:\(state)/\(groupKeyBundle)/starting")
             let groupSessionKeyBundle: GroupSessionKeyBundle = self.groupSessionKeyBundle(for: groupID, in: managedObjectContext) ?? NSEntityDescription.insertNewObject(forEntityName: GroupSessionKeyBundle.entity().name!, into: managedObjectContext) as! GroupSessionKeyBundle
@@ -159,9 +165,10 @@ extension KeyStore {
             }
 
             // Update pendingUserIds by taking union of both sets of pending uids: in-store vs in-memory.
+            // Make sure all pendingUids are members of the group.
             let newPendingUids = groupKeyBundle.pendingUids
             let oldPendingUids = groupSessionKeyBundle.pendingUserIds
-            groupSessionKeyBundle.pendingUserIds = Array(Set(oldPendingUids + newPendingUids)).filter{ $0 != ownUserId }
+            groupSessionKeyBundle.pendingUserIds = Array(Set(members).intersection(Set(oldPendingUids + newPendingUids))).filter{ $0 != ownUserId }
 
             groupSessionKeyBundle.groupId = groupID
             groupSessionKeyBundle.state = state

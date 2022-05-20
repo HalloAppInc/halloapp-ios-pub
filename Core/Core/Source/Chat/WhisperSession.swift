@@ -98,6 +98,10 @@ public final class WhisperSession {
             let restartState: RestartState = {
                 if rerequestData.sessionSetupEphemeralKey.isEmpty {
                     switch self.state {
+                    case .failed:
+                        // This is not expected.
+                        DDLogError("WhisperSession/\(self.userID)/rerequest-state/failed/just return")
+                        return .alreadyRestartedNoEphemeralKey
                     case .awaitingSetup, .retrievingKeys:
                         return .alreadyRestartingNoEphemeralKey
                     case .ready(let keyBundle, _):
@@ -175,6 +179,10 @@ public final class WhisperSession {
                 DDLogVerbose("WhisperSession/sessionSetupInfoForRerequest/state: retrievingKeys")
                 // Add this task to the queue
                 self.pendingTasks.append(.getSessionSetupInfoForRerequest(dispatchedCompletion))
+            case .failed:
+                DDLogVerbose("WhisperSession/sessionSetupInfoForRerequest/state: failed")
+                // Ignore this task - cant recover in this state.
+                dispatchedCompletion(nil)
             }
         }
     }
@@ -191,6 +199,9 @@ public final class WhisperSession {
                 self.pendingTasks.append(.resetSession)
             case .retrievingKeys:
                 // We are resetting our outboundSetup here already - so we can ignore this task.
+                break
+            case .failed:
+                // We wont recover on this state - so ignore.
                 break
             }
         }
@@ -221,6 +232,8 @@ public final class WhisperSession {
                     self.state = .ready(keyBundle, messageKeys)
                 }
                 // Else -- continue trying to setup keys.
+            case .failed:
+                break
             }
         }
     }
@@ -232,10 +245,11 @@ public final class WhisperSession {
         case awaitingSetup(attempts: Int)
         case retrievingKeys
         case ready(KeyBundle, MessageKeyMap)
+        case failed
 
         var keyBundle: KeyBundle? {
             switch self {
-            case .awaitingSetup, .retrievingKeys:
+            case .awaitingSetup, .retrievingKeys, .failed:
                 return nil
             case .ready(let keyBundle, _):
                 return keyBundle
@@ -248,6 +262,8 @@ public final class WhisperSession {
                 return attempts
             case .ready, .retrievingKeys:
                 return nil
+            case .failed:
+                return Int.max
             }
         }
     }
@@ -280,6 +296,9 @@ public final class WhisperSession {
                 DDLogInfo("WhisperSession/set-state/ready")
                 keyStore.saveKeyBundle(keyBundle)
                 keyStore.saveMessageKeys(messageKeys, for: userID)
+            case .failed:
+                DDLogInfo("WhisperSession/set-state/failed")
+                keyStore.deleteMessageKeyBundles(for: userID)
             }
         }
     }
@@ -360,6 +379,23 @@ public final class WhisperSession {
                 case .setupOutbound(let completion):
                     DDLogInfo("WhisperSession/\(userID)/execute/setupOutbound")
                     completion(.success(keyBundle))
+                }
+            case .failed:
+                switch task {
+                case .encryption(_, let completion):
+                    DDLogInfo("WhisperSession/\(userID)/execute/encrypting")
+                    completion(.failure(.invalidUid))
+                case .decryption(_, let completion):
+                    DDLogInfo("WhisperSession/\(userID)/execute/decrypting")
+                    completion(.failure(.init(.keyGenerationFailure, ephemeralKey: nil)))
+                case .getSessionSetupInfoForRerequest(let completion):
+                    completion(nil)
+                case .resetSession:
+                    DDLogInfo("WhisperSession/\(userID)/execute/resetSession - (needs outbound setup)")
+                    break
+                case .setupOutbound(let completion):
+                    DDLogInfo("WhisperSession/\(userID)/execute/setupOutbound")
+                    completion(.failure(.invalidUid))
                 }
             }
             pendingTasks.removeFirst()
@@ -442,6 +478,9 @@ public final class WhisperSession {
             self.sessionQueue.async {
 
                 switch self.state {
+                case .failed:
+                    DDLogInfo("WhisperSession/\(self.userID)/setupOutbound/aborting [session already failed]")
+                    return
                 case .awaitingSetup, .retrievingKeys:
                     DDLogInfo("WhisperSession/\(self.userID)/setupOutbound/received-keys")
                 case .ready:
@@ -455,6 +494,10 @@ public final class WhisperSession {
                     switch result {
                     case .failure(let error):
                         DDLogError("WhisperSession/\(self.userID)/setupOutbound/error [\(error)]")
+                        switch error {
+                        case .serverError("invalid_uid"): self.state = .failed
+                        default: break
+                        }
                         return nil
                     case .success(let whisperKeys):
                         guard let userKeys = self.keyStore.keyBundle() else {
