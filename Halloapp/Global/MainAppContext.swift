@@ -364,10 +364,12 @@ class MainAppContext: AppContext {
         }
     }
 
+    // All accesses to backgroundTaskIds should run on backgroundTaskQueue to prevent concurrent modifications
+    private let backgroundTaskQueue = DispatchQueue(label: "backgroundTask", qos: .default)
     private var backgroundTaskIds: [String: UIBackgroundTaskIdentifier] = [:]
 
     func beginBackgroundTask(_ itemId: String, expirationHandler: (() -> Void)? = nil) {
-        DispatchQueue.global().async { [self] in
+        backgroundTaskQueue.async { [self] in
             if backgroundTaskIds[itemId] != nil {
                 DDLogInfo("end existing background task: [\(itemId)]")
                 endBackgroundTask(itemId)
@@ -385,7 +387,7 @@ class MainAppContext: AppContext {
     }
 
     func endBackgroundTask(_ itemId: String) {
-        DispatchQueue.global().async { [self] in
+        backgroundTaskQueue.async { [self] in
             guard let taskId = backgroundTaskIds[itemId] else { return }
             DDLogInfo("background task ended [\(itemId)]")
 
