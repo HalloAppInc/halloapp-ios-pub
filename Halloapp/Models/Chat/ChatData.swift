@@ -2699,6 +2699,7 @@ extension ChatData {
         guard let msg = chatMessage(with: msgID, in: context),
               let chatMedia = getChatMediaFromMessage(msg: msg, mediaIndex: mediaIndex, mediaType: mediaType) else {
             DDLogError("ChatData/uploadChat/fetch msg and media \(msgID)/\(mediaIndex) - missing")
+            completion(.failure(RequestError.aborted))
             return
         }
 
@@ -2711,17 +2712,32 @@ extension ChatData {
 
         MainAppContext.shared.mediaHashStore.fetch(url: processed, blobVersion: chatMedia.blobVersion) { [weak self] upload in
             guard let self = self else { return }
+            self.checkMediaHashAndUploadChat(msgID: msgID, mediaIndex: mediaIndex, mediaType: mediaType, mediaHash: upload, completion: completion)
+        }
+    }
 
+    private func checkMediaHashAndUploadChat(msgID: String, mediaIndex: Int16, mediaType: ChatMediaType, mediaHash: MediaHash?,
+                                             completion: @escaping (Result<MediaUploader.UploadDetails, Error>) -> Void) {
+        let mediaHashURL = mediaHash?.url
+        let mediaHashKey = mediaHash?.key
+        let mediaHashSha256 = mediaHash?.sha256
+        self.mainDataStore.performSeriallyOnBackgroundContext { context in
             // Lookup object from coredata again instead of passing around the object across threads.
             DDLogInfo("ChatData/uploadChat/fetch upload hash \(msgID)/\(mediaIndex)")
             guard let msg = self.chatMessage(with: msgID, in: context),
                   let media = self.getChatMediaFromMessage(msg: msg, mediaIndex: mediaIndex, mediaType: mediaType) else {
                 DDLogError("ChatData/uploadChat/fetch msg and media \(msgID)/\(mediaIndex) - missing")
+                completion(.failure(RequestError.aborted))
                 return
             }
 
-            if let url = upload?.url {
-                DDLogInfo("Media \(processed) has been uploaded before at \(url).")
+            guard let mediaURL = media.mediaURL else {
+                DDLogError("ChatData/uploadChat/\(msgID)/\(mediaIndex) missing file path")
+                return completion(.failure(MediaUploadError.invalidUrls))
+            }
+
+            if let url = mediaHashURL {
+                DDLogInfo("Media \(mediaURL) has been uploaded before at \(url).")
                 if let uploadUrl = media.uploadUrl {
                     DDLogInfo("ChatData/uploadChat/upload url is supposed to be nil here/\(msgID)/\(media.order), uploadUrl: \(uploadUrl)")
                     // we set it to be nil here explicitly.
@@ -2762,12 +2778,12 @@ extension ChatData {
                         media.url = details.downloadURL
                         media.outgoingStatus = .uploaded
 
-                        if media.url == upload?.url, let key = upload?.key, let sha256 = upload?.sha256 {
+                        if media.url == mediaHashURL, let key = mediaHashKey, let sha256 = mediaHashSha256 {
                             media.key = key
                             media.sha256 = sha256
                         }
 
-                        MainAppContext.shared.mediaHashStore.update(url: processed, blobVersion: media.blobVersion, key: media.key, sha256: media.sha256, downloadURL: media.url!)
+                        MainAppContext.shared.mediaHashStore.update(url: mediaURL, blobVersion: media.blobVersion, key: media.key, sha256: media.sha256, downloadURL: media.url!)
                     case .failure(_):
                         media.outgoingStatus = .error
                         media.numTries += 1
