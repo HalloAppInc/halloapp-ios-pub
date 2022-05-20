@@ -37,6 +37,9 @@
 /* Message shown when a user first joins */
 "activity.center.welcome.item" = "Bienvenue sur HalloApp !";
 
+/* First tab in the main app interface. */
+"activityCenter.promo.favorites" = "Découvrez la nouvelle fonction des favoris !";
+
 /* Text label for action button to add the contact to the address book */
 "add.to.contact.book" = "Ajouter à mes contacts";
 
@@ -78,6 +81,9 @@
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Continuer";
+
+/* Title for generic copy URL button */
+"button.copy.link" = "Copier le lien";
 
 /* Title for generic Create button */
 "button.create" = "Créer";
@@ -142,11 +148,41 @@
 /* Label for button that toggles speakerphone status during call */
 "call.button.speaker" = "haut-parleur";
 
+/* Text indicating that calls are end-to-end encrypted */
+"call.encryption.text" = "Chiffré de bout en bout";
+
+/* Title for call history event. Appears next to details of a successful call. */
+"call.history.video.call" = "Appel vidéo";
+
+/* Title for call history event. Appears next to details of a missed call. */
+"call.history.video.call.missed" = "Appel vidéo manqué";
+
 /* Title for call history event. Appears next to details of a successful call. */
 "call.history.voice.call" = "Appel vocal";
 
 /* Title for call history event. Appears next to details of a missed call. */
 "call.history.voice.call.missed" = "Appel vocal manqué";
+
+/* Status display when user mutes their own audio during a call. */
+"call.mute.local.audio" = "le microphone est éteint";
+
+/* Status display when user mutes their own audio and video during a call. */
+"call.mute.local.audio.video" = "la caméra et le microphone sont éteints";
+
+/* Status display when user mutes their own video during a call. */
+"call.mute.local.video" = "L'appareil photo est éteint";
+
+/* Status display when peer mutes audio during a call. */
+"call.mute.remote.audio" = "%@ a mis cet appel en sourdine";
+
+/* Status display when peer mutes both audio and video during a call. */
+"call.mute.remote.audio.video" = "La caméra et le microphone de %@ sont éteints";
+
+/* Status display when peer mutes video during a call. */
+"call.mute.remote.video" = "La caméra de %@ est éteinte";
+
+/* Status displayed when the other side is busy. */
+"call.status.busy" = "sur un autre appel";
 
 /* Status displayed when outgoing call starts */
 "call.status.calling" = "appel...";
@@ -154,8 +190,17 @@
 /* Status displayed while call is connecting */
 "call.status.connecting" = "connexion...";
 
+/* Status displayed when call fails. */
+"call.status.failed" = "appel échoué";
+
+/* Status displayed when call is on hold. */
+"call.status.held" = "en attente";
+
 /* Status displayed when incoming call starts */
 "call.status.incoming" = "appel entrant";
+
+/* Status displayed when the other side mutes the audio. */
+"call.status.muted" = "appel muet";
 
 /* Status displayed when reconnecting during call */
 "call.status.reconnecting" = "reconnexion...";
@@ -190,6 +235,9 @@
 /* No comment provided by engineer. */
 "camera.init.error.8" = "Impossible d'enregistrer des vidéos";
 
+/* No comment provided by engineer. */
+"camera.init.error.9" = "Impossible d'enregistrer l'audio";
+
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Erreur d'initialisation";
 
@@ -201,6 +249,15 @@
 
 /* Label for creating a new group */
 "chat.create.new.group" = "Créer un nouveau groupe";
+
+/* Button to retract a chat message for everyone */
+"chat.delete.everyone" = "Supprimer pour tout le monde";
+
+/* Button to locally delete a chat message */
+"chat.delete.me" = "Supprimer pour moi";
+
+/* Title of deletion menu */
+"chat.delete.title" = "Supprimer le message sélectionné ?";
 
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
 "chat.encryption.label" = "Les conversations sont cryptées de bout en bout et HalloApp ne peut pas y avoir accès. Appuye pour en savoir plus.";
@@ -274,11 +331,17 @@
 /* Message text shown in a message that have audio media but no text */
 "chat.message.audio" = "Note vocale";
 
+/* Message text shown for quoted audio posts */
+"chat.message.audiopost" = "Message audio";
+
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "Ce message a été supprimé.";
 
 /* Message text shown in a message that have photo media but no text */
 "chat.message.photo" = "Photo";
+
+/* Text shown when content input text field is empty for chat screens. */
+"chat.message.placeholder" = "Nouveau message";
 
 /* Text shown in place of a received message we are not able to process yet. */
 "chat.message.unsupported" = "Ta version de HalloApp ne prend pas en charge ce type de message.";
@@ -340,6 +403,12 @@
 /* Text displayed in gray inside of the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Ajouter un commentaire";
 
+/* Header that appears above all the unread comments in the comments view when there are more than one unread message */
+"comment.unread.messages.header.plural" = "%@ commentaires non lus";
+
+/* Header that appears above one single unread message in the comments view. */
+"comment.unread.messages.header.single" = "%@ commentaire non lu";
+
 /* Text displayed in place of a comment that is not supported in the current app version. */
 "comment.unsupported" = "Ta version de HalloApp ne prend pas en charge ce type de commentaire.";
 
@@ -364,6 +433,9 @@
 /* Title for audio post composer */
 "composer.audio.title" = "Nouvelle publication audio";
 
+/* Title on edit button */
+"composer.button.edit" = "Modifier";
+
 /* Title warning that a voice recording will be deleted */
 "composer.delete.recording.title" = "Effacer l'enregistrement vocal ?";
 
@@ -387,6 +459,9 @@
 
 /* Composer New Message title. */
 "composer.message.title" = "Nouveau message";
+
+/* Composer New Moment Post title. */
+"composer.moment.post.title" = "Nouveau moment";
 
 /* Placeholder text for media caption field in post composer. */
 "composer.placeholder.media.description" = "Rédiger une description";
@@ -442,8 +517,26 @@
 /* Title for generic delete button. */
 "Delete" = "Supprimer";
 
+/* link, tapping on which launched the flow to edit blocked contacts */
+"edit.blocked" = "Modifier";
+
+/* link, tapping on which launched the flow to edit favorites */
+"edit.favorites" = "Modifier les favoris";
+
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Pour vous connecter, vous devez échanger les numéros de téléphone";
+
+/* Description of an externally shared post containing an audio post */
+"externalShare.og.description.audio" = "Message audio";
+
+/* Description of an externally shared post containing photos/videos */
+"externalShare.og.description.media" = "Publication de médias";
+
+/* Description of an externally shared post containing just text */
+"externalShare.og.description.text" = "Message texte";
+
+/* Title for posts that are externally shared, 'John Smith's HalloApp Post' */
+"externalShare.og.title3" = "Le message HalloApp de %@";
 
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Appareil photo";
@@ -460,11 +553,26 @@
 /* Label for floating compose post menu on Group screen. */
 "fab.post.button" = "Publication";
 
+/* Indicates that an item has failed to be sent. */
+"failed.to.send" = "L'envoi a échoué";
+
 /* Text shown in place of a received post we are not able to decrypt yet. */
 "feed.comment.waiting" = "Commentaire en attente. Cela peut prendre un petit moment.";
 
 /* Shown while content is being retracted from feed */
 "feed.deleting" = "Suppression en cours...";
+
+/* Text for group feed notification displayed in Activity Center. */
+"feed.group.notification.other.comment.no.text" = "<$author$> a commenté";
+
+/* Text for group feed notification displayed in Activity Center. */
+"feed.group.notification.other.comment.w.text" = "<$author$> a commenté : <$text$>";
+
+/* Text for home feed notification displayed in Activity Center. */
+"feed.home.notification.other.comment.no.text" = "<$author$> a commenté";
+
+/* Text for home feed notification displayed in Activity Center. */
+"feed.home.notification.other.comment.w.text" = "<$author$> a commenté : <$text$>";
 
 /* Text shown in indicator when new posts come in while user is scrolled down */
 "feed.new.posts.indicator" = "Nouvelles publications";
@@ -535,6 +643,12 @@
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.all" = "Mes contacts";
 
+/* Header for the list of all contacts on HallAapp. */
+"feed.privacy.list.all.details" = "Mes contacts HalloApp";
+
+/* Button to dismiss edit favorites modal */
+"feed.privacy.list.dismiss.edit.favorites" = "Pas maintenant";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.except" = "Mes contacts à l'exception de...";
 
@@ -543,6 +657,27 @@
 
 /* Title for the list when selecting contacts to not share with. */
 "feed.privacy.list.except.title" = "Masquer les publications pour...";
+
+/* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
+"feed.privacy.list.notOwn.only.description" = "Seules les personnes figurant dans la liste des favoris de %@ peuvent voir ce message.";
+
+/* Settings > Privacy > Posts > Favorites privacy setting. */
+"feed.privacy.list.only" = "Favoris";
+
+/* Header for the favorites list when editing contacts to share with. */
+"feed.privacy.list.only.details" = "Qui verra ce message";
+
+/* Title of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.only.title" = "Favoris";
+
+/* Description of the alert shown to user indicating their post is only shown to their favorites audience */
+"feed.privacy.list.own.only.description" = "Seules les personnes figurant dans votre liste de favoris peuvent voir ce message.";
+
+/* Button to edit favorites */
+"feed.privacy.list.set.favorites" = "Définir les favoris";
+
+/* Description of the new Favorites functionality. */
+"feed.privacy.list.set.favorites.description" = "Vous pouvez désormais créer une liste de vos contacts préférés et partager vos publications HalloApp avec eux.";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Mes contacts";
@@ -564,6 +699,12 @@
 
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
 "feed.welcome.post.title" = "Bienvenue à HalloApp, un espace pour les vraies relations ✨";
+
+/* Text for 'more' cell prompting users to open the invite screen */
+"feedInviteCarousel.searchPrompt" = "Rechercher d'autres amis et membres de la famille";
+
+/* Title for section of contacts to invite in feed */
+"feedInviteCarousel.title" = "HalloApp est amusant avec les amis et la famille";
 
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Commenter";
@@ -658,6 +799,9 @@
 /* Text shown when link is copied */
 "group.invite.link.copied" = "Copié dans le presse-papiers";
 
+/* Text to describe what the group invite link is */
+"group.invite.link.description" = "Toute personne disposant de HalloApp peut suivre ce lien pour rejoindre ce groupe. Cependant, ils ne recevront pas automatiquement le contenu posté avant de rejoindre le groupe.";
+
 /* Text label above the group link section in group invite screen */
 "group.invite.link.label" = "LIEN DU GROUPE";
 
@@ -681,6 +825,12 @@
 
 /* Title of group invite screen */
 "group.invite.title" = "Invitation de groupe";
+
+/* Title of invite sheet */
+"group.invitesheet.title" = "Partagez ce lien avec vos amis et votre famille et ils rejoindront automatiquement le groupe HalloApp.";
+
+/* Section header describing options to share link */
+"group.invitesheet.use.link.via" = "Partagez le lien en utilisant...";
 
 /* Label shown above group members list */
 "group.members.label" = "Membres";
@@ -781,14 +931,38 @@
 /* Text of invitation to join HalloApp. */
 "invite.text" = "Rejoignez-moi sur HalloApp – un moyen simple, confidentiel et sécurisé vous permettant de rester en contact avec vos amis et votre famille. Téléchargez sur https://halloapp.com/dl";
 
+/* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
+"invite.text.specific" = "Bonjour %1$@, j'ai une invitation pour que vous me rejoigniez sur HalloApp, un réseau de relations réelles pour les personnes les plus proches de moi. Utilisez %2$@ pour vous inscrire. Obtenez-le sur https://halloapp.com/dl";
+
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.1" = "Bonjour %@, je suis sur HalloApp. Téléchargez-la pour me rejoindre https://halloapp.com/install";
+
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.2" = "Bonjour %@, restons en contact sur HalloApp. Téléchargez-la sur https://halloapp.com/kit (HalloApp est une nouvelle application de réseaux sociaux privée pour les amis proches et la famille, sans publicité ni algorithmes).";
+
+/* Version of an invitation to join HalloApp. */
+"invite.text.specific.3" = "Je vous invite à installer HalloApp. Téléchargez-la gratuitement ici : https://halloapp.com/free";
+
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.4" = "Bonjour %@ ! Rejoignez-moi sur HalloApp, et partagez de vrais moments avec de vrais amis. Découvrez-le : https://halloapp.com/new";
+
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Inviter des amis";
 
 /* Title of cell at the top of the invite screen */
 "invite.via.link" = "Inviter via un lien";
 
+/* Contacts including this in their name are excluded from the invite carousel */
+"invitemanager.spam" = "spam";
+
+/* Text shown when inviting to a group using a QR code */
+"join.group.using.qr.code" = "Rejoignez mon groupe sur HalloApp !";
+
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Recherche";
+
+/* Text with hyperlink to halloapp's faq on encryption. */
+"learn.more" = "En savoir plus.";
 
 /* Link text to open invite flow */
 "link.invite.friend" = "Inviter un ami";
@@ -810,6 +984,9 @@
 
 /* Button title. Refers to resetting photo / video to original version. */
 "media.button.reset" = "Réinitialiser";
+
+/* Button title. Refers to undoing an edit of a photo. */
+"media.button.undo" = "Annuler";
 
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.camera.access.request" = "HalloApp n'a pas accès à votre appareil photo. Pour autoriser l'accès, appuyez sur Paramètres et activez l'appareil photo";
@@ -847,8 +1024,14 @@
 /* Label indicating that media was successfully saved to the camera roll */
 "media.save.saved" = "Enregistré dans le rouleau de l'appareil photo";
 
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.annotate" = "Annotez";
+
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Fermer";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.draw" = "Dessiner";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.flip" = "Retourner la photo";
@@ -868,11 +1051,32 @@
 /* Message action. Verb. */
 "message.reply" = "Répondre";
 
+/* Text on loading screen while migrating data */
+"migration.inProgress" = "Optimisation des données...";
+
+/* For indicating that there was an error while uploading the post. */
+"moment.uploading.failure" = "Erreur";
+
+/* For indicating that a post is uploading. */
+"moment.uploading.progress" = "Téléchargement...";
+
+/* For indicating that a post has been successfully uploaded and shared. */
+"moment.uploading.success" = "Partagé !";
+
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Envoyer un message";
 
 /* One of the contact actions in My Post screen. */
 "mypost.action.view.profile" = "Consulter le profil";
+
+/* Message displayed to say when posts will disappear for posts shared with contacts. */
+"mypost.contacts.disappear.time.label" = "Votre message disparaîtra après 30 jours. Vos contacts qui rejoignent HalloApp peuvent voir vos messages non expirés.";
+
+/* Generic message displayed to say when posts will disappear. */
+"mypost.disappear.time.label" = "Votre message disparaîtra après 30 jours.";
+
+/* Message displayed to say when posts will disappear for posts shared with favorites. */
+"mypost.favorites.disappear.time.label" = "Votre message a été partagé avec vos favoris et disparaîtra après 30 jours.";
 
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
 "mypost.hide.posts.confirmation" = "Êtes-vous sûr de vouloir masquer toutes vos futures publications de %@ ? Vous pouvez à tout moment modifier votre choix.";
@@ -891,6 +1095,9 @@
 
 /* Indicates how many invites are remaining */
 "n.invites.remaining" = "n.invitations.restantes";
+
+/* Summary when multiple commenters commented on the same post you commented on */
+"n.others.replied" = "n.others.replied";
 
 /* Displayed in place of deleted feed posts. */
 "n.posts.deleted" = "%@ messages supprimés";
@@ -915,6 +1122,9 @@
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ vient d'accepter votre invitation à rejoindre HalloApp 🎉";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment" = "Nouveau moment";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
@@ -943,6 +1153,21 @@
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 vidéo";
 
+/* Missed video call notification text to be shown to the user. */
+"notification.videocall.missed" = "📹 Appel vidéo manqué";
+
+/* Missed voice call notification text to be shown to the user. */
+"notification.voicecall.missed" = "☎️ Appel vocal manqué";
+
+/* New post notification text when post is a voice note. */
+"notification.voicecomment" = "🎤 Commentaire audio";
+
+/* New post notification text when post is a voice note. */
+"notification.voicenote" = "🎤 Note audio";
+
+/* New post notification text when post is a voice note. */
+"notification.voicepost" = "🎤 Message audio";
+
 /* Text for new user popup pointing at activity center icon */
 "nux.activity.center.icon" = "Hallo !";
 
@@ -963,6 +1188,12 @@
 
 /* Text for new user popup pointing at new post button */
 "nux.new.post.button" = "Appuyez pour partager une nouvelle avec vos amis et votre famille sur HalloApp";
+
+/* Title of the button that opens the camera. */
+"open.camera" = "Ouvrir la caméra";
+
+/* Text that indicates an open action. */
+"open.title" = "Ouvrir";
 
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "Veuillez autoriser l'accès depuis les Paramètres";
@@ -1024,17 +1255,29 @@
 /* Generic setting value telling how many contacts are blocked or muted. */
 "privacy.n.contacts" = "confidentialité.n.contacts";
 
+/* Error banner displayed when there is a failure syncing preivacy settings, displayed on the privacy view */
+"privacy.sync.failure" = "La synchronisation des paramètres de confidentialité a échoué. Veuillez réessayer plus tard.";
+
+/* Placeholder text for the text field for private replies. The argument is the first name of the contact. */
+"private.reply.placeholder" = "Réponse à %@";
+
 /* Title for the button allowing to delete current profile photo. */
 "profile.delete.photo" = "Supprimer la photo";
 
 /* A label for the button which leads to the page showing groups in common */
 "profile.groups.in.common" = "Groupes en commun";
 
+/* This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun. */
+"profile.header.call.user" = "voix";
+
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
 "profile.header.message.user" = "message";
 
 /* Text for unblocking user under profile header */
 "profile.header.unblock.user" = "Débloquer";
+
+/* This is a verb.  The text is clickable, under a contact name and starts a video call with that contact. It should not be translated as a noun. */
+"profile.header.video.call.user" = "vidéo";
 
 /* Item in Profile > Calls screen. */
 "profile.help.calls" = "Appels";
@@ -1083,6 +1326,9 @@
 
 /* Title for the screen allowing to edit profile name */
 "profile.title.your.name" = "Votre nom";
+
+/* Title for the button allowing the user to view their own profile photo. */
+"profile.view.photo" = "Voir la photo";
 
 /* Disclaimer text about receiving SMS verification code */
 "registration.code.disclaimer" = "Vous allez recevoir un code de vérification.\nDes tarifs de service de l'opérateur peuvent s'appliquer.";
@@ -1162,8 +1408,20 @@
 /* Message to show when safety number is succesfully verified */
 "safety.number.verified" = "Le numéro de sécurité de %@ a été vérifié avec succès !";
 
+/* Text shown to instruct using a QR code for joining a group */
+"scan.to.join.group.using.qr.code" = "Pour vous joindre, scannez ce code QR avec la caméra de votre téléphone.";
+
+/* Text placed on the blurred overlay of a secret post. */
+"secret.post.entice" = "%@ a partagé un moment";
+
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Tu dois sélectionner au moins un contact.";
+
+/* Indicates that an item is in the process of being sent. */
+"sending.title" = "Envoi";
+
+/* Indicates that an item has successfully been sent. */
+"sent.title" = "Envoyé";
 
 /* body of the marketing alert sent to users */
 "server.marketing.body" = "Invite tes amis à profiter de HalloApp !";
@@ -1264,6 +1522,9 @@
 /* Navigation bar title informing the user that this page lets them export their user data. */
 "settings.account.export.navbar" = "Exporter les données";
 
+/* Label for when the date at which the exported user data will be available is not determined. */
+"settings.account.export.not.found" = "La date à laquelle vos données seront disponibles n'a pas pu être déterminée.";
+
 /* Button to open the user data exported from HalloApp. */
 "settings.account.export.open.data" = "Ouvrir les données exportées";
 
@@ -1306,6 +1567,9 @@
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Rejoignez mon réseau de relations réelles sur HalloApp. Téléchargez-le gratuitement sur le site halloapp.com/dl.";
 
+/* Prompt for the user to share a moment. */
+"share.moment.prompt" = "Partager un moment";
+
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "appuyer pour revenir à l'appel";
 
@@ -1326,6 +1590,18 @@
 
 /* Link to expand truncated text. */
 "textlabel.more" = "...plus";
+
+/* Same as profile.header.call.user, but capitalized */
+"textview.context.menu.audio.call.user" = "Appel vocal";
+
+/* Same as profile.header.message.user, but capitalized */
+"textview.context.menu.message.user" = "Message";
+
+/* Same as profile.header.call.user, but capitalized */
+"textview.context.menu.video.call.user" = "Appel vidéo";
+
+/* Link to expand truncated text. */
+"textview.more" = "plus";
 
 /* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
 "thread.list.preview.already.user.default" = "%@ est sur HalloApp";
@@ -1357,7 +1633,7 @@
 /* Timestamp: `Yesterday` */
 "timestamp.yesterday" = "Hier";
 
-/* Screen title */
+/* Camera screen title */
 "title.camera" = "Appareil photo";
 
 /* Title for new message screen where user chooses who to message */
@@ -1372,6 +1648,9 @@
 /* Title for the picker screen. */
 "title.comments.picker" = "Nouveau commentaire";
 
+/* Button to edit favorites list */
+"title.edit.favorites" = "Modifier votre liste de favoris";
+
 /* Second tab in the main app interface. */
 "title.groups" = "Groupes";
 
@@ -1383,6 +1662,9 @@
 
 /* Row in Settings screen */
 "title.privacy" = "Vie privée";
+
+/* Title of screen where user can add members during group creation flow */
+"title.select.group.members.create.title" = "Ajouter des membres";
 
 /* Title of screen where user chooses members to add to either a new group or an existing one */
 "title.select.group.members.title" = "Ajouter de nouveaux membres";
@@ -1410,6 +1692,12 @@
 
 /* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
 "unknown.contact.not.in.contact.book" = "Cet expéditeur n'est pas dans tes contacts.";
+
+/* Text that indicates the unlock action for a moment. */
+"unlock.title" = "Déverrouiller";
+
+/* Alert appearing after clicking an external share link that failed to load */
+"urlrouter.externalShare.failed" = "Impossible de charger le message";
 
 /* Button to confirm blocking user via profile page */
 "user.block" = "Bloquer";
@@ -1449,4 +1737,34 @@
 
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "Supprimer cette publication ? Cette action est irréversible.";
+
+/* Displayed when a post fails to delete */
+"your.post.deletepost.error" = "Erreur de suppression du message";
+
+/* Success toast when external share link is copied */
+"your.post.externalshare.copylink.success" = "Copié dans le presse-papiers";
+
+/* Message on header of post menu explaining external share */
+"your.post.externalshare.description2" = "Toute personne possédant le lien peut voir votre message. Le lien expire avec votre article. L'aperçu du lien n'est pas chiffré.";
+
+/* Message that external share failed. */
+"your.post.externalshare.error" = "Échec du téléchargement du message pour le partage externe";
+
+/* Button to invalidate an external share link */
+"your.post.externalshare.revoke" = "Révoquer le lien";
+
+/* Message that revoking external share link failed. */
+"your.post.externalshare.revoke.error" = "La révocation du lien pour le partage externe a échoué.";
+
+/* Notification that a link was successfully revoked */
+"your.post.externalshare.revoke.success" = "Lien révoqué";
+
+/* Notification revoking an external share link is in progress */
+"your.post.externalshare.revoking" = "Révocation du lien...";
+
+/* Text introducing external share link, part of what is shared */
+"your.post.externalshare.title" = "Consultez mon message sur HalloApp :";
+
+/* Notification that post is uploading */
+"your.post.externalshare.uploading" = "Création du lien...";
 

@@ -241,8 +241,11 @@
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Initialisatiefout";
 
-/* Title of the button that allows camera permissions. */
-"camera.permission.allow.access" = "Toegang toestaan";
+/* Text shown on the camera screen when composing a new moment. */
+"camera.moment.subtitle" = "Momenten verdwijnen na 24 uur en kunnen slechts één keer worden bekeken";
+
+/* Text shown on the camera screen when composing a new moment to unlock someone else's moment. */
+"camera.moment.unlock.subtitle" = "Om het moment van %@ te zien, deel je je eigen moment";
 
 /* No comment provided by engineer. */
 "Cancel" = "Annuleren";
@@ -405,6 +408,12 @@
 
 /* Text displayed in gray inside of the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Voeg een reactie toe";
+
+/* Header that appears above all the unread Messages in the comments view when there are more than one unread message */
+"comment.unread.chat.messages.header.plural" = "%@ Ongelezen Berichten";
+
+/* Header that appears above one single unread Message in the chat view. */
+"comment.unread.chat.messages.header.single" = "%@ Ongelezen Bericht";
 
 /* Header that appears above all the unread comments in the comments view when there are more than one unread message */
 "comment.unread.messages.header.plural" = "%@ Ongelezen Reacties";
@@ -1066,6 +1075,9 @@
 /* For indicating that a post has been successfully uploaded and shared. */
 "moment.uploading.success" = "Gedeeld!";
 
+/* Message displayed to say when moments will disappear. */
+"mymoment.disappear.time.label" = "Je Moment is gedeeld met je contactenlijst. Momenten verdwijnen na 24 uur en kunnen slechts één keer worden bekeken.";
+
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Bericht Sturen";
 
@@ -1197,6 +1209,9 @@
 
 /* Text that indicates an open action. */
 "open.title" = "Openen";
+
+/* button to launch photo and video library */
+"photo.and.video.library" = "Foto- & Videobibliotheek";
 
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "Geef toegang via Instellingen";
@@ -1570,9 +1585,6 @@
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Sluit je aan bij mijn netwerk voor échte relaties op HalloApp. Download gratis op halloapp.com/dl";
 
-/* Alert that tells the user to allow camera access to share a moment. */
-"share.moment.camera.permission" = "Geef toegang tot de camera om een moment te delen";
-
 /* Prompt for the user to share a moment. */
 "share.moment.prompt" = "Deel een moment";
 
@@ -1639,8 +1651,11 @@
 /* Timestamp: `Yesterday` */
 "timestamp.yesterday" = "Gisteren";
 
-/* Screen title */
+/* Camera screen title */
 "title.camera" = "Camera";
+
+/* Camera screen title for a new moment */
+"title.camera.moment" = "Nieuw Moment";
 
 /* Title for new message screen where user chooses who to message */
 "title.chat.new.message" = "Nieuw Bericht";

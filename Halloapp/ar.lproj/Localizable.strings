@@ -241,8 +241,11 @@
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "خطأ في التشغيل";
 
-/* Title of the button that allows camera permissions. */
-"camera.permission.allow.access" = "السماح بالوصول";
+/* Text shown on the camera screen when composing a new moment. */
+"camera.moment.subtitle" = "تظهر اللحظات لمدة 24 ساعة ويمكن عرضها مرة واحدة فقط";
+
+/* Text shown on the camera screen when composing a new moment to unlock someone else's moment. */
+"camera.moment.unlock.subtitle" = "لرؤية لحظة %@، يجب مشاركة اللحظة الخاصة بك";
 
 /* No comment provided by engineer. */
 "Cancel" = "إلغاء";
@@ -405,6 +408,12 @@
 
 /* Text displayed in gray inside of the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "إضافة تعليق";
+
+/* Header that appears above all the unread Messages in the comments view when there are more than one unread message */
+"comment.unread.chat.messages.header.plural" = "%@ من الرسائل غير المقروءة";
+
+/* Header that appears above one single unread Message in the chat view. */
+"comment.unread.chat.messages.header.single" = "رسالة غير مقروءة %@";
 
 /* Header that appears above all the unread comments in the comments view when there are more than one unread message */
 "comment.unread.messages.header.plural" = "%@ من التعليقات غير المقروءة";
@@ -1066,6 +1075,9 @@
 /* For indicating that a post has been successfully uploaded and shared. */
 "moment.uploading.success" = "تمت المشاركة!";
 
+/* Message displayed to say when moments will disappear. */
+"mymoment.disappear.time.label" = "تمت مشاركة لحظاتك مع قائمة جهات اتصالك. تظهر اللحظات لمدة 24 ساعة ويمكن عرضها مرة واحدة فقط.";
+
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "رسالة";
 
@@ -1197,6 +1209,9 @@
 
 /* Text that indicates an open action. */
 "open.title" = "فتح";
+
+/* button to launch photo and video library */
+"photo.and.video.library" = "مكتبة الصور والفيديو";
 
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "يُرجى منح إذن الوصول من الإعدادات";
@@ -1570,9 +1585,6 @@
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "انضم إلى شبكة العلاقات الفعلية الخاصة بي على هالوآب. قم بتنزيل التطبيق مجانًا من halloapp.com/dl";
 
-/* Alert that tells the user to allow camera access to share a moment. */
-"share.moment.camera.permission" = "السماح بالوصول إلى الكاميرا لمشاركة إحدى اللحظات";
-
 /* Prompt for the user to share a moment. */
 "share.moment.prompt" = "مشاركة إحدى اللحظات";
 
@@ -1639,8 +1651,11 @@
 /* Timestamp: `Yesterday` */
 "timestamp.yesterday" = "الأمس";
 
-/* Screen title */
+/* Camera screen title */
 "title.camera" = "الكاميرا";
+
+/* Camera screen title for a new moment */
+"title.camera.moment" = "لحظة جديدة";
 
 /* Title for new message screen where user chooses who to message */
 "title.chat.new.message" = "رسالة جديدة";
@@ -1700,7 +1715,7 @@
 "unknown.contact.not.in.contact.book" = "هذا المُرسِل ليس ضمن قائمة جهات اتصالك.";
 
 /* Text that indicates the unlock action for a moment. */
-"unlock.title" = "رفع الحظر";
+"unlock.title" = "فتح";
 
 /* Alert appearing after clicking an external share link that failed to load */
 "urlrouter.externalShare.failed" = "تعذّر تحميل المنشور";

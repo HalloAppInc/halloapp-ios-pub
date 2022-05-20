@@ -241,9 +241,6 @@
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Erro de inicialização";
 
-/* Title of the button that allows camera permissions. */
-"camera.permission.allow.access" = "Permitir acesso";
-
 /* No comment provided by engineer. */
 "Cancel" = "Cancelar";
 
@@ -1552,9 +1549,6 @@
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Junte-se à minha rede de relacionamentos reais no HalloApp. Baixe gratuitamente em halloapp.com/dl";
 
-/* Alert that tells the user to allow camera access to share a moment. */
-"share.moment.camera.permission" = "Permitir acesso à câmera para compartilhar um momento";
-
 /* Prompt for the user to share a moment. */
 "share.moment.prompt" = "Compartilhe um momento";
 
@@ -1621,7 +1615,7 @@
 /* Timestamp: `Yesterday` */
 "timestamp.yesterday" = "Ontem";
 
-/* Screen title */
+/* Camera screen title */
 "title.camera" = "Câmera";
 
 /* Title for new message screen where user chooses who to message */

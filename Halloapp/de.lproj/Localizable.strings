@@ -241,8 +241,11 @@
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Initialisierungsfehler";
 
-/* Title of the button that allows camera permissions. */
-"camera.permission.allow.access" = "Zugriff erlauben";
+/* Text shown on the camera screen when composing a new moment. */
+"camera.moment.subtitle" = "Momente sind 24 Stunden sichtbar und können nur einmal angesehen werden";
+
+/* Text shown on the camera screen when composing a new moment to unlock someone else's moment. */
+"camera.moment.unlock.subtitle" = "Um %@'s Moment zu sehen, teile deinen eigenen";
 
 /* No comment provided by engineer. */
 "Cancel" = "Abbrechen";
@@ -1066,6 +1069,9 @@
 /* For indicating that a post has been successfully uploaded and shared. */
 "moment.uploading.success" = "Geteilt!";
 
+/* Message displayed to say when moments will disappear. */
+"mymoment.disappear.time.label" = "Dein Moment wurde mit deinen Kontakten geteilt. Momente sind 24 Stunden sichtbar und können nur einmal angesehen werden.";
+
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Nachricht senden";
 
@@ -1197,6 +1203,9 @@
 
 /* Text that indicates an open action. */
 "open.title" = "Öffnen";
+
+/* button to launch photo and video library */
+"photo.and.video.library" = "Foto- und Videothek";
 
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "Bitte über die Einstellungen den Zugriff zulassen";
@@ -1570,9 +1579,6 @@
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Mach mit bei meinem HalloApp-Netzwerk für echte Beziehungen! Kostenlos herunterladen auf halloapp.com/dl";
 
-/* Alert that tells the user to allow camera access to share a moment. */
-"share.moment.camera.permission" = "Erlaube den Kamerazugriff, um einen Moment zu teilen";
-
 /* Prompt for the user to share a moment. */
 "share.moment.prompt" = "Teile einen Moment";
 
@@ -1639,8 +1645,11 @@
 /* Timestamp: `Yesterday` */
 "timestamp.yesterday" = "Gestern";
 
-/* Screen title */
+/* Camera screen title */
 "title.camera" = "Kamera";
+
+/* Camera screen title for a new moment */
+"title.camera.moment" = "Neuer Moment";
 
 /* Title for new message screen where user chooses who to message */
 "title.chat.new.message" = "Neue Nachricht";

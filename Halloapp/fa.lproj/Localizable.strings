@@ -241,9 +241,6 @@
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "خطا در شروع";
 
-/* Title of the button that allows camera permissions. */
-"camera.permission.allow.access" = "اجازه دسترسی";
-
 /* No comment provided by engineer. */
 "Cancel" = "لغو";
 
@@ -1198,6 +1195,9 @@
 /* Text that indicates an open action. */
 "open.title" = "باز کردن";
 
+/* button to launch photo and video library */
+"photo.and.video.library" = "آلبوم عکس و ویدیو";
+
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "لطفاً از تنظیمات اجازه دسترسی بدهید";
 
@@ -1570,9 +1570,6 @@
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "به شبکه ارتباطی من در هالواپ بپیوندید. برنامه را رایگان از halloapp.com/dl دانلود کنید";
 
-/* Alert that tells the user to allow camera access to share a moment. */
-"share.moment.camera.permission" = "اجازه دسترسی برای به اشتراک گذاشتن لحظه";
-
 /* Prompt for the user to share a moment. */
 "share.moment.prompt" = "به اشتراک گذاشتن لحظه";
 
@@ -1639,7 +1636,7 @@
 /* Timestamp: `Yesterday` */
 "timestamp.yesterday" = "دیروز";
 
-/* Screen title */
+/* Camera screen title */
 "title.camera" = "دوربین";
 
 /* Title for new message screen where user chooses who to message */
