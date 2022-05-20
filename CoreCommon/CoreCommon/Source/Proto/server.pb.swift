@@ -1214,7 +1214,7 @@ public struct Server_GroupStanza {
     set {_uniqueStorage()._description_p = newValue}
   }
 
-  /// HistoryResend to be sent or received only on adding-members iq.
+  /// HistoryResend to be sent or received only on adding-members iq or share-history iq.
   public var historyResend: Server_HistoryResend {
     get {return _storage._historyResend ?? Server_HistoryResend()}
     set {_uniqueStorage()._historyResend = newValue}
@@ -1244,6 +1244,7 @@ public struct Server_GroupStanza {
     case setBackground // = 13
     case getMemberIdentityKeys // = 14
     case changeDescription // = 15
+    case shareHistory // = 16
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -1268,6 +1269,7 @@ public struct Server_GroupStanza {
       case 13: self = .setBackground
       case 14: self = .getMemberIdentityKeys
       case 15: self = .changeDescription
+      case 16: self = .shareHistory
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -1290,6 +1292,7 @@ public struct Server_GroupStanza {
       case .setBackground: return 13
       case .getMemberIdentityKeys: return 14
       case .changeDescription: return 15
+      case .shareHistory: return 16
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -1322,6 +1325,7 @@ extension Server_GroupStanza.Action: CaseIterable {
     .setBackground,
     .getMemberIdentityKeys,
     .changeDescription,
+    .shareHistory,
   ]
 }
 
@@ -8619,6 +8623,7 @@ extension Server_GroupStanza.Action: SwiftProtobuf._ProtoNameProviding {
     13: .same(proto: "SET_BACKGROUND"),
     14: .same(proto: "GET_MEMBER_IDENTITY_KEYS"),
     15: .same(proto: "CHANGE_DESCRIPTION"),
+    16: .same(proto: "SHARE_HISTORY"),
   ]
 }
 
