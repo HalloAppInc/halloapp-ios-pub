@@ -19,6 +19,9 @@
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Devam et";
 
+/* Title for generic copy URL button */
+"button.copy.link" = "İlişimi kopyala";
+
 /* Title for generic Create button */
 "button.create" = "Oluştur";
 
@@ -91,11 +94,20 @@
 /* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
 "feed.privacy.list.notOwn.only.description" = "Yalnızca %@ kişisinin Yakınlar listesindekiler bu gönderiyi görebilir.";
 
+/* Header for the favorites list when editing contacts to share with. */
+"feed.privacy.list.only.details" = "Bu gönderiyi kim görecek";
+
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.only.title" = "Yakınlar";
 
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.own.only.description" = "Yalnızca Yakınlar listendekiler bu gönderiyi görebilir.";
+
+/* Button to edit favorites */
+"feed.privacy.list.set.favorites" = "Yakınlar listesini ayarla";
+
+/* Description of the new Favorites functionality. */
+"feed.privacy.list.set.favorites.description" = "Şimdi Yakınlar listeni oluşturabilir ve HalloApp gönderilerini listedekilerle paylaşabilirsin.";
 
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Ara";
@@ -112,8 +124,38 @@
 /* Button title. Refers to discarding photo/video edits in media composer. */
 "media.button.discard" = "Sil";
 
+/* Button title. Refers to resetting photo / video to original version. */
+"media.button.reset" = "Sıfırla";
+
+/* Button title. Refers to undoing an edit of a photo. */
+"media.button.undo" = "Geri al";
+
+/* Confirmation prompt in media composer. */
+"media.discard.confirmation" = "Düzenlemelerini iptal etmek istiyor musun?";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.annotate" = "Açıklama ekle";
+
+/* Accessibility label for X (Close) button in media editor. */
+"media.voiceover.button.close" = "Kapat";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.draw" = "Çiz";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.flip" = "Çevir";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.mute" = "Sessize al";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.rotate" = "Döndür";
+
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "HalloApp'teki gerçek ilişkiler ağıma katıl. halloapp.com/dl adresinden ücretsiz indir.";
+
+/* Title on edit button */
+"share.composer.button.edit" = "Düzenle";
 
 /* Label above the list with whom you share */
 "share.composer.destinations.label" = "...ile paylaş";

@@ -19,6 +19,9 @@
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Devam et";
 
+/* Title for generic copy URL button */
+"button.copy.link" = "İlişimi kopyala";
+
 /* Title for generic Create button */
 "button.create" = "Oluştur";
 
@@ -91,6 +94,9 @@
 /* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
 "feed.privacy.list.notOwn.only.description" = "Yalnızca %@ kişisinin Yakınlar listesindekiler bu gönderiyi görebilir.";
 
+/* Header for the favorites list when editing contacts to share with. */
+"feed.privacy.list.only.details" = "Bu gönderiyi kim görecek";
+
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.only.title" = "Yakınlar";
 
@@ -129,6 +135,9 @@
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@, HalloApp davetini kabul etti 🎉";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment" = "Yeni anlık";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";

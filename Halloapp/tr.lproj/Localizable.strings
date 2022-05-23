@@ -37,6 +37,9 @@
 /* Message shown when a user first joins */
 "activity.center.welcome.item" = "HalloApp'e hoş geldin!";
 
+/* First tab in the main app interface. */
+"activityCenter.promo.favorites" = "Yakınlar listesi özelliğini keşfet!";
+
 /* Text label for action button to add the contact to the address book */
 "add.to.contact.book" = "Kişilerime ekle";
 
@@ -78,6 +81,9 @@
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Devam et";
+
+/* Title for generic copy URL button */
+"button.copy.link" = "İlişimi kopyala";
 
 /* Title for generic Create button */
 "button.create" = "Oluştur";
@@ -229,8 +235,17 @@
 /* No comment provided by engineer. */
 "camera.init.error.8" = "Video çekilemiyor";
 
+/* No comment provided by engineer. */
+"camera.init.error.9" = "Ses kaydedilemiyor";
+
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Başlatma hatası";
+
+/* Text shown on the camera screen when composing a new moment. */
+"camera.moment.subtitle" = "Anlıklar yalnızca 1 kez görüntülenebilir ve 24 saat içinde kaybolur";
+
+/* Text shown on the camera screen when composing a new moment to unlock someone else's moment. */
+"camera.moment.unlock.subtitle" = "%@ kişisinin anlığını görebilmek için kendinkini paylaş";
 
 /* No comment provided by engineer. */
 "Cancel" = "İptal et";
@@ -332,7 +347,7 @@
 "chat.message.photo" = "Fotoğraf";
 
 /* Text shown when content input text field is empty for chat screens. */
-"chat.message.placeholder" = "Bir mesaj yaz";
+"chat.message.placeholder" = "Yeni mesaj";
 
 /* Text shown in place of a received message we are not able to process yet. */
 "chat.message.unsupported" = "HalloApp sürümün, bu tür mesajları desteklemiyor.";
@@ -394,6 +409,12 @@
 /* Text displayed in gray inside of the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Yorum ekle";
 
+/* Header that appears above all the unread Messages in the comments view when there are more than one unread message */
+"comment.unread.chat.messages.header.plural" = "Okunmamış %@ mesaj";
+
+/* Header that appears above one single unread Message in the chat view. */
+"comment.unread.chat.messages.header.single" = "Okunmamış %@ mesaj";
+
 /* Header that appears above all the unread comments in the comments view when there are more than one unread message */
 "comment.unread.messages.header.plural" = "%@ okunmamış mesaj";
 
@@ -451,6 +472,9 @@
 /* Composer New Message title. */
 "composer.message.title" = "Yeni mesaj";
 
+/* Composer New Moment Post title. */
+"composer.moment.post.title" = "Yeni anlık";
+
 /* Placeholder text for media caption field in post composer. */
 "composer.placeholder.media.description" = "Bir açıklama yaz";
 
@@ -505,6 +529,9 @@
 /* Title for generic delete button. */
 "Delete" = "Sil";
 
+/* link, tapping on which launched the flow to edit blocked contacts */
+"edit.blocked" = "Düzenle";
+
 /* link, tapping on which launched the flow to edit favorites */
 "edit.favorites" = "Yakınları düzenle";
 
@@ -538,11 +565,26 @@
 /* Label for floating compose post menu on Group screen. */
 "fab.post.button" = "Gönderi";
 
+/* Indicates that an item has failed to be sent. */
+"failed.to.send" = "Gönderilemedi";
+
 /* Text shown in place of a received post we are not able to decrypt yet. */
 "feed.comment.waiting" = "Yorum bekleniyor. Bu biraz zaman alabilir.";
 
 /* Shown while content is being retracted from feed */
 "feed.deleting" = "Siliniyor...";
+
+/* Text for group feed notification displayed in Activity Center. */
+"feed.group.notification.other.comment.no.text" = "<$author$> yorum yaptı";
+
+/* Text for group feed notification displayed in Activity Center. */
+"feed.group.notification.other.comment.w.text" = "<$author$> yorum yaptı: <$text$>";
+
+/* Text for home feed notification displayed in Activity Center. */
+"feed.home.notification.other.comment.no.text" = "<$author$> yorum yaptı";
+
+/* Text for home feed notification displayed in Activity Center. */
+"feed.home.notification.other.comment.w.text" = "<$author$> yorum yaptı: <$text$>";
 
 /* Text shown in indicator when new posts come in while user is scrolled down */
 "feed.new.posts.indicator" = "Yeni gönderiler";
@@ -770,7 +812,7 @@
 "group.invite.link.copied" = "Panoya kopyalandı";
 
 /* Text to describe what the group invite link is */
-"group.invite.link.description" = "HalloApp kullanan herkes gruba üye olmak için bu ilişimi kullanabilir.";
+"group.invite.link.description" = "HalloApp kullanan herkes gruba üye olmak için bu ilişimi kullanabilir. Ancak gruba katılmadan önceki içeriği göremezler.";
 
 /* Text label above the group link section in group invite screen */
 "group.invite.link.label" = "GRUP İLİŞİMİ";
@@ -904,6 +946,18 @@
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
 "invite.text.specific" = "Merhaba %1$@! Seni, sevdiklerimizle gerçek bağlantılar kurabildiğimiz bir uygulama olan HalloApp'e davet ediyorum. Kaydolmak için %2$@ numarasını kullan. halloapp.com/dl adresinden uygulamayı indir.";
 
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.1" = "Selam %@, ben HalloApp'teyim. Bana katılmak için https://halloapp.com/install adresinden uygulamayı indir. ";
+
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.2" = "Selam %@, HalloApp'te buluşalım! https://halloapp.com/kit adresinden indir. (HalloApp, ailen ve yakın arkadaşlarınla bağlantı kurabilmen için özel bir sosyal medya uygulamasıdır; reklam ve algoritma içermez).";
+
+/* Version of an invitation to join HalloApp. */
+"invite.text.specific.3" = "Seni HalloApp'e davet ediyorum. https://halloapp.com/free adresinden ücretsiz indir. ";
+
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.4" = "Selam %@! Gerçek dostlarla gerçek anlarımızı paylaştığımız HalloApp'te bana katıl. Hemen göz at: https://halloapp.com/new";
+
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Arkadaşını davet et";
 
@@ -1009,6 +1063,21 @@
 /* Message action. Verb. */
 "message.reply" = "Yanıtla";
 
+/* Text on loading screen while migrating data */
+"migration.inProgress" = "Veriler optimize ediliyor";
+
+/* For indicating that there was an error while uploading the post. */
+"moment.uploading.failure" = "Hata";
+
+/* For indicating that a post is uploading. */
+"moment.uploading.progress" = "Yükleniyor...";
+
+/* For indicating that a post has been successfully uploaded and shared. */
+"moment.uploading.success" = "Paylaşıldı!";
+
+/* Message displayed to say when moments will disappear. */
+"mymoment.disappear.time.label" = "Anlığın, kişilerinle paylaşıldı. Anlıklar yalnızca 1 kez görüntülenebilir ve 24 saat içinde kaybolur. ";
+
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Mesaj";
 
@@ -1065,6 +1134,9 @@
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@, HalloApp'e katılma davetini kabul etti 🎉";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment" = "Yeni anlık";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
@@ -1129,6 +1201,15 @@
 /* Text for new user popup pointing at new post button */
 "nux.new.post.button" = "HalloApp'te ailen ve arkadaşlarınla bir gönderi paylaşmak için dokun.";
 
+/* Title of the button that opens the camera. */
+"open.camera" = "Kamerayı aç";
+
+/* Text that indicates an open action. */
+"open.title" = "Aç";
+
+/* button to launch photo and video library */
+"photo.and.video.library" = "Fotoğraf & Video Galerisi";
+
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "Lütfen Ayarlar'dan erişim izni ver";
 
@@ -1192,6 +1273,9 @@
 /* Error banner displayed when there is a failure syncing preivacy settings, displayed on the privacy view */
 "privacy.sync.failure" = "Gizlilik ayarları senkronize edilemedi. Lütfen daha sonra tekrar dene.";
 
+/* Placeholder text for the text field for private replies. The argument is the first name of the contact. */
+"private.reply.placeholder" = "%@ kişisine cevap ver";
+
 /* Title for the button allowing to delete current profile photo. */
 "profile.delete.photo" = "Fotoğrafı sil";
 
@@ -1206,6 +1290,9 @@
 
 /* Text for unblocking user under profile header */
 "profile.header.unblock.user" = "Engeli kaldır";
+
+/* This is a verb.  The text is clickable, under a contact name and starts a video call with that contact. It should not be translated as a noun. */
+"profile.header.video.call.user" = "Video";
 
 /* Item in Profile > Calls screen. */
 "profile.help.calls" = "Aramalar";
@@ -1339,8 +1426,17 @@
 /* Text shown to instruct using a QR code for joining a group */
 "scan.to.join.group.using.qr.code" = "Katılmak için bu QR kodunu telefonunun kamerasıyla tara.";
 
+/* Text placed on the blurred overlay of a secret post. */
+"secret.post.entice" = "%@ anlık paylaştı";
+
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Lütfen en az bir kişi seç";
+
+/* Indicates that an item is in the process of being sent. */
+"sending.title" = "Gönderiliyor";
+
+/* Indicates that an item has successfully been sent. */
+"sent.title" = "Gönderildi";
 
 /* body of the marketing alert sent to users */
 "server.marketing.body" = "Arkadaşlarınızı HalloApp'in keyfini çıkarmaya davet edin!";
@@ -1486,6 +1582,9 @@
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "HalloApp'teki gerçek ilişki ağıma katıl. halloapp.com/dl adresinden ücretsiz indir.";
 
+/* Prompt for the user to share a moment. */
+"share.moment.prompt" = "Anlık paylaş";
+
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "Aramaya dönmek için dokun";
 
@@ -1552,6 +1651,9 @@
 /* Camera screen title */
 "title.camera" = "Kamera";
 
+/* Camera screen title for a new moment */
+"title.camera.moment" = "Yeni anlık";
+
 /* Title for new message screen where user chooses who to message */
 "title.chat.new.message" = "Yeni mesaj";
 
@@ -1608,6 +1710,9 @@
 
 /* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
 "unknown.contact.not.in.contact.book" = "Gönderici, kişi listende değil";
+
+/* Text that indicates the unlock action for a moment. */
+"unlock.title" = "Kilidi aç";
 
 /* Alert appearing after clicking an external share link that failed to load */
 "urlrouter.externalShare.failed" = "Gönderi yüklemesi başarısız";
