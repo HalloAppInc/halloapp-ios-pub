@@ -35,7 +35,6 @@ class ChatData: ObservableObject {
 
     let didChangeUnreadThreadCount = PassthroughSubject<Int, Never>()
     let didChangeUnreadThreadGroupsCount = PassthroughSubject<Int, Never>()
-    let didChangeUnreadCount = PassthroughSubject<Int, Never>()
     let didGetCurrentChatPresence = PassthroughSubject<(UserPresenceType, Date?), Never>()
     let didGetChatStateInfo = PassthroughSubject<Void, Never>()
     
@@ -79,13 +78,7 @@ class ChatData: ObservableObject {
             didChangeUnreadThreadGroupsCount.send(unreadThreadGroupsCount)
         }
     }
-    
-    private var unreadMessageCount: Int = 0 {
-        didSet {
-            didChangeUnreadCount.send(unreadMessageCount)
-        }
-    }
-    
+
     private let uploadQueue = DispatchQueue(label: "com.halloapp.chat.upload")
     
     private let downloadQueue = DispatchQueue(label: "com.halloapp.chat.download")
@@ -314,7 +307,6 @@ class ChatData: ObservableObject {
                             if isMissedCall {
                                 if !self.isCurrentlyChatting(with: peerUserID) {
                                     $0.unreadCount += 1
-                                    self.unreadMessageCount += 1
                                     self.updateUnreadChatsThreadCount()
                                 }
                             }
@@ -1480,7 +1472,6 @@ class ChatData: ObservableObject {
                     mergedMessages.append(contentsOf: sharedMessages)
                     let mergedMessageIds = mergedMessages.map { $0.id }
 
-                    unreadMessageCount += mergedMessages.count
                     updateUnreadChatsThreadCount()
                     mergedMessages.forEach { chatMsg in
                         didGetAChatMsg.send(chatMsg.fromUserId)
@@ -1762,7 +1753,6 @@ class ChatData: ObservableObject {
         save(managedObjectContext)
 
         mergedMessages.forEach({ (sharedMsg, chatMsg) in
-            unreadMessageCount += 1
             updateUnreadChatsThreadCount()
             if let senderClientVersion = sharedMsg.senderClientVersion, let chatTimestamp = chatMsg.timestamp, let serverMsgPb = sharedMsg.serverMsgPb {
                 do {
@@ -1994,7 +1984,7 @@ extension ChatData {
     func updateUnreadThreadGroupsCount() {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
-            let threads = self.chatThreads(predicate: NSPredicate(format: "groupID != nil && unreadCount > 0"), in: managedObjectContext)
+            let threads = self.commonThreads(predicate: NSPredicate(format: "groupID != nil && unreadCount > 0"), in: managedObjectContext)
             self.unreadThreadGroupsCount = Int(threads.count)
         }
     }
@@ -2002,22 +1992,14 @@ extension ChatData {
     func updateUnreadChatsThreadCount() {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
-            let threads = self.chatThreads(predicate: NSPredicate(format: "groupID = nil && unreadCount > 0"), in: managedObjectContext)
+            let threads = self.commonThreads(predicate: NSPredicate(format: "groupID = nil && unreadCount > 0"), in: managedObjectContext)
             self.unreadThreadCount = Int(threads.count)
-        }
-    }
-
-    func updateUnreadMessageCount() {
-        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
-            guard let self = self else { return }
-            let threads = self.chatThreads(predicate: NSPredicate(format: "unreadCount > 0"), in: managedObjectContext)
-            self.unreadMessageCount = Int(threads.reduce(0) { $0 + $1.unreadCount })
         }
     }
 
     //MARK: Thread Core Data Fetching
     
-    private func chatThreads(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatThread] {
+    private func commonThreads(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatThread] {
         let managedObjectContext = managedObjectContext ?? viewContext
         let fetchRequest: NSFetchRequest<ChatThread> = ChatThread.fetchRequest()
         fetchRequest.predicate = predicate
@@ -2035,30 +2017,30 @@ extension ChatData {
     }
 
     func emptyOneToOneChatThreads(in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatThread] {
-        return chatThreads(predicate: NSPredicate(format: "groupID == nil AND lastContentID == nil"), in: managedObjectContext)
+        return commonThreads(predicate: NSPredicate(format: "groupID == nil AND lastContentID == nil"), in: managedObjectContext)
     }
 
     func groupThreadsWithExpiredPosts(expiredPostIDs: [FeedPostID], in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatThread] {
-        return chatThreads(predicate: NSPredicate(format: "groupID != nil && lastContentID IN %@", expiredPostIDs), in: managedObjectContext)
+        return commonThreads(predicate: NSPredicate(format: "groupID != nil && lastContentID IN %@", expiredPostIDs), in: managedObjectContext)
     }
 
     func groupThreads(in managedObjectContext: NSManagedObjectContext) -> [ChatThread] {
-        return chatThreads(predicate: NSPredicate(format: "groupID != nil"), in: managedObjectContext)
+        return commonThreads(predicate: NSPredicate(format: "groupID != nil"), in: managedObjectContext)
     }
 
     func chatThread(type: ChatType, id: String, in managedObjectContext: NSManagedObjectContext? = nil) -> ChatThread? {
         if type == .group {
-            return chatThreads(predicate: NSPredicate(format: "groupID == %@", id), in: managedObjectContext).first
+            return commonThreads(predicate: NSPredicate(format: "groupID == %@", id), in: managedObjectContext).first
         } else {
-            return chatThreads(predicate: NSPredicate(format: "userID == %@", id), in: managedObjectContext).first
+            return commonThreads(predicate: NSPredicate(format: "userID == %@", id), in: managedObjectContext).first
         }
     }
     
     func chatThreadStatus(type: ChatType, id: String, messageId: String, in managedObjectContext: NSManagedObjectContext? = nil) -> ChatThread? {
         if type == .group {
-            return chatThreads(predicate: NSPredicate(format: "groupID == %@ AND lastContentID == %@", id, messageId), in: managedObjectContext).first
+            return commonThreads(predicate: NSPredicate(format: "groupID == %@ AND lastContentID == %@", id, messageId), in: managedObjectContext).first
         } else {
-            return chatThreads(predicate: NSPredicate(format: "userID == %@ AND lastContentID == %@", id, messageId), in: managedObjectContext).first
+            return commonThreads(predicate: NSPredicate(format: "userID == %@ AND lastContentID == %@", id, messageId), in: managedObjectContext).first
         }
     }
     
@@ -3577,7 +3559,6 @@ extension ChatData {
                 chatMessage.incomingStatus = .haveSeen
             }
         } else {
-            self.unreadMessageCount += 1
             self.updateUnreadChatsThreadCount()
         }
 
