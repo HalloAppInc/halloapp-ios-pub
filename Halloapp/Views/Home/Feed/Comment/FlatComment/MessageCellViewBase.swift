@@ -23,7 +23,8 @@ class MessageCellViewBase: UICollectionViewCell {
     public var isOwnMessage: Bool = false
     public var isPreviousMessageOwnMessage: Bool = false
     public var userNameColorAssignment: UIColor = UIColor.primaryBlue
-    weak var delegate: MessageViewDelegate?
+    weak var commentDelegate: MessageViewCommentDelegate?
+    weak var chatDelegate: MessageViewChatDelegate?
     public var isReplyTriggered = false // track if swiping gesture on cell is enough to trigger reply
     private var highlightAnimator: UIViewPropertyAnimator?
     private var pendingMessageIconTimer: Timer? = nil
@@ -285,6 +286,9 @@ class MessageCellViewBase: UICollectionViewCell {
         chatMessage = message
         isOwnMessage = message.fromUserId == MainAppContext.shared.userData.userId
         timeLabel.text = message.timestamp?.chatTimestamp()
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(showMessageOptions(_:)))
+            self.isUserInteractionEnabled = true
+            self.addGestureRecognizer(longPressGesture)
         if let chatMessage = chatMessage, chatMessage.fromUserId == MainAppContext.shared.userData.userId {
              // outgoing message cell, track outgoing status
              outgoingMessageStatusCancellable = chatMessage.publisher(for: \.outgoingStatusValue).sink { [weak self] outgoingStatusValue in
@@ -440,10 +444,14 @@ extension MessageCellViewBase: UIGestureRecognizerDelegate {
 
                 self.replyArrow.frame = CGRect(x: replyArrowOffset, y: self.replyArrow.frame.origin.y, width: self.replyArrow.frame.width, height: self.replyArrow.frame.height)
             } completion: { (finished) in
-                guard let feedPostCommentID = self.feedPostComment?.id else { return }
 
                 if self.isReplyTriggered {
-                    self.delegate?.messageView(self, replyTo: feedPostCommentID)
+                    if let chatMessage = self.chatMessage {
+                        self.chatDelegate?.messageView(self, replyToChat: chatMessage)
+                    } else {
+                        guard let feedPostCommentID = self.feedPostComment?.id else { return }
+                        self.commentDelegate?.messageView(self, replyTo: feedPostCommentID)
+                    }
                     self.isReplyTriggered = false
                 }
 
@@ -456,13 +464,20 @@ extension MessageCellViewBase: UIGestureRecognizerDelegate {
 
     @objc public func showUserFeedForPostAuthor() {
         if let feedPostComment = feedPostComment {
-            delegate?.messageView(self, didTapUserId: feedPostComment.userId)
+            commentDelegate?.messageView(self, didTapUserId: feedPostComment.userId)
         }
     }
 
     @objc public func jumpToQuotedMsg(_ sender: UIView) {
         if let parentCommentId = feedPostComment?.parent?.id {
-            delegate?.messageView(self, jumpTo: parentCommentId)
+            commentDelegate?.messageView(self, jumpTo: parentCommentId)
         }
+    }
+
+    @objc public func showMessageOptions(_ recognizer: UILongPressGestureRecognizer) {
+        guard let chatMessage = chatMessage else { return }
+
+        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+        chatDelegate?.messageView(self, didLongPressOn: chatMessage)
     }
 }
