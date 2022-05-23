@@ -1994,7 +1994,7 @@ extension ChatData {
     func updateUnreadThreadGroupsCount() {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
-            let threads = self.chatThreads(predicate: NSPredicate(format: "unreadCount > 0"), in: managedObjectContext)
+            let threads = self.chatThreads(predicate: NSPredicate(format: "groupID != nil && unreadCount > 0"), in: managedObjectContext)
             self.unreadThreadGroupsCount = Int(threads.count)
         }
     }
