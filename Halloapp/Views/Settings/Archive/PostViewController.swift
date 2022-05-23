@@ -254,7 +254,7 @@ extension PostViewController {
         }
 
         postView.showGroupFeedAction = { [weak self] groupID in
-            guard let self = self, MainAppContext.shared.chatData.chatGroup(groupId: groupID) != nil else {
+            guard let self = self, MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext) != nil else {
                 return
             }
             self.navigationController?.pushViewController(GroupFeedViewController(groupId: groupID), animated: true)

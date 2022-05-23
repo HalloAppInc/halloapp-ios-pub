@@ -81,7 +81,7 @@ class GroupGridHeader: UICollectionReusableView {
 
     func configure(with groupID: GroupID) {
         groupAvatarView.configure(groupId: groupID, squareSize: Constants.avatarSize, using: MainAppContext.shared.avatarStore)
-        groupNameLabel.text = MainAppContext.shared.chatData.chatGroup(groupId: groupID)?.name
+        groupNameLabel.text = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.contactStore.viewContext)?.name
     }
 
     override func prepareForReuse() {

@@ -230,7 +230,8 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
             let postText = MainAppContext.shared.contactStore.textWithMentions(
                 postTextWithCryptoResult,
-                mentions: post.orderedMentions)
+                mentions: post.orderedMentions,
+                in: MainAppContext.shared.contactStore.viewContext)
             // With media or > 180 chars long: System 16 pt (Body - 1)
             // Text-only under 180 chars long: System 20 pt (Body + 3)
             let postFont: UIFont = {
@@ -295,7 +296,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
     public static func obtainCryptoResultString(for contentID: String) -> String {
         let cryptoResultString: String
         if ServerProperties.isInternalUser {
-            switch AppContext.shared.cryptoData.cryptoResult(for: contentID) {
+            switch AppContext.shared.cryptoData.cryptoResult(for: contentID, in: AppContext.shared.cryptoData.viewContext) {
             case .success:
                 cryptoResultString = " ✅"
             case .failure:
@@ -362,7 +363,8 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 extension FeedItemContentView: PostAudioViewDelegate {
 
     func postAudioView(_ postAudioView: PostAudioView, didUpdateIsPlayingTo isPlaying: Bool) {
-        guard isPlaying, let postId = postId, let feedPost = MainAppContext.shared.feedData.feedPost(with: postId) else {
+        let viewContext = MainAppContext.shared.feedData.viewContext
+        guard isPlaying, let postId = postId, let feedPost = MainAppContext.shared.feedData.feedPost(with: postId, in: viewContext) else {
             return
         }
         MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
@@ -635,7 +637,8 @@ final class FeedItemHeaderView: UIView {
     }
 
     func configureGroupLabel(with groupID: String?, contentWidth: CGFloat, showGroupName: Bool) {
-        guard showGroupName, let groupID = groupID, let groupChat = MainAppContext.shared.chatData.chatGroup(groupId: groupID) else {
+        let viewContext = MainAppContext.shared.feedData.viewContext
+        guard showGroupName, let groupID = groupID, let groupChat = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: viewContext) else {
             groupIndicatorLabel.isHidden = true
             groupNameLabel.isHidden = true
             groupNameLabel.text = nil
@@ -884,7 +887,7 @@ final class FeedItemFooterView: UIView {
         if post.userId == MainAppContext.shared.userData.userId {
             return .ownPost
         }
-        if MainAppContext.shared.contactStore.isContactInAddressBook(userId: post.userId) {
+        if MainAppContext.shared.contactStore.isContactInAddressBook(userId: post.userId, in: MainAppContext.shared.contactStore.viewContext) {
             return .contact
         }
         return .nonContact

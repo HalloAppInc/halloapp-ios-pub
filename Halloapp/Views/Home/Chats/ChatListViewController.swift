@@ -608,7 +608,7 @@ extension ChatListViewController: UISearchResultsUpdating {
 
         filteredChats = allChats.filter {
             guard let chatWithUserID = $0.userID else { return false }
-            let title = MainAppContext.shared.contactStore.fullName(for: chatWithUserID)
+            let title = MainAppContext.shared.contactStore.fullName(for: chatWithUserID, in: MainAppContext.shared.contactStore.viewContext)
             if title.lowercased().contains(searchStr) {
                 return true
             }

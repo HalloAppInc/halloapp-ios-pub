@@ -210,8 +210,9 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         var items: [ActivityCenterItem] = []
         
         // Add an item for each comment made by a contact
+        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
         let contactNotifications = postNotifications.filter { notification in
-            MainAppContext.shared.contactStore.isContactInAddressBook(userId: notification.userID)
+            MainAppContext.shared.contactStore.isContactInAddressBook(userId: notification.userID, in: contactsViewContext)
         }
         let itemsForContactComments = contactNotifications.compactMap {
             ActivityCenterItem(content: .singleNotification($0))
@@ -220,7 +221,7 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         
         // Aggregate all comments from non-contacts into a single item
         let nonContactNotifications = postNotifications.filter { notification in
-            !MainAppContext.shared.contactStore.isContactInAddressBook(userId: notification.userID)
+            !MainAppContext.shared.contactStore.isContactInAddressBook(userId: notification.userID, in: contactsViewContext)
         }
         let itemForNonContactComments: ActivityCenterItem? = {
             let nonContactsWhoCommented = Set<UserID>(nonContactNotifications.map { $0.userID })
@@ -286,7 +287,7 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
             return
         }
 
-        guard let postId = notification.postId, MainAppContext.shared.feedData.feedPost(with: postId) != nil else {
+        guard let postId = notification.postId, MainAppContext.shared.feedData.feedPost(with: postId, in: MainAppContext.shared.feedData.viewContext) != nil else {
             return
         }
 

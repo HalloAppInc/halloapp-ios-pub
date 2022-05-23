@@ -82,14 +82,14 @@ class MessageCellViewEvent: UICollectionViewCell {
         eventType = chatLogEventType
         switch chatLogEventType {
         case .whisperKeysChange:
-            let fullname = MainAppContext.shared.contactStore.fullName(for: userID)
+            let fullname = MainAppContext.shared.contactStore.fullName(for: userID, in: MainAppContext.shared.contactStore.viewContext)
             messageLabel.text = Localizations.chatEventSecurityKeysChanged(name: fullname)
         case .blocked:
             messageLabel.text = Localizations.chatBlockedContactLabel
         case .unblocked:
             messageLabel.text = Localizations.chatUnblockedContactLabel
         case .addToAddressBook:
-            let fullname = MainAppContext.shared.contactStore.fullName(for: userID)
+            let fullname = MainAppContext.shared.contactStore.fullName(for: userID, in: MainAppContext.shared.contactStore.viewContext)
             messageLabel.text = Localizations.chatEventAddContactToAddressBook(name: fullname)
         }
     }

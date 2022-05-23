@@ -105,7 +105,8 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
             chatTimestamps[$0.userId] = $0.timestamp ?? Date.distantPast
         }
 
-        contacts = ShareExtensionContext.shared.contactStore.allRegisteredContacts(sorted: false).sorted {
+        let viewContext = ShareExtensionContext.shared.contactStore.viewContext
+        contacts = ShareExtensionContext.shared.contactStore.allRegisteredContacts(sorted: false, in: viewContext).sorted {
             var timestamp0 = Date.distantPast
             var timestamp1 = Date.distantPast
 
@@ -166,7 +167,8 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
             guard let conversationID = ConversationID(rawConversationID) else { return }
             
             if conversationID.conversationType == .chat {
-                guard let contact = ShareExtensionContext.shared.contactStore.allRegisteredContacts(sorted: false).first(where: { contact in
+                let viewContext = ShareExtensionContext.shared.contactStore.viewContext
+                guard let contact = ShareExtensionContext.shared.contactStore.allRegisteredContacts(sorted: false, in: viewContext).first(where: { contact in
                     contact.userId == conversationID.id
                 }) else {
                     DDLogError("ShareDestinationViewController/intent/error missing contact userId=[\(conversationID.id)]")

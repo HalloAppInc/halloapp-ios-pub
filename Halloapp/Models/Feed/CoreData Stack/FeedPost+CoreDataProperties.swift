@@ -19,8 +19,12 @@ extension FeedPost {
     }
 
     var externalShareDescription: String {
-        if let mentionText = MainAppContext.shared.contactStore.textWithMentions(rawText, mentions: orderedMentions)?.string,
-           !mentionText.isEmpty {
+        var mentionText: String?
+        MainAppContext.shared.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
+            mentionText = MainAppContext.shared.contactStore.textWithMentions(rawText, mentions: orderedMentions, in: managedObjectContext)?.string
+        }
+
+        if let mentionText = mentionText, !mentionText.isEmpty {
             if mentionText.count > Self.maxExternalShareDescriptionLength {
                 return "\(mentionText.prefix(Self.maxExternalShareDescriptionLength))…"
             } else {

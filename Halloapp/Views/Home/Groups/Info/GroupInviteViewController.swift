@@ -25,7 +25,7 @@ class GroupInviteViewController: UIViewController {
 
     init(for groupID: GroupID) {
         self.groupID = groupID
-        self.group = MainAppContext.shared.chatData.chatGroup(groupId: groupID)
+        self.group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext)
         super.init(nibName: nil, bundle: nil)
     }
 

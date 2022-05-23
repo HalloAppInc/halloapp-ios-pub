@@ -1154,7 +1154,7 @@ extension ProtoServiceCore: CoreService {
     public func isGroupFeedItemDecryptedAndSaved(contentID: String) -> Bool {
         var isGroupFeedItemDecrypted = false
 
-        AppContext.shared.mainDataStore.performSeriallyOnBackgroundContextAndWait { managedObjectContext in
+        AppContext.shared.mainDataStore.performOnBackgroundContextAndWait { managedObjectContext in
             if let post = AppContext.shared.coreFeedData.feedPost(with: contentID, in: managedObjectContext), post.status != .rerequesting {
                 isGroupFeedItemDecrypted = true
             } else if let comment = AppContext.shared.coreFeedData.feedComment(with: contentID, in: managedObjectContext), comment.status != .rerequesting {
@@ -1414,7 +1414,7 @@ extension ProtoServiceCore: CoreService {
                 completion(.failure(.notConnected))
                 return
             }
-            guard let identityKey = AppContext.shared.keyStore.keyBundle()?.identityPublicEdKey else {
+            guard let identityKey = AppContext.shared.keyStore.keyBundle(in: AppContext.shared.keyStore.viewContext)?.identityPublicEdKey else {
                 DDLogError("ProtoService/rerequestMessage/\(messageID)/error could not retrieve identity key")
                 completion(.failure(.aborted))
                 return

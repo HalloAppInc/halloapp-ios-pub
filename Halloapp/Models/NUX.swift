@@ -64,7 +64,7 @@ final class NUX {
         loadFromUserDefaults()
         expireWelcomePosts()
 
-        let contacts = MainAppContext.shared.contactStore.allRegisteredContacts(sorted: false)
+        let contacts = MainAppContext.shared.contactStore.allRegisteredContacts(sorted: false, in: MainAppContext.shared.contactStore.viewContext)
         if contacts.count == 0 {
             state = .zeroZone
         }

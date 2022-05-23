@@ -57,7 +57,13 @@ extension GroupEvent {
             if userId == MainAppContext.shared.userData.userId {
                 return .you
             }
-            return .other(MainAppContext.shared.contactStore.fullName(for: userId))
+
+            var name = ""
+            MainAppContext.shared.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
+                name = MainAppContext.shared.contactStore.fullName(for: userId, in: managedObjectContext)
+            }
+
+            return .other(name)
         }
     }
     
@@ -67,7 +73,13 @@ extension GroupEvent {
             if userId == MainAppContext.shared.userData.userId {
                 return Localizations.userYou
             }
-            return MainAppContext.shared.contactStore.fullName(for: userId)
+
+            var name = ""
+            MainAppContext.shared.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
+                name = MainAppContext.shared.contactStore.fullName(for: userId, in: managedObjectContext)
+            }
+
+            return name
         }
     }
 

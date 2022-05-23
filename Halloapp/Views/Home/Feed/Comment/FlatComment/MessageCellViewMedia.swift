@@ -222,13 +222,15 @@ class MessageCellViewMedia: MessageCellViewBase {
     }
 
     private func load(media: [CommonMedia]) {
-        let items = media[0..<min(imageViews.count, media.count)]
+        let items = media[0..<min(imageViews.count, media.count)].map { (item: CommonMedia) -> (CommonMediaType, URL?) in
+            return (item.type, item.mediaURL)
+        }
 
         for (idx, item) in items.enumerated() {
             let imageView = imageViews[idx]
 
-            if let url = item.mediaURL {
-                display(url: url, type: item.type, in: imageView)
+            if let url = item.1 {
+                display(url: url, type: item.0, in: imageView)
             } else {
                 imageView.image = nil
                 imageView.isProgressHidden = false

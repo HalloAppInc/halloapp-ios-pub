@@ -58,6 +58,8 @@ open class SharedDataStore {
         return container
     }()
 
+    private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.shared-data-store")
+
     public final func legacyFileURL(forRelativeFilePath relativePath: String) -> URL {
         return Self.dataDirectoryURL.appendingPathComponent(relativePath)
     }
@@ -93,11 +95,31 @@ open class SharedDataStore {
         }
     }
 
-    private lazy var bgContext: NSManagedObjectContext = { persistentContainer.newBackgroundContext() }()
+    private func newBackgroundContext() -> NSManagedObjectContext {
+        let context = persistentContainer.newBackgroundContext()
+        context.automaticallyMergesChangesFromParent = true
+        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+
+        return context
+    }
 
     public func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
-        self.backgroundProcessingQueue.async {
-            self.bgContext.performAndWait { block(self.bgContext) }
+        backgroundProcessingQueue.async { [weak self] in
+            guard let self = self else { return }
+
+            let context = self.newBackgroundContext()
+            context.performAndWait {
+                block(context)
+            }
+        }
+    }
+
+    public func performOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
+        backgroundProcessingQueue.sync {
+            let context = self.newBackgroundContext()
+            context.performAndWait {
+                block(context)
+            }
         }
     }
 
@@ -161,13 +183,12 @@ open class SharedDataStore {
         return AppContext.shared.userDefaults.value(forKey: messagesUserDefaultsKey) as? [FeedPostCommentID] ?? []
     }
 
-    public final func posts() -> [SharedFeedPost] {
-        let managedObjectContext = persistentContainer.viewContext
-        let fetchRequest: NSFetchRequest<SharedFeedPost> = SharedFeedPost.fetchRequest()
+    public final func posts(in context: NSManagedObjectContext) -> [SharedFeedPost] {
+        let fetchRequest = SharedFeedPost.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedFeedPost.timestamp, ascending: true)]
 
         do {
-            let posts = try managedObjectContext.fetch(fetchRequest)
+            let posts = try context.fetch(fetchRequest)
             return posts
         } catch {
             DDLogError("SharedDataStore/posts/error  [\(error)]")
@@ -175,15 +196,14 @@ open class SharedDataStore {
         }
     }
 
-    public final func comments() -> [SharedFeedComment] {
-        let managedObjectContext = persistentContainer.viewContext
-        let fetchRequest: NSFetchRequest<SharedFeedComment> = SharedFeedComment.fetchRequest()
+    public final func comments(in context: NSManagedObjectContext) -> [SharedFeedComment] {
+        let fetchRequest = SharedFeedComment.fetchRequest()
         // Important to fetch these in ascending order - since there could be replies to comments.
         // We fetch the parent comment using parentId and use it to store a reference in our entity.
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedFeedComment.timestamp, ascending: true)]
 
         do {
-            let comments = try managedObjectContext.fetch(fetchRequest)
+            let comments = try context.fetch(fetchRequest)
             return comments
         } catch {
             DDLogError("SharedDataStore/posts/error  [\(error)]")
@@ -191,14 +211,13 @@ open class SharedDataStore {
         }
     }
 
-    public final func messages() -> [SharedChatMessage] {
-        let managedObjectContext = persistentContainer.viewContext
+    public final func messages(in context: NSManagedObjectContext) -> [SharedChatMessage] {
         let fetchRequest: NSFetchRequest<SharedChatMessage> = SharedChatMessage.fetchRequest()
         // Important to fetch these in ascending order - since there could be quoted content referencing previous messages
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedChatMessage.timestamp, ascending: true)]
 
         do {
-            let messages = try managedObjectContext.fetch(fetchRequest)
+            let messages = try context.fetch(fetchRequest)
             return messages
         } catch {
             DDLogError("SharedDataStore/messages/error  [\(error)]")
@@ -206,8 +225,7 @@ open class SharedDataStore {
         }
     }
 
-    public final func sharedChatMessage(for msgId: String) -> SharedChatMessage? {
-        let managedObjectContext = persistentContainer.viewContext
+    public final func sharedChatMessage(for msgId: String, in managedObjectContext: NSManagedObjectContext) -> SharedChatMessage? {
         let fetchRequest: NSFetchRequest<SharedChatMessage> = SharedChatMessage.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", msgId)
         do {
@@ -219,8 +237,7 @@ open class SharedDataStore {
         }
     }
 
-    public final func sharedFeedPost(for contentID: String) -> SharedFeedPost? {
-        let managedObjectContext = persistentContainer.viewContext
+    public final func sharedFeedPost(for contentID: String, in managedObjectContext: NSManagedObjectContext) -> SharedFeedPost? {
         let fetchRequest: NSFetchRequest<SharedFeedPost> = SharedFeedPost.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", contentID)
         do {
@@ -232,8 +249,7 @@ open class SharedDataStore {
         }
     }
 
-    public final func sharedFeedComment(for contentID: String) -> SharedFeedComment? {
-        let managedObjectContext = persistentContainer.viewContext
+    public final func sharedFeedComment(for contentID: String, in managedObjectContext: NSManagedObjectContext) -> SharedFeedComment? {
         let fetchRequest: NSFetchRequest<SharedFeedComment> = SharedFeedComment.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", contentID)
         do {
@@ -245,13 +261,12 @@ open class SharedDataStore {
         }
     }
 
-    public final func serverMessages() -> [SharedServerMessage] {
-        let managedObjectContext = persistentContainer.viewContext
+    public final func serverMessages(in context: NSManagedObjectContext) -> [SharedServerMessage] {
         let fetchRequest: NSFetchRequest<SharedServerMessage> = SharedServerMessage.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedServerMessage.timestamp, ascending: true)]
 
         do {
-            let messages = try managedObjectContext.fetch(fetchRequest)
+            let messages = try context.fetch(fetchRequest)
             return messages
         } catch {
             DDLogError("SharedDataStore/serverMessages/error  [\(error)]")
@@ -260,8 +275,6 @@ open class SharedDataStore {
     }
 
     // MARK: Deleting Data
-
-    private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.data-store")
 
     public final func clearPostIds() {
         guard let postsUserDefaultsKey = postsUserDefaultsKey else {

@@ -114,14 +114,14 @@ class MessageCommentViewHeaderPreview: UICollectionReusableView {
     func configure(withPost feedPost: FeedPost) {
         self.feedPost = feedPost
         // Contact name
-        contactNameLabel.text = MainAppContext.shared.contactStore.fullName(for: feedPost.userId)
+        contactNameLabel.text = MainAppContext.shared.contactStore.fullName(for: feedPost.userId, in: MainAppContext.shared.contactStore.viewContext)
         // Avatar
         profilePictureButton.avatarView.configure(with: feedPost.userId, using: MainAppContext.shared.avatarStore)
         configureGroupName(feedPost: feedPost)
     }
 
     private func configureGroupName(feedPost: FeedPost) {
-        if let groupId = feedPost.groupId, let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
+        if let groupId = feedPost.groupId, let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) {
             groupNameLabel.text = group.name
             groupNameLabel.isHidden = false
             groupIndicatorLabel.isHidden = false

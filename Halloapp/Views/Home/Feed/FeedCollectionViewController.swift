@@ -372,7 +372,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
     }
     
     func presentMomentViewController(for post: FeedPost) {
-        if let latest = MainAppContext.shared.feedData.fetchLatestMoment() {
+        if let latest = MainAppContext.shared.feedData.fetchLatestMoment(using: MainAppContext.shared.feedData.viewContext) {
             let userID = MainAppContext.shared.userData.userId
             let unlocker = (post.userId == userID || latest.status == .sent) ? nil : latest
             // user may have uploaded using the prompt card and it's still pending, in this case we show the unlock flow
@@ -405,7 +405,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
     
     private func startUnlockTransition(for post: FeedPost) {
         guard
-            let latest = MainAppContext.shared.feedData.fetchLatestMoment(),
+            let latest = MainAppContext.shared.feedData.fetchLatestMoment(using: MainAppContext.shared.feedData.viewContext),
             let newPostVC = presentedViewController as? NewPostViewController
         else {
             dismiss(animated: true)
@@ -482,7 +482,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
     }
 
     private func showGroupFeed(for groupID: GroupID) {
-        guard MainAppContext.shared.chatData.chatGroup(groupId: groupID) != nil else { return }
+        guard MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext) != nil else { return }
         let vc = GroupFeedViewController(groupId: groupID)
         navigationController?.pushViewController(vc, animated: true)
     }
@@ -948,7 +948,8 @@ extension FeedCollectionViewController {
                 description = Localizations.favoritesDescriptionOwn
             } else {
                 let format = Localizations.favoritesDescriptionNotOwn
-                description = String(format: format, MainAppContext.shared.contactStore.fullName(for: feedPost.userId))
+                let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+                description = String(format: format, MainAppContext.shared.contactStore.fullName(for: feedPost.userId, in: contactsViewContext))
             }
            let alert = UIAlertController(title: Localizations.favoritesTitle, message: description, preferredStyle: .alert)
             alert.view.tintColor = .primaryBlue
@@ -1116,7 +1117,7 @@ extension FeedCollectionViewController {
     }
 
     private func reallyRetractPost(postId: FeedPostID) {
-        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: postId) else {
+        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: postId, in: MainAppContext.shared.feedData.viewContext) else {
             dismiss(animated: true)
             return
         }

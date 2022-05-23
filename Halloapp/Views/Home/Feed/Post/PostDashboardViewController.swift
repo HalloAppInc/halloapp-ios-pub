@@ -273,8 +273,9 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
                 switch contactRow {
                 case .contact(let receipt):
                     guard receipt.type != .placeholder else { break }
-                    let contactName = MainAppContext.shared.contactStore.fullName(for: receipt.userId)
-                    let isUserAContact = MainAppContext.shared.contactStore.isContactInAddressBook(userId: receipt.userId)
+                    let contactName = MainAppContext.shared.contactStore.fullName(for: receipt.userId, in: MainAppContext.shared.contactStore.viewContext)
+                    let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+                    let isUserAContact = MainAppContext.shared.contactStore.isContactInAddressBook(userId: receipt.userId, in: contactsViewContext)
 
                     let actionSheet = UIAlertController(title: contactName, message: nil, preferredStyle: .actionSheet)
                     // View Profile

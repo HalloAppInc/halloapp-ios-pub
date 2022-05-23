@@ -15,33 +15,33 @@ public protocol KeyStoreDelegate: AnyObject {
 }
 
 open class KeyStore {
-    public let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.keys")
     public let userData: UserData
     public let appTarget: AppTarget
 
     private let userDefaults: UserDefaults
+    private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.keys")
 
-    private let bgQueueKey = DispatchSpecificKey<String>()
-    private let bgQueueValue = "com.halloapp.keys"
-    private var bgContext: NSManagedObjectContext
+    public var viewContext: NSManagedObjectContext {
+        get {
+            self.persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
+            return self.persistentContainer.viewContext
+        }
+    }
+
     public weak var delegate: KeyStoreDelegate?
 
     required public init(userData: UserData, appTarget: AppTarget, userDefaults: UserDefaults) {
         self.userData = userData
+        self.appTarget = appTarget
         self.userDefaults = userDefaults
+
         // Before fetching the latest context for this target.
         // Let us update their last history timestamp: this will be useful when pruning old transactions later.
         userDefaults.updateLastHistoryTransactionTimestamp(for: appTarget, dataStore: .keyStore, to: Date())
-        self.bgContext = persistentContainer.newBackgroundContext()
-        // Set the context name and transaction author name.
-        // This is used later to filter out transactions made by own context.
-        self.bgContext.name = appTarget.rawValue + "-context"
-        self.bgContext.transactionAuthor = appTarget.rawValue
-        self.appTarget = appTarget
+
         // Add observer to notify us when persistentStore records changes.
         // These notifications are triggered for all cross process writes to the store.
         NotificationCenter.default.addObserver(self, selector: #selector(processStoreRemoteChanges), name: .NSPersistentStoreRemoteChange, object: persistentContainer.persistentStoreCoordinator)
-        backgroundProcessingQueue.setSpecific(key: bgQueueKey, value: bgQueueValue)
     }
 
     // Process persistent history to merge changes from other coordinators.
@@ -49,6 +49,7 @@ open class KeyStore {
         DDLogInfo("KeyStore/processStoreRemoteChanges/notification: \(notification)")
         processPersistentHistory()
     }
+
     // Merge Persistent history and clear merged transactions.
     @objc private func processPersistentHistory() {
         performSeriallyOnBackgroundContext({ managedObjectContext in
@@ -126,28 +127,36 @@ open class KeyStore {
         DDLogDebug("KeyStore/loadPersistentStore Loaded [\(container)]")
     }
 
+    private func newBackgroundContext() -> NSManagedObjectContext {
+        let context = persistentContainer.newBackgroundContext()
+        context.automaticallyMergesChangesFromParent = true
+        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+
+        // Set the context name and transaction author name.
+        // This is used later to filter out transactions made by own context.
+        context.name = appTarget.rawValue + "-context"
+        context.transactionAuthor = appTarget.rawValue
+
+        return context
+    }
+
     public func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
         backgroundProcessingQueue.async { [weak self] in
             guard let self = self else { return }
-            self.bgContext.performAndWait { block(self.bgContext) }
-        }
-    }
 
-    public func performOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
-        if DispatchQueue.getSpecific(key: bgQueueKey) as String? == bgQueueValue {
-            bgContext.performAndWait { block(bgContext) }
-        } else {
-            backgroundProcessingQueue.sync { [weak self] in
-                guard let self = self else { return }
-                self.bgContext.performAndWait { block(self.bgContext) }
+            let context = self.newBackgroundContext()
+            context.performAndWait {
+                block(context)
             }
         }
     }
 
-    public var viewContext: NSManagedObjectContext {
-        get {
-            self.persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
-            return self.persistentContainer.viewContext
+    public func performOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
+        backgroundProcessingQueue.sync {
+            let context = self.newBackgroundContext()
+            context.performAndWait {
+                block(context)
+            }
         }
     }
 
@@ -166,8 +175,7 @@ open class KeyStore {
     }
 
     // MARK: Fetching
-    public func keyBundles(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [UserKeyBundle] {
-        let managedObjectContext = managedObjectContext ?? self.viewContext
+    public func keyBundles(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext) -> [UserKeyBundle] {
         let fetchRequest: NSFetchRequest<UserKeyBundle> = UserKeyBundle.fetchRequest()
         fetchRequest.predicate = predicate
         fetchRequest.sortDescriptors = sortDescriptors
@@ -182,26 +190,12 @@ open class KeyStore {
         }
     }
 
-    // This function expects to run synchronously.
-    // So it should either run on the backgroundProcessingQueue with its own context (or)
-    // it should run on the mainQueue with viewContext (or)
-    // If the context is nil: then it runs synchronously on the backgroundQueue with its own context.
-    // This way: we avoid crashes when context argument is nil.
-    public func keyBundle(in managedObjectContext: NSManagedObjectContext? = nil) -> UserKeyBundle? {
+    public func keyBundle(in managedObjectContext: NSManagedObjectContext) -> UserKeyBundle? {
         DDLogDebug("KeyStore/fetchUserKeyBundle")
-        if let managedObjectContext = managedObjectContext {
-            return keyBundles(in: managedObjectContext).first
-        } else {
-            var userKeyBundle: UserKeyBundle? = nil
-            performOnBackgroundContextAndWait { context in
-                userKeyBundle = keyBundles(in: context).first
-            }
-            return userKeyBundle
-        }
+        return keyBundles(in: managedObjectContext).first
     }
 
-    public func messageKeyBundles(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [MessageKeyBundle] {
-        let managedObjectContext = managedObjectContext ?? self.viewContext
+    public func messageKeyBundles(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext) -> [MessageKeyBundle] {
         let fetchRequest: NSFetchRequest<MessageKeyBundle> = MessageKeyBundle.fetchRequest()
         fetchRequest.predicate = predicate
         fetchRequest.sortDescriptors = sortDescriptors
@@ -217,16 +211,11 @@ open class KeyStore {
         }
     }
 
-    public func messageKeyBundle(for userId: UserID, in managedObjectContext: NSManagedObjectContext? = nil) -> MessageKeyBundle? {
+    public func messageKeyBundle(for userId: UserID, in managedObjectContext: NSManagedObjectContext) -> MessageKeyBundle? {
         var bundles: [MessageKeyBundle] = []
         let predicate = NSPredicate(format: "userId == %@", userId)
-        if let managedObjectContext = managedObjectContext {
-            bundles = messageKeyBundles(predicate: predicate, in: managedObjectContext)
-        } else {
-            performOnBackgroundContextAndWait { context in
-                bundles = messageKeyBundles(predicate: predicate, in: context)
-            }
-        }
+        bundles = messageKeyBundles(predicate: predicate, in: managedObjectContext)
+
         if bundles.count > 1 {
             DDLogError("KeyStore/messageKeyBundle/error multiple-bundles-for-user [\(bundles.count)]")
         }

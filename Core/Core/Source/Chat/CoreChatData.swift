@@ -271,7 +271,6 @@ public class CoreChatData {
     }
 
     public func chatMessage(with chatMessageID: ChatMessageID, in managedObjectContext: NSManagedObjectContext) -> ChatMessage? {
-        let managedObjectContext = managedObjectContext
         let fetchRequest: NSFetchRequest<ChatMessage> = ChatMessage.fetchRequest()
 
         fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
@@ -290,7 +289,6 @@ public class CoreChatData {
     }
 
     private func chatThreads(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext) -> [CommonThread] {
-        let managedObjectContext = managedObjectContext
         let fetchRequest: NSFetchRequest<CommonThread> = CommonThread.fetchRequest()
         fetchRequest.predicate = predicate
         fetchRequest.sortDescriptors = sortDescriptors
@@ -344,7 +342,6 @@ public class CoreChatData {
     }
 
     private func chatGroupMembers(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext) -> [GroupMember] {
-        let managedObjectContext = managedObjectContext
         let fetchRequest: NSFetchRequest<GroupMember> = GroupMember.fetchRequest()
         fetchRequest.predicate = predicate
         fetchRequest.sortDescriptors = sortDescriptors

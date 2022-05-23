@@ -10,6 +10,7 @@ import CoreCommon
 import CocoaLumberjackSwift
 import Foundation
 import Combine
+import CoreData
 
 private enum WhisperTask {
     case encryption(Data, EncryptionCompletion)
@@ -123,38 +124,40 @@ public final class WhisperSession {
                 break
             }
 
-            guard let userKeys = self.keyStore.keyBundle() else {
-                DDLogError("WhisperSession/\(self.userID)/rerequest/setup/error [no-user-keys]")
-                return
-            }
-
-            var wasSessionRestartSuccessful = false
-            if rerequestData.identityKey.count > 0 && rerequestData.sessionSetupEphemeralKey.count > 0 {
-                // Attempt to setup session with keys included in rerequest
-                let setupResult = Whisper.receiveSessionSetup(
-                    userID: self.userID,
-                    inboundIdentityPublicEdKey: rerequestData.identityKey,
-                    inboundEphemeralPublicKey: rerequestData.sessionSetupEphemeralKey,
-                    inboundEphemeralKeyID: 0,
-                    oneTimeKeyID: rerequestData.oneTimePreKeyID,
-                    previousChainLength: 0,
-                    userKeys: userKeys)
-                switch setupResult {
-                case .success(let keyBundle):
-                    DDLogInfo("WhisperSession/\(self.userID)/rerequest/setup/complete")
-                    self.state = .ready(keyBundle, [:])
-                    wasSessionRestartSuccessful = true
-                case .failure(let error):
-                    DDLogError("WhisperSession/\(self.userID)/rerequest/setup/error [\(error)]")
+            self.keyStore.performSeriallyOnBackgroundContext { managedObjectContext in
+                guard let userKeys = self.keyStore.keyBundle(in: managedObjectContext) else {
+                    DDLogError("WhisperSession/\(self.userID)/rerequest/setup/error [no-user-keys]")
+                    return
                 }
-            } else {
-                DDLogInfo("WhisperSession/\(self.userID)/rerequest/no-inbound-session-provided")
-            }
 
-            if case .ready = self.state, !wasSessionRestartSuccessful {
-                DDLogInfo("WhisperSession/\(self.userID)/rerequest/deleting-keys")
-                self.keyStore.deleteMessageKeyBundles(for: self.userID)
-                self.state = .awaitingSetup(attempts: 1)
+                var wasSessionRestartSuccessful = false
+                if rerequestData.identityKey.count > 0 && rerequestData.sessionSetupEphemeralKey.count > 0 {
+                    // Attempt to setup session with keys included in rerequest
+                    let setupResult = Whisper.receiveSessionSetup(
+                        userID: self.userID,
+                        inboundIdentityPublicEdKey: rerequestData.identityKey,
+                        inboundEphemeralPublicKey: rerequestData.sessionSetupEphemeralKey,
+                        inboundEphemeralKeyID: 0,
+                        oneTimeKeyID: rerequestData.oneTimePreKeyID,
+                        previousChainLength: 0,
+                        userKeys: userKeys)
+                    switch setupResult {
+                    case .success(let keyBundle):
+                        DDLogInfo("WhisperSession/\(self.userID)/rerequest/setup/complete")
+                        self.state = .ready(keyBundle, [:])
+                        wasSessionRestartSuccessful = true
+                    case .failure(let error):
+                        DDLogError("WhisperSession/\(self.userID)/rerequest/setup/error [\(error)]")
+                    }
+                } else {
+                    DDLogInfo("WhisperSession/\(self.userID)/rerequest/no-inbound-session-provided")
+                }
+
+                if case .ready = self.state, !wasSessionRestartSuccessful {
+                    DDLogInfo("WhisperSession/\(self.userID)/rerequest/deleting-keys")
+                    self.keyStore.deleteMessageKeyBundles(for: self.userID)
+                    self.state = .awaitingSetup(attempts: 1)
+                }
             }
         }
     }
@@ -431,7 +434,7 @@ public final class WhisperSession {
         }
     }
 
-    private func executeEncryption(_ data: Data, with keyBundle: KeyBundle, messageKeys: MessageKeyMap, completion: EncryptionCompletion) {
+    private func executeEncryption(_ data: Data, with keyBundle: KeyBundle, messageKeys: MessageKeyMap, completion: @escaping EncryptionCompletion) {
         let result = Whisper.encrypt(data, keyBundle: keyBundle)
         switch result {
         case .success(let (data, chainKey)):
@@ -447,13 +450,16 @@ public final class WhisperSession {
                 }
             }()
             state = .ready(newKeyBundle, messageKeys)
-            let logInfo: EncryptionLogInfo = [
-                "MIK": keyStore.keyBundle()?.identityPublicEdKey.base64EncodedString() ?? "[???]",
-                "PIK": keyBundle.inboundIdentityPublicEdKey.base64EncodedString(),
-                "MICKH": obfuscate(keyBundle.inboundChainKey),
-                "MOCKH": obfuscate(keyBundle.outboundChainKey),
-            ]
-            completion(.success((output, logInfo)))
+
+            keyStore.performSeriallyOnBackgroundContext { managedObjectContext in
+                let logInfo: EncryptionLogInfo = [
+                    "MIK": self.keyStore.keyBundle(in: managedObjectContext)?.identityPublicEdKey.base64EncodedString() ?? "[???]",
+                    "PIK": keyBundle.inboundIdentityPublicEdKey.base64EncodedString(),
+                    "MICKH": self.obfuscate(keyBundle.inboundChainKey),
+                    "MOCKH": self.obfuscate(keyBundle.outboundChainKey),
+                ]
+                completion(.success((output, logInfo)))
+            }
         case .failure(let error):
             completion(.failure(error))
         }
@@ -500,15 +506,22 @@ public final class WhisperSession {
                         }
                         return nil
                     case .success(let whisperKeys):
-                        guard let userKeys = self.keyStore.keyBundle() else {
-                            DDLogError("WhisperSession/\(self.userID)/setupOutbound/error [no user keys!]")
-                            return nil
+                        var keyBudnel: KeyBundle?
+
+                        self.keyStore.performOnBackgroundContextAndWait { managedObjectContext in
+                            guard let userKeys = self.keyStore.keyBundle(in: managedObjectContext) else {
+                                DDLogError("WhisperSession/\(self.userID)/setupOutbound/error [no user keys!]")
+                                return
+                            }
+
+                            keyBudnel = Whisper.initiateSessionSetup(
+                                for: self.userID,
+                                with: whisperKeys,
+                                userKeys: userKeys,
+                                teardownKey: teardownKey)
                         }
-                        return Whisper.initiateSessionSetup(
-                            for: self.userID,
-                            with: whisperKeys,
-                            userKeys: userKeys,
-                            teardownKey: teardownKey)
+
+                        return keyBudnel
                     }
                 }()
 
@@ -525,23 +538,32 @@ public final class WhisperSession {
     }
 
     private func setupNewInboundSession(with encryptedData: EncryptedData) -> Result<(KeyBundle, MessageKeyMap), DecryptionError> {
-        guard let userKeys = keyStore.keyBundle() else {
-            return .failure(.missingUserKeys)
+        var setupResult: Result<KeyBundle, DecryptionError> = .failure(.missingUserKeys)
+
+        keyStore.performOnBackgroundContextAndWait { managedObjectContext in
+            guard let userKeys = keyStore.keyBundle(in: managedObjectContext) else {
+                setupResult = .failure(.missingUserKeys)
+                return
+            }
+            guard let payload = EncryptedPayload(data: encryptedData.data) else {
+                setupResult = .failure(.invalidPayload)
+                return
+            }
+            guard let identityKey = encryptedData.identityKey else {
+                setupResult = .failure(.missingPublicKey)
+                return
+            }
+
+            setupResult = Whisper.receiveSessionSetup(
+                userID: userID,
+                inboundIdentityPublicEdKey: identityKey,
+                inboundEphemeralPublicKey: payload.ephemeralPublicKey,
+                inboundEphemeralKeyID: Int(payload.ephemeralKeyID),
+                oneTimeKeyID: encryptedData.oneTimeKeyId,
+                previousChainLength: Int(payload.previousChainLength),
+                userKeys: userKeys)
         }
-        guard let payload = EncryptedPayload(data: encryptedData.data) else {
-            return .failure(.invalidPayload)
-        }
-        guard let identityKey = encryptedData.identityKey else {
-            return .failure(.missingPublicKey)
-        }
-        let setupResult = Whisper.receiveSessionSetup(
-            userID: userID,
-            inboundIdentityPublicEdKey: identityKey,
-            inboundEphemeralPublicKey: payload.ephemeralPublicKey,
-            inboundEphemeralKeyID: Int(payload.ephemeralKeyID),
-            oneTimeKeyID: encryptedData.oneTimeKeyId,
-            previousChainLength: Int(payload.previousChainLength),
-            userKeys: userKeys)
+
         switch setupResult {
         case .success(let keyBundle):
             DDLogInfo("WhisperSession/\(userID)/setup/new-key-bundle")
@@ -574,16 +596,28 @@ public final class WhisperSession {
     }
 
     private func loadFromKeyStore() -> (KeyBundle, MessageKeyMap)? {
-        guard let messageKeyBundle = keyStore.messageKeyBundle(for: userID),
-              let keyBundle = messageKeyBundle.keyBundle else
-        {
-            return nil
-        }
+        var keyBundle: KeyBundle?
         var keyMap = MessageKeyMap()
-        for key in messageKeyBundle.messageKeys ?? [] {
-            keyMap[key.locator] = key.key
+
+        keyStore.performOnBackgroundContextAndWait { managedObjectContext in
+            guard let messageKeyBundle = self.keyStore.messageKeyBundle(for: userID, in: managedObjectContext),
+                  let bundle = messageKeyBundle.keyBundle else
+            {
+                return
+            }
+
+            keyBundle = bundle
+
+            for key in messageKeyBundle.messageKeys ?? [] {
+                keyMap[key.locator] = key.key
+            }
         }
-        return (keyBundle, keyMap)
+
+        if let keyBundle = keyBundle {
+            return (keyBundle, keyMap)
+        }
+
+        return nil
     }
 }
 

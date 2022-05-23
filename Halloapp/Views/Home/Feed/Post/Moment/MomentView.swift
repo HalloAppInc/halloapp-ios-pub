@@ -179,9 +179,9 @@ class MomentView: UIView {
             footerView.isHidden = true
         }
 
-        MainAppContext.shared.feedData.validMoment.sink { [weak self] id in
+        MainAppContext.shared.feedData.validMoment.sink { [weak self] moment in
             DispatchQueue.main.async {
-                let title = id == nil ? Localizations.unlock : Localizations.view
+                let title = moment == nil ? Localizations.unlock : Localizations.view
                 self?.actionButton.button.setTitle(title, for: .normal)
                 self?.setNeedsLayout()
             }
@@ -233,7 +233,7 @@ class MomentView: UIView {
         timeLabel.text = DateFormatter.dateTimeFormatterTime.string(from: post.timestamp)
 
         avatarView.configure(with: post.userID, using: MainAppContext.shared.avatarStore)
-        let name = MainAppContext.shared.contactStore.firstName(for: post.userID)
+        let name = MainAppContext.shared.contactStore.firstName(for: post.userID, in: MainAppContext.shared.contactStore.viewContext)
         promptLabel.text = String(format: Localizations.secretPostEntice, name)
 
         let buttonTitle = MainAppContext.shared.feedData.validMoment.value == nil ? Localizations.unlock : Localizations.view

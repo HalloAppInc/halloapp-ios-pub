@@ -22,10 +22,10 @@ public final class CryptoData {
     }
 
     public func update(messageID: String, timestamp: Date, result: String, rerequestCount: Int, sender: UserAgent, contentType: DecryptionReportContentType) {
-        queue.async { [weak self] in
+        performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
             guard let self = self else { return }
-            guard let messageDecryption = self.fetchMessageDecryption(id: messageID, in: self.bgContext) ??
-                    self.createMessageDecryption(id: messageID, timestamp: timestamp, sender: sender, in: self.bgContext) else
+            guard let messageDecryption = self.fetchMessageDecryption(id: messageID, in: managedObjectContext) ??
+                    self.createMessageDecryption(id: messageID, timestamp: timestamp, sender: sender, in: managedObjectContext) else
             {
                 DDLogError("CryptoData/update/\(messageID)/error could not find or create decryption report")
                 return
@@ -48,9 +48,10 @@ public final class CryptoData {
             // TODO: Delete this field from coredata
             messageDecryption.isSilent = false
             messageDecryption.contentType = contentType.rawValue
-            if self.bgContext.hasChanges {
+
+            if managedObjectContext.hasChanges {
                 do {
-                    try self.bgContext.save()
+                    try managedObjectContext.save()
                     DDLogInfo("CryptoData/update/\(messageID)/saved [\(result)]")
                 } catch {
                     DDLogError("CryptoData/update/\(messageID)/save/error [\(error)]")
@@ -60,10 +61,10 @@ public final class CryptoData {
     }
 
     public func resetFeedHistory(groupID: String, timestamp: Date, numExpected: Int) {
-        queue.async { [weak self] in
+        performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
             guard let self = self else { return }
-            guard let groupFeedHistoryDecryption = self.fetchGroupFeedHistoryDecryption(groupID: groupID, in: self.bgContext) ??
-                    self.createGroupFeedHistoryDecryption(groupID: groupID, timestamp: timestamp, in: self.bgContext) else
+            guard let groupFeedHistoryDecryption = self.fetchGroupFeedHistoryDecryption(groupID: groupID, in: managedObjectContext) ??
+                    self.createGroupFeedHistoryDecryption(groupID: groupID, timestamp: timestamp, in: managedObjectContext) else
             {
                 DDLogError("CryptoData/resetFeedHistory/\(groupID)/error could not find or create decryption report")
                 return
@@ -75,9 +76,9 @@ public final class CryptoData {
             groupFeedHistoryDecryption.numExpected = Int32(numExpected)
             groupFeedHistoryDecryption.numDecrypted = 0
             groupFeedHistoryDecryption.timeLastUpdated = Date()
-            if self.bgContext.hasChanges {
+            if managedObjectContext.hasChanges {
                 do {
-                    try self.bgContext.save()
+                    try managedObjectContext.save()
                     DDLogInfo("CryptoData/resetFeedHistory/\(groupID)/saved numExpected: [\(numExpected)]")
                 } catch {
                     DDLogError("CryptoData/resetFeedHistory/\(groupID)/save/error [\(error)]")
@@ -87,10 +88,10 @@ public final class CryptoData {
     }
 
     public func receivedFeedHistoryItems(groupID: String, timestamp: Date, newlyDecrypted: Int, newRerequests: Int) {
-        queue.async { [weak self] in
+        performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
             guard let self = self else { return }
-            guard let groupFeedHistoryDecryption = self.fetchGroupFeedHistoryDecryption(groupID: groupID, in: self.bgContext) ??
-                    self.createGroupFeedHistoryDecryption(groupID: groupID, timestamp: timestamp, in: self.bgContext) else
+            guard let groupFeedHistoryDecryption = self.fetchGroupFeedHistoryDecryption(groupID: groupID, in: managedObjectContext) ??
+                    self.createGroupFeedHistoryDecryption(groupID: groupID, timestamp: timestamp, in: managedObjectContext) else
             {
                 DDLogError("CryptoData/receivedFeedHistoryItems/\(groupID)/error could not find or create decryption report")
                 return
@@ -107,9 +108,9 @@ public final class CryptoData {
             groupFeedHistoryDecryption.numDecrypted = totalNumDecrypted
             groupFeedHistoryDecryption.rerequestCount = totalRerequestCount
             groupFeedHistoryDecryption.timeLastUpdated = timestamp
-            if self.bgContext.hasChanges {
+            if managedObjectContext.hasChanges {
                 do {
-                    try self.bgContext.save()
+                    try managedObjectContext.save()
                     DDLogInfo("CryptoData/receivedFeedHistoryItems/\(groupID)/saved numDecrypted: [\(totalNumDecrypted)]")
                 } catch {
                     DDLogError("CryptoData/receivedFeedHistoryItems/\(groupID)/save/error [\(error)]")
@@ -119,17 +120,17 @@ public final class CryptoData {
     }
 
     public func update(contentID: String, contentType: GroupDecryptionReportContentType, groupID: GroupID, timestamp: Date, error: String, sender: UserAgent?, rerequestCount: Int) {
-        queue.async { [weak self] in
+        performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
             guard let self = self else { return }
 
             let isItemAlreadyDecrypted: Bool
-            if let itemResult = self.fetchGroupFeedItemDecryption(id: contentID, in: self.bgContext) {
+            if let itemResult = self.fetchGroupFeedItemDecryption(id: contentID, in: managedObjectContext) {
                 isItemAlreadyDecrypted = itemResult.isSuccess()
             } else {
                 isItemAlreadyDecrypted = false
             }
-            guard let groupFeedItemDecryption = self.fetchGroupFeedItemDecryption(id: contentID, in: self.bgContext) ??
-                    self.createGroupFeedItemDecryption(id: contentID, contentType: contentType, groupID: groupID, timestamp: timestamp, sender: sender, in: self.bgContext) else
+            guard let groupFeedItemDecryption = self.fetchGroupFeedItemDecryption(id: contentID, in: managedObjectContext) ??
+                    self.createGroupFeedItemDecryption(id: contentID, contentType: contentType, groupID: groupID, timestamp: timestamp, sender: sender, in: managedObjectContext) else
             {
                 DDLogError("CryptoData/update/\(contentID)/group/\(groupID)/error could not find or create decryption report")
                 return
@@ -145,9 +146,9 @@ public final class CryptoData {
             if error.isEmpty {
                 groupFeedItemDecryption.hasBeenReported = false
             }
-            if self.bgContext.hasChanges {
+            if managedObjectContext.hasChanges {
                 do {
-                    try self.bgContext.save()
+                    try managedObjectContext.save()
                     DDLogInfo("CryptoData/update/\(contentID)/group/\(groupID)/saved [\(error)]")
                 } catch {
                     DDLogError("CryptoData/update/\(contentID)/group/\(groupID)/save/error [\(error)]")
@@ -156,7 +157,7 @@ public final class CryptoData {
         }
     }
 
-    public func generateReport(markEventsReported: Bool = true) -> [DiscreteEvent] {
+    public func generateReport(markEventsReported: Bool = true, using managedObjectContext: NSManagedObjectContext) -> [DiscreteEvent] {
         let messageFetchRequest: NSFetchRequest<MessageDecryption> = MessageDecryption.fetchRequest()
         messageFetchRequest.predicate = NSPredicate(format: "hasBeenReported == false")
         messageFetchRequest.returnsObjectsAsFaults = false
@@ -172,16 +173,16 @@ public final class CryptoData {
         do {
 
             // Message decryption events.
-            let messageUnreportedEvents = try viewContext.fetch(messageFetchRequest)
+            let messageUnreportedEvents = try managedObjectContext.fetch(messageFetchRequest)
             let messageReadyEvents = messageUnreportedEvents.filter { $0.isReadyToBeReported(withDeadline: deadline) }
             DDLogInfo("CryptoData/generateReport-message [\(messageReadyEvents.count) ready of \(messageUnreportedEvents.count) unreported]")
 
             // GroupFeedItem decryption events.
-            let groupUnreportedEvents = try viewContext.fetch(groupFeedItemFetchRequest)
+            let groupUnreportedEvents = try managedObjectContext.fetch(groupFeedItemFetchRequest)
             let groupReadyEvents = groupUnreportedEvents.filter { $0.isReadyToBeReported(withDeadline: deadline) }
             DDLogInfo("CryptoData/generateReport-group [\(groupReadyEvents.count) ready of \(groupUnreportedEvents.count) unreported]")
 
-            let groupHistoryUnreportedEvents = try viewContext.fetch(groupFeedHistoryFetchRequest)
+            let groupHistoryUnreportedEvents = try managedObjectContext.fetch(groupFeedHistoryFetchRequest)
             let groupHistoryReadyEvents = groupHistoryUnreportedEvents.filter { $0.isReadyToBeReported(withDeadline: deadline) }
             DDLogInfo("CryptoData/generateReport-groupHistory [\(groupHistoryReadyEvents.count) ready of \(groupHistoryUnreportedEvents.count) unreported]")
 
@@ -214,7 +215,7 @@ public final class CryptoData {
         reportTimer = DispatchSource.makeTimerSource(flags: [], queue: .main)
         reportTimer?.setEventHandler(handler: { [weak self] in
             guard let self = self else { return }
-            let events = self.generateReport()
+            let events = self.generateReport(using: self.viewContext)
             if events.isEmpty {
                 DDLogInfo("CryptoData/reportTimer/skipping [no events]")
             } else {
@@ -227,20 +228,20 @@ public final class CryptoData {
     }
 
     // TODO: we should make this result an enum.
-    public func result(for messageID: String) -> String? {
-        return fetchMessageDecryption(id: messageID, in: viewContext)?.decryptionResult
+    public func result(for messageID: String, in managedObjectContext: NSManagedObjectContext) -> String? {
+        return fetchMessageDecryption(id: messageID, in: managedObjectContext)?.decryptionResult
     }
 
-    public func cryptoResult(for contentID: String) -> CryptoResult? {
-        if let error = fetchGroupFeedItemDecryption(id: contentID, in: viewContext)?.decryptionError {
+    public func cryptoResult(for contentID: String, in managedObjectContext: NSManagedObjectContext) -> CryptoResult? {
+        if let error = fetchGroupFeedItemDecryption(id: contentID, in: managedObjectContext)?.decryptionError {
             return error.isEmpty ? .success : .failure
         } else {
             return nil
         }
     }
 
-    public func details(for messageID: String, dateFormatter: DateFormatter) -> String? {
-        guard let decryption = fetchMessageDecryption(id: messageID, in: viewContext) else {
+    public func details(for messageID: String, dateFormatter: DateFormatter, in managedObjectContext: NSManagedObjectContext) -> String? {
+        guard let decryption = fetchMessageDecryption(id: messageID, in: managedObjectContext) else {
             DDLogInfo("CryptoData/details/\(messageID)/not-found")
             return nil
         }
@@ -264,11 +265,17 @@ public final class CryptoData {
 
     // Used to migrate old database from main app storage into shared container.
     public func integrateEarlierResults(from oldDatabase: CryptoData, completion: (() -> Void)? = nil) {
-        queue.async {
-            let oldDecryptions = oldDatabase.fetchAllMessageDecryptions(in: oldDatabase.viewContext)
+        performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
+            guard let self = self else { return }
+
+            var oldDecryptions: [MessageDecryption] = []
+            oldDatabase.performOnBackgroundContextAndWait { oldManagedObjectContext in
+                oldDecryptions = oldDatabase.fetchAllMessageDecryptions(in: oldManagedObjectContext)
+            }
+
             for oldDecryption in oldDecryptions {
                 let messageID = oldDecryption.messageID
-                if let newDecryption = self.fetchMessageDecryption(id: messageID, in: self.bgContext) {
+                if let newDecryption = self.fetchMessageDecryption(id: messageID, in: managedObjectContext) {
                     DDLogInfo("CryptoData/integrateEarlierResults/\(messageID)/updating")
                     // Prefer original decryption timestamp and user agent
                     newDecryption.timeReceived = oldDecryption.timeReceived ?? newDecryption.timeReceived
@@ -277,7 +284,7 @@ public final class CryptoData {
 
                     // Mark hasBeenReported if either has been reported
                     newDecryption.hasBeenReported = oldDecryption.hasBeenReported || newDecryption.hasBeenReported
-                } else if let newDecryption = NSEntityDescription.insertNewObject(forEntityName: "MessageDecryption", into: self.bgContext) as? MessageDecryption {
+                } else if let newDecryption = NSEntityDescription.insertNewObject(forEntityName: "MessageDecryption", into: managedObjectContext) as? MessageDecryption {
                     DDLogInfo("CryptoData/integrateEarlierResults/\(messageID)/copying")
                     // Copy all values from original decryption
                     newDecryption.messageID = oldDecryption.messageID
@@ -293,9 +300,9 @@ public final class CryptoData {
                     DDLogError("CryptoData/integrateEarlierResults/\(messageID)/error [copy failure]")
                 }
             }
-            if self.bgContext.hasChanges {
+            if managedObjectContext.hasChanges {
                 do {
-                    try self.bgContext.save()
+                    try managedObjectContext.save()
                     DDLogInfo("CryptoData/integrateEarlierResults/saved [\(oldDecryptions.count)]")
                 } catch {
                     DDLogError("CryptoData/integrateEarlierResults/save/error [\(error)]")
@@ -334,8 +341,8 @@ public final class CryptoData {
 
     // MARK: Private
 
+    private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.crypto-stats")
     private let persistentStoreURL: URL
-    private let queue = DispatchQueue(label: "com.halloapp.crypto-stats")
     private let deadline = TimeInterval(86400) // 24*60*60, 24 hour deadline
 
     private var reportTimer: DispatchSourceTimer?
@@ -343,10 +350,6 @@ public final class CryptoData {
     public lazy var viewContext: NSManagedObjectContext = {
         persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
         return persistentContainer.viewContext
-    }()
-
-    private lazy var bgContext: NSManagedObjectContext = {
-        return persistentContainer.newBackgroundContext()
     }()
 
     private lazy var persistentContainer: NSPersistentContainer = {
@@ -370,14 +373,32 @@ public final class CryptoData {
         return container
     }()
 
-    public func performOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
-        guard !Thread.current.isMainThread else {
-            DDLogDebug("FeedData/performOnBackgroundContextAndWait/exit, being called from main thread")
-            return
+    private func newBackgroundContext() -> NSManagedObjectContext {
+        let context = persistentContainer.newBackgroundContext()
+        context.automaticallyMergesChangesFromParent = true
+        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+
+        return context
+    }
+
+    public func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
+        backgroundProcessingQueue.async { [weak self] in
+            guard let self = self else { return }
+
+            let context = self.newBackgroundContext()
+            context.performAndWait {
+                block(context)
+            }
         }
-        let managedObjectContext = persistentContainer.newBackgroundContext()
-        managedObjectContext.automaticallyMergesChangesFromParent = true
-        managedObjectContext.performAndWait { block(managedObjectContext) }
+    }
+
+    public func performOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
+        backgroundProcessingQueue.sync {
+            let context = self.newBackgroundContext()
+            context.performAndWait {
+                block(context)
+            }
+        }
     }
 
     public func fetchMessageDecryption(id: String, in context: NSManagedObjectContext) -> MessageDecryption? {
@@ -486,17 +507,17 @@ public final class CryptoData {
     }
 
     private func markDecryptionsAsReported(_ managedObjectIDs: [NSManagedObjectID]) {
-        queue.async {
+        performSeriallyOnBackgroundContext { managedObjectContext in
             for id in managedObjectIDs {
-                guard let messageDecryption = try? self.bgContext.existingObject(with: id) as? MessageDecryption else {
+                guard let messageDecryption = try? managedObjectContext.existingObject(with: id) as? MessageDecryption else {
                     DDLogError("CryptoData/markDecryptionsAsReported/\(id)/error could not find row to update")
                     continue
                 }
                 messageDecryption.hasBeenReported = true
             }
-            if self.bgContext.hasChanges {
+            if managedObjectContext.hasChanges {
                 do {
-                    try self.bgContext.save()
+                    try managedObjectContext.save()
                 } catch {
                     DDLogError("CryptoData/markDecryptionsAsReported/save/error [\(error)]")
                 }
@@ -505,17 +526,17 @@ public final class CryptoData {
     }
 
     private func markGroupDecryptionsAsReported(_ managedObjectIDs: [NSManagedObjectID]) {
-        queue.async {
+        performSeriallyOnBackgroundContext { managedObjectContext in
             for id in managedObjectIDs {
-                guard let groupFeedItemDecryption = try? self.bgContext.existingObject(with: id) as? GroupFeedItemDecryption else {
+                guard let groupFeedItemDecryption = try? managedObjectContext.existingObject(with: id) as? GroupFeedItemDecryption else {
                     DDLogError("CryptoData/markDecryptionsAsReported/\(id)/error could not find row to update")
                     continue
                 }
                 groupFeedItemDecryption.hasBeenReported = true
             }
-            if self.bgContext.hasChanges {
+            if managedObjectContext.hasChanges {
                 do {
-                    try self.bgContext.save()
+                    try managedObjectContext.save()
                 } catch {
                     DDLogError("CryptoData/markDecryptionsAsReported/save/error [\(error)]")
                 }
@@ -524,17 +545,17 @@ public final class CryptoData {
     }
 
     private func markGroupFeedHistoryDecryptionsAsReported(_ managedObjectIDs: [NSManagedObjectID]) {
-        queue.async {
+        performSeriallyOnBackgroundContext { managedObjectContext in
             for id in managedObjectIDs {
-                guard let groupFeedHistoryDecryption = try? self.bgContext.existingObject(with: id) as? GroupFeedHistoryDecryption else {
+                guard let groupFeedHistoryDecryption = try? managedObjectContext.existingObject(with: id) as? GroupFeedHistoryDecryption else {
                     DDLogError("CryptoData/markGroupFeedHistoryDecryptionsAsReported/\(id)/error could not find row to update")
                     continue
                 }
                 groupFeedHistoryDecryption.hasBeenReported = true
             }
-            if self.bgContext.hasChanges {
+            if managedObjectContext.hasChanges {
                 do {
-                    try self.bgContext.save()
+                    try managedObjectContext.save()
                 } catch {
                     DDLogError("CryptoData/markGroupFeedHistoryDecryptionsAsReported/save/error [\(error)]")
                 }

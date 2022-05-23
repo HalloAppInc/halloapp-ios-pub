@@ -59,11 +59,12 @@ struct ActivityCenterItem: Hashable {
                 return image
             }
         }
-        guard let postID = postId, let post = MainAppContext.shared.feedData.feedPost(with: postID) else
+        guard let postID = postId, let post = MainAppContext.shared.feedData.feedPost(with: postID, in: MainAppContext.shared.feedData.viewContext) else
             {
                 return nil
             }
-        let postText = MainAppContext.shared.contactStore.textWithMentions(post.rawText ?? "", mentions: post.orderedMentions)
+        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+        let postText = MainAppContext.shared.contactStore.textWithMentions(post.rawText ?? "", mentions: post.orderedMentions, in: contactsViewContext)
         return UIImage.thumbnail(forText: postText?.string)
     }
     
@@ -112,18 +113,19 @@ struct ActivityCenterItem: Hashable {
         let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
         let boldFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
         let result = NSMutableAttributedString(string: localizedString, attributes: [ .font: baseFont ])
+        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
         
         let authorRange = (result.string as NSString).range(of: "<$author$>")
         if authorRange.location != NSNotFound {
-            let authorUserID = MainAppContext.shared.feedData.feedPost(with: notifications[0].postID)?.userId
-            let authorName = MainAppContext.shared.contactStore.fullName(for: authorUserID ?? "")
+            let authorUserID = MainAppContext.shared.feedData.feedPost(with: notifications[0].postID, in: MainAppContext.shared.feedData.viewContext)?.userId
+            let authorName = MainAppContext.shared.contactStore.fullName(for: authorUserID ?? "", in: contactsViewContext)
             let author = NSAttributedString(string: authorName, attributes: [ .font: boldFont ])
             result.replaceCharacters(in: authorRange, with: author)
         }
 
         let commenterRange = (result.string as NSString).range(of: "<$user$>")
         if commenterRange.location != NSNotFound {
-            let commenterName = MainAppContext.shared.contactStore.fullName(for: notifications.first?.userID ?? "")
+            let commenterName = MainAppContext.shared.contactStore.fullName(for: notifications.first?.userID ?? "", in: contactsViewContext)
             let commenter = NSAttributedString(string: commenterName, attributes: [ .font: boldFont ])
             result.replaceCharacters(in: commenterRange, with: commenter)
         }
@@ -175,7 +177,7 @@ extension FeedActivity {
 
     var authorName: String {
         get {
-            return MainAppContext.shared.contactStore.firstName(for: userID)
+            return MainAppContext.shared.contactStore.firstName(for: userID, in: MainAppContext.shared.contactStore.viewContext)
         }
     }
 
@@ -183,7 +185,8 @@ extension FeedActivity {
         get {
             return MainAppContext.shared.contactStore.textWithMentions(
                 rawText,
-                mentions: orderedMentions)
+                mentions: orderedMentions,
+                in: MainAppContext.shared.contactStore.viewContext)
         }
     }
 

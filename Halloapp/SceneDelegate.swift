@@ -333,11 +333,11 @@ extension SceneDelegate: UIWindowSceneDelegate {
             let peerNumber = userActivity.phoneNumber
 
             if let peerNumber = peerNumber,
-               let peerContactUserID = MainAppContext.shared.contactStore.userID(for: peerNumber) {
+               let peerContactUserID = MainAppContext.shared.contactStore.userID(for: peerNumber, using: MainAppContext.shared.contactStore.viewContext) {
                 peerUserID = peerContactUserID
                 DDLogInfo("appdelegate/scene/continueUserActivity/using peerNumber: \(peerNumber)/peerUserID: \(String(describing: peerContactUserID))")
             } else if let contactIdentifier = contactIdentifier {
-                let peerContact = MainAppContext.shared.contactStore.contact(withIdentifier: contactIdentifier)
+                let peerContact = MainAppContext.shared.contactStore.contact(withIdentifier: contactIdentifier, in: MainAppContext.shared.contactStore.viewContext)
                 peerUserID = peerContact?.userId
                 DDLogInfo("appdelegate/scene/continueUserActivity/using contactIdentifier: \(contactIdentifier)/peerUserID: \(String(describing: peerUserID))")
             } else {

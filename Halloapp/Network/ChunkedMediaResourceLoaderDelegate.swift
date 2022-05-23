@@ -468,7 +468,7 @@ fileprivate class CachedChunkedMediaResource {
         self.chunkedParameters = chunkedParameters
         self.fileURL = fileURL
 
-        if let post = MainAppContext.shared.feedData.feedPost(with: feedPostID),
+        if let post = MainAppContext.shared.feedData.feedPost(with: feedPostID, in: MainAppContext.shared.feedData.viewContext),
            let media = post.media?.first(where: { $0.order == mediaOrder }),
            let chunkSetData = media.chunkSet {
             self.chunkBitSet = BitSet(from: chunkSetData, count: Int(chunkedParameters.totalChunkCount))

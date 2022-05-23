@@ -178,7 +178,7 @@ class MessageCellViewQuoted: MessageCellViewBase {
             nameContentTimeRow.addArrangedSubview(quotedMessageView)
         }
         //Configure media view
-        if let media = MainAppContext.shared.feedData.media(commentID: comment.id) {
+        if let media = MainAppContext.shared.feedData.media(commentID: comment.id, in: MainAppContext.shared.feedData.viewContext) {
             if let commentMedia = comment.media, commentMedia.count > 0 {
                 // Audio comment
                 if comment.media?.count == 1, let media = comment.media?.first, media.type == .audio {
@@ -268,7 +268,7 @@ class MessageCellViewQuoted: MessageCellViewBase {
     }
 
     private func setNameLabel(for userID: String) {
-        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
+        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, in: MainAppContext.shared.contactStore.viewContext)
     }
 
     private func configureAudio(audioMedia: CommonMedia, isOwn: Bool, isPlayed: Bool) {

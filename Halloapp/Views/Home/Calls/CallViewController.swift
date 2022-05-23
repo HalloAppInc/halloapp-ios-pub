@@ -170,7 +170,8 @@ class AudioCallViewController: CallViewController {
 
     private let peerUserID: UserID
     private var peerPhoneNumber: String {
-        if let phoneNumber = MainAppContext.shared.contactStore.normalizedPhoneNumber(for: peerUserID) {
+        let viewContext = MainAppContext.shared.contactStore.viewContext
+        if let phoneNumber = MainAppContext.shared.contactStore.normalizedPhoneNumber(for: peerUserID, using: viewContext) {
             return phoneNumber.formattedPhoneNumber
         } else {
             return ""
@@ -253,7 +254,7 @@ class AudioCallViewController: CallViewController {
 
         // Text Label
         let peerNameLabel = UILabel()
-        peerNameLabel.text = MainAppContext.shared.contactStore.fullName(for: peerUserID, showPushNumber: true)
+        peerNameLabel.text = MainAppContext.shared.contactStore.fullName(for: peerUserID, showPushNumber: true, in: MainAppContext.shared.contactStore.viewContext)
         peerNameLabel.font = .systemFont(ofSize: 30)
         peerNameLabel.textColor = .white
         peerNameLabel.adjustsFontSizeToFitWidth = true

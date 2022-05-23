@@ -702,7 +702,7 @@ class ContactSelectionManager {
         let ownUserID = MainAppContext.shared.userData.userId
         var uniqueUserIDs = Set<UserID>()
         allContacts = MainAppContext.shared.contactStore
-            .allRegisteredContacts(sorted: true)
+            .allRegisteredContacts(sorted: true, in: MainAppContext.shared.contactStore.viewContext)
             .compactMap {
                 guard let userID = $0.userId, let name = $0.fullName else { return nil }
                 guard userID != ownUserID, !uniqueUserIDs.contains(userID) else { return nil }

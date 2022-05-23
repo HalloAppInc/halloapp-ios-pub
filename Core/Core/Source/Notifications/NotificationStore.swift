@@ -164,7 +164,6 @@ open class NotificationStore {
     }
 
     private func notificationStatus(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext) -> NotificationStatus? {
-        let managedObjectContext = managedObjectContext
         let fetchRequest: NSFetchRequest<NotificationStatus> = NotificationStatus.fetchRequest()
         fetchRequest.predicate = predicate
         fetchRequest.sortDescriptors = sortDescriptors

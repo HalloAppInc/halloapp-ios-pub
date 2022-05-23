@@ -190,7 +190,7 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
     override func viewWillAppear(_ animated: Bool) {
         DDLogInfo("GroupInfoViewController/viewWillAppear")
 
-        chatGroup = MainAppContext.shared.chatData.chatGroup(groupId: groupID)
+        chatGroup = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext)
         if let tableHeaderView = tableView.tableHeaderView as? GroupInfoHeaderView {
             tableHeaderView.configure(chatGroup: chatGroup)
         }
@@ -245,8 +245,8 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
     }
 
     private func sortByFullName(this: GroupMember, that: GroupMember) -> Bool {
-        let thisName = MainAppContext.shared.contactStore.fullName(for: this.userID)
-        let thatName = MainAppContext.shared.contactStore.fullName(for: that.userID)
+        let thisName = MainAppContext.shared.contactStore.fullName(for: this.userID, in: MainAppContext.shared.contactStore.viewContext)
+        let thatName = MainAppContext.shared.contactStore.fullName(for: that.userID, in: MainAppContext.shared.contactStore.viewContext)
         return thisName < thatName
     }
 
@@ -277,12 +277,13 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
         var contactsNotInAddressBook: [GroupMember] = []
         
         if let objects = fetchedResultsController?.fetchedObjects {
+            let contactsViewContext = MainAppContext.shared.contactStore.viewContext
             for groupMember in objects {
                 if groupMember.userID == MainAppContext.shared.userData.userId {
                     yourself.append(groupMember)
                 } else if groupMember.type == .admin {
                     contactsWhoAreAdmins.append(groupMember)
-                } else if MainAppContext.shared.contactStore.isContactInAddressBook(userId: groupMember.userID) {
+                } else if MainAppContext.shared.contactStore.isContactInAddressBook(userId: groupMember.userID, in: contactsViewContext) {
                     contactsInAddressBook.append(groupMember)
                 } else {
                     contactsNotInAddressBook.append(groupMember)
@@ -356,7 +357,8 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
     // MARK: Actions
 
     @objc private func openEditAvatarOptions() {
-        guard MainAppContext.shared.chatData.chatGroupMember(groupId: groupID, memberUserId: MainAppContext.shared.userData.userId) != nil else { return }
+        let viewContext = MainAppContext.shared.chatData.viewContext
+        guard MainAppContext.shared.chatData.chatGroupMember(groupId: groupID, memberUserId: MainAppContext.shared.userData.userId, in: viewContext) != nil else { return }
         let avatarData = MainAppContext.shared.avatarStore.groupAvatarData(for: groupID)
 
         let actionSheet = UIAlertController(title: Localizations.chatGroupPhotoTitle, message: nil, preferredStyle: .actionSheet)
@@ -459,8 +461,9 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
         guard let headerView = tableView.tableHeaderView as? GroupInfoHeaderView else { return }
         guard let footerView = tableView.tableFooterView as? GroupInfoFooterView else { return }
         var haveAdminPermissionChanged: Bool = false
+        let viewContext = MainAppContext.shared.chatData.viewContext
 
-        if let chatGroupMember = MainAppContext.shared.chatData.chatGroupMember(groupId: groupID, memberUserId: MainAppContext.shared.userData.userId) {
+        if let chatGroupMember = MainAppContext.shared.chatData.chatGroupMember(groupId: groupID, memberUserId: MainAppContext.shared.userData.userId, in: viewContext) {
             if chatGroupMember.type == .admin {
                 if !isAdmin { haveAdminPermissionChanged = true }
                 isAdmin = true
@@ -577,7 +580,7 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
     private func refreshGroupInfo() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
             guard let self = self else { return }
-            self.chatGroup = MainAppContext.shared.chatData.chatGroup(groupId: self.groupID)
+            self.chatGroup = MainAppContext.shared.chatData.chatGroup(groupId: self.groupID, in: MainAppContext.shared.chatData.viewContext)
             if let tableHeaderView = self.tableView.tableHeaderView as? GroupInfoHeaderView {
                 tableHeaderView.configure(chatGroup: self.chatGroup)
             }
@@ -659,15 +662,17 @@ extension GroupInfoViewController: UITableViewDelegate {
                     }
                     deselectRow()
                 case .contact(let memberUserID):
-                    guard let member = MainAppContext.shared.chatData.chatGroupMember(groupId: groupID, memberUserId: memberUserID) else {
+                    let viewContext = MainAppContext.shared.chatData.viewContext
+                    guard let member = MainAppContext.shared.chatData.chatGroupMember(groupId: groupID, memberUserId: memberUserID, in: viewContext) else {
                         return deselectRow()
                     }
                     guard memberUserID != MainAppContext.shared.userData.userId else {
                         return deselectRow()
                     }
       
-                    let userName = MainAppContext.shared.contactStore.fullName(for: memberUserID)
-                    let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: memberUserID)
+                    let userName = MainAppContext.shared.contactStore.fullName(for: memberUserID, in: MainAppContext.shared.contactStore.viewContext)
+                    let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+                    let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: memberUserID, in: contactsViewContext)
                     let selectedMembers = [memberUserID]
 
                     let actionSheet = UIAlertController(title: "\(userName)", message: nil, preferredStyle: .actionSheet)
@@ -1225,8 +1230,8 @@ private extension ContactTableViewCell {
     func configure(groupID: GroupID, memberUserID: UserID) {
         contactImage.configure(with: memberUserID, using: MainAppContext.shared.avatarStore)
         nameLabel.font = UIFont.systemFont(forTextStyle: .body, maximumPointSize: Constants.MaxFontPointSize)
-        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: memberUserID)
-        if let member = MainAppContext.shared.chatData.chatGroupMember(groupId: groupID, memberUserId: memberUserID) {
+        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: memberUserID, in: MainAppContext.shared.contactStore.viewContext)
+        if let member = MainAppContext.shared.chatData.chatGroupMember(groupId: groupID, memberUserId: memberUserID, in: MainAppContext.shared.chatData.viewContext) {
             accessoryLabel.text = member.type == .admin ? Localizations.chatGroupInfoAdminLabel : ""
         }
     }

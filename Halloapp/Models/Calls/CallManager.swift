@@ -391,19 +391,22 @@ final class CallManager: NSObject, CXProviderDelegate {
     }
 
     private func handle(for peerUserID: UserID) -> CXHandle {
-        let peerPhoneNumber: String
-        if let phoneNumber = MainAppContext.shared.contactStore.normalizedPhoneNumber(for: peerUserID) {
-            peerPhoneNumber = "+" + phoneNumber
-        } else {
-            peerPhoneNumber = ""
+        var peerPhoneNumber = ""
+
+        MainAppContext.shared.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
+            if let phoneNumber = MainAppContext.shared.contactStore.normalizedPhoneNumber(for: peerUserID, using: managedObjectContext) {
+                peerPhoneNumber = "+" + phoneNumber
+            }
         }
+
         DDLogInfo("CallManager/handle/for: \(peerUserID)/phone: \(peerPhoneNumber)")
         let handle = CXHandle(type: .phoneNumber, value: peerPhoneNumber)
         return handle
     }
 
     public func peerName(for peerUserID: UserID) -> String {
-        return MainAppContext.shared.contactStore.fullNameIfAvailable(for: peerUserID, ownName: nil, showPushNumber: true) ?? Localizations.unknownContact
+        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+        return MainAppContext.shared.contactStore.fullNameIfAvailable(for: peerUserID, ownName: nil, showPushNumber: true, in: contactsViewContext) ?? Localizations.unknownContact
     }
 
     private func handleSystemError() {

@@ -72,7 +72,7 @@ class MomentViewController: UIViewController {
         view.autoresizingMask = [.flexibleHeight]
         view.blurView.isHidden = true
         view.delegate = self
-        let name = MainAppContext.shared.contactStore.firstName(for: post.userID)
+        let name = MainAppContext.shared.contactStore.firstName(for: post.userID, in: MainAppContext.shared.contactStore.viewContext)
         view.placeholderText = String(format: Localizations.privateReplyPlaceholder, name)
 
         return view

@@ -36,11 +36,11 @@ final class FeedDataSource: NSObject {
         self.fetchRequest = fetchRequest
         super.init()
 
-        NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification, object: nil).sink { [weak self] _ in
+        NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification, object: nil).receive(on: DispatchQueue.main).sink { [weak self] _ in
             self?.verifyOldestUnexpiredMoment()
         }.store(in: &cancellables)
 
-        MainAppContext.shared.feedData.validMoment.sink { [weak self] _ in
+        MainAppContext.shared.feedData.validMoment.receive(on: DispatchQueue.main).sink { [weak self] _ in
             // in this case we want to refresh since we want the prompt cell to be
             // inserted again
             self?.refresh()

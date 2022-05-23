@@ -723,7 +723,7 @@ class MediaPickerViewController: UIViewController {
 
             changeDestinationIconConstraint?.constant = 19
 
-            if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
+            if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) {
                 changeDestinationLabel.text = group.name
             }
         case .chat:

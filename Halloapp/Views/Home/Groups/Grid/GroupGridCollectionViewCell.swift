@@ -266,8 +266,10 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
     func configure(with post: FeedPost) {
         audioAvatarChangedCancellable?.cancel()
 
+        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
         nameLabel.text = MainAppContext.shared.contactStore.fullNameIfAvailable(for: post.userID,
-                                                                                ownName: Localizations.meCapitalized) ?? Localizations.unknownContact
+                                                                                ownName: Localizations.meCapitalized,
+                                                                                in: contactsViewContext) ?? Localizations.unknownContact
         var isLinkPreview = false
         var isAlbum = false
         var hasAudio = false
@@ -321,7 +323,8 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
             }
         } else {
             // Text post
-            let mentionText = MainAppContext.shared.contactStore.textWithMentions(post.rawText, mentions: post.orderedMentions)
+            let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+            let mentionText = MainAppContext.shared.contactStore.textWithMentions(post.rawText, mentions: post.orderedMentions, in: contactsViewContext)
             let bodyFont = textView.font ?? UIFont()
             let mentionFont = UIFont(descriptor: bodyFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
 

@@ -65,7 +65,7 @@ class DeleteAccountModel: ObservableObject {
             status = .deleted
         }
 
-        MainAppContext.shared.userData.logout()
+        MainAppContext.shared.userData.logout(using: MainAppContext.shared.userData.viewContext)
 
         // Wipe user data from device
         MainAppContext.shared.deleteSharedDirectory()

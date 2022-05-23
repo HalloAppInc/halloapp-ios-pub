@@ -11,6 +11,7 @@ import Core
 import CoreCommon
 import UserNotifications
 import SwiftNoise
+import CoreData
 
 
 public enum NotificationMediaType: Int, Codable {
@@ -469,8 +470,15 @@ class NotificationMetadata: Codable {
 
         let mentionNameProvider: (UserID) -> String = { [self] userID in
             let pushNameForMention = (userID == fromId) ? pushName : nil
-            return contactStore.mentionNameIfAvailable(for: userID, pushName: pushNameForMention) ?? Localizations.unknownContact
+
+            var name: String?
+            contactStore.performOnBackgroundContextAndWait { managedObjectContext in
+                name = contactStore.mentionNameIfAvailable(for: userID, pushName: pushNameForMention, in: managedObjectContext)
+            }
+
+            return name ?? Localizations.unknownContact
         }
+
         return mentionNameProvider
     }
 
@@ -479,7 +487,12 @@ class NotificationMetadata: Codable {
         // Title:
         // "Contact" for feed posts / comments and 1-1 chat messages.
         // "Contact @ Group" for group feed posts / comments and group chat messages.
-        let contactName = contactStore.fullNameIfAvailable(for: fromId, ownName: nil) ?? pushName
+
+        var contactName: String?
+        contactStore.performOnBackgroundContextAndWait { managedObjectContext in
+            contactName = contactStore.fullNameIfAvailable(for: fromId, ownName: nil, in: managedObjectContext) ?? self.pushName
+        }
+
         title = [contactName, groupName].compactMap({ $0 }).joined(separator: " @ ")
 
         // Save push name for contact
@@ -508,7 +521,11 @@ class NotificationMetadata: Codable {
         // Contact notification for new friend or new invitee
         case .newFriend, .newInvitee, .newContact:
             // Look up contact using phone number as the user ID probably hasn't synced yet
-            let contactName = contactStore.fullNameIfAvailable(forNormalizedPhone: normalizedPhone!, ownName: nil)
+            var contactName: String?
+            contactStore.performOnBackgroundContextAndWait { managedObjectContext in
+                contactName = contactStore.fullNameIfAvailable(forNormalizedPhone: normalizedPhone!, ownName: nil, in: managedObjectContext)
+            }
+
             title = ""
             guard let name = contactName else {
                 body = Localizations.contactNotificationUnknownContent
@@ -614,12 +631,17 @@ class NotificationMetadata: Codable {
     }
 
     func populateMissedVoiceCallContent(contactStore: ContactStore) {
-        title = contactStore.fullNameIfAvailable(for: fromId, ownName: nil, showPushNumber: true) ?? Localizations.unknownContact
+        contactStore.performOnBackgroundContextAndWait { managedObjectContext in
+            self.title = contactStore.fullNameIfAvailable(for: fromId, ownName: nil, showPushNumber: true, in: managedObjectContext) ?? Localizations.unknownContact
+        }
+
         body = Localizations.newMissedVoiceCallNotificationBody
     }
 
     func populateMissedVideoCallContent(contactStore: ContactStore) {
-        title = contactStore.fullNameIfAvailable(for: fromId, ownName: nil, showPushNumber: true) ?? Localizations.unknownContact
+        contactStore.performOnBackgroundContextAndWait { managedObjectContext in
+            self.title = contactStore.fullNameIfAvailable(for: fromId, ownName: nil, showPushNumber: true, in: managedObjectContext) ?? Localizations.unknownContact
+        }
         body = Localizations.newMissedVideoCallNotificationBody
     }
 

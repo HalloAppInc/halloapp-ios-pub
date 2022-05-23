@@ -14,6 +14,7 @@ import CoreCommon
 import SwiftProtobuf
 import UserNotifications
 import CallKit
+import CoreData
 
 final class NotificationProtoService: ProtoServiceCore {
 
@@ -671,7 +672,11 @@ final class NotificationProtoService: ProtoServiceCore {
         let isUserBlocked = AppContext.shared.privacySettings.blocked.userIds.contains(metadata.fromId)
 
         // Notify comments from contacts on group posts.
-        let isKnownPublisher = AppContext.shared.contactStore.contact(withUserId: commentData.userId) != nil
+        var isKnownPublisher = false
+        AppContext.shared.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
+            isKnownPublisher = AppContext.shared.contactStore.isContactInAddressBook(userId: commentData.userId, in: managedObjectContext)
+        }
+
         let isGroupComment = metadata.groupId != nil
         let isGroupCommentFromContact = ServerProperties.isGroupCommentNotificationsEnabled  && isGroupComment && isKnownPublisher
 

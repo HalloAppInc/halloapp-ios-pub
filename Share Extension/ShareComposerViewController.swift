@@ -775,7 +775,8 @@ class ShareComposerViewController: UIViewController {
     /// - Remark: This is different from the implementation in `ChatData.swift` because `MainAppContext` isn't available in the share extension.
     private func addIntent(toUserId: UserID) {
         if #available(iOS 14.0, *) {
-            guard let fullName = ShareExtensionContext.shared.contactStore.fullNameIfAvailable(for: toUserId, ownName: Localizations.meCapitalized) else { return }
+            let contactsContextView = ShareExtensionContext.shared.contactStore.viewContext
+            guard let fullName = ShareExtensionContext.shared.contactStore.fullNameIfAvailable(for: toUserId, ownName: Localizations.meCapitalized, in: contactsContextView) else { return }
             
             let recipient = INSpeakableString(spokenPhrase: fullName)
             let sendMessageIntent = INSendMessageIntent(recipients: nil,

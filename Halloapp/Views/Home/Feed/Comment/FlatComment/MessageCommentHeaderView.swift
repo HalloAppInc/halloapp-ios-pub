@@ -181,7 +181,7 @@ class MessageCommentHeaderView: UICollectionReusableView {
     func configure(withPost feedPost: FeedPost) {
         self.feedPost = feedPost
         // Contact name
-        contactNameLabel.text = MainAppContext.shared.contactStore.fullName(for: feedPost.userId)
+        contactNameLabel.text = MainAppContext.shared.contactStore.fullName(for: feedPost.userId, in: MainAppContext.shared.contactStore.viewContext)
         // Timestamp
         timestampLabel.text = feedPost.timestamp.feedTimestamp()
         // Avatar
@@ -192,7 +192,7 @@ class MessageCommentHeaderView: UICollectionReusableView {
     }
 
     private func configureGroupName(feedPost: FeedPost) {
-        if let groupId = feedPost.groupId, let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
+        if let groupId = feedPost.groupId, let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) {
             groupNameLabel.text = group.name
             groupNameLabel.isHidden = false
             groupIndicatorLabel.isHidden = false
@@ -231,7 +231,8 @@ class MessageCommentHeaderView: UICollectionReusableView {
         if !postTextWithCryptoResult.isEmpty {
             let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
                 postTextWithCryptoResult,
-                mentions: feedPost.orderedMentions)
+                mentions: feedPost.orderedMentions,
+                in: MainAppContext.shared.contactStore.viewContext)
 
             let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
             let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)

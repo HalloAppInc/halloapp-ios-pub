@@ -201,7 +201,7 @@ struct DeveloperMenuView: View {
                     }
                 // Log Out
                 Button(action: {
-                    self.userData.logout()
+                    self.userData.logout(using: self.userData.viewContext)
                     self.dismiss?()
                 }) {
                     Text(MenuTitles.logOut)

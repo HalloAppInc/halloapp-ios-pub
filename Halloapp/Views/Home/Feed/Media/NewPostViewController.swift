@@ -190,7 +190,7 @@ final class NewPostViewController: UIViewController {
         case .normal:
             cameraSubtitle = Localizations.newMomentCameraSubtitle
         case .unlock(let userID):
-            let name = MainAppContext.shared.contactStore.firstName(for: userID)
+            let name = MainAppContext.shared.contactStore.firstName(for: userID, in: MainAppContext.shared.contactStore.viewContext)
             cameraSubtitle = String(format: Localizations.newMomentCameraUnlockSubtitle, name)
         case .none:
             cameraSubtitle = nil

@@ -66,7 +66,7 @@ class ChatTitleView: UIView {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             let isUserBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(userID)
-            let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID)
+            let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID, in: MainAppContext.shared.contactStore.viewContext)
             let pushNumberExist = MainAppContext.shared.contactStore.pushNumber(userID) != nil
 
             self.isUnknownContactWithPushNumber = !isUserBlocked && !isContactInAddressBook && pushNumberExist
@@ -99,7 +99,7 @@ class ChatTitleView: UIView {
     }
     
     private func setNameLabel(for userID: UserID) {
-        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
+        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, in: MainAppContext.shared.contactStore.viewContext)
     }
     
     private func setup() {

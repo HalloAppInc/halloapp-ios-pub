@@ -52,7 +52,8 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
                 return false
             }
             guard let Id = groupIdStr else { return false }
-            let group = MainAppContext.shared.chatData.chatGroup(groupId: Id)
+            guard let managedObjectContext = $0.managedObjectContext else { return false }
+            let group = MainAppContext.shared.chatData.chatGroup(groupId: Id, in: managedObjectContext)
             guard let members = group?.members else { return false}
             for member in members {
                 if (member.userID == self.userID) {
@@ -405,7 +406,7 @@ extension GroupsInCommonViewController: UISearchResultsUpdating {
             if $0.type == .group {
                 titleText = $0.title
             } else {
-                titleText = MainAppContext.shared.contactStore.fullName(for: $0.userID ?? "")
+                titleText = MainAppContext.shared.contactStore.fullName(for: $0.userID ?? "", in: MainAppContext.shared.contactStore.viewContext)
             }
 
             guard let title = titleText else { return false }

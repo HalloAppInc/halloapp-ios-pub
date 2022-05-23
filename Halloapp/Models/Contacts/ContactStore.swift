@@ -639,12 +639,12 @@ class ContactStoreMain: ContactStore {
 
     // MARK: Fetching
 
-    func contacts(withUserIds userIds: [UserID]) -> [ABContact] {
+    func contacts(withUserIds userIds: [UserID], in managedObjectContext: NSManagedObjectContext) -> [ABContact] {
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "userId in %@", userIds)
         fetchRequest.returnsObjectsAsFaults = false
         do {
-            let contacts = try viewContext.fetch(fetchRequest)
+            let contacts = try managedObjectContext.fetch(fetchRequest)
             return contacts
         }
         catch {
@@ -652,27 +652,15 @@ class ContactStoreMain: ContactStore {
         }
     }
 
-    func sortedContacts(withUserIds userIds: [UserID]) -> [ABContact] {
+    func sortedContacts(withUserIds userIds: [UserID], in managedObjectContext: NSManagedObjectContext) -> [ABContact] {
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "userId in %@", userIds)
         fetchRequest.returnsObjectsAsFaults = false
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \ABContact.sort, ascending: true) ]
 
         do {
-            let contacts = try viewContext.fetch(fetchRequest)
+            let contacts = try managedObjectContext.fetch(fetchRequest)
             return contacts
-        }
-        catch {
-            fatalError("Unable to fetch contacts: \(error)")
-        }
-    }
-
-    func isContactInAddressBook(userId: UserID) -> Bool {
-        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "userId == %@", userId)
-        do {
-            let count = try viewContext.count(for: fetchRequest)
-            return count > 0
         }
         catch {
             fatalError("Unable to fetch contacts: \(error)")
@@ -680,7 +668,7 @@ class ContactStoreMain: ContactStore {
     }
 
     func addUserToAddressBook(userID: UserID, presentingVC: UIViewController) {
-        guard !isContactInAddressBook(userId: userID) else { return }
+        guard !isContactInAddressBook(userId: userID, in: viewContext) else { return }
         guard let name = pushNames[userID] else { return }
         guard let pushNumber = pushNumber(userID) else { return }
 
@@ -935,12 +923,12 @@ class ContactStoreMain: ContactStore {
 
     // MARK: Contact Names
 
-    func fullName(for userID: UserID, showPushNumber: Bool = false) -> String {
+    func fullName(for userID: UserID, showPushNumber: Bool = false, in managedObjectContext: NSManagedObjectContext) -> String {
         // Fallback to a static string.
-        return fullNameIfAvailable(for: userID, ownName: Localizations.meCapitalized, showPushNumber: showPushNumber) ?? Localizations.unknownContact
+        return fullNameIfAvailable(for: userID, ownName: Localizations.meCapitalized, showPushNumber: showPushNumber, in: managedObjectContext) ?? Localizations.unknownContact
     }
 
-    func firstName(for userID: UserID) -> String {
+    func firstName(for userID: UserID, in managedObjectContext: NSManagedObjectContext) -> String {
         if userID == self.userData.userId {
             // TODO: return correct pronoun.
             return "I"
@@ -951,7 +939,7 @@ class ContactStoreMain: ContactStore {
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "userId == %@", userID)
         do {
-            let contacts = try viewContext.fetch(fetchRequest)
+            let contacts = try managedObjectContext.fetch(fetchRequest)
             if let name = contacts.first?.givenName {
                 firstName = name
             }
@@ -991,21 +979,21 @@ class ContactStoreMain: ContactStore {
     // MARK: Mentions
 
     /// Name appropriate for use in mention. Does not contain "@" prefix.
-    func mentionName(for userID: UserID, pushName: String?) -> String {
-        if let name = mentionNameIfAvailable(for: userID, pushName: pushName) {
+    func mentionName(for userID: UserID, pushName: String?, in managedObjectContext: NSManagedObjectContext) -> String {
+        if let name = mentionNameIfAvailable(for: userID, pushName: pushName, in: managedObjectContext) {
             return name
         }
         return Localizations.unknownContact
     }
 
     /// Returns an attributed string where mention placeholders have been replaced with contact names. User IDs are retrievable via the .userMention attribute.
-    func textWithMentions(_ collapsedText: String?, mentions: [FeedMentionProtocol]) -> NSAttributedString? {
+    func textWithMentions(_ collapsedText: String?, mentions: [FeedMentionProtocol], in managedObjectContext: NSManagedObjectContext) -> NSAttributedString? {
         guard let collapsedText = collapsedText else { return nil }
 
         let mentionText = MentionText(collapsedText: collapsedText, mentionArray: mentions)
 
         return mentionText.expandedText { userID in
-            self.mentionName(for: userID, pushName: mentions.first(where: { userID == $0.userID })?.name)
+            self.mentionName(for: userID, pushName: mentions.first(where: { userID == $0.userID })?.name, in: managedObjectContext)
         }
     }
 }

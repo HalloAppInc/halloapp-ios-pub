@@ -120,7 +120,7 @@ class PostAudioView: UIView {
             } else {
                 // Wait for fileURL
                 isLoading = true
-                mediaReadyPromise = feedMedia.$isMediaAvailable.sink { [weak self] isMediaAvailable in
+                mediaReadyPromise = feedMedia.$isMediaAvailable.receive(on: DispatchQueue.main).sink { [weak self] isMediaAvailable in
                     if isMediaAvailable, let self = self {
                         self.url = feedMedia.fileURL
                         self.isLoading = false

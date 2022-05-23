@@ -51,7 +51,10 @@ public class KeyData {
                     if self.keyStore.keyBundle(in: managedObjectContext) == nil {
                         DDLogError("KeyData/onConnect/noUserKeyBundle")
                         AppContextCommon.shared.errorLogger?.logError(KeyDataError.identityKeyMissing)
-                        userData.logout()
+
+                        userData.performSeriallyOnBackgroundContext { userManagedObjectContext in
+                            userData.logout(using: userManagedObjectContext)
+                        }
                     }
                 }
             }
@@ -125,28 +128,31 @@ public class KeyData {
         isOneTimePreKeyUploadInProgress = true
         UserDefaults.shared.set(true, forKey: userDefaultsKeyForOneTimePreKeys)
 
-        guard let userKeyBundle = keyStore.keyBundle() else {
-            DDLogError("KeyStore/uploadMoreOneTimePreKeys/error [noKeysFound]")
-            return
-        }
-
-        let generatedOTPKeys = self.generateOneTimePreKeys(initialCounter: userKeyBundle.oneTimePreKeysCounter)
-
-        saveOneTimePreKeys(generatedOTPKeys) { saveSuccess in
-            guard saveSuccess else {
-                DDLogError("KeyStore/uploadMoreOneTimePreKeys/error [saveError]")
-                self.isOneTimePreKeyUploadInProgress = false
+        keyStore.performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
+            guard let self = self else { return }
+            guard let userKeyBundle = self.keyStore.keyBundle(in: managedObjectContext) else {
+                DDLogError("KeyStore/uploadMoreOneTimePreKeys/error [noKeysFound]")
                 return
             }
 
-            self.service.requestAddOneTimeKeys(generatedOTPKeys.map { $0.publicPreKey }) { result in
-                self.isOneTimePreKeyUploadInProgress = false
-                switch result {
-                case .success:
-                    DDLogInfo("KeyStore/uploadMoreOneTimePreKeys/complete")
-                    UserDefaults.shared.set(false, forKey: self.userDefaultsKeyForOneTimePreKeys)
-                case .failure(let error):
-                    DDLogError("KeyStore/uploadMoreOneTimePreKeys/error \(error)")
+            let generatedOTPKeys = self.generateOneTimePreKeys(initialCounter: userKeyBundle.oneTimePreKeysCounter)
+
+            self.saveOneTimePreKeys(generatedOTPKeys) { saveSuccess in
+                guard saveSuccess else {
+                    DDLogError("KeyStore/uploadMoreOneTimePreKeys/error [saveError]")
+                    self.isOneTimePreKeyUploadInProgress = false
+                    return
+                }
+
+                self.service.requestAddOneTimeKeys(generatedOTPKeys.map { $0.publicPreKey }) { result in
+                    self.isOneTimePreKeyUploadInProgress = false
+                    switch result {
+                    case .success:
+                        DDLogInfo("KeyStore/uploadMoreOneTimePreKeys/complete")
+                        UserDefaults.shared.set(false, forKey: self.userDefaultsKeyForOneTimePreKeys)
+                    case .failure(let error):
+                        DDLogError("KeyStore/uploadMoreOneTimePreKeys/error \(error)")
+                    }
                 }
             }
         }
@@ -240,33 +246,39 @@ public class KeyData {
             return
         }
 
-        guard let savedIdentityKey = keyStore.keyBundle()?.identityPublicEdKey else {
-            self.didFailIdentityKeyVerification(with: .identityKeyMissing)
-            return
-        }
-
-        isVerifyingIdentityKey = true
-        service.requestWhisperKeyBundle(userID: userData.userId) { result in
-            switch result {
-            case .failure(let error):
-                DDLogError("KeyData/verifyIdentityKey/error [\(error)]")
-            case .success(let bundle):
-                if bundle.identity == savedIdentityKey {
-                    DDLogError("KeyData/verifyIdentityKey/success")
-                    AppContextCommon.shared.userDefaults.setValue(Date(), forKey: UserDefaultsKey.identityKeyVerificationDate)
-                } else {
-                    DDLogInfo("KeyData/verifyIdentityKey/identityKeyMismatch: saved: \(savedIdentityKey.bytes), received:\(bundle.identity.bytes)")
-                    self.didFailIdentityKeyVerification(with: .identityKeyMismatch)
-                }
+        keyStore.performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
+            guard let self = self else { return }
+            guard let savedIdentityKey = self.keyStore.keyBundle(in: managedObjectContext)?.identityPublicEdKey else {
+                self.didFailIdentityKeyVerification(with: .identityKeyMissing)
+                return
             }
-            self.isVerifyingIdentityKey = false
+
+            self.isVerifyingIdentityKey = true
+            self.service.requestWhisperKeyBundle(userID: self.userData.userId) { result in
+                switch result {
+                case .failure(let error):
+                    DDLogError("KeyData/verifyIdentityKey/error [\(error)]")
+                case .success(let bundle):
+                    if bundle.identity == savedIdentityKey {
+                        DDLogError("KeyData/verifyIdentityKey/success")
+                        AppContextCommon.shared.userDefaults.setValue(Date(), forKey: UserDefaultsKey.identityKeyVerificationDate)
+                    } else {
+                        DDLogInfo("KeyData/verifyIdentityKey/identityKeyMismatch: saved: \(savedIdentityKey.bytes), received:\(bundle.identity.bytes)")
+                        self.didFailIdentityKeyVerification(with: .identityKeyMismatch)
+                    }
+                }
+                self.isVerifyingIdentityKey = false
+            }
         }
     }
 
     private func didFailIdentityKeyVerification(with error: KeyDataError) {
         DDLogError("KeyData/didFailIdentityKeyVerification [\(error)]")
         AppContextCommon.shared.errorLogger?.logError(error)
-        userData.logout()
+
+        userData.performSeriallyOnBackgroundContext { managedObjectContext in
+            self.userData.logout(using: managedObjectContext)
+        }
     }
 }
 

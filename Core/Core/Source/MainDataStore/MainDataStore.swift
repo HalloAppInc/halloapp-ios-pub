@@ -55,27 +55,25 @@ open class MainDataStore {
         return container
     }()
 
-    public var viewContext: NSManagedObjectContext
-    private var bgContext: NSManagedObjectContext? = nil
+    public var viewContext: NSManagedObjectContext {
+        persistentContainer.viewContext
+    }
 
     required public init(userData: UserData, appTarget: AppTarget, userDefaults: UserDefaults) {
         self.userData = userData
         self.userDefaults = userDefaults
+        self.appTarget = appTarget
+
         persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
-        viewContext = persistentContainer.viewContext
 
         // Before fetching the latest context for this target.
         // Let us update their last history timestamp: this will be useful when pruning old transactions later.
         userDefaults.updateLastHistoryTransactionTimestamp(for: appTarget, dataStore: .mainDataStore, to: Date())
-        self.bgContext = persistentContainer.newBackgroundContext()
-        // Set the context name and transaction author name.
-        // This is used later to filter out transactions made by own context.
-        self.bgContext?.name = appTarget.rawValue + "-context"
-        self.bgContext?.transactionAuthor = appTarget.rawValue
-        self.appTarget = appTarget
+
         // Add observer to notify us when persistentStore records changes.
         // These notifications are triggered for all cross process writes to the store.
         NotificationCenter.default.addObserver(self, selector: #selector(processStoreRemoteChanges), name: .NSPersistentStoreRemoteChange, object: persistentContainer.persistentStoreCoordinator)
+
         backgroundProcessingQueue.setSpecific(key: bgQueueKey, value: bgQueueValue)
     }
 
@@ -115,27 +113,36 @@ open class MainDataStore {
         })
     }
 
+    private func newBackgroundContext() -> NSManagedObjectContext {
+        let context = persistentContainer.newBackgroundContext()
+        context.automaticallyMergesChangesFromParent = true
+        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+
+        // Set the context name and transaction author name.
+        // This is used later to filter out transactions made by own context.
+        context.name = appTarget.rawValue + "-context"
+        context.transactionAuthor = appTarget.rawValue
+
+        return context
+    }
+
     public func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
         backgroundProcessingQueue.async { [weak self] in
             guard let self = self else { return }
-            self.initBgContext()
-            guard let bgContext = self.bgContext else { return }
-            bgContext.performAndWait { block(bgContext) }
+
+            let context = self.newBackgroundContext()
+            context.performAndWait {
+                block(context)
+            }
         }
     }
 
-    public func performSeriallyOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
-        backgroundProcessingQueue.sync { [weak self] in
-            guard let self = self else { return }
-            self.initBgContext()
-            guard let bgContext = self.bgContext else { return }
-            bgContext.performAndWait { block(bgContext) }
-        }
-    }
-
-    private func initBgContext() {
-        if bgContext == nil {
-            bgContext = newBackgroundContext()
+    public func performOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
+        backgroundProcessingQueue.sync {
+            let context = self.newBackgroundContext()
+            context.performAndWait {
+                block(context)
+            }
         }
     }
 
@@ -150,44 +157,47 @@ open class MainDataStore {
     }
 
     public final func saveSeriallyOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) throws {
-        try backgroundProcessingQueue.sync {
-            let context = newBackgroundContext()
-            block(context)
-            do {
-                try context.save()
-                DDLogInfo("MainDataStore/saveSeriallyOnBackgroundContextAndWait - Success")
-            } catch {
-                DDLogError("MainDataStore/saveSeriallyOnBackgroundContextAndWait - Error [\(error)]")
-                throw error
+        var errorOnSave: Error?
+
+        backgroundProcessingQueue.sync {
+            let context = self.newBackgroundContext()
+
+            context.performAndWait {
+                block(context)
+
+                do {
+                    try context.save()
+                    DDLogInfo("MainDataStore/saveSeriallyOnBackgroundContextAndWait - Success")
+                } catch {
+                    DDLogError("MainDataStore/saveSeriallyOnBackgroundContextAndWait - Error [\(error)]")
+                    errorOnSave = error
+                }
             }
+        }
+
+        if let errorOnSave = errorOnSave {
+            throw errorOnSave
         }
     }
 
-    public final func saveSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void,
-                                                      completion: ((Result<Void, Error>) -> Void)? = nil) {
-        backgroundProcessingQueue.async { [self] in
-            let context = newBackgroundContext()
-            block(context)
-            do {
-                try context.save()
-                DDLogInfo("MainDataStore/saveSeriallyOnBackgroundContext - Success")
-                completion?(.success(()))
-            } catch {
-                DDLogError("MainDataStore/saveSeriallyOnBackgroundContext - Error [\(error)]")
-                completion?(.failure(error))
+    public final func saveSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void, completion: ((Result<Void, Error>) -> Void)? = nil) {
+        backgroundProcessingQueue.async { [weak self] in
+            guard let self = self else { return }
+
+            let context = self.newBackgroundContext()
+            context.performAndWait {
+                block(context)
+
+                do {
+                    try context.save()
+                    DDLogInfo("MainDataStore/saveSeriallyOnBackgroundContext - Success")
+                    completion?(.success(()))
+                } catch {
+                    DDLogError("MainDataStore/saveSeriallyOnBackgroundContext - Error [\(error)]")
+                    completion?(.failure(error))
+                }
             }
         }
-    }
-
-    private final func newBackgroundContext() -> NSManagedObjectContext {
-        let context = persistentContainer.newBackgroundContext()
-        context.automaticallyMergesChangesFromParent = true
-        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-        // Set the context name and transaction author name.
-        // This is used later to filter out transactions made by own context.
-        context.name = appTarget.rawValue + "-context"
-        context.transactionAuthor = appTarget.rawValue
-        return context
     }
 
     // MARK: Metadata
@@ -264,7 +274,6 @@ open class MainDataStore {
     }
 
     public func call(with callID: CallID, in managedObjectContext: NSManagedObjectContext) -> Call? {
-        let managedObjectContext = managedObjectContext
         let fetchRequest: NSFetchRequest<Call> = Call.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "callID == %@", callID)
         fetchRequest.returnsObjectsAsFaults = false
@@ -314,7 +323,6 @@ open class MainDataStore {
     }
 
     public func groupHistoryInfo(for id: String, in managedObjectContext: NSManagedObjectContext) -> GroupHistoryInfo? {
-        let managedObjectContext = managedObjectContext
         let fetchRequest: NSFetchRequest<GroupHistoryInfo> = GroupHistoryInfo.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", id)
         fetchRequest.returnsObjectsAsFaults = false
@@ -329,7 +337,6 @@ open class MainDataStore {
     }
 
     public func fetchContentResendInfo(for contentID: String, userID: UserID, in managedObjectContext: NSManagedObjectContext) -> ContentResendInfo {
-        let managedObjectContext = managedObjectContext
         let fetchRequest: NSFetchRequest<ContentResendInfo> = ContentResendInfo.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "contentID == %@ AND userID == %@", contentID, userID)
         fetchRequest.returnsObjectsAsFaults = false
@@ -356,7 +363,6 @@ open class MainDataStore {
     }
 
     public func commonMediaItems(predicate: NSPredicate? = nil, in managedObjectContext: NSManagedObjectContext) -> [CommonMedia] {
-        let managedObjectContext = managedObjectContext
         let fetchRequest: NSFetchRequest<CommonMedia> = CommonMedia.fetchRequest()
         fetchRequest.predicate = predicate
         fetchRequest.returnsObjectsAsFaults = false

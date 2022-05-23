@@ -94,8 +94,9 @@ class HomeViewController: UITabBarController {
             self?.showHomeTabIndicatorIfNeeded()
         })
         // Can ignore shared (old) merged feed posts as they will not be sent when connection is passive
-        cancellableSet.insert(MainAppContext.shared.feedData.didMergeFeedPost.sink { [weak self] feedPostID in
-            guard let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostID) else { return }
+        cancellableSet.insert(MainAppContext.shared.feedData.didMergeFeedPost.receive(on: DispatchQueue.main).sink { [weak self] feedPostID in
+            let viewContext = MainAppContext.shared.feedData.viewContext
+            guard let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostID, in: viewContext) else { return }
             let isInbound = feedPost.userId != MainAppContext.shared.userData.userId
             if isInbound {
                 self?.showHomeTabIndicatorIfNeeded()
@@ -378,7 +379,8 @@ class HomeViewController: UITabBarController {
                     MainAppContext.shared.contactStore.addPushNames(pushNames)
                 }
 
-                if MainAppContext.shared.chatData.chatGroupMember(groupId: groupID, memberUserId: MainAppContext.shared.userData.userId) != nil {
+                let viewContext = MainAppContext.shared.chatData.viewContext
+                if MainAppContext.shared.chatData.chatGroupMember(groupId: groupID, memberUserId: MainAppContext.shared.userData.userId, in: viewContext) != nil {
                     DDLogVerbose("HomeViewController/presentGroupPreviewIfNeeded/inviteToken/\(inviteToken)/already member")
                     MainAppContext.shared.groupFeedFromGroupTabPresentRequest.send(groupID)
                 } else {

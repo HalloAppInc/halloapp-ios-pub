@@ -476,7 +476,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
 
             guard let userID = quoted.userID else { return false }
             
-            quotedNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
+            quotedNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, in: MainAppContext.shared.contactStore.viewContext)
             if case .moment = quoted.type {
                 configureQuotedMoment(quoted)
                 quotedRow.isHidden = false
@@ -485,7 +485,8 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
 
             if let mentionText = MainAppContext.shared.contactStore.textWithMentions(
                 quoted.rawText,
-                mentions: quoted.orderedMentions) {
+                mentions: quoted.orderedMentions,
+                in: MainAppContext.shared.contactStore.viewContext) {
                 let ham = HAMarkdown(font: UIFont.preferredFont(forTextStyle: .footnote), color: UIColor.systemGray)
                 quotedTextView.attributedText = ham.parse(mentionText)
             }

@@ -157,11 +157,12 @@ class UserFeedViewController: FeedCollectionViewController {
     
     @objc func moreButtonTapped() {
         guard !isOwnFeed else { return }
-        
-        let alert = ActionSheetViewController(title: MainAppContext.shared.contactStore.fullName(for: userId), message: nil)
+
+        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+        let alert = ActionSheetViewController(title: MainAppContext.shared.contactStore.fullName(for: userId, in: contactsViewContext), message: nil)
 
         /* Add to Contact Book */
-        let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userId)
+        let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userId, in: MainAppContext.shared.contactStore.viewContext)
         let pushNumberExist = MainAppContext.shared.contactStore.pushNumber(userId) != nil
 
         if !isContactInAddressBook, pushNumberExist {
@@ -173,8 +174,8 @@ class UserFeedViewController: FeedCollectionViewController {
         }
 
         /* Verify Safety Number */
-        if let userKeys = MainAppContext.shared.keyStore.keyBundle(),
-           let contactKeyBundle = MainAppContext.shared.keyStore.messageKeyBundle(for: userId)?.keyBundle,
+        if let userKeys = MainAppContext.shared.keyStore.keyBundle(in: MainAppContext.shared.keyStore.viewContext),
+           let contactKeyBundle = MainAppContext.shared.keyStore.messageKeyBundle(for: userId, in: MainAppContext.shared.keyStore.viewContext)?.keyBundle,
            let contactData = SafetyNumberData(keyBundle: contactKeyBundle)
         {
             let action = UserMenuAction.safetyNumber(self.userId, contactData: contactData, bundle: userKeys)
@@ -221,7 +222,8 @@ class UserFeedViewController: FeedCollectionViewController {
     }
 
     private func updateExchangeNumbersView(isFeedEmpty: Bool) {
-        let isKnownContact = MainAppContext.shared.contactStore.contact(withUserId: userId) != nil
+        let viewContext = MainAppContext.shared.contactStore.viewContext
+        let isKnownContact = MainAppContext.shared.contactStore.contact(withUserId: userId, in: viewContext) != nil
 
         exchangeNumbersView.isHidden = !isFeedEmpty || isKnownContact || isOwnFeed
     }

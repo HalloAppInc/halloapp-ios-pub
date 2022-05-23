@@ -330,8 +330,8 @@ open class ProtoServiceCoreCommon: NSObject, ObservableObject {
         case .accountDeleted, .invalidResource, .invalidUidOrPassword, .ok, .spubMismatch, .unknownReason, .UNRECOGNIZED:
             switch authResult.result {
             case .failure:
-                DispatchQueue.main.async {
-                    AppContextCommon.shared.userData.logout()
+                AppContextCommon.shared.userData.performSeriallyOnBackgroundContext { managedObjectContext in
+                    AppContextCommon.shared.userData.logout(using: managedObjectContext)
                 }
             case .UNRECOGNIZED, .unknown, .success:
                 DDLogError("ProtoServiceCore/authenticationFailed/unexpected-result [\(authResult.result)] [\(authResult.reason)]")

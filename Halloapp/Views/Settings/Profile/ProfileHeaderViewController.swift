@@ -67,16 +67,16 @@ final class ProfileHeaderViewController: UIViewController, UserMenuHandler {
     func configureOrRefresh(userID: UserID) {
         headerView.userID = userID
         headerView.avatarViewButton.avatarView.configure(with: userID, using: MainAppContext.shared.avatarStore)
-        headerView.name = MainAppContext.shared.contactStore.fullName(for: userID)
+        headerView.name = MainAppContext.shared.contactStore.fullName(for: userID, in: MainAppContext.shared.contactStore.viewContext)
 
-        let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID)
+        let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID, in: MainAppContext.shared.contactStore.viewContext)
 
         headerView.isBlocked = isBlocked(userId: userID)
         headerView.isInAddressBook = isContactInAddressBook
         headerView.isOwnProfile = userID == MainAppContext.shared.userData.userId
         var showPhoneLabel = false
 
-        if let phoneNumber = MainAppContext.shared.contactStore.normalizedPhoneNumber(for: userID) {
+        if let phoneNumber = MainAppContext.shared.contactStore.normalizedPhoneNumber(for: userID, using: MainAppContext.shared.contactStore.viewContext) {
             headerView.phoneLabel.text = phoneNumber.formattedPhoneNumber
             showPhoneLabel = true
         }
@@ -115,7 +115,7 @@ final class ProfileHeaderViewController: UIViewController, UserMenuHandler {
                 DDLogInfo("profile/edit-name Changing name to [\(name)]")
 
                 MainAppContext.shared.userData.name = name
-                MainAppContext.shared.userData.save()
+                MainAppContext.shared.userData.save(using: MainAppContext.shared.userData.viewContext)
                 MainAppContext.shared.service.updateUsername(name)
             }
             controller.dismiss(animated: true)
@@ -128,7 +128,8 @@ final class ProfileHeaderViewController: UIViewController, UserMenuHandler {
     }
     
     @objc private func copyPhoneNumber() {
-        let alert = UIAlertController(title: MainAppContext.shared.contactStore.fullName(for: headerView.userID ?? ""), message: nil, preferredStyle: .actionSheet)
+        let title = MainAppContext.shared.contactStore.fullName(for: headerView.userID ?? "", in: MainAppContext.shared.contactStore.viewContext)
+        let alert = UIAlertController(title: title, message: nil, preferredStyle: .actionSheet)
 
         let copyNumberAction = UIAlertAction(title: Localizations.userOptionCopyPhoneNumber, style: .default) { [weak self] _ in
             self?.copyNumber()

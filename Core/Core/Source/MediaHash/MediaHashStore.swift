@@ -17,8 +17,9 @@ public class MediaHashStore {
     let didReloadStore = PassthroughSubject<Void, Never>()
 
     private var cancellableSet: Set<AnyCancellable> = []
-    private let backgroundQueue = DispatchQueue(label: "com.halloapp.mediahash-data")
     private let persistentStoreURL: URL
+    private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.mediahash-data")
+
     public init(persistentStoreURL: URL) {
         self.persistentStoreURL = persistentStoreURL
     }
@@ -53,21 +54,29 @@ public class MediaHashStore {
         return container
     }()
 
-    private var viewContext: NSManagedObjectContext {
+    public var viewContext: NSManagedObjectContext {
         get {
             persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
             return persistentContainer.viewContext
         }
     }
 
-    private lazy var backgroundContext: NSManagedObjectContext = {
-        return self.persistentContainer.newBackgroundContext()
-    } ()
+    private func newBackgroundContext() -> NSManagedObjectContext {
+        let context = persistentContainer.newBackgroundContext()
+        context.automaticallyMergesChangesFromParent = true
+        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
 
-    private func performSeriallyOnBackgroundContext(_ action: @escaping (NSManagedObjectContext) -> Void) {
-        backgroundQueue.async { [weak self] in
+        return context
+    }
+
+    public func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
+        backgroundProcessingQueue.async { [weak self] in
             guard let self = self else { return }
-            self.backgroundContext.performAndWait { action(self.backgroundContext) }
+
+            let context = self.newBackgroundContext()
+            context.performAndWait {
+                block(context)
+            }
         }
     }
 
@@ -85,7 +94,7 @@ public class MediaHashStore {
 
     // MARK: Fetching
 
-    public func fetch(url: URL, blobVersion: BlobVersion, completion: @escaping (MediaHash?) -> Void) {
+    public func fetch(url: URL, blobVersion: BlobVersion, completion: @escaping ((url: URL?, key: String?, sha256: String?)?) -> Void) {
         guard let hash = try? MediaCrypter.hash(url: url).base64EncodedString() else {
             DDLogError("MediaHashStore/get/error unable to hash file=[\(url)]")
             return completion(nil)
@@ -94,26 +103,28 @@ public class MediaHashStore {
         fetch(hash: hash, blobVersion: blobVersion, completion: completion)
     }
 
-    public func fetch(data: Data, blobVersion: BlobVersion, completion: @escaping (MediaHash?) -> Void) {
+    public func fetch(data: Data, blobVersion: BlobVersion, completion: @escaping ((url: URL?, key: String?, sha256: String?)?) -> Void) {
         fetch(hash: MediaCrypter.hash(data: data).base64EncodedString(), blobVersion: blobVersion, completion: completion)
     }
 
-    public func fetch(hash: String, blobVersion: BlobVersion, completion: @escaping (MediaHash?) -> Void) {
+    public func fetch(hash: String, blobVersion: BlobVersion, completion: @escaping ((url: URL?, key: String?, sha256: String?)?) -> Void) {
         performSeriallyOnBackgroundContext { context in
-            let mediaHash = self.fetch(hash: hash, blobVersion: blobVersion, in: context)
-            DispatchQueue.main.async {
-                completion(mediaHash)
-            }
+            completion(self.fetch(hash: hash, blobVersion: blobVersion, in: context))
         }
     }
 
     // should always run on background queue.
-    private func fetch(hash: String, blobVersion: BlobVersion, in context: NSManagedObjectContext) -> MediaHash? {
+    private func fetch(hash: String, blobVersion: BlobVersion, in context: NSManagedObjectContext) -> (url: URL?, key: String?, sha256: String?)? {
         let request: NSFetchRequest<MediaHash> = MediaHash.fetchRequest()
         request.returnsObjectsAsFaults = false
         request.predicate = NSPredicate(format: "dataHash = %@ AND blobVersionValue = %d", hash, blobVersion.rawValue)
         do {
-            return try context.fetch(request).first
+            // avoid accesssing the MediaHash managed object on another thread
+            if let hash = try context.fetch(request).first {
+                return (url: hash.url, key: hash.key, sha256: hash.sha256)
+            } else {
+                return nil
+            }
         } catch {
             DDLogError("MediaHashStore/fetch-mediaHash/error  [\(error)]")
             return nil

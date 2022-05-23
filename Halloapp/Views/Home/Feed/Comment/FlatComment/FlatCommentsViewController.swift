@@ -594,7 +594,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
             return MessageRow.quoted(comment)
         }
         // Media
-        if let media = MainAppContext.shared.feedData.media(commentID: comment.id), media.count > 0 {
+        if let media = MainAppContext.shared.feedData.media(commentID: comment.id, in: MainAppContext.shared.feedData.viewContext), media.count > 0 {
             if commentHasAudio(media: media) {
                 return MessageRow.audio(comment)
             }
@@ -641,7 +641,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     }
 
     func computeMentionableUsers() -> [MentionableUser] {
-        return Mentions.mentionableUsers(forPostID: feedPostId)
+        return Mentions.mentionableUsers(forPostID: feedPostId, in: MainAppContext.shared.feedData.viewContext)
     }
 
     func comment(at indexPath: IndexPath) -> FeedPostComment? {
@@ -686,7 +686,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     private func presentDeleteConfirmationActionSheet(indexPath: IndexPath, cell: MessageCellViewBase, comment: FeedPostComment) {
         let confirmationActionSheet = UIAlertController(title: nil, message: Localizations.deleteCommentConfirmation, preferredStyle: .actionSheet)
         confirmationActionSheet.addAction(UIAlertAction(title: Localizations.deleteCommentAction, style: .destructive) { _ in
-            guard let comment = MainAppContext.shared.feedData.feedComment(with: comment.id) else { return }
+            guard let comment = MainAppContext.shared.feedData.feedComment(with: comment.id, in: MainAppContext.shared.feedData.viewContext) else { return }
             MainAppContext.shared.feedData.retract(comment: comment)
         })
         confirmationActionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel) { _ in
@@ -698,14 +698,14 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     // MARK: UI Actions
 
     @objc private func showUserFeedForPostAuthor() {
-        if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
+        if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: MainAppContext.shared.feedData.viewContext) {
             showUserFeed(for: feedPost.userId)
         }
     }
     
     @objc private func showGroupFeed(groupId: GroupID) {
         guard let feedPost = self.feedPost, let groupId = feedPost.groupId else { return }
-        guard MainAppContext.shared.chatData.chatGroup(groupId: groupId) != nil else { return }
+        guard MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.feedData.viewContext) != nil else { return }
         let vc = GroupFeedViewController(groupId: groupId)
         navigationController?.pushViewController(vc, animated: true)
     }
@@ -888,7 +888,8 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         get {
             if let groupID = feedPost?.groupId {
                 // don't allow commenting if user is no longer part of this feed post's group
-                if let _ = MainAppContext.shared.chatData.chatGroupMember(groupId: groupID, memberUserId: MainAppContext.shared.userData.userId) {
+                let viewContext = MainAppContext.shared.chatData.viewContext
+                if let _ = MainAppContext.shared.chatData.chatGroupMember(groupId: groupID, memberUserId: MainAppContext.shared.userData.userId, in: viewContext) {
                     return true
                 } else {
                     return false
@@ -961,11 +962,11 @@ extension FlatCommentsViewController: MessageCommentHeaderViewDelegate {
     }
 
     func messageCommentHeaderView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
-        guard let media = MainAppContext.shared.feedData.media(postID: feedPostId) else { return }
+        guard let media = MainAppContext.shared.feedData.media(postID: feedPostId, in: MainAppContext.shared.feedData.viewContext) else { return }
 
         var canSavePost = false
 
-        if let post = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
+        if let post = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: MainAppContext.shared.feedData.viewContext) {
             canSavePost = post.canSaveMedia
         }
 
@@ -979,10 +980,10 @@ extension FlatCommentsViewController: MessageViewCommentDelegate {
     func messageView(_ view: MediaExplorerTransitionDelegate, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int) {
         messageInputView.textView.resignFirstResponder()
         var canSavePost = false
-        if let post = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
+        if let post = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: MainAppContext.shared.feedData.viewContext) {
             canSavePost = post.canSaveMedia
         }
-        guard let media = MainAppContext.shared.feedData.media(commentID: feedPostCommentID) else { return }
+        guard let media = MainAppContext.shared.feedData.media(commentID: feedPostCommentID, in: MainAppContext.shared.feedData.viewContext) else { return }
         let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost, source: .comment)
         controller.delegate = view
         present(controller, animated: true)

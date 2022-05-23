@@ -69,19 +69,38 @@ public class AvatarStore: ServiceAvatarDelegate {
     }()
 
     private var viewContext: NSManagedObjectContext
-    private var bgContext: NSManagedObjectContext
     private let fullSizeImageCache = NSCache<NSString, UIImage>()
 
     public init() {
-        self.persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
-        self.viewContext = persistentContainer.viewContext
-        self.bgContext = persistentContainer.newBackgroundContext()
+        persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
+        viewContext = persistentContainer.viewContext
     }
 
-    private func performOnBackgroundContextAndWait(_ block: @escaping (NSManagedObjectContext) -> Void) {
+    private func newBackgroundContext() -> NSManagedObjectContext {
+        let context = persistentContainer.newBackgroundContext()
+        context.automaticallyMergesChangesFromParent = true
+        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+
+        return context
+    }
+
+    public func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
         backgroundProcessingQueue.async { [weak self] in
             guard let self = self else { return }
-            self.bgContext.performAndWait { block(self.bgContext) }
+
+            let context = self.newBackgroundContext()
+            context.performAndWait {
+                block(context)
+            }
+        }
+    }
+
+    public func performOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
+        backgroundProcessingQueue.sync {
+            let context = self.newBackgroundContext()
+            context.performAndWait {
+                block(context)
+            }
         }
     }
 
@@ -164,53 +183,55 @@ public class AvatarStore: ServiceAvatarDelegate {
     }
 
     public func uploadAvatar(image: UIImage, for userID: UserID, using service: CoreService) {
-        guard let thumbnailImage = image.fastResized(to: Self.thumbnailSize),
-              let thumbnailData = thumbnailImage.jpegData(compressionQuality: CGFloat(UserData.compressionQuality)) else
-        {
-            DDLogError("AvatarStore/uploadAvatar/thumb/error unable to get thumbnail data")
-            return
-        }
-
-        let managedObjectContext = bgContext
-        let currentAvatar = insertAvatar(avatarId: "", forUserId: userID, using: managedObjectContext)
-        let thumbnailFilename = AvatarStore.pendingThumbnailFilename(for: userID)
-
-        do {
-            try writeData(thumbnailData, toRelativePath: thumbnailFilename)
-            DDLogInfo("AvatarStore/uploadAvatar/write-thumb/success [userID: \(userID)] [file: \(thumbnailFilename)]")
-        } catch {
-            DDLogError("AvatarStore/uploadAvatar/write-thumb/error [\(error)]")
-            return
-        }
-
-        var avatarData = AvatarData(thumbnail: thumbnailData)
-
-        if let fullImage = image.fastResized(to: Self.fullSize),
-           let fullData = fullImage.jpegData(compressionQuality: CGFloat(UserData.compressionQuality))
-        {
-            do {
-                let fullImageFilename = AvatarStore.pendingFullImageFilename(for: userID)
-                try writeData(fullData, toRelativePath: fullImageFilename)
-                avatarData.full = fullData
-                DDLogInfo("AvatarStore/uploadAvatar/write-full/success [userID: \(userID)] [file: \(fullImageFilename)]")
-            } catch {
-                DDLogError("AvatarStore/uploadAvatar/write-full/error [\(error)]")
+        performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
+            guard let self = self else { return }
+            guard let thumbnailImage = image.fastResized(to: Self.thumbnailSize),
+                  let thumbnailData = thumbnailImage.jpegData(compressionQuality: CGFloat(UserData.compressionQuality)) else
+            {
+                DDLogError("AvatarStore/uploadAvatar/thumb/error unable to get thumbnail data")
+                return
             }
+
+            let currentAvatar = self.insertAvatar(avatarId: "", forUserId: userID, using: managedObjectContext)
+            let thumbnailFilename = AvatarStore.pendingThumbnailFilename(for: userID)
+
+            do {
+                try self.writeData(thumbnailData, toRelativePath: thumbnailFilename)
+                DDLogInfo("AvatarStore/uploadAvatar/write-thumb/success [userID: \(userID)] [file: \(thumbnailFilename)]")
+            } catch {
+                DDLogError("AvatarStore/uploadAvatar/write-thumb/error [\(error)]")
+                return
+            }
+
+            var avatarData = AvatarData(thumbnail: thumbnailData)
+
+            if let fullImage = image.fastResized(to: Self.fullSize),
+               let fullData = fullImage.jpegData(compressionQuality: CGFloat(UserData.compressionQuality))
+            {
+                do {
+                    let fullImageFilename = AvatarStore.pendingFullImageFilename(for: userID)
+                    try self.writeData(fullData, toRelativePath: fullImageFilename)
+                    avatarData.full = fullData
+                    DDLogInfo("AvatarStore/uploadAvatar/write-full/success [userID: \(userID)] [file: \(fullImageFilename)]")
+                } catch {
+                    DDLogError("AvatarStore/uploadAvatar/write-full/error [\(error)]")
+                }
+            }
+
+            currentAvatar.relativeFilePath = thumbnailFilename
+
+            do {
+                try managedObjectContext.save()
+            } catch let error as NSError {
+                DDLogError("AvatarStore/uploadAvatar/save/error [\(error)]")
+            }
+
+            // TODO: Indicate that this is still pending instead of optimistically updating
+            DDLogInfo("AvatarStore/uploadAvatar/update-observed-avatar [pending]")
+            self.userAvatar(forUserId: userID).image = thumbnailImage
+
+            self.uploadAvatarData(avatarData, for: userID, using: service)
         }
-
-        currentAvatar.relativeFilePath = thumbnailFilename
-
-        do {
-            try managedObjectContext.save()
-        } catch let error as NSError {
-            DDLogError("AvatarStore/uploadAvatar/save/error [\(error)]")
-        }
-
-        // TODO: Indicate that this is still pending instead of optimistically updating
-        DDLogInfo("AvatarStore/uploadAvatar/update-observed-avatar [pending]")
-        userAvatar(forUserId: userID).image = thumbnailImage
-
-        uploadAvatarData(avatarData, for: userID, using: service)
     }
 
     public func sendPendingAvatarIfNecessary(for userID: UserID, using service: CoreService) {
@@ -383,30 +404,33 @@ public class AvatarStore: ServiceAvatarDelegate {
 
     /// Updates relative file path in the database without changing files on disk.
     fileprivate func update(relativeFilePath: String, forUserId userId: UserID) {
-        let managedObjectContext = bgContext
-        
-        guard let currentAvatar = avatar(forUserId: userId, using: managedObjectContext) else {
-            DDLogError("AvatarStore/updateAvatarId/error avatar does not exist!")
-            return
+        performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
+            guard let self = self else { return }
+
+            guard let currentAvatar = self.avatar(forUserId: userId, using: managedObjectContext) else {
+                DDLogError("AvatarStore/updateAvatarId/error avatar does not exist!")
+                return
+            }
+
+            currentAvatar.relativeFilePath = relativeFilePath
+
+            do {
+                try managedObjectContext.save()
+            } catch let error as NSError {
+                DDLogError("AvatarStore/updateAvatarId/error [\(error)]")
+            }
+
+            DDLogInfo("AvatarStore/updateAvatarId relativeFilePath for user \(userId) has been changed to \(relativeFilePath)")
         }
-        
-        currentAvatar.relativeFilePath = relativeFilePath
-        
-        do {
-            try managedObjectContext.save()
-        } catch let error as NSError {
-            DDLogError("AvatarStore/updateAvatarId/error [\(error)]")
-        }
-        
-        DDLogInfo("AvatarStore/updateAvatarId relativeFilePath for user \(userId) has been changed to \(relativeFilePath)")
     }
     
     public func service(_ service: CoreService, didReceiveAvatarInfo avatarInfo: AvatarInfo) {
         DDLogInfo("AvatarStore/didReceiveAvatar \(avatarInfo)")
 
-        let managedObjectContext = bgContext
-        
-        save(avatarId: avatarInfo.avatarID, forUserId: avatarInfo.userID, using: managedObjectContext)
+        performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
+            guard let self = self else { return }
+            self.save(avatarId: avatarInfo.avatarID, forUserId: avatarInfo.userID, using: managedObjectContext)
+        }
     }
     
     public func processContactSync(_ avatarDict: [UserID: AvatarID]) {

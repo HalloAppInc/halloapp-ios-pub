@@ -18,7 +18,7 @@ class UploadData {
     let didReloadStore = PassthroughSubject<Void, Never>()
 
     private var cancellableSet: Set<AnyCancellable> = []
-    private let backgroundQueue = DispatchQueue(label: "com.halloapp.uploads-data")
+    private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.uploads-data")
 
     // MARK: CoreData stack
 
@@ -59,14 +59,31 @@ class UploadData {
         }
     }
 
-    private lazy var backgroundContext: NSManagedObjectContext = {
-        return self.persistentContainer.newBackgroundContext()
-    } ()
+    private func newBackgroundContext() -> NSManagedObjectContext {
+        let context = persistentContainer.newBackgroundContext()
+        context.automaticallyMergesChangesFromParent = true
+        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
 
-    private func performSeriallyOnBackgroundContext(_ action: @escaping (NSManagedObjectContext) -> Void) {
-        backgroundQueue.async { [weak self] in
+        return context
+    }
+
+    public func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
+        backgroundProcessingQueue.async { [weak self] in
             guard let self = self else { return }
-            self.backgroundContext.performAndWait { action(self.backgroundContext) }
+
+            let context = self.newBackgroundContext()
+            context.performAndWait {
+                block(context)
+            }
+        }
+    }
+
+    public func performOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
+        backgroundProcessingQueue.sync {
+            let context = self.newBackgroundContext()
+            context.performAndWait {
+                block(context)
+            }
         }
     }
 
@@ -189,7 +206,7 @@ class UploadData {
     // Copy all old database entries from main app storage into shared container.
     public func integrateEarlierResults(into mediaHashStore: MediaHashStore, completion: (() -> Void)? = nil) {
         performSeriallyOnBackgroundContext { [self] context in
-            let oldUploadData = fetchAllData(in: viewContext)
+            let oldUploadData = fetchAllData(in: context)
             var mediaHashList: [(String, String, String, URL)] = []
             for oldUpload in oldUploadData {
                 guard let dataHash = oldUpload.dataHash, let sha256 = oldUpload.sha256,

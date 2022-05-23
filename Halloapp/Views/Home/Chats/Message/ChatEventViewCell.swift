@@ -13,7 +13,7 @@ import UIKit
 class ChatEventViewCell: UITableViewCell {
 
     public func configure(userID: UserID) {
-        let fullname = MainAppContext.shared.contactStore.fullName(for: userID)
+        let fullname = MainAppContext.shared.contactStore.fullName(for: userID, in: MainAppContext.shared.contactStore.viewContext)
         keysChangedLabel.text = Localizations.chatEventSecurityKeysChanged(name: fullname)
     }
 

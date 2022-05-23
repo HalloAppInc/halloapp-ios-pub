@@ -13,6 +13,7 @@ import CoreCommon
 import CryptoKit
 import CryptoSwift
 import SwiftProtobuf
+import CoreData
 
 fileprivate let userDefaultsKeyForAPNSToken = "apnsPushToken"
 fileprivate let userDefaultsKeyForVOIPToken = "VoipPushToken"
@@ -1784,88 +1785,94 @@ extension ProtoService: HalloService {
                     DDLogError("ProtoServiceCore/modifyGroup/\(groupID)/fetchMemberKeysCompletion/error - num: \(numberOfFailedFetches)")
                     completion(.failure(.aborted))
                 } else {
-                    // After successfully obtaining the memberKeys
-                    // Now fetch feedHistory, compute the hashes and construct the history resend stanza.
-                    // Get feedHistory with a set-limit of 20 most recent items and 50 most recent comments per post.
-                    let maxNumPosts = 20
-                    let maxCommentsPerPost = 50
-                    let (postsData, commentsData) = MainAppContext.shared.feedData.feedHistory(for: groupID, maxNumPosts: maxNumPosts, maxCommentsPerPost: maxCommentsPerPost)
-
-                    DDLogInfo("ProtoServiceCore/modifyGroup/\(groupID)/fetchMemberKeysCompletion/success - \(newMembersDetails.count)")
-                    var feedContentDetails: [Clients_ContentDetails] = []
-                    do {
-                        for post in postsData {
-                            var contentDetails = Clients_ContentDetails()
-                            var postIdContext = Clients_PostIdContext()
-                            postIdContext.feedPostID = post.id
-                            postIdContext.senderUid = Int64(post.userId) ?? 0
-                            postIdContext.timestamp = Int64(post.timestamp.timeIntervalSince1970)
-                            contentDetails.postIDContext = postIdContext
-                            let contentData = try post.clientContainer.serializedData()
-                            contentDetails.contentHash = SHA256.hash(data: contentData).data
-                            feedContentDetails.append(contentDetails)
-                        }
-                        for comment in commentsData {
-                            var contentDetails = Clients_ContentDetails()
-                            var commentIdContext = Clients_CommentIdContext()
-                            commentIdContext.commentID = comment.id
-                            commentIdContext.feedPostID = comment.feedPostId
-                            commentIdContext.senderUid = Int64(comment.userId) ?? 0
-                            commentIdContext.timestamp = Int64(comment.timestamp.timeIntervalSince1970)
-                            if let parentID = comment.parentId {
-                                commentIdContext.parentCommentID = parentID
+                    MainAppContext.shared.mainDataStore.performSeriallyOnBackgroundContext { managedObjectContext in
+                        // After successfully obtaining the memberKeys
+                        // Now fetch feedHistory, compute the hashes and construct the history resend stanza.
+                        // Get feedHistory with a set-limit of 20 most recent items and 50 most recent comments per post.
+                        let maxNumPosts = 20
+                        let maxCommentsPerPost = 50
+                        let (postsData, commentsData) = MainAppContext.shared.feedData.feedHistory(
+                            for: groupID,
+                            in: managedObjectContext,
+                            maxNumPosts: maxNumPosts,
+                            maxCommentsPerPost: maxCommentsPerPost)
+                        
+                        DDLogInfo("ProtoServiceCore/modifyGroup/\(groupID)/fetchMemberKeysCompletion/success - \(newMembersDetails.count)")
+                        var feedContentDetails: [Clients_ContentDetails] = []
+                        do {
+                            for post in postsData {
+                                var contentDetails = Clients_ContentDetails()
+                                var postIdContext = Clients_PostIdContext()
+                                postIdContext.feedPostID = post.id
+                                postIdContext.senderUid = Int64(post.userId) ?? 0
+                                postIdContext.timestamp = Int64(post.timestamp.timeIntervalSince1970)
+                                contentDetails.postIDContext = postIdContext
+                                let contentData = try post.clientContainer.serializedData()
+                                contentDetails.contentHash = SHA256.hash(data: contentData).data
+                                feedContentDetails.append(contentDetails)
                             }
-                            contentDetails.commentIDContext = commentIdContext
-                            let contentData = try comment.clientContainer.serializedData()
-                            contentDetails.contentHash = SHA256.hash(data: contentData).data
-                            feedContentDetails.append(contentDetails)
-                        }
-
-                        var groupHistoryPayload = Clients_GroupHistoryPayload()
-                        groupHistoryPayload.contentDetails = feedContentDetails
-                        groupHistoryPayload.memberDetails = newMembersDetails
-
-                        let payloadData = try groupHistoryPayload.serializedData()
-                        let historyResendID = PacketID.generate()
-                        MainAppContext.shared.mainDataStore.saveGroupHistoryInfo(id: historyResendID, groupID: groupID, payload: payloadData)
-
-                        // Encrypt the containerPayload
-                        AppContext.shared.messageCrypter.encrypt(payloadData, in: groupID, potentialMemberUids: members) { [weak self] result in
-                            guard let self = self else {
-                                DDLogError("ProtoServiceCore/modifyGroup/\(groupID)/encryptHistoryContainer/error: aborted")
-                                completion(.failure(.aborted))
-                                return
+                            for comment in commentsData {
+                                var contentDetails = Clients_ContentDetails()
+                                var commentIdContext = Clients_CommentIdContext()
+                                commentIdContext.commentID = comment.id
+                                commentIdContext.feedPostID = comment.feedPostId
+                                commentIdContext.senderUid = Int64(comment.userId) ?? 0
+                                commentIdContext.timestamp = Int64(comment.timestamp.timeIntervalSince1970)
+                                if let parentID = comment.parentId {
+                                    commentIdContext.parentCommentID = parentID
+                                }
+                                contentDetails.commentIDContext = commentIdContext
+                                let contentData = try comment.clientContainer.serializedData()
+                                contentDetails.contentHash = SHA256.hash(data: contentData).data
+                                feedContentDetails.append(contentDetails)
                             }
-                            switch result {
-                            case .failure(let error):
-                                DDLogError("ProtoServiceCore/modifyGroup/\(groupID)/encryptHistoryContainer/error: \(error)")
-                                completion(.failure(.aborted))
-                            case .success(let groupEncryptedData):
-                                var historyResend = Server_HistoryResend()
-                                historyResend.id = historyResendID
-                                historyResend.gid = groupID
-                                historyResend.senderStateBundles = groupEncryptedData.senderStateBundles
-                                historyResend.audienceHash = groupEncryptedData.audienceHash
-                                var clientEncryptedPayload = Clients_EncryptedPayload()
-                                clientEncryptedPayload.senderStateEncryptedPayload = groupEncryptedData.data
-                                guard let encPayload = try? clientEncryptedPayload.serializedData() else {
-                                    DDLogError("ProtoServiceCore/modifyGroup/\(groupID)/error could not serialize payload")
+
+                            var groupHistoryPayload = Clients_GroupHistoryPayload()
+                            groupHistoryPayload.contentDetails = feedContentDetails
+                            groupHistoryPayload.memberDetails = newMembersDetails
+
+                            let payloadData = try groupHistoryPayload.serializedData()
+                            let historyResendID = PacketID.generate()
+                            MainAppContext.shared.mainDataStore.saveGroupHistoryInfo(id: historyResendID, groupID: groupID, payload: payloadData)
+
+                            // Encrypt the containerPayload
+                            AppContext.shared.messageCrypter.encrypt(payloadData, in: groupID, potentialMemberUids: members) { [weak self] result in
+                                guard let self = self else {
+                                    DDLogError("ProtoServiceCore/modifyGroup/\(groupID)/encryptHistoryContainer/error: aborted")
                                     completion(.failure(.aborted))
                                     return
                                 }
-                                historyResend.encPayload = encPayload
-                                historyResend.payload = payloadData
-                                historyResend.senderClientVersion = AppContext.userAgent
-                                DDLogInfo("ProtoServiceCore/modifyGroup/\(groupID)/encryptHistoryContainer/success - enqueuing request")
-                                self.enqueue(request: ProtoGroupAddMemberRequest(groupID: groupID,
-                                                                                 members: members,
-                                                                                 historyResend: historyResend,
-                                                                                 completion: completion))
+                                switch result {
+                                case .failure(let error):
+                                    DDLogError("ProtoServiceCore/modifyGroup/\(groupID)/encryptHistoryContainer/error: \(error)")
+                                    completion(.failure(.aborted))
+                                case .success(let groupEncryptedData):
+                                    var historyResend = Server_HistoryResend()
+                                    historyResend.id = historyResendID
+                                    historyResend.gid = groupID
+                                    historyResend.senderStateBundles = groupEncryptedData.senderStateBundles
+                                    historyResend.audienceHash = groupEncryptedData.audienceHash
+                                    var clientEncryptedPayload = Clients_EncryptedPayload()
+                                    clientEncryptedPayload.senderStateEncryptedPayload = groupEncryptedData.data
+                                    guard let encPayload = try? clientEncryptedPayload.serializedData() else {
+                                        DDLogError("ProtoServiceCore/modifyGroup/\(groupID)/error could not serialize payload")
+                                        completion(.failure(.aborted))
+                                        return
+                                    }
+                                    historyResend.encPayload = encPayload
+                                    historyResend.payload = payloadData
+                                    historyResend.senderClientVersion = AppContext.userAgent
+                                    DDLogInfo("ProtoServiceCore/modifyGroup/\(groupID)/encryptHistoryContainer/success - enqueuing request")
+                                    self.enqueue(request: ProtoGroupAddMemberRequest(groupID: groupID,
+                                                                                     members: members,
+                                                                                     historyResend: historyResend,
+                                                                                     completion: completion))
+                                }
                             }
+                        } catch {
+                            DDLogError("ProtoServiceCore/modifyGroup/\(groupID)/fetchHistoryContainer/failed serialization")
+                            completion(.failure(.aborted))
                         }
-                    } catch {
-                        DDLogError("ProtoServiceCore/modifyGroup/\(groupID)/fetchHistoryContainer/failed serialization")
-                        completion(.failure(.aborted))
                     }
                 }
             }
@@ -1908,27 +1915,32 @@ extension ProtoService: HalloService {
     }
 
     func mergeData(from sharedDataStore: SharedDataStore, completion: @escaping () -> ()) {
-        let sharedServerMessages = sharedDataStore.serverMessages()
-        DDLogInfo("ProtoService/mergeData/save sharedServerMessages, count: \(sharedServerMessages.count)")
-        sharedServerMessages.forEach{ sharedServerMsg in
-            do {
-                if let serverMsgPb = sharedServerMsg.msg {
-                    let serverMsg = try Server_Msg(serializedData: serverMsgPb)
-                    DDLogInfo("ProtoService/mergeData/handle serverMsg: \(serverMsg.id)")
-                    let ack = {
-                        // sometimes nse disconnects before sending acks.
-                        // so we need to send them again.
-                        self.sendAck(messageID: serverMsg.id)
-                        sharedDataStore.delete(serverMessageObjectID: sharedServerMsg.objectID) { }
+        sharedDataStore.performSeriallyOnBackgroundContext { context in
+            let sharedServerMessages = sharedDataStore.serverMessages(in: context)
+
+            DDLogInfo("ProtoService/mergeData/save sharedServerMessages, count: \(sharedServerMessages.count)")
+            sharedServerMessages.forEach{ sharedServerMsg in
+                do {
+                    if let serverMsgPb = sharedServerMsg.msg {
+                        let serverMsg = try Server_Msg(serializedData: serverMsgPb)
+                        DDLogInfo("ProtoService/mergeData/handle serverMsg: \(serverMsg.id)")
+                        let ack = {
+                            // sometimes nse disconnects before sending acks.
+                            // so we need to send them again.
+                            self.sendAck(messageID: serverMsg.id)
+                            sharedDataStore.delete(serverMessageObjectID: sharedServerMsg.objectID) { }
+                        }
+
+                        self.handleMessage(serverMsg, isEligibleForNotification: false, ack: ack)
                     }
-                    handleMessage(serverMsg, isEligibleForNotification: false, ack: ack)
+                } catch {
+                    DDLogError("ProtoService/mergeData/Unable to initialize Server_Msg")
                 }
-            } catch {
-                DDLogError("ProtoService/mergeData/Unable to initialize Server_Msg")
             }
-        }
-        DispatchQueue.main.async {
-            completion()
+            
+            DispatchQueue.main.async {
+                completion()
+            }
         }
     }
 

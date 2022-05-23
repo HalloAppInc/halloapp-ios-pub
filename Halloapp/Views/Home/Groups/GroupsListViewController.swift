@@ -447,7 +447,7 @@ extension GroupsListViewController: UIViewControllerHandleTapNotification {
 
         switch metadata.contentType {
         case .groupFeedPost, .groupFeedComment:
-            if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
+            if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) {
                 if let vc = GroupFeedViewController(metadata: metadata) {
                     vc.delegate = self
                     self.navigationController?.pushViewController(vc, animated: false)
@@ -460,7 +460,7 @@ extension GroupsListViewController: UIViewControllerHandleTapNotification {
             break
         case .groupAdd:
             if let groupId = metadata.groupId {
-                if let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
+                if let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) {
                     openFeed(forGroupId: groupId)
                 } else {
                     // for offline groupAdd notifications, the app needs some time to get and create the new group when the user
@@ -578,7 +578,8 @@ extension GroupsListViewController: UITableViewDelegate {
             completionHandler(true)
         }
 
-        if MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) != nil {
+        let viewContext = MainAppContext.shared.chatData.viewContext
+        if MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId, in: viewContext) != nil {
             return UISwipeActionsConfiguration(actions: [moreInfoAction])
         } else {
             return UISwipeActionsConfiguration(actions: [removeAction])
@@ -631,11 +632,11 @@ extension GroupsListViewController: UISearchResultsUpdating {
 
         filteredChatsMembers = remainingThreads.filter {
             guard let groupID = $0.groupId else { return false }
-            let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID)
+            let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext)
             guard let members = group?.members else { return false }
 
             for member in members {
-                let name = MainAppContext.shared.contactStore.fullName(for: member.userID)
+                let name = MainAppContext.shared.contactStore.fullName(for: member.userID, in: MainAppContext.shared.contactStore.viewContext)
                 if name.lowercased().contains(searchStr) {
                     return true
                 }

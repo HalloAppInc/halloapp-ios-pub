@@ -541,7 +541,7 @@ extension FeedViewController: UIViewControllerHandleTapNotification {
                 return
             }
             let feedPostId = postData.id
-            let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId)
+            let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: MainAppContext.shared.feedData.viewContext)
             if let feedPost = feedPost {
                 DDLogDebug("FeedViewController/scroll-to-post/immediate \(feedPostId)")
                 // Scroll to feed post now.

@@ -89,9 +89,10 @@ extension UserMenuHandler where Self: UIViewController {
     
     private func verifySafetyNumber(userID: UserID, contactData: SafetyNumberData, bundle: UserKeyBundle) {
         let current = SafetyNumberData(userID: MainAppContext.shared.userData.userId, identityKey: bundle.identityPublicKey)
+        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
         let vc = SafetyNumberViewController(currentUser: current,
                                                 contact: contactData,
-                                            contactName: MainAppContext.shared.contactStore.fullName(for: userID),
+                                            contactName: MainAppContext.shared.contactStore.fullName(for: userID, in: contactsViewContext),
                                           dismissAction: { [weak self] in
             self?.dismiss(animated: true)
         })
@@ -108,7 +109,8 @@ extension UserMenuHandler where Self: UIViewController {
     }
     
     private func block(userID: UserID) {
-        let blockMessage = Localizations.blockMessage(username: MainAppContext.shared.contactStore.fullName(for: userID))
+        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+        let blockMessage = Localizations.blockMessage(username: MainAppContext.shared.contactStore.fullName(for: userID, in: contactsViewContext))
         let alert = UIAlertController(title: nil, message: blockMessage, preferredStyle: .actionSheet)
         let blockButon = UIAlertAction(title: Localizations.blockButton, style: .destructive) { _ in
             MainAppContext.shared.privacySettings.block(userID: userID)
@@ -122,7 +124,8 @@ extension UserMenuHandler where Self: UIViewController {
     }
     
     private func unblock(userID: UserID) {
-        let unblockMessage = Localizations.unBlockMessage(username: MainAppContext.shared.contactStore.fullName(for: userID))
+        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+        let unblockMessage = Localizations.unBlockMessage(username: MainAppContext.shared.contactStore.fullName(for: userID, in: contactsViewContext))
         let alert = UIAlertController(title: nil, message: unblockMessage, preferredStyle: .actionSheet)
         let unblockButton = UIAlertAction(title: Localizations.unBlockButton, style: .default) { _ in
             MainAppContext.shared.privacySettings.unblock(userID: userID)
@@ -183,7 +186,8 @@ extension UIMenu {
      - Returns: `nil` if `userID` isn't in the contact store.
      */
     private static func contactMenu(for userID: UserID, handler: @escaping (UserMenuAction) -> Void) -> UIMenu? {
-        guard let _ = MainAppContext.shared.contactStore.contact(withUserId: userID) else {
+        let viewContext = MainAppContext.shared.contactStore.viewContext
+        guard MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID, in: viewContext) else {
             return nil
         }
         
@@ -210,7 +214,7 @@ extension UIMenu {
      */
     private static func utilityMenu(for userID: UserID, handler: @escaping (UserMenuAction) -> Void) -> UIMenu {
         var items = [UIMenuElement]()
-        let shouldAllowContactsAdd = !MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID) &&
+        let shouldAllowContactsAdd = !MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID, in: MainAppContext.shared.contactStore.viewContext) &&
                                       MainAppContext.shared.contactStore.pushNumber(userID) != nil
         
         // add to contacts
@@ -223,8 +227,8 @@ extension UIMenu {
         
         // verify safety number
         let context = MainAppContext.shared
-        if let keys = context.keyStore.keyBundle(),
-           let bundle = context.keyStore.messageKeyBundle(for: userID)?.keyBundle,
+        if let keys = context.keyStore.keyBundle(in: MainAppContext.shared.keyStore.viewContext),
+           let bundle = context.keyStore.messageKeyBundle(for: userID, in: MainAppContext.shared.keyStore.viewContext)?.keyBundle,
            let data = SafetyNumberData(keyBundle: bundle) {
             
             items.append(UIAction(title: Localizations.safetyNumberTitle, image: UIImage(systemName: "number")) { _ in

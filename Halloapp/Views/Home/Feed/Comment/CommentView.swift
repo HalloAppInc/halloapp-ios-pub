@@ -273,13 +273,14 @@ class CommentView: UIView {
         let feedPostCommentText = feedPostComment.rawText + cryptoResultString
 
         if let feedCommentMedia = feedPostComment.media,
-           let media = MainAppContext.shared.feedData.media(commentID: feedPostComment.id),
+           let media = MainAppContext.shared.feedData.media(commentID: feedPostComment.id, in: MainAppContext.shared.feedData.viewContext),
            feedCommentMedia.count > 0 {
 
             // Set Name
             let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
             let nameFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
-            let contactName = MainAppContext.shared.contactStore.fullName(for: feedPostComment.userId)
+            let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+            let contactName = MainAppContext.shared.contactStore.fullName(for: feedPostComment.userId, in: contactsViewContext)
             let attributedText = NSMutableAttributedString(string: contactName,
                                                            attributes: [NSAttributedString.Key.userMention: feedPostComment.userId,
                                                                         NSAttributedString.Key.font: nameFont])
@@ -333,7 +334,8 @@ class CommentView: UIView {
             if !feedPostCommentText.isEmpty {
                 let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
                     feedPostCommentText,
-                    mentions: feedPostComment.mentions)
+                    mentions: feedPostComment.mentions,
+                    in: MainAppContext.shared.contactStore.viewContext)
 
                 let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
                 let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
@@ -356,7 +358,8 @@ class CommentView: UIView {
             configureTextCommentLabel(feedPostComment: feedPostComment)
 
         } else if feedPostComment.isWaiting  {
-            let contactName = MainAppContext.shared.contactStore.fullName(for: feedPostComment.userId)
+            let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+            let contactName = MainAppContext.shared.contactStore.fullName(for: feedPostComment.userId, in: contactsViewContext)
             let attributedText = NSMutableAttributedString(string: contactName,
                                                            attributes: [NSAttributedString.Key.userMention: feedPostComment.userId,
                                                                         NSAttributedString.Key.font: nameFont])
@@ -365,14 +368,15 @@ class CommentView: UIView {
 
         } else {
             // No media, set name and append text to name label
-            let contactName = MainAppContext.shared.contactStore.fullName(for: feedPostComment.userId)
+            let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+            let contactName = MainAppContext.shared.contactStore.fullName(for: feedPostComment.userId, in: contactsViewContext)
             let attributedText = NSMutableAttributedString(string: contactName,
                                                            attributes: [NSAttributedString.Key.userMention: feedPostComment.userId,
                                                                         NSAttributedString.Key.font: nameFont])
 
             attributedText.append(NSAttributedString(string: " "))
 
-            if let commentText = MainAppContext.shared.contactStore.textWithMentions(feedPostCommentText, mentions: feedPostComment.mentions),
+            if let commentText = MainAppContext.shared.contactStore.textWithMentions(feedPostCommentText, mentions: feedPostComment.mentions, in: contactsViewContext),
                 !feedPostComment.isRetracted
             {
                 let ham = HAMarkdown(font: baseFont, color: .label)
@@ -399,7 +403,8 @@ class CommentView: UIView {
     func configureNameLabel(feedPostComment: FeedPostComment) {
         let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
         let nameFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
-        let contactName = MainAppContext.shared.contactStore.fullName(for: feedPostComment.userId)
+        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+        let contactName = MainAppContext.shared.contactStore.fullName(for: feedPostComment.userId, in: contactsViewContext)
         let attributedText = NSMutableAttributedString(string: contactName,
                                                        attributes: [NSAttributedString.Key.userMention: feedPostComment.userId,
                                                                     NSAttributedString.Key.font: nameFont])
@@ -412,7 +417,8 @@ class CommentView: UIView {
         if !feedPostComment.rawText.isEmpty {
             let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
                 feedPostComment.rawText,
-                mentions: feedPostComment.mentions)
+                mentions: feedPostComment.mentions,
+                in: MainAppContext.shared.contactStore.viewContext)
 
             let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
             let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
@@ -664,9 +670,12 @@ class CommentsTableHeaderView: UIView {
         self.feedPost = feedPost
 
         // Contact name
-        contactNameLabel.text = MainAppContext.shared.contactStore.fullName(for: feedPost.userId)
+        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+        contactNameLabel.text = MainAppContext.shared.contactStore.fullName(for: feedPost.userId, in: contactsViewContext)
 
-        if let groupId = feedPost.groupId, let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
+        let viewContext = MainAppContext.shared.chatData.viewContext
+
+        if let groupId = feedPost.groupId, let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: viewContext) {
             groupNameLabel.text = group.name
             groupNameLabel.isHidden = false
             groupIndicatorLabel.isHidden = false
@@ -732,7 +741,8 @@ class CommentsTableHeaderView: UIView {
         } else if !postTextWithCryptoResult.isEmpty {
             let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
                 postTextWithCryptoResult,
-                mentions: feedPost.orderedMentions)
+                mentions: feedPost.orderedMentions,
+                in: MainAppContext.shared.contactStore.viewContext)
             let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
             if let attrText = textWithMentions?.with(font: font, color: .label) {
                 let ham = HAMarkdown(font: font, color: .label)

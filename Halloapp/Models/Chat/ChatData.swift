@@ -182,18 +182,19 @@ class ChatData: ObservableObject {
             )
 
             self.cancellableSet.insert(
-                MainAppContext.shared.feedData.didMergeFeedPost.sink { [weak self] (postID) in
+                MainAppContext.shared.feedData.didMergeFeedPost.sink { [weak self] postID in
                     guard let self = self else { return }
-                    guard let feedPost = MainAppContext.shared.feedData.feedPost(with: postID) else { return }
-                    guard let groupID = feedPost.groupId else { return }
-                    let isInbound = feedPost.userId != MainAppContext.shared.userData.userId
-                    DDLogInfo("ChatData/didMergeFeedPost: \(postID)")
-
-                    self.didGetAGroupFeed.send(groupID)
-
-                    self.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+                    
+                    self.performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
                         guard let self = self else { return }
+                        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: postID, in: managedObjectContext) else { return }
+                        guard let groupID = feedPost.groupId else { return }
+
+                        let isInbound = feedPost.userId != MainAppContext.shared.userData.userId
+                        DDLogInfo("ChatData/didMergeFeedPost: \(postID)")
+
                         self.updateThreadWithGroupFeed(postID, isInbound: isInbound, using: managedObjectContext)
+                        self.didGetAGroupFeed.send(groupID)
                     }
                 }
             )
@@ -434,11 +435,14 @@ class ChatData: ObservableObject {
 
         cancellableSet.insert(contactStore.didDiscoverNewUsers.sink { [weak self] (userIDs) in
             DDLogInfo("ChatData/sink/didDiscoverNewUsers/count: \(userIDs.count)")
-            var contactsDict = [UserID:String]()
-            userIDs.forEach {
-                contactsDict[$0] = contactStore.fullName(for: $0)
+
+            contactStore.performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
+                var contactsDict = [UserID:String]()
+                userIDs.forEach {
+                    contactsDict[$0] = contactStore.fullName(for: $0, in: managedObjectContext)
+                }
+                self?.updateThreadsWithDiscoveredUsers(for: contactsDict)
             }
-            self?.updateThreadsWithDiscoveredUsers(for: contactsDict)
         })
 
         cancellableSet.insert(
@@ -801,73 +805,79 @@ class ChatData: ObservableObject {
     }
 
     private func processUnsupportedItems() {
-        let messageFetchRequest: NSFetchRequest<ChatMessage> = ChatMessage.fetchRequest()
-        messageFetchRequest.predicate = NSPredicate(format: "incomingStatusValue = %d", ChatMessage.IncomingStatus.unsupported.rawValue)
-        do {
-            let unsupportedMessages = try viewContext.fetch(messageFetchRequest)
-            var messagesMigrated = 0
-            for message in unsupportedMessages {
-                guard let rawData = message.rawData else {
-                    DDLogError("ChatData/processUnsupportedItems/messages/error [missing data] [\(message.id)]")
-                    continue
+        performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
+            guard let self = self else { return }
+            let messageFetchRequest: NSFetchRequest<ChatMessage> = ChatMessage.fetchRequest()
+            messageFetchRequest.predicate = NSPredicate(format: "incomingStatusValue = %d", ChatMessage.IncomingStatus.unsupported.rawValue)
+            do {
+                let unsupportedMessages = try managedObjectContext.fetch(messageFetchRequest)
+                var messagesMigrated = 0
+                for message in unsupportedMessages {
+                    guard let rawData = message.rawData else {
+                        DDLogError("ChatData/processUnsupportedItems/messages/error [missing data] [\(message.id)]")
+                        continue
+                    }
+                    guard let chatContainer = try? Clients_ChatContainer(serializedData: rawData) else {
+                        DDLogError("ChatData/processUnsupportedItems/messages/error [deserialization] [\(message.id)]")
+                        continue
+                    }
+                    let content = chatContainer.chatContent
+                    switch content {
+                    case .album, .text, .voiceNote:
+                        let timestamp = message.timestamp ?? Date()
+                        let reinterpretedMessage = XMPPChatMessage(
+                            content: chatContainer.chatContent,
+                            context: chatContainer.chatContext,
+                            timestamp: Int64(timestamp.timeIntervalSince1970),
+                            from: message.fromUserId,
+                            to: message.toUserId,
+                            id: message.id,
+                            retryCount: 0, //TODO
+                            rerequestCount: Int32(message.resendAttempts))
+                        messagesMigrated += 1
+                        self.processIncomingChatMessage(.decrypted(reinterpretedMessage))
+                    case .unsupported:
+                        DDLogInfo("ChatData/processUnsupportedItems/messages/skipping [still-unsupported] [\(message.id)]")
+                    }
                 }
-                guard let chatContainer = try? Clients_ChatContainer(serializedData: rawData) else {
-                    DDLogError("ChatData/processUnsupportedItems/messages/error [deserialization] [\(message.id)]")
-                    continue
-                }
-                let content = chatContainer.chatContent
-                switch content {
-                case .album, .text, .voiceNote:
-                    let timestamp = message.timestamp ?? Date()
-                    let reinterpretedMessage = XMPPChatMessage(
-                        content: chatContainer.chatContent,
-                        context: chatContainer.chatContext,
-                        timestamp: Int64(timestamp.timeIntervalSince1970),
-                        from: message.fromUserId,
-                        to: message.toUserId,
-                        id: message.id,
-                        retryCount: 0, //TODO
-                        rerequestCount: Int32(message.resendAttempts))
-                    messagesMigrated += 1
-                    processIncomingChatMessage(.decrypted(reinterpretedMessage))
-                case .unsupported:
-                    DDLogInfo("ChatData/processUnsupportedItems/messages/skipping [still-unsupported] [\(message.id)]")
-                }
+                DDLogInfo("ChatData/processUnsupportedItems/messages/complete [\(messagesMigrated) / \(unsupportedMessages.count)]")
+            } catch {
+                DDLogError("ChatData/processUnsupportedItems/messages/error [\(error)]")
             }
-            DDLogInfo("ChatData/processUnsupportedItems/messages/complete [\(messagesMigrated) / \(unsupportedMessages.count)]")
-        } catch {
-            DDLogError("ChatData/processUnsupportedItems/messages/error [\(error)]")
         }
     }
 
     // should be called just once, when user have their contacts synced for the very first time
     func populateThreadsWithInitialRegisteredContacts() {
-        let contactStore = MainAppContext.shared.contactStore
-        let contacts = contactStore.allRegisteredContacts(sorted: true)
-        DDLogInfo("ChatData/populateThreadsWithInitialRegisteredContacts/num contacts: \(contacts.count)")
-        var userIDs = [UserID:String]()
-        contacts.forEach {
-            guard let userID = $0.userId else { return }
-            userIDs[userID] = $0.fullName
-        }
-        guard !userIDs.isEmpty else { return }
-
-        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+        MainAppContext.shared.contactStore.performSeriallyOnBackgroundContext { [weak self] contactsManagedObjectContext in
             guard let self = self else { return }
-            for (userId, fullName) in userIDs {
-                guard self.chatThread(type: ChatType.oneToOne, id: userId, in: managedObjectContext) == nil else { continue }
-                DDLogInfo("ChatData/populateThreadsWithInitialRegisteredContacts/contact/\(userId)")
 
-                // these chat threads will have no timestamps and be sorted alphabetically below ones that do
-                let chatThread = ChatThread(context: managedObjectContext)
-                chatThread.title = fullName
-                chatThread.userID = userId
-                chatThread.lastMsgUserId = userId
-                chatThread.lastMsgText = nil
-                chatThread.unreadCount = 0
-                chatThread.isNew = false
+            let contacts = MainAppContext.shared.contactStore.allRegisteredContacts(sorted: true, in: contactsManagedObjectContext)
+            DDLogInfo("ChatData/populateThreadsWithInitialRegisteredContacts/num contacts: \(contacts.count)")
+            var userIDs = [UserID:String]()
+            contacts.forEach {
+                guard let userID = $0.userId else { return }
+                userIDs[userID] = $0.fullName
             }
-            self.save(managedObjectContext)
+            guard !userIDs.isEmpty else { return }
+
+            self.performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
+                guard let self = self else { return }
+                for (userId, fullName) in userIDs {
+                    guard self.chatThread(type: ChatType.oneToOne, id: userId, in: managedObjectContext) == nil else { continue }
+                    DDLogInfo("ChatData/populateThreadsWithInitialRegisteredContacts/contact/\(userId)")
+
+                    // these chat threads will have no timestamps and be sorted alphabetically below ones that do
+                    let chatThread = ChatThread(context: managedObjectContext)
+                    chatThread.title = fullName
+                    chatThread.userID = userId
+                    chatThread.lastMsgUserId = userId
+                    chatThread.lastMsgText = nil
+                    chatThread.unreadCount = 0
+                    chatThread.isNew = false
+                }
+                self.save(managedObjectContext)
+            }
         }
     }
 
@@ -906,7 +916,12 @@ class ChatData: ObservableObject {
                 thread.isNew = true
             } else {
                 DDLogInfo("ChatData/updateThreadWithInvitedUserPreview/new thread, userID: /\(userID)")
-                let fullName = MainAppContext.shared.contactStore.fullName(for: userID)
+
+                var fullName = ""
+                MainAppContext.shared.contactStore.performOnBackgroundContextAndWait { contactsManagedObjectContext in
+                    fullName = MainAppContext.shared.contactStore.fullName(for: userID, in: contactsManagedObjectContext)
+                }
+
                 let chatThread = ChatThread(context: managedObjectContext)
                 chatThread.title = fullName
                 chatThread.userID = userID
@@ -922,27 +937,30 @@ class ChatData: ObservableObject {
 
     // remove empty chat threads of users who are not in the address book
     public func pruneEmptyChatThreads() {
-        let contactStore = MainAppContext.shared.contactStore
-        let contacts = contactStore.allRegisteredContacts(sorted: true)
-        var userIDs = [UserID:String]()
-        contacts.forEach {
-            guard let userID = $0.userId else { return }
-            userIDs[userID] = $0.fullName
-        }
-        guard !userIDs.isEmpty else { return }
-
-        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+        MainAppContext.shared.contactStore.performSeriallyOnBackgroundContext { [weak self] contactsManagedObjectContext in
             guard let self = self else { return }
-            let emptyOneToOneChatThreads = self.emptyOneToOneChatThreads(in: managedObjectContext)
-            emptyOneToOneChatThreads.forEach({
-                guard let chatWithUserID = $0.userID else { return }
-                guard userIDs[chatWithUserID] == nil else { return }
-                DDLogInfo("ChatData/pruneEmptyChatThreads/emptyOneToOneChatThreads/remove \(chatWithUserID)")
-                self.deleteChat(chatThreadId: chatWithUserID)
-            })
+            let contacts = MainAppContext.shared.contactStore.allRegisteredContacts(sorted: true, in: contactsManagedObjectContext)
 
-            if managedObjectContext.hasChanges {
-                self.save(managedObjectContext)
+            var userIDs = [UserID:String]()
+            contacts.forEach {
+                guard let userID = $0.userId else { return }
+                userIDs[userID] = $0.fullName
+            }
+            guard !userIDs.isEmpty else { return }
+
+            self.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+                guard let self = self else { return }
+                let emptyOneToOneChatThreads = self.emptyOneToOneChatThreads(in: managedObjectContext)
+                emptyOneToOneChatThreads.forEach({
+                    guard let chatWithUserID = $0.userID else { return }
+                    guard userIDs[chatWithUserID] == nil else { return }
+                    DDLogInfo("ChatData/pruneEmptyChatThreads/emptyOneToOneChatThreads/remove \(chatWithUserID)")
+                    self.deleteChat(chatThreadId: chatWithUserID)
+                })
+
+                if managedObjectContext.hasChanges {
+                    self.save(managedObjectContext)
+                }
             }
         }
     }
@@ -1088,15 +1106,8 @@ class ChatData: ObservableObject {
         mainDataStore.performSeriallyOnBackgroundContext(block)
     }
 
-    // NB: Can be called only from a non-main thread, of the caller's choice
     public func performOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
-        guard !Thread.current.isMainThread else {
-            DDLogDebug("ChatData/performOnBackgroundContextAndWait/exit, being called from main thread")
-            return
-        }
-        let managedObjectContext = mainDataStore.persistentContainer.newBackgroundContext()
-        managedObjectContext.automaticallyMergesChangesFromParent = true
-        managedObjectContext.performAndWait { block(managedObjectContext) }
+        mainDataStore.performOnBackgroundContextAndWait(block)
     }
 
     private func save(_ managedObjectContext: NSManagedObjectContext) {
@@ -1264,15 +1275,9 @@ class ChatData: ObservableObject {
     // MARK: Share Extension Merge Data
     
     func mergeData(from sharedDataStore: SharedDataStore, completion: @escaping (() -> ())) {
-        let messages = sharedDataStore.messages()
         DDLogInfo("ChatData/mergeData - \(sharedDataStore.source)/begin")
         let sharedMessageIds = sharedDataStore.chatMessageIds()
         DDLogInfo("ChatData/mergeData/sharedMessageIds: \(sharedMessageIds)")
-
-        performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
-            guard let self = self else { return }
-            self.merge(messages: messages, from: sharedDataStore, using: managedObjectContext)
-        }
 
         mainDataStore.saveSeriallyOnBackgroundContext ({ managedObjectContext in
             // TODO: murali@: we dont need the following merge in the future - leaving it in for now.
@@ -1293,12 +1298,12 @@ class ChatData: ObservableObject {
                         chatMsg.hasBeenProcessed = true
                     }
 
-                    // send pending chat messages
-                    processPendingChatMsgs()
-                    // download chat message media
-                    processInboundPendingChatMsgMedia()
-                    processInboundPendingChaLinkPreviewMedia()
-                    DDLogInfo("ChatData/mergeData/chatMessageIds: \(mergedMessageIds)")
+                        // send pending chat messages
+                        processPendingChatMsgs()
+                        // download chat message media
+                        processInboundPendingChatMsgMedia()
+                        processInboundPendingChaLinkPreviewMedia()
+                        DDLogInfo("ChatData/mergeData/chatMessageIds: \(mergedMessageIds)")
                 }
                 sharedDataStore.clearChatMessageIds()
             case .failure(let error):
@@ -1523,7 +1528,7 @@ class ChatData: ObservableObject {
             // Process quoted content.
             if let feedPostId = chatMessage.feedPostId, !feedPostId.isEmpty {
                 // Process Quoted Feedpost
-                if let quotedFeedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
+                if let quotedFeedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: managedObjectContext) {
                     copyQuoted(to: chatMessage, from: quotedFeedPost, using: managedObjectContext)
                 }
             } else if let chatReplyMsgId = chatMessage.chatReplyMessageID, !chatReplyMsgId.isEmpty {
@@ -1706,7 +1711,7 @@ class ChatData: ObservableObject {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             let sharedNUX = MainAppContext.shared.nux
-            if let sampleGroupID = sharedNUX.sampleGroupID(), self.chatGroup(groupId: sampleGroupID) == nil {
+            if let sampleGroupID = sharedNUX.sampleGroupID(), self.chatGroup(groupId: sampleGroupID, in: self.viewContext) == nil {
                 sharedNUX.markSampleGroupWelcomePostSeen()
                 self.updateUnreadThreadGroupsCount()
             }
@@ -1717,7 +1722,7 @@ class ChatData: ObservableObject {
 
 extension ChatData: FeedDownloadManagerDelegate {
     func feedDownloadManager(_ manager: FeedDownloadManager, didFinishTask task: FeedDownloadManager.Task) {
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
             // Update chatMediaItem
             guard let objectID = task.feedMediaObjectId, let chatMediaItem = try? managedObjectContext.existingObject(with: objectID) as? CommonMedia else {
                 DDLogError("ChatData/download-task/\(task.id)/error  Missing CommonMedia  taskId=[\(task.id)]  objectId=[\(task.feedMediaObjectId?.uriRepresentation().absoluteString ?? "nil")))]")
@@ -1882,8 +1887,7 @@ extension ChatData {
 
     //MARK: Thread Core Data Fetching
     
-    private func commonThreads(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatThread] {
-        let managedObjectContext = managedObjectContext ?? viewContext
+    private func commonThreads(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext) -> [ChatThread] {
         let fetchRequest: NSFetchRequest<ChatThread> = ChatThread.fetchRequest()
         fetchRequest.predicate = predicate
         fetchRequest.sortDescriptors = sortDescriptors
@@ -1899,11 +1903,11 @@ extension ChatData {
         }
     }
 
-    func emptyOneToOneChatThreads(in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatThread] {
+    func emptyOneToOneChatThreads(in managedObjectContext: NSManagedObjectContext) -> [ChatThread] {
         return commonThreads(predicate: NSPredicate(format: "groupID == nil AND lastContentID == nil"), in: managedObjectContext)
     }
 
-    func groupThreadsWithExpiredPosts(expiredPostIDs: [FeedPostID], in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatThread] {
+    func groupThreadsWithExpiredPosts(expiredPostIDs: [FeedPostID], in managedObjectContext: NSManagedObjectContext) -> [ChatThread] {
         return commonThreads(predicate: NSPredicate(format: "groupID != nil && lastContentID IN %@", expiredPostIDs), in: managedObjectContext)
     }
 
@@ -1911,7 +1915,7 @@ extension ChatData {
         return commonThreads(predicate: NSPredicate(format: "groupID != nil"), in: managedObjectContext)
     }
 
-    func chatThread(type: ChatType, id: String, in managedObjectContext: NSManagedObjectContext? = nil) -> ChatThread? {
+    func chatThread(type: ChatType, id: String, in managedObjectContext: NSManagedObjectContext) -> ChatThread? {
         if type == .group {
             return commonThreads(predicate: NSPredicate(format: "groupID == %@", id), in: managedObjectContext).first
         } else {
@@ -1919,7 +1923,7 @@ extension ChatData {
         }
     }
     
-    func chatThreadStatus(type: ChatType, id: String, messageId: String, in managedObjectContext: NSManagedObjectContext? = nil) -> ChatThread? {
+    func chatThreadStatus(type: ChatType, id: String, messageId: String, in managedObjectContext: NSManagedObjectContext) -> ChatThread? {
         if type == .group {
             return commonThreads(predicate: NSPredicate(format: "groupID == %@ AND lastContentID == %@", id, messageId), in: managedObjectContext).first
         } else {
@@ -2135,7 +2139,7 @@ extension ChatData {
                           chatReplyMessageMediaIndex: 0,
                                                using: context)
 
-                let message = self.chatMessage(with: id, in: self.viewContext)
+                let message = self.chatMessage(with: id, in: context)
                 continuation.resume(returning: message)
             }
         }
@@ -2228,7 +2232,7 @@ extension ChatData {
             quoted.type = .moment
             quoted.userID = toUserId
             quoted.message = chatMessage
-        } else if let feedPostId = feedPostId, let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
+        } else if let feedPostId = feedPostId, let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: context) {
             // Create and save Quoted FeedPost
             let quoted = ChatQuoted(context: context)
             quoted.type = .feedpost
@@ -2398,18 +2402,18 @@ extension ChatData {
         }
     }
 
-    private func uploadAllChatMsgMediaAndSend(_ xmppChatMsg: XMPPChatMessage, in context: NSManagedObjectContext) {
+    private func uploadAllChatMsgMediaAndSend(_ xmppChatMsg: XMPPChatMessage, in managedObjectContext: NSManagedObjectContext) {
         let msgID = xmppChatMsg.id
         
-        guard let chatMsg = chatMessage(with: msgID, in: context) else { return }
+        guard let chatMsg = chatMessage(with: msgID, in: managedObjectContext) else { return }
 
         MainAppContext.shared.beginBackgroundTask(msgID)
         
         // Either all media has already been uploaded or post does not contain media.
         if let mediaItemsToUpload = chatMsg.media?.filter({ $0.outgoingStatus == .none || $0.outgoingStatus == .pending || $0.outgoingStatus == .error }), !mediaItemsToUpload.isEmpty {
-            uploadChatMsgMediaAndSend(msgID: msgID, chatMsg: chatMsg, mediaItemsToUpload: mediaItemsToUpload, in: context, mediaType: .chatMedia)
+            uploadChatMsgMediaAndSend(msgID: msgID, chatMsg: chatMsg, mediaItemsToUpload: mediaItemsToUpload, mediaType: .chatMedia)
         } else if let mediaItemsToUpload = chatMsg.linkPreviews?.first?.media?.filter({ $0.outgoingStatus == .none || $0.outgoingStatus == .pending || $0.outgoingStatus == .error }), !mediaItemsToUpload.isEmpty{
-            uploadChatMsgMediaAndSend(msgID: msgID, chatMsg: chatMsg, mediaItemsToUpload: mediaItemsToUpload, in: context, mediaType: .linkPreviewMedia)
+            uploadChatMsgMediaAndSend(msgID: msgID, chatMsg: chatMsg, mediaItemsToUpload: mediaItemsToUpload, mediaType: .linkPreviewMedia)
         } else {
             send(message: XMPPChatMessage(chatMessage: chatMsg))
             return
@@ -2421,7 +2425,7 @@ extension ChatData {
         case linkPreviewMedia
     }
 
-    private func uploadChatMsgMediaAndSend(msgID: ChatMessageID, chatMsg: ChatMessage, mediaItemsToUpload: Set<CommonMedia>, in context: NSManagedObjectContext, mediaType: ChatMediaType) {
+    private func uploadChatMsgMediaAndSend(msgID: ChatMessageID, chatMsg: ChatMessage, mediaItemsToUpload: Set<CommonMedia>, mediaType: ChatMediaType) {
 
         var numberOfFailedUploads = 0
         var isMsgStale: Bool = false
@@ -2503,7 +2507,7 @@ extension ChatData {
                                 DDLogDebug("ChatData/linkPreview updating chat message: \(msgID), relativeFilePath: \(path ?? "nil")")
                             }
                         }) {
-                            self.uploadChat(msgID: msgID, mediaIndex: mediaIndex, in: context, mediaType: mediaType, completion: uploadCompletion)
+                            self.uploadChat(msgID: msgID, mediaIndex: mediaIndex, mediaType: mediaType, completion: uploadCompletion)
                         }
                     case .failure(_):
                         DDLogDebug("ChatData/process-mediaItem/failure: \(msgID)/\(mediaIndex)")
@@ -2526,7 +2530,7 @@ extension ChatData {
                 }
             } else {
                 DDLogDebug("ChatData/process-mediaItem/processed already: \(msgID)/\(mediaIndex)")
-                uploadChat(msgID: msgID, mediaIndex: mediaIndex, in: context, mediaType: mediaType, completion: uploadCompletion)
+                uploadChat(msgID: msgID, mediaIndex: mediaIndex, mediaType: mediaType, completion: uploadCompletion)
             }
         }
 
@@ -2542,7 +2546,10 @@ extension ChatData {
                     }
                 }
             } else {
-                self.send(message: XMPPChatMessage(chatMessage: chatMsg))
+                self.performSeriallyOnBackgroundContext { managedObjectContext in
+                    guard let chatMsg = self.chatMessage(with: msgID, in: managedObjectContext) else { return }
+                    self.send(message: XMPPChatMessage(chatMessage: chatMsg))
+                }
             }
 
         }
@@ -2559,32 +2566,35 @@ extension ChatData {
         return chatMedia
     }
 
-    private func uploadChat(msgID: String, mediaIndex: Int16, in context: NSManagedObjectContext, mediaType: ChatMediaType, completion: @escaping (Result<MediaUploader.UploadDetails, Error>) -> Void) {
-        guard let msg = chatMessage(with: msgID, in: context),
-              let chatMedia = getChatMediaFromMessage(msg: msg, mediaIndex: mediaIndex, mediaType: mediaType) else {
-            DDLogError("ChatData/uploadChat/fetch msg and media \(msgID)/\(mediaIndex) - missing")
-            completion(.failure(RequestError.aborted))
-            return
-        }
-
-        DDLogDebug("ChatData/uploadChat/media \(msgID)/\(chatMedia.order), index:\(mediaIndex), path: \(chatMedia.relativeFilePath ?? "nil")")
-        guard let processed = chatMedia.mediaURL else {
-            DDLogError("ChatData/uploadChat/\(msgID)/\(mediaIndex) missing file path")
-            return completion(.failure(MediaUploadError.invalidUrls))
-        }
-
-        MainAppContext.shared.mediaHashStore.fetch(url: processed, blobVersion: chatMedia.blobVersion) { [weak self] upload in
+    private func uploadChat(msgID: String, mediaIndex: Int16, mediaType: ChatMediaType, completion: @escaping (Result<MediaUploader.UploadDetails, Error>) -> Void) {
+        performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
             guard let self = self else { return }
-            self.checkMediaHashAndUploadChat(msgID: msgID, mediaIndex: mediaIndex, mediaType: mediaType, mediaHash: upload, completion: completion)
+            guard let msg = self.chatMessage(with: msgID, in: managedObjectContext),
+                  let chatMedia = self.getChatMediaFromMessage(msg: msg, mediaIndex: mediaIndex, mediaType: mediaType) else {
+                DDLogError("ChatData/uploadChat/fetch msg and media \(msgID)/\(mediaIndex) - missing")
+                completion(.failure(RequestError.aborted))
+                return
+            }
+
+            DDLogDebug("ChatData/uploadChat/media \(msgID)/\(chatMedia.order), index:\(mediaIndex), path: \(chatMedia.relativeFilePath ?? "nil")")
+            guard let processed = chatMedia.mediaURL else {
+                DDLogError("ChatData/uploadChat/\(msgID)/\(mediaIndex) missing file path")
+                return completion(.failure(MediaUploadError.invalidUrls))
+            }
+
+            MainAppContext.shared.mediaHashStore.fetch(url: processed, blobVersion: chatMedia.blobVersion) { [weak self] upload in
+                guard let self = self else { return }
+                self.checkMediaHashAndUploadChat(msgID: msgID, mediaIndex: mediaIndex, mediaType: mediaType, mediaHash: upload, completion: completion)
+            }
         }
     }
 
-    private func checkMediaHashAndUploadChat(msgID: String, mediaIndex: Int16, mediaType: ChatMediaType, mediaHash: MediaHash?,
+    private func checkMediaHashAndUploadChat(msgID: String, mediaIndex: Int16, mediaType: ChatMediaType, mediaHash: (url: URL?, key: String?, sha256: String?)?,
                                              completion: @escaping (Result<MediaUploader.UploadDetails, Error>) -> Void) {
         let mediaHashURL = mediaHash?.url
         let mediaHashKey = mediaHash?.key
         let mediaHashSha256 = mediaHash?.sha256
-        self.mainDataStore.performSeriallyOnBackgroundContext { context in
+        performSeriallyOnBackgroundContext { context in
             // Lookup object from coredata again instead of passing around the object across threads.
             DDLogInfo("ChatData/uploadChat/fetch upload hash \(msgID)/\(mediaIndex)")
             guard let msg = self.chatMessage(with: msgID, in: context),
@@ -2734,7 +2744,12 @@ extension ChatData {
     /// - Remark: This is different from the implementation in `ShareComposerViewController.swift` because `MainAppContext` isn't available in the share extension.
     private func addIntent(toUserId: UserID) {
         if #available(iOS 14.0, *) {
-            let recipient = INSpeakableString(spokenPhrase: MainAppContext.shared.contactStore.fullName(for: toUserId))
+            var name = ""
+            MainAppContext.shared.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
+                name = MainAppContext.shared.contactStore.fullName(for: toUserId, in: managedObjectContext)
+            }
+
+            let recipient = INSpeakableString(spokenPhrase: name)
             let sendMessageIntent = INSendMessageIntent(recipients: nil,
                                                         content: nil,
                                                         speakableGroupName: recipient,
@@ -3396,7 +3411,7 @@ extension ChatData {
         // Process quoted content.
         if let feedPostId = xmppChatMessage.context.feedPostID {
             // Process Quoted Feedpost
-            if let quotedFeedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
+            if let quotedFeedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: managedObjectContext) {
                 copyQuoted(to: chatMessage, from: quotedFeedPost, using: managedObjectContext)
             }
         } else if let chatReplyMsgId = xmppChatMessage.context.chatReplyMessageID {
@@ -3590,12 +3605,9 @@ extension ChatData {
             let pendingOutgoingChatMessages = self.pendingOutgoingChatMessages(in: managedObjectContext)
             DDLogInfo("ChatData/processPendingChatMsgs/num: \(pendingOutgoingChatMessages.count)")
 
-            pendingOutgoingChatMessages.forEach{ pendingMsg in
+            pendingOutgoingChatMessages.forEach { pendingMsg in
                 let xmppChatMsg = XMPPChatMessage(chatMessage: pendingMsg)
-                self.backgroundProcessingQueue.async { [weak self] in
-                    guard let self = self else { return }
-                    self.uploadAllChatMsgMediaAndSend(xmppChatMsg, in: managedObjectContext)
-                }
+                self.uploadAllChatMsgMediaAndSend(xmppChatMsg, in: managedObjectContext)
             }
         }
     }
@@ -3678,7 +3690,7 @@ extension ChatData {
         let userID = xmppChatMessage.fromUserId
         let messageID = xmppChatMessage.id
         
-        let name = contactStore.fullName(for: userID)
+        let name = contactStore.fullName(for: userID, in: contactStore.viewContext)
         
         let title = "\(name)"
         
@@ -3918,16 +3930,20 @@ extension ChatData {
     }
 
     func syncGroupIfNeeded(for groupId: GroupID) {
-        guard let group = chatGroup(groupId: groupId) else { return }
-        guard MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) != nil else { return }
+        performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
+            guard let self = self else { return }
 
-        if let lastSync = group.lastSync {
-            guard let diff = Calendar.current.dateComponents([.hour], from: lastSync, to: Date()).hour, diff > 24 else {
-                return
+            guard let group = self.chatGroup(groupId: groupId, in: managedObjectContext) else { return }
+            guard self.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId, in: managedObjectContext) != nil else { return }
+
+            if let lastSync = group.lastSync {
+                guard let diff = Calendar.current.dateComponents([.hour], from: lastSync, to: Date()).hour, diff > 24 else {
+                    return
+                }
             }
-        }
 
-        MainAppContext.shared.chatData.getAndSyncGroup(groupId: groupId)
+            MainAppContext.shared.chatData.getAndSyncGroup(groupId: groupId)
+        }
     }
 
     // Sync group crypto state and remove non-members in sender-states and pendingUids string.
@@ -4118,8 +4134,7 @@ extension ChatData {
 
     // MARK: Group Core Data Fetching
     
-    private func chatGroups(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [Group] {
-        let managedObjectContext = managedObjectContext ?? viewContext
+    private func chatGroups(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext) -> [Group] {
         let fetchRequest: NSFetchRequest<Group> = Group.fetchRequest()
         fetchRequest.predicate = predicate
         fetchRequest.sortDescriptors = sortDescriptors
@@ -4135,12 +4150,11 @@ extension ChatData {
         }
     }
     
-    func chatGroup(groupId id: String, in managedObjectContext: NSManagedObjectContext? = nil) -> Group? {
+    func chatGroup(groupId id: String, in managedObjectContext: NSManagedObjectContext) -> Group? {
         return chatGroups(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext).first
     }
     
-    private func chatGroupMembers(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [GroupMember] {
-        let managedObjectContext = managedObjectContext ?? self.viewContext
+    private func chatGroupMembers(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext) -> [GroupMember] {
         let fetchRequest: NSFetchRequest<GroupMember> = GroupMember.fetchRequest()
         fetchRequest.predicate = predicate
         fetchRequest.sortDescriptors = sortDescriptors
@@ -4156,17 +4170,16 @@ extension ChatData {
         }
     }
     
-    func chatGroupMember(groupId id: GroupID, memberUserId: UserID, in managedObjectContext: NSManagedObjectContext? = nil) -> GroupMember? {
+    func chatGroupMember(groupId id: GroupID, memberUserId: UserID, in managedObjectContext: NSManagedObjectContext) -> GroupMember? {
         return chatGroupMembers(predicate: NSPredicate(format: "groupID == %@ && userID == %@", id, memberUserId), in: managedObjectContext).first
     }
 
-    func chatGroupIds(for memberUserId: UserID, in managedObjectContext: NSManagedObjectContext? = nil) -> [GroupID] {
+    func chatGroupIds(for memberUserId: UserID, in managedObjectContext: NSManagedObjectContext) -> [GroupID] {
         let chatGroupMemberItems = chatGroupMembers(predicate: NSPredicate(format: "userID == %@", memberUserId), in: managedObjectContext)
         return chatGroupMemberItems.map { $0.groupID }
     }
     
-    private func chatGroupMessages(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatGroupMessage] {
-        let managedObjectContext = managedObjectContext ?? viewContext
+    private func chatGroupMessages(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext) -> [ChatGroupMessage] {
         let fetchRequest: NSFetchRequest<ChatGroupMessage> = ChatGroupMessage.fetchRequest()
         fetchRequest.predicate = predicate
         fetchRequest.sortDescriptors = sortDescriptors
@@ -4182,17 +4195,16 @@ extension ChatData {
         }
     }
     
-    func chatGroupMessage(with id: String, in managedObjectContext: NSManagedObjectContext? = nil) -> ChatGroupMessage? {
+    func chatGroupMessage(with id: String, in managedObjectContext: NSManagedObjectContext) -> ChatGroupMessage? {
         return chatGroupMessages(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext).first
     }
     
-    func groupFeedEvents(with groupID: GroupID, in managedObjectContext: NSManagedObjectContext? = nil) -> [GroupEvent] {
+    func groupFeedEvents(with groupID: GroupID, in managedObjectContext: NSManagedObjectContext) -> [GroupEvent] {
         let cutOffDate = Date(timeIntervalSinceNow: -Date.days(31))
         let sortDescriptors = [
             NSSortDescriptor(keyPath: \GroupEvent.timestamp, ascending: true)
         ]
 
-        let managedObjectContext = managedObjectContext ?? viewContext
         let fetchRequest = GroupEvent.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "groupID == %@ && timestamp >= %@", groupID, cutOffDate as NSDate)
         fetchRequest.sortDescriptors = sortDescriptors
@@ -4208,8 +4220,7 @@ extension ChatData {
         }
     }
 
-    private func chatGroupMessageAllInfo(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatGroupMessageInfo] {
-        let managedObjectContext = managedObjectContext ?? self.viewContext
+    private func chatGroupMessageAllInfo(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext) -> [ChatGroupMessageInfo] {
         let fetchRequest: NSFetchRequest<ChatGroupMessageInfo> = ChatGroupMessageInfo.fetchRequest()
         fetchRequest.predicate = predicate
         fetchRequest.sortDescriptors = sortDescriptors
@@ -4225,11 +4236,11 @@ extension ChatData {
         }
     }
 
-    func chatGroupMessageInfo(messageId: String, in managedObjectContext: NSManagedObjectContext? = nil) -> ChatGroupMessageInfo? {
+    func chatGroupMessageInfo(messageId: String, in managedObjectContext: NSManagedObjectContext) -> ChatGroupMessageInfo? {
         return chatGroupMessageAllInfo(predicate: NSPredicate(format: "chatGroupMessageId == %@", messageId), in: managedObjectContext).first
     }
 
-    func chatGroupMessageInfoForUser(messageId: String, userId: UserID, in managedObjectContext: NSManagedObjectContext? = nil) -> ChatGroupMessageInfo? {
+    func chatGroupMessageInfoForUser(messageId: String, userId: UserID, in managedObjectContext: NSManagedObjectContext) -> ChatGroupMessageInfo? {
         return chatGroupMessageAllInfo(predicate: NSPredicate(format: "chatGroupMessageId == %@ && userId == %@", messageId, userId), in: managedObjectContext).first
     }
 
@@ -4408,8 +4419,12 @@ extension ChatData {
 
         save(managedObjectContext) // extra save
 
+        var mentionText: NSAttributedString?
+        contactStore.performOnBackgroundContextAndWait { contactsManagedObjectContext in
+            mentionText = contactStore.textWithMentions(groupFeedPost.rawText, mentions: groupFeedPost.orderedMentions, in: contactsManagedObjectContext)
+        }
+
         // Update Chat Thread
-        let mentionText = contactStore.textWithMentions(groupFeedPost.rawText, mentions: groupFeedPost.orderedMentions)
         if let chatThread = chatThread(type: .group, id: groupID, in: managedObjectContext) {
             // extra save for fetchedcontroller to notice re-ordering changes mixed in with other changes
             chatThread.lastFeedTimestamp = groupFeedPost.timestamp
@@ -4450,8 +4465,7 @@ extension ChatData {
     }
 
     private func updateThreadWithGroupFeedRetract(_ id: FeedPostID, using managedObjectContext: NSManagedObjectContext) {
-        
-        guard let groupFeedPost = MainAppContext.shared.feedData.feedPost(with: id) else { return }
+        guard let groupFeedPost = MainAppContext.shared.feedData.feedPost(with: id, in: managedObjectContext) else { return }
         guard let groupID = groupFeedPost.groupId else { return }
         
         guard let thread = chatThread(type: .group, id: groupID, in: managedObjectContext) else { return }
@@ -4461,7 +4475,6 @@ extension ChatData {
         thread.lastFeedStatus = .retracted
         
         save(managedObjectContext)
-        
     }
     
 }
@@ -4897,7 +4910,7 @@ extension ChatData {
         guard let userID = xmppGroup.sender else { return }
         guard let messageID = xmppGroup.messageId else { return }
         let groupName = xmppGroup.name
-        let name = contactStore.fullName(for: userID)
+        let name = contactStore.fullName(for: userID, in: contactStore.viewContext)
 
         let title = "\(name) @ \(groupName)"
         let body = Localizations.groupsAddNotificationBody
@@ -4981,8 +4994,7 @@ extension ChatData: HalloChatDelegate {
         processIncomingXMPPGroup(group)
     }
 
-    func halloService(_ halloService: HalloService, didReceiveHistoryResendPayload historyPayload: Clients_GroupHistoryPayload?,
-                      withGroupMessage group: HalloGroup) {
+    func halloService(_ halloService: HalloService, didReceiveHistoryResendPayload historyPayload: Clients_GroupHistoryPayload?, withGroupMessage group: HalloGroup) {
         guard let sender = group.sender else {
             DDLogError("ChatData/didReceiveHistoryPayload/invalid group here: \(group)")
             return
@@ -5016,10 +5028,13 @@ extension ChatData: HalloChatDelegate {
             // share authored group feed history to all new member uids.
             let newlyAddedMembers = group.members?.filter { $0.action == .add } ?? []
             let newMemberUids = newlyAddedMembers.map{ $0.userId }
-            let (postsData, commentsData) = MainAppContext.shared.feedData.authoredFeedHistory(for: groupID)
-            DDLogInfo("ChatData/didReceiveHistoryPayload/\(groupID)/from self/processing")
-            shareGroupFeedItems(posts: postsData, comments: commentsData, in: groupID, to: newMemberUids)
 
+            performSeriallyOnBackgroundContext { managedObjectContext in
+                let (postsData, commentsData) = MainAppContext.shared.feedData.authoredFeedHistory(for: groupID, in: managedObjectContext)
+
+                DDLogInfo("ChatData/didReceiveHistoryPayload/\(groupID)/from self/processing")
+                self.shareGroupFeedItems(posts: postsData, comments: commentsData, in: groupID, to: newMemberUids)
+            }
         } else {
             DDLogInfo("ChatData/didReceiveHistoryPayload/\(groupID)/error - unexpected stanza")
         }
@@ -5037,92 +5052,100 @@ extension ChatData: HalloChatDelegate {
         // Check if sender is in the address book.
         // If yes - then verify the hash of the contents and send them to the new members.
         // Else - log and return
-        guard contactStore.isContactInAddressBook(userId: fromUserID) else {
-            DDLogInfo("ChatData/processGroupFeedHistory/\(groupID)/sendingAdmin is not in address book - ignore historyResend stanza")
-            return
-        }
 
-        let contentsDetails = historyPayload.contentDetails
-        var contentsHashDict = [String: Data]()
-        contentsDetails.forEach { contentDetails in
-            switch contentDetails.contentID {
-            case .postIDContext(let postIdContext):
-                contentsHashDict[postIdContext.feedPostID] = contentDetails.contentHash
-            case .commentIDContext(let commentIdContext):
-                contentsHashDict[commentIdContext.commentID] = contentDetails.contentHash
-            case .none:
-                break
+        performSeriallyOnBackgroundContext { managedObjectContext in
+            var isContactInAddressBook = false
+            self.contactStore.performOnBackgroundContextAndWait { contactsManagedObjectContext in
+                isContactInAddressBook = self.contactStore.isContactInAddressBook(userId: fromUserID, in: contactsManagedObjectContext)
             }
-        }
 
-        let (postsData, commentsData) = MainAppContext.shared.feedData.authoredFeedHistory(for: groupID)
-        var postsToShare: [PostData] = []
-        var commentsToShare: [CommentData] = []
-        do {
-            for post in postsData {
-                let contentData = try post.clientContainer.serializedData()
-                let actualHash = SHA256.hash(data: contentData).data
-                let expectedHash = contentsHashDict[post.id]
-                if let expectedHash = expectedHash,
-                   expectedHash == actualHash {
-                    postsToShare.append(post)
-                } else {
-                    DDLogError("ChatData/processGroupFeedHistory/\(groupID)/post: \(post.id)/hash mismatch/expected: \(String(describing: expectedHash))/actual: \(actualHash)")
-                }
+            guard isContactInAddressBook else {
+                DDLogInfo("ChatData/processGroupFeedHistory/\(groupID)/sendingAdmin is not in address book - ignore historyResend stanza")
+                return
             }
-            for comment in commentsData {
-                let contentData = try comment.clientContainer.serializedData()
-                let actualHash = SHA256.hash(data: contentData).data
-                let expectedHash = contentsHashDict[comment.id]
-                if let expectedHash = expectedHash,
-                   expectedHash == actualHash {
-                    commentsToShare.append(comment)
-                } else {
-                    DDLogError("ChatData/processGroupFeedHistory/\(groupID)/comment: \(comment.id)/hash mismatch/expected: \(String(describing: expectedHash))/actual: \(actualHash)")
+
+            let contentsDetails = historyPayload.contentDetails
+            var contentsHashDict = [String: Data]()
+            contentsDetails.forEach { contentDetails in
+                switch contentDetails.contentID {
+                case .postIDContext(let postIdContext):
+                    contentsHashDict[postIdContext.feedPostID] = contentDetails.contentHash
+                case .commentIDContext(let commentIdContext):
+                    contentsHashDict[commentIdContext.commentID] = contentDetails.contentHash
+                case .none:
+                    break
                 }
             }
 
-            // Fetch identity keys of new members and compare with received keys.
-            var numberOfFailedVerifications = 0
-            let verifyKeysGroup = DispatchGroup()
-            var newMemberUids: [UserID] = []
-            let totalNewMemberUids = historyPayload.memberDetails.count
-            historyPayload.memberDetails.forEach { memberDetails in
-                verifyKeysGroup.enter()
-                let memberUid = UserID(memberDetails.uid)
-                AppContext.shared.messageCrypter.setupOutbound(for: memberUid) { result in
-                    switch result {
-                    case .success(let keyBundle):
-                        let expected = keyBundle.inboundIdentityPublicEdKey
-                        let actual = memberDetails.publicIdentityKey
-                        if expected == actual {
-                            DDLogInfo("ChatData/processGroupFeedHistory/\(groupID)/verified \(memberUid) successfully")
-                            newMemberUids.append(memberUid)
-                        } else {
-                            DDLogError("ChatData/processGroupFeedHistory/\(groupID)/failed verification of \(memberUid)/expected: \(expected.bytes.prefix(4))/actual: \(actual.bytes.prefix(4))")
+            let (postsData, commentsData) = MainAppContext.shared.feedData.authoredFeedHistory(for: groupID, in: managedObjectContext)
+            var postsToShare: [PostData] = []
+            var commentsToShare: [CommentData] = []
+            do {
+                for post in postsData {
+                    let contentData = try post.clientContainer.serializedData()
+                    let actualHash = SHA256.hash(data: contentData).data
+                    let expectedHash = contentsHashDict[post.id]
+                    if let expectedHash = expectedHash,
+                       expectedHash == actualHash {
+                        postsToShare.append(post)
+                    } else {
+                        DDLogError("ChatData/processGroupFeedHistory/\(groupID)/post: \(post.id)/hash mismatch/expected: \(String(describing: expectedHash))/actual: \(actualHash)")
+                    }
+                }
+                for comment in commentsData {
+                    let contentData = try comment.clientContainer.serializedData()
+                    let actualHash = SHA256.hash(data: contentData).data
+                    let expectedHash = contentsHashDict[comment.id]
+                    if let expectedHash = expectedHash,
+                       expectedHash == actualHash {
+                        commentsToShare.append(comment)
+                    } else {
+                        DDLogError("ChatData/processGroupFeedHistory/\(groupID)/comment: \(comment.id)/hash mismatch/expected: \(String(describing: expectedHash))/actual: \(actualHash)")
+                    }
+                }
+
+                // Fetch identity keys of new members and compare with received keys.
+                var numberOfFailedVerifications = 0
+                let verifyKeysGroup = DispatchGroup()
+                var newMemberUids: [UserID] = []
+                let totalNewMemberUids = historyPayload.memberDetails.count
+                historyPayload.memberDetails.forEach { memberDetails in
+                    verifyKeysGroup.enter()
+                    let memberUid = UserID(memberDetails.uid)
+                    AppContext.shared.messageCrypter.setupOutbound(for: memberUid) { result in
+                        switch result {
+                        case .success(let keyBundle):
+                            let expected = keyBundle.inboundIdentityPublicEdKey
+                            let actual = memberDetails.publicIdentityKey
+                            if expected == actual {
+                                DDLogInfo("ChatData/processGroupFeedHistory/\(groupID)/verified \(memberUid) successfully")
+                                newMemberUids.append(memberUid)
+                            } else {
+                                DDLogError("ChatData/processGroupFeedHistory/\(groupID)/failed verification of \(memberUid)/expected: \(expected.bytes.prefix(4))/actual: \(actual.bytes.prefix(4))")
+                                numberOfFailedVerifications += 1
+                            }
+                        case .failure(let error):
+                            DDLogError("ChatData/processGroupFeedHistory/\(groupID)/failed to verify \(memberUid)/\(error)")
                             numberOfFailedVerifications += 1
                         }
-                    case .failure(let error):
-                        DDLogError("ChatData/processGroupFeedHistory/\(groupID)/failed to verify \(memberUid)/\(error)")
-                        numberOfFailedVerifications += 1
+                        verifyKeysGroup.leave()
                     }
-                    verifyKeysGroup.leave()
-                }
-            }
-
-            // After verification - share group feed items to the verified new members.
-            verifyKeysGroup.notify(queue: .main) { [weak self] in
-                guard let self = self else { return }
-                if numberOfFailedVerifications > 0 {
-                    DDLogError("ProtoServiceCore/modifyGroup/\(groupID)/fetchMemberKeysCompletion/error - num: \(numberOfFailedVerifications)/\(totalNewMemberUids)")
                 }
 
-                // Now encrypt and send the stanza to the verified members.
-                DDLogInfo("ChatData/processGroupFeedHistory/\(groupID)/postsToShare: \(postsToShare.count)/commentsToShare: \(commentsToShare.count)")
-                self.shareGroupFeedItems(posts: postsToShare, comments: commentsToShare, in: groupID, to: newMemberUids)
+                // After verification - share group feed items to the verified new members.
+                verifyKeysGroup.notify(queue: .main) { [weak self] in
+                    guard let self = self else { return }
+                    if numberOfFailedVerifications > 0 {
+                        DDLogError("ProtoServiceCore/modifyGroup/\(groupID)/fetchMemberKeysCompletion/error - num: \(numberOfFailedVerifications)/\(totalNewMemberUids)")
+                    }
+
+                    // Now encrypt and send the stanza to the verified members.
+                    DDLogInfo("ChatData/processGroupFeedHistory/\(groupID)/postsToShare: \(postsToShare.count)/commentsToShare: \(commentsToShare.count)")
+                    self.shareGroupFeedItems(posts: postsToShare, comments: commentsToShare, in: groupID, to: newMemberUids)
+                }
+            } catch {
+                DDLogError("ChatData/processGroupFeedHistory/\(groupID)/failed serializing content: \(error)")
             }
-        } catch {
-            DDLogError("ChatData/processGroupFeedHistory/\(groupID)/failed serializing content: \(error)")
         }
     }
 

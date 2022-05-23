@@ -12,8 +12,7 @@ import Foundation
 
 extension KeyStore {
 
-    public func groupSessionKeyBundle(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> GroupSessionKeyBundle? {
-        let managedObjectContext = managedObjectContext ?? self.viewContext
+    public func groupSessionKeyBundle(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext) -> GroupSessionKeyBundle? {
         let fetchRequest: NSFetchRequest<GroupSessionKeyBundle> = GroupSessionKeyBundle.fetchRequest()
         fetchRequest.predicate = predicate
         fetchRequest.sortDescriptors = sortDescriptors
@@ -33,17 +32,9 @@ extension KeyStore {
         }
     }
 
-    public func groupSessionKeyBundle(for groupID: GroupID, in managedObjectContext: NSManagedObjectContext? = nil) -> GroupSessionKeyBundle? {
+    public func groupSessionKeyBundle(for groupID: GroupID, in managedObjectContext: NSManagedObjectContext) -> GroupSessionKeyBundle? {
         let groupPredicate = NSPredicate(format: "groupId == %@", groupID)
-        if let managedObjectContext = managedObjectContext {
-            return groupSessionKeyBundle(predicate: groupPredicate, in: managedObjectContext)
-        } else {
-            var groupKeyBundle: GroupSessionKeyBundle? = nil
-            performOnBackgroundContextAndWait { context in
-                groupKeyBundle = groupSessionKeyBundle(predicate: groupPredicate, in: managedObjectContext)
-            }
-            return groupKeyBundle
-        }
+        return groupSessionKeyBundle(predicate: groupPredicate, in: managedObjectContext)
     }
 }
 

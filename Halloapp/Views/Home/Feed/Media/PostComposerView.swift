@@ -560,14 +560,14 @@ class PostComposerViewController: UIViewController {
 
             changeDestinationIconConstraint?.constant = 19
 
-            if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
+            if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) {
                 changeDestinationLabel.text = group.name
             }
         case .chat(let userId):
             changeDestinationIcon.isHidden = true
 
             if let userId = userId {
-                let name = MainAppContext.shared.contactStore.fullName(for: userId)
+                let name = MainAppContext.shared.contactStore.fullName(for: userId, in: MainAppContext.shared.contactStore.viewContext)
                 changeDestinationLabel.text = Localizations.newMessageSubtitle(recipient: name)
             }
         }
@@ -1344,7 +1344,7 @@ fileprivate struct TextView: UIViewRepresentable {
             case .userFeed:
                 return Mentions.mentionableUsersForNewPost()
             case .groupFeed(let id):
-                return Mentions.mentionableUsers(forGroupID: id)
+                return Mentions.mentionableUsers(forGroupID: id, in: MainAppContext.shared.feedData.viewContext)
             case .chat(_):
                 return []
             }

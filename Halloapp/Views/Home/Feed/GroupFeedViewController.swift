@@ -60,7 +60,7 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
 
     init(groupId: GroupID, shouldShowInviteSheet: Bool = false) {
         self.groupId = groupId
-        self.group = MainAppContext.shared.chatData.chatGroup(groupId: groupId)
+        self.group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext)
         self.theme = group?.background ?? 0
         self.shouldShowInviteSheet = shouldShowInviteSheet
         shouldRestoreScrollPosition = Self.cachedScrollPositions[groupId] != nil
@@ -75,7 +75,7 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
     convenience init?(metadata: NotificationMetadata) {
         guard
             let id = metadata.groupId,
-            let _ = MainAppContext.shared.chatData.chatGroup(groupId: id)
+            let _ = MainAppContext.shared.chatData.chatGroup(groupId: id, in: MainAppContext.shared.chatData.viewContext)
         else {
             return nil
         }
@@ -125,7 +125,7 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
                 guard groupID == self?.groupId else { return }
                 DispatchQueue.main.async { [weak self] in
                     guard let self = self else { return }
-                    self.group = MainAppContext.shared.chatData.chatGroup(groupId: groupID)
+                    self.group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext)
                     self.theme = self.group?.background ?? 0
                     self.populateEvents()
                     self.titleView.update(with: groupID)
@@ -174,7 +174,8 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
             shouldShowInviteSheet = false
 
             let member = MainAppContext.shared.chatData.chatGroupMember(groupId: groupId,
-                                                                        memberUserId: MainAppContext.shared.userData.userId)
+                                                                        memberUserId: MainAppContext.shared.userData.userId,
+                                                                        in: MainAppContext.shared.chatData.viewContext)
 
             guard member?.type == .admin, let groupInviteLink = group?.inviteLink.map({ ChatData.formatGroupInviteLink($0) }) else {
                 DDLogError("GroupFeedViewController/Failed fetch group invite link")
@@ -272,7 +273,10 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
     }
 
     private var userBelongsToGroup: Bool {
-        MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) != nil
+        MainAppContext.shared.chatData.chatGroupMember(
+            groupId: groupId,
+            memberUserId: MainAppContext.shared.userData.userId,
+            in: MainAppContext.shared.chatData.viewContext) != nil
     }
 
     private func updateBackButtonUnreadCount(num: Int) {
@@ -334,12 +338,13 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
         let sharedNUX = MainAppContext.shared.nux
         let sharedUserData = MainAppContext.shared.userData
         let sharedChatData = MainAppContext.shared.chatData
+        let viewContext = MainAppContext.shared.chatData.viewContext
         let welcomePostExist = sharedNUX.welcomePostExist(id: self.groupId)
         let isZeroZone = sharedNUX.state == .zeroZone
         let isSampleGroup = sharedNUX.sampleGroupID() == self.groupId
         let showWelcomePostIfNeeded = welcomePostExist || isZeroZone
 
-        guard let groupMember = sharedChatData?.chatGroupMember(groupId: group.id, memberUserId: sharedUserData.userId) else { return result }
+        guard let groupMember = sharedChatData?.chatGroupMember(groupId: group.id, memberUserId: sharedUserData.userId, in: viewContext) else { return result }
         guard groupMember.type == .admin else { return result }
 
         if showWelcomePostIfNeeded {
@@ -365,7 +370,7 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
     }
     
     private func populateEvents() {
-        let groupFeedEvents = MainAppContext.shared.chatData.groupFeedEvents(with: self.groupId)
+        let groupFeedEvents = MainAppContext.shared.chatData.groupFeedEvents(with: self.groupId, in: MainAppContext.shared.chatData.viewContext)
         let feedEvents: [FeedEvent] = groupFeedEvents.map {
             FeedEvent(description: $0.text ?? "", timestamp: $0.timestamp, isThemed: theme != 0)
         }
@@ -527,7 +532,7 @@ extension GroupFeedViewController: GroupTitleViewDelegate {
     }
 
     func groupTitleViewRequestsOpenGroupFeed(_ groupTitleView: GroupTitleView) {
-        if MainAppContext.shared.chatData.chatGroup(groupId: groupId) != nil {
+        if MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) != nil {
             let vc = GroupFeedViewController(groupId: groupId)
             navigationController?.pushViewController(vc, animated: true)
         }

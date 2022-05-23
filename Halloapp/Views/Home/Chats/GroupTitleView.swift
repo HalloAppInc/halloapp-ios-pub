@@ -32,7 +32,7 @@ class GroupTitleView: UIView {
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     func update(with groupId: String) {
-        guard let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) else { return }
+        guard let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) else { return }
 
         nameLabel.text = group.name
         nameLabel.textColor = UIColor.groupFeedTopNav

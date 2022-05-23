@@ -32,7 +32,6 @@ private struct PushNumberData {
 open class ContactStore {
 
     public let userData: UserData
-
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.contactStore")
 
     // MARK: Access to Contacts
@@ -90,8 +89,9 @@ open class ContactStore {
         return container
     }()
 
-    public var viewContext: NSManagedObjectContext
-    private var bgContext: NSManagedObjectContext? = nil
+    public var viewContext: NSManagedObjectContext {
+        persistentContainer.viewContext
+    }
 
     public private(set) var pushNames: [UserID: String] = [:]
     private var pushNumbersData: [UserID: PushNumberData] = [:]
@@ -99,7 +99,6 @@ open class ContactStore {
     required public init(userData: UserData) {
         self.userData = userData
         persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
-        viewContext = persistentContainer.viewContext
 
         loadPushNamesAndNumbers()
     }
@@ -109,28 +108,31 @@ open class ContactStore {
         pushNumbersData = ContactStore.fetchAllPushNumbersData(using: viewContext)
     }
 
-    public func performOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
+    private func newBackgroundContext() -> NSManagedObjectContext {
+        let context = persistentContainer.newBackgroundContext()
+        context.automaticallyMergesChangesFromParent = true
+        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+
+        return context
+    }
+
+    public func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
         backgroundProcessingQueue.async { [weak self] in
             guard let self = self else { return }
-            self.initBgContext()
-            guard let bgContext = self.bgContext else { return }
-            bgContext.performAndWait { block(bgContext) }
+
+            let context = self.newBackgroundContext()
+            context.performAndWait {
+                block(context)
+            }
         }
     }
 
     public func performOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
-        backgroundProcessingQueue.sync { [weak self] in
-            guard let self = self else { return }
-            self.initBgContext()
-            guard let bgContext = self.bgContext else { return }
-            bgContext.performAndWait { block(bgContext) }
-        }
-    }
-
-    private func initBgContext() {
-        if bgContext == nil {
-            bgContext = persistentContainer.newBackgroundContext()
-            bgContext?.automaticallyMergesChangesFromParent = true
+        backgroundProcessingQueue.sync {
+            let context = self.newBackgroundContext()
+            context.performAndWait {
+                block(context)
+            }
         }
     }
 
@@ -156,13 +158,13 @@ open class ContactStore {
 
     // MARK: Fetching contacts
 
-    public func allRegisteredContactIDs() -> [UserID] {
+    public func allRegisteredContactIDs(in managedObjectContext: NSManagedObjectContext) -> [UserID] {
         let fetchRequest = NSFetchRequest<NSDictionary>(entityName: "ABContact")
         fetchRequest.predicate = NSPredicate(format: "userId != nil")
         fetchRequest.propertiesToFetch = [ "userId" ]
         fetchRequest.resultType = .dictionaryResultType
         do {
-            let allContacts = try viewContext.fetch(fetchRequest)
+            let allContacts = try managedObjectContext.fetch(fetchRequest)
             return allContacts.compactMap { $0["userId"] as? UserID }
         }
         catch {
@@ -170,7 +172,7 @@ open class ContactStore {
         }
     }
 
-    public func allRegisteredContacts(sorted: Bool) -> [ABContact] {
+    public func allRegisteredContacts(sorted: Bool, in managedObjectContext: NSManagedObjectContext) -> [ABContact] {
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "userId != nil")
         fetchRequest.returnsObjectsAsFaults = false
@@ -178,7 +180,7 @@ open class ContactStore {
             fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \ABContact.sort, ascending: true) ]
         }
         do {
-            let contacts = try viewContext.fetch(fetchRequest)
+            let contacts = try managedObjectContext.fetch(fetchRequest)
             return contacts
         }
         catch {
@@ -186,7 +188,7 @@ open class ContactStore {
         }
     }
 
-    public func normalizedPhoneNumber(for userID: UserID) -> String? {
+    public func normalizedPhoneNumber(for userID: UserID, using managedObjectContext: NSManagedObjectContext) -> String? {
         if userID == self.userData.userId {
             return userData.normalizedPhoneNumber
         }
@@ -196,7 +198,7 @@ open class ContactStore {
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "userId == %@", userID)
         do {
-            let contacts = try viewContext.fetch(fetchRequest)
+            let contacts = try managedObjectContext.fetch(fetchRequest)
             if let number = contacts.first?.normalizedPhoneNumber {
                 normalizedPhoneNumber = number
             }
@@ -214,7 +216,7 @@ open class ContactStore {
         return normalizedPhoneNumber
     }
 
-    public func userID(for normalizedPhoneNumber: String) -> UserID? {
+    public func userID(for normalizedPhoneNumber: String, using managedObjectContext: NSManagedObjectContext) -> UserID? {
         if normalizedPhoneNumber == self.userData.normalizedPhoneNumber {
             return userData.userId
         }
@@ -224,7 +226,7 @@ open class ContactStore {
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "normalizedPhoneNumber == %@", normalizedPhoneNumber)
         do {
-            let contacts = try viewContext.fetch(fetchRequest)
+            let contacts = try managedObjectContext.fetch(fetchRequest)
             if let contactID = contacts.first?.userId {
                 userID = contactID
             }
@@ -234,7 +236,7 @@ open class ContactStore {
 
         // Try looking up push db as necessary.
         if userID == nil {
-            if let pushUserID = self.userID(forPushNumber: normalizedPhoneNumber) {
+            if let pushUserID = self.userID(forPushNumber: normalizedPhoneNumber, in: managedObjectContext) {
                 userID = pushUserID
             }
         }
@@ -266,7 +268,7 @@ open class ContactStore {
     private var pushNameUpdateQueue = DispatchQueue(label: "com.halloapp.contacts.push-name")
 
     private func savePushNames(_ names: [UserID: String]) {
-        performOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
             var existingNames: [UserID : PushName] = [:]
 
             // Fetch existing names.
@@ -324,11 +326,11 @@ open class ContactStore {
         return pushNumberData.normalizedPhoneNumber
     }
 
-    private func userID(forPushNumber normalizedPushNumber: String) -> UserID? {
+    private func userID(forPushNumber normalizedPushNumber: String, in managedObjectContext: NSManagedObjectContext) -> UserID? {
         let fetchRequest: NSFetchRequest<PushNumber> = PushNumber.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "normalizedPhoneNumber == %@", normalizedPushNumber)
         do {
-            let results = try viewContext.fetch(fetchRequest)
+            let results = try managedObjectContext.fetch(fetchRequest)
             if results.count >= 2 {
                 DDLogError("contactStore/fetchUserID/fetched count=[\(results.count)]")
             }
@@ -362,7 +364,7 @@ open class ContactStore {
     private var pushNumberUpdateQueue = DispatchQueue(label: "com.halloapp.contacts.pushNumber")
 
     private func savePushNumbersData(_ pushNumbersData: [UserID: PushNumberData]) {
-        performOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
 
             var existingPushNumbers: [UserID : PushNumber] = [:]
 
@@ -438,7 +440,7 @@ open class ContactStore {
     }
 
     open func setIsMessagingAccepted(userID: UserID, isMessagingAccepted: Bool) {
-        performOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
             let fetchRequest: NSFetchRequest<PushNumber> = PushNumber.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "userID = %@", userID)
             do {
@@ -463,7 +465,7 @@ open class ContactStore {
     }
 
     open func deleteAllPushNamesAndNumbers() {
-        performOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
 
             let pushNameFetchRequest: NSFetchRequest<PushName> = PushName.fetchRequest()
             do {
@@ -488,11 +490,11 @@ open class ContactStore {
 
     // MARK: UI Support
 
-    public func contact(withUserId userId: UserID) -> ABContact? {
+    public func contact(withUserId userId: UserID, in managedObjectContext: NSManagedObjectContext) -> ABContact? {
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "userId == %@", userId)
         do {
-            let contacts = try viewContext.fetch(fetchRequest)
+            let contacts = try managedObjectContext.fetch(fetchRequest)
             return contacts.first
         }
         catch {
@@ -500,11 +502,23 @@ open class ContactStore {
         }
     }
 
-    public func contact(withNormalizedPhone normalizedPhoneNumber: String) -> ABContact? {
+    public func isContactInAddressBook(userId: UserID, in managedObjectContext: NSManagedObjectContext) -> Bool {
+        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "userId == %@", userId)
+        do {
+            let count = try managedObjectContext.count(for: fetchRequest)
+            return count > 0
+        }
+        catch {
+            fatalError("Unable to fetch contacts: \(error)")
+        }
+    }
+
+    public func contact(withNormalizedPhone normalizedPhoneNumber: String, in managedObjectContext: NSManagedObjectContext) -> ABContact? {
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "normalizedPhoneNumber == %@", normalizedPhoneNumber)
         do {
-            let contacts = try viewContext.fetch(fetchRequest)
+            let contacts = try managedObjectContext.fetch(fetchRequest)
             return contacts.first
         }
         catch {
@@ -512,11 +526,11 @@ open class ContactStore {
         }
     }
 
-    public func contact(withIdentifier identifier: String) -> ABContact? {
+    public func contact(withIdentifier identifier: String, in managedObjectContext: NSManagedObjectContext) -> ABContact? {
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
         do {
-            let contacts = try viewContext.fetch(fetchRequest)
+            let contacts = try managedObjectContext.fetch(fetchRequest)
             return contacts.first
         }
         catch {
@@ -529,14 +543,14 @@ open class ContactStore {
     ///   - userId: `UserID` to look up
     ///   - ownName: `String?` to return if `userID` matches the active user ID (e.g., "Me" or the user's chosen name)
     ///   - showPushNumber: `Bool` returns user's push number  if user is not in contact book, mainly used in Chats
-    public func fullNameIfAvailable(for userId: UserID, ownName: String?, showPushNumber: Bool = false) -> String? {
+    public func fullNameIfAvailable(for userId: UserID, ownName: String?, showPushNumber: Bool = false, in managedObjectContext: NSManagedObjectContext) -> String? {
         if userId == self.userData.userId {
             return ownName
         }
 
         // Fetch from the address book, only if contacts permission is granted
         if ContactStore.contactsAccessAuthorized {
-            if let contact = contact(withUserId: userId),
+            if let contact = contact(withUserId: userId, in: managedObjectContext),
                let fullName = contact.fullName {
                 return fullName
             }
@@ -557,13 +571,13 @@ open class ContactStore {
         return nil
     }
 
-    public func fullNameIfAvailable(forNormalizedPhone normalizedPhoneNumber: String, ownName: String?) -> String? {
+    public func fullNameIfAvailable(forNormalizedPhone normalizedPhoneNumber: String, ownName: String?, in managedObjectContext: NSManagedObjectContext) -> String? {
         if normalizedPhoneNumber == self.userData.normalizedPhoneNumber {
             return ownName
         }
 
         // Fetch from the address book.
-        if let contact = contact(withNormalizedPhone: normalizedPhoneNumber),
+        if let contact = contact(withNormalizedPhone: normalizedPhoneNumber, in: managedObjectContext),
            let fullName = contact.fullName {
             return fullName
         }
@@ -580,8 +594,8 @@ open class ContactStore {
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "userId in %@", userIds)
         fetchRequest.returnsObjectsAsFaults = false
-        let managedObjectContext = viewContext
-        managedObjectContext.performAndWait {
+
+        performOnBackgroundContextAndWait { managedObjectContext in
             do {
                 let contacts = try managedObjectContext.fetch(fetchRequest)
                 results = contacts.reduce(into: [:]) { (names, contact) in
@@ -605,8 +619,8 @@ open class ContactStore {
     }
 
     /// Name appropriate for use in mention. Does not contain "@" prefix.
-    public func mentionNameIfAvailable(for userID: UserID, pushName: String?) -> String? {
-        if let fullName = fullNameIfAvailable(for: userID, ownName: userData.name) {
+    public func mentionNameIfAvailable(for userID: UserID, pushName: String?, in managedObjectContext: NSManagedObjectContext) -> String? {
+        if let fullName = fullNameIfAvailable(for: userID, ownName: userData.name, in: managedObjectContext) {
             return fullName
         }
         if let pushName = pushName, !pushName.isEmpty {
@@ -618,7 +632,7 @@ open class ContactStore {
     // MARK: - Suggested Contacts hiding
 
     public func hideContactFromSuggestedInvites(normalizedPhoneNumber: String) {
-        performOnBackgroundContext { context in
+        performSeriallyOnBackgroundContext { context in
             let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "normalizedPhoneNumber == %@", normalizedPhoneNumber)
             do {
@@ -633,7 +647,7 @@ open class ContactStore {
     }
 
     public func resetHiddenSuggestedContacts() {
-        performOnBackgroundContext { context in
+        performSeriallyOnBackgroundContext { context in
             let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "hideInSuggestedInvites == true")
             do {

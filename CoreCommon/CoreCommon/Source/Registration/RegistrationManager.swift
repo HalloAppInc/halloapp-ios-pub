@@ -66,7 +66,7 @@ public final class DefaultRegistrationManager: RegistrationManager {
         userData.phoneInput = nationalNumber
         userData.normalizedPhoneNumber = countryCode.appending(nationalNumber)
         userData.name = userName
-        userData.save()
+        userData.save(using: userData.viewContext)
     }
 
     /// Completion block includes retry delay. May need to wait for hashcash solution to be computed before issuing request.
@@ -107,9 +107,12 @@ public final class DefaultRegistrationManager: RegistrationManager {
             whisperKeys: userKeys.whisperKeys) { result in
             switch result {
             case .success(let credentials):
-                userData.update(credentials: credentials)
-                keyData?.saveUserKeys(userKeys)
-                completion(.success(()))
+                userData.performSeriallyOnBackgroundContext { managedObjectContext in
+                    userData.update(credentials: credentials, in: managedObjectContext)
+
+                    keyData?.saveUserKeys(userKeys)
+                    completion(.success(()))
+                }
             case .failure(let error):
                 completion(.failure(error))
             }
@@ -139,9 +142,12 @@ public final class DefaultRegistrationManager: RegistrationManager {
             switch result {
             case .success(let response):
                 let userData = AppContextCommon.shared.userData
-                userData.normalizedPhoneNumber = response.normalizedPhoneNumber
-                userData.save()
-                completion(.success(response.retryDelay))
+
+                userData.performSeriallyOnBackgroundContext { managedObjectContext in
+                    userData.normalizedPhoneNumber = response.normalizedPhoneNumber
+                    userData.save(using: managedObjectContext)
+                    completion(.success(response.retryDelay))
+                }
             case .failure(let errorResponse):
                 completion(.failure(errorResponse))
             }

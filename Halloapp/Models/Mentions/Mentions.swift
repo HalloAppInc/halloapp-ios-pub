@@ -8,13 +8,14 @@
 
 import Core
 import CoreCommon
+import CoreData
 
 extension Mentions {
-    public static func mentionableUsers(forPostID postID: FeedPostID) -> [MentionableUser] {
-        guard let post = MainAppContext.shared.feedData.feedPost(with: postID) else { return [] }
+    public static func mentionableUsers(forPostID postID: FeedPostID, in managedObjectContext: NSManagedObjectContext) -> [MentionableUser] {
+        guard let post = MainAppContext.shared.feedData.feedPost(with: postID, in: managedObjectContext) else { return [] }
 
         if let groupID = post.groupId {
-            return mentionableUsers(forGroupID: groupID)
+            return mentionableUsers(forGroupID: groupID, in: managedObjectContext)
         }
 
         var contactSet = Set<UserID>()
@@ -28,7 +29,9 @@ extension Mentions {
             if let audience = post.audience {
                 contactSet.formUnion(audience.userIds)
             } else {
-                contactSet.formUnion(MainAppContext.shared.contactStore.allRegisteredContactIDs())
+                MainAppContext.shared.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
+                    contactSet.formUnion(MainAppContext.shared.contactStore.allRegisteredContactIDs(in: managedObjectContext))
+                }
             }
         }
 
@@ -51,8 +54,8 @@ extension Mentions {
             .sorted { m1, m2 in m1.fullName < m2.fullName }
     }
     
-    public static func mentionableUsers(forGroupID groupID: GroupID) -> [MentionableUser] {
-        guard let members = MainAppContext.shared.chatData.chatGroup(groupId: groupID)?.members else { return [] }
+    public static func mentionableUsers(forGroupID groupID: GroupID, in managedObjectContext: NSManagedObjectContext) -> [MentionableUser] {
+        guard let members = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: managedObjectContext)?.members else { return [] }
         var contactSet = Set(members.map { $0.userID })
         contactSet.remove(MainAppContext.shared.userData.userId)
         let fullNames = MainAppContext.shared.contactStore.fullNames(forUserIds: contactSet)

@@ -66,7 +66,8 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     // MARK: Lifecycle
 
     init(for fromUserId: String, with feedPostId: FeedPostID? = nil, at feedPostMediaIndex: Int32 = 0) {
-        DDLogDebug("ChatViewController/init/\(fromUserId) [\(MainAppContext.shared.contactStore.fullName(for: fromUserId))]")
+        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+        DDLogDebug("ChatViewController/init/\(fromUserId) [\(MainAppContext.shared.contactStore.fullName(for: fromUserId, in: contactsViewContext))]")
         self.fromUserId = fromUserId
         self.feedPostId = feedPostId
         self.feedPostMediaIndex = feedPostMediaIndex
@@ -81,7 +82,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         if let fromUserId = fromUserId,
            fromUserId != MainAppContext.shared.userData.userId,
            MainAppContext.shared.callManager.activeCallID == nil,
-           MainAppContext.shared.contactStore.normalizedPhoneNumber(for: fromUserId) != nil {
+           MainAppContext.shared.contactStore.normalizedPhoneNumber(for: fromUserId, using: MainAppContext.shared.contactStore.viewContext) != nil {
             // Enable calls for contacts in address book
             // or
             // Enable calls for users whose pushNumber is known - meaning you received a message from them.
@@ -229,8 +230,9 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         view.addGestureRecognizer(tapGesture)
 
         if let feedPostId = self.feedPostId {
-            if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
-                let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.rawText, mentions: feedPost.orderedMentions)
+            if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: MainAppContext.shared.feedData.viewContext) {
+                let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+                let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.rawText, mentions: feedPost.orderedMentions, in: contactsViewContext)
                 if let mediaItem = feedPost.media?.first(where: { $0.order == self.feedPostMediaIndex }), let mediaType = CommonMediaType(rawValue: mediaItem.type.rawValue){
                     
                     let mediaUrl = mediaItem.mediaURL ?? MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
@@ -552,8 +554,9 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             
             return reply
         } else if let feedPostId = self.feedPostId {
-            if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
-                let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.rawText, mentions: feedPost.orderedMentions)
+            if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: MainAppContext.shared.feedData.viewContext) {
+                let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+                let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.rawText, mentions: feedPost.orderedMentions, in: contactsViewContext)
                 if let mediaItem = feedPost.media?.first(where: { $0.order == self.feedPostMediaIndex }) {
                     let mediaType = mediaItem.type
                     let mediaUrl = mediaItem.mediaURL ?? MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
@@ -624,7 +627,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     private func shouldShowVerifyOption() -> Bool {
         guard let otherUserID = fromUserId,
-              let otherKeyBundle = MainAppContext.shared.keyStore.messageKeyBundle(for: otherUserID)?.keyBundle,
+              let otherKeyBundle = MainAppContext.shared.keyStore.messageKeyBundle(for: otherUserID, in: MainAppContext.shared.keyStore.viewContext)?.keyBundle,
               SafetyNumberData(keyBundle: otherKeyBundle) != nil
         else {
             // TODO: Allow user to verify without existing key bundle
@@ -650,8 +653,9 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     private func setupOrRefreshHeaderAndFooter() {
         guard let userID = fromUserId else { return }
+        let conctacsViewContext = MainAppContext.shared.contactStore.viewContext
         let isUserBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(userID)
-        let isUserInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID)
+        let isUserInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID, in: conctacsViewContext)
         let isPushNumberMessagingAccepted = MainAppContext.shared.contactStore.isPushNumberMessagingAccepted(userID: userID)
         let haveMessagedBefore = MainAppContext.shared.chatData.haveMessagedBefore(userID: userID, in: MainAppContext.shared.chatData.viewContext)
         let haveReceivedMessagesBefore = MainAppContext.shared.chatData.haveReceivedMessagesBefore(userID: userID, in: MainAppContext.shared.chatData.viewContext)
@@ -775,7 +779,8 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             guard let self = self else { return }
             self.dismiss(animated: true)
             guard let userID = self.fromUserId else { return }
-            let blockMessage = Localizations.blockMessage(username: MainAppContext.shared.contactStore.fullName(for: userID))
+            let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+            let blockMessage = Localizations.blockMessage(username: MainAppContext.shared.contactStore.fullName(for: userID, in: contactsViewContext))
 
             let alert = UIAlertController(title: nil, message: blockMessage, preferredStyle: .actionSheet)
             let button = UIAlertAction(title: Localizations.blockButton, style: .destructive) { [weak self] _ in
@@ -1177,7 +1182,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         guard let message = fetchedResultsController?.object(at: indexPath) else { return }
 
         if let feedPostId = message.feedPostId {
-            guard let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) else {
+            guard let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: MainAppContext.shared.feedData.viewContext) else {
                 DDLogWarn("ChatViewController/Quoted feed post \(feedPostId) not found")
                 return
             }
@@ -1536,7 +1541,8 @@ extension ChatViewController: ChatHeaderViewDelegate {
     func chatHeaderViewUnblockContact(_ chatHeaderView: ChatHeaderView) {
         guard let userID = fromUserId else { return }
 
-        let unBlockMessage = Localizations.unBlockMessage(username: MainAppContext.shared.contactStore.fullName(for: userID))
+        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+        let unBlockMessage = Localizations.unBlockMessage(username: MainAppContext.shared.contactStore.fullName(for: userID, in: contactsViewContext))
 
         let alert = UIAlertController(title: nil, message: unBlockMessage, preferredStyle: .actionSheet)
         let button = UIAlertAction(title: Localizations.unBlockButton, style: .destructive) { _ in
@@ -1780,7 +1786,10 @@ extension ChatViewController: InboundMsgViewCellDelegate {
             })
 
             if ServerProperties.isInternalUser {
-                actionSheet.message = MainAppContext.shared.cryptoData.details(for: chatMessage.id, dateFormatter: DateFormatter.dateTimeFormatterMonthDayTime)
+                actionSheet.message = MainAppContext.shared.cryptoData.details(
+                                        for: chatMessage.id,
+                                        dateFormatter: DateFormatter.dateTimeFormatterMonthDayTime,
+                                        in: MainAppContext.shared.cryptoData.viewContext)
             }
         }
         
@@ -2133,7 +2142,8 @@ fileprivate class QuotedItemPanel: UIView, InputContextPanel {
             return
         }
 
-        quoteFeedPanelNameLabel.text = MainAppContext.shared.contactStore.fullName(for: postInfo.userID)
+        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+        quoteFeedPanelNameLabel.text = MainAppContext.shared.contactStore.fullName(for: postInfo.userID, in: contactsViewContext)
         let ham = HAMarkdown(font: UIFont.preferredFont(forTextStyle: .subheadline), color: UIColor.secondaryLabel)
         quoteFeedPanelTextLabel.attributedText = ham.parse(postInfo.text)
         

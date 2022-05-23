@@ -56,16 +56,28 @@ extension FeedNotification {
 
     var authorName: String {
         get {
-            return MainAppContext.shared.contactStore.firstName(for: self.userId)
+            var name = ""
+            MainAppContext.shared.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
+                name = MainAppContext.shared.contactStore.firstName(for: self.userId, in: managedObjectContext)
+            }
+
+            return name
         }
     }
 
     var textWithMentions: NSAttributedString? {
         get {
             let orderedMentions = mentions?.sorted(by: { $0.index < $1.index }) ?? []
-            return MainAppContext.shared.contactStore.textWithMentions(
-                text,
-                mentions: orderedMentions)
+
+            var textWithMentions: NSAttributedString?
+            MainAppContext.shared.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
+                textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
+                    text,
+                    mentions: orderedMentions,
+                    in: managedObjectContext)
+            }
+
+            return textWithMentions
         }
     }
 

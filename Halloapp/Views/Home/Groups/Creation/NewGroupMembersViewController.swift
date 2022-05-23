@@ -654,12 +654,12 @@ private extension ContactTableViewCell {
         options.insert(.hasCheckmark)
         options.insert(.useBlueCheckmark)
 
-        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
+        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, in: MainAppContext.shared.contactStore.viewContext)
 
         if userID == MainAppContext.shared.userData.userId {
             subtitleLabel.text = MainAppContext.shared.userData.formattedPhoneNumber
         } else {
-            let abContacts = MainAppContext.shared.contactStore.contacts(withUserIds: [userID])
+            let abContacts = MainAppContext.shared.contactStore.contacts(withUserIds: [userID], in: MainAppContext.shared.contactStore.viewContext)
             if let contact = abContacts.first {
                 subtitleLabel.text = contact.phoneNumber
             }

@@ -55,7 +55,7 @@ class FeedMedia: Identifiable, Hashable {
         get {
             if let progress = pendingMediaProgress {
                 return progress
-            } else if let task = MainAppContext.shared.feedData.downloadTask(for: self) {
+            } else if let task = MainAppContext.shared.feedData.downloadTask(for: self, using: MainAppContext.shared.feedData.viewContext) {
                 return task.downloadProgress
             } else {
                 return nil

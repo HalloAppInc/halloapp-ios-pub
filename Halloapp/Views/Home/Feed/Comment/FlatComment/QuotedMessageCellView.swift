@@ -281,7 +281,7 @@ class QuotedMessageCellView: UIView {
     }
 
     private func setNameLabel(for userID: String, userColorAssignment: UIColor? = nil) {
-        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, showPushNumber: true)
+        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, showPushNumber: true, in: MainAppContext.shared.contactStore.viewContext)
         if let userColorAssignment = userColorAssignment {
             nameLabel.textColor = userColorAssignment.withAlphaComponent(0.8)
         }
@@ -291,7 +291,8 @@ class QuotedMessageCellView: UIView {
         if !text.isEmpty  {
             let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
                 text,
-                mentions: mentions)
+                mentions: mentions,
+                in: MainAppContext.shared.contactStore.viewContext)
 
             let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
             let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 3)

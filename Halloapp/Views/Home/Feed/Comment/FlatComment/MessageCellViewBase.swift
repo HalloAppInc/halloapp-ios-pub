@@ -236,7 +236,8 @@ class MessageCellViewBase: UICollectionViewCell {
             textLabel.isHidden = false
             let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
                 messageText +  cryptoResultString,
-                mentions: mentions)
+                mentions: mentions,
+                in: MainAppContext.shared.contactStore.viewContext)
 
             let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
             var font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize + 1)
@@ -277,7 +278,7 @@ class MessageCellViewBase: UICollectionViewCell {
         nameLabel.textColor = userNameColorAssignment
         timeLabel.text = comment.timestamp.chatTimestamp()
         if let userId = feedPostComment?.userId, !isOwnMessage {
-            nameLabel.text =  MainAppContext.shared.contactStore.fullName(for: userId)
+            nameLabel.text =  MainAppContext.shared.contactStore.fullName(for: userId, in: MainAppContext.shared.contactStore.viewContext)
         }
     }
 

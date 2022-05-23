@@ -64,6 +64,14 @@ public final class UserData: ObservableObject {
     public var userId: UserID = ""
     public private(set) var noiseKeys: NoiseKeys?
 
+    public var viewContext: NSManagedObjectContext {
+        persistentContainer.viewContext
+    }
+
+    private lazy var bgContext: NSManagedObjectContext = {
+        persistentContainer.newBackgroundContext()
+    }()
+
     public var credentials: Credentials? {
         guard !userId.isEmpty else { return nil }
         if let noiseKeys = noiseKeys {
@@ -73,14 +81,27 @@ public final class UserData: ObservableObject {
         }
     }
 
-    public func update(credentials: Credentials) {
+    public func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
+        bgContext.perform { [weak self] in
+            guard let self = self else { return }
+            block(self.bgContext)
+        }
+    }
+
+    public func performOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
+        bgContext.performAndWait {
+            block(self.bgContext)
+        }
+    }
+
+    public func update(credentials: Credentials, in managedObjectContext: NSManagedObjectContext) {
         switch credentials {
         case .v2(let userID, let noiseKeys):
             DDLogInfo("UserData/credentials/updating [\(userID)] [noise]")
             self.userId = userID
             self.noiseKeys = noiseKeys
         }
-        save()
+        save(using: managedObjectContext)
     }
 
     public var formattedPhoneNumber: String {
@@ -98,7 +119,7 @@ public final class UserData: ObservableObject {
     init(storeDirectoryURL: URL, isAppClip: Bool) {
         self.isAppClip = isAppClip
         persistentStoreURL = storeDirectoryURL.appendingPathComponent("UserData.sqlite")
-        if let user = fetch() {
+        if let user = fetch(using: viewContext) {
             self.countryCode = user.countryCode ?? "1"
             self.phoneInput = user.phoneInput ?? ""
             self.normalizedPhoneNumber = user.phone ?? ""
@@ -110,7 +131,7 @@ public final class UserData: ObservableObject {
                 DDLogInfo("UserData/init/loading noise keys from persistent store")
                 noiseKeys = NoiseKeys(privateEdKey: storePrivateKey, publicEdKey: storePublicKey)
                 //Migrate the noise keys from persistent store to keychain
-                migrateNoiseKeys()
+                migrateNoiseKeys(using: viewContext)
             } else {
                 DDLogInfo("UserData/init/loading noise keys from keychain")
                 noiseKeys = Keychain.loadNoiseUserKeypair(for: userId)
@@ -130,7 +151,7 @@ public final class UserData: ObservableObject {
         }
     }
 
-    public func logout() {
+    public func logout(using managedObjectContext: NSManagedObjectContext) {
         didLogOff.send()
 
         countryCode = "1"
@@ -138,7 +159,7 @@ public final class UserData: ObservableObject {
         normalizedPhoneNumber = ""
         userId = ""
         name = ""
-        save()
+        save(using: managedObjectContext)
 
         isLoggedIn = false
         
@@ -181,8 +202,7 @@ public final class UserData: ObservableObject {
         return container
     }()
 
-    private func fetch() -> User? {
-        let managedObjectContext = persistentContainer.viewContext
+    private func fetch(using managedObjectContext: NSManagedObjectContext) -> User? {
         let fetchRequest: NSFetchRequest<User> = User.fetchRequest()
         fetchRequest.returnsObjectsAsFaults = false
         do {
@@ -194,9 +214,8 @@ public final class UserData: ObservableObject {
         }
     }
 
-    public func save() {
-        let managedObjectContext = persistentContainer.viewContext
-        var user: User! = fetch()
+    public func save(using managedObjectContext: NSManagedObjectContext) {
+        var user: User! = fetch(using: managedObjectContext)
         if user == nil {
             user = NSEntityDescription.insertNewObject(forEntityName: User.entity().name!, into: managedObjectContext) as? User
         }
@@ -231,21 +250,20 @@ public final class UserData: ObservableObject {
         }
     }
     
-    private func migrateNoiseKeys() {
+    private func migrateNoiseKeys(using managedObjectContext: NSManagedObjectContext) {
         //Copy noise keys to keychain
         if let noiseKeys = noiseKeys {
             if Keychain.saveNoiseUserKeypair(noiseKeys, for: userId) {
                 DDLogInfo("UserData/migrate/noiseKeys/copied from persistent store to keychain")
-                removeNoiseKeysFromStore()
+                removeNoiseKeysFromStore(using: managedObjectContext)
             } else {
                 DDLogError("UserData/migrate/noiseKeys/error keychain copy from persistent store to keychain")
             }
         }
     }
     
-    private func removeNoiseKeysFromStore() {
-        let managedObjectContext = persistentContainer.viewContext
-        guard let user = fetch() else {
+    private func removeNoiseKeysFromStore(using managedObjectContext: NSManagedObjectContext) {
+        guard let user = fetch(using: managedObjectContext) else {
             return
         }
         

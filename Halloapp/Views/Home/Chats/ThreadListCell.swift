@@ -60,7 +60,7 @@ class ThreadListCell: UITableViewCell {
     private func lastMessageText(for chatThread: ChatThread) -> NSMutableAttributedString {
         var defaultText = ""
         if chatThread.type == .oneToOne, let chatWithUserID = chatThread.userID, chatThread.lastMsgMediaType == .none, chatThread.userID != MainAppContext.shared.userData.userId {
-            let fullName = MainAppContext.shared.contactStore.fullName(for: chatWithUserID)
+            let fullName = MainAppContext.shared.contactStore.fullName(for: chatWithUserID, in: MainAppContext.shared.contactStore.viewContext)
             if chatThread.isNew {
                 defaultText = Localizations.threadListPreviewInvitedUserDefault(name: fullName)
             } else {
@@ -166,7 +166,7 @@ class ThreadListCell: UITableViewCell {
         var contactNamePart = ""
         if chatThread.type == .group {
             if let userID = chatThread.lastFeedUserID, userID != MainAppContext.shared.userData.userId {
-                contactNamePart = MainAppContext.shared.contactStore.fullName(for: userID) + ": "
+                contactNamePart = MainAppContext.shared.contactStore.fullName(for: userID, in: MainAppContext.shared.contactStore.viewContext) + ": "
             }
         }
 
@@ -228,7 +228,7 @@ class ThreadListCell: UITableViewCell {
         
         guard let userID = chatThread.userID else { return }
 
-        titleLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, showPushNumber: true)
+        titleLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, showPushNumber: true, in: MainAppContext.shared.contactStore.viewContext)
 
         lastMsgLabel.attributedText = lastMessageText(for: chatThread).firstLineWithEllipsisIfNecessary()
 
@@ -247,14 +247,14 @@ class ThreadListCell: UITableViewCell {
 
         avatarView.configure(userId: chatThread.userID ?? "", using: MainAppContext.shared.avatarStore)
 
-        if !MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID) {
+        if !MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID, in: MainAppContext.shared.contactStore.viewContext) {
             cancellableSet.forEach { $0.cancel() }
             cancellableSet.removeAll()
             cancellableSet.insert(
                 MainAppContext.shared.contactStore.didDiscoverNewUsers.sink { [weak self] (newUserIDs) in
                     guard let self = self else { return }
                     if newUserIDs.contains(userID) {
-                        self.titleLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
+                        self.titleLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, in: MainAppContext.shared.contactStore.viewContext)
                     }
                 }
             )

@@ -9,6 +9,7 @@
 import CoreCommon
 import CocoaLumberjackSwift
 import Foundation
+import CoreData
 
 /**
  Raw values are used in xmpp requests and for persisting lists to disk.
@@ -190,7 +191,10 @@ open class PrivacySettings {
             guard blacklist.isLoaded else { throw PrivacySettingsError.currentListUnavailable }
         }
 
-        let allContacts = Set(contactStore.allRegisteredContactIDs())
+        var allContacts: Set<UserID> = []
+        contactStore.performOnBackgroundContextAndWait { managedObjectContext in
+            allContacts = Set(contactStore.allRegisteredContactIDs(in: managedObjectContext))
+        }
 
         var results: Set<UserID>
         if selectedListType == .whitelist {
