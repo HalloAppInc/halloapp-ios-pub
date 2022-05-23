@@ -81,7 +81,9 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         if let fromUserId = fromUserId,
            fromUserId != MainAppContext.shared.userData.userId,
            MainAppContext.shared.callManager.activeCallID == nil,
-           MainAppContext.shared.contactStore.pushNumber(fromUserId) != nil {
+           // This push-number API is weird - should fix it to return the number if we have the contact in address book.
+           (MainAppContext.shared.contactStore.isContactInAddressBook(userId: fromUserId)
+            || MainAppContext.shared.contactStore.pushNumber(fromUserId) != nil) {
             navigationItem.rightBarButtonItems?.forEach { $0.isEnabled = true }
         } else {
             navigationItem.rightBarButtonItems?.forEach { $0.isEnabled = false }
