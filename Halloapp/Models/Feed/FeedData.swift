@@ -3897,7 +3897,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 currentTask.downloadRequest?.cancel(producingResumeData : false)
             }
             if let encryptedFilePath = media.encryptedFilePath {
-                let encryptedURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(encryptedFilePath, isDirectory: false)
+                let encryptedURL = media.mediaDirectoryURL.appendingPathComponent(encryptedFilePath, isDirectory: false)
                 do {
                     if FileManager.default.fileExists(atPath: encryptedURL.path) {
                         try FileManager.default.removeItem(at: encryptedURL)
@@ -3908,8 +3908,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     DDLogError("FeedData/delete-media-encrypted/error [\(error)]")
                 }
             }
-            if let relativeFilePath = media.relativeFilePath {
-                let fileURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
+            if let fileURL = media.mediaURL {
                 do {
                     try FileManager.default.removeItem(at: fileURL)
                     DDLogInfo("FeedData/delete-media/deleting [\(fileURL)]")
@@ -3941,7 +3940,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 currentTask.downloadRequest?.cancel(producingResumeData : false)
             }
             if let encryptedFilePath = media.encryptedFilePath {
-                let encryptedURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(encryptedFilePath, isDirectory: false)
+                let encryptedURL = media.mediaDirectoryURL.appendingPathComponent(encryptedFilePath, isDirectory: false)
                 do {
                     if FileManager.default.fileExists(atPath: encryptedURL.path) {
                         try FileManager.default.removeItem(at: encryptedURL)
@@ -3952,8 +3951,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     DDLogError("FeedData/delete-comment-media-encrypted/error [\(error)]")
                 }
             }
-            if let relativeFilePath = media.relativeFilePath {
-                let fileURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
+            if let fileURL = media.mediaURL {
                 do {
                     try FileManager.default.removeItem(at: fileURL)
                     DDLogInfo("FeedData/delete-comment-media/deleting [\(fileURL)]")
@@ -3981,7 +3979,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 currentTask.downloadRequest?.cancel(producingResumeData : false)
             }
             if let encryptedFilePath = media.encryptedFilePath {
-                let encryptedURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(encryptedFilePath, isDirectory: false)
+                let encryptedURL = media.mediaDirectoryURL.appendingPathComponent(encryptedFilePath, isDirectory: false)
                 do {
                     if FileManager.default.fileExists(atPath: encryptedURL.path) {
                         try FileManager.default.removeItem(at: encryptedURL)
@@ -3992,8 +3990,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     DDLogError("FeedData/delete-feedLinkPreview-media-encrypted/error [\(error)]")
                 }
             }
-            if let relativeFilePath = media.relativeFilePath {
-                let fileURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
+            if let fileURL = media.mediaURL {
                 do {
                     try FileManager.default.removeItem(at: fileURL)
                     DDLogInfo("FeedData/delete-feedLinkPreview-media/deleting [\(fileURL)]")
