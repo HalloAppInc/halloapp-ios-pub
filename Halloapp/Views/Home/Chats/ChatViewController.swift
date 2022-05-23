@@ -81,9 +81,10 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         if let fromUserId = fromUserId,
            fromUserId != MainAppContext.shared.userData.userId,
            MainAppContext.shared.callManager.activeCallID == nil,
-           // This push-number API is weird - should fix it to return the number if we have the contact in address book.
-           (MainAppContext.shared.contactStore.isContactInAddressBook(userId: fromUserId)
-            || MainAppContext.shared.contactStore.pushNumber(fromUserId) != nil) {
+           MainAppContext.shared.contactStore.normalizedPhoneNumber(for: fromUserId) != nil {
+            // Enable calls for contacts in address book
+            // or
+            // Enable calls for users whose pushNumber is known - meaning you received a message from them.
             navigationItem.rightBarButtonItems?.forEach { $0.isEnabled = true }
         } else {
             navigationItem.rightBarButtonItems?.forEach { $0.isEnabled = false }
