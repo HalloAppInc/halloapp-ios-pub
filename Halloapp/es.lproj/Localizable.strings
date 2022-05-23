@@ -8,7 +8,7 @@
 "• %@" = "• %@";
 
 /* About screen: body text. */
-"about.body.1" = "¡HalloApp ya está aquí! Y la estamos construyendo para ti y tus seres queridos. \n\nHemos hecho que las aplicaciones sociales vuelvan a lo esencial, agregando un nivel de seguridad y privacidad al que creemos que todo el mundo debe tener acceso.\n\nHalloApp nunca va a usar tu información personal o mostrarte anuncios.\nEn vez de esto, con el tiempo esperamos poder añadir nuevas funciones por un pequeño importe.";
+"about.body.1" = "¡HalloApp ya está aquí! Y la estamos construyendo para ti y tus seres queridos. \n\nHemos hecho que las aplicaciones sociales vuelvan a lo esencial, agregando un nivel de seguridad y privacidad al que creemos que todo el mundo debe tener acceso.\n\nHalloApp nunca va a usar tu información personal o mostrarte anuncios.\nEn vez de esto, con el tiempo esperamos poder añadir nuevas funciones por un pequeño costo.";
 
 /* About screen: body text. */
 "about.body.2" = "Gracias por usar y compartir HalloApp con tus amigos y familia. Cada semana la optimizamos más.";
@@ -242,7 +242,7 @@
 "camera.init.error.title" = "Error al inicializar";
 
 /* Text shown on the camera screen when composing a new moment. */
-"camera.moment.subtitle" = "Momentos desaparecen después de 24 horas y solo pueden ser vistos una vez";
+"camera.moment.subtitle" = "Los Momentos desaparecen después de 24 horas y solo pueden ser vistos una vez";
 
 /* Text shown on the camera screen when composing a new moment to unlock someone else's moment. */
 "camera.moment.unlock.subtitle" = "Para ver el momento de %@ comparte el tuyo";
@@ -296,7 +296,7 @@
 "chat.group.info.bg.default.label" = "Predeterminado";
 
 /* Text for menu option of demoting a group member */
-"chat.group.info.demote" = "Remover como administrador";
+"chat.group.info.demote" = "Descartar como administrador";
 
 /* Action label for leaving group */
 "chat.group.info.leave.group" = "Salir del grupo";
@@ -311,7 +311,7 @@
 "chat.group.info.not.a.member.label" = "No eres un miembro de este grupo";
 
 /* Text for menu option of removing a group member */
-"chat.group.info.remove.from.group" = "Remover del grupo";
+"chat.group.info.remove.from.group" = "Sacar del grupo";
 
 /* Title of screen that shows group information */
 "chat.group.info.title" = "Información del grupo";
@@ -347,7 +347,7 @@
 "chat.message.photo" = "Foto";
 
 /* Text shown when content input text field is empty for chat screens. */
-"chat.message.placeholder" = "Escribe un mensaje";
+"chat.message.placeholder" = "Nuevo mensaje";
 
 /* Text shown in place of a received message we are not able to process yet. */
 "chat.message.unsupported" = "Tu versión de HalloApp no admite este tipo de mensaje.";
@@ -409,6 +409,12 @@
 /* Text displayed in gray inside of the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Añadir un comentario";
 
+/* Header that appears above all the unread Messages in the comments view when there are more than one unread message */
+"comment.unread.chat.messages.header.plural" = "%@ Mensajes sin leer";
+
+/* Header that appears above one single unread Message in the chat view. */
+"comment.unread.chat.messages.header.single" = "%@ Mensaje sin leer";
+
 /* Header that appears above all the unread comments in the comments view when there are more than one unread message */
 "comment.unread.messages.header.plural" = "%@ Comentarios sin leer";
 
@@ -467,7 +473,7 @@
 "composer.message.title" = "Nuevo mensaje";
 
 /* Composer New Moment Post title. */
-"composer.moment.post.title" = "Nuevo momento";
+"composer.moment.post.title" = "Nuevo Momento";
 
 /* Placeholder text for media caption field in post composer. */
 "composer.placeholder.media.description" = "Escribe una descripción";
@@ -770,10 +776,10 @@
 "group.event.created.group.you" = "Has creado el grupo \"%1@\"";
 
 /* Message text shown with the user who demoted a group admin */
-"group.event.demoted.member" = "%1$@ removió a %2$@ como administrador";
+"group.event.demoted.member" = "%1$@ eliminó a %2$@ como administrador";
 
 /* Message text shown when you demote a group admin */
-"group.event.demoted.member.you" = "Removiste a %1@ como administrador";
+"group.event.demoted.member.you" = "Eliminaste a %1@ como administrador";
 
 /* Message text shown with the user who promoted a group member */
 "group.event.promoted.member" = "%1$@ designó a %2$@ como admin.";
@@ -782,10 +788,10 @@
 "group.event.promoted.member.you" = "Designaste a %1@ como administrador";
 
 /* Message text shown with the user who removed a group member */
-"group.event.removed.member" = "%1$@ removió a %2$@";
+"group.event.removed.member" = "%1$@ eliminó a %2$@";
 
 /* Message text shown when you remove a group member */
-"group.event.removed.member.you" = "Removiste a %1@";
+"group.event.removed.member.you" = "Eliminaste a %1@";
 
 /* Indicates how many members are in the group */
 "group.feed.n.members" = "group.feed.n.members";
@@ -941,13 +947,13 @@
 "invite.text.specific" = "Hola %1$@, tengo una invitación para que te unas a HalloApp (una red social de relaciones reales para aquellos más cercanos a mí). Usa %2$@ para registrarte. Bájala en https://halloapp.com/dl";
 
 /* Version of an invitation to join HalloApp. The argument is the invitee's name. */
-"invite.text.specific.1" = "Hey %@, estoy en HalloApp. Descarga la app para unirte a mí https://halloapp.com/install";
+"invite.text.specific.1" = "Hey %@, estoy en HalloApp. Baja la app para unirte a mí https://halloapp.com/install";
 
 /* Version of an invitation to join HalloApp. The argument is the invitee's name. */
-"invite.text.specific.2" = "Oye, %@, sigamos en contacto en HalloApp. Descárgala en https://halloapp.com/kit (HalloApp es una nueva aplicación social privada para amigos cercanos y familiares, sin anuncios ni algoritmos).";
+"invite.text.specific.2" = "Oye, %@, sigamos en contacto en HalloApp. Bájala en https://halloapp.com/kit (HalloApp es una nueva aplicación social privada para amigos cercanos y familiares, sin anuncios ni algoritmos).";
 
 /* Version of an invitation to join HalloApp. */
-"invite.text.specific.3" = "Te invito a instalar HalloApp. Descárgala gratis aquí: https://halloapp.com/free";
+"invite.text.specific.3" = "Te invito a instalar HalloApp. Bájala gratis aquí: https://halloapp.com/free";
 
 /* Version of an invitation to join HalloApp. The argument is the invitee's name. */
 "invite.text.specific.4" = "Hey %@! Únete a mí en HalloApp, y comparte momentos verdaderos con amistades reales. Échale un vistazo: https://halloapp.com/new";
@@ -1068,6 +1074,9 @@
 
 /* For indicating that a post has been successfully uploaded and shared. */
 "moment.uploading.success" = "¡Compartido!";
+
+/* Message displayed to say when moments will disappear. */
+"mymoment.disappear.time.label" = "Tu Momento fue compartido con tu lista de contactos. Los Momentos desaparecen después de 24 horas y solo se pueden ver una vez.";
 
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Enviar un mensaje";
@@ -1421,7 +1430,7 @@
 "scan.to.join.group.using.qr.code" = "Para unirte, escanea el código QR con la cámara de tu teléfono.";
 
 /* Text placed on the blurred overlay of a secret post. */
-"secret.post.entice" = "%@ compartió un momento";
+"secret.post.entice" = "%@ compartió un Momento";
 
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Por favor, selecciona al menos un contacto.";
@@ -1577,7 +1586,7 @@
 "settings.share.text" = "Únete a mi red social de relaciones reales, HalloApp. Baja la aplicación gratis en halloapp.com/dl";
 
 /* Prompt for the user to share a moment. */
-"share.moment.prompt" = "Comparte momento";
+"share.moment.prompt" = "Comparte un momento";
 
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "toca para devolver la llamada";
@@ -1625,7 +1634,7 @@
 "timestamp.last.seen.dayofweek.at.time" = "Visto por última vez el %1$@ a la(s) %2$@";
 
 /* Last seen timestamp: today at specific time. */
-"timestamp.last.seen.today.at" = "Visto por última vez hoy a las %@";
+"timestamp.last.seen.today.at" = "Visto por última vez hoy a la(s) %@";
 
 /* Last seen timestamp: yesterday at specific time. */
 "timestamp.last.seen.yesterday.at" = "Visto por última vez ayer a las %@ ";
@@ -1646,7 +1655,7 @@
 "title.camera" = "Cámara";
 
 /* Camera screen title for a new moment */
-"title.camera.moment" = "Nuevo momento";
+"title.camera.moment" = "Nuevo Momento";
 
 /* Title for new message screen where user chooses who to message */
 "title.chat.new.message" = "Nuevo mensaje";
