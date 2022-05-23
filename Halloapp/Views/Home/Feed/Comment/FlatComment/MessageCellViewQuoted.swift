@@ -295,7 +295,7 @@ extension MessageCellViewQuoted: MediaCarouselViewDelegate {
 
     func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
         if let commentID = feedPostComment?.id {
-            delegate?.messageView(view, forComment: commentID, didTapMediaAtIndex: index)
+            commentDelegate?.messageView(view, forComment: commentID, didTapMediaAtIndex: index)
         }
     }
 

@@ -198,7 +198,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
 
         let isPreviousMessageFromSameSender = isPreviousMessageSameSender(currentComment: comment)
         itemCell.configureWith(comment: comment, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
-        itemCell.delegate = self
+        itemCell.commentDelegate = self
         itemCell.textLabel.delegate = self
     }
 
@@ -957,7 +957,7 @@ extension FlatCommentsViewController: MessageCommentHeaderViewDelegate {
     }
 }
 
-extension FlatCommentsViewController: MessageViewDelegate {
+extension FlatCommentsViewController: MessageViewCommentDelegate {
     func messageView(_ view: MediaCarouselView, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int) {
         messageInputView.hideKeyboard()
         var canSavePost = false

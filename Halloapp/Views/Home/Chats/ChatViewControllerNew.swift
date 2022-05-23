@@ -12,6 +12,7 @@ import CocoaLumberjackSwift
 import Combine
 import UIKit
 import CoreData
+import Photos
 
 fileprivate struct ChatMsgData {
     let id: String
@@ -494,6 +495,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     private func configureCell(itemCell: MessageCellViewBase, for chatMessage: ChatMessage) {
         itemCell.configureWith(message: chatMessage)
         itemCell.textLabel.delegate = self
+        itemCell.chatDelegate = self
     }
 
     private func createLayout() -> UICollectionViewCompositionalLayout {
@@ -882,15 +884,14 @@ extension ChatViewControllerNew: ContentInputDelegate {
     }
 
     func inputView(_ inputView: ContentInputView, didClose panel: InputContextPanel) {
-        // TODO
-//        if panel.isKind(of: QuotedItemPanel.self) {
-//            feedPostId = nil
-//            feedPostMediaIndex = 0
-//
-//            chatReplyMessageID = nil
-//            chatReplyMessageSenderID = nil
-//            chatReplyMessageMediaIndex = 0
-//        }
+        if panel.isKind(of: QuotedItemPanel.self) {
+            feedPostId = nil
+            feedPostMediaIndex = 0
+
+            chatReplyMessageID = nil
+            chatReplyMessageSenderID = nil
+            chatReplyMessageMediaIndex = 0
+        }
     }
 
     func inputViewDidSelectCamera(_ inputView: ContentInputView) {
@@ -1029,4 +1030,266 @@ extension ChatViewControllerNew: PostComposerViewDelegate {
     func willDismissWithInput(mentionInput: MentionInput) {
 
     }
+}
+
+extension ChatViewControllerNew: MessageViewChatDelegate {
+
+    func messageView(_ messageViewCell: MessageCellViewBase, didTapUserId userId: UserID) {
+
+    }
+
+    func messageView(_ messageViewCell: MessageCellViewBase, didLongPressOn chatMessage: ChatMessage) {
+        let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        if chatMessage.incomingStatus != .retracted {
+            actionSheet.addAction(UIAlertAction(title: Localizations.messageReply, style: .default) { [weak self] _ in
+                guard let self = self else { return }
+                self.handleQuotedReply(msg: chatMessage)
+             })
+
+            if let messageText = chatMessage.rawText, !messageText.isEmpty {
+                actionSheet.addAction(UIAlertAction(title: Localizations.messageCopy, style: .default) { _ in
+                    let pasteboard = UIPasteboard.general
+                    pasteboard.string = messageText
+                })
+            }
+
+            actionSheet.addAction(UIAlertAction(title: Localizations.messageDelete, style: .destructive) { [weak self] _ in
+                self?.showDeletionConfirmationMenu(for: chatMessage)
+            })
+
+            if ServerProperties.isInternalUser {
+                actionSheet.message = MainAppContext.shared.cryptoData.details(for: chatMessage.id, dateFormatter: DateFormatter.dateTimeFormatterMonthDayTime)
+            }
+        }
+        guard actionSheet.actions.count > 0 else { return }
+
+       actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+
+       self.present(actionSheet, animated: true)
+   }
+
+   func messageView(_ messageViewCell: MessageCellViewBase, jumpTo feedPostCommentID: FeedPostCommentID) {
+
+   }
+
+   func messageView(_ messageViewCell: MessageCellViewBase, replyToChat chatMessage: ChatMessage) {
+       guard chatMessage.incomingStatus != .retracted else { return }
+       guard ![.retracting, .retracted].contains(chatMessage.outgoingStatus) else { return }
+       handleQuotedReply(msg: chatMessage)
+   }
+
+   private func handleQuotedReply(msg chatMessage: ChatMessage) {
+       chatReplyMessageID = chatMessage.id
+       chatReplyMessageSenderID = chatMessage.fromUserId
+
+       guard let userID = chatReplyMessageSenderID else { return }
+
+       if let mediaItem = chatMessage.media?.first(where: { $0.order == chatReplyMessageMediaIndex }) {
+          let mediaUrl = mediaItem.mediaURL ?? MainAppContext.chatMediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
+           let info = QuotedItemPanel.PostInfo(userID: userID,
+                                                 text: chatMessage.rawText ?? "",
+                                            mediaType: mediaItem.type,
+                                            mediaLink: mediaUrl)
+           let panel = QuotedItemPanel()
+           panel.postInfo = info
+           contentInputView.display(context: panel)
+       } else {
+           let info = QuotedItemPanel.PostInfo(userID: userID,
+                                                 text: chatMessage.rawText ?? "",
+                                            mediaType: nil,
+                                            mediaLink: nil)
+           let panel = QuotedItemPanel()
+           panel.postInfo = info
+           contentInputView.display(context: panel)
+       }
+   }
+
+   func showDeletionConfirmationMenu(for chatMessage: ChatMessage) {
+       let chatMessageId = chatMessage.id
+       let alertController = UIAlertController(title: Localizations.chatDeleteTitle, message: nil, preferredStyle: .actionSheet)
+
+       if chatMessage.fromUserId == AppContext.shared.userData.userId,
+          [.sentOut, .delivered, .seen, .played].contains(chatMessage.outgoingStatus),
+          let toUserID = fromUserId {
+           alertController.addAction(UIAlertAction(title: Localizations.chatDeleteForEveryone, style: .destructive) { _ in
+               MainAppContext.shared.chatData.retractChatMessage(toUserID: toUserID, messageToRetractID: chatMessageId)
+           })
+       }
+
+       alertController.addAction(UIAlertAction(title: Localizations.chatDeleteForMe, style: .destructive) { _ in
+           MainAppContext.shared.chatData.deleteChatMessage(with: chatMessageId)
+       })
+
+       alertController.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+       present(alertController, animated: true)
+   }
+}
+
+// MARK: - quoted item panel implementation
+fileprivate class QuotedItemPanel: UIView, InputContextPanel {
+    struct PostInfo {
+        let userID: String
+        let text: String
+        let mediaType: CommonMediaType?
+        let mediaLink: URL?
+    }
+
+    var postInfo: PostInfo? {
+        didSet { configure() }
+    }
+
+    override init(frame: CGRect) {
+        super.init(frame: .zero)
+
+        addSubview(stackView)
+        NSLayoutConstraint.activate([
+            stackView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 8),
+            stackView.topAnchor.constraint(equalTo: self.topAnchor, constant: 8),
+            stackView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -8),
+            stackView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -8)
+        ])
+    }
+
+    required init(coder: NSCoder) {
+        fatalError("Feed post panel coder init not implemented...")
+    }
+
+    private func configure() {
+        guard let postInfo = postInfo else {
+            return
+        }
+
+        quoteFeedPanelNameLabel.text = MainAppContext.shared.contactStore.fullName(for: postInfo.userID)
+        let ham = HAMarkdown(font: UIFont.preferredFont(forTextStyle: .subheadline), color: UIColor.secondaryLabel)
+        quoteFeedPanelTextLabel.attributedText = ham.parse(postInfo.text)
+
+        if postInfo.userID == MainAppContext.shared.userData.userId {
+            quoteFeedPanelNameLabel.textColor = .chatOwnMsg
+        } else {
+            quoteFeedPanelNameLabel.textColor = .label
+        }
+
+        subviews.first?.backgroundColor = quoteFeedPanelNameLabel.textColor.withAlphaComponent(0.1)
+        if let mediaType = postInfo.mediaType, let mediaLink = postInfo.mediaLink {
+            configureMedia(mediaType, mediaLink)
+        }
+    }
+
+    private func configureMedia(_ mediaType: CommonMediaType, _ url: URL) {
+        quoteFeedPanelImage.isHidden = false
+        switch mediaType {
+        case .image:
+            if let image = UIImage(contentsOfFile: url.path) {
+                quoteFeedPanelImage.contentMode = .scaleAspectFill
+                quoteFeedPanelImage.image = image
+            }
+        case .video:
+            if let image = VideoUtils.videoPreviewImage(url: url) {
+                quoteFeedPanelImage.contentMode = .scaleAspectFill
+                quoteFeedPanelImage.image = image
+            }
+        case .audio:
+            quoteFeedPanelImage.isHidden = true
+            let text = NSMutableAttributedString()
+            if let icon = UIImage(named: "Microphone")?.withTintColor(.systemGray) {
+                let attachment = NSTextAttachment(image: icon)
+                attachment.bounds = CGRect(x: 0, y: -3, width: 16, height: 16)
+                text.append(NSAttributedString(attachment: attachment))
+            }
+
+            text.append(NSAttributedString(string: Localizations.chatMessageAudio))
+
+            if FileManager.default.fileExists(atPath: url.path) {
+                let seconds = AVURLAsset(url: url).duration.seconds
+                let duration = ContentInputView.voiceNoteDurationFormatter.string(from: seconds) ?? ""
+                text.append(NSAttributedString(string: " (" + duration + ")"))
+            }
+
+            quoteFeedPanelTextLabel.attributedText = text.with(font: UIFont.preferredFont(forTextStyle: .subheadline),
+                                                              color: UIColor.secondaryLabel)
+        }
+    }
+
+    private lazy var stackView: UIStackView = {
+        let stack = UIStackView()
+        stack.translatesAutoresizingMaskIntoConstraints = false
+
+        stack.addArrangedSubview(quoteFeedPanelTextMediaContent)
+        stack.addArrangedSubview(closeButton)
+        stack.axis = .horizontal
+        stack.alignment = .top
+        stack.spacing = 8
+
+        stack.layer.cornerRadius = 15
+        stack.clipsToBounds = true
+
+        return stack
+    }()
+
+    private lazy var quoteFeedPanelTextMediaContent: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ quoteFeedPanelTextContent, quoteFeedPanelImage ])
+        view.axis = .horizontal
+        view.alignment = .top
+        view.spacing = 3
+
+        view.layoutMargins = UIEdgeInsets(top: 8, left: 5, bottom: 8, right: 8)
+        view.isLayoutMarginsRelativeArrangement = true
+
+        view.translatesAutoresizingMaskIntoConstraints = false
+        quoteFeedPanelImage.widthAnchor.constraint(equalToConstant: 60).isActive = true
+        quoteFeedPanelImage.heightAnchor.constraint(equalToConstant: 60).isActive = true
+
+        return view
+    }()
+
+    private lazy var quoteFeedPanelTextContent: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ quoteFeedPanelNameLabel, quoteFeedPanelTextLabel ])
+        view.axis = .vertical
+        view.spacing = 3
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 5, bottom: 10, right: 0)
+        view.isLayoutMarginsRelativeArrangement = true
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
+    private lazy var quoteFeedPanelNameLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.font = UIFont.preferredFont(forTextStyle: .headline)
+        label.textColor = UIColor.label
+
+        return label
+    }()
+
+    private lazy var quoteFeedPanelTextLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 2
+        label.font = UIFont.preferredFont(forTextStyle: .subheadline)
+        label.textColor = UIColor.secondaryLabel
+
+        return label
+    }()
+
+    private lazy var quoteFeedPanelImage: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFill
+
+        imageView.layer.cornerRadius = 5
+        imageView.layer.masksToBounds = true
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+
+        imageView.isHidden = true
+
+        return imageView
+    }()
+
+    private(set) lazy var closeButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage(systemName: "xmark"), for: .normal)
+        button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 0, bottom: 0, right: 10)
+        button.tintColor = UIColor.systemGray
+        button.setContentHuggingPriority(.required, for: .horizontal)
+
+        return button
+    }()
 }

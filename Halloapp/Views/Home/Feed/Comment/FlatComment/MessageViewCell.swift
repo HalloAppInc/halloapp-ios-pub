@@ -11,11 +11,17 @@ import Core
 import CoreCommon
 import UIKit
 
-protocol MessageViewDelegate: AnyObject {
+protocol MessageViewCommentDelegate: AnyObject {
     func messageView(_ view: MediaCarouselView, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int)
     func messageView(_ messageViewCell: MessageCellViewBase, replyTo feedPostCommentID: FeedPostCommentID)
     func messageView(_ messageViewCell: MessageCellViewBase, didTapUserId userId: UserID)
     func messageView(_ messageViewCell: MessageCellViewBase, jumpTo feedPostCommentID: FeedPostCommentID)
+}
+
+protocol MessageViewChatDelegate: AnyObject {
+    func messageView(_ messageViewCell: MessageCellViewBase, replyToChat chatMessage: ChatMessage)
+    func messageView(_ messageViewCell: MessageCellViewBase, didTapUserId userId: UserID)
+    func messageView(_ messageViewCell: MessageCellViewBase, didLongPressOn chatMessage: ChatMessage)
 }
 
 class MessageViewCell: MessageCellViewBase {
@@ -74,13 +80,8 @@ class MessageViewCell: MessageCellViewBase {
 
     override func configureWith(comment: FeedPostComment, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
         audioMediaStatusCancellable?.cancel()
-        feedPostComment = comment
-        isOwnMessage = comment.userId == MainAppContext.shared.userData.userId
-        isPreviousMessageOwnMessage = isPreviousMessageFromSameSender
-        userNameColorAssignment = userColorAssignment
-        nameLabel.textColor = userNameColorAssignment
-        timeLabel.text = comment.timestamp.chatTimestamp()
         setNameLabel(for: comment.userId)
+        super.configureWith(comment: comment, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
         configureCell()
         // Set up retracted comment
         if comment.status == .retracted || comment.status == .retracting {
@@ -95,6 +96,7 @@ class MessageViewCell: MessageCellViewBase {
 
     override func configureWith(message: ChatMessage) {
         timeLabel.text = message.timestamp?.chatTimestamp()
+        super.configureWith(message: message)
         configureCell()
         if [.retracted, .retracting].contains(message.outgoingStatus) || [.retracted].contains(message.incomingStatus) {
             configureRetracted(text: Localizations.chatMessageDeleted)
@@ -143,7 +145,7 @@ extension MessageViewCell: MediaCarouselViewDelegate {
 
     func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
         if let commentID = feedPostComment?.id {
-            delegate?.messageView(view, forComment: commentID, didTapMediaAtIndex: index)
+            commentDelegate?.messageView(view, forComment: commentID, didTapMediaAtIndex: index)
         }
     }
 
