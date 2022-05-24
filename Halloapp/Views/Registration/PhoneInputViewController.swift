@@ -81,6 +81,7 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
         textFieldUserName.autocorrectionType = .no
         textFieldUserName.returnKeyType = .next
         textFieldUserName.textContentType = .name
+        textFieldUserName.delegate = self
         textFieldUserName.placeholder = Localizations.registrationNamePlaceholder
         textFieldUserName.addTarget(self, action: #selector(nameFieldAction), for: .primaryActionTriggered)
         textFieldUserName.addTarget(self, action: #selector(textFieldEditingChanged), for: .editingChanged)
