@@ -76,16 +76,9 @@ final class ProfileHeaderViewController: UIViewController, UserMenuHandler {
         headerView.isOwnProfile = userID == MainAppContext.shared.userData.userId
         var showPhoneLabel = false
 
-        if isContactInAddressBook {
-            if let contact = MainAppContext.shared.contactStore.contact(withUserId: userID), let phoneNumber = contact.phoneNumber {
-                headerView.phoneLabel.text = phoneNumber.formattedPhoneNumber
-                showPhoneLabel = true
-            }
-        } else {
-            if let pushNumber = MainAppContext.shared.contactStore.pushNumber(userID) {
-                headerView.phoneLabel.text = pushNumber.formattedPhoneNumber
-                showPhoneLabel = true
-            }
+        if let phoneNumber = MainAppContext.shared.contactStore.normalizedPhoneNumber(for: userID) {
+            headerView.phoneLabel.text = phoneNumber.formattedPhoneNumber
+            showPhoneLabel = true
         }
 
         if showPhoneLabel {

@@ -13,6 +13,10 @@ extension CommonMedia {
         guard let relativeFilePath = relativeFilePath else { return nil }
         return mediaDirectory.fileURL(forRelativePath: relativeFilePath)
     }
+
+    var mediaDirectoryURL: URL {
+        return mediaDirectory.url
+    }
 }
 
 extension MediaDirectory {

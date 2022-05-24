@@ -188,7 +188,6 @@ open class ContactStore {
 
     public func normalizedPhoneNumber(for userID: UserID) -> String? {
         if userID == self.userData.userId {
-            // TODO: return correct pronoun.
             return userData.normalizedPhoneNumber
         }
         var normalizedPhoneNumber: String? = nil
@@ -241,22 +240,6 @@ open class ContactStore {
         }
 
         return userID
-    }
-
-
-    public func userID(forPushNumber normalizedPushNumber: String) -> UserID? {
-        let fetchRequest: NSFetchRequest<PushNumber> = PushNumber.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "normalizedPhoneNumber == %@", normalizedPushNumber)
-        do {
-            let results = try viewContext.fetch(fetchRequest)
-            if results.count >= 2 {
-                DDLogError("contactStore/fetchUserID/fetched count=[\(results.count)]")
-            }
-            return results.first?.userID
-        }
-        catch {
-            fatalError("contactStore/fetchUserID/error [\(error)]")
-        }
     }
 
     // MARK: Push names
@@ -339,6 +322,21 @@ open class ContactStore {
     open func pushNumber(_ userID: UserID) -> String? {
         guard let pushNumberData = pushNumbersData[userID] else { return nil }
         return pushNumberData.normalizedPhoneNumber
+    }
+
+    private func userID(forPushNumber normalizedPushNumber: String) -> UserID? {
+        let fetchRequest: NSFetchRequest<PushNumber> = PushNumber.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "normalizedPhoneNumber == %@", normalizedPushNumber)
+        do {
+            let results = try viewContext.fetch(fetchRequest)
+            if results.count >= 2 {
+                DDLogError("contactStore/fetchUserID/fetched count=[\(results.count)]")
+            }
+            return results.first?.userID
+        }
+        catch {
+            fatalError("contactStore/fetchUserID/error [\(error)]")
+        }
     }
 
     private static func fetchAllPushNumbersData(using managedObjectContext: NSManagedObjectContext) -> [UserID: PushNumberData] {
