@@ -266,6 +266,7 @@
 		76E00DF624FEC4A800E06252 /* ProfileHeaderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E00DF324FEC2FC00E06252 /* ProfileHeaderViewController.swift */; };
 		76FE37ED2523EC9600372FB1 /* ContactPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */; };
 		A111BDFC27C96D9100E5DB4E /* UserMenuHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A111BDFB27C96D9100E5DB4E /* UserMenuHandler.swift */; };
+		A15B2D96283EA9A0000CE989 /* LargeHitButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15B2D95283EA9A0000CE989 /* LargeHitButton.swift */; };
 		A17DCD7027C0885F00E00073 /* ExpandableTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17DCD6F27C0885F00E00073 /* ExpandableTextView.swift */; };
 		A1AE40CB282DAB3F00C3EF3A /* QuotedMomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AE40CA282DAB3F00C3EF3A /* QuotedMomentView.swift */; };
 		A1AE40CF283DA7DB00C3EF3A /* QuotedMediaPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AE40CE283DA7DB00C3EF3A /* QuotedMediaPanel.swift */; };
@@ -1007,6 +1008,7 @@
 		76F43F2D2489BD8900D47920 /* Notification Service Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Notification Service Extension.entitlements"; sourceTree = "<group>"; };
 		76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContactPickerViewController.swift; path = HalloApp/Components/Views/ContactPickerViewController.swift; sourceTree = SOURCE_ROOT; };
 		A111BDFB27C96D9100E5DB4E /* UserMenuHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserMenuHandler.swift; path = Halloapp/Views/Home/UserMenuHandler.swift; sourceTree = SOURCE_ROOT; };
+		A15B2D95283EA9A0000CE989 /* LargeHitButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargeHitButton.swift; sourceTree = "<group>"; };
 		A17DCD6F27C0885F00E00073 /* ExpandableTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpandableTextView.swift; sourceTree = "<group>"; };
 		A1AE40CA282DAB3F00C3EF3A /* QuotedMomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotedMomentView.swift; sourceTree = "<group>"; };
 		A1AE40CE283DA7DB00C3EF3A /* QuotedMediaPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotedMediaPanel.swift; sourceTree = "<group>"; };
@@ -1512,6 +1514,7 @@
 				766492222450DDB9009BC368 /* BadgedButton.swift */,
 				A1FE82E827DEDB8F00024641 /* ContentInputView.swift */,
 				A1FE830627E2913500024641 /* ContentTextView.swift */,
+				A15B2D95283EA9A0000CE989 /* LargeHitButton.swift */,
 				A1FE830227E1AED200024641 /* LinkPreviewPanel.swift */,
 				766492242450E04D009BC368 /* BadgeView.swift */,
 				7626CCD624C69EDC0023FC2E /* CircularProgressView.swift */,
@@ -3067,6 +3070,7 @@
 				323F9A75280F23E600C8AB69 /* PostLinkPreviewViewExtension.swift in Sources */,
 				76538093243D4B33000AD9A1 /* FeedPost+CoreDataProperties.swift in Sources */,
 				76538090243D4B33000AD9A1 /* FeedPostLegacy+CoreDataClass.swift in Sources */,
+				A15B2D96283EA9A0000CE989 /* LargeHitButton.swift in Sources */,
 				680FB661250C45C000CA5D40 /* OverlayView.swift in Sources */,
 				EABB650326D989B900367F44 /* UISearchBar.swift in Sources */,
 				76A92444244E659600794859 /* FeedViewController.swift in Sources */,

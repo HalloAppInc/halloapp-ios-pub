@@ -498,34 +498,20 @@ final class FeedItemHeaderView: UIView {
         return label
     }()
 
-    private(set) lazy var moreButton: UIView = {
-        let image = UIImage(systemName: "ellipsis")
-        let button = UIButton()
+    private(set) lazy var moreButton: LargeHitButton = {
+        let config = UIImage.SymbolConfiguration(pointSize: moreButtonWidth, weight: .regular, scale: .small)
+        let image = UIImage(systemName: "ellipsis", withConfiguration: config)
+        let button = LargeHitButton(type: .system)
+
+        button.targetIncrease = 15
         button.setImage(image, for: .normal)
         button.tintColor = .label
         button.addTarget(self, action: #selector(showMoreTapped), for: .touchUpInside)
+        button.setContentHuggingPriority(.required, for: .horizontal)
+        button.setContentHuggingPriority(.required, for: .vertical)
         button.translatesAutoresizingMaskIntoConstraints = false
 
-        if let image = image {
-            button.widthAnchor.constraint(equalToConstant: image.size.width + moreButtonPadding).isActive = true
-        }
-
-        let wrapperView = UIView()
-        wrapperView.addSubview(button)
-        wrapperView.translatesAutoresizingMaskIntoConstraints = false
-
-        button.constrain([.top, .bottom, .trailing], to: wrapperView)
-        button.heightAnchor.constraint(equalToConstant: 18 + moreButtonPadding).isActive = true
-
-        button.contentHorizontalAlignment = .trailing
-        button.imageEdgeInsets = UIEdgeInsets(top: -5, left: 0, bottom: 5, right: 0)
-
-        let widthConstraint = wrapperView.widthAnchor.constraint(equalToConstant: moreButtonWidth + moreButtonPadding)
-        // reduce priority to take up full width with vertical layout at a11y text sizes
-        widthConstraint.priority = UILayoutPriority(999)
-        widthConstraint.isActive = true
-
-        return wrapperView
+        return button
     }()
     
     private lazy var privacyIndicatorButtonView: UIView = {
