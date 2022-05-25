@@ -795,7 +795,8 @@ extension ChatViewControllerNew: TextLabelDelegate {
             existingDraft.chatID == fromUserId
         }) else { return }
 
-        contentInputView.set(draft: draft.text)
+        let mentionText = MentionText(collapsedText: draft.text, mentions: [:])
+        contentInputView.set(draft: mentionText)
 
         if let reply = draft.replyContext {
             // TODO
@@ -1200,7 +1201,7 @@ fileprivate class QuotedItemPanel: UIView, InputContextPanel {
 
             if FileManager.default.fileExists(atPath: url.path) {
                 let seconds = AVURLAsset(url: url).duration.seconds
-                let duration = ContentInputView.voiceNoteDurationFormatter.string(from: seconds) ?? ""
+                let duration = ContentInputView.durationFormatter.string(from: seconds) ?? ""
                 text.append(NSAttributedString(string: " (" + duration + ")"))
             }
 

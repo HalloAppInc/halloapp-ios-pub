@@ -35,11 +35,11 @@ class LinkPreviewPanel: UIView, InputContextPanel {
             closeButton.trailingAnchor.constraint(equalTo: linkPreviewHStack.trailingAnchor, constant: -8),
             closeButton.topAnchor.constraint(equalTo: linkPreviewHStack.topAnchor, constant: 8),
             linkPreviewMediaView.leadingAnchor.constraint(equalTo: linkPreviewHStack.leadingAnchor, constant: 8),
-            linkPreviewHStack.topAnchor.constraint(equalTo: self.topAnchor, constant: 8),
-            linkPreviewHStack.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -8),
+            linkPreviewHStack.topAnchor.constraint(equalTo: self.topAnchor, constant: 0),
+            linkPreviewHStack.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: 0),
             linkPreviewHStack.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 8),
             linkPreviewHStack.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -8),
-            self.heightAnchor.constraint(equalToConstant: 90)
+            self.heightAnchor.constraint(equalToConstant: 75)
         ]
         
         NSLayoutConstraint.activate(constraints)

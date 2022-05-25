@@ -21,6 +21,7 @@ protocol ContentInputDelegate: AnyObject {
     func inputViewDidSelectCamera(_ inputView: ContentInputView)
     func inputViewDidSelectContentOptions(_ inputView: ContentInputView)
     func inputView(_ inputView: ContentInputView, didPaste image: PendingMedia)
+    func inputView(_ inputView: ContentInputView, didTap selectedMedia: PendingMedia)
     
     func inputView(_ inputView: ContentInputView, didInterrupt recorder: AudioRecorder)
     func inputViewMicrophoneAccessDenied(_ inputView: ContentInputView)
@@ -38,6 +39,7 @@ extension ContentInputDelegate {
     func inputViewDidSelectCamera(_ inputView: ContentInputView) { }
     func inputViewDidSelectContentOptions(_ inputView: ContentInputView) { }
     func inputView(_ inputView: ContentInputView, didPaste image: PendingMedia) { }
+    func inputView(_ inputView: ContentInputView, didTap selectedMedia: PendingMedia) { }
 
     func inputView(_ inputView: ContentInputView, didInterrupt recorder: AudioRecorder) { }
     func inputViewMicrophoneAccessDenied(_ inputView: ContentInputView) { }
@@ -61,14 +63,22 @@ extension ContentInputView {
     }
 
     enum Style { case normal, minimal }
-    
-    private enum ContentState {
-        /// No content; shows the placeholder.
+
+    private enum TextState {
+        /// No text; show the placeholder
         case none
-        /// There is text, but it consists only of whitespaces and/or newlines.
-        case invalidText
-        /// There is input text.
-        case text
+        /// User has entered text that can be sent.
+        case valid
+        /// User has entered text, but it is made of invalid characters.
+        case invalid
+    }
+
+    private enum MediaState {
+        /// No media
+        case none
+        /// User has added a photo or video.
+        /// - note: Only for comments.
+        case media
         /// User is holding down on `voiceNoteControl`.
         case audioRecording
         /// `voiceNoteControl` is locked.
@@ -100,7 +110,7 @@ extension ContentInputView {
         }
     }
     
-    static let voiceNoteDurationFormatter: DateComponentsFormatter = {
+    static let durationFormatter: DateComponentsFormatter = {
         let formatter = DateComponentsFormatter()
         formatter.zeroFormattingBehavior = .pad
         formatter.allowedUnits = [.second, .minute]
@@ -112,16 +122,34 @@ extension ContentInputView {
 class ContentInputView: UIView {
     let options: Options
     let style: Style
-    private var contentState: ContentState = .none {
+
+    private var textState: TextState = .none {
         didSet {
-            if oldValue != contentState { refreshButtons() }
+            if oldValue != textState { refreshButtons() }
+        }
+    }
+
+    private var mediaState: MediaState = .none {
+        didSet {
+            if oldValue != mediaState { refreshButtons() }
         }
     }
     
     weak var delegate: ContentInputDelegate?
     private var cancellables: Set<AnyCancellable> = []
+
+    private(set) var media: [PendingMedia] = []
     
     // MARK: - views
+
+    private lazy var panelStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [linkPreviewPanel, mediaPanel])
+        stack.axis = .vertical
+        stack.isLayoutMarginsRelativeArrangement = true
+        stack.distribution = .equalSpacing
+        stack.spacing = 12
+        return stack
+    }()
     
     /// - note: Everything goes in here.
     private lazy var vStack: UIStackView = {
@@ -130,7 +158,8 @@ class ContentInputView: UIView {
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.isLayoutMarginsRelativeArrangement = true
         
-        stack.addArrangedSubview(linkPreviewPanel)
+        stack.addArrangedSubview(panelStack)
+        //stack.addArrangedSubview(mediaPanel)
         stack.addArrangedSubview(mentionPicker)
         stack.addArrangedSubview(functionPanel)
         stack.addSubview(voiceNoteTimeLabel)
@@ -389,6 +418,18 @@ class ContentInputView: UIView {
         
         return panel
     }()
+
+    private lazy var mediaPanel: QuotedMediaPanel = {
+        let panel = QuotedMediaPanel()
+        panel.translatesAutoresizingMaskIntoConstraints = false
+        panel.isHidden = true
+        panel.closeButton.addTarget(self, action: #selector(closedMedia), for: .touchUpInside)
+        panel.didSelect = { [weak self] media in
+            guard let self = self else { return }
+            self.delegate?.inputView(self, didTap: media)
+        }
+        return panel
+    }()
     
     private(set) var contextPanel: InputContextPanel?
     /// Used when `style` is `.minimal`; we want the text view to be attached to the left edge.
@@ -431,6 +472,7 @@ class ContentInputView: UIView {
         self.options = options
         super.init(frame: .zero)
         backgroundColor = nil
+        tintColor = .primaryBlue
         
         configureBlur()
         
@@ -542,6 +584,17 @@ class ContentInputView: UIView {
         textViewShadowView.layer.shadowPath = path.cgPath
     }
 
+    private func refreshPanelInsets() {
+        // we want some additional padding at the top when displaying a panel
+        var topInset: CGFloat = 0
+        if !linkPreviewPanel.isHidden || !mediaPanel.isHidden || contextPanel != nil {
+            topInset = 10
+        }
+
+        vStack.layoutMargins = UIEdgeInsets(top: topInset, left: 0, bottom: 0, right: 0)
+        setNeedsLayout()
+    }
+
     private func refreshButtons() {
         switch style {
         case .minimal:
@@ -557,15 +610,15 @@ class ContentInputView: UIView {
         // the rest of the views are hidden on init
         var hidePlaceholder = false
 
-        switch contentState {
-        case .text, .invalidText:
+        switch textState {
+        case .valid, .invalid:
             hidePlaceholder = true
         default:
             break
         }
 
         placeHolder.isHidden = hidePlaceholder
-        postButton.isEnabled = contentState == .text
+        postButton.isEnabled = textState == .valid
     }
 
     private func refreshButtonsForNormalState() {
@@ -580,29 +633,19 @@ class ContentInputView: UIView {
         var hideDeleteRecordingButton = true
         var enablePostButton = false
 
-        switch contentState {
-        case .none:
-            hidePlaceholder = false
-            hidePhotoButton = false
-        case .invalidText:
-            hidePlaceholder = true
-            hidePhotoButton = false
-        case .text:
-            hidePostButton = false
-            hideVoiceControl = true
-            enablePostButton = true
-        case .audioRecording:
+        switch (textState, mediaState) {
+        case (_, .audioRecording):
             hideTextView = true
             hideVoiceNoteTimeLabel = false
             voiceNoteTimeLabel.text = "0:00"
-        case .audioRecordingLocked:
+        case (_, .audioRecordingLocked):
             hideTextView = true
             hideVoiceControl = true
             hidePostButton = false
             hideVoiceNoteTimeLabel = false
             hideStopVoiceRecordingButton = false
             enablePostButton = true
-        case .audioPlayback:
+        case (_, .audioPlayback):
             hideTextView = true
             hideVoiceControl = true
             hidePostButton = false
@@ -610,6 +653,22 @@ class ContentInputView: UIView {
             hideDeleteRecordingButton = false
             hidePlaybackView = false
             enablePostButton = true
+        case (.valid, _):
+            hideVoiceControl = true
+            hidePostButton = false
+            enablePostButton = true
+        case (.none, .media):
+            hidePlaceholder = false
+            fallthrough
+        case (.invalid, .media):
+            hideVoiceControl = true
+            hidePostButton = false
+            enablePostButton = true
+        case (.invalid, _):
+            hidePhotoButton = false
+        case (.none, _):
+            hidePlaceholder = false
+            hidePhotoButton = false
         }
 
         placeHolder.isHidden = hidePlaceholder
@@ -627,7 +686,7 @@ class ContentInputView: UIView {
 
         postButton.isHidden = hidePostButton
         postButton.isEnabled = enablePostButton
-        textViewPostButtonConstraint?.isActive = contentState == .text
+        textViewPostButtonConstraint?.isActive = textState == .valid || mediaState != .none
     }
     
     /**
@@ -638,35 +697,38 @@ class ContentInputView: UIView {
      context panel if it exists. The delegate is notified when the user closes the context panel.
      */
     func display(context panel: InputContextPanel) {
-        if !linkPreviewPanel.isHidden {
-            textView.resetLinkDetection()
-        }
+        textView.resetLinkDetection()
         
         removeContextPanel()
-        
         contextPanel = panel
         panel.closeButton.addTarget(self, action: #selector(closedPanel), for: .touchUpInside)
-        vStack.insertArrangedSubview(panel, at: 0)
+
+        panelStack.insertArrangedSubview(panel, at: 0)
+        refreshPanelInsets()
     }
     
     private func removeContextPanel() {
         guard let currentPanel = contextPanel else { return }
-        vStack.removeArrangedSubview(currentPanel)
+        panelStack.removeArrangedSubview(currentPanel)
         currentPanel.removeFromSuperview()
 
+        vStack.layoutMargins = UIEdgeInsets(top: 0, left: vStack.layoutMargins.left, bottom: 0, right: vStack.layoutMargins.right)
         contextPanel = nil
     }
-    
-    func set(draft text: String) {
-        guard !text.isEmpty else { return }
-        
-        textView.text = text
+
+    func set(draft text: MentionText) {
+        let trimmed = text.trimmed()
+        guard !trimmed.collapsedText.isEmpty else {
+            return
+        }
+
+        textView.mentionText = trimmed
         textViewDidChange(textView)
     }
     
     func show(voiceNote url: URL) {
         audioPlaybackView.audioView.url = url
-        contentState = .audioPlayback
+        mediaState = .audioPlayback
     }
     
     private func updateLinkPreviewPanel(with fetchState: ContentTextView.LinkPreviewFetchState) {
@@ -678,6 +740,35 @@ class ContentInputView: UIView {
             linkPreviewPanel.metadata = metadata
             linkPreviewPanel.isHidden = (metadata == nil)
         }
+
+        refreshPanelInsets()
+    }
+
+    /**
+     Adds a media object (photo or video) to the pending content.
+
+     As of right now, this is only used for comments as the post composer flow is used in chat.
+
+     - Returns: `true` if the media was successfully added.
+     */
+    @discardableResult
+    func add(media: PendingMedia) -> Bool {
+        let invalidStates: [MediaState] = [.audioRecording, .audioRecordingLocked, .audioPlayback]
+        guard !invalidStates.contains(mediaState) else {
+            return false
+        }
+
+        mediaPanel.media = media
+        mediaPanel.isHidden = false
+
+        mediaState = .media
+        self.media.append(media)
+
+        // media takes priority over link previews
+        textView.resetLinkDetection()
+        refreshPanelInsets()
+
+        return true
     }
 }
 
@@ -700,7 +791,13 @@ extension ContentInputView {
     private func closedLinkPreview(_ button: UIButton) {
         textView.resetLinkDetection()
     }
-    
+
+    @objc
+    private func closedMedia(_ button: UIButton) {
+        resetMedia()
+        textView.checkLinkPreview()
+    }
+
     @objc
     private func tappedLibrary(_ button: UIButton) {
         delegate?.inputViewDidSelectCamera(self)
@@ -713,28 +810,33 @@ extension ContentInputView {
     
     @objc
     private func tappedPost(_ button: UIButton) {
-        switch contentState {
-        case .none, .audioRecording, .invalidText:
-            // post button shouldn't be visible here
+        switch (textState, mediaState) {
+        case (.invalid, .none):
             return
-        case .text:
-            sendCurrentTextInput()
-        case .audioRecordingLocked:
+        case (_, .audioRecordingLocked):
+            // can send audio while it's being recorded
             stopAndSendCurrentVoiceRecording(cancel: false)
-        case .audioPlayback:
+        case (_, .audioPlayback):
             if let url = audioPlaybackView.audioView.url {
-                sendVoiceRecording(url)
+                saveVoiceRecording(url)
+                sendCurrentInput()
             }
+        case (_, .media):
+            // media is attached, text input is irrelevant; can post
+            fallthrough
+        case (.valid, _):
+            // valid text input; can post
+            sendCurrentInput()
+        default:
+            break
         }
-        
-        resetAfterPosting()
     }
     
     @objc
     private func tappedDeleteVoiceNote(_ button: UIButton) {
         // can only be called when `contentState` is `.audioPlayback`
         audioPlaybackView.reset()
-        contentState = .none
+        mediaState = .none
     }
 }
 
@@ -755,9 +857,9 @@ extension ContentInputView: ContentTextViewDelegate {
         
         let text = textView.text ?? ""
         if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            contentState = text.isEmpty ? .none : .invalidText
+            textState = text.isEmpty ? .none : .invalid
         } else {
-            contentState = .text
+            textState = .valid
         }
         
         updateMentionPicker()
@@ -767,17 +869,17 @@ extension ContentInputView: ContentTextViewDelegate {
     }
     
     func textViewDidEndEditing(_ textView: UITextView) {
-        let validStates: [ContentState] = [.none, .text, .invalidText]
-        guard validStates.contains(contentState) else {
+        let invalidStates: [MediaState] = [.audioRecording, .audioRecordingLocked, .audioPlayback]
+        guard !invalidStates.contains(mediaState) else {
             // this gets called if the user dismisses the keyboard while recording an audio note
             return
         }
         
         let text = (textView.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         if text.isEmpty {
-            contentState = .none
+            textState = .none
         } else {
-            contentState = .text
+            textState = .valid
         }
         
         textView.text = text
@@ -790,6 +892,11 @@ extension ContentInputView: ContentTextViewDelegate {
         }
         
         return true
+    }
+
+    func textViewShouldDetectLink(_ textView: ContentTextView) -> Bool {
+        // no link detection if either of these panels are displayed
+        return mediaPanel.isHidden && contextPanel?.isHidden ?? true
     }
     
     func textView(_ textView: ContentTextView, didPaste image: UIImage) {
@@ -857,7 +964,7 @@ extension ContentInputView: AudioRecorderControlViewDelegate {
         }
         
         textViewDidEndEditing(self.textView)
-        contentState = .audioRecording
+        mediaState = .audioRecording
         return true
     }
     
@@ -868,7 +975,6 @@ extension ContentInputView: AudioRecorderControlViewDelegate {
     func audioRecorderControlViewFinished(_ view: AudioRecorderControlView, cancel: Bool) {
         // can only record audio when there's no text / media
         stopAndSendCurrentVoiceRecording(cancel: cancel)
-        resetAfterPosting()
     }
     
     /**
@@ -880,65 +986,64 @@ extension ContentInputView: AudioRecorderControlViewDelegate {
     private func stopAndSendCurrentVoiceRecording(cancel: Bool) {
         guard let duration = voiceNoteRecorder.duration, duration >= 1 else {
             voiceNoteRecorder.stop(cancel: true)
-            sendVoiceRecording(nil)
+            saveVoiceRecording(nil)
+            resetAfterPosting()
             return
         }
         
         voiceNoteRecorder.stop(cancel: cancel)
         guard !cancel else {
-            sendVoiceRecording(nil)
+            saveVoiceRecording(nil)
+            resetAfterPosting()
             return
         }
         
         // user did not cancel; send audio
-        sendVoiceRecording(voiceNoteRecorder.url)
+        saveVoiceRecording(voiceNoteRecorder.url)
+        sendCurrentInput()
     }
-    
-    private func sendVoiceRecording(_ url: URL?) {
+
+    private func saveVoiceRecording(_ url: URL?) {
         guard let url = url else {
             return
         }
-        
+
         let media = PendingMedia(type: .audio)
         media.size = .zero
         media.order = 1
         media.fileURL = url
-        
-        let content = InputContent(mentionText: MentionText(expandedText: "", mentionRanges: [:]),
-                                         media: [media],
-                                   linkPreview: nil)
-        
-        delegate?.inputView(self, didPost: content)
+
+        self.media.append(media)
     }
     
-    private func sendCurrentTextInput() {
-        guard textView.text != "" else { return }
-        let mentionText = textView.mentionText.trimmed()
+    private func sendCurrentInput() {
+        let text = textView.mentionText.trimmed()
+        let linkPreview = assembleLinkPreview()
 
-        guard let linkPreviewData = textView.linkPreviewData else {
-            delegate?.inputView(self, didPost: InputContent(mentionText: mentionText, media: [], linkPreview: nil))
-            return
-        }
-
-        guard let linkPreviewImage = linkPreviewPanel.linkPreviewMediaView.image else {
-            delegate?.inputView(self, didPost: InputContent(mentionText: mentionText, media: [], linkPreview: (linkPreviewData, nil)))
-            return
-        }
-
-        let linkMedia = PendingMedia(type: .image)
-        linkMedia.image = linkPreviewImage
-        if linkMedia.ready.value {
-            delegate?.inputView(self, didPost: InputContent(mentionText: mentionText,
-                                                                  media: [],
-                                                            linkPreview: (linkPreviewData, linkMedia)))
-        } else {
-            linkMedia.ready.sink { [weak self, linkPreviewData] ready in
+        if let linkPreview = linkPreview, let linkMedia = linkPreview.media, !linkMedia.ready.value {
+            return linkMedia.ready.sink { [weak self] ready in
                 guard let self = self, ready else { return }
-                self.delegate?.inputView(self, didPost: InputContent(mentionText: mentionText,
-                                                                           media: [],
-                                                                     linkPreview: (linkPreviewData, linkMedia)))
+                self.delegate?.inputView(self, didPost: .init(mentionText: text, media: [], linkPreview: linkPreview))
+                self.resetAfterPosting()
             }.store(in: &cancellables)
         }
+
+        delegate?.inputView(self, didPost: .init(mentionText: text, media: media, linkPreview: linkPreview))
+        resetAfterPosting()
+    }
+
+    private func assembleLinkPreview() -> (data: LinkPreviewData, media: PendingMedia?)? {
+        guard let data = textView.linkPreviewData else {
+            return nil
+        }
+
+        var linkPreviewMedia: PendingMedia?
+        if let linkPreviewImage = linkPreviewPanel.linkPreviewMediaView.image {
+            linkPreviewMedia = PendingMedia(type: .image)
+            linkPreviewMedia?.image = linkPreviewImage
+        }
+
+        return (data, linkPreviewMedia)
     }
     
     public func resetAfterPosting() {
@@ -948,17 +1053,28 @@ extension ContentInputView: AudioRecorderControlViewDelegate {
         
         audioPlaybackView.reset()
         removeContextPanel()
-        
-        contentState = .none
+
+        textState = .none
         textViewDidChange(textView)
+
+        resetMedia()
         
         if options.contains(.typingIndication) {
             delegate?.inputView(self, isTyping: false)
         }
     }
+
+    private func resetMedia() {
+        media = []
+        mediaState = .none
+
+        mediaPanel.media = nil
+        mediaPanel.isHidden = true
+        refreshPanelInsets()
+    }
     
     func audioRecorderControlViewLocked(_ view: AudioRecorderControlView) {
-        contentState = .audioRecordingLocked
+        mediaState = .audioRecordingLocked
     }
     
     @objc
@@ -966,7 +1082,7 @@ extension ContentInputView: AudioRecorderControlViewDelegate {
         if voiceNoteRecorder.isRecording {
             voiceNoteRecorder.stop(cancel: false)
             audioPlaybackView.audioView.url = voiceNoteRecorder.url
-            contentState = .audioPlayback
+            mediaState = .audioPlayback
         }
     }
 }
@@ -977,7 +1093,7 @@ extension ContentInputView: AudioRecorderDelegate {
     func audioRecorderMicrophoneAccessDenied(_ recorder: AudioRecorder) {
         DispatchQueue.main.async { [weak self] in
             if let self = self {
-                self.contentState = .none
+                self.mediaState = .none
                 self.delegate?.inputViewMicrophoneAccessDenied(self)
             }
         }
@@ -1031,8 +1147,13 @@ extension ContentInputView {
         }
 
         let mentionables = mentionableUsers()
-        mentionPicker.items = mentionables
-        mentionPicker.isHidden = mentionables.isEmpty
+
+        // don't animate the initial load
+        let shouldShow = !mentionables.isEmpty
+        let shouldAnimate = mentionPicker.isHidden != shouldShow
+        mentionPicker.updateItems(mentionables, animated: shouldAnimate)
+
+        mentionPicker.isHidden = !shouldShow
     }
     
     private func mentionableUsers() -> [MentionableUser] {

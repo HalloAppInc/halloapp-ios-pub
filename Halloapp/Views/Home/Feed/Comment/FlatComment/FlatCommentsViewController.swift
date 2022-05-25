@@ -11,8 +11,15 @@ import Core
 import CoreCommon
 import CoreData
 import UIKit
+import AVFoundation
 
 private extension Localizations {
+    static var commentsInputPlaceholder: String {
+        NSLocalizedString("comment.textfield.placeholder",
+                   value: "Add a comment",
+                 comment: "Placeholder text for the comment input field when there is no user input.")
+    }
+
     static var newComment: String {
         NSLocalizedString("title.comments.picker", value: "New Comment", comment: "Title for the picker screen.")
     }
@@ -386,7 +393,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         if let feedPost = feedPost {
             setupUI(with: feedPost)
         } else {
-            messageInputView.isEnabled = false
+            showInputView = false
             self.view.addSubview(loadingView)
             activityIndicator.startAnimating()
             NSLayoutConstraint.activate([
@@ -396,7 +403,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
             tryAgainLabel.constrainMargins(to: view)
             loadingTimer = Timer.scheduledTimer(timeInterval: 5, target: self, selector: #selector(updateAfterTimerEnds), userInfo: nil, repeats: false)
         }
-        messageInputView.delegate = self
+
         // Long press message options
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(getMessageOptions))
         longPressGesture.delaysTouchesBegan = true
@@ -411,7 +418,6 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        self.messageInputView.willAppear(in: self)
         loadCommentsDraft()
     }
 
@@ -429,7 +435,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         guard let keyWindow = UIApplication.shared.windows.filter({$0.isKeyWindow}).first else { return }
         keyWindow.addSubview(jumpButton)
         jumpButton.trailingAnchor.constraint(equalTo: keyWindow.trailingAnchor).isActive = true
-        jumpButtonConstraint = jumpButton.bottomAnchor.constraint(equalTo: keyWindow.bottomAnchor, constant: -(messageInputView.bottomInset + 50))
+        jumpButtonConstraint = jumpButton.bottomAnchor.constraint(equalTo: keyWindow.bottomAnchor, constant: -(collectionView.contentInset.bottom + 50))
         jumpButtonConstraint?.isActive = true
     }
 
@@ -445,7 +451,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
             postLoadingCancellable = nil
         }
         navigationHeaderView.configure(withPost: feedPost)
-        messageInputView.isEnabled = true
+        showInputView = true
         // Setup the diffable data source so it can be used for first fetch of data
         collectionView.dataSource = dataSource
         initCommentsFetchedResultsController()
@@ -477,7 +483,6 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         super.viewWillDisappear(animated)
         saveCommentDraft()
         jumpButton.removeFromSuperview()
-        messageInputView.willDisappear(in: self)
         // TODO @Dini check if post is available first
         MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: feedPostId)
     }
@@ -707,7 +712,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     }
 
     @objc func dismissKeyboard (_ sender: UITapGestureRecognizer) {
-        messageInputView.hideKeyboard()
+        messageInputView.textView.resignFirstResponder()
     }
 
     // MARK: Scrolling and Highlighting
@@ -756,7 +761,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
             updateJumpButtonText()
         }
 
-        jumpButtonConstraint?.constant = -(messageInputView.bottomInset + 50)
+        jumpButtonConstraint?.constant = -(collectionView.contentInset.bottom + 50)
     }
 
     private func updateJumpButtonText() {
@@ -867,7 +872,13 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
 
     // MARK: Input view
 
-    private let messageInputView: CommentInputView = CommentInputView(frame: .zero)
+    private lazy var messageInputView: ContentInputView = {
+        let inputView = ContentInputView(options: .comments)
+        inputView.autoresizingMask = [.flexibleHeight]
+        inputView.placeholderText = Localizations.commentsInputPlaceholder
+        inputView.delegate = self
+        return inputView
+    }()
 
     override var canBecomeFirstResponder: Bool {
         get {
@@ -884,21 +895,24 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         }
     }
 
-    override var inputAccessoryView: CommentInputView? {
-        self.messageInputView.setInputViewWidth(self.view.bounds.size.width)
-        return self.messageInputView
+    private var showInputView = true {
+        didSet { reloadInputViews() }
+    }
+
+    override var inputAccessoryView: ContentInputView? {
+        return showInputView ? self.messageInputView : nil
     }
 
     // MARK: Draft Comments
 
     private func saveCommentDraft() {
-        guard !messageInputView.mentionText.collapsedText.isEmpty else {
+        guard !messageInputView.textView.mentionText.collapsedText.isEmpty else {
             FeedData.deletePostCommentDrafts { existingDraft in
                 existingDraft.postID == feedPostId
             }
             return
         }
-        let draft = CommentDraft(postID: feedPostId, text: messageInputView.mentionText, parentComment: parentCommentID)
+        let draft = CommentDraft(postID: feedPostId, text: messageInputView.textView.mentionText, parentComment: parentCommentID)
         var draftsArray: [CommentDraft] = []
         if let draftsDecoded: [CommentDraft] = try? AppContext.shared.userDefaults.codable(forKey: Self.postCommentDraftKey) {
             draftsArray = draftsDecoded
@@ -923,8 +937,8 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         if let parentComment = draft.parentComment {
             parentCommentID = parentComment
         }
-        messageInputView.mentionText = draft.text
-        messageInputView.updateInputView()
+
+        messageInputView.set(draft: draft.text)
     }
 
     @objc private func dismissAnimated() {
@@ -959,7 +973,7 @@ extension FlatCommentsViewController: MessageCommentHeaderViewDelegate {
 
 extension FlatCommentsViewController: MessageViewCommentDelegate {
     func messageView(_ view: MediaCarouselView, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int) {
-        messageInputView.hideKeyboard()
+        messageInputView.textView.resignFirstResponder()
         var canSavePost = false
         if let post = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
             canSavePost = post.canSaveMedia
@@ -971,12 +985,18 @@ extension FlatCommentsViewController: MessageViewCommentDelegate {
     }
 
     func messageView(_ messageViewCell: MessageCellViewBase, replyTo feedPostCommentID: FeedPostCommentID) {
-        guard let feedPostComment = messageViewCell.feedPostComment else { return }
-        guard let comment = fetchedResultsController?.fetchedObjects?.first(where: {$0.id == feedPostComment.id }) else { return }
-        guard !comment.isRetracted else { return }
-        parentCommentID = comment.id
+        guard
+            let feedPostComment = messageViewCell.feedPostComment,
+            let comment = fetchedResultsController?.fetchedObjects?.first(where: {$0.id == feedPostComment.id }),
+            !comment.isRetracted
+        else {
+            return
+        }
+
         let userColorAssignment = self.getUserColorAssignment(userId: comment.userId)
-        messageInputView.showQuotedReplyPanel(comment: comment, userColorAssignment: userColorAssignment)
+        let panel = QuotedCommentPanel(comment: comment, color: userColorAssignment)
+        parentCommentID = comment.id
+        messageInputView.display(context: panel)
     }
 
     func messageView(_ messageViewCell: MessageCellViewBase, didTapUserId userId: UserID) {
@@ -1038,29 +1058,19 @@ extension FlatCommentsViewController: TextLabelDelegate {
     }
 }
 
-extension FlatCommentsViewController: CommentInputViewDelegate {
+extension FlatCommentsViewController: ContentInputDelegate {
 
-    func commentInputView(_ inputView: CommentInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve) {
-        let animationOptions: UIView.AnimationOptions
-        switch animationCurve {
-        case .linear:
-            animationOptions = .curveLinear
-        case .easeIn:
-            animationOptions = .curveEaseIn
-        case .easeOut:
-            animationOptions = .curveEaseOut
-        case .easeInOut:
-            animationOptions = .curveEaseInOut
-        @unknown default:
-            animationOptions = .curveLinear
+    func inputView(_ inputView: ContentInputView, didChangeHeightTo height: CGFloat) {
+        if let coordinator = transitionCoordinator, coordinator.isInteractive {
+            return
         }
 
-        let bottomInset = inputView.bottomInset
+        let bottomInset = height
         let adjustedBottomInset = bottomInset - collectionView.safeAreaInsets.bottom
         let previousBottomInset = collectionView.contentInset.bottom
 
         if initiallyScrolledCommentID == nil {
-            UIView.animate(withDuration: animationDuration, delay: 0.0, options: animationOptions) { [collectionView] in
+            UIView.animate(withDuration: 0.4, delay: 0.0, options: []) { [collectionView] in
                 collectionView.contentInset.bottom = adjustedBottomInset
                 collectionView.verticalScrollIndicatorInsets.bottom = adjustedBottomInset
 
@@ -1078,48 +1088,87 @@ extension FlatCommentsViewController: CommentInputViewDelegate {
         }
     }
 
-    func commentInputView(_ inputView: CommentInputView, wantsToSend text: MentionText, andMedia media: PendingMedia?, linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?) {
-        postComment(text: text, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
+    func inputView(_ inputView: ContentInputView, didPost content: ContentInputView.InputContent) {
+        postComment(text: content.mentionText,
+                    media: content.media.first,
+         linkPreviewData: content.linkPreview?.data,
+        linkPreviewMedia: content.linkPreview?.media)
     }
 
-    func commentInputView(_ inputView: CommentInputView, possibleMentionsForInput input: String) -> [MentionableUser] {
+    func inputView(_ inputView: ContentInputView, possibleMentionsFor input: String) -> [MentionableUser] {
         return mentionableUsers.filter { Mentions.isPotentialMatch(fullName: $0.fullName, input: input) }
     }
 
-    func commentInputViewPickMedia(_ inputView: CommentInputView) {
-        presentMediaPicker()
+    func inputViewDidSelectCamera(_ inputView: ContentInputView) {
+        presentCameraViewController()
     }
 
-    func commentInputViewResetInputMedia(_ inputView: CommentInputView) {
-        messageInputView.removeMediaPanel()
+    func inputViewDidSelectContentOptions(_ inputView: ContentInputView) {
+        let action = ActionSheetViewController(title: "", message: "")
+        let cameraImage = UIImage(systemName: "camera.fill")?.withRenderingMode(.alwaysOriginal)
+                                                             .withTintColor(.primaryBlue)
+        let pickerImage = UIImage(systemName: "photo.fill.on.rectangle.fill")?.withRenderingMode(.alwaysOriginal)
+                                                                              .withTintColor(.primaryBlue)
+
+        action.addAction(ActionSheetAction(title: Localizations.fabAccessibilityCamera, image: cameraImage, style: .default) { _ in
+            self.presentCameraViewController()
+        })
+
+        action.addAction(ActionSheetAction(title: Localizations.photoAndVideoLibrary, image: pickerImage, style: .default) { _ in
+            self.presentMediaPicker()
+        })
+
+        action.addAction(ActionSheetAction(title: Localizations.buttonCancel, style: .cancel))
+        present(action, animated: true)
     }
 
-    func commentInputViewDidTapSelectedMedia(_ inputView: CommentInputView, mediaToEdit: PendingMedia) {
-        let editController = MediaEditViewController(mediaToEdit: [mediaToEdit], selected: nil) { [weak self] controller, media, selected, cancel in
-            guard let self = self else { return }
-            if media[selected].ready.value {
-                controller.dismiss(animated: true)
-                self.messageInputView.showMediaPanel(with: media[selected])
-            } else {
-                self.cancellableSet.insert(
-                    media[selected].ready.sink { [weak self] ready in
-                        guard let self = self else { return }
-                        guard ready else { return }
-                        controller.dismiss(animated: true)
-                        self.messageInputView.showMediaPanel(with: media[selected])
-                    }
-                )
-            }
+    private func presentCameraViewController() {
+        let tookImage: ((UIImage) -> Void) = { [weak self] image in
+            self?.dismiss(animated: true)
+            self?.didTake(photo: image)
+        }
+        let tookVideo: ((URL) -> Void) = { [weak self] url in
+            self?.dismiss(animated: true)
+            self?.didTake(video: url)
+        }
+
+        let vc = CameraViewController(configuration: .init(showCancelButton: true, format: .normal),
+                                          didFinish: { [weak self] in self?.dismiss(animated: true)},
+                                       didPickImage: tookImage,
+                                       didPickVideo: tookVideo)
+        present(UINavigationController(rootViewController: vc), animated: true)
+    }
+
+    private func didTake(photo: UIImage) {
+        let media = PendingMedia(type: .image)
+        media.image = photo
+
+        addMediaWhenAvailable(media)
+    }
+
+    private func didTake(video url: URL) {
+        let media = PendingMedia(type: .video)
+        media.originalVideoURL = url
+        media.fileURL = url
+
+        addMediaWhenAvailable(media)
+    }
+
+    func inputView(_ inputView: ContentInputView, didTap selectedMedia: PendingMedia) {
+        let editController = MediaEditViewController(mediaToEdit: [selectedMedia], selected: nil) { [weak self] controller, media, selected, cancel in
+            self?.dismiss(animated: true)
+            self?.addMediaWhenAvailable(media[selected])
         }.withNavigationController()
         present(editController, animated: true)
     }
 
-    func commentInputViewResetReplyContext(_ inputView: CommentInputView) {
-        parentCommentID = nil
-        messageInputView.removeQuotedReplyPanel()
+    func inputView(_ inputView: ContentInputView, didClose panel: InputContextPanel) {
+        if panel.isKind(of: QuotedCommentPanel.self) {
+            parentCommentID = nil
+        }
     }
 
-    func commentInputViewMicrophoneAccessDenied(_ inputView: CommentInputView) {
+    func inputViewMicrophoneAccessDenied(_ inputView: ContentInputView) {
         let alert = UIAlertController(title: Localizations.micAccessDeniedTitle, message: Localizations.micAccessDeniedMessage, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         alert.addAction(UIAlertAction(title: Localizations.settingsAppName, style: .default, handler: { _ in
@@ -1129,13 +1178,13 @@ extension FlatCommentsViewController: CommentInputViewDelegate {
         present(alert, animated: true)
     }
 
-    func commentInputViewCouldNotRecordDuringCall(_ inputView: CommentInputView) {
+    func inputViewMicrophoneAccessDeniedDuringCall(_ inputView: ContentInputView) {
         let alert = UIAlertController(title: Localizations.failedActionDuringCallTitle, message: Localizations.failedActionDuringCallNoticeText, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: { _ in }))
         present(alert, animated: true)
     }
 
-    func commentInputView(_ inputView: CommentInputView, didInterruptRecorder recorder: AudioRecorder) {
+    func inputView(_ inputView: ContentInputView, didInterrupt recorder: AudioRecorder) {
         guard let url = recorder.saveVoiceComment(for: feedPostId) else { return }
         DispatchQueue.main.async {
             self.messageInputView.show(voiceNote: url)
@@ -1146,27 +1195,17 @@ extension FlatCommentsViewController: CommentInputViewDelegate {
         guard  mediaPickerController == nil else {
             return
         }
-        mediaPickerController = MediaPickerViewController(config: .comments) {[weak self] controller, _, media, cancel in
+        mediaPickerController = MediaPickerViewController(config: .comments) { [weak self] controller, _, media, cancel in
             guard let self = self else { return }
             guard let media = media.first, !cancel else {
                 DDLogInfo("FlatCommentsViewController/media comment cancelled")
                 self.dismissMediaPicker(animated: true)
                 return
             }
-            if media.ready.value {
-                self.messageInputView.showMediaPanel(with: media)
-            } else {
-                self.cancellableSet.insert(
-                    media.ready.sink { [weak self] ready in
-                        guard let self = self else { return }
-                        guard ready else { return }
-                        self.messageInputView.showMediaPanel(with: media)
-                    }
-                )
-            }
 
+            self.addMediaWhenAvailable(media)
             self.dismissMediaPicker(animated: true)
-            self.messageInputView.showKeyboard(from: self)
+            self.messageInputView.textView.becomeFirstResponder()
         }
         mediaPickerController?.title = Localizations.newComment
 
@@ -1186,13 +1225,25 @@ extension FlatCommentsViewController: CommentInputViewDelegate {
             sendMedia.append(media)
         }
         MainAppContext.shared.feedData.post(comment: text,
-                                            media: sendMedia,
-                                            linkPreviewData: linkPreviewData,
-                                            linkPreviewMedia: linkPreviewMedia,
-                                            to: feedPostId,
-                                            replyingTo: parentCommentID)
+                                              media: sendMedia,
+                                    linkPreviewData: linkPreviewData,
+                                   linkPreviewMedia: linkPreviewMedia,
+                                                 to: feedPostId,
+                                         replyingTo: parentCommentID)
         scrollToLastCommentOnNextUpdate = true
         parentCommentID = nil
-        messageInputView.clear()
+    }
+
+    private func addMediaWhenAvailable(_ media: PendingMedia) {
+        guard !media.ready.value else {
+            messageInputView.add(media: media)
+            return
+        }
+
+        media.ready.sink { [weak self] ready in
+            if ready {
+                self?.messageInputView.add(media: media)
+            }
+        }.store(in: &cancellableSet)
     }
 }

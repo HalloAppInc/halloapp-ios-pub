@@ -16,7 +16,7 @@ private enum MentionPickerViewSection: CaseIterable {
 fileprivate struct MentionPickerConstants {
     static let cellReuse = "MentionPickerItemReuse"
     static let avatarDiameter: CGFloat = 29
-    static let rowHeight: CGFloat = 70
+    static let rowHeight: CGFloat = 55
 }
 
 final class HorizontalMentionPickerView: UIView {
@@ -35,12 +35,7 @@ final class HorizontalMentionPickerView: UIView {
               height: items.isEmpty ? 0 : MentionPickerConstants.rowHeight)
     }
     
-    var items = [MentionableUser]() {
-        didSet {
-            updateItems(items, animated: true)
-        }
-    }
-    
+    private var items: [MentionableUser] = []
     var didSelectItem: ((MentionableUser) -> Void)? = nil
     
     // MARK: Private
@@ -58,7 +53,7 @@ final class HorizontalMentionPickerView: UIView {
         let section = NSCollectionLayoutSection(group: group)
         section.orthogonalScrollingBehavior = .continuous
         section.interGroupSpacing = 9
-        section.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 10, bottom: 15, trailing: 10)
+        section.contentInsets = NSDirectionalEdgeInsets(top: 9, leading: 10, bottom: 0, trailing: 10)
         
         let layout = UICollectionViewCompositionalLayout(section: section)
         layout.configuration.scrollDirection = .horizontal
@@ -68,18 +63,19 @@ final class HorizontalMentionPickerView: UIView {
     
     private lazy var dataSource = makeDataSource()
     
-    private func updateItems(_ mentionItems: [MentionableUser], animated: Bool = true) {
+    func updateItems(_ mentionItems: [MentionableUser], animated: Bool = true) {
         var snapshot = NSDiffableDataSourceSnapshot<MentionPickerViewSection, MentionableUser>()
 
         snapshot.appendSections(MentionPickerViewSection.allCases)
         snapshot.appendItems(mentionItems, toSection: .contacts)
         
-        dataSource.apply(snapshot, animatingDifferences: true)
+        dataSource.apply(snapshot, animatingDifferences: animated)
+        items = mentionItems
         invalidateIntrinsicContentSize()
     }
     
     private func setupView() {
-        collectionView.register(MentionPickerItemCell.self, forCellWithReuseIdentifier: MentionPickerConstants.cellReuse)
+        collectionView.register(HorizontalMentionPickerItemCell.self, forCellWithReuseIdentifier: HorizontalMentionPickerItemCell.reuseIdentifier)
         collectionView.dataSource = dataSource
         collectionView.delegate = self
         collectionView.alwaysBounceVertical = false
@@ -96,7 +92,7 @@ final class HorizontalMentionPickerView: UIView {
     private func makeDataSource() -> UICollectionViewDiffableDataSource<MentionPickerViewSection, MentionableUser> {
         return UICollectionViewDiffableDataSource(
             collectionView: collectionView, cellProvider: { [weak self] collectionView, indexPath, item in
-                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MentionPickerConstants.cellReuse, for: indexPath)
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: HorizontalMentionPickerItemCell.reuseIdentifier, for: indexPath)
                 if let itemCell = cell as? HorizontalMentionPickerItemCell, let avatarStore = self?.avatarStore {
                     itemCell.configure(item: item, avatarStore: avatarStore)
                 }
@@ -121,6 +117,8 @@ extension HorizontalMentionPickerView: UICollectionViewDelegate, UICollectionVie
 // MARK: - mention cell
 
 final class HorizontalMentionPickerItemCell: UICollectionViewCell {
+    static let reuseIdentifier = "h.mention.picker.cell"
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupView()
