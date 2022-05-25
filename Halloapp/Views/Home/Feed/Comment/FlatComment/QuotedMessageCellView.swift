@@ -15,6 +15,45 @@ fileprivate struct Constants {
     static let QuotedMediaSize: CGFloat = 45
 }
 
+/// For displaying reply context for flat comments.
+class QuotedCommentPanel: UIView, InputContextPanel {
+    private(set) lazy var closeButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(UIImage(named: "NavbarClose")?.withRenderingMode(.alwaysTemplate), for: .normal)
+        button.tintColor = .placeholderText
+        return button
+    }()
+
+    private lazy var quotedView: QuotedMessageCellView = {
+        let view = QuotedMessageCellView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
+    init(comment: FeedPostComment, color: UIColor) {
+        super.init(frame: .zero)
+        preservesSuperviewLayoutMargins = true
+
+        addSubview(quotedView)
+        addSubview(closeButton)
+        NSLayoutConstraint.activate([
+            quotedView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
+            quotedView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
+            quotedView.topAnchor.constraint(equalTo: topAnchor),
+            quotedView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            closeButton.trailingAnchor.constraint(equalTo: quotedView.trailingAnchor, constant: -8),
+            closeButton.topAnchor.constraint(equalTo: quotedView.topAnchor, constant: 8),
+        ])
+
+        quotedView.configureWith(comment: comment, userColorAssignment: color)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("QuotedCommentPanel coder init not implemented...")
+    }
+}
+
 class QuotedMessageCellView: UIView {
 
     private var imageLoadingCancellable: AnyCancellable?

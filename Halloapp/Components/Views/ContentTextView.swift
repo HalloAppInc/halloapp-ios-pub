@@ -11,9 +11,11 @@ import LinkPresentation
 import CoreCommon
 import Core
 import Combine
+import CocoaLumberjackSwift
 
 protocol ContentTextViewDelegate: UITextViewDelegate {
     func textView(_ textView: ContentTextView, didPaste image: UIImage)
+    func textViewShouldDetectLink(_ textView: ContentTextView) -> Bool
 }
 
 class ContentTextView: UITextView {
@@ -23,7 +25,7 @@ class ContentTextView: UITextView {
     }
     
     private(set) var maxHeight: CGFloat = 144
-    
+    private var linkFetchTask: Task<Void, Never>?
     private var linkPreviewTimer = Timer()
     private(set) var linkPreviewURL: URL?
     private var invalidLinkPreviewURL: URL?
@@ -86,7 +88,10 @@ class ContentTextView: UITextView {
     }
     
     func checkLinkPreview() {
-        guard text != "" else {
+        guard
+            (delegate as? ContentTextViewDelegate)?.textViewShouldDetectLink(self) ?? true,
+            text != ""
+        else {
             resetLinkDetection()
             return linkPreviewMetadata.send(.fetched(nil))
         }
@@ -144,31 +149,45 @@ class ContentTextView: UITextView {
     }
 
     private func fetchURLPreview() {
-        guard let link = linkPreviewURL else { return }
-        
-        let metadataProvider = LPMetadataProvider()
-        metadataProvider.timeout = 10
+        guard let link = linkPreviewURL else {
+            return
+        }
 
-        LinkPreviewMetadataProvider.startFetchingMetadata(for: link) { [weak self] (metadata, preview ,error) in
-            guard let data = metadata, error == nil else {
-                // Error fetching link preview; remove link preview loading state
-                self?.invalidLinkPreviewURL = link
-                DispatchQueue.main.async {
-                    self?.resetLinkDetection()
-                }
-              return
+        linkFetchTask?.cancel()
+        linkFetchTask = Task {
+            let linkPreview = await linkPreview(for: link)
+            guard
+                let data = linkPreview.data,
+                linkPreview.error == nil
+            else {
+                DDLogError("ContentTextView/fetchURLPreview/could not fetch \(link.absoluteString) error: \(String(describing: linkPreview.error))")
+                invalidLinkPreviewURL = link
+                resetLinkDetection()
+                return
             }
-            
-            DispatchQueue.main.async {
-                self?.linkPreviewData = data
-                self?.linkPreviewMetadata.send(.fetched((preview, data)))
+
+            linkPreviewData = data
+            linkPreviewURL = data.url
+            linkPreviewMetadata.send(.fetched((linkPreview.image, data)))
+        }
+
+        linkPreviewMetadata.send(.fetching)
+    }
+
+    private func linkPreview(for link: URL) async -> (data: LinkPreviewData?, image: UIImage?, error: Error?) {
+        await withCheckedContinuation { continuation in
+            LinkPreviewMetadataProvider.startFetchingMetadata(for: link) { (data, preview, error) in
+                if Task.isCancelled {
+                    continuation.resume(returning: (nil, nil, nil))
+                } else {
+                    continuation.resume(returning: (data, preview, error))
+                }
             }
         }
-        
-        linkPreviewMetadata.send(.fetching)
     }
     
     func resetLinkDetection() {
+        linkFetchTask?.cancel()
         linkPreviewTimer.invalidate()
         linkPreviewURL = nil
         invalidLinkPreviewURL = nil

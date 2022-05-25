@@ -267,6 +267,7 @@
 		A111BDFC27C96D9100E5DB4E /* UserMenuHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A111BDFB27C96D9100E5DB4E /* UserMenuHandler.swift */; };
 		A17DCD7027C0885F00E00073 /* ExpandableTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17DCD6F27C0885F00E00073 /* ExpandableTextView.swift */; };
 		A1AE40CB282DAB3F00C3EF3A /* QuotedMomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AE40CA282DAB3F00C3EF3A /* QuotedMomentView.swift */; };
+		A1AE40CF283DA7DB00C3EF3A /* QuotedMediaPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AE40CE283DA7DB00C3EF3A /* QuotedMediaPanel.swift */; };
 		A1AFE7742819F485008BBC80 /* MomentCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AFE7732819F485008BBC80 /* MomentCollectionViewCell.swift */; };
 		A1AFE776281FAA6B008BBC80 /* MomentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AFE775281FAA6B008BBC80 /* MomentViewController.swift */; };
 		A1AFE7782821E135008BBC80 /* MomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AFE7772821E135008BBC80 /* MomentView.swift */; };
@@ -358,7 +359,6 @@
 		EABBF72B24E72C6200FE1F1F /* CreateGroupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABBF72A24E72C6200FE1F1F /* CreateGroupViewController.swift */; };
 		EABDC977253424E1005FE00A /* InboundMsgViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABDC976253424E1005FE00A /* InboundMsgViewCell.swift */; };
 		EAC46556251484FE00783821 /* EditGroupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC46555251484FE00783821 /* EditGroupViewController.swift */; };
-		EAC4AF23233E8DAB00739B2B /* ChatMediaDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC4AF22233E8DAB00739B2B /* ChatMediaDownloader.swift */; };
 		EAC6A4452721F57D00E5E12E /* FeedWelcomeCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC6A4442721F57C00E5E12E /* FeedWelcomeCell.swift */; };
 		EAC6A4482723302100E5E12E /* GroupFeedWelcomeCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC6A4472723302100E5E12E /* GroupFeedWelcomeCell.swift */; };
 		EACC34CB24FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EACC34C924FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataClass.swift */; };
@@ -401,11 +401,18 @@
 		F41FAA5227E54F2900FC5090 /* FeedPostMenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41FAA5127E54F2800FC5090 /* FeedPostMenuViewController.swift */; };
 		F42F574827C86D7200988E9D /* FeedInviteCarouselCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */; };
 		F445A73927FFB8270046D382 /* ShareMenuPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F445A73827FFB8270046D382 /* ShareMenuPresenter.swift */; };
+		F45D9F762825DEFF005BAD9D /* GroupGridViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45D9F752825DEFF005BAD9D /* GroupGridViewController.swift */; };
+		F45D9F792825DF62005BAD9D /* GroupGridCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45D9F782825DF62005BAD9D /* GroupGridCollectionViewCell.swift */; };
+		F45D9F7D282C3ACF005BAD9D /* GroupGridDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45D9F7C282C3ACF005BAD9D /* GroupGridDataSource.swift */; };
+		F45D9F7F282C4E4B005BAD9D /* GroupGridHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45D9F7E282C4E4B005BAD9D /* GroupGridHeader.swift */; };
 		F470251027ED31A6008CD37F /* URLRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F470250F27ED31A6008CD37F /* URLRouter.swift */; };
 		F494BEE72745E7DB00982E49 /* ActionSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */; };
+		F49C8E5D282F07C700E881E3 /* GroupGridNewPostToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49C8E5C282F07C700E881E3 /* GroupGridNewPostToast.swift */; };
+		F49C8E612835906600E881E3 /* GroupGridSeparator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49C8E602835906600E881E3 /* GroupGridSeparator.swift */; };
 		F49D2E6427EE6A8900195566 /* URLRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49D2E6027EE6A5300195566 /* URLRouterTests.swift */; };
 		F49FF9F527F53C8B00EC86B2 /* FeedPostDisplayable.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49FF9F227F53C8A00EC86B2 /* FeedPostDisplayable.swift */; };
 		F4B91DF8278FCEEB00DF70C1 /* CADisplayLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B91DF7278FCEEB00DF70C1 /* CADisplayLink.swift */; };
+		F4C29B142838704C00A4FE08 /* UICollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4C29B132838704C00A4FE08 /* UICollectionView.swift */; };
 		F4D88F5127D6D8A300D706DA /* InviteContactViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D88F5027D6D8A300D706DA /* InviteContactViewController.swift */; };
 		F4D88F6B27D9873F00D706DA /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D88F6A27D9873E00D706DA /* Toast.swift */; };
 		F4F157DA276AA39F002FDB9E /* DeleteAccountPhoneNumberTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F157D9276AA39E002FDB9E /* DeleteAccountPhoneNumberTextField.swift */; };
@@ -999,6 +1006,7 @@
 		A111BDFB27C96D9100E5DB4E /* UserMenuHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserMenuHandler.swift; path = Halloapp/Views/Home/UserMenuHandler.swift; sourceTree = SOURCE_ROOT; };
 		A17DCD6F27C0885F00E00073 /* ExpandableTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpandableTextView.swift; sourceTree = "<group>"; };
 		A1AE40CA282DAB3F00C3EF3A /* QuotedMomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotedMomentView.swift; sourceTree = "<group>"; };
+		A1AE40CE283DA7DB00C3EF3A /* QuotedMediaPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotedMediaPanel.swift; sourceTree = "<group>"; };
 		A1AFE7732819F485008BBC80 /* MomentCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentCollectionViewCell.swift; sourceTree = "<group>"; };
 		A1AFE775281FAA6B008BBC80 /* MomentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentViewController.swift; sourceTree = "<group>"; };
 		A1AFE7772821E135008BBC80 /* MomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentView.swift; sourceTree = "<group>"; };
@@ -1086,7 +1094,6 @@
 		EABBF72A24E72C6200FE1F1F /* CreateGroupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateGroupViewController.swift; sourceTree = "<group>"; };
 		EABDC976253424E1005FE00A /* InboundMsgViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundMsgViewCell.swift; sourceTree = "<group>"; };
 		EAC46555251484FE00783821 /* EditGroupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditGroupViewController.swift; sourceTree = "<group>"; };
-		EAC4AF22233E8DAB00739B2B /* ChatMediaDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMediaDownloader.swift; sourceTree = "<group>"; };
 		EAC6A4442721F57C00E5E12E /* FeedWelcomeCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedWelcomeCell.swift; sourceTree = "<group>"; };
 		EAC6A4472723302100E5E12E /* GroupFeedWelcomeCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupFeedWelcomeCell.swift; sourceTree = "<group>"; };
 		EACC34C924FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroupMessageInfo+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -1127,11 +1134,18 @@
 		F41FAA5127E54F2800FC5090 /* FeedPostMenuViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostMenuViewController.swift; sourceTree = "<group>"; };
 		F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedInviteCarouselCell.swift; sourceTree = "<group>"; };
 		F445A73827FFB8270046D382 /* ShareMenuPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareMenuPresenter.swift; sourceTree = "<group>"; };
+		F45D9F752825DEFF005BAD9D /* GroupGridViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridViewController.swift; sourceTree = "<group>"; };
+		F45D9F782825DF62005BAD9D /* GroupGridCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridCollectionViewCell.swift; sourceTree = "<group>"; };
+		F45D9F7C282C3ACF005BAD9D /* GroupGridDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridDataSource.swift; sourceTree = "<group>"; };
+		F45D9F7E282C4E4B005BAD9D /* GroupGridHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridHeader.swift; sourceTree = "<group>"; };
 		F470250F27ED31A6008CD37F /* URLRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLRouter.swift; sourceTree = "<group>"; };
 		F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionSheetViewController.swift; sourceTree = "<group>"; };
+		F49C8E5C282F07C700E881E3 /* GroupGridNewPostToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridNewPostToast.swift; sourceTree = "<group>"; };
+		F49C8E602835906600E881E3 /* GroupGridSeparator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridSeparator.swift; sourceTree = "<group>"; };
 		F49D2E6027EE6A5300195566 /* URLRouterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLRouterTests.swift; sourceTree = "<group>"; };
 		F49FF9F227F53C8A00EC86B2 /* FeedPostDisplayable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedPostDisplayable.swift; sourceTree = "<group>"; };
 		F4B91DF7278FCEEB00DF70C1 /* CADisplayLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CADisplayLink.swift; sourceTree = "<group>"; };
+		F4C29B132838704C00A4FE08 /* UICollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UICollectionView.swift; sourceTree = "<group>"; };
 		F4D88F5027D6D8A300D706DA /* InviteContactViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteContactViewController.swift; sourceTree = "<group>"; };
 		F4D88F6A27D9873E00D706DA /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		F4F157D9276AA39E002FDB9E /* DeleteAccountPhoneNumberTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountPhoneNumberTextField.swift; sourceTree = "<group>"; };
@@ -1315,6 +1329,7 @@
 				3243C42A27D7D03300B994F4 /* MessageCellViewMedia.swift */,
 				328B640F2756D53900899525 /* FlatCommentsViewController.swift */,
 				324455E0275994D50031CD60 /* MessageViewCell.swift */,
+				A1AE40CE283DA7DB00C3EF3A /* QuotedMediaPanel.swift */,
 				32ECB6E8277515DD004DABBA /* QuotedMessageCellView.swift */,
 				32ECB6DA27725E2C004DABBA /* MessageCommentHeaderView.swift */,
 				32C90671278CC9C500E292EE /* MessageTimeHeaderView.swift */,
@@ -1799,6 +1814,7 @@
 			isa = PBXGroup;
 			children = (
 				EA039C6C26C6E8BB002CC4CF /* Creation */,
+				F45D9F772825DF46005BAD9D /* Grid */,
 				EA039C6A26C6E875002CC4CF /* Info */,
 				EAA0798525AEAC9200B384AB /* GroupsListViewController.swift */,
 				EA1CEF5D2617964C00BC0C79 /* GroupInvitePreviewViewController.swift */,
@@ -2105,6 +2121,7 @@
 				76407DF7245CA3F00031F96A /* UIViewController.swift */,
 				EABB650226D989B900367F44 /* UISearchBar.swift */,
 				F4B91DF7278FCEEB00DF70C1 /* CADisplayLink.swift */,
+				F4C29B132838704C00A4FE08 /* UICollectionView.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -2113,7 +2130,6 @@
 			isa = PBXGroup;
 			children = (
 				5B493BCB27FF316400FDEA0D /* ChunkedMediaResourceLoaderDelegate.swift */,
-				EAC4AF22233E8DAB00739B2B /* ChatMediaDownloader.swift */,
 				2446D67D24CB558F005BAD3C /* ImageServer.swift */,
 				76C64E0C24E5AD85007C0F6F /* MediaUploader.swift */,
 			);
@@ -2223,6 +2239,19 @@
 				EAF3A1E62334192000805FF9 /* Info.plist */,
 			);
 			path = HalloappUITests;
+			sourceTree = "<group>";
+		};
+		F45D9F772825DF46005BAD9D /* Grid */ = {
+			isa = PBXGroup;
+			children = (
+				F45D9F752825DEFF005BAD9D /* GroupGridViewController.swift */,
+				F45D9F782825DF62005BAD9D /* GroupGridCollectionViewCell.swift */,
+				F45D9F7C282C3ACF005BAD9D /* GroupGridDataSource.swift */,
+				F45D9F7E282C4E4B005BAD9D /* GroupGridHeader.swift */,
+				F49C8E5C282F07C700E881E3 /* GroupGridNewPostToast.swift */,
+				F49C8E602835906600E881E3 /* GroupGridSeparator.swift */,
+			);
+			path = Grid;
 			sourceTree = "<group>";
 		};
 		F470250C27ED318A008CD37F /* Routing */ = {
@@ -2788,8 +2817,10 @@
 				F41FAA4227E52B7E00FC5090 /* BottomSheetViewController.swift in Sources */,
 				761EE21E24B5135400B30632 /* MFMessageComposeView.swift in Sources */,
 				323F99ED2808D0B100C8AB69 /* FavoritesInformationViewController.swift in Sources */,
+				F49C8E612835906600E881E3 /* GroupGridSeparator.swift in Sources */,
 				F850677A26A7FDDF00A120EC /* AudioView.swift in Sources */,
 				EAA424FB24ECF1480025CBBE /* ChatGroupMember+CoreDataProperties.swift in Sources */,
+				F45D9F7F282C4E4B005BAD9D /* GroupGridHeader.swift in Sources */,
 				F8E6DCDF271EB06F005EECC5 /* TimeInterval.swift in Sources */,
 				323E88DB26CC430600202655 /* Feed3ToFeed4.xcmappingmodel in Sources */,
 				76271384252D24AD00389FBC /* FeedItemContentView.swift in Sources */,
@@ -2797,6 +2828,7 @@
 				EAA424FD24ECF1480025CBBE /* ChatGroupMessage+CoreDataProperties.swift in Sources */,
 				A1FE830727E2913500024641 /* ContentTextView.swift in Sources */,
 				764F774E246224C30063645A /* ContactTableViewCell.swift in Sources */,
+				F45D9F762825DEFF005BAD9D /* GroupGridViewController.swift in Sources */,
 				F8DA6F38252370BE007833A7 /* MediaExplorerController.swift in Sources */,
 				EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */,
 				327AB83A272C8356001C0E00 /* ChatLinkPreview+CoreDataClass.swift in Sources */,
@@ -2804,6 +2836,7 @@
 				6829F78024CFA3DB00207F6B /* FeedMention+CoreDataClass.swift in Sources */,
 				76B95CE4242A7A3F007435AC /* CommentInputView.swift in Sources */,
 				F8003DDE24D7C30D00628719 /* MediaPickerViewController.swift in Sources */,
+				A1AE40CF283DA7DB00C3EF3A /* QuotedMediaPanel.swift in Sources */,
 				EA0B991B249C228700B05094 /* DateFormatter.swift in Sources */,
 				EA796B9C2469DDF100BC795E /* ChatQuotedLegacy+CoreDataProperties.swift in Sources */,
 				EAB1FFEF2509D73000256365 /* ChatGroupMessageEvent+CoreDataProperties.swift in Sources */,
@@ -2854,6 +2887,7 @@
 				76538094243D4B33000AD9A1 /* FeedNotification+CoreDataProperties.swift in Sources */,
 				76538097243D4B33000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */,
 				32C83FB7268FA44F00BEB4F5 /* FeedPermissionDeniedController.swift in Sources */,
+				F45D9F792825DF62005BAD9D /* GroupGridCollectionViewCell.swift in Sources */,
 				76A9244B244EC49000794859 /* UIView.swift in Sources */,
 				327AB839272C8356001C0E00 /* ChatLinkPreview+CoreDataProperties copy.swift in Sources */,
 				680528CD264F14B9001F6A57 /* SafetyNumber.swift in Sources */,
@@ -3013,6 +3047,7 @@
 				328B64102756D53900899525 /* FlatCommentsViewController.swift in Sources */,
 				EAD476F42458F03700EF8591 /* ChatThread+CoreDataClass.swift in Sources */,
 				6ABBB20D272DA251007A595D /* CallViewController.swift in Sources */,
+				F4C29B142838704C00A4FE08 /* UICollectionView.swift in Sources */,
 				6AC68EF726399BAE0073CBE9 /* ServerStrings.swift in Sources */,
 				76E00DF624FEC4A800E06252 /* ProfileHeaderViewController.swift in Sources */,
 				EA96D5B626689A0400F85731 /* GroupInviteQRViewController.swift in Sources */,
@@ -3037,7 +3072,6 @@
 				764AB41F24A6C5F300D4E354 /* Color.swift in Sources */,
 				5B64B56224F3FA2E00BCBEA8 /* CameraController.swift in Sources */,
 				5BF5D12324F5295300F272D8 /* CameraViewController.swift in Sources */,
-				EAC4AF23233E8DAB00739B2B /* ChatMediaDownloader.swift in Sources */,
 				7633307F254A331D00A1ED68 /* HelpViewController.swift in Sources */,
 				6ABBB208272D9657007A595D /* WebRTCClient.swift in Sources */,
 				764AB42124A7188600D4E354 /* FeedPrivacyView.swift in Sources */,
@@ -3047,6 +3081,7 @@
 				6832F4FF24FEE9A500A9C202 /* ProtoRequests.swift in Sources */,
 				76649227245119F2009BC368 /* FeedActivityObserver.swift in Sources */,
 				EA454B64234E769F002B960D /* SettingsViewController.swift in Sources */,
+				F45D9F7D282C3ACF005BAD9D /* GroupGridDataSource.swift in Sources */,
 				EA9B750F25A9003B00389A8E /* MsgViewCell.swift in Sources */,
 				681E0DAA24C8E0190073A03E /* NewPostViewController.swift in Sources */,
 				EA35857A2450BE3300E6E8AB /* ChatInputView.swift in Sources */,
@@ -3057,6 +3092,7 @@
 				32C90672278CC9C500E292EE /* MessageTimeHeaderView.swift in Sources */,
 				68629294265C660D00C54367 /* FeedPermissionAlert.swift in Sources */,
 				68CCB16726964851007015FA /* InitializingViewController.swift in Sources */,
+				F49C8E5D282F07C700E881E3 /* GroupGridNewPostToast.swift in Sources */,
 				F4F157DC276AA5B7002FDB9E /* DeleteAccountTextView.swift in Sources */,
 				EAA4C0A12739F505002F1628 /* AddGroupMembersWelcomeView.swift in Sources */,
 				EA039C6326C49BC4002CC4CF /* EditGroupDescViewController.swift in Sources */,

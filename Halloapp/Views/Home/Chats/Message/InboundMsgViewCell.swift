@@ -742,7 +742,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         switch media.type {
         case .video:
             guard let image = VideoUtils.videoPreviewImage(url: url) else { return }
-            mediaImageView.updateMedia(SliderMedia(image: image, type: .image, order: Int(media.order)))
+            mediaImageView.updateMedia(SliderMedia(image: image, type: .video, order: Int(media.order)))
             break
         case .image:
             guard let image = UIImage(contentsOfFile: url.path) else { return }

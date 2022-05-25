@@ -781,10 +781,9 @@ final class FeedItemFooterView: UIView {
     }
 
     lazy var commentButton: ButtonWithBadge = {
-        let stringComment = NSLocalizedString("feedpost.button.comment", value: "Comment", comment: "Button under someone's post. Verb.")
         let button = ButtonWithBadge(type: .system)
         setupButton(button)
-        button.setTitle(stringComment, for: .normal)
+        button.setTitle(Localizations.feedComment, for: .normal)
         button.setImage(UIImage(named: "FeedPostComment"), for: .normal)
 
         if effectiveUserInterfaceLayoutDirection == .leftToRight {
@@ -1212,5 +1211,8 @@ extension Localizations {
     static func feedPostArchivedTimestamp(time: String) -> String {
         let formatString = NSLocalizedString("feed.post.archived.timestamp", value: "Archived %@", comment: "Archived date timestamp")
         return String(format: formatString, time)
+    }
+    static var feedComment: String {
+        NSLocalizedString("feedpost.button.comment", value: "Comment", comment: "Button under someone's post. Verb.")
     }
 }

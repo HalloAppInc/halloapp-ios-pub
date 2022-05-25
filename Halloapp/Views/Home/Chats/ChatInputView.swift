@@ -1120,7 +1120,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
                 text.append(NSAttributedString(string: message))
 
                 if FileManager.default.fileExists(atPath: url.path) {
-                    let duration = ContentInputView.voiceNoteDurationFormatter.string(from: AVURLAsset(url: url).duration.seconds) ?? ""
+                    let duration = ContentInputView.durationFormatter.string(from: AVURLAsset(url: url).duration.seconds) ?? ""
                     text.append(NSAttributedString(string: " (" + duration + ")"))
                 }
 

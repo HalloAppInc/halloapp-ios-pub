@@ -359,4 +359,12 @@ extension UIColor {
     class var feedPostMenuCellBackground: UIColor {
         UIColor(named: "FeedPostMenuCellBackground")!
     }
+
+    class var groupNewPostsToastBackground: UIColor {
+        UIColor(named: "GroupNewPostsToastBackground")!
+    }
+
+    class var groupNewPostsToastShadow: UIColor {
+        UIColor(named: "GroupNewPostsToastShadow")!
+    }
 }
