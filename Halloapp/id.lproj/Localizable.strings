@@ -241,6 +241,12 @@
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Terjadi kesalahan";
 
+/* Text shown on the camera screen when composing a new moment. */
+"camera.moment.subtitle" = "Momen akan hilang setelah 24 jam dan hanya dapat dilihat sekali";
+
+/* Text shown on the camera screen when composing a new moment to unlock someone else's moment. */
+"camera.moment.unlock.subtitle" = "Untuk melihat momen %@, bagikan momen Anda";
+
 /* No comment provided by engineer. */
 "Cancel" = "Batal";
 
@@ -400,8 +406,15 @@
 /* Confirmation prompt for when resending comment that previously failed to send. */
 "comment.resend.confirmation" = "Kirim lagi Komentar?";
 
-/* Text displayed in gray inside of the comment input field when there is no user input. */
+/* Placeholder text for the comment input field when there is no user input.
+   Text displayed in gray inside of the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Tambahkan komentar";
+
+/* Header that appears above all the unread Messages in the comments view when there are more than one unread message */
+"comment.unread.chat.messages.header.plural" = "%@ Pesan yang Belum Dibaca";
+
+/* Header that appears above one single unread Message in the chat view. */
+"comment.unread.chat.messages.header.single" = "%@ Pesan yang Belum Dibaca";
 
 /* Header that appears above all the unread comments in the comments view when there are more than one unread message */
 "comment.unread.messages.header.plural" = "%@ Komentar yang Belum Dibaca";
@@ -1063,6 +1076,9 @@
 /* For indicating that a post has been successfully uploaded and shared. */
 "moment.uploading.success" = "Dibagikan!";
 
+/* Message displayed to say when moments will disappear. */
+"mymoment.disappear.time.label" = "Momen Anda telah dibagikan dengan dengan daftar kontak Anda. Momen akan hilang setelah 24 jam dan hanya dapat dilihat sekali.";
+
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Pesan";
 
@@ -1638,6 +1654,9 @@
 
 /* Camera screen title */
 "title.camera" = "Kamera";
+
+/* Camera screen title for a new moment */
+"title.camera.moment" = "Momen Baru";
 
 /* Title for new message screen where user chooses who to message */
 "title.chat.new.message" = "Pesan Baru";

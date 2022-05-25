@@ -103,6 +103,20 @@
 			<string>Tidak ada anggota</string>
 		</dict>
 	</dict>
+	<key>group.grid.n.posts</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>other</key>
+			<string>%d postingan baru</string>
+		</dict>
+	</dict>
 	<key>media.prepare.failed.n.count</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>

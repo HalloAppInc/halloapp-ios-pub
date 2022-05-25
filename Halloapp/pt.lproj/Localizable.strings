@@ -241,6 +241,12 @@
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Erro de inicialização";
 
+/* Text shown on the camera screen when composing a new moment. */
+"camera.moment.subtitle" = "Momentos desaparecem após 24 horas e só podem ser vistos uma vez";
+
+/* Text shown on the camera screen when composing a new moment to unlock someone else's moment. */
+"camera.moment.unlock.subtitle" = "Para ver o momento de %@, compartilhe o seu próprio";
+
 /* No comment provided by engineer. */
 "Cancel" = "Cancelar";
 
@@ -400,8 +406,15 @@
 /* Confirmation prompt for when resending comment that previously failed to send. */
 "comment.resend.confirmation" = "Reenviar comentário?";
 
-/* Text displayed in gray inside of the comment input field when there is no user input. */
+/* Placeholder text for the comment input field when there is no user input.
+   Text displayed in gray inside of the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Fazer um comentário";
+
+/* Header that appears above all the unread Messages in the comments view when there are more than one unread message */
+"comment.unread.chat.messages.header.plural" = "%@ Mensagens não lidas";
+
+/* Header that appears above one single unread Message in the chat view. */
+"comment.unread.chat.messages.header.single" = "%@ Mensagem não lida";
 
 /* Header that appears above all the unread comments in the comments view when there are more than one unread message */
 "comment.unread.messages.header.plural" = "%@ Comentários não lidos";
@@ -553,6 +566,9 @@
 /* Label for floating compose post menu on Group screen. */
 "fab.post.button" = "Publicar";
 
+/* Indicates that an item has failed to be sent. */
+"failed.to.send" = "Falha ao enviar";
+
 /* Text shown in place of a received post we are not able to decrypt yet. */
 "feed.comment.waiting" = "Aguardando este comentário. Isso pode demorar um pouco.";
 
@@ -564,6 +580,12 @@
 
 /* Text for group feed notification displayed in Activity Center. */
 "feed.group.notification.other.comment.w.text" = "<$autor$> comentou: <$texto$>";
+
+/* Text for home feed notification displayed in Activity Center. */
+"feed.home.notification.other.comment.no.text" = "<$autor$> comentou";
+
+/* Text for home feed notification displayed in Activity Center. */
+"feed.home.notification.other.comment.w.text" = "<$autor$> comentou: <$texto$>";
 
 /* Text shown in indicator when new posts come in while user is scrolled down */
 "feed.new.posts.indicator" = "Novas publicações";
@@ -1054,6 +1076,9 @@
 /* For indicating that a post has been successfully uploaded and shared. */
 "moment.uploading.success" = "Compartilhado!";
 
+/* Message displayed to say when moments will disappear. */
+"mymoment.disappear.time.label" = "Seu Momento foi compartilhado com sua lista de contatos. Os momentos desaparecem após 24 horas e só podem ser visualizados uma vez.";
+
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Enviar mensagem";
 
@@ -1186,6 +1211,9 @@
 /* Text that indicates an open action. */
 "open.title" = "Abrir";
 
+/* button to launch photo and video library */
+"photo.and.video.library" = "Biblioteca de Fotos e Vídeos";
+
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "Por favor, habilite o acesso em Configurações";
 
@@ -1248,6 +1276,9 @@
 
 /* Error banner displayed when there is a failure syncing preivacy settings, displayed on the privacy view */
 "privacy.sync.failure" = "Falha ao sincronizar as configurações de privacidade. Por favor, tente novamente mais tarde.";
+
+/* Placeholder text for the text field for private replies. The argument is the first name of the contact. */
+"private.reply.placeholder" = "Responder a %@";
 
 /* Title for the button allowing to delete current profile photo. */
 "profile.delete.photo" = "Apagar foto";
@@ -1404,6 +1435,12 @@
 
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Por favor selecione pelo menos um contato.";
+
+/* Indicates that an item is in the process of being sent. */
+"sending.title" = "Enviando";
+
+/* Indicates that an item has successfully been sent. */
+"sent.title" = "Enviado";
 
 /* body of the marketing alert sent to users */
 "server.marketing.body" = "Convide seus amigos para desfrutar do HalloApp!";
@@ -1617,6 +1654,9 @@
 
 /* Camera screen title */
 "title.camera" = "Câmara";
+
+/* Camera screen title for a new moment */
+"title.camera.moment" = "Novo momento";
 
 /* Title for new message screen where user chooses who to message */
 "title.chat.new.message" = "Nova mensagem";

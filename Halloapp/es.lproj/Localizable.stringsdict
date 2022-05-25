@@ -116,6 +116,22 @@
 			<string>No hay miembros</string>
 		</dict>
 	</dict>
+	<key>group.grid.n.posts</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d new post</string>
+			<key>other</key>
+			<string>%d new posts</string>
+		</dict>
+	</dict>
 	<key>media.prepare.failed.n.count</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>

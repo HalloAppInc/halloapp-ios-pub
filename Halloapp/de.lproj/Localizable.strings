@@ -406,8 +406,15 @@
 /* Confirmation prompt for when resending comment that previously failed to send. */
 "comment.resend.confirmation" = "Kommentar erneut senden?";
 
-/* Text displayed in gray inside of the comment input field when there is no user input. */
+/* Placeholder text for the comment input field when there is no user input.
+   Text displayed in gray inside of the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Kommentieren";
+
+/* Header that appears above all the unread Messages in the comments view when there are more than one unread message */
+"comment.unread.chat.messages.header.plural" = "%@ ungelesene Nachrichten";
+
+/* Header that appears above one single unread Message in the chat view. */
+"comment.unread.chat.messages.header.single" = "%@ ungelesene Nachricht";
 
 /* Header that appears above all the unread comments in the comments view when there are more than one unread message */
 "comment.unread.messages.header.plural" = "%@ ungelesene Kommentare";
