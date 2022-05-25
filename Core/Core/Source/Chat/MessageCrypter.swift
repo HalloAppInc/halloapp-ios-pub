@@ -21,12 +21,20 @@ public typealias GroupFeedRerequestContentType = Server_GroupFeedRerequest.Conte
 public final class MessageCrypter: KeyStoreDelegate {
     private var cancellableSet: Set<AnyCancellable> = []
 
-    public init(service: CoreService, keyStore: KeyStore) {
+    public init(userData: UserData, service: CoreService, keyStore: KeyStore) {
         self.service = service
         self.keyStore = keyStore
         self.cancellableSet.insert(
             service.didGetNewWhisperMessage.sink { [weak self] whisperMessage in
                 self?.handleIncomingWhisperMessage(whisperMessage)
+            }
+        )
+
+        // If user logs off - clear out all sessions.
+        // We can reload sessions again when user registers.
+        self.cancellableSet.insert(
+            userData.didLogOff.sink { [weak self] in
+                self?.clearAllSessions()
             }
         )
     }
@@ -251,6 +259,14 @@ public final class MessageCrypter: KeyStoreDelegate {
             self.groupSessions.forEach{ (_, session) in
                 session.reloadKeysFromKeyStore()
             }
+        }
+    }
+
+    // Clears all cached sessions.
+    public func clearAllSessions() {
+        queue.async {
+            self.userSessions.removeAll()
+            self.groupSessions.removeAll()
         }
     }
 }
