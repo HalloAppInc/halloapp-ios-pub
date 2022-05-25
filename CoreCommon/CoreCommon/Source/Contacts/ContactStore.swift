@@ -157,12 +157,12 @@ open class ContactStore {
     // MARK: Fetching contacts
 
     public func allRegisteredContactIDs() -> [UserID] {
-        let fetchRequst = NSFetchRequest<NSDictionary>(entityName: "ABContact")
-        fetchRequst.predicate = NSPredicate(format: "userId != nil")
-        fetchRequst.propertiesToFetch = [ "userId" ]
-        fetchRequst.resultType = .dictionaryResultType
+        let fetchRequest = NSFetchRequest<NSDictionary>(entityName: "ABContact")
+        fetchRequest.predicate = NSPredicate(format: "userId != nil")
+        fetchRequest.propertiesToFetch = [ "userId" ]
+        fetchRequest.resultType = .dictionaryResultType
         do {
-            let allContacts = try viewContext.fetch(fetchRequst)
+            let allContacts = try viewContext.fetch(fetchRequest)
             return allContacts.compactMap { $0["userId"] as? UserID }
         }
         catch {

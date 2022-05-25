@@ -86,7 +86,7 @@ struct PersistentHistoryFetcher {
 
     enum Error: Swift.Error {
         // In case that the fetched history transactions couldn't be converted into the expected type.
-        case historyTransactionConvertionFailed
+        case historyTransactionConversionFailed
     }
 
     let context: NSManagedObjectContext
@@ -96,7 +96,7 @@ struct PersistentHistoryFetcher {
         let fetchRequest = createFetchRequest()
 
         guard let historyResult = try context.execute(fetchRequest) as? NSPersistentHistoryResult, let history = historyResult.result as? [NSPersistentHistoryTransaction] else {
-            throw Error.historyTransactionConvertionFailed
+            throw Error.historyTransactionConversionFailed
         }
         return history
     }
