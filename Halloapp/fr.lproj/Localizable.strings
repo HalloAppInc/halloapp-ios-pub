@@ -400,7 +400,8 @@
 /* Confirmation prompt for when resending comment that previously failed to send. */
 "comment.resend.confirmation" = "Renvoyer le commentaire ?";
 
-/* Text displayed in gray inside of the comment input field when there is no user input. */
+/* Placeholder text for the comment input field when there is no user input.
+   Text displayed in gray inside of the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Ajouter un commentaire";
 
 /* Header that appears above all the unread comments in the comments view when there are more than one unread message */
