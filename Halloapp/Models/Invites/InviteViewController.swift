@@ -14,14 +14,12 @@ import MessageUI
 import UIKit
 
 enum InviteSection {
-    case inviteViaLink
     case contactsWithFriendCount
     case contactsWithoutFriendCount
     case contactsOnHallo
 }
 
 let InviteCellReuse = "InviteCellReuse"
-let inviteViaLinkCellReuse = "InviteViaLinkCellReuse"
 
 final class InviteViewController: UIViewController, InviteContactViewController {
 
@@ -43,7 +41,6 @@ final class InviteViewController: UIViewController, InviteContactViewController 
 
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.register(InviteCollectionViewCell.self, forCellWithReuseIdentifier: InviteCellReuse)
-        collectionView.register(InviteViaLinkCell.self, forCellWithReuseIdentifier: inviteViaLinkCellReuse)
 
         inviteManager = manager
 
@@ -80,6 +77,10 @@ final class InviteViewController: UIViewController, InviteContactViewController 
         if dismissAction != nil {
             navigationItem.leftBarButtonItem = .init(image: UIImage(named: "ReplyPanelClose"), style: .plain, target: self, action: #selector(didTapDismiss))
         }
+        
+        let shareIcon = UIImage(systemName: "square.and.arrow.up")?.applyingSymbolConfiguration(.init(weight: .semibold))
+        navigationItem.rightBarButtonItem = .init(image: shareIcon, style: .plain, target: self, action: #selector(didTapShare))
+        
         if searchController != nil {
             navigationItem.searchController = searchController
             navigationItem.hidesSearchBarWhenScrolling = false
@@ -158,22 +159,7 @@ final class InviteViewController: UIViewController, InviteContactViewController 
             guard let self = self else { return UICollectionViewCell() }
             let isFirstCell = indexPath.row == 0
             let isLastCell = indexPath.row == collectionView.numberOfItems(inSection: indexPath.section) - 1
-            if let inviteViaLinkCell = item.base as? InviteViaLinkRow {
-                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: inviteViaLinkCellReuse, for: indexPath)
-                if let inviteViaLinkCell = cell as? InviteViaLinkCell {
-                    inviteViaLinkCell.configure(showDividers: self.showDividers, isFirstCell: isFirstCell, isLastCell: isLastCell, openShareLinkAction: { [weak self] link in
-                        self?.inviteViaLink(link)
-                    })
-                    // todo: cleaner to move this ui config into configure, but couldn't figure how to make it appear properly
-                    if self.showDividers, isLastCell {
-                        inviteViaLinkCell.layer.shadowColor = UIColor.systemGray5.cgColor
-                        inviteViaLinkCell.layer.shadowRadius = 0
-                        inviteViaLinkCell.layer.shadowOpacity = 1
-                        inviteViaLinkCell.layer.shadowOffset = CGSize(width: 0, height: 1)
-                    }
-                }
-                return cell
-            } else if let contact = item.base as? InviteContact {
+            if let contact = item.base as? InviteContact {
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: InviteCellReuse, for: indexPath)
                 if let itemCell = cell as? InviteCollectionViewCell {
                     var actions = [InviteActionType]()
@@ -221,6 +207,11 @@ final class InviteViewController: UIViewController, InviteContactViewController 
     @objc
     private func didTapDismiss() {
         dismissAction?()
+    }
+    
+    @objc
+    private func didTapShare() {
+        inviteViaLink("https://halloapp.com/dl")
     }
 
     @objc
@@ -289,9 +280,8 @@ final class InviteViewController: UIViewController, InviteContactViewController 
         let withFriends = inviteCandidates.filter { ($0.friendCount ?? 0) > 1 }.sorted { $0.friendCount ?? 0 > $1.friendCount ?? 0 }
         let withoutFriends = inviteCandidates.filter { ($0.friendCount ?? 0) <= 1 }
 
-        snapshot.appendSections([.inviteViaLink, .contactsWithFriendCount, .contactsWithoutFriendCount, .contactsOnHallo])
+        snapshot.appendSections([.contactsWithFriendCount, .contactsWithoutFriendCount, .contactsOnHallo])
 
-        snapshot.appendItems([InviteViaLinkRow.invite], toSection: .inviteViaLink)
         snapshot.appendItems(withFriends, toSection: .contactsWithFriendCount)
         snapshot.appendItems(withoutFriends, toSection: .contactsWithoutFriendCount)
         snapshot.appendItems(halloAppUsers, toSection: .contactsOnHallo)
@@ -362,141 +352,6 @@ extension InviteViewController: UISearchBarDelegate {
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
         searchBar.setShowsCancelButton(true, animated: true)
         searchBar.setCancelButtonTitleIfNeeded()
-    }
-}
-
-final class InviteViaLinkCell: UICollectionViewCell {
-
-    public func configure(showDividers: Bool = true, isFirstCell: Bool = false, isLastCell: Bool = false, openShareLinkAction: ((String) -> ())?) {
-        actionCellView.openShareLink = openShareLinkAction
-        actionCellView.configure(showDividers: showDividers, isFirstCell: isFirstCell, isLastCell: isLastCell)
-    }
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupView()
-    }
-
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-
-    private func setupView() {
-        contentView.layoutMargins = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
-
-        contentView.addSubview(actionCellView)
-        actionCellView.translatesAutoresizingMaskIntoConstraints = false
-        actionCellView.constrainMargins(to: contentView)
-    }
-
-    let actionCellView = ActionCellView()
-}
-
-final class ActionCellView: UIView {
-
-    var openShareLink: ((String) -> ())?
-    
-    private var isFirst: Bool = false
-    private var isLast: Bool = false
-
-    func configure(showDividers: Bool, isFirstCell: Bool = false, isLastCell: Bool = false) {
-        isFirst = isFirstCell
-        isLast = isLastCell
-        if !showDividers {
-            backgroundColor = .primaryBg
-        }
-    }
-
-    init() {
-        super.init(frame: .zero)
-        setupView()
-    }
-
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-
-        var corner = UIRectCorner()
-        if isFirst { corner.insert([.topLeft, .topRight]) }
-        if isLast { corner.insert([.bottomLeft, .bottomRight]) }
-        roundCorners(corner, radius: 13)
-    }
-
-    private func setupView() {
-        mainPanel.addSubview(titleLabel)
-        mainPanel.addSubview(subtitleLabel)
-        addSubview(mainPanel)
-        addSubview(inviteViaLinkButton)
-
-        backgroundColor = .systemBackground
-
-        layoutMargins = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
-
-        mainPanel.translatesAutoresizingMaskIntoConstraints = false
-
-        titleLabel.textColor = .label
-        titleLabel.font = .systemFont(forTextStyle: .subheadline, weight: .semibold)
-        titleLabel.numberOfLines = 1
-        titleLabel.text = Localizations.inviteViaLink
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        subtitleLabel.textColor = UIColor.label.withAlphaComponent(0.5)
-        subtitleLabel.font = .systemFont(forTextStyle: .caption2)
-        subtitleLabel.numberOfLines = 1
-
-        let attrStr = NSMutableAttributedString(string: "")
-
-        let shareLinkIcon: UIImage? = {
-            return UIImage(named: "InviteShareIcon")?.withTintColor(UIColor.label.withAlphaComponent(0.4))
-        }()
-
-        if let icon = shareLinkIcon {
-            let iconAttachment = NSTextAttachment(image: icon)
-            iconAttachment.bounds = CGRect(x: 0, y: -5, width: 18, height: 18)
-
-            attrStr.append(NSAttributedString(attachment: iconAttachment))
-            attrStr.append(NSAttributedString(string: "  " + "https://halloapp.com/dl"))
-        }
-
-        subtitleLabel.attributedText = attrStr
-        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        mainPanel.constrainMargins([.leading, .centerY], to: self)
-        mainPanel.topAnchor.constraint(greaterThanOrEqualTo: layoutMarginsGuide.topAnchor).isActive = true
-        mainPanel.bottomAnchor.constraint(lessThanOrEqualTo: layoutMarginsGuide.bottomAnchor).isActive = true
-
-        titleLabel.constrain([.top, .leading, .trailing], to: mainPanel)
-
-        subtitleLabel.constrain([.bottom, .leading, .trailing], to: mainPanel)
-        subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 2).isActive = true
-
-        inviteViaLinkButton.translatesAutoresizingMaskIntoConstraints = false
-        inviteViaLinkButton.constrainMargins([.centerY], to: self)
-        inviteViaLinkButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -30).isActive = true
-        inviteViaLinkButton.setContentHuggingPriority(.required, for: .horizontal)
-    }
-
-    let mainPanel = UIView()
-    let titleLabel = UILabel()
-    let subtitleLabel = UILabel()
-
-    private lazy var inviteViaLinkButton: UIButton = {
-        let button = Self.makeActionButton(title: Localizations.buttonShare)
-        button.addTarget(self, action: #selector(didTapInviteViaLinkButton), for: .touchUpInside)
-        return button
-    }()
-
-    @objc
-    private func didTapInviteViaLinkButton() {
-        guard let link = subtitleLabel.text else { return }
-        openShareLink?(link)
-    }
-
-    static func makeActionButton(title: String) -> UIButton {
-        let button = UIButton()
-        button.setTitle(title, for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
-        button.setTitleColor(UIColor.primaryBlue, for: .normal)
-        return button
     }
 }
 

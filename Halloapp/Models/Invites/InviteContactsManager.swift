@@ -122,10 +122,6 @@ extension InviteContactsManager: NSFetchedResultsControllerDelegate {
     }
 }
 
-enum InviteViaLinkRow: Hashable, Equatable {
-    case invite
-}
-
 struct InviteContact: Hashable, Equatable {
     var fullName: String
     var givenName: String?
