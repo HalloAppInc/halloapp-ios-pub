@@ -40,7 +40,6 @@ class ChatData: ObservableObject {
     
     let didGetMediaUploadProgress = PassthroughSubject<(String, Float), Never>()
     let didGetMediaDownloadProgress = PassthroughSubject<(String, Int, Double), Never>()
-    let didGetLinkPreviewMediaDownloadProgress = PassthroughSubject<(String, Int, Double, String?), Never>()
     
     let didGetAGroupFeed = PassthroughSubject<GroupID, Never>()
     let didGetAChatMsg = PassthroughSubject<UserID, Never>()
@@ -49,6 +48,11 @@ class ChatData: ObservableObject {
     let didUserPresenceChange = PassthroughSubject<PresenceType, Never>()
     
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.chat")
+    private lazy var downloadManager: FeedDownloadManager = {
+        let downloadManager = FeedDownloadManager(mediaDirectoryURL: MainAppContext.commonMediaStoreURL)
+        downloadManager.delegate = self
+        return downloadManager
+    }()
     
     private let userData: UserData
     private let mainDataStore: MainDataStore
@@ -953,289 +957,85 @@ class ChatData: ObservableObject {
     // TODO: Will unify the download logic for media-items across the entire app.
     // Should be called on the same queue with the coreDataObject since objects are not supposed to be accessed across queues.
     func downloadMedia(in chatMessage: ChatMessage) {
-        guard let media = chatMessage.media else { return }
-
-        let sortedMedia = media.sorted(by: { $0.order < $1.order })
-        for mediaItem in sortedMedia {
-            guard let url = mediaItem.url else { continue }
-            guard mediaItem.incomingStatus == .pending else { continue }
-            guard !self.currentlyDownloading.contains(url) else { continue }
-            if mediaItem.numTries > self.maxTries {
-                DDLogDebug("ChatData/downloadMedia/\(chatMessage.id)/media/order/\(mediaItem.order)/reached maxTries: \(self.maxTries), numTries: \(mediaItem.numTries)")
-                continue
-            }
-
-            DDLogDebug("ChatData/downloadMedia/\(chatMessage.id)/media/order/\(mediaItem.order)")
-
-            guard let url = mediaItem.url else { continue }
-
-            self.appendToCurrentDownloads(url: url)
-
-            let threadId = chatMessage.fromUserId
-            let messageId = chatMessage.id
-            let order = mediaItem.order
-            let key = mediaItem.key
-            let sha = mediaItem.sha256
-            let type: CommonMediaType = {
-                switch mediaItem.type {
-                case .image:
-                    return .image
-                case .video:
-                    return .video
-                case .audio:
-                    return .audio
-                }
-            } ()
-            let blobVersion = mediaItem.blobVersion
-            let chunkSize = mediaItem.chunkSize
-            let blobSize = mediaItem.blobSize
-
-            // save attempts
-            self.updateChatMessage(with: messageId) { [weak self] (chatMessage) in
-                guard let self = self else { return }
-                if let index = chatMessage.media?.firstIndex(where: { $0.order == order } ), (chatMessage.media?[index].numTries ?? 0) < self.maxTries {
-                    chatMessage.media?[index].numTries += 1
-                }
-            }
-
-            _ = ChatMediaDownloader(url: url, progressHandler: { [weak self] progress in
-                guard let self = self else { return }
-                self.didGetMediaDownloadProgress.send((messageId, Int(order), progress))
-            }, completion: { [weak self] (outputUrl) in
-                guard let self = self else { return }
-                self.removeFromCurrentDownloads(url: url)
-
-                var encryptedData: Data
-                do {
-                    encryptedData = try Data(contentsOf: outputUrl)
-                } catch {
-                    return
-                }
-
-                // Decrypt data
-                guard let mediaKey = Data(base64Encoded: key), let sha256Hash = Data(base64Encoded: sha) else {
-                    return
-                }
-
-                var decryptedData: Data
-                do {
-                    switch blobVersion {
-                    case .chunked:
-                        let chunkedParameters = try ChunkedMediaParameters(blobSize: blobSize, chunkSize: chunkSize)
-                        decryptedData = Data(capacity: Int(chunkedParameters.estimatedPtSize))
-                        try ChunkedMediaCrypter.decryptChunkedMedia(
-                            mediaType: type,
-                            mediaKey: mediaKey,
-                            sha256Hash: sha256Hash,
-                            chunkedParameters: chunkedParameters,
-                            readChunkData: { chunkOffset, chunkSize in return encryptedData[chunkOffset..<chunkOffset + chunkSize] },
-                            writeChunkData: { chunkData, _ in decryptedData.append(chunkData)})
-
-                    case .default:
-                        decryptedData = try MediaCrypter.decrypt(data: encryptedData, mediaKey: mediaKey, sha256hash: sha256Hash, mediaType: type)
-                    }
-                } catch {
-                    DDLogDebug("ChatData/downloadMedia/\(chatMessage.id)/media/order/\(mediaItem.order)/could not decrypt media data")
-                    return
-                }
-
-                MainAppContext.shared.mediaHashStore.update(data: decryptedData, blobVersion: blobVersion, key: key, sha256: sha, downloadURL: url)
-
-                let fileExtension: String = {
-                    switch type {
-                    case .image:
-                        return "jpg"
-                    case .video:
-                        return "mp4"
-                    case .audio:
-                        return "aac"
-                    }
-                } ()
-                let filename = "\(messageId)-\(order).\(fileExtension)"
-
-                let fileURL = MainAppContext.chatMediaDirectoryURL
-                    .appendingPathComponent(threadId, isDirectory: true)
-                    .appendingPathComponent(filename, isDirectory: false)
-
-                // create intermediate directories
-                if !FileManager.default.fileExists(atPath: fileURL.path) {
-                    do {
-                        try FileManager.default.createDirectory(atPath: fileURL.path, withIntermediateDirectories: true, attributes: nil)
-                    } catch {
-                        DDLogError(error.localizedDescription)
-                    }
-                }
-
-                // delete the file if it already exists, ie. previous attempts
-                do {
-                    if FileManager.default.fileExists(atPath: fileURL.path) {
-                        DDLogDebug("ChatData/downloadMedia/\(chatMessage.id)/media/order/\(mediaItem.order)/previous file exists, try removing first: \(fileURL.path)")
-                        try FileManager.default.removeItem(atPath: fileURL.path)
-                    }
-                }
-                catch {
-                    DDLogError("ChatData/downloadMedia/\(chatMessage.id)/media/order/\(mediaItem.order)/remove previous file error: \(error)")
-                }
-
-                do {
-                    try decryptedData.write(to: fileURL, options: [])
-                }
-                catch {
-                    DDLogError("ChatData/downloadMedia/\(chatMessage.id)/media/order/\(mediaItem.order)/can't write error: \(error)")
-                    return
-                }
-
-                self.updateChatMessage(with: messageId, block: { [weak self] (chatMessage) in
-                    guard let self = self else { return }
-                    if let index = chatMessage.media?.firstIndex(where: { $0.order == order } ) {
-                        let relativePath = self.relativePath(from: fileURL)
-                        chatMessage.media?[index].relativeFilePath = relativePath
-                        chatMessage.media?[index].mediaDirectory = .chatMedia
-                        chatMessage.media?[index].incomingStatus = .downloaded
-
-                        // hack: force a change so frc can pick up the change
-                        let fromUserId = chatMessage.fromUserId
-                        chatMessage.fromUserId = fromUserId
-                    }
-                }) { [weak self] in
-                    guard let self = self else { return }
-                    self.processInboundPendingChatMsgMedia()
-                }
-            })
-        }
+        let contentID = chatMessage.id
+        downloadChatMedia(mediaItems: chatMessage.media, contentID: contentID)
     }
 
     func downloadMedia(in linkPreview: CommonLinkPreview) {
-        guard let media = linkPreview.media else { return }
+        let contentID = linkPreview.id
+        downloadChatMedia(mediaItems: linkPreview.media, contentID: contentID)
+    }
 
-        let sortedMedia = media.sorted(by: { $0.order < $1.order })
+    func downloadChatMedia(mediaItems: Set<CommonMedia>?, contentID: String) {
+        guard let mediaItems = mediaItems,
+              !mediaItems.isEmpty else {
+            return
+        }
+        DDLogInfo("ChatData/downloadChatMedia/contentID: \(contentID)")
 
+        var downloadStarted = false
+        let sortedMedia = mediaItems.sorted(by: { $0.order < $1.order })
         for mediaItem in sortedMedia {
-            guard let url = mediaItem.url else { continue }
-            guard mediaItem.incomingStatus == .pending else { continue }
-            guard !self.currentlyDownloading.contains(url) else { continue }
-            if mediaItem.numTries > self.maxTries {
-                DDLogDebug("ChatData/downloadMedia/\(linkPreview.id)/media/order/\(mediaItem.order)/reached maxTries: \(self.maxTries), numTries: \(mediaItem.numTries)")
-                continue
-            }
 
-            DDLogDebug("ChatData/downloadMedia/\(linkPreview.id)/media/order/\(mediaItem.order)")
-            guard let url = mediaItem.url else { continue }
-
-            self.appendToCurrentDownloads(url: url)
-
-            guard let chatMessage = linkPreview.message else { return }
-            let threadId = chatMessage.fromUserId
-            let linkPreviewId = linkPreview.id
             let order = mediaItem.order
-            let key = mediaItem.key
-            let sha = mediaItem.sha256
-            let type: CommonMediaType = {
-                switch mediaItem.type {
-                case .image:
-                    return .image
-                case .video:
-                    return .video
-                case .audio:
-                    return .audio
-                }
-            } ()
+            DDLogInfo("ChatData/downloadChatMedia/contentID: \(contentID)/order: \(order)/status: \(mediaItem.status)")
+            let mediaDownloadGroup = DispatchGroup()
+            var startTime: Date?
+            var photosDownloaded = 0
+            var videosDownloaded = 0
+            var audiosDownloaded = 0
+            var totalDownloadSize = 0
 
-            // save attempts
-            self.updateLinkPreview(with: linkPreviewId) { [weak self] (linkPreview) in
-                guard let self = self else { return }
-                if let index = linkPreview.media?.firstIndex(where: { $0.order == order } ), (linkPreview.media?[index].numTries ?? 0) < self.maxTries {
-                    linkPreview.media?[index].numTries += 1
+            guard mediaItem.url != nil else { return }
+            // Have some max-tries since chat media stays forever.
+            // TODO: Should cleanup this logic across the app and unify this.
+            guard mediaItem.numTries < self.maxTries else { return }
+            guard [.none, .downloading, .downloadError].contains(mediaItem.status) else { return }
+
+            let (taskAdded, task) = self.downloadManager.downloadMedia(for: mediaItem)
+            if taskAdded {
+                switch mediaItem.type {
+                case .image: photosDownloaded += 1
+                case .video: videosDownloaded += 1
+                case .audio: audiosDownloaded += 1
                 }
+                if startTime == nil {
+                    startTime = Date()
+                    DDLogInfo("ChatData/downloadChatMedia/contentID: \(contentID)/order: \(order)/starting")
+                }
+                mediaDownloadGroup.enter()
+                var isDownloadInProgress = true
+                self.cancellableSet.insert(task.downloadProgress.sink() { progress in
+                    if isDownloadInProgress && progress == 1 {
+                        totalDownloadSize += task.fileSize ?? 0
+                        mediaDownloadGroup.leave()
+                        isDownloadInProgress = false
+                    }
+                    self.didGetMediaDownloadProgress.send((contentID, Int(order), Double(progress)))
+                })
+                downloadStarted = true
+                task.feedMediaObjectId = mediaItem.objectID
+                mediaItem.status = .downloading
+                mediaItem.numTries += 1
             }
 
-            _ = ChatMediaDownloader(url: url, progressHandler: { [weak self] progress in
-                guard let self = self else { return }
-                self.didGetLinkPreviewMediaDownloadProgress.send((linkPreviewId, Int(order), progress, mediaItem.relativeFilePath))
-            }, completion: { [weak self] (outputUrl) in
-                guard let self = self else { return }
-                self.removeFromCurrentDownloads(url: url)
-
-                var encryptedData: Data
-                do {
-                    encryptedData = try Data(contentsOf: outputUrl)
-                } catch {
+            mediaDownloadGroup.notify(queue: .main) {
+                guard photosDownloaded > 0 || videosDownloaded > 0 || audiosDownloaded > 0 else { return }
+                guard let startTime = startTime else {
+                    DDLogError("ChatData/downloadChatMedia/contentID: \(contentID)/error start time not set")
                     return
                 }
+                let duration = Date().timeIntervalSince(startTime)
+                DDLogInfo("ChatData/downloadChatMedia/contentID: \(contentID)/finished [photos: \(photosDownloaded)] [videos: \(videosDownloaded)] [audios: \(audiosDownloaded)] [t: \(duration)] [bytes: \(totalDownloadSize)]")
+            }
+        }
 
-                // Decrypt data
-                guard let mediaKey = Data(base64Encoded: key), let sha256Hash = Data(base64Encoded: sha) else {
-                    return
-                }
-
-                var decryptedData: Data
-                do {
-                    decryptedData = try MediaCrypter.decrypt(data: encryptedData, mediaKey: mediaKey, sha256hash: sha256Hash, mediaType: type)
-                } catch {
-                    DDLogDebug("ChatData/downloadMedia/\(linkPreview.id)/media/order/\(mediaItem.order)/could not decrypt media data")
-                    return
-                }
-
-                MainAppContext.shared.mediaHashStore.update(data: decryptedData, blobVersion: .default, key: key, sha256: sha, downloadURL: url)
-
-                let fileExtension: String = {
-                    switch type {
-                    case .image:
-                        return "jpg"
-                    case .video:
-                        return "mp4"
-                    case .audio:
-                        return "aac"
-                    }
-                } ()
-                let filename = "\(linkPreviewId)-\(order).\(fileExtension)"
-
-                let fileURL = MainAppContext.chatMediaDirectoryURL
-                    .appendingPathComponent(threadId, isDirectory: true)
-                    .appendingPathComponent(filename, isDirectory: false)
-
-                // create intermediate directories
-                if !FileManager.default.fileExists(atPath: fileURL.path) {
-                    do {
-                        try FileManager.default.createDirectory(atPath: fileURL.path, withIntermediateDirectories: true, attributes: nil)
-                    } catch {
-                        DDLogError(error.localizedDescription)
-                    }
-                }
-
-                // delete the file if it already exists, ie. previous attempts
-                do {
-                    if FileManager.default.fileExists(atPath: fileURL.path) {
-                        DDLogDebug("ChatData/downloadMedia/\(linkPreview.id)/media/order/\(mediaItem.order)/previous file exists, try removing first: \(fileURL.path)")
-                        try FileManager.default.removeItem(atPath: fileURL.path)
-                    }
-                }
-                catch {
-                    DDLogError("ChatData/downloadMedia/\(linkPreview.id)/media/order/\(mediaItem.order)/remove previous file error: \(error)")
-                }
-
-                do {
-                    try decryptedData.write(to: fileURL, options: [])
-                }
-                catch {
-                    DDLogError("ChatData/downloadMedia/\(linkPreview.id)/media/order/\(mediaItem.order)/can't write error: \(error)")
-                    return
-                }
-
-                self.updateLinkPreview(with: linkPreviewId, block: { [weak self] (chatLinkPreview) in
-                    guard let self = self else { return }
-                    if let index = chatLinkPreview.media?.firstIndex(where: { $0.order == order } ) {
-                        let relativePath = self.relativePath(from: fileURL)
-                        chatLinkPreview.media?[index].relativeFilePath = relativePath
-                        chatLinkPreview.media?[index].mediaDirectory = .chatMedia
-                        chatLinkPreview.media?[index].incomingStatus = .downloaded
-                        self.didGetLinkPreviewMediaDownloadProgress.send((linkPreviewId, Int(order), 1.0, relativePath))
-                    }
-                }) { [weak self] in
-                    guard let self = self else { return }
-                    self.processInboundPendingChaLinkPreviewMedia()
-                }
-            })
+        // Using `downloadStarted` to prevent any recursive saves.
+        if downloadStarted,
+           let context = mediaItems.first?.managedObjectContext,
+           context.hasChanges {
+            DDLogInfo("ChatData/downloadChatMedia/contentID: \(contentID)/downloadStarted: \(downloadStarted)")
+            self.save(context)
         }
     }
 
@@ -1898,6 +1698,79 @@ class ChatData: ObservableObject {
         }
     }
 
+}
+
+extension ChatData: FeedDownloadManagerDelegate {
+    func feedDownloadManager(_ manager: FeedDownloadManager, didFinishTask task: FeedDownloadManager.Task) {
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            // Update chatMediaItem
+            guard let objectID = task.feedMediaObjectId, let chatMediaItem = try? managedObjectContext.existingObject(with: objectID) as? CommonMedia else {
+                DDLogError("ChatData/download-task/\(task.id)/error  Missing CommonMedia  taskId=[\(task.id)]  objectId=[\(task.feedMediaObjectId?.uriRepresentation().absoluteString ?? "nil")))]")
+                return
+            }
+
+            guard chatMediaItem.relativeFilePath == nil else {
+                DDLogError("ChatData/download-task/\(task.id)/error File already exists media=[\(chatMediaItem)]")
+                chatMediaItem.status = .downloaded
+                self.save(managedObjectContext)
+                return
+            }
+
+            if let error = task.error {
+                DDLogError("ChatData/download-task/\(task.id)/error [\(error)]")
+                chatMediaItem.status = .downloadError
+
+                // TODO: Do an exponential backoff on the client for 1 day and then show a manual retry button for the user.
+                // Mark as permanent failure if we encounter hashMismatch or MACMismatch.
+                switch error {
+                case .macMismatch, .hashMismatch, .decryptionFailed:
+                    DDLogInfo("ChatData/download-task/\(task.id)/error [\(error) - fail permanently]")
+                    chatMediaItem.status = .downloadFailure
+                    AppContext.shared.errorLogger?.logError(error)
+                default:
+                    break
+                }
+            } else {
+                DDLogInfo("ChatData/download-task/\(task.id)/complete [\(task.decryptedFilePath!)]")
+                chatMediaItem.mediaDirectory = .commonMedia
+                chatMediaItem.status = task.isPartialChunkedDownload ? .downloadedPartial : .downloaded
+                chatMediaItem.relativeFilePath = task.decryptedFilePath
+                if task.isPartialChunkedDownload, let chunkSet = task.downloadedChunkSet {
+                    DDLogDebug("ChatData/download-task/\(task.id)/feedDownloadManager chunkSet=[\(chunkSet)]")
+                    chatMediaItem.chunkSet = chunkSet.data
+                }
+            }
+
+            // hack: force a change so frc can pick up the change
+            // TODO: murali@: check with team on this.
+            let contentID: String
+            if let chatMessage = chatMediaItem.message {
+                let fromUserId = chatMessage.fromUserId
+                chatMessage.fromUserId = fromUserId
+                contentID = chatMessage.id
+            } else if let linkPreview = chatMediaItem.linkPreview,
+                      let chatMessage = linkPreview.message {
+                let fromUserId = chatMessage.fromUserId
+                chatMessage.fromUserId = fromUserId
+                contentID = linkPreview.id
+            } else {
+                return
+            }
+
+            self.save(managedObjectContext)
+            // Send final media progress.
+            self.didGetMediaDownloadProgress.send((contentID, Int(chatMediaItem.order), 1.0))
+
+            // Update upload data to avoid duplicate uploads
+            if let fileURL = chatMediaItem.mediaURL, let downloadURL = chatMediaItem.url {
+                MainAppContext.shared.mediaHashStore.update(url: fileURL,
+                                                            blobVersion: chatMediaItem.blobVersion,
+                                                            key: chatMediaItem.key,
+                                                            sha256: chatMediaItem.sha256,
+                                                            downloadURL: downloadURL)
+            }
+        }
+    }
 }
 
 extension ChatData {

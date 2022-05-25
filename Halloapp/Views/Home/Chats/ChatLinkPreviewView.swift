@@ -157,14 +157,14 @@ class ChatLinkPreviewView: UIView {
                 self.show(image: image)
             } else if imageLoadingCancellable == nil {
                 showPlaceholderImage()
-                imageLoadingCancellable = MainAppContext.shared.chatData.didGetLinkPreviewMediaDownloadProgress.sink { [weak self] (linkPreviewId, mediaOrder, progress, relativeFilePath) in
+                guard let chatData = MainAppContext.shared.chatData else { return }
+                imageLoadingCancellable = chatData.didGetMediaDownloadProgress.sink { [weak self] (linkPreviewId, mediaOrder, progress) in
                     guard let self = self else { return }
                     guard linkPreviewId == self.chatLinkPreview?.id else { return }
                     DispatchQueue.main.async {
+                        guard let linkPreview = chatData.chatLinkPreview(with: linkPreviewId, in: chatData.viewContext) else { return }
                         self.progressView.setProgress(Float(progress), animated: true)
-                        if let relativeFilePath = relativeFilePath {
-                            // TODO: Assumes mediaDirectory to always be chat - update to use CommonMedia.
-                            let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
+                        if let fileURL = linkPreview.media?.first(where: { $0.order == mediaOrder })?.mediaURL {
                             if let image = UIImage(contentsOfFile: fileURL.path) {
                                 self.show(image: image)
                             }
