@@ -68,6 +68,10 @@ extension UIFont {
         }
     }
 
+    class func scaledGothamFont(ofSize fontSize: CGFloat, weight: UIFont.Weight = .regular, scalingTextStyle: UIFont.TextStyle = .body) -> UIFont {
+        return UIFontMetrics(forTextStyle: scalingTextStyle).scaledFont(for: .gothamFont(ofFixedSize: fontSize,weight: weight))
+    }
+
     class func courierFont(ofFixedSize fontSize: CGFloat, weight: UIFont.Weight = .regular) -> UIFont {
         let name: String
         switch weight {
@@ -107,9 +111,7 @@ extension UIFont {
     }
 
     class func scaledSystemFont(ofSize fontSize: CGFloat, weight: UIFont.Weight = .regular, scalingTextStyle: UIFont.TextStyle = .body) -> UIFont {
-        let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: scalingTextStyle)
-            .addingAttributes([.traits : [UIFontDescriptor.TraitKey.weight: weight]])
-        return UIFont(descriptor: fontDescriptor, size: fontSize)
+        return UIFontMetrics(forTextStyle: scalingTextStyle).scaledFont(for: UIFont.systemFont(ofSize: fontSize, weight: weight))
     }
 
     var withItalicsIfAvailable: UIFont {
