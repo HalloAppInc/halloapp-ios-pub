@@ -39,8 +39,12 @@ class GroupGridDataSource: NSObject {
 
     private let postsFetchedResultsController: NSFetchedResultsController<FeedPost> = {
         let fetchRequest = FeedPost.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "groupID != nil && timestamp >= %@ && fromExternalShare == NO",
-                                             FeedData.postCutoffDate as NSDate)
+        fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            NSPredicate(format: "groupID != nil"),
+            NSPredicate(format: "timestamp >= %@", FeedData.postCutoffDate as NSDate),
+            NSPredicate(format: "fromExternalShare == NO"),
+            NSPredicate(format: "NOT statusValue IN %@", [FeedPost.Status.retracting, FeedPost.Status.retracted].map(\.rawValue))
+        ])
         fetchRequest.sortDescriptors = [
             NSSortDescriptor(keyPath: \FeedPost.groupID, ascending: true),
             NSSortDescriptor(keyPath: \FeedPost.lastUpdated, ascending: false),
@@ -118,14 +122,7 @@ class GroupGridDataSource: NSObject {
 extension GroupGridDataSource: NSFetchedResultsControllerDelegate {
 
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        switch controller {
-        case postsFetchedResultsController:
-            pendingSnapshot = dataSource.snapshot()
-        case threadsFetchedResultsController:
-            break
-        default:
-            DDLogWarn("GroupGridDataSource/received change from unexpected FRC")
-        }
+        pendingSnapshot = dataSource.snapshot()
     }
 
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,
@@ -133,18 +130,39 @@ extension GroupGridDataSource: NSFetchedResultsControllerDelegate {
                     at indexPath: IndexPath?,
                     for type: NSFetchedResultsChangeType,
                     newIndexPath: IndexPath?) {
+        guard var snapshot = pendingSnapshot else {
+            return
+        }
+
         switch controller {
         case postsFetchedResultsController:
-            guard var snapshot = pendingSnapshot, let feedPost = anObject as? FeedPost else {
+            guard let feedPost = anObject as? FeedPost, let groupID = feedPost.groupID else {
                 return
             }
 
             switch type {
             case .insert:
-                if let groupID = feedPost.groupID, snapshot.sectionIdentifiers.contains(groupID) {
+                if feedPost.userID == AppContext.shared.userData.userId {
+                    // Display any of our own posts right away
+                    let itemIdentifiers = snapshot.itemIdentifiers(inSection: groupID)
+                    // Theoretically we would always be the first post, but attempt to insert in order
+                    let postIDToInsertBefore = itemIdentifiers.first { postID in
+                        if let post = postsFetchedResultsController.fetchedObjects?.first(where: { $0.id == postID }),
+                           (post.lastUpdated ?? .distantPast) < (feedPost.lastUpdated ?? .distantPast) {
+                            return true
+                        }
+                        return false
+                    }
+                    if let postIDToInsertBefore = postIDToInsertBefore {
+                        snapshot.insertItems([feedPost.id], beforeItem: postIDToInsertBefore)
+                    } else {
+                        snapshot.appendItems([feedPost.id], toSection: groupID)
+                    }
+
+
+                } else if snapshot.sectionIdentifiers.contains(groupID) {
                     unreadPostIDs.insert(feedPost.id)
                 }
-                break
             case .delete:
                 unreadPostIDs.remove(feedPost.id)
                 snapshot.deleteItems([feedPost.id])
@@ -165,21 +183,48 @@ extension GroupGridDataSource: NSFetchedResultsControllerDelegate {
             // Snapshot uses copy semantics, so we must set it back to the property
             pendingSnapshot = snapshot
         case threadsFetchedResultsController:
-            break
+            guard let thread = anObject as? CommonThread, let groupID = thread.groupID else {
+                return
+            }
+
+            switch type {
+            case .insert:
+                let sectionIDToInsertBefore = snapshot.sectionIdentifiers.first { existingGroupID in
+                    if let existingThread = threadsFetchedResultsController.fetchedObjects?.first(where: { $0.groupID == existingGroupID }),
+                       (existingThread.lastTimestamp ?? .distantPast) < (thread.lastTimestamp ?? .distantPast) {
+                        return true
+                    }
+                    return false
+                }
+                if let sectionIDToInsertBefore = sectionIDToInsertBefore {
+                    snapshot.insertSections([groupID], beforeSection: sectionIDToInsertBefore)
+                } else {
+                    snapshot.appendSections([groupID])
+                }
+                if let posts = postsFetchedResultsController.sections?.first(where: { $0.name == groupID })?.objects as? [FeedPost] {
+                    snapshot.appendItems(posts.map(\.id), toSection: groupID)
+                }
+            case .delete:
+                if snapshot.sectionIdentifiers.contains(groupID) {
+                    snapshot.deleteSections([groupID])
+                }
+            case .move:
+                break
+            case .update:
+                break
+            @unknown default:
+                break
+            }
         default:
             DDLogWarn("GroupGridDataSource/received change from unexpected FRC")
         }
+
+        // Snapshot uses copy semantics, so we must set it back to the property
+        pendingSnapshot = snapshot
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        switch controller {
-        case postsFetchedResultsController:
-            pendingSnapshot.flatMap { dataSource.apply($0) }
-            unreadPostsCount.send(unreadPostIDs.count)
-        case threadsFetchedResultsController:
-            break
-        default:
-            DDLogWarn("GroupGridDataSource/received change from unexpected FRC")
-        }
+        pendingSnapshot.flatMap { dataSource.apply($0) }
+        unreadPostsCount.send(unreadPostIDs.count)
     }
 }

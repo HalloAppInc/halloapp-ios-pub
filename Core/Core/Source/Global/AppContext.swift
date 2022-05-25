@@ -256,7 +256,7 @@ open class AppContext: AppContextCommon {
         mainDataStoreImpl = MainDataStore(userData: userData, appTarget: appTarget, userDefaults: userDefaults)
         contactStoreImpl = contactStoreClass.init(userData: userData)
         privacySettingsImpl = PrivacySettings(contactStore: contactStoreImpl)
-        messageCrypterImpl = MessageCrypter(service: coreService, keyStore: keyStore)
+        messageCrypterImpl = MessageCrypter(userData: userData, service: coreService, keyStore: keyStore)
         keyStore.delegate = messageCrypter
         mediaHashStoreImpl = MediaHashStore(persistentStoreURL: AppContext.mediaHashStoreURL)
         notificationStoreImpl = NotificationStore(appTarget: appTarget, userDefaults: userDefaults)

@@ -409,10 +409,12 @@
 		F494BEE72745E7DB00982E49 /* ActionSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */; };
 		F49C8E5D282F07C700E881E3 /* GroupGridNewPostToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49C8E5C282F07C700E881E3 /* GroupGridNewPostToast.swift */; };
 		F49C8E612835906600E881E3 /* GroupGridSeparator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49C8E602835906600E881E3 /* GroupGridSeparator.swift */; };
+		F49C8E632835A52900E881E3 /* RoundedRectButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49C8E622835A52900E881E3 /* RoundedRectButton.swift */; };
 		F49D2E6427EE6A8900195566 /* URLRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49D2E6027EE6A5300195566 /* URLRouterTests.swift */; };
 		F49FF9F527F53C8B00EC86B2 /* FeedPostDisplayable.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49FF9F227F53C8A00EC86B2 /* FeedPostDisplayable.swift */; };
 		F4B91DF8278FCEEB00DF70C1 /* CADisplayLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B91DF7278FCEEB00DF70C1 /* CADisplayLink.swift */; };
 		F4C29B142838704C00A4FE08 /* UICollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4C29B132838704C00A4FE08 /* UICollectionView.swift */; };
+		F4C29B16283D5A4C00A4FE08 /* MediaImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4C29B15283D5A4C00A4FE08 /* MediaImageView.swift */; };
 		F4D88F5127D6D8A300D706DA /* InviteContactViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D88F5027D6D8A300D706DA /* InviteContactViewController.swift */; };
 		F4D88F6B27D9873F00D706DA /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D88F6A27D9873E00D706DA /* Toast.swift */; };
 		F4F157DA276AA39F002FDB9E /* DeleteAccountPhoneNumberTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F157D9276AA39E002FDB9E /* DeleteAccountPhoneNumberTextField.swift */; };
@@ -1142,10 +1144,12 @@
 		F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionSheetViewController.swift; sourceTree = "<group>"; };
 		F49C8E5C282F07C700E881E3 /* GroupGridNewPostToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridNewPostToast.swift; sourceTree = "<group>"; };
 		F49C8E602835906600E881E3 /* GroupGridSeparator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridSeparator.swift; sourceTree = "<group>"; };
+		F49C8E622835A52900E881E3 /* RoundedRectButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedRectButton.swift; sourceTree = "<group>"; };
 		F49D2E6027EE6A5300195566 /* URLRouterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLRouterTests.swift; sourceTree = "<group>"; };
 		F49FF9F227F53C8A00EC86B2 /* FeedPostDisplayable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedPostDisplayable.swift; sourceTree = "<group>"; };
 		F4B91DF7278FCEEB00DF70C1 /* CADisplayLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CADisplayLink.swift; sourceTree = "<group>"; };
 		F4C29B132838704C00A4FE08 /* UICollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UICollectionView.swift; sourceTree = "<group>"; };
+		F4C29B15283D5A4C00A4FE08 /* MediaImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaImageView.swift; sourceTree = "<group>"; };
 		F4D88F5027D6D8A300D706DA /* InviteContactViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteContactViewController.swift; sourceTree = "<group>"; };
 		F4D88F6A27D9873E00D706DA /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		F4F157D9276AA39E002FDB9E /* DeleteAccountPhoneNumberTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountPhoneNumberTextField.swift; sourceTree = "<group>"; };
@@ -1522,6 +1526,8 @@
 				EA7A386526782A4D0028F739 /* ActionTableViewCell.swift */,
 				F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */,
 				F41FAA4127E52B7E00FC5090 /* BottomSheetViewController.swift */,
+				F49C8E622835A52900E881E3 /* RoundedRectButton.swift */,
+				F4C29B15283D5A4C00A4FE08 /* MediaImageView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -2948,6 +2954,7 @@
 				F8C92C9A24CF17BC00B1D4E6 /* MediaEditViewController.swift in Sources */,
 				A17DCD7027C0885F00E00073 /* ExpandableTextView.swift in Sources */,
 				EAC46556251484FE00783821 /* EditGroupViewController.swift in Sources */,
+				F4C29B16283D5A4C00A4FE08 /* MediaImageView.swift in Sources */,
 				E5B9EAB8265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift in Sources */,
 				F850677826A55DAC00A120EC /* AudioRecorder.swift in Sources */,
 				3243C42B27D7D03300B994F4 /* MessageCellViewMedia.swift in Sources */,
@@ -3023,6 +3030,7 @@
 				761BD0FC24B3D75800B567F6 /* InviteManager.swift in Sources */,
 				328447C4282DD48700F76AB5 /* MessageCellViewCall.swift in Sources */,
 				765D03D72492C971007A7D3B /* ZoomableImageView.swift in Sources */,
+				F49C8E632835A52900E881E3 /* RoundedRectButton.swift in Sources */,
 				32C83FBF268FDC7D00BEB4F5 /* UpdateContactsPermissionView.swift in Sources */,
 				6ABBD2502601DE890041B9ED /* FeedMigration.xcmappingmodel in Sources */,
 				68184009264B1F9800408D31 /* Feed2ToFeed3.xcmappingmodel in Sources */,
@@ -3454,7 +3462,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Share Extension/Share Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 249;
+				CURRENT_PROJECT_VERSION = 250;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				INFOPLIST_FILE = "Share Extension/Info.plist";
@@ -3464,7 +3472,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.18;
+				MARKETING_VERSION = 1.19;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Share-Extension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -3509,7 +3517,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Share Extension/Share Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 249;
+				CURRENT_PROJECT_VERSION = 250;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -3529,7 +3537,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.18;
+				MARKETING_VERSION = 1.19;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Share-Extension";
@@ -3579,7 +3587,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Share Extension/Share Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 249;
+				CURRENT_PROJECT_VERSION = 250;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -3599,7 +3607,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.18;
+				MARKETING_VERSION = 1.19;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Share-Extension";
@@ -3621,7 +3629,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = HalloAppClip/HalloAppClip.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 249;
+				CURRENT_PROJECT_VERSION = 250;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				INFOPLIST_FILE = HalloAppClip/Info.plist;
@@ -3630,7 +3638,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.18;
+				MARKETING_VERSION = 1.19;
 				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo.Clip;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
@@ -3677,7 +3685,7 @@
 				CODE_SIGN_ENTITLEMENTS = HalloAppClip/HalloAppClip.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 249;
+				CURRENT_PROJECT_VERSION = 250;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -3696,7 +3704,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.18;
+				MARKETING_VERSION = 1.19;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo.Clip;
@@ -3748,7 +3756,7 @@
 				CODE_SIGN_ENTITLEMENTS = HalloAppClip/HalloAppClip.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 249;
+				CURRENT_PROJECT_VERSION = 250;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -3767,7 +3775,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.18;
+				MARKETING_VERSION = 1.19;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo.Clip;
@@ -4172,7 +4180,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 249;
+				CURRENT_PROJECT_VERSION = 250;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;
@@ -4181,7 +4189,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.18;
+				MARKETING_VERSION = 1.19;
 				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo;
 				PRODUCT_NAME = HalloApp;
 				SWIFT_VERSION = 5.0;
@@ -4236,7 +4244,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Notification Service Extension/Notification Service Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 249;
+				CURRENT_PROJECT_VERSION = 250;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				INFOPLIST_FILE = "Notification Service Extension/Info.plist";
@@ -4246,7 +4254,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.18;
+				MARKETING_VERSION = 1.19;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Notification-Service-Extension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -4291,7 +4299,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Notification Service Extension/Notification Service Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 249;
+				CURRENT_PROJECT_VERSION = 250;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -4311,7 +4319,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.18;
+				MARKETING_VERSION = 1.19;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Notification-Service-Extension";
@@ -4361,7 +4369,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Notification Service Extension/Notification Service Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 249;
+				CURRENT_PROJECT_VERSION = 250;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -4381,7 +4389,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.18;
+				MARKETING_VERSION = 1.19;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Notification-Service-Extension";
@@ -4400,7 +4408,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 249;
+				CURRENT_PROJECT_VERSION = 250;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				INFOPLIST_FILE = "Intents Extension/Info.plist";
@@ -4410,7 +4418,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.18;
+				MARKETING_VERSION = 1.19;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Intents-Extension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -4455,7 +4463,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 249;
+				CURRENT_PROJECT_VERSION = 250;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -4475,7 +4483,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.18;
+				MARKETING_VERSION = 1.19;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Intents-Extension";
@@ -4525,7 +4533,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 249;
+				CURRENT_PROJECT_VERSION = 250;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -4545,7 +4553,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.18;
+				MARKETING_VERSION = 1.19;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Intents-Extension";
@@ -4690,7 +4698,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 249;
+				CURRENT_PROJECT_VERSION = 250;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;
@@ -4699,7 +4707,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.18;
+				MARKETING_VERSION = 1.19;
 				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo;
 				PRODUCT_NAME = HalloApp;
 				SWIFT_VERSION = 5.0;
@@ -4714,7 +4722,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 249;
+				CURRENT_PROJECT_VERSION = 250;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;
@@ -4723,7 +4731,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.18;
+				MARKETING_VERSION = 1.19;
 				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo;
 				PRODUCT_NAME = HalloApp;
 				SWIFT_VERSION = 5.0;

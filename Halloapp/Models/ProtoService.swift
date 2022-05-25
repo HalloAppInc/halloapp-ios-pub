@@ -617,6 +617,9 @@ final class ProtoService: ProtoServiceCore {
                 return
             }
 
+            // We manually ack the message after decryption.
+            // Message is decrypted and then processed on a separate queue.
+            hasAckBeenDelegated = true
             let receiptTimestamp = Date()
             decryptChat(serverChat, from: UserID(msg.fromUid)) { (content, context, decryptionFailure) in
                 if let content = content, let context = context {
@@ -645,10 +648,10 @@ final class ProtoService: ProtoServiceCore {
                 if let failure = decryptionFailure {
                     DDLogError("proto/didReceive/\(msg.id)/decrypt/error \(failure.error)")
                     AppContext.shared.errorLogger?.logError(failure.error)
-                    hasAckBeenDelegated = true
                     self.rerequestMessageIfNecessary(msg, failedEphemeralKey: failure.ephemeralKey, ack: ack)
                 } else {
                     DDLogInfo("proto/didReceive/\(msg.id)/decrypt/success")
+                    ack()
                 }
                 if !serverChat.senderClientVersion.isEmpty {
                     DDLogInfo("proto/didReceive/\(msg.id)/senderClient [\(serverChat.senderClientVersion)]")

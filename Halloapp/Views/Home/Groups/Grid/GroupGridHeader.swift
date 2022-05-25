@@ -14,63 +14,64 @@ class GroupGridHeader: UICollectionReusableView {
     static let elementKind = "header"
     static let reuseIdentifier = String(describing: GroupGridHeader.self)
 
-    var didSelectGroupHeader: ((GroupGridHeader) -> Void)?
+    var openGroupFeed: (() -> Void)?
+    var composeGroupPost: (() -> Void)?
+
+    private struct Constants {
+        static let postButtonSize: CGFloat = 22
+        static let avatarSize: CGFloat = 32
+    }
 
     private let groupAvatarView: AvatarView = AvatarView()
 
     private let groupNameLabel: UILabel = {
         let groupNameLabel = UILabel()
+        groupNameLabel.adjustsFontForContentSizeCategory = true
         groupNameLabel.font = .gothamFont(forTextStyle: .subheadline, weight: .medium)
         groupNameLabel.textColor = .label.withAlphaComponent(0.75)
         return groupNameLabel
     }()
 
-    private let unreadPostCountLabel: UILabel = {
-        let unreadPostCountLabel = UILabel()
-        unreadPostCountLabel.font = .gothamFont(forTextStyle: .subheadline, weight: .medium)
-        unreadPostCountLabel.textColor = .label.withAlphaComponent(0.75)
-        return unreadPostCountLabel
-    }()
-
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTap)))
+        addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(headerTapped)))
 
-        groupAvatarView.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(groupAvatarView)
+        let groupAvatarAndNameStackView = UIStackView(arrangedSubviews: [groupAvatarView, groupNameLabel])
+        groupAvatarAndNameStackView.alignment = .center
+        groupAvatarAndNameStackView.axis = .horizontal
+        groupAvatarAndNameStackView.isLayoutMarginsRelativeArrangement = true
+        groupAvatarAndNameStackView.layoutMargins = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
+        groupAvatarAndNameStackView.spacing = 12
+        groupAvatarAndNameStackView.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(groupAvatarAndNameStackView)
 
-        groupNameLabel.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(groupNameLabel)
+        let postButton = RoundedRectButton()
+        postButton.addTarget(self, action: #selector(composeButtonTapped), for: .touchUpInside)
+        postButton.backgroundTintColor = .lavaOrange
+        postButton.imageView?.tintColor = .primaryWhiteBlack
+        postButton.setImage(UIImage(systemName: "plus")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 13, weight: .semibold)),
+                            for: .normal)
+        postButton.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(postButton)
 
-        unreadPostCountLabel.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(unreadPostCountLabel)
-
-        let disclosureIndicatorImageView = UIImageView(image: UIImage(systemName: "chevron.forward"))
-        disclosureIndicatorImageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 18)
-        disclosureIndicatorImageView.tintColor = UIColor.label.withAlphaComponent(0.25)
-        disclosureIndicatorImageView.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(disclosureIndicatorImageView)
-
-        let minimizeHeightConstraint = heightAnchor.constraint(equalToConstant: 0)
-        minimizeHeightConstraint.priority = UILayoutPriority(1)
+        // prevent constraint breakage on initial sizing
+        let groupAvatarAndNameStackViewBottomConstraint = groupAvatarAndNameStackView.bottomAnchor.constraint(equalTo: bottomAnchor)
+        groupAvatarAndNameStackViewBottomConstraint.priority = UILayoutPriority(999)
 
         NSLayoutConstraint.activate([
-            groupAvatarView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            groupAvatarView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            groupAvatarView.topAnchor.constraint(greaterThanOrEqualTo: topAnchor, constant: 10),
+            groupAvatarView.widthAnchor.constraint(equalToConstant: Constants.avatarSize),
+            groupAvatarView.heightAnchor.constraint(equalToConstant: Constants.avatarSize),
 
-            groupNameLabel.leadingAnchor.constraint(equalTo: groupAvatarView.trailingAnchor, constant: 10),
-            groupNameLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
-            groupNameLabel.topAnchor.constraint(greaterThanOrEqualTo: topAnchor, constant: 10),
+            groupAvatarAndNameStackView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            groupAvatarAndNameStackView.topAnchor.constraint(equalTo: topAnchor),
+            groupAvatarAndNameStackViewBottomConstraint,
+            groupAvatarAndNameStackView.trailingAnchor.constraint(lessThanOrEqualTo: postButton.leadingAnchor),
 
-            unreadPostCountLabel.trailingAnchor.constraint(equalTo: disclosureIndicatorImageView.leadingAnchor, constant: -10),
-            unreadPostCountLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
-            unreadPostCountLabel.topAnchor.constraint(greaterThanOrEqualTo: topAnchor, constant: 10),
-
-            disclosureIndicatorImageView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
-            disclosureIndicatorImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            disclosureIndicatorImageView.topAnchor.constraint(greaterThanOrEqualTo: topAnchor, constant: 10),
+            postButton.widthAnchor.constraint(equalToConstant: Constants.postButtonSize),
+            postButton.heightAnchor.constraint(equalToConstant: Constants.postButtonSize),
+            postButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+            postButton.trailingAnchor.constraint(equalTo: trailingAnchor),
         ])
     }
 
@@ -79,9 +80,8 @@ class GroupGridHeader: UICollectionReusableView {
     }
 
     func configure(with groupID: GroupID) {
-        groupAvatarView.configure(groupId: groupID, squareSize: 32, using: MainAppContext.shared.avatarStore)
+        groupAvatarView.configure(groupId: groupID, squareSize: Constants.avatarSize, using: MainAppContext.shared.avatarStore)
         groupNameLabel.text = MainAppContext.shared.chatData.chatGroup(groupId: groupID)?.name
-        unreadPostCountLabel.text = "1"
     }
 
     override func prepareForReuse() {
@@ -90,7 +90,11 @@ class GroupGridHeader: UICollectionReusableView {
         groupAvatarView.prepareForReuse()
     }
 
-    @objc private func didTap() {
-        didSelectGroupHeader?(self)
+    @objc private func headerTapped() {
+        openGroupFeed?()
+    }
+
+    @objc private func composeButtonTapped() {
+        composeGroupPost?()
     }
 }

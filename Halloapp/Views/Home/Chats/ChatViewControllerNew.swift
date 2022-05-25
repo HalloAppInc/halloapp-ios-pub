@@ -235,6 +235,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         updateCollectionViewData()
+        scrollToBottom()
     }
 
     func updateCollectionViewData() {
@@ -402,6 +403,21 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
        applyTransitionSnapshot()
    }
+
+   override func viewDidLayoutSubviews() {
+       super.viewDidLayoutSubviews()
+       scrollToBottom()
+   }
+
+    private func scrollToBottom() {
+        let lastSectionIndex = collectionView.numberOfSections - 1
+        guard lastSectionIndex >= 0 else { return }
+        let lastRowIndex = collectionView.numberOfItems(inSection: lastSectionIndex) - 1
+        guard lastRowIndex >= 0 else { return }
+        let indexPath = IndexPath(row: lastRowIndex, section: lastSectionIndex)
+
+        self.collectionView.scrollToItem(at: indexPath, at: .centeredVertically, animated: false)
+    }
 
    private func removeTransitionSnapshot() {
        transitionSnapshot?.removeFromSuperview()
