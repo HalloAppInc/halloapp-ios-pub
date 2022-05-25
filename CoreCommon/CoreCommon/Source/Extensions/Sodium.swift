@@ -10,7 +10,7 @@ import Clibsodium
 import Sodium
 
 /*
- Adds in functionalty from https://github.com/HalloAppInc/swift-sodium/commit/e8997517e65ab4ec2766869977cd1bb7f666e905
+ Adds in functionality from https://github.com/HalloAppInc/swift-sodium/commit/e8997517e65ab4ec2766869977cd1bb7f666e905
  so we don't have to maintain our own fork.
  */
 public class KeyAgreement {

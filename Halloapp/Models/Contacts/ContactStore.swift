@@ -30,7 +30,7 @@ let ContactStoreMetadataNextFullSyncDate = "NextFullSyncDate"
 
  Contains logic for converting `CNLabeledValue<CNPhoneNumber>` into a format convenient to populate `ABContact`.
 
- Recent iOS versions allow storing phone numbers in non-Lating numerals (e.g. Devanagari, Arabic). Those are converted to Latin numerals that server understands.
+ Recent iOS versions allow storing phone numbers in non-Latin numerals (e.g. Devanagari, Arabic). Those are converted to Latin numerals that server understands.
  */
 private struct PhoneProxy {
     private(set) var phoneNumber: String, localizedPhoneNumber: String?
@@ -46,7 +46,7 @@ private struct PhoneProxy {
 }
 
 /**
- Intermediate object encapsulating intormation about AddressBook's contact.
+ Intermediate object encapsulating information about AddressBook's contact.
 
  Contains logic that consumes a `CNContact` object and loads all information that our app needs into format convenient for  populating `ABContact` instances.
  */
@@ -258,7 +258,7 @@ class ContactStoreMain: ContactStore {
     /**
      Synchronize all device contacts with app's internal contacts store.
 
-     Syncronization is performed on persistent store's  background queue.
+     Synchronization is performed on persistent store's  background queue.
      */
     func reloadContactsIfNecessary() {
         guard needReloadContacts else {
