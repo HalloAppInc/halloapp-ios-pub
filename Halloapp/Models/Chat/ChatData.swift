@@ -4483,6 +4483,18 @@ extension ChatData {
 
     private func processIncomingGroup(xmppGroup: XMPPGroup, using managedObjectContext: NSManagedObjectContext) {
         DDLogInfo("ChatData/processIncomingGroup")
+
+        var contactNames = [UserID:String]()
+        // Update push names for member userids on any events received.
+        xmppGroup.members?.forEach { inboundMember in
+            // add to pushnames
+            if let name = inboundMember.name, !name.isEmpty {
+                contactNames[inboundMember.userId] = name
+            }
+        }
+        self.contactStore.addPushNames(contactNames)
+        // Saving push names early on will help us show push names for events/content from these users.
+
         switch xmppGroup.action {
         case .create:
             processGroupCreateAction(xmppGroup: xmppGroup, in: managedObjectContext)
