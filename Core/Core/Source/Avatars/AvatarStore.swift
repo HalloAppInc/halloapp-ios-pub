@@ -768,6 +768,7 @@ public class GroupAvatarData {
                     self.data = try Data(contentsOf: fileUrl)
                 } catch {
                     DDLogError("UserAvatar/reload failed to read data \(error)")
+                    self.imageIsLoading = false
                     return
                 }
                 

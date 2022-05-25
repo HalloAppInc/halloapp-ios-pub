@@ -13,6 +13,7 @@ import CoreCommon
 import CoreData
 import Foundation
 import UIKit
+import CoreMedia
 
 fileprivate struct Constants {
     static let AvatarSize: CGFloat = 100
@@ -356,16 +357,23 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
 
     @objc private func openEditAvatarOptions() {
         guard MainAppContext.shared.chatData.chatGroupMember(groupId: groupID, memberUserId: MainAppContext.shared.userData.userId) != nil else { return }
+        let avatarData = MainAppContext.shared.avatarStore.groupAvatarData(for: groupID)
 
         let actionSheet = UIAlertController(title: Localizations.chatGroupPhotoTitle, message: nil, preferredStyle: .actionSheet)
         actionSheet.view.tintColor = UIColor.systemBlue
 
+        if !avatarData.isEmpty {
+            actionSheet.addAction(UIAlertAction(title: Localizations.viewPhoto, style: .default) { [weak self] _ in
+                self?.presentAvatar()
+            })
+        }
+        
         actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupTakeOrChoosePhoto, style: .default) { [weak self] _ in
             guard let self = self else { return }
             self.presentPhotoLibraryPicker()
         })
 
-        if !MainAppContext.shared.avatarStore.groupAvatarData(for: groupID).isEmpty {
+        if !avatarData.isEmpty {
             actionSheet.addAction(UIAlertAction(title: Localizations.deletePhoto, style: .destructive) { [weak self] _ in
                 self?.changeAvatar(data: nil)
             })
@@ -516,6 +524,27 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
         self.present(UINavigationController(rootViewController: pickerController), animated: true)
     }
 
+    private func presentAvatar() {
+        guard let avatarStore = MainAppContext.shared.avatarStore else {
+            return
+        }
+        
+        let avatarData = avatarStore.groupAvatarData(for: groupID)
+        
+        let imagePublisher = avatarData.imageDidChange
+            .prepend(avatarData.image)
+            .map { image in
+                (URL?.none, image, image?.size ?? .zero)
+            }.eraseToAnyPublisher()
+
+        let mediaController = MediaExplorerController(imagePublisher: imagePublisher, progress: nil)
+        mediaController.delegate = self
+
+        avatarData.loadImage(using: avatarStore)
+        
+        present(mediaController, animated: true)
+    }
+    
     private func changeAvatar(image: UIImage) {
         guard let resizedImage = image.fastResized(to: AvatarStore.thumbnailSize) else {
             DDLogError("GroupInfoViewController/resizeImage error resize failed")
@@ -553,6 +582,24 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
                 tableHeaderView.configure(chatGroup: self.chatGroup)
             }
         }
+    }
+}
+
+extension GroupInfoViewController: MediaExplorerTransitionDelegate {
+    func getTransitionView(atPostion index: Int) -> UIView? {
+        return (self.tableView.tableHeaderView as? GroupInfoHeaderView)?.avatarView
+    }
+    
+    func scrollMediaToVisible(atPostion index: Int) {
+        return
+    }
+    
+    func currentTimeForVideo(atPostion index: Int) -> CMTime? {
+        return nil
+    }
+
+    func shouldTransitionScaleToFit() -> Bool {
+        return true
     }
 }
 
@@ -873,7 +920,7 @@ class GroupInfoHeaderView: UIView {
         return view
     }()
 
-    private lazy var avatarView: AvatarView = {
+    public lazy var avatarView: AvatarView = {
         let view = AvatarView()
 
         view.translatesAutoresizingMaskIntoConstraints = false
