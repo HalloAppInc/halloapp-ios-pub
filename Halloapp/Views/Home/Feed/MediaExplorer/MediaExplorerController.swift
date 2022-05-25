@@ -86,14 +86,9 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         super.init(nibName: nil, bundle: nil)
     }
 
-    private class LargeHitButton: UIButton {
-        override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-            return bounds.insetBy(dx: -16, dy: -16).contains(point)
-        }
-    }
-
     private lazy var backBtn: UIView = {
         let backBtn = LargeHitButton(type: .custom)
+        backBtn.targetIncrease = 16
         backBtn.contentEdgeInsets = UIEdgeInsets(top: 0, left: -1, bottom: 0, right: 0)
         backBtn.addTarget(self, action: #selector(backAction), for: [.touchUpInside, .touchUpOutside])
         backBtn.setImage(UIImage(named: "NavbarBack")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
@@ -116,6 +111,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
     private lazy var shareBtn: UIView = {
         let shareBtn = LargeHitButton(type: .custom)
+        shareBtn.targetIncrease = 16
         shareBtn.addTarget(self, action: #selector(shareButtonPressed), for: [.touchUpInside, .touchUpOutside])
         shareBtn.setImage(UIImage(named: "Download")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
         shareBtn.translatesAutoresizingMaskIntoConstraints = false
