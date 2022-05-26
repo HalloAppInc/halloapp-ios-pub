@@ -175,15 +175,13 @@ class ContentTextView: UITextView {
     }
 
     private func linkPreview(for link: URL) async -> (data: LinkPreviewData?, image: UIImage?, error: Error?) {
-        await withCheckedContinuation { continuation in
+        let preview = await withCheckedContinuation { continuation in
             LinkPreviewMetadataProvider.startFetchingMetadata(for: link) { (data, preview, error) in
-                if Task.isCancelled {
-                    continuation.resume(returning: (nil, nil, nil))
-                } else {
-                    continuation.resume(returning: (data, preview, error))
-                }
+                continuation.resume(returning: (data, preview, error))
             }
         }
+
+        return Task.isCancelled ? (nil, nil, CancellationError()) : preview
     }
     
     func resetLinkDetection() {
