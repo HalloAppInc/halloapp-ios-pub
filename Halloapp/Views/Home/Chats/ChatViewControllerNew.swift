@@ -13,6 +13,7 @@ import Combine
 import UIKit
 import CoreData
 import Photos
+import SafariServices
 
 fileprivate struct ChatMsgData {
     let id: String
@@ -123,6 +124,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         collectionView.register(MessageUnreadHeaderView.self, forCellWithReuseIdentifier: MessageUnreadHeaderView.elementKind)
         collectionView.register(MessageCellViewEvent.self, forCellWithReuseIdentifier: ChatViewControllerNew.messageCellViewEventReuseIdentifier)
         collectionView.register(MessageCellViewCall.self, forCellWithReuseIdentifier: ChatViewControllerNew.messageCellViewCallReuseIdentifier)
+        collectionView.register(MessageChatHeaderView.self, forSupplementaryViewOfKind: MessageChatHeaderView.elementKind, withReuseIdentifier: MessageChatHeaderView.elementKind)
         collectionView.register(MessageTimeHeaderView.self, forSupplementaryViewOfKind: MessageTimeHeaderView.elementKind, withReuseIdentifier: MessageTimeHeaderView.elementKind)
         collectionView.delegate = self
         return collectionView
@@ -226,6 +228,12 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                 } else {
                     DDLogInfo("ChatViewControllerNew/configureHeader/time header info not available")
                     return headerView
+                }
+            } else if kind == MessageChatHeaderView.elementKind {
+                let headerView = view.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: MessageChatHeaderView.elementKind, for: index)
+                if let messageChatHeaderView = headerView as? MessageChatHeaderView, let self = self, let fromUserId = self.fromUserId {
+                    messageChatHeaderView.delegate = self
+                    return messageChatHeaderView
                 }
             }
             return nil
@@ -349,7 +357,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
         cancellableSet.insert(
             MainAppContext.shared.chatData.didGetCurrentChatPresence.sink { [weak self] status, ts in
-                DDLogInfo("ChatViewController/didGetCurrentChatPresence")
+                DDLogInfo("ChatViewControllerNew/didGetCurrentChatPresence")
                 guard let self = self else { return }
                 guard let userId = self.fromUserId else { return }
                 DispatchQueue.main.async {
@@ -361,13 +369,32 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         cancellableSet.insert(
             MainAppContext.shared.chatData.didGetChatStateInfo.sink { [weak self] chatStateInfo in
                 guard let self = self else { return }
-                DDLogInfo("ChatViewController/didGetChatStateInfo \(chatStateInfo)")
+                DDLogInfo("ChatViewControllerNew/didGetChatStateInfo \(chatStateInfo)")
                 DispatchQueue.main.async {
                     self.configureTitleViewWithTypingIndicator()
                 }
             }
         )
+
+        cancellableSet.insert(
+            MainAppContext.shared.didPrivacySettingChange.sink { [weak self] (userID) in
+                DDLogInfo("ChatViewControllerNew/didPrivacySettingChange/update header")
+                guard let self = self else { return }
+                guard userID == self.fromUserId else { return }
+                DispatchQueue.main.async { [weak self] in
+                    self?.setupOrRefreshHeaderAndFooter()
+                }
+            }
+        )
+
+        DispatchQueue.main.async { [weak self] in
+            self?.setupOrRefreshHeaderAndFooter()
+        }
+        configureTitleViewWithTypingIndicator()
         loadChatDraft(id: fromUserId)
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard(_:)))
+        view.addGestureRecognizer(tapGesture)
+
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -527,7 +554,11 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         let section = NSCollectionLayoutSection(group: group)
         section.boundarySupplementaryItems = [sectionHeader]
 
+        // Setup the chat view header as the global header of the collection view.
+        let layoutHeaderSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(55))
+        let layoutHeader = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: layoutHeaderSize, elementKind: MessageChatHeaderView.elementKind, alignment: .top)
         let layoutConfig = UICollectionViewCompositionalLayoutConfiguration()
+        layoutConfig.boundarySupplementaryItems = [layoutHeader]
 
         let layout = UICollectionViewCompositionalLayout(section: section)
         layout.configuration = layoutConfig
@@ -556,6 +587,10 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
     @objc private func videoCallButtonTapped() {
         callButtonTapped(type: .video)
+    }
+
+    @objc func dismissKeyboard (_ sender: UITapGestureRecognizer) {
+        contentInputView.textView.resignFirstResponder()
     }
 
     private func callButtonTapped(type: CallType) {
@@ -684,6 +719,73 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         let presenter = presentedViewController ?? self
         presenter.present(UINavigationController(rootViewController: composerController), animated: false)
     }
+
+    private func setupOrRefreshHeaderAndFooter() {
+        guard let userID = fromUserId else { return }
+        let isUserBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(userID)
+        let isUserInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID)
+        let isPushNumberMessagingAccepted = MainAppContext.shared.contactStore.isPushNumberMessagingAccepted(userID: userID)
+        let haveMessagedBefore = MainAppContext.shared.chatData.haveMessagedBefore(userID: userID, in: MainAppContext.shared.chatData.viewContext)
+        let haveReceivedMessagesBefore = MainAppContext.shared.chatData.haveReceivedMessagesBefore(userID: userID, in: MainAppContext.shared.chatData.viewContext)
+
+        let pushNumberExist = MainAppContext.shared.contactStore.pushNumber(userID) != nil
+        let showUnknownContactActionBanner = !isUserBlocked &&
+                                             !isUserInAddressBook &&
+                                             !isPushNumberMessagingAccepted &&
+                                             !haveMessagedBefore &&
+                                             pushNumberExist &&
+                                             haveReceivedMessagesBefore
+
+        if showUnknownContactActionBanner {
+            present(unknownContactSheet, animated: true)
+        }
+    }
+
+    private lazy var unknownContactSheet: UnknownContactSheetViewController = {
+        let sheet = UnknownContactSheetViewController()
+
+        sheet.acceptAction = { [weak self] in
+            guard let self = self else { return }
+            self.dismiss(animated: true)
+            guard let userID = self.fromUserId else { return }
+            MainAppContext.shared.contactStore.setIsMessagingAccepted(userID: userID, isMessagingAccepted: true)
+        }
+
+        sheet.addContactAction = { [weak self] in
+            guard let self = self else { return }
+            self.dismiss(animated: true)
+            guard let userID = self.fromUserId else { return }
+            MainAppContext.shared.contactStore.addUserToAddressBook(userID: userID, presentingVC: self)
+        }
+
+        sheet.blockAction = { [weak self] in
+            guard let self = self else { return }
+            self.dismiss(animated: true)
+            guard let userID = self.fromUserId else { return }
+            let blockMessage = Localizations.blockMessage(username: MainAppContext.shared.contactStore.fullName(for: userID))
+
+            let alert = UIAlertController(title: nil, message: blockMessage, preferredStyle: .actionSheet)
+            let button = UIAlertAction(title: Localizations.blockButton, style: .destructive) { [weak self] _ in
+                guard let self = self else { return }
+                let privacySettings = MainAppContext.shared.privacySettings
+                guard let blockedList = privacySettings.blocked else { return }
+                privacySettings.block(userID: userID)
+            }
+            alert.addAction(button)
+
+            let cancel = UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
+            alert.addAction(cancel)
+
+            self.present(alert, animated: true)
+        }
+        
+        sheet.cancelAction = { [weak self] in
+            self?.dismiss(animated: true)
+            self?.navigationController?.popViewController(animated: true)
+        }
+
+        return sheet
+    }()
 }
 
 // MARK: ChatTitle Delegates
@@ -825,7 +927,7 @@ extension ChatViewControllerNew: TextLabelDelegate {
                 chatReplyMessageSenderID = reply.replySenderID
                 chatReplyMessageMediaIndex = reply.mediaIndex ?? 0
             } else {
-                DDLogWarn("ChatViewController/No feedPostId or chatReplyMessageId when restoring draft reply")
+                DDLogWarn("ChatViewControllerNew/No feedPostId or chatReplyMessageId when restoring draft reply")
             }
         }
     }
@@ -1308,4 +1410,12 @@ fileprivate class QuotedItemPanel: UIView, InputContextPanel {
 
         return button
     }()
+}
+
+// MARK: ChatHeader Delegates
+extension ChatViewControllerNew: MessageChatHeaderViewDelegate {
+    func messageChatHeaderViewOpenEncryptionBlog(_ messageChatHeaderView: MessageChatHeaderView) {
+        let viewController = SFSafariViewController(url: URL(string: "https://halloapp.com/blog/encrypted-chat")!)
+        present(viewController, animated: true)
+    }
 }

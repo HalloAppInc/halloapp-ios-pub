@@ -76,11 +76,11 @@ extension FeedPostMedia {
 
 extension FeedPostMedia: MediaUploadable {
 
-    var encryptedFilePath: String? {
+    var encryptedFileURL: URL? {
         guard let filePath = relativeFilePath else {
             return nil
         }
-        return filePath.appending(".enc")
+        return MainAppContext.mediaDirectoryURL.appendingPathComponent(filePath.appending(".enc"), isDirectory: false)
     }
 
     var index: Int {

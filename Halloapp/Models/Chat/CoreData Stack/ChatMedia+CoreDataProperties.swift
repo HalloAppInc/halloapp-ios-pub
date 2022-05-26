@@ -96,11 +96,11 @@ extension ChatMedia: MediaUploadable {
         Int(order)
     }
 
-    var encryptedFilePath: String? {
+    var encryptedFileURL: URL? {
         guard let filePath = relativeFilePath else {
             return nil
         }
-        return filePath.appending(".enc")
+        return MainAppContext.chatMediaDirectoryURL.appendingPathComponent(filePath.appending(".enc"), isDirectory: false)
     }
 
     var urlInfo: MediaURLInfo? {

@@ -21,9 +21,6 @@ class DataStore: ShareExtensionDataStore {
         self.service = service
         mediaUploader = MediaUploader(service: service)
         super.init()
-        mediaUploader.resolveMediaPath = { [weak self] (relativeMediaPath) in
-            return self!.fileURL(forRelativeFilePath: relativeMediaPath)
-        }
     }
 
     private var isSendingCanceled = false
@@ -508,34 +505,6 @@ class DataStore: ShareExtensionDataStore {
                 }
             case .failure(let error):
                 completion(.failure(error))
-            }
-        }
-    }
-}
-
-
-extension SharedMedia: MediaUploadable {
-
-    var encryptedFilePath: String? {
-        return relativeFilePath?.appending(".enc")
-    }
-
-    var index: Int {
-        get { Int(order) }
-    }
-
-    var urlInfo: MediaURLInfo? {
-        if let uploadUrl = uploadUrl {
-            if let downloadUrl = url {
-                return .getPut(downloadUrl, uploadUrl)
-            } else {
-                return .patch(uploadUrl)
-            }
-        } else {
-            if let downloadUrl = url {
-                return .download(downloadUrl)
-            } else {
-                return nil
             }
         }
     }

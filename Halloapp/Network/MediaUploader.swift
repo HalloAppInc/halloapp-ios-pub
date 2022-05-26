@@ -29,7 +29,7 @@ protocol MediaUploadable {
 
     var index: Int { get }
 
-    var encryptedFilePath: String? { get }
+    var encryptedFileURL: URL? { get }
 
     var urlInfo: MediaURLInfo? { get }
 }
@@ -37,7 +37,7 @@ protocol MediaUploadable {
 struct SimpleMediaUploadable: MediaUploadable {
 
     let index = 0
-    let encryptedFilePath: String?
+    let encryptedFileURL: URL?
     let urlInfo: MediaURLInfo? = nil
 }
 
@@ -127,9 +127,6 @@ final class MediaUploader {
     }
 
     private let service: CoreService
-
-    // Resolves relative media file path to file url.
-    var resolveMediaPath: ((String) -> (URL))!
 
     // Use Custom Alamofire session - we modify the timeoutIntervalForRequest parameter in the configuration
     lazy var afSession : Alamofire.Session = { [weak self] in
@@ -305,7 +302,7 @@ final class MediaUploader {
         // on reconnection stuck we try to resend stuck media items, but they might already have a task scheduled for retry
         guard nil == (tasks(forGroupId: groupId).first { $0.index == mediaItem.index }) else { return }
 
-        let fileURL = resolveMediaPath(mediaItem.encryptedFilePath!)
+        guard let fileURL = mediaItem.encryptedFileURL else { return }
         let task = Task(groupId: groupId, mediaUrls: mediaItem.urlInfo, index: Int(mediaItem.index), fileURL: fileURL, didGetUrls: didGetURLs, completion: completion)
         // Task might fail immediately so make sure it's added before being started.
         addTask(task: task)
@@ -518,12 +515,21 @@ final class MediaUploader {
 }
 
 extension CommonMedia: MediaUploadable {
-
-    var encryptedFilePath: String? {
+    var encryptedFileURL: URL? {
         guard let filePath = relativeFilePath else {
             return nil
         }
-        return filePath.appending(".enc")
+        // All media will now be written only to the common media directory.
+        // This file can be accessed by the extensions as well - so they wont have access to other directories.
+        let mediaDirectoryURL: URL? = {
+            switch mediaDirectory {
+            case .commonMedia:
+                return AppContext.commonMediaStoreURL
+            default:
+                return nil
+            }
+        }()
+        return mediaDirectoryURL?.appendingPathComponent(filePath.appending(".enc"), isDirectory: false)
     }
 
     var index: Int {
