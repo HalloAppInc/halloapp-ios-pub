@@ -181,11 +181,11 @@ class MediaPickerViewController: UIViewController {
         button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
         button.layer.cornerRadius = 22
         button.layer.masksToBounds = true
-        button.contentEdgeInsets = UIEdgeInsets(top: -1.5, left: 0, bottom: 0, right: 0)
+        button.contentEdgeInsets = UIEdgeInsets(top: -1.5, left: 8, bottom: 0, right: 8)
 
         NSLayoutConstraint.activate([
             button.heightAnchor.constraint(equalToConstant: 44),
-            button.widthAnchor.constraint(equalToConstant: 90),
+            button.widthAnchor.constraint(greaterThanOrEqualToConstant: 90),
         ])
 
         button.addTarget(self, action: #selector(nextAction), for: .touchUpInside)
