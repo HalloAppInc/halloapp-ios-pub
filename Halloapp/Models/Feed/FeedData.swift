@@ -2182,113 +2182,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         performSeriallyOnBackgroundContext { [weak self] context in
             guard let self = self else { return }
             let feedPosts = feedPostObjectIds.compactMap { try? context.existingObject(with: $0) as? FeedPost }
-
-            // List of mediaItem info that will need UI update.
-            var mediaItems = [(FeedPostID, Int)]()
-            var downloadStarted = false
             feedPosts.forEach { feedPost in
-                DDLogInfo("FeedData/downloadMedia/post_id - \(feedPost.id)")
-                let postDownloadGroup = DispatchGroup()
-                var startTime: Date?
-                var photosDownloaded = 0
-                var videosDownloaded = 0
-                var audiosDownloaded = 0
-                var totalDownloadSize = 0
-
-                feedPost.media?.forEach { feedPostMedia in
-                    // Status could be "downloading" if download has previously started
-                    // but the app was terminated before the download has finished.
-                    guard feedPostMedia.url != nil, [.none, .downloading, .downloadError].contains(feedPostMedia.status) else {
-                        return
-                    }
-                    let (taskAdded, task) = self.downloadManager.downloadMedia(for: feedPostMedia)
-                    if taskAdded {
-                        switch feedPostMedia.type {
-                        case .image: photosDownloaded += 1
-                        case .video: videosDownloaded += 1
-                        case .audio: audiosDownloaded += 1
-                        }
-                        if startTime == nil {
-                            startTime = Date()
-                            DDLogInfo("FeedData/downloadMedia/post/\(feedPost.id)/starting")
-                        }
-                        postDownloadGroup.enter()
-                        var isDownloadInProgress = true
-                        self.cancellableSet.insert(task.downloadProgress.sink() { progress in
-                            if isDownloadInProgress && progress == 1 {
-                                totalDownloadSize += task.fileSize ?? 0
-                                isDownloadInProgress = false
-                                postDownloadGroup.leave()
-                            }
-                        })
-
-                        task.feedMediaObjectId = feedPostMedia.objectID
-                        feedPostMedia.status = .downloading
-                        downloadStarted = true
-                        // Add the mediaItem to a list - so that we can reload and update their UI.
-                        mediaItems.append((feedPost.id, Int(feedPostMedia.order)))
-                    }
-                }
+                // Download media items.
+                self.downloadFeedMedia(mediaItems: feedPost.media, contentID: feedPost.id)
+                // Download link previews if any.
                 feedPost.linkPreviews?.forEach { linkPreview in
-                    linkPreview.media?.forEach { linkPreviewMedia in
-                        guard linkPreviewMedia.url != nil, [.none, .downloading, .downloadError].contains(linkPreviewMedia.status) else {
-                            return
-                        }
-                        let (taskAdded, task) = self.downloadManager.downloadMedia(for: linkPreviewMedia)
-                        if taskAdded {
-                            switch linkPreviewMedia.type {
-                            case .image: photosDownloaded += 1
-                            case .video: videosDownloaded += 1
-                            case .audio: audiosDownloaded += 1
-                            }
-                            if startTime == nil {
-                                startTime = Date()
-                                DDLogInfo("FeedData/downloadMedia/post/linkPreview/post: \(feedPost.id)/link: \(String(describing: linkPreview.url)) starting")
-                            }
-                            postDownloadGroup.enter()
-                            var isDownloadInProgress = true
-                            self.cancellableSet.insert(task.downloadProgress.sink() { progress in
-                                if isDownloadInProgress && progress == 1 {
-                                    totalDownloadSize += task.fileSize ?? 0
-                                    isDownloadInProgress = false
-                                    postDownloadGroup.leave()
-                                }
-                            })
-
-                            task.feedMediaObjectId = linkPreviewMedia.objectID
-                            linkPreviewMedia.status = .downloading
-                            downloadStarted = true
-                            // Add the mediaItem to a list - so that we can reload and update their UI.
-                            mediaItems.append((feedPost.id, Int(linkPreviewMedia.order)))
-                        }
-                    }
-                }
-                postDownloadGroup.notify(queue: .main) {
-                    guard photosDownloaded > 0 || videosDownloaded > 0 else { return }
-                    guard let startTime = startTime else {
-                        DDLogError("FeedData/downloadMedia/post/\(feedPost.id)/error start time not set")
-                        return
-                    }
-                    let duration = Date().timeIntervalSince(startTime)
-                    DDLogInfo("FeedData/downloadMedia/post/\(feedPost.id)/finished [photos: \(photosDownloaded)] [videos: \(videosDownloaded)] [t: \(duration)] [bytes: \(totalDownloadSize)]")
-                    AppContext.shared.eventMonitor.observe(
-                        .mediaDownload(
-                            postID: feedPost.id,
-                            duration: duration,
-                            numPhotos: photosDownloaded,
-                            numVideos: videosDownloaded,
-                            totalSize: totalDownloadSize))
-                }
-            }
-            // Use `downloadStarted` to prevent recursive saves when posting media.
-            if context.hasChanges && downloadStarted {
-                self.save(context)
-
-                // Update UI for these items.
-                DispatchQueue.main.async {
-                    mediaItems.forEach{ (feedPostId, order) in
-                        self.reloadMedia(feedPostId: feedPostId, order: order)
-                    }
+                    self.downloadFeedMedia(mediaItems: linkPreview.media, contentID: linkPreview.id)
                 }
             }
         }
@@ -2302,94 +2201,109 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         performSeriallyOnBackgroundContext { [weak self] context in
             guard let self = self else { return }
             let feedPostComments = feedPostCommentObjectIds.compactMap { try? context.existingObject(with: $0) as? FeedPostComment }
-
-            // List of comment mediaItems that will need UI update.
-            var mediaItemsToReload = [(FeedPostCommentID, Int)]()
-            var downloadStarted = false
             feedPostComments.forEach { feedComment in
-                if let commentMedia = feedComment.media {
-                    commentMedia.forEach { media in
-                        DDLogInfo("FeedData/downloadMedia/comment/_id - \(feedComment.id)")
-                        let commentMediaDownloadGroup = DispatchGroup()
-                        var startTime: Date?
-                        var photosDownloaded = 0
-                        var videosDownloaded = 0
-                        var audiosDownloaded = 0
-                        var totalDownloadSize = 0
-
-                        if media.url != nil, [.none, .downloading, .downloadError].contains(media.status) {
-                            let(taskAdded, task) = self.downloadManager.downloadMedia(for: media)
-                            if taskAdded {
-                                switch media.type
-                                {
-                                case .image: photosDownloaded += 1
-                                case .video: videosDownloaded += 1
-                                case .audio: audiosDownloaded += 1
-                                }
-                                if startTime == nil {
-                                    startTime = Date()
-                                    DDLogInfo("FeedData/downloadMedia/comment/\(feedComment.id)/starting")
-                                }
-                                commentMediaDownloadGroup.enter()
-                                var isDownloadInProgress = true
-                                self.cancellableSet.insert(task.downloadProgress.sink() { progress in
-                                    if isDownloadInProgress && progress == 1 {
-                                        totalDownloadSize += task.fileSize ?? 0
-                                        isDownloadInProgress = false
-                                        commentMediaDownloadGroup.leave()
-                                    }
-                                })
-
-                                task.feedMediaObjectId = media.objectID
-                                media.status = .downloading
-                                downloadStarted = true
-                                // Add the mediaItem to a list - so that we can reload and update their UI.
-                                mediaItemsToReload.append((feedComment.id, 0))
-                            }
-                        }
-                        commentMediaDownloadGroup.notify(queue: .main) {
-                            guard photosDownloaded > 0 || videosDownloaded > 0 || audiosDownloaded > 0 else { return }
-                            guard let startTime = startTime else {
-                                DDLogError("FeedData/downloadMedia/comment/\(feedComment.id)/error start time not set")
-                                return
-                            }
-                            let duration = Date().timeIntervalSince(startTime)
-                            DDLogInfo("FeedData/downloadMedia/comment/\(feedComment.id)/finished [photos: \(photosDownloaded)] [videos: \(videosDownloaded)] [audios: \(audiosDownloaded)] [t: \(duration)] [bytes: \(totalDownloadSize)]")
-                            // TODO Nandini investigate if below commented code is required for media comments
-        //                        AppContext.shared.eventMonitor.observe(
-        //                            .mediaDownload(
-        //                                postID: feedPost.id,
-        //                                commentId: feedComment.id,
-        //                                duration: duration,
-        //                                numPhotos: photosDownloaded,
-        //                                numVideos: videosDownloaded,
-        //                                totalSize: totalDownloadSize))
-                        }
-                    }
-                }
+                // Download media items.
+                self.downloadFeedMedia(mediaItems: feedComment.media, contentID: feedComment.id)
+                // Download link previews if any.
                 feedComment.linkPreviews?.forEach { linkPreview in
-                    linkPreview.media?.forEach { linkPreviewMedia in
-                        guard linkPreviewMedia.url != nil, [.none, .downloading, .downloadError].contains(linkPreviewMedia.status) else {
-                            return
-                        }
-                        let (taskAdded, task) = self.downloadManager.downloadMedia(for: linkPreviewMedia)
-                        if taskAdded {
-                            task.feedMediaObjectId = linkPreviewMedia.objectID
-                            linkPreviewMedia.status = .downloading
-                            downloadStarted = true
-                        }
-                    }
+                    self.downloadFeedMedia(mediaItems: linkPreview.media, contentID: linkPreview.id)
                 }
             }
-            // Use `downloadStarted` to prevent recursive saves when posting media.
-            if context.hasChanges && downloadStarted {
-                self.save(context)
+        }
+    }
 
-                // Update UI for these items.
-                // TODO Nandini investigate if below code is required
+    func downloadFeedMedia(mediaItems: Set<CommonMedia>?, contentID: String) {
+        guard let mediaItems = mediaItems,
+              !mediaItems.isEmpty else {
+            return
+        }
+        DDLogInfo("FeedData/downloadFeedMedia/contentID: \(contentID)")
+
+        var mediaIndexToReload = [Int]()
+        var downloadStarted = false
+        let sortedMedia = mediaItems.sorted(by: { $0.order < $1.order })
+        for mediaItem in sortedMedia {
+
+            let order = mediaItem.order
+            DDLogInfo("FeedData/downloadFeedMedia/contentID: \(contentID)/order: \(order)/status: \(mediaItem.status)")
+            let mediaDownloadGroup = DispatchGroup()
+            var startTime: Date?
+            var photosDownloaded = 0
+            var videosDownloaded = 0
+            var audiosDownloaded = 0
+            var totalDownloadSize = 0
+
+            guard mediaItem.url != nil else { continue }
+            guard [.none, .downloading, .downloadError].contains(mediaItem.status) else { continue }
+
+            let (taskAdded, task) = self.downloadManager.downloadMedia(for: mediaItem)
+            if taskAdded {
+                switch mediaItem.type {
+                case .image: photosDownloaded += 1
+                case .video: videosDownloaded += 1
+                case .audio: audiosDownloaded += 1
+                }
+                if startTime == nil {
+                    startTime = Date()
+                    DDLogInfo("FeedData/downloadFeedMedia/contentID: \(contentID)/order: \(order)/starting")
+                }
+                mediaDownloadGroup.enter()
+                var isDownloadInProgress = true
+                self.cancellableSet.insert(task.downloadProgress.sink() { progress in
+                    if isDownloadInProgress && progress == 1 {
+                        totalDownloadSize += task.fileSize ?? 0
+                        mediaDownloadGroup.leave()
+                        isDownloadInProgress = false
+                    }
+                    mediaIndexToReload.append(Int(mediaItem.order))
+                })
+                downloadStarted = true
+                task.feedMediaObjectId = mediaItem.objectID
+                mediaItem.status = .downloading
+                mediaItem.numTries += 1
+            }
+
+            mediaDownloadGroup.notify(queue: .main) {
+                guard photosDownloaded > 0 || videosDownloaded > 0 || audiosDownloaded > 0 else { return }
+                guard let startTime = startTime else {
+                    DDLogError("FeedData/downloadFeedMedia/contentID: \(contentID)/error start time not set")
+                    return
+                }
+                let duration = Date().timeIntervalSince(startTime)
+                DDLogInfo("FeedData/downloadFeedMedia/contentID: \(contentID)/finished [photos: \(photosDownloaded)] [videos: \(videosDownloaded)] [audios: \(audiosDownloaded)] [t: \(duration)] [bytes: \(totalDownloadSize)]")
+                AppContext.shared.eventMonitor.observe(
+                    .mediaDownload(
+                        postID: contentID,
+                        duration: duration,
+                        numPhotos: photosDownloaded,
+                        numVideos: videosDownloaded,
+                        totalSize: totalDownloadSize))
+            }
+        }
+
+        // Using `downloadStarted` to prevent any recursive saves.
+        if downloadStarted,
+           let context = mediaItems.first?.managedObjectContext,
+           context.hasChanges {
+            DDLogInfo("FeedData/downloadFeedMedia/contentID: \(contentID)/downloadStarted: \(downloadStarted)")
+            self.save(context)
+
+            if (mediaItems.first?.post) != nil {
                 DispatchQueue.main.async {
-                    mediaItemsToReload.forEach{ (feedCommentId, order) in
-                        self.reloadMedia(feedCommentID: feedCommentId, order: order)
+                    mediaIndexToReload.forEach{ order in
+                        self.reloadMedia(feedPostId: contentID, order: order)
+                    }
+                }
+            } else if (mediaItems.first?.comment) != nil {
+                DispatchQueue.main.async {
+                    mediaIndexToReload.forEach{ order in
+                        self.reloadMedia(feedCommentID: contentID, order: order)
+                    }
+                }
+            } else if (mediaItems.first?.linkPreview) != nil {
+                DispatchQueue.main.async {
+                    mediaIndexToReload.forEach{ order in
+                        self.reloadMedia(feedLinkPreviewID: contentID, order: order)
                     }
                 }
             }
