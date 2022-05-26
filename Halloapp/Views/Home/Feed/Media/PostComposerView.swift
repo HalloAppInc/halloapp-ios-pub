@@ -1144,6 +1144,7 @@ fileprivate struct PostComposerView: View {
         }
         .frame(maxHeight: .infinity)
         .background(Color.feedBackground)
+        .handleKeyboard()
         .sheet(isPresented: $presentPicker) {
             picker.edgesIgnoringSafeArea(.bottom)
         }
@@ -1772,5 +1773,37 @@ fileprivate struct Picker: UIViewControllerRepresentable {
 
     func updateUIViewController(_ uiViewController: UINavigationController, context: Context) {
         DDLogInfo("Picker/updateUIViewController")
+    }
+}
+
+fileprivate struct KeyboardHeightHandler: ViewModifier {
+    @State private var keyboardHeight: CGFloat = 0
+
+    private static var keyboardHeightPublisher: AnyPublisher<CGFloat, Never> {
+        let showPublishser = NotificationCenter.default.publisher(for: UIApplication.keyboardWillShowNotification)
+            .map {
+                return ($0.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect)?.height ?? 0
+            }
+
+        let hidePublisher = NotificationCenter.default.publisher(for: UIApplication.keyboardWillHideNotification)
+            .map { _ in CGFloat(0) }
+
+        return Publishers.MergeMany(showPublishser, hidePublisher).eraseToAnyPublisher()
+    }
+
+    func body(content: Content) -> some View {
+        content
+            .padding(.bottom, keyboardHeight)
+            .onReceive(Self.keyboardHeightPublisher) { self.keyboardHeight = $0 }
+    }
+}
+
+fileprivate extension View {
+    func handleKeyboard() -> some View {
+        if #available(iOS 14, *) {
+            return AnyView(self)
+        } else {
+            return AnyView(modifier(KeyboardHeightHandler()))
+        }
     }
 }
