@@ -1628,6 +1628,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private func isCommentEligibleForLocalNotification(_ comment: FeedPostComment) -> Bool {
         let selfId = userData.userId
 
+        // Dont show notifications for comments from blocked users.
+        if AppContext.shared.privacySettings.blocked.userIds.contains(comment.userID) {
+            return false
+        }
+
         // Do not notify about comments posted by user.
         if comment.userId == selfId {
             return false
@@ -1721,8 +1726,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             dispatchGroup.leave()
         }
 
+        // Filter out posts from blockedUsers and posts for which notifications have already been presented.
+        let blockedUserIDSet = Set(AppContext.shared.privacySettings.blocked.userIds)
         dispatchGroup.notify(queue: .main) {
-            feedPosts.filter({ !postIdsToFilterOut.contains($0.id) }).forEach { (feedPost) in
+            feedPosts.filter({ !postIdsToFilterOut.contains($0.id) && !blockedUserIDSet.contains($0.userID) }).forEach { (feedPost) in
                 let protoContainer = feedPost.postData.clientContainer
                 let protobufData = try? protoContainer.serializedData()
                 let metadataContentType: NotificationContentType = feedPost.groupId == nil ? .feedPost : .groupFeedPost
