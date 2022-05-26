@@ -17,7 +17,7 @@ protocol ChatHeaderViewDelegate: AnyObject {
 
 class ChatHeaderView: UIView {
     weak var delegate: ChatHeaderViewDelegate?
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         setup()
@@ -160,18 +160,6 @@ class ChatHeaderView: UIView {
     @objc private func unblockContact() {
         guard let delegate = delegate else { return }
         delegate.chatHeaderViewUnblockContact(self)
-    }
-
-}
-
-private extension Localizations {
-
-    static var chatEncryptionLabel: String {
-        NSLocalizedString("chat.encryption.label", value: "Chats are end-to-end encrypted and HalloApp does not have access to them. Tap to learn more.", comment: "Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted")
-    }
-
-    static var chatBlockedContactLabel: String {
-        NSLocalizedString("chat.blocked.contact.label", value: "Contact is blocked, tap to unblock", comment: "Text shown at the top of the chat screen informing the user that the contact is blocked")
     }
 
 }

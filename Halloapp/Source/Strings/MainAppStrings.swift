@@ -225,4 +225,12 @@ extension Localizations {
         let format = NSLocalizedString("comment.unread.chat.messages.header.plural", value: "%@ Unread Messages", comment: "Header that appears above all the unread Messages in the comments view when there are more than one unread message")
         return String.localizedStringWithFormat(format, unreadCount)
     }
+
+    static var chatEncryptionLabel: String {
+        NSLocalizedString("chat.encryption.label", value: "All messages on HalloApp are end-to-end encrypted. Tap to learn more", comment: "Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted")
+    }
+
+    static var chatBlockedContactLabel: String {
+        NSLocalizedString("chat.blocked.contact.label", value: "Contact is blocked, tap to unblock", comment: "Text shown at the top of the chat screen informing the user that the contact is blocked")
+    }
 }
