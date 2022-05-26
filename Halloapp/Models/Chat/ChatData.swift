@@ -110,10 +110,6 @@ class ChatData: ObservableObject {
         self.mediaUploader = MediaUploader(service: service)
 
         self.service.chatDelegate = self
-
-        mediaUploader.resolveMediaPath = { relativePath in
-            return MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativePath, isDirectory: false)
-        }
         
         cancellableSet.insert(
             mediaUploader.uploadProgressDidChange.receive(on: DispatchQueue.main).sink { [weak self] groupId in
@@ -1162,7 +1158,7 @@ class ChatData: ObservableObject {
         } ()
         let filename = "\(messageId)-\(order).\(fileExtension)"
         
-        let toUrl = MainAppContext.chatMediaDirectoryURL
+        let toUrl = MainAppContext.commonMediaStoreURL
             .appendingPathComponent(threadId, isDirectory: true)
             .appendingPathComponent(filename, isDirectory: false)
         
@@ -1179,7 +1175,7 @@ class ChatData: ObservableObject {
         try FileManager.default.copyItem(at: fileUrl, to: toUrl)
         let relativePath = self.relativePath(from: toUrl)
         chatMedia.relativeFilePath = relativePath
-        chatMedia.mediaDirectory = .chatMedia
+        chatMedia.mediaDirectory = .commonMedia
 
         if let encryptedFileUrl = encryptedFileUrl {
             let encryptedDestinationUrl = toUrl.appendingPathExtension("enc")
@@ -1190,7 +1186,7 @@ class ChatData: ObservableObject {
     
     private func relativePath(from fileURL: URL) -> String? {
         let fullPath = fileURL.path
-        let mediaDirectoryPath = MainAppContext.chatMediaDirectoryURL.path
+        let mediaDirectoryPath = MainAppContext.commonMediaStoreURL.path
         if let range = fullPath.range(of: mediaDirectoryPath, options: [.anchored]) {
             return String(fullPath.suffix(from: range.upperBound))
         }
@@ -2440,10 +2436,9 @@ extension ChatData {
             let outputFileID = "\(msgID)-\(mediaIndex)"
 
             DDLogDebug("ChatData/process-mediaItem/chatMessage: \(msgID)/\(mediaItem.order), index: \(mediaIndex)")
-            if let relativeFilePath = mediaItem.relativeFilePath, mediaItem.sha256.isEmpty && mediaItem.key.isEmpty {
-                DDLogDebug("ChatData/process-mediaItem/chatMessage: \(msgID)/\(mediaIndex)/relativeFilePath: \(relativeFilePath)")
-                let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
-                let output = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(outputFileID, isDirectory: false).appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
+            if let url = mediaItem.mediaURL, mediaItem.sha256.isEmpty && mediaItem.key.isEmpty {
+                DDLogDebug("ChatData/process-mediaItem/chatMessage: \(msgID)/\(mediaIndex)/url: \(url)")
+                let output = url.deletingLastPathComponent().appendingPathComponent(outputFileID, isDirectory: false).appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
 
                 let type: CommonMediaType = {
                     switch mediaItem.type {
@@ -2559,11 +2554,10 @@ extension ChatData {
         }
 
         DDLogDebug("ChatData/uploadChat/media \(msgID)/\(chatMedia.order), index:\(mediaIndex), path: \(chatMedia.relativeFilePath ?? "nil")")
-        guard let relativeFilePath = chatMedia.relativeFilePath else {
+        guard let processed = chatMedia.mediaURL else {
             DDLogError("ChatData/uploadChat/\(msgID)/\(mediaIndex) missing file path")
             return completion(.failure(MediaUploadError.invalidUrls))
         }
-        let processed = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
 
         MainAppContext.shared.mediaHashStore.fetch(url: processed, blobVersion: chatMedia.blobVersion) { [weak self] upload in
             guard let self = self else { return }
@@ -2645,7 +2639,7 @@ extension ChatData {
                     }
                 }) {
                     if media.outgoingStatus == .uploaded {
-                        ImageServer.cleanUpUploadData(directoryURL: MainAppContext.chatMediaDirectoryURL, relativePath: media.relativeFilePath)
+                        ImageServer.cleanUpUploadData(directoryURL: MainAppContext.commonMediaStoreURL, relativePath: media.relativeFilePath)
                     }
                     completion(uploadResult)
                 }

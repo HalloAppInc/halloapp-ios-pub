@@ -42,7 +42,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.feed")
     private lazy var downloadManager: FeedDownloadManager = {
-        let downloadManager = FeedDownloadManager(mediaDirectoryURL: MainAppContext.mediaDirectoryURL)
+        let downloadManager = FeedDownloadManager(mediaDirectoryURL: MainAppContext.commonMediaStoreURL)
         downloadManager.delegate = self
         return downloadManager
     }()
@@ -61,10 +61,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         super.init()
 
         self.service.feedDelegate = self
-        mediaUploader.resolveMediaPath = { (relativePath) in
-            return MainAppContext.mediaDirectoryURL.appendingPathComponent(relativePath, isDirectory: false)
-        }
-
         // when app resumes, xmpp reconnects, feed should try uploading any pending again
         cancellableSet.insert(
             self.service.didConnect.sink {
@@ -2463,6 +2459,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogInfo("FeedData/download-task/\(task.id)/complete [\(task.decryptedFilePath!)]")
                 feedPostMedia.status = task.isPartialChunkedDownload ? .downloadedPartial : .downloaded
                 feedPostMedia.relativeFilePath = task.decryptedFilePath
+                feedPostMedia.mediaDirectory = .commonMedia
                 if task.isPartialChunkedDownload, let chunkSet = task.downloadedChunkSet {
                     DDLogDebug("FeedData/download-task/\(task.id)/feedDownloadManager chunkSet=[\(chunkSet)]")
                     feedPostMedia.chunkSet = chunkSet.data
@@ -2484,8 +2481,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             // Step 4: Update upload data to avoid duplicate uploads
             // TODO Nandini : check this for comment media
-            if let path = feedPostMedia.relativeFilePath, let downloadUrl = feedPostMedia.url {
-                let fileUrl = MainAppContext.mediaDirectoryURL.appendingPathComponent(path, isDirectory: false)
+            if let fileUrl = feedPostMedia.mediaURL, let downloadUrl = feedPostMedia.url {
                 MainAppContext.shared.mediaHashStore.update(url: fileUrl, blobVersion: feedPostMedia.blobVersion, key: feedPostMedia.key, sha256: feedPostMedia.sha256, downloadURL: downloadUrl)
             }
         }
@@ -2657,6 +2653,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedMedia.order = Int16(index)
             feedMedia.blobVersion = (mediaItem.type == .video && shouldStreamFeedVideo) ? .chunked : .default
             feedMedia.post = feedPost
+            feedMedia.mediaDirectory = .commonMedia
 
             if let url = mediaItem.fileURL {
                 ImageServer.shared.attach(for: url, id: postId, index: index)
@@ -2690,6 +2687,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 previewMedia.sha256 = ""
                 previewMedia.order = 0
                 previewMedia.linkPreview = linkPreview
+                previewMedia.mediaDirectory = .commonMedia
 
                 // Copying depends on all data fields being set, so do this last.
                 do {
@@ -2794,6 +2792,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedMedia.sha256 = ""
             feedMedia.order = Int16(index)
             feedMedia.comment = feedComment
+            feedMedia.mediaDirectory = .commonMedia
 
             // Copying depends on all data fields being set, so do this last.
             do {
@@ -2823,6 +2822,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 previewMedia.sha256 = ""
                 previewMedia.order = 0
                 previewMedia.linkPreview = linkPreview
+                previewMedia.mediaDirectory = .commonMedia
                 
                 // Copying depends on all data fields being set, so do this last.
                 do {
@@ -3169,10 +3169,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             DDLogDebug("FeedData/process-mediaItem/feedPost: \(postId)/\(mediaItem.order), index: \(mediaIndex)")
             let outputFileID = "\(postId)-\(mediaIndex)"
 
-            if let relativeFilePath = mediaItem.relativeFilePath, mediaItem.sha256.isEmpty, mediaItem.key.isEmpty {
-                DDLogDebug("FeedData/process-mediaItem/feedPost: \(postId)/\(mediaIndex)/relativeFilePath: \(relativeFilePath)")
-                let url = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
-                let output = MainAppContext.mediaDirectoryURL.appendingPathComponent(outputFileID, isDirectory: false).appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
+            if let url = mediaItem.mediaURL, mediaItem.sha256.isEmpty, mediaItem.key.isEmpty {
+                DDLogDebug("FeedData/process-mediaItem/feedPost: \(postId)/\(mediaIndex)/url: \(url)")
+                let output = url.deletingLastPathComponent().appendingPathComponent(outputFileID, isDirectory: false).appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
 
                 ImageServer.shared.prepare(mediaItem.type, url: url, for: postId, index: Int(mediaIndex), shouldStreamVideo: mediaItem.blobVersion == .chunked) { [weak self] in
                     guard let self = self else { return }
@@ -3293,10 +3292,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             DDLogDebug("FeedData/process-mediaItem/feedLinkPreview: \(feedLinkPreview.id)/\(mediaItemToUpload.order), index: \(mediaIndex)")
             let outputFileID = "\(feedLinkPreview.id)-\(mediaIndex)"
 
-            if let relativeFilePath = mediaItemToUpload.relativeFilePath, mediaItemToUpload.sha256.isEmpty && mediaItemToUpload.key.isEmpty {
-                DDLogDebug("FeedData/process-mediaItem/feedLinkPreview: \(feedLinkPreview.id)/\(mediaIndex)/relativeFilePath: \(relativeFilePath)")
-                let url = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
-                let output = MainAppContext.mediaDirectoryURL.appendingPathComponent(outputFileID, isDirectory: false).appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
+            if let url = mediaItemToUpload.mediaURL, mediaItemToUpload.sha256.isEmpty, mediaItemToUpload.key.isEmpty {
+                DDLogDebug("FeedData/process-mediaItem/feedLinkPreview: \(feedLinkPreview.id)/\(mediaIndex)/url: \(url)")
+                let output = url.deletingLastPathComponent().appendingPathComponent(outputFileID, isDirectory: false).appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
 
                 ImageServer.shared.prepare(mediaItemToUpload.type, url: url, for: feedLinkPreview.id, index: Int(mediaIndex), shouldStreamVideo: false) { [weak self] in
                     guard let self = self else { return }
@@ -3412,10 +3410,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogDebug("FeedData/process-mediaItem/comment: \(feedComment.id)/\(mediaItemToUpload.order), index: \(mediaIndex)")
                 let outputFileID = "\(feedComment.id)-\(mediaIndex)"
 
-                if let relativeFilePath = mediaItemToUpload.relativeFilePath, mediaItemToUpload.sha256.isEmpty && mediaItemToUpload.key.isEmpty {
-                    DDLogDebug("FeedData/process-mediaItem/comment: \(feedComment.id)/\(mediaIndex)/relativeFilePath: \(relativeFilePath)")
-                    let url = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
-                    let output = MainAppContext.mediaDirectoryURL.appendingPathComponent(outputFileID, isDirectory: false).appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
+
+                if let url = mediaItemToUpload.mediaURL, mediaItemToUpload.sha256.isEmpty && mediaItemToUpload.key.isEmpty {
+                    DDLogDebug("FeedData/process-mediaItem/comment: \(feedComment.id)/\(mediaIndex)/url: \(url)")
+                    let output = url.deletingLastPathComponent().appendingPathComponent(outputFileID, isDirectory: false).appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
 
                     ImageServer.shared.prepare(mediaItemToUpload.type, url: url, for: feedComment.id, index: Int(mediaIndex), shouldStreamVideo: mediaItemToUpload.blobVersion == .chunked) { [weak self] in
                         guard let self = self else { return }
@@ -3496,11 +3494,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         DDLogDebug("FeedData/upload/media \(postId)/\(postMedia.order), index:\(mediaIndex)")
-        guard let relativeFilePath = postMedia.relativeFilePath else {
+        guard let processed = postMedia.mediaURL else {
             DDLogError("FeedData/upload-media/\(postId)/\(mediaIndex) missing file path")
             return completion(.failure(MediaUploadError.invalidUrls))
         }
-        let processed = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
 
         MainAppContext.shared.mediaHashStore.fetch(url: processed, blobVersion: postMedia.blobVersion) { [weak self] upload in
             guard let self = self else { return }
@@ -3580,11 +3577,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         DDLogDebug("FeedData/upload/media/coment postid: \(postId)/ commentid: \(commentId)/ order: \(postCommentMedia), index:\(mediaIndex)")
-        guard let relativeFilePath = postCommentMedia.relativeFilePath else {
+        guard let processed = postCommentMedia.mediaURL else {
             DDLogError("FeedData/upload-media/comment postid: \(postId)/ commentid: \(commentId)/\(mediaIndex) missing file path")
             return completion(.failure(MediaUploadError.invalidUrls))
         }
-        let processed = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
 
         MainAppContext.shared.mediaHashStore.fetch(url: processed, blobVersion: postCommentMedia.blobVersion) { [weak self] upload in
             guard let self = self else { return }
@@ -3663,11 +3659,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         DDLogDebug("FeedData/upload/media/feedLinkPreviewID \(feedLinkPreviewId)/ order: \(feedLinkPreviewMedia), index:\(mediaIndex)")
-        guard let relativeFilePath = feedLinkPreviewMedia.relativeFilePath else {
+        guard let processed = feedLinkPreviewMedia.mediaURL else {
             DDLogError("FeedData/upload-media/feedLinkPreview \(feedLinkPreviewId)/\(mediaIndex) missing file path")
             return completion(.failure(MediaUploadError.invalidUrls))
         }
-        let processed = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
 
         MainAppContext.shared.mediaHashStore.fetch(url: processed, blobVersion: feedLinkPreviewMedia.blobVersion) { [weak self] upload in
             guard let self = self else { return }
@@ -3896,8 +3891,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogInfo("FeedData/deleteMedia/cancelTask/task: \(currentTask.id)")
                 currentTask.downloadRequest?.cancel(producingResumeData : false)
             }
-            if let encryptedFilePath = media.encryptedFilePath {
-                let encryptedURL = media.mediaDirectoryURL.appendingPathComponent(encryptedFilePath, isDirectory: false)
+            if let relativeFilePath = media.relativeFilePath {
+                let encryptedURL = media.mediaDirectoryURL.appendingPathComponent(relativeFilePath.appending(".enc"), isDirectory: false)
                 do {
                     if FileManager.default.fileExists(atPath: encryptedURL.path) {
                         try FileManager.default.removeItem(at: encryptedURL)
@@ -3939,8 +3934,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogInfo("FeedData/deleteMedia/cancelTask/task: \(currentTask.id)")
                 currentTask.downloadRequest?.cancel(producingResumeData : false)
             }
-            if let encryptedFilePath = media.encryptedFilePath {
-                let encryptedURL = media.mediaDirectoryURL.appendingPathComponent(encryptedFilePath, isDirectory: false)
+            if let relativeFilePath = media.relativeFilePath {
+                let encryptedURL = media.mediaDirectoryURL.appendingPathComponent(relativeFilePath.appending(".enc"), isDirectory: false)
                 do {
                     if FileManager.default.fileExists(atPath: encryptedURL.path) {
                         try FileManager.default.removeItem(at: encryptedURL)
@@ -3978,8 +3973,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogInfo("FeedData/deleteMedia/cancelTask/task: \(currentTask.id)")
                 currentTask.downloadRequest?.cancel(producingResumeData : false)
             }
-            if let encryptedFilePath = media.encryptedFilePath {
-                let encryptedURL = media.mediaDirectoryURL.appendingPathComponent(encryptedFilePath, isDirectory: false)
+            if let relativeFilePath = media.relativeFilePath {
+                let encryptedURL = media.mediaDirectoryURL.appendingPathComponent(relativeFilePath.appending(".enc"), isDirectory: false)
                 do {
                     if FileManager.default.fileExists(atPath: encryptedURL.path) {
                         try FileManager.default.removeItem(at: encryptedURL)
@@ -4271,11 +4266,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 return image.imageAsset?.image(with: UITraitCollection(userInterfaceStyle: .light)) ?? image
             }()
             let relativePath = "externalsharethumb-\(UUID().uuidString).jpg"
-            let uploadFileURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativePath)
+            let uploadFileURL = MainAppContext.commonMediaStoreURL.appendingPathComponent(relativePath)
             if image.save(to: uploadFileURL) {
                 let imageSize = image.size
                 let groupID = "\(post.id)-external"
-                mediaUploader.upload(media: SimpleMediaUploadable(encryptedFilePath: relativePath),
+                mediaUploader.upload(media: SimpleMediaUploadable(encryptedFileURL: uploadFileURL),
                                      groupId: groupID,
                                      didGetURLs: { _ in }) { [weak mediaUploader] result in
                     // By default, completed tasks are not cleard from the media uploader.
@@ -4725,6 +4720,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     media.key = previewMedia.key
                     media.sha256 = previewMedia.sha256
                     media.linkPreview = linkPreview
+                    media.mediaDirectory = .commonMedia
 
                     // Copy media if there'a a local copy (outgoing posts or incoming posts with downloaded media).
                     if let relativeFilePath = previewMedia.relativeFilePath {
@@ -4776,6 +4772,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 feedMedia.chunkSize = media.chunkSize
                 feedMedia.blobSize = media.blobSize
                 feedMedia.post = feedPost
+                feedMedia.mediaDirectory = .commonMedia
 
                 // Copy media if there'a a local copy (outgoing posts or incoming posts with downloaded media).
                 if let relativeFilePath = media.relativeFilePath {
@@ -4986,7 +4983,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
 
             // Set mediaDirectory properly
-            media.mediaDirectory = .media
+            media.mediaDirectory = .commonMedia
         }
     }
 }
