@@ -1038,6 +1038,66 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     // MARK: Helpers
 
+    private func saveAllMedia(in chatMessage: ChatMessage) async {
+        do {
+            let isAuthorizedToSave: Bool = await {
+                if #available(iOS 14, *) {
+                    let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
+                    return status == .authorized || status == .limited
+                } else {
+                    let status = await withCheckedContinuation { continuation in
+                        PHPhotoLibrary.requestAuthorization { continuation.resume(returning: $0) }
+                    }
+                    return status == .authorized
+                }
+            }()
+            
+            guard isAuthorizedToSave else {
+                DDLogInfo("ChatViewController/saveAllMediaInMessage: User denied photos permissions")
+                
+                let alert = UIAlertController(title: Localizations.mediaPermissionsError, message: Localizations.mediaPermissionsErrorDescription, preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
+                present(alert, animated: true)
+                return
+            }
+            
+            try await PHPhotoLibrary.shared().performChanges {
+                chatMessage.media?.lazy
+                    .compactMap { (media: CommonMedia) -> (type: CommonMediaType, url: URL)? in
+                        if let url = media.mediaURL ?? media.relativeFilePath.map({ MainAppContext.chatMediaDirectoryURL.appendingPathComponent($0, isDirectory: false) }) {
+                            return (media.type, url)
+                        } else {
+                            return nil
+                        }
+                    }
+                    .filter { (type: CommonMediaType, _: URL) -> Bool in
+                        type == .image || type == .video
+                    }
+                    .forEach { (type: CommonMediaType, url: URL) in
+                        if type == .image {
+                            PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: url)
+                            AppContext.shared.eventMonitor.count(.mediaSaved(type: .image, source: .chat))
+                        } else {
+                            PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
+                            AppContext.shared.eventMonitor.count(.mediaSaved(type: .video, source: .chat))
+                        }
+                    }
+            }
+            
+            let alert = UIAlertController(title: nil, message: Localizations.saveSuccessfulLabel, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
+            present(alert, animated: true)
+        } catch {
+            DDLogError("ChatViewController/saveAllMediaInMessage/error: \(error)")
+            
+            Task { @MainActor in
+                let alert = UIAlertController(title: nil, message: Localizations.mediaSaveError, preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
+                present(alert, animated: true)
+            }
+        }
+    }
+    
     // special case to prevent user from chaining a loop-like navigation stack
     private func preventNavLoop() {
         guard let nc = navigationController else { return }
@@ -1693,6 +1753,12 @@ extension ChatViewController: InboundMsgViewCellDelegate {
         let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
 
         if chatMessage.incomingStatus != .retracted {
+            if let media = chatMessage.media, !media.isEmpty {
+                actionSheet.addAction(UIAlertAction(title: Localizations.saveAllButton, style: .default) { [weak self] _ in
+                    Task { await self?.saveAllMedia(in: chatMessage) }
+                })
+            }
+            
             actionSheet.addAction(UIAlertAction(title: Localizations.messageReply, style: .default) { [weak self] _ in
                 guard let self = self else { return }
                 self.handleQuotedReply(msg: chatMessage, mediaIndex: inboundMsgViewCell.mediaIndex)
@@ -1761,6 +1827,12 @@ extension ChatViewController: OutboundMsgViewCellDelegate {
         let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
 
         if ![.retracting, .retracted].contains(chatMessage.outgoingStatus) {
+            if let media = chatMessage.media, !media.isEmpty {
+                actionSheet.addAction(UIAlertAction(title: Localizations.saveAllButton, style: .default) { [weak self] _ in
+                    Task { await self?.saveAllMedia(in: chatMessage) }
+                })
+            }
+            
             actionSheet.addAction(UIAlertAction(title: Localizations.messageReply, style: .default) { [weak self] _ in
                 guard let self = self else { return }
                 self.handleQuotedReply(msg: chatMessage, mediaIndex: outboundMsgViewCell.mediaIndex)
