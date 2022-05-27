@@ -364,6 +364,7 @@ class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
         present(alert, animated: true)
     }
 
+    @MainActor
     private func checkVideoPermissions() async -> Bool {
         let videoGranted = await CameraController.checkCapturePermissions(type: .video)
         if videoGranted {
@@ -374,6 +375,7 @@ class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
         }
     }
 
+    @MainActor
     private func checkAudioPermissions() async -> Bool {
         let audioGranted = await CameraController.checkCapturePermissions(type: .audio)
         if audioGranted {
