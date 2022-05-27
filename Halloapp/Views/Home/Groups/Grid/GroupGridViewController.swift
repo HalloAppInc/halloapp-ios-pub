@@ -48,6 +48,8 @@ class GroupGridViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        installLargeTitleUsingGothamFont()
+
         let image = UIImage(named: "NavCreateGroup", in: nil, with: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))?.withTintColor(UIColor.primaryBlue, renderingMode: .alwaysOriginal)
         image?.accessibilityLabel = Localizations.chatCreateNewGroup
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(createGroup))
@@ -96,7 +98,7 @@ class GroupGridViewController: UIViewController {
         let size: NSCollectionLayoutSize
         if isSectionEmpty {
             size = .init(widthDimension: .fractionalWidth(1),
-                         heightDimension: .estimated(0))
+                         heightDimension: .estimated(CGFloat.leastNonzeroMagnitude))
         } else {
             size = .init(widthDimension: .absolute(fontMetrics.scaledValue(for: 136, compatibleWith: layoutEnvironment.traitCollection)),
                          heightDimension: .absolute(fontMetrics.scaledValue(for: 182, compatibleWith: layoutEnvironment.traitCollection)))
@@ -130,6 +132,12 @@ class GroupGridViewController: UIViewController {
                                                       for: indexPath)
         if let cell = cell as? GroupGridCollectionViewCell, let feedPost = dataSource.feedPost(at: indexPath) {
             cell.configure(with: feedPost)
+            let postID = feedPost.id
+            cell.openPost = { [weak self] in
+                let navigationController = UINavigationController(rootViewController: FlatCommentsViewController(feedPostId: postID))
+                navigationController.modalPresentationStyle = .pageSheet
+                self?.present(navigationController, animated: true)
+            }
         }
         return cell
     }
@@ -144,8 +152,6 @@ class GroupGridViewController: UIViewController {
                                                                          for: indexPath)
             if let header = header as? GroupGridHeader, let groupID = dataSource.groupID(at: indexPath.section) {
                 header.configure(with: groupID)
-                // Coming soon...
-                /*
                 header.openGroupFeed = { [weak self] in
                     self?.navigationController?.pushViewController(GroupFeedViewController(groupId: groupID), animated: true)
                 }
@@ -159,7 +165,6 @@ class GroupGridViewController: UIViewController {
                     newPostViewController.modalPresentationStyle = .fullScreen
                     self?.present(newPostViewController, animated: true)
                 }
-                 */
             }
             return header
         case GroupGridSeparator.elementKind:
@@ -173,6 +178,7 @@ class GroupGridViewController: UIViewController {
 
     @objc func newPostToastTapped() {
         dataSource.reloadSnapshot(animated: true)
+        scrollToTop(animated: true)
     }
 
     @objc func refreshControlDidRefresh(_ refreshControl: UIRefreshControl?) {
@@ -213,6 +219,13 @@ extension GroupGridViewController: UICollectionViewDelegate {
             return
         }
         MainAppContext.shared.feedData.loadImages(postID: feedPostID)
+        (cell as? GroupGridCollectionViewCell)?.startAnimations()
+    }
+    
+    func collectionView(_ collectionView: UICollectionView,
+                        didEndDisplaying cell: UICollectionViewCell,
+                        forItemAt indexPath: IndexPath) {
+        (cell as? GroupGridCollectionViewCell)?.stopAnimations()
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {

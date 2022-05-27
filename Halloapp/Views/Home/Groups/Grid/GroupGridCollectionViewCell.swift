@@ -16,10 +16,12 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
 
     static let reuseIdentifier = String(describing: GroupGridCollectionViewCell.self)
 
+    var openPost: (() -> Void)?
+
     private struct Constants {
         static let commentIndicatorSize: CGFloat = 5
         static let audioAvatarSize: CGFloat = 60
-        static let audioAvatarMicSize: CGFloat = 24
+        static let audioAvatarMicSize: CGFloat = 32
     }
 
     // MARK: Body Views
@@ -33,7 +35,14 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         textView.isScrollEnabled = false
         textView.isUserInteractionEnabled = false
         textView.linkTextAttributes = [.foregroundColor: UIColor.link]
-        textView.textColor = .primaryWhiteBlack
+        textView.textColor = UIColor(dynamicProvider: {
+            switch $0.userInterfaceStyle {
+            case .dark:
+                return .white.withAlphaComponent(0.8)
+            default:
+                return .white
+            } 
+        })
         textView.textContainerInset = UIEdgeInsets(top: 12, left: 12, bottom: 12, right: 12)
         return textView
     }()
@@ -42,36 +51,26 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         return MediaImageView(configuration: .groupGrid)
     }()
 
+    private let audioBlurView: UIVisualEffectView = {
+        let audioBlurView = UIVisualEffectView(effect: UIBlurEffect(style: .systemThinMaterial))
+        audioBlurView.backgroundColor = .white.withAlphaComponent(0.4)
+        return audioBlurView
+    }()
+
     private let audioAvatarView: AvatarView = {
         let audioAvatarView = AvatarView()
-        audioAvatarView.borderWidth = 2
-        audioAvatarView.borderColor = .primaryWhiteBlack
-        audioAvatarView.layer.shadowColor = UIColor.black.cgColor
-        audioAvatarView.layer.shadowOffset = CGSize(width: 0, height: 1)
-        audioAvatarView.layer.shadowOpacity = 0.2
-        audioAvatarView.layer.shadowRadius = 2
-        audioAvatarView.layer.shadowPath = UIBezierPath(ovalIn: CGRect(origin: .zero,
-                                                                       size: CGSize(width: Constants.audioAvatarSize,
-                                                                                    height: Constants.audioAvatarSize))).cgPath
 
         let audioImageView = UIImageView(image: UIImage(systemName: "mic.fill"))
-        audioImageView.backgroundColor = .primaryWhiteBlack
+        audioImageView.backgroundColor = .systemBlue
         audioImageView.contentMode = .center
-        audioImageView.tintColor = .systemBlue
+        audioImageView.tintColor = .white
         audioImageView.layer.cornerRadius = Constants.audioAvatarMicSize / 2
-        audioImageView.layer.shadowColor = UIColor.black.cgColor
-        audioImageView.layer.shadowOffset = CGSize(width: 0, height: 1)
-        audioImageView.layer.shadowOpacity = 0.2
-        audioImageView.layer.shadowRadius = 2
-        audioImageView.layer.shadowPath = UIBezierPath(ovalIn: CGRect(origin: .zero,
-                                                                      size: CGSize(width: Constants.audioAvatarMicSize,
-                                                                                   height: Constants.audioAvatarMicSize))).cgPath
-        audioImageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: Constants.audioAvatarMicSize / 2)
+        audioImageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: Constants.audioAvatarMicSize * 0.6)
         audioImageView.translatesAutoresizingMaskIntoConstraints = false
         audioAvatarView.addSubview(audioImageView)
 
         NSLayoutConstraint.activate([
-            audioImageView.trailingAnchor.constraint(equalTo: audioAvatarView.trailingAnchor),
+            audioImageView.centerXAnchor.constraint(equalTo: audioAvatarView.trailingAnchor),
             audioImageView.bottomAnchor.constraint(equalTo: audioAvatarView.bottomAnchor),
             audioImageView.widthAnchor.constraint(equalToConstant: Constants.audioAvatarMicSize),
             audioImageView.heightAnchor.constraint(equalToConstant: Constants.audioAvatarMicSize),
@@ -82,7 +81,7 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
 
     private let audioDurationLabel: UILabel = {
         let audioDurationLabel = UILabel()
-        audioDurationLabel.font = .scaledSystemFont(ofSize: 12)
+        audioDurationLabel.font = .scaledSystemFont(ofSize: 12, weight: .semibold)
         audioDurationLabel.textColor = .label.withAlphaComponent(0.8)
 
         return audioDurationLabel
@@ -93,7 +92,7 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
     private let nameLabel: UILabel = {
         let nameLabel = UILabel()
         nameLabel.adjustsFontForContentSizeCategory = true
-        nameLabel.font = UIFont.scaledSystemFont(ofSize: 14, weight: .semibold)
+        nameLabel.font = .scaledSystemFont(ofSize: 14, weight: .semibold)
         nameLabel.textColor = .label.withAlphaComponent(0.6)
         return nameLabel
     }()
@@ -124,7 +123,7 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
 
         override func layoutSubviews() {
             super.layoutSubviews()
-            layer.shadowPath = UIBezierPath(roundedRect: bounds.insetBy(dx: 4, dy: 4), cornerRadius: 4).cgPath
+            layer.shadowPath = UIBezierPath(roundedRect: bounds.insetBy(dx: bounds.width > 8 ? 4 : 0, dy: bounds.height > 8 ? 4 : 0), cornerRadius: 4).cgPath
         }
 
         override var intrinsicContentSize: CGSize {
@@ -138,7 +137,7 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
 
     // MARK: Util
 
-    private var imageLoadingCancellable: AnyCancellable?
+    private var audioAvatarChangedCancellable: AnyCancellable?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -152,21 +151,25 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
 
         // Body
         // Add first to position below other content
-        textView.setContentCompressionResistancePriority(UILayoutPriority(1), for: .vertical)
-        textView.setContentHuggingPriority(UILayoutPriority(1), for: .vertical)
         textView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(textView)
 
-        imageView.setContentCompressionResistancePriority(UILayoutPriority(1), for: .vertical)
-        imageView.setContentHuggingPriority(UILayoutPriority(1), for: .vertical)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(imageView)
 
+        audioBlurView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(audioBlurView)
+
+        [textView, imageView, audioBlurView].forEach {
+            $0.setContentCompressionResistancePriority(UILayoutPriority(1), for: .vertical)
+            $0.setContentHuggingPriority(UILayoutPriority(1), for: .vertical)
+        }
+
         audioAvatarView.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(audioAvatarView)
+        audioBlurView.contentView.addSubview(audioAvatarView)
 
         audioDurationLabel.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(audioDurationLabel)
+        audioBlurView.contentView.addSubview(audioDurationLabel)
 
         leadingContentTypeImageView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(leadingContentTypeImageView)
@@ -196,6 +199,7 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         commentLabel.setContentHuggingPriority(UILayoutPriority(1), for: .horizontal)
 
         let footerStackView = UIStackView(arrangedSubviews: [commentImageView, commentLabel, commentIndicator])
+        footerStackView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(openPostTapped)))
         footerStackView.alignment = .center
         footerStackView.axis = .horizontal
         footerStackView.isLayoutMarginsRelativeArrangement = true
@@ -222,10 +226,15 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
             imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             imageView.bottomAnchor.constraint(equalTo: footerStackView.topAnchor),
 
+            audioBlurView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            audioBlurView.topAnchor.constraint(equalTo: headerStackView.bottomAnchor),
+            audioBlurView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            audioBlurView.bottomAnchor.constraint(equalTo: footerStackView.topAnchor),
+
             audioAvatarView.widthAnchor.constraint(equalToConstant: Constants.audioAvatarSize),
             audioAvatarView.heightAnchor.constraint(equalToConstant: Constants.audioAvatarSize),
-            audioAvatarView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            audioAvatarView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            audioAvatarView.centerXAnchor.constraint(equalTo: audioBlurView.centerXAnchor),
+            audioAvatarView.centerYAnchor.constraint(equalTo: audioBlurView.centerYAnchor),
 
             audioDurationLabel.centerXAnchor.constraint(equalTo: audioAvatarView.centerXAnchor),
             audioDurationLabel.topAnchor.constraint(equalTo: audioAvatarView.bottomAnchor, constant: 4),
@@ -253,7 +262,7 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
     }
 
     func configure(with post: FeedPost) {
-        imageLoadingCancellable?.cancel()
+        audioAvatarChangedCancellable?.cancel()
 
         nameLabel.text = MainAppContext.shared.contactStore.fullNameIfAvailable(for: post.userID,
                                                                                 ownName: Localizations.meCapitalized) ?? Localizations.unknownContact
@@ -290,14 +299,19 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
 
             switch visibleMedia.type {
             case .audio:
-                audioAvatarView.configure(with: post.userID, using: MainAppContext.shared.avatarStore)
-                audioDurationLabel.text = Self.durationFormatter.string(from: visibleMedia.fileURL.flatMap { AVAsset(url: $0).duration.seconds } ?? 0)
-                showAudioView = true
+                let userAvatar = MainAppContext.shared.avatarStore.userAvatar(forUserId: post.userID)
 
-                // Use text view to display background color
-                textView.backgroundColor = Self.backgroundColor(for: post.id)
-                textView.text = nil
-                showTextView = true
+                audioAvatarView.configure(with: userAvatar, using: MainAppContext.shared.avatarStore)
+                audioDurationLabel.text = Self.durationFormatter.string(from: visibleMedia.fileURL.flatMap { AVAsset(url: $0).duration.seconds } ?? 0)
+
+                imageView.clipsToBounds = true
+                imageView.contentMode = .scaleAspectFill
+                imageView.image = userAvatar.image ?? AvatarView.defaultImage
+                audioAvatarChangedCancellable = userAvatar.imageDidChange.sink { [weak self] image in
+                    self?.imageView.image = image ?? AvatarView.defaultImage
+                }
+                showAudioView = true
+                showImageView = true
             case .image, .video:
                 visibleMedia.loadImage()
                 imageView.configure(with: visibleMedia)
@@ -310,7 +324,7 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
             let mentionFont = UIFont(descriptor: bodyFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
 
             textView.attributedText = mentionText.flatMap {
-                HAMarkdown(font: bodyFont, color: .primaryWhiteBlack)
+                HAMarkdown(font: bodyFont, color: textView.textColor ?? .white)
                     .parse($0)
                     .applyingFontForMentions(mentionFont)
             }
@@ -321,8 +335,7 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
 
         textView.isHidden = !showTextView
         imageView.isHidden = !showImageView
-        audioAvatarView.isHidden = !showAudioView
-        audioDurationLabel.isHidden = !showAudioView
+        audioBlurView.isHidden = !showAudioView
 
         let leadingContentTypeImage: UIImage?
         if isLinkPreview {
@@ -349,6 +362,14 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         // Initiate download for images that were not yet downloaded.
         MainAppContext.shared.feedData.downloadMedia(in: [post])
     }
+    
+    func startAnimations() {
+        imageView.startAnimating()
+    }
+    
+    func stopAnimations() {
+        imageView.stopAnimating()
+    }
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
@@ -363,6 +384,10 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
 
         contentView.layer.shadowPath = UIBezierPath(roundedRect: contentView.bounds,
                                                     cornerRadius: contentView.layer.cornerRadius).cgPath
+    }
+
+    @objc private func openPostTapped() {
+        openPost?()
     }
 
     private func updateBorderAndShadowColors() {
