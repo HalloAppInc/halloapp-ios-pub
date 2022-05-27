@@ -406,8 +406,7 @@
 /* Confirmation prompt for when resending comment that previously failed to send. */
 "comment.resend.confirmation" = "Reenviar comentário?";
 
-/* Placeholder text for the comment input field when there is no user input.
-   Text displayed in gray inside of the comment input field when there is no user input. */
+/* Placeholder text for the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Fazer um comentário";
 
 /* Header that appears above all the unread Messages in the comments view when there are more than one unread message */
@@ -415,12 +414,6 @@
 
 /* Header that appears above one single unread Message in the chat view. */
 "comment.unread.chat.messages.header.single" = "%@ Mensagem não lida";
-
-/* Header that appears above all the unread comments in the comments view when there are more than one unread message */
-"comment.unread.messages.header.plural" = "%@ Comentários não lidos";
-
-/* Header that appears above one single unread message in the comments view. */
-"comment.unread.messages.header.single" = "%@ Comentário não lido";
 
 /* Text displayed in place of a comment that is not supported in the current app version. */
 "comment.unsupported" = "A sua versão do HalloApp não suporta este tipo de comentário.";
@@ -803,6 +796,9 @@
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
 "group.feed.welcome.post.title" = "Convidar um amigo para o seu grupo";
 
+/* Indicates number of new posts on groups grid */
+"group.grid.n.posts" = "grupo.rede.n.postagens";
+
 /* Action label for inviting others to join the group via link */
 "group.info.invite.to.group.via.link" = "Convidar para o grupo via link";
 
@@ -1117,6 +1113,9 @@
 
 /* Displayed in place of deleted feed posts. */
 "n.posts.deleted" = "% @ postagens excluídas";
+
+/* Header that appears above unread messages in the comments view. */
+"n.unread.comments.title" = "n.comentário.não lido.título";
 
 /* Placeholder text shown in the middle of the Add New Group Members screen when user have no contacts (in ZeroZone) to add */
 "new.group.members.empty.placeholder" = "Seus contatos que estão no HalloApp aparecerão aqui";
@@ -1651,9 +1650,6 @@
 
 /* Timestamp: `Yesterday` */
 "timestamp.yesterday" = "Ontem";
-
-/* Camera screen title */
-"title.camera" = "Câmara";
 
 /* Camera screen title for a new moment */
 "title.camera.moment" = "Novo momento";

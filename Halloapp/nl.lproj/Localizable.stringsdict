@@ -196,6 +196,22 @@
 			<string>&lt;$user$&gt; en %d anderen hebben geantwoord op de post van &lt;$author$&gt;</string>
 		</dict>
 	</dict>
+	<key>n.unread.comments.title</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_unread_comments@</string>
+		<key>n_unread_comments</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d Ongelezen Reactie</string>
+			<key>other</key>
+			<string>%d Ongelezen Reacties</string>
+		</dict>
+	</dict>
 	<key>notification.n.photos</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>

@@ -173,7 +173,8 @@
 	<key>group.grid.n.posts</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>%#@count@</string>
+		<string>
+%#@conta@</string>
 		<key>count</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
@@ -185,9 +186,9 @@
 			<key>many</key>
 			<string>%d new posts</string>
 			<key>one</key>
-			<string>%d new post</string>
+			<string>%d nova postagem</string>
 			<key>other</key>
-			<string>%d new posts</string>
+			<string>%d novas postagens</string>
 			<key>two</key>
 			<string>%d new posts</string>
 			<key>zero</key>
@@ -288,6 +289,30 @@
 			<string>&lt;$user$&gt; and %d others replied to &lt;$author$&gt;'s post</string>
 			<key>zero</key>
 			<string>&lt;$user$&gt; and %d others replied to &lt;$author$&gt;'s post</string>
+		</dict>
+	</dict>
+	<key>n.unread.comments.title</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_comentários_não lidos@</string>
+		<key>n_unread_comments</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>%d Unread Comments</string>
+			<key>many</key>
+			<string>%d Unread Comments</string>
+			<key>one</key>
+			<string>%d Comentário não lido</string>
+			<key>other</key>
+			<string>Comentários não lidos</string>
+			<key>two</key>
+			<string>%d Unread Comments</string>
+			<key>zero</key>
+			<string>%d Unread Comments</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>

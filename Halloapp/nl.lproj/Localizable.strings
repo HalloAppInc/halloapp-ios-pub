@@ -266,7 +266,7 @@
 "chat.delete.title" = "Geselecteerd bericht verwijderen?";
 
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
-"chat.encryption.label" = "Chats zijn end-to-end versleuteld en HalloApp heeft hiertoe geen toegang. Tik voor meer informatie.";
+"chat.encryption.label" = "Alle berichten op HalloApp zijn end-to-end versleuteld. Tik voor meer informatie";
 
 /* Text shown in Chat when the security keys of the contact user is chatting with, have changed */
 "chat.event.security.keys.changed" = "Beveiligingssleutels met %@ zijn gewijzigd";
@@ -406,21 +406,14 @@
 /* Confirmation prompt for when resending comment that previously failed to send. */
 "comment.resend.confirmation" = "Reactie Opnieuw Verzenden?";
 
-/* Placeholder text for the comment input field when there is no user input.
-   Text displayed in gray inside of the comment input field when there is no user input. */
-"comment.textfield.placeholder" = "Voeg een reactie toe";
+/* Placeholder text for the comment input field when there is no user input. */
+"comment.textfield.placeholder" = "Nieuwe Reactie";
 
 /* Header that appears above all the unread Messages in the comments view when there are more than one unread message */
 "comment.unread.chat.messages.header.plural" = "%@ Ongelezen Berichten";
 
 /* Header that appears above one single unread Message in the chat view. */
 "comment.unread.chat.messages.header.single" = "%@ Ongelezen Bericht";
-
-/* Header that appears above all the unread comments in the comments view when there are more than one unread message */
-"comment.unread.messages.header.plural" = "%@ Ongelezen Reacties";
-
-/* Header that appears above one single unread message in the comments view. */
-"comment.unread.messages.header.single" = "%@ Ongelezen Reactie";
 
 /* Text displayed in place of a comment that is not supported in the current app version. */
 "comment.unsupported" = "Je versie van HalloApp ondersteunt dit type reactie niet.";
@@ -803,6 +796,9 @@
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
 "group.feed.welcome.post.title" = "Nodig vrienden uit voor je groep";
 
+/* Indicates number of new posts on groups grid */
+"group.grid.n.posts" = "group.grid.n.posts";
+
 /* Action label for inviting others to join the group via link */
 "group.info.invite.to.group.via.link" = "Uitnodigen voor Groep via Link";
 
@@ -1004,6 +1000,10 @@
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.camera.access.request" = "HalloApp heeft geen toegang tot je camera. Om toegang te geven, tik op Instellingen en zet Camera aan";
 
+/* Label indicating that the camera is in photo mode
+   Label indicating that the camera is in video mode */
+"media.camera.mode.photo" = "VIDEO";
+
 /* Confirmation prompt in media composer. */
 "media.discard.confirmation" = "Wil je je wijzigingen weggooien?";
 
@@ -1117,6 +1117,9 @@
 
 /* Displayed in place of deleted feed posts. */
 "n.posts.deleted" = "%@ posts verwijderd";
+
+/* Header that appears above unread messages in the comments view. */
+"n.unread.comments.title" = "n.unread.comments.title";
 
 /* Placeholder text shown in the middle of the Add New Group Members screen when user have no contacts (in ZeroZone) to add */
 "new.group.members.empty.placeholder" = "Je contacten die HalloApp gebruiken verschijnen hier";
@@ -1651,9 +1654,6 @@
 
 /* Timestamp: `Yesterday` */
 "timestamp.yesterday" = "Gisteren";
-
-/* Camera screen title */
-"title.camera" = "Camera";
 
 /* Camera screen title for a new moment */
 "title.camera.moment" = "Nieuw Moment";

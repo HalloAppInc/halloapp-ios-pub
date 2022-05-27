@@ -119,7 +119,7 @@
 	<key>group.grid.n.posts</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>%#@count@</string>
+		<string>%#@conta@</string>
 		<key>count</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
@@ -127,9 +127,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>%d new post</string>
+			<string>%d nova postagem</string>
 			<key>other</key>
-			<string>%d new posts</string>
+			<string>%d novas postagens</string>
 		</dict>
 	</dict>
 	<key>media.prepare.failed.n.count</key>
@@ -194,6 +194,22 @@
 			<string>&lt;$usuario$&gt; e %d outro respondeu para a postagem do &lt;$autor$&gt;</string>
 			<key>other</key>
 			<string>&lt;$usuario$&gt; e %d outros responderam para a postagem do &lt;$autor$&gt;</string>
+		</dict>
+	</dict>
+	<key>n.unread.comments.title</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_comentários_não lidos@</string>
+		<key>n_unread_comments</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d Comentário não lido</string>
+			<key>other</key>
+			<string>%d Comentários não lidos</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>

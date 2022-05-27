@@ -127,9 +127,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>%d new post</string>
+			<string>d% پست جدید</string>
 			<key>other</key>
-			<string>%d new posts</string>
+			<string>d% پست جدید</string>
 		</dict>
 	</dict>
 	<key>media.prepare.failed.n.count</key>
@@ -194,6 +194,22 @@
 			<string>&lt;$user$&gt; و d% نفر دیگر زیر پست &lt;$author$&gt; نظر نوشت</string>
 			<key>other</key>
 			<string>&lt;$user$&gt; و d% نفر دیگر زیر پست &lt;$author$&gt; نظر نوشتند</string>
+		</dict>
+	</dict>
+	<key>n.unread.comments.title</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_unread_comments@</string>
+		<key>n_unread_comments</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>d% نظر خوانده نشده</string>
+			<key>other</key>
+			<string>d% نظر خوانده نشده</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>

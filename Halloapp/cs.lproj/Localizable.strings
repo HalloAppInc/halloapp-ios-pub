@@ -400,15 +400,8 @@
 /* Confirmation prompt for when resending comment that previously failed to send. */
 "comment.resend.confirmation" = "Poslat komentář znovu?";
 
-/* Placeholder text for the comment input field when there is no user input.
-   Text displayed in gray inside of the comment input field when there is no user input. */
+/* Placeholder text for the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Přidat komentář";
-
-/* Header that appears above all the unread comments in the comments view when there are more than one unread message */
-"comment.unread.messages.header.plural" = "%@ Nepřečtené komentáře";
-
-/* Header that appears above one single unread message in the comments view. */
-"comment.unread.messages.header.single" = "%@ Nepřečtených komentářů";
 
 /* Text displayed in place of a comment that is not supported in the current app version. */
 "comment.unsupported" = "Vaše verze HalloApp nepodporuje tento typ komentáře.";
@@ -1633,9 +1626,6 @@
 
 /* Timestamp: `Yesterday` */
 "timestamp.yesterday" = "Včera";
-
-/* Camera screen title */
-"title.camera" = "Fotoaparát";
 
 /* Title for new message screen where user chooses who to message */
 "title.chat.new.message" = "Nová zpráva";

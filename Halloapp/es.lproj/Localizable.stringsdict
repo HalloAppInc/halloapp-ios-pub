@@ -127,9 +127,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>%d new post</string>
+			<string>%d nueva publicación</string>
 			<key>other</key>
-			<string>%d new posts</string>
+			<string>%d nuevas publicaciones</string>
 		</dict>
 	</dict>
 	<key>media.prepare.failed.n.count</key>
@@ -194,6 +194,22 @@
 			<string>&lt;$usuario$&gt; y %d otro respondieron a la publicación de &lt;$author$&gt;</string>
 			<key>other</key>
 			<string>&lt;$usuario$&gt; y %d otros respondieron a las publicaciones de &lt;$author$&gt;</string>
+		</dict>
+	</dict>
+	<key>n.unread.comments.title</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_unread_comments@</string>
+		<key>n_unread_comments</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d Unread Comment</string>
+			<key>other</key>
+			<string>%d Unread Comments</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>
