@@ -37,6 +37,22 @@ extension Color {
         Color("CameraButton")
     }
 
+    static var cameraFrameGradient0: Color {
+        Color("CameraFrameGradient0")
+    }
+
+    static var cameraFrameGradient1: Color {
+        Color("CameraFrameGradient1")
+    }
+
+    static var cameraFrameGradient2: Color {
+        Color("CameraFrameGradient2")
+    }
+
+    static var cameraSelectedLabel: Color {
+        Color("CameraSelectedLabel")
+    }
+
     static var audioComposerHelperText: Color {
         Color("AudioComposerHelperText")
     }

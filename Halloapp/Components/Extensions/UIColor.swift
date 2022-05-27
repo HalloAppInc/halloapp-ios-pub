@@ -54,6 +54,22 @@ extension UIColor {
         UIColor(named: "CameraButton")!
     }
 
+    class var cameraFrameGradient0: UIColor {
+        UIColor(named: "CameraFrameGradient0")!
+    }
+
+    class var cameraFrameGradient1: UIColor {
+        UIColor(named: "CameraFrameGradient1")!
+    }
+
+    class var cameraFrameGradient2: UIColor {
+        UIColor(named: "CameraFrameGradient2")!
+    }
+
+    class var cameraSelectedLabel: UIColor {
+        UIColor(named: "CameraSelectedLabel")!
+    }
+
     // MARK: Chats
 
     class var chatInfoBubble: UIColor {
