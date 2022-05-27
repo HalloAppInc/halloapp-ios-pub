@@ -346,56 +346,8 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     }
     
     private func mediaSaved() {
-        let container = UIView()
-        container.translatesAutoresizingMaskIntoConstraints = false
-        container.layer.cornerRadius = 13
-        container.clipsToBounds = true
-
-        let background = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 0.3)
-        background.translatesAutoresizingMaskIntoConstraints = false
-        background.backgroundColor = UIColor(red: 0.24, green: 0.24, blue: 0.26, alpha: 0.80)
-
-        let imageAttachment = NSTextAttachment()
-        imageAttachment.image = UIImage(named: "CheckmarkLong")?.withTintColor(.white)
-        imageAttachment.bounds = CGRect(x: -8, y: 1, width: 15, height: 11.45)
-
-        let fullString = NSMutableAttributedString()
-        fullString.append(NSAttributedString(attachment: imageAttachment))
-        fullString.append(NSAttributedString(string: " ")) // Space between localized string for saved and checkmark
-        fullString.append(NSAttributedString(string: Localizations.saveSuccessfulLabel))
-
-        let savedLabel = UILabel()
-        savedLabel.translatesAutoresizingMaskIntoConstraints = false
-        savedLabel.attributedText = fullString
-        savedLabel.textColor = .white
-        savedLabel.textAlignment = .center
-
-        container.addSubview(background)
-        container.addSubview(savedLabel)
-        view.addSubview(container)
-
-        container.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
-        container.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 22.5).isActive = true
-        container.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -22.5).isActive = true
-        container.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -75).isActive = true
-        background.constrain(to: container)
-        savedLabel.leadingAnchor.constraint(equalTo: container.leadingAnchor).isActive = true
-        savedLabel.trailingAnchor.constraint(equalTo: container.trailingAnchor).isActive = true
-        savedLabel.topAnchor.constraint(equalTo: container.topAnchor).isActive = true
-        savedLabel.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -1).isActive = true
-
-        container.alpha = 0.0
-        UIView.animate(withDuration: 0.3, animations: {
-            container.alpha = 1.0
-        }) { _ in
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                UIView.animate(withDuration: 0.3, animations: {
-                    container.alpha = 0.0
-                }) { _ in
-                    container.removeFromSuperview()
-                }
-            }
-        }
+        let toast = Toast(type: .icon(UIImage(named: "CheckmarkLong")?.withTintColor(.white)), text: Localizations.saveSuccessfulLabel)
+        toast.show(viewController: self, shouldAutodismiss: true)
     }
     
     private func handleSaveError(error: Error?) {
