@@ -172,7 +172,7 @@ class Toast: UIView {
 
         // Make space for call bar if contained in RootViewController
         let topAnchor: NSLayoutYAxisAnchor
-        if let rootViewController = keyWindow?.rootViewController as? RootViewController {
+        if let rootViewController = keyWindow?.rootViewController as? RootViewController, rootView.isDescendant(of: rootViewController.view) {
             topAnchor = rootViewController.primaryViewContainer.safeAreaLayoutGuide.topAnchor
         } else {
             topAnchor = rootView.safeAreaLayoutGuide.topAnchor
