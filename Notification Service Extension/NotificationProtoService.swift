@@ -659,6 +659,9 @@ final class NotificationProtoService: ProtoServiceCore {
             mention.userID == AppContext.shared.userData.userId
         })
 
+        // Dont notify for comments from blocked users.
+        let isUserBlocked = AppContext.shared.privacySettings.blocked.userIds.contains(metadata.fromId)
+
         // Notify comments from contacts on group posts.
         let isKnownPublisher = AppContext.shared.contactStore.contact(withUserId: commentData.userId) != nil
         let isGroupComment = metadata.groupId != nil
@@ -670,6 +673,11 @@ final class NotificationProtoService: ProtoServiceCore {
         let isGroupCommentOnInterestedPost = Set(interestedPosts).contains(commentData.feedPostId)
 
         let isHomeFeedCommentFromContact = ServerProperties.isHomeCommentNotificationsEnabled && isKnownPublisher
+
+        guard !isUserBlocked else {
+            DDLogInfo("ProtoService/CommentNotification - skip comment from blocked user.")
+            return
+        }
 
         if isImportantComment || isUserMentioned || isGroupCommentFromContact || isGroupCommentOnInterestedPost || isHomeFeedCommentFromContact {
             runIfNotificationWasNotPresented(for: metadata.contentId) { [self] in
@@ -698,19 +706,27 @@ final class NotificationProtoService: ProtoServiceCore {
     // Used to present post/chat notifications.
     // Presents notification and downloads remaining content if any.
     private func presentNotification(for identifier: String, with content: UNNotificationContent, using attachments: [UNNotificationAttachment] = []) {
-        runIfNotificationWasNotPresented(for: identifier) { [self] in
-            let contentTypeRaw = content.userInfo[NotificationMetadata.contentTypeKey] as? String ?? "unknown"
-            switch NotificationContentType(rawValue: contentTypeRaw) {
-            case .feedPost, .groupFeedPost:
-                guard NotificationSettings.isPostsEnabled else {
-                    DDLogDebug("ProtoService/PostNotification - skip due to userPreferences")
-                    return
-                }
-            default:
-                break
+        let contentTypeRaw = content.userInfo[NotificationMetadata.contentTypeKey] as? String ?? "unknown"
+        switch NotificationContentType(rawValue: contentTypeRaw) {
+        case .feedPost, .groupFeedPost:
+            guard NotificationSettings.isPostsEnabled else {
+                DDLogInfo("ProtoService/PostNotification - skip due to userPreferences")
+                return
             }
+        default:
+            break
+        }
 
-            DDLogDebug("ProtoService/presentNotification/\(identifier)")
+        // Skip notification from blocked users.
+        guard let metadataRaw = content.userInfo[NotificationMetadata.userDefaultsKeyRawData] as? Data,
+              let metadata = NotificationMetadata.load(from: metadataRaw),
+              !AppContext.shared.privacySettings.blocked.userIds.contains(metadata.fromId) else {
+            DDLogInfo("ProtoService/PostNotification - skip notification from blocker user or metadata missing")
+            return
+        }
+
+        runIfNotificationWasNotPresented(for: identifier) { [self] in
+            DDLogInfo("ProtoService/presentNotification/\(identifier)")
             let notificationContent = UNMutableNotificationContent()
             notificationContent.title = content.title
             notificationContent.subtitle = content.subtitle

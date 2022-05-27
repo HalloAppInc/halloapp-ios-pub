@@ -982,11 +982,11 @@ class ChatData: ObservableObject {
             var audiosDownloaded = 0
             var totalDownloadSize = 0
 
-            guard mediaItem.url != nil else { return }
+            guard mediaItem.url != nil else { continue }
             // Have some max-tries since chat media stays forever.
             // TODO: Should cleanup this logic across the app and unify this.
-            guard mediaItem.numTries < self.maxTries else { return }
-            guard [.none, .downloading, .downloadError].contains(mediaItem.status) else { return }
+            guard mediaItem.numTries < self.maxTries else { continue }
+            guard [.none, .downloading, .downloadError].contains(mediaItem.status) else { continue }
 
             let (taskAdded, task) = self.downloadManager.downloadMedia(for: mediaItem)
             if taskAdded {

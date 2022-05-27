@@ -549,6 +549,8 @@ public struct Server_Post {
 
   public var tag: Server_Post.Tag = .empty
 
+  public var psaTag: String = String()
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum Tag: SwiftProtobuf.Enum {
@@ -704,6 +706,12 @@ public struct Server_FeedItem {
   public var hasSenderState: Bool {return _storage._senderState != nil}
   /// Clears the value of `senderState`. Subsequent reads from it will return its default value.
   public mutating func clearSenderState() {_uniqueStorage()._senderState = nil}
+
+  /// ex: "HalloApp/Android0.127"
+  public var senderClientVersion: String {
+    get {return _storage._senderClientVersion}
+    set {_uniqueStorage()._senderClientVersion = newValue}
+  }
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -3056,6 +3064,94 @@ public struct Server_WebStanza {
   public init() {}
 }
 
+public struct Server_ContentMissing {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var contentID: String = String()
+
+  public var contentType: Server_ContentMissing.ContentType = .unknown
+
+  /// ex: "HalloApp/Android0.127"
+  public var senderClientVersion: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum ContentType: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknown // = 0
+    case chat // = 1
+
+    /// For calls - WebRtcOffer and WebRtcAnswer packets include encrypted payloads.
+    /// Clients will respond back with content-missing and end-call packet if the call is not active.
+    case call // = 2
+    case groupFeedPost // = 3
+    case groupFeedComment // = 4
+    case homeFeedPost // = 5
+    case homeFeedComment // = 6
+    case historyResend // = 7
+    case groupHistory // = 8
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknown
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknown
+      case 1: self = .chat
+      case 2: self = .call
+      case 3: self = .groupFeedPost
+      case 4: self = .groupFeedComment
+      case 5: self = .homeFeedPost
+      case 6: self = .homeFeedComment
+      case 7: self = .historyResend
+      case 8: self = .groupHistory
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknown: return 0
+      case .chat: return 1
+      case .call: return 2
+      case .groupFeedPost: return 3
+      case .groupFeedComment: return 4
+      case .homeFeedPost: return 5
+      case .homeFeedComment: return 6
+      case .historyResend: return 7
+      case .groupHistory: return 8
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Server_ContentMissing.ContentType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_ContentMissing.ContentType] = [
+    .unknown,
+    .chat,
+    .call,
+    .groupFeedPost,
+    .groupFeedComment,
+    .homeFeedPost,
+    .homeFeedComment,
+    .historyResend,
+    .groupHistory,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 public struct Server_Iq {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -4029,6 +4125,14 @@ public struct Server_Msg {
     set {_uniqueStorage()._payload = .webStanza(newValue)}
   }
 
+  public var contentMissing: Server_ContentMissing {
+    get {
+      if case .contentMissing(let v)? = _storage._payload {return v}
+      return Server_ContentMissing()
+    }
+    set {_uniqueStorage()._payload = .contentMissing(newValue)}
+  }
+
   public var retryCount: Int32 {
     get {return _storage._retryCount}
     set {_uniqueStorage()._retryCount = newValue}
@@ -4089,6 +4193,7 @@ public struct Server_Msg {
     case incomingCallPush(Server_IncomingCallPush)
     case callSdp(Server_CallSdp)
     case webStanza(Server_WebStanza)
+    case contentMissing(Server_ContentMissing)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Msg.OneOf_Payload, rhs: Server_Msg.OneOf_Payload) -> Bool {
@@ -4262,6 +4367,10 @@ public struct Server_Msg {
       }()
       case (.webStanza, .webStanza): return {
         guard case .webStanza(let l) = lhs, case .webStanza(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.contentMissing, .contentMissing): return {
+        guard case .contentMissing(let l) = lhs, case .contentMissing(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -6729,6 +6838,8 @@ extension Server_WebClientInfo: @unchecked Sendable {}
 extension Server_WebClientInfo.Action: @unchecked Sendable {}
 extension Server_WebClientInfo.Result: @unchecked Sendable {}
 extension Server_WebStanza: @unchecked Sendable {}
+extension Server_ContentMissing: @unchecked Sendable {}
+extension Server_ContentMissing.ContentType: @unchecked Sendable {}
 extension Server_Iq: @unchecked Sendable {}
 extension Server_Iq.OneOf_Payload: @unchecked Sendable {}
 extension Server_Iq.TypeEnum: @unchecked Sendable {}
@@ -7572,6 +7683,7 @@ extension Server_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     7: .standard(proto: "enc_payload"),
     8: .standard(proto: "media_counters"),
     9: .same(proto: "tag"),
+    10: .standard(proto: "psa_tag"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -7589,6 +7701,7 @@ extension Server_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
       case 7: try { try decoder.decodeSingularBytesField(value: &self.encPayload) }()
       case 8: try { try decoder.decodeSingularMessageField(value: &self._mediaCounters) }()
       case 9: try { try decoder.decodeSingularEnumField(value: &self.tag) }()
+      case 10: try { try decoder.decodeSingularStringField(value: &self.psaTag) }()
       default: break
       }
     }
@@ -7626,6 +7739,9 @@ extension Server_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     if self.tag != .empty {
       try visitor.visitSingularEnumField(value: self.tag, fieldNumber: 9)
     }
+    if !self.psaTag.isEmpty {
+      try visitor.visitSingularStringField(value: self.psaTag, fieldNumber: 10)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -7639,6 +7755,7 @@ extension Server_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     if lhs.encPayload != rhs.encPayload {return false}
     if lhs._mediaCounters != rhs._mediaCounters {return false}
     if lhs.tag != rhs.tag {return false}
+    if lhs.psaTag != rhs.psaTag {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -7794,6 +7911,7 @@ extension Server_FeedItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     4: .standard(proto: "share_stanzas"),
     5: .standard(proto: "sender_state_bundles"),
     6: .standard(proto: "sender_state"),
+    7: .standard(proto: "sender_client_version"),
   ]
 
   fileprivate class _StorageClass {
@@ -7802,6 +7920,7 @@ extension Server_FeedItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     var _shareStanzas: [Server_ShareStanza] = []
     var _senderStateBundles: [Server_SenderStateBundle] = []
     var _senderState: Server_SenderStateWithKeyInfo? = nil
+    var _senderClientVersion: String = String()
 
     static let defaultInstance = _StorageClass()
 
@@ -7813,6 +7932,7 @@ extension Server_FeedItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
       _shareStanzas = source._shareStanzas
       _senderStateBundles = source._senderStateBundles
       _senderState = source._senderState
+      _senderClientVersion = source._senderClientVersion
     }
   }
 
@@ -7861,6 +7981,7 @@ extension Server_FeedItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
         case 4: try { try decoder.decodeRepeatedMessageField(value: &_storage._shareStanzas) }()
         case 5: try { try decoder.decodeRepeatedMessageField(value: &_storage._senderStateBundles) }()
         case 6: try { try decoder.decodeSingularMessageField(value: &_storage._senderState) }()
+        case 7: try { try decoder.decodeSingularStringField(value: &_storage._senderClientVersion) }()
         default: break
         }
       }
@@ -7896,6 +8017,9 @@ extension Server_FeedItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
       try { if let v = _storage._senderState {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
       } }()
+      if !_storage._senderClientVersion.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._senderClientVersion, fieldNumber: 7)
+      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -7910,6 +8034,7 @@ extension Server_FeedItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
         if _storage._shareStanzas != rhs_storage._shareStanzas {return false}
         if _storage._senderStateBundles != rhs_storage._senderStateBundles {return false}
         if _storage._senderState != rhs_storage._senderState {return false}
+        if _storage._senderClientVersion != rhs_storage._senderClientVersion {return false}
         return true
       }
       if !storagesAreEqual {return false}
@@ -11085,6 +11210,64 @@ extension Server_WebStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
   }
 }
 
+extension Server_ContentMissing: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ContentMissing"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "content_id"),
+    2: .standard(proto: "content_type"),
+    3: .standard(proto: "sender_client_version"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.contentID) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.contentType) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.senderClientVersion) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.contentID.isEmpty {
+      try visitor.visitSingularStringField(value: self.contentID, fieldNumber: 1)
+    }
+    if self.contentType != .unknown {
+      try visitor.visitSingularEnumField(value: self.contentType, fieldNumber: 2)
+    }
+    if !self.senderClientVersion.isEmpty {
+      try visitor.visitSingularStringField(value: self.senderClientVersion, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_ContentMissing, rhs: Server_ContentMissing) -> Bool {
+    if lhs.contentID != rhs.contentID {return false}
+    if lhs.contentType != rhs.contentType {return false}
+    if lhs.senderClientVersion != rhs.senderClientVersion {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_ContentMissing.ContentType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN"),
+    1: .same(proto: "CHAT"),
+    2: .same(proto: "CALL"),
+    3: .same(proto: "GROUP_FEED_POST"),
+    4: .same(proto: "GROUP_FEED_COMMENT"),
+    5: .same(proto: "HOME_FEED_POST"),
+    6: .same(proto: "HOME_FEED_COMMENT"),
+    7: .same(proto: "HISTORY_RESEND"),
+    8: .same(proto: "GROUP_HISTORY"),
+  ]
+}
+
 extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".Iq"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -11909,6 +12092,7 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     46: .standard(proto: "incoming_call_push"),
     47: .standard(proto: "call_sdp"),
     48: .standard(proto: "web_stanza"),
+    49: .standard(proto: "content_missing"),
     21: .standard(proto: "retry_count"),
     25: .standard(proto: "rerequest_count"),
   ]
@@ -12504,6 +12688,19 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
             _storage._payload = .webStanza(v)
           }
         }()
+        case 49: try {
+          var v: Server_ContentMissing?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .contentMissing(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .contentMissing(v)
+          }
+        }()
         default: break
         }
       }
@@ -12708,6 +12905,10 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
       case .webStanza?: try {
         guard case .webStanza(let v)? = _storage._payload else { preconditionFailure() }
         try visitor.visitSingularMessageField(value: v, fieldNumber: 48)
+      }()
+      case .contentMissing?: try {
+        guard case .contentMissing(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 49)
       }()
       default: break
       }

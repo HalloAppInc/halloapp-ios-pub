@@ -15,10 +15,12 @@ import UIKit
 import MediaPlayer
 import Combine
 
-protocol CameraDelegate {
-    func goBack() -> Void
-    func volumeButtonPressed() -> Void
-    func cameraDidFlip(usingBackCamera: Bool) -> Void
+protocol CameraDelegate: AnyObject {
+    func goBack()
+    func volumeButtonPressed()
+    func cameraDidFlip(usingBackCamera: Bool)
+    func updateVideoTimer(timerSeconds: Int)
+    func resetVideoTimer()
     func finishedRecordingVideo(to outputFileURL: URL, error: Error?)
     func finishedTakingPhoto(_ photo: AVCapturePhoto, error: Error?, cropRect: CGRect?)
 }
@@ -97,7 +99,7 @@ class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
 
     private static let maxVideoTimespan = DispatchTimeInterval.seconds(60)
 
-    private let cameraDelegate: CameraDelegate
+    private weak var cameraDelegate: CameraDelegate?
     let format: CameraViewController.Format
 
     private var captureSession: AVCaptureSession?
@@ -133,13 +135,6 @@ class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
 
     private var timer: Timer?
     private var timerSeconds = 0
-    private var timerLabel: UILabel!
-    private let timerTextAttributes: [NSAttributedString.Key : Any] = [
-        .strokeWidth: -0.5,
-        .foregroundColor: UIColor.white,
-        .strokeColor: UIColor.black.withAlphaComponent(0.4),
-        .font: UIFont.gothamFont(ofFixedSize: 17)
-    ]
     
     private var placeholderView: UIView?
     private var focusIndicator: CircleView?
@@ -179,8 +174,10 @@ class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
     override func viewDidLoad() {
         DDLogInfo("CameraController/viewDidLoad")
         super.viewDidLoad()
-        view.layer.cornerRadius = 15
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.layer.cornerRadius = CameraViewLayoutConstants.imageRadius
         view.layer.masksToBounds = true
+        view.layer.isOpaque = false
         let pinchToZoomRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(pinchToZoom(_:)))
         view.addGestureRecognizer(pinchToZoomRecognizer)
         
@@ -191,14 +188,6 @@ class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
         let cameraChangeRecognizer = UITapGestureRecognizer(target: self, action: #selector(tapToChangeCamera(_:)))
         cameraChangeRecognizer.numberOfTapsRequired = 2
         view.addGestureRecognizer(cameraChangeRecognizer)
-        
-        timerLabel = UILabel()
-        timerLabel.textAlignment = .center
-        timerLabel.isHidden = true
-        timerLabel.layer.shadowColor = UIColor.black.cgColor
-        timerLabel.layer.shadowOffset = CGSize(width: 0, height: 0)
-        timerLabel.layer.shadowOpacity = 0.4
-        timerLabel.layer.shadowRadius = 2.0
         
         // needed otherwise volume notification won't arrive
         // also hides the volume HUD when hardware buttons are pushed
@@ -241,21 +230,20 @@ class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
         guard let captureSession = captureSession else {
             return
         }
-        
+
+        let preview = previewLayer ?? AVCaptureVideoPreviewLayer(session: captureSession)
         if (previewLayer == nil) {
-            DDLogInfo("CameraController/startCaptureSession create preview layer")
-            previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
+            DDLogInfo("CameraController/startCaptureSession created preview layer")
+            previewLayer = preview
         }
         
         DDLogInfo("CameraController/startCaptureSession attach preview layer")
-        view.layer.addSublayer(previewLayer!)
-        view.addSubview(timerLabel)
-        previewLayer!.frame = view.layer.frame
+        view.layer.addSublayer(preview)
+        preview.frame = view.layer.bounds
         if case .square = format {
-            previewLayer!.videoGravity = .resizeAspectFill
+            preview.videoGravity = .resizeAspectFill
         }
-        
-        orientTimer()
+
         DispatchQueue.global(qos: .userInitiated).async {
             guard !captureSession.isRunning else {
                 return
@@ -278,9 +266,11 @@ class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
     private func stopCaptureSession() {
         DDLogInfo("CameraController/stopCaptureSession detach preview layer")
         previewLayer?.removeFromSuperlayer()
-        timerLabel.removeFromSuperview()
         
         guard let captureSession = captureSession else { return }
+
+        clearVideoTimeout()
+        stopRecordingTimer()
         
         sessionIsStarted = false
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVCaptureSessionWasInterrupted, object: nil)
@@ -295,6 +285,7 @@ class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
     }
 
     @objc func volumeDidChange(_ notification: NSNotification) {
+        guard let cameraDelegate = cameraDelegate else { return }
         if let userInfo = notification.userInfo,
            let volume = userInfo[CameraController.volumeNotificationParameter] as? Float,
            let reason = userInfo[CameraController.reasonNotificationParameter] as? String,
@@ -321,7 +312,7 @@ class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
              */
             DispatchQueue.main.async {
                 DDLogInfo("CameraController/volumeDidChange \(CameraController.explicitVolumeChangeReason)")
-                self.cameraDelegate.volumeButtonPressed()
+                cameraDelegate.volumeButtonPressed()
             }
         }
     }
@@ -351,11 +342,11 @@ class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         
         alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel) { [weak self] _ in
-            self?.cameraDelegate.goBack()
+            self?.cameraDelegate?.goBack()
         })
         alert.addAction(UIAlertAction(title: Localizations.settingsAppName, style: .default) { [weak self] _ in
             UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
-            self?.cameraDelegate.goBack()
+            self?.cameraDelegate?.goBack()
         })
         
         present(alert, animated: true)
@@ -367,12 +358,13 @@ class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         
         alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default) { [weak self] _ in
-            self?.cameraDelegate.goBack()
+            self?.cameraDelegate?.goBack()
         })
         
         present(alert, animated: true)
     }
 
+    @MainActor
     private func checkVideoPermissions() async -> Bool {
         let videoGranted = await CameraController.checkCapturePermissions(type: .video)
         if videoGranted {
@@ -383,6 +375,7 @@ class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
         }
     }
 
+    @MainActor
     private func checkAudioPermissions() async -> Bool {
         let audioGranted = await CameraController.checkCapturePermissions(type: .audio)
         if audioGranted {
@@ -633,30 +626,23 @@ class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
     }
 
     private func startRecordingTimer() {
+        guard let cameraDelegate = cameraDelegate else { return }
         timerSeconds = 0
-        updateTimerLabel()
-        timerLabel.isHidden = false
+        cameraDelegate.updateVideoTimer(timerSeconds: 0)
         if timer == nil {
             timer = Timer(timeInterval: 1.0, repeats: true) { [weak self] timer in
                 guard let self = self else { return }
                 self.timerSeconds += 1
-                self.updateTimerLabel()
+                cameraDelegate.updateVideoTimer(timerSeconds: self.timerSeconds)
             }
             RunLoop.current.add(timer!, forMode: .common)
         }
     }
 
     private func stopRecordingTimer() {
-        timerLabel.isHidden = true
+        cameraDelegate?.resetVideoTimer()
         timer?.invalidate()
         timer = nil
-    }
-
-    private func updateTimerLabel() {
-        self.timerLabel.attributedText = NSAttributedString(
-            string: String(format: "%02d:%02d", self.timerSeconds / 60, self.timerSeconds % 60),
-            attributes: self.timerTextAttributes
-        )
     }
 
     @objc private func pinchToZoom(_ pinchRecognizer: UIPinchGestureRecognizer) {
@@ -702,48 +688,10 @@ class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
         
         self.orientation = orientation
         DDLogInfo("CameraController/setOrientation didOrientationChange")
-        orientTimer()
         
         captureSession.beginConfiguration()
         configureVideoOutput(photoOutput)
         captureSession.commitConfiguration()
-    }
-    
-    private func orientTimer() {
-        guard let previewLayer = previewLayer else {
-            return
-        }
-
-        // n is the label's height when in portrait, and width when in landscape
-        let n = CGFloat(30)
-        timerLabel.transform = .identity
-        
-        switch orientation {
-        case .landscapeLeft:
-            timerLabel.transform = timerLabel.transform.rotated(by: .pi / 2)
-            timerLabel.frame = CGRect(x: view.bounds.maxX - n,
-                                      y: 0,
-                                  width: n,
-                                 height: previewLayer.bounds.height)
-        case .landscapeRight:
-            timerLabel.transform = timerLabel.transform.rotated(by: -.pi / 2)
-            timerLabel.frame = CGRect(x: view.bounds.minX,
-                                      y: view.bounds.minY,
-                                  width: n,
-                                 height: previewLayer.bounds.height)
-        case .portraitUpsideDown:
-            timerLabel.transform = timerLabel.transform.rotated(by: .pi)
-            timerLabel.frame = CGRect(x: view.bounds.minX,
-                                      y: previewLayer.frame.size.height - n,
-                                  width: view.bounds.width,
-                                 height: n)
-        default:
-            // default is portrait
-            timerLabel.frame = CGRect(x: view.bounds.minX,
-                                      y: view.bounds.minY,
-                                  width: view.bounds.width,
-                                 height: n)
-        }
     }
 
     public func switchCamera(_ useBackCamera: Bool) {
@@ -769,7 +717,7 @@ class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
             configureVideoOutput(photoOutput)
 
             captureSession.commitConfiguration()
-            cameraDelegate.cameraDidFlip(usingBackCamera: isUsingBackCamera)
+            cameraDelegate?.cameraDidFlip(usingBackCamera: isUsingBackCamera)
         }
     }
 
@@ -816,7 +764,7 @@ class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
             cropRect = preview.metadataOutputRectConverted(fromLayerRect: preview.bounds)
         }
         
-        cameraDelegate.finishedTakingPhoto(photo, error: error, cropRect: cropRect)
+        cameraDelegate?.finishedTakingPhoto(photo, error: error, cropRect: cropRect)
     }
 
     private func isCallKitSupported() -> Bool {
@@ -978,7 +926,7 @@ class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
                     e = error
                 }
                 
-                self?.cameraDelegate.finishedRecordingVideo(to: writer.outputURL, error: e)
+                self?.cameraDelegate?.finishedRecordingVideo(to: writer.outputURL, error: e)
                 self?.assetWriter = nil
                 self?.videoAssetWriter = nil
                 self?.audioAssetWriter = nil

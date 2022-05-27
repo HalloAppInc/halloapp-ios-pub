@@ -2,6 +2,22 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>n.unread.comments.title</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_unread_comments@</string>
+		<key>n_unread_comments</key>
+		<dict>
+			<key>one</key>
+			<string>%d Unread Comment</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>other</key>
+			<string>%d Unread Comments</string>
+		</dict>
+	</dict>
 	<key>n.others.replied</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>

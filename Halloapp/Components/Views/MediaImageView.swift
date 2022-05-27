@@ -15,8 +15,13 @@ class MediaImageView: UIImageView {
     struct Configuration {
         fileprivate let progressViewSize: CGFloat
         fileprivate let playButtonSize: CGFloat
-
-        static let groupGrid = Configuration(progressViewSize: 72, playButtonSize: 32)
+        fileprivate let maxVideoPreviewSize: CGSize
+        fileprivate let useAnimatedVideoPreview: Bool
+        
+        static let groupGrid = Configuration(progressViewSize: 72,
+                                             playButtonSize: 32,
+                                             maxVideoPreviewSize: CGSize(width: 240, height: 240),
+                                             useAnimatedVideoPreview: true)
     }
 
     private lazy var videoIndicator: UIImageView = {
@@ -69,12 +74,35 @@ class MediaImageView: UIImageView {
         fatalError()
     }
 
+    override var image: UIImage? {
+        didSet {
+            stopAnimating()
+
+            currentMediaID = nil
+            mediaLoadingCancellable?.cancel()
+            downloadProgressCancellable?.cancel()
+            mediaStatusCancellable?.cancel()
+        }
+    }
+
+    override var animationImages: [UIImage]? {
+        didSet {
+            startAnimating()
+
+            currentMediaID = nil
+            mediaLoadingCancellable?.cancel()
+            downloadProgressCancellable?.cancel()
+            mediaStatusCancellable?.cancel()
+        }
+    }
+
     func configure(with feedMedia: FeedMedia) {
-        guard feedMedia.id != currentMediaID else {
+        let mediaID = feedMedia.id
+        guard mediaID != currentMediaID else {
             return
         }
 
-        currentMediaID = feedMedia.id
+        currentMediaID = mediaID
         mediaLoadingCancellable?.cancel()
         downloadProgressCancellable?.cancel()
         mediaStatusCancellable?.cancel()
@@ -127,40 +155,77 @@ class MediaImageView: UIImageView {
                 }
             }
         case .video:
-            videoIndicator.isHidden = false
+            videoIndicator.isHidden = configuration.useAnimatedVideoPreview
+
             if feedMedia.isMediaAvailable, let videoURL = feedMedia.fileURL {
-                showMediaImage(VideoUtils.videoPreviewImage(url: videoURL))
+                if configuration.useAnimatedVideoPreview {
+                    showPlaceholderImage(for: .video)
+                    VideoUtils.animatedPreviewImage(for: videoURL, size: configuration.maxVideoPreviewSize) { [weak self] image in
+                        guard let self = self, mediaID == self.currentMediaID else {
+                            return
+                        }
+                        self.showMediaImage(image)
+                    }
+                } else {
+                    showMediaImage(VideoUtils.videoPreviewImage(url: videoURL, size: configuration.maxVideoPreviewSize))
+                }
             } else {
                 showPlaceholderImage(for: .video)
                 mediaLoadingCancellable = feedMedia.videoDidBecomeAvailable.receive(on: DispatchQueue.main).sink { [weak self] videoURL in
                     guard let self = self else {
                         return
                     }
-                    UIView.transition(with: self, duration: 0.1, options: [.curveEaseInOut, .transitionCrossDissolve]) {
-                        self.showMediaImage(VideoUtils.videoPreviewImage(url: videoURL))
+                    if self.configuration.useAnimatedVideoPreview {
+                        VideoUtils.animatedPreviewImage(for: videoURL, size: self.configuration.maxVideoPreviewSize) { [weak self] image in
+                            guard let self = self, mediaID == self.currentMediaID else {
+                                return
+                            }
+                            UIView.transition(with: self, duration: 0.1, options: [.curveEaseInOut, .transitionCrossDissolve]) {
+                                self.showMediaImage(image)
+                            }
+                        }
+                    } else {
+                        UIView.transition(with: self, duration: 0.1, options: [.curveEaseInOut, .transitionCrossDissolve]) {
+                            self.showMediaImage(VideoUtils.videoPreviewImage(url: videoURL, size: self.configuration.maxVideoPreviewSize))
+                        }
                     }
                 }
             }
         }
     }
 
-    private func showMediaImage(_ image: UIImage?) {
+    private func showMediaImage(_ mediaImage: UIImage?) {
         contentMode = .scaleAspectFill
         clipsToBounds = true
-        self.image = image
+
+        // UIImageView does not handle animated UIImages well. (playback does not restart unless a nil image is set between animated images)
+        // But, it's own properties for animation work as expected
+        if let images = mediaImage?.images, let duration = mediaImage?.duration, duration > 0 {
+            super.image = nil
+            super.animationImages = images
+            animationDuration = duration
+            startAnimating()
+        } else {
+            stopAnimating()
+            super.animationImages = nil
+            super.image = mediaImage
+        }
     }
 
     private func showPlaceholderImage(for type: CommonMediaType) {
         contentMode = .center
         clipsToBounds = false
 
+        stopAnimating()
+        super.animationImages = nil
+
         switch type {
         case .audio:
-            image = UIImage(systemName: "mic")
+            super.image = UIImage(systemName: "mic")
         case .image:
-            image = UIImage(systemName: "photo")
+            super.image = UIImage(systemName: "photo")
         case .video:
-            image = UIImage(systemName: "video")
+            super.image = UIImage(systemName: "video")
         }
     }
 

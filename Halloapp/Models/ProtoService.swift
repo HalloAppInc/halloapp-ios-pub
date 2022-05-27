@@ -1082,6 +1082,8 @@ final class ProtoService: ProtoServiceCore {
         case .callSdp(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
 
+        case .contentMissing:
+            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .inviteeNotice:
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .homeFeedRerequest(_):

@@ -610,9 +610,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         self.textView.text = ""
 
         // Placeholder
-        self.placeholder.text = NSLocalizedString("comment.textfield.placeholder",
-                                                  value: "Add a comment",
-                                                  comment: "Text displayed in gray inside of the comment input field when there is no user input.")
+        self.placeholder.text = nil
 
         // Vertical stack view:
         // [Replying to]?

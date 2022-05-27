@@ -242,8 +242,25 @@ final class VideoUtils {
         let size = track.naturalSize.applying(track.preferredTransform)
         return CGSize(width: abs(size.width), height: abs(size.height))
     }
-    
+
+    static let videoPreviewCache = NSCache<NSString, UIImage>()
+
+    private static func videoPreviewCacheKey(for videoURL: URL, size: CGSize?, animated: Bool) -> NSString {
+        let cacheKey: String
+        if let size = size {
+            cacheKey = "\(videoURL)-\(size)-\(animated)"
+        } else {
+            cacheKey = "\(videoURL)-\(animated)"
+        }
+        return cacheKey as NSString
+    }
+
     static func videoPreviewImage(url: URL, size: CGSize? = nil) -> UIImage? {
+        let cacheKey = videoPreviewCacheKey(for: url, size: size, animated: false)
+        if let image = videoPreviewCache.object(forKey: cacheKey) {
+            DDLogDebug("VideoUtils/videoPreviewImage/returning from cache for \(cacheKey)")
+            return image
+        }
         let asset = AVURLAsset(url: url)
         guard asset.duration.value > 0 else { return nil }
         let seekTime = getThumbnailTime(duration: asset.duration)
@@ -256,10 +273,62 @@ final class VideoUtils {
         do {
             let img = try generator.copyCGImage(at: seekTime, actualTime: nil)
             let thumbnail = UIImage(cgImage: img)
+            videoPreviewCache.setObject(thumbnail, forKey: cacheKey)
             return thumbnail
         } catch {
             DDLogDebug("VideoUtils/videoPreviewImage/error \(error.localizedDescription) - [\(url)]")
             return nil
+        }
+    }
+
+    static func animatedPreviewImage(for videoURL: URL, size: CGSize? = nil, completion: @escaping (UIImage?) -> Void) {
+        let cacheKey = videoPreviewCacheKey(for: videoURL, size: nil, animated: true)
+        if let image = videoPreviewCache.object(forKey: cacheKey) {
+            DDLogDebug("VideoUtils/animatedPreviewImage/returning from cache for \(cacheKey)")
+            completion(image)
+            return
+        }
+
+        let asset = AVURLAsset(url: videoURL)
+        guard asset.duration.value > 0 else {
+            return
+        }
+
+        // Generate a list of snapshot times
+        var snapshotTimes: [NSValue] = []
+        var snapshotTime = getThumbnailTime(duration: asset.duration)
+        let maxTime = CMTimeMinimum(asset.duration, CMTime(seconds: 20, preferredTimescale: 1))
+        while CMTimeCompare(snapshotTime, maxTime) <= 0 {
+            snapshotTimes.append(snapshotTime as NSValue)
+            snapshotTime = CMTimeAdd(snapshotTime, CMTime(value: 2, timescale: 1))
+        }
+
+        let generator = AVAssetImageGenerator(asset: asset)
+        generator.appliesPreferredTrackTransform = true
+        if let size = size {
+            generator.maximumSize = size
+        }
+
+        let expectedCompletions = snapshotTimes.count
+        var currentCompletions = 0
+        var generatedImages = [TimeInterval: UIImage]()
+        generator.generateCGImagesAsynchronously(forTimes: snapshotTimes) { [generator] requestedTime, image, actualTime, result, error in
+            if result == .succeeded, let image = image {
+                generatedImages[actualTime.seconds] = UIImage(cgImage: image)
+            }
+            currentCompletions += 1
+            if currentCompletions == expectedCompletions {
+                let sortedImages = generatedImages.keys.sorted().compactMap { generatedImages[$0] }
+                let animatedImage = UIImage.animatedImage(with: sortedImages, duration: TimeInterval(sortedImages.count) * 0.5)
+                if let animatedImage = animatedImage {
+                    videoPreviewCache.setObject(animatedImage, forKey: cacheKey)
+                }
+                DispatchQueue.main.async {
+                    completion(animatedImage)
+                }
+                // No use continuing if we think we're complete
+                generator.cancelAllCGImageGeneration()
+            }
         }
     }
 

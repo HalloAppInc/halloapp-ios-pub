@@ -70,6 +70,11 @@ class ContentTextView: UITextView {
             return size
         }
     }
+
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        // we want a slightly taller tap target when initiating editing
+        return bounds.insetBy(dx: 0, dy: -10).contains(point)
+    }
     
     override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
         if action == #selector(paste(_:)), let _ = UIPasteboard.general.image, let _ = delegate {
