@@ -1220,8 +1220,10 @@ extension ChatViewControllerNew: MessageViewChatDelegate {
         let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         if chatMessage.incomingStatus != .retracted {
             if let media = chatMessage.media, !media.isEmpty {
-                actionSheet.addAction(UIAlertAction(title: Localizations.saveAllButton, style: .default) { [weak self] _ in
-                    Task { await self?.saveAllMedia(in: chatMessage) }
+                actionSheet.addAction(UIAlertAction(title: Localizations.saveAllButton, style: .default) { _ in
+                    Task { [weak self] in
+                        await self?.saveAllMedia(in: chatMessage)
+                    }
                 })
             }
             
