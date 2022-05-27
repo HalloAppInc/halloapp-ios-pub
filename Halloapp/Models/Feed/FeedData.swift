@@ -4104,13 +4104,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     static func deletePostCommentDrafts(when condition: (CommentDraft) -> Bool) {
         var draftsArray: [CommentDraft] = []
         
-        if let draftsDecoded: [CommentDraft] = try? AppContext.shared.userDefaults.codable(forKey: CommentsViewController.postCommentDraftKey) {
+        if let draftsDecoded: [CommentDraft] = try? AppContext.shared.userDefaults.codable(forKey: FlatCommentsViewController.postCommentDraftKey) {
             draftsArray = draftsDecoded
         }
         
         draftsArray.removeAll(where: condition)
         
-        try? AppContext.shared.userDefaults.setCodable(draftsArray, forKey: CommentsViewController.postCommentDraftKey)
+        try? AppContext.shared.userDefaults.setCodable(draftsArray, forKey: FlatCommentsViewController.postCommentDraftKey)
     }
 
     // MARK: - External Share

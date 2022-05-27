@@ -290,15 +290,9 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
             return
         }
 
-        if ServerProperties.isFlatCommentsEnabled {
-            let commentsViewController = FlatCommentsViewController(feedPostId: postId)
-            commentsViewController.initiallyHighlightedCommentID = notification.commentId
-            navigationController?.pushViewController(commentsViewController, animated: true)
-        } else {
-            let commentsViewController = CommentsViewController(feedPostId: postId)
-            commentsViewController.highlightedCommentId = notification.commentId
-            navigationController?.pushViewController(commentsViewController, animated: true)
-        }
+        let commentsViewController = FlatCommentsViewController(feedPostId: postId)
+        commentsViewController.initiallyHighlightedCommentID = notification.commentId
+        navigationController?.pushViewController(commentsViewController, animated: true)
     }
 
     // MARK: UI Actions
