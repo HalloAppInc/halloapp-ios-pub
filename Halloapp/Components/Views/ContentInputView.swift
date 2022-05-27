@@ -97,7 +97,7 @@ extension ContentInputView {
     private static let textViewPadding: CGFloat = 9.0
     /// The corner radius of `textView` when it's in the expanded state.
     private static let textViewCornerRadius: CGFloat = 17.0
-    private static let textViewInsets = UIEdgeInsets(top: 10, left: 5, bottom: 10, right: 5)
+    private static let textViewInsets = UIEdgeInsets(top: 10, left: 7, bottom: 10, right: 7)
     
     fileprivate static var borderColor: UIColor {
         return UIColor { traits in

@@ -16,7 +16,7 @@ import AVFoundation
 private extension Localizations {
     static var commentsInputPlaceholder: String {
         NSLocalizedString("comment.textfield.placeholder",
-                   value: "Add a comment",
+                   value: "New Comment",
                  comment: "Placeholder text for the comment input field when there is no user input.")
     }
 
