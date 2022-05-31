@@ -2005,20 +2005,34 @@ public struct Server_GetCallServersResult {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var result: Server_GetCallServersResult.Result = .unknown
+  public var result: Server_GetCallServersResult.Result {
+    get {return _storage._result}
+    set {_uniqueStorage()._result = newValue}
+  }
 
-  public var stunServers: [Server_StunServer] = []
+  public var stunServers: [Server_StunServer] {
+    get {return _storage._stunServers}
+    set {_uniqueStorage()._stunServers = newValue}
+  }
 
-  public var turnServers: [Server_TurnServer] = []
+  public var turnServers: [Server_TurnServer] {
+    get {return _storage._turnServers}
+    set {_uniqueStorage()._turnServers = newValue}
+  }
 
   public var callConfig: Server_CallConfig {
-    get {return _callConfig ?? Server_CallConfig()}
-    set {_callConfig = newValue}
+    get {return _storage._callConfig ?? Server_CallConfig()}
+    set {_uniqueStorage()._callConfig = newValue}
   }
   /// Returns true if `callConfig` has been explicitly set.
-  public var hasCallConfig: Bool {return self._callConfig != nil}
+  public var hasCallConfig: Bool {return _storage._callConfig != nil}
   /// Clears the value of `callConfig`. Subsequent reads from it will return its default value.
-  public mutating func clearCallConfig() {self._callConfig = nil}
+  public mutating func clearCallConfig() {_uniqueStorage()._callConfig = nil}
+
+  public var callID: String {
+    get {return _storage._callID}
+    set {_uniqueStorage()._callID = newValue}
+  }
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -2055,7 +2069,7 @@ public struct Server_GetCallServersResult {
 
   public init() {}
 
-  fileprivate var _callConfig: Server_CallConfig? = nil
+  fileprivate var _storage = _StorageClass.defaultInstance
 }
 
 #if swift(>=4.2)
@@ -2759,6 +2773,14 @@ public struct Server_CallConfig {
   public var iceTransportPolicy: Server_CallConfig.IceTransportPolicy = .all
 
   public var iceRestartDelayMs: Int32 = 0
+
+  public var pruneTurnPorts: Bool = false
+
+  public var iceCandidatePoolSize: Int32 = 0
+
+  public var iceBackupPingIntervalMs: Int32 = 0
+
+  public var iceConnectionTimeoutMs: Int32 = 0
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -9784,48 +9806,94 @@ extension Server_GetCallServersResult: SwiftProtobuf.Message, SwiftProtobuf._Mes
     2: .standard(proto: "stun_servers"),
     3: .standard(proto: "turn_servers"),
     4: .standard(proto: "call_config"),
+    5: .standard(proto: "call_id"),
   ]
 
+  fileprivate class _StorageClass {
+    var _result: Server_GetCallServersResult.Result = .unknown
+    var _stunServers: [Server_StunServer] = []
+    var _turnServers: [Server_TurnServer] = []
+    var _callConfig: Server_CallConfig? = nil
+    var _callID: String = String()
+
+    static let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _result = source._result
+      _stunServers = source._stunServers
+      _turnServers = source._turnServers
+      _callConfig = source._callConfig
+      _callID = source._callID
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularEnumField(value: &self.result) }()
-      case 2: try { try decoder.decodeRepeatedMessageField(value: &self.stunServers) }()
-      case 3: try { try decoder.decodeRepeatedMessageField(value: &self.turnServers) }()
-      case 4: try { try decoder.decodeSingularMessageField(value: &self._callConfig) }()
-      default: break
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularEnumField(value: &_storage._result) }()
+        case 2: try { try decoder.decodeRepeatedMessageField(value: &_storage._stunServers) }()
+        case 3: try { try decoder.decodeRepeatedMessageField(value: &_storage._turnServers) }()
+        case 4: try { try decoder.decodeSingularMessageField(value: &_storage._callConfig) }()
+        case 5: try { try decoder.decodeSingularStringField(value: &_storage._callID) }()
+        default: break
+        }
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    if self.result != .unknown {
-      try visitor.visitSingularEnumField(value: self.result, fieldNumber: 1)
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      if _storage._result != .unknown {
+        try visitor.visitSingularEnumField(value: _storage._result, fieldNumber: 1)
+      }
+      if !_storage._stunServers.isEmpty {
+        try visitor.visitRepeatedMessageField(value: _storage._stunServers, fieldNumber: 2)
+      }
+      if !_storage._turnServers.isEmpty {
+        try visitor.visitRepeatedMessageField(value: _storage._turnServers, fieldNumber: 3)
+      }
+      try { if let v = _storage._callConfig {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+      } }()
+      if !_storage._callID.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._callID, fieldNumber: 5)
+      }
     }
-    if !self.stunServers.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.stunServers, fieldNumber: 2)
-    }
-    if !self.turnServers.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.turnServers, fieldNumber: 3)
-    }
-    try { if let v = self._callConfig {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
-    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Server_GetCallServersResult, rhs: Server_GetCallServersResult) -> Bool {
-    if lhs.result != rhs.result {return false}
-    if lhs.stunServers != rhs.stunServers {return false}
-    if lhs.turnServers != rhs.turnServers {return false}
-    if lhs._callConfig != rhs._callConfig {return false}
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._result != rhs_storage._result {return false}
+        if _storage._stunServers != rhs_storage._stunServers {return false}
+        if _storage._turnServers != rhs_storage._turnServers {return false}
+        if _storage._callConfig != rhs_storage._callConfig {return false}
+        if _storage._callID != rhs_storage._callID {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -10840,6 +10908,10 @@ extension Server_CallConfig: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     9: .standard(proto: "audio_jitter_buffer_fast_accelerate"),
     10: .standard(proto: "ice_transport_policy"),
     11: .standard(proto: "ice_restart_delay_ms"),
+    12: .standard(proto: "prune_turn_ports"),
+    13: .standard(proto: "ice_candidate_pool_size"),
+    14: .standard(proto: "ice_backup_ping_interval_ms"),
+    15: .standard(proto: "ice_connection_timeout_ms"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -10859,6 +10931,10 @@ extension Server_CallConfig: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
       case 9: try { try decoder.decodeSingularBoolField(value: &self.audioJitterBufferFastAccelerate) }()
       case 10: try { try decoder.decodeSingularEnumField(value: &self.iceTransportPolicy) }()
       case 11: try { try decoder.decodeSingularInt32Field(value: &self.iceRestartDelayMs) }()
+      case 12: try { try decoder.decodeSingularBoolField(value: &self.pruneTurnPorts) }()
+      case 13: try { try decoder.decodeSingularInt32Field(value: &self.iceCandidatePoolSize) }()
+      case 14: try { try decoder.decodeSingularInt32Field(value: &self.iceBackupPingIntervalMs) }()
+      case 15: try { try decoder.decodeSingularInt32Field(value: &self.iceConnectionTimeoutMs) }()
       default: break
       }
     }
@@ -10898,6 +10974,18 @@ extension Server_CallConfig: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     if self.iceRestartDelayMs != 0 {
       try visitor.visitSingularInt32Field(value: self.iceRestartDelayMs, fieldNumber: 11)
     }
+    if self.pruneTurnPorts != false {
+      try visitor.visitSingularBoolField(value: self.pruneTurnPorts, fieldNumber: 12)
+    }
+    if self.iceCandidatePoolSize != 0 {
+      try visitor.visitSingularInt32Field(value: self.iceCandidatePoolSize, fieldNumber: 13)
+    }
+    if self.iceBackupPingIntervalMs != 0 {
+      try visitor.visitSingularInt32Field(value: self.iceBackupPingIntervalMs, fieldNumber: 14)
+    }
+    if self.iceConnectionTimeoutMs != 0 {
+      try visitor.visitSingularInt32Field(value: self.iceConnectionTimeoutMs, fieldNumber: 15)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -10913,6 +11001,10 @@ extension Server_CallConfig: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     if lhs.audioJitterBufferFastAccelerate != rhs.audioJitterBufferFastAccelerate {return false}
     if lhs.iceTransportPolicy != rhs.iceTransportPolicy {return false}
     if lhs.iceRestartDelayMs != rhs.iceRestartDelayMs {return false}
+    if lhs.pruneTurnPorts != rhs.pruneTurnPorts {return false}
+    if lhs.iceCandidatePoolSize != rhs.iceCandidatePoolSize {return false}
+    if lhs.iceBackupPingIntervalMs != rhs.iceBackupPingIntervalMs {return false}
+    if lhs.iceConnectionTimeoutMs != rhs.iceConnectionTimeoutMs {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
