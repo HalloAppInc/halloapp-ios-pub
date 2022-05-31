@@ -307,10 +307,10 @@ class ModeScrollView: UIScrollView {
         return label
     }()
 
-    init(initialMode: MediaType) {
+    init(initialMediaType: MediaType) {
         super.init(frame: .zero)
         let initialPage: Int = {
-            switch initialMode {
+            switch initialMediaType {
             case .video:
                 return 0
             case .photo:
@@ -323,7 +323,7 @@ class ModeScrollView: UIScrollView {
         clipsToBounds = false
         showsHorizontalScrollIndicator = false
         showsVerticalScrollIndicator = false
-        updateLabelColor(selectedMediaType: initialMode)
+        updateLabelColor(selectedMediaType: initialMediaType)
     }
 
     required init?(coder: NSCoder) {
@@ -364,16 +364,19 @@ class ModeScrollView: UIScrollView {
 
 extension CameraViewController {
     enum Format { case normal, square }
+    enum SupportedMediaType { case all, image, video}
     
     class Configuration: ObservableObject {
         let showCancelButton: Bool
         let format: Format
         let subtitle: String?
+        let supportedMediaType: SupportedMediaType
         
-        init(showCancelButton: Bool = true, format: Format = .normal, subtitle: String? = nil) {
+        init(showCancelButton: Bool = true, format: Format = .normal, subtitle: String? = nil, supportedMediaType: SupportedMediaType = .all) {
             self.showCancelButton = showCancelButton
             self.format = format
             self.subtitle = subtitle
+            self.supportedMediaType = supportedMediaType
         }
     }
 }
@@ -393,7 +396,7 @@ class CameraViewController: UIViewController {
     private let flipCameraButton = UIButton(type: .system)
     private let captureButton = CaptureButton(type: .system)
 
-    private let modeScrollView = ModeScrollView(initialMode: .photo)
+    private let modeScrollView: ModeScrollView
 
     private let flashOnImage = UIImage(named: "CameraFlashOn")
     private let flashOffImage = UIImage(named: "CameraFlashOff")
@@ -408,7 +411,7 @@ class CameraViewController: UIViewController {
     private var shouldUseBackCamera = false
 
     private var isTakingPhoto = false
-    private var captureMediaType: MediaType = .photo
+    private var captureMediaType: MediaType
 
     private lazy var subtitleLabel: UILabel = {
         let label = UILabel()
@@ -433,6 +436,9 @@ class CameraViewController: UIViewController {
         manager = CMMotionManager()
         queue = OperationQueue()
         queue.qualityOfService = .utility
+
+        captureMediaType = configuration.supportedMediaType == .video ? .video : .photo
+        modeScrollView = ModeScrollView(initialMediaType: captureMediaType)
 
         super.init(nibName: nil, bundle: nil)
     }
@@ -578,30 +584,32 @@ class CameraViewController: UIViewController {
             captureButton.heightAnchor.constraint(equalToConstant: CameraViewLayoutConstants.captureButtonSize),
         ])
 
-        let modeContainerView = UIStackView()
-        modeContainerView.axis = .horizontal
-        modeContainerView.layoutMargins = UIEdgeInsets(top: 0, left: CameraViewLayoutConstants.captureModeOptionWidth, bottom: 0, right: CameraViewLayoutConstants.captureModeOptionWidth)
-        modeContainerView.isLayoutMarginsRelativeArrangement = true
-        contentView.addArrangedSubview(modeContainerView)
+        if configuration.supportedMediaType == .all {
+            let modeContainerView = UIStackView()
+            modeContainerView.axis = .horizontal
+            modeContainerView.layoutMargins = UIEdgeInsets(top: 0, left: CameraViewLayoutConstants.captureModeOptionWidth, bottom: 0, right: CameraViewLayoutConstants.captureModeOptionWidth)
+            modeContainerView.isLayoutMarginsRelativeArrangement = true
+            contentView.addArrangedSubview(modeContainerView)
 
-        constraints.append(contentsOf: [
-            modeContainerView.heightAnchor.constraint(equalToConstant: CameraViewLayoutConstants.captureModeOptionHeight),
-            modeContainerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            modeContainerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-        ])
+            constraints.append(contentsOf: [
+                modeContainerView.heightAnchor.constraint(equalToConstant: CameraViewLayoutConstants.captureModeOptionHeight),
+                modeContainerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+                modeContainerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            ])
 
-        modeScrollView.delegate = self
-        modeContainerView.addGestureRecognizer(modeScrollView.panGestureRecognizer)
-        modeContainerView.addArrangedSubview(modeScrollView)
+            modeScrollView.delegate = self
+            modeContainerView.addGestureRecognizer(modeScrollView.panGestureRecognizer)
+            modeContainerView.addArrangedSubview(modeScrollView)
 
-        constraints.append(contentsOf: [
-            modeScrollView.widthAnchor.constraint(equalToConstant: CameraViewLayoutConstants.captureModeOptionWidth),
-            modeScrollView.heightAnchor.constraint(equalToConstant: CameraViewLayoutConstants.captureModeOptionHeight),
-            modeScrollView.centerXAnchor.constraint(equalTo: modeContainerView.centerXAnchor),
-        ])
+            constraints.append(contentsOf: [
+                modeScrollView.widthAnchor.constraint(equalToConstant: CameraViewLayoutConstants.captureModeOptionWidth),
+                modeScrollView.heightAnchor.constraint(equalToConstant: CameraViewLayoutConstants.captureModeOptionHeight),
+                modeScrollView.centerXAnchor.constraint(equalTo: modeContainerView.centerXAnchor),
+            ])
 
-        let gestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleModeTap))
-        modeContainerView.addGestureRecognizer(gestureRecognizer)
+            let gestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleModeTap))
+            modeContainerView.addGestureRecognizer(gestureRecognizer)
+        }
 
         NSLayoutConstraint.activate(constraints)
     }
