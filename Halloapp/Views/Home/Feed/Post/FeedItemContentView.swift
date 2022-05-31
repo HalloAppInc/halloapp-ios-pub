@@ -391,7 +391,7 @@ final class FeedItemHeaderView: UIView {
 
     let avatarButtonSize: CGFloat = 36
     private let avatarButtonSpacing: CGFloat = 8
-    private let moreButtonPadding: CGFloat = 20 // padding used to increase the tapping area of button
+    private let moreButtonPadding: CGFloat = 20
     private let moreButtonWidth: CGFloat = 18
     private let moreButtonSpacing: CGFloat = 2
 
@@ -614,7 +614,7 @@ final class FeedItemHeaderView: UIView {
 
         if post.audienceType == AudienceType.whitelist {
             contentStackView.addArrangedSubview(privacyIndicatorButtonView)
-            contentStackView.setCustomSpacing(0, after: privacyIndicatorButtonView)
+            contentStackView.setCustomSpacing(moreButtonPadding, after: privacyIndicatorButtonView)
         } else {
             privacyIndicatorButtonView.removeFromSuperview()
         }
