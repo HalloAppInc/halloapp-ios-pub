@@ -876,7 +876,11 @@ extension FeedCollectionViewController {
     
     func configure(cell: MomentCollectionViewCell, withSecretFeedPost feedPost: FeedPost) {
         cell.configure(with: feedPost, contentWidth: cellContentWidth)
-        cell.momentView.action = { [weak self] in
+        cell.momentView.avatarAction = { [weak self, feedPost] in
+            self?.showUserFeed(for: feedPost.userId)
+        }
+
+        cell.momentView.buttonAction = { [weak self, feedPost] in
             self?.presentMomentViewController(for: feedPost)
         }
 
@@ -890,6 +894,10 @@ extension FeedCollectionViewController {
 
         cell.showSeenByAction = { [weak self, feedPost] in
             self?.showSeenByView(for: feedPost)
+        }
+
+        cell.openAction = { [weak self, feedPost] in
+            self?.presentMomentViewController(for: feedPost)
         }
     }
 

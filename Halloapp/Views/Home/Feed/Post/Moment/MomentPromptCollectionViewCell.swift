@@ -41,7 +41,6 @@ class MomentPromptCollectionViewCell: UICollectionViewCell {
             trailing,
             promptView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: spacing),
             promptView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -spacing),
-            promptView.heightAnchor.constraint(equalTo: promptView.widthAnchor),
         ])
 
         previewViewLeading = leading
@@ -62,12 +61,14 @@ class MomentPromptCollectionViewCell: UICollectionViewCell {
 }
 
 final class MomentPromptView: UIView {
+    private typealias Layout = MomentView.Layout
     private var cancellables: Set<AnyCancellable> = []
 
     private lazy var gradientView: GradientView = {
         let view = GradientView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.layer.cornerRadius = FeedPostCollectionViewCell.LayoutConstants.backgroundCornerRadius - 5
+        view.layer.cornerRadius = Layout.innerRadius()
+        view.layer.cornerCurve = .continuous
         view.layer.masksToBounds = true
         return view
     }()
@@ -88,19 +89,12 @@ final class MomentPromptView: UIView {
     private lazy var avatarView: AvatarView = {
         let view = AvatarView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.layer.shadowOpacity = 1
-        view.layer.shadowColor = UIColor.black.withAlphaComponent(0.2).cgColor
-        view.layer.shadowRadius = 1
-        view.layer.shadowOffset = .init(width: 0, height: 1)
-
-        let diameter = 92
-        view.layer.shadowPath = UIBezierPath(ovalIn: CGRect(origin: .zero, size: .init(width: diameter, height: diameter))).cgPath
         return view
     }()
 
     private lazy var displayLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(forTextStyle: .title3, pointSizeChange: -4, weight: .medium, maximumPointSize: 23)
+        label.font = .systemFont(forTextStyle: .title3, pointSizeChange: -3, weight: .medium, maximumPointSize: 23)
         label.textColor = .white
         label.shadowColor = .black.withAlphaComponent(0.1)
         label.shadowOffset = .init(width: 0, height: 0.5)
@@ -123,7 +117,7 @@ final class MomentPromptView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        layer.cornerRadius = FeedPostCollectionViewCell.LayoutConstants.backgroundCornerRadius
+        layer.cornerRadius = Layout.cornerRadius()
         layer.masksToBounds = false
         clipsToBounds = false
 
@@ -144,20 +138,21 @@ final class MomentPromptView: UIView {
         addSubview(gradientView)
         addSubview(overlayStack)
 
-        let spacing: CGFloat = 7
-
+        let spacing = Layout.mediaPadding()
+        let avatarDiameter = Layout.avatarDiameter
         NSLayoutConstraint.activate([
             gradientView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: spacing),
             gradientView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -spacing),
             gradientView.topAnchor.constraint(equalTo: topAnchor, constant: spacing),
-            gradientView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -spacing),
+            gradientView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -60),
+            gradientView.heightAnchor.constraint(equalTo: gradientView.widthAnchor),
             overlayStack.topAnchor.constraint(greaterThanOrEqualTo: gradientView.topAnchor),
             overlayStack.bottomAnchor.constraint(lessThanOrEqualTo: gradientView.bottomAnchor),
             overlayStack.leadingAnchor.constraint(equalTo: gradientView.leadingAnchor),
             overlayStack.trailingAnchor.constraint(equalTo: gradientView.trailingAnchor),
             overlayStack.centerYAnchor.constraint(equalTo: gradientView.centerYAnchor),
-            avatarView.widthAnchor.constraint(equalToConstant: 92),
-            avatarView.heightAnchor.constraint(equalToConstant: 92),
+            avatarView.widthAnchor.constraint(equalToConstant: avatarDiameter),
+            avatarView.heightAnchor.constraint(equalToConstant: avatarDiameter),
         ])
 
         avatarView.configure(with: MainAppContext.shared.userData.userId, using: MainAppContext.shared.avatarStore)
@@ -165,7 +160,7 @@ final class MomentPromptView: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: FeedPostCollectionViewCell.LayoutConstants.backgroundCornerRadius).cgPath
+        layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: Layout.cornerRadius()).cgPath
     }
 
     private func displayPermissionAllowedState() {

@@ -126,8 +126,8 @@ class MomentViewController: UIViewController {
         let spacing: CGFloat = 10
         NSLayoutConstraint.activate([
             centerYConstraint,
-            momentView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 2),
-            momentView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -2),
+            momentView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            momentView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             headerView.leadingAnchor.constraint(equalTo: momentView.leadingAnchor, constant: 10),
             headerView.trailingAnchor.constraint(equalTo: momentView.trailingAnchor, constant: -10),
             headerView.bottomAnchor.constraint(equalTo: momentView.topAnchor, constant: -spacing),

@@ -72,26 +72,18 @@ extension UIFont {
         return UIFontMetrics(forTextStyle: scalingTextStyle).scaledFont(for: .gothamFont(ofFixedSize: fontSize,weight: weight))
     }
 
-    class func courierFont(ofFixedSize fontSize: CGFloat, weight: UIFont.Weight = .regular) -> UIFont {
-        let name: String
-        switch weight {
-        case .semibold, .bold, .black, .heavy:
-            name = "CourierNewPS-BoldMT"
-        default:
-            name = "CourierNewPSMT"
-        }
+    class func handwritingFont(ofFixedSize fontSize: CGFloat, weight: UIFont.Weight = .regular) -> UIFont {
+        // bold is the only available weight
+        let name = "BradleyHandITCTT-Bold"
+        let font = UIFont(name: name, size: fontSize)
 
-        guard let font = UIFont(name: name, size: fontSize) else {
-            return UIFont.systemFont(ofSize: fontSize, weight: weight)
-        }
-
-        return font
+        return font ?? .systemFont(ofSize: fontSize, weight: weight)
     }
 
-    class func courierFont(forTextStyle style: UIFont.TextStyle, pointSizeChange: CGFloat = 0, weight: UIFont.Weight = .regular, maximumPointSize: CGFloat? = nil) -> UIFont {
+    class func handwritingFont(forTextStyle style: UIFont.TextStyle, pointSizeChange: CGFloat = 0, weight: UIFont.Weight = .regular, maximumPointSize: CGFloat? = nil) -> UIFont {
         let traitCollection = UITraitCollection(preferredContentSizeCategory: .large)
         let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: style, compatibleWith: traitCollection)
-        let baseFont = UIFont.courierFont(ofFixedSize: fontDescriptor.pointSize + pointSizeChange, weight: weight)
+        let baseFont = UIFont.handwritingFont(ofFixedSize: fontDescriptor.pointSize + pointSizeChange, weight: weight)
         if let maximumPointSize = maximumPointSize {
             return UIFontMetrics(forTextStyle: style).scaledFont(for: baseFont, maximumPointSize: maximumPointSize)
         } else {

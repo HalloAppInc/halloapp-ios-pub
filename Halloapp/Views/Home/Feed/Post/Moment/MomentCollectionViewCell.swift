@@ -40,6 +40,14 @@ class MomentCollectionViewCell: UICollectionViewCell {
     private var momentViewLeading: NSLayoutConstraint?
     private var momentViewTrailing: NSLayoutConstraint?
 
+    /// Allows the user to open their own moment by tapping anywhere on the polaroid.
+    private lazy var openTapGesture: UITapGestureRecognizer = {
+        let tap = UITapGestureRecognizer(target: self, action: #selector(didTapMoment))
+        momentView.addGestureRecognizer(tap)
+        return tap
+    }()
+
+    var openAction: (() -> Void)?
     var showUserAction: (() -> Void)?
     var showMoreAction: (() -> Void)?
     var showSeenByAction: (() -> Void)?
@@ -70,6 +78,8 @@ class MomentCollectionViewCell: UICollectionViewCell {
         
         momentViewLeading = leading
         momentViewTrailing = trailing
+
+        momentView.addGestureRecognizer(openTapGesture)
     }
 
     @objc
@@ -110,6 +120,8 @@ class MomentCollectionViewCell: UICollectionViewCell {
         momentView.configure(with: post)
         headerView.configure(with: post, contentWidth: bounds.width, showGroupName: false)
         facePileView.configure(with: post)
+
+        openTapGesture.isEnabled = post.userId == MainAppContext.shared.userData.userId
     }
 
     func refreshFooter() {
@@ -159,5 +171,10 @@ class MomentCollectionViewCell: UICollectionViewCell {
     private func removeHeaderAndFooter() {
         headerView.removeFromSuperview()
         facePileView.removeFromSuperview()
+    }
+
+    @objc
+    private func didTapMoment(_ gesture: UITapGestureRecognizer) {
+        openAction?()
     }
 }
