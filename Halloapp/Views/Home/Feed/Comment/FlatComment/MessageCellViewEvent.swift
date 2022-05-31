@@ -7,11 +7,26 @@
 //
 
 import UIKit
+import CoreCommon
+
+public enum ChatLogEventType: Int16 {
+    case whisperKeysChange = 0
+    case addToAddressBook = 1
+    case blocked = 2
+    case unblocked = 3
+}
+
+protocol MessageChatEventViewDelegate: AnyObject {
+    func messageChatHeaderViewAddToContacts(_ messageCellViewEvent: MessageCellViewEvent)
+}
 
 class MessageCellViewEvent: UICollectionViewCell {
     static var elementKind: String {
         return String(describing: MessageCellViewEvent.self)
     }
+
+    weak var delegate: MessageChatEventViewDelegate?
+    var eventType: ChatLogEventType?
 
     var messageLabel: UILabel = {
         let label = UILabel()
@@ -39,6 +54,7 @@ class MessageCellViewEvent: UICollectionViewCell {
         view.layer.shadowOpacity = 0.1
         view.layer.shadowOffset = CGSize(width: 0, height: 1)
         view.layer.shadowRadius = 0
+        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onTapEvent)))
         return view
     }()
 
@@ -62,7 +78,29 @@ class MessageCellViewEvent: UICollectionViewCell {
         ])
     }
 
-    func configure(headerText: String) {
-        messageLabel.text = headerText
+    func configure(chatLogEventType: ChatLogEventType, userID: UserID) {
+        eventType = chatLogEventType
+        switch chatLogEventType {
+        case .whisperKeysChange:
+            let fullname = MainAppContext.shared.contactStore.fullName(for: userID)
+            messageLabel.text = Localizations.chatEventSecurityKeysChanged(name: fullname)
+        case .blocked:
+            messageLabel.text = Localizations.chatBlockedContactLabel
+        case .unblocked:
+            messageLabel.text = Localizations.chatUnblockedContactLabel
+        case .addToAddressBook:
+            let fullname = MainAppContext.shared.contactStore.fullName(for: userID)
+            messageLabel.text = Localizations.chatEventAddContactToAddressBook(name: fullname)
+        }
+    }
+
+    @objc private func onTapEvent() {
+        guard let delegate = delegate else { return }
+        switch eventType {
+        case .addToAddressBook:
+            delegate.messageChatHeaderViewAddToContacts(self)
+        default:
+            break
+        }
     }
 }

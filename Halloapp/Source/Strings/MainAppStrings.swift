@@ -211,6 +211,12 @@ extension Localizations {
             name)
     }
 
+    static func chatEventAddContactToAddressBook(name: String) -> String {
+        return String(
+            format: NSLocalizedString("chat.event.tap.to.add.contact", value: "Tap to add %@ to your address group", comment: "Chat entry that can be tapped to add the contact to address book"),
+            name)
+    }
+
     static var photoAndVideoLibrary: String {
         return String(
             format: NSLocalizedString("photo.and.video.library", value: "Photo & Video Library", comment: "button to launch photo and video library"))

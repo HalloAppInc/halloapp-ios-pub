@@ -10,6 +10,7 @@ import Core
 import CoreCommon
 import CocoaLumberjackSwift
 import Combine
+import ContactsUI
 import UIKit
 import CoreData
 import Photos
@@ -35,6 +36,7 @@ fileprivate enum MessageRow: Hashable, Equatable {
     case unreadCountHeader(Int32)
     case chatCall(Core.Call)
     case chatEvent(ChatEvent)
+    case addToContactBook
 
     var timestamp: Date? {
         switch self {
@@ -44,6 +46,8 @@ fileprivate enum MessageRow: Hashable, Equatable {
             return data.timestamp
         case .chatCall(let data):
             return data.timestamp
+        case .addToContactBook:
+            return Calendar.current.startOfDay(for: Date())
         case .unreadCountHeader(_):
             return nil
         }
@@ -57,6 +61,9 @@ fileprivate enum MessageRow: Hashable, Equatable {
             return data.timestamp?.chatMsgGroupingTimestamp(Date()) ?? ""
         case .chatCall(let data):
             return data.timestamp.chatMsgGroupingTimestamp(Date())
+        case .addToContactBook:
+            let time = timestamp ?? Calendar.current.startOfDay(for: Date())
+            return  time.chatMsgGroupingTimestamp(Date())
         case .unreadCountHeader(_):
             return ""
         }
@@ -78,6 +85,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     private var chatReplyMessageMediaIndex: Int32 = 0
     private var firstActionHappened: Bool = false
     private var unreadCount: Int32?
+    private var hasShownAddToContact: Bool = false
 
     fileprivate typealias ChatDataSource = UICollectionViewDiffableDataSource<String, MessageRow>
     fileprivate typealias ChatMessageSnapshot = NSDiffableDataSourceSnapshot<String, MessageRow>
@@ -191,19 +199,28 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                         let fullname = MainAppContext.shared.contactStore.fullName(for: chatEvent.userID)
                         switch chatEvent.type {
                         case .whisperKeysChange:
-                            cell.configure(headerText: Localizations.chatEventSecurityKeysChanged(name: fullname))
+                            cell.configure(chatLogEventType: .whisperKeysChange, userID: chatEvent.userID)
                         case .blocked:
-                            cell.configure(headerText: Localizations.chatBlockedContactLabel)
+                            cell.configure(chatLogEventType: .blocked, userID: chatEvent.userID)
                         case .unblocked:
-                            cell.configure(headerText: Localizations.chatUnblockedContactLabel)
+                            cell.configure(chatLogEventType: .unblocked, userID: chatEvent.userID)
                         default:
                             break
                         }
+                        cell.delegate = self
                         return cell
                     }
                 case .chatCall(let chatCall):
                     if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ChatViewControllerNew.messageCellViewCallReuseIdentifier, for: indexPath) as? MessageCellViewCall {
                         cell.configure(headerText: "Placeholder Call Text")
+                        return cell
+                    }
+                case .addToContactBook:
+                    if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ChatViewControllerNew.messageCellViewEventReuseIdentifier, for: indexPath) as? MessageCellViewEvent {
+                        if let fromUserId = self?.fromUserId {
+                            cell.configure(chatLogEventType: .addToAddressBook, userID: fromUserId)
+                        }
+                        cell.delegate = self
                         return cell
                     }
                 case .unreadCountHeader(let unreadCount):
@@ -275,6 +292,10 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             }
         }
 
+        if shouldShowAddToContactBookCell() {
+            messageRows.append(MessageRow.addToContactBook)
+        }
+
         // Sort all messages by timestamp
         messageRows = messageRows.sorted {
             ($0.timestamp ?? .distantFuture) < ($1.timestamp ?? .distantFuture)
@@ -298,6 +319,18 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
         // Apply the new snapshot
         dataSource.apply(snapshot, animatingDifferences: true)
+    }
+
+    private func shouldShowAddToContactBookCell() -> Bool {
+        guard let userID = fromUserId else { return false }
+        // if contact is already in address book
+        if MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID) { return false }
+        // if contact is blocked
+         if MainAppContext.shared.privacySettings.blocked.userIds.contains(userID) { return false }
+        // If we do not have contacts's push number
+        if MainAppContext.shared.contactStore.pushNumber(userID) == nil { return false }
+        return true
+
     }
 
     private func messagerow(for chatMessage: ChatMessage) -> MessageRow {
@@ -395,6 +428,23 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                 }
             }
         )
+
+        // Update name in title view if we just discovered this new user.
+        cancellableSet.insert(
+            MainAppContext.shared.contactStore.didDiscoverNewUsers.sink { [weak self] (newUserIDs) in
+                DDLogInfo("ChatViewControllerNew/didDiscoverNewUsers/update name if necessary")
+                guard let self = self else { return }
+                guard let userID = self.fromUserId else { return }
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+                    if newUserIDs.contains(userID) {
+                        self.titleView.refreshName(for: userID)
+                        self.updateCollectionViewData()
+                    }
+                }
+            }
+        )
+        
         configureTitleViewWithTypingIndicator()
         loadChatDraft(id: fromUserId)
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard(_:)))
@@ -404,7 +454,6 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-
         if let chatWithUserId = self.fromUserId {
             MainAppContext.shared.chatData.markThreadAsRead(type: .oneToOne, for: chatWithUserId)
             MainAppContext.shared.chatData.updateUnreadChatsThreadCount()
@@ -1514,5 +1563,19 @@ extension ChatViewControllerNew: MessageChatHeaderViewDelegate {
     func messageChatHeaderViewOpenEncryptionBlog(_ messageChatHeaderView: MessageChatHeaderView) {
         let viewController = SFSafariViewController(url: URL(string: "https://halloapp.com/blog/encrypted-chat")!)
         present(viewController, animated: true)
+    }
+}
+
+extension ChatViewControllerNew: MessageChatEventViewDelegate, UserMenuHandler {
+    func messageChatHeaderViewAddToContacts(_ messageCellViewEvent: MessageCellViewEvent) {
+        guard let fromUserId = fromUserId else { return }
+        handle(action: .addContact(fromUserId))
+    }
+}
+
+// MARK: CNContact Delegates
+extension ChatViewControllerNew: CNContactViewControllerDelegate {
+    func contactViewController(_ viewController: CNContactViewController, didCompleteWith contact: CNContact?) {
+        navigationController?.popViewController(animated: true)
     }
 }
