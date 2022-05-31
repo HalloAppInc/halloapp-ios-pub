@@ -46,9 +46,9 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
 
     let labelTitle = UILabel()
     let errorLabel = UILabel()
-
-    let textFieldCode = UITextField()
-    lazy var codeEntryField: UIView = { textFieldCode.withTextFieldBackground() }()
+    
+    private var textFieldCode = VerificationCodeTextField()
+    
     var inputVerticalCenterConstraint: NSLayoutConstraint?
 
     let buttonRetryCodeRequest = UIButton()
@@ -89,20 +89,16 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         phoneRow.axis = .horizontal
         phoneRow.distribution = .fill
         phoneRow.alignment = .center
-
-        textFieldCode.translatesAutoresizingMaskIntoConstraints = false
-        textFieldCode.font = .systemFont(forTextStyle: .title3, weight: .regular, maximumPointSize: Constants.MaxFontPointSize - 2)
+        
         textFieldCode.delegate = self
-        textFieldCode.textContentType = .oneTimeCode
-        textFieldCode.keyboardType = .numberPad
         textFieldCode.addTarget(self, action: #selector(textFieldCodeEditingChanged), for: .editingChanged)
 
-        let stackView = UIStackView(arrangedSubviews: [phoneRow, codeEntryField, errorLabel, resendSMSRow, callMeRow])
+        let stackView = UIStackView(arrangedSubviews: [phoneRow, textFieldCode, errorLabel, resendSMSRow, callMeRow])
         stackView.translatesAutoresizingMaskIntoConstraints = false
         stackView.axis = .vertical
         stackView.alignment = .fill
         stackView.spacing = 30
-        stackView.setCustomSpacing(25, after: codeEntryField)
+        stackView.setCustomSpacing(25, after: textFieldCode)
         stackView.setCustomSpacing(10, after: errorLabel)
         stackView.setCustomSpacing(10, after: resendSMSRow)
 

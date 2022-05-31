@@ -381,6 +381,7 @@
 		EAF3A1CF2334192000805FF9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1CD2334192000805FF9 /* LaunchScreen.storyboard */; };
 		EAF3A1DA2334192000805FF9 /* HalloappTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1D92334192000805FF9 /* HalloappTests.swift */; };
 		EAF3A1E52334192000805FF9 /* HalloappUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1E42334192000805FF9 /* HalloappUITests.swift */; };
+		EBA8265D28418BAF00590507 /* VerificationCodeTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBA8265C28418BAF00590507 /* VerificationCodeTextField.swift */; };
 		F404FC392810B135008313FF /* Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F404FC372810B135008313FF /* Core.framework */; };
 		F404FC3A2810B135008313FF /* Core.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F404FC372810B135008313FF /* Core.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F404FC3B2810B135008313FF /* CoreCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F404FC382810B135008313FF /* CoreCommon.framework */; };
@@ -1123,6 +1124,7 @@
 		EAF3A1E02334192000805FF9 /* HalloAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HalloAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		EAF3A1E42334192000805FF9 /* HalloappUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloappUITests.swift; sourceTree = "<group>"; };
 		EAF3A1E62334192000805FF9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		EBA8265C28418BAF00590507 /* VerificationCodeTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationCodeTextField.swift; sourceTree = "<group>"; };
 		F404FC372810B135008313FF /* Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F404FC382810B135008313FF /* CoreCommon.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CoreCommon.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F4063F2E276836F50068B9ED /* ShareButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareButton.swift; sourceTree = "<group>"; };
@@ -2057,6 +2059,7 @@
 				EA8D4720233C25B8006E2BA5 /* VerificationViewController.swift */,
 				68E4619525C9C93B008B5698 /* ExpiredVersionViewController.swift */,
 				68CCB16626964851007015FA /* InitializingViewController.swift */,
+				EBA8265C28418BAF00590507 /* VerificationCodeTextField.swift */,
 			);
 			path = Registration;
 			sourceTree = "<group>";
@@ -2899,6 +2902,7 @@
 				32ECB6DB27725E2C004DABBA /* MessageCommentHeaderView.swift in Sources */,
 				7627173B257B0744006F7F3D /* AboutViewController.swift in Sources */,
 				766103AB2461F08A00728870 /* FeedPostInfo+CoreDataProperties.swift in Sources */,
+				EBA8265D28418BAF00590507 /* VerificationCodeTextField.swift in Sources */,
 				32C83FBD268FD6B000BEB4F5 /* NewGroupMembersPermissionDeniedController.swift in Sources */,
 				F4063F2F276836F50068B9ED /* ShareButton.swift in Sources */,
 				EABBF72B24E72C6200FE1F1F /* CreateGroupViewController.swift in Sources */,
