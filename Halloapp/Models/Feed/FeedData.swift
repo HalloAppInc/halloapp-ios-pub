@@ -1123,6 +1123,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             if !fromExternalShare {
                 newPosts.append(feedPost)
             }
+
+            DDLogInfo("FeedData/process-posts/post [\(xmppPost.id)] with status: \(xmppPost.status)")
         }
         DDLogInfo("FeedData/process-posts/finished \(newPosts.count) new items, \(xmppPosts.count - newPosts.count) duplicates, \(sharedPosts.count) shared (old)")
         save(managedObjectContext)

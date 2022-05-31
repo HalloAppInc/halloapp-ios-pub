@@ -252,11 +252,11 @@ final class NotificationProtoService: ProtoServiceCore {
             hasAckBeenDelegated = true
             mainDataStore.performSeriallyOnBackgroundContext { context in
                 if let feedPost = self.coreFeedData.feedPost(with: metadata.contentId, in: context), feedPost.status != .rerequesting {
-                    DDLogError("didReceiveRequest/error duplicate groupFeedPost [\(metadata.contentId)]")
+                    DDLogError("didReceiveRequest/error duplicate groupFeedPost [\(metadata.contentId)]/status: \(feedPost.status)")
                     ack()
                     return
                 } else if let feedComment = self.coreFeedData.feedComment(with: metadata.contentId, in: context), feedComment.status != .rerequesting {
-                    DDLogError("didReceiveRequest/error duplicate groupFeedComment [\(metadata.contentId)]")
+                    DDLogError("didReceiveRequest/error duplicate groupFeedComment [\(metadata.contentId)]/status: \(feedComment.status)")
                     ack()
                     return
                 }

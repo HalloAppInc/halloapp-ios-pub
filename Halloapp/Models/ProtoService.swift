@@ -438,10 +438,6 @@ final class ProtoService: ProtoServiceCore {
             return true
         }
 
-        if let message = MainAppContext.shared.shareExtensionDataStore.sharedChatMessage(for: msgId), message.status != .rerequesting {
-            DDLogInfo("ProtoService/isMessageDecryptedAndSaved/msgId \(msgId) - message needs to be stored from nse.")
-            return true
-        }
         DDLogInfo("ProtoService/isMessageDecryptedAndSaved/msgId \(msgId) - message is missing.")
         return false
     }
@@ -839,7 +835,9 @@ final class ProtoService: ProtoServiceCore {
                 break
             }
             let group = HalloGroup(id: items.gid, name: items.name, avatarID: items.avatarID)
-            for content in payloadContents(for: items.items, status: .received) {
+            // Since we recover using the content from server - set status to be rerequesting.
+            // If at all, we receive this content again from the publisher - we can easily update the status in that case and report stats.
+            for content in payloadContents(for: items.items, status: .rerequesting) {
                 // TODO: Wait until all payloads have been processed before acking.
                 let payload = HalloServiceFeedPayload(content: content, group: group, isEligibleForNotification: isEligibleForNotification)
                 delegate.halloService(self, didReceiveFeedPayload: payload, ack: ack)

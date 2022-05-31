@@ -1153,21 +1153,21 @@ extension ProtoServiceCore: CoreService {
     // Checks if the groupFeedItem is decrypted and saved in the stats dataStore.
     public func isGroupFeedItemDecryptedAndSaved(contentID: String) -> Bool {
         var isGroupFeedItemDecrypted = false
-        AppContext.shared.cryptoData.performOnBackgroundContextAndWait { managedObjectContext in
-            guard let result = AppContext.shared.cryptoData.fetchGroupFeedItemDecryption(id: contentID, in: managedObjectContext) else {
-                isGroupFeedItemDecrypted = false
-                return
+
+        AppContext.shared.mainDataStore.performSeriallyOnBackgroundContextAndWait { managedObjectContext in
+            if let post = AppContext.shared.coreFeedData.feedPost(with: contentID, in: managedObjectContext), post.status != .rerequesting {
+                isGroupFeedItemDecrypted = true
+            } else if let comment = AppContext.shared.coreFeedData.feedComment(with: contentID, in: managedObjectContext), comment.status != .rerequesting {
+                isGroupFeedItemDecrypted = true
             }
-            isGroupFeedItemDecrypted = result.isSuccess()
         }
+
         if isGroupFeedItemDecrypted {
             DDLogInfo("ProtoService/isGroupFeedItemDecryptedAndSaved/contentID \(contentID) success")
             return true
         }
         DDLogInfo("ProtoService/isGroupFeedItemDecryptedAndSaved/contentID \(contentID) - content is missing.")
         return false
-
-        // Lets try using only the stats store this time and see how it works out.
     }
 
     public func rerequestGroupFeedItemIfNecessary(id contentID: String, groupID: GroupID, contentType: GroupFeedRerequestContentType, failure: GroupDecryptionFailure, completion: @escaping ServiceRequestCompletion<Void>) {
