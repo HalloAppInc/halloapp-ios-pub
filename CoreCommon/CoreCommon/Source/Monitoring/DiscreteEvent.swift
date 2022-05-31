@@ -20,6 +20,12 @@ public enum DecryptionReportContentType: String {
     case groupHistory
 }
 
+public enum GroupDecryptionReportContentType: String {
+    case post
+    case comment
+    case historyResend
+}
+
 public enum MediaDiscreteEventStatus: String {
     case ok, fail
 }
@@ -29,7 +35,7 @@ public enum DiscreteEvent {
     case mediaDownload(postID: String, duration: TimeInterval, numPhotos: Int, numVideos: Int, totalSize: Int)
     case pushReceived(id: String, timestamp: Date)
     case decryptionReport(id: String, contentType: DecryptionReportContentType, result: String, clientVersion: String, sender: UserAgent, rerequestCount: Int, timeTaken: TimeInterval, isSilent: Bool)
-    case groupDecryptionReport(id: String, gid: String, contentType: String, error: String, clientVersion: String, sender: UserAgent?, rerequestCount: Int, timeTaken: TimeInterval)
+    case groupDecryptionReport(id: String, gid: String, contentType: GroupDecryptionReportContentType, error: String, clientVersion: String, sender: UserAgent?, rerequestCount: Int, timeTaken: TimeInterval)
     case groupHistoryReport(gid: String, numExpected: Int32, numDecrypted: Int32, clientVersion: String, rerequestCount: Int32, timeTaken: TimeInterval)
     case callReport(id: String, peerUserID: UserID, type: String, direction: String, networkType: String, answered: Bool, connected: Bool, duration_ms: Int, endCallReason: String, localEndCall: Bool, webrtcStats: String)
     case fabAction(type: FabActionType)
@@ -78,12 +84,13 @@ extension DiscreteEvent: Codable {
         case .groupDecryptionReport:
             let id = try container.decode(String.self, forKey: .id)
             let gid = try container.decode(String.self, forKey: .gid)
-            let contentType = try container.decode(String.self, forKey: .contentType)
+            let contentTypeString = try container.decode(String.self, forKey: .contentType)
             let error = try container.decode(String.self, forKey: .error)
             let clientVersion = try container.decode(String.self, forKey: .version)
             let sender = try container.decode(UserAgent.self, forKey: .sender)
             let rerequestCount = try container.decode(Int.self, forKey: .count)
             let timeTaken = try container.decode(TimeInterval.self, forKey: .duration)
+            let contentType = GroupDecryptionReportContentType(rawValue: contentTypeString) ?? .post
             self = .groupDecryptionReport(id: id, gid: gid, contentType: contentType, error: error, clientVersion: clientVersion, sender: sender, rerequestCount: rerequestCount, timeTaken: timeTaken)
         case .groupHistoryReport:
             let gid = try container.decode(String.self, forKey: .gid)
@@ -153,7 +160,7 @@ extension DiscreteEvent: Codable {
             try container.encode(EventType.groupDecryptionReport, forKey: .eventType)
             try container.encode(id, forKey: .id)
             try container.encode(gid, forKey: .gid)
-            try container.encode(contentType, forKey: .contentType)
+            try container.encode(contentType.rawValue, forKey: .contentType)
             try container.encode(error, forKey: .error)
             try container.encode(clientVersion, forKey: .version)
             try container.encode(sender, forKey: .sender)

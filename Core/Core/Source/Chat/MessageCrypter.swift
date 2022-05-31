@@ -315,6 +315,7 @@ public enum DecryptionError: String, Error {
     case missingSenderState
     case signatureMisMatch
     case missingPayload
+    case missingContent
 }
 
 // Add new error cases at the end (the index is used as the error code)

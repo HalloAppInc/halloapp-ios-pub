@@ -427,10 +427,18 @@ final class NotificationProtoService: ProtoServiceCore {
                     }
                 }
             }
+            let contentTypeValue: GroupDecryptionReportContentType = {
+                switch contentType {
+                case .post:
+                    return .post
+                case .comment:
+                    return .comment
+                }
+            }()
             self.reportGroupDecryptionResult(
                 error: groupDecryptionFailure?.error,
                 contentID: contentID,
-                contentType: contentType.rawString,
+                contentType: contentTypeValue,
                 groupID: item.gid,
                 timestamp: Date(),
                 sender: UserAgent(string: item.senderClientVersion),

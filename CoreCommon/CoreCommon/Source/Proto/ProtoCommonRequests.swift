@@ -157,11 +157,12 @@ private extension DiscreteEvent {
             // This is contentID
             report.contentID = id
             report.gid = gid
-            if contentType == "post" {
+            switch contentType {
+            case .post:
                 report.itemType = .post
-            } else if contentType == "comment" {
+            case .comment:
                 report.itemType = .comment
-            } else if contentType == "historyResend" {
+            case .historyResend:
                 report.itemType = .historyResend
             }
             if error.isEmpty {

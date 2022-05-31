@@ -720,14 +720,14 @@ final class ProtoService: ProtoServiceCore {
                 break
             }
 
-            let itemType: FeedElementType
+            let contentType: GroupDecryptionReportContentType
             let contentID: String
             switch item.item {
             case .post(let serverPost):
-                itemType = .post
+                contentType = .post
                 contentID = serverPost.id
             case .comment(let serverComment):
-                itemType = .comment
+                contentType = .comment
                 contentID = serverComment.id
             default:
                 DDLogError("proto/handleGroupFeedItem/\(msg.id)/decrypt/invalid content")
@@ -782,7 +782,7 @@ final class ProtoService: ProtoServiceCore {
                     self.reportGroupDecryptionResult(
                         error: groupDecryptionFailure?.error,
                         contentID: contentID,
-                        contentType: itemType.rawString,
+                        contentType: contentType,
                         groupID: item.gid,
                         timestamp: receiptTimestamp,
                         sender: UserAgent(string: item.senderClientVersion),
@@ -1080,8 +1080,47 @@ final class ProtoService: ProtoServiceCore {
         case .callSdp(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
 
-        case .contentMissing:
-            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
+        // We get this message when client rerequest content from another user and they dont have the content.
+        case .contentMissing(let contentMissing):
+            let contentID = contentMissing.contentID
+            let senderUserAgent = UserAgent(string: contentMissing.senderClientVersion)
+            let error = DecryptionError.missingContent
+            let contentType = contentMissing.contentType
+            DDLogInfo("proto/didReceive/\(msg.id)/contentMissing/contentID: \(contentID)/contentType: \(contentType)/ua: \(String(describing: senderUserAgent))")
+
+            let maxCount = 5
+            // Set rerequestCount to 5 to indicate max.
+            // Set gid to be empty - where necessary.
+            // We got contentMissing upon sending a rerequest so we wont update gid on the counter anyways.
+            switch contentType {
+            case .chat:
+                // Update 1-1 stats.
+                reportDecryptionResult(error: error, messageID: contentID, timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount, contentType: .chat)
+            case .groupHistory:
+                // Update 1-1 stats.
+                reportDecryptionResult(error: error, messageID: contentID, timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount, contentType: .groupHistory)
+            case .groupFeedPost:
+                // Update group stats.
+                reportGroupDecryptionResult(error: error, contentID: contentID, contentType: .post,
+                                            groupID: "", timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount)
+            case .groupFeedComment:
+                // Update group stats.
+                reportGroupDecryptionResult(error: error, contentID: contentID, contentType: .comment,
+                                            groupID: "", timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount)
+
+            case .historyResend:
+                // Update group stats.
+                reportGroupDecryptionResult(error: error, contentID: contentID, contentType: .historyResend,
+                                            groupID: "", timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount)
+            case .call:
+                // TODO: murali@: check if we are we reporting call stats on 1-1 channel.
+                break
+            case .homeFeedPost, .homeFeedComment:
+                break
+            case .UNRECOGNIZED, .unknown:
+                break
+            }
+
         case .inviteeNotice:
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .homeFeedRerequest(_):

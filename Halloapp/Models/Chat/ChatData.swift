@@ -2682,7 +2682,9 @@ extension ChatData {
             }
             guard let chatMessage = self.chatMessage(with: messageID, in: managedObjectContext) else {
                 DDLogError("ChatData/handleRerequest/\(messageID)/error could not find message")
-                completion(.failure(.aborted))
+                self.service.sendContentMissing(id: messageID, type: .chat, to: userID) { result in
+                    completion(result)
+                }
                 return
             }
             guard userID == chatMessage.toUserId else {

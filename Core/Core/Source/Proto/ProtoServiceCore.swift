@@ -896,7 +896,7 @@ extension ProtoServiceCore: CoreService {
             self.reportGroupDecryptionResult(
                 error: groupDecryptionFailure?.error,
                 contentID: historyResend.id,
-                contentType: "historyResend",
+                contentType: .historyResend,
                 groupID: groupID,
                 timestamp: Date(),
                 sender: UserAgent(string: historyResend.senderClientVersion),
@@ -1113,14 +1113,14 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
-    public func reportGroupDecryptionResult(error: DecryptionError?, contentID: String, contentType: String, groupID: GroupID, timestamp: Date, sender: UserAgent?, rerequestCount: Int) {
+    public func reportGroupDecryptionResult(error: DecryptionError?, contentID: String, contentType: GroupDecryptionReportContentType, groupID: GroupID, timestamp: Date, sender: UserAgent?, rerequestCount: Int) {
         if (error == .missingPayload) {
             DDLogInfo("proto/reportGroupDecryptionResult/\(contentID)/\(contentType)/\(groupID)/payload is missing - not error.")
             return
         }
         let errorString = error?.rawValue ?? ""
         DDLogInfo("proto/reportGroupDecryptionResult/\(contentID)/\(contentType)/\(groupID)/error value: \(errorString)")
-        AppContext.shared.eventMonitor.count(.groupDecryption(error: error, itemTypeString: contentType, sender: sender))
+        AppContext.shared.eventMonitor.count(.groupDecryption(error: error, itemTypeString: contentType.rawValue, sender: sender))
         AppContext.shared.cryptoData.update(contentID: contentID,
                                             contentType: contentType,
                                             groupID: groupID,
@@ -1370,6 +1370,40 @@ extension ProtoServiceCore: CoreService {
                 self.send(packetData)
                 completion(.success(()))
             }
+        }
+    }
+
+    public func sendContentMissing(id contentID: String, type contentType: Server_ContentMissing.ContentType,
+                                   to toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            guard let fromUserID = self.credentials?.userID else {
+                DDLogInfo("ProtoServiceCore/sendContentMissing/\(contentID) skipping (disconnected)")
+                completion(.failure(RequestError.aborted))
+                return
+            }
+
+            var contentMissing = Server_ContentMissing()
+            contentMissing.contentID = contentID
+            contentMissing.contentType = contentType
+            contentMissing.senderClientVersion = AppContext.userAgent
+
+            let packet = Server_Packet.msgPacket(
+                from: fromUserID,
+                to: toUserID,
+                id: PacketID.generate(),
+                payload: .contentMissing(contentMissing))
+
+            guard let packetData = try? packet.serializedData() else {
+                AppContext.shared.eventMonitor.count(.encryption(error: .serialization))
+                DDLogError("ProtoServiceCore/sendContentMissing/\(contentID)/error could not serialize contentMissing!")
+                completion(.failure(RequestError.malformedRequest))
+                return
+            }
+
+            DDLogInfo("ProtoServiceCore/sendContentMissing/\(contentID) sending encrypted")
+            self.send(packetData)
+            DDLogInfo("ProtoServiceCore/sendContentMissing/\(contentID) success")
+            completion(.success(()))
         }
     }
 

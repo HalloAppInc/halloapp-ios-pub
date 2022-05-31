@@ -118,7 +118,7 @@ public final class CryptoData {
         }
     }
 
-    public func update(contentID: String, contentType: String, groupID: GroupID, timestamp: Date, error: String, sender: UserAgent?, rerequestCount: Int) {
+    public func update(contentID: String, contentType: GroupDecryptionReportContentType, groupID: GroupID, timestamp: Date, error: String, sender: UserAgent?, rerequestCount: Int) {
         queue.async { [weak self] in
             guard let self = self else { return }
 
@@ -447,10 +447,10 @@ public final class CryptoData {
         }
     }
 
-    private func createGroupFeedItemDecryption(id: String, contentType: String, groupID: GroupID, timestamp: Date, sender: UserAgent?, in context: NSManagedObjectContext) -> GroupFeedItemDecryption? {
+    private func createGroupFeedItemDecryption(id: String, contentType: GroupDecryptionReportContentType, groupID: GroupID, timestamp: Date, sender: UserAgent?, in context: NSManagedObjectContext) -> GroupFeedItemDecryption? {
         let decryption = GroupFeedItemDecryption(context: context)
         decryption.contentID = id
-        decryption.contentType = contentType
+        decryption.contentType = contentType.rawValue
         decryption.groupID = groupID
         decryption.timeReceived = timestamp
         decryption.userAgentSender = sender?.description ?? ""
@@ -607,6 +607,7 @@ extension GroupFeedItemDecryption {
         {
             return nil
         }
+        let contentTypeValue = GroupDecryptionReportContentType(rawValue: contentType) ?? .post
 
         guard isReadyToBeReported(withDeadline: deadline) else {
             return nil
@@ -622,7 +623,7 @@ extension GroupFeedItemDecryption {
 
         return .groupDecryptionReport(id: contentID,
                                       gid: groupID,
-                                      contentType: contentType,
+                                      contentType: contentTypeValue,
                                       error: decryptionError ?? "",
                                       clientVersion: clientVersion,
                                       sender: UserAgent(string: userAgentSender),

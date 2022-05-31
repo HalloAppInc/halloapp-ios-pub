@@ -48,6 +48,9 @@ public protocol CoreService: CoreServiceCommon {
     func decryptChat(_ serverChat: Server_ChatStanza, from fromUserID: UserID, completion: @escaping (ChatContent?, ChatContext?, DecryptionFailure?) -> Void)
     func rerequestMessage(_ messageID: String, senderID: UserID, failedEphemeralKey: Data?, contentType: Server_Rerequest.ContentType, completion: @escaping ServiceRequestCompletion<Void>)
 
+    // MARK: ContentMissing - Handle rerequests
+    func sendContentMissing(id contentID: String, type contentType: Server_ContentMissing.ContentType, to toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>)
+
     // MARK: Event Logging
     func log(countableEvents: [CountableEvent], discreteEvents: [DiscreteEvent], completion: @escaping ServiceRequestCompletion<Void>)
 
