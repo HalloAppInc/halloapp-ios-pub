@@ -187,9 +187,18 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                     // Check why this is needed
 //                    guard let chatEvent = chatEventFetchedResultsController?.optionalObject(at: chatEvent.indexPath) as? ChatEvent else { break }
 
-                    if chatEvent.type == .whisperKeysChange, let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ChatViewControllerNew.messageCellViewEventReuseIdentifier, for: indexPath) as? MessageCellViewEvent {
+                    if (chatEvent.type == .whisperKeysChange || chatEvent.type == .blocked || chatEvent.type == .unblocked), let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ChatViewControllerNew.messageCellViewEventReuseIdentifier, for: indexPath) as? MessageCellViewEvent {
                         let fullname = MainAppContext.shared.contactStore.fullName(for: chatEvent.userID)
-                        cell.configure(headerText: Localizations.chatEventSecurityKeysChanged(name: fullname))
+                        switch chatEvent.type {
+                        case .whisperKeysChange:
+                            cell.configure(headerText: Localizations.chatEventSecurityKeysChanged(name: fullname))
+                        case .blocked:
+                            cell.configure(headerText: Localizations.chatBlockedContactLabel)
+                        case .unblocked:
+                            cell.configure(headerText: Localizations.chatUnblockedContactLabel)
+                        default:
+                            break
+                        }
                         return cell
                     }
                 case .chatCall(let chatCall):
@@ -386,10 +395,6 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                 }
             }
         )
-
-        DispatchQueue.main.async { [weak self] in
-            self?.setupOrRefreshHeaderAndFooter()
-        }
         configureTitleViewWithTypingIndicator()
         loadChatDraft(id: fromUserId)
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard(_:)))
@@ -407,6 +412,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             MainAppContext.shared.chatData.setCurrentlyChattingWithUserId(for: chatWithUserId)
 
             UNUserNotificationCenter.current().removeDeliveredChatNotifications(fromUserId: chatWithUserId)
+            setupOrRefreshHeaderAndFooter()
         }
     }
 
@@ -783,6 +789,10 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     private func setupOrRefreshHeaderAndFooter() {
         guard let userID = fromUserId else { return }
         let isUserBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(userID)
+        if isUserBlocked {
+            present(blockedContactSheet, animated: true)
+            return
+        }
         let isUserInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID)
         let isPushNumberMessagingAccepted = MainAppContext.shared.contactStore.isPushNumberMessagingAccepted(userID: userID)
         let haveMessagedBefore = MainAppContext.shared.chatData.haveMessagedBefore(userID: userID, in: MainAppContext.shared.chatData.viewContext)
@@ -800,6 +810,25 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             present(unknownContactSheet, animated: true)
         }
     }
+
+    private lazy var blockedContactSheet: BlockedContactSheetViewController = {
+        let sheet = BlockedContactSheetViewController()
+
+        sheet.unblockAction = { [weak self] in
+            guard let self = self else { return }
+            self.dismiss(animated: true)
+            guard let userID = self.fromUserId else { return }
+            let privacySettings = MainAppContext.shared.privacySettings
+            privacySettings.unblock(userID: userID)
+        }
+
+        sheet.cancelAction = { [weak self] in
+            self?.dismiss(animated: true)
+            self?.navigationController?.popViewController(animated: true)
+        }
+
+        return sheet
+    }()
 
     private lazy var unknownContactSheet: UnknownContactSheetViewController = {
         let sheet = UnknownContactSheetViewController()

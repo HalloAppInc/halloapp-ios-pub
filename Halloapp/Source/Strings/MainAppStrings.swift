@@ -231,6 +231,14 @@ extension Localizations {
     }
 
     static var chatBlockedContactLabel: String {
-        NSLocalizedString("chat.blocked.contact.label", value: "Contact is blocked, tap to unblock", comment: "Text shown at the top of the chat screen informing the user that the contact is blocked")
+        NSLocalizedString("chat.blocked.contact.label", value: "You blocked this contact", comment: "Text shown in the chat interface informing the user that the contact is blocked")
+    }
+
+    static var chatUnblockedContactLabel: String {
+        NSLocalizedString("chat.unblocked.contact.label", value: "You unblocked this contact", comment: "Text shown in the chat interface informing the user that the contact is unblocked")
+    }
+
+    static var contactIsBlockedTitleLabel: String {
+        NSLocalizedString("chat.contact.is.blocked.title.label", value: "Contact is blocked, you won't receive any messages until you unblock them.", comment: "Title of the bottom sheet shown in the chat screen of a contact that is blocked. The bottom sheet contains an unblock button.")
     }
 }

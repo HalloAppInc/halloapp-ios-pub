@@ -12,6 +12,8 @@ import CoreData
 public enum ChatEventType: Int16 {
     case none = 0
     case whisperKeysChange = 1
+    case blocked = 2
+    case unblocked = 3
 }
 
 public extension ChatEvent {

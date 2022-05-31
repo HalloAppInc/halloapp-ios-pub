@@ -39,6 +39,7 @@
 		3250C60927D0120D0032FEC4 /* PhoneInputViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3250C60627D0120D0032FEC4 /* PhoneInputViewController.swift */; };
 		3250C60A27D0120D0032FEC4 /* VerificationCodeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3250C60727D0120D0032FEC4 /* VerificationCodeViewController.swift */; };
 		3250C60B27D0120D0032FEC4 /* Localizations+Registration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3250C60827D0120D0032FEC4 /* Localizations+Registration.swift */; };
+		326A757D28400B500058DFAA /* BlockedContactSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 326A757C28400B500058DFAA /* BlockedContactSheetViewController.swift */; };
 		327AB839272C8356001C0E00 /* ChatLinkPreview+CoreDataProperties copy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 327AB836272C8355001C0E00 /* ChatLinkPreview+CoreDataProperties copy.swift */; };
 		327AB83A272C8356001C0E00 /* ChatLinkPreview+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 327AB838272C8356001C0E00 /* ChatLinkPreview+CoreDataClass.swift */; };
 		3283059727D2A88E00AD661A /* MessageCellViewText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3283059627D2A88E00AD661A /* MessageCellViewText.swift */; };
@@ -641,6 +642,7 @@
 		3250C60627D0120D0032FEC4 /* PhoneInputViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhoneInputViewController.swift; sourceTree = "<group>"; };
 		3250C60727D0120D0032FEC4 /* VerificationCodeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VerificationCodeViewController.swift; sourceTree = "<group>"; };
 		3250C60827D0120D0032FEC4 /* Localizations+Registration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Localizations+Registration.swift"; sourceTree = "<group>"; };
+		326A757C28400B500058DFAA /* BlockedContactSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedContactSheetViewController.swift; sourceTree = "<group>"; };
 		327888B62764260500EACBCC /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		327888B72764260500EACBCC /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		327AB836272C8355001C0E00 /* ChatLinkPreview+CoreDataProperties copy.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ChatLinkPreview+CoreDataProperties copy.swift"; sourceTree = "<group>"; };
@@ -1925,6 +1927,7 @@
 				322DDDE42739A2A6006BE1E0 /* ChatLinkPreviewView.swift */,
 				68610B8E27A12DD3007019F4 /* ChatCallCell.swift */,
 				32151C1C28207B330057D794 /* ChatViewControllerNew.swift */,
+				326A757C28400B500058DFAA /* BlockedContactSheetViewController.swift */,
 			);
 			path = Chats;
 			sourceTree = "<group>";
@@ -2984,6 +2987,7 @@
 				68C0B9D427FA737E00F3A092 /* ChatDataLegacy.swift in Sources */,
 				A1AFE7742819F485008BBC80 /* MomentCollectionViewCell.swift in Sources */,
 				F881ED77261B1F6F0013599F /* Upload+CoreDataProperties.swift in Sources */,
+				326A757D28400B500058DFAA /* BlockedContactSheetViewController.swift in Sources */,
 				7639BA39251944920023850E /* NextLevelSessionExporter.swift in Sources */,
 				321A70112704FF13005603B8 /* FeedLinkPreview+CoreDataProperties.swift in Sources */,
 				EAD476F52458F03700EF8591 /* ChatThread+CoreDataProperties.swift in Sources */,

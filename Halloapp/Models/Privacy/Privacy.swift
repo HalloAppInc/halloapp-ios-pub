@@ -102,9 +102,15 @@ extension PrivacyList {
         for (itemIndex, item) in items.enumerated() {
             switch item.state {
             case .deleted:
+                if type == .blocked {
+                    MainAppContext.shared.chatData.recordNewChatEvent(userID: item.userId, type: .unblocked)
+                }
                 itemIndexesToDelete.update(with: itemIndex)
 
             case .added:
+                if type == .blocked {
+                    MainAppContext.shared.chatData.recordNewChatEvent(userID: item.userId, type: .blocked)
+                }
                 item.state = .active
 
             default:
@@ -618,7 +624,6 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
         }
         
         replaceUserIDs(in: blockedList, with: blockedList.userIds + [userID])
-        
         MainAppContext.shared.didPrivacySettingChange.send(userID)
     }
     
@@ -629,11 +634,9 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
         guard let blockedList = blocked else {
             return
         }
-        
         var newBlockedList = blockedList.userIds
         newBlockedList.removeAll { $0 == userID }
         replaceUserIDs(in: blockedList, with: newBlockedList)
-        
         MainAppContext.shared.didPrivacySettingChange.send(userID)
     }
 }

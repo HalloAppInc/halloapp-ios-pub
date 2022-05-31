@@ -169,7 +169,7 @@ class UnknownContactSheetViewController: UIViewController, UIViewControllerTrans
     }
     
     func presentationController(forPresented presented: UIViewController, presenting: UIViewController?, source: UIViewController) -> UIPresentationController? {
-        return UnknownContactSheetPresentationController(presentedViewController: presented, presenting: presenting)
+        return ContactSheetPresentationController(presentedViewController: presented, presenting: presenting)
     }
 }
 
@@ -199,7 +199,7 @@ extension UnknownContactSheetViewController {
 
 // MARK: - capsule button implementation
 
-fileprivate class CapsuleButton: UIButton {
+public class CapsuleButton: UIButton {
     private static var insets: UIEdgeInsets {
         return UIEdgeInsets(top: 11, left: 20, bottom: 13, right: 20)
     }
@@ -216,7 +216,7 @@ fileprivate class CapsuleButton: UIButton {
         fatalError("Capsule button coder init not implemented...")
     }
     
-    override func layoutSubviews() {
+    public override func layoutSubviews() {
         super.layoutSubviews()
         
         layer.cornerRadius = bounds.height / 2
@@ -225,94 +225,92 @@ fileprivate class CapsuleButton: UIButton {
 
 // MARK: - presentation controller implementation
 
-fileprivate extension UnknownContactSheetViewController {
-    private class UnknownContactSheetPresentationController: UIPresentationController {
-        private lazy var backgroundView: UIView = {
-            let backgroundView = UIView()
-            backgroundView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(dismissActionSheet)))
-            backgroundView.backgroundColor = .black.withAlphaComponent(0.1)
-            return backgroundView
-        }()
+public class ContactSheetPresentationController: UIPresentationController {
+    private lazy var backgroundView: UIView = {
+        let backgroundView = UIView()
+        backgroundView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(dismissActionSheet)))
+        backgroundView.backgroundColor = .black.withAlphaComponent(0.1)
+        return backgroundView
+    }()
 
-        override var frameOfPresentedViewInContainerView: CGRect {
-            guard let containerView = containerView, let presentedView = presentedViewController.view else {
-                return .zero
-            }
-
-            let width = containerView.bounds.width
-            let height =  presentedView.systemLayoutSizeFitting(CGSize(width: width,
-                                                                      height: .greatestFiniteMagnitude),
-                                                                withHorizontalFittingPriority: .required,
-                                                                verticalFittingPriority: .fittingSizeLevel).height
-
-            return CGRect(x: containerView.bounds.midX - width / 2,
-                          y: containerView.bounds.maxY - height,
-                      width: width,
-                     height: height)
+    public override var frameOfPresentedViewInContainerView: CGRect {
+        guard let containerView = containerView, let presentedView = presentedViewController.view else {
+            return .zero
         }
 
-        override func containerViewDidLayoutSubviews() {
-            super.containerViewDidLayoutSubviews()
-            guard let presentedView = presentedViewController.view else {
-                return
-            }
+        let width = containerView.bounds.width
+        let height =  presentedView.systemLayoutSizeFitting(CGSize(width: width,
+                                                                  height: .greatestFiniteMagnitude),
+                                                            withHorizontalFittingPriority: .required,
+                                                            verticalFittingPriority: .fittingSizeLevel).height
 
-            presentedView.frame = frameOfPresentedViewInContainerView
-            
-            presentedView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-            presentedView.layer.cornerRadius = 15
-            presentedView.layer.masksToBounds = true
+        return CGRect(x: containerView.bounds.midX - width / 2,
+                      y: containerView.bounds.maxY - height,
+                  width: width,
+                 height: height)
+    }
+
+    public override func containerViewDidLayoutSubviews() {
+        super.containerViewDidLayoutSubviews()
+        guard let presentedView = presentedViewController.view else {
+            return
         }
 
-        override func presentationTransitionWillBegin() {
-            super.presentationTransitionWillBegin()
+        presentedView.frame = frameOfPresentedViewInContainerView
+        
+        presentedView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        presentedView.layer.cornerRadius = 15
+        presentedView.layer.masksToBounds = true
+    }
 
-            guard let containerView = containerView else {
-                return
-            }
+    public override func presentationTransitionWillBegin() {
+        super.presentationTransitionWillBegin()
 
-            backgroundView.translatesAutoresizingMaskIntoConstraints = false
-            containerView.insertSubview(backgroundView, at: 0)
-            NSLayoutConstraint.activate([
-                backgroundView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
-                backgroundView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-                backgroundView.topAnchor.constraint(equalTo: containerView.topAnchor),
-                backgroundView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
-            ])
-
-            guard let transitionCoordinator = presentedViewController.transitionCoordinator else {
-                return
-            }
-
-            backgroundView.alpha = 0
-            transitionCoordinator.animate { _ in
-                self.backgroundView.alpha = 1
-            }
+        guard let containerView = containerView else {
+            return
         }
 
-        override func dismissalTransitionWillBegin() {
-            super.dismissalTransitionWillBegin()
+        backgroundView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.insertSubview(backgroundView, at: 0)
+        NSLayoutConstraint.activate([
+            backgroundView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            backgroundView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            backgroundView.topAnchor.constraint(equalTo: containerView.topAnchor),
+            backgroundView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+        ])
 
-            guard let transitionCoordinator = presentedViewController.transitionCoordinator else {
-                return
-            }
-
-            transitionCoordinator.animate { _ in
-                self.backgroundView.alpha = 0
-            }
+        guard let transitionCoordinator = presentedViewController.transitionCoordinator else {
+            return
         }
 
-        override func dismissalTransitionDidEnd(_ completed: Bool) {
-            super.dismissalTransitionDidEnd(completed)
+        backgroundView.alpha = 0
+        transitionCoordinator.animate { _ in
+            self.backgroundView.alpha = 1
+        }
+    }
 
-            if completed {
-                backgroundView.removeFromSuperview()
-            }
+    public override func dismissalTransitionWillBegin() {
+        super.dismissalTransitionWillBegin()
+
+        guard let transitionCoordinator = presentedViewController.transitionCoordinator else {
+            return
         }
 
-        @objc private func dismissActionSheet() {
-            (presentedViewController as? UnknownContactSheetViewController)?.cancelAction?()
+        transitionCoordinator.animate { _ in
+            self.backgroundView.alpha = 0
         }
+    }
+
+    public override func dismissalTransitionDidEnd(_ completed: Bool) {
+        super.dismissalTransitionDidEnd(completed)
+
+        if completed {
+            backgroundView.removeFromSuperview()
+        }
+    }
+
+    @objc private func dismissActionSheet() {
+        (presentedViewController as? UnknownContactSheetViewController)?.cancelAction?()
     }
 }
 

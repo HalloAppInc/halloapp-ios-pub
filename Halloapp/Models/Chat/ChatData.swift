@@ -679,6 +679,27 @@ class ChatData: ObservableObject {
         DDLogInfo("ChatData/migrateLegacyChatEvent/finished")
     }
 
+    public func recordNewChatEvent(userID: UserID, type: ChatEventType) {
+        mainDataStore.saveSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            DDLogInfo("ChatData/recordNewChatEvent/ \(type) for: \(userID)")
+
+            if type == .whisperKeysChange {
+                let ownUserID = AppContext.shared.userData.userId
+                let predicate = NSPredicate(format: "(fromUserID = %@ AND toUserID = %@) || (toUserID = %@ AND fromUserID = %@)", userID, ownUserID, userID, ownUserID)
+                guard self.chatMessages(predicate: predicate, limit: 1, in: managedObjectContext).count > 0 else {
+                    DDLogInfo("ChatData/recordNewChatEvent/\(userID)/no messages yet, skip recording keys change event")
+                    return
+                }
+            }
+
+            let chatEvent = ChatEvent(context: managedObjectContext)
+            chatEvent.userID = userID
+            chatEvent.type = type
+            chatEvent.timestamp = Date()
+        }
+    }
+
     private func migrateLegacyQuoted(_ legacy: ChatQuotedLegacy, toMessage message: ChatMessage, in managedObjectContext: NSManagedObjectContext) {
         DDLogInfo("ChatData/migrateLegacyQuoted/new")
         let quoted = ChatQuoted(context: managedObjectContext)
