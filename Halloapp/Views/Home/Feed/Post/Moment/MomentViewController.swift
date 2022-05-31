@@ -510,17 +510,17 @@ extension MomentViewController {
             return
         }
 
-        let behavior = UIPushBehavior(items: [snapshot], mode: .instantaneous)
+        let pushBehavior = UIPushBehavior(items: [snapshot], mode: .instantaneous)
         let magnitude = sqrt((velocity.x * velocity.x) + (velocity.y * velocity.y))
-        behavior.pushDirection = CGVector(dx: velocity.x / 5, dy: velocity.y / 5)
-        behavior.magnitude = magnitude / 10
+        pushBehavior.pushDirection = CGVector(dx: velocity.x / 5, dy: velocity.y / 5)
+        pushBehavior.magnitude = magnitude / 8.5
 
         let finalPoint = gesture.location(in: view)
         let center = snapshot.center
         let offset = UIOffset(horizontal: finalPoint.x - center.x, vertical: finalPoint.y - center.y)
-        behavior.setTargetOffsetFromCenter(offset, for: snapshot)
+        pushBehavior.setTargetOffsetFromCenter(offset, for: snapshot)
 
-        behavior.action = { [weak self] in
+        pushBehavior.action = { [weak self] in
             guard let self = self, !self.view.bounds.intersects(snapshot.frame) else {
                 return
             }
@@ -528,11 +528,15 @@ extension MomentViewController {
             self.dismiss(animated: true)
         }
 
-        let gravity = UIGravityBehavior(items: [snapshot])
-        gravity.magnitude = 1.5
+        let gravityBehavior = UIGravityBehavior(items: [snapshot])
+        gravityBehavior.magnitude = 1.5
 
-        dismissAnimator.addBehavior(behavior)
-        dismissAnimator.addBehavior(gravity)
+        let resistanceBehavior = UIDynamicItemBehavior(items: [snapshot])
+        resistanceBehavior.angularResistance = 3
+
+        dismissAnimator.addBehavior(resistanceBehavior)
+        dismissAnimator.addBehavior(pushBehavior)
+        dismissAnimator.addBehavior(gravityBehavior)
 
         dismissAnimator.propertyAnimator?.startAnimation()
     }
