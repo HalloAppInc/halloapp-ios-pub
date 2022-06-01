@@ -762,7 +762,7 @@ class ContentInputView: UIView {
         mediaPanel.isHidden = false
 
         mediaState = .media
-        self.media.append(media)
+        self.media = [media]
 
         // media takes priority over link previews
         textView.resetLinkDetection()

@@ -1688,6 +1688,8 @@ extension ChatViewController {
             panel.postInfo = info
             contentInputView.display(context: panel)
         }
+
+        contentInputView.textView.becomeFirstResponder()
     }
 
     private func handleDraftQuotedReply(reply: ReplyContext) {

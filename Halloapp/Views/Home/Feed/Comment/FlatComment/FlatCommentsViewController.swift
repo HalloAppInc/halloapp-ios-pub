@@ -1001,6 +1001,8 @@ extension FlatCommentsViewController: MessageViewCommentDelegate {
         let panel = QuotedCommentPanel(comment: comment, color: userColorAssignment)
         parentCommentID = comment.id
         messageInputView.display(context: panel)
+
+        messageInputView.textView.becomeFirstResponder()
     }
 
     func messageView(_ messageViewCell: MessageCellViewBase, didTapUserId userId: UserID) {
