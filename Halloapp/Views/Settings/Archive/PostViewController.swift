@@ -239,10 +239,18 @@ extension PostViewController {
             guard let self = self, let post = self.post as? FeedPost else {
                 return
             }
-            let chatViewController = ChatViewController(for: post.userId,
-                                                        with: post.id,
-                                                        at: Int32(self.currentMediaIndex))
-            self.navigationController?.pushViewController(chatViewController, animated: true)
+            if AppContext.shared.userDefaults.bool(forKey: "enableNewChat") {
+                let chatViewController = ChatViewControllerNew(for: post.userId,
+                                                            with: post.id,
+                                                            at: Int32(self.currentMediaIndex))
+                self.navigationController?.pushViewController(chatViewController, animated: true)
+            } else {
+                let chatViewController = ChatViewController(for: post.userId,
+                                                            with: post.id,
+                                                            at: Int32(self.currentMediaIndex))
+                self.navigationController?.pushViewController(chatViewController, animated: true)
+            }
+            
         }
 
         postView.showGroupFeedAction = { [weak self] groupID in
@@ -413,7 +421,11 @@ extension PostViewController: PostDashboardViewControllerDelegate {
 
         case .message(let userId, let postId):
             actionToPerformOnDashboardDismiss = {
-                self.navigationController?.pushViewController(ChatViewController(for: userId, with: postId), animated: true)
+                if AppContext.shared.userDefaults.bool(forKey: "enableNewChat") {
+                    self.navigationController?.pushViewController(ChatViewControllerNew(for: userId, with: postId), animated: true)
+                } else {
+                    self.navigationController?.pushViewController(ChatViewController(for: userId, with: postId), animated: true)
+                }
             }
 
         case .blacklist(let userId):

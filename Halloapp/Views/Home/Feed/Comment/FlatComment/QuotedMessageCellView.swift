@@ -6,6 +6,7 @@
 //  Copyright © 2021 HalloApp, Inc. All rights reserved.
 //
 
+import CocoaLumberjackSwift
 import Core
 import CoreCommon
 import Combine
@@ -17,6 +18,11 @@ fileprivate struct Constants {
 
 /// For displaying reply context for flat comments.
 class QuotedCommentPanel: UIView, InputContextPanel {
+
+    static var expiredIndicator: UIImage? {
+        UIImage(systemName: "hourglass.tophalf.filled")
+    }
+
     private(set) lazy var closeButton: UIButton = {
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -79,7 +85,7 @@ class QuotedMessageCellView: UIView {
         mediaView.isHidden = true
         mediaView.contentMode = .scaleAspectFill
         mediaView.clipsToBounds = true
-        mediaView.layer.cornerRadius = 4
+        mediaView.layer.cornerRadius = 2
         return mediaView
     }()
     
@@ -183,12 +189,18 @@ class QuotedMessageCellView: UIView {
         super.layoutSubviews()
     }
 
+    private func prepareForReuse() {
+        hasText = false
+        hasMedia = false
+        mediaView.contentMode = .scaleAspectFill
+        mediaView.layer.borderWidth = 0
+    }
+
     func configureWith(comment: FeedPostComment, userColorAssignment: UIColor) {
         // Download any pending media, comes in handy for media coming in while user is viewing comments
         MainAppContext.shared.feedData.downloadMedia(in: [comment])
         MainAppContext.shared.feedData.loadImages(commentID: comment.id)
-        hasText = false
-        hasMedia = false
+        prepareForReuse()
         setNameLabel(for: comment.userId, userColorAssignment: userColorAssignment)
         configureText(text: comment.rawText, mentions: comment.mentions)
         configureMedia(media: comment.media)
@@ -197,13 +209,64 @@ class QuotedMessageCellView: UIView {
     }
 
     func configureWith(message: ChatMessage) {
-        hasText = false
-        hasMedia = false
+        prepareForReuse()
         setNameLabel(for: message.fromUserId)
         configureText(text: message.rawText ?? "", mentions: message.mentions)
         configureMedia(media: message.media)
         configureCell()
         textLabel.textColor = UIColor.quotedMessageText
+    }
+
+    func configureWith(quoted: ChatQuoted) {
+        prepareForReuse()
+        if let userID = quoted.userID {
+            setNameLabel(for: userID)
+        }
+        switch quoted.type {
+        case .feedpost:
+            configureText(text: quoted.rawText ?? "", mentions: quoted.orderedMentions)
+            configureMedia(media: quoted.media)
+            configureCell()
+            textLabel.textColor = UIColor.quotedMessageText
+        case .moment:
+            configureQuotedMoment(quoted: quoted)
+        default:
+            break
+        }
+        configureCell()
+    }
+
+    private func configureQuotedMoment(quoted: ChatQuoted) {
+        if quoted.userID == MainAppContext.shared.userData.userId {
+            guard let media = quoted.media?.first else {
+                return
+            }
+            hasText = true
+            hasMedia = true
+            textLabel.attributedText = NSAttributedString(string: Localizations.momentLabel)
+            if let thumbnailData = media.previewData, media.type != .audio {
+                mediaView.image = UIImage(data: thumbnailData)
+            } else {
+                if .image == media.type, let mediaURL = media.mediaURL {
+                    if let image = UIImage(contentsOfFile: mediaURL.path) {
+                        mediaView.image = image
+                    } else {
+                        DDLogError("QuotedMessageCellView/configureQuotedMoment/Incoming/configureQuotedMoment/no-image/fileURL \(mediaURL)")
+                    }
+                }
+            }
+        } else {
+            hasText = true
+            hasMedia = true
+            textLabel.attributedText = NSAttributedString(string: Localizations.momentExpiredLabel)
+            mediaView.image = QuotedCommentPanel.expiredIndicator
+            mediaView.layer.borderWidth = 1 / UIScreen.main.scale
+            mediaView.layer.borderColor = UIColor.primaryBlackWhite.withAlphaComponent(0.25).cgColor
+            mediaView.contentMode = .center
+            mediaView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 26, weight: .regular)
+            mediaView.tintColor = UIColor.primaryBlackWhite.withAlphaComponent(0.3)
+            mediaView.layer.masksToBounds = true
+        }
     }
 
     // Adjusting constraint priorities here in a single place to be able to easily see relative priorities.

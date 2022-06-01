@@ -338,7 +338,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             return MessageRow.chatMessage(chatMessage)
        }
         // Quoted Message
-        if chatMessage.chatReplyMessageID != nil {
+        if chatMessage.chatReplyMessageID != nil || chatMessage.feedPostId != nil {
             return MessageRow.quoted(chatMessage)
         }
         // Media
@@ -358,6 +358,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         DDLogDebug("ChatViewControllerNew/init/\(fromUserId) [\(MainAppContext.shared.contactStore.fullName(for: fromUserId))]")
         self.fromUserId = fromUserId
         self.feedPostId = feedPostId
+        self.feedPostMediaIndex = feedPostMediaIndex
         self.unreadCount = unreadCount
         super.init(nibName: nil, bundle: nil)
         self.hidesBottomBarWhenPushed = true
@@ -396,6 +397,32 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         view.addSubview(collectionView)
         collectionView.constrain(to: view)
         setupUI()
+        
+        if let feedPostId = feedPostId {
+            DDLogInfo("ChatViewControllerNew/loading feed post context")
+            if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
+                let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.rawText, mentions: feedPost.orderedMentions)
+                if let mediaItem = feedPost.media?.first(where: { $0.order == self.feedPostMediaIndex }), let mediaType = CommonMediaType(rawValue: mediaItem.type.rawValue) {
+                    
+                    let mediaUrl = mediaItem.mediaURL ?? MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
+                    let info = QuotedItemPanel.PostInfo(userID: feedPost.userId,
+                                                          text: mentionText?.string ?? "",
+                                                     mediaType: mediaType,
+                                                     mediaLink: mediaUrl)
+                    let panel = QuotedItemPanel()
+                    panel.postInfo = info
+                    contentInputView.display(context: panel)
+                } else {
+                    let info = QuotedItemPanel.PostInfo(userID: feedPost.userId,
+                                                          text: mentionText?.string ?? "",
+                                                     mediaType: nil,
+                                                     mediaLink: nil)
+                    let panel = QuotedItemPanel()
+                    panel.postInfo = info
+                    contentInputView.display(context: panel)
+                }
+            }
+        }
 
         cancellableSet.insert(
             MainAppContext.shared.chatData.didGetCurrentChatPresence.sink { [weak self] status, ts in

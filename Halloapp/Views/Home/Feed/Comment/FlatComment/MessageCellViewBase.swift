@@ -228,7 +228,6 @@ class MessageCellViewBase: UICollectionViewCell {
     }
 
     public func configureText(chatMessage: ChatMessage) {
-        // TODO Calculate chat crypto result here
         configureText(text: chatMessage.rawText, cryptoResultString: "", mentions: chatMessage.mentions)
     }
 

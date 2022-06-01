@@ -569,7 +569,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         }
 
         quotedMomentView.isHidden = false
-        quotedTextView.text = "Moment"
+        quotedTextView.text = Localizations.momentLabel
         if let thumbnailData = item.previewData, item.type != .audio {
             quotedMomentView.imageView.image = UIImage(data: thumbnailData)
         } else {

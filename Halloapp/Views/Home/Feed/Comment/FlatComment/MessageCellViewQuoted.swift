@@ -202,11 +202,14 @@ class MessageCellViewQuoted: MessageCellViewBase {
     override func configureWith(message: ChatMessage) {
         super.configureWith(message: message)
         audioMediaStatusCancellable?.cancel()
-        guard message.chatReplyMessageID != nil else { return }
+        guard message.chatReplyMessageID != nil || message.feedPostId != nil else { return }
         configureText(chatMessage: message)
         // Configure parent chat view
         if let chatReplyMessageID = message.chatReplyMessageID, let replyMessage = MainAppContext.shared.chatData.chatMessage(with: chatReplyMessageID, in: MainAppContext.shared.chatData.viewContext) {
             quotedMessageView.configureWith(message: replyMessage)
+            nameContentTimeRow.addArrangedSubview(quotedMessageView)
+        } else if let quotedMessage = chatMessage?.quoted {
+            quotedMessageView.configureWith(quoted: quotedMessage)
             nameContentTimeRow.addArrangedSubview(quotedMessageView)
         }
         // Configure media view

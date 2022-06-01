@@ -247,4 +247,12 @@ extension Localizations {
     static var contactIsBlockedTitleLabel: String {
         NSLocalizedString("chat.contact.is.blocked.title.label", value: "Contact is blocked, you won't receive any messages until you unblock them.", comment: "Title of the bottom sheet shown in the chat screen of a contact that is blocked. The bottom sheet contains an unblock button.")
     }
+
+    static var momentLabel: String {
+        NSLocalizedString("chat.quoted.moment.label", value: "Moment", comment: "When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply.")
+    }
+
+    static var momentExpiredLabel: String {
+        NSLocalizedString("chat.quoted.moment.expired.label", value: "Moment expired", comment: "When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply when the moment has expired.")
+    }
 }

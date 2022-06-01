@@ -495,7 +495,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             if case .moment = quoted.type {
                 // for outbound cells, the quoted moment is always expired, so there is no loading done here
                 quotedMomentView.isHidden = false
-                quotedTextView.text = "Moment expired"
+                quotedTextView.text = Localizations.momentExpiredLabel
                 quotedRow.isHidden = false
                 return true
             }

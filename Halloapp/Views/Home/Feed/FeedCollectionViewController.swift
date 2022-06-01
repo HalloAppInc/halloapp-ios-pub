@@ -454,7 +454,14 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
     }
 
     private func showMessageView(for userID: UserID, with postID: FeedPostID) {
-        navigationController?.pushViewController(ChatViewController(for: userID, with: postID, at: Int32(postDisplayData[postID]?.currentMediaIndex ?? 0)), animated: true)
+        if AppContext.shared.userDefaults.bool(forKey: "enableNewChat") {
+            let vc = ChatViewControllerNew(for: userID, with: postID, at: Int32(postDisplayData[postID]?.currentMediaIndex ?? 0))
+            self.navigationController?.pushViewController(vc, animated: true)
+        } else {
+            let vc = ChatViewController(for: userID, with: postID, at: Int32(postDisplayData[postID]?.currentMediaIndex ?? 0))
+            navigationController?.pushViewController(vc, animated: true)
+        }
+        
 
         if !firstActionHappened {
             delegate?.feedCollectionViewController(self, userActioned: true)
@@ -1205,7 +1212,14 @@ extension FeedCollectionViewController: PostDashboardViewControllerDelegate, Mom
 
         case .message(let userId, let postId):
             actionToPerformOnDashboardDismiss = {
-                self.navigationController?.pushViewController(ChatViewController(for: userId, with: postId), animated: true)
+                if AppContext.shared.userDefaults.bool(forKey: "enableNewChat") {
+                    let vc = ChatViewControllerNew(for: userId, with: postId)
+                    self.navigationController?.pushViewController(vc, animated: true)
+                } else {
+                    let vc = ChatViewController(for: userId, with: postId)
+                    self.navigationController?.pushViewController(vc, animated: true)
+                }
+                
             }
 
         case .blacklist(let userId):
