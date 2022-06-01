@@ -334,6 +334,14 @@ public struct Clients_ChatContainer {
     set {message = .voiceNote(newValue)}
   }
 
+  public var files: Clients_Files {
+    get {
+      if case .files(let v)? = message {return v}
+      return Clients_Files()
+    }
+    set {message = .files(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Message: Equatable {
@@ -341,6 +349,7 @@ public struct Clients_ChatContainer {
     case album(Clients_Album)
     case contactCard(Clients_ContactCard)
     case voiceNote(Clients_VoiceNote)
+    case files(Clients_Files)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Clients_ChatContainer.OneOf_Message, rhs: Clients_ChatContainer.OneOf_Message) -> Bool {
@@ -362,6 +371,10 @@ public struct Clients_ChatContainer {
       }()
       case (.voiceNote, .voiceNote): return {
         guard case .voiceNote(let l) = lhs, case .voiceNote(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.files, .files): return {
+        guard case .files(let l) = lhs, case .files(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -757,6 +770,52 @@ public struct Clients_Video {
   fileprivate var _streamingInfo: Clients_StreamingInfo? = nil
 }
 
+public struct Clients_Files {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var files: [Clients_File] = []
+
+  public var text: Clients_Text {
+    get {return _text ?? Clients_Text()}
+    set {_text = newValue}
+  }
+  /// Returns true if `text` has been explicitly set.
+  public var hasText: Bool {return self._text != nil}
+  /// Clears the value of `text`. Subsequent reads from it will return its default value.
+  public mutating func clearText() {self._text = nil}
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _text: Clients_Text? = nil
+}
+
+public struct Clients_File {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var data: Clients_EncryptedResource {
+    get {return _data ?? Clients_EncryptedResource()}
+    set {_data = newValue}
+  }
+  /// Returns true if `data` has been explicitly set.
+  public var hasData: Bool {return self._data != nil}
+  /// Clears the value of `data`. Subsequent reads from it will return its default value.
+  public mutating func clearData() {self._data = nil}
+
+  public var filename: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _data: Clients_EncryptedResource? = nil
+}
+
 public struct Clients_AlbumMedia {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1149,6 +1208,8 @@ extension Clients_ContactCard: @unchecked Sendable {}
 extension Clients_Image: @unchecked Sendable {}
 extension Clients_StreamingInfo: @unchecked Sendable {}
 extension Clients_Video: @unchecked Sendable {}
+extension Clients_Files: @unchecked Sendable {}
+extension Clients_File: @unchecked Sendable {}
 extension Clients_AlbumMedia: @unchecked Sendable {}
 extension Clients_AlbumMedia.OneOf_Media: @unchecked Sendable {}
 extension Clients_Album: @unchecked Sendable {}
@@ -1562,6 +1623,7 @@ extension Clients_ChatContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
     3: .same(proto: "album"),
     4: .standard(proto: "contact_card"),
     5: .standard(proto: "voice_note"),
+    6: .same(proto: "files"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1623,6 +1685,19 @@ extension Clients_ChatContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
           self.message = .voiceNote(v)
         }
       }()
+      case 6: try {
+        var v: Clients_Files?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .files(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .files(v)
+        }
+      }()
       default: break
       }
     }
@@ -1652,6 +1727,10 @@ extension Clients_ChatContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
     case .voiceNote?: try {
       guard case .voiceNote(let v)? = self.message else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+    }()
+    case .files?: try {
+      guard case .files(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
     }()
     case nil: break
     }
@@ -2341,6 +2420,90 @@ extension Clients_Video: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
     if lhs.width != rhs.width {return false}
     if lhs.height != rhs.height {return false}
     if lhs._streamingInfo != rhs._streamingInfo {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Clients_Files: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".Files"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "files"),
+    2: .same(proto: "text"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeRepeatedMessageField(value: &self.files) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._text) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.files.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.files, fieldNumber: 1)
+    }
+    try { if let v = self._text {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Clients_Files, rhs: Clients_Files) -> Bool {
+    if lhs.files != rhs.files {return false}
+    if lhs._text != rhs._text {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Clients_File: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".File"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "data"),
+    2: .same(proto: "filename"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._data) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.filename) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._data {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    if !self.filename.isEmpty {
+      try visitor.visitSingularStringField(value: self.filename, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Clients_File, rhs: Clients_File) -> Bool {
+    if lhs._data != rhs._data {return false}
+    if lhs.filename != rhs.filename {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

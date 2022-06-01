@@ -347,7 +347,7 @@ extension Clients_ChatContainer {
         case .voiceNote(let voiceNote):
             guard let media = XMPPChatMedia(audio: voiceNote.audio) else { fallthrough }
             return .voiceNote(media)
-        case .contactCard, .none:
+        case .contactCard, .files, .none:
             let data = try? serializedData()
             return .unsupported(data ?? Data())
         }
