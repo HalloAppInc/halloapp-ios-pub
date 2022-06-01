@@ -48,7 +48,9 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
     }()
 
     private let imageView: MediaImageView = {
-        return MediaImageView(configuration: .groupGrid)
+        let imageView = MediaImageView(configuration: .groupGrid)
+        imageView.canPlayVideoPreviews = false
+        return imageView
     }()
 
     private let audioBlurView: UIVisualEffectView = {
@@ -362,13 +364,13 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         // Initiate download for images that were not yet downloaded.
         MainAppContext.shared.feedData.downloadMedia(in: [post])
     }
-    
+
     func startAnimations() {
-        imageView.startAnimating()
+        imageView.canPlayVideoPreviews = true
     }
-    
+
     func stopAnimations() {
-        imageView.stopAnimating()
+        imageView.canPlayVideoPreviews = false
     }
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {

@@ -6,9 +6,11 @@
 //  Copyright © 2022 HalloApp, Inc. All rights reserved.
 //
 
-import UIKit
+import AVFoundation
+import CocoaLumberjackSwift
 import Combine
 import Core
+import UIKit
 
 class MediaImageView: UIImageView {
 
@@ -17,10 +19,11 @@ class MediaImageView: UIImageView {
         fileprivate let playButtonSize: CGFloat
         fileprivate let maxVideoPreviewSize: CGSize
         fileprivate let useAnimatedVideoPreview: Bool
+        fileprivate let videoPreviewLength: TimeInterval = 2
         
         static let groupGrid = Configuration(progressViewSize: 72,
                                              playButtonSize: 32,
-                                             maxVideoPreviewSize: CGSize(width: 240, height: 240),
+                                             maxVideoPreviewSize: CGSize(width: 160, height: 160),
                                              useAnimatedVideoPreview: true)
     }
 
@@ -50,6 +53,10 @@ class MediaImageView: UIImageView {
     private var downloadProgressCancellable: AnyCancellable?
     private var mediaLoadingCancellable: AnyCancellable?
 
+    private var player: AVPlayer?
+    private var audioSession: AudioSession?
+    private var didPlayToEndCancellable: AnyCancellable?
+
     init(configuration: Configuration) {
         self.configuration = configuration
         super.init(frame: .zero)
@@ -68,17 +75,37 @@ class MediaImageView: UIImageView {
             progressView.widthAnchor.constraint(equalToConstant: configuration.progressViewSize),
             progressView.heightAnchor.constraint(equalToConstant: configuration.progressViewSize),
         ])
+
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(applicationDidBecomeActive),
+                                               name: UIApplication.didBecomeActiveNotification,
+                                               object: nil)
     }
 
     required init?(coder: NSCoder) {
         fatalError()
     }
 
+    // Update as a containing cell's visibility changes.
+    var canPlayVideoPreviews = true {
+        didSet {
+            if let player = player {
+                if canPlayVideoPreviews {
+                    audioSession = AudioSession(category: .playSilently)
+                    AudioSessionManager.beginSession(audioSession)
+                    player.play()
+                } else {
+                    audioSession = nil
+                    player.rate = 0
+                }
+            }
+        }
+    }
+
     override var image: UIImage? {
         didSet {
-            stopAnimating()
-
             currentMediaID = nil
+            stopPlayingVideo()
             mediaLoadingCancellable?.cancel()
             downloadProgressCancellable?.cancel()
             mediaStatusCancellable?.cancel()
@@ -87,9 +114,8 @@ class MediaImageView: UIImageView {
 
     override var animationImages: [UIImage]? {
         didSet {
-            startAnimating()
-
             currentMediaID = nil
+            stopPlayingVideo()
             mediaLoadingCancellable?.cancel()
             downloadProgressCancellable?.cancel()
             mediaStatusCancellable?.cancel()
@@ -159,13 +185,7 @@ class MediaImageView: UIImageView {
 
             if feedMedia.isMediaAvailable, let videoURL = feedMedia.fileURL {
                 if configuration.useAnimatedVideoPreview {
-                    showPlaceholderImage(for: .video)
-                    VideoUtils.animatedPreviewImage(for: videoURL, size: configuration.maxVideoPreviewSize) { [weak self] image in
-                        guard let self = self, mediaID == self.currentMediaID else {
-                            return
-                        }
-                        self.showMediaImage(image)
-                    }
+                    showMediaVideoLoop(videoURL: videoURL)
                 } else {
                     showMediaImage(VideoUtils.videoPreviewImage(url: videoURL, size: configuration.maxVideoPreviewSize))
                 }
@@ -175,17 +195,10 @@ class MediaImageView: UIImageView {
                     guard let self = self else {
                         return
                     }
-                    if self.configuration.useAnimatedVideoPreview {
-                        VideoUtils.animatedPreviewImage(for: videoURL, size: self.configuration.maxVideoPreviewSize) { [weak self] image in
-                            guard let self = self, mediaID == self.currentMediaID else {
-                                return
-                            }
-                            UIView.transition(with: self, duration: 0.1, options: [.curveEaseInOut, .transitionCrossDissolve]) {
-                                self.showMediaImage(image)
-                            }
-                        }
-                    } else {
-                        UIView.transition(with: self, duration: 0.1, options: [.curveEaseInOut, .transitionCrossDissolve]) {
+                    UIView.transition(with: self, duration: 0.1, options: [.curveEaseInOut, .transitionCrossDissolve]) {
+                        if self.configuration.useAnimatedVideoPreview {
+                            self.showMediaVideoLoop(videoURL: videoURL)
+                        } else {
                             self.showMediaImage(VideoUtils.videoPreviewImage(url: videoURL, size: self.configuration.maxVideoPreviewSize))
                         }
                     }
@@ -197,27 +210,14 @@ class MediaImageView: UIImageView {
     private func showMediaImage(_ mediaImage: UIImage?) {
         contentMode = .scaleAspectFill
         clipsToBounds = true
-
-        // UIImageView does not handle animated UIImages well. (playback does not restart unless a nil image is set between animated images)
-        // But, it's own properties for animation work as expected
-        if let images = mediaImage?.images, let duration = mediaImage?.duration, duration > 0 {
-            super.image = nil
-            super.animationImages = images
-            animationDuration = duration
-            startAnimating()
-        } else {
-            stopAnimating()
-            super.animationImages = nil
-            super.image = mediaImage
-        }
+        stopPlayingVideo()
+        super.image = mediaImage
     }
 
     private func showPlaceholderImage(for type: CommonMediaType) {
         contentMode = .center
         clipsToBounds = false
-
-        stopAnimating()
-        super.animationImages = nil
+        stopPlayingVideo()
 
         switch type {
         case .audio:
@@ -229,9 +229,96 @@ class MediaImageView: UIImageView {
         }
     }
 
+    private func showMediaVideoLoop(videoURL: URL) {
+        super.image = nil
+        clipsToBounds = true
+
+        let asset = AVURLAsset(url: videoURL, options: [AVURLAssetPreferPreciseDurationAndTimingKey: false])
+
+        // Create a custom composition to select only the parts of the video we want to play back.
+        // This seems to help with load time...
+        let composition = AVMutableComposition()
+        let track = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid)
+        if let videoTrack = asset.tracks(withMediaType: .video).first {
+            do {
+                let duration = asset.duration
+                let start = VideoUtils.getThumbnailTime(duration: duration)
+                let preferredEnd = CMTimeAdd(start, CMTime(seconds: configuration.videoPreviewLength, preferredTimescale: 1))
+                try track?.insertTimeRange(CMTimeRange(start: start, end: CMTimeMinimum(preferredEnd, duration)), of: videoTrack, at: .zero)
+            } catch {
+                DDLogError("MediaImageView/Could not insert track: \(error)")
+            }
+        }
+
+        // Video compositions are a set of properties passed to the compositor.
+        // We use them to scale the video and disable HDR (which looks bright enough to be out of place).
+        let videoComposition = AVMutableVideoComposition(propertiesOf: asset)
+        videoComposition.colorPrimaries = AVVideoColorPrimaries_ITU_R_709_2
+        videoComposition.colorTransferFunction = AVVideoTransferFunction_ITU_R_709_2
+        videoComposition.colorYCbCrMatrix = AVVideoYCbCrMatrix_ITU_R_709_2
+
+        let preferredSize = configuration.maxVideoPreviewSize
+        let actualSize = videoComposition.renderSize
+        let scale = min(preferredSize.width / actualSize.width, preferredSize.height / actualSize.height) * UIScreen.main.scale
+        if scale < 1 {
+            videoComposition.renderScale = Float(scale)
+        }
+
+        let playerItem = AVPlayerItem(asset: composition)
+        playerItem.preferredForwardBufferDuration = 0
+        playerItem.videoComposition = videoComposition
+        if #available(iOS 14.0, *) {
+            playerItem.appliesPerFrameHDRDisplayMetadata = false
+        }
+
+        let player: AVPlayer
+        if let existingPlayer = self.player {
+            player = existingPlayer
+        } else {
+            player = AVPlayer()
+            player.actionAtItemEnd = .pause
+            player.allowsExternalPlayback = false
+            player.automaticallyWaitsToMinimizeStalling = false
+            player.preventsDisplaySleepDuringVideoPlayback = false
+            player.isMuted = true
+            let playerLayer = layer as! AVPlayerLayer
+            playerLayer.player = player
+            playerLayer.videoGravity = .resizeAspectFill
+            self.player = player
+        }
+
+        didPlayToEndCancellable = NotificationCenter.default.publisher(for: .AVPlayerItemDidPlayToEndTime, object: playerItem)
+            .receive(on: DispatchQueue.main)
+            .sink { [player] _ in player.rate = player.currentTime() == CMTime.zero ? 1 : -1 }
+
+        player.replaceCurrentItem(with: playerItem)
+
+        if canPlayVideoPreviews {
+            audioSession = AudioSession(category: .playSilently)
+            AudioSessionManager.beginSession(audioSession)
+            player.playImmediately(atRate: 1.0)
+        }
+    }
+
+    private func stopPlayingVideo() {
+        player?.replaceCurrentItem(with: nil)
+        audioSession = nil
+        didPlayToEndCancellable = nil
+    }
+
     override func layoutSubviews() {
         super.layoutSubviews()
 
         videoIndicator.layer.shadowPath = UIBezierPath(ovalIn: videoIndicator.bounds).cgPath
+    }
+
+    @objc private func applicationDidBecomeActive() {
+        if canPlayVideoPreviews {
+            player?.play()
+        }
+    }
+
+    override class var layerClass: AnyClass {
+        return AVPlayerLayer.self
     }
 }

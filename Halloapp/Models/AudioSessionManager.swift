@@ -16,7 +16,7 @@ import Foundation
 class AudioSession {
 
     enum Category: Int, Comparable {
-        case play = 0, record = 1, audioCall = 2, videoCall = 3
+        case play = 0, record = 1, audioCall = 2, videoCall = 3, playSilently = 4
 
         // The associated integer is a priority, where the highest priority session category configures
         // the shared audio session
@@ -160,6 +160,9 @@ class AudioSessionManager {
             case .record:
                 category = .playAndRecord
                 disableIdleTimer = true
+            case .playSilently:
+                category = .playback
+                options = .mixWithOthers
             }
 
             // set portOverride
