@@ -166,6 +166,39 @@ final class WebRTCClient: NSObject {
         }
     }
 
+    // clients could end up opening multiple turn ports - generating a ton of ice candidates
+    // this helps minimize the number of ice candidates for negotiation.
+    private var pruneTurnPorts: Bool {
+        return callConfig?.pruneTurnPorts ?? false
+    }
+
+    // webrtc clients by default dont generate the ice candidates until local description is set.
+    // setting a pool size will trigger the client to prefetch ice candidates.
+    // Prefetch ice candidates when possible. https://chromestatus.com/feature/4973817285836800
+    private var iceCandidatePoolSize: Int32 {
+        return callConfig?.iceCandidatePoolSize ?? 20
+    }
+
+    // iceConnectionTimeout is used to determine if the iceConnection is active/failed.
+    private var iceConnectionTimeoutMs: Int32 {
+        if let callConfig = callConfig,
+           callConfig.iceConnectionTimeoutMs > 0 {
+            return callConfig.iceConnectionTimeoutMs
+        } else {
+            return 2000
+        }
+    }
+
+    // iceBackPingInterval is the timeout used to ping backup ice candidates. https://groups.google.com/g/discuss-webrtc/c/CZP8GdRHboY
+    private var iceBackupPingIntervalMs: Int32 {
+        if let callConfig = callConfig,
+           callConfig.iceBackupPingIntervalMs > 0 {
+            return callConfig.iceBackupPingIntervalMs
+        } else {
+            return 1000
+        }
+    }
+
     init(callType: CallType) {
         self.callType = callType
         super.init()
@@ -197,6 +230,10 @@ final class WebRTCClient: NSObject {
         case .UNRECOGNIZED, .none:
             rtcConfig.iceTransportPolicy = .all
         }
+        rtcConfig.shouldPruneTurnPorts = pruneTurnPorts
+        rtcConfig.iceCandidatePoolSize = iceCandidatePoolSize
+        rtcConfig.iceConnectionReceivingTimeout = iceConnectionTimeoutMs
+        rtcConfig.iceBackupCandidatePairPingInterval = iceBackupPingIntervalMs
         rtcConfig.continualGatheringPolicy = .gatherOnce
 
         let constraints = RTCMediaConstraints(mandatoryConstraints: nil, optionalConstraints: ["DtlsSrtpKeyAgreement":kRTCMediaConstraintsValueTrue])
