@@ -213,7 +213,7 @@ extension Localizations {
 
     static func chatEventAddContactToAddressBook(name: String) -> String {
         return String(
-            format: NSLocalizedString("chat.event.tap.to.add.contact", value: "Tap to add %@ to your address group", comment: "Chat entry that can be tapped to add the contact to address book"),
+            format: NSLocalizedString("chat.event.tap.to.add.contact", value: "Tap to add %@ to your address book", comment: "Chat entry that can be tapped to add the contact to address book"),
             name)
     }
 
