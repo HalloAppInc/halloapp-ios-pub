@@ -244,7 +244,7 @@
 /* No comment provided by engineer. */
 "Cancel" = "Storno";
 
-/* Text shown at the top of the chat screen informing the user that the contact is blocked */
+/* Text shown in the chat interface informing the user that the contact is blocked */
 "chat.blocked.contact.label" = "Kontakt je zablokován, klepnutím ho odblokujete";
 
 /* Label for creating a new group */
@@ -367,9 +367,6 @@
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "Odstraněním této konverzace vymažeš její historii a obsah ze svého zařízení.";
 
-/* Button revealed when user swipes on their comment. */
-"comment.delete" = "Smazat";
-
 /* Title for the button in comment deletion confirmation prompt. */
 "comment.delete.action" = "Smazat komentář";
 
@@ -387,18 +384,6 @@
 
 /* Title for the button displayed under feed post comment. Verb. */
 "comment.reply" = "Odpovědět";
-
-/* Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment. */
-"comment.replying.myself" = "Odpovídání sobě";
-
-/* Text in the reply panel about keyboard. Reply refers to replying to someone's feed post comment. */
-"comment.replying.someone" = "Odpovídáte %@";
-
-/* Title for the button in comment resend confirmation prompt. */
-"comment.resend.action" = "Znovu poslat";
-
-/* Confirmation prompt for when resending comment that previously failed to send. */
-"comment.resend.confirmation" = "Poslat komentář znovu?";
 
 /* Placeholder text for the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Přidat komentář";
@@ -1185,9 +1170,6 @@
 
 /* Title of the button that opens the camera. */
 "open.camera" = "Otevřít kameru";
-
-/* Text that indicates an open action. */
-"open.title" = "Otevřít";
 
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "Povolte prosím přístup v Nastavení";

@@ -82,6 +82,9 @@
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Продолжить";
 
+/* Title for generic copy URL button */
+"button.copy.link" = "Копировать ссылку";
+
 /* Title for generic Create button */
 "button.create" = "Создать";
 
@@ -232,13 +235,22 @@
 /* No comment provided by engineer. */
 "camera.init.error.8" = "Не удается получить доступ к видео";
 
+/* No comment provided by engineer. */
+"camera.init.error.9" = "Не возможно записать звук";
+
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Ошибка инициализации";
+
+/* Text shown on the camera screen when composing a new moment. */
+"camera.moment.subtitle" = "Моменты исчезают через 24 часа, и их можно просмотреть только один раз.";
+
+/* Text shown on the camera screen when composing a new moment to unlock someone else's moment. */
+"camera.moment.unlock.subtitle" = "Чтобы увидеть момент %@, поделитесь своим";
 
 /* No comment provided by engineer. */
 "Cancel" = "Отмена";
 
-/* Text shown at the top of the chat screen informing the user that the contact is blocked */
+/* Text shown in the chat interface informing the user that the contact is blocked */
 "chat.blocked.contact.label" = "Контакт заблокирован, коснитесь, чтобы разблокировать";
 
 /* Label for creating a new group */
@@ -361,9 +373,6 @@
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "Удалив этот чат, вы удалите его историю и контент со своего устройства.";
 
-/* Button revealed when user swipes on their comment. */
-"comment.delete" = "Удалить";
-
 /* Title for the button in comment deletion confirmation prompt. */
 "comment.delete.action" = "Удалить комментарий";
 
@@ -382,20 +391,14 @@
 /* Title for the button displayed under feed post comment. Verb. */
 "comment.reply" = "Ответить";
 
-/* Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment. */
-"comment.replying.myself" = "Отвечаю себе";
-
-/* Text in the reply panel about keyboard. Reply refers to replying to someone's feed post comment. */
-"comment.replying.someone" = "Отправляется ответ %@";
-
-/* Title for the button in comment resend confirmation prompt. */
-"comment.resend.action" = "Отправить повторно";
-
-/* Confirmation prompt for when resending comment that previously failed to send. */
-"comment.resend.confirmation" = "Отправить комментарий повторно?";
-
 /* Placeholder text for the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Добавить комментарий";
+
+/* Header that appears above all the unread Messages in the comments view when there are more than one unread message */
+"comment.unread.chat.messages.header.plural" = "%@ непрочитанных сообщений";
+
+/* Header that appears above one single unread Message in the chat view. */
+"comment.unread.chat.messages.header.single" = "%@ Непрочитанное сообщение";
 
 /* Text displayed in place of a comment that is not supported in the current app version. */
 "comment.unsupported" = "Твоя версия HalloApp не поддерживает этот тип комментариев.";
@@ -447,6 +450,9 @@
 
 /* Composer New Message title. */
 "composer.message.title" = "Новое сообщение";
+
+/* Composer New Moment Post title. */
+"composer.moment.post.title" = "Новый момент";
 
 /* Placeholder text for media caption field in post composer. */
 "composer.placeholder.media.description" = "Напишите описание";
@@ -538,6 +544,9 @@
 /* Label for floating compose post menu on Group screen. */
 "fab.post.button" = "Публикация";
 
+/* Indicates that an item has failed to be sent. */
+"failed.to.send" = "Не удалось отправить";
+
 /* Text shown in place of a received post we are not able to decrypt yet. */
 "feed.comment.waiting" = "Ждем этого комментария. Это может занять некоторое время.";
 
@@ -549,6 +558,12 @@
 
 /* Text for group feed notification displayed in Activity Center. */
 "feed.group.notification.other.comment.w.text" = "<$author$> прокомментировал(-а): <$text$>";
+
+/* Text for home feed notification displayed in Activity Center. */
+"feed.home.notification.other.comment.no.text" = "<$author$> прокомментировал(-а)";
+
+/* Text for home feed notification displayed in Activity Center. */
+"feed.home.notification.other.comment.w.text" = "<$author$> прокомментировал(-а): <$text$>";
 
 /* Text shown in indicator when new posts come in while user is scrolled down */
 "feed.new.posts.indicator" = "Новые публикации";
@@ -766,6 +781,9 @@
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
 "group.feed.welcome.post.title" = "Пригласите друга в свою группу";
 
+/* Indicates number of new posts on groups grid */
+"group.grid.n.posts" = "group.grid.n.posts";
+
 /* Action label for inviting others to join the group via link */
 "group.info.invite.to.group.via.link" = "Пригласить в группу по ссылке";
 
@@ -919,6 +937,9 @@
 /* Version of an invitation to join HalloApp. */
 "invite.text.specific.3" = "Я приглашаю вас установить HalloApp. Скачать бесплатно здесь: https://halloapp.com/free";
 
+/* Version of an invitation to join HalloApp. The argument is the invitee's name. */
+"invite.text.specific.4" = "Привет %@! Присоединяйтесь ко мне в HalloApp и делитесь реальными моментами с настоящими друзьями. Проверьте это: https://halloapp.com/new";
+
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Пригласить друзей";
 
@@ -963,6 +984,10 @@
 
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.camera.access.request" = "У HalloApp нет доступа к Вашей камере. Чтобы предоставить его, откройте \"Настройки\" и переведите переключатель возле пункта \"Камера\" в активное положение";
+
+/* Label indicating that the camera is in photo mode
+   Label indicating that the camera is in video mode */
+"media.camera.mode.photo" = "ВИДЕО";
 
 /* Confirmation prompt in media composer. */
 "media.discard.confirmation" = "Хотите отменить свои изменения?";
@@ -1024,6 +1049,21 @@
 /* Message action. Verb. */
 "message.reply" = "Ответить";
 
+/* Text on loading screen while migrating data */
+"migration.inProgress" = "Оптимизация данных…";
+
+/* For indicating that there was an error while uploading the post. */
+"moment.uploading.failure" = "Ошибка";
+
+/* For indicating that a post is uploading. */
+"moment.uploading.progress" = "Загрузка...";
+
+/* For indicating that a post has been successfully uploaded and shared. */
+"moment.uploading.success" = "Поделились!";
+
+/* Message displayed to say when moments will disappear. */
+"mymoment.disappear.time.label" = "Ваш Момент был передан вашему списку контактов. Моменты исчезают через 24 часа и могут быть просмотрены только один раз.";
+
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Сообщение";
 
@@ -1063,6 +1103,9 @@
 /* Displayed in place of deleted feed posts. */
 "n.posts.deleted" = "Сообщения %@ удалены";
 
+/* Header that appears above unread messages in the comments view. */
+"n.unread.comments.title" = "n.unread.comments.title";
+
 /* Placeholder text shown in the middle of the Add New Group Members screen when user have no contacts (in ZeroZone) to add */
 "new.group.members.empty.placeholder" = "Тут появятся ваши контакты, которые пользуют HalloApp";
 
@@ -1083,6 +1126,9 @@
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ только что принял(-а) Ваше приглашение присоединиться к HalloApp 🎉";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment" = "Новый момент";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
@@ -1147,6 +1193,12 @@
 /* Text for new user popup pointing at new post button */
 "nux.new.post.button" = "Коснитесь, чтобы поделиться новостью со своими друзьями и родными в HalloApp";
 
+/* Title of the button that opens the camera. */
+"open.camera" = "Открытая камера";
+
+/* button to launch photo and video library */
+"photo.and.video.library" = "Фото и видеотека";
+
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "Предоставьте доступ через \"Настройки\"";
 
@@ -1210,6 +1262,9 @@
 /* Error banner displayed when there is a failure syncing preivacy settings, displayed on the privacy view */
 "privacy.sync.failure" = "Не удалось синхронизировать настройки конфиденциальности. Пожалуйста, попробуйте позже.";
 
+/* Placeholder text for the text field for private replies. The argument is the first name of the contact. */
+"private.reply.placeholder" = "Ответить на %@";
+
 /* Title for the button allowing to delete current profile photo. */
 "profile.delete.photo" = "Удалить фото";
 
@@ -1224,6 +1279,9 @@
 
 /* Text for unblocking user under profile header */
 "profile.header.unblock.user" = "Разблокировать";
+
+/* This is a verb.  The text is clickable, under a contact name and starts a video call with that contact. It should not be translated as a noun. */
+"profile.header.video.call.user" = "Видео";
 
 /* Item in Profile > Calls screen. */
 "profile.help.calls" = "Звонки";
@@ -1357,8 +1415,17 @@
 /* Text shown to instruct using a QR code for joining a group */
 "scan.to.join.group.using.qr.code" = "Чтобы присоединиться, отсканируйте этот QR-код камерой телефона.";
 
+/* Text placed on the blurred overlay of a secret post. */
+"secret.post.entice" = "%@ поделился моментом";
+
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Выберите хотя бы один контакт.";
+
+/* Indicates that an item is in the process of being sent. */
+"sending.title" = "Отправка";
+
+/* Indicates that an item has successfully been sent. */
+"sent.title" = "Отправилось";
 
 /* body of the marketing alert sent to users */
 "server.marketing.body" = "Пригласите друзей, чтобы они пользавали HalloApp!";
@@ -1504,6 +1571,9 @@
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Присоединяйтесь к моей сети знакомых из реальной жизни в HalloApp. Приложение можно скачать бесплатно по адресу halloapp.com/dl";
 
+/* Prompt for the user to share a moment. */
+"share.moment.prompt" = "Поделись моментом";
+
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "нажмите, чтобы вернуться к звонку";
 
@@ -1567,6 +1637,9 @@
 /* Timestamp: `Yesterday` */
 "timestamp.yesterday" = "Вчера";
 
+/* Camera screen title for a new moment */
+"title.camera.moment" = "Новый момент";
+
 /* Title for new message screen where user chooses who to message */
 "title.chat.new.message" = "Новое сообщение";
 
@@ -1623,6 +1696,9 @@
 
 /* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
 "unknown.contact.not.in.contact.book" = "Этого номера нет в вашей контактной книге.";
+
+/* Text that indicates the unlock action for a moment. */
+"unlock.title" = "Разблокировать";
 
 /* Alert appearing after clicking an external share link that failed to load */
 "urlrouter.externalShare.failed" = "Не удалось загрузить пост";

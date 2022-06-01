@@ -250,7 +250,7 @@
 /* No comment provided by engineer. */
 "Cancel" = "Cancelar";
 
-/* Text shown at the top of the chat screen informing the user that the contact is blocked */
+/* Text shown in the chat interface informing the user that the contact is blocked */
 "chat.blocked.contact.label" = "O contato está bloqueado. Toque para desbloquear";
 
 /* Label for creating a new group */
@@ -373,9 +373,6 @@
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "Ao remover este chat, você limpará o histórico e o conteúdo deste chat de seu dispositivo.";
 
-/* Button revealed when user swipes on their comment. */
-"comment.delete" = "Excluir";
-
 /* Title for the button in comment deletion confirmation prompt. */
 "comment.delete.action" = "Excluir comentário";
 
@@ -393,18 +390,6 @@
 
 /* Title for the button displayed under feed post comment. Verb. */
 "comment.reply" = "Responder";
-
-/* Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment. */
-"comment.replying.myself" = "Respondendo a mim mesmo";
-
-/* Text in the reply panel about keyboard. Reply refers to replying to someone's feed post comment. */
-"comment.replying.someone" = "Respondendo %@";
-
-/* Title for the button in comment resend confirmation prompt. */
-"comment.resend.action" = "Reenviar";
-
-/* Confirmation prompt for when resending comment that previously failed to send. */
-"comment.resend.confirmation" = "Reenviar comentário?";
 
 /* Placeholder text for the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Adicione um comentário";
@@ -1000,6 +985,10 @@
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.camera.access.request" = "O HalloApp não tem acesso à sua câmera. Para habilitar o acesso, clique em \"Configurações\" e ligue a Câmera";
 
+/* Label indicating that the camera is in photo mode
+   Label indicating that the camera is in video mode */
+"media.camera.mode.photo" = "Vídeo";
+
 /* Confirmation prompt in media composer. */
 "media.discard.confirmation" = "Você gostaria de descartar suas edições?";
 
@@ -1206,9 +1195,6 @@
 
 /* Title of the button that opens the camera. */
 "open.camera" = "Abrir Câmera";
-
-/* Text that indicates an open action. */
-"open.title" = "Abrir";
 
 /* button to launch photo and video library */
 "photo.and.video.library" = "Biblioteca de Fotos e Vídeos";

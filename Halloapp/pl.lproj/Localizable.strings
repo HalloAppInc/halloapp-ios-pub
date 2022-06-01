@@ -244,7 +244,7 @@
 /* No comment provided by engineer. */
 "Cancel" = "Anuluj";
 
-/* Text shown at the top of the chat screen informing the user that the contact is blocked */
+/* Text shown in the chat interface informing the user that the contact is blocked */
 "chat.blocked.contact.label" = "Kontakt jest zablokowany, kliknij, aby go odblokować";
 
 /* Label for creating a new group */
@@ -367,9 +367,6 @@
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "Usunięcie tego czatu spowoduje wyczyszczenie historii i zawartości tego czatu z Twojego urządzenia.";
 
-/* Button revealed when user swipes on their comment. */
-"comment.delete" = "Usuń";
-
 /* Title for the button in comment deletion confirmation prompt. */
 "comment.delete.action" = "Usuń komentarz";
 
@@ -387,18 +384,6 @@
 
 /* Title for the button displayed under feed post comment. Verb. */
 "comment.reply" = "Odpowiedz";
-
-/* Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment. */
-"comment.replying.myself" = "Odpowiadanie sobie";
-
-/* Text in the reply panel about keyboard. Reply refers to replying to someone's feed post comment. */
-"comment.replying.someone" = "Odpowiadanie użytkownikowi %@";
-
-/* Title for the button in comment resend confirmation prompt. */
-"comment.resend.action" = "Wyślij ponownie";
-
-/* Confirmation prompt for when resending comment that previously failed to send. */
-"comment.resend.confirmation" = "Wysłać komentarz ponownie?";
 
 /* Placeholder text for the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Dodaj komentarz";
@@ -1185,9 +1170,6 @@
 
 /* Title of the button that opens the camera. */
 "open.camera" = "Otwórz kamerę";
-
-/* Text that indicates an open action. */
-"open.title" = "Otwórz";
 
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "Prosimy przyznać dostęp z poziomu ustawień";

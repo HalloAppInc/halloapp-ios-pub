@@ -250,7 +250,7 @@
 /* No comment provided by engineer. */
 "Cancel" = "Batal";
 
-/* Text shown at the top of the chat screen informing the user that the contact is blocked */
+/* Text shown in the chat interface informing the user that the contact is blocked */
 "chat.blocked.contact.label" = "Kontak diblokir, ketuk untuk buka blokir";
 
 /* Label for creating a new group */
@@ -266,7 +266,7 @@
 "chat.delete.title" = "Hapus pesan yang dipilih?";
 
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
-"chat.encryption.label" = "Obrolan dienkripsi dari ujung ke ujung dan HalloApp tidak dapat mengaksesnya. Ketuk untuk mempelajari selengkapnya.";
+"chat.encryption.label" = "Semua pesan di HalloApp dienkripsi ujung ke ujung. Ketuk untuk mempelajari lebih lanjut";
 
 /* Text shown in Chat when the security keys of the contact user is chatting with, have changed */
 "chat.event.security.keys.changed" = "Kunci keamanan dengan %@ berubah";
@@ -373,9 +373,6 @@
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "Dengan menghapus percakapan ini, Anda akan menghapus riwayat percakapan dan isi dari telepon genggam Anda.";
 
-/* Button revealed when user swipes on their comment. */
-"comment.delete" = "Hapus";
-
 /* Title for the button in comment deletion confirmation prompt. */
 "comment.delete.action" = "Hapus komentar";
 
@@ -394,20 +391,8 @@
 /* Title for the button displayed under feed post comment. Verb. */
 "comment.reply" = "Balas";
 
-/* Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment. */
-"comment.replying.myself" = "Membalas kepada diri sendiri";
-
-/* Text in the reply panel about keyboard. Reply refers to replying to someone's feed post comment. */
-"comment.replying.someone" = "Membalas %@";
-
-/* Title for the button in comment resend confirmation prompt. */
-"comment.resend.action" = "Kirim lagi";
-
-/* Confirmation prompt for when resending comment that previously failed to send. */
-"comment.resend.confirmation" = "Kirim lagi Komentar?";
-
 /* Placeholder text for the comment input field when there is no user input. */
-"comment.textfield.placeholder" = "Tambahkan komentar";
+"comment.textfield.placeholder" = "Komentar Baru";
 
 /* Header that appears above all the unread Messages in the comments view when there are more than one unread message */
 "comment.unread.chat.messages.header.plural" = "%@ Pesan yang Belum Dibaca";
@@ -1000,6 +985,10 @@
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.camera.access.request" = "HalloApp tidak memiliki akses ke kamera. Untuk mengizinkan akses, ketuk Pengaturan dan nyalakan Kamera";
 
+/* Label indicating that the camera is in photo mode
+   Label indicating that the camera is in video mode */
+"media.camera.mode.photo" = "VIDEO";
+
 /* Confirmation prompt in media composer. */
 "media.discard.confirmation" = "Ingin menghapus editanmu?";
 
@@ -1114,6 +1103,9 @@
 /* Displayed in place of deleted feed posts. */
 "n.posts.deleted" = "%@ posting dihapus";
 
+/* Header that appears above unread messages in the comments view. */
+"n.unread.comments.title" = "n.unread.comments.title";
+
 /* Placeholder text shown in the middle of the Add New Group Members screen when user have no contacts (in ZeroZone) to add */
 "new.group.members.empty.placeholder" = "Kontakmu yang menggunakan HalloApp akan muncul di sini";
 
@@ -1203,9 +1195,6 @@
 
 /* Title of the button that opens the camera. */
 "open.camera" = "Buka Kamera";
-
-/* Text that indicates an open action. */
-"open.title" = "Buka";
 
 /* button to launch photo and video library */
 "photo.and.video.library" = "Perpustakaan Foto & Video";

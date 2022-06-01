@@ -19,6 +19,9 @@
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Продолжить";
 
+/* Title for generic copy URL button */
+"button.copy.link" = "Копировать ссылку";
+
 /* Title for generic Create button */
 "button.create" = "Создать";
 
@@ -124,8 +127,35 @@
 /* Button title. Refers to resetting photo / video to original version. */
 "media.button.reset" = "Сбросить";
 
+/* Button title. Refers to undoing an edit of a photo. */
+"media.button.undo" = "Отменить";
+
+/* Confirmation prompt in media composer. */
+"media.discard.confirmation" = "Хотите отменить свои изменения?";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.annotate" = "Аннотировать";
+
+/* Accessibility label for X (Close) button in media editor. */
+"media.voiceover.button.close" = "Закрыть";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.draw" = "Редактировать";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.flip" = "Отразить зеркально";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.mute" = "Отключить звук";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.rotate" = "Вращать";
+
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Присоединяйся к моей сети настоящих отношений в HalloApp. Скачай бесплатно на halloapp.com/dl";
+
+/* Title on edit button */
+"share.composer.button.edit" = "Редактировать";
 
 /* Label above the list with whom you share */
 "share.composer.destinations.label" = "Поделиться с";

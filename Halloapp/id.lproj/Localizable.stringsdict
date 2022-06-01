@@ -184,7 +184,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>other</key>
-			<string>%d Unread Comments</string>
+			<string>%d Komentar yang Belum Dibaca</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>

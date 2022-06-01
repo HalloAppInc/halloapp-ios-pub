@@ -250,7 +250,7 @@
 /* No comment provided by engineer. */
 "Cancel" = "Abbrechen";
 
-/* Text shown at the top of the chat screen informing the user that the contact is blocked */
+/* Text shown in the chat interface informing the user that the contact is blocked */
 "chat.blocked.contact.label" = "Kontakt ist geblockt, zum Entblocken hier tippen";
 
 /* Label for creating a new group */
@@ -373,9 +373,6 @@
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "Wenn du diesen Chat entfernst löscht du den Chatverlauf und den Inhalt von deinem Gerät.";
 
-/* Button revealed when user swipes on their comment. */
-"comment.delete" = "Löschen";
-
 /* Title for the button in comment deletion confirmation prompt. */
 "comment.delete.action" = "Kommentar löschen";
 
@@ -393,18 +390,6 @@
 
 /* Title for the button displayed under feed post comment. Verb. */
 "comment.reply" = "Antworten";
-
-/* Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment. */
-"comment.replying.myself" = "Mir selbst antworten";
-
-/* Text in the reply panel about keyboard. Reply refers to replying to someone's feed post comment. */
-"comment.replying.someone" = "%@ antworten";
-
-/* Title for the button in comment resend confirmation prompt. */
-"comment.resend.action" = "Erneut senden";
-
-/* Confirmation prompt for when resending comment that previously failed to send. */
-"comment.resend.confirmation" = "Kommentar erneut senden?";
 
 /* Placeholder text for the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Kommentieren";
@@ -997,6 +982,10 @@
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.camera.access.request" = "HalloApp hat keinen Zugriff auf deine Kamera. Um den Zugriff zu erlauben, tippe auf Einstellungen und aktiviere die Kamera";
 
+/* Label indicating that the camera is in photo mode
+   Label indicating that the camera is in video mode */
+"media.camera.mode.photo" = "VIDEO";
+
 /* Confirmation prompt in media composer. */
 "media.discard.confirmation" = "Möchtest du deine Änderungen verwerfen?";
 
@@ -1201,9 +1190,6 @@
 /* Title of the button that opens the camera. */
 "open.camera" = "Kamera öffnen";
 
-/* Text that indicates an open action. */
-"open.title" = "Öffnen";
-
 /* button to launch photo and video library */
 "photo.and.video.library" = "Foto- und Videothek";
 
@@ -1376,7 +1362,7 @@
 "registration.install.app.to.continue" = "Installiere HalloApp, um fortzufahren";
 
 /* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
-"registration.install.app.to.join.group" = "Bitte HalloApp installieren, um %@ beizutreten";
+"registration.install.app.to.join.group" = "Bitte HalloApp installieren, um %@ zu öffnen";
 
 /* Title for popup that appears when user tries to register invalid number */
 "registration.invalidphone" = "Ups!";

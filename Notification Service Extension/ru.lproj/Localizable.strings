@@ -19,6 +19,9 @@
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Продолжить";
 
+/* Title for generic copy URL button */
+"button.copy.link" = "Копировать ссылку";
+
 /* Title for generic Create button */
 "button.create" = "Создать";
 
@@ -132,6 +135,9 @@
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ только что принял(-а) ваше приглашение присоединиться к HalloApp 🎉";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment" = "Новый момент";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";

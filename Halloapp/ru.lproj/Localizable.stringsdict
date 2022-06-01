@@ -155,13 +155,13 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>few</key>
-			<string>%d new posts</string>
+			<string>%d новых сообщений</string>
 			<key>many</key>
-			<string>%d new posts</string>
+			<string>%d новых сообщений</string>
 			<key>one</key>
-			<string>%d new post</string>
+			<string>%d новое сообщение</string>
 			<key>other</key>
-			<string>%d new posts</string>
+			<string>%d новое сообщение</string>
 		</dict>
 	</dict>
 	<key>media.prepare.failed.n.count</key>
@@ -255,13 +255,13 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>few</key>
-			<string>%d Unread Comments</string>
+			<string>%d непрочитанных комментариев</string>
 			<key>many</key>
-			<string>%d Unread Comments</string>
+			<string>%d непрочитанных комментариев</string>
 			<key>one</key>
-			<string>%d Unread Comment</string>
+			<string>%d непрочитанный комментарий</string>
 			<key>other</key>
-			<string>%d Unread Comments</string>
+			<string>%d непрочитанных комментариев</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>

@@ -250,7 +250,7 @@
 /* No comment provided by engineer. */
 "Cancel" = "إلغاء";
 
-/* Text shown at the top of the chat screen informing the user that the contact is blocked */
+/* Text shown in the chat interface informing the user that the contact is blocked */
 "chat.blocked.contact.label" = "جهة الاتصال محظورة، انقر لرفع الحظر";
 
 /* Label for creating a new group */
@@ -373,9 +373,6 @@
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "عند حذف هذه الدردشة سيتم مسح سجل الدردشة والمحتوى الخاص بها من جهازك.";
 
-/* Button revealed when user swipes on their comment. */
-"comment.delete" = "حذف";
-
 /* Title for the button in comment deletion confirmation prompt. */
 "comment.delete.action" = "حذف التعليق";
 
@@ -393,18 +390,6 @@
 
 /* Title for the button displayed under feed post comment. Verb. */
 "comment.reply" = "ردّ";
-
-/* Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment. */
-"comment.replying.myself" = "الرد على نفسي";
-
-/* Text in the reply panel about keyboard. Reply refers to replying to someone's feed post comment. */
-"comment.replying.someone" = "الرد على %@";
-
-/* Title for the button in comment resend confirmation prompt. */
-"comment.resend.action" = "إعادة إرسال";
-
-/* Confirmation prompt for when resending comment that previously failed to send. */
-"comment.resend.confirmation" = "إعادة إرسال التعليق";
 
 /* Placeholder text for the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "إضافة تعليق";
@@ -1200,9 +1185,6 @@
 
 /* Title of the button that opens the camera. */
 "open.camera" = "فتح الكاميرا";
-
-/* Text that indicates an open action. */
-"open.title" = "فتح";
 
 /* button to launch photo and video library */
 "photo.and.video.library" = "مكتبة الصور والفيديو";

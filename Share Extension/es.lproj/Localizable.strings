@@ -214,5 +214,5 @@
 "uploading.bytes.progress" = "%1$@ de %2$@";
 
 /* Message how many items are currently being upload */
-"uploading.n.items" = "\nuploading.n.items\n";
+"uploading.n.items" = "\ncargando.n.objetos\n";
 

@@ -207,9 +207,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>%d Unread Comment</string>
+			<string>Okunmamış %d yorum</string>
 			<key>other</key>
-			<string>%d Unread Comments</string>
+			<string>Okunmamış %d yorum</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>
