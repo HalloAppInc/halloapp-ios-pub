@@ -139,7 +139,7 @@ extension FloatingMenuPresenter {
 
 // MARK: - FloatingMenu implementation
 
-final class FloatingMenu: UIViewController, UIViewControllerTransitioningDelegate {
+final class FloatingMenu: UIViewController {
 
     static var ButtonDiameter: CGFloat = 55
     static var ButtonSpacing: CGFloat = 15
@@ -161,8 +161,8 @@ final class FloatingMenu: UIViewController, UIViewControllerTransitioningDelegat
         }
         
         super.init(nibName: nil, bundle: nil)
-        
-        modalPresentationStyle = .overCurrentContext
+
+        modalPresentationStyle = .custom
         transitioningDelegate = self
         setup()
     }
@@ -364,7 +364,8 @@ final class FloatingMenu: UIViewController, UIViewControllerTransitioningDelegat
              but that seems to cause some strange layout issues after the menu is dismissed.
      */
     func positionAnchorButton() {
-        let bottomDistance = view.bounds.maxY - triggerButton.frame.maxY
+        let converted = view.convert(CGPoint(x: .zero, y: triggerButton.frame.maxY), from: triggerButton.superview)
+        let bottomDistance = view.bounds.maxY - converted.y
         
         let trailingDistance: CGFloat
         if case .rightToLeft = view.effectiveUserInterfaceLayoutDirection {
@@ -376,64 +377,21 @@ final class FloatingMenu: UIViewController, UIViewControllerTransitioningDelegat
         anchorButtonBottomConstraint?.constant = -bottomDistance
         anchorButtonTrailingConstraint?.constant = -trailingDistance
     }
-    
+}
+
+// MARK: - UIViewControllerTransitioningDelegate methods
+
+extension FloatingMenu: UIViewControllerTransitioningDelegate {
     func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        return FloatingMenuPresentController()
+        return FloatingMenuPresentAnimator()
     }
-    
+
     func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        return FloatingMenuDismissController()
+        return FloatingMenuDismissAnimator()
     }
-}
 
-// MARK: - custom view controller presentation
-
-fileprivate final class FloatingMenuPresentController: NSObject, UIViewControllerAnimatedTransitioning {
-    private var presentFinishedListener: AnyCancellable?
-    
-    func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        return 0.3
-    }
-    
-    func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
-        guard let menu = transitionContext.viewController(forKey: .to) as? FloatingMenu else {
-            transitionContext.completeTransition(false)
-            return
-        }
-
-        transitionContext.containerView.addSubview(menu.view)
-        // align the menu w/ the trigger button that's on the presenting vc
-        menu.positionAnchorButton()
-        
-        menu.triggerButton.layer.shadowOpacity = 0
-        menu.view.layoutIfNeeded()
-        
-        // we use the menu's animation method
-        presentFinishedListener = menu.setExpansionState(.expanded, animated: true).sink {
-            transitionContext.completeTransition(true)
-        }
-    }
-}
-
-fileprivate final class FloatingMenuDismissController: NSObject, UIViewControllerAnimatedTransitioning {
-    private var dismissFinishedListener: AnyCancellable?
-    
-    func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        return 0.3
-    }
-    
-    func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
-        guard let menu = transitionContext.viewController(forKey: .from) as? FloatingMenu else {
-            transitionContext.completeTransition(false)
-            return
-        }
-        
-        dismissFinishedListener = menu.setExpansionState(.collapsed, animated: true).sink {
-            menu.triggerButton.layer.shadowOpacity = FloatingMenu.ShadowOpacity
-            menu.anchorButton.layer.shadowOpacity = 0
-            
-            transitionContext.completeTransition(true)
-        }
+    func presentationController(forPresented presented: UIViewController, presenting: UIViewController?, source: UIViewController) -> UIPresentationController? {
+        return FloatingMenuPresentationController(presentedViewController: presented, presenting: presenting)
     }
 }
 
@@ -567,4 +525,69 @@ final class LabeledFloatingButton: UIControl {
     }()
 
     let label: UILabel
+}
+
+// MARK: - custom view controller presentation
+
+fileprivate final class FloatingMenuPresentationController: UIPresentationController {
+    override func dismissalTransitionDidEnd(_ completed: Bool) {
+        super.dismissalTransitionDidEnd(completed)
+        guard let menu = presentedViewController as? FloatingMenu else {
+            return
+        }
+
+        menu.triggerButton.layer.shadowOpacity = FloatingMenu.ShadowOpacity
+        menu.anchorButton.layer.shadowOpacity = 0
+
+        if case .expanded = menu.expansionState {
+            // for when the menu is dismissed without animation (happens when entering the app from a notification)
+            menu.setExpansionState(.collapsed, animated: false)
+        }
+    }
+}
+
+fileprivate final class FloatingMenuPresentAnimator: NSObject, UIViewControllerAnimatedTransitioning {
+    private var presentFinishedListener: AnyCancellable?
+
+    func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
+        return 0.3
+    }
+
+    func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
+        guard let menu = transitionContext.viewController(forKey: .to) as? FloatingMenu else {
+            transitionContext.completeTransition(false)
+            return
+        }
+
+        transitionContext.containerView.addSubview(menu.view)
+        // align the menu w/ the trigger button that's on the presenting vc
+        menu.positionAnchorButton()
+
+        menu.triggerButton.layer.shadowOpacity = 0
+        menu.view.layoutIfNeeded()
+
+        // we use the menu's animation method
+        presentFinishedListener = menu.setExpansionState(.expanded, animated: true).sink {
+            transitionContext.completeTransition(true)
+        }
+    }
+}
+
+fileprivate final class FloatingMenuDismissAnimator: NSObject, UIViewControllerAnimatedTransitioning {
+    private var dismissFinishedListener: AnyCancellable?
+
+    func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
+        return 0.3
+    }
+
+    func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
+        guard let menu = transitionContext.viewController(forKey: .from) as? FloatingMenu else {
+            transitionContext.completeTransition(false)
+            return
+        }
+
+        dismissFinishedListener = menu.setExpansionState(.collapsed, animated: true).sink {
+            transitionContext.completeTransition(true)
+        }
+    }
 }
