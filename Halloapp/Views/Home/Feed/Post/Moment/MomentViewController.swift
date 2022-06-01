@@ -80,6 +80,10 @@ class MomentViewController: UIViewController {
     private lazy var dismissPanGesture = UIPanGestureRecognizer(target: self, action: #selector(dismissPan))
     private lazy var dismissAnimator = DismissAnimator(referenceView: view)
 
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        .portrait
+    }
+
     override var canBecomeFirstResponder: Bool {
         true
     }
