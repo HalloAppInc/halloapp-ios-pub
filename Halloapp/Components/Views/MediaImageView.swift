@@ -252,7 +252,7 @@ class MediaImageView: UIImageView {
 
         // Video compositions are a set of properties passed to the compositor.
         // We use them to scale the video and disable HDR (which looks bright enough to be out of place).
-        let videoComposition = AVMutableVideoComposition(propertiesOf: asset)
+        let videoComposition = AVMutableVideoComposition(propertiesOf: composition)
         videoComposition.colorPrimaries = AVVideoColorPrimaries_ITU_R_709_2
         videoComposition.colorTransferFunction = AVVideoTransferFunction_ITU_R_709_2
         videoComposition.colorYCbCrMatrix = AVVideoYCbCrMatrix_ITU_R_709_2
