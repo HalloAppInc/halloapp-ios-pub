@@ -4416,6 +4416,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             self?.deletePosts(with: [moment.id], in: context)
             self?.deleteAssociatedData(for: [moment.id], in: context)
+
+            DDLogInfo("FeedData/momentWasViewed/finished update block")
         }
     }
 

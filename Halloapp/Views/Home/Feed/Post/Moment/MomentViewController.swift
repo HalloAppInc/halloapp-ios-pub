@@ -10,6 +10,7 @@ import UIKit
 import Combine
 import Core
 import CoreCommon
+import CocoaLumberjackSwift
 
 protocol MomentViewControllerDelegate: PostDashboardViewControllerDelegate {
     func initialTransitionView(for post: FeedPost) -> MomentView?
@@ -112,6 +113,7 @@ class MomentViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        DDLogInfo("MomentViewController/viewDidLoad/post: \(post.id); unlocking post: \(unlockingPost?.id ?? "nil")")
         // With the modal presentation, the system adjusts a black background, causing it to
         // mismatch with the input accessory view
         let backgroundView = UIView()
@@ -166,10 +168,9 @@ class MomentViewController: UIViewController {
         }.store(in: &cancellables)
     }
 
-    var attachment: UIAttachmentBehavior!
-
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        DDLogInfo("MomentViewController/viewWillAppear")
 
         toast?.show()
         refreshAccessoryView(show: true)
@@ -177,6 +178,7 @@ class MomentViewController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+
 
         post.feedMedia.first?.$isMediaAvailable.sink { [weak self] _ in
             self?.expireMomentIfReady()
@@ -300,9 +302,11 @@ class MomentViewController: UIViewController {
             case .unlocked = momentView.state,
             case .sent = unlockingPost?.status ?? .sent
         else {
+            DDLogInfo("MomentViewController/expireMomentIfReady/failed guard")
             return
         }
 
+        DDLogInfo("MomentViewController/expireMomentIfReady/passed guard")
         MainAppContext.shared.feedData.momentWasViewed(post)
     }
 
@@ -416,7 +420,7 @@ extension MomentViewController {
             refreshAccessoryView(show: false)
         case .changed:
             let anchor = gesture.location(in: view)
-            attachment.anchorPoint = anchor
+            dismissAnimator.attachment?.anchorPoint = anchor
         case .ended:
             dismissAnimator.removeAllBehaviors()
 
@@ -451,8 +455,8 @@ extension MomentViewController {
             self?.updatePropertyAnimator()
         }
 
+        dismissAnimator.attachment = attachment
         dismissAnimator.addBehavior(attachment)
-        self.attachment = attachment
     }
 
     /**
