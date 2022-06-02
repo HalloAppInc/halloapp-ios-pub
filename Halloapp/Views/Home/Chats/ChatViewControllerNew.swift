@@ -1083,8 +1083,7 @@ extension ChatViewControllerNew: TextLabelDelegate {
         contentInputView.set(draft: mentionText)
 
         if let reply = draft.replyContext {
-            // TODO
-            //handleDraftQuotedReply(reply: reply)
+            handleDraftQuotedReply(reply: reply)
             if let feedPostId = reply.feedPostID {
                 self.feedPostId = feedPostId
                 feedPostMediaIndex = reply.mediaIndex ?? 0
@@ -1394,6 +1393,26 @@ extension ChatViewControllerNew: MessageViewChatDelegate {
            panel.postInfo = info
            contentInputView.display(context: panel)
        }
+   }
+
+   private func handleDraftQuotedReply(reply: ReplyContext) {
+        if let mediaURLString = reply.media?.mediaURL, let mediaURL = URL(string: mediaURLString) {
+            let info = QuotedItemPanel.PostInfo(userID: reply.replySenderID,
+                                                  text: reply.text,
+                                             mediaType: reply.media?.type,
+                                             mediaLink: mediaURL)
+            let panel = QuotedItemPanel()
+            panel.postInfo = info
+            contentInputView.display(context: panel)
+        } else {
+            let info = QuotedItemPanel.PostInfo(userID: reply.replySenderID,
+                                                  text: reply.text,
+                                             mediaType: nil,
+                                             mediaLink: nil)
+            let panel = QuotedItemPanel()
+            panel.postInfo = info
+            contentInputView.display(context: panel)
+        }
    }
 
    func showDeletionConfirmationMenu(for chatMessage: ChatMessage) {
