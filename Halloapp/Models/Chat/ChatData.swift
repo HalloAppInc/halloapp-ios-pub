@@ -1863,6 +1863,7 @@ extension ChatData {
     }
 
     func markThreadAsRead(type: ChatType, for id: String) {
+        DDLogInfo("ChatData/markThreadAsRead/type: \(type)/id: \(id)")
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
             
@@ -1871,7 +1872,7 @@ extension ChatData {
                     chatThread.unreadCount = 0
                 }
             }
-            
+            DDLogInfo("ChatData/markThreadAsRead/type: \(type)/id: \(id)/set unreadCount to zero")
             self.markSeenMessages(type: type, for: id, in: managedObjectContext)
             
             if managedObjectContext.hasChanges {
@@ -2316,6 +2317,7 @@ extension ChatData {
             chatThread.lastMsgMediaType = lastMsgMediaType
             chatThread.lastMsgStatus = isMsgToYourself ? .seen : .pending
             chatThread.lastMsgTimestamp = chatMessage.timestamp
+            chatThread.unreadCount = 0
         } else {
             DDLogDebug("ChatData/createChatMsg/\(messageId)/new-thread")
             let chatThread = ChatThread(context: context)
@@ -3457,7 +3459,7 @@ extension ChatData {
             chatThread.lastMsgMediaType = lastMsgMediaType
             chatThread.lastMsgStatus = .none
             chatThread.lastMsgTimestamp = chatMessage.timestamp
-            chatThread.unreadCount = 1
+            chatThread.unreadCount = isCurrentlyChattingWithUser ? 0 : chatThread.unreadCount + 1
         }
 
         save(managedObjectContext)
