@@ -2392,7 +2392,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             guard feedPostMedia.relativeFilePath == nil else {
                 DDLogError("FeedData/download-task/\(task.id)/error File already exists media=[\(feedPostMedia)]")
-                self.notifyUIaboutMediaDownload(feedMedia: feedPostMedia)
+                self.refreshUIwithMedia(feedMedia: feedPostMedia)
                 return
             }
 
@@ -2434,7 +2434,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
 
             // Step 3: Notify UI about finished download.
-            self.notifyUIaboutMediaDownload(feedMedia: feedPostMedia)
+            self.refreshUIwithMedia(feedMedia: feedPostMedia)
 
             // Step 4: Update upload data to avoid duplicate uploads
             // TODO Nandini : check this for comment media
@@ -2444,7 +2444,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    private func notifyUIaboutMediaDownload(feedMedia: CommonMedia) {
+    private func refreshUIwithMedia(feedMedia: CommonMedia) {
         if let  feedPost = feedMedia.post {
             let feedPostId = feedPost.id
             let mediaOrder = Int(feedMedia.order)
@@ -4533,25 +4533,22 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     let didMergeFeedPost = PassthroughSubject<FeedPostID, Never>()
 
     func mergeData(from sharedDataStore: SharedDataStore, completion: @escaping () -> ()) {
+        DDLogInfo("FeedData/mergeData - \(sharedDataStore.source)/begin")
         sharedDataStore.performSeriallyOnBackgroundContext { context in
             let posts = sharedDataStore.posts(in: context)
             let comments = sharedDataStore.comments(in: context)
-
-            DDLogInfo("FeedData/mergeData - \(sharedDataStore.source)/begin")
-            let sharedPostIds = sharedDataStore.postIds()
-            let sharedCommentIds = sharedDataStore.commentIds()
-            DDLogInfo("FeedData/mergeData/sharedPostIds: \(sharedPostIds)/sharedCommentIds: \(sharedCommentIds)")
-
             self.performSeriallyOnBackgroundContext { managedObjectContext in
                 self.merge(posts: posts, comments: comments, from: sharedDataStore, using: managedObjectContext)
             }
+
+            let sharedPostIds = sharedDataStore.postIds()
+            let sharedCommentIds = sharedDataStore.commentIds()
+            DDLogInfo("FeedData/mergeData/sharedPostIds: \(sharedPostIds)/sharedCommentIds: \(sharedCommentIds)")
 
             self.mainDataStore.saveSeriallyOnBackgroundContext ({ managedObjectContext in
                 // TODO: murali@: we dont need the following merge in the future - leaving it in for now.
                 self.mergeMediaItems(from: sharedDataStore, using: managedObjectContext)
             }) { [self] result in
-                let sharedPostIds: [FeedPostID] = []
-                let sharedCommentIds: [FeedPostCommentID] = []
                 switch result {
                 case .success:
                     mainDataStore.saveSeriallyOnBackgroundContext { [self] context in
@@ -4563,7 +4560,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         let postIds = mergedFeedPosts.map { $0.id }
                         generateNotifications(for: mergedFeedPosts, using: context)
                         // Notify about new posts all interested parties.
-                        mergedFeedPosts.forEach({
+                        mergedFeedPosts.forEach({ feedPost in
                             /*
                              Do not invalidate cachedMedia. Anything currently bound to the existing media
                              will no longer receive load callbacks, as they are not reloaded as the posts are
@@ -4574,8 +4571,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                              to all of our contexts.
                              */
                             //cachedMedia[$0.id] = nil
-                            didMergeFeedPost.send($0.id)
-                            $0.hasBeenProcessed = true
+
+                            // Try and reload cached media. It is possible that we have an old media item in cache and
+                            // nse just finished downloading the media and the transaction is merged afterwards.
+                            feedPost.media?.forEach { mediaItem in
+                                refreshUIwithMedia(feedMedia: mediaItem)
+                            }
+                            didMergeFeedPost.send(feedPost.id)
+                            feedPost.hasBeenProcessed = true
                         })
 
                         // Comments
@@ -4586,7 +4589,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         let commentIds = mergedfeedPostComments.map { $0.id }
                         generateNotifications(for: mergedfeedPostComments, using: context)
                         // Notify about new comments all interested parties.
-                        mergedfeedPostComments.forEach({
+                        mergedfeedPostComments.forEach({ feedPostComment in
                             /*
                              Do not invalidate cachedMedia. Anything currently bound to the existing media
                              will no longer receive load callbacks, as they are not reloaded as the posts are
@@ -4596,9 +4599,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                              but the UI state should still be consistent, as we've already sent change notifications
                              to all of our contexts.
                              */
-                            //cachedMedia[$0.id] = nil
-                            didReceiveFeedPostComment.send($0)
-                            $0.hasBeenProcessed = true
+
+                            // Try and reload cached media. It is possible that we have an old media item in cache and
+                            // nse just finished downloading the media and the transaction is merged afterwards.
+                            feedPostComment.media?.forEach { mediaItem in
+                                refreshUIwithMedia(feedMedia: mediaItem)
+                            }
+                            didReceiveFeedPostComment.send(feedPostComment)
+                            feedPostComment.hasBeenProcessed = true
                         })
                         DDLogInfo("FeedData/mergeData/postIds: \(postIds)/commentIds: \(commentIds)")
                     }
