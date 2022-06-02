@@ -1741,7 +1741,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         UNUserNotificationCenter.current().getFeedPostIdsForDeliveredNotifications { [weak self] postIdsToFilterOut in
             guard let self = self else { return }
 
+            let feedPostObjectIDs = feedPosts.map(\.objectID)
             self.performSeriallyOnBackgroundContext { managedObjectContext in
+                let feedPosts = feedPostObjectIDs.compactMap { managedObjectContext.object(with: $0) as? FeedPost }
                 let blockedUserIDSet = Set(AppContext.shared.privacySettings.blocked.userIds)
 
                 feedPosts.filter { !postIdsToFilterOut.contains($0.id) && !blockedUserIDSet.contains($0.userID) }.forEach { feedPost in

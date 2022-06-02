@@ -158,9 +158,7 @@ open class PrivacySettings {
 
     public init(contactStore: ContactStore) {
         self.contactStore = contactStore
-        DispatchQueue.main.async {
-            self.loadSettings()
-        }
+        loadSettings()
     }
 
     open func loadSettings() {
