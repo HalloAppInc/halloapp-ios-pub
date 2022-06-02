@@ -401,8 +401,9 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         
         if let feedPostId = feedPostId {
             DDLogInfo("ChatViewControllerNew/loading feed post context")
-            if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
-                let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.rawText, mentions: feedPost.orderedMentions)
+            if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: MainAppContext.shared.feedData.viewContext) {
+                let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+                let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.rawText, mentions: feedPost.orderedMentions, in: contactsViewContext)
                 if let mediaItem = feedPost.media?.first(where: { $0.order == self.feedPostMediaIndex }), let mediaType = CommonMediaType(rawValue: mediaItem.type.rawValue) {
                     
                     let mediaUrl = mediaItem.mediaURL ?? MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
