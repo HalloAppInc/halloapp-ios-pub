@@ -1082,13 +1082,11 @@ extension FeedCollectionViewController {
                     AppContext.shared.eventMonitor.count(.mediaSaved(type: .video, source: .post))
                 }
             }
-            
-            DispatchQueue.main.async {
-                self?.mediaSaved()
-            }
         }, completionHandler: { [weak self] success, error in
             DispatchQueue.main.async {
-                if !success {
+                if success {
+                    self?.mediaSaved()
+                } else {
                     self?.handleMediaSaveError(error: error)
                 }
             }
