@@ -124,16 +124,18 @@ public final class WhisperSession {
                 break
             }
 
-            self.keyStore.performSeriallyOnBackgroundContext { managedObjectContext in
-                guard let userKeys = self.keyStore.keyBundle(in: managedObjectContext) else {
-                    DDLogError("WhisperSession/\(self.userID)/rerequest/setup/error [no-user-keys]")
-                    return
-                }
+            var wasSessionRestartSuccessful = false
+            if rerequestData.identityKey.count > 0 && rerequestData.sessionSetupEphemeralKey.count > 0 {
 
-                var wasSessionRestartSuccessful = false
-                if rerequestData.identityKey.count > 0 && rerequestData.sessionSetupEphemeralKey.count > 0 {
+                var setupResult: Result<KeyBundle, DecryptionError> = .failure(.missingUserKeys) // this value will be overwritten
+                self.keyStore.performOnBackgroundContextAndWait { managedObjectContext in
+                    guard let userKeys = self.keyStore.keyBundle(in: managedObjectContext) else {
+                        DDLogError("WhisperSession/\(self.userID)/rerequest/setup/error [no-user-keys]")
+                        return
+                    }
+
                     // Attempt to setup session with keys included in rerequest
-                    let setupResult = Whisper.receiveSessionSetup(
+                    setupResult = Whisper.receiveSessionSetup(
                         userID: self.userID,
                         inboundIdentityPublicEdKey: rerequestData.identityKey,
                         inboundEphemeralPublicKey: rerequestData.sessionSetupEphemeralKey,
@@ -141,23 +143,24 @@ public final class WhisperSession {
                         oneTimeKeyID: rerequestData.oneTimePreKeyID,
                         previousChainLength: 0,
                         userKeys: userKeys)
-                    switch setupResult {
-                    case .success(let keyBundle):
-                        DDLogInfo("WhisperSession/\(self.userID)/rerequest/setup/complete")
-                        self.state = .ready(keyBundle, [:])
-                        wasSessionRestartSuccessful = true
-                    case .failure(let error):
-                        DDLogError("WhisperSession/\(self.userID)/rerequest/setup/error [\(error)]")
-                    }
-                } else {
-                    DDLogInfo("WhisperSession/\(self.userID)/rerequest/no-inbound-session-provided")
                 }
 
-                if case .ready = self.state, !wasSessionRestartSuccessful {
-                    DDLogInfo("WhisperSession/\(self.userID)/rerequest/deleting-keys")
-                    self.keyStore.deleteMessageKeyBundles(for: self.userID)
-                    self.state = .awaitingSetup(attempts: 1)
+                switch setupResult {
+                case .success(let keyBundle):
+                    DDLogInfo("WhisperSession/\(self.userID)/rerequest/setup/complete")
+                    self.state = .ready(keyBundle, [:])
+                    wasSessionRestartSuccessful = true
+                case .failure(let error):
+                    DDLogError("WhisperSession/\(self.userID)/rerequest/setup/error [\(error)]")
                 }
+            } else {
+                DDLogInfo("WhisperSession/\(self.userID)/rerequest/no-inbound-session-provided")
+            }
+
+            if case .ready = self.state, !wasSessionRestartSuccessful {
+                DDLogInfo("WhisperSession/\(self.userID)/rerequest/deleting-keys")
+                self.keyStore.deleteMessageKeyBundles(for: self.userID)
+                self.state = .awaitingSetup(attempts: 1)
             }
         }
     }
