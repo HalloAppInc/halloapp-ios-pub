@@ -35,7 +35,7 @@ class FeedPermissionDeniedController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .feedBackground
-        installLargeTitleUsingGothamFont()
+        installAvatarBarButton()
 
         let contactsPermissionView = UpdateContactsPermissionView()
         view.addSubview(contactsPermissionView)

@@ -87,7 +87,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     override func viewDidLoad() {
         DDLogInfo("ChatListViewController/viewDidLoad")
 
-        installLargeTitleUsingGothamFont()
+        installAvatarBarButton()
 
         navigationItem.rightBarButtonItem = rightBarButtonItem
 

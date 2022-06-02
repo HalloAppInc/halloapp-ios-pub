@@ -94,8 +94,6 @@ class SettingsViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        installLargeTitleUsingGothamFont()
-
         #if DEBUG
         let showDeveloperMenu = true
         #else

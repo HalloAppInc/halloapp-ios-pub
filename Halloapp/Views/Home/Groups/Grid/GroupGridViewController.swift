@@ -49,7 +49,7 @@ class GroupGridViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        installLargeTitleUsingGothamFont()
+        installAvatarBarButton()
 
         let image = UIImage(named: "NavCreateGroup", in: nil, with: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))?.withTintColor(UIColor.primaryBlue, renderingMode: .alwaysOriginal)
         image?.accessibilityLabel = Localizations.chatCreateNewGroup

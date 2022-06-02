@@ -62,8 +62,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
     override func viewDidLoad() {
         DDLogInfo("GroupsListViewController/viewDidLoad")
 
-        installLargeTitleUsingGothamFont()
-
+        installAvatarBarButton()
         navigationItem.rightBarButtonItem = rightBarButtonItem
 
         definesPresentationContext = true

@@ -37,7 +37,7 @@ class HomeViewController: UITabBarController {
     private var feedController: UIViewController?
     private var groupsController: UIViewController?
     private var chatsController: UIViewController?
-    private var profileController: UIViewController?
+    private var activityController: UIViewController?
 
     private func commonSetup() {
         self.delegate = self
@@ -72,14 +72,14 @@ class HomeViewController: UITabBarController {
         groupsController = groupsNavController
         let chatsNavController = chatsNavigationController()
         chatsController = chatsNavController
-        let profileNavController = profileNavigationController()
-        profileController = profileNavController
+        let activityNavController = activityNavigationController()
+        activityController = activityNavController
 
         tabBarViewControllers = [
             feedNavController,
             groupsNavController,
             chatsNavController,
-            profileNavController
+            activityNavController,
         ]
         
         setViewControllers(tabBarViewControllers, animated: false)
@@ -90,7 +90,7 @@ class HomeViewController: UITabBarController {
          It's removed when the user scrolls to the top of the main feed or when the total unseen posts is 0
          (ie. user scrolls to middle of feed, goes to groups tab, views all unread, indicator should go away)
          */
-        cancellableSet.insert(MainAppContext.shared.feedData.didGetNewFeedPost.sink { [weak self] _ in
+        cancellableSet.insert(MainAppContext.shared.feedData.didGetNewFeedPost.receive(on: DispatchQueue.main).sink { [weak self] _ in
             self?.showHomeTabIndicatorIfNeeded()
         })
         // Can ignore shared (old) merged feed posts as they will not be sent when connection is passive
@@ -102,27 +102,33 @@ class HomeViewController: UITabBarController {
                 self?.showHomeTabIndicatorIfNeeded()
             }
         })
-        cancellableSet.insert(MainAppContext.shared.feedData.didGetRemoveHomeTabIndicator.sink { [weak self] in
+        cancellableSet.insert(MainAppContext.shared.feedData.didGetRemoveHomeTabIndicator.receive(on: DispatchQueue.main).sink { [weak self] in
             self?.removeHomeTabIndicator()
         })
-        cancellableSet.insert(MainAppContext.shared.feedData.didGetUnreadFeedCount.sink { [weak self] (count) in
+        cancellableSet.insert(MainAppContext.shared.feedData.didGetUnreadFeedCount.receive(on: DispatchQueue.main).sink { [weak self] (count) in
             guard count == 0 else { return }
             self?.removeHomeTabIndicator()
         })
 
         cancellableSet.insert(
-            MainAppContext.shared.chatData.didChangeUnreadThreadGroupsCount.sink { [weak self] (count) in
-                guard let self = self else { return }
-                self.updateGroupsNavigationControllerBadge(count)
+            MainAppContext.shared.chatData.didChangeUnreadThreadGroupsCount.receive(on: DispatchQueue.main).sink { [weak self] (count) in
+                self?.updateGroupsNavigationControllerBadge(count)
         })
         MainAppContext.shared.chatData.updateUnreadThreadGroupsCount()
 
         cancellableSet.insert(
-            MainAppContext.shared.chatData.didChangeUnreadThreadCount.sink { [weak self] (count) in
-                guard let self = self else { return }
-                self.updateChatNavigationControllerBadge(count)
+            MainAppContext.shared.chatData.didChangeUnreadThreadCount.receive(on: DispatchQueue.main).sink { [weak self] (count) in
+                self?.updateChatNavigationControllerBadge(count)
         })
         MainAppContext.shared.chatData.updateUnreadChatsThreadCount()
+
+        let feedActivity = MainAppContext.shared.feedData.activityObserver
+        let currentNotificationCount = feedActivity?.unreadCount ?? 0
+        updateActivityNavigationControllerBadge(currentNotificationCount)
+
+        feedActivity?.unreadCountDidChange.receive(on: DispatchQueue.main).sink { [weak self] count in
+            self?.updateActivityNavigationControllerBadge(count)
+        }.store(in: &cancellableSet)
 
         // When the app was in the background
         cancellableSet.insert(
@@ -274,36 +280,41 @@ class HomeViewController: UITabBarController {
         return navigationController
     }
 
-    private func profileNavigationController() -> UINavigationController {
-        let navigationController = UINavigationController(rootViewController: SettingsViewController(title: Localizations.titleSettings))
-        navigationController.tabBarItem.image = UIImage(named: "TabBarSettings")?.withTintColor(.tabBar, renderingMode: .alwaysOriginal)
-        navigationController.tabBarItem.selectedImage = UIImage(named: "TabBarSettingsActive")
+    private func activityNavigationController() -> UINavigationController {
+        let vc = NotificationsViewController()
+        let navigationController = UINavigationController(rootViewController: vc)
+
+        vc.title = Localizations.titleActivity
+        navigationController.tabBarItem.image = UIImage(named: "TabBarActivity")?.withTintColor(.tabBar, renderingMode: .alwaysOriginal)
+        navigationController.tabBarItem.selectedImage = UIImage(named: "TabBarActivityActive")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
+
         return navigationController
     }
 
     private func updateGroupsNavigationControllerBadge(_ count: Int) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            guard let controller = self.viewControllers?[1] else { return }
+        guard let controller = viewControllers?[1] else { return }
 
-            var unseenSampleGroupWelcomePost = 0
-            let sharedNUX = MainAppContext.shared.nux
-            if let seen = sharedNUX.sampleGroupWelcomePostSeen(), !seen {
-                unseenSampleGroupWelcomePost = 1
-            }
-            let badge = count + unseenSampleGroupWelcomePost
-
-            controller.tabBarItem.badgeValue = badge == 0 ? nil : String(badge)
+        var unseenSampleGroupWelcomePost = 0
+        let sharedNUX = MainAppContext.shared.nux
+        if let seen = sharedNUX.sampleGroupWelcomePostSeen(), !seen {
+            unseenSampleGroupWelcomePost = 1
         }
+        let badge = count + unseenSampleGroupWelcomePost
+
+        controller.tabBarItem.badgeValue = badge == 0 ? nil : String(badge)
     }
 
     private func updateChatNavigationControllerBadge(_ count: Int) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            if let controller = self.viewControllers?[2] {
-                controller.tabBarItem.badgeValue = count == 0 ? nil : String(count)
-            }
+        if let controller = self.viewControllers?[2] {
+            controller.tabBarItem.badgeValue = count == 0 ? nil : String(count)
+        }
+    }
+
+    private func updateActivityNavigationControllerBadge(_ count: Int) {
+        if let activityController = activityController {
+            // we don't want a number on the badge, just the red dot
+            activityController.tabBarItem.badgeValue = count == 0 ? nil : ""
         }
     }
 
@@ -409,21 +420,17 @@ class HomeViewController: UITabBarController {
     }
 
     private func showHomeTabIndicatorIfNeeded() {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            if self.currentlyOn() == .home { // user is on the main feed
-                guard let nc = self.viewControllers?[0] as? UINavigationController else { return }
-                guard let vc = nc.topViewController as? FeedViewController else { return }
-                guard !vc.isNearTop(100) else { return } // exit if user is at the top of the main feed
-            }
-            self.setTabBarDot(index: 0, count: 1)
+        if currentlyOn() == .home { // user is on the main feed
+            guard let nc = self.viewControllers?[0] as? UINavigationController else { return }
+            guard let vc = nc.topViewController as? FeedViewController else { return }
+            guard !vc.isNearTop(100) else { return } // exit if user is at the top of the main feed
         }
+
+        setTabBarDot(index: 0, count: 1)
     }
 
     private func removeHomeTabIndicator() {
-        DispatchQueue.main.async { [weak self] in
-            self?.setTabBarDot(index: 0, count: 0)
-        }
+        setTabBarDot(index: 0, count: 0)
     }
 
     private func setTabBarDot(index: Int, count: Int) {

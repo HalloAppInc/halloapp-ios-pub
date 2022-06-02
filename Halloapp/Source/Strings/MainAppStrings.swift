@@ -24,6 +24,10 @@ extension Localizations {
     static var titleChats: String {
         NSLocalizedString("title.chats", value: "Chats", comment: "Third tab in the main app interface.")
     }
+
+    static var titleActivity: String {
+        NSLocalizedString("activity.center.title", value: "Activity", comment: "Title for the activity center screen.")
+    }
         
     static var titleChatNewMessage: String {
         NSLocalizedString("title.chat.new.message", value: "New Message", comment: "Title for new message screen where user chooses who to message")

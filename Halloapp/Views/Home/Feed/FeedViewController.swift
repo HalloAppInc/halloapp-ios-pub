@@ -19,18 +19,12 @@ import UIKit
 class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
 
     private var cancellables: Set<AnyCancellable> = []
-    private var notificationButton: BadgedButton?
-    private var notificationCount: Int = 0 {
-        didSet {
-            updateNotificationCount(notificationCount)
-        }
-    }
+
     private lazy var canInvite = {
         return isWhatsAppAvailable || isIMessageAvailable
     }()
 
     private var showContactsPermissionDialogIfNecessary = true
-    private var momentTestButton: UIButton?
 
     // MARK: UIViewController
 
@@ -38,33 +32,14 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         DDLogDebug("FeedViewController/viewDidLoad/begin")
         super.viewDidLoad()
 
-        installLargeTitleUsingGothamFont()
+        installAvatarBarButton()
         installEmptyView()
         installFloatingActionMenu()
 
-        let notificationButton = BadgedButton(type: .system)
-        notificationButton.centerYConstant = 5
-        notificationButton.setImage(UIImage(named: "FeedNavbarNotifications")?.withTintColor(UIColor.primaryBlue, renderingMode: .alwaysOriginal), for: .normal)
-        notificationButton.accessibilityLabel = Localizations.titleNotifications
-        notificationButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 8, bottom: 10, right: 8)
-        notificationButton.addTarget(self, action: #selector(didTapNotificationButton), for: .touchUpInside)
-        self.notificationButton = notificationButton
-
-        let inviteButton = BadgedButton(type: .system)
-        inviteButton.centerYConstant = 5
-        inviteButton.setImage(UIImage(named: "FeedInviteButton")?.withTintColor(UIColor.primaryBlue, renderingMode: .alwaysOriginal), for: .normal)
+        let inviteButton = UIBarButtonItem(title: Localizations.buttonInvite, style: .plain, target: self, action: #selector(didTapInviteButtion))
+        inviteButton.tintColor = .primaryBlue
         inviteButton.accessibilityLabel = Localizations.inviteFriendsAndFamily
-        inviteButton.isBadgeHidden = true
-        inviteButton.addTarget(self, action: #selector(didTapInviteButtion), for: .touchUpInside)
-
-        navigationItem.rightBarButtonItems = [UIBarButtonItem(customView: notificationButton), UIBarButtonItem(customView: inviteButton)]
-
-        if let feedActivities = MainAppContext.shared.feedData.activityObserver {
-            notificationCount = feedActivities.unreadCount
-            self.cancellables.insert(feedActivities.unreadCountDidChange.sink { [weak self] (unreadCount) in
-                self?.notificationCount = unreadCount
-            })
-        }
+        navigationItem.rightBarButtonItem = inviteButton
 
         cancellables.insert(MainAppContext.shared.callManager.isAnyCallOngoing.sink(receiveValue: { [weak self] activeCall in
             let hasActiveCall = activeCall != nil
@@ -294,21 +269,21 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
     private let activityCenterOverlayID = "activity.center.nux.id"
 
     private func showActivityCenterNUX() {
-        guard let notificationButton = notificationButton else {
-            return
-        }
-        let popover = NUXPopover(
-            Localizations.nuxActivityCenterIconContent,
-            targetRect: notificationButton.bounds,
-            targetSpace: notificationButton.coordinateSpace,
-            showButton: false) { [weak self] in
-            MainAppContext.shared.nux.didComplete(.activityCenterIcon)
-            self?.overlay = nil
-        }
-        popover.overlayID = activityCenterOverlayID
-
-        overlay = popover
-        overlayContainer.display(popover)
+//        guard let notificationButton = notificationButton else {
+//            return
+//        }
+//        let popover = NUXPopover(
+//            Localizations.nuxActivityCenterIconContent,
+//            targetRect: notificationButton.bounds,
+//            targetSpace: notificationButton.coordinateSpace,
+//            showButton: false) { [weak self] in
+//            MainAppContext.shared.nux.didComplete(.activityCenterIcon)
+//            self?.overlay = nil
+//        }
+//        popover.overlayID = activityCenterOverlayID
+//
+//        overlay = popover
+//        overlayContainer.display(popover)
     }
 
     @objc
@@ -427,13 +402,6 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         overlayContainer.display(alert)
     }
     
-    private func updateMomentButton() {
-        // only one at a time
-        let exists = MainAppContext.shared.feedData.validMoment.value != nil
-        momentTestButton?.isEnabled = !exists
-        momentTestButton?.alpha = exists ? 0.5 : 1.0
-    }
-    
     private func updateContactPermissionsExplanationAlert() {
         let contentView = FeedPermissionExplanationAlert(learnMoreAction: nil, notNowAction: FeedPermissionExplanationAlert.Action(title: Localizations.buttonNotNow, handler: { [weak self] _ in
             self?.dismissOverlay()
@@ -502,13 +470,6 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
             newPostViewController.modalPresentationStyle = .fullScreen
             present(newPostViewController, animated: true)
         }
-    }
-
-    // MARK: Notification Handling
-
-    private func updateNotificationCount(_ unreadCount: Int) {
-        notificationButton?.isBadgeHidden = unreadCount == 0
-        showNUXIfNecessary()
     }
 }
 

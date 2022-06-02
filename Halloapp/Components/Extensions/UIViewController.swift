@@ -18,21 +18,26 @@ protocol UIViewControllerScrollsToTop {
 
 extension UIViewController {
 
-    func installLargeTitleUsingGothamFont() {
-        guard let title = title else { return }
-        let fontDescriptor = UIFontDescriptor
-            .preferredFontDescriptor(withTextStyle: .largeTitle)
-            .addingAttributes([ .traits: [ UIFontDescriptor.TraitKey.weight: UIFont.Weight.bold ] ])
-        var fontSize = fontDescriptor.pointSize - 8 // 26 for default text size
-        if fontSize > 34 { fontSize = 34 }
-        let attributes: [ NSAttributedString.Key : Any ] =
-            [ .font: UIFont(descriptor: fontDescriptor, size: fontSize),
-              .foregroundColor: UIColor.label.withAlphaComponent(0.75),
-              .kern: -0.01 ]
-        let titleLabel = UILabel()
-        titleLabel.attributedText = NSAttributedString(string: title, attributes: attributes)
-        navigationItem.leftBarButtonItem = UIBarButtonItem(customView: titleLabel)
-        navigationItem.title = nil
+    func installAvatarBarButton() {
+        let diameter: CGFloat = 30
+        let avatar = AvatarViewButton()
+        avatar.configure(userId: MainAppContext.shared.userData.userId, using: MainAppContext.shared.avatarStore)
+        avatar.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            avatar.heightAnchor.constraint(equalToConstant: diameter),
+            avatar.widthAnchor.constraint(equalToConstant: diameter),
+        ])
+
+        avatar.addTarget(self, action: #selector(presentProfile), for: .touchUpInside)
+        navigationItem.leftBarButtonItem = UIBarButtonItem(customView: avatar)
+    }
+
+    @objc
+    private func presentProfile(_ sender: AnyObject) {
+        let profile = SettingsViewController(title: Localizations.titleSettings)
+        let nav = UINavigationController(rootViewController: profile)
+        present(nav, animated: true)
     }
     
     func proceedIfConnected() -> Bool {

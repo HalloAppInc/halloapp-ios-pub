@@ -13,11 +13,6 @@ import CoreData
 import UIKit
 
 private extension Localizations {
-
-    static var titleActivity: String {
-        NSLocalizedString("activity.center.title", value: "Activity", comment: "Title for the activity center screen.")
-    }
-
     static var readAll: String {
         NSLocalizedString("activity.center.button.read.all", value: "Read All", comment: "Short title for the button in activity center.")
     }
@@ -34,9 +29,7 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
 
     private var dataSource: UITableViewDiffableDataSource<ActivityCenterSection, ActivityCenterItem>!
     private var fetchedResultsController: NSFetchedResultsController<FeedActivity>!
-    private lazy var tableView: UITableView = { UITableView() }()
-    private var bottomBar: UIView!
-    private let readAllButton = UIButton()
+    private lazy var tableView: UITableView = UITableView()
   
     private var displayedItems: [ActivityCenterItem] = []
     /// - note: Used for when the user marks all notifications as read.
@@ -48,7 +41,11 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         super.viewDidLoad()
 
         navigationItem.title = Localizations.titleActivity
-        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))
+        installAvatarBarButton()
+
+        let readAll = UIBarButtonItem(title: Localizations.readAll, style: .plain, target: self, action: #selector(markAllNotificationsRead))
+        readAll.tintColor = .primaryBlue
+        navigationItem.rightBarButtonItem = readAll
 
         tableView.delegate = self
         tableView.register(NotificationTableViewCell.self, forCellReuseIdentifier: NotificationsViewController.cellReuseIdentifier)
@@ -85,16 +82,20 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
             }
         }
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedActivity.timestamp, ascending: false) ]
-        fetchedResultsController =
-            NSFetchedResultsController<FeedActivity>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.mainDataStore.viewContext,
-                                                         sectionNameKeyPath: nil, cacheName: nil)
+        fetchedResultsController = NSFetchedResultsController<FeedActivity>(fetchRequest: fetchRequest,
+                                                                    managedObjectContext: MainAppContext.shared.mainDataStore.viewContext,
+                                                                      sectionNameKeyPath: nil,
+                                                                               cacheName: nil)
         fetchedResultsController.delegate = self
-        do {
-            try fetchedResultsController!.performFetch()
-            updateUI()
-        } catch { }
-        
-        setupBottomBar()
+
+        try? fetchedResultsController?.performFetch()
+        updateUI()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        // remove the red dot when the user navigates to this screen
+        navigationController?.tabBarItem.badgeValue = nil
     }
 
     private func updateUI() {
@@ -102,42 +103,11 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         let hasUnreadItem = snapshot.itemIdentifiers.contains { $0.read == false }
 
         dataSource.apply(snapshot, animatingDifferences: false)
-        
-        readAllButton.isEnabled = hasUnreadItem
-        readAllButton.setTitleColor(hasUnreadItem ? .systemBlue : .gray, for: .normal)
+        navigationItem.rightBarButtonItem?.isEnabled = hasUnreadItem
     }
-    
-    private func setupBottomBar() {
-        bottomBar = UIView()
-        bottomBar.translatesAutoresizingMaskIntoConstraints = false
-        
-        bottomBar.backgroundColor = .notificationBottomBarBackground
-        bottomBar.layer.shadowColor = UIColor.notificationBottomBarShadow.cgColor
-        bottomBar.layer.shadowOpacity = 1
-        bottomBar.layer.shadowOffset = .zero
-        bottomBar.layer.shadowRadius = 4
-        
-        view.addSubview(bottomBar)
-        bottomBar.constrain([.leading, .trailing, .bottom], to: view)
 
-        readAllButton.addTarget(self, action: #selector(markAllNotificationsRead), for: .touchUpInside)
-
-        let title = NSAttributedString(string: Localizations.readAll, attributes: [.font : UIFont.gothamFont(forTextStyle: .callout, weight: .medium)])
-        
-        readAllButton.setAttributedTitle(title, for: .normal)
-        
-        bottomBar.addSubview(readAllButton)
-
-        let readAllButtonBottomPadding: CGFloat = 3
-        readAllButton.translatesAutoresizingMaskIntoConstraints = false
-        readAllButton.heightAnchor.constraint(equalToConstant: 48 - readAllButtonBottomPadding).isActive = true
-        readAllButton.constrain([.top, .leading, .trailing], to: bottomBar)
-        readAllButton.constrain(anchor: .bottom, to: bottomBar, constant: -(bottomSafeAreaHeight + readAllButtonBottomPadding))
-    }
-    
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        tableView.contentInset.bottom = bottomBar.frame.height - bottomSafeAreaHeight
         
         if let cachedPosition = cachedScrollPosition, tableView.contains(indexPath: cachedPosition.indexPath) {
             tableView.scrollToRow(at: cachedPosition.indexPath, at: .top, animated: false)

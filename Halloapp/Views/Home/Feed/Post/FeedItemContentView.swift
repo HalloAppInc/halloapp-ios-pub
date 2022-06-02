@@ -391,7 +391,7 @@ final class FeedItemHeaderView: UIView {
 
     private var contentSizeCategoryDidChangeCancellable: AnyCancellable!
 
-    let avatarButtonSize: CGFloat = 36
+    let avatarButtonSize: CGFloat = 45
     private let avatarButtonSpacing: CGFloat = 8
     private let moreButtonPadding: CGFloat = 20
     private let moreButtonWidth: CGFloat = 18
