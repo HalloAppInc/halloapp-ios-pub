@@ -331,6 +331,7 @@ extension PostViewController {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
 
+                DDLogInfo("PostViewController/saveMedia/success: \(success)/error: \(error)")
                 if success {
                     self.mediaSaved()
                 } else if let error = error {
