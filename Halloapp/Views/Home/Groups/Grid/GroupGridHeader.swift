@@ -6,6 +6,7 @@
 //  Copyright © 2022 HalloApp, Inc. All rights reserved.
 //
 
+import Combine
 import Core
 import UIKit
 
@@ -32,6 +33,9 @@ class GroupGridHeader: UICollectionReusableView {
         return groupNameLabel
     }()
 
+    private var group: Group?
+    private var groupNameChangedCancellable: AnyCancellable?
+
     override init(frame: CGRect) {
         super.init(frame: frame)
 
@@ -50,7 +54,7 @@ class GroupGridHeader: UICollectionReusableView {
         postButton.addTarget(self, action: #selector(composeButtonTapped), for: .touchUpInside)
         postButton.backgroundTintColor = .lavaOrange
         postButton.imageView?.tintColor = .primaryWhiteBlack
-        postButton.setImage(UIImage(systemName: "plus")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 13, weight: .semibold)),
+        postButton.setImage(UIImage(systemName: "plus")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 16, weight: .semibold)),
                             for: .normal)
         postButton.translatesAutoresizingMaskIntoConstraints = false
         addSubview(postButton)
@@ -81,7 +85,11 @@ class GroupGridHeader: UICollectionReusableView {
 
     func configure(with groupID: GroupID) {
         groupAvatarView.configure(groupId: groupID, squareSize: Constants.avatarSize, using: MainAppContext.shared.avatarStore)
-        groupNameLabel.text = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.contactStore.viewContext)?.name
+
+        group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext)
+        groupNameChangedCancellable = group?.publisher(for: \.name).sink { [weak self] in
+            self?.groupNameLabel.text = $0
+        }
     }
 
     override func prepareForReuse() {

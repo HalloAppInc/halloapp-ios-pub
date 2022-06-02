@@ -26,25 +26,13 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
 
     // MARK: Body Views
 
-    private let textView: UITextView = {
-        let textView = UITextView()
-        textView.adjustsFontForContentSizeCategory = true
-        textView.dataDetectorTypes = .link
-        textView.font = .scaledSystemFont(ofSize: 19, weight: .regular)
-        textView.isSelectable = false
-        textView.isScrollEnabled = false
-        textView.isUserInteractionEnabled = false
-        textView.linkTextAttributes = [.foregroundColor: UIColor.link]
-        textView.textColor = UIColor(dynamicProvider: {
-            switch $0.userInterfaceStyle {
-            case .dark:
-                return .white.withAlphaComponent(0.8)
-            default:
-                return .white
-            } 
-        })
-        textView.textContainerInset = UIEdgeInsets(top: 12, left: 12, bottom: 12, right: 12)
-        return textView
+    private let textBackground = UIView()
+
+    private let textLabel: UILabel = {
+        let textLabel = UILabel()
+        textLabel.adjustsFontForContentSizeCategory = true
+        textLabel.numberOfLines = 0
+        return textLabel
     }()
 
     private let imageView: MediaImageView = {
@@ -153,8 +141,11 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
 
         // Body
         // Add first to position below other content
-        textView.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(textView)
+        textBackground.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(textBackground)
+
+        textLabel.translatesAutoresizingMaskIntoConstraints = false
+        textBackground.addSubview(textLabel)
 
         imageView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(imageView)
@@ -162,7 +153,7 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         audioBlurView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(audioBlurView)
 
-        [textView, imageView, audioBlurView].forEach {
+        [textLabel, imageView, audioBlurView].forEach {
             $0.setContentCompressionResistancePriority(UILayoutPriority(1), for: .vertical)
             $0.setContentHuggingPriority(UILayoutPriority(1), for: .vertical)
         }
@@ -218,10 +209,15 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
             headerStackView.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor),
 
             // Body
-            textView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            textView.topAnchor.constraint(equalTo: headerStackView.bottomAnchor),
-            textView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            textView.bottomAnchor.constraint(equalTo: footerStackView.topAnchor),
+            textBackground.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            textBackground.topAnchor.constraint(equalTo: headerStackView.bottomAnchor),
+            textBackground.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            textBackground.bottomAnchor.constraint(equalTo: footerStackView.topAnchor),
+
+            textLabel.leadingAnchor.constraint(equalTo: textBackground.leadingAnchor, constant: 12),
+            textLabel.topAnchor.constraint(equalTo: textBackground.topAnchor, constant: 12),
+            textLabel.trailingAnchor.constraint(equalTo: textBackground.trailingAnchor, constant: -12),
+            textLabel.bottomAnchor.constraint(lessThanOrEqualTo: textBackground.bottomAnchor, constant: -12),
 
             imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             imageView.topAnchor.constraint(equalTo: headerStackView.bottomAnchor),
@@ -245,7 +241,7 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
             leadingContentTypeImageView.bottomAnchor.constraint(equalTo: footerStackView.topAnchor),
 
             trailingContentTypeImageView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            trailingContentTypeImageView.bottomAnchor.constraint(equalTo: footerStackView.topAnchor),
+            trailingContentTypeImageView.topAnchor.constraint(equalTo: headerStackView.bottomAnchor),
 
             // Footer
             commentIndicator.widthAnchor.constraint(equalToConstant: Constants.commentIndicatorSize),
@@ -323,22 +319,42 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
             }
         } else {
             // Text post
-            let contactsViewContext = MainAppContext.shared.contactStore.viewContext
-            let mentionText = MainAppContext.shared.contactStore.textWithMentions(post.rawText, mentions: post.orderedMentions, in: contactsViewContext)
-            let bodyFont = textView.font ?? UIFont()
-            let mentionFont = UIFont(descriptor: bodyFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
+            let baseFont = UIFont.scaledSystemFont(ofSize: 19, weight: .regular)
+            let textColor = UIColor(dynamicProvider: {
+                switch $0.userInterfaceStyle {
+                case .dark:
+                    return .white.withAlphaComponent(0.8)
+                default:
+                    return .white
+                }
+            })
 
-            textView.attributedText = mentionText.flatMap {
-                HAMarkdown(font: bodyFont, color: textView.textColor ?? .white)
-                    .parse($0)
-                    .applyingFontForMentions(mentionFont)
+            if post.isUnsupported {
+                textLabel.attributedText = NSAttributedString(string: "⚠️ \(Localizations.feedPostUnsupported)",
+                                                              attributes: [.font: baseFont.withItalicsIfAvailable, .foregroundColor: textColor])
+                textLabel.adjustsFontSizeToFitWidth = true
+            } else if post.isWaiting {
+                textLabel.attributedText = NSAttributedString(string: "🕓 \(Localizations.feedPostWaiting)",
+                                                              attributes: [.font: baseFont.withItalicsIfAvailable, .foregroundColor: textColor])
+                textLabel.adjustsFontSizeToFitWidth = true
+            } else {
+                let mentionText = MainAppContext.shared.contactStore.textWithMentions(post.rawText,
+                                                                                      mentions: post.orderedMentions,
+                                                                                      in: MainAppContext.shared.contactStore.viewContext)
+                let mentionFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
+                textLabel.attributedText = mentionText.flatMap {
+                    HAMarkdown(font: baseFont, color: textColor)
+                        .parse($0)
+                        .applyingFontForMentions(mentionFont)
+                }
+                textLabel.adjustsFontSizeToFitWidth = false
             }
-            textView.backgroundColor = Self.backgroundColor(for: post.id)
+            textBackground.backgroundColor = Self.backgroundColor(for: post.id)
 
             showTextView = true
         }
 
-        textView.isHidden = !showTextView
+        textBackground.isHidden = !showTextView
         imageView.isHidden = !showImageView
         audioBlurView.isHidden = !showAudioView
 

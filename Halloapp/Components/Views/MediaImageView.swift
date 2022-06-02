@@ -266,7 +266,11 @@ class MediaImageView: UIImageView {
 
         let playerItem = AVPlayerItem(asset: composition)
         playerItem.preferredForwardBufferDuration = 0
+        // TODO: setting any video composition does not seem to work with the simulator
+#if !targetEnvironment(simulator)
         playerItem.videoComposition = videoComposition
+#endif
+
         if #available(iOS 14.0, *) {
             playerItem.appliesPerFrameHDRDisplayMetadata = false
         }

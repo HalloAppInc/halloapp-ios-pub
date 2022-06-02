@@ -25,6 +25,7 @@ class GroupGridViewController: UIViewController {
                                                          configuration: configuration)
 
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.backgroundColor = nil
         collectionView.register(GroupGridCollectionViewCell.self,
                                 forCellWithReuseIdentifier: GroupGridCollectionViewCell.reuseIdentifier)
         collectionView.register(GroupGridHeader.self,
@@ -84,6 +85,17 @@ class GroupGridViewController: UIViewController {
 
         unreadPostCountCancellable = dataSource.unreadPostsCount.sink { [newPostToast] unreadCount in
             newPostToast.configure(unreadCount: unreadCount, animated: newPostToast.window != nil)
+        }
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+
+        // Any animated transition back to here will be from some presented / pushed view controller
+        // Reload content only if we're switching tabs
+        if transitionCoordinator == nil {
+            dataSource.reloadSnapshot(animated: false)
+            scrollToTop(animated: false)
         }
     }
 
@@ -204,6 +216,9 @@ class GroupGridViewController: UIViewController {
                 viewControllers.removeLast()
             }
             viewControllers.append(GroupFeedViewController(groupId: groupID, shouldShowInviteSheet: true))
+
+            // A new group should be the first item in the list, scroll to top
+            self.scrollToTop(animated: false)
 
             navigationController.setViewControllers(viewControllers, animated: true)
         }), animated: true)
