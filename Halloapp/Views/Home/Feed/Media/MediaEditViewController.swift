@@ -437,25 +437,14 @@ class MediaEditViewController: UIViewController {
         guard !processing else { return }
         processing = true
 
-        let group = DispatchGroup()
-        var results: [PendingMedia] = []
+        let media = media
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let results = media.map { $0.process() }
 
-        for item in media {
-            group.enter()
-
-            DispatchQueue.global(qos: .userInitiated).async {
-                let pending = item.process()
-
-                DispatchQueue.main.async {
-                    results.append(pending)
-                    group.leave()
-                }
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                self.didFinish(self, results, self.selected, false)
             }
-        }
-
-        group.notify(queue: DispatchQueue.main) { [weak self] in
-            guard let self = self else { return }
-            self.didFinish(self, results, self.selected, false)
         }
     }
 }
@@ -497,6 +486,10 @@ extension MediaEditViewController : UICollectionViewDataSource {
         }
 
         media.insert(media.remove(at: sourceIndexPath.row), at: destinationIndexPath.row)
+
+        for (i, item) in media.enumerated() {
+            item.media.order = i + 1
+        }
     }
 }
 

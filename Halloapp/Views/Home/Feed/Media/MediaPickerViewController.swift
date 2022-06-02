@@ -875,6 +875,7 @@ class MediaPickerViewController: UIViewController {
                 let asset = self.selected[i]
 
                 if let media = self.originalMedia.first(where: { $0.asset == asset }) {
+                    media.order = i + 1
                     result.append(media)
                     continue
                 }
