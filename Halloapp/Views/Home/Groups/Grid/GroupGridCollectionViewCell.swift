@@ -441,6 +441,6 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
     ].compactMap { $0 }
 
     private static func backgroundColor(for postID: FeedPostID) -> UIColor {
-        return postBackgroundColors[abs(postID.hashValue) % postBackgroundColors.count]
+        return postBackgroundColors[abs(postID.hashValue % postBackgroundColors.count)]
     }
 }

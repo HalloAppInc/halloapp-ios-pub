@@ -131,7 +131,7 @@ class GroupGridViewController: UIViewController {
         let section = NSCollectionLayoutSection(group: group)
         section.boundarySupplementaryItems = [headerItem, separatorItem]
         section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 14, bottom: 0, trailing: 14)
-        section.interGroupSpacing = 8
+        section.interGroupSpacing = 10
         section.orthogonalScrollingBehavior = .continuous
 
         return section

@@ -143,12 +143,8 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
 
         // Mark all posts as read on first view of group.
         // This is tracked by whether we have a cached scroll position
-        if !shouldRestoreScrollPosition {
+        if !shouldRestoreScrollPosition, feedPostIdToScrollTo == nil {
             markAllPostsAsViewed()
-        }
-
-        if let idForScroll = feedPostIdToScrollTo, scrollTo(postId: idForScroll) == true {
-            feedPostIdToScrollTo = nil
         }
     }
 

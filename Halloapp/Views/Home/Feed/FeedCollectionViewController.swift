@@ -227,6 +227,14 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         isVisible = false
     }
 
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+
+        if let postID = feedPostIdToScrollTo, scrollTo(postId: postID) {
+            feedPostIdToScrollTo = nil
+        }
+    }
+
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         guard scrollView == collectionView else { return }
         if isNearTop(100) {
@@ -249,6 +257,12 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         }
 
         collectionView.scrollToItem(at: indexPath, at: .top, animated: animated)
+        // attempt a more accurate scroll
+        if !animated {
+            collectionView.layoutIfNeeded()
+            collectionView.scrollToItem(at: indexPath, at: .top, animated: false)
+        }
+
         return true
     }
 
@@ -352,21 +366,9 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
             self.loadedPostIDs = updatedPostIDs
             self.feedLayout.maintainVisualPosition = false
             self.didUpdateItems()
-            
-            if let id = self.feedPostIdToScrollTo {
-                DDLogInfo("FeedCollectionViewController/scroll-to/postId: \(id)")
-                for item in items {
-                    if id == item.post?.id {
-                        // Temporary fix to scroll to the desired post.
-                        self.view.layoutIfNeeded()
-                        let result = self.scrollTo(postId: id)
-                        if result {
-                            self.feedPostIdToScrollTo = nil
-                        }
-                        DDLogInfo("FeedCollectionViewController/scroll-to/postId: \(id)/result: \(result)")
-                        break
-                    }
-                }
+
+            if let feedPostIdToScrollTo = self.feedPostIdToScrollTo, self.scrollTo(postId: feedPostIdToScrollTo) {
+                self.feedPostIdToScrollTo = nil
             }
         }
     }
@@ -1072,7 +1074,7 @@ extension FeedCollectionViewController {
     }
     
     private func saveMedia(media: [(type: CommonMediaType, url: URL)]) {
-        PHPhotoLibrary.shared().performChanges({ [weak self] in
+        PHPhotoLibrary.shared().performChanges({
             for media in media {
                 if media.type == .image {
                     PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: media.url)
