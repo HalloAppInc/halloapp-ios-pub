@@ -103,6 +103,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }.store(in: &cancellableSet)
 
         fetchFeedPosts()
+        refreshValidMoment()
     }
 
     private func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
@@ -4100,15 +4101,22 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             guard let self = self else {
                 return
             }
-            DDLogInfo("FeedData/delete-expired-moments  date=[\(Self.momentCutoffDate)]")
 
-            let expiredMoments = self.getPosts(olderThan: Self.momentCutoffDate, in: context)
-            let momentsToDelete = expiredMoments
-                .filter { $0.isMoment && $0.userId != MainAppContext.shared.userData.userId }
-                .map { $0.id }
+            let cutoff = Self.momentCutoffDate
+            DDLogInfo("FeedData/delete-expired-moments  date=[\(cutoff)]")
 
-            self.deletePosts(with: momentsToDelete, in: context)
-            self.deleteAssociatedData(for: momentsToDelete, in: context)
+            let request = FeedPost.fetchRequest()
+            request.predicate = NSCompoundPredicate(type: .and, subpredicates: [
+                NSPredicate(format: "timestamp < %@", cutoff as NSDate),
+                NSPredicate(format: "userID != %@", MainAppContext.shared.userData.userId),
+                NSPredicate(format: "isMoment == YES"),
+            ])
+
+            let results = try? context.fetch(request)
+            let expiredMoments = (results ?? []).map { $0.id }
+
+            self.deletePosts(with: expiredMoments, in: context)
+            self.deleteAssociatedData(for: expiredMoments, in: context)
             self.save(context)
         }
     }
@@ -4452,8 +4460,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     
     func fetchLatestMoment(using context: NSManagedObjectContext) -> FeedPost? {
         let request = FeedPost.fetchRequest()
+
         request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-            NSPredicate(format: "userID == %@", MainAppContext.shared.userData.userId),
+            NSPredicate(format: "userID == %@", userData.userId),
             NSPredicate(format: "isMoment == YES"),
             NSPredicate(format: "statusValue != %d", FeedPost.Status.retracted.rawValue),
             NSPredicate(format: "timestamp > %@", Self.momentCutoffDate as NSDate),
@@ -4464,7 +4473,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     func momentWasViewed(_ moment: FeedPost) {
-        guard moment.userId != MainAppContext.shared.userData.userId else {
+        guard moment.userId != userData.userId else {
             return
         }
         DDLogInfo("FeedData/momentWasViewed/starting update block")

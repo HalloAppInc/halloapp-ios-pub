@@ -59,8 +59,6 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
 
         navigationItem.rightBarButtonItems = [UIBarButtonItem(customView: notificationButton), UIBarButtonItem(customView: inviteButton)]
 
-        MainAppContext.shared.feedData.refreshValidMoment()
-
         if let feedActivities = MainAppContext.shared.feedData.activityObserver {
             notificationCount = feedActivities.unreadCount
             self.cancellables.insert(feedActivities.unreadCountDidChange.sink { [weak self] (unreadCount) in
