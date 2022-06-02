@@ -403,14 +403,12 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
             camButton
         ]
 
-        if ServerProperties.isVoicePostsEnabled {
-            let button = FloatingMenuButton.standardActionButton(
-                iconTemplate: UIImage(named: "icon_fab_compose_voice")?.withRenderingMode(.alwaysTemplate),
-                accessibilityLabel: Localizations.fabAccessibilityVoiceNote,
-                action: { [weak self] in self?.presentNewPostViewController(source: .voiceNote) })
-            composeVoiceNoteButton = button
-            expandedButtons.insert(button, at: 1)
-        }
+        let button = FloatingMenuButton.standardActionButton(
+            iconTemplate: UIImage(named: "icon_fab_compose_voice")?.withRenderingMode(.alwaysTemplate),
+            accessibilityLabel: Localizations.fabAccessibilityVoiceNote,
+            action: { [weak self] in self?.presentNewPostViewController(source: .voiceNote) })
+        composeVoiceNoteButton = button
+        expandedButtons.insert(button, at: 1)
 
         return FloatingMenu(presenter: self, expandedButtons: expandedButtons)
     }()

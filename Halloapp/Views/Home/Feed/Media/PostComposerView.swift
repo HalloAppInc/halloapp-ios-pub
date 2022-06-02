@@ -975,10 +975,6 @@ fileprivate struct PostComposerView: View {
     }
 
     var voiceNotesEnabled: Bool {
-        guard ServerProperties.isVoicePostsEnabled else {
-            return false
-        }
-
         switch configuration.destination {
         case .userFeed, .groupFeed:
             return true

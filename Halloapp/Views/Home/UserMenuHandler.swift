@@ -200,11 +200,9 @@ extension UIMenu {
             handler(.call(userID, .audio))
         })
         
-        if ServerProperties.isVideoCallsEnabled {
-            items.append(UIAction(title: Localizations.contextMenuVideoCall, image: .init(systemName: "video")) { _ in
-                handler(.call(userID, .video))
-            })
-        }
+        items.append(UIAction(title: Localizations.contextMenuVideoCall, image: .init(systemName: "video")) { _ in
+            handler(.call(userID, .video))
+        })
         
         return UIMenu(title: "", options: .displayInline, children: items)
     }

@@ -357,8 +357,8 @@ private final class ProfileHeaderView: UIView {
     private func updateActions() {
         actionPanel.isHidden = isBlocked || isOwnProfile
         unblockButton.isHidden = !isBlocked
-        audioCallButton.isHidden = !ServerProperties.isAudioCallsEnabled
-        videoCallButton.isHidden = !ServerProperties.isVideoCallsEnabled
+        audioCallButton.isHidden = false
+        videoCallButton.isHidden = false
 
         if isInAddressBook {
             audioCallButton.enable()

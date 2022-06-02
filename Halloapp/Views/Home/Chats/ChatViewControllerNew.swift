@@ -373,18 +373,17 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
         // Setup audio and video call buttons
         var rightBarButtons: [UIBarButtonItem] = []
-        if ServerProperties.isAudioCallsEnabled {
-            let image = UIImage(systemName: "phone.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))?.withTintColor(.primaryBlue).withTintColor(.primaryBlue)
-            let phoneButton = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(audioCallButtonTapped))
-            phoneButton.tintColor = .primaryBlue
-            rightBarButtons.append(phoneButton)
-        }
-        if ServerProperties.isVideoCallsEnabled {
-            let image = UIImage(systemName: "video.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))?.withTintColor(.primaryBlue)
-            let videoButton = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(videoCallButtonTapped))
-            videoButton.tintColor = .primaryBlue
-            rightBarButtons.append(videoButton)
-        }
+        
+        let phoneImage = UIImage(systemName: "phone.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))?.withTintColor(.primaryBlue).withTintColor(.primaryBlue)
+        let phoneButton = UIBarButtonItem(image: phoneImage, style: .plain, target: self, action: #selector(audioCallButtonTapped))
+        phoneButton.tintColor = .primaryBlue
+        rightBarButtons.append(phoneButton)
+
+        let videoImage = UIImage(systemName: "video.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))?.withTintColor(.primaryBlue)
+        let videoButton = UIBarButtonItem(image: videoImage, style: .plain, target: self, action: #selector(videoCallButtonTapped))
+        videoButton.tintColor = .primaryBlue
+        rightBarButtons.append(videoButton)
+
         navigationItem.rightBarButtonItems = rightBarButtons
 
         let titleWidthConstraint = titleView.widthAnchor.constraint(equalToConstant: (view.frame.width*0.8))

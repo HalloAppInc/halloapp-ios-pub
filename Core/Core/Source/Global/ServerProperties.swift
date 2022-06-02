@@ -23,21 +23,13 @@ public struct ServerProperties {
         case targetVideoBitRate = "target_video_bit_rate"
         case targetVideoResolution = "target_video_resolution"
         case contactSyncFrequency = "contact_sync_frequency"
-        case isVoiceNotesEnabled = "voice_notes"
-        case isMediaCommentsEnabled = "media_comments"
         case sendClearTextGroupFeedContent = "cleartext_group_feed"
         case useClearTextGroupFeedContent = "use_cleartext_group_feed"
-        case isAudioCallsEnabled = "audio_calls"
-        case isVideoCallsEnabled = "video_calls"
         case callWaitTimeoutSec = "call_wait_timeout"
-        case isflatCommentsEnabled = "flat_comments"
-        case isVoicePostsEnabled = "voice_posts"
-        case isMomentsEnabled = "moments"
         case canHoldCalls = "call_hold"
         case streamingUploadChunkSize = "streaming_upload_chunk_size"
         case streamingInitialDownloadSize = "streaming_initial_download_size"
         case streamingSendingEnabled = "streaming_sending_enabled"
-        case externalSharingEnabled = "external_sharing"
         case isMediaDrawingEnabled = "draw_media"
         case isGroupCommentNotificationsEnabled = "group_comments_notification"
         case isHomeCommentNotificationsEnabled = "home_feed_comment_notifications"
@@ -65,21 +57,13 @@ public struct ServerProperties {
         static let targetVideoBitRate = 4000000.0
         static let targetVideoResolution = 720.0
         static let contactSyncFrequency: TimeInterval = 24 * 3600
-        static let isVoiceNotesEnabled = false
-        static let isMediaCommentsEnabled = false
         static let sendClearTextGroupFeedContent = true
         static let useClearTextGroupFeedContent = true
-        static let isAudioCallsEnabled = false
-        static let isVideoCallsEnabled = false
         static let callWaitTimeoutSec = 60
-        static let isflatCommentsEnabled = false
-        static let isVoicePostsEnabled = false
-        static let isMomentsEnabled = false
         static let canHoldCalls = false
         static let streamingUploadChunkSize = 65536
         static let streamingInitialDownloadSize = 5242880
         static let streamingSendingEnabled = false
-        static let externalSharingEnabled = false
         static let isMediaDrawingEnabled = false
         static let isGroupCommentNotificationsEnabled = false
         static let isHomeCommentNotificationsEnabled = false
@@ -256,18 +240,6 @@ public struct ServerProperties {
         ServerProperties.double(forKey: .contactSyncFrequency) ?? Defaults.contactSyncFrequency
     }
 
-    public static var isVoiceNotesEnabled: Bool {
-        ServerProperties.bool(forKey: .isVoiceNotesEnabled) ?? Defaults.isVoiceNotesEnabled
-    }
-
-    public static var isMomentsEnabled: Bool {
-        ServerProperties.bool(forKey: .isMomentsEnabled) ?? Defaults.isMomentsEnabled
-    }
-
-    public static var isMediaCommentsEnabled: Bool {
-        ServerProperties.bool(forKey: .isMediaCommentsEnabled) ?? Defaults.isVoiceNotesEnabled
-    }
-
     public static var sendClearTextGroupFeedContent: Bool {
         ServerProperties.bool(forKey: .sendClearTextGroupFeedContent) ?? Defaults.sendClearTextGroupFeedContent
     }
@@ -276,24 +248,8 @@ public struct ServerProperties {
         ServerProperties.bool(forKey: .useClearTextGroupFeedContent) ?? Defaults.useClearTextGroupFeedContent
     }
 
-    public static var isAudioCallsEnabled: Bool {
-        ServerProperties.bool(forKey: .isAudioCallsEnabled) ?? Defaults.isAudioCallsEnabled
-    }
-
-    public static var isVideoCallsEnabled: Bool {
-        ServerProperties.bool(forKey: .isVideoCallsEnabled) ?? Defaults.isVideoCallsEnabled
-    }
-
     public static var callWaitTimeoutSec: Int {
         ServerProperties.integer(forKey: .callWaitTimeoutSec) ?? Defaults.callWaitTimeoutSec
-    }
-    
-    public static var isFlatCommentsEnabled: Bool {
-        ServerProperties.bool(forKey: .isflatCommentsEnabled) ?? Defaults.isflatCommentsEnabled
-    }
-
-    public static var isVoicePostsEnabled: Bool {
-        ServerProperties.bool(forKey: .isVoicePostsEnabled) ?? Defaults.isVoicePostsEnabled
     }
 
     public static var canHoldCalls: Bool {
@@ -310,10 +266,6 @@ public struct ServerProperties {
 
     public static var streamingSendingEnabled: Bool {
         ServerProperties.bool(forKey: .streamingSendingEnabled) ?? Defaults.streamingSendingEnabled
-    }
-
-    public static var externalSharingEnabled: Bool {
-        ServerProperties.bool(forKey: .externalSharingEnabled) ?? Defaults.externalSharingEnabled
     }
 
     public static var isMediaDrawingEnabled: Bool {

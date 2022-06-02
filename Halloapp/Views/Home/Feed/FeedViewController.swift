@@ -169,7 +169,7 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
             result.insert(.inviteCarousel, at: min(4, result.count))
         }
 
-        if ServerProperties.isMomentsEnabled, MainAppContext.shared.feedData.validMoment.value == nil {
+        if MainAppContext.shared.feedData.validMoment.value == nil {
             // in this case we don't care about the moment's status (could have failed to upload),
             // as long as the user tried to post one, we won't display the prompt
             let promptTimestamp = MainAppContext.shared.feedData.momentPromptTimestamp()
@@ -345,14 +345,12 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
             camButton
         ]
 
-        if ServerProperties.isVoicePostsEnabled {
-            let button = FloatingMenuButton.standardActionButton(
-                iconTemplate: UIImage(named: "icon_fab_compose_voice")?.withRenderingMode(.alwaysTemplate),
-                accessibilityLabel: Localizations.fabAccessibilityVoiceNote,
-                action: { [weak self] in self?.presentNewPostViewController(source: .voiceNote) })
-            composeVoiceNoteButton = button
-            expandedButtons.insert(button, at: 1)
-        }
+        let button = FloatingMenuButton.standardActionButton(
+            iconTemplate: UIImage(named: "icon_fab_compose_voice")?.withRenderingMode(.alwaysTemplate),
+            accessibilityLabel: Localizations.fabAccessibilityVoiceNote,
+            action: { [weak self] in self?.presentNewPostViewController(source: .voiceNote) })
+        composeVoiceNoteButton = button
+        expandedButtons.insert(button, at: 1)
         
         return FloatingMenu(presenter: self, expandedButtons: expandedButtons)
     }()
