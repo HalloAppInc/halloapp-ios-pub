@@ -1454,6 +1454,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private func notificationEvent(for post: FeedPost) -> FeedActivity.Event? {
         let selfId = userData.userId
 
+        // Dont show posts from blocked users in activity center.
+        if AppContext.shared.privacySettings.blocked.userIds.contains(post.userID) {
+            return nil
+        }
+
         if post.mentions.contains(where: { $0.userID == selfId}) {
             return .mentionPost
         }
@@ -1467,6 +1472,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         // This would be the person who posted comment.
         let authorId = comment.userId
         guard authorId != selfId else { return nil }
+
+        // Dont show comments from blocked users in activity center.
+        if AppContext.shared.privacySettings.blocked.userIds.contains(authorId) {
+            return nil
+        }
 
         // Someone replied to your comment.
         if comment.parent != nil && comment.parent?.userId == selfId {
