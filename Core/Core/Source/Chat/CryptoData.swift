@@ -19,6 +19,7 @@ public enum CryptoResult {
 public final class CryptoData {
     public init(persistentStoreURL: URL) {
         self.persistentStoreURL = persistentStoreURL
+        persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
     }
 
     public func update(messageID: String, timestamp: Date, result: String, rerequestCount: Int, sender: UserAgent, contentType: DecryptionReportContentType) {
@@ -347,10 +348,9 @@ public final class CryptoData {
 
     private var reportTimer: DispatchSourceTimer?
 
-    public lazy var viewContext: NSManagedObjectContext = {
-        persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
-        return persistentContainer.viewContext
-    }()
+    public var viewContext: NSManagedObjectContext {
+        persistentContainer.viewContext
+    }
 
     private lazy var persistentContainer: NSPersistentContainer = {
         let storeDescription = NSPersistentStoreDescription(url: persistentStoreURL)

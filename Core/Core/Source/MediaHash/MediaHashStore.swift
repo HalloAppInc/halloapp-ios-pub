@@ -22,6 +22,7 @@ public class MediaHashStore {
 
     public init(persistentStoreURL: URL) {
         self.persistentStoreURL = persistentStoreURL
+        persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
     }
 
     // MARK: CoreData stack
@@ -55,10 +56,7 @@ public class MediaHashStore {
     }()
 
     public var viewContext: NSManagedObjectContext {
-        get {
-            persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
-            return persistentContainer.viewContext
-        }
+        persistentContainer.viewContext
     }
 
     private func newBackgroundContext() -> NSManagedObjectContext {

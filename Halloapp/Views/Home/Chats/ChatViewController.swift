@@ -653,9 +653,9 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     private func setupOrRefreshHeaderAndFooter() {
         guard let userID = fromUserId else { return }
-        let conctacsViewContext = MainAppContext.shared.contactStore.viewContext
+        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
         let isUserBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(userID)
-        let isUserInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID, in: conctacsViewContext)
+        let isUserInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID, in: contactsViewContext)
         let isPushNumberMessagingAccepted = MainAppContext.shared.contactStore.isPushNumberMessagingAccepted(userID: userID)
         let haveMessagedBefore = MainAppContext.shared.chatData.haveMessagedBefore(userID: userID, in: MainAppContext.shared.chatData.viewContext)
         let haveReceivedMessagesBefore = MainAppContext.shared.chatData.haveReceivedMessagesBefore(userID: userID, in: MainAppContext.shared.chatData.viewContext)

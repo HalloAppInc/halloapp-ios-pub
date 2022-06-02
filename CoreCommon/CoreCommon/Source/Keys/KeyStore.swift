@@ -22,10 +22,7 @@ open class KeyStore {
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.keys")
 
     public var viewContext: NSManagedObjectContext {
-        get {
-            self.persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
-            return self.persistentContainer.viewContext
-        }
+        persistentContainer.viewContext
     }
 
     public weak var delegate: KeyStoreDelegate?
@@ -38,6 +35,8 @@ open class KeyStore {
         // Before fetching the latest context for this target.
         // Let us update their last history timestamp: this will be useful when pruning old transactions later.
         userDefaults.updateLastHistoryTransactionTimestamp(for: appTarget, dataStore: .keyStore, to: Date())
+
+        persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
 
         // Add observer to notify us when persistentStore records changes.
         // These notifications are triggered for all cross process writes to the store.
@@ -102,7 +101,7 @@ open class KeyStore {
         }
     }
 
-    public private(set) var persistentContainer: NSPersistentContainer = {
+    private var persistentContainer: NSPersistentContainer = {
         let storeDescription = NSPersistentStoreDescription(url: KeyStore.persistentStoreURL)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSInferMappingModelAutomaticallyOption)

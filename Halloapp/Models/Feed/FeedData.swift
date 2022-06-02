@@ -2006,10 +2006,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         guard !feedPost.fromExternalShare else { return }
 
         let postId = feedPost.id
+        let postStatus = feedPost.status
         updateFeedPost(with: postId) { [weak self] (post) in
             guard let self = self else { return }
             // Check status again in case one of these blocks was already queued
-            guard post.status == .incoming || feedPost.status == .rerequesting else { return }
+            guard post.status == .incoming || postStatus == .rerequesting else { return }
             self.internalSendSeenReceipt(for: post)
             self.checkForUnreadFeed()
         }

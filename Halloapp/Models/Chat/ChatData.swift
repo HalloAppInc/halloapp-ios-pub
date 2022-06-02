@@ -1275,6 +1275,17 @@ class ChatData: ObservableObject {
     // MARK: Share Extension Merge Data
     
     func mergeData(from sharedDataStore: SharedDataStore, completion: @escaping (() -> ())) {
+        performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
+            guard let self = self else { return }
+
+            var messages: [SharedChatMessage] = []
+            sharedDataStore.performOnBackgroundContextAndWait { sharedManagedObjectContext in
+                messages = sharedDataStore.messages(in: sharedManagedObjectContext)
+            }
+
+            self.merge(messages: messages, from: sharedDataStore, using: managedObjectContext)
+        }
+
         DDLogInfo("ChatData/mergeData - \(sharedDataStore.source)/begin")
         let sharedMessageIds = sharedDataStore.chatMessageIds()
         DDLogInfo("ChatData/mergeData/sharedMessageIds: \(sharedMessageIds)")

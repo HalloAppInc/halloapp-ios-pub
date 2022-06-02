@@ -37,6 +37,7 @@ open class NotificationStore {
         self.bgContext.name = appTarget.rawValue + "-notificationStoreContext"
         self.bgContext.transactionAuthor = appTarget.rawValue
         self.appTarget = appTarget
+        self.persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
         // Add observer to notify us when persistentStore records changes.
         // These notifications are triggered for all cross process writes to the store.
         NotificationCenter.default.addObserver(self, selector: #selector(processStoreRemoteChanges), name: .NSPersistentStoreRemoteChange, object: persistentContainer.persistentStoreCoordinator)
@@ -143,10 +144,7 @@ open class NotificationStore {
     }
 
     public var viewContext: NSManagedObjectContext {
-        get {
-            self.persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
-            return self.persistentContainer.viewContext
-        }
+        persistentContainer.viewContext
     }
 
     @discardableResult

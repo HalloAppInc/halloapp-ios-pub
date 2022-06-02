@@ -506,7 +506,7 @@ public final class WhisperSession {
                         }
                         return nil
                     case .success(let whisperKeys):
-                        var keyBudnel: KeyBundle?
+                        var keyBundel: KeyBundle?
 
                         self.keyStore.performOnBackgroundContextAndWait { managedObjectContext in
                             guard let userKeys = self.keyStore.keyBundle(in: managedObjectContext) else {
@@ -514,14 +514,14 @@ public final class WhisperSession {
                                 return
                             }
 
-                            keyBudnel = Whisper.initiateSessionSetup(
+                            keyBundel = Whisper.initiateSessionSetup(
                                 for: self.userID,
                                 with: whisperKeys,
                                 userKeys: userKeys,
                                 teardownKey: teardownKey)
                         }
 
-                        return keyBudnel
+                        return keyBundel
                     }
                 }()
 

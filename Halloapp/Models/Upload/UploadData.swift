@@ -25,6 +25,7 @@ class UploadData {
     private let persistentStoreURL: URL
     public init(persistentStoreURL: URL) {
         self.persistentStoreURL = persistentStoreURL
+        persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
     }
 
     private lazy var persistentContainer: NSPersistentContainer = {
@@ -53,10 +54,7 @@ class UploadData {
     }()
 
     private var viewContext: NSManagedObjectContext {
-        get {
-            persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
-            return persistentContainer.viewContext
-        }
+        persistentContainer.viewContext
     }
 
     private func newBackgroundContext() -> NSManagedObjectContext {
