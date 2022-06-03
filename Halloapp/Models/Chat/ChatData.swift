@@ -278,6 +278,7 @@ class ChatData: ObservableObject {
                         let isOutgoingCall = call.isOutgoing
                         let duration: TimeInterval = call.durationMs / 1000
                         let durationString = self.durationString(duration) ?? ""
+                        let timestamp = call.timestamp
 
                         self.updateChatThread(type: .oneToOne, for: peerUserID, block: {
                             if isAudioCall {
@@ -311,7 +312,7 @@ class ChatData: ObservableObject {
                                 }
                             }
                             $0.lastMsgId = callID
-                            $0.lastMsgTimestamp = call.timestamp
+                            $0.lastMsgTimestamp = timestamp
                             $0.lastMsgStatus = .none
                         }, performAfterSave: nil)
                     }
