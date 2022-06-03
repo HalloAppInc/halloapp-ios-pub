@@ -512,6 +512,8 @@ final class NotificationProtoService: ProtoServiceCore {
                     self.incrementApplicationIconBadgeNumber()
                     DDLogInfo("NotificationExtension/decryptChat/success/save message \(messageId)/result: \(result)")
                 }
+                // Check and copy moment media to preview media for moment replies in notifications.
+                self.copyQuotedMomentForNotificationAttachment(chatMessage: chatMessage)
             } else {
                 DDLogError("NotificationExtension/decryptChat/failed decryption, error: \(String(describing: decryptionFailure))")
                 let tombstone = ChatMessageTombstone(id: messageId,
@@ -536,6 +538,27 @@ final class NotificationProtoService: ProtoServiceCore {
                 DDLogError("NotificationExtension/decryptAndProcessChat/could not report result, messageId: \(messageId)")
             }
             self.processChat(chatContent: content, failure: decryptionFailure, metadata: metadata)
+        }
+    }
+
+    private func copyQuotedMomentForNotificationAttachment(chatMessage: XMPPChatMessage) {
+        // Copy quoted media content for notification attachment only for moments right now.
+        // We will copy the file to the nse temporary directory - so this will cleaned up automatically by apple.
+        self.mainDataStore.performSeriallyOnBackgroundContext { managedObjectContext in
+            if let feedPostID = chatMessage.context.feedPostID,
+               let feedPost = AppContext.shared.coreFeedData.feedPost(with: feedPostID, in: managedObjectContext),
+               feedPost.isMoment,
+               let mediaItem = feedPost.media?.first(where: { $0.order == chatMessage.context.feedPostMediaIndex }),
+               let relativeFilePath = mediaItem.relativeFilePath {
+                let sourceURL = AppContext.commonMediaStoreURL.appendingPathComponent(relativeFilePath, isDirectory: false)
+                let destinationURL = self.downloadManager.fileURL(forRelativeFilePath: relativeFilePath)
+                do {
+                    try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
+                } catch {
+                    DDLogError("NotificationExtension/media/failed-to-copy/error \(error)")
+                    return
+                }
+            }
         }
     }
 
@@ -591,6 +614,18 @@ final class NotificationProtoService: ProtoServiceCore {
             } else if let firstMediaItem = chatMessage.linkPreviews?.first?.media?.first {
                 let downloadTask = self.startDownloading(media: firstMediaItem)
                 downloadTask?.feedMediaObjectId = firstMediaItem.objectID
+            } else if let quotedMediaItem = chatMessage.quoted?.media?.first,
+                      quotedMediaItem.mediaDirectory == .commonMedia,
+                      let relativeFilePath = quotedMediaItem.relativeFilePath {
+                let attachment: UNNotificationAttachment
+                do {
+                    let fileURL = self.downloadManager.fileURL(forRelativeFilePath: relativeFilePath)
+                    attachment = try UNNotificationAttachment(identifier: quotedMediaItem.id, url: fileURL, options: nil)
+                    self.presentNotification(for: metadata.contentId, with: notificationContent, using: [attachment])
+                } catch {
+                    DDLogError("NotificationExtension/media/attachment-create/error \(error)")
+                    self.presentNotification(for: metadata.contentId, with: notificationContent)
+                }
             } else {
                 self.presentNotification(for: metadata.contentId, with: notificationContent)
             }
