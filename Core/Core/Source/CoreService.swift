@@ -32,6 +32,8 @@ public protocol CoreService: CoreServiceCommon {
     func publishComment(_ comment: CommentData, groupId: GroupID?, completion: @escaping ServiceRequestCompletion<Date>)
     func resendPost(_ post: PostData, feed: Feed, rerequestCount: Int32, to toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>)
     func resendComment(_ comment: CommentData, groupId: GroupID?, rerequestCount: Int32, to toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>)
+    func retractPost(_ id: FeedPostID, in groupID: GroupID, to toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>)
+    func retractComment(_ id: FeedPostCommentID, postID: FeedPostID, in groupID: GroupID, to toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>)
     func decryptGroupFeedPayload(for item: Server_GroupFeedItem, in groupID: GroupID, completion: @escaping (FeedContent?, GroupDecryptionFailure?) -> Void)
     func processGroupFeedRetract(for item: Server_GroupFeedItem, in groupID: GroupID, completion: @escaping () -> Void)
     func rerequestGroupFeedItemIfNecessary(id contentID: String, groupID: GroupID, contentType: GroupFeedRerequestContentType, failure: GroupDecryptionFailure, completion: @escaping ServiceRequestCompletion<Void>)
@@ -47,6 +49,7 @@ public protocol CoreService: CoreServiceCommon {
     func sendAck(messageId: String, completion: @escaping ServiceRequestCompletion<Void>)
     func decryptChat(_ serverChat: Server_ChatStanza, from fromUserID: UserID, completion: @escaping (ChatContent?, ChatContext?, DecryptionFailure?) -> Void)
     func rerequestMessage(_ messageID: String, senderID: UserID, failedEphemeralKey: Data?, contentType: Server_Rerequest.ContentType, completion: @escaping ServiceRequestCompletion<Void>)
+    func retractChatMessage(messageID: String, toUserID: UserID, messageToRetractID: String, completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: ContentMissing - Handle rerequests
     func sendContentMissing(id contentID: String, type contentType: Server_ContentMissing.ContentType, to toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>)

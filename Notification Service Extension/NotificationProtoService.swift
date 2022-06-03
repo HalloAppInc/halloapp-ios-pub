@@ -195,6 +195,51 @@ final class NotificationProtoService: ProtoServiceCore {
                 reportIncomingCall(serverMsgPb: serverMsgPb)
             }
             return
+
+        // Handle 1-1 rerequest stanzas.
+        case .rerequest(let rerequest):
+            let contentID = rerequest.id
+            let fromUserID = UserID(msg.fromUid)
+            // Check key integrity
+            AppContext.shared.keyData.service(self, didReceiveRerequestWithRerequestCount: Int(msg.rerequestCount))
+            // Protobuf object will contain a 0 if no one time pre key was used
+            let oneTimePreKeyID: Int? = rerequest.oneTimePreKeyID > 0 ? Int(rerequest.oneTimePreKeyID) : nil
+            // Reset 1-1 session.
+            AppContext.shared.messageCrypter.receivedRerequest(
+                RerequestData(
+                    identityKey: rerequest.identityKey,
+                    signedPreKeyID: Int(rerequest.signedPreKeyID),
+                    oneTimePreKeyID: oneTimePreKeyID,
+                    sessionSetupEphemeralKey: rerequest.sessionSetupEphemeralKey,
+                    messageEphemeralKey: rerequest.messageEphemeralKey),
+                from: fromUserID)
+
+            if rerequest.contentType == .chat {
+                hasAckBeenDelegated = true
+                AppContext.shared.coreChatData.handleRerequest(for: contentID, from: fromUserID, ack: ack)
+            } else if rerequest.contentType == .groupHistory {
+                hasAckBeenDelegated = true
+                AppContext.shared.coreFeedData.handleGroupFeedHistoryRerequest(for: contentID, from: fromUserID, ack: ack)
+            }
+            return
+
+        // Handle group rerequest stanzas.
+        case .groupFeedRerequest(let groupFeedRerequest):
+            let contentID = groupFeedRerequest.id
+            let fromUserID = UserID(msg.fromUid)
+
+            switch groupFeedRerequest.rerequestType {
+            case .payload:
+                hasAckBeenDelegated = true
+                AppContext.shared.coreFeedData.handleRerequest(for: contentID, contentType: groupFeedRerequest.contentType, from: fromUserID, ack: ack)
+            case .senderState:
+                hasAckBeenDelegated = true
+                AppContext.shared.messageCrypter.resetWhisperSession(for: fromUserID)
+                AppContext.shared.coreFeedData.handleRerequest(for: contentID, contentType: groupFeedRerequest.contentType, from: fromUserID, ack: ack)
+            case .UNRECOGNIZED(_):
+                return
+            }
+
         default:
             break
         }

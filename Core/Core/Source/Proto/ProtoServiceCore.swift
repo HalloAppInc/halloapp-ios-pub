@@ -673,6 +673,94 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
+    public func retractPost(_ id: FeedPostID, in groupID: GroupID, to toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
+        // Request will fail immediately if we're not connected, therefore delay sending until connected.
+        ///TODO: add option of canceling posting.
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            guard let toUID = Int64(toUserID) else {
+                completion(.failure(.aborted))
+                return
+            }
+            guard let userID = self.credentials?.userID, let fromUID = Int64(userID) else {
+                DDLogError("ProtoService/retractPost/error invalid sender uid")
+                completion(.failure(.aborted))
+                return
+            }
+
+            var packet = Server_Packet()
+            packet.msg.toUid = toUID
+            packet.msg.fromUid = fromUID
+            packet.msg.id = PacketID.generate()
+            packet.msg.type = .normal
+
+            var serverPost = Server_Post()
+            serverPost.id = id
+            serverPost.publisherUid = fromUID
+            var groupFeedItem = Server_GroupFeedItem()
+            groupFeedItem.action = .retract
+            groupFeedItem.item = .post(serverPost)
+            groupFeedItem.gid = groupID
+
+            packet.msg.payload = .groupFeedItem(groupFeedItem)
+
+            guard let packetData = try? packet.serializedData() else {
+                DDLogError("ProtoService/retractPost/error could not serialize packet")
+                completion(.failure(.malformedRequest))
+                return
+            }
+
+            DDLogInfo("ProtoService/retractPost/\(id)/group: \(groupID)/to:\(toUserID)")
+            self.send(packetData)
+            completion(.success(()))
+        }
+    }
+
+    public func retractComment(_ id: FeedPostCommentID, postID: FeedPostID, in groupID: GroupID, to toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
+        // Request will fail immediately if we're not connected, therefore delay sending until connected.
+        ///TODO: add option of canceling posting.
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            // TODO: murali@: we should add an acknowledgement for all message stanzas
+            // currently we only do this for receipts.
+
+            guard let toUID = Int64(toUserID) else {
+                completion(.failure(.aborted))
+                return
+            }
+            guard let userID = self.credentials?.userID, let fromUID = Int64(userID) else {
+                DDLogError("ProtoService/retractComment/error invalid sender uid")
+                completion(.failure(.aborted))
+                return
+            }
+
+            var packet = Server_Packet()
+            packet.msg.toUid = toUID
+            packet.msg.fromUid = fromUID
+            packet.msg.id = PacketID.generate()
+            packet.msg.type = .normal
+
+            var serverComment = Server_Comment()
+            serverComment.id = id
+            serverComment.postID = postID
+            serverComment.publisherUid = fromUID
+            var groupFeedItem = Server_GroupFeedItem()
+            groupFeedItem.action = .retract
+            groupFeedItem.item = .comment(serverComment)
+            groupFeedItem.gid = groupID
+
+            packet.msg.payload = .groupFeedItem(groupFeedItem)
+
+            guard let packetData = try? packet.serializedData() else {
+                DDLogError("ProtoService/retractComment/error could not serialize packet")
+                completion(.failure(.malformedRequest))
+                return
+            }
+
+            DDLogInfo("ProtoService/retractComment/\(id)/group: \(groupID)/to:\(toUserID)")
+            self.send(packetData)
+            completion(.success(()))
+        }
+    }
+
     private func makeChatStanza(_ message: ChatMessageProtocol, completion: @escaping (Server_ChatStanza?, EncryptionError?) -> Void) {
         guard let messageData = try? message.protoContainer?.serializedData() else {
             DDLogError("ProtoServiceCore/makeChatStanza/\(message.id)/error could not serialize chat message!")
@@ -1463,6 +1551,43 @@ extension ProtoServiceCore: CoreService {
                     completion(.success(()))
                 }
             }
+        }
+    }
+
+    public func retractChatMessage(messageID: String, toUserID: UserID, messageToRetractID: String, completion: @escaping ServiceRequestCompletion<Void>) {
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            guard let toUID = Int64(toUserID) else {
+                DDLogError("ProtoServiceCore/retractChatMessage: \(messageToRetractID)/error invalid touid")
+                completion(.failure(.aborted))
+                return
+            }
+            guard let userID = self.credentials?.userID, let fromUID = Int64(userID) else {
+                DDLogError("ProtoServiceCore/retractChatMessage: \(messageToRetractID)/error invalid sender uid")
+                completion(.failure(.aborted))
+                return
+            }
+
+            var packet = Server_Packet()
+            packet.msg.toUid = toUID
+            packet.msg.fromUid = fromUID
+            packet.msg.id = messageID
+            packet.msg.type = .chat
+
+            var chatRetract = Server_ChatRetract()
+            chatRetract.id = messageToRetractID
+
+            packet.msg.payload = .chatRetract(chatRetract)
+
+            guard let packetData = try? packet.serializedData() else {
+                DDLogError("ProtoServiceCore/retractChatMessage: \(messageToRetractID)/error could not serialize packet")
+                completion(.failure(.malformedRequest))
+                return
+            }
+
+            DDLogInfo("ProtoServiceCore/retractChatMessage: \(messageToRetractID)/sending")
+            self.send(packetData)
+            DDLogInfo("ProtoServiceCore/retractChatMessage: \(messageToRetractID)/success")
+            completion(.success(()))
         }
     }
 

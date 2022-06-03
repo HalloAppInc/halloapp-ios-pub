@@ -31,8 +31,6 @@ protocol HalloService: CoreService {
     // MARK: Feed requests
     func retractPost(_ id: FeedPostID, in groupID: GroupID?, completion: @escaping ServiceRequestCompletion<Void>)
     func retractComment(id: FeedPostCommentID, postID: FeedPostID, in groupID: GroupID?, completion: @escaping ServiceRequestCompletion<Void>)
-    func retractPost(_ id: FeedPostID, in groupID: GroupID, to toUserID: UserID)
-    func retractComment(_ id: FeedPostCommentID, postID: FeedPostID, in groupID: GroupID, to toUserID: UserID)
     func sharePosts(postIds: [FeedPostID], with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>)
     func shareGroupHistory(items: Server_GroupFeedItems, with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>)
     func uploadPostForExternalShare(encryptedBlob: Data,
@@ -54,7 +52,6 @@ protocol HalloService: CoreService {
     var didGetPresence: PassthroughSubject<ChatPresenceInfo, Never> { get }
     var didGetChatState: PassthroughSubject<ChatStateInfo, Never> { get }
     var didGetChatRetract: PassthroughSubject<ChatRetractInfo, Never> { get }
-    func retractChatMessage(messageID: String, toUserID: UserID, messageToRetractID: String)
     func sendChatStateIfPossible(type: ChatType, id: String, state: ChatState)
 
     // MARK: Groups

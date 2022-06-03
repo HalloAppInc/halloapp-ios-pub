@@ -2691,48 +2691,13 @@ extension ChatData {
         }
     }
 
-    private func handleRerequest(for messageID: String, from userID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
-        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
-            guard let self = self else {
-                completion(.failure(.aborted))
-                return
-            }
-            guard let chatMessage = self.chatMessage(with: messageID, in: managedObjectContext) else {
-                DDLogError("ChatData/handleRerequest/\(messageID)/error could not find message")
-                self.service.sendContentMissing(id: messageID, type: .chat, to: userID) { result in
-                    completion(result)
-                }
-                return
-            }
-            guard userID == chatMessage.toUserId else {
-                DDLogError("ChatData/handleRerequest/\(messageID)/error user mismatch [original: \(chatMessage.toUserId)] [rerequest: \(userID)]")
-                completion(.failure(.aborted))
-                return
-            }
-            guard chatMessage.resendAttempts < 5 else {
-                DDLogInfo("ChatData/handleRerequest/\(messageID)/skipping (\(chatMessage.resendAttempts) resend attempts)")
-                completion(.failure(.aborted))
-                return
-            }
-            chatMessage.resendAttempts += 1
-
-            let xmppChatMessage = XMPPChatMessage(chatMessage: chatMessage)
-            self.backgroundProcessingQueue.async {
-                self.send(message: xmppChatMessage)
-                completion(.success(()))
-            }
-
-            self.save(managedObjectContext)
-        }
-    }
-
     func retractChatMessage(toUserID: UserID, messageToRetractID: String) {
         let messageID = PacketID.generate()
-                
+
         updateChatMessage(with: messageToRetractID) { [weak self] (chatMessage) in
             guard let self = self else { return }
             guard [.sentOut, .delivered, .seen].contains(chatMessage.outgoingStatus) else { return }
-            
+
             chatMessage.retractID = messageID
             chatMessage.outgoingStatus = .retracting
             
@@ -2746,7 +2711,14 @@ extension ChatData {
             
         }
                 
-        self.service.retractChatMessage(messageID: messageID, toUserID: toUserID, messageToRetractID: messageToRetractID)
+        self.service.retractChatMessage(messageID: messageID, toUserID: toUserID, messageToRetractID: messageToRetractID) { result in
+            switch result {
+            case .failure(let error):
+                DDLogError("ChatData/retractChatMessage: \(messageToRetractID)/failed: \(error)")
+            case .success:
+                DDLogInfo("ChatData/retractChatMessage: \(messageToRetractID)/success")
+            }
+        }
         
     }
     
@@ -3639,7 +3611,14 @@ extension ChatData {
                 let toUserID = chatMsg.toUserId
                 let msgToRetractID = chatMsg.id
 
-                self.service.retractChatMessage(messageID: messageID, toUserID: toUserID, messageToRetractID: msgToRetractID)
+                self.service.retractChatMessage(messageID: messageID, toUserID: toUserID, messageToRetractID: msgToRetractID) { result in
+                    switch result {
+                    case .failure(let error):
+                        DDLogError("ChatData/processRetractingChatMsgs: \(msgToRetractID)/failed: \(error)")
+                    case .success:
+                        DDLogInfo("ChatData/processRetractingChatMsgs: \(msgToRetractID)/success")
+                    }
+                }
             }
         }
     }
@@ -4970,19 +4949,7 @@ extension ChatData: HalloChatDelegate {
 
     func halloService(_ halloService: HalloService, didRerequestMessage messageID: String, from userID: UserID, ack: (() -> Void)?) {
         DDLogDebug("ChatData/didRerequestMessage [\(messageID)]")
-
-        handleRerequest(for: messageID, from: userID) { result in
-            switch result {
-            case .failure(let error):
-                DDLogError("ChatData/didRerequestMessage/\(messageID)/error: \(error)/from: \(userID)")
-                if error.canAck {
-                    ack?()
-                }
-            case .success:
-                DDLogInfo("ChatData/didRerequestMessage/\(messageID)/success/from: \(userID)")
-                ack?()
-            }
-        }
+        AppContext.shared.coreChatData.handleRerequest(for: messageID, from: userID, ack: ack)
     }
 
     func halloService(_ halloService: HalloService, didSendMessageReceipt receipt: HalloReceipt) {
