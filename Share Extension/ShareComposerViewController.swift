@@ -274,8 +274,8 @@ class ShareComposerViewController: UIViewController {
             bottomConstraint = scrollView.bottomAnchor.constraint(equalTo: destinationRowLabel.topAnchor, constant: -8)
 
             constraints.append(contentsOf: [
-                textViewPlaceholder.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: 25),
-                textViewPlaceholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: 20),
+                textViewPlaceholder.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: 16),
+                textViewPlaceholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: 10),
             ])
         }
 
@@ -315,6 +315,8 @@ class ShareComposerViewController: UIViewController {
             // ensures that layout is done before getting focus
             DispatchQueue.main.async {
                 self.textView.becomeFirstResponder()
+                self.textView.selectedTextRange = self.textView.textRange(from: self.textView.beginningOfDocument, to: self.textView.beginningOfDocument)
+                self.highlightLinks()
             }
         }
     }
@@ -421,7 +423,7 @@ class ShareComposerViewController: UIViewController {
         placeholder.font = .preferredFont(forTextStyle: .body)
         placeholder.textColor = UIColor.label.withAlphaComponent(0.5)
         placeholder.text = media.count > 0 ? Localizations.placeholder : Localizations.placeholderTextOnly
-        placeholder.isHidden = text.count > 0
+        placeholder.isHidden = isPlaceholderHidden()
 
         return placeholder
     }
@@ -506,6 +508,22 @@ class ShareComposerViewController: UIViewController {
         textViewHeightConstraint.constant = computeTextViewHeight()
     }
 
+    private func isPlaceholderHidden() -> Bool {
+        guard !textView.text.isEmpty else { return false }
+        guard media.count == 0 else { return true }
+        // Show placeholder for text of the form "\n\n(url)" (likely created by sharing a link)
+        guard textView.text.starts(with: "\n\n") else { return true }
+        guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) else { return true }
+
+        let rest = String(textView.text[textView.text.index(textView.text.startIndex, offsetBy: 2)...])
+        let matches = detector.matches(in: rest, options: [], range: NSRange(location: 0, length: rest.count))
+
+        guard matches.count > 0 else { return true }
+        guard let lower = matches.map({ $0.range.lowerBound }).min(), lower >= 0, lower < textView.text.count else { return true }
+
+        return lower != 0
+    }
+
     private func detectLink(text: String) -> URL? {
         let linkDetector = try! NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
         let text = text
@@ -519,6 +537,26 @@ class ShareComposerViewController: UIViewController {
             }
         }
         return nil
+    }
+
+    private func highlightLinks()  {
+        guard media.count == 0 else { return }
+        guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) else { return }
+        guard let text = textView.text else { return }
+
+        let matches = detector.matches(in: text, range: NSRange(location: 0, length: text.utf16.count))
+
+        let attributedText = NSMutableAttributedString(attributedString: textView.attributedText)
+
+        for match in matches {
+            attributedText.addAttributes(
+                [.foregroundColor: UIColor.systemBlue, .underlineStyle: NSUnderlineStyle.single.rawValue],
+                range: match.range)
+        }
+
+        let selectedRange = textView.selectedTextRange
+        textView.attributedText = attributedText
+        textView.selectedTextRange = selectedRange
     }
 
     // MARK: Mentions
@@ -808,12 +846,13 @@ class ShareComposerViewController: UIViewController {
 // MARK: UITextViewDelegate
 extension ShareComposerViewController: UITextViewDelegate {
     func textViewDidChange(_ textView: UITextView) {
-        textViewPlaceholder.isHidden = !textView.text.isEmpty
+        textViewPlaceholder.isHidden = isPlaceholderHidden()
         textViewHeightConstraint.constant = computeTextViewHeight()
 
         updateMentionPickerContent()
         updateLinkPreviewViewIfNecessary()
         updateWithMarkdown()
+        highlightLinks()
     }
 
     func textViewDidChangeSelection(_ textView: UITextView) {

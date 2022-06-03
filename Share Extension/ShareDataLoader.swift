@@ -194,12 +194,11 @@ class ShareDataLoader {
             }
             guard let dictionary = item as? NSDictionary,
                 let results = dictionary[NSExtensionJavaScriptPreprocessingResultsKey] as? NSDictionary,
-                let title = results["title"] as? String,
                 let url = results["url"] as? String else {
                     return completion(ShareError.invalidData)
             }
 
-            self.text = self.text + (self.text.isEmpty ? "" : "\n") + "\(title)\n\(url)"
+            self.text = self.text + "\n\n\(url)"
 
             completion(nil)
         }
