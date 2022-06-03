@@ -251,7 +251,10 @@
 "Cancel" = "Abbrechen";
 
 /* Text shown in the chat interface informing the user that the contact is blocked */
-"chat.blocked.contact.label" = "Kontakt ist geblockt, zum Entblocken hier tippen";
+"chat.blocked.contact.label" = "Du hast diesen Kontakt geblockt";
+
+/* Title of the bottom sheet shown in the chat screen of a contact that is blocked. The bottom sheet contains an unblock button. */
+"chat.contact.is.blocked.title.label" = "Dieser Kontakt ist geblockt und du wirst erst nach dem Entblocken wieder Nachrichten erhalten.";
 
 /* Label for creating a new group */
 "chat.create.new.group" = "Neue Gruppe erstellen";
@@ -266,10 +269,13 @@
 "chat.delete.title" = "Ausgewählte Nachricht löschen?";
 
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
-"chat.encryption.label" = "Die Chats sind Ende-zu-Ende verschlüsselt und HalloApp hat keinen Zugriff darauf. Tippe hier, um mehr zu erfahren.";
+"chat.encryption.label" = "Alle Nachrichten auf HalloApp sind Ende-zu-Ende verschlüsselt. Hier tippen, um mehr zu erfahren";
 
 /* Text shown in Chat when the security keys of the contact user is chatting with, have changed */
 "chat.event.security.keys.changed" = "Sicherheitsschlüssel mit %@ haben sich geändert";
+
+/* Chat entry that can be tapped to add the contact to address book */
+"chat.event.tap.to.add.contact" = "Tippen, um %@ zu deinen Kontakten hinzuzufügen";
 
 /* Message text shown with the user who joined the group via invite link */
 "chat.group.event.join" = "%@ ist der Gruppe über einen Einladungslink beigetreten";
@@ -367,8 +373,17 @@
 /* Text below the contact's name when the contact is online in the Chat Screen */
 "chat.online.label" = "online";
 
+/* When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply when the moment has expired. */
+"chat.quoted.moment.expired.label" = "Moment abgelaufen";
+
+/* When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply. */
+"chat.quoted.moment.label" = "Moment";
+
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "schreibt...";
+
+/* Text shown in the chat interface informing the user that the contact is unblocked */
+"chat.unblocked.contact.label" = "Du hast diesen Kontakt entblockt";
 
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "Wenn du diesen Chat entfernst löscht du den Chatverlauf und den Inhalt von deinem Gerät.";
@@ -392,7 +407,7 @@
 "comment.reply" = "Antworten";
 
 /* Placeholder text for the comment input field when there is no user input. */
-"comment.textfield.placeholder" = "Kommentieren";
+"comment.textfield.placeholder" = "Neuer Kommentar";
 
 /* Header that appears above all the unread Messages in the comments view when there are more than one unread message */
 "comment.unread.chat.messages.header.plural" = "%@ ungelesene Nachrichten";
@@ -1729,6 +1744,9 @@
 
 /* No comment provided by engineer. */
 "VIDEO" = "VIDEO";
+
+/* Text that indicates a view action. */
+"view.title" = "Ansehen";
 
 /* Title for the button that confirms intent to delete your own post. */
 "your.post.deletepost.button" = "Beitrag löschen";

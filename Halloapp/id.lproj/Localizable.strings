@@ -251,7 +251,10 @@
 "Cancel" = "Batal";
 
 /* Text shown in the chat interface informing the user that the contact is blocked */
-"chat.blocked.contact.label" = "Kontak diblokir, ketuk untuk buka blokir";
+"chat.blocked.contact.label" = "Kontak memblokir kontak ini";
+
+/* Title of the bottom sheet shown in the chat screen of a contact that is blocked. The bottom sheet contains an unblock button. */
+"chat.contact.is.blocked.title.label" = "Kontak diblokir, Anda tidak akan menerima pesan hingga Anda membuka blokir kontak tersebut.";
 
 /* Label for creating a new group */
 "chat.create.new.group" = "Membuat Grup Baru";
@@ -270,6 +273,9 @@
 
 /* Text shown in Chat when the security keys of the contact user is chatting with, have changed */
 "chat.event.security.keys.changed" = "Kunci keamanan dengan %@ berubah";
+
+/* Chat entry that can be tapped to add the contact to address book */
+"chat.event.tap.to.add.contact" = "Ketuk untuk menambahkan %@ ke buku alamat Anda";
 
 /* Message text shown with the user who joined the group via invite link */
 "chat.group.event.join" = "%@ bergabung dengan grup via Tautan Undangan Grup";
@@ -367,8 +373,17 @@
 /* Text below the contact's name when the contact is online in the Chat Screen */
 "chat.online.label" = "daring";
 
+/* When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply when the moment has expired. */
+"chat.quoted.moment.expired.label" = "Momen kedaluwarsa";
+
+/* When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply. */
+"chat.quoted.moment.label" = "Momen";
+
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "sedang mengetik...";
+
+/* Text shown in the chat interface informing the user that the contact is unblocked */
+"chat.unblocked.contact.label" = "Anda membuka blokir kontak ini";
 
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "Dengan menghapus percakapan ini, Anda akan menghapus riwayat percakapan dan isi dari telepon genggam Anda.";
@@ -1735,6 +1750,9 @@
 
 /* No comment provided by engineer. */
 "VIDEO" = "VIDEO";
+
+/* Text that indicates a view action. */
+"view.title" = "Lihat";
 
 /* Title for the button that confirms intent to delete your own post. */
 "your.post.deletepost.button" = "Hapus Unggahan";
