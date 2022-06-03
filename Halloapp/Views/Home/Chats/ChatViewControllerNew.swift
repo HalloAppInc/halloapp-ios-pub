@@ -804,6 +804,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         presenter.present(UINavigationController(rootViewController: composerController), animated: false)
     }
     
+    @MainActor
     private func saveAllMedia(in chatMessage: ChatMessage) async {
         do {
             let isAuthorizedToSave: Bool = await {
@@ -827,8 +828,9 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                 return
             }
             
-            try await PHPhotoLibrary.shared().performChanges {
-                chatMessage.media?.lazy
+            var mediaInfo: [(type: CommonMediaType, url: URL)]? = nil
+            MainAppContext.shared.chatData.viewContext.performAndWait {
+                mediaInfo = chatMessage.media?
                     .compactMap { (media: CommonMedia) -> (type: CommonMediaType, url: URL)? in
                         if let url = media.mediaURL ?? media.relativeFilePath.map({ MainAppContext.chatMediaDirectoryURL.appendingPathComponent($0, isDirectory: false) }) {
                             return (media.type, url)
@@ -839,6 +841,10 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                     .filter { (type: CommonMediaType, _: URL) -> Bool in
                         type == .image || type == .video
                     }
+            }
+            
+            try await PHPhotoLibrary.shared().performChanges {
+                mediaInfo?
                     .forEach { (type: CommonMediaType, url: URL) in
                         if type == .image {
                             PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: url)
