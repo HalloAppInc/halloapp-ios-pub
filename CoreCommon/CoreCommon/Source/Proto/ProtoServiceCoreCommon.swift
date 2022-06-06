@@ -218,11 +218,16 @@ open class ProtoServiceCoreCommon: NSObject, ObservableObject {
 
     // MARK: State Change Callbacks
     private var stateChangeCallbacks: [ConnectionStateCallback] = []
+    private let stateChangeCallbackQueue = DispatchQueue(label: "StateChangeCallbackModificationQueue")
 
     public func execute(whenConnectionStateIs state: ConnectionState, onQueue queue: DispatchQueue, work: @escaping @convention(block) () -> Void) {
-        stateChangeCallbacks.append(ConnectionStateCallback(state: state) { (dispatchGroup) in
+        let callback = ConnectionStateCallback(state: state) { (dispatchGroup) in
             queue.async(group: dispatchGroup, execute: work)
-        })
+        }
+
+        stateChangeCallbackQueue.sync {
+            stateChangeCallbacks.append(callback)
+        }
 
         if connectionState == state {
             runCallbacksForCurrentConnectionState()
@@ -232,13 +237,15 @@ open class ProtoServiceCoreCommon: NSObject, ObservableObject {
     private func runCallbacksForCurrentConnectionState() {
         let currentState = connectionState
 
-        let callbacks = stateChangeCallbacks.filter { $0.state == currentState }
-        guard !callbacks.isEmpty else { return }
+        stateChangeCallbackQueue.sync {
+            let callbacks = stateChangeCallbacks.filter { $0.state == currentState }
+            guard !callbacks.isEmpty else { return }
 
-        stateChangeCallbacks.removeAll(where: { $0.state == currentState })
+            stateChangeCallbacks.removeAll(where: { $0.state == currentState })
 
-        let group = DispatchGroup()
-        callbacks.forEach{ $0.work(group) }
+            let group = DispatchGroup()
+            callbacks.forEach{ $0.work(group) }
+        }
     }
 
     // MARK: Requests
