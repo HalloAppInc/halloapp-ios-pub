@@ -367,8 +367,17 @@
 /* Text below the contact's name when the contact is online in the Chat Screen */
 "chat.online.label" = "on-line";
 
+/* When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply when the moment has expired. */
+"chat.quoted.moment.expired.label" = "Momento expirado";
+
+/* When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply. */
+"chat.quoted.moment.label" = "Momento";
+
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "digitando...";
+
+/* Text shown in the chat interface informing the user that the contact is unblocked */
+"chat.unblocked.contact.label" = "Você desbloqueou este contato";
 
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "Ao remover este chat, você limpará o histórico e o conteúdo deste chat de seu dispositivo.";
@@ -1735,6 +1744,9 @@
 
 /* No comment provided by engineer. */
 "VIDEO" = "VÍDEO";
+
+/* Text that indicates a view action. */
+"view.title" = "Visualizar";
 
 /* Title for the button that confirms intent to delete your own post. */
 "your.post.deletepost.button" = "Excluir postagem";
