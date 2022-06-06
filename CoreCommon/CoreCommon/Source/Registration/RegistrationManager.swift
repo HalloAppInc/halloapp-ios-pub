@@ -111,7 +111,9 @@ public final class DefaultRegistrationManager: RegistrationManager {
                     userData.update(credentials: credentials, in: managedObjectContext)
 
                     keyData?.saveUserKeys(userKeys)
-                    completion(.success(()))
+                    DispatchQueue.main.async {
+                        completion(.success(()))
+                    }
                 }
             case .failure(let error):
                 completion(.failure(error))
@@ -146,7 +148,9 @@ public final class DefaultRegistrationManager: RegistrationManager {
                 userData.performSeriallyOnBackgroundContext { managedObjectContext in
                     userData.normalizedPhoneNumber = response.normalizedPhoneNumber
                     userData.save(using: managedObjectContext)
-                    completion(.success(response.retryDelay))
+                    DispatchQueue.main.async {
+                        completion(.success(response.retryDelay))
+                    }
                 }
             case .failure(let errorResponse):
                 completion(.failure(errorResponse))
