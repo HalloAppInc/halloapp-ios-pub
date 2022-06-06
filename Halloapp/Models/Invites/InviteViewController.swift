@@ -325,9 +325,6 @@ extension InviteViewController: UICollectionViewDelegate, UICollectionViewDelega
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
 
-        // check if it's the first cell, which is the static share button
-        guard !(indexPath.section == 0 && indexPath.row == 0) else { return }
-
         guard let contact = dataSource.itemIdentifier(for: indexPath) else { return }
         guard let inviteContact = contact as? InviteContact, inviteContact.userID == nil else { return }
 
