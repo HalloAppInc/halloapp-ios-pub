@@ -232,7 +232,7 @@ class ThreadListCell: UITableViewCell {
 
         lastMsgLabel.attributedText = lastMessageText(for: chatThread).firstLineWithEllipsisIfNecessary()
 
-        DDLogDebug("ThreadListCell/configureForChatsList/id: \(String(describing: chatThread.userID))/groupID: \(chatThread.groupId)/unreadCount: \(chatThread.unreadCount)")
+        DDLogDebug("ThreadListCell/configureForChatsList/id: \(userID)/groupID: \(String(describing: chatThread.groupId))/unreadCount: \(chatThread.unreadCount)")
         if chatThread.unreadCount > 0 {
             unreadCountView.isHidden = false
             unreadCountView.count = chatThread.unreadCount
