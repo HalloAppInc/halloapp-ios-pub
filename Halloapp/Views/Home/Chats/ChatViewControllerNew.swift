@@ -1391,8 +1391,8 @@ extension ChatViewControllerNew: MessageViewChatDelegate {
        self.present(actionSheet, animated: true)
    }
 
-   func messageView(_ messageViewCell: MessageCellViewBase, jumpTo feedPostCommentID: FeedPostCommentID) {
-
+   func messageView(_ messageViewCell: MessageCellViewBase, jumpTo chatMessageID: ChatMessageID) {
+       scrollToMessage(id: chatMessageID, animated: true, highlightAfterScroll: true)
    }
 
    func messageView(_ messageViewCell: MessageCellViewBase, replyToChat chatMessage: ChatMessage) {
@@ -1467,6 +1467,44 @@ extension ChatViewControllerNew: MessageViewChatDelegate {
        alertController.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
        present(alertController, animated: true)
    }
+
+    // MARK : Scrolling
+    private func scrollToMessage(id: ChatMessageID, animated: Bool = false, highlightAfterScroll: Bool = false) {
+        guard let indexPath = indexPath(for: id) else {
+            DDLogDebug("ChatViewControllerNew/scrollToMessage failed for ChatMessageID: \(id)")
+            return
+        }
+        DDLogDebug("ChatViewControllerNew/scrollToMessage ChatMessageID:\(id) animated:\(animated)")
+        collectionView.scrollToItem(at: indexPath, at: .centeredVertically, animated: animated)
+        if !animated {
+            // Attempt to get a more exact position than provided from estimated sizes.
+            // Not compatible with animation, but useful for finding initial scroll positions
+            collectionView.layoutIfNeeded()
+            collectionView.scrollToItem(at: indexPath, at: .centeredVertically, animated: false)
+        }
+
+        if highlightAfterScroll {
+            highlightMessage(id: id)
+        }
+    }
+
+    private func highlightMessage(id: ChatMessageID) {
+        guard let indexPath = indexPath(for: id),
+              let cell = collectionView.cellForItem(at: indexPath) as? MessageCellViewBase else {
+            DDLogDebug("ChatViewControllerNew/scrollToMessage failed for \(id)")
+            return
+        }
+
+        DDLogDebug("ChatViewControllerNew/scrollToMessage: \(id)")
+        cell.runHighlightAnimation()
+    }
+
+    private func indexPath(for id: ChatMessageID) -> IndexPath? {
+        guard let chatMessage = chatMessageFetchedResultsController?.fetchedObjects?.first(where: { $0.id == id }) else {
+            return nil
+        }
+        return dataSource.indexPath(for: messagerow(for: chatMessage))
+    }
 }
 
 // MARK: - quoted item panel implementation

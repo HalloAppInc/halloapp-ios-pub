@@ -471,6 +471,8 @@ extension MessageCellViewBase: UIGestureRecognizerDelegate {
     @objc public func jumpToQuotedMsg(_ sender: UIView) {
         if let parentCommentId = feedPostComment?.parent?.id {
             commentDelegate?.messageView(self, jumpTo: parentCommentId)
+        } else if let parentMessageId = chatMessage?.chatReplyMessageID {
+            chatDelegate?.messageView(self, jumpTo: parentMessageId)
         }
     }
 

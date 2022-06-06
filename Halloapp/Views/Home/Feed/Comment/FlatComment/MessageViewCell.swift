@@ -22,6 +22,7 @@ protocol MessageViewChatDelegate: AnyObject {
     func messageView(_ messageViewCell: MessageCellViewBase, replyToChat chatMessage: ChatMessage)
     func messageView(_ messageViewCell: MessageCellViewBase, didTapUserId userId: UserID)
     func messageView(_ messageViewCell: MessageCellViewBase, didLongPressOn chatMessage: ChatMessage)
+    func messageView(_ messageViewCell: MessageCellViewBase, jumpTo chatMessageID: ChatMessageID)
 }
 
 class MessageViewCell: MessageCellViewBase {
