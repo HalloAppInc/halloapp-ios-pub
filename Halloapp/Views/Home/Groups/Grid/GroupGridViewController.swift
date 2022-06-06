@@ -177,6 +177,7 @@ class GroupGridViewController: UIViewController {
                     newPostViewController.modalPresentationStyle = .fullScreen
                     self?.present(newPostViewController, animated: true)
                 }
+                header.menuActionsForGroup = menuActionsForGroup(_:)
             }
             return header
         case GroupGridSeparator.elementKind:
@@ -223,6 +224,36 @@ class GroupGridViewController: UIViewController {
             navigationController.setViewControllers(viewControllers, animated: true)
         }), animated: true)
     }
+
+    func menuActionsForGroup(_ groupID: GroupID) -> [UIMenuElement] {
+        let chatData = MainAppContext.shared.chatData!
+        guard let group = chatData.chatGroup(groupId: groupID, in: chatData.viewContext) else {
+            return []
+        }
+
+        let userID = MainAppContext.shared.userData.userId
+        if chatData.chatGroupMember(groupId: group.id, memberUserId: userID, in: chatData.viewContext) != nil {
+            return [
+                UIAction(title: Localizations.groupsGridHeaderMoreInfo) { [weak self] _ in
+                    self?.navigationController?.pushViewController(GroupInfoViewController(for: groupID), animated: true)
+                }
+            ]
+        } else {
+            let groupName = group.name
+            return [
+                UIAction(title: Localizations.groupsListRemoveMessage, attributes: [.destructive]) { [weak self] _ in
+                    let actionSheet = UIAlertController(title: groupName,
+                                                        message: Localizations.groupsListRemoveMessage,
+                                                        preferredStyle: .alert)
+                    actionSheet.addAction(UIAlertAction(title: Localizations.buttonRemove, style: .destructive) { _ in
+                        MainAppContext.shared.chatData.deleteChatGroup(groupId: groupID)
+                    })
+                    actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+                    self?.present(actionSheet, animated: true)
+                }
+            ]
+        }
+    }
 }
 
 extension GroupGridViewController: UICollectionViewDelegate {
@@ -261,3 +292,9 @@ extension GroupGridViewController: UIViewControllerScrollsToTop {
     }
 }
 
+extension Localizations {
+
+    static var groupsGridHeaderMoreInfo: String {
+        NSLocalizedString("groupGridHeader.moreInfo", value: "More Info", comment: "More info menu item")
+    }
+}

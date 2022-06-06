@@ -17,6 +17,7 @@ class GroupGridHeader: UICollectionReusableView {
 
     var openGroupFeed: (() -> Void)?
     var composeGroupPost: (() -> Void)?
+    var menuActionsForGroup: ((GroupID) -> [UIMenuElement])?
 
     private struct Constants {
         static let postButtonSize: CGFloat = 22
@@ -40,6 +41,7 @@ class GroupGridHeader: UICollectionReusableView {
         super.init(frame: frame)
 
         addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(headerTapped)))
+        addInteraction(UIContextMenuInteraction(delegate: self))
 
         let groupAvatarAndNameStackView = UIStackView(arrangedSubviews: [groupAvatarView, groupNameLabel])
         groupAvatarAndNameStackView.alignment = .center
@@ -104,5 +106,17 @@ class GroupGridHeader: UICollectionReusableView {
 
     @objc private func composeButtonTapped() {
         composeGroupPost?()
+    }
+}
+
+extension GroupGridHeader: UIContextMenuInteractionDelegate {
+
+    func contextMenuInteraction(_ interaction: UIContextMenuInteraction,
+                                configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
+        let groupName = groupNameLabel.text ?? ""
+        let items = group.flatMap { menuActionsForGroup?($0.id) ?? [] } ?? []
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
+            return UIMenu(title: groupName, image: nil, identifier: nil, options: [], children: items)
+        }
     }
 }
