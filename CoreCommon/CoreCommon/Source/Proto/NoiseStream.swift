@@ -615,12 +615,10 @@ extension NWConnection {
     }
 
     private func removeCallbacks() {
-        if #unavailable(iOS 16) {
-            stateUpdateHandler = nil
-            pathUpdateHandler = nil
-            viabilityUpdateHandler = nil
-            betterPathUpdateHandler = nil
-        }
+        stateUpdateHandler = nil
+        pathUpdateHandler = nil
+        viabilityUpdateHandler = nil
+        betterPathUpdateHandler = nil
     }
 }
 
