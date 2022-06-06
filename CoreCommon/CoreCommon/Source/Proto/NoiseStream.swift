@@ -120,7 +120,7 @@ public final class NoiseStream: NSObject {
             }
         }
 
-        self.connection?.cancel()
+        self.connection?.cancelAndRemoveCallbacks()
         self.connection = connection
         self.connectionID = connectionID
         self.state = .connecting
@@ -132,7 +132,7 @@ public final class NoiseStream: NSObject {
         DDLogInfo("noise/disconnect")
         state = .disconnecting
         if let connection = connection {
-            connection.cancel()
+            connection.cancelAndRemoveCallbacks()
         } else {
             state = .disconnected
         }
@@ -174,7 +174,7 @@ public final class NoiseStream: NSObject {
         // This will prompt service to treat it as any other socket error and reconnect.
 
         if let connection = connection {
-            connection.forceCancel()
+            connection.forceCancelAndRemoveCallbacks()
         } else {
             state = .disconnected
         }
@@ -591,6 +591,35 @@ public final class NoiseStream: NSObject {
                 // internal states
                 break
             }
+        }
+    }
+}
+
+extension NWConnection {
+
+    /*
+     Per https://developer.apple.com/documentation/ios-ipados-release-notes/ios-ipados-16-release-notes
+     Network.framework resolved an issue that could cause NWBrowser, NWConnection, NWConnectionGroup, NWEthernetChannel, NWListener, and NWPathMonitor to
+     trigger a retain cycle when various Handler blocks are set. Starting with macOS 13, iOS 16, watchOS 9, and tvOS 16, if software using Network.framework
+     targets these releases as the minimum OS, the object releases any blocks they captured once cancelled, breaking the retain cycle. (89677097)
+     */
+
+    func forceCancelAndRemoveCallbacks() {
+        forceCancel()
+        removeCallbacks()
+    }
+
+    func cancelAndRemoveCallbacks() {
+        cancel()
+        removeCallbacks()
+    }
+
+    private func removeCallbacks() {
+        if #unavailable(iOS 16) {
+            stateUpdateHandler = nil
+            pathUpdateHandler = nil
+            viabilityUpdateHandler = nil
+            betterPathUpdateHandler = nil
         }
     }
 }
