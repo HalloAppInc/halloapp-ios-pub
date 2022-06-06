@@ -1881,6 +1881,15 @@ extension ChatData {
             }
         }
     }
+
+    func markSeenMessages(type: ChatType, for id: String) {
+        DDLogInfo("ChatData/markSeenMessages/type: \(type)/id: \(id)")
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            DDLogInfo("ChatData/markSeenMessages/type: \(type)/id: \(id)/without setting unreadCount to zero")
+            self.markSeenMessages(type: type, for: id, in: managedObjectContext)
+        }
+    }
     
     func updateUnreadThreadGroupsCount() {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
@@ -2318,6 +2327,7 @@ extension ChatData {
             chatThread.lastMsgMediaType = lastMsgMediaType
             chatThread.lastMsgStatus = isMsgToYourself ? .seen : .pending
             chatThread.lastMsgTimestamp = chatMessage.timestamp
+            // Sending a message always clears out the unread count
             chatThread.unreadCount = 0
         } else {
             DDLogDebug("ChatData/createChatMsg/\(messageId)/new-thread")
@@ -3422,7 +3432,8 @@ extension ChatData {
             chatThread.lastMsgMediaType = lastMsgMediaType
             chatThread.lastMsgStatus = .none
             chatThread.lastMsgTimestamp = chatMessage.timestamp
-            chatThread.unreadCount = isCurrentlyChattingWithUser ? 0 : chatThread.unreadCount + 1
+            // Incoming messages always updates unread count
+            chatThread.unreadCount = chatThread.unreadCount + 1
         } else {
             let chatThread = ChatThread(context: managedObjectContext)
             chatThread.userID = chatMessage.fromUserId

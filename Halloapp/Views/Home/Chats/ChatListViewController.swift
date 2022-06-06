@@ -412,7 +412,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
                 DDLogDebug("ChatListView/reloadDataInMainQueue/empty chatWithUserID: \(thread)")
                 return
             }
-            var chatThreadData = ChatThreadData(chatWithUserID: chatWithUserID, lastMsgID: thread.lastMsgId ?? "", lastMsgMediaType: thread.lastMsgMediaType, lastMsgStatus: thread.lastMsgStatus, isNew: thread.isNew)
+            var chatThreadData = ChatThreadData(chatWithUserID: chatWithUserID, lastMsgID: thread.lastMsgId ?? "", lastMsgMediaType: thread.lastMsgMediaType, lastMsgStatus: thread.lastMsgStatus, isNew: thread.isNew, unreadCount: thread.unreadCount)
             if isFiltering {
                 if let searchStr = searchController.searchBar.text?.trimmingCharacters(in: CharacterSet.whitespaces) {
                     chatThreadData.searchStr = searchStr
@@ -556,7 +556,7 @@ extension ChatListViewController: UITableViewDelegate {
         guard let chatWithUserId = chatThread.userID else { return }
 
         if AppContext.shared.userDefaults.bool(forKey: "enableNewChat") {
-            let vc = ChatViewControllerNew(for: chatWithUserId, with: nil, at: 0, unreadCount: chatThread.unreadCount)
+            let vc = ChatViewControllerNew(for: chatWithUserId, with: nil, at: 0)
             vc.chatViewControllerDelegate = self
             self.navigationController?.pushViewController(vc, animated: true)
         } else {
@@ -740,6 +740,7 @@ fileprivate struct ChatThreadData {
     let lastMsgStatus: ChatThread.LastMsgStatus
     let isNew: Bool
     var searchStr: String? = nil
+    var unreadCount: Int32
 }
 
 extension ChatThreadData : Hashable {
@@ -749,6 +750,7 @@ extension ChatThreadData : Hashable {
         hasher.combine(lastMsgStatus)
         hasher.combine(isNew)
         hasher.combine(searchStr)
+        hasher.combine(unreadCount)
     }
 }
 
@@ -759,7 +761,8 @@ extension ChatThreadData : Equatable {
                 lhs.lastMsgMediaType == rhs.lastMsgMediaType &&
                 lhs.lastMsgStatus == rhs.lastMsgStatus &&
                 lhs.isNew == rhs.isNew &&
-                lhs.searchStr == rhs.searchStr
+                lhs.searchStr == rhs.searchStr &&
+                lhs.unreadCount == rhs.unreadCount
     }
 }
 

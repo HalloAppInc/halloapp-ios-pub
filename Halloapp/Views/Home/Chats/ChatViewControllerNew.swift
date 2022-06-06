@@ -83,9 +83,11 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     private var chatReplyMessageID: String?
     private var chatReplyMessageSenderID: String?
     private var chatReplyMessageMediaIndex: Int32 = 0
-    private var firstActionHappened: Bool = false
-    private var unreadCount: Int32?
-    private var hasShownAddToContact: Bool = false
+    private var firstActionHappened = false
+    private var hasShownAddToContact = false
+    private var isFirstLaunch = true
+    // This variable is used to determine if the unread banner is visible, if so update its count when the ChatThread unreadCount is updated
+    private var unreadMessagesHeaderVisible = false
 
     fileprivate typealias ChatDataSource = UICollectionViewDiffableDataSource<String, MessageRow>
     fileprivate typealias ChatMessageSnapshot = NSDiffableDataSourceSnapshot<String, MessageRow>
@@ -276,30 +278,33 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         var messageRows: [MessageRow] = []
         var snapshot = ChatMessageSnapshot()
 
+        // Add messages
         if let chatMessages = chatMessageFetchedResultsController?.fetchedObjects {
             chatMessages.forEach { chatMessage in
                 messageRows.append(messagerow(for: chatMessage))
             }
         }
-        if let chatEvents = chatEventFetchedResultsController?.fetchedObjects {
-            chatEvents.forEach { chatEvent in
-                messageRows.append(MessageRow.chatEvent(chatEvent))
-            }
-        }
+        // Add call events
         if let chatCalls = callHistoryFetchedResultsController?.fetchedObjects {
             chatCalls.forEach { chatCall in
                 messageRows.append(MessageRow.chatCall(chatCall))
             }
         }
-
+        // Add events eg user security key changed
+        if let chatEvents = chatEventFetchedResultsController?.fetchedObjects {
+            chatEvents.forEach { chatEvent in
+                messageRows.append(MessageRow.chatEvent(chatEvent))
+            }
+        }
+        // Add event - tap to add to contact book
         if shouldShowAddToContactBookCell() {
             messageRows.append(MessageRow.addToContactBook)
         }
-
         // Sort all messages by timestamp
         messageRows = messageRows.sorted {
             ($0.timestamp ?? .distantFuture) < ($1.timestamp ?? .distantFuture)
         }
+
         // Insert all messages into snapshot sorted by timestamp and grouped into sections by headerTime
         for messageRow in messageRows {
             if !snapshot.sectionIdentifiers.contains(messageRow.headerTime) {
@@ -308,17 +313,27 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             snapshot.appendItems([messageRow], toSection: messageRow.headerTime)
         }
 
-        // Add in the unread count
-        if let unreadCount = unreadCount, unreadCount > 0 {
-            let unreadHeaderIndex = snapshot.numberOfItems - Int(unreadCount)
-            if unreadHeaderIndex > 0 && unreadHeaderIndex < (snapshot.numberOfItems) {
-                let item = snapshot.itemIdentifiers[unreadHeaderIndex]
-                snapshot.insertItems([MessageRow.unreadCountHeader(Int32(unreadCount))], beforeItem: item)
+        if let fromUserId = fromUserId {
+            let chatThread = MainAppContext.shared.chatData.chatThread(type: ChatType.oneToOne, id: fromUserId, in: MainAppContext.shared.chatData.viewContext)
+            let unreadCount = chatThread?.unreadCount
+            // Only add the unread banner on first launch OR
+            // on subsequent launches, if the unread banner is already present, add it with an updated unreadCount
+            let shouldAddUnreadCountHeader = (isFirstLaunch || (!isFirstLaunch && unreadMessagesHeaderVisible))
+            unreadMessagesHeaderVisible = false
+            // Add in the unread count
+            if let unreadCount = unreadCount, unreadCount > 0, shouldAddUnreadCountHeader {
+                let unreadHeaderIndex = snapshot.numberOfItems - Int(unreadCount)
+                if unreadHeaderIndex > 0, unreadHeaderIndex < (snapshot.numberOfItems) {
+                    unreadMessagesHeaderVisible = true
+                    let item = snapshot.itemIdentifiers[unreadHeaderIndex]
+                    snapshot.insertItems([MessageRow.unreadCountHeader(Int32(unreadCount))], beforeItem: item)
+                }
             }
         }
 
         // Apply the new snapshot
-        dataSource.apply(snapshot, animatingDifferences: true)
+        dataSource.apply(snapshot, animatingDifferences: false)
+        isFirstLaunch = false
     }
 
     private func shouldShowAddToContactBookCell() -> Bool {
@@ -354,13 +369,13 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         return MessageRow.text(chatMessage)
     }
 
-    init(for fromUserId: String, with feedPostId: FeedPostID? = nil, at feedPostMediaIndex: Int32 = 0, unreadCount: Int32? = 0) {
+    init(for fromUserId: String, with feedPostId: FeedPostID? = nil, at feedPostMediaIndex: Int32 = 0) {
         let contactsViewContext = MainAppContext.shared.contactStore.viewContext
         DDLogDebug("ChatViewControllerNew/init/\(fromUserId) [\(MainAppContext.shared.contactStore.fullName(for: fromUserId, in: contactsViewContext))]")
         self.fromUserId = fromUserId
         self.feedPostId = feedPostId
         self.feedPostMediaIndex = feedPostMediaIndex
-        self.unreadCount = unreadCount
+
         super.init(nibName: nil, bundle: nil)
         self.hidesBottomBarWhenPushed = true
     }
@@ -483,8 +498,8 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         if let chatWithUserId = self.fromUserId {
-            MainAppContext.shared.chatData.markThreadAsRead(type: .oneToOne, for: chatWithUserId)
-            MainAppContext.shared.chatData.updateUnreadChatsThreadCount()
+            // This marks the initial set of unread messages on first launch as seen.  Any future incoming messages are marked read as they come in.
+            MainAppContext.shared.chatData.markSeenMessages(type: .oneToOne, for: chatWithUserId)
             MainAppContext.shared.chatData.subscribeToPresence(to: chatWithUserId)
             MainAppContext.shared.chatData.setCurrentlyChattingWithUserId(for: chatWithUserId)
 
@@ -501,7 +516,6 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
    override func viewWillDisappear(_ animated: Bool) {
        super.viewWillDisappear(animated)
-       MainAppContext.shared.chatData.setCurrentlyChattingWithUserId(for: nil)
        if let id = fromUserId {
            saveChatDraft(id: id)
        }
@@ -512,6 +526,12 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
        navigationController?.navigationBar.backItem?.backBarButtonItem = UIBarButtonItem()
 
        applyTransitionSnapshot()
+       if let chatWithUserId = self.fromUserId {
+           // TODO only if jump button is not visible.. call below line
+            MainAppContext.shared.chatData.markThreadAsRead(type: .oneToOne, for: chatWithUserId)
+           // updates the number of chat threads with unread messages
+           MainAppContext.shared.chatData.updateUnreadChatsThreadCount()
+       }
    }
 
    override func viewDidLayoutSubviews() {
