@@ -1027,11 +1027,23 @@ fileprivate struct PostComposerView: View {
                                 audioRecordingView
                             } else {
                                 ZStack(alignment: .top) {
-                                    ScrollView {
-                                        postTextView
-                                            .padding(.bottom, PostComposerLayoutConstants.sendButtonHeight + 24)
+                                    if #available(iOS 15.0, *) {
+                                        ScrollView {
+                                            postTextView
+                                        }
+                                        .safeAreaInset(edge: .bottom) {
+                                            Spacer()
+                                                .frame(height: PostComposerLayoutConstants.sendButtonHeight + 24)
+
+                                        }
+                                        .frame(maxHeight: scrollGeometry.size.height - 2 * PostComposerLayoutConstants.verticalPadding)
+                                    } else {
+                                        ScrollView {
+                                            postTextView
+                                                .padding(.bottom, PostComposerLayoutConstants.sendButtonHeight + 24)
+                                        }
+                                        .frame(maxHeight: scrollGeometry.size.height - 2 * PostComposerLayoutConstants.verticalPadding)
                                     }
-                                    .frame(maxHeight: scrollGeometry.size.height - 2 * PostComposerLayoutConstants.verticalPadding)
 
                                     VStack {
                                         Spacer()
