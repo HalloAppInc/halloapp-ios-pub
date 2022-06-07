@@ -161,7 +161,8 @@ class FeedPostMenuViewController: BottomSheetViewController {
                                                         alignment: .bottom),
         ]
 
-        let layout = UICollectionViewCompositionalLayout(sectionProvider: sectionProvider(_:_:), configuration: configuration)
+        let layout = UICollectionViewCompositionalLayout(sectionProvider: { [weak self] in self?.sectionProvider(sectionIndex: $0, layoutEnvironment: $1) },
+                                                         configuration: configuration)
         layout.register(FeedPostMenuSectionBackground.self, forDecorationViewOfKind: ElementKind.sectionBackground)
 
         let collectionView = FeedPostMenuCollectionView(frame: CGRect(origin: .zero, size: CGSize(width: 100, height: 100)),
@@ -178,7 +179,9 @@ class FeedPostMenuViewController: BottomSheetViewController {
     }()
 
     private lazy var dataSource: UICollectionViewDiffableDataSource<Section, AnyHashable> = {
-        let dataSource = UICollectionViewDiffableDataSource<Section, AnyHashable>(collectionView: collectionView, cellProvider: cellProvider)
+        let dataSource = UICollectionViewDiffableDataSource<Section, AnyHashable>(collectionView: collectionView) { [weak self] in
+            self?.cellProvider(collectionView: $0, indexPath: $1, item: $2)
+        }
         dataSource.supplementaryViewProvider = supplementaryViewProvider
         return dataSource
     }()
@@ -218,8 +221,8 @@ class FeedPostMenuViewController: BottomSheetViewController {
         dataSource.apply(snapshot)
     }
 
-    private func sectionProvider(_ sectionIndex: Int,
-                                 _ layoutEnvironment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection {
+    private func sectionProvider(sectionIndex: Int,
+                                 layoutEnvironment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection {
         let size = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
         let item = NSCollectionLayoutItem(layoutSize: size)
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: size, subitems: [item])
@@ -241,9 +244,9 @@ class FeedPostMenuViewController: BottomSheetViewController {
         return section
     }
 
-    private func cellProvider(_ collectionView: UICollectionView,
-                              _ indexPath: IndexPath,
-                              _ item: AnyHashable) -> UICollectionViewCell {
+    private func cellProvider(collectionView: UICollectionView,
+                              indexPath: IndexPath,
+                              item: AnyHashable) -> UICollectionViewCell {
         switch item {
         case let item as Item:
             let isInitialItem = indexPath.item == 0

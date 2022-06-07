@@ -21,7 +21,7 @@ class GroupGridViewController: UIViewController {
         let configuration = UICollectionViewCompositionalLayoutConfiguration()
         configuration.interSectionSpacing = 8
 
-        let layout = UICollectionViewCompositionalLayout(sectionProvider: sectionProvider(_:_:),
+        let layout = UICollectionViewCompositionalLayout(sectionProvider: { [weak self] in self?.sectionProvider(section: $0, layoutEnvironment: $1) },
                                                          configuration: configuration)
 
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
@@ -39,8 +39,8 @@ class GroupGridViewController: UIViewController {
     }()
 
     private lazy var dataSource: GroupGridDataSource = {
-        let dataSource = GroupGridDataSource(collectionView: collectionView, cellProvider: cellProvider(_:_:_:))
-        dataSource.supplementaryViewProvider = supplementaryViewProvider(_:_:_:)
+        let dataSource = GroupGridDataSource(collectionView: collectionView) { [weak self] in self?.cellProvider(collectionView: $0, indexPath: $1, item: $2) }
+        dataSource.supplementaryViewProvider = { [weak self] in self?.supplementaryViewProvider(collectionView: $0, elementKind: $1, indexPath: $2) }
         return dataSource
     }()
 
@@ -99,8 +99,8 @@ class GroupGridViewController: UIViewController {
         }
     }
 
-    private func sectionProvider(_ section: Int,
-                                 _ layoutEnvironment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection? {
+    private func sectionProvider(section: Int,
+                                 layoutEnvironment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection? {
         let isSectionEmpty = collectionView.numberOfItems(inSection: section) == 0
         let item = NSCollectionLayoutItem(layoutSize: .init(widthDimension: .fractionalWidth(1),
                                                             heightDimension: .fractionalHeight(1)))
@@ -137,9 +137,9 @@ class GroupGridViewController: UIViewController {
         return section
     }
 
-    private func cellProvider(_ collectionView: UICollectionView,
-                              _ indexPath: IndexPath,
-                              _ item: FeedPostID) -> UICollectionViewCell? {
+    private func cellProvider(collectionView: UICollectionView,
+                              indexPath: IndexPath,
+                              item: FeedPostID) -> UICollectionViewCell? {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: GroupGridCollectionViewCell.reuseIdentifier,
                                                       for: indexPath)
         if let cell = cell as? GroupGridCollectionViewCell, let feedPost = dataSource.feedPost(at: indexPath) {
@@ -154,9 +154,9 @@ class GroupGridViewController: UIViewController {
         return cell
     }
 
-    private func supplementaryViewProvider(_ collectionView: UICollectionView,
-                                           _ elementKind: String,
-                                           _ indexPath: IndexPath) -> UICollectionReusableView? {
+    private func supplementaryViewProvider(collectionView: UICollectionView,
+                                           elementKind: String,
+                                           indexPath: IndexPath) -> UICollectionReusableView? {
         switch elementKind {
         case GroupGridHeader.elementKind:
             let header = collectionView.dequeueReusableSupplementaryView(ofKind: GroupGridHeader.elementKind,
@@ -177,7 +177,7 @@ class GroupGridViewController: UIViewController {
                     newPostViewController.modalPresentationStyle = .fullScreen
                     self?.present(newPostViewController, animated: true)
                 }
-                header.menuActionsForGroup = menuActionsForGroup(_:)
+                header.menuActionsForGroup = { [weak self] in self?.menuActionsForGroup(groupID: $0) ?? [] }
             }
             return header
         case GroupGridSeparator.elementKind:
@@ -225,7 +225,7 @@ class GroupGridViewController: UIViewController {
         }), animated: true)
     }
 
-    func menuActionsForGroup(_ groupID: GroupID) -> [UIMenuElement] {
+    func menuActionsForGroup(groupID: GroupID) -> [UIMenuElement] {
         let chatData = MainAppContext.shared.chatData!
         guard let group = chatData.chatGroup(groupId: groupID, in: chatData.viewContext) else {
             return []

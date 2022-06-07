@@ -29,8 +29,10 @@ class FeedInviteCarouselCell: UICollectionViewCell {
         case more
     }
 
-    private lazy var dataSource = UICollectionViewDiffableDataSource<Section, Item>(collectionView: collectionView,
-                                                                                    cellProvider: cellProvider(_:_:_:))
+    private lazy var dataSource = UICollectionViewDiffableDataSource<Section, Item>(collectionView: collectionView) { [weak self] in
+        self?.cellProvider(collectionView: $0, indexPath: $1, item: $2)
+    }
+
     private lazy var collectionView: UICollectionView = {
         let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
                                               heightDimension: .fractionalHeight(1.0))
@@ -102,9 +104,9 @@ class FeedInviteCarouselCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
-    private func cellProvider(_ collectionView: UICollectionView,
-                              _ indexPath: IndexPath,
-                              _ item: Item) -> UICollectionViewCell? {
+    private func cellProvider(collectionView: UICollectionView,
+                              indexPath: IndexPath,
+                              item: Item) -> UICollectionViewCell? {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedInviteCarouselContactCell.reuseIdentifier,
                                                       for: indexPath)
         if let cell = cell as? FeedInviteCarouselContactCell {
