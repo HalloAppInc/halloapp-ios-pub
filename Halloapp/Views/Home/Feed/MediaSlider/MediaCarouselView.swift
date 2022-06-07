@@ -877,7 +877,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     private(set) var videoURL: URL?
     private var videoSize: CGSize?
 
-    private var avPlayerViewController: AVPlayerViewController!
+    private var avPlayerViewController: AVPlayerViewController?
   
     private lazy var playButton = playButtonView
   
@@ -936,13 +936,10 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         avPlayerStatusObservation = nil
         avPlayerRateObservation = nil
 
-        if avPlayerViewController.player != nil {
-            avPlayerViewController.player = nil
-        }
-
-        avPlayerViewController.view.frame = self.bounds
-        avPlayerViewController.view.layer.mask = nil
-        avPlayerViewController.showsPlaybackControls = false
+        avPlayerViewController?.player = nil
+        avPlayerViewController?.view.frame = self.bounds
+        avPlayerViewController?.view.layer.mask = nil
+        avPlayerViewController?.showsPlaybackControls = false
 
         playButton.isHidden = true
         isPlayerAtStart = true
@@ -957,13 +954,14 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         placeholderImageView.tintColor = .systemGray3
         contentView.addSubview(placeholderImageView)
 
-        avPlayerViewController = AVPlayerViewController()
-        avPlayerViewController.view.frame = contentView.bounds
-        avPlayerViewController.view.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
-        avPlayerViewController.view.isHidden = true
-        avPlayerViewController.view.backgroundColor = .clear
-        avPlayerViewController.showsPlaybackControls = false
-        contentView.addSubview(avPlayerViewController.view)
+        let playerViewController = AVPlayerViewController()
+        playerViewController.view.frame = contentView.bounds
+        playerViewController.view.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
+        playerViewController.view.isHidden = true
+        playerViewController.view.backgroundColor = .clear
+        playerViewController.showsPlaybackControls = false
+        avPlayerViewController = playerViewController
+        contentView.addSubview(playerViewController.view)
         
         playButton.isHidden = true
     }
@@ -972,9 +970,9 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         super.apply(configuration: configuration)
 
         if (configuration.alwaysScaleToFitContent) {
-            avPlayerViewController.videoGravity = .resizeAspect
+            avPlayerViewController?.videoGravity = .resizeAspect
         } else {
-            avPlayerViewController.videoGravity = .resizeAspectFill
+            avPlayerViewController?.videoGravity = .resizeAspectFill
         }
         cornerRadius = configuration.cornerRadius
         borderWidth = configuration.borderWidth
@@ -1003,14 +1001,14 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     }
 
     private func showPlayer(forVideoURL videoURL: URL) {
-        assert(avPlayerViewController.player == nil)
+        assert(avPlayerViewController?.player == nil)
         assert(videoPlaybackCancellable == nil)
 
         assert(avPlayerRateObservation == nil)
         assert(avPlayerStatusObservation == nil)
 
         self.videoURL = videoURL
-        avPlayerViewController.view.isHidden = false
+        avPlayerViewController?.view.isHidden = false
         placeholderImageView.isHidden = true
 
         let item = AVPlayerItem(url: videoURL)
@@ -1038,7 +1036,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         avPlayerStatusObservation = avPlayer.observe(\.status, options: [ .new ], changeHandler: { [weak self] (player, change) in
             guard let self = self else { return }
             if player.status == .readyToPlay {
-                self.avPlayerViewController.player = player
+                self.avPlayerViewController?.player = player
 
                 if self.initialPlaybackTime == .zero {
                     self.isPlayerAtStart = true
@@ -1076,7 +1074,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     private func showInitialFrame() {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            guard let player = self.avPlayerViewController.player else { return }
+            guard let player = self.avPlayerViewController?.player else { return }
             guard let item = player.currentItem else { return }
 
             let seekTime = VideoUtils.getThumbnailTime(duration: item.duration)
@@ -1085,12 +1083,12 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     }
 
     private func showPlaceholderImage() {
-        avPlayerViewController.view.isHidden = true
+        avPlayerViewController?.view.isHidden = true
         placeholderImageView.isHidden = false
     }
 
     func getCurrentPlaybackTime() -> CMTime {
-        return avPlayerViewController.player?.currentTime() ?? .zero
+        return avPlayerViewController?.player?.currentTime() ?? .zero
     }
 
     func setInitialPlaybackTime(time: CMTime) {
@@ -1101,19 +1099,19 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         if Self.videoURLToAutoplay == videoURL {
             Self.videoURLToAutoplay = nil
         }
-        avPlayerViewController.player?.pause()
+        avPlayerViewController?.player?.pause()
     }
 
     @objc func startPlayback() {
         guard !disablePlayback else { return }
 
-        Self.videoURLToAutoplay = avPlayerViewController.player == nil ? videoURL : nil
-        if avPlayerViewController.player?.timeControlStatus == AVPlayer.TimeControlStatus.paused {
+        Self.videoURLToAutoplay = avPlayerViewController?.player == nil ? videoURL : nil
+        if avPlayerViewController?.player?.timeControlStatus == AVPlayer.TimeControlStatus.paused {
             if showsVideoPlaybackControls {
                 playButton.isHidden = true
             }
 
-            if let player = avPlayerViewController.player, let duration = player.currentItem?.duration {
+            if let player = avPlayerViewController?.player, let duration = player.currentItem?.duration {
                 if initialPlaybackTime > .zero && initialPlaybackTime < duration {
                     player.seek(to: initialPlaybackTime)
                     initialPlaybackTime = .zero
@@ -1128,14 +1126,14 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
 
     private func updatePlayerViewFrame() {
         let videoSize: CGSize
-        if let track = avPlayerViewController.player?.currentItem?.asset.tracks(withMediaType: .video).first {
+        if let track = avPlayerViewController?.player?.currentItem?.asset.tracks(withMediaType: .video).first {
             let size = track.naturalSize.applying(track.preferredTransform)
             videoSize = CGSize(width: abs(size.width), height: abs(size.height))
         } else {
             videoSize = self.videoSize ?? .zero
         }
 
-        guard videoSize.height > 0, videoSize.width > 0, avPlayerViewController.videoGravity != .resizeAspectFill else {
+        guard videoSize.height > 0, videoSize.width > 0, avPlayerViewController?.videoGravity != .resizeAspectFill else {
             // Video takes entire cell content.
             setPlayerView(frame: contentView.bounds)
             return
@@ -1151,11 +1149,14 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     }
 
     private func setPlayerView(frame: CGRect) {
-        avPlayerViewController.view.frame = frame
+        guard let avPlayerView = avPlayerViewController?.view else {
+            return
+        }
+        avPlayerViewController?.view.frame = frame
 
         let maskLayer = CAShapeLayer()
-        maskLayer.path = UIBezierPath(roundedRect: avPlayerViewController.view.bounds, cornerRadius: cornerRadius).cgPath
-        avPlayerViewController.view.layer.mask = maskLayer
+        maskLayer.path = UIBezierPath(roundedRect: avPlayerView.bounds, cornerRadius: cornerRadius).cgPath
+        avPlayerViewController?.view.layer.mask = maskLayer
 
         updatePlayerBorder()
         constrainSupplemenaryViews()
@@ -1181,14 +1182,17 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
             borderView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
             avPlayerBorderView = borderView
         }
-        if let contentOverlayView = avPlayerViewController.contentOverlayView {
+        if let contentOverlayView = avPlayerViewController?.contentOverlayView {
             contentOverlayView.addSubview(borderView)
             borderView.frame = contentOverlayView.bounds
         }
     }
 
     private func constrainSupplemenaryViews() {
-        constrainSupplemenaryViews(to: avPlayerViewController.view, offset: .zero)
+        guard let avPlayerView = avPlayerViewController?.view else {
+            return
+        }
+        constrainSupplemenaryViews(to: avPlayerView, offset: .zero)
     }
 
     // MARK: Custom Views
