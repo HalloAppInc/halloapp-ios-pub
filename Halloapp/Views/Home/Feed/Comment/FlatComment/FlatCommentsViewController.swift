@@ -1197,6 +1197,10 @@ extension FlatCommentsViewController: ContentInputDelegate {
             self.messageInputView.show(voiceNote: url)
         }
     }
+    
+    func inputView(_ inputView: ContentInputView, didPaste image: PendingMedia) {
+        addMediaWhenAvailable(image)
+    }
 
     func presentMediaPicker() {
         guard  mediaPickerController == nil else {

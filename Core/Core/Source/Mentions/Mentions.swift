@@ -52,7 +52,7 @@ public final class Mentions {
 }
 
 /// Handles editing text with expanded mentions
-public struct MentionInput {
+public struct MentionInput: Codable{
 
     public init(text: String, mentions: MentionRangeMap, selectedRange: NSRange) {
         self.text = text
@@ -125,7 +125,7 @@ public struct MentionInput {
         return characterRange
     }
 
-    private mutating func applyOffsetToMentions(_ offset: Int, from location: Int) {
+    public mutating func applyOffsetToMentions(_ offset: Int, from location: Int) {
         // Shift mentions when we make edits earlier in the text
         mentions = Dictionary(uniqueKeysWithValues: mentions.map { (range, userID) in
             var newRange = range

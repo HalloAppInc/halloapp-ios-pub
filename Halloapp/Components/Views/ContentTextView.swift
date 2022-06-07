@@ -32,6 +32,9 @@ class ContentTextView: UITextView {
     private(set) var linkPreviewData: LinkPreviewData?
     let linkPreviewMetadata = CurrentValueSubject<LinkPreviewFetchState, Never>(.fetched(nil))
     
+    static let textWithMentions = "TextWithMentions"
+    let mentionPasteboard = UIPasteboard.withUniqueName()
+    
     var mentions = MentionRangeMap()
     var mentionInput: MentionInput {
         MentionInput(text: text, mentions: mentions, selectedRange: selectedRange)
@@ -88,8 +91,70 @@ class ContentTextView: UITextView {
         if let image = UIPasteboard.general.image, let delegate = delegate as? ContentTextViewDelegate {
             delegate.textView(self, didPaste: image)
         } else {
-            super.paste(sender)
+            guard let data = mentionPasteboard.data(forPasteboardType: ContentTextView.textWithMentions) else {
+                super.paste(sender)
+                DDLogDebug("ContentTextView/paste/ No mention data in pasteboard")
+                return
+            }
+            guard var mentionDecoded: MentionInput = try? PropertyListDecoder().decode(MentionInput.self, from: data) else {
+                super.paste(sender)
+                DDLogDebug("ContentTextView/paste/ Unable to decode mentions from pasteboard")
+                return
+            }
+            DDLogDebug("ContentTextView/paste/ Mention data found and decoded from pasteboard")
+            if(text.isEmpty) {
+                update(from: mentionDecoded)
+                let newCursorPosition = mentionDecoded.text.utf16Extent.length
+                selectedRange = NSRange(location: newCursorPosition, length: 0)
+            } else {
+                var input = MentionInput(text: text, mentions: mentions, selectedRange: selectedRange)
+                let rangeIncludingImpactedMentions = input.impactedMentionRanges(in: selectedRange)
+                                                          .reduce(selectedRange) { range, mention in NSUnionRange(range, mention) }
+                input.changeText(in: rangeIncludingImpactedMentions, to: mentionDecoded.text)
+                mentionDecoded.applyOffsetToMentions(selectedRange.location, from: 0)
+                for mention in mentionDecoded.mentions {
+                    input.mentions[mention.key] = mention.value
+                }
+                update(from: input)
+            }
         }
+    }
+    
+    override func copy(_ sender: Any?) {
+        if(mentions.isEmpty) {
+            super.copy(sender)
+            return
+        }
+        guard let range = selectedTextRange else {
+            super.copy(sender)
+            return
+        }
+        var offsetMentions = Dictionary<NSRange, MentionedUser>()
+        for mention in mentions {
+            var newRange = mention.key
+            if(selectedRange.contains(newRange)) {
+                newRange.location -= selectedRange.location
+                offsetMentions[newRange] = mention.value
+            }
+        }
+        let input = MentionInput(text: text(in: range) ?? text, mentions: offsetMentions, selectedRange: selectedRange)
+        guard let mentionEncoded = try? PropertyListEncoder().encode(input) else {
+            DDLogDebug("ContentTextView/copy/ Couldn't encode mentions: \(mentionInput)")
+            super.copy(sender)
+            return
+        }
+        mentionPasteboard.setData(mentionEncoded, forPasteboardType: ContentTextView.textWithMentions)
+        super.copy(sender)
+    }
+    
+    override func cut(_ sender: Any?) {
+        copy(sender)
+        var input = MentionInput(text: text, mentions: mentions, selectedRange: selectedRange)
+        let rangeIncludingImpactedMentions = input.impactedMentionRanges(in: selectedRange)
+                                                  .reduce(selectedRange) { range, mention in NSUnionRange(range, mention) }
+
+        input.changeText(in: rangeIncludingImpactedMentions, to: "")
+        update(from: input)
     }
     
     func checkLinkPreview() {
