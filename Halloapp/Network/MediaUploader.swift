@@ -302,8 +302,18 @@ final class MediaUploader {
         // on reconnection stuck we try to resend stuck media items, but they might already have a task scheduled for retry
         guard nil == (tasks(forGroupId: groupId).first { $0.index == mediaItem.index }) else { return }
 
-        guard let fileURL = mediaItem.encryptedFileURL else { return }
-        let task = Task(groupId: groupId, mediaUrls: mediaItem.urlInfo, index: Int(mediaItem.index), fileURL: fileURL, didGetUrls: didGetURLs, completion: completion)
+        let urlInfo = mediaItem.urlInfo
+        guard let fileURL = mediaItem.encryptedFileURL else {
+            DDLogError("MediaUploader/upload/id: \(groupId)/index: \(mediaItem.index)/urlInfo: \(String(describing: urlInfo))/fileURL is nil")
+            completion(.failure(MediaUploadError.canceled))
+            return
+        }
+        guard FileManager.default.fileExists(atPath: fileURL.path) else {
+            DDLogError("MediaUploader/upload/id: \(groupId)/index: \(mediaItem.index)/urlInfo: \(String(describing: urlInfo))/\(fileURL) does not exist")
+            completion(.failure(MediaUploadError.canceled))
+            return
+        }
+        let task = Task(groupId: groupId, mediaUrls: urlInfo, index: Int(mediaItem.index), fileURL: fileURL, didGetUrls: didGetURLs, completion: completion)
         // Task might fail immediately so make sure it's added before being started.
         addTask(task: task)
 
