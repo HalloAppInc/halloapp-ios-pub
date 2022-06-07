@@ -477,6 +477,7 @@
 		F8EC3A7F2818214A0041D8E3 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764AB41E24A6C5F300D4E354 /* Color.swift */; };
 		F8EC3A80281821660041D8E3 /* VideoEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F84A8E5825D408C3003A8528 /* VideoEditViewController.swift */; };
 		F8EC3A81281821810041D8E3 /* TimeInterval.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8E6DCDE271EB06F005EECC5 /* TimeInterval.swift */; };
+		F8F5ED79284E17760094CB17 /* ChatMediaListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8F5ED78284E17760094CB17 /* ChatMediaListViewController.swift */; };
 		F8FAA14526CCF5B5008282EF /* AudioRecorderControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8FAA14426CCF5B5008282EF /* AudioRecorderControlView.swift */; };
 		F8FDA7AC26F84F0700D8B839 /* AudioRecorderTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8FDA7AB26F84F0700D8B839 /* AudioRecorderTimeView.swift */; };
 /* End PBXBuildFile section */
@@ -1181,6 +1182,7 @@
 		F8E60546266F931E00DDEB2A /* ImageEditViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageEditViewController.swift; sourceTree = "<group>"; };
 		F8E605492671F6A700DDEB2A /* MediaEdit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaEdit.swift; sourceTree = "<group>"; };
 		F8E6DCDE271EB06F005EECC5 /* TimeInterval.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeInterval.swift; sourceTree = "<group>"; };
+		F8F5ED78284E17760094CB17 /* ChatMediaListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMediaListViewController.swift; sourceTree = "<group>"; };
 		F8FAA14426CCF5B5008282EF /* AudioRecorderControlView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorderControlView.swift; sourceTree = "<group>"; };
 		F8FDA7AB26F84F0700D8B839 /* AudioRecorderTimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorderTimeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -1930,6 +1932,7 @@
 				68610B8E27A12DD3007019F4 /* ChatCallCell.swift */,
 				32151C1C28207B330057D794 /* ChatViewControllerNew.swift */,
 				326A757C28400B500058DFAA /* BlockedContactSheetViewController.swift */,
+				F8F5ED78284E17760094CB17 /* ChatMediaListViewController.swift */,
 			);
 			path = Chats;
 			sourceTree = "<group>";
@@ -3122,6 +3125,7 @@
 				6A08F9E227BB758B005894FF /* VideoCallViewController.swift in Sources */,
 				F8E60547266F931E00DDEB2A /* ImageEditViewController.swift in Sources */,
 				764A0E6524453FC900E1BDCE /* NotificationsViewController.swift in Sources */,
+				F8F5ED79284E17760094CB17 /* ChatMediaListViewController.swift in Sources */,
 				EAD476F72458F03700EF8591 /* ChatMessageLegacy+CoreDataProperties.swift in Sources */,
 				68EAABF127F8FC2300619B1A /* CommonMedia.swift in Sources */,
 			);

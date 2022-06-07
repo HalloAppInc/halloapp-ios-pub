@@ -58,6 +58,8 @@ class MessageCellViewMedia: MessageCellViewBase {
 
                 if let commentID = self.feedPostComment?.id {
                     self.commentDelegate?.messageView(imageView, forComment: commentID, didTapMediaAtIndex: idx)
+                } else if let message = self.chatMessage {
+                    self.chatDelegate?.messageView(self, for: message.id, didTapMediaView: imageView, at: idx)
                 }
             }
         }

@@ -1350,6 +1350,26 @@ extension ChatViewControllerNew: MessageViewChatDelegate {
 
     }
 
+    func messageView(_ messageViewCell: MessageCellViewBase, for chatMessageID: ChatMessageID, didTapMediaView view: UIView, at index: Int) {
+        let viewContext = MainAppContext.shared.chatData.viewContext
+        guard let message = MainAppContext.shared.chatData.chatMessage(with: chatMessageID, in: viewContext) else { return }
+
+        if message.orderedMedia.count == 1 {
+            let controller = MediaExplorerController(media: message.orderedMedia, index: index)
+            // TODO: (stefan) Fix delegate & transition
+            // controller.delegate = delegate
+
+            present(controller, animated: true)
+        } else if message.orderedMedia.count > 1 {
+            guard let userID = fromUserId else { return }
+            let controller = ChatMediaListViewController(userID: userID, message: message, index: index)
+            let navController = UINavigationController(rootViewController: controller)
+            navController.modalPresentationStyle = .fullScreen
+
+            present(navController, animated: true)
+        }
+    }
+
     func messageView(_ messageViewCell: MessageCellViewBase, didLongPressOn chatMessage: ChatMessage) {
         let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         if chatMessage.incomingStatus != .retracted {
