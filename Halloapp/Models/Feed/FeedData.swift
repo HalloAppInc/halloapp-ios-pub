@@ -1063,7 +1063,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             }
             // Clear cached media if any.
-            cachedMedia[feedPost.id] = nil
+            setCachedMedia(nil, for: feedPost.id)
 
             feedPost.mentions = xmppPost.orderedMentions.map {
                 MentionData(index: $0.index, userID: $0.userID, name: $0.name)
@@ -1282,7 +1282,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 comment.timestamp = xmppComment.timestamp
                 feedPost.lastUpdated = feedPost.lastUpdated.flatMap { max($0, comment.timestamp) } ?? comment.timestamp
                 // Clear cached media if any.
-                cachedMedia[comment.id] = nil
+                setCachedMedia(nil, for: feedPost.id)
 
                 // Set status to be rerequesting if necessary.
                 if xmppComment.status == .rerequesting {
@@ -2078,17 +2078,17 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     // MARK: Feed Media
 
     func media(for post: FeedPost) -> [FeedMedia] {
-        if let cachedMedia = cachedMedia[post.id] {
+        if let cachedMedia = cachedMedia(for: post.id) {
             return cachedMedia
         } else {
             let media = (post.media ?? []).sorted(by: { $0.order < $1.order }).map{ FeedMedia($0) }
-            cachedMedia[post.id] = media
+            setCachedMedia(media, for: post.id)
             return media
         }
     }
 
     func media(postID: FeedPostID, in managedObjectContext: NSManagedObjectContext) -> [FeedMedia]? {
-        if let cachedMedia = cachedMedia[postID] {
+        if let cachedMedia = cachedMedia(for: postID) {
             return cachedMedia
         } else if let post = MainAppContext.shared.feedData.feedPost(with: postID, in: managedObjectContext) {
             return media(for: post)
@@ -2098,21 +2098,21 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
     
     func media(for comment: FeedPostComment) -> [FeedMedia] {
-        if let cachedMedia = cachedMedia[comment.id] {
+        if let cachedMedia = cachedMedia(for: comment.id) {
             return cachedMedia
         } else {
             let media = (comment.media ?? []).sorted(by: { $0.order < $1.order }).map{ FeedMedia($0) }
-            cachedMedia[comment.id] = media
+            setCachedMedia(media, for: comment.id)
             return media
         }
     }
 
     func media(commentID: FeedPostCommentID, in managedObjectContext: NSManagedObjectContext) -> [FeedMedia]? {
-        if let cachedMedia = cachedMedia[commentID] {
+        if let cachedMedia = cachedMedia(for: commentID) {
             return cachedMedia
         } else if let comment = MainAppContext.shared.feedData.feedComment(with: commentID, in: managedObjectContext) {
             let media = (comment.media ?? []).sorted(by: { $0.order < $1.order }).map{ FeedMedia($0) }
-            cachedMedia[commentID] = media
+            setCachedMedia(media, for: commentID)
             return media
         } else {
             return nil
@@ -2120,11 +2120,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     func media(feedLinkPreviewID: FeedLinkPreviewID, in managedObjectContext: NSManagedObjectContext) -> [FeedMedia]? {
-        if let cachedMedia = cachedMedia[feedLinkPreviewID] {
+        if let cachedMedia = cachedMedia(for: feedLinkPreviewID) {
             return cachedMedia
         } else if let linkPreview = MainAppContext.shared.feedData.feedLinkPreview(with: feedLinkPreviewID, in: managedObjectContext) {
             let media = (linkPreview.media ?? []).sorted(by: { $0.order < $1.order }).map{ FeedMedia($0) }
-            cachedMedia[feedLinkPreviewID] = media
+            setCachedMedia(media, for: feedLinkPreviewID)
             return media
         } else {
             return nil
@@ -2153,7 +2153,24 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     // TODO: Refactor FeedMedia to allow unloading images from memory (for now we can't clear cache)
-    private var cachedMedia = [FeedPostID: [FeedMedia]]()
+    private var cachedMedia1 = [FeedPostID: [FeedMedia]]()
+    private var cachedMediaQueue = DispatchQueue(label: "CachedMediaAccessQueue")
+
+    // Thread-safe Accessors
+
+    private func cachedMedia(for id: String) -> [FeedMedia]? {
+        var media: [FeedMedia]?
+        cachedMediaQueue.sync {
+            media = cachedMedia1[id]
+        }
+        return media
+    }
+
+    private func setCachedMedia(_ media: [FeedMedia]?, for id: String) {
+        cachedMediaQueue.sync {
+            cachedMedia1[id] = media
+        }
+    }
 
     func downloadTask(for mediaItem: FeedMedia, using managedObjectContext: NSManagedObjectContext) -> FeedDownloadManager.Task? {
         switch mediaItem.feedElementId {
@@ -4581,7 +4598,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.isMoment = post.isMoment
 
             // Clear cached media if any.
-            cachedMedia[postId] = nil
+            setCachedMedia(nil, for: feedPost.id)
 
             // Mentions
             feedPost.mentions = post.mentions?.map { MentionData(index: $0.index, userID: $0.userID, name: $0.name) } ?? []
@@ -4818,7 +4835,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }()
         feedComment.timestamp = sharedComment.timestamp
         // Clear cached media if any.
-        cachedMedia[commentId] = nil
+        setCachedMedia(nil, for: feedComment.id)
 
         if let rawData = sharedComment.rawData {
             feedComment.rawData = rawData

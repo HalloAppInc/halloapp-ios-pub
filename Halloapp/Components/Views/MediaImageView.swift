@@ -156,7 +156,7 @@ class MediaImageView: UIImageView {
             }
         }
         onMediaStatusChange(feedMedia)
-        mediaStatusCancellable = feedMedia.mediaStatusDidChange.sink(receiveValue: onMediaStatusChange)
+        mediaStatusCancellable = feedMedia.mediaStatusDidChange.receive(on: DispatchQueue.main).sink(receiveValue: onMediaStatusChange)
 
         switch feedMedia.type {
         case .audio:
