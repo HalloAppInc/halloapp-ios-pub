@@ -487,8 +487,9 @@ extension MediaEditViewController : UICollectionViewDataSource {
 
         media.insert(media.remove(at: sourceIndexPath.row), at: destinationIndexPath.row)
 
+        // Order for media items should start at zero.
         for (i, item) in media.enumerated() {
-            item.media.order = i + 1
+            item.media.order = i
         }
     }
 }

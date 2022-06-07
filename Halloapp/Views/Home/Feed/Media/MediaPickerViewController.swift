@@ -875,7 +875,7 @@ class MediaPickerViewController: UIViewController {
                 let asset = self.selected[i]
 
                 if let media = self.originalMedia.first(where: { $0.asset == asset }) {
-                    media.order = i + 1
+                    media.order = i
                     result.append(media)
                     continue
                 }
@@ -884,7 +884,7 @@ class MediaPickerViewController: UIViewController {
                 case .image:
                     let media = PendingMedia(type: .image)
                     media.asset = asset
-                    media.order = i + 1
+                    media.order = i
                     
                     let options = PHImageRequestOptions()
                     options.isSynchronous = false
@@ -913,7 +913,7 @@ class MediaPickerViewController: UIViewController {
                 case .video:
                     let media = PendingMedia(type: .video)
                     media.asset = asset
-                    media.order = i + 1
+                    media.order = i
 
                     let options = PHVideoRequestOptions()
                     options.isNetworkAccessAllowed = true

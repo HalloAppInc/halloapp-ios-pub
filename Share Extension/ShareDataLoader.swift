@@ -96,6 +96,7 @@ class ShareDataLoader {
         loadingGroup.notify(queue: DispatchQueue.main) {
             for item in self.media {
                 guard let url = item.fileURL else { return }
+                DDLogInfo("ShareComposerViewController/load/ImageServer/prepare/fileURL: \(String(describing: item.fileURL))/order: \(item.order)")
                 ImageServer.shared.prepare(item.type, url: url, shouldStreamVideo: false)
             }
 
