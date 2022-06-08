@@ -20,10 +20,10 @@ class UserFeedViewController: FeedCollectionViewController {
         static let sectionHeaderReuseIdentifier = "header-view"
     }
 
-    override class var collectionViewSupplementaryItems: [NSCollectionLayoutBoundarySupplementaryItem] {
-        return [
+    override var collectionViewSupplementaryItems: [NSCollectionLayoutBoundarySupplementaryItem] {
+        return headerViewController == nil ? [] : [
             NSCollectionLayoutBoundarySupplementaryItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
-                                                                                           heightDimension: .estimated(44)),
+                                                                                          heightDimension: .estimated(44)),
                                                         elementKind: UICollectionView.elementKindSectionHeader,
                                                         alignment: .top)
         ]
@@ -33,9 +33,10 @@ class UserFeedViewController: FeedCollectionViewController {
         return NSDirectionalEdgeInsets(top: 8, leading: 0, bottom: 20, trailing: 0)
     }
 
-    init(userId: UserID) {
+    init(userId: UserID, showHeader: Bool = true) {
         self.userId = userId
         self.isUserBlocked = false
+        headerViewController = showHeader ? ProfileHeaderViewController() : nil
         super.init(title: nil, fetchRequest: FeedDataSource.userFeedRequest(userID: userId))
     }
 
@@ -44,7 +45,7 @@ class UserFeedViewController: FeedCollectionViewController {
     }
 
     private let userId: UserID
-    private var headerViewController: ProfileHeaderViewController!
+    private let headerViewController: ProfileHeaderViewController?
     private var cancellables = Set<AnyCancellable>()
     
     var isUserBlocked: Bool {
@@ -93,7 +94,7 @@ class UserFeedViewController: FeedCollectionViewController {
             MainAppContext.shared.contactStore.didDiscoverNewUsers.sink { [weak self] (newUserIDs) in
                 guard let self = self else { return }
                 if newUserIDs.contains(self.userId) {
-                    self.headerViewController.configureOrRefresh(userID: self.userId)
+                    self.headerViewController?.configureOrRefresh(userID: self.userId)
                     self.collectionView.reloadData()
                     self.updateExchangeNumbersView(isFeedEmpty: self.collectionView.numberOfItems(inSection: 0) == 0)
                     self.setupMoreButton()
@@ -104,7 +105,7 @@ class UserFeedViewController: FeedCollectionViewController {
                 // update views if block setting changed
                 if changedID == self?.userId {
                     self?.isUserBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(changedID)
-                    self?.headerViewController.configureOrRefresh(userID: changedID)
+                    self?.headerViewController?.configureOrRefresh(userID: changedID)
                     self?.setupMoreButton()
                 }
             }.store(in: &cancellables)
@@ -113,20 +114,19 @@ class UserFeedViewController: FeedCollectionViewController {
 
     override func setupCollectionView() {
         super.setupCollectionView()
-
-        headerViewController = ProfileHeaderViewController()
-        headerViewController.delegate = self
+        
+        headerViewController?.delegate = self
         if isOwnFeed {
             title = Localizations.titleMyPosts
 
-            headerViewController.isEditingAllowed = true
+            headerViewController?.isEditingAllowed = true
             cancellables.insert(MainAppContext.shared.userData.userNamePublisher.sink(receiveValue: { [weak self] (userName) in
                 guard let self = self else { return }
-                self.headerViewController.configureForCurrentUser(withName: userName)
+                self.headerViewController?.configureForCurrentUser(withName: userName)
                 self.viewIfLoaded?.setNeedsLayout()
             }))
         } else {
-            headerViewController.configureOrRefresh(userID: userId)
+            headerViewController?.configureOrRefresh(userID: userId)
             setupMoreButton()
         }
 
@@ -249,18 +249,18 @@ class UserFeedViewController: FeedCollectionViewController {
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         if kind == UICollectionView.elementKindSectionHeader && indexPath.section == 0 {
             let headerView = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: Constants.sectionHeaderReuseIdentifier, for: indexPath)
-            if let superView = headerViewController.view.superview, superView != headerView {
-                headerViewController.willMove(toParent: nil)
-                headerViewController.view.removeFromSuperview()
-                headerViewController.removeFromParent()
+            if let superView = headerViewController?.view.superview, superView != headerView {
+                headerViewController?.willMove(toParent: nil)
+                headerViewController?.view.removeFromSuperview()
+                headerViewController?.removeFromParent()
             }
-            if headerViewController.view.superview == nil {
-                addChild(headerViewController)
-                headerView.addSubview(headerViewController.view)
+            if let header = headerViewController, header.view.superview == nil {
+                addChild(header)
+                headerView.addSubview(header.view)
                 headerView.preservesSuperviewLayoutMargins = true
-                headerViewController.view.translatesAutoresizingMaskIntoConstraints = false
-                headerViewController.view.constrain(to: headerView)
-                headerViewController.didMove(toParent: self)
+                headerViewController?.view.translatesAutoresizingMaskIntoConstraints = false
+                headerViewController?.view.constrain(to: headerView)
+                headerViewController?.didMove(toParent: self)
             }
             return headerView
         }
@@ -270,13 +270,19 @@ class UserFeedViewController: FeedCollectionViewController {
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {
         super.scrollViewDidScroll(scrollView)
 
-        guard !headerViewController.isEditingAllowed else { return }
+        guard
+            let header = headerViewController,
+            !header.isEditingAllowed
+        else {
+            return
+        }
+        
         let offset = scrollView.contentOffset.y
-        let scrolledLimit:CGFloat = headerViewController.view.frame.size.height/3.5
+        let scrolledLimit:CGFloat = header.view.frame.size.height/3.5
         var titleText = ""
 
         if offset > scrolledLimit {
-            titleText = headerViewController.name ?? ""
+            titleText = header.name ?? ""
         }
         
         if title != titleText {

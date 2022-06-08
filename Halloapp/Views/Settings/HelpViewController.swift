@@ -38,50 +38,36 @@ private extension Localizations {
     static var calls: String {
         NSLocalizedString("profile.help.calls", value: "Calls", comment: "Item in Profile > Calls screen.")
     }
+    
+    static var appVersionDisplay: String {
+        NSLocalizedString("settings.app.version", value: "HalloApp Version %@", comment: "App version text in Profile > Help.")
+    }
 }
 
-class HelpViewController: UITableViewController {
+class HelpViewController: UIViewController, UICollectionViewDelegate {
+    typealias Section = InsetCollectionView.Section
+    typealias Item = InsetCollectionView.Item
+    
+    private lazy var collectionView: InsetCollectionView = {
+        let collectionView = InsetCollectionView()
+        let layout = InsetCollectionView.defaultLayout()
+        let config = InsetCollectionView.defaultLayoutConfiguration()
+        
+        config.boundarySupplementaryItems = [
+            NSCollectionLayoutBoundarySupplementaryItem(layoutSize: .init(widthDimension: .fractionalWidth(1.0),
+                                                                         heightDimension: .estimated(44)),
+                                                       elementKind: UICollectionView.elementKindSectionFooter,
+                                                         alignment: .bottom),
+        ]
+        
+        layout.configuration = config
+        collectionView.collectionViewLayout = layout
+        return collectionView
+    }()
 
-    // MARK: Table View Data Source and Rows
-
-    private enum Section {
-        case one
-        case two
-    }
-
-    private enum Row {
-        case faq
-        case termsOfService
-        case privacyPolicy
-        case feedback
-        case shareLogs
-    }
-
-    private class HelpTableViewDataSource: UITableViewDiffableDataSource<Section, Row> {
-
-        override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
-            let section = snapshot().sectionIdentifiers[section]
-            if section == .two {
-                let formatString = NSLocalizedString("settings.app.version", value: "HalloApp Version %@", comment: "App version text in Profile > Help.")
-                return String(format: formatString, MainAppContext.appVersionForDisplay)
-            }
-            return nil
-        }
-    }
-
-    private var dataSource: HelpTableViewDataSource!
-    private let cellFAQ = SettingsTableViewCell(text: Localizations.faq)
-    private let cellTOS = SettingsTableViewCell(text: Localizations.termsOfService)
-    private let cellPP = SettingsTableViewCell(text: Localizations.privacyPolicy)
-    private let cellFeedback = SettingsTableViewCell(text: Localizations.feedback)
-    private let cellShareLogs = SettingsTableViewCell(text: Localizations.shareLogs)
-
-
-    // MARK: View Controller
-
-    init(title: String) {
-        super.init(style: .grouped)
-        self.title = title
+    init() {
+        super.init(nibName: nil, bundle: nil)
+        title = Localizations.help
     }
 
     required init?(coder: NSCoder) {
@@ -91,49 +77,63 @@ class HelpViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        tableView.backgroundColor = .feedBackground
-        tableView.delegate = self
+        view.backgroundColor = .primaryBg
+        collectionView.backgroundColor = nil
+        collectionView.delegate = self
+        
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(collectionView)
+        NSLayoutConstraint.activate([
+            collectionView.topAnchor.constraint(equalTo: view.topAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
+        
+        collectionView.register(AppVersionFooterView.self,
+                                forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter,
+                                       withReuseIdentifier: AppVersionFooterView.reuseIdentifier)
 
-        dataSource = HelpTableViewDataSource(tableView: tableView, cellProvider: { [weak self] (_, _, row) -> UITableViewCell? in
-            guard let self = self else { return nil }
-            switch row {
-            case .faq: return self.cellFAQ
-            case .termsOfService: return self.cellTOS
-            case .privacyPolicy: return self.cellPP
-            case .feedback: return self.cellFeedback
-            case .shareLogs: return self.cellShareLogs
-            }
-        })
-        var snapshot = NSDiffableDataSourceSnapshot<Section, Row>()
-        snapshot.appendSections([ .one, .two ])
-        snapshot.appendItems([ .faq, .termsOfService, .privacyPolicy ], toSection: .one)
-        // Send Logs/Feedback via email composer.
-        if MFMailComposeViewController.canSendMail() {
-            snapshot.appendItems([ .feedback ], toSection: .two)
+        collectionView.data.supplementaryViewProvider = { collectionView, _, indexPath in
+            return collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionFooter,
+                                                      withReuseIdentifier: AppVersionFooterView.reuseIdentifier,
+                                                                      for: indexPath)
         }
-        // Share Logs: Internal users or Mail unavailable.
-        if ServerProperties.isInternalUser || !MFMailComposeViewController.canSendMail() {
-            snapshot.appendItems([ .shareLogs ], toSection: .two)
-        }
-        dataSource.apply(snapshot, animatingDifferences: false)
+        
+        buildCollection()
     }
-
-    // MARK: Menu Items
-
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let row = dataSource.itemIdentifier(for: indexPath) else { return }
-        switch row {
-        case .faq:
-            openFAQ()
-        case .termsOfService:
-            openTermsOfService()
-        case .privacyPolicy:
-            openPrivacyPolicy()
-        case .feedback:
-            sendLogs()
-        case .shareLogs:
-            shareLogs()
+    
+    private func buildCollection() {
+        collectionView.apply(InsetCollectionView.Collection {
+            Section {
+                Item(title: Localizations.faq, action: { [weak self] in self?.openFAQ() })
+                Item(title: Localizations.termsOfService, action : { [weak self] in self?.openTermsOfService() })
+                Item(title: Localizations.privacyPolicy, action: { [weak self] in self?.openPrivacyPolicy() })
+            }
+            
+            Section {
+                if MFMailComposeViewController.canSendMail() {
+                    // send Logs/Feedback via email composer.
+                    Item(title: Localizations.feedback, action: { [weak self] in self?.sendLogs() })
+                }
+                
+                if ServerProperties.isInternalUser || !MFMailComposeViewController.canSendMail() {
+                    // share Logs: internal users or Mail unavailable.
+                    Item(title: Localizations.shareLogs, action: { [weak self] in self?.shareLogs() })
+                }
+            }
         }
+        .seperators()
+        .disclosure())
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard let item = self.collectionView.data.itemIdentifier(for: indexPath) as? Item else {
+            return
+        }
+        
+        collectionView.deselectItem(at: indexPath, animated: true)
+        item.action?()
     }
 
     private func openFAQ() {
@@ -154,21 +154,13 @@ class HelpViewController: UITableViewController {
     private func sendLogs() {
         DDLogInfo("HelpViewController/sendLogs")
         let viewController = MFMailComposeViewController.makeEmailLogsViewController(delegate: self)
-        present(viewController, animated: true) {
-            if let indexPath = self.dataSource.indexPath(for: .feedback) {
-                self.tableView.deselectRow(at: indexPath, animated: true)
-            }
-        }
+        present(viewController, animated: true)
     }
 
     private func shareLogs() {
         DDLogInfo("HelpViewController/shareLogs")
         let viewController = UIActivityViewController.makeShareLogsViewController()
-        present(viewController, animated: true) {
-            if let indexPath = self.dataSource.indexPath(for: .shareLogs) {
-                self.tableView.deselectRow(at: indexPath, animated: true)
-            }
-        }
+        present(viewController, animated: true)
     }
 }
 
@@ -215,6 +207,36 @@ private extension MFMailComposeViewController {
         return vc
     }
 }
+
+// MARK: - AppVersionFooterView implementation
+
+fileprivate class AppVersionFooterView: UICollectionReusableView {
+    static let reuseIdentifier = "appVersionFooter"
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        
+        let label = UILabel()
+        label.text = String(format: Localizations.appVersionDisplay, MainAppContext.appVersionForDisplay)
+        label.font = .systemFont(forTextStyle: .caption1)
+        label.textColor = .secondaryLabel
+        
+        label.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(label)
+        
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            label.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            label.topAnchor.constraint(equalTo: topAnchor, constant: 15),
+            label.bottomAnchor.constraint(equalTo: bottomAnchor),
+        ])
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("AppVersionFooterView coder init not implemented...")
+    }
+}
+
 
 private extension UIActivityViewController {
 

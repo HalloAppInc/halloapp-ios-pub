@@ -41,13 +41,13 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
 
         let section = NSCollectionLayoutSection(group: group)
-        section.boundarySupplementaryItems = Self.collectionViewSupplementaryItems
+        section.boundarySupplementaryItems = collectionViewSupplementaryItems
         section.contentInsets = Self.collectionViewSectionInsets
 
         return FeedLayout(section: section)
     }()
 
-    class var collectionViewSupplementaryItems: [NSCollectionLayoutBoundarySupplementaryItem] {
+    var collectionViewSupplementaryItems: [NSCollectionLayoutBoundarySupplementaryItem] {
         return []
     }
 

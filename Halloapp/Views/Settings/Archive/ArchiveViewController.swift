@@ -11,7 +11,7 @@ import Core
 import CoreCommon
 import Combine
 
-class SettingsArchiveViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
+class ArchiveViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
     
     private var feedDataSource = FeedDataSource(fetchRequest: FeedDataSource.archiveFeedRequest())
     private var feedItems: [FeedPost] = []
@@ -37,36 +37,31 @@ class SettingsArchiveViewController: UIViewController, UICollectionViewDelegate,
         return collectionView
     }()
 
-    private lazy var emptyPlaceholderView: UIView = {
-        let containerView = UIView()
-        containerView.translatesAutoresizingMaskIntoConstraints = false
-        containerView.isHidden = true
-
-        let imageView = UIImageView(image: UIImage(named: "archivePlaceholder")!)
+    private lazy var emptyPlaceholderView: UIStackView = {
+        let stack = UIStackView()
+        stack.axis = .vertical
+        stack.alignment = .center
+        
+        let imageView = UIImageView(image: UIImage(named: "archivePlaceholder"))
         imageView.contentMode = .scaleAspectFit
-        imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.tintColor = .tertiarySystemFill
-
-        let textLabel = UILabel()
-        textLabel.text = Localizations.emptyStatePlaceholder
-        textLabel.numberOfLines = 0
-        textLabel.textAlignment = .center
-        textLabel.translatesAutoresizingMaskIntoConstraints = false
-        textLabel.textColor = .tertiaryLabel
-
-        containerView.addSubview(imageView)
-        containerView.addSubview(textLabel)
-
-        imageView.widthAnchor.constraint(equalToConstant: 55).isActive = true
-        imageView.heightAnchor.constraint(equalToConstant: 55).isActive = true
-        imageView.centerXAnchor.constraint(equalTo: containerView.centerXAnchor).isActive = true
-        imageView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor).isActive = true
-
-        textLabel.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 16).isActive = true
-        textLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 4).isActive = true
-        textLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -4).isActive = true
-
-        return containerView
+        
+        let label = UILabel()
+        label.text = Localizations.emptyStatePlaceholder
+        label.numberOfLines = 0
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = .tertiaryLabel
+        
+        stack.addArrangedSubview(imageView)
+        stack.addArrangedSubview(label)
+        
+        NSLayoutConstraint.activate([
+            imageView.widthAnchor.constraint(equalToConstant: 55),
+            imageView.heightAnchor.constraint(equalToConstant: 55),
+        ])
+        
+        return stack
     }()
     
     override func viewDidLoad() {
@@ -80,7 +75,11 @@ class SettingsArchiveViewController: UIViewController, UICollectionViewDelegate,
         feedDataSource.setup()
         
         view.addSubview(emptyPlaceholderView)
-        emptyPlaceholderView.constrain(to: view)
+        emptyPlaceholderView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            emptyPlaceholderView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            emptyPlaceholderView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+        ])
 
         view.addSubview(collectionView)
         collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
@@ -144,7 +143,7 @@ class SettingsArchiveViewController: UIViewController, UICollectionViewDelegate,
 
 // MARK: - FeedDataSourceDelegate methods
 
-extension SettingsArchiveViewController: FeedDataSourceDelegate {
+extension ArchiveViewController: FeedDataSourceDelegate {
     func itemsDidChange(_ items: [FeedDisplayItem]) {
         DispatchQueue.main.async {
             self.update(with: items.compactMap({ $0.post }))

@@ -35,7 +35,7 @@ extension UIViewController {
 
     @objc
     private func presentProfile(_ sender: AnyObject) {
-        let profile = SettingsViewController(title: Localizations.titleSettings)
+        let profile = ProfileViewController(nibName: nil, bundle: nil)
         let nav = UINavigationController(rootViewController: profile)
         present(nav, animated: true)
     }

@@ -229,7 +229,7 @@
 		766103AA2461F08A00728870 /* FeedPostInfo+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766103A82461F08A00728870 /* FeedPostInfo+CoreDataClass.swift */; };
 		766103AB2461F08A00728870 /* FeedPostInfo+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766103A92461F08A00728870 /* FeedPostInfo+CoreDataProperties.swift */; };
 		7661D947255A5E3A0063404E /* Localizable.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = 7661D945255A5E3A0063404E /* Localizable.stringsdict */; };
-		7661D958255B184C0063404E /* SettingsNotificationsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7661D957255B184C0063404E /* SettingsNotificationsViewController.swift */; };
+		7661D958255B184C0063404E /* NotificationSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7661D957255B184C0063404E /* NotificationSettingsViewController.swift */; };
 		766492232450DDB9009BC368 /* BadgedButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766492222450DDB9009BC368 /* BadgedButton.swift */; };
 		766492252450E04D009BC368 /* BadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766492242450E04D009BC368 /* BadgeView.swift */; };
 		76649227245119F2009BC368 /* FeedActivityObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76649226245119F2009BC368 /* FeedActivityObserver.swift */; };
@@ -265,6 +265,9 @@
 		76FE37ED2523EC9600372FB1 /* ContactPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */; };
 		A111BDFC27C96D9100E5DB4E /* UserMenuHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A111BDFB27C96D9100E5DB4E /* UserMenuHandler.swift */; };
 		A15B2D96283EA9A0000CE989 /* LargeHitButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15B2D95283EA9A0000CE989 /* LargeHitButton.swift */; };
+		A15E6C782809FA1B008CAEA0 /* ProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15E6C772809FA1B008CAEA0 /* ProfileViewController.swift */; };
+		A15E6C80280DD778008CAEA0 /* FeedArchiveViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15E6C7F280DD778008CAEA0 /* FeedArchiveViewController.swift */; };
+		A15E6C84280F1AA6008CAEA0 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15E6C83280F1AA6008CAEA0 /* SettingsViewController.swift */; };
 		A17DCD7027C0885F00E00073 /* ExpandableTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17DCD6F27C0885F00E00073 /* ExpandableTextView.swift */; };
 		A1AE40CB282DAB3F00C3EF3A /* QuotedMomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AE40CA282DAB3F00C3EF3A /* QuotedMomentView.swift */; };
 		A1AE40CF283DA7DB00C3EF3A /* QuotedMediaPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AE40CE283DA7DB00C3EF3A /* QuotedMediaPanel.swift */; };
@@ -272,6 +275,7 @@
 		A1AFE776281FAA6B008BBC80 /* MomentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AFE775281FAA6B008BBC80 /* MomentViewController.swift */; };
 		A1AFE7782821E135008BBC80 /* MomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AFE7772821E135008BBC80 /* MomentView.swift */; };
 		A1AFE77B28243E42008BBC80 /* MomentPromptCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AFE77A28243E42008BBC80 /* MomentPromptCollectionViewCell.swift */; };
+		A193F57128107A9B00B13D4B /* InsetCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A193F57028107A9B00B13D4B /* InsetCollectionView.swift */; };
 		A1C18C7C27A1EC9100A76102 /* HalloCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C18C7B27A1EC9100A76102 /* HalloCode.swift */; };
 		A1C18C7F27A1ED8C00A76102 /* HalloCodeTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C18C7E27A1ED8C00A76102 /* HalloCodeTest.swift */; };
 		A1EE101827ECDE0F00148CEB /* UnknownContactSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1EE101527ECDE0E00148CEB /* UnknownContactSheetViewController.swift */; };
@@ -297,9 +301,9 @@
 		E5AFB4C726BC5C74002CE127 /* FeedPostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5AFB4C626BC5C74002CE127 /* FeedPostView.swift */; };
 		E5B9EAB8265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5B9EAB7265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift */; };
 		E5CB831B26A0F17100C18ACA /* ActivityCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5CB831A26A0F17100C18ACA /* ActivityCenter.swift */; };
-		E5CE660226B354EC0093944A /* SettingsArchiveViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5CE660126B354EC0093944A /* SettingsArchiveViewController.swift */; };
+		E5CE660226B354EC0093944A /* ArchiveViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5CE660126B354EC0093944A /* ArchiveViewController.swift */; };
 		E5D66D1C266954A200B23887 /* CommentDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D66D1B266954A200B23887 /* CommentDraft.swift */; };
-		E5D951E826990D3600179289 /* AccountListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D951E726990D3600179289 /* AccountListViewController.swift */; };
+		E5D951E826990D3600179289 /* AccountSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D951E726990D3600179289 /* AccountSettingsViewController.swift */; };
 		E5FC71E9268A986000B72B12 /* ExportDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5FC71E8268A986000B72B12 /* ExportDataView.swift */; };
 		EA039C6326C49BC4002CC4CF /* EditGroupDescViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA039C6226C49BC4002CC4CF /* EditGroupDescViewController.swift */; };
 		EA0B9917249C1FFB00B05094 /* Character.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0B9916249C1FFB00B05094 /* Character.swift */; };
@@ -313,7 +317,6 @@
 		EA3585732450BE2900E6E8AB /* ChatData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA35856F2450BE2900E6E8AB /* ChatData.swift */; };
 		EA3585792450BE3300E6E8AB /* ChatViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA3585742450BE3300E6E8AB /* ChatViewController.swift */; };
 		EA388C5C2520EB9500DEAB53 /* Banner.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA388C5B2520EB9500DEAB53 /* Banner.swift */; };
-		EA454B64234E769F002B960D /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454B63234E769F002B960D /* SettingsViewController.swift */; };
 		EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713223EB7DB3008C2E44 /* FeedMedia.swift */; };
 		EA45713D23EB7F47008C2E44 /* MediaCarouselView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713C23EB7F47008C2E44 /* MediaCarouselView.swift */; };
 		EA50FBA426FE82D00097C451 /* HAMarkdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA50FBA326FE82D00097C451 /* HAMarkdown.swift */; };
@@ -975,7 +978,7 @@
 		766103A92461F08A00728870 /* FeedPostInfo+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "FeedPostInfo+CoreDataProperties.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostInfo+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		7661D946255A5E3A0063404E /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = Base; path = HalloApp/Base.lproj/Localizable.stringsdict; sourceTree = SOURCE_ROOT; };
 		7661D94E255A5ECB0063404E /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = Base; path = Base.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
-		7661D957255B184C0063404E /* SettingsNotificationsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsNotificationsViewController.swift; path = HalloApp/Views/Settings/SettingsNotificationsViewController.swift; sourceTree = SOURCE_ROOT; };
+		7661D957255B184C0063404E /* NotificationSettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NotificationSettingsViewController.swift; path = HalloApp/Views/Settings/NotificationSettingsViewController.swift; sourceTree = SOURCE_ROOT; };
 		766492222450DDB9009BC368 /* BadgedButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BadgedButton.swift; path = HalloApp/Components/Views/BadgedButton.swift; sourceTree = SOURCE_ROOT; };
 		766492242450E04D009BC368 /* BadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BadgeView.swift; path = HalloApp/Components/Views/BadgeView.swift; sourceTree = SOURCE_ROOT; };
 		76649226245119F2009BC368 /* FeedActivityObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedActivityObserver.swift; path = HalloApp/Models/Feed/FeedActivityObserver.swift; sourceTree = SOURCE_ROOT; };
@@ -1007,6 +1010,9 @@
 		76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContactPickerViewController.swift; path = HalloApp/Components/Views/ContactPickerViewController.swift; sourceTree = SOURCE_ROOT; };
 		A111BDFB27C96D9100E5DB4E /* UserMenuHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserMenuHandler.swift; path = Halloapp/Views/Home/UserMenuHandler.swift; sourceTree = SOURCE_ROOT; };
 		A15B2D95283EA9A0000CE989 /* LargeHitButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargeHitButton.swift; sourceTree = "<group>"; };
+		A15E6C772809FA1B008CAEA0 /* ProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewController.swift; sourceTree = "<group>"; };
+		A15E6C7F280DD778008CAEA0 /* FeedArchiveViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedArchiveViewController.swift; sourceTree = "<group>"; };
+		A15E6C83280F1AA6008CAEA0 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		A17DCD6F27C0885F00E00073 /* ExpandableTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpandableTextView.swift; sourceTree = "<group>"; };
 		A1AE40CA282DAB3F00C3EF3A /* QuotedMomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotedMomentView.swift; sourceTree = "<group>"; };
 		A1AE40CE283DA7DB00C3EF3A /* QuotedMediaPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotedMediaPanel.swift; sourceTree = "<group>"; };
@@ -1014,6 +1020,7 @@
 		A1AFE775281FAA6B008BBC80 /* MomentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentViewController.swift; sourceTree = "<group>"; };
 		A1AFE7772821E135008BBC80 /* MomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentView.swift; sourceTree = "<group>"; };
 		A1AFE77A28243E42008BBC80 /* MomentPromptCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentPromptCollectionViewCell.swift; sourceTree = "<group>"; };
+		A193F57028107A9B00B13D4B /* InsetCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsetCollectionView.swift; sourceTree = "<group>"; };
 		A1C18C7B27A1EC9100A76102 /* HalloCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloCode.swift; sourceTree = "<group>"; };
 		A1C18C7E27A1ED8C00A76102 /* HalloCodeTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloCodeTest.swift; sourceTree = "<group>"; };
 		A1EE101527ECDE0E00148CEB /* UnknownContactSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnknownContactSheetViewController.swift; sourceTree = "<group>"; };
@@ -1036,9 +1043,9 @@
 		E5AFB4C626BC5C74002CE127 /* FeedPostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostView.swift; sourceTree = "<group>"; };
 		E5B9EAB7265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPermissionTutorialAlert.swift; sourceTree = "<group>"; };
 		E5CB831A26A0F17100C18ACA /* ActivityCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityCenter.swift; sourceTree = "<group>"; };
-		E5CE660126B354EC0093944A /* SettingsArchiveViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsArchiveViewController.swift; sourceTree = "<group>"; };
+		E5CE660126B354EC0093944A /* ArchiveViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveViewController.swift; sourceTree = "<group>"; };
 		E5D66D1B266954A200B23887 /* CommentDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentDraft.swift; sourceTree = "<group>"; };
-		E5D951E726990D3600179289 /* AccountListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountListViewController.swift; sourceTree = "<group>"; };
+		E5D951E726990D3600179289 /* AccountSettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountSettingsViewController.swift; sourceTree = "<group>"; };
 		E5FC71E8268A986000B72B12 /* ExportDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportDataView.swift; sourceTree = "<group>"; };
 		EA039C6226C49BC4002CC4CF /* EditGroupDescViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditGroupDescViewController.swift; sourceTree = "<group>"; };
 		EA0B9916249C1FFB00B05094 /* Character.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Character.swift; sourceTree = "<group>"; };
@@ -1052,7 +1059,6 @@
 		EA35856F2450BE2900E6E8AB /* ChatData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChatData.swift; sourceTree = "<group>"; wrapsLines = 0; };
 		EA3585742450BE3300E6E8AB /* ChatViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChatViewController.swift; sourceTree = "<group>"; };
 		EA388C5B2520EB9500DEAB53 /* Banner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Banner.swift; sourceTree = "<group>"; };
-		EA454B63234E769F002B960D /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		EA45713223EB7DB3008C2E44 /* FeedMedia.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedMedia.swift; sourceTree = "<group>"; };
 		EA45713C23EB7F47008C2E44 /* MediaCarouselView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCarouselView.swift; sourceTree = "<group>"; };
 		EA50FBA326FE82D00097C451 /* HAMarkdown.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HAMarkdown.swift; sourceTree = "<group>"; };
@@ -1531,6 +1537,7 @@
 				F41FAA4127E52B7E00FC5090 /* BottomSheetViewController.swift */,
 				F49C8E622835A52900E881E3 /* RoundedRectButton.swift */,
 				F4C29B15283D5A4C00A4FE08 /* MediaImageView.swift */,
+				A193F57028107A9B00B13D4B /* InsetCollectionView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -1585,9 +1592,9 @@
 				764AB42224A71D3D00D4E354 /* Privacy */,
 				EAA34C06270F9E7400BCF1BD /* Storage */,
 				EA27792425BA3E35009CA884 /* About */,
-				EA454B63234E769F002B960D /* SettingsViewController.swift */,
+				A15E6C83280F1AA6008CAEA0 /* SettingsViewController.swift */,
 				761C6160242D2AE50028AE19 /* DeveloperMenuView.swift */,
-				7661D957255B184C0063404E /* SettingsNotificationsViewController.swift */,
+				7661D957255B184C0063404E /* NotificationSettingsViewController.swift */,
 				76333084254A352100A1ED68 /* SettingsTableViewCell.swift */,
 				7633307E254A331D00A1ED68 /* HelpViewController.swift */,
 				686CDFBB2548A6C200DB7266 /* RegistrationDemo.swift */,
@@ -1737,7 +1744,7 @@
 		E59596EE268D24D500AA3BB9 /* Account */ = {
 			isa = PBXGroup;
 			children = (
-				E5D951E726990D3600179289 /* AccountListViewController.swift */,
+				E5D951E726990D3600179289 /* AccountSettingsViewController.swift */,
 				E5FC71E4268A70F000B72B12 /* Export */,
 				E59596FD268E3F2400AA3BB9 /* Delete */,
 			);
@@ -1758,7 +1765,7 @@
 		E5CE65FF26B354C70093944A /* Archive */ = {
 			isa = PBXGroup;
 			children = (
-				E5CE660126B354EC0093944A /* SettingsArchiveViewController.swift */,
+				E5CE660126B354EC0093944A /* ArchiveViewController.swift */,
 				F88A5CD827145F0800DFA205 /* PostViewController.swift */,
 			);
 			path = Archive;
@@ -1801,6 +1808,8 @@
 		EA27791725BA3C66009CA884 /* Profile */ = {
 			isa = PBXGroup;
 			children = (
+				A15E6C772809FA1B008CAEA0 /* ProfileViewController.swift */,
+				A15E6C7F280DD778008CAEA0 /* FeedArchiveViewController.swift */,
 				76E00DF324FEC2FC00E06252 /* ProfileHeaderViewController.swift */,
 				769CD3AB255CDB8D006F21BB /* NameEditViewController.swift */,
 				68B5C22C264C6F3F004C7939 /* SafetyNumberViewController.swift */,
@@ -2846,6 +2855,7 @@
 				F8003DDE24D7C30D00628719 /* MediaPickerViewController.swift in Sources */,
 				A1AE40CF283DA7DB00C3EF3A /* QuotedMediaPanel.swift in Sources */,
 				EA0B991B249C228700B05094 /* DateFormatter.swift in Sources */,
+				A193F57128107A9B00B13D4B /* InsetCollectionView.swift in Sources */,
 				EA796B9C2469DDF100BC795E /* ChatQuotedLegacy+CoreDataProperties.swift in Sources */,
 				EAB1FFEF2509D73000256365 /* ChatGroupMessageEvent+CoreDataProperties.swift in Sources */,
 				EA79C6FD2554E89400E0525F /* Localizations+Chat.swift in Sources */,
@@ -2866,6 +2876,7 @@
 				76538091243D4B33000AD9A1 /* FeedNotification+CoreDataClass.swift in Sources */,
 				761442C9245D4DE500DD9D1A /* UIButton.swift in Sources */,
 				768123A42485C56E008C5216 /* MainAppContext.swift in Sources */,
+				A15E6C80280DD778008CAEA0 /* FeedArchiveViewController.swift in Sources */,
 				E5230B2B267AABCA0046A2EB /* Intents.intentdefinition in Sources */,
 				A1EE101827ECDE0F00148CEB /* UnknownContactSheetViewController.swift in Sources */,
 				EA27790925B91E58009CA884 /* PrivacyViewController.swift in Sources */,
@@ -2940,13 +2951,13 @@
 				A1AE40CB282DAB3F00C3EF3A /* QuotedMomentView.swift in Sources */,
 				EA0B9919249C205E00B05094 /* String.swift in Sources */,
 				F8FAA14526CCF5B5008282EF /* AudioRecorderControlView.swift in Sources */,
-				7661D958255B184C0063404E /* SettingsNotificationsViewController.swift in Sources */,
+				7661D958255B184C0063404E /* NotificationSettingsViewController.swift in Sources */,
 				3250C60527D010370032FEC4 /* Localizations+Registration.swift in Sources */,
 				6832F4FD24FEE97800A9C202 /* ProtoService.swift in Sources */,
 				E55B6099268B80C800A322DC /* ExportDataModel.swift in Sources */,
 				E5CB831B26A0F17100C18ACA /* ActivityCenter.swift in Sources */,
 				A1C18C7C27A1EC9100A76102 /* HalloCode.swift in Sources */,
-				E5D951E826990D3600179289 /* AccountListViewController.swift in Sources */,
+				E5D951E826990D3600179289 /* AccountSettingsViewController.swift in Sources */,
 				32C83FB9268FC8FE00BEB4F5 /* NewChatPermissionDeniedController.swift in Sources */,
 				EAB1FFEE2509D73000256365 /* ChatGroupMessageEvent+CoreDataClass.swift in Sources */,
 				76538095243D4B33000AD9A1 /* FeedPostMedia+CoreDataClass.swift in Sources */,
@@ -2997,6 +3008,7 @@
 				326A757D28400B500058DFAA /* BlockedContactSheetViewController.swift in Sources */,
 				7639BA39251944920023850E /* NextLevelSessionExporter.swift in Sources */,
 				321A70112704FF13005603B8 /* FeedLinkPreview+CoreDataProperties.swift in Sources */,
+				A15E6C84280F1AA6008CAEA0 /* SettingsViewController.swift in Sources */,
 				EAD476F52458F03700EF8591 /* ChatThread+CoreDataProperties.swift in Sources */,
 				EAA34C09270F9EDF00BCF1BD /* StorageViewController.swift in Sources */,
 				762EDBDB244E344300986617 /* UIFont.swift in Sources */,
@@ -3007,6 +3019,7 @@
 				76B5B5322501F1700055E712 /* NotificationSettings.swift in Sources */,
 				68F935D3252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift in Sources */,
 				7653F302255DB7FE001CC946 /* FeedPostCollectionViewCell.swift in Sources */,
+				A15E6C782809FA1B008CAEA0 /* ProfileViewController.swift in Sources */,
 				323D787D27D7E25000C29FA1 /* MessageCellViewLinkPreview.swift in Sources */,
 				32ECB6E9277515DD004DABBA /* QuotedMessageCellView.swift in Sources */,
 				EABBF72624E4EDF100FE1F1F /* NewGroupMembersViewController.swift in Sources */,
@@ -3043,7 +3056,7 @@
 				EAA0798625AEAC9200B384AB /* GroupsListViewController.swift in Sources */,
 				329DFD56270CF70200B85CFF /* Feed4ToFeed5.xcmappingmodel in Sources */,
 				6A911F3C270EAF2E003DCB7A /* Feed5ToFeed6.xcmappingmodel in Sources */,
-				E5CE660226B354EC0093944A /* SettingsArchiveViewController.swift in Sources */,
+				E5CE660226B354EC0093944A /* ArchiveViewController.swift in Sources */,
 				76B5B52C2501EE790055E712 /* NotificationMetadata.swift in Sources */,
 				F88E5C95275A14D500290A89 /* MediaPickerPreview.swift in Sources */,
 				68C5696927AC600F00637B28 /* ChatDateMarkerCell.swift in Sources */,

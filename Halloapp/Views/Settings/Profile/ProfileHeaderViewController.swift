@@ -100,6 +100,11 @@ final class ProfileHeaderViewController: UIViewController, UserMenuHandler {
     func configureAsHorizontal() {
         headerView.configureAsHorizontal()
     }
+
+    func changeAvatarHeight(to: CGFloat) {
+        headerView.avatarViewButtonHeightAnchor?.constant = max(100, to)
+        view.setNeedsLayout()
+    }
     
     @objc func unblockButtonTappedprofile() {
         guard let userID = headerView.userID else { return }
@@ -391,7 +396,7 @@ private final class ProfileHeaderView: UIView {
 
     private var vStackTopAnchorConstraint: NSLayoutConstraint?
     private var vStackBottomAnchorConstraint: NSLayoutConstraint?
-    private var avatarViewButtonHeightAnchor: NSLayoutConstraint?
+    var avatarViewButtonHeightAnchor: NSLayoutConstraint?
     
     private func commonInit() {
         preservesSuperviewLayoutMargins = true

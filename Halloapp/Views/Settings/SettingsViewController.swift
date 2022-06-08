@@ -1,230 +1,70 @@
 //
-//  ProfileViewController.swift
+//  NewSettingsViewController.swift
 //  HalloApp
 //
-//  Created by Igor Solomennikov on 10/28/20.
-//  Copyright © 2020 HalloApp, Inc. All rights reserved.
+//  Created by Tanveer on 4/18/22.
+//  Copyright © 2022 HalloApp, Inc. All rights reserved.
 //
 
-import CocoaLumberjackSwift
-import Combine
-import Core
-import CoreCommon
-import SwiftUI
 import UIKit
+import CoreCommon
 
-private extension Localizations {
+class SettingsViewController: UIViewController, UICollectionViewDelegate {
+    private typealias Section = InsetCollectionView.Section
+    private typealias Item = InsetCollectionView.Item
 
-    static var archive: String {
-        NSLocalizedString("profile.row.archive", value: "Archive", comment: "Row in Profile screen.")
-    }
-
-    static var inviteFriends: String {
-        NSLocalizedString("profile.row.invite", value: "Invite to HalloApp", comment: "Row in Profile screen.")
-    }
-
-    static var help: String {
-        NSLocalizedString("profile.row.help", value: "Help", comment: "Row in Profile screen.")
-    }
-
-    static var about: String {
-        NSLocalizedString("profile.row.about", value: "About", comment: "Row in Profile screen.")
-    }
+    private lazy var collectionView: InsetCollectionView = {
+        let collectionView = InsetCollectionView()
+        let layout = InsetCollectionView.defaultLayout()
+        let config = InsetCollectionView.defaultLayoutConfiguration()
+        
+        layout.configuration = config
+        collectionView.collectionViewLayout = layout
+        return collectionView
+    }()
     
-    static var accountRow: String {
-        NSLocalizedString("profile.row.account", value: "Account", comment: "Row in Profile Screen")
-    }
-    
-    static var shareRow: String {
-        NSLocalizedString("profile.row.share", value: "Share HalloApp", comment: "Row in Profile Screen.")
-    }
-}
-
-class SettingsViewController: UITableViewController {
-
-    private var cancellables = Set<AnyCancellable>()
-    private var headerViewController: ProfileHeaderViewController!
-
-    // MARK: Table View Data Source and Rows
-
-    private enum Section {
-        case one
-        case two
-        case three
-    }
-
-    private enum Row {
-        case profile
-        case feed
-        case archive
-        case settings
-        case notifications
-        case privacy
-        case invite
-        case help
-        case about
-        case account
-        case share
-    }
-
-    private var dataSource: UITableViewDiffableDataSource<Section, Row>!
-    private let cellProfile = UITableViewCell()
-    private let cellMyPosts = SettingsTableViewCell(text: Localizations.titleMyPosts, image: UIImage(named: "settingsMyPosts"))
-    private let cellArchive = SettingsTableViewCell(text: Localizations.archive, image: UIImage(named: "settingsArchive"))
-    private let cellSettings = SettingsTableViewCell(text: Localizations.titleSettings, image: UIImage(named: "settingsSettings"))
-    private let cellNotifications = SettingsTableViewCell(text: Localizations.titleNotifications, image: UIImage(named: "settingsNotifications"))
-    private let cellPrivacy = SettingsTableViewCell(text: Localizations.titlePrivacy, image: UIImage(named: "settingsPrivacy"))
-    private let cellInviteFriends = SettingsTableViewCell(text: Localizations.inviteFriends, image: UIImage(named: "settingsInvite"))
-    private let cellHelp = SettingsTableViewCell(text: Localizations.help, image: UIImage(named: "settingsHelp"))
-    private let cellAbout = SettingsTableViewCell(text: Localizations.about, image: UIImage(named: "settingsAbout"))
-    private let cellAccount = SettingsTableViewCell(text: Localizations.accountRow, image: UIImage(named: "settingsAccount"))
-    private let cellShare = SettingsTableViewCell(text: Localizations.shareRow, image: UIImage(named: "settingsShare"))
-
-    // MARK: View Controller
-
-    init(title: String) {
-        super.init(style: .insetGrouped)
-        self.title = title
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        #if DEBUG
-        let showDeveloperMenu = true
-        #else
-        let showDeveloperMenu = ServerProperties.isInternalUser
-        #endif
-        if showDeveloperMenu {
-            let image = UIImage(systemName: "hammer", withConfiguration: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))
-            navigationItem.rightBarButtonItem = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(openDeveloperMenu))
-        }
-
-        tableView.backgroundColor = .feedBackground
-        tableView.separatorStyle = .none
-        tableView.tableHeaderView = UIView(frame: CGRect(x: 0, y: 0, width: 0, height: 10))
-
-        dataSource = UITableViewDiffableDataSource<Section, Row>(tableView: tableView, cellProvider: { [weak self] (_, _, row) -> UITableViewCell? in
-            guard let self = self else { return nil }
-            switch row {
-            case .profile: return self.cellProfile
-            case .feed: return self.cellMyPosts
-            case .archive: return self.cellArchive
-            case .settings: return self.cellSettings
-            case .notifications: return self.cellNotifications
-            case .privacy: return self.cellPrivacy
-            case .invite: return self.cellInviteFriends
-            case .help: return self.cellHelp
-            case .about: return self.cellAbout
-            case .account: return self.cellAccount
-            case .share: return self.cellShare
-            }
-        })
-        var snapshot = NSDiffableDataSourceSnapshot<Section, Row>()
-        snapshot.appendSections([ .one, .two, .three ])
-        snapshot.appendItems([ .profile, .feed, .archive ], toSection: .one)
-        snapshot.appendItems([ .account, .notifications, .privacy ], toSection: .two)
-        snapshot.appendItems([ .help, .about, .invite, .share ], toSection: .three)
-        dataSource.apply(snapshot, animatingDifferences: false)
-
-        headerViewController = ProfileHeaderViewController()
-        headerViewController.isEditingAllowed = true
-        headerViewController.configureAsHorizontal()
+        title = Localizations.titleSettings
         
-        addChild(headerViewController)
-        headerViewController.didMove(toParent: self)
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(collectionView)
+        NSLayoutConstraint.activate([
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            collectionView.topAnchor.constraint(equalTo: view.topAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
         
-        cellProfile.contentView.addSubview(headerViewController.view)
-        cellProfile.separatorInset = .zero
-
-        headerViewController.view.translatesAutoresizingMaskIntoConstraints = false
-        headerViewController.view.constrain(to: cellProfile.contentView)
+        collectionView.delegate = self
+        collectionView.backgroundColor = .primaryBg
         
-        cancellables.insert(MainAppContext.shared.userData.userNamePublisher.sink(receiveValue: { [weak self] (userName) in
-            guard let self = self else { return }
-            self.headerViewController.configureForCurrentUser(withName: userName)
-            self.viewIfLoaded?.setNeedsLayout()
-        }))
-        
+        buildCollection()
     }
-
-    override func viewWillAppear(_ animated: Bool) {
-        DDLogInfo("SettingsViewController/viewWillAppear")
-        super.viewWillAppear(animated)
-
-        // This VC pushes SwiftUI views that hide the tab bar and use `navigationBarTitle` to display custom titles.
-        // These titles aren't reset when the SwiftUI views are dismissed, so we need to manually update the title
-        // here or the tab bar will show the wrong title when it reappears.
-        navigationController?.title = title
-    }
-
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-
-        // Update header's height: necessary when user changes text size setting.
-        if let headerView = tableView.tableHeaderView {
-            var targetSize = UIView.layoutFittingCompressedSize
-            targetSize.width = tableView.bounds.width
-            let headerViewHeight = headerView.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel).height
-            if headerView.bounds.height != headerViewHeight {
-                headerView.bounds.size.height = headerViewHeight
-                tableView.tableHeaderView = headerView
+    
+    private func buildCollection() {
+        collectionView.apply(InsetCollectionView.Collection() {
+            Section() {
+                Item(title: Localizations.titleNotifications, action: { [weak self] in self?.openNotificationsSettings() })
+                Item(title: Localizations.titlePrivacy, action: { [weak self] in self?.openPrivacy() })
+                Item(title: Localizations.accountRow, action: { [weak self] in self?.openAccount() })
             }
         }
+        .seperators()
+        .disclosure())
     }
-
-    // MARK: Presenting View Controllers
-
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let row = dataSource.itemIdentifier(for: indexPath) else { return }
-        switch row {
-        case .profile:
-            break
-        case .feed:
-            openMyFeed()
-        case .archive:
-            openArchive()
-        case .settings:
-            openSettings()
-        case .notifications:
-            openNotifications()
-        case .privacy:
-            openPrivacy()
-        case .invite:
-            openInviteFriends()
-        case .help:
-            openHelp()
-        case .about:
-            openAbout()
-        case .account:
-            openAccountSettings()
-        case .share: openShareMenu()
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard let item = self.collectionView.data.itemIdentifier(for: indexPath) as? Item else {
+            return
         }
+        
+        collectionView.deselectItem(at: indexPath, animated: true)
+        item.action?()
     }
-
-    private func openMyFeed() {
-        let viewController = UserFeedViewController(userId: MainAppContext.shared.userData.userId)
-        navigationController?.pushViewController(viewController, animated: true)
-    }
-
-    private func openArchive() {
-        let viewController = SettingsArchiveViewController()
-        viewController.hidesBottomBarWhenPushed = true
-        navigationController?.pushViewController(viewController, animated: true)
-    }
-
-    private func openSettings() {
-        let viewController = SettingsNotificationsViewController()
-        viewController.hidesBottomBarWhenPushed = false
-        navigationController?.pushViewController(viewController, animated: true)
-    }
-
-    private func openNotifications() {
-        let viewController = SettingsNotificationsViewController()
+    
+    private func openNotificationsSettings() {
+        let viewController = NotificationSettingsViewController()
         viewController.hidesBottomBarWhenPushed = false
         navigationController?.pushViewController(viewController, animated: true)
     }
@@ -234,58 +74,20 @@ class SettingsViewController: UITableViewController {
         viewController.hidesBottomBarWhenPushed = false
         navigationController?.pushViewController(viewController, animated: true)
     }
-
-    private func openInviteFriends() {
-        if let indexPath = self.dataSource.indexPath(for: .invite) {
-            self.tableView.deselectRow(at: indexPath, animated: true)
-        }
-        
-        guard ContactStore.contactsAccessAuthorized else {
-            let inviteVC = InvitePermissionDeniedViewController()
-            present(UINavigationController(rootViewController: inviteVC), animated: true)
-            return
-        }
-        InviteManager.shared.requestInvitesIfNecessary()
-        let inviteVC = InviteViewController(manager: InviteManager.shared, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
-        present(UINavigationController(rootViewController: inviteVC), animated: true)
-    }
-
-    private func openHelp() {
-        let viewController = HelpViewController(title: Localizations.help)
+    
+    private func openAccount() {
+        let viewController = AccountSettingsViewController()
         viewController.hidesBottomBarWhenPushed = false
         navigationController?.pushViewController(viewController, animated: true)
     }
+}
 
-    private func openAbout() {
-        if let viewController = UIStoryboard.init(name: "AboutView", bundle: Bundle.main).instantiateInitialViewController() {
-            viewController.hidesBottomBarWhenPushed = false
-            navigationController?.pushViewController(viewController, animated: true)
-        }
-    }
-    
-    private func openAccountSettings() {
-        let viewController = SettingsAccountViewController() // UIHostingController(rootView: AccountSettingsList())
-        viewController.hidesBottomBarWhenPushed = false
-        navigationController?.pushViewController(viewController, animated: true)
-    }
-    
-    private func openShareMenu() {
-        if let indexPath = self.dataSource.indexPath(for: .share) {
-            self.tableView.deselectRow(at: indexPath, animated: true)
-        }
-        
-        let ac = UIActivityViewController(activityItems: [Localizations.shareHalloAppString], applicationActivities: nil)
-        present(ac, animated: true)
-    }
+// MARK: - localization
 
-    @objc private func openDeveloperMenu() {
-        var developerMenuView = DeveloperMenuView()
-        developerMenuView.dismiss = {
-            self.navigationController?.popViewController(animated: true)
-        }
-        let viewController = UIHostingController(rootView: developerMenuView)
-        viewController.hidesBottomBarWhenPushed = true
-        viewController.title = "Developer Menu"
-        navigationController?.pushViewController(viewController, animated: true)
+extension Localizations {
+    static var accountRow: String {
+        NSLocalizedString("profile.row.account",
+                   value: "Account",
+                 comment: "Row in Profile Screen")
     }
 }

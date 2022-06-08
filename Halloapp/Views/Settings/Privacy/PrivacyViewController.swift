@@ -10,158 +10,109 @@ import Core
 import CoreCommon
 import SwiftUI
 import UIKit
+import Combine
 
-private extension Localizations {
+class PrivacyViewController: UIViewController, UICollectionViewDelegate {
 
-    static var privacy: String {
-        NSLocalizedString("settings.privacy", value: "Privacy", comment: "Settings menu section")
-    }
-
-    static var postsPrivacy: String {
-        NSLocalizedString("settings.privacy.posts", value: "Posts", comment: "Settings > Privacy: name of a setting that defines who can see your posts.")
-    }
-}
-
-class PrivacyViewController: UITableViewController {
-
-    // MARK: Table View Data Source and Rows
-
-    private enum Section {
-        case privacy
-    }
-
-    private enum Row {
-        case privacyPosts
-        case privacyBlocked
-    }
-
-    private var dataSource: UITableViewDiffableDataSource<Section, Row>!
-    private var switchPostNotifications: UISwitch!
-    private var switchCommentNotifications: UISwitch!
-    private let cellPostsPrivacy: UITableViewCell = {
-        let cell = UITableViewCell(style: .value1, reuseIdentifier: nil)
-        cell.accessoryType = .disclosureIndicator
-        cell.textLabel?.text = Localizations.postsPrivacy
-        return cell
+    private lazy var collectionView: InsetCollectionView = {
+       let collectionView = InsetCollectionView()
+        let layout = InsetCollectionView.defaultLayout()
+        let config = InsetCollectionView.defaultLayoutConfiguration()
+        
+        layout.configuration = config
+        collectionView.collectionViewLayout = layout
+        return collectionView
     }()
-    private let cellBlockedContacts: UITableViewCell = {
-        let cell = UITableViewCell(style: .value1, reuseIdentifier: nil)
-        cell.accessoryType = .disclosureIndicator
-        cell.textLabel?.text = PrivacyList.name(forPrivacyListType: .blocked)
-        return cell
+    
+    private lazy var blockedAccessoryLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 17)
+        label.textColor = .secondaryLabel
+        label.text = MainAppContext.shared.privacySettings.blockedSetting
+        
+        return label
     }()
-
-    // MARK: View Controller
-
-    init() {
-        super.init(style: .insetGrouped)
-        title = Localizations.titlePrivacy
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
+    
+    private var cancellables: Set<AnyCancellable> = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        title = Localizations.titlePrivacy
 
-        tableView.backgroundColor = .feedBackground
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(collectionView)
+        NSLayoutConstraint.activate([
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            collectionView.topAnchor.constraint(equalTo: view.topAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
+        
+        view.backgroundColor = .feedBackground
+        collectionView.backgroundColor = nil
+        collectionView.delegate = self
 
-        dataSource = UITableViewDiffableDataSource<Section, Row>(tableView: tableView, cellProvider: { [weak self] (_, _, row) -> UITableViewCell? in
-            guard let self = self else { return nil }
-            switch row {
-            case .privacyPosts: return self.cellPostsPrivacy
-            case .privacyBlocked: return self.cellBlockedContacts
-            }
-        })
-
-        var snapshot = NSDiffableDataSourceSnapshot<Section, Row>()
-        snapshot.appendSections([ .privacy ])
-        snapshot.appendItems([ .privacyPosts, .privacyBlocked ], toSection: .privacy)
-        dataSource.apply(snapshot, animatingDifferences: false)
+        MainAppContext.shared.privacySettings.$blockedSetting.receive(on: DispatchQueue.main).sink { [weak self] value in
+            self?.buildCollection()
+        }.store(in: &cancellables)
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        reloadPrivacyValues()
     }
 
-    // MARK: UITableViewDelegate
+    private func buildCollection() {
+        let title = PrivacyList.name(forPrivacyListType: .blocked)
+        let blockedUsers = MainAppContext.shared.privacySettings.blockedSetting
 
-    override func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
-        guard let cell = tableView.cellForRow(at: indexPath) else {
-            return nil
+        collectionView.apply(InsetCollectionView.Collection {
+            InsetCollectionView.Section {
+                InsetCollectionView.Item(title: title,
+                                         style: .label(string: blockedUsers),
+                                        action: { [weak self] in self?.openBlockedContacts() })
+            }
         }
-        guard cell.selectionStyle != .none else {
-            return nil
-        }
-        return indexPath
+        .seperators()
+        .disclosure())
     }
-
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let row = dataSource.itemIdentifier(for: indexPath) else {
-            tableView.deselectRow(at: indexPath, animated: true)
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard let item = self.collectionView.data.itemIdentifier(for: indexPath) as? InsetCollectionView.Item else {
             return
         }
-
-        switch row {
-        case .privacyPosts:
-            openPostsPrivacy()
-        case .privacyBlocked:
-            openBlockedContacts()
-        }
-
-    }
-
-    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 54
-    }
-
-    // MARK: Settings
-
-    @objc private func postNotificationsValueChanged() {
-        NotificationSettings.current.isPostsEnabled = switchPostNotifications.isOn
-    }
-
-    @objc private func commentNotificationsValueChanged() {
-        NotificationSettings.current.isCommentsEnabled = switchCommentNotifications.isOn
-    }
-
-    private func reloadPrivacyValues() {
-        let privacySettings = MainAppContext.shared.privacySettings
-        cellPostsPrivacy.detailTextLabel?.text = privacySettings.shortFeedSetting
-        cellBlockedContacts.detailTextLabel?.text = privacySettings.blockedSetting
-    }
-
-    private func openPostsPrivacy() {
-        let privacySettings = MainAppContext.shared.privacySettings
-        let feedPrivacyVC = UIHostingController(rootView: FeedPrivacyView(privacySettings: privacySettings))
-        feedPrivacyVC.title = Localizations.privacy
-        navigationController?.pushViewController(feedPrivacyVC, animated: true)
+        
+        collectionView.deselectItem(at: indexPath, animated: true)
+        item.action?()
     }
 
     private func openBlockedContacts() {
         guard ContactStore.contactsAccessAuthorized else {
             let vc = PrivacyPermissionDeniedController()
-            present(UINavigationController(rootViewController: vc), animated: true) {
-                if let indexPathForSelectedRow = self.tableView.indexPathForSelectedRow {
-                    self.tableView.deselectRow(at: indexPathForSelectedRow, animated: false)
-                }
-            }
+            present(UINavigationController(rootViewController: vc), animated: true)
             return
         }
 
         let privacySettings = MainAppContext.shared.privacySettings
         let vc = ContactSelectionViewController.forPrivacyList(privacySettings.blocked, in: privacySettings, setActiveType: false) { [weak self] in
-            self?.reloadPrivacyValues()
             self?.dismiss(animated: true)
         }
-        present(UINavigationController(rootViewController: vc), animated: true) {
-            if let indexPathForSelectedRow = self.tableView.indexPathForSelectedRow {
-                self.tableView.deselectRow(at: indexPathForSelectedRow, animated: false)
-            }
-        }
+        
+        present(UINavigationController(rootViewController: vc), animated: true)
     }
-
 }
 
+// MARK: - localization
+
+private extension Localizations {
+    static var privacy: String {
+        NSLocalizedString("settings.privacy",
+                   value: "Privacy",
+                 comment: "Settings menu section")
+    }
+
+    static var postsPrivacy: String {
+        NSLocalizedString("settings.privacy.posts",
+                   value: "Posts",
+                 comment: "Settings > Privacy: name of a setting that defines who can see your posts.")
+    }
+}
