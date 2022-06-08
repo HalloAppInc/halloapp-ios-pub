@@ -1260,10 +1260,14 @@ fileprivate class AssetViewCell: UICollectionViewCell {
     }()
 
     lazy var favorite: UIImageView = {
-        let image = UIImage(systemName: "heart.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 20, weight: .bold))!.withTintColor(.init(white: 1.0, alpha: 0.6), renderingMode: .alwaysOriginal)
+        let image = UIImage(systemName: "heart.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 20, weight: .bold))!.withTintColor(.init(white: 1.0, alpha: 0.95), renderingMode: .alwaysOriginal)
         let favorite = UIImageView(image: image)
-        favorite.contentMode = .scaleAspectFit
         favorite.translatesAutoresizingMaskIntoConstraints = false
+        favorite.contentMode = .scaleAspectFit
+        favorite.layer.shadowColor = UIColor.black.cgColor
+        favorite.layer.shadowRadius = 4
+        favorite.layer.shadowOpacity = 0.25
+        favorite.layer.shadowPath = UIBezierPath(ovalIn: favorite.bounds).cgPath
 
         return favorite
     }()
