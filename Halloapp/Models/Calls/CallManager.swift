@@ -510,9 +510,10 @@ final class CallManager: NSObject, CXProviderDelegate {
 
     func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
         DDLogInfo("CallManager/CXStartCallAction/callUUID: \(action.callUUID)/begin")
-        if activeCallID == nil,
-           let details = callDetailsMap[action.callUUID] {
-
+        if let activeCallID = activeCallID {
+            DDLogError("CallManager/CXStartCallAction/callUUID: \(action.callUUID)/already in a call/activeCallID: \(activeCallID)")
+            action.fail()
+        } else if let details = callDetailsMap[action.callUUID] {
             // Save call to mainDataStore.
             MainAppContext.shared.mainDataStore.saveCall(callID: details.callID,
                                                          peerUserID: details.peerUserID,
@@ -576,7 +577,7 @@ final class CallManager: NSObject, CXProviderDelegate {
                 }
             }
         } else {
-            DDLogError("CallManager/CXStartCallAction/callUUID: \(action.callUUID)/unexpected failure")
+            DDLogError("CallManager/CXStartCallAction/callUUID: \(action.callUUID)/unexpected failure/callDetailsMap: \(callDetailsMap)")
             handleSystemError()
             action.fail()
             didCallFail.send()
