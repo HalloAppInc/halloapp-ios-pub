@@ -386,6 +386,7 @@
 		EAF3A1DA2334192000805FF9 /* HalloappTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1D92334192000805FF9 /* HalloappTests.swift */; };
 		EAF3A1E52334192000805FF9 /* HalloappUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1E42334192000805FF9 /* HalloappUITests.swift */; };
 		EBA8265D28418BAF00590507 /* VerificationCodeTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBA8265C28418BAF00590507 /* VerificationCodeTextField.swift */; };
+		EE969F642847EE49006F491A /* HAMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE969F632847EE49006F491A /* HAMenu.swift */; };
 		F404FC392810B135008313FF /* Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F404FC372810B135008313FF /* Core.framework */; };
 		F404FC3A2810B135008313FF /* Core.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F404FC372810B135008313FF /* Core.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F404FC3B2810B135008313FF /* CoreCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F404FC382810B135008313FF /* CoreCommon.framework */; };
@@ -1134,6 +1135,7 @@
 		EAF3A1E42334192000805FF9 /* HalloappUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloappUITests.swift; sourceTree = "<group>"; };
 		EAF3A1E62334192000805FF9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		EBA8265C28418BAF00590507 /* VerificationCodeTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationCodeTextField.swift; sourceTree = "<group>"; };
+		EE969F632847EE49006F491A /* HAMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HAMenu.swift; sourceTree = "<group>"; };
 		F404FC372810B135008313FF /* Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F404FC382810B135008313FF /* CoreCommon.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CoreCommon.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F4063F2E276836F50068B9ED /* ShareButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareButton.swift; sourceTree = "<group>"; };
@@ -1540,6 +1542,7 @@
 				F41FAA4127E52B7E00FC5090 /* BottomSheetViewController.swift */,
 				F49C8E622835A52900E881E3 /* RoundedRectButton.swift */,
 				F4C29B15283D5A4C00A4FE08 /* MediaImageView.swift */,
+				EE969F632847EE49006F491A /* HAMenu.swift */,
 				A193F57028107A9B00B13D4B /* InsetCollectionView.swift */,
 			);
 			path = Views;
@@ -3030,6 +3033,7 @@
 				F893C86F25E5213000068F00 /* VideoView.swift in Sources */,
 				A1FE82E527DEDB5900024641 /* HorizontalMetionPickerView.swift in Sources */,
 				761BD0FA24B3C6B800B567F6 /* InviteRequests.swift in Sources */,
+				EE969F642847EE49006F491A /* HAMenu.swift in Sources */,
 				F4D88F6B27D9873F00D706DA /* Toast.swift in Sources */,
 				EA7A386626782A4D0028F739 /* ActionTableViewCell.swift in Sources */,
 				EA3585732450BE2900E6E8AB /* ChatData.swift in Sources */,
