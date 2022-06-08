@@ -1322,9 +1322,6 @@
 /* Row in Settings screen */
 "profile.row.my.posts" = "Gönderilerim";
 
-/* Row in Profile Screen. */
-"profile.row.share" = "HalloApp'i paylaş";
-
 /* Title for the button allowing to select a new profile photo. */
 "profile.take.choose.photo" = "Fotoğraf çek ya da seç";
 

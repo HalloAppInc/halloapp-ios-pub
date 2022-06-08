@@ -1294,9 +1294,6 @@
 /* Row in Settings screen */
 "profile.row.my.posts" = "Mes publications";
 
-/* Row in Profile Screen. */
-"profile.row.share" = "Partager HalloApp";
-
 /* Title for the button allowing to select a new profile photo. */
 "profile.take.choose.photo" = "Prendre ou choisir une photo";
 

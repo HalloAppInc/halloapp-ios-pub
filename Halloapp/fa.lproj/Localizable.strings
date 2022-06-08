@@ -862,6 +862,9 @@
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "برای اطلاعات گروه اینجا کلیک کنید";
 
+/* More info menu item */
+"groupGridHeader.moreInfo" = "اطلاعات بیشتر";
+
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "شما به گروه جدیدی دعوت شده‌اید";
 
@@ -1336,9 +1339,6 @@
 
 /* Row in Settings screen */
 "profile.row.my.posts" = "پست‌های من";
-
-/* Row in Profile Screen. */
-"profile.row.share" = "به اشتراک گذاشتن هالواپ";
 
 /* Title for the button allowing to select a new profile photo. */
 "profile.take.choose.photo" = "عکس بگیرید یا انتخاب کنید";

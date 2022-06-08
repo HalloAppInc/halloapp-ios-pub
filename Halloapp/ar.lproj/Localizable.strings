@@ -1312,9 +1312,6 @@
 /* Row in Settings screen */
 "profile.row.my.posts" = "منشوراتي";
 
-/* Row in Profile Screen. */
-"profile.row.share" = "مشاركة هالوآب";
-
 /* Title for the button allowing to select a new profile photo. */
 "profile.take.choose.photo" = "التقاط أو اختيار صورة";
 

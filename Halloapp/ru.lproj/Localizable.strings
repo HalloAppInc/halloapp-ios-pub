@@ -1322,9 +1322,6 @@
 /* Row in Settings screen */
 "profile.row.my.posts" = "Мои посты";
 
-/* Row in Profile Screen. */
-"profile.row.share" = "Поделиться HalloApp";
-
 /* Title for the button allowing to select a new profile photo. */
 "profile.take.choose.photo" = "Сделать или выбрать фото";
 

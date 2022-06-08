@@ -1331,9 +1331,6 @@
 /* Row in Settings screen */
 "profile.row.my.posts" = "Meine Beiträge";
 
-/* Row in Profile Screen. */
-"profile.row.share" = "HalloApp teilen";
-
 /* Title for the button allowing to select a new profile photo. */
 "profile.take.choose.photo" = "Foto aufnehmen oder auswählen";
 

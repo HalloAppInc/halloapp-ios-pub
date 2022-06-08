@@ -253,6 +253,9 @@
 /* Text shown in the chat interface informing the user that the contact is blocked */
 "chat.blocked.contact.label" = "O contato está bloqueado. Toque para desbloquear";
 
+/* Title of the bottom sheet shown in the chat screen of a contact that is blocked. The bottom sheet contains an unblock button. */
+"chat.contact.is.blocked.title.label" = "O contato está bloqueado, você não receberá nenhuma mensagem até desbloqueá-lo.";
+
 /* Label for creating a new group */
 "chat.create.new.group" = "Criar novo grupo";
 
@@ -270,6 +273,9 @@
 
 /* Text shown in Chat when the security keys of the contact user is chatting with, have changed */
 "chat.event.security.keys.changed" = "Chaves de segurança com %@ alteradas";
+
+/* Chat entry that can be tapped to add the contact to address book */
+"chat.event.tap.to.add.contact" = "Toque para adicionar %@ ao seu catálogo de endereços";
 
 /* Message text shown with the user who joined the group via invite link */
 "chat.group.event.join" = "%@ entrou no grupo através do link de convite de grupo";
@@ -856,6 +862,9 @@
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Clique aqui para obter informações do grupo";
 
+/* More info menu item */
+"groupGridHeader.moreInfo" = "Mais informações";
+
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Você foi adicionado a um novo grupo";
 
@@ -1330,9 +1339,6 @@
 
 /* Row in Settings screen */
 "profile.row.my.posts" = "Minhas postagens";
-
-/* Row in Profile Screen. */
-"profile.row.share" = "Compartilhar o HalloApp";
 
 /* Title for the button allowing to select a new profile photo. */
 "profile.take.choose.photo" = "Tire ou escolha uma foto";

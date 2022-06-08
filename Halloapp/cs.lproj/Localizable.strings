@@ -1294,9 +1294,6 @@
 /* Row in Settings screen */
 "profile.row.my.posts" = "Moje příspěvky";
 
-/* Row in Profile Screen. */
-"profile.row.share" = "Sdílet HalloApp";
-
 /* Title for the button allowing to select a new profile photo. */
 "profile.take.choose.photo" = "Pořídit nebo vybrat fotku";
 

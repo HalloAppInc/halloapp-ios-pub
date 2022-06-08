@@ -862,6 +862,9 @@
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Tik hier voor groepsinformatie";
 
+/* More info menu item */
+"groupGridHeader.moreInfo" = "Meer Info";
+
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Je bent toegevoegd aan een nieuwe groep";
 
@@ -1336,9 +1339,6 @@
 
 /* Row in Settings screen */
 "profile.row.my.posts" = "Mijn Posts";
-
-/* Row in Profile Screen. */
-"profile.row.share" = "Deel HalloApp";
 
 /* Title for the button allowing to select a new profile photo. */
 "profile.take.choose.photo" = "Foto Maken of Kiezen";
