@@ -2161,8 +2161,10 @@ extension ChatData {
                           chatReplyMessageMediaIndex: 0,
                                                using: context)
 
-                let message = self.chatMessage(with: id, in: context)
-                continuation.resume(returning: message)
+                DispatchQueue.main.async {
+                    let message = self.chatMessage(with: id, in: self.viewContext)
+                    continuation.resume(returning: message)
+                }
             }
         }
     }
