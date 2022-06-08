@@ -210,11 +210,11 @@ class ImageServer {
     // Prevents having more than 3 instances of AVAssetReader
     private static let mediaProcessingSemaphore = DispatchSemaphore(value: 3)
 
-    // Re-ordering media items could change the index and this will create issues by referring to the wrong task.
-    // So we always rely on the url here to find the appropriate task.
-    private func find(url: URL, shouldStreamVideo: Bool? = nil) -> Task? {
+    private func find(url: URL, id: String? = nil, index: Int? = nil, shouldStreamVideo: Bool? = nil) -> Task? {
         taskQueue.sync {
             if let t = (tasks.first { $0.url == url && (shouldStreamVideo == nil || $0.shouldStreamVideo == shouldStreamVideo) }) {
+                return t
+            } else if let id = id, let index = index, let t = (tasks.first { $0.id == id && $0.index == index && (shouldStreamVideo == nil || $0.shouldStreamVideo == shouldStreamVideo) }) {
                 return t
             }
 
@@ -223,7 +223,7 @@ class ImageServer {
     }
 
     func attach(for url: URL, id: String? = nil, index: Int? = nil, completion: Completion? = nil) {
-        if let task = self.find(url: url) {
+        if let task = self.find(url: url, id: id, index: index) {
             task.id = id
             task.index = index
 
@@ -234,14 +234,12 @@ class ImageServer {
     }
 
     func prepare(_ type: CommonMediaType, url: URL, for id: String? = nil, index: Int? = nil, shouldStreamVideo: Bool, completion: Completion? = nil) {
-        DDLogDebug("ImageServer/prepare/type: \(type)/url: \(url)/id: \(String(describing: id))/index: \(String(describing: index))/shouldStreamVideo: \(shouldStreamVideo)")
         processingQueue.async { [weak self] in
             guard let self = self else { return }
 
-            if let task = self.find(url: url, shouldStreamVideo: shouldStreamVideo) {
+            if let task = self.find(url: url, id: id, index: index, shouldStreamVideo: shouldStreamVideo) {
                 task.id = id
                 task.index = index
-                DDLogDebug("ImageServer/prepare/task already exists/url: \(url)")
 
                 if let completion = completion {
                     task.callbacks.append(completion)

@@ -59,7 +59,6 @@ class DataStore: ShareExtensionDataStore {
                 let url = fileURL(forRelativeFilePath: relativeFilePath)
                 let path = Self.relativeFilePath(forFilename: "\(postOrMessageOrLinkPreviewId)-\(mediaIndex).processed", mediaType: mediaItem.type)
                 let output = fileURL(forRelativeFilePath: path)
-                DDLogDebug("SharedDataStore/upload-media/mediaItem: \(mediaItem)/mediaIndex: \(mediaIndex)/type: \(mediaItem.type)/url: \(url)/output: \(output)")
                 let shouldStreamVideo = mediaItem.blobVersion == .chunked
 
                 ImageServer.shared.prepare(mediaItem.type, url: url, for: mediaProcessingId, index: Int(mediaIndex), shouldStreamVideo: shouldStreamVideo) { [weak self] in
