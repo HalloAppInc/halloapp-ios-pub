@@ -167,31 +167,37 @@ final class VideoUtils {
 
         // Resize video (if necessary) keeping aspect ratio.
         let track = avAsset.tracks(withMediaType: AVMediaType.video).first
-        let videoResolution: CGSize = {
-            let size = track!.naturalSize.applying(track!.preferredTransform)
-            return CGSize(width: abs(size.width), height: abs(size.height))
-        }()
-        let videoAspectRatio = videoResolution.width / videoResolution.height
-        var targetVideoSize = videoResolution
+        var targetVideoSize = CGSize.zero
 
-        DDLogInfo("video-processing/ Original video resolution: \(videoResolution)")
+        if let track = track {
+            let videoResolution: CGSize = {
+                let size = track.naturalSize.applying(track.preferredTransform)
+                return CGSize(width: abs(size.width), height: abs(size.height))
+            }()
+            targetVideoSize = videoResolution
+            let videoAspectRatio = videoResolution.width / videoResolution.height
 
-        if videoResolution.height > videoResolution.width {
-            // portrait
-            if videoResolution.height > maxVideoResolution {
-                DDLogInfo("video-processing/ Portrait taller than \(maxVideoResolution), need to resize")
+            DDLogInfo("video-processing/ Original video resolution: \(videoResolution)")
 
-                targetVideoSize.height = maxVideoResolution
-                targetVideoSize.width = round(videoAspectRatio * targetVideoSize.height)
+            if videoResolution.height > videoResolution.width {
+                // portrait
+                if videoResolution.height > maxVideoResolution {
+                    DDLogInfo("video-processing/ Portrait taller than \(maxVideoResolution), need to resize")
+
+                    targetVideoSize.height = maxVideoResolution
+                    targetVideoSize.width = round(videoAspectRatio * targetVideoSize.height)
+                }
+            } else {
+                // landscape or square
+                if videoResolution.width > maxVideoResolution {
+                    DDLogInfo("video-processing/ Landscape wider than \(maxVideoResolution), need to resize")
+
+                    targetVideoSize.width = maxVideoResolution
+                    targetVideoSize.height = round(targetVideoSize.width / videoAspectRatio)
+                }
             }
         } else {
-            // landscape or square
-            if videoResolution.width > maxVideoResolution {
-                DDLogInfo("video-processing/ Landscape wider than \(maxVideoResolution), need to resize")
-
-                targetVideoSize.width = maxVideoResolution
-                targetVideoSize.height = round(targetVideoSize.width / videoAspectRatio)
-            }
+            DDLogError("video-processing/ Could not find video track")
         }
         DDLogInfo("video-processing/ New video resolution: \(targetVideoSize)")
         videoOutputConfiguration[AVVideoWidthKey] = targetVideoSize.width
