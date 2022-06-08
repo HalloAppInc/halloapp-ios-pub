@@ -2597,133 +2597,132 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     let didSendGroupFeedPost = PassthroughSubject<FeedPost, Never>()
 
     func post(text: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?, to destination: FeedPostDestination, isMoment: Bool = false) {
-        performSeriallyOnBackgroundContext { managedObjectContext in
-            let postId: FeedPostID = PacketID.generate()
+        let managedObjectContext = viewContext
+        let postId: FeedPostID = PacketID.generate()
 
-            // Create and save new FeedPost object.
-            DDLogDebug("FeedData/new-post/create [\(postId)]")
+        // Create and save new FeedPost object.
+        DDLogDebug("FeedData/new-post/create [\(postId)]")
 
-            let feedPost = FeedPost(context: managedObjectContext)
-            feedPost.id = postId
-            feedPost.userId = AppContext.shared.userData.userId
-            if case .groupFeed(let groupId) = destination {
-                feedPost.groupId = groupId
+        let feedPost = FeedPost(context: managedObjectContext)
+        feedPost.id = postId
+        feedPost.userId = AppContext.shared.userData.userId
+        if case .groupFeed(let groupId) = destination {
+            feedPost.groupId = groupId
+        }
+        feedPost.rawText = text.collapsedText
+        feedPost.status = .sending
+        feedPost.timestamp = Date()
+        feedPost.isMoment = isMoment
+        feedPost.lastUpdated = Date()
+
+        // Add mentions
+        feedPost.mentions = text.mentionsArray.map {
+            return MentionData(
+                index: $0.index,
+                userID: $0.userID,
+                name: self.contactStore.pushNames[$0.userID] ?? $0.name)
+        }
+        feedPost.mentions.filter { $0.name == "" }.forEach {
+            DDLogError("FeedData/new-post/mention/\($0.userID) missing push name")
+        }
+
+        let shouldStreamFeedVideo = ServerProperties.streamingSendingEnabled && ChunkedMediaTestConstants.STREAMING_FEED_GROUP_IDS.contains(feedPost.groupId ?? "")
+
+        // Add post media.
+        for (index, mediaItem) in media.enumerated() {
+            DDLogDebug("FeedData/new-post/add-media [\(mediaItem.fileURL!)]")
+            let feedMedia = CommonMedia(context: managedObjectContext)
+            feedMedia.type = mediaItem.type
+            feedMedia.status = .uploading
+            feedMedia.url = mediaItem.url
+            feedMedia.size = mediaItem.size!
+            feedMedia.key = ""
+            feedMedia.sha256 = ""
+            feedMedia.order = Int16(index)
+            feedMedia.blobVersion = (mediaItem.type == .video && shouldStreamFeedVideo) ? .chunked : .default
+            feedMedia.post = feedPost
+            feedMedia.mediaDirectory = .commonMedia
+
+            if let url = mediaItem.fileURL {
+                ImageServer.shared.attach(for: url, id: postId, index: index)
             }
-            feedPost.rawText = text.collapsedText
-            feedPost.status = .sending
-            feedPost.timestamp = Date()
-            feedPost.isMoment = isMoment
-            feedPost.lastUpdated = Date()
 
-            // Add mentions
-            feedPost.mentions = text.mentionsArray.map {
-                return MentionData(
-                    index: $0.index,
-                    userID: $0.userID,
-                    name: self.contactStore.pushNames[$0.userID] ?? $0.name)
+            // Copying depends on all data fields being set, so do this last.
+            do {
+                try self.downloadManager.copyMedia(from: mediaItem, to: feedMedia)
             }
-            feedPost.mentions.filter { $0.name == "" }.forEach {
-                DDLogError("FeedData/new-post/mention/\($0.userID) missing push name")
+            catch {
+                DDLogError("FeedData/new-post/copy-media/error [\(error)]")
             }
+        }
 
-            let shouldStreamFeedVideo = ServerProperties.streamingSendingEnabled && ChunkedMediaTestConstants.STREAMING_FEED_GROUP_IDS.contains(feedPost.groupId ?? "")
-
-            // Add post media.
-            for (index, mediaItem) in media.enumerated() {
-                DDLogDebug("FeedData/new-post/add-media [\(mediaItem.fileURL!)]")
-                let feedMedia = CommonMedia(context: managedObjectContext)
-                feedMedia.type = mediaItem.type
-                feedMedia.status = .uploading
-                feedMedia.url = mediaItem.url
-                feedMedia.size = mediaItem.size!
-                feedMedia.key = ""
-                feedMedia.sha256 = ""
-                feedMedia.order = Int16(index)
-                feedMedia.blobVersion = (mediaItem.type == .video && shouldStreamFeedVideo) ? .chunked : .default
-                feedMedia.post = feedPost
-                feedMedia.mediaDirectory = .commonMedia
-
-                if let url = mediaItem.fileURL {
-                    ImageServer.shared.attach(for: url, id: postId, index: index)
-                }
+        // Add feed link preview if any
+        var linkPreview: CommonLinkPreview?
+        if let linkPreviewData = linkPreviewData {
+            linkPreview = CommonLinkPreview(context: managedObjectContext)
+            linkPreview?.id = PacketID.generate()
+            linkPreview?.url = linkPreviewData.url
+            linkPreview?.title = linkPreviewData.title
+            linkPreview?.desc = linkPreviewData.description
+            // Set preview image if present
+            if let linkPreviewMedia = linkPreviewMedia {
+                let previewMedia = CommonMedia(context: managedObjectContext)
+                previewMedia.type = linkPreviewMedia.type
+                previewMedia.status = .uploading
+                previewMedia.url = linkPreviewMedia.url
+                previewMedia.size = linkPreviewMedia.size!
+                previewMedia.key = ""
+                previewMedia.sha256 = ""
+                previewMedia.order = 0
+                previewMedia.linkPreview = linkPreview
+                previewMedia.mediaDirectory = .commonMedia
 
                 // Copying depends on all data fields being set, so do this last.
                 do {
-                    try self.downloadManager.copyMedia(from: mediaItem, to: feedMedia)
+                    try self.downloadManager.copyMedia(from: linkPreviewMedia, to: previewMedia)
                 }
                 catch {
-                    DDLogError("FeedData/new-post/copy-media/error [\(error)]")
+                    DDLogError("FeedData/new-post/copy-likePreviewmedia/error [\(error)]")
                 }
             }
+            linkPreview?.post = feedPost
+        }
 
-            // Add feed link preview if any
-            var linkPreview: CommonLinkPreview?
-            if let linkPreviewData = linkPreviewData {
-                linkPreview = CommonLinkPreview(context: managedObjectContext)
-                linkPreview?.id = PacketID.generate()
-                linkPreview?.url = linkPreviewData.url
-                linkPreview?.title = linkPreviewData.title
-                linkPreview?.desc = linkPreviewData.description
-                // Set preview image if present
-                if let linkPreviewMedia = linkPreviewMedia {
-                    let previewMedia = CommonMedia(context: managedObjectContext)
-                    previewMedia.type = linkPreviewMedia.type
-                    previewMedia.status = .uploading
-                    previewMedia.url = linkPreviewMedia.url
-                    previewMedia.size = linkPreviewMedia.size!
-                    previewMedia.key = ""
-                    previewMedia.sha256 = ""
-                    previewMedia.order = 0
-                    previewMedia.linkPreview = linkPreview
-                    previewMedia.mediaDirectory = .commonMedia
-
-                    // Copying depends on all data fields being set, so do this last.
-                    do {
-                        try self.downloadManager.copyMedia(from: linkPreviewMedia, to: previewMedia)
-                    }
-                    catch {
-                        DDLogError("FeedData/new-post/copy-likePreviewmedia/error [\(error)]")
-                    }
-                }
-                linkPreview?.post = feedPost
+        switch destination {
+        case .userFeed:
+            let feedPostInfo = ContentPublishInfo(context: managedObjectContext)
+            let postAudience = try! MainAppContext.shared.privacySettings.currentFeedAudience()
+            let receipts = postAudience.userIds.reduce(into: [UserID : Receipt]()) { (receipts, userId) in
+                receipts[userId] = Receipt()
             }
-
-            switch destination {
-            case .userFeed:
-                let feedPostInfo = ContentPublishInfo(context: managedObjectContext)
-                let postAudience = try! MainAppContext.shared.privacySettings.currentFeedAudience()
-                let receipts = postAudience.userIds.reduce(into: [UserID : Receipt]()) { (receipts, userId) in
-                    receipts[userId] = Receipt()
-                }
-                feedPostInfo.receipts = receipts
-                feedPostInfo.audienceType = postAudience.audienceType
-                feedPost.info = feedPostInfo
-            case .groupFeed(let groupId):
-                guard let chatGroup = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: managedObjectContext) else {
-                    return
-                }
-                let feedPostInfo = ContentPublishInfo(context: managedObjectContext)
-                var receipts = [UserID : Receipt]()
-                chatGroup.members?.forEach({ member in
-                    receipts[member.userID] = Receipt()
-                })
-                feedPostInfo.receipts = receipts
-                feedPostInfo.audienceType = .group
-                feedPost.info = feedPostInfo
+            feedPostInfo.receipts = receipts
+            feedPostInfo.audienceType = postAudience.audienceType
+            feedPost.info = feedPostInfo
+        case .groupFeed(let groupId):
+            guard let chatGroup = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: managedObjectContext) else {
+                return
             }
+            let feedPostInfo = ContentPublishInfo(context: managedObjectContext)
+            var receipts = [UserID : Receipt]()
+            chatGroup.members?.forEach({ member in
+                receipts[member.userID] = Receipt()
+            })
+            feedPostInfo.receipts = receipts
+            feedPostInfo.audienceType = .group
+            feedPost.info = feedPostInfo
+        }
 
-            self.save(managedObjectContext)
+        self.save(managedObjectContext)
 
-            if let linkPreview = linkPreview {
-                // upload link preview media followed by comment media and send over the wire
-                self.uploadMediaAndSend(feedLinkPreview: linkPreview)
-            } else {
-                // upload comment media if any and send data over the wire.
-                self.uploadMediaAndSend(feedPost: feedPost)
-            }
-            if feedPost.groupId != nil {
-                self.didSendGroupFeedPost.send(feedPost)
-            }
+        if let linkPreview = linkPreview {
+            // upload link preview media followed by comment media and send over the wire
+            self.uploadMediaAndSend(feedLinkPreview: linkPreview)
+        } else {
+            // upload comment media if any and send data over the wire.
+            self.uploadMediaAndSend(feedPost: feedPost)
+        }
+        if feedPost.groupId != nil {
+            self.didSendGroupFeedPost.send(feedPost)
         }
     }
 
