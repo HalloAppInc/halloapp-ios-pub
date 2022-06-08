@@ -67,7 +67,7 @@ final class CallManager: NSObject, CXProviderDelegate {
 
     private var delegateQueue = DispatchQueue(label: "com.halloapp.callManager.delegate", qos: .userInitiated)
     let callController = CXCallController()
-    private let provider: CXProvider
+    public let provider: CXProvider
     public var service: HalloService
     private var startDate: Date? = nil
     private var endDate: Date? = nil

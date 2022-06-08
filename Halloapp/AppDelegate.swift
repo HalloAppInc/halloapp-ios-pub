@@ -477,6 +477,9 @@ extension AppDelegate: PKPushRegistryDelegate {
                             let serverMsgBase64String = metadata[NotificationMetadata.nseVoipData],
                             let serverMsgPb = Data(base64Encoded: serverMsgBase64String) else {
                           DDLogError("appdelegate/voip-notifications/noise/error unable to find encrypted content")
+                          AppContext.shared.errorLogger?.logError(NSError(domain: "NSECallMissingPayloadError", code: 1008))
+                          // Report some failure to callkit to avoid crashes.
+                          MainAppContext.shared.callManager.provider.reportCall(with: UUID.init(), endedAt: Date(), reason: .declinedElsewhere)
                           completion()
                           return
                       }
