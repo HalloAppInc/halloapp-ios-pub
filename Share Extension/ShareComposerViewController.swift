@@ -699,9 +699,9 @@ class ShareComposerViewController: UIViewController {
         let uploadDispatchGroup = DispatchGroup()
         var results = [Result<String, Error>]()
 
-        for (index, item) in media.enumerated() {
-            if let url = item.fileURL {
-                ImageServer.shared.attach(for: url, id: ShareExtensionContext.shared.dataStore.mediaProcessingId, index: index)
+        media.forEach { mediaItem in
+            if let url = mediaItem.fileURL {
+                ImageServer.shared.attach(for: url, id: ShareExtensionContext.shared.dataStore.mediaProcessingId, index: Int(mediaItem.order))
             }
         }
 
