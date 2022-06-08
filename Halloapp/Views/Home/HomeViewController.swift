@@ -313,8 +313,8 @@ class HomeViewController: UITabBarController {
 
     private func updateActivityNavigationControllerBadge(_ count: Int) {
         if let activityController = activityController {
-            // we don't want a number on the badge, just the red dot
-            activityController.tabBarItem.badgeValue = count == 0 ? nil : ""
+            // we don't want a number on the badge, just the red dot with a smaller white dot inside
+            activityController.tabBarItem.badgeValue = count == 0 ? nil : "●"
         }
     }
 
