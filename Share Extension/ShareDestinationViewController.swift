@@ -297,44 +297,25 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
     }
 
     private func destinationForRow(at indexPath: IndexPath) -> ShareDestination? {
-        switch indexPath.section {
-        case 0:
-            return .feed(feedPrivacyTypes[indexPath.row])
-        case 1:
-            return .group(isFiltering ? filteredGroups[indexPath.row] : groups[indexPath.row])
-        case 2:
-            return .contact(isFiltering ? filteredContacts[indexPath.row] : contacts[indexPath.row])
-        default:
-            return nil
-        }
-    }
-
-    private func indexPath(for destination: ShareDestination) -> IndexPath? {
-        switch destination {
-        case .feed(let privacyListType):
-            switch privacyListType {
-            case .all:
-                return IndexPath(row: 0, section: 0)
-            case .whitelist:
-                return IndexPath(row: 1, section: 0)
+        if isFiltering {
+            switch indexPath.section {
+            case 0:
+                return .group(filteredGroups[indexPath.row])
+            case 1:
+                return .contact(filteredContacts[indexPath.row])
             default:
-                return IndexPath(row: 0, section: 0)
+                return nil
             }
-        case .group(let item):
-            if isFiltering {
-                guard let idx = filteredGroups.firstIndex(where: { $0.id == item.id }) else { return nil }
-                return IndexPath(row: idx, section: 1)
-            } else {
-                guard let idx = groups.firstIndex(where: { $0.id == item.id }) else { return nil }
-                return IndexPath(row: idx, section: 1)
-            }
-        case .contact(let contact):
-            if isFiltering {
-                guard let idx = filteredContacts.firstIndex(where: { $0 == contact}) else { return nil }
-                return IndexPath(row: idx, section: 2)
-            } else {
-                guard let idx = contacts.firstIndex(where: { $0 == contact}) else { return nil }
-                return IndexPath(row: idx, section: 2)
+        } else {
+            switch indexPath.section {
+            case 0:
+                return .feed(feedPrivacyTypes[indexPath.row])
+            case 1:
+                return .group(groups[indexPath.row])
+            case 2:
+                return .contact(contacts[indexPath.row])
+            default:
+                return nil
             }
         }
     }
@@ -355,30 +336,52 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
     // MARK: Data Source
 
     func numberOfSections(in tableView: UITableView) -> Int {
-        return 3
+        return isFiltering ? 2 : 3
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        switch section {
-        case 0:
-            return 2
-        case 1:
-            return isFiltering ? filteredGroups.count : groups.count
-        case 2:
-            return isFiltering ? filteredContacts.count : contacts.count
-        default:
-            return 0
+        if isFiltering {
+            switch section {
+            case 0:
+                return filteredGroups.count
+            case 1:
+                return filteredContacts.count
+            default:
+                return 0
+            }
+        } else {
+            switch section {
+            case 0:
+                return 2
+            case 1:
+                return groups.count
+            case 2:
+                return contacts.count
+            default:
+                return 0
+            }
         }
     }
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        switch section {
-        case 1:
-            return Localizations.groups
-        case 2:
-            return Localizations.contacts
-        default:
-            return nil
+        if isFiltering {
+            switch section {
+            case 0:
+                return Localizations.groups
+            case 1:
+                return Localizations.contacts
+            default:
+                return nil
+            }
+        } else {
+            switch section {
+            case 1:
+                return Localizations.groups
+            case 2:
+                return Localizations.contacts
+            default:
+                return nil
+            }
         }
     }
     
