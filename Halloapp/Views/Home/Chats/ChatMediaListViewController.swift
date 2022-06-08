@@ -298,11 +298,4 @@ fileprivate class MediaCell: UICollectionViewCell {
             }
         }
     }
-
-    private func computeHeight(for media: CommonMedia) -> CGFloat {
-        guard media.width > 0 else { return DefaultHeight }
-
-        let scale = contentView.bounds.width / CGFloat(media.width)
-        return scale * CGFloat(media.height)
-    }
 }
