@@ -194,6 +194,7 @@ class QuotedMessageCellView: UIView {
         hasMedia = false
         mediaView.contentMode = .scaleAspectFill
         mediaView.layer.borderWidth = 0
+        mediaView.image = nil
     }
 
     func configureWith(comment: FeedPostComment, userColorAssignment: UIColor) {

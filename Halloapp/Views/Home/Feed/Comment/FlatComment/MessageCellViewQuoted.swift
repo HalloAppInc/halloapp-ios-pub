@@ -32,7 +32,7 @@ class MessageCellViewQuoted: MessageCellViewBase {
     var hasLinkPreview: Bool = false
 
     // MARK: Media
-
+    // TODO : Remove mediaCarouselView and use mediaView for comments and chat
     private lazy var mediaCarouselView: MediaCarouselView = {
         var configuration = MediaCarouselViewConfiguration.default
         configuration.alwaysScaleToFitContent = false
@@ -49,6 +49,14 @@ class MessageCellViewQuoted: MessageCellViewBase {
         audioView.setContentHuggingPriority(.defaultLow, for: .horizontal)
         audioView.delegate = self
         return audioView
+    }()
+
+    // MARK: Media
+    private lazy var mediaView: MessageMediaView = {
+        let mediaView = MessageMediaView()
+        mediaView.translatesAutoresizingMaskIntoConstraints = false
+        mediaView.delegate = self
+        return mediaView
     }()
 
     // MARK: Link Preview
@@ -102,20 +110,14 @@ class MessageCellViewQuoted: MessageCellViewBase {
     
     override func prepareForReuse() {
         super.prepareForReuse()
-        nameContentTimeRow.removeArrangedSubview(nameRow)
         nameRow.removeFromSuperview()
-        nameContentTimeRow.removeArrangedSubview(mediaCarouselView)
         mediaCarouselView.removeFromSuperview()
-        nameContentTimeRow.removeArrangedSubview(audioView)
         audioView.removeFromSuperview()
-        nameContentTimeRow.removeArrangedSubview(linkPreviewView)
         linkPreviewView.removeFromSuperview()
-        nameContentTimeRow.removeArrangedSubview(quotedMessageView)
         quotedMessageView.removeFromSuperview()
-        nameContentTimeRow.removeArrangedSubview(textRow)
         textRow.removeFromSuperview()
-        nameContentTimeRow.removeArrangedSubview(audioTimeRow)
         audioTimeRow.removeFromSuperview()
+        mediaView.removeFromSuperview()
 
         hasMedia = false
         hasAudio = false
@@ -221,7 +223,13 @@ class MessageCellViewQuoted: MessageCellViewBase {
                 nameContentTimeRow.addArrangedSubview(audioView)
                 hasAudio = true
             } else {
-                // TODO handle chat media management
+                if let message = chatMessage, let media = message.media?.sorted(by: { $0.order < $1.order }), !media.isEmpty {
+                    MainAppContext.shared.chatData.downloadMedia(in: message)
+                    mediaView.configure(chatMessage: message, media: media)
+                } else {
+                    DDLogError("MessageCellViewMedia/configure/error missing media for message " + message.id)
+                }
+                nameContentTimeRow.addArrangedSubview(mediaView)
                 hasMedia = true
             }
         }
@@ -308,6 +316,14 @@ extension MessageCellViewQuoted: MediaCarouselViewDelegate {
     func mediaCarouselView(_ view: MediaCarouselView, didZoomMediaAtIndex index: Int, withScale scale: CGFloat) {
     }
 }
+
+extension MessageCellViewQuoted: MessageMediaViewDelegate {
+
+    func messageMediaView(_ view: MessageMediaView, didTapMediaAtIndex index: Int) {
+        // TODO plug in full screen view
+    }
+}
+
 
 // MARK: AudioViewDelegate
 extension MessageCellViewQuoted: AudioViewDelegate {

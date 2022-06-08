@@ -33,6 +33,7 @@
 		323F9A75280F23E600C8AB69 /* PostLinkPreviewViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 323F9A74280F23E600C8AB69 /* PostLinkPreviewViewExtension.swift */; };
 		3243C42B27D7D03300B994F4 /* MessageCellViewMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3243C42A27D7D03300B994F4 /* MessageCellViewMedia.swift */; };
 		324455E1275994D50031CD60 /* MessageViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 324455E0275994D50031CD60 /* MessageViewCell.swift */; };
+		3245AF16284F23B30036CB8E /* MessageMediaView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3245AF15284F23B30036CB8E /* MessageMediaView.swift */; };
 		3250C60327D0101C0032FEC4 /* PhoneInputViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3250C5FD27D010090032FEC4 /* PhoneInputViewController.swift */; };
 		3250C60427D0102D0032FEC4 /* VerificationCodeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3250C5FF27D010090032FEC4 /* VerificationCodeViewController.swift */; };
 		3250C60527D010370032FEC4 /* Localizations+Registration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3250C5FE27D010090032FEC4 /* Localizations+Registration.swift */; };
@@ -640,6 +641,7 @@
 		323F9A74280F23E600C8AB69 /* PostLinkPreviewViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostLinkPreviewViewExtension.swift; sourceTree = "<group>"; };
 		3243C42A27D7D03300B994F4 /* MessageCellViewMedia.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageCellViewMedia.swift; sourceTree = "<group>"; };
 		324455E0275994D50031CD60 /* MessageViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageViewCell.swift; sourceTree = "<group>"; };
+		3245AF15284F23B30036CB8E /* MessageMediaView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageMediaView.swift; sourceTree = "<group>"; };
 		324918192764265600E9090F /* pt */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pt; path = pt.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		3250C5FD27D010090032FEC4 /* PhoneInputViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhoneInputViewController.swift; sourceTree = "<group>"; };
 		3250C5FE27D010090032FEC4 /* Localizations+Registration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Localizations+Registration.swift"; sourceTree = "<group>"; };
@@ -1355,6 +1357,7 @@
 				32F7C4F92834CB6C00AA2ECB /* MessageCommentViewHeaderPreview.swift */,
 				328447BF282D8B6300F76AB5 /* MessageCellViewEvent.swift */,
 				32F7C4FB283C48C600AA2ECB /* MessageChatHeaderView.swift */,
+				3245AF15284F23B30036CB8E /* MessageMediaView.swift */,
 			);
 			path = FlatComment;
 			sourceTree = "<group>";
@@ -2822,6 +2825,7 @@
 				761442C5245D32C200DD9D1A /* UIDevice.swift in Sources */,
 				2446D67E24CB558F005BAD3C /* ImageServer.swift in Sources */,
 				F470251027ED31A6008CD37F /* URLRouter.swift in Sources */,
+				3245AF16284F23B30036CB8E /* MessageMediaView.swift in Sources */,
 				68E5E9DA25F6FAF100250762 /* FeedDataSource.swift in Sources */,
 				5B493BCC27FF316500FDEA0D /* ChunkedMediaResourceLoaderDelegate.swift in Sources */,
 				EA45713D23EB7F47008C2E44 /* MediaCarouselView.swift in Sources */,
