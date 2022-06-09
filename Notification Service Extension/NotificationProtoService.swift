@@ -427,7 +427,56 @@ final class NotificationProtoService: ProtoServiceCore {
                 completion()
             }
 
-        case .chatMessageRetract, .feedCommentRetract, .groupFeedCommentRetract, .groupChatMessageRetract:
+        case .feedCommentRetract, .groupFeedCommentRetract:
+            hasAckBeenDelegated = true
+            let commentID = metadata.contentId
+            // removeNotification if available.
+            removeNotification(id: metadata.contentId)
+
+            let completion = {
+                ack()
+            }
+
+            // Try and delete the content.
+            mainDataStore.performSeriallyOnBackgroundContext { managedObjectContext in
+                guard let feedComment = AppContext.shared.coreFeedData.feedComment(with: commentID, in: managedObjectContext) else {
+                    DDLogError("NotificationExtension/retract-comment/error Missing comment. [\(commentID)]")
+                    completion()
+                    return
+                }
+                guard feedComment.status != .retracted else {
+                    DDLogError("NotificationExtension/retract-comment/error Already retracted. [\(commentID)]")
+                    completion()
+                    return
+                }
+                DDLogInfo("NotificationExtension/retract-comment [\(commentID)]")
+
+                // 1. Reset comment text and mark comment as deleted.
+                feedComment.rawText = ""
+                feedComment.status = .retracted
+
+                // 2. Delete comment media
+                feedComment.media?.forEach { mediaItem in
+                    self.cancelDownloadAndDeleteMedia(mediaItem: mediaItem)
+                }
+                feedComment.linkPreviews?.forEach { linkPreview in
+                    linkPreview.media?.forEach { mediaItem in
+                        self.cancelDownloadAndDeleteMedia(mediaItem: mediaItem)
+                    }
+                }
+
+                // 3. Reset comment text copied over to notifications.
+                let notifications = AppContext.shared.coreFeedData.notifications(for: feedComment.post.id, commentId: feedComment.id, in: managedObjectContext)
+                notifications.forEach { (notification) in
+                    notification.event = .retractedComment
+                    notification.rawText = nil
+                }
+                self.mainDataStore.save(managedObjectContext)
+                DDLogInfo("NotificationExtension/retract-comment [\(commentID)]/done")
+                completion()
+            }
+
+        case .chatMessageRetract, .groupChatMessageRetract:
             // removeNotification if available.
             removeNotification(id: metadata.contentId)
             // save these messages to be processed by the main app.
