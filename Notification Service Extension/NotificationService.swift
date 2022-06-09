@@ -12,6 +12,7 @@ import Core
 import CoreCommon
 import Combine
 import UserNotifications
+import Reachability
 
 class NotificationService: UNNotificationServiceExtension  {
 
@@ -38,7 +39,32 @@ class NotificationService: UNNotificationServiceExtension  {
         AppContext.shared.observeAndSave(event: .pushReceived(id: messageID ?? requestID, timestamp: timestamp))
     }
 
+    // MARK: Reachability
+
+    var reachability: Reachability?
+
+    func setUpReachability() {
+        reachability = try? Reachability()
+        reachability?.whenReachable = { reachability in
+            DDLogInfo("NotificationService/Reachability/reachable/\(reachability.connection)")
+            AppContext.shared.coreService.reachabilityState = .reachable
+            AppContext.shared.coreService.reachabilityConnectionType = reachability.connection.description
+            AppContext.shared.coreService.startConnectingIfNecessary()
+        }
+        reachability?.whenUnreachable = { reachability in
+            DDLogInfo("NotificationService/Reachability/unreachable/\(reachability.connection)")
+            AppContext.shared.coreService.reachabilityState = .unreachable
+            AppContext.shared.coreService.reachabilityConnectionType = reachability.connection.description
+        }
+        do {
+            try reachability?.startNotifier()
+        } catch {
+            DDLogInfo("NotificationService/Reachability/Failed to start notifier/\(reachability?.connection.description ?? "nil")")
+        }
+    }
+
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
+        DDLogInfo("processDidReceive/begin \(request)")
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             return self.processDidReceive(request: request, contentHandler: contentHandler)
@@ -46,8 +72,10 @@ class NotificationService: UNNotificationServiceExtension  {
     }
 
     private func processDidReceive(request: UNNotificationRequest, contentHandler: @escaping (UNNotificationContent) -> Void) {
+        DDLogInfo("NotificationService/processDidReceive/start")
         DDLogInfo("didReceiveRequest/begin \(request) [\(AppContext.userAgent)]")
         Self.initializeAppContext
+        setUpReachability()
         service = AppExtensionContext.shared.coreService
         service?.startConnectingIfNecessary()
         if let coreService = service {
@@ -88,9 +116,9 @@ class NotificationService: UNNotificationServiceExtension  {
     }
 
     override func serviceExtensionTimeWillExpire() {
+        DDLogWarn("NotificationService/serviceExtensionTimeWillExpire")
         // Called just before the extension will be terminated by the system.
         // Use this as an opportunity to deliver your "best attempt" at modified content, otherwise the original push payload will be used.
-        DDLogWarn("timeWillExpire")
         DispatchQueue.main.async { [self] in
             service?.disconnectImmediately()
             DDLogInfo("Invoking completion handler now")

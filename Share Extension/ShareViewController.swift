@@ -10,6 +10,7 @@ import Core
 import CoreCommon
 import Foundation
 import UIKit
+import Reachability
 
 enum ShareError: Error {
     case cancel
@@ -72,6 +73,7 @@ class ShareViewController: UINavigationController {
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
 
         initAppContext(ShareExtensionContext.self, serviceBuilder: serviceBuilder, contactStoreClass: ContactStore.self, appTarget: AppTarget.shareExtension)
+        setUpReachability()
         ShareExtensionContext.shared.coreService.startConnectingIfNecessary()
 
         // Reconnect when a user switches between HalloApp and extension
@@ -113,5 +115,29 @@ class ShareViewController: UINavigationController {
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    // MARK: Reachability
+
+    var reachability: Reachability?
+
+    func setUpReachability() {
+        reachability = try? Reachability()
+        reachability?.whenReachable = { reachability in
+            DDLogInfo("NotificationService/Reachability/reachable/\(reachability.connection)")
+            AppContext.shared.coreService.reachabilityState = .reachable
+            AppContext.shared.coreService.reachabilityConnectionType = reachability.connection.description
+            AppContext.shared.coreService.startConnectingIfNecessary()
+        }
+        reachability?.whenUnreachable = { reachability in
+            DDLogInfo("NotificationService/Reachability/unreachable/\(reachability.connection)")
+            AppContext.shared.coreService.reachabilityState = .unreachable
+            AppContext.shared.coreService.reachabilityConnectionType = reachability.connection.description
+        }
+        do {
+            try reachability?.startNotifier()
+        } catch {
+            DDLogInfo("NotificationService/Reachability/Failed to start notifier/\(reachability?.connection.description ?? "nil")")
+        }
     }
 }

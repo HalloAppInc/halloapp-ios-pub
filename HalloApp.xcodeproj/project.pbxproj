@@ -152,6 +152,8 @@
 		6A911F3C270EAF2E003DCB7A /* Feed5ToFeed6.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 6A911F3B270EAF2E003DCB7A /* Feed5ToFeed6.xcmappingmodel */; };
 		6A911F3F270EAF62003DCB7A /* FeedItemResendAttempt+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A911F3D270EAF62003DCB7A /* FeedItemResendAttempt+CoreDataClass.swift */; };
 		6A911F40270EAF62003DCB7A /* FeedItemResendAttempt+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A911F3E270EAF62003DCB7A /* FeedItemResendAttempt+CoreDataProperties.swift */; };
+		6AB2896C2851F32F0021F41D /* Reachability in Frameworks */ = {isa = PBXBuildFile; productRef = 6AB2896B2851F32F0021F41D /* Reachability */; };
+		6AB2896E2851F3390021F41D /* Reachability in Frameworks */ = {isa = PBXBuildFile; productRef = 6AB2896D2851F3390021F41D /* Reachability */; };
 		6ABBB206272D90FB007A595D /* Call.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ABBB205272D90FB007A595D /* Call.swift */; };
 		6ABBB208272D9657007A595D /* WebRTCClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ABBB207272D9657007A595D /* WebRTCClient.swift */; };
 		6ABBB20A272D9B19007A595D /* CallManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ABBB209272D9B19007A595D /* CallManager.swift */; };
@@ -1203,6 +1205,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F404FC5B2810B6D0008313FF /* CoreCommon.framework in Frameworks */,
+				6AB2896E2851F3390021F41D /* Reachability in Frameworks */,
 				68929FA42734AD6B00F79288 /* MarkdownKit in Frameworks */,
 				F404FC572810B6C6008313FF /* Core.framework in Frameworks */,
 			);
@@ -1235,6 +1238,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F404FC5A2810B6D0008313FF /* CoreCommon.framework in Frameworks */,
+				6AB2896C2851F32F0021F41D /* Reachability in Frameworks */,
 				68929FA22734AD6000F79288 /* MarkdownKit in Frameworks */,
 				F404FC562810B6C6008313FF /* Core.framework in Frameworks */,
 			);
@@ -2335,6 +2339,7 @@
 			name = "Share Extension";
 			packageProductDependencies = (
 				68929FA32734AD6B00F79288 /* MarkdownKit */,
+				6AB2896D2851F3390021F41D /* Reachability */,
 			);
 			productName = "Shared Extension";
 			productReference = 24D743D624B3D199001111BF /* Share Extension.appex */;
@@ -2410,6 +2415,7 @@
 			name = "Notification Service Extension";
 			packageProductDependencies = (
 				68929FA12734AD6000F79288 /* MarkdownKit */,
+				6AB2896B2851F32F0021F41D /* Reachability */,
 			);
 			productName = "Notification Service Extension";
 			productReference = 768123942485A240008C5216 /* Notification Service Extension.appex */;
@@ -5004,6 +5010,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 6A081C4F273C154600E9E29A /* XCRemoteSwiftPackageReference "WebRTC" */;
 			productName = WebRTC;
+		};
+		6AB2896B2851F32F0021F41D /* Reachability */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 685B509925E075FE00F782F9 /* XCRemoteSwiftPackageReference "Reachability" */;
+			productName = Reachability;
+		};
+		6AB2896D2851F3390021F41D /* Reachability */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 685B509925E075FE00F782F9 /* XCRemoteSwiftPackageReference "Reachability" */;
+			productName = Reachability;
 		};
 /* End XCSwiftPackageProductDependency section */
 
