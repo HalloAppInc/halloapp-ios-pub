@@ -1785,9 +1785,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.comments?.forEach {
                 // Delete media comments if any
                 self.deleteMedia(feedPostComment: $0)
-                // Leave tombstones in for comments too.
-                $0.rawText = ""
-                $0.status = .retracted
+                // TODO: it would be better to leave a tombstone and avoid using this everywhere else.
+                managedObjectContext.delete($0)
             }
 
             // 3. Delete all notifications for this post.

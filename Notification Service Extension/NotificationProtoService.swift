@@ -398,9 +398,8 @@ final class NotificationProtoService: ProtoServiceCore {
                             self.cancelDownloadAndDeleteMedia(mediaItem: mediaItem)
                         }
                     }
-                    // Leave tombstones in for comments too.
-                    comment.rawText = ""
-                    comment.status = .retracted
+                    // TODO: it would be better to leave a tombstone and avoid using this everywhere else.
+                    managedObjectContext.delete(comment)
                 }
 
                 // 3. Delete all notifications for this post.
