@@ -1704,10 +1704,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         // present local notifications when applicationState is either .background or .inactive
         guard UIApplication.shared.applicationState != .active else { return }
 
+        let commentObjectIDs = comments.map(\.objectID)
         UNUserNotificationCenter.current().getFeedCommentIdsForDeliveredNotifications { [weak self] commentIdsToFilterOut in
             guard let self = self else { return }
 
             self.performSeriallyOnBackgroundContext { managedObjectContext in
+                let comments = commentObjectIDs.compactMap { managedObjectContext.object(with: $0) as? FeedPostComment }
                 comments.filter { !commentIdsToFilterOut.contains($0.id) && self.isCommentEligibleForLocalNotification($0) }.forEach { comment in
                     let protobufData = try? comment.commentData.clientContainer.serializedData()
                     let contentType: NotificationContentType = comment.post.groupId == nil ? .feedComment : .groupFeedComment
