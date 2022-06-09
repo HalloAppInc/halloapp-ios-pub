@@ -133,6 +133,7 @@ class NotificationMetadata: Codable {
     var groupId: String? = nil
     var groupName: String? = nil
     var normalizedPhone: String? = nil
+    var isMoment: Bool = false
 
     var protoContainer: Clients_Container? {
         guard let protobufData = data else { return nil }
@@ -302,6 +303,12 @@ class NotificationMetadata: Codable {
                 timestamp = Date(timeIntervalSince1970: TimeInterval(post.timestamp))
                 data = post.payload
                 pushName = post.publisherName
+                switch post.tag {
+                case .secretPost:
+                    isMoment = true
+                default:
+                    break
+                }
             case .comment(let comment):
                 contentId = comment.id
                 postId = comment.postID
@@ -480,6 +487,58 @@ class NotificationMetadata: Codable {
         }
 
         return mentionNameProvider
+    }
+
+    func populateContent(using moments: [PostData], contactStore: ContactStore) -> Bool {
+        guard contentType == .feedPost else {
+            return false
+        }
+
+        let momentsCount = moments.count
+        guard momentsCount > 0 else {
+            return false
+        }
+
+        var firstContactName: String = ""
+        var secondContactName: String = ""
+        var thirdContactName: String = ""
+
+        // Collect names for batching.
+        contactStore.performOnBackgroundContextAndWait { managedObjectContext in
+            var count = 0;
+            for moment in moments.reversed() {
+                // Name wont be empty - since we'll atleast fallback on pushnames.
+                guard let name = contactStore.fullNameIfAvailable(for: moment.userId, ownName: nil, in: managedObjectContext) else {
+                    continue
+                }
+                if count == 0 {
+                    firstContactName = name
+                } else if count == 1 {
+                    secondContactName = name
+                } else if count == 2 {
+                    thirdContactName = name
+                } else {
+                    break
+                }
+                count += 1
+            }
+        }
+
+        // Populate the batched notification title, subtitle and body.
+        if momentsCount == 1 {
+            title = String(format: Localizations.oneNewMomentNotificationTitle, firstContactName)
+        } else if momentsCount == 2 {
+            title = String(format: Localizations.twoNewMomentNotificationTitle, firstContactName, secondContactName, thirdContactName)
+        } else if momentsCount == 3 {
+            title = String(format: Localizations.threeNewMomentNotificationTitle, firstContactName, secondContactName, thirdContactName)
+        } else {
+            title = String(format: Localizations.tooManyNewMomentNotificationTitle, firstContactName, secondContactName, thirdContactName)
+        }
+
+        subtitle = ""
+        body = ""
+
+        return true
     }
 
     func populateContent(contactStore: ContactStore) -> Bool {
@@ -681,6 +740,16 @@ class NotificationMetadata: Codable {
     func removeFromUserDefaults() {
         DDLogDebug("NotificationMetadata/removeFromUserDefaults")
         UserDefaults.standard.removeObject(forKey: Self.userDefaultsKeyRawData)
+    }
+
+    public static func extractMomentNotification(for metadata: NotificationMetadata, using moments: [PostData]) -> UNMutableNotificationContent {
+        let notificationContent = UNMutableNotificationContent()
+        notificationContent.populateMoments(from: metadata, using: moments, contactStore: AppContext.shared.contactStore)
+        notificationContent.badge = AppContext.shared.applicationIconBadgeNumber as NSNumber?
+        notificationContent.sound = UNNotificationSound.default
+        notificationContent.userInfo[NotificationMetadata.contentTypeKey] = metadata.contentType.rawValue
+        notificationContent.userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
+        return notificationContent
     }
 
 }

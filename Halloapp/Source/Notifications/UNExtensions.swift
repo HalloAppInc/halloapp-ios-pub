@@ -34,6 +34,20 @@ private extension UNNotificationRequest {
 
 extension UNMutableNotificationContent {
 
+    func populateMoments(from metadata: NotificationMetadata, using moments: [PostData], contactStore: ContactStore) {
+        // populate title and body if metadata has more information - else dont modify the fields.
+        if metadata.populateContent(using: moments, contactStore: contactStore) {
+            title = metadata.title
+            subtitle = metadata.subtitle
+            body = metadata.body
+            // encode and store metadata - this will be used to handle user response on the notification.
+            userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
+            DDLogInfo("UNExtensions/populate updated content")
+        } else {
+            DDLogError("UNExtensions/populate Could not populate content")
+        }
+    }
+
     func populate(from metadata: NotificationMetadata, contactStore: ContactStore) {
         // populate title and body if metadata has more information - else dont modify the fields.
         if metadata.populateContent(contactStore: contactStore) {
@@ -158,6 +172,12 @@ extension UNUserNotificationCenter {
         }
         removeDeliveredNotifications(withIdentifiers: [groupId])
     }
+
+    func removeDeliveredMomentNotifications() {
+        removeDeliveredNotifications { (notificationMetadata) -> (Bool) in
+            return notificationMetadata.isMoment
+        }
+    }
 }
 
 extension Localizations {
@@ -265,5 +285,35 @@ extension Localizations {
         NSLocalizedString("notification.moment",
                    value: "New moment",
                  comment: "New moment notification text to be shown to the user.")
+    }
+
+    static var oneNewMomentNotificationTitle: String {
+        NSLocalizedString("notification.moment.1",
+                          value: "%@ shared a moment",
+                          comment: "New moment notification text to be shown to the user.")
+    }
+
+    static var twoNewMomentNotificationTitle: String {
+        NSLocalizedString("notification.moment.2",
+                          value: "%1@ and %2@ shared new moments",
+                          comment: "New moment notification text to be shown to the user.")
+    }
+
+    static var threeNewMomentNotificationTitle: String {
+        NSLocalizedString("notification.moment.3",
+                          value: "%1@, %2@ and %3@ shared new moments",
+                          comment: "New moment notification text to be shown to the user.")
+    }
+
+    static var fourNewMomentNotificationTitle: String {
+        NSLocalizedString("notification.moment.4",
+                          value: "%1@, %2@, %3@ and 1 other shared new moments",
+                          comment: "New moment notification text to be shown to the user.")
+    }
+
+    static var tooManyNewMomentNotificationTitle: String {
+        NSLocalizedString("notification.moment.5",
+                          value: "%1@, %2@, %3@ and others shared new moments",
+                          comment: "New moment notification text to be shown to the user.")
     }
 }

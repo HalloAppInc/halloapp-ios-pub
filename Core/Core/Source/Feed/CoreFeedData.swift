@@ -25,15 +25,21 @@ public class CoreFeedData {
     }
 
     public func feedPost(with feedPostId: FeedPostID, in managedObjectContext: NSManagedObjectContext) -> FeedPost? {
+        return feedPosts(predicate: NSPredicate(format: "id == %@", feedPostId), in: managedObjectContext).first
+    }
+
+    public func feedPosts(predicate: NSPredicate, sortDescriptors: [NSSortDescriptor] = [NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: true)],
+                          in managedObjectContext: NSManagedObjectContext) -> [FeedPost] {
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "id == %@", feedPostId)
+        fetchRequest.predicate = predicate
+        fetchRequest.sortDescriptors = sortDescriptors
         fetchRequest.returnsObjectsAsFaults = false
         do {
             let posts = try managedObjectContext.fetch(fetchRequest)
-            return posts.first
+            return posts
         } catch {
             DDLogError("CoreFeedData/fetch-posts/error  [\(error)]")
-            return nil
+            return []
         }
     }
 

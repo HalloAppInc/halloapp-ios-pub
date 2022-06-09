@@ -1748,7 +1748,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 let feedPosts = feedPostObjectIDs.compactMap { managedObjectContext.object(with: $0) as? FeedPost }
                 let blockedUserIDSet = Set(AppContext.shared.privacySettings.blocked.userIds)
 
-                feedPosts.filter { !postIdsToFilterOut.contains($0.id) && !blockedUserIDSet.contains($0.userID) }.forEach { feedPost in
+                // We filter feedposts which are already presented, which are from blocked users (could be group feed posts)
+                // We also filter out moments here since they have their own batching logic.
+                let filteredFeedPosts = feedPosts.filter {
+                    !postIdsToFilterOut.contains($0.id) && !blockedUserIDSet.contains($0.userId) && !$0.isMoment
+                }
+                filteredFeedPosts.forEach { feedPost in
                     let protoContainer = feedPost.postData.clientContainer
                     let protobufData = try? protoContainer.serializedData()
                     let metadataContentType: NotificationContentType = feedPost.groupId == nil ? .feedPost : .groupFeedPost
@@ -1770,6 +1775,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         NotificationRequest.createAndShow(from: metadata)
                     }
                 }
+                // Present moment notifications if any.
+                NotificationRequest.updateMomentNotifications()
             }
         }
     }

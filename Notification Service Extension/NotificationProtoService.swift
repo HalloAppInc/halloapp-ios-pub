@@ -354,7 +354,18 @@ final class NotificationProtoService: ProtoServiceCore {
             presentNotification(for: metadata)
             notificationDataStore.saveServerMsg(notificationMetadata: metadata)
 
-        case .chatMessageRetract, .feedCommentRetract, .feedPostRetract, .groupFeedPostRetract, .groupFeedCommentRetract, .groupChatMessageRetract:
+        case .feedPostRetract:
+            // removeNotification if available.
+            removeNotification(id: metadata.contentId)
+            // eitherway store it to clean it up further at the end.
+            pendingRetractNotificationIds.append(metadata.contentId)
+            // save these messages to be processed by the main app.
+            notificationDataStore.saveServerMsg(contentId: msg.id, serverMsgPb: serverMsgPb)
+            // This could be a moment - so try and update moment notifications.
+            // TODO: murali: we could try to improve this to run only on moments.
+            updateMomentNotifications()
+
+        case .chatMessageRetract, .feedCommentRetract, .groupFeedPostRetract, .groupFeedCommentRetract, .groupChatMessageRetract:
             // removeNotification if available.
             removeNotification(id: metadata.contentId)
             // eitherway store it to clean it up further at the end.
@@ -385,20 +396,22 @@ final class NotificationProtoService: ProtoServiceCore {
                     guard let post = self.coreFeedData.feedPost(with: postData.id, in: context) else {
                         return
                     }
-                    let notificationContent = self.extractNotificationContent(for: metadata, using: postData)
+
                     if let firstOrderedMediaItem = post.orderedMedia.first,
                        let firstMediaItem = post.media?.filter({ $0.id == firstOrderedMediaItem.id }).first {
                         // Present notification immediately if the post is moment.
                         // Continue downloading media in the background.
                         if post.isMoment {
-                            self.presentNotification(for: metadata.contentId, with: notificationContent)
+                            self.updateMomentNotifications(checkForDuplicates: true)
                         }
                         let downloadTask = self.startDownloading(media: firstMediaItem)
                         downloadTask?.feedMediaObjectId = firstMediaItem.objectID
                     }  else if let firstMediaItem = post.linkPreviews?.first?.media?.first {
+                        _ = self.extractAndHoldNotificationContent(for: metadata, using: postData)
                         let downloadTask = self.startDownloading(media: firstMediaItem)
                         downloadTask?.feedMediaObjectId = firstMediaItem.objectID
                     } else {
+                        let notificationContent = self.extractAndHoldNotificationContent(for: metadata, using: postData)
                         self.presentNotification(for: metadata.contentId, with: notificationContent)
                     }
                 }
@@ -606,7 +619,7 @@ final class NotificationProtoService: ProtoServiceCore {
             guard let chatMessage = self.coreChatData.chatMessage(with: messageId, in: context) else {
                 return
             }
-            let notificationContent = self.extractNotificationContent(for: metadata, using: chatContent)
+            let notificationContent = self.extractAndHoldNotificationContent(for: metadata, using: chatContent)
             if let firstOrderedMediaItem = chatMessage.orderedMedia.first,
                let firstMediaItem = chatMessage.media?.filter({ $0.id == firstOrderedMediaItem.id }).first {
                 let downloadTask = self.startDownloading(media: firstMediaItem)
@@ -697,7 +710,7 @@ final class NotificationProtoService: ProtoServiceCore {
 
     // MARK: Present or Update Notifications
 
-    private func extractNotificationContent(for metadata: NotificationMetadata, using postData: PostData) -> UNMutableNotificationContent {
+    private func extractAndHoldNotificationContent(for metadata: NotificationMetadata, using postData: PostData) -> UNMutableNotificationContent {
         let notificationContent = UNMutableNotificationContent()
         notificationContent.populate(from: metadata, contactStore: AppExtensionContext.shared.contactStore)
         notificationContent.populateFeedPostBody(from: postData, using: metadata, contactStore: AppExtensionContext.shared.contactStore)
@@ -709,7 +722,7 @@ final class NotificationProtoService: ProtoServiceCore {
         return notificationContent
     }
 
-    private func extractNotificationContent(for metadata: NotificationMetadata, using chatContent: ChatContent) -> UNMutableNotificationContent {
+    private func extractAndHoldNotificationContent(for metadata: NotificationMetadata, using chatContent: ChatContent) -> UNMutableNotificationContent {
         let notificationContent = UNMutableNotificationContent()
         notificationContent.populate(from: metadata, contactStore: AppExtensionContext.shared.contactStore)
         notificationContent.populateChatBody(from: chatContent, using: metadata, contactStore: AppExtensionContext.shared.contactStore)
@@ -796,9 +809,50 @@ final class NotificationProtoService: ProtoServiceCore {
         }
     }
 
+    private func updateMomentNotifications(checkForDuplicates: Bool = false) {
+        DDLogInfo("ProtoService/updateMomentNotifications")
+        mainDataStore.performSeriallyOnBackgroundContext { managedObjectContext in
+            let moments = AppContext.shared.coreFeedData.feedPosts(predicate:
+                                                                    NSPredicate(format: "isMoment = YES && statusValue == %d",
+                                                                                FeedPost.Status.incoming.rawValue),
+                                                                   in: managedObjectContext)
+            DDLogInfo("ProtoService/updateMomentNotifications/count: \(moments.count)")
+            guard moments.count > 0,
+                  let firstMoment = moments.first,
+                  let lastMoment = moments.last else {
+                return
+            }
+            do {
+                // We use the oldest notification identifier to replace that notification.
+                // But the metadata in the notification refers to the last moment - so that tapping takes us to the latest moment.
+                let notificationIdentifier = firstMoment.id
+                let metadata = NotificationMetadata(contentId: lastMoment.id,
+                                                    contentType: .feedPost,
+                                                    fromId: lastMoment.userId,
+                                                    timestamp: lastMoment.timestamp,
+                                                    data: try lastMoment.postData.clientContainer.serializedData(),
+                                                    messageId: nil,
+                                                    pushName: nil)
+                metadata.isMoment = true
+                let momentsPostData = moments.map { $0.postData }
+                let content = NotificationMetadata.extractMomentNotification(for: metadata, using: momentsPostData)
+                // We only check for duplicates only in the case of first moment - that is when we need a sound too.
+                // We avoid checking in all other cases including retractions.
+                let shouldCheckForDuplicates: Bool = (moments.count < 2) && checkForDuplicates
+                // Overwrite duplicates if any.
+                self.presentNotification(for: notificationIdentifier, with: content, checkForDuplicates: checkForDuplicates)
+            } catch {
+                DDLogError("ProtoService/updateMomentNotifications/error: \(error)")
+            }
+        }
+    }
+
     // Used to present post/chat notifications.
     // Presents notification and downloads remaining content if any.
-    private func presentNotification(for identifier: String, with content: UNNotificationContent, using attachments: [UNNotificationAttachment] = []) {
+    private func presentNotification(for identifier: String,
+                                     with content: UNNotificationContent,
+                                     using attachments: [UNNotificationAttachment] = [],
+                                     checkForDuplicates: Bool = true) {
         let contentTypeRaw = content.userInfo[NotificationMetadata.contentTypeKey] as? String ?? "unknown"
         switch NotificationContentType(rawValue: contentTypeRaw) {
         case .feedPost, .groupFeedPost:
@@ -817,8 +871,10 @@ final class NotificationProtoService: ProtoServiceCore {
             DDLogInfo("ProtoService/PostNotification - skip notification from blocker user or metadata missing")
             return
         }
-
-        runIfNotificationWasNotPresented(for: identifier) { [self] in
+        // Disable sound if we dont do duplicate checks.
+        let sound = checkForDuplicates ? UNNotificationSound.default : nil
+        // Completion block to present the notification.
+        let completion: () -> Void = {
             DDLogInfo("ProtoService/presentNotification/\(identifier)")
             let notificationContent = UNMutableNotificationContent()
             notificationContent.title = content.title
@@ -826,15 +882,20 @@ final class NotificationProtoService: ProtoServiceCore {
             notificationContent.body = content.body
             notificationContent.attachments = attachments
             notificationContent.userInfo = content.userInfo
-            notificationContent.sound = UNNotificationSound.default
+            notificationContent.sound = sound
             notificationContent.badge = AppExtensionContext.shared.applicationIconBadgeNumber as NSNumber?
 
             let notificationCenter = UNUserNotificationCenter.current()
             notificationCenter.add(UNNotificationRequest(identifier: identifier, content: notificationContent, trigger: nil))
-            recordPresentingNotification(for: identifier, type: contentTypeRaw)
+            self.recordPresentingNotification(for: identifier, type: contentTypeRaw)
 
             // Start downloading remaining media only after presenting the notification.
-            downloadRemainingMedia(for: identifier, with: content)
+            self.downloadRemainingMedia(for: identifier, with: content)
+        }
+        if checkForDuplicates {
+            runIfNotificationWasNotPresented(for: identifier, completion: completion)
+        } else {
+            completion()
         }
     }
 

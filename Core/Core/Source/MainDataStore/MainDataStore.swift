@@ -153,6 +153,7 @@ open class MainDataStore {
     public final func save(_ managedObjectContext: NSManagedObjectContext) {
         DDLogInfo("MainDataStore/will-save")
         do {
+            managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
             try managedObjectContext.save()
             DDLogInfo("MainDataStore/did-save")
         } catch {

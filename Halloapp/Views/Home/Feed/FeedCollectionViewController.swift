@@ -700,6 +700,9 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
             return
         }
 
+        if feedPost.isMoment {
+            UNUserNotificationCenter.current().removeDeliveredMomentNotifications()
+        }
         UNUserNotificationCenter.current().removeDeliveredPostNotifications(postId: feedPost.id)
         UNUserNotificationCenter.current().removeDeliveredGroupAddNotification(groupId: feedPost.groupID)
         if !feedPost.isMoment {
