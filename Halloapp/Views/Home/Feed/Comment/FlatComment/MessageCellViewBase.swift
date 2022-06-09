@@ -473,6 +473,8 @@ extension MessageCellViewBase: UIGestureRecognizerDelegate {
             commentDelegate?.messageView(self, jumpTo: parentCommentId)
         } else if let parentMessageId = chatMessage?.chatReplyMessageID {
             chatDelegate?.messageView(self, jumpTo: parentMessageId)
+        } else if let parentPostId = chatMessage?.feedPostID {
+            chatDelegate?.messageView(self, openPost: parentPostId)
         }
     }
 

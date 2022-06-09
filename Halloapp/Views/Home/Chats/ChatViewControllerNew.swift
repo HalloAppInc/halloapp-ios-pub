@@ -1512,6 +1512,16 @@ extension ChatViewControllerNew: MessageViewChatDelegate {
        scrollToMessage(id: chatMessageID, animated: true, highlightAfterScroll: true)
    }
 
+   func messageView(_ messageViewCell: MessageCellViewBase, openPost feedPostId: String) {
+       guard let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: MainAppContext.shared.feedData.viewContext) else {
+           DDLogWarn("ChatViewControllerNew/Quoted feed post \(feedPostId) not found")
+           return
+       }
+
+       let vc = feedPost.isMoment ? MomentViewController(post: feedPost) : PostViewController.viewController(for: feedPost)
+       present(vc, animated: true)
+   }
+
    func messageView(_ messageViewCell: MessageCellViewBase, replyToChat chatMessage: ChatMessage) {
        guard chatMessage.incomingStatus != .retracted else { return }
        guard ![.retracting, .retracted].contains(chatMessage.outgoingStatus) else { return }
