@@ -191,6 +191,7 @@ final class CallBar: UIControl {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = .systemFont(forTextStyle: .callout)
         titleLabel.textColor = .white
+        titleLabel.lineBreakMode = .byTruncatingTail
 
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -209,11 +210,14 @@ final class CallBar: UIControl {
         durationLabel.translatesAutoresizingMaskIntoConstraints = false
         durationLabel.font = .systemFont(forTextStyle: .body)
         durationLabel.textColor = .white
+        durationLabel.textAlignment = .right
 
         addSubview(titleView)
         addSubview(durationLabel)
 
         titleView.constrainMargins([.top, .bottom, .leading], to: self, priority: .ifPossible)
+        titleView.trailingAnchor.constraint(lessThanOrEqualTo: durationLabel.leadingAnchor, constant: 8).isActive = true
+        titleView.widthAnchor.constraint(lessThanOrEqualToConstant: 250).isActive = true
         durationLabel.constrainMargins([.top, .bottom, .trailing], to: self, priority: .ifPossible)
     }
 

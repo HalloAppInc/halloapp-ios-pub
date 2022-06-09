@@ -844,7 +844,6 @@ final class FeedItemFooterView: UIView {
         buttonStack.translatesAutoresizingMaskIntoConstraints = false
         buttonStack.axis = .horizontal
         buttonStack.distribution = .fillEqually
-        buttonStack.spacing = 24
         addSubview(buttonStack)
         buttonStack.constrain(to: self)
 

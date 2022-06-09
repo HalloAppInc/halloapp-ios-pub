@@ -150,6 +150,7 @@ class AudioCallViewController: CallViewController {
     private lazy var stationIdentification: UIView = {
         let imageView = UIImageView(image: UIImage(named: "AppIconSmall"))
         imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor).isActive = true
 
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -231,6 +232,8 @@ class AudioCallViewController: CallViewController {
         blurEffectView.frame = view.bounds
         blurEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(blurEffectView)
+        
+        stationIdentification.widthAnchor.constraint(equalToConstant: 150).isActive = true
 
         let avatarView = AvatarView()
         avatarView.configure(with: peerUserID, using: MainAppContext.shared.avatarStore)
@@ -276,7 +279,7 @@ class AudioCallViewController: CallViewController {
         fullCallView.axis = .vertical
         fullCallView.distribution = .fill
         fullCallView.alignment = .center
-        fullCallView.spacing = 30
+        fullCallView.setCustomSpacing(30, after: encryptionLabel)
         fullCallView.setCustomSpacing(8, after: stationIdentification)
         fullCallView.setCustomSpacing(8, after: peerNameLabel)
 

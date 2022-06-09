@@ -14,7 +14,7 @@ import UIKit
 let SelectableContactReuse = "SelectableContactReuse"
 
 final class ContactSelectionViewController: UIViewController {
-    static let rowHeight = CGFloat(54)
+    static let rowHeight = ContactSelectionView.forSizing.systemLayoutSizeFitting(CGSize(width: UIScreen.main.bounds.width - CGFloat(16), height: 0)).height
     var sectionIndexes: [String] = []
     enum Style {
         case `default`, destructive, all
@@ -637,6 +637,13 @@ final class ContactSelectionView: UIView {
 
     private static var xmarkChecked: UIImage {
         UIImage(systemName: "xmark.circle.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 25))!.withRenderingMode(.alwaysTemplate)
+    }
+    
+    static var forSizing: ContactSelectionView {
+        let cell = ContactSelectionView()
+        cell.nameLabel.text = " "
+        cell.subtitleLabel.text = " "
+        return cell
     }
 }
 
