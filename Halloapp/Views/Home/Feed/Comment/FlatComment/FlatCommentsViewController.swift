@@ -358,17 +358,9 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         fatalError("init(coder:) has not been implemented")
     }
 
-    private var commentsCenterYConstraint: NSLayoutConstraint?
-    private var headerCenterYConstraint: NSLayoutConstraint?
-    private var headerLeadingConstraint: NSLayoutConstraint?
-
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationItem.titleView = commentsTitleView
-        commentsCenterYConstraint = commentsTitleLabel.centerYAnchor.constraint(equalTo: commentsTitleView.centerYAnchor)
-        headerCenterYConstraint = navigationHeaderView.centerYAnchor.constraint(equalTo: commentsTitleView.centerYAnchor)
-        headerLeadingConstraint = navigationHeaderView.leadingAnchor.constraint(equalTo: commentsTitleView.leadingAnchor)
-        commentsCenterYConstraint?.isActive = true
+        navigationItem.titleView = navigationTitleView
 
         // If we are the only view controller in our navigation stack, add a dismiss button
         if navigationController?.viewControllers.count == 1, navigationController?.topViewController === self {
@@ -444,7 +436,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
             postLoadingCancellable?.cancel()
             postLoadingCancellable = nil
         }
-        navigationHeaderView.configure(withPost: feedPost)
+        navigationTitleView.headerView.configure(withPost: feedPost)
         showInputView = true
         // Setup the diffable data source so it can be used for first fetch of data
         collectionView.dataSource = dataSource
@@ -819,30 +811,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         return dataSource.indexPath(for: messagerow(for: comment))
     }
 
-    let navigationHeaderView: MessageCommentViewHeaderPreview = {
-        let navigationHeaderView = MessageCommentViewHeaderPreview()
-        navigationHeaderView.translatesAutoresizingMaskIntoConstraints = false
-        return navigationHeaderView
-    }()
-
-    let commentsTitleLabel: UILabel = {
-        let commentsTitleLabel = UILabel()
-        commentsTitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        commentsTitleLabel.text = Localizations.titleComments
-        commentsTitleLabel.font = UIFont.gothamFont(ofFixedSize: 15, weight: .medium)
-        commentsTitleLabel.textColor = UIColor.label.withAlphaComponent(0.9)
-        commentsTitleLabel.numberOfLines = 1
-        commentsTitleLabel.textAlignment = .center
-        return commentsTitleLabel
-    }()
-
-    private lazy var commentsTitleView: UIStackView = {
-        let vStack = UIStackView(arrangedSubviews: [commentsTitleLabel, navigationHeaderView])
-        vStack.translatesAutoresizingMaskIntoConstraints = false
-        vStack.axis = .vertical
-        commentsTitleLabel.leadingAnchor.constraint(equalTo: vStack.leadingAnchor).isActive = true
-        return vStack
-    }()
+    private let navigationTitleView = NavigationTitleView()
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         updateJumpButtonVisibility()
@@ -853,23 +822,23 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         if scrollView.contentOffset.y < x + headerHeight  {
             //  comment title scroll down and fade in
             // headerView scroll out and fade out
-            UIView.animate(withDuration: 0.5, animations: {
-                self.commentsCenterYConstraint?.isActive = true
-                self.headerCenterYConstraint?.isActive = false
-                self.headerLeadingConstraint?.isActive = false
-                self.commentsTitleLabel.alpha = 1
+            UIView.animate(withDuration: 0.5, animations: { [self] in
+                navigationTitleView.titleLabel.alpha = 1
+                navigationController?.navigationBar.standardAppearance.shadowColor = nil
+                navigationController?.navigationBar.scrollEdgeAppearance?.shadowColor = nil
+                navigationController?.navigationBar.compactAppearance?.shadowColor = nil
             })
             
-            self.navigationHeaderView.alpha = 0
+            navigationTitleView.headerView.alpha = 0
         } else {
             //  comment title scroll up and fade out
             // headerView scroll in and fade in
-            UIView.animate(withDuration: 0.5, animations: {
-                self.commentsCenterYConstraint?.isActive = false
-                self.headerCenterYConstraint?.isActive = true
-                self.headerLeadingConstraint?.isActive = true
-                self.commentsTitleLabel.alpha = 0
-                self.navigationHeaderView.alpha = 1
+            UIView.animate(withDuration: 0.5, animations: { [self] in
+                navigationTitleView.titleLabel.alpha = 0
+                navigationTitleView.headerView.alpha = 1
+                navigationController?.navigationBar.standardAppearance.shadowColor = .separator
+                navigationController?.navigationBar.scrollEdgeAppearance?.shadowColor = .separator
+                navigationController?.navigationBar.compactAppearance?.shadowColor = .separator
             })
         }
     }
@@ -1256,5 +1225,70 @@ extension FlatCommentsViewController: ContentInputDelegate {
                 self?.messageInputView.add(media: media)
             }
         }.store(in: &cancellableSet)
+    }
+}
+
+extension FlatCommentsViewController {
+    private class NavigationTitleView: UIView {
+        let headerView: MessageCommentViewHeaderPreview = {
+            let navigationHeaderView = MessageCommentViewHeaderPreview()
+            navigationHeaderView.translatesAutoresizingMaskIntoConstraints = false
+            return navigationHeaderView
+        }()
+
+        let titleLabel: UILabel = {
+            let commentsTitleLabel = UILabel()
+            commentsTitleLabel.translatesAutoresizingMaskIntoConstraints = false
+            commentsTitleLabel.text = Localizations.titleComments
+            commentsTitleLabel.font = UIFont.gothamFont(ofFixedSize: 15, weight: .medium)
+            commentsTitleLabel.textColor = UIColor.label.withAlphaComponent(0.9)
+            commentsTitleLabel.numberOfLines = 1
+            commentsTitleLabel.textAlignment = .center
+            return commentsTitleLabel
+        }()
+        
+        var titleLabelFallbackCenterXConstraint: NSLayoutConstraint? = nil
+        
+        override init(frame: CGRect) {
+            super.init(frame: frame)
+            commonInit()
+        }
+
+        required init?(coder: NSCoder) {
+            super.init(coder: coder)
+            commonInit()
+        }
+
+        private func commonInit() {
+            translatesAutoresizingMaskIntoConstraints = false
+
+            let widthConstraint = widthAnchor.constraint(equalToConstant: .greatestFiniteMagnitude)
+            widthConstraint.priority = .defaultLow
+            widthConstraint.isActive = true
+            
+            let heightConstraint = heightAnchor.constraint(equalToConstant: .greatestFiniteMagnitude)
+            heightConstraint.priority = .defaultLow
+            heightConstraint.isActive = true
+            
+            addSubview(titleLabel)
+            addSubview(headerView)
+            
+            titleLabelFallbackCenterXConstraint = titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor)
+            titleLabelFallbackCenterXConstraint?.isActive = true
+            
+            NSLayoutConstraint.activate([
+                titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+                headerView.leadingAnchor.constraint(equalTo: leadingAnchor),
+                headerView.centerYAnchor.constraint(equalTo: centerYAnchor),
+                headerView.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor),
+            ])
+        }
+        
+        override func didMoveToWindow() {
+            if let bar = sequence(first: self, next: { $0.superview }).lazy.compactMap({ $0 as? UINavigationBar }).first {
+                titleLabelFallbackCenterXConstraint?.isActive = false
+                titleLabel.centerXAnchor.constraint(equalTo: bar.centerXAnchor).isActive = true
+            }
+        }
     }
 }
