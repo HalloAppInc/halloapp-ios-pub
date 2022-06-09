@@ -12,12 +12,14 @@ import Combine
 import UIKit
 
 protocol MessageMediaViewDelegate: AnyObject {
-    func messageMediaView(_ view: MessageMediaView, didTapMediaAtIndex index: Int)
+    func messageMediaView(_ view: PreviewImageView, forComment: FeedPostCommentID, didTapMediaAtIndex index: Int)
+    func messageMediaView(_ view: PreviewImageView, forMessage: ChatMessageID, didTapMediaAtIndex index: Int)
 }
 
 class MessageMediaView: UIView {
 
     var chatMessage: ChatMessage?
+    var feedPostComment: FeedPostComment?
 
     weak var delegate: MessageMediaViewDelegate?
 
@@ -71,7 +73,11 @@ class MessageMediaView: UIView {
             imageView.onTap = { [weak self] in
                 guard let self = self else { return }
 
-                self.delegate?.messageMediaView(self, didTapMediaAtIndex: idx)
+                if let commentID = self.feedPostComment?.id {
+                    self.delegate?.messageMediaView(imageView, forComment: commentID, didTapMediaAtIndex: idx)
+                } else if let messageID = self.chatMessage?.id {
+                    self.delegate?.messageMediaView(imageView, forMessage: messageID, didTapMediaAtIndex: idx)
+                }
             }
         }
 
@@ -101,6 +107,22 @@ class MessageMediaView: UIView {
         cancellables.removeAll()
 
         self.chatMessage = chatMessage
+        configureMediaLayout(for: media)
+        load(media: media)
+
+        if media.count > imageViews.count {
+            moreImagesView.isHidden = false
+            moreImagesLabel.text = "+\(media.count - imageViews.count)"
+        } else {
+            moreImagesView.isHidden = true
+        }
+    }
+
+    public func configure(feedPostComment: FeedPostComment, media: [CommonMedia]) {
+        cancellables.forEach { $0.cancel() }
+        cancellables.removeAll()
+
+        self.feedPostComment = feedPostComment
         configureMediaLayout(for: media)
         load(media: media)
 
@@ -226,7 +248,7 @@ class MessageMediaView: UIView {
     }
 }
 
-fileprivate class PreviewImageView: UIImageView {
+class PreviewImageView: UIImageView {
 
     var isVideo = false {
         didSet {

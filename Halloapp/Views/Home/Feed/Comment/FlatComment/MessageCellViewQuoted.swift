@@ -21,8 +21,6 @@ class MessageCellViewQuoted: MessageCellViewBase {
     var MinWidthOfQuotedMessageBubble: CGFloat { return contentView.bounds.width * 0.4 }
     var MediaViewDimention: CGFloat { return 238.0 }
 
-    lazy var mediaWidthConstraint = mediaCarouselView.widthAnchor.constraint(equalToConstant: MediaViewDimention)
-    lazy var mediaHeightConstraint = mediaCarouselView.heightAnchor.constraint(equalToConstant: MediaViewDimention)
     lazy var audioWidthConstraint = audioView.widthAnchor.constraint(equalToConstant: MediaViewDimention)
     lazy var quotedMediaMessageMinWidthConstraint = quotedMessageView.widthAnchor.constraint(greaterThanOrEqualToConstant: CGFloat(MinWidthOfQuotedMediaMessageBubble).rounded())
     lazy var quotedMessageMinWidthConstraint = quotedMessageView.widthAnchor.constraint(greaterThanOrEqualToConstant: CGFloat(MinWidthOfQuotedMessageBubble).rounded())
@@ -30,16 +28,6 @@ class MessageCellViewQuoted: MessageCellViewBase {
     var hasMedia: Bool = false
     var hasAudio: Bool = false
     var hasLinkPreview: Bool = false
-
-    // MARK: Media
-    // TODO : Remove mediaCarouselView and use mediaView for comments and chat
-    private lazy var mediaCarouselView: MediaCarouselView = {
-        var configuration = MediaCarouselViewConfiguration.default
-        configuration.alwaysScaleToFitContent = false
-        let mediaCarouselView = MediaCarouselView(media: [], configuration: configuration)
-        mediaCarouselView.delegate = self
-        return mediaCarouselView
-    }()
 
     // MARK: Audio Media
 
@@ -111,7 +99,6 @@ class MessageCellViewQuoted: MessageCellViewBase {
     override func prepareForReuse() {
         super.prepareForReuse()
         nameRow.removeFromSuperview()
-        mediaCarouselView.removeFromSuperview()
         audioView.removeFromSuperview()
         linkPreviewView.removeFromSuperview()
         quotedMessageView.removeFromSuperview()
@@ -123,8 +110,6 @@ class MessageCellViewQuoted: MessageCellViewBase {
         hasAudio = false
         hasLinkPreview = false
 
-        mediaWidthConstraint.isActive = false
-        mediaHeightConstraint.isActive = false
         audioWidthConstraint.isActive = false
         quotedMediaMessageMinWidthConstraint.isActive = false
         quotedMessageMinWidthConstraint.isActive = false
@@ -157,8 +142,6 @@ class MessageCellViewQuoted: MessageCellViewBase {
             nameContentTimeRow.widthAnchor.constraint(greaterThanOrEqualToConstant: CGFloat(MinWidthOfMessageBubble).rounded()),
             rightAlignedConstraint,
             leftAlignedConstraint,
-            mediaWidthConstraint,
-            mediaHeightConstraint,
             audioWidthConstraint
         ])
     }
@@ -190,8 +173,8 @@ class MessageCellViewQuoted: MessageCellViewBase {
                     nameContentTimeRow.addArrangedSubview(audioView)
                     hasAudio = true
                 } else {
-                    mediaCarouselView.configureMediaCarousel(media: media)
-                    nameContentTimeRow.addArrangedSubview(mediaCarouselView)
+                    mediaView.configure(feedPostComment: comment, media: commentMedia.sorted(by: { $0.order < $1.order }))
+                    nameContentTimeRow.addArrangedSubview(mediaView)
                     hasMedia = true
                 }
             }
@@ -260,18 +243,13 @@ class MessageCellViewQuoted: MessageCellViewBase {
     private func configureQuotedMessage() {
         nameContentTimeRow.addArrangedSubview(textRow)
         nameContentTimeRow.addArrangedSubview(audioTimeRow)
-        if hasMedia {
-            mediaWidthConstraint.isActive = true
-        } else if hasAudio {
+        if hasAudio {
             audioWidthConstraint.isActive = true
         } else if quotedMessageView.hasMedia ||  hasLinkPreview {
             // If quoted comments have media, set the min width of the comment.
             quotedMediaMessageMinWidthConstraint .isActive = true
         } else if !quotedMessageView.hasMedia {
             quotedMessageMinWidthConstraint .isActive = true
-        }
-        if hasMedia {
-            mediaHeightConstraint.isActive = true
         }
     }
 
@@ -319,8 +297,12 @@ extension MessageCellViewQuoted: MediaCarouselViewDelegate {
 
 extension MessageCellViewQuoted: MessageMediaViewDelegate {
 
-    func messageMediaView(_ view: MessageMediaView, didTapMediaAtIndex index: Int) {
-        // TODO plug in full screen view
+    func messageMediaView(_ view: PreviewImageView, forComment: FeedPostCommentID, didTapMediaAtIndex index: Int) {
+        self.commentDelegate?.messageView(view, forComment: forComment, didTapMediaAtIndex: index)
+    }
+
+    func messageMediaView(_ view: PreviewImageView, forMessage: ChatMessageID, didTapMediaAtIndex index: Int) {
+        self.chatDelegate?.messageView(self, for: forMessage, didTapMediaView: view, at: index)
     }
 }
 
