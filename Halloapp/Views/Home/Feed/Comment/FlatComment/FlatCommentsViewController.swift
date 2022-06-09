@@ -418,10 +418,9 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         }
 
         // Add jump to last message button
-        guard let keyWindow = UIApplication.shared.windows.filter({$0.isKeyWindow}).first else { return }
-        keyWindow.addSubview(jumpButton)
-        jumpButton.trailingAnchor.constraint(equalTo: keyWindow.trailingAnchor).isActive = true
-        jumpButtonConstraint = jumpButton.bottomAnchor.constraint(equalTo: keyWindow.bottomAnchor, constant: -(collectionView.contentInset.bottom + 50))
+        view.addSubview(jumpButton)
+        jumpButton.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+        jumpButtonConstraint = jumpButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -(collectionView.contentInset.bottom + 50))
         jumpButtonConstraint?.isActive = true
     }
 

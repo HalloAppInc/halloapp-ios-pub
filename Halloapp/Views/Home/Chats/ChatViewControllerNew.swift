@@ -68,6 +68,17 @@ fileprivate enum MessageRow: Hashable, Equatable {
             return ""
         }
     }
+
+    // not all chat messages are counted when displaying unread counts.
+    // in order to insert the unread bannber at the right location, we need this property
+    var isCountedInUnreadCounts: Bool {
+        switch self {
+        case .chatMessage(_), .retracted(_), .media(_), .audio(_), .text(_), .linkPreview(_), .quoted(_), .unreadCountHeader(_), .chatCall(_):
+            return true
+        case .chatEvent(_), .addToContactBook:
+            return false
+        }
+    }
 }
 
 
@@ -88,6 +99,9 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     private var isFirstLaunch = true
     // This variable is used to determine if the unread banner is visible, if so update its count when the ChatThread unreadCount is updated
     private var unreadMessagesHeaderVisible = false
+    private var unreadCount: Int32 = 0
+    private var scrollToLastMessageOnNextUpdate = false
+    private var scrollToUnreadBanner = false
 
     fileprivate typealias ChatDataSource = UICollectionViewDiffableDataSource<String, MessageRow>
     fileprivate typealias ChatMessageSnapshot = NSDiffableDataSourceSnapshot<String, MessageRow>
@@ -108,6 +122,60 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     private var transitionSnapshot: UIView?
 
     private var cancellableSet: Set<AnyCancellable> = []
+
+    // MARK: Jump Button
+
+    private var jumpButtonUnreadCount: Int32 = 0
+    private var jumpButtonConstraint: NSLayoutConstraint?
+
+    private lazy var jumpButton: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ jumpButtonUnreadCountLabel, jumpButtonImageView ])
+        view.axis = .horizontal
+        view.alignment = .center
+        view.spacing = 5
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        view.isLayoutMarginsRelativeArrangement = true
+        view.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            jumpButtonImageView.widthAnchor.constraint(equalToConstant: 30),
+            jumpButtonImageView.heightAnchor.constraint(equalToConstant: 30)
+        ])
+
+        let subView = UIView(frame: view.bounds)
+        subView.layer.cornerRadius = 10
+        subView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMinXMaxYCorner]
+
+        subView.clipsToBounds = true
+        subView.backgroundColor = UIColor.secondarySystemGroupedBackground.withAlphaComponent(0.9)
+        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.insertSubview(subView, at: 0)
+
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(scrollToLastMessage))
+        view.isUserInteractionEnabled = true
+        view.addGestureRecognizer(tapGesture)
+
+        return view
+    }()
+
+    private lazy var jumpButtonUnreadCountLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.font = UIFont.preferredFont(forTextStyle: .body)
+        label.textColor = .systemBlue
+        return label
+    }()
+
+    private lazy var jumpButtonImageView: UIImageView = {
+        let view = UIImageView()
+        view.image = UIImage(systemName: "chevron.down.circle")
+        view.contentMode = .scaleAspectFill
+        view.tintColor = .systemBlue
+
+        view.layer.masksToBounds = true
+
+        return view
+    }()
 
     private lazy var titleView: ChatTitleView = {
         let titleView = ChatTitleView()
@@ -271,7 +339,6 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         updateCollectionViewData()
-        scrollToBottom()
     }
 
     func updateCollectionViewData() {
@@ -315,24 +382,43 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
         if let fromUserId = fromUserId {
             let chatThread = MainAppContext.shared.chatData.chatThread(type: ChatType.oneToOne, id: fromUserId, in: MainAppContext.shared.chatData.viewContext)
-            let unreadCount = chatThread?.unreadCount
+            unreadCount = chatThread?.unreadCount ?? 0
             // Only add the unread banner on first launch OR
             // on subsequent launches, if the unread banner is already present, add it with an updated unreadCount
             let shouldAddUnreadCountHeader = (isFirstLaunch || (!isFirstLaunch && unreadMessagesHeaderVisible))
             unreadMessagesHeaderVisible = false
             // Add in the unread count
-            if let unreadCount = unreadCount, unreadCount > 0, shouldAddUnreadCountHeader {
+            if unreadCount > 0, shouldAddUnreadCountHeader {
+                var unreadCounter = unreadCount
+                var firstUnreadItem: MessageRow?
                 let unreadHeaderIndex = snapshot.numberOfItems - Int(unreadCount)
                 if unreadHeaderIndex > 0, unreadHeaderIndex < (snapshot.numberOfItems) {
                     unreadMessagesHeaderVisible = true
-                    let item = snapshot.itemIdentifiers[unreadHeaderIndex]
-                    snapshot.insertItems([MessageRow.unreadCountHeader(Int32(unreadCount))], beforeItem: item)
+                    // look for the right place to insert the unread counter header
+                    // only count chatMessages and chatEvents for now since only chatMessages and chatEvents
+                    // are counted towards unread counts
+                    for item in snapshot.itemIdentifiers.reversed() {
+                        if item.isCountedInUnreadCounts {
+                            unreadCounter -= 1
+                        }
+                        if unreadCounter == 0 {
+                            firstUnreadItem = item
+                            break
+                        }
+                    }
+                    if let firstUnreadItem = firstUnreadItem {
+                        snapshot.insertItems([MessageRow.unreadCountHeader(Int32(unreadCount))], beforeItem: firstUnreadItem)
+                    }
                 }
             }
         }
-
         // Apply the new snapshot
-        dataSource.apply(snapshot, animatingDifferences: false)
+        dataSource.apply(snapshot, animatingDifferences: true) { [weak self] in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                self.updateScrollingWhenDataChanges()
+            }
+        }
         isFirstLaunch = false
     }
 
@@ -506,6 +592,13 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             UNUserNotificationCenter.current().removeDeliveredChatNotifications(fromUserId: chatWithUserId)
             setupOrRefreshHeaderAndFooter()
         }
+        // Add jump to last message button
+        view.addSubview(jumpButton)
+        jumpButton.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+        jumpButtonConstraint = jumpButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -(collectionView.contentInset.bottom + 50))
+        jumpButtonConstraint?.isActive = true
+        
+        updateJumpButtonVisibility()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -524,9 +617,9 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
        MainAppContext.shared.chatData.setCurrentlyChattingWithUserId(for: nil)
 
        navigationController?.navigationBar.backItem?.backBarButtonItem = UIBarButtonItem()
-
+       jumpButton.removeFromSuperview()
        applyTransitionSnapshot()
-       if let chatWithUserId = self.fromUserId {
+       if let chatWithUserId = fromUserId {
            // TODO only if jump button is not visible.. call below line
             MainAppContext.shared.chatData.markThreadAsRead(type: .oneToOne, for: chatWithUserId)
            // updates the number of chat threads with unread messages
@@ -536,18 +629,17 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
    override func viewDidLayoutSubviews() {
        super.viewDidLayoutSubviews()
-       scrollToBottom()
+       if scrollToUnreadBanner {
+           scrollToUnreadBanner = false
+           scrollToUnreadBannerCell()
+       }
+       else {
+           if scrollToLastMessageOnNextUpdate || jumpButton.alpha == 0 {
+               scrollToLastMessageOnNextUpdate = false
+               scrollToLastMessage()
+           }
+       }
    }
-
-    private func scrollToBottom() {
-        let lastSectionIndex = collectionView.numberOfSections - 1
-        guard lastSectionIndex >= 0 else { return }
-        let lastRowIndex = collectionView.numberOfItems(inSection: lastSectionIndex) - 1
-        guard lastRowIndex >= 0 else { return }
-        let indexPath = IndexPath(row: lastRowIndex, section: lastSectionIndex)
-
-        self.collectionView.scrollToItem(at: indexPath, at: .centeredVertically, animated: false)
-    }
 
    private func removeTransitionSnapshot() {
        transitionSnapshot?.removeFromSuperview()
@@ -573,6 +665,11 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         setupChatEventFetchedResultsController()
         setupCallHistoryFetchedResultsController()
         updateCollectionViewData()
+        if unreadCount > 0 {
+            scrollToUnreadBanner = true
+        } else {
+            scrollToLastMessageOnNextUpdate = true
+        }
     }
 
     // MARK: Chat Message FetchedResults
@@ -783,7 +880,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
         contentInputView.resetAfterPosting()
         removeChatDraft()
-
+        scrollToLastMessageOnNextUpdate = true
         if !firstActionHappened {
             didAction()
         }
@@ -1192,7 +1289,7 @@ extension ChatViewControllerNew: ContentInputDelegate {
         collectionView.contentInset = newInsets
         collectionView.scrollIndicatorInsets = newInsets
 
-        // TODO updateJumpButtonVisibility()
+        updateJumpButtonVisibility()
     }
 
     func inputView(_ inputView: ContentInputView, didClose panel: InputContextPanel) {
@@ -1511,11 +1608,11 @@ extension ChatViewControllerNew: MessageViewChatDelegate {
     private func highlightMessage(id: ChatMessageID) {
         guard let indexPath = indexPath(for: id),
               let cell = collectionView.cellForItem(at: indexPath) as? MessageCellViewBase else {
-            DDLogDebug("ChatViewControllerNew/scrollToMessage failed for \(id)")
+            DDLogDebug("ChatViewControllerNew/highlightMessage failed for \(id)")
             return
         }
 
-        DDLogDebug("ChatViewControllerNew/scrollToMessage: \(id)")
+        DDLogDebug("ChatViewControllerNew/highlightMessage: \(id)")
         cell.runHighlightAnimation()
     }
 
@@ -1524,6 +1621,85 @@ extension ChatViewControllerNew: MessageViewChatDelegate {
             return nil
         }
         return dataSource.indexPath(for: messagerow(for: chatMessage))
+    }
+
+    private func updateScrollingWhenDataChanges() {
+        jumpButtonUnreadCount = unreadCount
+        updateJumpButtonText()
+
+        guard !isFirstLaunch else {
+            return
+        }
+
+        // When data changes, if the jump button is not visible, the user is viewing the bottom of the comments,
+        // we scroll to bottom so they can see the new comments as they come in.
+        // Do not scroll to bottom if all comments are unread
+        if scrollToLastMessageOnNextUpdate || jumpButton.alpha == 0 {
+            scrollToLastMessageOnNextUpdate = false
+            scrollToLastMessage()
+            return
+        }
+    }
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        updateJumpButtonVisibility()
+    }
+
+    func updateJumpButtonVisibility() {
+        let hideJumpButton: Bool
+        guard let lastMessageIndexPath = lastMessageIndexPath() else {
+            return
+        }
+        if let lastCommentLayoutAttributes = collectionView.layoutAttributesForItem(at: lastMessageIndexPath) {
+            // Display jump button when the last message is no longer visible
+            let insetBounds = collectionView.bounds.inset(by: collectionView.adjustedContentInset)
+            hideJumpButton = insetBounds.intersects(lastCommentLayoutAttributes.frame)
+        } else {
+            hideJumpButton = true
+        }
+
+        let jumpButtonAlpha: CGFloat = hideJumpButton ? 0.0 : 1.0
+        if jumpButton.alpha != jumpButtonAlpha {
+            UIView.animate(withDuration: 0.25, delay: 0.0, options: .curveEaseInOut) {
+                self.jumpButton.alpha = jumpButtonAlpha
+            }
+        }
+
+        // Mark all messages as read on scrolling to bottom
+        if hideJumpButton {
+            jumpButtonUnreadCount = 0
+            updateJumpButtonText()
+        }
+
+        jumpButtonConstraint?.constant = -(collectionView.contentInset.bottom + 50)
+    }
+
+    private func updateJumpButtonText() {
+        jumpButtonUnreadCountLabel.text = jumpButtonUnreadCount > 0 ? String(jumpButtonUnreadCount) : nil
+    }
+
+    @objc private func scrollToLastMessage() {
+        guard let lastMessageIndexPath = lastMessageIndexPath() else {
+            return
+        }
+        DDLogDebug("ChatViewControllerNew/scrollToLastMessage")
+        self.collectionView.scrollToItem(at: lastMessageIndexPath, at: .centeredVertically, animated: false)
+        updateJumpButtonText()
+    }
+
+    private func lastMessageIndexPath() -> IndexPath? {
+        let lastSectionIndex = collectionView.numberOfSections - 1
+        guard lastSectionIndex >= 0 else { return nil }
+        let lastRowIndex = collectionView.numberOfItems(inSection: lastSectionIndex) - 1
+        guard lastRowIndex >= 0 else {  return nil }
+        return IndexPath(row: lastRowIndex, section: lastSectionIndex)
+    }
+
+    private func scrollToUnreadBannerCell() {
+        DDLogDebug("ChatViewControllerNew/scrollToUnreadBannerCell")
+        guard let indexPath = dataSource.indexPath(for: MessageRow.unreadCountHeader(Int32(unreadCount))) else { return }
+        collectionView.scrollToItem(at: indexPath, at: .centeredVertically, animated: false)
+        updateJumpButtonText()
     }
 }
 
