@@ -521,6 +521,8 @@ final class NotificationProtoService: ProtoServiceCore {
                         // Continue downloading media in the background.
                         if post.isMoment {
                             self.updateMomentNotifications(checkForDuplicates: true)
+                        } else {
+                            _ = self.extractAndHoldNotificationContent(for: metadata, using: postData)
                         }
                         let downloadTask = self.startDownloading(media: firstMediaItem)
                         downloadTask?.feedMediaObjectId = firstMediaItem.objectID
