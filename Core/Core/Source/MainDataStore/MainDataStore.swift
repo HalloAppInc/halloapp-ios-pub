@@ -138,10 +138,14 @@ open class MainDataStore {
     }
 
     public func performOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
-        backgroundProcessingQueue.sync {
+        if DispatchQueue.getSpecific(key: bgQueueKey) as String? == bgQueueValue {
             let context = self.newBackgroundContext()
-            context.performAndWait {
-                block(context)
+            context.performAndWait { block(context) }
+        } else {
+            backgroundProcessingQueue.sync { [weak self] in
+                guard let self = self else { return }
+                let context = self.newBackgroundContext()
+                context.performAndWait { block(context) }
             }
         }
     }
