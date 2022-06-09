@@ -4391,6 +4391,7 @@ extension ChatData {
 // MARK: Group Process Inbound/Outbound Group Feed
 extension ChatData {
 
+    // Updates group feed thread when post is incoming as well as retracted.
     private func updateThreadWithGroupFeed(_ id: FeedPostID, isInbound: Bool, using managedObjectContext: NSManagedObjectContext) {
         guard let groupFeedPost = MainAppContext.shared.feedData.feedPost(with: id, in: managedObjectContext) else { return }
         guard let groupID = groupFeedPost.groupId else { return }
@@ -4424,6 +4425,11 @@ extension ChatData {
         }
 
         save(managedObjectContext) // extra save
+
+        guard groupFeedPost.status != .retracted else {
+            updateThreadWithGroupFeedRetract(id, using: managedObjectContext)
+            return
+        }
 
         var mentionText: NSAttributedString?
         contactStore.performOnBackgroundContextAndWait { contactsManagedObjectContext in

@@ -1599,38 +1599,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    private func notifications(with predicate: NSPredicate, in managedObjectContext: NSManagedObjectContext) -> [ FeedActivity ] {
-        let fetchRequest: NSFetchRequest<FeedActivity> = FeedActivity.fetchRequest()
-        fetchRequest.predicate = predicate
-        do {
-            let results = try managedObjectContext.fetch(fetchRequest)
-            return results
-        }
-        catch {
-            DDLogError("FeedData/notifications/mark-read-all/error [\(error)]")
-            fatalError("Failed to fetch notifications.")
-        }
-    }
-
-    private func notifications(for postId: FeedPostID, commentId: FeedPostCommentID? = nil, in managedObjectContext: NSManagedObjectContext) -> [FeedActivity] {
-        let postIdPredicate = NSPredicate(format: "postID = %@", postId)
-        if let commentID = commentId {
-            let commentIdPredicate = NSPredicate(format: "commentID = %@", commentID)
-            return self.notifications(with: NSCompoundPredicate(andPredicateWithSubpredicates: [ postIdPredicate, commentIdPredicate ]), in: managedObjectContext)
-        } else {
-            return self.notifications(with: postIdPredicate, in: managedObjectContext)
-        }
-    }
-
     func markNotificationsAsRead(for postId: FeedPostID? = nil) {
         performSeriallyOnBackgroundContext { (managedObjectContext) in
             let notifications: [FeedActivity]
             let isNotReadPredicate = NSPredicate(format: "read = %@", NSExpression(forConstantValue: false))
             if postId != nil {
                 let postIdPredicate = NSPredicate(format: "postID = %@", postId!)
-                notifications = self.notifications(with: NSCompoundPredicate(andPredicateWithSubpredicates: [ isNotReadPredicate, postIdPredicate ]), in: managedObjectContext)
+                notifications = AppContext.shared.coreFeedData.notifications(with: NSCompoundPredicate(andPredicateWithSubpredicates: [ isNotReadPredicate, postIdPredicate ]), in: managedObjectContext)
             } else {
-                notifications = self.notifications(with: isNotReadPredicate, in: managedObjectContext)
+                notifications = AppContext.shared.coreFeedData.notifications(with: isNotReadPredicate, in: managedObjectContext)
             }
             DDLogInfo("FeedData/notifications/mark-read-all Count: \(notifications.count)")
             guard !notifications.isEmpty else { return }
@@ -1808,11 +1785,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.comments?.forEach {
                 // Delete media comments if any
                 self.deleteMedia(feedPostComment: $0)
-                managedObjectContext.delete($0)
+                // Leave tombstones in for comments too.
+                $0.rawText = ""
+                $0.status = .retracted
             }
 
             // 3. Delete all notifications for this post.
-            let notifications = self.notifications(for: postId, in: managedObjectContext)
+            let notifications = AppContext.shared.coreFeedData.notifications(for: postId, in: managedObjectContext)
             notifications.forEach { managedObjectContext.delete($0)}
 
             // 4. Reset post data and mark post as deleted.
@@ -1821,7 +1800,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             if feedPost.isMoment {
                 // make the prompt card appear the top of the feed
-                self.resetMomentPromptTimestamp()
+                AppContext.shared.coreFeedData.resetMomentPromptTimestamp()
             }
 
             if managedObjectContext.hasChanges {
@@ -1861,7 +1840,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             self.deleteMedia(feedPostComment: feedComment)
 
             // 3. Reset comment text copied over to notifications.
-            let notifications = self.notifications(for: feedComment.post.id, commentId: feedComment.id, in: managedObjectContext)
+            let notifications = AppContext.shared.coreFeedData.notifications(for: feedComment.post.id, commentId: feedComment.id, in: managedObjectContext)
             notifications.forEach { (notification) in
                 notification.event = .retractedComment
                 notification.rawText = nil
@@ -3781,35 +3760,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func deleteMedia(feedPost: FeedPost) {
         feedPost.media?.forEach { (media) in
-
-            // cancel any pending tasks for this media
-            DDLogInfo("FeedData/deleteMedia/post-id \(feedPost.id), media-id: \(media.id)")
-            if let currentTask = downloadManager.currentTask(for: media) {
-                DDLogInfo("FeedData/deleteMedia/cancelTask/task: \(currentTask.id)")
-                currentTask.downloadRequest?.cancel(producingResumeData : false)
-            }
-            if let relativeFilePath = media.relativeFilePath {
-                let encryptedURL = media.mediaDirectoryURL.appendingPathComponent(relativeFilePath.appending(".enc"), isDirectory: false)
-                do {
-                    if FileManager.default.fileExists(atPath: encryptedURL.path) {
-                        try FileManager.default.removeItem(at: encryptedURL)
-                        DDLogInfo("FeedData/delete-media-encrypted/deleting [\(encryptedURL)]")
-                    }
-                }
-                catch {
-                    DDLogError("FeedData/delete-media-encrypted/error [\(error)]")
-                }
-            }
-            if let fileURL = media.mediaURL {
-                do {
-                    try FileManager.default.removeItem(at: fileURL)
-                    DDLogInfo("FeedData/delete-media/deleting [\(fileURL)]")
-                }
-                catch {
-                    DDLogError("FeedData/delete-media/error [\(error)]")
-                }
-            }
-            feedPost.managedObjectContext?.delete(media)
+            cancelDownloadAndDeleteMedia(mediaItem: media)
         }
         feedPost.comments?.forEach {
             // Delete comment media if any
@@ -3825,34 +3776,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     
     private func deleteMedia(feedPostComment: FeedPostComment) {
         feedPostComment.media?.forEach { (media) in
-            // cancel any pending tasks for this media
-            DDLogInfo("FeedData/deleteMedia/comment-id \(feedPostComment.id), media-id: \(media.id)")
-            if let currentTask = downloadManager.currentTask(for: media) {
-                DDLogInfo("FeedData/deleteMedia/cancelTask/task: \(currentTask.id)")
-                currentTask.downloadRequest?.cancel(producingResumeData : false)
-            }
-            if let relativeFilePath = media.relativeFilePath {
-                let encryptedURL = media.mediaDirectoryURL.appendingPathComponent(relativeFilePath.appending(".enc"), isDirectory: false)
-                do {
-                    if FileManager.default.fileExists(atPath: encryptedURL.path) {
-                        try FileManager.default.removeItem(at: encryptedURL)
-                        DDLogInfo("FeedData/delete-comment-media-encrypted/deleting [\(encryptedURL)]")
-                    }
-                }
-                catch {
-                    DDLogError("FeedData/delete-comment-media-encrypted/error [\(error)]")
-                }
-            }
-            if let fileURL = media.mediaURL {
-                do {
-                    try FileManager.default.removeItem(at: fileURL)
-                    DDLogInfo("FeedData/delete-comment-media/deleting [\(fileURL)]")
-                }
-                catch {
-                    DDLogError("FeedData/delete-comment-media/error [\(error)]")
-                }
-            }
-            feedPostComment.managedObjectContext?.delete(media)
+            cancelDownloadAndDeleteMedia(mediaItem: media)
         }
 
         feedPostComment.linkPreviews?.forEach {
@@ -3866,33 +3790,19 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         feedLinkPreview.media?.forEach { (media) in
             // cancel any pending tasks for this media
             DDLogInfo("FeedData/deleteMedia/feedLinkPreview-id \(feedLinkPreview.id), media-id: \(media.id)")
-            if let currentTask = downloadManager.currentTask(for: media) {
-                DDLogInfo("FeedData/deleteMedia/cancelTask/task: \(currentTask.id)")
-                currentTask.downloadRequest?.cancel(producingResumeData : false)
-            }
-            if let relativeFilePath = media.relativeFilePath {
-                let encryptedURL = media.mediaDirectoryURL.appendingPathComponent(relativeFilePath.appending(".enc"), isDirectory: false)
-                do {
-                    if FileManager.default.fileExists(atPath: encryptedURL.path) {
-                        try FileManager.default.removeItem(at: encryptedURL)
-                        DDLogInfo("FeedData/delete-feedLinkPreview-media-encrypted/deleting [\(encryptedURL)]")
-                    }
-                }
-                catch {
-                    DDLogError("FeedData/delete-feedLinkPreview-media-encrypted/error [\(error)]")
-                }
-            }
-            if let fileURL = media.mediaURL {
-                do {
-                    try FileManager.default.removeItem(at: fileURL)
-                    DDLogInfo("FeedData/delete-feedLinkPreview-media/deleting [\(fileURL)]")
-                }
-                catch {
-                    DDLogError("FeedData/delete-feedLinkPreview-media/error [\(error)]")
-                }
-            }
-            feedLinkPreview.managedObjectContext?.delete(media)
+            cancelDownloadAndDeleteMedia(mediaItem: media)
         }
+    }
+
+    private func cancelDownloadAndDeleteMedia(mediaItem: CommonMedia) {
+        // cancel any pending tasks for this media
+        DDLogInfo("FeedData/deleteMedia/id: \(mediaItem.id)")
+        if let currentTask = downloadManager.currentTask(for: mediaItem) {
+            DDLogInfo("FeedData/deleteMedia/cancelTask/task: \(currentTask.id)")
+            currentTask.downloadRequest?.cancel(producingResumeData : false)
+        }
+        // Delete media files.
+        AppContext.shared.coreFeedData.deleteMedia(mediaItem: mediaItem)
     }
     
     private func getPosts(olderThan date: Date, in managedObjectContext: NSManagedObjectContext) -> [FeedPost] {
@@ -4428,16 +4338,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    private func resetMomentPromptTimestamp() {
-        DDLogInfo("FeedData/resetMomentPromptTimestamp")
-        MainAppContext.shared.userDefaults.set(Double.zero, forKey: "momentPrompt")
-    }
-
     // MARK: - Notifications
 
     func updateFavoritesPromoNotification() {
         performSeriallyOnBackgroundContext { (managedObjectContext) in
-            let notifications = self.notifications(for: "favorites", in: managedObjectContext)
+            let notifications = AppContext.shared.coreFeedData.notifications(for: "favorites", in: managedObjectContext)
             if notifications.count > 0 {
                 notifications.forEach {
                     if $0.timestamp < FeedData.postCutoffDate {
@@ -4548,6 +4453,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     DDLogDebug("FeedData/mergeData/error: \(error)")
                 }
                 DDLogInfo("FeedData/mergeData - \(sharedDataStore.source)/done")
+                checkForUnreadFeed()
                 completion()
             }
         }

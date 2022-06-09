@@ -354,22 +354,82 @@ final class NotificationProtoService: ProtoServiceCore {
             presentNotification(for: metadata)
             notificationDataStore.saveServerMsg(notificationMetadata: metadata)
 
-        case .feedPostRetract:
+        case .feedPostRetract, .groupFeedPostRetract:
+            hasAckBeenDelegated = true
+            let postID = metadata.contentId
             // removeNotification if available.
             removeNotification(id: metadata.contentId)
-            // eitherway store it to clean it up further at the end.
-            pendingRetractNotificationIds.append(metadata.contentId)
-            // save these messages to be processed by the main app.
-            notificationDataStore.saveServerMsg(contentId: msg.id, serverMsgPb: serverMsgPb)
-            // This could be a moment - so try and update moment notifications.
-            // TODO: murali: we could try to improve this to run only on moments.
-            updateMomentNotifications()
 
-        case .chatMessageRetract, .feedCommentRetract, .groupFeedPostRetract, .groupFeedCommentRetract, .groupChatMessageRetract:
+            let completion = {
+                ack()
+                // This could be a moment - so try and update moment notifications.
+                // TODO: murali: we could try to improve this to run only on moments.
+                self.updateMomentNotifications()
+            }
+
+            // Try and delete the content.
+            mainDataStore.performSeriallyOnBackgroundContext { managedObjectContext in
+                guard let feedPost = AppContext.shared.coreFeedData.feedPost(with: postID, in: managedObjectContext) else {
+                    DDLogError("NotificationExtension/retract-post/error Missing post. [\(postID)]")
+                    completion()
+                    return
+                }
+
+                guard feedPost.status != .retracted  else {
+                    DDLogError("NotificationExtension/retract-post/error Already retracted. [\(postID)]")
+                    completion()
+                    return
+                }
+                DDLogInfo("NotificationExtension/retract-post [\(postID)]/begin")
+
+                // 1. Delete media.
+                feedPost.media?.forEach { mediaItem in
+                    self.cancelDownloadAndDeleteMedia(mediaItem: mediaItem)
+                }
+
+                // 2. Delete comments.
+                feedPost.comments?.forEach { comment in
+                    // Delete media if any.
+                    comment.media?.forEach { mediaItem in
+                        self.cancelDownloadAndDeleteMedia(mediaItem: mediaItem)
+                    }
+                    comment.linkPreviews?.forEach { linkPreview in
+                        linkPreview.media?.forEach { mediaItem in
+                            self.cancelDownloadAndDeleteMedia(mediaItem: mediaItem)
+                        }
+                    }
+                    // Leave tombstones in for comments too.
+                    comment.rawText = ""
+                    comment.status = .retracted
+                }
+
+                // 3. Delete all notifications for this post.
+                let notifications = AppContext.shared.coreFeedData.notifications(for: postID, in: managedObjectContext)
+                notifications.forEach { managedObjectContext.delete($0)}
+
+                // 4. Reset post data and mark post as deleted.
+                feedPost.rawText = nil
+                feedPost.status = .retracted
+
+                if feedPost.isMoment {
+                    // make the prompt card appear the top of the feed
+                    AppContext.shared.coreFeedData.resetMomentPromptTimestamp()
+                }
+
+                if let groupID = feedPost.groupID,
+                   let thread = AppContext.shared.mainDataStore.groupThread(for: groupID, in: managedObjectContext),
+                   thread.lastFeedId == postID {
+                    thread.lastFeedStatus = .retracted
+                }
+
+                self.mainDataStore.save(managedObjectContext)
+                DDLogInfo("NotificationExtension/retract-post [\(postID)]/done")
+                completion()
+            }
+
+        case .chatMessageRetract, .feedCommentRetract, .groupFeedCommentRetract, .groupChatMessageRetract:
             // removeNotification if available.
             removeNotification(id: metadata.contentId)
-            // eitherway store it to clean it up further at the end.
-            pendingRetractNotificationIds.append(metadata.contentId)
             // save these messages to be processed by the main app.
             notificationDataStore.saveServerMsg(contentId: msg.id, serverMsgPb: serverMsgPb)
 
@@ -377,6 +437,15 @@ final class NotificationProtoService: ProtoServiceCore {
             notificationDataStore.saveServerMsg(contentId: msg.id, serverMsgPb: serverMsgPb)
 
         }
+    }
+
+    private func cancelDownloadAndDeleteMedia(mediaItem: CommonMedia) {
+        DDLogInfo("FeedData/deleteMedia/id: \(mediaItem.id)")
+        if let currentTask = self.downloadManager.currentTask(for: mediaItem) {
+            DDLogInfo("FeedData/deleteMedia/cancelTask/task: \(currentTask.id)")
+            currentTask.downloadRequest?.cancel(producingResumeData : false)
+        }
+        AppContext.shared.coreFeedData.deleteMedia(mediaItem: mediaItem)
     }
 
     // MARK: Handle Post or Comment content.
@@ -911,6 +980,8 @@ final class NotificationProtoService: ProtoServiceCore {
             DDLogInfo("ProtoService/removeNotification/id: \(identifier)")
             UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [identifier])
         }
+        // eitherway store it to clean it up further at the end.
+        pendingRetractNotificationIds.append(identifier)
     }
 
     private func processRetractNotifications() {

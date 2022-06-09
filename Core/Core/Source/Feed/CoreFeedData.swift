@@ -24,6 +24,11 @@ public class CoreFeedData {
         self.service = service
     }
 
+    public func resetMomentPromptTimestamp() {
+        DDLogInfo("FeedData/resetMomentPromptTimestamp")
+        AppContext.shared.userDefaults.set(Double.zero, forKey: "momentPrompt")
+    }
+
     public func feedPost(with feedPostId: FeedPostID, in managedObjectContext: NSManagedObjectContext) -> FeedPost? {
         return feedPosts(predicate: NSPredicate(format: "id == %@", feedPostId), in: managedObjectContext).first
     }
@@ -347,6 +352,58 @@ public class CoreFeedData {
 
             feedPost.unreadCount += 1
         }, completion: completion)
+    }
+
+    public func deleteMedia(mediaItem: CommonMedia) {
+        let managedObjectContext = mediaItem.managedObjectContext
+
+        if let relativeFilePath = mediaItem.relativeFilePath,
+           mediaItem.mediaDirectory == .commonMedia {
+            let fileURL = AppContext.commonMediaStoreURL.appendingPathComponent(relativeFilePath, isDirectory: false)
+            let encryptedURL = AppContext.commonMediaStoreURL.appendingPathComponent(relativeFilePath.appending(".enc"), isDirectory: false)
+            // Remove encrypted file.
+            do {
+                if FileManager.default.fileExists(atPath: encryptedURL.path) {
+                    try FileManager.default.removeItem(at: encryptedURL)
+                    DDLogInfo("FeedData/deleteMedia-encrypted/deleting [\(encryptedURL)]")
+                }
+            }
+            catch {
+                DDLogError("FeedData/deleteMedia-encrypted/error [\(error)]")
+            }
+            // Remove actual file.
+            do {
+                try FileManager.default.removeItem(at: fileURL)
+                DDLogInfo("FeedData/deleteMedia/deleting [\(fileURL)]")
+            }
+            catch {
+                DDLogError("FeedData/deleteMedia/error [\(error)]")
+            }
+        }
+        managedObjectContext?.delete(mediaItem)
+    }
+
+    public func notifications(with predicate: NSPredicate, in managedObjectContext: NSManagedObjectContext) -> [ FeedActivity ] {
+        let fetchRequest: NSFetchRequest<FeedActivity> = FeedActivity.fetchRequest()
+        fetchRequest.predicate = predicate
+        do {
+            let results = try managedObjectContext.fetch(fetchRequest)
+            return results
+        }
+        catch {
+            DDLogError("FeedData/notifications/mark-read-all/error [\(error)]")
+            return []
+        }
+    }
+
+    public func notifications(for postId: FeedPostID, commentId: FeedPostCommentID? = nil, in managedObjectContext: NSManagedObjectContext) -> [FeedActivity] {
+        let postIdPredicate = NSPredicate(format: "postID = %@", postId)
+        if let commentID = commentId {
+            let commentIdPredicate = NSPredicate(format: "commentID = %@", commentID)
+            return self.notifications(with: NSCompoundPredicate(andPredicateWithSubpredicates: [ postIdPredicate, commentIdPredicate ]), in: managedObjectContext)
+        } else {
+            return self.notifications(with: postIdPredicate, in: managedObjectContext)
+        }
     }
 
     public func handleGroupFeedHistoryRerequest(for contentID: String, from userID: UserID, ack: (() -> Void)?) {
