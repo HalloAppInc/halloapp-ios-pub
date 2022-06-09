@@ -747,47 +747,55 @@ final class ProtoService: ProtoServiceCore {
                 hasAckBeenDelegated = true
                 decryptGroupFeedPayload(for: item, in: item.gid) { content, groupDecryptionFailure in
                     let receiptTimestamp = Date()
+                    // Separate completion block to send rerequests and acks after saving content.
+                    let completion = {
+                        // Ack only on saves and successful rerequest if necessary.
+                        if let failure = groupDecryptionFailure,
+                           let contentType = item.contentType {
+                            DDLogError("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/decrypt/error \(failure.error)")
+                            self.rerequestGroupFeedItemIfNecessary(id: contentID, groupID: item.gid, contentType: contentType, failure: failure) { result in
+                                switch result {
+                                case .success:
+                                    self.updateMessageStatus(id: msg.id, status: .rerequested)
+                                    // Ack only on successful rereq
+                                    ack()
+                                case .failure(let error):
+                                    DDLogError("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/failed rerequesting: \(error)")
+                                }
+                            }
+                        } else {
+                            DDLogError("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/decrypt/success")
+                            ack()
+                        }
+                        self.reportGroupDecryptionResult(
+                            error: groupDecryptionFailure?.error,
+                            contentID: contentID,
+                            contentType: contentType,
+                            groupID: item.gid,
+                            timestamp: receiptTimestamp,
+                            sender: UserAgent(string: item.senderClientVersion),
+                            rerequestCount: Int(msg.rerequestCount))
+                    }
+
                     if let content = content {
                         DDLogInfo("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/successfully decrypted content")
                         let payload = HalloServiceFeedPayload(content: content, group: group, isEligibleForNotification: isEligibleForNotification)
 
-                        delegate.halloService(self, didReceiveFeedPayload: payload, ack: ack)
+                        delegate.halloService(self, didReceiveFeedPayload: payload, ack: completion)
                     } else {
                         DDLogError("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/failed to decrypt/using unencrypted content")
                         // fallback to existing logic of using unencrypted payload
                         let contents = self.payloadContents(for: [item], status: .rerequesting)
                         if contents.isEmpty {
-                            ack()
+                            completion()
                         } else {
                             // TODO(murali@): why are we sending multiple acks if at all here?
                             for content in contents  {
                                 let payload = HalloServiceFeedPayload(content: content, group: group, isEligibleForNotification: isEligibleForNotification)
-                                delegate.halloService(self, didReceiveFeedPayload: payload, ack: ack)
+                                delegate.halloService(self, didReceiveFeedPayload: payload, ack: completion)
                             }
                         }
                     }
-                    if let failure = groupDecryptionFailure,
-                       let contentType = item.contentType {
-                        DDLogError("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/decrypt/error \(failure.error)")
-                        self.rerequestGroupFeedItemIfNecessary(id: contentID, groupID: item.gid, contentType: contentType, failure: failure) { result in
-                            switch result {
-                            case .success:
-                                self.updateMessageStatus(id: msg.id, status: .rerequested)
-                            case .failure(let error):
-                                DDLogError("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/failed rerequesting: \(error)")
-                            }
-                        }
-                    } else {
-                        DDLogError("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/decrypt/success")
-                    }
-                    self.reportGroupDecryptionResult(
-                        error: groupDecryptionFailure?.error,
-                        contentID: contentID,
-                        contentType: contentType,
-                        groupID: item.gid,
-                        timestamp: receiptTimestamp,
-                        sender: UserAgent(string: item.senderClientVersion),
-                        rerequestCount: Int(msg.rerequestCount))
                 }
 
             case .retract:
