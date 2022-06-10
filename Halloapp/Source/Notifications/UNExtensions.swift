@@ -305,12 +305,6 @@ extension Localizations {
                           comment: "New moment notification text to be shown to the user.")
     }
 
-    static var fourNewMomentNotificationTitle: String {
-        NSLocalizedString("notification.moment.4",
-                          value: "%1@, %2@, %3@ and 1 other shared new moments",
-                          comment: "New moment notification text to be shown to the user.")
-    }
-
     static var tooManyNewMomentNotificationTitle: String {
         NSLocalizedString("notification.moment.5",
                           value: "%1@, %2@, %3@ and others shared new moments",
