@@ -18,6 +18,22 @@
 			<string>%d Unread Comments</string>
 		</dict>
 	</dict>
+	<key>n.unread.messages.title</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_unread_messages@</string>
+		<key>n_unread_messages</key>
+		<dict>
+			<key>one</key>
+			<string>%d Unread Message</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>other</key>
+			<string>%d Unread Messages</string>
+		</dict>
+	</dict>
 	<key>n.others.replied</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>

@@ -297,11 +297,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MessageUnreadHeaderView.elementKind,
                         for: indexPath)
                     if let itemCell = cell as? MessageUnreadHeaderView {
-                        if unreadCount == 1 {
-                            itemCell.configure(headerText: Localizations.unreadMessagesHeaderSinglular(unreadCount: String(unreadCount)))
-                        } else {
-                            itemCell.configure(headerText: Localizations.unreadMessagesHeaderPlural(unreadCount: String(unreadCount)))
-                        }
+                        itemCell.configure(headerText: Localizations.unreadMessagesHeader(unreadCount: Int(unreadCount)))
                     }
                     return cell
                 }
