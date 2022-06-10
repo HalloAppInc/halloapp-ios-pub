@@ -446,7 +446,7 @@ extension SceneDelegate: UIWindowSceneDelegate {
 
     private func presentCameraPermissionsAlertController() {
         DDLogInfo("SceneDelegate/presentCameraPermissionsAlertController")
-        let alert = UIAlertController(title: nil, message: Localizations.cameraAccessPrompt, preferredStyle: .alert)
+        let alert = UIAlertController(title: nil, message: Localizations.cameraAccessPromptBody, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         alert.addAction(UIAlertAction(title: Localizations.settingsAppName, style: .default, handler: { _ in
             guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else { return }

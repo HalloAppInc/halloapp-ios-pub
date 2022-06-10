@@ -62,28 +62,6 @@ enum CameraInitError: Error, LocalizedError {
     }
 }
 
-extension Localizations {
-
-    static var cameraAccessPrompt: String {
-        NSLocalizedString("media.camera.access.request",
-                          value: "HalloApp does not have access to your camera. To enable access, tap Settings and turn on Camera",
-                          comment: "Alert asking to enable Camera permission after attempting to use in-app camera.")
-    }
-
-    static var microphoneAccessPromptTitle: String {
-        NSLocalizedString("media.mic.access.request.title",
-                          value: "Want Videos with Sound?",
-                          comment: "Alert asking to enable Microphone permission after attempting to use in-app camera.")
-    }
-
-    static var microphoneAccessPromptBody: String {
-        NSLocalizedString("media.mic.access.request.body",
-                          value: "To record videos with sound, HalloApp needs microphone access. To enable access, tap Settings and turn on Microphone.",
-                          comment: "Alert asking to enable Camera permission after attempting to use in-app camera.")
-
-    }
-}
-
 class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
     private static let volumeDidChangeNotificationName: NSNotification.Name = {
         var name = "AVSystemController_SystemVolumeDidChangeNotification"
@@ -370,7 +348,7 @@ class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
         if videoGranted {
             return true
         } else {
-            showPermissionDeniedAlert(title: Localizations.cameraAccessPrompt, message: nil)
+            showPermissionDeniedAlert(title: Localizations.cameraAccessPromptTitle, message: nil)
             return false
         }
     }
