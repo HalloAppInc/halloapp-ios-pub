@@ -35,6 +35,7 @@ class GroupGridViewController: UIViewController {
                                 forSupplementaryViewOfKind: GroupGridSeparator.elementKind,
                                 withReuseIdentifier: GroupGridSeparator.reuseIdentifier)
         collectionView.scrollsToTop = true
+        collectionView.keyboardDismissMode = .interactive
         return collectionView
     }()
 
@@ -44,10 +45,19 @@ class GroupGridViewController: UIViewController {
         return dataSource
     }()
 
+    private lazy var refreshControl = UIRefreshControl()
+
     private var unreadPostCountCancellable: AnyCancellable?
+    private var requestScrollToTopAnimatedCancellable: AnyCancellable?
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        let searchController = UISearchController()
+        searchController.delegate = self
+        searchController.hidesNavigationBarDuringPresentation = false
+        searchController.searchResultsUpdater = dataSource
+        navigationItem.searchController = searchController
 
         installAvatarBarButton()
 
@@ -57,7 +67,6 @@ class GroupGridViewController: UIViewController {
 
         view.backgroundColor = .feedBackground
 
-        let refreshControl = UIRefreshControl()
         refreshControl.addTarget(self, action: #selector(refreshControlDidRefresh(_:)), for: .valueChanged)
 
         collectionView.delegate = self
@@ -83,9 +92,18 @@ class GroupGridViewController: UIViewController {
         dataSource.performFetch()
         newPostToast.configure(unreadCount: 0, animated: false)
 
-        unreadPostCountCancellable = dataSource.unreadPostsCount.sink { [newPostToast] unreadCount in
+        unreadPostCountCancellable = dataSource.unreadPostsCountSubject.sink { [newPostToast] unreadCount in
             newPostToast.configure(unreadCount: unreadCount, animated: newPostToast.window != nil)
         }
+
+        requestScrollToTopAnimatedCancellable = dataSource.requestScrollToTopAnimatedSubject.sink { [weak self] animated in
+            self?.scrollToTop(animated: animated)
+        }
+
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(keyboardWillChangeFrame(_:)),
+                                               name: UIResponder.keyboardWillChangeFrameNotification,
+                                               object: nil)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -187,14 +205,31 @@ class GroupGridViewController: UIViewController {
         }
     }
 
+    @objc func keyboardWillChangeFrame(_ notification: Notification) {
+        guard let info = KeyboardNotificationInfo(userInfo: notification.userInfo) else {
+            return
+        }
+
+        let additionalContentInset = max(0.0, collectionView.frame.intersection(view.convert(info.endFrame, from: nil)).height - collectionView.safeAreaInsets.bottom)
+        UIView.animate(withKeyboardNotificationInfo: info) { [collectionView] in
+            collectionView.contentInset.bottom = additionalContentInset
+            collectionView.verticalScrollIndicatorInsets.bottom = additionalContentInset
+        }
+    }
+
     @objc func newPostToastTapped() {
         dataSource.reloadSnapshot(animated: true)
         scrollToTop(animated: true)
     }
 
     @objc func refreshControlDidRefresh(_ refreshControl: UIRefreshControl?) {
-        dataSource.reloadSnapshot(animated: true) {
+        if let searchController = navigationItem.searchController, searchController.isActive {
             refreshControl?.endRefreshing()
+            searchController.isActive = false
+        } else {
+            dataSource.reloadSnapshot(animated: true) {
+                refreshControl?.endRefreshing()
+            }
         }
     }
 
@@ -287,6 +322,17 @@ extension GroupGridViewController: UIViewControllerScrollsToTop {
     func scrollToTop(animated: Bool) {
         collectionView.setContentOffset(CGPoint(x: 0.0, y: -collectionView.adjustedContentInset.top), animated: animated)
         collectionView.scrollEmbeddedOrthoginalScrollViewsToOrigin(animated: true)
+    }
+}
+
+extension GroupGridViewController: UISearchControllerDelegate {
+
+    func willPresentSearchController(_ searchController: UISearchController) {
+        collectionView.refreshControl = nil
+    }
+
+    func didDismissSearchController(_ searchController: UISearchController) {
+        collectionView.refreshControl = refreshControl
     }
 }
 

@@ -4175,7 +4175,11 @@ extension ChatData {
             fatalError("Failed to fetch chat group members")
         }
     }
-    
+
+    func chatGroupMemberUserIDs(groupID: GroupID, in context: NSManagedObjectContext) -> [UserID] {
+        return chatGroupMembers(predicate: NSPredicate(format: "groupID == %@", groupID), in: context).map(\.userID)
+    }
+
     func chatGroupMember(groupId id: GroupID, memberUserId: UserID, in managedObjectContext: NSManagedObjectContext) -> GroupMember? {
         return chatGroupMembers(predicate: NSPredicate(format: "groupID == %@ && userID == %@", id, memberUserId), in: managedObjectContext).first
     }

@@ -132,6 +132,7 @@
 		F404FC412810B3EE008313FF /* CoreCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F404FC402810B3EE008313FF /* CoreCommon.framework */; };
 		F41FAA4F27E530D400FC5090 /* ExternalShareInfo+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41FAA4D27E530D400FC5090 /* ExternalShareInfo+CoreDataProperties.swift */; };
 		F41FAA5027E530D400FC5090 /* ExternalShareInfo+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41FAA4E27E530D400FC5090 /* ExternalShareInfo+CoreDataClass.swift */; };
+		F44463242852BCCB0002570C /* KeyboardNotificationInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F44463232852BCCB0002570C /* KeyboardNotificationInfo.swift */; };
 		F86919E226397F0C00B01306 /* UIImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F86919E126397F0C00B01306 /* UIImageView.swift */; };
 		F8BE61AA27A0640C0061FFC2 /* ChatListSyncItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8BE61A927A0640C0061FFC2 /* ChatListSyncItem.swift */; };
 		F8DFCD8F262F0F6E003F850F /* GroupListSyncItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DFCD8E262F0F6E003F850F /* GroupListSyncItem.swift */; };
@@ -272,6 +273,7 @@
 		F404FC402810B3EE008313FF /* CoreCommon.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CoreCommon.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F41FAA4D27E530D400FC5090 /* ExternalShareInfo+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ExternalShareInfo+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		F41FAA4E27E530D400FC5090 /* ExternalShareInfo+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ExternalShareInfo+CoreDataClass.swift"; sourceTree = "<group>"; };
+		F44463232852BCCB0002570C /* KeyboardNotificationInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardNotificationInfo.swift; sourceTree = "<group>"; };
 		F86919E126397F0C00B01306 /* UIImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImageView.swift; sourceTree = "<group>"; };
 		F8BE61A927A0640C0061FFC2 /* ChatListSyncItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatListSyncItem.swift; sourceTree = "<group>"; };
 		F8DFCD8E262F0F6E003F850F /* GroupListSyncItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupListSyncItem.swift; sourceTree = "<group>"; };
@@ -592,6 +594,7 @@
 				6A21894A278D49CA008D7B7C /* LogArchives.swift */,
 				5B59A3BC2757A40400729FFC /* ChunkedMediaParameters.swift */,
 				5BD9BA5327FDD34A00F53096 /* BitSet.swift */,
+				F44463232852BCCB0002570C /* KeyboardNotificationInfo.swift */,
 			);
 			path = Global;
 			sourceTree = "<group>";
@@ -790,6 +793,7 @@
 				68EAABE527F78CBC00619B1A /* CommonThread+CoreDataProperties.swift in Sources */,
 				6A958D82270764E6007C89C6 /* GroupSessionKeyBundle+CoreDataProperties.swift in Sources */,
 				6AE2FEA326071AB300F7A5B7 /* SharedFeedPost+CoreDataClass.swift in Sources */,
+				F44463242852BCCB0002570C /* KeyboardNotificationInfo.swift in Sources */,
 				F41FAA5027E530D400FC5090 /* ExternalShareInfo+CoreDataClass.swift in Sources */,
 				68EAABD527F6613B00619B1A /* ChatMessage+CoreDataProperties.swift in Sources */,
 				249028A924C5E01B0019C4D5 /* SharedData.xcdatamodeld in Sources */,
