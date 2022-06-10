@@ -58,7 +58,6 @@ class LinkPreviewPanel: UIView, InputContextPanel {
         activityIndicator.stopAnimating()
         linkPreviewTitleLabel.text = metadata.1.title
         linkPreviewURLLabel.text = metadata.1.url.host
-        
         linkPreviewMediaView.isHidden = false
         linkImageView.isHidden = false
         
