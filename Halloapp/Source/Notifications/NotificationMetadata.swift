@@ -526,17 +526,17 @@ class NotificationMetadata: Codable {
 
         // Populate the batched notification title, subtitle and body.
         if momentsCount == 1 {
-            title = String(format: Localizations.oneNewMomentNotificationTitle, firstContactName)
+            body = String(format: Localizations.oneNewMomentNotificationTitle, firstContactName)
         } else if momentsCount == 2 {
-            title = String(format: Localizations.twoNewMomentNotificationTitle, firstContactName, secondContactName, thirdContactName)
+            body = String(format: Localizations.twoNewMomentNotificationTitle, firstContactName, secondContactName, thirdContactName)
         } else if momentsCount == 3 {
-            title = String(format: Localizations.threeNewMomentNotificationTitle, firstContactName, secondContactName, thirdContactName)
+            body = String(format: Localizations.threeNewMomentNotificationTitle, firstContactName, secondContactName, thirdContactName)
         } else {
-            title = String(format: Localizations.tooManyNewMomentNotificationTitle, firstContactName, secondContactName, thirdContactName)
+            body = String(format: Localizations.tooManyNewMomentNotificationTitle, firstContactName, secondContactName, thirdContactName)
         }
 
         subtitle = ""
-        body = ""
+        title = ""
 
         return true
     }
