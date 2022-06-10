@@ -151,7 +151,13 @@ public class AvatarStore: ServiceAvatarDelegate {
         
         return userAvatar
     }
-    
+
+    public func addAvatar(id avatarID: AvatarID, for userID: UserID) {
+        performOnBackgroundContextAndWait { context in
+            save(avatarId: avatarID, forUserId: userID, using: context)
+        }
+    }
+
     @discardableResult private func save(avatarId: AvatarID, forUserId userId: UserID, using managedObjectContext: NSManagedObjectContext) -> Avatar {
         let currentAvatar = insertAvatar(avatarId: avatarId, forUserId: userId, using: managedObjectContext)
         do {

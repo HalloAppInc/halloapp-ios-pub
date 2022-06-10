@@ -4162,6 +4162,21 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         mainQueueCompletion(.failure(RequestError.malformedResponse))
                         return
                     }
+
+                    // Add push name and avatar if from external user
+                    let userID = String(externalSharePostContainer.uid)
+                    var isContact = false
+                    self.contactStore.performOnBackgroundContextAndWait { [weak self] context in
+                        isContact = self?.contactStore.isContactInAddressBook(userId: userID, in: context) ?? false
+                    }
+
+                    if !isContact {
+                        self.contactStore.addPushNames([userID: externalSharePostContainer.name])
+                        if !externalSharePostContainer.avatarID.isEmpty {
+                            MainAppContext.shared.avatarStore.addAvatar(id: externalSharePostContainer.avatarID, for: userID)
+                        }
+                    }
+
                     self.process(posts: [postData],
                                  receivedIn: nil,
                                  using: context,
