@@ -251,7 +251,10 @@
 "Cancel" = "إلغاء";
 
 /* Text shown in the chat interface informing the user that the contact is blocked */
-"chat.blocked.contact.label" = "جهة الاتصال محظورة، انقر لرفع الحظر";
+"chat.blocked.contact.label" = "لقد حظرت جهة الاتصال هذه";
+
+/* Title of the bottom sheet shown in the chat screen of a contact that is blocked. The bottom sheet contains an unblock button. */
+"chat.contact.is.blocked.title.label" = "تم حظر جهة الاتصال، ولن تتلقى أي رسائل إلى أن ترفع الحظر عنها.";
 
 /* Label for creating a new group */
 "chat.create.new.group" = "إنشاء مجموعة جديدة";
@@ -266,10 +269,13 @@
 "chat.delete.title" = "حذف الرسالة المحددة؟";
 
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
-"chat.encryption.label" = "الدردشات مشفرة تشفيرًا تامًا ولا يمكن لهالوآب الوصول إليها. انقر للمزيد من المعلومات.";
+"chat.encryption.label" = "جميع الرسائل في هالوآب مشفرة تشفيرًا تامًا. انقر للمزيد من المعلومات";
 
 /* Text shown in Chat when the security keys of the contact user is chatting with, have changed */
 "chat.event.security.keys.changed" = "تغيرت أرقام الأمان مع %@";
+
+/* Chat entry that can be tapped to add the contact to address book */
+"chat.event.tap.to.add.contact" = "انقر لإضافة %@ إلى دفتر عناوينك";
 
 /* Message text shown with the user who joined the group via invite link */
 "chat.group.event.join" = "%@  انضم إلى المجموعة من خلال رابط الدعوة";
@@ -367,8 +373,17 @@
 /* Text below the contact's name when the contact is online in the Chat Screen */
 "chat.online.label" = "متصل";
 
+/* When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply when the moment has expired. */
+"chat.quoted.moment.expired.label" = "انتهت صلاحية اللحظة";
+
+/* When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply. */
+"chat.quoted.moment.label" = "اللحظة";
+
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "جارٍ الكتابة...";
+
+/* Text shown in the chat interface informing the user that the contact is unblocked */
+"chat.unblocked.contact.label" = "لقد رفعت الحظر عن جهة الاتصال هذه";
 
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "عند حذف هذه الدردشة سيتم مسح سجل الدردشة والمحتوى الخاص بها من جهازك.";
@@ -392,13 +407,7 @@
 "comment.reply" = "ردّ";
 
 /* Placeholder text for the comment input field when there is no user input. */
-"comment.textfield.placeholder" = "إضافة تعليق";
-
-/* Header that appears above all the unread Messages in the comments view when there are more than one unread message */
-"comment.unread.chat.messages.header.plural" = "%@ من الرسائل غير المقروءة";
-
-/* Header that appears above one single unread Message in the chat view. */
-"comment.unread.chat.messages.header.single" = "رسالة غير مقروءة %@";
+"comment.textfield.placeholder" = "تعليق جديد";
 
 /* Text displayed in place of a comment that is not supported in the current app version. */
 "comment.unsupported" = "لا يدعم إصدار هالوآب الذي تستخدمه نوع التعليقات هذا.";
@@ -781,6 +790,9 @@
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
 "group.feed.welcome.post.title" = "دعوة صديق إلى مجموعتك";
 
+/* Indicates number of new posts on groups grid */
+"group.grid.n.posts" = "group.grid.n.posts";
+
 /* Action label for inviting others to join the group via link */
 "group.info.invite.to.group.via.link" = "الدعوة إلى المجموعة عبر رابط";
 
@@ -843,6 +855,9 @@
 
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "انقر هنا لعرض معلومات المجموعة";
+
+/* More info menu item */
+"groupGridHeader.moreInfo" = "مزيد من المعلومات";
 
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "تمت إضافتك إلى مجموعة جديدة";
@@ -982,6 +997,10 @@
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.camera.access.request" = "لم يتم منح هالوآب إذن الوصول إلى الكاميرا. لتمكين الوصول، انقر على \"الإعدادات\" وشغِّل الكاميرا";
 
+/* Label indicating that the camera is in photo mode
+   Label indicating that the camera is in video mode */
+"media.camera.mode.photo" = "فيديو";
+
 /* Confirmation prompt in media composer. */
 "media.discard.confirmation" = "هل تريد إلغاء تعديلاتك؟";
 
@@ -1095,6 +1114,9 @@
 
 /* Displayed in place of deleted feed posts. */
 "n.posts.deleted" = "تم حذف %@ من المنشورات";
+
+/* Header that appears above unread messages in the comments view. */
+"n.unread.comments.title" = "n.unread.comments.title";
 
 /* Placeholder text shown in the middle of the Add New Group Members screen when user have no contacts (in ZeroZone) to add */
 "new.group.members.empty.placeholder" = "ستظهر جهات اتصالك على هالوآب هنا";
@@ -1314,6 +1336,9 @@
 
 /* Title for the button allowing to select a new profile photo. */
 "profile.take.choose.photo" = "التقاط أو اختيار صورة";
+
+/* Title of the screen with the user's profile. */
+"profile.title" = "الملف الشخصي";
 
 /* Title for the screen allowing to edit profile name */
 "profile.title.your.name" = "اسمك";
@@ -1722,6 +1747,9 @@
 
 /* No comment provided by engineer. */
 "VIDEO" = "فيديو";
+
+/* Text that indicates a view action. */
+"view.title" = "عرض";
 
 /* Title for the button that confirms intent to delete your own post. */
 "your.post.deletepost.button" = "حذف المنشور";

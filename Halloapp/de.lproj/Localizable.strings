@@ -409,12 +409,6 @@
 /* Placeholder text for the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Neuer Kommentar";
 
-/* Header that appears above all the unread Messages in the comments view when there are more than one unread message */
-"comment.unread.chat.messages.header.plural" = "%@ ungelesene Nachrichten";
-
-/* Header that appears above one single unread Message in the chat view. */
-"comment.unread.chat.messages.header.single" = "%@ ungelesene Nachricht";
-
 /* Text displayed in place of a comment that is not supported in the current app version. */
 "comment.unsupported" = "Deine HalloApp-Version unterstützt diese Art von Kommentar nicht.";
 
@@ -858,6 +852,9 @@
 
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Für Gruppen-Info hier tippen";
+
+/* More info menu item */
+"groupGridHeader.moreInfo" = "Mehr Informationen";
 
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Du wurdest zu einer neuen Gruppe hinzugefügt";
@@ -1333,6 +1330,9 @@
 
 /* Title for the button allowing to select a new profile photo. */
 "profile.take.choose.photo" = "Foto aufnehmen oder auswählen";
+
+/* Title of the screen with the user's profile. */
+"profile.title" = "Profil";
 
 /* Title for the screen allowing to edit profile name */
 "profile.title.your.name" = "Dein Name";

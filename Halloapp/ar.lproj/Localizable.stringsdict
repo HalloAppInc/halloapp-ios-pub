@@ -181,17 +181,17 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>few</key>
-			<string>%d new posts</string>
+			<string>%d منشورات جديدة</string>
 			<key>many</key>
-			<string>%d new posts</string>
+			<string>%d منشورًا جديدًا</string>
 			<key>one</key>
-			<string>%d new post</string>
+			<string>منشور جديد %d</string>
 			<key>other</key>
-			<string>%d new posts</string>
+			<string>%d منشور جديد</string>
 			<key>two</key>
-			<string>%d new posts</string>
+			<string>منشوران جديدان %d</string>
 			<key>zero</key>
-			<string>%d new posts</string>
+			<string>%d من المنشورات الجديدة</string>
 		</dict>
 	</dict>
 	<key>media.prepare.failed.n.count</key>
@@ -301,17 +301,41 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>few</key>
-			<string>%d Unread Comments</string>
+			<string>%d تعليقات غير مقروءة</string>
 			<key>many</key>
-			<string>%d Unread Comments</string>
+			<string>%d تعليقًا غير مقروء</string>
 			<key>one</key>
-			<string>%d Unread Comment</string>
+			<string>تعليق غير مقروء %d</string>
 			<key>other</key>
-			<string>%d Unread Comments</string>
+			<string>%d تعليق غير مقروء</string>
 			<key>two</key>
-			<string>%d Unread Comments</string>
+			<string>تعليقان %d غير مقروئين</string>
 			<key>zero</key>
-			<string>%d Unread Comments</string>
+			<string>%d من التعليقات غير المقروءة</string>
+		</dict>
+	</dict>
+	<key>n.unread.messages.title</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_unread_messages@</string>
+		<key>n_unread_messages</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>%d Unread Messages</string>
+			<key>many</key>
+			<string>%d Unread Messages</string>
+			<key>one</key>
+			<string>%d Unread Message</string>
+			<key>other</key>
+			<string>%d Unread Messages</string>
+			<key>two</key>
+			<string>%d Unread Messages</string>
+			<key>zero</key>
+			<string>%d Unread Messages</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>

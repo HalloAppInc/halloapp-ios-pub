@@ -251,7 +251,7 @@
 "Cancel" = "Cancelar";
 
 /* Text shown in the chat interface informing the user that the contact is blocked */
-"chat.blocked.contact.label" = "El contacto está bloqueado, toca para desbloquear";
+"chat.blocked.contact.label" = "Bloqueaste a este contacto";
 
 /* Title of the bottom sheet shown in the chat screen of a contact that is blocked. The bottom sheet contains an unblock button. */
 "chat.contact.is.blocked.title.label" = "El contacto está bloqueado, no recibirás ningún mensaje hasta que lo desbloquees.";
@@ -269,7 +269,7 @@
 "chat.delete.title" = "¿Deseas borrar el mensaje seleccionado?";
 
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
-"chat.encryption.label" = "Las conversaciones están cifradas de extremo a extremo y HalloApp no tiene acceso a ellas. Toca para saber más.";
+"chat.encryption.label" = "Todos los mensajes en HalloApp están cifrados de extremo a extremo. Toca para más información.";
 
 /* Text shown in Chat when the security keys of the contact user is chatting with, have changed */
 "chat.event.security.keys.changed" = "La clave de seguridad con %@ ha sido cambiada";
@@ -407,13 +407,7 @@
 "comment.reply" = "Responder";
 
 /* Placeholder text for the comment input field when there is no user input. */
-"comment.textfield.placeholder" = "Añadir un comentario";
-
-/* Header that appears above all the unread Messages in the comments view when there are more than one unread message */
-"comment.unread.chat.messages.header.plural" = "%@ Mensajes sin leer";
-
-/* Header that appears above one single unread Message in the chat view. */
-"comment.unread.chat.messages.header.single" = "%@ Mensaje sin leer";
+"comment.textfield.placeholder" = "Nuevo comentario";
 
 /* Text displayed in place of a comment that is not supported in the current app version. */
 "comment.unsupported" = "Tu versión de HalloApp no admite este tipo de comentario.";
@@ -1339,6 +1333,9 @@
 
 /* Title for the button allowing to select a new profile photo. */
 "profile.take.choose.photo" = "Tomar o seleccionar una foto";
+
+/* Title of the screen with the user's profile. */
+"profile.title" = "Perfil";
 
 /* Title for the screen allowing to edit profile name */
 "profile.title.your.name" = "Tu nombre";

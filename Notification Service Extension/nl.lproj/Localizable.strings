@@ -139,6 +139,18 @@
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Nieuw moment";
 
+/* New moment notification text to be shown to the user. */
+"notification.moment.1" = "%@ heeft een moment gedeeld";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.2" = "%1$@ en %2$@ hebben nieuwe momenten gedeeld";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.3" = "%1$@, %2$@ en %3$@ hebben nieuwe momenten gedeeld";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.5" = "%1$@, %2$@, %3$@ en anderen hebben nieuwe momenten gedeeld";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
 

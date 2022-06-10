@@ -409,12 +409,6 @@
 /* Placeholder text for the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Adicione um comentário";
 
-/* Header that appears above all the unread Messages in the comments view when there are more than one unread message */
-"comment.unread.chat.messages.header.plural" = "%@ Mensagens não lidas";
-
-/* Header that appears above one single unread Message in the chat view. */
-"comment.unread.chat.messages.header.single" = "%@ Mensagem não lida";
-
 /* Text displayed in place of a comment that is not supported in the current app version. */
 "comment.unsupported" = "Sua versão do HalloApp não suporta este tipo de comentário.";
 
@@ -1148,6 +1142,9 @@
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Novo Momento";
 
+/* New moment notification text to be shown to the user. */
+"notification.moment.1" = "%@ compartilhou um momento";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notificação.n.fotos";
 
@@ -1342,6 +1339,9 @@
 
 /* Title for the button allowing to select a new profile photo. */
 "profile.take.choose.photo" = "Tire ou escolha uma foto";
+
+/* Title of the screen with the user's profile. */
+"profile.title" = "Perfil";
 
 /* Title for the screen allowing to edit profile name */
 "profile.title.your.name" = "Seu nome";

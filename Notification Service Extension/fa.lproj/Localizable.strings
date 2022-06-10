@@ -92,7 +92,7 @@
 "feed.privacy.list.dismiss.edit.favorites" = "الآن نه";
 
 /* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
-"feed.privacy.list.notOwn.only.description" = "این پست فقط برای به اشتراک گذاشتن با گروه خاص از مخاطبین است. میتوانید برای تغییر آن به حریم خصوصی در تنظیمات مراجعه کنید.";
+"feed.privacy.list.notOwn.only.description" = "فقط مخاطبین محبوب @% میتوانند این پست را ببینند.";
 
 /* Header for the favorites list when editing contacts to share with. */
 "feed.privacy.list.only.details" = "انتخاب کسانی که پست شما را میبینند";
@@ -101,7 +101,7 @@
 "feed.privacy.list.only.title" = "محبوب‌ها";
 
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
-"feed.privacy.list.own.only.description" = "این پست فقط برای به اشتراک گذاشتن با گروه خاص از مخاطبین است. میتوانید مخاطبین خود را موقع تنظیم پست تغییر دهید و یا به حریم خصوصی در تنظیمات مراجعه کنید.";
+"feed.privacy.list.own.only.description" = "فقط مخاطبین محبوب شما میتوانند این پست را ببینند.";
 
 /* Button to edit favorites */
 "feed.privacy.list.set.favorites" = "تنظیم مخاطبین محبوب";
@@ -138,6 +138,18 @@
 
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "لحظه جدید";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.1" = "@% لحظه‌ای را به اشراک گذاشت";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.2" = "@$1% و @$2% لحظه‌های جدیدی به اشتراک گذاشتند";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.3" = "@$1%، @$2% و @$3% لحظه‌های جدیدی به اشتراک گذاشتند";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.5" = "@$1%، @$2%، @$3% و دیگران لحظه‌های جدیدی به اشتراک گذاشتند";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";

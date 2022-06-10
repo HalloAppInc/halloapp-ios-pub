@@ -139,6 +139,18 @@
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Новый момент";
 
+/* New moment notification text to be shown to the user. */
+"notification.moment.1" = "%@ поделился моментом";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.2" = "%1$@ и %2$@ поделились новыми моментами";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.3" = "%1$@, %2$@ и %3$@ поделились новыми моментами";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.5" = "%1$@, %2$@, %3$@ и другие поделились новыми моментами";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
 

@@ -403,12 +403,6 @@
 /* Placeholder text for the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Yorum ekle";
 
-/* Header that appears above all the unread Messages in the comments view when there are more than one unread message */
-"comment.unread.chat.messages.header.plural" = "Okunmamış %@ mesaj";
-
-/* Header that appears above one single unread Message in the chat view. */
-"comment.unread.chat.messages.header.single" = "Okunmamış %@ mesaj";
-
 /* Text displayed in place of a comment that is not supported in the current app version. */
 "comment.unsupported" = "HalloApp sürümün, bu tür yorumları desteklemiyor.";
 

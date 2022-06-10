@@ -409,12 +409,6 @@
 /* Placeholder text for the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Komentar Baru";
 
-/* Header that appears above all the unread Messages in the comments view when there are more than one unread message */
-"comment.unread.chat.messages.header.plural" = "%@ Pesan yang Belum Dibaca";
-
-/* Header that appears above one single unread Message in the chat view. */
-"comment.unread.chat.messages.header.single" = "%@ Pesan yang Belum Dibaca";
-
 /* Text displayed in place of a comment that is not supported in the current app version. */
 "comment.unsupported" = "Versi HalloApp-mu tidak mendukung jenis komentar ini.";
 

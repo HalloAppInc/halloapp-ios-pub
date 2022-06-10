@@ -315,6 +315,30 @@
 			<string>%d Unread Comments</string>
 		</dict>
 	</dict>
+	<key>n.unread.messages.title</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_unread_messages@</string>
+		<key>n_unread_messages</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>%d Unread Messages</string>
+			<key>many</key>
+			<string>%d Unread Messages</string>
+			<key>one</key>
+			<string>%d Unread Message</string>
+			<key>other</key>
+			<string>%d Unread Messages</string>
+			<key>two</key>
+			<string>%d Unread Messages</string>
+			<key>zero</key>
+			<string>%d Unread Messages</string>
+		</dict>
+	</dict>
 	<key>notification.n.photos</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>

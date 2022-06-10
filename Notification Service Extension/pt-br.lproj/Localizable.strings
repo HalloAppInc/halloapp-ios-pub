@@ -139,6 +139,9 @@
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Novo Momento";
 
+/* New moment notification text to be shown to the user. */
+"notification.moment.1" = "%@ compartilhou um momento";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notificação.n.fotos";
 

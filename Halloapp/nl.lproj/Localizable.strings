@@ -409,12 +409,6 @@
 /* Placeholder text for the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Nieuwe Reactie";
 
-/* Header that appears above all the unread Messages in the comments view when there are more than one unread message */
-"comment.unread.chat.messages.header.plural" = "%@ Ongelezen Berichten";
-
-/* Header that appears above one single unread Message in the chat view. */
-"comment.unread.chat.messages.header.single" = "%@ Ongelezen Bericht";
-
 /* Text displayed in place of a comment that is not supported in the current app version. */
 "comment.unsupported" = "Je versie van HalloApp ondersteunt dit type reactie niet.";
 
@@ -1148,6 +1142,18 @@
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Nieuw moment";
 
+/* New moment notification text to be shown to the user. */
+"notification.moment.1" = "%@ heeft een moment gedeeld";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.2" = "%1$@ en %2$@ hebben nieuwe momenten gedeeld";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.3" = "%1$@, %2$@ en %3$@ hebben nieuwe momenten gedeeld";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.5" = "%1$@, %2$@, %3$@ en anderen hebben nieuwe momenten gedeeld";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
 
@@ -1323,7 +1329,7 @@
 "profile.name.length" = "%1$d/%2$d";
 
 /* Row in Profile screen. */
-"profile.row.about" = "Over";
+"profile.row.about" = "Over HalloApp";
 
 /* Row in Profile Screen */
 "profile.row.account" = "Account";
@@ -1342,6 +1348,9 @@
 
 /* Title for the button allowing to select a new profile photo. */
 "profile.take.choose.photo" = "Foto Maken of Kiezen";
+
+/* Title of the screen with the user's profile. */
+"profile.title" = "Profiel";
 
 /* Title for the screen allowing to edit profile name */
 "profile.title.your.name" = "Jouw Naam";

@@ -253,6 +253,9 @@
 /* Text shown in the chat interface informing the user that the contact is blocked */
 "chat.blocked.contact.label" = "Контакт заблокирован, коснитесь, чтобы разблокировать";
 
+/* Title of the bottom sheet shown in the chat screen of a contact that is blocked. The bottom sheet contains an unblock button. */
+"chat.contact.is.blocked.title.label" = "Контакт заблокирован, вы не будете получать сообщения, пока не разблокируете их.";
+
 /* Label for creating a new group */
 "chat.create.new.group" = "Создать новую группу";
 
@@ -270,6 +273,9 @@
 
 /* Text shown in Chat when the security keys of the contact user is chatting with, have changed */
 "chat.event.security.keys.changed" = "Электронные ключи с %@ изменены";
+
+/* Chat entry that can be tapped to add the contact to address book */
+"chat.event.tap.to.add.contact" = "Нажмите, чтобы добавить %@ в свою адресную книгу";
 
 /* Message text shown with the user who joined the group via invite link */
 "chat.group.event.join" = "%@ присоединился(-ась) к группе по ссылке-приглашению в группу";
@@ -367,8 +373,17 @@
 /* Text below the contact's name when the contact is online in the Chat Screen */
 "chat.online.label" = "онлайн";
 
+/* When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply when the moment has expired. */
+"chat.quoted.moment.expired.label" = "Момент истек";
+
+/* When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply. */
+"chat.quoted.moment.label" = "Момент";
+
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "печатает...";
+
+/* Text shown in the chat interface informing the user that the contact is unblocked */
+"chat.unblocked.contact.label" = "Вы разблокировал(-а) этот контакт";
 
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "Удалив этот чат, вы удалите его историю и контент со своего устройства.";
@@ -393,12 +408,6 @@
 
 /* Placeholder text for the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Добавить комментарий";
-
-/* Header that appears above all the unread Messages in the comments view when there are more than one unread message */
-"comment.unread.chat.messages.header.plural" = "%@ непрочитанных сообщений";
-
-/* Header that appears above one single unread Message in the chat view. */
-"comment.unread.chat.messages.header.single" = "%@ Непрочитанное сообщение";
 
 /* Text displayed in place of a comment that is not supported in the current app version. */
 "comment.unsupported" = "Твоя версия HalloApp не поддерживает этот тип комментариев.";
@@ -847,6 +856,9 @@
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Коснитесь здесь, чтобы прочесть информацию о группе";
 
+/* More info menu item */
+"groupGridHeader.moreInfo" = "Подробнее";
+
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Вас добавили в новую группу";
 
@@ -1130,6 +1142,18 @@
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Новый момент";
 
+/* New moment notification text to be shown to the user. */
+"notification.moment.1" = "%@ поделился моментом";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.2" = "%1$@ и %2$@ поделились новыми моментами";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.3" = "%1$@, %2$@ и %3$@ поделились новыми моментами";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.5" = "%1$@, %2$@, %3$@ и другие поделились новыми моментами";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
 
@@ -1324,6 +1348,9 @@
 
 /* Title for the button allowing to select a new profile photo. */
 "profile.take.choose.photo" = "Сделать или выбрать фото";
+
+/* Title of the screen with the user's profile. */
+"profile.title" = "Профиль";
 
 /* Title for the screen allowing to edit profile name */
 "profile.title.your.name" = "Ваше имя";
@@ -1732,6 +1759,9 @@
 
 /* No comment provided by engineer. */
 "VIDEO" = "ВИДЕО";
+
+/* Text that indicates a view action. */
+"view.title" = "Смотреть";
 
 /* Title for the button that confirms intent to delete your own post. */
 "your.post.deletepost.button" = "Удалить пост";
