@@ -4139,9 +4139,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     func externalSharePost(with blobID: String, key: Data, completion: @escaping (Result<FeedPost, Error>) -> Void) {
-        let mainQueueCompletion: (Result<FeedPost, Error>) -> Void = { result in
+        let mainQueueCompletion: (Result<FeedPost, Error>) -> Void = { [viewContext] result in
             DispatchQueue.main.async {
-                completion(result)
+                // Redispatch with object in correct context
+                switch result {
+                case .success(let feedPost):
+                    completion(.success(viewContext.object(with: feedPost.objectID) as! FeedPost))
+                case .failure(let error):
+                    completion(.failure(error))
+                }
             }
         }
         let transform: (Server_ExternalSharePostContainer) -> Void = { externalSharePostContainer in
