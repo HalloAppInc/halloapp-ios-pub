@@ -109,7 +109,7 @@ extension CameraModel {
 
     /// Await a non-throwing block that is performed on `sessionQueue`.
     private func perform(_ block: @escaping () -> Void) async {
-        await withCheckedContinuation { continuation in
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             sessionQueue.async {
                 block()
                 continuation.resume()
