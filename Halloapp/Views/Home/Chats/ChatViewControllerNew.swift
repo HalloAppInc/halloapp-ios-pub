@@ -887,7 +887,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     }
 
     private func presentMediaPicker() {
-        let vc = MediaPickerViewController(config: .chat(id: fromUserId)) { [weak self] controller, _, media, cancel in
+        let vc = MediaPickerViewController(config: .chat(id: fromUserId)) { [weak self] controller, _, _, media, cancel in
             guard let self = self else { return }
             if cancel {
                 self.dismiss(animated: true)
@@ -1414,6 +1414,7 @@ extension ChatViewControllerNew: PostComposerViewDelegate {
 
     func composerDidTapShare(controller: PostComposerViewController,
                             destination: PostComposerDestination,
+                             feedAudience: FeedAudience,
                                isMoment: Bool,
                             mentionText: MentionText,
                                   media: [PendingMedia],
@@ -1424,14 +1425,14 @@ extension ChatViewControllerNew: PostComposerViewDelegate {
         view.window?.rootViewController?.dismiss(animated: true, completion: nil)
     }
 
-    func composerDidTapBack(controller: PostComposerViewController, destination: PostComposerDestination, media: [PendingMedia], voiceNote: PendingMedia?) {
+    func composerDidTapBack(controller: PostComposerViewController, destination: PostComposerDestination, privacyListType: PrivacyListType, media: [PendingMedia], voiceNote: PendingMedia?) {
         controller.dismiss(animated: false)
 
         let presentedVC = self.presentedViewController
 
         if let viewControllers = (presentedVC as? UINavigationController)?.viewControllers {
             if let mediaPickerController = viewControllers.last as? MediaPickerViewController {
-                mediaPickerController.reset(destination: nil, selected: media)
+                mediaPickerController.reset(destination: nil, privacyListType: nil, selected: media)
             }
         }
     }

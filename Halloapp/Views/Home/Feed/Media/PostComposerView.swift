@@ -9,8 +9,8 @@ import UIKit
 
 protocol PostComposerViewDelegate: AnyObject {
     // TODO: maybe have the configuration encapsulate all the details and pass that in?
-    func composerDidTapShare(controller: PostComposerViewController, destination: PostComposerDestination, isMoment: Bool, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?)
-    func composerDidTapBack(controller: PostComposerViewController, destination: PostComposerDestination, media: [PendingMedia], voiceNote: PendingMedia?)
+    func composerDidTapShare(controller: PostComposerViewController, destination: PostComposerDestination, feedAudience: FeedAudience, isMoment: Bool, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?)
+    func composerDidTapBack(controller: PostComposerViewController, destination: PostComposerDestination, privacyListType: PrivacyListType, media: [PendingMedia], voiceNote: PendingMedia?)
     func willDismissWithInput(mentionInput: MentionInput)
     func composerDidTapLinkPreview(controller: PostComposerViewController, url: URL)
 }
@@ -28,6 +28,7 @@ class PostComposerViewConfiguration: ObservableObject {
     var imageServerMaxAspectRatio: CGFloat?
     var maxVideoLength: TimeInterval
     let isMoment: Bool
+    var privacyListType: PrivacyListType
     
     init(
         destination: PostComposerDestination,
@@ -43,6 +44,9 @@ class PostComposerViewConfiguration: ObservableObject {
         self.imageServerMaxAspectRatio = imageServerMaxAspectRatio
         self.maxVideoLength = maxVideoLength
         self.isMoment = isMoment
+        // Always set active type to .all
+        MainAppContext.shared.privacySettings.activeType = .all
+        self.privacyListType = .all
     }
     
     static var userPost: PostComposerViewConfiguration {
@@ -466,7 +470,11 @@ class PostComposerViewController: UIViewController {
         //Show the favorites education modal only once to the user
         if !AppContext.shared.userDefaults.bool(forKey: "hasFavoritesModalBeenShown") {
             AppContext.shared.userDefaults.set(true, forKey: "hasFavoritesModalBeenShown")
-            let vc = FavoritesInformationViewController()
+            let vc = FavoritesInformationViewController() { privacyListType in
+                self.configuration.privacyListType = privacyListType
+                self.configuration.destination = .userFeed
+                self.updateChangeDestinationBtn()
+            }
             self.present(vc, animated: true)
         }
     }
@@ -488,6 +496,7 @@ class PostComposerViewController: UIViewController {
         ImageServer.shared.clearUnattachedTasks(keepFiles: false)
         delegate?.composerDidTapBack(controller: self,
                                      destination: configuration.destination,
+                                     privacyListType: configuration.privacyListType,
                                      media: mediaItems.invalidated ? [] : mediaItems.value,
                                      voiceNote: audioComposerRecorder.voiceNote)
     }
@@ -503,8 +512,10 @@ class PostComposerViewController: UIViewController {
             return
         }
 
-        let controller = ChangeDestinationViewController(destination: configuration.destination) { controller, destination in
+        let controller = ChangeDestinationViewController(destination: configuration.destination, privacyListType: configuration.privacyListType) { controller, destination, privacyListType in
             controller.dismiss(animated: true)
+            // ALWAYS change privacyListType before destination
+            self.configuration.privacyListType = privacyListType
             self.configuration.destination = destination
             self.updateChangeDestinationBtn()
         }
@@ -520,7 +531,7 @@ class PostComposerViewController: UIViewController {
 
         switch configuration.destination {
         case .userFeed:
-            let privacy = MainAppContext.shared.privacySettings.activeType ?? .all
+            let privacy = configuration.privacyListType
 
             switch privacy {
             case .all:
@@ -582,11 +593,14 @@ class PostComposerViewController: UIViewController {
             allMediaItems.append(voiceNote)
         }
 
+        let feedAudience = try! MainAppContext.shared.privacySettings.feedAudience(for: configuration.privacyListType)
+
         // if no link preview or link preview not yet loaded, send without link preview.
         // if the link preview does not have an image... send immediately
         if link.value == "" || linkPreviewData.value == nil ||  linkPreviewImage.value == nil {
             delegate?.composerDidTapShare(controller: self,
                                          destination: configuration.destination,
+                                          feedAudience: feedAudience,
                                             isMoment: configuration.isMoment,
                                          mentionText: mentionText,
                                                media: allMediaItems,
@@ -594,17 +608,18 @@ class PostComposerViewController: UIViewController {
                                     linkPreviewMedia: nil)
         } else {
             // if link preview has an image, load the image before sending.
-            loadLinkPreviewImageAndShare(mentionText: mentionText, mediaItems: allMediaItems)
+            loadLinkPreviewImageAndShare(mentionText: mentionText, mediaItems: allMediaItems, feedAudience: feedAudience)
         }
     }
     
-    private func loadLinkPreviewImageAndShare(mentionText: MentionText, mediaItems: [PendingMedia]) {
+    private func loadLinkPreviewImageAndShare(mentionText: MentionText, mediaItems: [PendingMedia], feedAudience: FeedAudience) {
         // Send link preview with image in it
         let linkPreviewMedia = PendingMedia(type: .image)
         linkPreviewMedia.image = linkPreviewImage.value
         if linkPreviewMedia.ready.value {
             self.delegate?.composerDidTapShare(controller: self,
                                               destination: configuration.destination,
+                                               feedAudience: feedAudience,
                                                  isMoment: false,
                                               mentionText: mentionText,
                                                     media: mediaItems,
@@ -617,6 +632,7 @@ class PostComposerViewController: UIViewController {
                     guard ready else { return }
                     self.delegate?.composerDidTapShare(controller: self,
                                                       destination: self.configuration.destination,
+                                                       feedAudience: feedAudience,
                                                          isMoment: false,
                                                       mentionText: mentionText,
                                                             media: mediaItems,
@@ -1350,7 +1366,7 @@ fileprivate struct TextView: UIViewRepresentable {
         private func mentionableUsers(for destination: PostComposerDestination) -> [MentionableUser] {
             switch destination {
             case .userFeed:
-                return Mentions.mentionableUsersForNewPost()
+                return Mentions.mentionableUsersForNewPost(privacyListType: parent.configuration.privacyListType)
             case .groupFeed(let id):
                 return Mentions.mentionableUsers(forGroupID: id, in: MainAppContext.shared.feedData.viewContext)
             case .chat(_):
@@ -1765,7 +1781,7 @@ fileprivate struct Picker: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UINavigationController {
         DDLogInfo("Picker/makeUIViewController")
         MediaCarouselView.stopAllPlayback()
-        let controller = MediaPickerViewController(config: .more, selected: mediaItems) { controller, _, media, cancel in
+        let controller = MediaPickerViewController(config: .more, selected: mediaItems) { controller, _, _, media, cancel in
             self.complete(media, cancel)
         }
 

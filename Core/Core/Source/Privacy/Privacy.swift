@@ -179,13 +179,17 @@ open class PrivacySettings {
 
     public func currentFeedAudience() throws -> FeedAudience {
         guard let selectedListType = activeType else { throw PrivacySettingsError.currentSettingUnknown }
-        guard let audienceType = AudienceType(rawValue: selectedListType.rawValue) else {
+        return try feedAudience(for: selectedListType)
+    }
+
+    public func feedAudience(for privacyListType: PrivacyListType) throws -> FeedAudience {
+        guard let audienceType = AudienceType(rawValue: privacyListType.rawValue) else {
             throw PrivacySettingsError.currentSettingUnknown
         }
-        if selectedListType == .whitelist {
+        if privacyListType == .whitelist {
             guard whitelist.isLoaded else { throw PrivacySettingsError.currentListUnavailable }
         }
-        if selectedListType == .blacklist {
+        if privacyListType == .blacklist {
             guard blacklist.isLoaded else { throw PrivacySettingsError.currentListUnavailable }
         }
 
@@ -195,9 +199,9 @@ open class PrivacySettings {
         }
 
         var results: Set<UserID>
-        if selectedListType == .whitelist {
+        if privacyListType == .whitelist {
             results = allContacts.intersection(whitelist.userIds)
-        } else if selectedListType == .blacklist {
+        } else if privacyListType == .blacklist {
             results = allContacts.subtracting(blacklist.userIds)
         } else {
             results = allContacts

@@ -12,8 +12,10 @@ import UIKit
 
 class FavoritesInformationViewController: UIViewController {
 
-    override init(nibName: String?, bundle: Bundle?) {
-        super.init(nibName: nibName, bundle: bundle)
+    private var completion: ((PrivacyListType) -> Void)?
+    init(completion: ((PrivacyListType) -> Void)? = nil) {
+        self.completion = completion
+        super.init(nibName: nil, bundle: nil)
         modalPresentationStyle = .overCurrentContext
         modalTransitionStyle = .crossDissolve
     }
@@ -170,6 +172,7 @@ class FavoritesInformationViewController: UIViewController {
         dismiss(animated: false)
         let privacyVC = ContactSelectionViewController.forPrivacyList(MainAppContext.shared.privacySettings.whitelist, in: MainAppContext.shared.privacySettings, setActiveType: true, doneAction: {
             presentingViewController?.dismiss(animated: false)
+                self.completion?(.whitelist)
             }, dismissAction: nil)
         presentingViewController?.present(UINavigationController(rootViewController: privacyVC), animated: true)
    }

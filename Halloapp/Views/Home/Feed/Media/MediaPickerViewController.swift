@@ -80,36 +80,37 @@ fileprivate enum TransitionState {
 
 struct MediaPickerConfig {
     var destination: PostComposerDestination?
+    var privacyListType: PrivacyListType?
     var filter: MediaPickerFilter = .all
     var allowsMultipleSelection = true
     var isCameraEnabled = false
 
     static var feed: MediaPickerConfig {
-        MediaPickerConfig(destination: .userFeed, filter: .all, allowsMultipleSelection: true, isCameraEnabled: false)
+        MediaPickerConfig(destination: .userFeed, privacyListType: .all, filter: .all, allowsMultipleSelection: true, isCameraEnabled: false)
     }
 
     static func group(id: GroupID) -> MediaPickerConfig {
-        MediaPickerConfig(destination: .groupFeed(id), filter: .all, allowsMultipleSelection: true, isCameraEnabled: false)
+        MediaPickerConfig(destination: .groupFeed(id), privacyListType: nil, filter: .all, allowsMultipleSelection: true, isCameraEnabled: false)
     }
 
     static func chat(id: UserID?) -> MediaPickerConfig {
-        MediaPickerConfig(destination: .chat(id), filter: .all, allowsMultipleSelection: true, isCameraEnabled: true)
+        MediaPickerConfig(destination: .chat(id), privacyListType: nil, filter: .all, allowsMultipleSelection: true, isCameraEnabled: true)
     }
 
     static var comments: MediaPickerConfig {
-        MediaPickerConfig(destination: nil, filter: .all, allowsMultipleSelection: false, isCameraEnabled: true)
+        MediaPickerConfig(destination: nil, privacyListType: nil, filter: .all, allowsMultipleSelection: false, isCameraEnabled: true)
     }
 
     static var image: MediaPickerConfig {
-        MediaPickerConfig(destination: nil, filter: .image, allowsMultipleSelection: false, isCameraEnabled: true)
+        MediaPickerConfig(destination: nil, privacyListType: nil, filter: .image, allowsMultipleSelection: false, isCameraEnabled: true)
     }
 
     static var more: MediaPickerConfig {
-        MediaPickerConfig(destination: nil, filter: .all, allowsMultipleSelection: true, isCameraEnabled: false)
+        MediaPickerConfig(destination: nil, privacyListType: nil,filter: .all, allowsMultipleSelection: true, isCameraEnabled: false)
     }
 }
 
-typealias MediaPickerViewControllerCallback = (MediaPickerViewController, PostComposerDestination?, [PendingMedia], Bool) -> Void
+typealias MediaPickerViewControllerCallback = (MediaPickerViewController, PostComposerDestination?, PrivacyListType?, [PendingMedia], Bool) -> Void
 
 class MediaPickerViewController: UIViewController {
 
@@ -523,8 +524,11 @@ class MediaPickerViewController: UIViewController {
         //Show the favorites education modal only once to the user
         if !AppContext.shared.userDefaults.bool(forKey: "hasFavoritesModalBeenShown") {
             AppContext.shared.userDefaults.set(true, forKey: "hasFavoritesModalBeenShown")
-            let vc = FavoritesInformationViewController()
-            self.present(vc, animated: true)
+            let favoritesVC = FavoritesInformationViewController() { privacyListType in
+                self.config.privacyListType = privacyListType
+                self.config.destination = .userFeed
+            }
+            self.present(favoritesVC, animated: true)
         }
     }
 
@@ -630,7 +634,7 @@ class MediaPickerViewController: UIViewController {
         }
     }
     
-    public func reset(destination: PostComposerDestination?, selected: [PendingMedia]) {
+    public func reset(destination: PostComposerDestination?, privacyListType: PrivacyListType?, selected: [PendingMedia]) {
         originalMedia.removeAll()
         originalMedia.append(contentsOf: selected)
 
@@ -642,6 +646,7 @@ class MediaPickerViewController: UIViewController {
             cell.prepare(config: self.config, mode: self.mode, selection: self.selected)
         }
 
+        config.privacyListType = privacyListType
         config.destination = destination
 
         updateNavigation()
@@ -681,7 +686,7 @@ class MediaPickerViewController: UIViewController {
 
         switch destination {
         case .userFeed:
-            let privacy = MainAppContext.shared.privacySettings.activeType ?? .all
+            guard let privacy = config.privacyListType else { return }
 
             switch privacy {
             case .all:
@@ -840,7 +845,7 @@ class MediaPickerViewController: UIViewController {
                 media.order = 1
                 media.image = image.correctlyOrientedImage()
 
-                self.didFinish(self, self.config.destination, [media], false)
+                self.didFinish(self, self.config.destination, self.config.privacyListType, [media], false)
             },
             didPickVideo: { [weak self] url in
                 guard let self = self else { return }
@@ -851,7 +856,7 @@ class MediaPickerViewController: UIViewController {
                 media.originalVideoURL = url
                 media.fileURL = url
 
-                self.didFinish(self, self.config.destination, [media], false)
+                self.didFinish(self, self.config.destination, self.config.privacyListType, [media], false)
             }
         )
 
@@ -988,14 +993,14 @@ class MediaPickerViewController: UIViewController {
                 }
 
                 self.nextInProgress = false
-                self.didFinish(self, self.config.destination, result, false)
+                self.didFinish(self, self.config.destination, self.config.privacyListType, result, false)
             }
         }
     }
 
     @objc private func cancelAction() {
         privacyCancellable?.cancel() // prevent blue pill changing during closing animation
-        didFinish(self, config.destination, [], true)
+        didFinish(self, config.destination, self.config.privacyListType, [], true)
     }
 
     @objc private func openAlbumsAction() {
@@ -1014,10 +1019,11 @@ class MediaPickerViewController: UIViewController {
     }
 
     @objc private func changeDestinationAction() {
-        guard let destination = config.destination else { return }
+        guard let destination = config.destination, let privacyListType = config.privacyListType else { return }
 
-        let controller = ChangeDestinationViewController(destination: destination) { controller, destination in
+        let controller = ChangeDestinationViewController(destination: destination, privacyListType: privacyListType) { controller, destination, privacyListType in
             controller.dismiss(animated: true)
+            self.config.privacyListType = privacyListType
             self.config.destination = destination
             self.updateChangeDestinationBtn()
         }

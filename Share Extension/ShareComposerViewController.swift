@@ -86,7 +86,7 @@ class ShareComposerViewController: UIViewController {
 
     private var mentions = MentionRangeMap()
     private lazy var mentionableUsers: [MentionableUser] = {
-        Mentions.mentionableUsersForNewPost()
+        Mentions.mentionableUsersForNewPost(privacyListType: .all)
     }()
     var mentionInput: MentionInput {
         MentionInput(text: textView.text, mentions: mentions, selectedRange: textView.selectedRange)

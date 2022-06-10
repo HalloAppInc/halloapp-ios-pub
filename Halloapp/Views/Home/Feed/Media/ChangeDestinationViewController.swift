@@ -150,7 +150,7 @@ class ChangeDestinationViewController: UIViewController {
                     let privacySettings = MainAppContext.shared.privacySettings
 
                     let isDestinationUserFeed = self.destination == .userFeed
-                    let activePrivacyListType = privacySettings.activeType
+                    let activePrivacyListType = self.privacyListType
                     switch indexPath.row {
                     case 0:
                         cell.configure(
@@ -204,10 +204,12 @@ class ChangeDestinationViewController: UIViewController {
 
     private var cancellableSet: Set<AnyCancellable> = []
     private var destination: PostComposerDestination
-    private var completion: (ChangeDestinationViewController, PostComposerDestination) -> Void
+    private var privacyListType: PrivacyListType
+    private var completion: (ChangeDestinationViewController, PostComposerDestination, PrivacyListType) -> Void
 
-    init(destination: PostComposerDestination, completion: @escaping (ChangeDestinationViewController, PostComposerDestination) -> Void) {
+    init(destination: PostComposerDestination, privacyListType: PrivacyListType, completion: @escaping (ChangeDestinationViewController, PostComposerDestination, PrivacyListType) -> Void) {
         self.destination = destination
+        self.privacyListType = privacyListType
         self.completion = completion
 
         super.init(nibName: nil, bundle: nil)
@@ -275,7 +277,7 @@ class ChangeDestinationViewController: UIViewController {
             dismiss(animated: true)
         }
 
-        completion(self, destination)
+        completion(self, destination, privacyListType)
     }
 
     private func makeSnapshot(searchString: String? = nil) -> NSDiffableDataSourceSnapshot<Int, SelectableDestination> {
@@ -326,7 +328,7 @@ extension ChangeDestinationViewController: UICollectionViewDelegate {
             case 0:
                 privacySettings.setFeedSettingToAllContacts()
                 dismiss(animated: true)
-                destination = .userFeed
+                setConfigToAllContacts()
                 backAction()
             case 1:
                 // if favorites list is empty.. open up edit flow with edit mode on
@@ -337,7 +339,7 @@ extension ChangeDestinationViewController: UICollectionViewDelegate {
 
                     let controller = ContactSelectionViewController.forPrivacyList(privacySettings.whitelist, in: privacySettings, setActiveType: true, doneAction: { [weak self] in
                         self?.dismiss(animated: false)
-                        self?.destination = .userFeed
+                        self?.setConfigToFavorites()
                         self?.backAction()
                     }, dismissAction: nil)
 
@@ -345,7 +347,7 @@ extension ChangeDestinationViewController: UICollectionViewDelegate {
                 } else {
                     MainAppContext.shared.privacySettings.activeType = .whitelist
                     dismiss(animated: true)
-                    destination = .userFeed
+                    setConfigToFavorites()
                     backAction()
                 }
             default:
@@ -388,7 +390,7 @@ extension ChangeDestinationViewController: ContactsCellDelegate {
 
             let controller = ContactSelectionViewController.forAllContacts(PrivacyListType.all, in: privacySettings, doneAction: { [weak self] in
                 self?.dismiss(animated: false)
-                self?.destination = .userFeed
+                self?.setConfigToAllContacts()
                 self?.backAction()
                 privacySettings.setFeedSettingToAllContacts()
             }, dismissAction: nil)
@@ -401,7 +403,7 @@ extension ChangeDestinationViewController: ContactsCellDelegate {
 
             let controller = ContactSelectionViewController.forPrivacyList(privacySettings.whitelist, in: privacySettings, setActiveType: true, doneAction: { [weak self] in
                 self?.dismiss(animated: false)
-                self?.destination = .userFeed
+                self?.setConfigToFavorites()
                 self?.backAction()
             }, dismissAction: nil)
 
@@ -409,6 +411,18 @@ extension ChangeDestinationViewController: ContactsCellDelegate {
         default:
             return
         }
+    }
+
+    private func setConfigToAllContacts() {
+        privacyListType = .all
+        destination = .userFeed
+        MainAppContext.shared.privacySettings.activeType = .all
+    }
+
+    private func setConfigToFavorites() {
+        privacyListType = .whitelist
+        destination = .userFeed
+        MainAppContext.shared.privacySettings.activeType = .whitelist
     }
 }
 

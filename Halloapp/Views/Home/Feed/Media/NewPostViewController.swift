@@ -82,10 +82,11 @@ final class NewPostViewController: UIViewController {
         return .portrait
     }
 
-    init(source: NewPostMediaSource, destination: FeedPostDestination, momentContext: NewMomentContext? = nil, didFinish: @escaping ((Bool) -> Void)) {
+    init(source: NewPostMediaSource, destination: FeedPostDestination, privacyListType: PrivacyListType? = nil, momentContext: NewMomentContext? = nil, didFinish: @escaping ((Bool) -> Void)) {
         self.didFinish = didFinish
         self.state = NewPostState(mediaSource: source)
         self.destination = destination
+        self.privacyListType = privacyListType
         self.momentContext = momentContext
         super.init(nibName: nil, bundle: nil)
     }
@@ -110,6 +111,7 @@ final class NewPostViewController: UIViewController {
     private var state: NewPostState
     private let momentContext: NewMomentContext?
     private var destination: FeedPostDestination
+    private var privacyListType: PrivacyListType?
 
     private(set) lazy var containedNavigationController = {
         return makeNavigationController()
@@ -166,7 +168,9 @@ final class NewPostViewController: UIViewController {
 
     private func makeComposerViewController() -> UIViewController {
         var configuration: PostComposerViewConfiguration = .userPost
-
+        if let privacyListType = privacyListType {
+            configuration.privacyListType = privacyListType
+        }
         if case .groupFeed(let groupId) = destination {
             configuration = .groupPost(id: groupId)
         }
@@ -231,7 +235,7 @@ final class NewPostViewController: UIViewController {
             config = .group(id: groupID)
         }
 
-        let pickerController = MediaPickerViewController(config: config) { [weak self] controller, destination, media, cancel in
+        let pickerController = MediaPickerViewController(config: config) { [weak self] controller, destination, privacyListType, media, cancel in
             guard let self = self else { return }
             
             if cancel {
@@ -239,6 +243,7 @@ final class NewPostViewController: UIViewController {
             } else {
                 switch destination {
                 case .userFeed:
+                    self.privacyListType = privacyListType
                     self.destination = .userFeed
                 case .groupFeed(let groupID):
                     self.destination = .groupFeed(groupID)
@@ -306,6 +311,7 @@ extension NewPostViewController: UINavigationControllerDelegate {}
 extension NewPostViewController: PostComposerViewDelegate {
     func composerDidTapShare(controller: PostComposerViewController,
                             destination: PostComposerDestination,
+                             feedAudience: FeedAudience,
                                isMoment: Bool = false,
                             mentionText: MentionText,
                                   media: [PendingMedia],
@@ -326,16 +332,17 @@ extension NewPostViewController: PostComposerViewDelegate {
                                  linkPreviewData: linkPreviewData,
                                 linkPreviewMedia: linkPreviewMedia,
                                               to: self.destination,
+                                            feedAudience: feedAudience,
                                         isMoment: isMoment)
         cleanupAndFinish(didPost: true)
     }
 
-    func composerDidTapBack(controller: PostComposerViewController, destination: PostComposerDestination, media: [PendingMedia], voiceNote: PendingMedia?) {
+    func composerDidTapBack(controller: PostComposerViewController, destination: PostComposerDestination, privacyListType: PrivacyListType, media: [PendingMedia], voiceNote: PendingMedia?) {
         state.pendingVoiceNote = voiceNote
         containedNavigationController.popViewController(animated: true)
         switch state.mediaSource {
         case .library:
-            (containedNavigationController.topViewController as? MediaPickerViewController)?.reset(destination: destination, selected: media)
+            (containedNavigationController.topViewController as? MediaPickerViewController)?.reset(destination: destination, privacyListType: privacyListType, selected: media)
         case .camera:
             break
         default:

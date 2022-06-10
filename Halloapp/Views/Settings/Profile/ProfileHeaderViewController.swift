@@ -225,7 +225,7 @@ final class ProfileHeaderViewController: UIViewController, UserMenuHandler {
     private func presentPhotoPicker() {
         DDLogInfo("profile/edit-photo Presenting photo picker")
 
-        let photoPickerViewController = MediaPickerViewController(config: .image) { (controller, _, media, canceled) in
+        let photoPickerViewController = MediaPickerViewController(config: .image) { (controller, _, _, media, canceled) in
             guard !canceled && !media.isEmpty else {
                 DDLogInfo("profile/edit-photo Photo picker canceled")
                 controller.dismiss(animated: true)
