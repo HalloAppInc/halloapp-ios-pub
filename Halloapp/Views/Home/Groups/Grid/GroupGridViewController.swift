@@ -105,15 +105,13 @@ class GroupGridViewController: UIViewController {
         let item = NSCollectionLayoutItem(layoutSize: .init(widthDimension: .fractionalWidth(1),
                                                             heightDimension: .fractionalHeight(1)))
 
-        // Scale a fixed size cell by current font metrics
-        let fontMetrics = UIFontMetrics(forTextStyle: .body)
         let size: NSCollectionLayoutSize
         if isSectionEmpty {
             size = .init(widthDimension: .fractionalWidth(1),
                          heightDimension: .estimated(CGFloat.leastNonzeroMagnitude))
         } else {
-            size = .init(widthDimension: .absolute(fontMetrics.scaledValue(for: 136, compatibleWith: layoutEnvironment.traitCollection)),
-                         heightDimension: .absolute(fontMetrics.scaledValue(for: 182, compatibleWith: layoutEnvironment.traitCollection)))
+            size = .init(widthDimension: .fractionalWidth(0.43),
+                         heightDimension: .fractionalHeight(0.23))
         }
 
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: size, subitems: [item])

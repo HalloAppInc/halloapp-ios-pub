@@ -31,6 +31,7 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
     private let textLabel: UILabel = {
         let textLabel = UILabel()
         textLabel.adjustsFontForContentSizeCategory = true
+        textLabel.adjustsFontSizeToFitWidth = true
         textLabel.numberOfLines = 0
         return textLabel
     }()
@@ -135,9 +136,10 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         contentView.backgroundColor = .feedPostBackground
         contentView.layer.cornerRadius = 9
 
-        contentView.layer.shadowOffset = .zero
-        contentView.layer.shadowOpacity = 1
-        contentView.layer.shadowRadius = 10
+        layer.shadowRadius = 8.0
+        layer.shadowOffset = CGSize(width: 0, height: 8)
+        layer.shadowColor = UIColor.feedPostShadow.cgColor
+        layer.shadowOpacity = 1.0
 
         // Body
         // Add first to position below other content
@@ -215,9 +217,9 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
             textBackground.bottomAnchor.constraint(equalTo: footerStackView.topAnchor),
 
             textLabel.leadingAnchor.constraint(equalTo: textBackground.leadingAnchor, constant: 12),
-            textLabel.topAnchor.constraint(equalTo: textBackground.topAnchor, constant: 12),
             textLabel.trailingAnchor.constraint(equalTo: textBackground.trailingAnchor, constant: -12),
-            textLabel.bottomAnchor.constraint(lessThanOrEqualTo: textBackground.bottomAnchor, constant: -12),
+            textLabel.topAnchor.constraint(greaterThanOrEqualTo: textBackground.topAnchor, constant: 12),
+            textLabel.centerYAnchor.constraint(equalTo: textBackground.centerYAnchor),
 
             imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             imageView.topAnchor.constraint(equalTo: headerStackView.bottomAnchor),
@@ -320,23 +322,17 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         } else {
             // Text post
             let baseFont = UIFont.scaledSystemFont(ofSize: 19, weight: .regular)
-            let textColor = UIColor(dynamicProvider: {
-                switch $0.userInterfaceStyle {
-                case .dark:
-                    return .white.withAlphaComponent(0.8)
-                default:
-                    return .white
-                }
-            })
+            let textColor = UIColor.label.withAlphaComponent(0.9)
 
+            let textLabelMinimumScaleFactor: CGFloat
             if post.isUnsupported {
                 textLabel.attributedText = NSAttributedString(string: "⚠️ \(Localizations.feedPostUnsupported)",
                                                               attributes: [.font: baseFont.withItalicsIfAvailable, .foregroundColor: textColor])
-                textLabel.adjustsFontSizeToFitWidth = true
+                textLabelMinimumScaleFactor = 0
             } else if post.isWaiting {
                 textLabel.attributedText = NSAttributedString(string: "🕓 \(Localizations.feedPostWaiting)",
                                                               attributes: [.font: baseFont.withItalicsIfAvailable, .foregroundColor: textColor])
-                textLabel.adjustsFontSizeToFitWidth = true
+                textLabelMinimumScaleFactor = 0
             } else {
                 let mentionText = MainAppContext.shared.contactStore.textWithMentions(post.rawText,
                                                                                       mentions: post.orderedMentions,
@@ -347,8 +343,9 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
                         .parse($0)
                         .applyingFontForMentions(mentionFont)
                 }
-                textLabel.adjustsFontSizeToFitWidth = false
+                textLabelMinimumScaleFactor = 0.7
             }
+            textLabel.minimumScaleFactor = textLabelMinimumScaleFactor
             textBackground.backgroundColor = Self.backgroundColor(for: post.id)
 
             showTextView = true
@@ -439,6 +436,13 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         UIColor(named: "GroupFeedCellBackground11"),
         UIColor(named: "GroupFeedCellBackground12"),
     ].compactMap { $0 }
+        .map { color in
+            UIColor { traitCollection in
+                var h: CGFloat = 0, s: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+                color.resolvedColor(with: traitCollection).getHue(&h, saturation: &s, brightness: &b, alpha: &a)
+                return UIColor(hue: h, saturation: 0.1, brightness: b, alpha: a)
+            }
+        }
 
     private static func backgroundColor(for postID: FeedPostID) -> UIColor {
         return postBackgroundColors[abs(postID.hashValue % postBackgroundColors.count)]
