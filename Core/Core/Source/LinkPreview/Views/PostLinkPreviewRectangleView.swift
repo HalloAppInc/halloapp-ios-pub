@@ -71,6 +71,16 @@ class PostLinkPreviewRectangleView: UIView {
         return urlStack
     }()
 
+    private lazy var progressView: CircularProgressView = {
+        let progressView = CircularProgressView()
+        progressView.barWidth = 2
+        progressView.trackTintColor = .systemGray3 // Same color as the placeholder
+        progressView.translatesAutoresizingMaskIntoConstraints = false
+        progressView.heightAnchor.constraint(equalTo: progressView.widthAnchor, multiplier: 1).isActive = true
+        progressView.isHidden = true
+        return progressView
+    }()
+
     public func configure(url: URL, title: String, previewImage: UIImage?) {
         let contentView = UIStackView()
         contentView.axis = .vertical
@@ -83,6 +93,7 @@ class PostLinkPreviewRectangleView: UIView {
         titleLabel.text = title
         contentView.addArrangedSubview(previewImageView)
         contentView.addArrangedSubview(titleUrlStack)
+        contentView.addSubview(progressView)
 
         if let previewImage = previewImage {
             let linkPreviewMedia = PendingMedia(type: .image)
@@ -106,6 +117,9 @@ class PostLinkPreviewRectangleView: UIView {
             contentView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
             contentView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
             contentView.heightAnchor.constraint(equalToConstant: 230),
+            progressView.centerXAnchor.constraint(equalTo: previewImageView.centerXAnchor),
+            progressView.centerYAnchor.constraint(equalTo: previewImageView.centerYAnchor),
+            progressView.widthAnchor.constraint(equalToConstant: 80),
         ])
     }
 
@@ -117,5 +131,17 @@ class PostLinkPreviewRectangleView: UIView {
     public func show(image: UIImage) {
         previewImageView.contentMode = .scaleAspectFill
         previewImageView.image = image
+    }
+
+    public func hideProgressView() {
+        progressView.isHidden = true
+    }
+
+    public func showProgressView() {
+        progressView.isHidden = false
+    }
+
+    public func setProgress(_ progress: Float, animated: Bool) {
+        progressView.setProgress(progress, animated: animated)
     }
 }

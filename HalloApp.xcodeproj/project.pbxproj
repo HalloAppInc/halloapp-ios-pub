@@ -174,7 +174,6 @@
 		761C6161242D2AE50028AE19 /* DeveloperMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761C6160242D2AE50028AE19 /* DeveloperMenuView.swift */; };
 		761C6168242D89F90028AE19 /* TextLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761C6167242D89F90028AE19 /* TextLabel.swift */; };
 		761EE21E24B5135400B30632 /* MFMessageComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761EE21D24B5135400B30632 /* MFMessageComposeView.swift */; };
-		7626CCD724C69EDC0023FC2E /* CircularProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7626CCD624C69EDC0023FC2E /* CircularProgressView.swift */; };
 		76271384252D24AD00389FBC /* FeedItemContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76271383252D24AD00389FBC /* FeedItemContentView.swift */; };
 		76271389252D250E00389FBC /* FacePileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76271388252D250E00389FBC /* FacePileView.swift */; };
 		7627173B257B0744006F7F3D /* AboutViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7627173A257B0744006F7F3D /* AboutViewController.swift */; };
@@ -930,7 +929,6 @@
 		761C6160242D2AE50028AE19 /* DeveloperMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DeveloperMenuView.swift; path = Halloapp/Views/Settings/DeveloperMenuView.swift; sourceTree = SOURCE_ROOT; };
 		761C6167242D89F90028AE19 /* TextLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TextLabel.swift; path = HalloApp/Components/Views/TextLabel.swift; sourceTree = SOURCE_ROOT; };
 		761EE21D24B5135400B30632 /* MFMessageComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MFMessageComposeView.swift; path = HalloApp/Components/Views/MFMessageComposeView.swift; sourceTree = SOURCE_ROOT; };
-		7626CCD624C69EDC0023FC2E /* CircularProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CircularProgressView.swift; path = HalloApp/Components/Views/CircularProgressView.swift; sourceTree = SOURCE_ROOT; };
 		76271383252D24AD00389FBC /* FeedItemContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedItemContentView.swift; path = HalloApp/Views/Home/Feed/Post/FeedItemContentView.swift; sourceTree = SOURCE_ROOT; };
 		76271388252D250E00389FBC /* FacePileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FacePileView.swift; path = HalloApp/Views/Home/Feed/Post/FacePileView.swift; sourceTree = SOURCE_ROOT; };
 		7627173A257B0744006F7F3D /* AboutViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AboutViewController.swift; path = Halloapp/Views/Settings/About/AboutViewController.swift; sourceTree = SOURCE_ROOT; };
@@ -1538,7 +1536,6 @@
 				A15B2D95283EA9A0000CE989 /* LargeHitButton.swift */,
 				A1FE830227E1AED200024641 /* LinkPreviewPanel.swift */,
 				766492242450E04D009BC368 /* BadgeView.swift */,
-				7626CCD624C69EDC0023FC2E /* CircularProgressView.swift */,
 				76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */,
 				764F774D246224C30063645A /* ContactTableViewCell.swift */,
 				761EE21D24B5135400B30632 /* MFMessageComposeView.swift */,
@@ -3093,7 +3090,6 @@
 				EA6DE2CD25C3768C00C83001 /* GroupTitleView.swift in Sources */,
 				EAB533CA26265ED700943FDC /* GroupBackgroundViewController.swift in Sources */,
 				6A91069D262D02170081E337 /* NotificationRequest.swift in Sources */,
-				7626CCD724C69EDC0023FC2E /* CircularProgressView.swift in Sources */,
 				328B64102756D53900899525 /* FlatCommentsViewController.swift in Sources */,
 				EAD476F42458F03700EF8591 /* ChatThread+CoreDataClass.swift in Sources */,
 				6ABBB20D272DA251007A595D /* CallViewController.swift in Sources */,

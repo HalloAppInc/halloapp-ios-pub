@@ -81,6 +81,16 @@ class PostLinkPreviewSquareView: UIView {
         urlStack.isLayoutMarginsRelativeArrangement = true
         return urlStack
     }()
+
+    private lazy var progressView: CircularProgressView = {
+        let progressView = CircularProgressView()
+        progressView.barWidth = 2
+        progressView.trackTintColor = .systemGray3 // Same color as the placeholder
+        progressView.translatesAutoresizingMaskIntoConstraints = false
+        progressView.heightAnchor.constraint(equalTo: progressView.widthAnchor, multiplier: 1).isActive = true
+        progressView.isHidden = true
+        return progressView
+    }()
     
     public func configure(url: URL, title: String, description: String, previewImage: UIImage?) {
         urlLabel.text = url.host
@@ -89,6 +99,8 @@ class PostLinkPreviewSquareView: UIView {
         addSubview(previewImageView)
         addSubview(titleDescriptionStack)
         addSubview(linkPreviewLinkStack)
+        addSubview(progressView)
+
         self.backgroundColor = .linkPreviewPostSquareDarkBackground
         if let previewImage = previewImage {
             let linkPreviewMedia = PendingMedia(type: .image)
@@ -117,7 +129,10 @@ class PostLinkPreviewSquareView: UIView {
             titleDescriptionStack.trailingAnchor.constraint(equalTo: self.trailingAnchor),
             linkPreviewLinkStack.leadingAnchor.constraint(equalTo: self.leadingAnchor),
             linkPreviewLinkStack.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-            linkPreviewLinkStack.trailingAnchor.constraint(equalTo: self.trailingAnchor)
+            linkPreviewLinkStack.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+            progressView.centerXAnchor.constraint(equalTo: previewImageView.centerXAnchor),
+            progressView.centerYAnchor.constraint(equalTo: previewImageView.centerYAnchor),
+            progressView.widthAnchor.constraint(equalToConstant: 60),
         ])
     }
 
@@ -129,5 +144,17 @@ class PostLinkPreviewSquareView: UIView {
     public func show(image: UIImage) {
         previewImageView.contentMode = .scaleAspectFill
         previewImageView.image = image
+    }
+
+    public func hideProgressView() {
+        progressView.isHidden = true
+    }
+
+    public func showProgressView() {
+        progressView.isHidden = false
+    }
+
+    public func setProgress(_ progress: Float, animated: Bool) {
+        progressView.setProgress(progress, animated: animated)
     }
 }

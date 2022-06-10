@@ -16,11 +16,11 @@ fileprivate class DownloadProgressArcLayer : CALayer {
     }
 }
 
-class CircularProgressView : UIView {
+public class CircularProgressView : UIView {
 
-    var barWidth: CGFloat = 1
-    var progressTintColor: UIColor?
-    var trackTintColor: UIColor?
+    public var barWidth: CGFloat = 1
+    public var progressTintColor: UIColor?
+    public var trackTintColor: UIColor?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -38,7 +38,7 @@ class CircularProgressView : UIView {
         contentMode = .redraw
     }
 
-    override class var layerClass: AnyClass {
+    public override class var layerClass: AnyClass {
         get { DownloadProgressArcLayer.self }
     }
 
@@ -51,7 +51,7 @@ class CircularProgressView : UIView {
         return layer.progress
     }
 
-    var progress: Float {
+    public var progress: Float {
         get {
             let layer = self.layer as! DownloadProgressArcLayer
             return layer.progress
@@ -61,7 +61,7 @@ class CircularProgressView : UIView {
         }
     }
 
-    func setProgress(_ progress: Float, animated: Bool) {
+    public func setProgress(_ progress: Float, animated: Bool) {
         setProgress(progress, withAnimationDuration:animated ? 0.1 : 0.0)
     }
 
@@ -88,7 +88,7 @@ class CircularProgressView : UIView {
         layer.progress = progress
     }
 
-    override func draw(_ rect: CGRect) {
+    public override func draw(_ rect: CGRect) {
         guard let context = UIGraphicsGetCurrentContext() else { return }
         context.setAllowsAntialiasing(true)
         context.setShouldAntialias(true)
@@ -110,7 +110,7 @@ class CircularProgressView : UIView {
         }
     }
 
-    override var intrinsicContentSize: CGSize {
+    public override var intrinsicContentSize: CGSize {
         get { CGSize(width: UIView.noIntrinsicMetric, height: UIView.noIntrinsicMetric) }
     }
 

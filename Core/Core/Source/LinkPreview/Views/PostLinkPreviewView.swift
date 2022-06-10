@@ -34,6 +34,8 @@ public enum LinkPreviewConfiguration{
 public class PostLinkPreviewView: UIView {
 
     public var imageLoadingCancellable: AnyCancellable?
+    public var downloadProgressCancellable: AnyCancellable?
+    public var mediaStatusCancellable: AnyCancellable?
     public var linkPreviewURL: URL?
     public var linkPreviewData: LinkPreviewData?
     private var textStackHeightConstraint: NSLayoutConstraint?
@@ -115,6 +117,9 @@ public class PostLinkPreviewView: UIView {
     
 
     public func configureView(mediaSize: CGSize? = nil) {
+        imageLoadingCancellable = nil
+        mediaStatusCancellable = nil
+        downloadProgressCancellable = nil
         guard let linkPreviewData = linkPreviewData else {
             return
         }
@@ -164,5 +169,38 @@ public class PostLinkPreviewView: UIView {
         // Loading cancellable is no longer needed
         imageLoadingCancellable?.cancel()
         imageLoadingCancellable = nil
+    }
+
+    public func hideProgressView() {
+        switch configuration {
+        case .rectangleImage:
+            rectangleLinkPreviewView.hideProgressView()
+        case .squareImage:
+            squareLinkPreviewView.hideProgressView()
+        case .noImage:
+            break
+        }
+    }
+
+    public func showProgressView() {
+        switch configuration {
+        case .rectangleImage:
+            rectangleLinkPreviewView.showProgressView()
+        case .squareImage:
+            squareLinkPreviewView.showProgressView()
+        case .noImage:
+            break
+        }
+    }
+
+    public func setProgress(_ progress: Float, animated: Bool) {
+        switch configuration {
+        case .rectangleImage:
+            rectangleLinkPreviewView.setProgress(progress, animated: animated)
+        case .squareImage:
+            squareLinkPreviewView.setProgress(progress, animated: animated)
+        case .noImage:
+            break
+        }
     }
 }
