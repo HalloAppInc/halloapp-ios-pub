@@ -238,17 +238,7 @@ class MediaImageView: UIImageView {
         // Create a custom composition to select only the parts of the video we want to play back.
         // This seems to help with load time...
         let composition = AVMutableComposition()
-        let track = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid)
-        if let videoTrack = asset.tracks(withMediaType: .video).first {
-            do {
-                let duration = asset.duration
-                let start = VideoUtils.getThumbnailTime(duration: duration)
-                let preferredEnd = CMTimeAdd(start, CMTime(seconds: configuration.videoPreviewLength, preferredTimescale: 1))
-                try track?.insertTimeRange(CMTimeRange(start: start, end: CMTimeMinimum(preferredEnd, duration)), of: videoTrack, at: .zero)
-            } catch {
-                DDLogError("MediaImageView/Could not insert track: \(error)")
-            }
-        }
+        let compositionVideoTrack = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid)
 
         // Video compositions are a set of properties passed to the compositor.
         // We use them to scale the video and disable HDR (which looks bright enough to be out of place).
@@ -257,11 +247,50 @@ class MediaImageView: UIImageView {
         videoComposition.colorTransferFunction = AVVideoTransferFunction_ITU_R_709_2
         videoComposition.colorYCbCrMatrix = AVVideoYCbCrMatrix_ITU_R_709_2
 
-        let preferredSize = configuration.maxVideoPreviewSize
-        let actualSize = videoComposition.renderSize
-        let scale = min(preferredSize.width / actualSize.width, preferredSize.height / actualSize.height) * UIScreen.main.scale
-        if scale < 1 {
-            videoComposition.renderScale = Float(scale)
+        if let compositionVideoTrack = compositionVideoTrack, let assetVideoTrack = asset.tracks(withMediaType: .video).first {
+            do {
+                let duration = asset.duration
+                let start = VideoUtils.getThumbnailTime(duration: duration)
+                let preferredEnd = CMTimeAdd(start, CMTime(seconds: configuration.videoPreviewLength, preferredTimescale: 1))
+                let end = CMTimeMinimum(preferredEnd, duration)
+                try compositionVideoTrack.insertTimeRange(CMTimeRange(start: start, end: end), of: assetVideoTrack, at: .zero)
+
+                var preferredTransform = assetVideoTrack.preferredTransform
+                let naturalSize = assetVideoTrack.naturalSize
+
+                // Re-adjust alignment
+                let preferredOutputRect = CGRect(origin: .zero, size: naturalSize).applying(preferredTransform)
+                preferredTransform = preferredTransform.translatedBy(x: -preferredOutputRect.minX, y: -preferredOutputRect.minY)
+
+                // Adopted from https://developer.apple.com/library/archive/documentation/AudioVideo/Conceptual/AVFoundationPG/Articles/03_Editing.html#//apple_ref/doc/uid/TP40010188-CH8-SW1
+                let isPortrait = preferredTransform.a == 0 && [1, -1].contains(preferredTransform.b) && [1, -1].contains(preferredTransform.c) && preferredTransform.d == 0
+
+                let renderSize: CGSize
+                if isPortrait {
+                    // Inverse size dimensions
+                    renderSize = CGSize(width: naturalSize.height, height: naturalSize.width)
+                } else {
+                    renderSize = naturalSize
+                }
+                videoComposition.renderSize = renderSize
+
+                let preferredSize = configuration.maxVideoPreviewSize
+                let scale = max(preferredSize.width / renderSize.width, preferredSize.height / renderSize.height) * UIScreen.main.scale
+                if scale < 1 {
+                    videoComposition.renderScale = Float(scale)
+                }
+
+                let compositionInstruction = AVMutableVideoCompositionInstruction()
+                compositionInstruction.timeRange = CMTimeRange(start: .zero, duration: duration)
+
+                let layerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: compositionVideoTrack)
+                layerInstruction.setTransform(preferredTransform, at: .zero)
+
+                compositionInstruction.layerInstructions = [layerInstruction]
+                videoComposition.instructions = [compositionInstruction]
+            } catch {
+                DDLogError("MediaImageView/Could not insert track: \(error)")
+            }
         }
 
         let playerItem = AVPlayerItem(asset: composition)
@@ -314,6 +343,14 @@ class MediaImageView: UIImageView {
         super.layoutSubviews()
 
         videoIndicator.layer.shadowPath = UIBezierPath(ovalIn: videoIndicator.bounds).cgPath
+    }
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+
+        if window != nil, canPlayVideoPreviews {
+            player?.play()
+        }
     }
 
     @objc private func applicationDidBecomeActive() {
