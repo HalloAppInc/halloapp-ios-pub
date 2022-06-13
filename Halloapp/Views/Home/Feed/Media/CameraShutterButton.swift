@@ -8,13 +8,11 @@
 
 import UIKit
 
-private extension CameraShutterButton {
-    var lineWidth: CGFloat {
+class CameraShutterButton: UIControl {
+    private var lineWidth: CGFloat {
         5
     }
-}
 
-class CameraShutterButton: UIControl {
     override var intrinsicContentSize: CGSize {
         CGSize(width: 75, height: 75)
     }
@@ -33,9 +31,31 @@ class CameraShutterButton: UIControl {
         return layer
     }()
 
+    private lazy var tapGesture: UITapGestureRecognizer = {
+        let gesture = UITapGestureRecognizer(target: self, action: #selector(tapped))
+        gesture.cancelsTouchesInView = false
+        return gesture
+    }()
+    private lazy var longPressGesture: UILongPressGestureRecognizer = {
+        let gesture = UILongPressGestureRecognizer(target: self, action: #selector(longPressed))
+        gesture.minimumPressDuration = 0.4
+        gesture.cancelsTouchesInView = false
+        return gesture
+    }()
+
+    var onTap: (() -> Void)?
+    /// - Parameter ended: `true` if the gesture has ended.
+    var onLongPress: ((Bool) -> Void)?
+
     override var isHighlighted: Bool {
         didSet {
-            if oldValue != isHighlighted { updateButtonState() }
+            if oldValue != isHighlighted { refreshHighlightState() }
+        }
+    }
+
+    override var isEnabled: Bool {
+        didSet {
+            if oldValue != isEnabled { refreshEnabledState() }
         }
     }
 
@@ -50,6 +70,9 @@ class CameraShutterButton: UIControl {
 
         layer.addSublayer(circleLayer)
         layer.addSublayer(outerRingLayer)
+
+        addGestureRecognizer(tapGesture)
+        addGestureRecognizer(longPressGesture)
     }
 
     required init?(coder: NSCoder) {
@@ -58,9 +81,9 @@ class CameraShutterButton: UIControl {
 
     override func layoutSubviews() {
         outerRingLayer.frame = bounds
-        outerRingLayer.path = UIBezierPath(ovalIn: bounds.insetBy(dx: lineWidth / 2, dy: lineWidth / 2)).cgPath
-
         circleLayer.frame = bounds
+
+        outerRingLayer.path = UIBezierPath(ovalIn: bounds.insetBy(dx: lineWidth / 2, dy: lineWidth / 2)).cgPath
         circleLayer.path = UIBezierPath(ovalIn: bounds.insetBy(dx: lineWidth * 1.5, dy: lineWidth * 1.5)).cgPath
     }
 
@@ -68,7 +91,57 @@ class CameraShutterButton: UIControl {
         // TODO: animate the outer ring to reflect the video duration limit
     }
 
-    private func updateButtonState() {
-        // TODO: animate the scale of the button when pressed
+    private func refreshHighlightState() {
+        let scale: CGFloat = isHighlighted ? 0.75 : 1.0
+        let animation = CABasicAnimation(keyPath: "transform.scale")
+
+        animation.toValue = scale
+        animation.duration = 0.2
+        animation.timingFunction = CAMediaTimingFunction(name: .easeOut)
+
+        circleLayer.add(animation, forKey: nil)
+        circleLayer.transform = CATransform3DMakeScale(scale, scale, scale)
+
+        if !isHighlighted {
+            animateButtonColor(to: .white.withAlphaComponent(0.9))
+        }
+    }
+
+    @objc
+    private func tapped(_ gesture: UITapGestureRecognizer) {
+        onTap?()
+    }
+
+    @objc
+    private func longPressed(_ gesture: UILongPressGestureRecognizer) {
+        switch gesture.state {
+        case .began:
+            animateButtonColor(to: .systemRed)
+            onLongPress?(false)
+        case .ended, .failed, .cancelled:
+            onLongPress?(true)
+        default:
+            break
+        }
+    }
+
+    private func animateButtonColor(to color: UIColor) {
+        let color = color.cgColor
+        let animation = CABasicAnimation(keyPath: "fillColor")
+
+        animation.toValue = color
+        animation.duration = 0.2
+        animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+
+        circleLayer.add(animation, forKey: nil)
+        circleLayer.fillColor = color
+    }
+
+    private func refreshEnabledState() {
+        let alpha: CGFloat = isEnabled ? 0.9 :0.5
+
+        circleLayer.fillColor = UIColor.white.withAlphaComponent(alpha).cgColor
+        tapGesture.isEnabled = isEnabled
+        longPressGesture.isEnabled = isEnabled
     }
 }

@@ -34,7 +34,9 @@ class NewCameraViewController: UIViewController {
 
     private lazy var shutterButton: CameraShutterButton = {
         let shutter = CameraShutterButton()
-        shutter.addTarget(self, action: #selector(shutterButtonPushed), for: .touchUpInside)
+        shutter.isEnabled = false
+        shutter.onTap = { [weak self] in self?.handleShutterTap() }
+        shutter.onLongPress = { [weak self] in self?.handleShutterLongPress($0) }
         return shutter
     }()
 
@@ -98,7 +100,6 @@ class NewCameraViewController: UIViewController {
         view.addSubview(background)
         view.addSubview(preview)
         view.addSubview(controlStack)
-        view.addSubview(zoomButton)
 
         NSLayoutConstraint.activate([
             background.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -116,13 +117,8 @@ class NewCameraViewController: UIViewController {
             controlStack.leadingAnchor.constraint(equalTo: background.leadingAnchor),
             controlStack.trailingAnchor.constraint(equalTo: background.trailingAnchor),
             controlStack.bottomAnchor.constraint(equalTo: background.bottomAnchor),
-
-            zoomButton.bottomAnchor.constraint(equalTo: preview.bottomAnchor, constant: -12),
-            zoomButton.centerXAnchor.constraint(equalTo: preview.centerXAnchor),
         ])
 
-        let cornerMask = CACornerMask([.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner])
-        background.layer.maskedCorners = cornerMask
         background.layer.cornerRadius = 20
         preview.previewLayer.cornerRadius = 15
     }
@@ -131,14 +127,17 @@ class NewCameraViewController: UIViewController {
         // TODO: subscribe to rotation, flash state, camera state changes
     }
 
-    @objc
-    private func shutterButtonPushed(_ sender: UIControl) {
+    private func handleShutterTap() {
+        // TODO:
+    }
 
+    private func handleShutterLongPress(_ ended: Bool) {
+        // TODO:
     }
     
     @objc
     private func flipCameraPushed(_ sender: UIButton) {
-
+        // TODO:
     }
 
     @objc
@@ -155,7 +154,7 @@ extension NewCameraViewController: CameraModelDelegate {
     }
 
     func modelDidStart(_ model: CameraModel) {
-
+        shutterButton.isEnabled = true
     }
 
     func modelCoultNotStart(_ model: CameraModel, with error: Error) {
