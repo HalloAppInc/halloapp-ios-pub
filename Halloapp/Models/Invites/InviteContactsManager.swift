@@ -18,18 +18,19 @@ final class InviteContactsManager: NSObject {
     }
 
     var contactsChanged: (() -> Void)?
-
+    var hideInvitedAndHidden: Bool
+    
     init(hideInvitedAndHidden: Bool = false, sort: Sort = .name) {
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         var predicates: [NSPredicate] = []
         predicates.append(NSPredicate(format: "normalizedPhoneNumber != nil"))
 
         if hideInvitedAndHidden {
+            // Contacts with non-nil `userId` are preserved to filter out other phone numbers from joined contacts later
             predicates.append(NSPredicate(format: "hideInSuggestedInvites == false"))
-            predicates.append(NSPredicate(format: "userId == nil"))
-        } else {
-            predicates.append(NSPredicate(format: "userId == nil OR userId != %@", MainAppContext.shared.userData.userId))
         }
+        
+        predicates.append(NSPredicate(format: "userId == nil OR userId != %@", MainAppContext.shared.userData.userId))
 
         fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
 
@@ -40,6 +41,7 @@ final class InviteContactsManager: NSObject {
             fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \ABContact.numPotentialContacts, ascending: false) ]
         }
 
+        self.hideInvitedAndHidden = hideInvitedAndHidden
         fetchedResultsController = NSFetchedResultsController<ABContact>(
             fetchRequest: fetchRequest,
             managedObjectContext: MainAppContext.shared.contactStore.viewContext,
@@ -60,7 +62,11 @@ final class InviteContactsManager: NSObject {
     func contacts(searchString: String? = nil) -> [InviteContact] {
         guard let searchString = searchString else {
             let uniqueContacts = ABContact.contactsWithUniquePhoneNumbers(allContacts: fetchedResultsController.fetchedObjects ?? [])
-            return uniqueContacts.compactMap { InviteContact(from: $0) }
+            var result = ABContact.contactsRemovingOtherPhoneNumbersFromJoinedContacts(allContacts: uniqueContacts)
+            if hideInvitedAndHidden {
+                result.removeAll { $0.userId != nil }
+            }
+            return result.compactMap { InviteContact(from: $0) }
         }
 
         let searchItems = searchString

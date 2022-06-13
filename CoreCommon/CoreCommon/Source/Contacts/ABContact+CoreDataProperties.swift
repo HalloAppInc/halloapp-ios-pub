@@ -75,4 +75,19 @@ public extension ABContact {
         }
         return uniqueContacts
     }
+    
+    static func contactsRemovingOtherPhoneNumbersFromJoinedContacts(allContacts: [ABContact]) -> [ABContact] {
+        let joinedIdentifiers = Set<String?>(
+            allContacts.lazy.compactMap { (contact: ABContact) -> String? in
+                if let identifier = contact.identifier, contact.userId != nil {
+                    return identifier
+                } else {
+                    return nil
+                }
+            }
+        )
+        return allContacts.filter {
+            !joinedIdentifiers.contains($0.identifier) || $0.userId != nil
+        }
+    }
 }
