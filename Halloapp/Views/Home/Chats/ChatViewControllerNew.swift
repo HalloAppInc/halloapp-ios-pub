@@ -426,6 +426,8 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
          if MainAppContext.shared.privacySettings.blocked.userIds.contains(userID) { return false }
         // If we do not have contacts's push number
         if MainAppContext.shared.contactStore.pushNumber(userID) == nil { return false }
+
+        DDLogInfo("ChatViewControllerNew/shouldShowAddToContactBookCell/will show AddToContactBookCell for user: \(userID) ")
         return true
 
     }
@@ -933,7 +935,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             }()
             
             guard isAuthorizedToSave else {
-                DDLogInfo("ChatViewController/saveAllMediaInMessage: User denied photos permissions")
+                DDLogInfo("ChatViewControllerNew/saveAllMediaInMessage: User denied photos permissions")
                 
                 let alert = UIAlertController(title: Localizations.mediaPermissionsError, message: Localizations.mediaPermissionsErrorDescription, preferredStyle: .alert)
                 alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
@@ -973,7 +975,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
             present(alert, animated: true)
         } catch {
-            DDLogError("ChatViewController/saveAllMediaInMessage/error: \(error)")
+            DDLogError("ChatViewControllerNew/saveAllMediaInMessage/error: \(error)")
             
             Task { @MainActor in
                 let alert = UIAlertController(title: nil, message: Localizations.mediaSaveError, preferredStyle: .alert)
@@ -1004,7 +1006,10 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                                              haveReceivedMessagesBefore
 
         if showUnknownContactActionBanner {
+            DDLogInfo("ChatViewControllerNew/setupOrRefreshHeaderAndFooter/will show Unknown Contact Action Banner")
             present(unknownContactSheet, animated: true)
+        } else {
+            DDLogInfo("ChatViewControllerNew/setupOrRefreshHeaderAndFooter/ user: \(userID) isUserBlocked: \(isUserBlocked) isUserInAddressBook: \(isUserInAddressBook) isPushNumberMessagingAccepted: \(isPushNumberMessagingAccepted) haveMessagedBefore: \(haveMessagedBefore) pushNumberExist:\(pushNumberExist) haveReceivedMessagesBefore: \(haveReceivedMessagesBefore)")
         }
     }
 
