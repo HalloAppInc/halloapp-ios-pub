@@ -196,7 +196,7 @@ class CameraViewController: UIViewController {
     }
 }
 
-fileprivate class CameraModel: ObservableObject {
+fileprivate class LegacyCameraModel: ObservableObject {
     @Published var shouldTakePhoto = false
     @Published var shouldRecordVideo = false {
         didSet {
@@ -282,7 +282,7 @@ fileprivate struct CameraView: View {
 
     @EnvironmentObject var configuration: CameraViewController.Configuration
     @Environment(\.colorScheme) var colorScheme
-    @ObservedObject var cameraState = CameraModel()
+    @ObservedObject var cameraState = LegacyCameraModel()
     @ObservedObject var alertState = AlertStateModel()
     @State var captureButtonColor = Color.cameraButton
     @State var captureIsPressed = false
@@ -446,7 +446,7 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
     let goBack: () -> Void
 
     @EnvironmentObject var configuration: CameraViewController.Configuration
-    @ObservedObject var cameraState: CameraModel
+    @ObservedObject var cameraState: LegacyCameraModel
     var alertState: AlertStateModel
 
     func makeUIViewController(context: Context) -> CameraController {
