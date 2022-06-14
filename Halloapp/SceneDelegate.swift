@@ -117,7 +117,7 @@ extension SceneDelegate: UIWindowSceneDelegate {
         }
 
         cancellables.insert(
-            MainAppContext.shared.userData.$isLoggedIn.sink { [weak self] isLoggedIn in
+            MainAppContext.shared.userData.$isLoggedIn.receive(on: DispatchQueue.main).sink { [weak self] isLoggedIn in
                 guard let self = self else { return }
                 self.transition(to: self.state(isLoggedIn: isLoggedIn))
         })
