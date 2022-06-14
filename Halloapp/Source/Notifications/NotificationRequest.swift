@@ -73,7 +73,7 @@ final class NotificationRequest {
     public static func updateMomentNotifications() {
         DDLogInfo("NotificationRequest/updateMomentNotifications")
         guard NotificationSettings.current.isPostsEnabled else {
-            DDLogInfo("NotificationRequest/PostNotification - skip due to userPreferences")
+            DDLogInfo("NotificationRequest/updateMomentNotifications - skip due to userPreferences")
             return
         }
         AppContext.shared.mainDataStore.performSeriallyOnBackgroundContext { managedObjectContext in
@@ -99,21 +99,34 @@ final class NotificationRequest {
                                                     messageId: nil,
                                                     pushName: nil)
                 metadata.isMoment = true
+                metadata.momentCount = moments.count
                 let momentsPostData = moments.map { $0.postData }
                 let content = NotificationMetadata.extractMomentNotification(for: metadata, using: momentsPostData)
                 let sound = moments.count < 2 ? UNNotificationSound.default : nil
 
-                DDLogInfo("NotificationRequest/presentNotification/\(metadata.contentId)")
-                let notificationContent = UNMutableNotificationContent()
-                notificationContent.title = content.title
-                notificationContent.subtitle = content.subtitle
-                notificationContent.body = content.body
-                notificationContent.userInfo = content.userInfo
-                notificationContent.sound = sound
-                notificationContent.badge = AppContext.shared.applicationIconBadgeNumber as NSNumber?
-
+                // Dont update the notification if nothing changed about moments.
                 let notificationCenter = UNUserNotificationCenter.current()
-                notificationCenter.add(UNNotificationRequest(identifier: notificationIdentifier, content: notificationContent, trigger: nil))
+                notificationCenter.getMomentNotification { oldMetadata in
+                    // Check count and from userId for moments.
+                    if oldMetadata?.momentCount == metadata.momentCount,
+                       oldMetadata?.fromId == metadata.fromId {
+                        DDLogInfo("NotificationRequest/updateMomentNotifications/skip - since nothing changed")
+                        return
+                    }
+
+                    DDLogInfo("NotificationRequest/updateMomentNotifications/\(metadata.contentId)")
+                    let notificationContent = UNMutableNotificationContent()
+                    notificationContent.title = content.title
+                    notificationContent.subtitle = content.subtitle
+                    notificationContent.body = content.body
+                    notificationContent.userInfo = content.userInfo
+                    notificationContent.sound = sound
+                    notificationContent.badge = AppContext.shared.applicationIconBadgeNumber as NSNumber?
+
+                    notificationCenter.add(UNNotificationRequest(identifier: notificationIdentifier,
+                                                                 content: notificationContent,
+                                                                 trigger: nil))
+                }
             } catch {
                 DDLogError("ProtoService/updateMomentNotifications/error: \(error)")
             }

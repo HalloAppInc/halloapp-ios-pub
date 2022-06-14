@@ -953,13 +953,25 @@ final class NotificationProtoService: ProtoServiceCore {
                                                     messageId: nil,
                                                     pushName: nil)
                 metadata.isMoment = true
+                metadata.momentCount = moments.count
                 let momentsPostData = moments.map { $0.postData }
                 let content = NotificationMetadata.extractMomentNotification(for: metadata, using: momentsPostData)
-                // We only check for duplicates only in the case of first moment - that is when we need a sound too.
-                // We avoid checking in all other cases including retractions.
-                let shouldCheckForDuplicates: Bool = (moments.count < 2) && checkForDuplicates
-                // Overwrite duplicates if any.
-                self.presentNotification(for: notificationIdentifier, with: content, checkForDuplicates: checkForDuplicates)
+
+                // Dont update the notification if nothing changed about moments.
+                let notificationCenter = UNUserNotificationCenter.current()
+                notificationCenter.getMomentNotification { oldMetadata in
+                    // Check count and from userId for moments.
+                    if oldMetadata?.momentCount == metadata.momentCount,
+                       oldMetadata?.fromId == metadata.fromId {
+                        DDLogInfo("ProtoService/updateMomentNotifications/skip - since nothing changed")
+                        return
+                    }
+                    // We only check for duplicates only in the case of first moment - that is when we need a sound too.
+                    // We avoid checking in all other cases including retractions.
+                    let shouldCheckForDuplicates: Bool = (moments.count < 2) && checkForDuplicates
+                    // Overwrite duplicates if any.
+                    self.presentNotification(for: notificationIdentifier, with: content, checkForDuplicates: shouldCheckForDuplicates)
+                }
             } catch {
                 DDLogError("ProtoService/updateMomentNotifications/error: \(error)")
             }

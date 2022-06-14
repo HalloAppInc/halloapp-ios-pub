@@ -134,6 +134,7 @@ class NotificationMetadata: Codable {
     var groupName: String? = nil
     var normalizedPhone: String? = nil
     var isMoment: Bool = false
+    var momentCount: Int = 0
 
     var protoContainer: Clients_Container? {
         guard let protobufData = data else { return nil }

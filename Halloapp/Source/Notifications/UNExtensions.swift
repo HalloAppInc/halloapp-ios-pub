@@ -104,6 +104,17 @@ extension UNMutableNotificationContent {
 
 extension UNUserNotificationCenter {
 
+    func getMomentNotification(completion: @escaping (NotificationMetadata?) -> ()) {
+        getDeliveredNotifications { (notifications) in
+            for notification in notifications {
+                guard let metadata = NotificationMetadata.load(from: notification.request),
+                      metadata.isMoment else { continue }
+                completion(metadata)
+            }
+            completion(nil)
+        }
+    }
+
     func getFeedPostIdsForDeliveredNotifications(completion: @escaping ([FeedPostID]) -> ()) {
         getDeliveredNotifications { (notifications) in
             let ids = notifications.compactMap({ $0.request.feedPostId })

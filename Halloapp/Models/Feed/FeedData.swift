@@ -1717,6 +1717,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         // present local notifications when applicationState is either .background or .inactive
         guard UIApplication.shared.applicationState != .active else { return }
 
+        // Present moment notifications if any.
+        NotificationRequest.updateMomentNotifications()
+
         UNUserNotificationCenter.current().getFeedPostIdsForDeliveredNotifications { [weak self] postIdsToFilterOut in
             guard let self = self else { return }
 
@@ -1752,8 +1755,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         NotificationRequest.createAndShow(from: metadata)
                     }
                 }
-                // Present moment notifications if any.
-                NotificationRequest.updateMomentNotifications()
             }
         }
     }
