@@ -98,7 +98,7 @@ class MessageViewCell: MessageCellViewBase {
     }
 
     override func configureWith(message: ChatMessage) {
-        timeLabel.text = message.timestamp?.chatTimestamp()
+        timeLabel.text = message.timestamp?.chatDisplayTimestamp()
         super.configureWith(message: message)
         configureCell()
         if [.retracted, .retracting].contains(message.outgoingStatus) || [.retracted].contains(message.incomingStatus) {

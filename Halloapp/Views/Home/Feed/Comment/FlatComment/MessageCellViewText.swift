@@ -40,7 +40,7 @@ class MessageCellViewText: MessageCellViewBase {
         nameContentTimeRow.addArrangedSubview(textRow)
         nameContentTimeRow.addArrangedSubview(timeRow)
         contentView.addSubview(messageRow)
-        nameContentTimeRow.setCustomSpacing(0, after: textRow)
+        nameContentTimeRow.setCustomSpacing(2, after: textRow)
         messageRow.constrain([.top], to: contentView)
         messageRow.constrain(anchor: .bottom, to: contentView, priority: UILayoutPriority(rawValue: 999))
         
@@ -66,7 +66,7 @@ class MessageCellViewText: MessageCellViewBase {
     }
 
     override func configureWith(message: ChatMessage) {
-        timeLabel.text = message.timestamp?.chatTimestamp()
+        timeLabel.text = message.timestamp?.chatDisplayTimestamp()
         super.configureWith(message: message)
         configureText(chatMessage: message)
         super.configureCell()

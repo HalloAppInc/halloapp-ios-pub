@@ -241,7 +241,7 @@ class MessageCellViewBase: UICollectionViewCell {
 
             let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
             var font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize + 1)
-            if messageText.containsOnlyEmoji {
+            if messageText.count <= 3, messageText.containsOnlyEmoji {
                 font = UIFont.preferredFont(forTextStyle: .largeTitle)
             }
             let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
@@ -276,7 +276,7 @@ class MessageCellViewBase: UICollectionViewCell {
         isPreviousMessageOwnMessage = isPreviousMessageFromSameSender
         userNameColorAssignment = userColorAssignment
         nameLabel.textColor = userNameColorAssignment
-        timeLabel.text = comment.timestamp.chatTimestamp()
+        timeLabel.text = comment.timestamp.chatDisplayTimestamp()
         if let userId = feedPostComment?.userId, !isOwnMessage {
             nameLabel.text =  MainAppContext.shared.contactStore.fullName(for: userId, in: MainAppContext.shared.contactStore.viewContext)
         }
@@ -285,7 +285,7 @@ class MessageCellViewBase: UICollectionViewCell {
     func configureWith(message: ChatMessage) {
         chatMessage = message
         isOwnMessage = message.fromUserId == MainAppContext.shared.userData.userId
-        timeLabel.text = message.timestamp?.chatTimestamp()
+        timeLabel.text = message.timestamp?.chatDisplayTimestamp()
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(showMessageOptions(_:)))
             self.isUserInteractionEnabled = true
             self.addGestureRecognizer(longPressGesture)
@@ -301,7 +301,7 @@ class MessageCellViewBase: UICollectionViewCell {
      }
 
     private func setMessageOutgoingStatus() {
-         guard let chatMessage = chatMessage, let timestamp =  chatMessage.timestamp?.chatTimestamp() else {
+         guard let chatMessage = chatMessage, let timestamp =  chatMessage.timestamp?.chatDisplayTimestamp() else {
              return
          }
 

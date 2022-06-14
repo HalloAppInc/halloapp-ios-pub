@@ -137,6 +137,17 @@ extension Date {
             return DateFormatter.dateTimeFormatterMonthDayYearLong.string(from: self)
         }
     }
+
+    func chatDisplayTimestamp(_ currentTime: Date? = nil) -> String {
+        let seconds = -timeIntervalSince(currentTime ?? Date())
+        
+        if seconds < Date.minutes(1) {
+            return Localizations.nowLowercase
+        } else {
+            let dateFormatter = DateFormatter.dateTimeFormatterTime
+            return dateFormatter.string(from: self)
+        }
+    }
     
     func chatTimestamp(_ currentTime: Date? = nil) -> String {
         let seconds = -timeIntervalSince(currentTime ?? Date())
