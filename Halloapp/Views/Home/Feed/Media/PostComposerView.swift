@@ -1277,9 +1277,9 @@ fileprivate struct TextView: UIViewRepresentable {
         Coordinator(self)
     }
 
-    func makeUIView(context: Context) -> UITextView {
+    func makeUIView(context: Context) -> ContentTextView {
         DDLogInfo("TextView/makeUIView")
-        let textView = UITextView()
+        let textView = ContentTextView()
         textView.delegate = context.coordinator
         textView.font = .preferredFont(forTextStyle: .body)
         textView.inputAccessoryView = context.coordinator.mentionPicker
@@ -1293,11 +1293,12 @@ fileprivate struct TextView: UIViewRepresentable {
         textView.tintColor = .systemBlue
         textView.textColor = Constants.textViewTextColor
         textView.text = input.value.text
+        textView.mentions = input.value.mentions
         
         return textView
     }
 
-    func updateUIView(_ uiView: UITextView, context: Context)  {
+    func updateUIView(_ uiView: ContentTextView, context: Context)  {
         DDLogInfo("TextView/updateUIView")
 
         // Don't set text or selection on uiView (it clears markedTextRange, which breaks IME)
@@ -1308,6 +1309,7 @@ fileprivate struct TextView: UIViewRepresentable {
                 mentionInput.addMention(name: mention.name, userID: mention.userID, in: mention.range)
                 uiView.text = mentionInput.text
                 uiView.selectedRange = mentionInput.selectedRange
+                uiView.mentions = mentionInput.mentions
                 self.input.value = mentionInput
                 self.pendingMention = nil
             }
@@ -1331,7 +1333,7 @@ fileprivate struct TextView: UIViewRepresentable {
         }
     }
 
-    class Coordinator: NSObject, UITextViewDelegate {
+    class Coordinator: NSObject, UITextViewDelegate, ContentTextViewDelegate {
         var parent: TextView
         var hasTextViewLoaded = false
         var destinationListener: AnyCancellable?
@@ -1438,32 +1440,23 @@ fileprivate struct TextView: UIViewRepresentable {
         // MARK: UITextViewDelegate
 
         func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
-            var mentionInput = parent.input.value
-
-            // Treat mentions atomically (editing any part of the mention should remove the whole thing)
-            let rangeIncludingImpactedMentions = mentionInput
-                .impactedMentionRanges(in: range)
-                .reduce(range) { range, mention in NSUnionRange(range, mention) }
-
-            mentionInput.changeText(in: rangeIncludingImpactedMentions, to: text)
-
-            if range == rangeIncludingImpactedMentions {
-                // Update mentions and return true so UITextView can update text without breaking IME
-                parent.input.value = mentionInput
-                return true
+            if let contentTextView = textView as? ContentTextView {
+                if(contentTextView.shouldChangeMentionText(in: range, text: text)) {
+                    return true
+                } else {
+                    TextView.recomputeTextViewSizes(textView, textSize: parent.input.value.text.count, isPostWithMedia: parent.mediaItems.count > 0, height: parent.textHeight)
+                    return false
+                }
             } else {
-                // Update content ourselves and return false so UITextView doesn't issue conflicting update
-                textView.text = mentionInput.text
-                textView.selectedRange = mentionInput.selectedRange
-                parent.input.value = mentionInput
-
-                TextView.recomputeTextViewSizes(textView, textSize: parent.input.value.text.count, isPostWithMedia: parent.mediaItems.count > 0, height: parent.textHeight)
-                return false
+                return true
             }
         }
 
         func textViewDidChange(_ textView: UITextView) {
             parent.input.value.text = textView.text ?? ""
+            if let contentTextView = textView as? ContentTextView {
+                parent.input.value.mentions = contentTextView.mentions
+            }
 
             TextView.recomputeTextViewSizes(textView, textSize: parent.input.value.text.count, isPostWithMedia: parent.mediaItems.count > 0, height: parent.textHeight)
             updateMentionPickerContent()
@@ -1474,6 +1467,14 @@ fileprivate struct TextView: UIViewRepresentable {
         func textViewDidChangeSelection(_ textView: UITextView) {
             parent.input.value.selectedRange = textView.selectedRange
             updateMentionPickerContent()
+        }
+        
+        // MARK: ContentTextViewDelegate
+        func textViewShouldDetectLink(_ textView: ContentTextView) -> Bool {
+            return false
+        }
+        
+        func textView(_ textView: ContentTextView, didPaste image: UIImage) {
         }
 
         // MARK: Link Preview

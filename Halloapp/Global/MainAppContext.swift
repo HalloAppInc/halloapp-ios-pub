@@ -48,7 +48,8 @@ class MainAppContext: AppContext {
     let migrationInProgress = CurrentValueSubject<Bool, Never>(false)
 
     let didPrivacySettingChange = PassthroughSubject<UserID, Never>()
-
+    let mentionPasteboard = UIPasteboard.withUniqueName()
+    
     var service: HalloService {
         coreService as! HalloService
     }

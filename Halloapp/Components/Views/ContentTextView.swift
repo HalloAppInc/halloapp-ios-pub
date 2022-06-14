@@ -33,7 +33,6 @@ class ContentTextView: UITextView {
     let linkPreviewMetadata = CurrentValueSubject<LinkPreviewFetchState, Never>(.fetched(nil))
     
     static let textWithMentions = "TextWithMentions"
-    let mentionPasteboard = UIPasteboard.withUniqueName()
     
     var mentions = MentionRangeMap()
     var mentionInput: MentionInput {
@@ -91,7 +90,7 @@ class ContentTextView: UITextView {
         if let image = UIPasteboard.general.image, let delegate = delegate as? ContentTextViewDelegate {
             delegate.textView(self, didPaste: image)
         } else {
-            guard let data = mentionPasteboard.data(forPasteboardType: ContentTextView.textWithMentions) else {
+            guard let data = MainAppContext.shared.mentionPasteboard.data(forPasteboardType: ContentTextView.textWithMentions) else {
                 super.paste(sender)
                 DDLogDebug("ContentTextView/paste/ No mention data in pasteboard")
                 return
@@ -143,7 +142,7 @@ class ContentTextView: UITextView {
             super.copy(sender)
             return
         }
-        mentionPasteboard.setData(mentionEncoded, forPasteboardType: ContentTextView.textWithMentions)
+        MainAppContext.shared.mentionPasteboard.setData(mentionEncoded, forPasteboardType: ContentTextView.textWithMentions)
         super.copy(sender)
     }
     
@@ -262,7 +261,6 @@ extension ContentTextView {
         text = input.text
         mentions = input.mentions
         selectedRange = input.selectedRange
-        
         delegate?.textViewDidChange?(self)
     }
     
