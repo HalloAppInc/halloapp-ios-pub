@@ -254,4 +254,32 @@ extension Localizations {
     static var momentExpiredLabel: String {
         NSLocalizedString("chat.quoted.moment.expired.label", value: "Moment expired", comment: "When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply when the moment has expired.")
     }
+
+    static var voiceCall: String {
+        NSLocalizedString("call.history.voice.call", value: "Voice call", comment: "Title for call history event. Appears next to details of a successful call.")
+    }
+
+    static func incomingCall(name: String) -> String {
+        return String(
+            format: NSLocalizedString("call.history.incoming.call", value: "%@ called you", comment: "Title for call history event for an incoming call."),
+            name)
+    }
+    
+    static func outgoingCall(name: String) -> String {
+        return String(
+            format: NSLocalizedString("call.history.outgoing.call", value: "You called %@", comment: "Title for call history event for an outgoing call"),
+            name)
+    }
+
+    static var voiceCallMissed: String {
+        NSLocalizedString("call.history.voice.call.missed", value: "Missed voice call", comment: "Title for call history event. Appears next to details of a missed call.")
+    }
+
+    static var videoCall: String {
+        NSLocalizedString("call.history.video.call", value: "Video call", comment: "Title for call history event. Appears next to details of a successful call.")
+    }
+
+    static var videoCallMissed: String {
+        NSLocalizedString("call.history.video.call.missed", value: "Missed video call", comment: "Title for call history event. Appears next to details of a missed call.")
+    }
 }

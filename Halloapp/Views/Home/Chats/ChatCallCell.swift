@@ -189,21 +189,3 @@ final class ChatCallView: UIView {
         return formatter
     }()
 }
-
-extension Localizations {
-    static var voiceCall: String {
-        NSLocalizedString("call.history.voice.call", value: "Voice call", comment: "Title for call history event. Appears next to details of a successful call.")
-    }
-
-    static var voiceCallMissed: String {
-        NSLocalizedString("call.history.voice.call.missed", value: "Missed voice call", comment: "Title for call history event. Appears next to details of a missed call.")
-    }
-
-    static var videoCall: String {
-        NSLocalizedString("call.history.video.call", value: "Video call", comment: "Title for call history event. Appears next to details of a successful call.")
-    }
-
-    static var videoCallMissed: String {
-        NSLocalizedString("call.history.video.call.missed", value: "Missed video call", comment: "Title for call history event. Appears next to details of a missed call.")
-    }
-}

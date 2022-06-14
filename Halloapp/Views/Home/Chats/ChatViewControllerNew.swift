@@ -34,7 +34,7 @@ fileprivate enum MessageRow: Hashable, Equatable {
     case linkPreview(ChatMessage)
     case quoted(ChatMessage)
     case unreadCountHeader(Int32)
-    case chatCall(Core.Call)
+    case chatCall(ChatCallData)
     case chatEvent(ChatEvent)
     case addToContactBook
 
@@ -59,13 +59,11 @@ fileprivate enum MessageRow: Hashable, Equatable {
             return data.timestamp.chatMsgGroupingTimestamp(Date())
         case .chatMessage(let data), .retracted(let data), .media(let data), .audio(let data), .text(let data), .linkPreview(let data), .quoted(let data):
             return data.timestamp?.chatMsgGroupingTimestamp(Date()) ?? ""
-        case .chatCall(let data):
-            return data.timestamp.chatMsgGroupingTimestamp(Date())
+        case .chatCall(_), .unreadCountHeader(_):
+            return ""
         case .addToContactBook:
             let time = timestamp ?? Calendar.current.startOfDay(for: Date())
             return  time.chatMsgGroupingTimestamp(Date())
-        case .unreadCountHeader(_):
-            return ""
         }
     }
 
@@ -280,9 +278,10 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                         cell.delegate = self
                         return cell
                     }
-                case .chatCall(let chatCall):
+                case .chatCall(let callData):
                     if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ChatViewControllerNew.messageCellViewCallReuseIdentifier, for: indexPath) as? MessageCellViewCall {
-                        cell.configure(headerText: "Placeholder Call Text")
+                        cell.configure(callData)
+                        cell.delegate = self
                         return cell
                     }
                 case .addToContactBook:
@@ -350,7 +349,8 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         // Add call events
         if let chatCalls = callHistoryFetchedResultsController?.fetchedObjects {
             chatCalls.forEach { chatCall in
-                messageRows.append(MessageRow.chatCall(chatCall))
+                let chatCallData = ChatCallData(userID: chatCall.peerUserID, timestamp: chatCall.timestamp, duration: chatCall.durationMs / 1000, wasSuccessful: chatCall.answered, wasIncoming: chatCall.direction == .incoming, type: chatCall.type)
+                messageRows.append(MessageRow.chatCall(chatCallData))
             }
         }
         // Add events eg user security key changed
@@ -1903,5 +1903,12 @@ extension ChatViewControllerNew: MessageChatEventViewDelegate, UserMenuHandler {
 extension ChatViewControllerNew: CNContactViewControllerDelegate {
     func contactViewController(_ viewController: CNContactViewController, didCompleteWith contact: CNContact?) {
         navigationController?.popViewController(animated: true)
+    }
+}
+
+// MARK: ChatCallView Delegates
+extension ChatViewControllerNew: MessageCellViewCallDelegate {
+    func chatCallView(_ callView: MessageCellViewCall, didTapCallButtonWithData callData: ChatCallData) {
+        startCallIfPossible(with: callData.userID, type: callData.type)
     }
 }
