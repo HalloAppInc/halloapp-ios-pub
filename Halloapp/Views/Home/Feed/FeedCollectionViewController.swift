@@ -456,7 +456,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
     }
 
     private func showMessageView(for userID: UserID, with postID: FeedPostID) {
-        if AppContext.shared.userDefaults.bool(forKey: "enableNewChat") {
+        if ServerProperties.newChatUI {
             let vc = ChatViewControllerNew(for: userID, with: postID, at: Int32(postDisplayData[postID]?.currentMediaIndex ?? 0))
             self.navigationController?.pushViewController(vc, animated: true)
         } else {
@@ -1216,7 +1216,7 @@ extension FeedCollectionViewController: PostDashboardViewControllerDelegate, Mom
 
         case .message(let userId, let postId):
             actionToPerformOnDashboardDismiss = {
-                if AppContext.shared.userDefaults.bool(forKey: "enableNewChat") {
+                if ServerProperties.newChatUI {
                     let vc = ChatViewControllerNew(for: userId, with: postId)
                     self.navigationController?.pushViewController(vc, animated: true)
                 } else {

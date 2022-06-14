@@ -239,7 +239,7 @@ extension PostViewController {
             guard let self = self, let post = self.post as? FeedPost else {
                 return
             }
-            if AppContext.shared.userDefaults.bool(forKey: "enableNewChat") {
+            if ServerProperties.newChatUI {
                 let chatViewController = ChatViewControllerNew(for: post.userId,
                                                             with: post.id,
                                                             at: Int32(self.currentMediaIndex))
@@ -422,7 +422,7 @@ extension PostViewController: PostDashboardViewControllerDelegate {
 
         case .message(let userId, let postId):
             actionToPerformOnDashboardDismiss = {
-                if AppContext.shared.userDefaults.bool(forKey: "enableNewChat") {
+                if ServerProperties.newChatUI {
                     self.navigationController?.pushViewController(ChatViewControllerNew(for: userId, with: postId), animated: true)
                 } else {
                     self.navigationController?.pushViewController(ChatViewController(for: userId, with: postId), animated: true)

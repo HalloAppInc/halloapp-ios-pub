@@ -191,7 +191,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
                 
                 self?.view.window?.rootViewController?.dismiss(animated: true, completion: nil)
                 guard let self = self else { return }
-                if AppContext.shared.userDefaults.bool(forKey: "enableNewChat") {
+                if ServerProperties.newChatUI {
                     let vc = ChatViewControllerNew(for: conversationID.id, with: nil, at: 0)
                     vc.chatViewControllerDelegate = self
                     self.navigationController?.pushViewController(vc, animated: true)
@@ -492,7 +492,7 @@ extension ChatListViewController: UIViewControllerHandleTapNotification {
         DDLogInfo("ChatListViewController/routeTo/\(userID)")
 
         navigationController?.popToRootViewController(animated: false)
-        if AppContext.shared.userDefaults.bool(forKey: "enableNewChat") {
+        if ServerProperties.newChatUI {
             let vc = ChatViewControllerNew(for: userID, with: nil, at: 0)
             vc.chatViewControllerDelegate = self
             self.navigationController?.pushViewController(vc, animated: animated)
@@ -555,7 +555,7 @@ extension ChatListViewController: UITableViewDelegate {
 
         guard let chatWithUserId = chatThread.userID else { return }
 
-        if AppContext.shared.userDefaults.bool(forKey: "enableNewChat") {
+        if ServerProperties.newChatUI {
             let vc = ChatViewControllerNew(for: chatWithUserId, with: nil, at: 0)
             vc.chatViewControllerDelegate = self
             self.navigationController?.pushViewController(vc, animated: true)

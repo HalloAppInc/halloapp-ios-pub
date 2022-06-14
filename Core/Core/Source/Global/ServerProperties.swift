@@ -35,6 +35,7 @@ public struct ServerProperties {
         case isHomeCommentNotificationsEnabled = "home_feed_comment_notifications"
         case inviteStrings = "invite_strings"
         case nseRuntimeSec = "nse_runtime_sec"
+        case newChatUI = "new_chat_ui"
     }
 
     private struct UserDefaultsKey {
@@ -68,6 +69,7 @@ public struct ServerProperties {
         static let isGroupCommentNotificationsEnabled = false
         static let isHomeCommentNotificationsEnabled = false
         static let nseRuntimeSec = 17.0
+        static let newChatUI = false
     }
 
     // MARK: Storage
@@ -282,6 +284,10 @@ public struct ServerProperties {
 
     public static var nseRuntimeSec: TimeInterval {
         ServerProperties.double(forKey: .nseRuntimeSec) ?? Defaults.nseRuntimeSec
+    }
+
+    public static var newChatUI: Bool {
+        ServerProperties.bool(forKey: .newChatUI) ?? Defaults.newChatUI
     }
     
     public static var inviteString: String? {

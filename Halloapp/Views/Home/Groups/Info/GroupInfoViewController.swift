@@ -688,7 +688,7 @@ extension GroupInfoViewController: UITableViewDelegate {
                     if isContactInAddressBook {
                         actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoMessageUser, style: .default) { [weak self] _ in
                             guard let self = self else { return }
-                            if AppContext.shared.userDefaults.bool(forKey: "enableNewChat") {
+                            if ServerProperties.newChatUI {
                                 let vc = ChatViewControllerNew(for: memberUserID)
                                 self.navigationController?.pushViewController(vc, animated: true)
                             } else {

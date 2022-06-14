@@ -25,7 +25,6 @@ private enum MenuTitles {
     static var clearHiddenSuggestedContacts: String { "Clear hidden suggested contacts" }
     static var resetFavoritesZeroState: String { "Reset Favorites Zero State" }
     static var addFavoritesNotification: String { "Add Favorites Notification" }
-    static var enableNewChat: String { "Enable New Chat" }
     static var enableNewGroupsTab: String { "Enable new groups tab (restart app to take effect)" }
     static var logOut: String { "Log Out" }
 }
@@ -33,7 +32,6 @@ private enum MenuTitles {
 struct DeveloperMenuView: View {
 
     @State var useTestServer = MainAppContext.shared.coreService.useTestServer
-    @State var enableNewChat = AppContext.shared.userDefaults.bool(forKey: "enableNewChat")
     @State var enableNewGroupsTab = AppContext.shared.userDefaults.bool(forKey: "enableNewGroupsTab")
 
     // TODO: Temporarily turn off and potentially remove
@@ -189,11 +187,6 @@ struct DeveloperMenuView: View {
                 } label: {
                     Text(MenuTitles.addFavoritesNotification)
                 }
-
-                Toggle(MenuTitles.enableNewChat, isOn: $enableNewChat)
-                    .onReceive(Just(self.enableNewChat)) { value in
-                        AppContext.shared.userDefaults.set(value, forKey: "enableNewChat")
-                    }
 
                 Toggle(MenuTitles.enableNewGroupsTab, isOn: $enableNewGroupsTab)
                     .onReceive(Just(self.enableNewGroupsTab)) { value in
