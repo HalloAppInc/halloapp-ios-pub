@@ -9,10 +9,6 @@ import CocoaLumberjackSwift
 import Combine
 import Foundation
 
-enum Stream {
-    case noise(NoiseStream)
-}
-
 public enum ResourceType: String {
     case iphone
     case iphone_nse
@@ -44,11 +40,14 @@ open class ProtoServiceCoreCommon: NSObject, ObservableObject {
             if connectionState == .notConnected {
                 cancelAllRequests()
                 didDisconnect.send()
+                switch oldValue {
+                case .connected, .connecting:
+                    startReconnectTimerIfNecessary()
+                case .notConnected, .disconnecting:
+                    break
+                }
             }
             runCallbacksForCurrentConnectionState()
-            if oldValue == .connected && connectionState == .notConnected {
-                startReconnectTimerIfNecessary()
-            }
         }
     }
 
@@ -69,7 +68,7 @@ open class ProtoServiceCoreCommon: NSObject, ObservableObject {
     private var groupWorkQueue = DispatchQueue(label: "com.halloapp.group-work", qos: .default)
     private let resource: ResourceType
 
-    private var stream: Stream?
+    private var stream: NoiseStream?
     public var credentials: Credentials? {
         didSet {
             DDLogInfo("proto/set-credentials [\(credentials?.userID ?? "nil")]")
@@ -121,30 +120,25 @@ open class ProtoServiceCoreCommon: NSObject, ObservableObject {
     }
 
     public func send(_ data: Data) {
-        switch stream {
-        case .noise(let noise):
-            noise.send(data)
-        case .none:
+        guard let stream = stream else {
             DDLogError("proto/send/error no stream configured!")
+            return
         }
+        stream.send(data)
     }
 
     public func configureStream(with credentials: Credentials) {
         DDLogInfo("proto/stream/configure [\(credentials.userID)]")
-        let noise = NoiseStream(
+        stream = NoiseStream(
             noiseKeys: credentials.noiseKeys,
             serverStaticKey: Keychain.loadServerStaticKey(for: credentials.userID),
             delegate: self)
-        stream = .noise(noise)
     }
 
     public func startConnectingIfNecessary() {
         guard let stream = stream else { return }
-        switch stream {
-        case .noise(let noise):
-            if noise.isReadyToConnect {
-                connect()
-            }
+        if stream.isReadyToConnect {
+            connect()
         }
     }
 
@@ -154,22 +148,11 @@ open class ProtoServiceCoreCommon: NSObject, ObservableObject {
             return
         }
         guard let stream = stream else { return }
-        switch stream {
-        case .noise(let noise):
-            noise.connect(host: hostName, port: noisePort)
-        }
 
-        // Retry if we're not connected in 10 seconds (cancel pending retry if it exists)
-        retryConnectionTask?.cancel()
-        let retryConnection = DispatchWorkItem {
-            guard self.isReachable else {
-                DDLogInfo("proto/retryConnectionTask/skipping (client is unreachable)")
-                return
-            }
-            self.startConnectingIfNecessary()
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10, execute: retryConnection)
-        retryConnectionTask = retryConnection
+        shouldReconnectOnConnectionLoss = true
+        reconnectDelay = 2
+
+        stream.connect(host: hostName, port: noisePort)
     }
 
     public func disconnect() {
@@ -178,12 +161,7 @@ open class ProtoServiceCoreCommon: NSObject, ObservableObject {
         shouldReconnectOnConnectionLoss = false
         retryConnectionTask?.cancel()
         connectionState = .disconnecting
-        switch stream {
-        case .noise(let noise):
-            noise.disconnect()
-        case .none:
-            break
-        }
+        stream?.disconnect()
     }
 
     public func disconnectImmediately() {
@@ -192,29 +170,40 @@ open class ProtoServiceCoreCommon: NSObject, ObservableObject {
         shouldReconnectOnConnectionLoss = false
         retryConnectionTask?.cancel()
         connectionState = .notConnected
-        switch stream {
-        case .noise(let noise):
-            noise.disconnect()
-        case .none:
-            break
-        }
+        stream?.disconnect()
     }
 
     private func startReconnectTimerIfNecessary() {
         guard shouldReconnectOnConnectionLoss else {
+            DDLogInfo("proto/reconnect/timer/skipping [shouldReconnect == false]")
             return
         }
-        DDLogInfo("proto/reconnect/timer start")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            DDLogInfo("proto/reconnect/timer fired")
-            // This only needs to be called once, connect() will reattempt as necessary
-            self.startConnectingIfNecessary()
+
+        retryConnectionTask?.cancel()
+        let retryConnection = DispatchWorkItem {
+            DDLogInfo("proto/reconnect/timer/fired")
+            switch self.connectionState {
+            case .connected, .disconnecting:
+                DDLogInfo("proto/reconnect/aborting [state == \(self.connectionState)]")
+                return
+            case .notConnected:
+                DDLogInfo("proto/reconnect/attempting [state == \(self.connectionState)]")
+                self.startConnectingIfNecessary()
+            case .connecting:
+                DDLogInfo("proto/reconnect/waiting [state == \(self.connectionState)]")
+            }
+            self.startReconnectTimerIfNecessary()
         }
+        DDLogInfo("proto/reconnect/timer/setting [delay: \(reconnectDelay)]")
+        DispatchQueue.main.asyncAfter(deadline: .now() + reconnectDelay, execute: retryConnection)
+        reconnectDelay = min(10, max(reconnectDelay, 1) * 2)
+        retryConnectionTask = retryConnection
     }
 
     private var shouldReconnectOnConnectionLoss = false
 
     private var retryConnectionTask: DispatchWorkItem?
+    private var reconnectDelay: TimeInterval = 2
 
     // MARK: State Change Callbacks
     private var stateChangeCallbacks: [ConnectionStateCallback] = []
@@ -350,6 +339,7 @@ open class ProtoServiceCoreCommon: NSObject, ObservableObject {
         didConnect.send()
         retryConnectionTask?.cancel()
         shouldReconnectOnConnectionLoss = isAutoReconnectEnabled
+        reconnectDelay = 2
         resendAllPendingRequests()
     }
 

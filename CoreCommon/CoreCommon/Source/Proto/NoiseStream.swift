@@ -131,11 +131,8 @@ public final class NoiseStream: NSObject {
     public func disconnect() {
         DDLogInfo("noise/disconnect")
         state = .disconnecting
-        if let connection = connection {
-            connection.cancelAndRemoveCallbacks()
-        } else {
-            state = .disconnected
-        }
+        connection?.cancelAndRemoveCallbacks()
+        state = .disconnected
     }
 
     public func send(_ data: Data) {
@@ -173,11 +170,8 @@ public final class NoiseStream: NSObject {
         // Cancel connection immediately without transitioning to `disconnecting` state.
         // This will prompt service to treat it as any other socket error and reconnect.
 
-        if let connection = connection {
-            connection.forceCancelAndRemoveCallbacks()
-        } else {
-            state = .disconnected
-        }
+        connection?.forceCancelAndRemoveCallbacks()
+        state = .disconnected
     }
 
     private func reconnect() {
