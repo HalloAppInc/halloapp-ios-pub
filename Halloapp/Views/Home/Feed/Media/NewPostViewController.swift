@@ -201,10 +201,7 @@ final class NewPostViewController: UIViewController {
         }
 
         return CameraViewController(
-            configuration: .init(showCancelButton: state.isPostComposerCancellable,
-                                 format: momentContext != nil ? .square : .normal,
-                                 subtitle: cameraSubtitle,
-                                 supportedMediaType: momentContext != nil ? .image : .all),
+            configuration: .init(showCancelButton: state.isPostComposerCancellable, format: momentContext != nil ? .square : .normal, subtitle: cameraSubtitle),
             didFinish: { [weak self] in self?.cleanupAndFinish() },
             didPickImage: { [weak self] uiImage in self?.onCameraImagePicked(uiImage) },
             didPickVideo: { [weak self] videoURL in self?.onCameraVideoPicked(videoURL) }

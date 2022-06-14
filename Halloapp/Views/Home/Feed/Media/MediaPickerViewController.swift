@@ -827,15 +827,8 @@ class MediaPickerViewController: UIViewController {
     }
 
     @objc private func cameraAction() {
-        let supportedMediaType: CameraViewController.SupportedMediaType = {
-            switch config.filter {
-            case .all: return .all
-            case .image: return .image
-            case .video: return .video
-            }
-        }()
         let controller = CameraViewController(
-            configuration: .init(showCancelButton: false, supportedMediaType: supportedMediaType),
+            configuration: .init(showCancelButton: false),
             didFinish: { [weak self] in self?.dismiss(animated: true) },
             didPickImage: { [weak self] image in
                 guard let self = self else { return }
