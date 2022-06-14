@@ -289,7 +289,7 @@ extension Localizations {
 
     static var oneNewMomentNotificationTitle: String {
         NSLocalizedString("notification.moment.1",
-                          value: "%@ shared a moment",
+                          value: "%@ shared a new moment",
                           comment: "New moment notification text to be shown to the user.")
     }
 
