@@ -297,7 +297,8 @@ class ContentInputView: UIView {
     }()
     
     private lazy var plusButton: UIButton = {
-        let button = UIButton()
+        let button = LargeHitButton()
+        button.targetIncrease = 12
         button.translatesAutoresizingMaskIntoConstraints = false
         let config = UIImage.SymbolConfiguration(pointSize: 21, weight: .medium)
         let image = UIImage(systemName: "plus")?.withConfiguration(config)
@@ -322,7 +323,8 @@ class ContentInputView: UIView {
     }()
     
     private lazy var photoButton: UIButton = {
-        let button = UIButton(type: .system)
+        let button = LargeHitButton(type: .system)
+        button.targetIncrease = 12
         let config = UIImage.SymbolConfiguration(pointSize: 16)
         button.translatesAutoresizingMaskIntoConstraints = false
         let image = UIImage(systemName: "camera.fill")?.withConfiguration(config)

@@ -339,6 +339,11 @@ class AudioRecorderControlView: UIView {
         layoutIfNeeded()
     }
 
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        // slightly increase the tap target; helps when collapsed
+        return bounds.insetBy(dx: -10, dy: -10).contains(point)
+    }
+
     private func levitateLockButton(_ reversed: Bool = false) {
         let target = reversed ? lockButtonVertical.constant + 20 : lockButtonVertical.constant - 20
 

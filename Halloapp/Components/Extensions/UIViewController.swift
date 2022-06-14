@@ -20,7 +20,7 @@ extension UIViewController {
 
     func installAvatarBarButton() {
         let diameter: CGFloat = 30
-        let avatar = AvatarViewButton()
+        let avatar = LargeHitAvatarButton()
         avatar.configure(userId: MainAppContext.shared.userData.userId, using: MainAppContext.shared.avatarStore)
         avatar.translatesAutoresizingMaskIntoConstraints = false
 
@@ -85,7 +85,12 @@ extension UIViewController {
     }
 }
 
-
 protocol UIViewControllerHandleTapNotification {
     func processNotification(metadata: NotificationMetadata)
+}
+
+fileprivate class LargeHitAvatarButton: AvatarViewButton {
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        return bounds.insetBy(dx: -12, dy: -12).contains(point)
+    }
 }
