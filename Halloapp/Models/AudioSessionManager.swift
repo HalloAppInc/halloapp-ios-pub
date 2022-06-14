@@ -16,7 +16,7 @@ import Foundation
 class AudioSession {
 
     enum Category: Int, Comparable {
-        case play = 0, record = 1, audioCall = 2, videoCall = 3, playSilently = 4
+        case playSilently = 0, play = 1, record = 2, audioCall = 3, videoCall = 4
 
         // The associated integer is a priority, where the highest priority session category configures
         // the shared audio session
