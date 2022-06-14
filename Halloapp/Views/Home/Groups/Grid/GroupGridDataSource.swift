@@ -28,7 +28,7 @@ class GroupGridDataSource: NSObject {
     }
 
     // Must call reloadData after setting to true
-    private var shouldRespondToUpdates = true
+    private var isSearching = false
     private var pendingSnapshot: NSDiffableDataSourceSnapshot<GroupID, FeedPostID>?
     private let dataSource: UICollectionViewDiffableDataSource<GroupID, FeedPostID>
     private var unreadPostIDs = Set<FeedPostID>()
@@ -128,10 +128,6 @@ class GroupGridDataSource: NSObject {
 extension GroupGridDataSource: NSFetchedResultsControllerDelegate {
 
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        guard shouldRespondToUpdates else {
-            return
-        }
-
         pendingSnapshot = dataSource.snapshot()
         didAddSelfPostInLastUpdate = false
     }
@@ -141,7 +137,7 @@ extension GroupGridDataSource: NSFetchedResultsControllerDelegate {
                     at indexPath: IndexPath?,
                     for type: NSFetchedResultsChangeType,
                     newIndexPath: IndexPath?) {
-        guard shouldRespondToUpdates, var snapshot = pendingSnapshot else {
+        guard var snapshot = pendingSnapshot else {
             return
         }
 
@@ -153,6 +149,9 @@ extension GroupGridDataSource: NSFetchedResultsControllerDelegate {
 
             switch type {
             case .insert:
+                guard !isSearching else {
+                    break
+                }
                 if feedPost.userID == AppContext.shared.userData.userId {
                     didAddSelfPostInLastUpdate = true
                     // Display any of our own posts right away
@@ -170,8 +169,6 @@ extension GroupGridDataSource: NSFetchedResultsControllerDelegate {
                     } else {
                         snapshot.appendItems([feedPost.id], toSection: groupID)
                     }
-
-
                 } else if snapshot.sectionIdentifiers.contains(groupID) {
                     unreadPostIDs.insert(feedPost.id)
                 }
@@ -201,6 +198,9 @@ extension GroupGridDataSource: NSFetchedResultsControllerDelegate {
 
             switch type {
             case .insert:
+                guard !isSearching else {
+                    break
+                }
                 let sectionIDToInsertBefore = snapshot.sectionIdentifiers.first { existingGroupID in
                     if let existingThread = threadsFetchedResultsController.fetchedObjects?.first(where: { $0.groupID == existingGroupID }),
                        (existingThread.lastTimestamp ?? .distantPast) < (thread.lastTimestamp ?? .distantPast) {
@@ -236,10 +236,6 @@ extension GroupGridDataSource: NSFetchedResultsControllerDelegate {
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        guard shouldRespondToUpdates else {
-            return
-        }
-
         pendingSnapshot.flatMap { dataSource.apply($0) }
         unreadPostsCountSubject.send(unreadPostIDs.count)
 
@@ -300,7 +296,7 @@ extension GroupGridDataSource: UISearchResultsUpdating {
 
     func updateSearchResults(for searchController: UISearchController) {
         if searchController.isActive {
-            shouldRespondToUpdates = false
+            isSearching = true
 
             // reset any pending post notifications, we will reload after search is completed
             unreadPostIDs.removeAll()
@@ -316,7 +312,7 @@ extension GroupGridDataSource: UISearchResultsUpdating {
             }
         } else {
             didLoadInitialSearchResultsForSearchSession = false
-            shouldRespondToUpdates = true
+            isSearching = false
             reloadSnapshot(animated: false)
             requestScrollToTopAnimatedSubject.send(false)
         }
