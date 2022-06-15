@@ -67,9 +67,20 @@ class NewCameraViewController: UIViewController {
         button.setImage(UIImage(named: "CameraFlashOff")?.withRenderingMode(.alwaysTemplate), for: .normal)
         button.tintColor = .white
         button.setBackgroundColor(.tertiarySystemBackground, for: .normal)
+        button.addTarget(self, action: #selector(flashButtonPushed), for: .touchUpInside)
         return button
     }()
 
+    private lazy var focusIndicator: CircleView = {
+        let view = CircleView(frame: CGRect(origin: .zero, size: CGSize(width: 40, height: 40)))
+        view.fillColor = .clear
+        view.lineWidth = 1.75
+        view.strokeColor = .white
+        view.alpha = 0
+        return view
+    }()
+
+    private var hideFocusIndicator: DispatchWorkItem?
     private var cancellables: Set<AnyCancellable> = []
 
     override func viewDidLoad() {
@@ -85,6 +96,9 @@ class NewCameraViewController: UIViewController {
 
         let pinch = UIPinchGestureRecognizer(target: self, action: #selector(pinchedToZoom))
         preview.addGestureRecognizer(pinch)
+
+        let tap = UITapGestureRecognizer(target: self, action: #selector(tappedToFocus))
+        preview.addGestureRecognizer(tap)
     }
 
     override func viewDidDisappear(_ animated: Bool) {
@@ -100,6 +114,7 @@ class NewCameraViewController: UIViewController {
         view.addSubview(background)
         view.addSubview(preview)
         view.addSubview(controlStack)
+        preview.addSubview(focusIndicator)
 
         NSLayoutConstraint.activate([
             background.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -124,9 +139,18 @@ class NewCameraViewController: UIViewController {
     }
 
     private func subscribeToModelUpdates() {
-        // TODO: subscribe to rotation, flash state, camera state changes
         model.$orientation.receive(on: DispatchQueue.main).sink { [weak self] orientation in
             self?.refresh(orientation: orientation)
+        }.store(in: &cancellables)
+
+        model.$activeCamera.receive(on: DispatchQueue.main).sink { [weak self] active in
+            self?.flipCameraButton.isEnabled = active != .unspecified
+        }.store(in: &cancellables)
+
+        model.$isFlashEnabled.receive(on: DispatchQueue.main).sink { [weak self] enabled in
+            let name = enabled ? "CameraFlashOn" : "CameraFlashOff"
+            let image = UIImage(named: name)?.withRenderingMode(.alwaysTemplate)
+            self?.flashButton.setImage(image, for: .normal)
         }.store(in: &cancellables)
     }
 
@@ -140,12 +164,64 @@ class NewCameraViewController: UIViewController {
     
     @objc
     private func flipCameraPushed(_ sender: UIButton) {
-        // TODO:
+        model.flipCamera()
+    }
+
+    @objc
+    private func flashButtonPushed(_ sender: UIButton) {
+        model.toggleFlash()
     }
 
     @objc
     private func pinchedToZoom(_ gesture: UIPinchGestureRecognizer) {
         model.zoom(using: gesture)
+    }
+
+    @objc
+    private func tappedToFocus(_ gesture: UITapGestureRecognizer) {
+        let point = gesture.location(in: preview)
+
+        model.focus(on: point)
+        showFocusIndicator(for: point)
+    }
+
+    private func showFocusIndicator(for point: CGPoint) {
+        hideFocusIndicator?.cancel()
+
+        focusIndicator.alpha = 0
+        focusIndicator.center = point
+        focusIndicator.transform = CGAffineTransform(scaleX: 1.25, y: 1.25)
+
+        UIView.animate(withDuration: 0.15,
+                              delay: 0,
+             usingSpringWithDamping: 0.7,
+              initialSpringVelocity: 0.5,
+                            options: [.allowUserInteraction])
+        {
+            self.focusIndicator.transform = .identity
+            self.focusIndicator.alpha = 1
+        } completion: { [weak self] _ in
+            self?.scheduleFocusIndicatorHide()
+        }
+    }
+
+    private func scheduleFocusIndicatorHide() {
+        let item = DispatchWorkItem { [weak self] in
+            UIView.animate(withDuration: 0.15,
+                                  delay: 0,
+                 usingSpringWithDamping: 0.7,
+                  initialSpringVelocity: 0.5,
+                                options: [.allowUserInteraction])
+            {
+                self?.focusIndicator.alpha = 0
+                self?.focusIndicator.transform = CGAffineTransform(scaleX: 1.15, y: 1.15)
+            } completion: { _ in
+                self?.hideFocusIndicator = nil
+            }
+        }
+
+        hideFocusIndicator = item
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: item)
     }
 
     private func refresh(orientation: UIDeviceOrientation) {

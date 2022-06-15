@@ -107,6 +107,8 @@ class CameraModel {
 
     @Published private(set) var zoomFactor: CGFloat = 1
     @Published private(set) var orientation = UIDevice.current.orientation
+    @Published private(set) var activeCamera = AVCaptureDevice.Position.back
+    @Published private(set) var isFlashEnabled = false
 
     private var cancellables: Set<AnyCancellable> = []
 
@@ -254,6 +256,7 @@ extension CameraModel {
 
         backCamera = device
         backInput = input
+        focus(camera: device)
         //mapZoomValues(for: discovery.devices)
     }
 
@@ -268,6 +271,7 @@ extension CameraModel {
 
         frontCamera = device
         frontInput = input
+        focus(camera: device)
     }
 
     private func setupMicrophone() throws {
@@ -380,7 +384,75 @@ extension CameraModel {
     }
 }
 
+// MARK: - changing the model's state
+
 extension CameraModel {
+    func flipCamera() {
+        Task {
+            guard activeCamera != .unspecified else {
+                return
+            }
+
+            let side: AVCaptureDevice.Position = activeCamera == .back ? .front: .back
+            activeCamera = .unspecified
+            await flipCamera(to: side)
+            activeCamera = side
+        }
+    }
+
+    private func flipCamera(to side: AVCaptureDevice.Position) async {
+        await perform { [backInput, frontInput, session] in
+            guard
+                let currentCamera = side == .front ? backInput : frontInput,
+                let flippedCamera = side == .front ? frontInput : backInput
+            else {
+                return
+            }
+
+            session.removeInput(currentCamera)
+            session.addInput(flippedCamera)
+        }
+    }
+
+    func toggleFlash() {
+        isFlashEnabled = !isFlashEnabled
+    }
+
+    func focus(on point: CGPoint) {
+        guard
+            activeCamera != .unspecified,
+            let camera = activeCamera == .back ? backCamera : frontCamera
+        else {
+            return
+        }
+
+        focus(camera: camera, on: point)
+    }
+
+    private func focus(camera: AVCaptureDevice, on point: CGPoint? = nil) {
+        do {
+            try camera.lockForConfiguration()
+            defer { camera.unlockForConfiguration() }
+
+            if camera.isFocusModeSupported(.continuousAutoFocus) {
+                camera.focusMode = .continuousAutoFocus
+            }
+            if let point = point, camera.isFocusPointOfInterestSupported {
+                camera.focusMode = .autoFocus
+                camera.focusPointOfInterest = point
+            }
+            if camera.isExposureModeSupported(.continuousAutoExposure) {
+                camera.exposureMode = .continuousAutoExposure
+            }
+            if let point = point, camera.isExposurePointOfInterestSupported {
+                camera.exposureMode = .autoExpose
+                camera.exposurePointOfInterest = point
+            }
+        } catch {
+            DDLogError("CameraModel/focus-camera-on-point/unable to focus \(String(describing: error))")
+        }
+    }
+
     func zoom(using gesture: UIPinchGestureRecognizer) {
         // TODO
     }
