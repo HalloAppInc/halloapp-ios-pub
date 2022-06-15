@@ -494,12 +494,7 @@ extension ShareDestinationViewController: UISearchResultsUpdating {
 
     func updateSearchResults(for searchController: UISearchController) {
         guard let searchText = searchController.searchBar.text?.trimmingCharacters(in: CharacterSet.whitespaces), !searchText.isEmpty else {
-            // DispatchQueue.main.async is used to avoid unnecessary animations
-            // due to 'self.view?.layoutIfNeeded()' during animation
-            // when the empty search field is selected and keyboard is displayed
-            DispatchQueue.main.async { [weak self] in
-                self?.tableView.reloadData()
-            }
+            tableView.reloadData()
             return
         }
         let searchItems = searchText.lowercased().components(separatedBy: " ")
