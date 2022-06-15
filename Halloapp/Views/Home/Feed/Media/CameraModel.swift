@@ -8,7 +8,9 @@
 
 import Foundation
 import UIKit
+import Combine
 import AVFoundation
+import CoreMotion
 import CocoaLumberjackSwift
 
 protocol CameraModelDelegate: AnyObject {
@@ -75,6 +77,18 @@ class CameraModel {
 
     private lazy var sessionQueue = DispatchQueue(label: "camera.queue", qos: .userInteractive)
 
+    private lazy var motionManager: CMMotionManager = {
+        let manager = CMMotionManager()
+        manager.deviceMotionUpdateInterval = 0.5
+        return manager
+    }()
+
+    private lazy var motionQueue: OperationQueue = {
+        let queue = OperationQueue()
+        queue.qualityOfService = .userInitiated
+        return queue
+    }()
+
     private var backCamera: AVCaptureDevice?
     private var frontCamera: AVCaptureDevice?
     private var microphone: AVCaptureDevice?
@@ -82,12 +96,48 @@ class CameraModel {
     private var backInput: AVCaptureDeviceInput?
     private var frontInput: AVCaptureDeviceInput?
 
+    private var photoOutput: AVCapturePhotoOutput?
+
     /// Maps each hardware camera to it's zoom values.
     private var zoomFactors: [AVCaptureDevice.DeviceType: ZoomFactor] = [:]
     private var hasUltraWideCamera = false
     private var maxZoomFactor: CGFloat = 1
 
-    @Published private(set) var uiZoomFactor: CGFloat = 1
+// MARK: - published properties
+
+    @Published private(set) var zoomFactor: CGFloat = 1
+    @Published private(set) var orientation = UIDevice.current.orientation
+
+    private var cancellables: Set<AnyCancellable> = []
+
+    init() {
+        $orientation.receive(on: sessionQueue).sink { [weak self] orientation in
+            self?.updatePhoto(orientation: orientation)
+        }.store(in: &cancellables)
+    }
+
+    private func updatePhoto(orientation: UIDeviceOrientation) {
+        guard
+            let connection = photoOutput?.connection(with: .video),
+            connection.isVideoOrientationSupported
+        else {
+            return
+        }
+
+        switch orientation {
+        case .portrait:
+            connection.videoOrientation = .portrait
+        case .landscapeLeft:
+            connection.videoOrientation = .landscapeRight
+        case .portraitUpsideDown:
+            connection.videoOrientation = .portraitUpsideDown
+        case .landscapeRight:
+            connection.videoOrientation = .landscapeLeft
+        default:
+            // retain the previous orientation
+            break
+        }
+    }
 }
 
 // MARK: - using the session's queue
@@ -158,7 +208,8 @@ extension CameraModel {
             defer { session.commitConfiguration() }
 
             try self?.setupInputs()
-            try self?.setupOutput()
+            try self?.setupPhotoOutput()
+            try self?.setupVideoOutput()
         }
     }
 
@@ -168,6 +219,7 @@ extension CameraModel {
             self?.session.startRunning()
         }
 
+        startListeningForOrientation()
         await delegate?.modelDidStart(self)
     }
 
@@ -222,18 +274,23 @@ extension CameraModel {
         // TODO:
     }
 
-    private func setupOutput() throws {
-        let photoOutput = AVCapturePhotoOutput()
-        if session.canAddOutput(photoOutput) {
-            session.addOutput(photoOutput)
-        } else {
+    private func setupPhotoOutput() throws {
+        let output = AVCapturePhotoOutput()
+        guard session.canAddOutput(output) else {
             throw Error.outputInitialization
         }
 
-        // TODO: video
+        session.addOutput(output)
+        photoOutput = output
+        updatePhoto(orientation: orientation)
+    }
+
+    private func setupVideoOutput() throws {
+        // TODO:
     }
 
     private func stopCaptureSession() async {
+        stopListeningForOrientation()
         await perform { [session] in
             session.stopRunning()
             session.inputs.forEach { session.removeInput($0) }
@@ -276,6 +333,50 @@ extension CameraModel {
 
         self.zoomFactors = zoomFactors
         hasUltraWideCamera = hasUltraWide
+    }
+}
+
+// MARK: - listening for device orientation
+
+extension CameraModel {
+    private func startListeningForOrientation() {
+        motionQueue.isSuspended = false
+        motionManager.startDeviceMotionUpdates(to: motionQueue) { [weak self] data, _ in
+            guard
+                let self = self,
+                let data = data
+            else {
+                return
+            }
+
+            self.orientation = self.orientation(from: data)
+        }
+    }
+
+    private func stopListeningForOrientation() {
+        motionQueue.isSuspended = true
+        motionManager.stopDeviceMotionUpdates()
+    }
+
+    private func orientation(from data: CMDeviceMotion) -> UIDeviceOrientation {
+        let gravity = data.gravity
+        let threshold = 0.75
+
+        if gravity.x >= threshold {
+            return .landscapeRight
+        }
+        if gravity.x <= -threshold {
+            return .landscapeLeft
+        }
+        if gravity.y <= -threshold {
+            return .portrait
+        }
+        if gravity.y >= threshold {
+            return .portraitUpsideDown
+        }
+
+        // same as before
+        return orientation
     }
 }
 

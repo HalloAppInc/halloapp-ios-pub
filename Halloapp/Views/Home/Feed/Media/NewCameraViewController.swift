@@ -125,6 +125,9 @@ class NewCameraViewController: UIViewController {
 
     private func subscribeToModelUpdates() {
         // TODO: subscribe to rotation, flash state, camera state changes
+        model.$orientation.receive(on: DispatchQueue.main).sink { [weak self] orientation in
+            self?.refresh(orientation: orientation)
+        }.store(in: &cancellables)
     }
 
     private func handleShutterTap() {
@@ -143,6 +146,26 @@ class NewCameraViewController: UIViewController {
     @objc
     private func pinchedToZoom(_ gesture: UIPinchGestureRecognizer) {
         model.zoom(using: gesture)
+    }
+
+    private func refresh(orientation: UIDeviceOrientation) {
+        let angle: CGFloat
+        switch orientation {
+        case .portraitUpsideDown:
+            angle = .pi
+        case .landscapeLeft:
+            angle = .pi / 2
+        case .landscapeRight:
+            angle = .pi * 3 / 2
+        default:
+            angle = 0
+        }
+
+        let transform = CGAffineTransform(rotationAngle: angle)
+        UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 0.5) {
+            self.flashButton.transform = transform
+            self.flipCameraButton.transform = transform
+        }
     }
 }
 
