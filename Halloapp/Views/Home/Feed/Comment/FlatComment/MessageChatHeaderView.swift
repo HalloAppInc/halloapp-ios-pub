@@ -20,14 +20,14 @@ class MessageChatHeaderView: UICollectionReusableView {
     }
 
     weak var delegate: MessageChatHeaderViewDelegate?
-    var MaxWidthConstraint: CGFloat { return self.bounds.width * 0.7 }
+    var MaxWidthConstraint: CGFloat { return self.bounds.width * 0.8 }
 
     var encryptionLabel: UILabel = {
         let encryptionLabel = UILabel()
         encryptionLabel.font = UIFont.systemFont(ofSize: 12, weight: .regular)
         encryptionLabel.alpha = 0.80
         encryptionLabel.textColor = UIColor.black
-        encryptionLabel.textAlignment = .natural
+        encryptionLabel.textAlignment = .center
         encryptionLabel.translatesAutoresizingMaskIntoConstraints = false
         encryptionLabel.numberOfLines = 4
         encryptionLabel.text = Localizations.chatEncryptionLabel
