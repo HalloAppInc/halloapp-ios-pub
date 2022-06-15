@@ -622,6 +622,8 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             MainAppContext.shared.chatData.markThreadAsRead(type: .oneToOne, for: chatWithUserId)
            // updates the number of chat threads with unread messages
            MainAppContext.shared.chatData.updateUnreadChatsThreadCount()
+           // Remove chat notifications from this user when chatViewController for this user is active.
+           UNUserNotificationCenter.current().removeDeliveredChatNotifications(fromUserId: chatWithUserId)
        }
    }
 
