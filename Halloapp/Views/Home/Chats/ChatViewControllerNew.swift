@@ -467,6 +467,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     override func viewDidLoad() {
+        DDLogInfo("ChatViewControllerNew/viewDidLoad currentUser: \(MainAppContext.shared.userData.userId) fromUser: \(String(describing: fromUserId))")
         super.viewDidLoad()
         guard let fromUserId = fromUserId else { return }
 

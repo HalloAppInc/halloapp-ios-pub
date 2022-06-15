@@ -173,7 +173,7 @@ class MessageCellViewBase: UICollectionViewCell {
         let vStack = UIStackView()
         vStack.axis = .vertical
         vStack.alignment = .fill
-        vStack.layoutMargins = UIEdgeInsets(top: 10, left: 8, bottom: 6, right: 8)
+        vStack.layoutMargins = UIEdgeInsets(top: 8, left: 8, bottom: 6, right: 8)
         vStack.isLayoutMarginsRelativeArrangement = true
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.spacing = 5
