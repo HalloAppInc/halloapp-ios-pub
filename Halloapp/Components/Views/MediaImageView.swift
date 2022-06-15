@@ -297,7 +297,10 @@ class MediaImageView: UIImageView {
         playerItem.preferredForwardBufferDuration = 0
         // TODO: setting any video composition does not seem to work with the simulator
 #if !targetEnvironment(simulator)
-        playerItem.videoComposition = videoComposition
+        // Don't set a video composition with an invalid render size, which would crash.
+        if videoComposition.renderSize.width > 0, videoComposition.renderSize.height > 0 {
+            playerItem.videoComposition = videoComposition
+        }
 #endif
 
         if #available(iOS 14.0, *) {
