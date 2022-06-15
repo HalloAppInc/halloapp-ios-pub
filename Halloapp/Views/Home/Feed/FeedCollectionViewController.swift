@@ -367,8 +367,8 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
             self.feedLayout.maintainVisualPosition = false
             self.didUpdateItems()
 
-            if let feedPostIdToScrollTo = self.feedPostIdToScrollTo, self.scrollTo(postId: feedPostIdToScrollTo) {
-                self.feedPostIdToScrollTo = nil
+            if self.feedPostIdToScrollTo != nil {
+                self.view.setNeedsLayout()
             }
         }
     }
