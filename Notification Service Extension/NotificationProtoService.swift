@@ -1133,7 +1133,11 @@ extension NotificationProtoService: FeedDownloadManagerDelegate {
 
                 feedMediaItem.relativeFilePath = relativeFilePath
                 feedMediaItem.mediaDirectory = .commonMedia
-                feedMediaItem.status = .downloaded
+                feedMediaItem.status = task.isPartialChunkedDownload ? .downloadedPartial : .downloaded
+                if task.isPartialChunkedDownload, let chunkSet = task.downloadedChunkSet {
+                    DDLogDebug("ProtoService/media/\(task.id)/feedDownloadManager chunkSet=[\(chunkSet)]")
+                    feedMediaItem.chunkSet = chunkSet.data
+                }
                 mainDataStore.save(feedMediaItem.managedObjectContext!)
             } catch {
                 DDLogError("ProtoService/media/copy-media/error [\(error)]")
