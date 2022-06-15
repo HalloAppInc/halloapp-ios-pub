@@ -240,6 +240,16 @@ final class NotificationProtoService: ProtoServiceCore {
                 return
             }
 
+        // We get this message when client rerequested content from another user and they dont have the content.
+        case .contentMissing(let contentMissing):
+            let contentID = contentMissing.contentID
+            let senderUserAgent = UserAgent(string: contentMissing.senderClientVersion)
+            let contentType = contentMissing.contentType
+            DDLogInfo("NotificationProtoService/didReceive/\(msg.id)/contentMissing/contentID: \(contentID)/contentType: \(contentType)/ua: \(String(describing: senderUserAgent))")
+
+            hasAckBeenDelegated = true
+            handleContentMissing(contentMissing, ack: ack)
+
         default:
             break
         }

@@ -1319,6 +1319,49 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
+    public func handleContentMissing(_ contentMissing: Server_ContentMissing, ack: (() -> Void)?) {
+        // We get this message when client rerequest content from another user when they dont have the content.
+        let contentID = contentMissing.contentID
+        let senderUserAgent = UserAgent(string: contentMissing.senderClientVersion)
+        let error = DecryptionError.missingContent
+        let contentType = contentMissing.contentType
+        DDLogInfo("ProtoServiceCore/handleContentMissing/contentID: \(contentID)/contentType: \(contentType)/ua: \(String(describing: senderUserAgent))")
+
+        let maxCount = 5
+        // Set rerequestCount to 5 to indicate max.
+        // Set gid to be empty - where necessary.
+        // We got contentMissing upon sending a rerequest so we wont update gid on the counter anyways.
+        switch contentType {
+        case .chat:
+            // Update 1-1 stats.
+            reportDecryptionResult(error: error, messageID: contentID, timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount, contentType: .chat)
+        case .groupHistory:
+            // Update 1-1 stats.
+            reportDecryptionResult(error: error, messageID: contentID, timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount, contentType: .groupHistory)
+        case .groupFeedPost:
+            // Update group stats.
+            reportGroupDecryptionResult(error: error, contentID: contentID, contentType: .post,
+                                        groupID: "", timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount)
+        case .groupFeedComment:
+            // Update group stats.
+            reportGroupDecryptionResult(error: error, contentID: contentID, contentType: .comment,
+                                        groupID: "", timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount)
+
+        case .historyResend:
+            // Update group stats.
+            reportGroupDecryptionResult(error: error, contentID: contentID, contentType: .historyResend,
+                                        groupID: "", timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount)
+        case .call:
+            // TODO: murali@: check if we are we reporting call stats on 1-1 channel.
+            break
+        case .homeFeedPost, .homeFeedComment:
+            break
+        case .UNRECOGNIZED, .unknown:
+            break
+        }
+        ack?()
+    }
+
     // MARK: Decryption
     public func decryptGroupFeedHistory(_ groupFeedHistory: Server_GroupFeedHistory, from fromUserID: UserID,
                                         completion: @escaping (Result<Server_GroupFeedItems, DecryptionFailure>) -> Void) {
