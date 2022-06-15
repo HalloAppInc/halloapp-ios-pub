@@ -12,7 +12,7 @@ import CoreCommon
 import UIKit
 
 protocol MessageViewCommentDelegate: AnyObject {
-    func messageView(_ view: MediaExplorerTransitionDelegate, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int)
+    func messageView(_ view: MediaListAnimatorDelegate, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int)
     func messageView(_ messageViewCell: MessageCellViewBase, replyTo feedPostCommentID: FeedPostCommentID)
     func messageView(_ messageViewCell: MessageCellViewBase, didTapUserId userId: UserID)
     func messageView(_ messageViewCell: MessageCellViewBase, jumpTo feedPostCommentID: FeedPostCommentID)
@@ -23,7 +23,7 @@ protocol MessageViewChatDelegate: AnyObject {
     func messageView(_ messageViewCell: MessageCellViewBase, didTapUserId userId: UserID)
     func messageView(_ messageViewCell: MessageCellViewBase, didLongPressOn chatMessage: ChatMessage)
     func messageView(_ messageViewCell: MessageCellViewBase, jumpTo chatMessageID: ChatMessageID)
-    func messageView(_ messageViewCell: MessageCellViewBase, for chatMessageID: ChatMessageID, didTapMediaView view: UIView, at index: Int)
+    func messageView(_ messageViewCell: MessageCellViewBase, for chatMessageID: ChatMessageID, didTapMediaAtIndex index: Int)
     func messageView(_ messageViewCell: MessageCellViewBase, openPost feedPostId: String)
 }
 

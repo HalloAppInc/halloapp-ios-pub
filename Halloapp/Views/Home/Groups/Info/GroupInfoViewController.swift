@@ -541,7 +541,7 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
             }.eraseToAnyPublisher()
 
         let mediaController = MediaExplorerController(imagePublisher: imagePublisher, progress: nil)
-        mediaController.delegate = self
+        mediaController.animatorDelegate = self
 
         avatarData.loadImage(using: avatarStore)
         
@@ -588,21 +588,12 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
     }
 }
 
-extension GroupInfoViewController: MediaExplorerTransitionDelegate {
-    func getTransitionView(atPostion index: Int) -> UIView? {
-        return (self.tableView.tableHeaderView as? GroupInfoHeaderView)?.avatarView
-    }
-    
-    func scrollMediaToVisible(atPostion index: Int) {
-        return
-    }
-    
-    func currentTimeForVideo(atPostion index: Int) -> CMTime? {
-        return nil
+extension GroupInfoViewController: MediaListAnimatorDelegate {
+    func getTransitionView(at index: MediaIndex) -> UIView? {
+        (self.tableView.tableHeaderView as? GroupInfoHeaderView)?.avatarView
     }
 
-    func shouldTransitionScaleToFit() -> Bool {
-        return true
+    func scrollToTransitionView(at index: MediaIndex) {
     }
 }
 

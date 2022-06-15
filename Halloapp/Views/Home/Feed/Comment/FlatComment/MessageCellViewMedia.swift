@@ -55,7 +55,7 @@ class MessageCellViewMedia: MessageCellViewBase {
     }
 
     // MARK: Media
-    private lazy var mediaView: MessageMediaView = {
+    private(set) lazy var mediaView: MessageMediaView = {
         let mediaView = MessageMediaView()
         mediaView.translatesAutoresizingMaskIntoConstraints = false
         mediaView.delegate = self
@@ -104,6 +104,6 @@ extension MessageCellViewMedia: MessageMediaViewDelegate {
     }
 
     func messageMediaView(_ view: PreviewImageView, forMessage: ChatMessageID, didTapMediaAtIndex index: Int) {
-        self.chatDelegate?.messageView(self, for: forMessage, didTapMediaView: view, at: index)
+        self.chatDelegate?.messageView(self, for: forMessage, didTapMediaAtIndex: index)
     }
 }

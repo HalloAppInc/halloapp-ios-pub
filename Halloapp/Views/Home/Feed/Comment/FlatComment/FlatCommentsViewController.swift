@@ -939,13 +939,13 @@ extension FlatCommentsViewController: MessageCommentHeaderViewDelegate {
         }
 
         let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost, source: .post)
-        controller.delegate = view
+        controller.animatorDelegate = view
         present(controller, animated: true)
     }
 }
 
 extension FlatCommentsViewController: MessageViewCommentDelegate {
-    func messageView(_ view: MediaExplorerTransitionDelegate, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int) {
+    func messageView(_ view: MediaListAnimatorDelegate, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int) {
         messageInputView.textView.resignFirstResponder()
         var canSavePost = false
         if let post = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: MainAppContext.shared.feedData.viewContext) {
@@ -953,7 +953,7 @@ extension FlatCommentsViewController: MessageViewCommentDelegate {
         }
         guard let media = MainAppContext.shared.feedData.media(commentID: feedPostCommentID, in: MainAppContext.shared.feedData.viewContext) else { return }
         let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost, source: .comment)
-        controller.delegate = view
+        controller.animatorDelegate = view
         present(controller, animated: true)
     }
 

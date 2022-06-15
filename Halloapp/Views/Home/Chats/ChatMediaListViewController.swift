@@ -6,12 +6,15 @@
 //  Copyright © 2022 HalloApp, Inc. All rights reserved.
 //
 
+import AVKit
 import Combine
 import Core
 import Foundation
 import UIKit
 
 class ChatMediaListViewController: UIViewController {
+    public weak var animatorDelegate: MediaListAnimatorDelegate?
+
     private let userID: String
     private let message: ChatMessage
     private let index: Int
@@ -26,6 +29,14 @@ class ChatMediaListViewController: UIViewController {
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    func withNavigationController() -> UINavigationController {
+        let controller = UINavigationController(rootViewController: self)
+        controller.modalPresentationStyle = .overFullScreen
+        controller.transitioningDelegate = self
+
+        return controller
     }
 
     private lazy var titleLabel: UILabel = {
@@ -123,10 +134,71 @@ class ChatMediaListViewController: UIViewController {
 extension ChatMediaListViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let controller = MediaExplorerController(media: message.orderedMedia, index: indexPath.row)
-        // TODO: (stefan) Fix delegate & transition
-        // controller.delegate = delegate
+        controller.animatorDelegate = self
 
         present(controller, animated: true)
+    }
+}
+
+// MARK: UIViewControllerTransitioningDelegate
+extension ChatMediaListViewController: UIViewControllerTransitioningDelegate {
+    func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        let media = message.orderedMedia[index]
+        guard let url = media.mediaURL else { return nil }
+
+        let index = MediaIndex(index: index, chatMessageID: message.id)
+        let animator = MediaListAnimator(presenting: true, media: url, with: media.type, and: media.size, at: index)
+        animator.fromDelegate = animatorDelegate
+        animator.toDelegate = self
+
+        return animator
+    }
+
+    func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        guard let indexPath = collectionView.indexPathsForVisibleItems.min() else { return nil }
+
+        let media = message.orderedMedia[indexPath.row]
+        guard let url = media.mediaURL else { return nil }
+
+        let index = MediaIndex(index: indexPath.row, chatMessageID: message.id)
+        let animator = MediaListAnimator(presenting: false, media: url, with: media.type, and: media.size, at: index)
+        animator.fromDelegate = self
+        animator.toDelegate = animatorDelegate
+
+        return animator
+    }
+}
+
+// MARK: MediaListAnimatorDelegate
+extension ChatMediaListViewController: MediaListAnimatorDelegate {
+
+    func transitionDidBegin(presenting: Bool, with index: MediaIndex) {
+        if !presenting {
+            view.alpha = message.id == index.chatMessageID ? 1 : 0
+        }
+    }
+
+    func transitionDidEnd(presenting: Bool, with index: MediaIndex) {
+        if !presenting, message.id != index.chatMessageID {
+            dismiss(animated: false)
+        }
+    }
+
+    func scrollToTransitionView(at index: MediaIndex) {
+        if message.id == index.chatMessageID {
+            collectionView.scrollToItem(at: IndexPath(row: index.index, section: 0), at: .centeredVertically, animated: false)
+        } else {
+            animatorDelegate?.scrollToTransitionView(at: index)
+        }
+    }
+
+    func getTransitionView(at index: MediaIndex) -> UIView? {
+        if message.id == index.chatMessageID {
+            guard let cell = collectionView.cellForItem(at: IndexPath(row: index.index, section: 0)) as? MediaCell else { return nil }
+            return cell.imageView
+        } else {
+            return animatorDelegate?.getTransitionView(at: index)
+        }
     }
 }
 

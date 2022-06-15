@@ -1449,23 +1449,22 @@ extension ChatViewControllerNew: MessageViewChatDelegate {
 
     }
 
-    func messageView(_ messageViewCell: MessageCellViewBase, for chatMessageID: ChatMessageID, didTapMediaView view: UIView, at index: Int) {
+    func messageView(_ messageViewCell: MessageCellViewBase, for chatMessageID: ChatMessageID, didTapMediaAtIndex index: Int) {
         let viewContext = MainAppContext.shared.chatData.viewContext
         guard let message = MainAppContext.shared.chatData.chatMessage(with: chatMessageID, in: viewContext) else { return }
 
         if message.orderedMedia.count == 1 {
             let controller = MediaExplorerController(media: message.orderedMedia, index: index)
-            // TODO: (stefan) Fix delegate & transition
-            // controller.delegate = delegate
+            controller.animatorDelegate = self
 
             present(controller, animated: true)
         } else if message.orderedMedia.count > 1 {
             guard let userID = fromUserId else { return }
-            let controller = ChatMediaListViewController(userID: userID, message: message, index: index)
-            let navController = UINavigationController(rootViewController: controller)
-            navController.modalPresentationStyle = .fullScreen
 
-            present(navController, animated: true)
+            let controller = ChatMediaListViewController(userID: userID, message: message, index: index)
+            controller.animatorDelegate = self
+
+            present(controller.withNavigationController(), animated: true)
         }
     }
 
@@ -1712,6 +1711,27 @@ extension ChatViewControllerNew: MessageViewChatDelegate {
         guard let indexPath = dataSource.indexPath(for: MessageRow.unreadCountHeader(Int32(unreadCount))) else { return }
         collectionView.scrollToItem(at: indexPath, at: .centeredVertically, animated: false)
         updateJumpButtonText()
+    }
+}
+
+// MARK: MediaListAnimatorDelegate
+extension ChatViewControllerNew: MediaListAnimatorDelegate {
+    func scrollToTransitionView(at index: MediaIndex) {
+        guard let chatMessageID = index.chatMessageID else { return }
+        scrollToMessage(id: chatMessageID)
+    }
+
+    func getTransitionView(at index: MediaIndex) -> UIView? {
+        guard let chatMessageID = index.chatMessageID else { return nil }
+        guard let indexPath = indexPath(for: chatMessageID) else { return nil }
+
+        if let cell = collectionView.cellForItem(at: indexPath) as? MessageCellViewQuoted {
+            return cell.mediaView.imageView(at: index.index) ?? cell.mediaView
+        } else if let cell = collectionView.cellForItem(at: indexPath) as? MessageCellViewMedia {
+            return cell.mediaView.imageView(at: index.index) ?? cell.mediaView
+        }
+
+        return nil
     }
 }
 

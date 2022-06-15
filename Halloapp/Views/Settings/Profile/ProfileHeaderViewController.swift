@@ -202,7 +202,7 @@ final class ProfileHeaderViewController: UIViewController, UserMenuHandler {
         }.eraseToAnyPublisher()
 
         let mediaController = MediaExplorerController(imagePublisher: imagePublisher, progress: nil)
-        mediaController.delegate = self
+        mediaController.animatorDelegate = self
 
         present(mediaController, animated: true)
     }
@@ -520,21 +520,13 @@ private final class ProfileHeaderView: UIView {
     }
 }
 
-extension ProfileHeaderViewController: MediaExplorerTransitionDelegate {
-    func getTransitionView(atPostion index: Int) -> UIView? {
+// MARK: MediaListAnimatorDelegate
+extension ProfileHeaderViewController: MediaListAnimatorDelegate {
+    func getTransitionView(at index: MediaIndex) -> UIView? {
         return headerView.avatarViewButton
     }
-    
-    func scrollMediaToVisible(atPostion index: Int) {
-        return
-    }
-    
-    func currentTimeForVideo(atPostion index: Int) -> CMTime? {
-        return nil
-    }
 
-    func shouldTransitionScaleToFit() -> Bool {
-        return true
+    func scrollToTransitionView(at index: MediaIndex) {
     }
 }
 

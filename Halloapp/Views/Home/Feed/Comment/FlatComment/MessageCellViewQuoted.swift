@@ -40,7 +40,7 @@ class MessageCellViewQuoted: MessageCellViewBase {
     }()
 
     // MARK: Media
-    private lazy var mediaView: MessageMediaView = {
+    private(set) lazy var mediaView: MessageMediaView = {
         let mediaView = MessageMediaView()
         mediaView.translatesAutoresizingMaskIntoConstraints = false
         mediaView.delegate = self
@@ -277,24 +277,6 @@ class MessageCellViewQuoted: MessageCellViewBase {
     }
 }
 
-extension MessageCellViewQuoted: MediaCarouselViewDelegate {
-
-    func mediaCarouselView(_ view: MediaCarouselView, indexChanged newIndex: Int) {
-    }
-
-    func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
-        if let commentID = feedPostComment?.id {
-            commentDelegate?.messageView(view, forComment: commentID, didTapMediaAtIndex: index)
-        }
-    }
-
-    func mediaCarouselView(_ view: MediaCarouselView, didDoubleTapMediaAtIndex index: Int) {
-    }
-
-    func mediaCarouselView(_ view: MediaCarouselView, didZoomMediaAtIndex index: Int, withScale scale: CGFloat) {
-    }
-}
-
 extension MessageCellViewQuoted: MessageMediaViewDelegate {
 
     func messageMediaView(_ view: PreviewImageView, forComment: FeedPostCommentID, didTapMediaAtIndex index: Int) {
@@ -302,7 +284,7 @@ extension MessageCellViewQuoted: MessageMediaViewDelegate {
     }
 
     func messageMediaView(_ view: PreviewImageView, forMessage: ChatMessageID, didTapMediaAtIndex index: Int) {
-        self.chatDelegate?.messageView(self, for: forMessage, didTapMediaView: view, at: index)
+        self.chatDelegate?.messageView(self, for: forMessage, didTapMediaAtIndex: index)
     }
 }
 

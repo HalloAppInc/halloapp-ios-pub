@@ -246,6 +246,13 @@ class MessageMediaView: UIView {
             }
         }
     }
+
+    public func imageView(at index: Int) -> PreviewImageView? {
+        guard index < imageViews.count else { return nil }
+        guard !imageViews[index].isHidden else { return nil }
+
+        return imageViews[index]
+    }
 }
 
 class PreviewImageView: UIImageView {

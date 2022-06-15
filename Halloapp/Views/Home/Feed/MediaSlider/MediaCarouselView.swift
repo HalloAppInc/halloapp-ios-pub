@@ -64,7 +64,7 @@ fileprivate struct LayoutConstants {
     static let pageControlSpacingBottom: CGFloat = 12
 }
 
-class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, MediaExplorerTransitionDelegate {
+class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, MediaListAnimatorDelegate {
 
     let configuration: MediaCarouselViewConfiguration
 
@@ -554,33 +554,39 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         }
     }
 
-    // MARK: MediaExplorerTransitionDelegate
-    func getTransitionView(atPostion index: Int) -> UIView? {
-        let indexPath = IndexPath(row: index, section: MediaSliderSection.main.rawValue)
-        return collectionView.cellForItem(at: indexPath)
+    // MARK: MediaListAnimatorDelegate
+    var transitionViewContentMode: UIView.ContentMode {
+        .scaleAspectFit
     }
 
-    func scrollMediaToVisible(atPostion index: Int) {
+    func getTransitionView(at index: MediaIndex) -> UIView? {
+        let indexPath = IndexPath(row: index.index, section: MediaSliderSection.main.rawValue)
+        if let imageCell = collectionView.cellForItem(at: indexPath) as? MediaCarouselImageCollectionViewCell {
+            return imageCell
+        } else if let videoCell = collectionView.cellForItem(at: indexPath) as? MediaCarouselVideoCollectionViewCell {
+            return videoCell
+        }
+
+        return nil
+    }
+
+    func scrollToTransitionView(at index: MediaIndex) {
         if collectionView.isPagingEnabled {
-            setCurrentIndex(index, animated: false)
+            setCurrentIndex(index.index, animated: false)
         } else {
-            let indexPath = IndexPath(row: index, section: MediaSliderSection.main.rawValue)
+            let indexPath = IndexPath(row: index.index, section: MediaSliderSection.main.rawValue)
             collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: false)
         }
     }
 
-    func currentTimeForVideo(atPostion index: Int) -> CMTime? {
-        let indexPath = IndexPath(row: index, section: MediaSliderSection.main.rawValue)
+    func timeForVideo(at index: MediaIndex) -> CMTime? {
+        let indexPath = IndexPath(row: index.index, section: MediaSliderSection.main.rawValue)
 
         if let cell = collectionView.cellForItem(at: indexPath) as? MediaCarouselVideoCollectionViewCell {
             return cell.getCurrentPlaybackTime()
         }
 
         return nil
-    }
-
-    func shouldTransitionScaleToFit() -> Bool {
-        return configuration.alwaysScaleToFitContent
     }
 }
 

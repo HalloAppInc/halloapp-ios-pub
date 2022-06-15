@@ -23,8 +23,9 @@ class MediaExplorerVideoCell: UICollectionViewCell {
     private var progressCancellable: AnyCancellable?
     private var mediaPlaybackCancellable: AnyCancellable?
     private var streamingResourceLoaderDelegate: AVAssetResourceLoaderDelegate?
+    private var videoConstraints: [NSLayoutConstraint] = []
 
-    private lazy var video: VideoView = {
+    private(set) lazy var video: VideoView = {
         let view = VideoView(playbackControls: .advanced)
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
@@ -115,10 +116,6 @@ class MediaExplorerVideoCell: UICollectionViewCell {
             progressView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             progressView.widthAnchor.constraint(equalToConstant: 80),
             progressView.heightAnchor.constraint(equalToConstant: 80),
-            video.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: spaceBetweenPages),
-            video.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -spaceBetweenPages),
-            video.topAnchor.constraint(equalTo: contentView.topAnchor),
-            video.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
         ])
 
         mediaPlaybackCancellable = MainAppContext.shared.mediaDidStartPlaying.sink { [weak self] url in
@@ -142,6 +139,8 @@ class MediaExplorerVideoCell: UICollectionViewCell {
         progressView.isHidden = true
         video.isHidden = false
 
+        computeConstraints()
+
         let item = AVPlayerItem(asset: videoAsset)
         let player = AVQueuePlayer(playerItem: item)
         player.automaticallyWaitsToMinimizeStalling = false
@@ -153,6 +152,8 @@ class MediaExplorerVideoCell: UICollectionViewCell {
         placeHolderView.isHidden = true
         progressView.isHidden = true
         video.isHidden = false
+
+        computeConstraints()
 
         let item = AVPlayerItem(url: url)
         let player = AVQueuePlayer(playerItem: item)
@@ -196,5 +197,34 @@ class MediaExplorerVideoCell: UICollectionViewCell {
     func isPlaying() -> Bool {
         guard let player = video.player else { return false }
         return player.rate > 0
+    }
+
+    func computeConstraints() {
+        guard let media = media else { return }
+        media.computeSize()
+
+        NSLayoutConstraint.deactivate(videoConstraints)
+
+        if media.size.width > 0 && media.size.height > 0 {
+            let scale = min((contentView.frame.width - spaceBetweenPages * 2) / media.size.width, contentView.frame.height / media.size.height)
+            let width = media.size.width * scale
+            let height = media.size.height * scale
+
+            videoConstraints = [
+                video.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+                video.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+                video.widthAnchor.constraint(equalToConstant: width),
+                video.heightAnchor.constraint(equalToConstant: height),
+            ]
+        } else {
+            videoConstraints = [
+                video.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: spaceBetweenPages),
+                video.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -spaceBetweenPages),
+                video.topAnchor.constraint(equalTo: contentView.topAnchor),
+                video.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            ]
+        }
+
+        NSLayoutConstraint.activate(videoConstraints)
     }
 }

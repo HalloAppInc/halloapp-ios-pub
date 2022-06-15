@@ -15,13 +15,6 @@ import UIKit
 import Photos
 import CocoaLumberjackSwift
 
-protocol MediaExplorerTransitionDelegate: AnyObject {
-    func getTransitionView(atPostion index: Int) -> UIView?
-    func scrollMediaToVisible(atPostion index: Int)
-    func currentTimeForVideo(atPostion index: Int) -> CMTime?
-    func shouldTransitionScaleToFit() -> Bool
-}
-
 class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLayout, UICollectionViewDataSource, UIScrollViewDelegate, UIGestureRecognizerDelegate, UIViewControllerTransitioningDelegate {
 
     private let spaceBetweenPages: CGFloat = 20
@@ -37,9 +30,8 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     private var swipeExitInProgress = false
     private var isSystemUIHidden = false
     private var isTransition = false
-    private var animator: MediaExplorerAnimator?
+    private var animator: MediaListAnimator?
     private var fetchedResultsController: NSFetchedResultsController<CommonMedia>?
-    private let chatMediaUpdated = PassthroughSubject<(CommonMedia, IndexPath), Never>()
     private var canSaveMedia = false
     private var transitionHasFinished = false
 
@@ -69,7 +61,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         }
     }
 
-    public weak var delegate: MediaExplorerTransitionDelegate?
+    public weak var animatorDelegate: MediaListAnimatorDelegate?
 
     override var prefersStatusBarHidden: Bool {
         isSystemUIHidden
@@ -77,13 +69,6 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         transitionHasFinished ? .all : .portrait
-    }
-
-    init(imagePublisher: AnyPublisher<(URL?, UIImage?, CGSize), Never>, progress: AnyPublisher<Float, Never>? = nil) {
-        let imageMedia = MediaExplorerMedia(url: nil, image: nil, type: .image, size: .zero, update: imagePublisher, progress: progress)
-        self.media = [imageMedia]
-        self.currentIndex = 0
-        super.init(nibName: nil, bundle: nil)
     }
 
     private lazy var backBtn: UIView = {
@@ -177,19 +162,28 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
     init(media: [FeedMedia], index: Int, canSaveMedia: Bool, source: MediaItemSource) {
         self.media = media.filter({ $0.type != .audio }).map { item in
-            let type: MediaExplorerMediaType = (item.type == .image ? .image : .video)
             let viewContext = MainAppContext.shared.feedData.viewContext
             let progress = MainAppContext.shared.feedData.downloadTask(for: item, using: viewContext)?.downloadProgress.eraseToAnyPublisher()
 
             var update: AnyPublisher<(URL?, UIImage?, CGSize), Never>?
-            switch(type) {
+            switch(item.type) {
             case .image:
                 update = item.imageDidBecomeAvailable.map { _ in (item.fileURL, item.image, item.size) }.eraseToAnyPublisher()
             case .video:
                 update = item.videoDidBecomeAvailable.map { _ in (item.fileURL, item.image, item.size) }.eraseToAnyPublisher()
+            case .audio:
+                fatalError("audio is not supported in fullscreen")
             }
 
-            return MediaExplorerMedia(url: item.fileURL, image: item.image, type: type, size: item.size, chunkedInfo: item.chunkedInfo, update: update, progress: progress)
+            return MediaExplorerMedia(
+                url: item.fileURL,
+                image: item.image,
+                type: item.type,
+                size: item.size,
+                order: item.order,
+                chunkedInfo: item.chunkedInfo,
+                update: update,
+                progress: progress)
         }
         self.currentIndex = index
         self.canSaveMedia = canSaveMedia
@@ -197,16 +191,12 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
         super.init(nibName: nil, bundle: nil)
 
-        modalPresentationStyle = .fullScreen
+        modalPresentationStyle = .overFullScreen
         transitioningDelegate = self
     }
 
-    init(media: [CommonMedia], index: Int, startTime: CMTime = .zero) {
-        self.media = media.map {
-            let url = $0.mediaURL ?? MainAppContext.chatMediaDirectoryURL
-            let image: UIImage? = $0.type == .image ? UIImage(contentsOfFile: url.path) : nil
-            return MediaExplorerMedia(url: url, image: image, type: ($0.type == .image ? .image : .video), size: $0.size)
-        }
+    init(media: [CommonMedia], index: Int) {
+        self.media = media.map { MediaExplorerMedia(media: $0) }
         self.source = .chat
         self.currentIndex = index
 
@@ -220,22 +210,28 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         
         canSaveMedia = true
 
-        modalPresentationStyle = .fullScreen
+        modalPresentationStyle = .overFullScreen
         transitioningDelegate = self
     }
 
     init(quotedMedia: [CommonMedia], index: Int) {
-        media = quotedMedia.map {
-            let url = $0.mediaURL
-            let image: UIImage? = $0.type == .image ? url.flatMap { UIImage(contentsOfFile: $0.path) } : nil
-            return MediaExplorerMedia(url: url, image: image, type: ($0.type == .image ? .image : .video), size: .zero)
-        }
+        media = quotedMedia.map { MediaExplorerMedia(media: $0) }
         self.currentIndex = index
         self.source = .chat
 
         super.init(nibName: nil, bundle: nil)
 
-        modalPresentationStyle = .fullScreen
+        modalPresentationStyle = .overFullScreen
+        transitioningDelegate = self
+    }
+
+    init(imagePublisher: AnyPublisher<(URL?, UIImage?, CGSize), Never>, progress: AnyPublisher<Float, Never>? = nil) {
+        let imageMedia = MediaExplorerMedia(type: .image, size: .zero, update: imagePublisher, progress: progress)
+        self.media = [imageMedia]
+        self.currentIndex = 0
+        super.init(nibName: nil, bundle: nil)
+
+        modalPresentationStyle = .overFullScreen
         transitioningDelegate = self
     }
 
@@ -384,7 +380,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         transitionHasFinished = true
 
         if let cell = collectionView.cellForItem(at: IndexPath(item: currentIndex, section: 0)) as? MediaExplorerVideoCell {
-            cell.play(time: delegate?.currentTimeForVideo(atPostion: currentIndex) ?? .zero)
+            cell.play(time: animatorDelegate?.timeForVideo(at: MediaIndex(index: currentIndex)) ?? .zero)
         }
     }
 
@@ -541,6 +537,8 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MediaExplorerVideoCell.reuseIdentifier, for: indexPath) as! MediaExplorerVideoCell
             cell.media = item
             return cell
+        case .audio:
+            fatalError("audio is not supported in fullscreen")
         }
     }
 
@@ -560,36 +558,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
     func explorerMedia(at indexPath: IndexPath) -> MediaExplorerMedia {
         if let controller = fetchedResultsController {
-            let chatMedia = controller.object(at: indexPath)
-            let chatMediaID = chatMedia.id
-            let url = chatMedia.mediaURL ?? MainAppContext.chatMediaDirectoryURL.appendingPathComponent(chatMedia.relativeFilePath ?? "", isDirectory: false)
-            let image: UIImage? = chatMedia.type == .image ? UIImage(contentsOfFile: url.path) : nil
-            let type: MediaExplorerMediaType = chatMedia.type == .image ? .image : .video
-
-            let update = chatMediaUpdated
-                .filter { media, mediaIndexPath in
-                    mediaIndexPath == indexPath && media.relativeFilePath != nil
-                }
-                .map { (media, mediaIndexPath) -> (URL?, UIImage?, CGSize) in
-                    var image: UIImage?
-                    if let url = chatMedia.mediaURL, type == .image {
-                        image = UIImage(contentsOfFile: url.path)
-                    }
-
-                    return (url, image, media.size)
-                }
-                .eraseToAnyPublisher()
-
-            let progress = FeedDownloadManager.downloadProgress
-                .filter { id, progress in
-                    chatMediaID == id
-                }
-                .map { _, progress in
-                    progress
-                }
-                .eraseToAnyPublisher()
-
-            return MediaExplorerMedia(url: url, image: image, type: type, size: chatMedia.size, update: update, progress: progress)
+            return MediaExplorerMedia(media: controller.object(at: indexPath))
         } else {
             return media[indexPath.item]
         }
@@ -637,13 +606,6 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     }
 
     @objc private func backAction() {
-        let currentMedia = explorerMedia(at: currentIndex)
-        let originalPosition = media.firstIndex { $0.url == currentMedia.url }
-
-        if let position = originalPosition {
-            delegate?.scrollMediaToVisible(atPostion: position)
-        }
-
         dismiss(animated: true)
     }
 
@@ -718,22 +680,26 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
 
         let currentMedia = explorerMedia(at: currentIndex)
-        let originalPosition = media.firstIndex { $0.url == currentMedia.url }
+        guard let url = currentMedia.url else { return nil }
 
-        animator = MediaExplorerAnimator(media: currentMedia, between: originalPosition, and: currentIndex, presenting: true)
-        animator?.delegate = delegate
-        animator?.delegateExplorer = self
+        let index = MediaIndex(index: currentMedia.order, chatMessageID: currentMedia.chatMessageID)
+
+        animator = MediaListAnimator(presenting: true, media: url, with: currentMedia.type, and: currentMedia.size, at: index)
+        animator?.fromDelegate = animatorDelegate
+        animator?.toDelegate = self
 
         return animator
     }
 
     func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         let currentMedia = explorerMedia(at: currentIndex)
-        let originalPosition = media.firstIndex { $0.url == currentMedia.url }
+        guard let url = currentMedia.url else { return nil }
 
-        animator = MediaExplorerAnimator(media: currentMedia, between: originalPosition, and: currentIndex, presenting: false)
-        animator?.delegate = delegate
-        animator?.delegateExplorer = self
+        let index = MediaIndex(index: currentMedia.order, chatMessageID: currentMedia.chatMessageID)
+
+        animator = MediaListAnimator(presenting: false, media: url, with: currentMedia.type, and: currentMedia.size, at: index)
+        animator?.fromDelegate = self
+        animator?.toDelegate = animatorDelegate
 
         return animator
     }
@@ -743,65 +709,95 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     }
 }
 
-// MARK: MediaExplorerTransitionDelegate
-extension MediaExplorerController: MediaExplorerTransitionDelegate {
-    func currentTimeForVideo(atPostion index: Int) -> CMTime? {
+extension MediaExplorerController: MediaListAnimatorDelegate {
+    func getTransitionView(at index: MediaIndex) -> UIView? {
+        // in fullscreen, the only visible view is the one currently displayed
+        let cell = collectionView.cellForItem(at: IndexPath(item: currentIndex, section: 0))
+
+        if let imageCell = cell as? MediaExplorerImageCell {
+            return imageCell.imageView
+        } else if let videoCell = cell as? MediaExplorerVideoCell {
+            return videoCell.video
+        }
+
         return nil
     }
 
-    func getTransitionView(atPostion index: Int) -> UIView? {
-        return collectionView.cellForItem(at: IndexPath(item: index, section: 0))
-    }
-
-    func scrollMediaToVisible(atPostion index: Int) {
-    }
-
-    func hideCollectionView() {
-        collectionView.isHidden = true
-    }
-
-    func showCollectionView() {
-        collectionView.isHidden = false
-    }
-
-    func shouldTransitionScaleToFit() -> Bool {
-        return true
+    func scrollToTransitionView(at index: MediaIndex) {
+        // on entering transition the currentIndex is set in the init function
+        collectionView.scrollToItem(at: IndexPath(row: currentIndex, section: 0), at: .centeredHorizontally, animated: false)
     }
 }
 
 // MARK: NSFetchedResultsControllerDelegate
 extension MediaExplorerController: NSFetchedResultsControllerDelegate {
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
-        guard let indexPath = indexPath else { return }
         guard let chatMedia = anObject as? CommonMedia else { return }
 
-        chatMediaUpdated.send((chatMedia, indexPath))
+        MediaExplorerMedia.updated.send(chatMedia)
     }
 }
 
-enum MediaExplorerMediaType {
-    case image, video
-}
-
 class MediaExplorerMedia {
+    static let updated = PassthroughSubject<CommonMedia, Never>()
+
     var url: URL?
     var image: UIImage?
-    var type: MediaExplorerMediaType
+    var type: CommonMediaType
     var size: CGSize
     var ready = CurrentValueSubject<Bool, Never>(false)
     var progress = CurrentValueSubject<Float, Never>(0)
-
     var chunkedInfo: ChunkedMediaInfo?
+    var chatMessageID: ChatMessageID?
+    var order: Int
 
     private var updateCancellable: AnyCancellable?
     private var progressCancellable: AnyCancellable?
 
-    init(url: URL? = nil, image: UIImage? = nil, type: MediaExplorerMediaType, size: CGSize, chunkedInfo: ChunkedMediaInfo? = nil, update: AnyPublisher<(URL?, UIImage?, CGSize), Never>? = nil, progress: AnyPublisher<Float, Never>? = nil) {
+    init(url: URL? = nil, image: UIImage? = nil, type: CommonMediaType, size: CGSize, order: Int = 0, chunkedInfo: ChunkedMediaInfo? = nil, update: AnyPublisher<(URL?, UIImage?, CGSize), Never>? = nil, progress: AnyPublisher<Float, Never>? = nil) {
         self.url = url
         self.image = image
         self.type = type
         self.size = size
+        self.order = order
         self.chunkedInfo = chunkedInfo
+
+        listen(update: update, progress: progress)
+    }
+
+    init(media: CommonMedia) {
+        let mediaID = media.id
+
+        url = media.mediaURL
+        type = media.type
+        size = media.size
+        order = Int(media.order)
+        chunkedInfo = ChunkedMediaInfo(commonMedia: media)
+
+        if media.type == .image, let url = media.mediaURL {
+            image = UIImage(contentsOfFile: url.path)
+        }
+
+        if let message = media.message {
+            chatMessageID = message.id
+        }
+
+        let update = MediaExplorerMedia.updated
+            .filter { $0.id == mediaID }
+            .map { (media: CommonMedia) -> (URL?, UIImage?, CGSize) in
+                var image: UIImage?
+                if media.type == .image, let url = media.mediaURL {
+                    image = UIImage(contentsOfFile: url.path)
+                }
+
+                return (media.mediaURL, image, media.size)
+            }
+            .eraseToAnyPublisher()
+
+        let progress = FeedDownloadManager.downloadProgress
+            .filter { id, _ in mediaID == id }
+            .map { _, progress in progress }
+            .eraseToAnyPublisher()
 
         listen(update: update, progress: progress)
     }
@@ -836,23 +832,6 @@ class MediaExplorerMedia {
         if let url = url, type == .video, let videoSize = VideoUtils.resolutionForLocalVideo(url: url) {
             size = videoSize
         }
-    }
-}
-
-extension UIImageView: MediaExplorerTransitionDelegate {
-    func getTransitionView(atPostion index: Int) -> UIView? {
-        return self
-    }
-
-    func scrollMediaToVisible(atPostion index: Int) {
-    }
-
-    func currentTimeForVideo(atPostion index: Int) -> CMTime? {
-        return nil
-    }
-
-    func shouldTransitionScaleToFit() -> Bool {
-        return contentMode == .scaleAspectFit
     }
 }
 

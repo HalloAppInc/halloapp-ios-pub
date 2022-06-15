@@ -50,7 +50,7 @@ class MediaExplorerImageCell: UICollectionViewCell, UIGestureRecognizerDelegate 
     private var readyCancellable: AnyCancellable?
     private var progressCancellable: AnyCancellable?
 
-    private lazy var imageView: UIImageView = {
+    private(set) lazy var imageView: UIImageView = {
         let imageView = UIImageView(frame: .zero)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.isUserInteractionEnabled = true

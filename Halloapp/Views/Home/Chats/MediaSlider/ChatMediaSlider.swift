@@ -15,7 +15,7 @@ protocol ChatMediaSliderDelegate: AnyObject {
     func chatMediaSlider(_ view: ChatMediaSlider, currentPage: Int)
 }
 
-class ChatMediaSlider: UIView, UIScrollViewDelegate, MediaExplorerTransitionDelegate {
+class ChatMediaSlider: UIView, UIScrollViewDelegate, MediaListAnimatorDelegate {
     weak var delegate: ChatMediaSliderDelegate?
     public var currentPage: Int = 0
     
@@ -254,25 +254,21 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate, MediaExplorerTransitionDele
 
     // MARK: MediaExplorerTransitionDelegate
 
-    func getTransitionView(atPostion index: Int) -> UIView? {
+    var transitionViewContentMode: UIView.ContentMode {
+        .scaleAspectFit
+    }
+
+    func getTransitionView(at index: MediaIndex) -> UIView? {
         // Handles the case when the index is -1
-        if index == 0 && imageViewDict.count == 1 && imageViewDict.keys.first == -1 {
+        if index.index == 0 && imageViewDict.count == 1 && imageViewDict.keys.first == -1 {
             return imageViewDict[-1]
         } else {
-            return imageViewDict[index]
+            return imageViewDict[index.index]
         }
     }
 
-    func scrollMediaToVisible(atPostion index: Int) {
-        scrollToIndex(index: index, animated: false)
-    }
-
-    func currentTimeForVideo(atPostion index: Int) -> CMTime? {
-        return nil
-    }
-
-    func shouldTransitionScaleToFit() -> Bool {
-        return true
+    func scrollToTransitionView(at index: MediaIndex) {
+        scrollToIndex(index: index.index, animated: false)
     }
 }
 

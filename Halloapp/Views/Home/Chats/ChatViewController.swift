@@ -636,16 +636,16 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         return true
     }
 
-    private func presentMediaExplorer(media: [CommonMedia], At index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
+    private func presentMediaExplorer(media: [CommonMedia], At index: Int, withDelegate delegate: MediaListAnimatorDelegate) {
         let controller = MediaExplorerController(media: media, index: index)
-        controller.delegate = delegate
+        controller.animatorDelegate = delegate
 
         present(controller, animated: true)
     }
 
-    private func presentMediaExplorer(quotedMedia: [CommonMedia], At index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
+    private func presentMediaExplorer(quotedMedia: [CommonMedia], At index: Int, withDelegate delegate: MediaListAnimatorDelegate) {
         let controller = MediaExplorerController(quotedMedia: quotedMedia, index: index)
-        controller.delegate = delegate
+        controller.animatorDelegate = delegate
 
         present(controller, animated: true)
     }
@@ -1743,7 +1743,7 @@ extension ChatViewController: InboundMsgViewCellDelegate {
         jumpToMsg(tableIndexPath: tableIndexPath, indexPath: indexPath)
     }
     
-    func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewMediaAt index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
+    func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewMediaAt index: Int, withDelegate delegate: MediaListAnimatorDelegate) {
         guard let indexPath = inboundMsgViewCell.indexPath else { return }
         guard let message = fetchedResultsController?.optionalObject(at: indexPath) as? ChatMessage else { return }
         guard message.media != nil else { return }
@@ -1751,7 +1751,7 @@ extension ChatViewController: InboundMsgViewCellDelegate {
         presentMediaExplorer(media: message.orderedMedia, At: index, withDelegate: delegate)
     }
 
-    func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewQuotedMediaAt index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
+    func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewQuotedMediaAt index: Int, withDelegate delegate: MediaListAnimatorDelegate) {
         guard let indexPath = inboundMsgViewCell.indexPath else { return }
         guard let message = fetchedResultsController?.optionalObject(at: indexPath) as? ChatMessage else { return }
         guard let quoted = message.quoted else { return }
@@ -1822,7 +1822,7 @@ extension ChatViewController: OutboundMsgViewCellDelegate {
         jumpToMsg(tableIndexPath: tableIndexPath, indexPath: indexPath)
     }
 
-    func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, previewMediaAt index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
+    func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, previewMediaAt index: Int, withDelegate delegate: MediaListAnimatorDelegate) {
         guard let indexPath = outboundMsgViewCell.indexPath else { return }
         guard let message = fetchedResultsController?.optionalObject(at: indexPath) as? ChatMessage else { return }
         guard message.media != nil else { return }
@@ -1830,7 +1830,7 @@ extension ChatViewController: OutboundMsgViewCellDelegate {
         presentMediaExplorer(media: message.orderedMedia, At: index, withDelegate: delegate)
     }
 
-    func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, previewQuotedMediaAt index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
+    func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, previewQuotedMediaAt index: Int, withDelegate delegate: MediaListAnimatorDelegate) {
         guard let indexPath = outboundMsgViewCell.indexPath else { return }
         guard let message = fetchedResultsController?.optionalObject(at: indexPath) as? ChatMessage else { return }
         guard let quoted = message.quoted else { return }

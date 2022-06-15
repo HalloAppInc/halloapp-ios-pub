@@ -20,8 +20,8 @@ fileprivate struct Constants {
 
 protocol InboundMsgViewCellDelegate: AnyObject {
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell)
-    func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewMediaAt: Int, withDelegate: MediaExplorerTransitionDelegate)
-    func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewQuotedMediaAt: Int, withDelegate: MediaExplorerTransitionDelegate)
+    func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewMediaAt: Int, withDelegate: MediaListAnimatorDelegate)
+    func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewQuotedMediaAt: Int, withDelegate: MediaListAnimatorDelegate)
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, didLongPressOn msgId: String)
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, didCompleteVoiceNote msgId: String)
 }
