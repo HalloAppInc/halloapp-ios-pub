@@ -65,10 +65,8 @@ extension DiscreteEvent: Codable {
             let numPhotos = try container.decode(Int.self, forKey: .numPhotos)
             let numVideos = try container.decode(Int.self, forKey: .numVideos)
             let totalSize = try container.decode(Int.self, forKey: .totalSize)
-            // TODO(stefan): after June 10th 2022, make the code below strict
-            // missing status or wrong value should crash and not report ok
-            let statusString = try? container.decode(String.self, forKey: .status)
-            let status = MediaDiscreteEventStatus(rawValue: statusString ?? MediaDiscreteEventStatus.ok.rawValue) ?? .ok
+            let statusString = try container.decode(String.self, forKey: .status)
+            let status = MediaDiscreteEventStatus(rawValue: statusString) ?? .ok
             self = .mediaUpload(postID: postID, duration: duration, numPhotos: numPhotos, numVideos: numVideos, totalSize: totalSize, status: status)
         case .mediaDownload:
             let postID = try container.decode(String.self, forKey: .id)
