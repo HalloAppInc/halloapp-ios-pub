@@ -140,7 +140,7 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -153,14 +153,16 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
         view.addSubview(tableView)
         view.addSubview(selectionRow)
 
-        tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
-        tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
-        tableView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
-        tableView.bottomAnchor.constraint(equalTo: selectionRow.topAnchor).isActive = true
-        selectionRow.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
-        selectionRow.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
-        selectionRowHeightConstraint.isActive = true
-        bottomConstraint.isActive = true
+        NSLayoutConstraint.activate([
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.topAnchor.constraint(equalTo: view.topAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            selectionRow.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            selectionRow.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            selectionRowHeightConstraint,
+            bottomConstraint,
+        ])
         
         if let intent = extensionContext?.intent as? INSendMessageIntent {
             guard let rawConversationID = intent.conversationIdentifier else { return }
@@ -256,6 +258,9 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
         if selected.count > 0 && selectionRowHeightConstraint.constant == 0 {
             UIView.animate(withDuration: 0.3, animations: {
                 self.selectionRowHeightConstraint.constant = 100
+                let bottomContentInset = 100 - self.view.safeAreaInsets.bottom
+                self.tableView.contentInset.bottom = bottomContentInset
+                self.tableView.verticalScrollIndicatorInsets.bottom = bottomContentInset
                 self.selectionRow.layoutIfNeeded()
             }) { _ in
                 self.selectionRow.update(with: self.selected)
@@ -265,6 +270,8 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
 
             UIView.animate(withDuration: 0.3) {
                 self.selectionRowHeightConstraint.constant = 0
+                self.tableView.contentInset.bottom = 0
+                self.tableView.verticalScrollIndicatorInsets.bottom = 0
                 self.selectionRow.layoutIfNeeded()
             }
         } else {
