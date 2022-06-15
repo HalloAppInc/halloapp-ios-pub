@@ -83,6 +83,8 @@ class NewCameraViewController: UIViewController {
     private var hideFocusIndicator: DispatchWorkItem?
     private var cancellables: Set<AnyCancellable> = []
 
+    var onPhotoCapture: ((UIImage) -> Void)?
+
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black
@@ -155,7 +157,7 @@ class NewCameraViewController: UIViewController {
     }
 
     private func handleShutterTap() {
-        // TODO:
+        model.takePhoto()
     }
 
     private func handleShutterLongPress(_ ended: Bool) {
@@ -169,7 +171,7 @@ class NewCameraViewController: UIViewController {
 
     @objc
     private func flashButtonPushed(_ sender: UIButton) {
-        model.toggleFlash()
+        model.isFlashEnabled = !model.isFlashEnabled
     }
 
     @objc
@@ -257,7 +259,7 @@ extension NewCameraViewController: CameraModelDelegate {
     }
 
     func modelCoultNotStart(_ model: CameraModel, with error: Error) {
-        guard case let error as CameraModel.Error = error else {
+        guard case let error as CameraModel.CameraModelError = error else {
             return
         }
 
@@ -287,7 +289,7 @@ extension NewCameraViewController: CameraModelDelegate {
     }
 
     /// Shown when there was some initialization error and the session could not start.
-    private func showInitializationAlert(for error: CameraModel.Error) {
+    private func showInitializationAlert(for error: CameraModel.CameraModelError) {
         let title = Localizations.cameraInitializationErrorTtile
         let body = error.description
         let alert = UIAlertController(title: title, message: body, preferredStyle: .alert)
@@ -295,6 +297,10 @@ extension NewCameraViewController: CameraModelDelegate {
         alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default) { [weak self] _ in
             self?.dismiss(animated: true)
         })
+    }
+
+    func model(_ model: CameraModel, didTake photo: UIImage) {
+        onPhotoCapture?(photo)
     }
 }
 

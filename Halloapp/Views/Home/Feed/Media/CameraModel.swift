@@ -19,6 +19,8 @@ protocol CameraModelDelegate: AnyObject {
     /// It's a good place to attach a preview layer to the session.
     @MainActor func modelWillStart(_ model: CameraModel)
     @MainActor func modelDidStart(_ model: CameraModel)
+
+    @MainActor func model(_ model: CameraModel, didTake photo: UIImage)
 }
 
 extension CameraModel {
@@ -36,7 +38,7 @@ extension CameraModel {
         ]
     }
 
-    enum Error: Swift.Error {
+    enum CameraModelError: Swift.Error {
         case permissions(AVMediaType)
         case cameraInitialization(AVCaptureDevice.Position)
         case outputInitialization
@@ -63,7 +65,7 @@ extension CameraModel {
 }
 
 ///
-class CameraModel {
+class CameraModel: NSObject {
     /// Used to coordinate the actual zoom value of the camera with what's being displayed to the user.
     private typealias ZoomFactor = (ui: CGFloat, actual: CGFloat)
 
@@ -108,11 +110,16 @@ class CameraModel {
     @Published private(set) var zoomFactor: CGFloat = 1
     @Published private(set) var orientation = UIDevice.current.orientation
     @Published private(set) var activeCamera = AVCaptureDevice.Position.back
-    @Published private(set) var isFlashEnabled = false
+    @Published var isFlashEnabled = false
+
+    @Published private(set) var isTakingPhoto = false
+    @Published private(set) var isRecordingVideo = false
 
     private var cancellables: Set<AnyCancellable> = []
 
-    init() {
+    override init() {
+        super.init()
+
         $orientation.receive(on: sessionQueue).sink { [weak self] orientation in
             self?.updatePhoto(orientation: orientation)
         }.store(in: &cancellables)
@@ -199,10 +206,12 @@ extension CameraModel {
     }
 
     private func setupSession() async throws {
-        let hasVideoPermissions = await hasPermissions(for: .video)
-        let hasAudioPermissions = await hasPermissions(for: .audio)
-        guard hasVideoPermissions, hasAudioPermissions else {
-            throw Error.permissions(hasVideoPermissions ? .audio : .video)
+        if await !hasPermissions(for: .video) {
+            throw CameraModelError.permissions(.video)
+        }
+
+        if await !hasPermissions(for: .audio) {
+            throw CameraModelError.permissions(.audio)
         }
 
         try await perform { [weak self, session] in
@@ -251,7 +260,7 @@ extension CameraModel {
             let input = try? AVCaptureDeviceInput(device: device),
             session.canAddInput(input)
         else {
-            throw Error.cameraInitialization(.back)
+            throw CameraModelError.cameraInitialization(.back)
         }
 
         backCamera = device
@@ -266,7 +275,7 @@ extension CameraModel {
             let input = try? AVCaptureDeviceInput(device: device),
             session.canAddInput(input)
         else {
-            throw Error.cameraInitialization(.front)
+            throw CameraModelError.cameraInitialization(.front)
         }
 
         frontCamera = device
@@ -281,7 +290,7 @@ extension CameraModel {
     private func setupPhotoOutput() throws {
         let output = AVCapturePhotoOutput()
         guard session.canAddOutput(output) else {
-            throw Error.outputInitialization
+            throw CameraModelError.outputInitialization
         }
 
         session.addOutput(output)
@@ -414,10 +423,6 @@ extension CameraModel {
         }
     }
 
-    func toggleFlash() {
-        isFlashEnabled = !isFlashEnabled
-    }
-
     func focus(on point: CGPoint) {
         guard
             activeCamera != .unspecified,
@@ -455,6 +460,43 @@ extension CameraModel {
 
     func zoom(using gesture: UIPinchGestureRecognizer) {
         // TODO
+    }
+}
+
+// MARK: -
+
+extension CameraModel: AVCapturePhotoCaptureDelegate {
+    ///
+    func takePhoto() {
+        guard let output = photoOutput else {
+            return
+        }
+
+        isTakingPhoto = true
+
+        let settings = AVCapturePhotoSettings.init(format: [AVVideoCodecKey: AVVideoCodecType.jpeg])
+        settings.flashMode = isFlashEnabled ? .on : .off
+        settings.isHighResolutionPhotoEnabled = false
+
+        output.capturePhoto(with: settings, delegate: self)
+    }
+
+    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
+        isTakingPhoto = false
+        if let error = error {
+            DDLogError("CameraModel/finishedProcessingPhoto/received error \(String(describing: error))")
+            return
+        }
+
+        guard
+            let data = photo.fileDataRepresentation(),
+            let image = UIImage(data: data)
+        else {
+            DDLogError("CameraModel/finishedProcessingPhoto/unable to create image from data")
+            return
+        }
+
+        Task { await delegate?.model(self, didTake: image) }
     }
 }
 
