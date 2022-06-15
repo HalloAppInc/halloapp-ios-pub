@@ -411,6 +411,7 @@ class ChatData: ObservableObject {
                     self.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
                         guard let self = self else { return }
                         self.markSeenMessages(type: .oneToOne, for: currentlyChattingWithUserId, in: managedObjectContext)
+                        UNUserNotificationCenter.current().removeDeliveredChatNotifications(fromUserId: currentlyChattingWithUserId)
                     }
                 }
 
