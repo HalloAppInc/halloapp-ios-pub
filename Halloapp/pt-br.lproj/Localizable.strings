@@ -997,10 +997,6 @@
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.camera.access.request" = "O HalloApp não tem acesso à sua câmera. Para habilitar o acesso, clique em \"Configurações\" e ligue a Câmera";
 
-/* Label indicating that the camera is in photo mode
-   Label indicating that the camera is in video mode */
-"media.camera.mode.photo" = "Vídeo";
-
 /* Confirmation prompt in media composer. */
 "media.discard.confirmation" = "Você gostaria de descartar suas edições?";
 

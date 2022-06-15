@@ -140,7 +140,7 @@
 "notification.moment" = "Nieuw moment";
 
 /* New moment notification text to be shown to the user. */
-"notification.moment.1" = "%@ heeft een moment gedeeld";
+"notification.moment.1" = "%@ heeft een nieuw moment gedeeld";
 
 /* New moment notification text to be shown to the user. */
 "notification.moment.2" = "%1$@ en %2$@ hebben nieuwe momenten gedeeld";

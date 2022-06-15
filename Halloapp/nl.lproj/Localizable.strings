@@ -151,6 +151,12 @@
 /* Text indicating that calls are end-to-end encrypted */
 "call.encryption.text" = "End-to-end versleuteld";
 
+/* Title for call history event for an incoming call. */
+"call.history.incoming.call" = "%@ heeft je gebeld";
+
+/* Title for call history event for an outgoing call */
+"call.history.outgoing.call" = "Je hebt %@ gebeld";
+
 /* Title for call history event. Appears next to details of a successful call. */
 "call.history.video.call" = "Video-oproep";
 
@@ -246,6 +252,9 @@
 
 /* Text shown on the camera screen when composing a new moment to unlock someone else's moment. */
 "camera.moment.unlock.subtitle" = "Om het moment van %@ te zien, deel je je eigen moment";
+
+/* Title of alert for when the app does not have permissions to access the camera. */
+"camera.permissions.title" = "Cameratoegang";
 
 /* No comment provided by engineer. */
 "Cancel" = "Annuleren";
@@ -997,10 +1006,6 @@
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.camera.access.request" = "HalloApp heeft geen toegang tot je camera. Om toegang te geven, tik op Instellingen en zet Camera aan";
 
-/* Label indicating that the camera is in photo mode
-   Label indicating that the camera is in video mode */
-"media.camera.mode.photo" = "VIDEO";
-
 /* Confirmation prompt in media composer. */
 "media.discard.confirmation" = "Wil je je wijzigingen weggooien?";
 
@@ -1118,6 +1123,9 @@
 /* Header that appears above unread messages in the comments view. */
 "n.unread.comments.title" = "n.unread.comments.title";
 
+/* Header that appears above unread messages in the chats view. */
+"n.unread.messages.title" = "n.unread.messages.title";
+
 /* Placeholder text shown in the middle of the Add New Group Members screen when user have no contacts (in ZeroZone) to add */
 "new.group.members.empty.placeholder" = "Je contacten die HalloApp gebruiken verschijnen hier";
 
@@ -1143,7 +1151,7 @@
 "notification.moment" = "Nieuw moment";
 
 /* New moment notification text to be shown to the user. */
-"notification.moment.1" = "%@ heeft een moment gedeeld";
+"notification.moment.1" = "%@ heeft een nieuw moment gedeeld";
 
 /* New moment notification text to be shown to the user. */
 "notification.moment.2" = "%1$@ en %2$@ hebben nieuwe momenten gedeeld";
@@ -1660,6 +1668,9 @@
 
 /* Timestamp: `Yesterday` */
 "timestamp.yesterday" = "Gisteren";
+
+/* Camera screen title */
+"title.camera" = "Camera";
 
 /* Camera screen title for a new moment */
 "title.camera.moment" = "Nieuw Moment";

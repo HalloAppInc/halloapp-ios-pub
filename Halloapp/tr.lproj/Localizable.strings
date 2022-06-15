@@ -985,10 +985,6 @@
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.camera.access.request" = "HalloApp'in kamerana erişimi yok. Erişimi etkinleştirmek için Ayarlar'a dokun ve Kamera'yı aç.";
 
-/* Label indicating that the camera is in photo mode
-   Label indicating that the camera is in video mode */
-"media.camera.mode.photo" = "VİDEO";
-
 /* Confirmation prompt in media composer. */
 "media.discard.confirmation" = "Düzenlemelerini iptal etmek istiyor musun?";
 

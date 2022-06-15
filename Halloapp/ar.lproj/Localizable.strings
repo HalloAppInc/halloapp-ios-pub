@@ -997,10 +997,6 @@
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.camera.access.request" = "لم يتم منح هالوآب إذن الوصول إلى الكاميرا. لتمكين الوصول، انقر على \"الإعدادات\" وشغِّل الكاميرا";
 
-/* Label indicating that the camera is in photo mode
-   Label indicating that the camera is in video mode */
-"media.camera.mode.photo" = "فيديو";
-
 /* Confirmation prompt in media composer. */
 "media.discard.confirmation" = "هل تريد إلغاء تعديلاتك؟";
 

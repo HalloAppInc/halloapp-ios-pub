@@ -223,9 +223,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>%d Unread Message</string>
+			<string>%d Ongelezen Bericht</string>
 			<key>other</key>
-			<string>%d Unread Messages</string>
+			<string>%d Ongelezen Berichten</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>

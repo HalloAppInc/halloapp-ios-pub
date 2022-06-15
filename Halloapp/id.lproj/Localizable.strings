@@ -26,7 +26,7 @@
 "activity.center.button.mark.all.read" = "Tandai semua sudah dibaca";
 
 /* Short title for the button in activity center. */
-"activity.center.button.read.all" = "Baca semua";
+"activity.center.button.read.all" = "Baca Semua";
 
 /* Message shown when a user first joins from a friend's invitation (e.g., 'You accepted David's invite 🎉' */
 "activity.center.invite.accepted.item" = "kamu menerima undangan %@ 🎉";
@@ -74,10 +74,10 @@
 "button.add" = "Tambah";
 
 /* Title for generic Cancel button. Mostly used in popups and as such. */
-"button.cancel" = "Batal";
+"button.cancel" = "Batalkan";
 
 /* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
-"button.cancel.capitalized" = "BATAL";
+"button.cancel.capitalized" = "BATALKAN";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Lanjut";
@@ -245,10 +245,13 @@
 "camera.moment.subtitle" = "Momen akan hilang setelah 24 jam dan hanya dapat dilihat sekali";
 
 /* Text shown on the camera screen when composing a new moment to unlock someone else's moment. */
-"camera.moment.unlock.subtitle" = "Untuk melihat momen %@, bagikan momen Anda";
+"camera.moment.unlock.subtitle" = "Untuk melihat momen %@, bagikan momen Anda.";
+
+/* Title of alert for when the app does not have permissions to access the camera. */
+"camera.permissions.title" = "Akses Kamera";
 
 /* No comment provided by engineer. */
-"Cancel" = "Batal";
+"Cancel" = "Batalkan";
 
 /* Text shown in the chat interface informing the user that the contact is blocked */
 "chat.blocked.contact.label" = "Kontak memblokir kontak ini";
@@ -269,7 +272,7 @@
 "chat.delete.title" = "Hapus pesan yang dipilih?";
 
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
-"chat.encryption.label" = "Semua pesan di HalloApp dienkripsi ujung ke ujung. Ketuk untuk mempelajari lebih lanjut";
+"chat.encryption.label" = "Semua pesan di HalloApp dienkripsi ujung ke ujung. Ketuk untuk mempelajari lebih lanjut.";
 
 /* Text shown in Chat when the security keys of the contact user is chatting with, have changed */
 "chat.event.security.keys.changed" = "Kunci keamanan dengan %@ berubah";
@@ -347,7 +350,7 @@
 "chat.message.audiopost" = "Postingan audio";
 
 /* Message text shown for the message that was deleted */
-"chat.message.deleted" = "Pesan ini sudah dihapus";
+"chat.message.deleted" = "Pesan ini telah dihapus.";
 
 /* Message text shown in a message that have photo media but no text */
 "chat.message.photo" = "Foto";
@@ -446,7 +449,7 @@
 "composer.deletevoicenote.title" = "Buang Postingan?";
 
 /* Label shown when only single media item selected */
-"composer.label.more" = "Tambah lagi";
+"composer.label.more" = "Tambahkan lainnya";
 
 /* Alert message in composer when a video is too long */
 "composer.max.video.length.message" = "Pilih video lain atau pilih tombol edit.";
@@ -464,13 +467,13 @@
 "composer.moment.post.title" = "Momen Baru";
 
 /* Placeholder text for media caption field in post composer. */
-"composer.placeholder.media.description" = "Menulis deskripsi";
+"composer.placeholder.media.description" = "Tulis deskripsi";
 
 /* Placeholder text in text post composer screen. */
 "composer.placeholder.text.post" = "Menulis kiriman";
 
 /* Composer New Post title. */
-"composer.post.title" = "Kiriman Baru";
+"composer.post.title" = "Postingan Baru";
 
 /* Feed Privacy indicator in post composer. */
 "composer.privacy.value.excluded" = "Membagikan dengan beberapa kontak";
@@ -575,7 +578,7 @@
 "feed.home.notification.other.comment.w.text" = "<$author$> memberikan komentar: <$text$>";
 
 /* Text shown in indicator when new posts come in while user is scrolled down */
-"feed.new.posts.indicator" = "Kiriman Baru";
+"feed.new.posts.indicator" = "Postingan Baru";
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification..other.comment.no.text" = "<$author$> juga memberikan komentar";
@@ -856,6 +859,9 @@
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Ketuk di sini untuk info grup";
 
+/* More info menu item */
+"groupGridHeader.moreInfo" = "Info Lainnya";
+
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Kamu ditambahkan ke grup baru";
 
@@ -994,10 +1000,6 @@
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.camera.access.request" = "HalloApp tidak memiliki akses ke kamera. Untuk mengizinkan akses, ketuk Pengaturan dan nyalakan Kamera";
 
-/* Label indicating that the camera is in photo mode
-   Label indicating that the camera is in video mode */
-"media.camera.mode.photo" = "VIDEO";
-
 /* Confirmation prompt in media composer. */
 "media.discard.confirmation" = "Ingin menghapus editanmu?";
 
@@ -1011,25 +1013,25 @@
 "media.prepare.failed.n.count" = "media.prepare.failed.n.count";
 
 /* Button that, when pressed, saves all the post's media to the user's camera roll */
-"media.save.all" = "Simpan Semua Ke Camera Roll";
+"media.save.all" = "Simpan Semua ke Rol Kamera";
 
 /* Button that, when pressed, saves the post's media to the user's camera roll. Singular version for media.save.all */
-"media.save.all.singular" = "Simpan Media ke Camera Roll";
+"media.save.all.singular" = "Simpan Media ke Rol Kamera";
 
 /* Button that lets the user save the current media displayed to their camera roll */
-"media.save.camera.roll" = "Simpan Ke Camera Roll";
+"media.save.camera.roll" = "Simpan ke Rol Kamera";
 
 /* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
 "media.save.needs.permissions" = "Izin foto diperlukan";
 
 /* Description telling the user why the photos couldn't be saved */
-"media.save.no.access" = "Foto tidak dapat disimpan tanpa akses ke Camera Roll.";
+"media.save.no.access" = "Foto tidak dapat disimpan tanpa akses ke rol kamera.";
 
 /* Alert displayed explaining to the user that the media save operation failed */
 "media.save.not.saved" = "Foto tidak dapat disimpan";
 
 /* Label indicating that media was successfully saved to the camera roll */
-"media.save.saved" = "Tersimpan ke Rol Kamera";
+"media.save.saved" = "Disimpan ke Rol Kamera";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.annotate" = "Memberi Anotasi";
@@ -1092,7 +1094,7 @@
 "mypost.hide.posts.confirmation" = "Yakin ingin menyembunyikan semua pos mendatangmu dari %@? Kamu dapat selalu mengubah ini nanti.";
 
 /* Placeholder text displayed in My Post Info screen when no one has seen the post yet. */
-"mypost.not.viewed.yet" = "Belum ada yang melihat posmu";
+"mypost.not.viewed.yet" = "Belum ada yang melihat postingan";
 
 /* Your Post screen: label for the row that opens the invite screen */
 "mypost.row.invite.to.halloapp" = "Undang Ke Halloapp";
@@ -1114,6 +1116,9 @@
 
 /* Header that appears above unread messages in the comments view. */
 "n.unread.comments.title" = "n.unread.comments.title";
+
+/* Header that appears above unread messages in the chats view. */
+"n.unread.messages.title" = "n.unread.messages.title";
 
 /* Placeholder text shown in the middle of the Add New Group Members screen when user have no contacts (in ZeroZone) to add */
 "new.group.members.empty.placeholder" = "Kontakmu yang menggunakan HalloApp akan muncul di sini";
@@ -1139,6 +1144,18 @@
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Momen baru";
 
+/* New moment notification text to be shown to the user. */
+"notification.moment.1" = "%@ berbagi momen";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.2" = "%1$@ dan %2$@ berbagi momen baru";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.3" = "%1$@, %2$@, dan %3$@ berbagi momen baru";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.5" = "%1$@, %2$@, %3$@, dan lainnya berbagi momen baru";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
 
@@ -1158,7 +1175,7 @@
 "notification.new.message" = "Pesan Baru";
 
 /* Title for the new feed post notification. */
-"notification.new.post" = "Pos Baru";
+"notification.new.post" = "Postingan Baru";
 
 /* New post notification text when post is one photo without caption. */
 "notification.one.photo" = "📷 foto";
@@ -1314,7 +1331,7 @@
 "profile.name.length" = "%1$d/%2$d";
 
 /* Row in Profile screen. */
-"profile.row.about" = "Perihal";
+"profile.row.about" = "Mengenai HalloApp";
 
 /* Row in Profile Screen */
 "profile.row.account" = "Akun";
@@ -1333,6 +1350,9 @@
 
 /* Title for the button allowing to select a new profile photo. */
 "profile.take.choose.photo" = "Ambil atau Pilih Foto";
+
+/* Title of the screen with the user's profile. */
+"profile.title" = "Profil";
 
 /* Title for the screen allowing to edit profile name */
 "profile.title.your.name" = "Namamu";
@@ -1461,7 +1481,7 @@
 "server.new.message" = "Pesan Baru";
 
 /* fallback text in notification for a new feed post */
-"server.new.post" = "Unggahan Baru";
+"server.new.post" = "Postingan Baru";
 
 /* text in the sms sent with verification code */
 "server.sms.verification" = "Kode verifikasi HalloApp Anda";
@@ -1686,7 +1706,7 @@
 "title.storage" = "Penyimpanan";
 
 /* Title for the screen with information about who saw your post. */
-"title.your.post" = "Terlihat Oleh";
+"title.your.post" = "Dilihat oleh";
 
 /* Indicates which switch a user needs to turn on to enable contacts permissions. */
 "turn.on.contacts" = "Nyalakan \"Kontak\"";
@@ -1746,10 +1766,10 @@
 "view.title" = "Lihat";
 
 /* Title for the button that confirms intent to delete your own post. */
-"your.post.deletepost.button" = "Hapus Unggahan";
+"your.post.deletepost.button" = "Hapus Postingan";
 
 /* Post deletion confirmation. Displayed as action sheet title. */
-"your.post.deletepost.confirmation" = "Hapus unggahan ini? Tindakan ini tak bisa dibatalkan.";
+"your.post.deletepost.confirmation" = "Hapus postingan ini? Tindakan ini tidak dapat diurungkan.";
 
 /* Displayed when a post fails to delete */
 "your.post.deletepost.error" = "Kesalahan menghapus postingan";

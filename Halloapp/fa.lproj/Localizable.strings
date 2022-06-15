@@ -247,6 +247,9 @@
 /* Text shown on the camera screen when composing a new moment to unlock someone else's moment. */
 "camera.moment.unlock.subtitle" = "برای مشاهده لحظه @%، لحظه خودتان را به اشتراک بگذارید";
 
+/* Title of alert for when the app does not have permissions to access the camera. */
+"camera.permissions.title" = "دسترسی به دوربین";
+
 /* No comment provided by engineer. */
 "Cancel" = "لغو";
 
@@ -997,10 +1000,6 @@
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.camera.access.request" = "هالواپ دسترسی به دوربین شما ندارد. برای راه‌اندازی آن، به تنظیمات بروید و دوربین را فعال کنید";
 
-/* Label indicating that the camera is in photo mode
-   Label indicating that the camera is in video mode */
-"media.camera.mode.photo" = "ویدیو";
-
 /* Confirmation prompt in media composer. */
 "media.discard.confirmation" = "میخواهید ویرایش را لغو کنید؟";
 
@@ -1660,6 +1659,9 @@
 
 /* Timestamp: `Yesterday` */
 "timestamp.yesterday" = "دیروز";
+
+/* Camera screen title */
+"title.camera" = "دوربین";
 
 /* Camera screen title for a new moment */
 "title.camera.moment" = "لحظه جدید";

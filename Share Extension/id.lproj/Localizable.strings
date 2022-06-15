@@ -11,10 +11,10 @@
 "button.add" = "Tambah";
 
 /* Title for generic Cancel button. Mostly used in popups and as such. */
-"button.cancel" = "Batal";
+"button.cancel" = "Batalkan";
 
 /* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
-"button.cancel.capitalized" = "BATAL";
+"button.cancel.capitalized" = "BATALKAN";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Lanjut";
@@ -161,7 +161,7 @@
 "share.composer.destinations.label" = "Bagikan dengan";
 
 /* Placeholder for media caption. */
-"share.composer.placeholder" = "Tuliskan deskripsi";
+"share.composer.placeholder" = "Tulis deskripsi";
 
 /* Placeholder when sharing text only. */
 "share.composer.placeholder.text" = "Tuliskan unggahan";
