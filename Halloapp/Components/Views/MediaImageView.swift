@@ -260,7 +260,8 @@ class MediaImageView: UIImageView {
 
                 // Re-adjust alignment
                 let preferredOutputRect = CGRect(origin: .zero, size: naturalSize).applying(preferredTransform)
-                preferredTransform = preferredTransform.translatedBy(x: -preferredOutputRect.minX, y: -preferredOutputRect.minY)
+                preferredTransform.tx -= preferredOutputRect.minX
+                preferredTransform.ty -= preferredOutputRect.minY
 
                 // Adopted from https://developer.apple.com/library/archive/documentation/AudioVideo/Conceptual/AVFoundationPG/Articles/03_Editing.html#//apple_ref/doc/uid/TP40010188-CH8-SW1
                 let isPortrait = preferredTransform.a == 0 && [1, -1].contains(preferredTransform.b) && [1, -1].contains(preferredTransform.c) && preferredTransform.d == 0
