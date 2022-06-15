@@ -119,21 +119,13 @@ extension FeedPost: FeedPostDisplayable {
     }
 
     var canReplyPrivately: Bool {
-        var isContactInAddressBook = false
-        MainAppContext.shared.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-            isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userId, in: managedObjectContext)
-        }
-        
-        return isContactInAddressBook
+        return MainAppContext.shared.contactStore.isContactInAddressBook(userId: userId,
+                                                                         in: MainAppContext.shared.contactStore.viewContext)
     }
 
     var posterFullName: String {
-        var name = ""
-        MainAppContext.shared.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-            name = MainAppContext.shared.contactStore.fullName(for: userId, in: managedObjectContext)
-        }
-
-        return name
+        return MainAppContext.shared.contactStore.fullName(for: userID,
+                                                           in: MainAppContext.shared.contactStore.viewContext)
     }
 
     func userAvatar(using avatarStore: AvatarStore) -> UserAvatar {
@@ -144,6 +136,7 @@ extension FeedPost: FeedPostDisplayable {
 extension CommonLinkPreview: LinkPreviewDisplayable {
 
     var feedMedia: FeedMedia? {
-        return MainAppContext.shared.feedData.media(feedLinkPreviewID: id, in: MainAppContext.shared.feedData.viewContext)?.first
+        return MainAppContext.shared.feedData.media(feedLinkPreviewID: id,
+                                                    in: MainAppContext.shared.feedData.viewContext)?.first
     }
 }
