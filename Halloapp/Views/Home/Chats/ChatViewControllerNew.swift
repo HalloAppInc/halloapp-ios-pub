@@ -472,15 +472,14 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
         // Setup audio and video call buttons
         var rightBarButtons: [UIBarButtonItem] = []
-        
-        let phoneImage = UIImage(systemName: "phone.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))?.withTintColor(.primaryBlue).withTintColor(.primaryBlue)
+
+        let phoneImage = UIImage(named: "VoiceCall", in: nil, with: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))?.withTintColor(UIColor.primaryBlue, renderingMode: .alwaysOriginal)
         let phoneButton = UIBarButtonItem(image: phoneImage, style: .plain, target: self, action: #selector(audioCallButtonTapped))
         phoneButton.tintColor = .primaryBlue
         rightBarButtons.append(phoneButton)
 
-        let videoImage = UIImage(systemName: "video.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))?.withTintColor(.primaryBlue)
+        let videoImage = UIImage(named: "VideoCall", in: nil, with: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))?.withTintColor(UIColor.primaryBlue, renderingMode: .alwaysOriginal)
         let videoButton = UIBarButtonItem(image: videoImage, style: .plain, target: self, action: #selector(videoCallButtonTapped))
-        videoButton.tintColor = .primaryBlue
         rightBarButtons.append(videoButton)
 
         navigationItem.rightBarButtonItems = rightBarButtons
