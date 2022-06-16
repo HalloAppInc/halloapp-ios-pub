@@ -55,13 +55,24 @@ final class ProfileHeaderViewController: UIViewController, UserMenuHandler {
     func configureForCurrentUser(withName name: String) {
         headerView.avatarViewButton.avatarView.configure(with: MainAppContext.shared.userData.userId, using: MainAppContext.shared.avatarStore)
         headerView.name = name
-        headerView.phoneLabel.text = MainAppContext.shared.userData.formattedPhoneNumber
+        headerView.phoneButton.setTitle(MainAppContext.shared.userData.formattedPhoneNumber, for: .normal)
         headerView.userID = MainAppContext.shared.userData.userId
 
-        headerView.avatarViewButton.addTarget(self, action: #selector(editProfilePhoto), for: .touchUpInside)
+        headerView.avatarViewButton.configureWithMenu {
+            HAMenu.lazy { [weak self] in
+                return self?.editProfilePhotoMenu() ?? []
+            }
+        }
+        
         headerView.nameButton.addTarget(self, action: #selector(editName), for: .touchUpInside)
         
-        headerView.phoneLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(editName)))
+        headerView.phoneButton.configureWithMenu {
+            HAMenu {
+                HAMenuButton(title: Localizations.userOptionCopyPhoneNumber, image: UIImage(systemName: "doc.on.doc")) { [weak self] in
+                    self?.copyNumber()
+                }
+            }
+        }
     }
 
     func configureOrRefresh(userID: UserID) {
@@ -74,19 +85,24 @@ final class ProfileHeaderViewController: UIViewController, UserMenuHandler {
         headerView.isBlocked = isBlocked(userId: userID)
         headerView.isInAddressBook = isContactInAddressBook
         headerView.isOwnProfile = userID == MainAppContext.shared.userData.userId
-        var showPhoneLabel = false
+        var showPhoneButton = false
 
         if let phoneNumber = MainAppContext.shared.contactStore.normalizedPhoneNumber(for: userID, using: MainAppContext.shared.contactStore.viewContext) {
-            headerView.phoneLabel.text = phoneNumber.formattedPhoneNumber
-            showPhoneLabel = true
+            headerView.phoneButton.setTitle(phoneNumber.formattedPhoneNumber, for: .normal)
+            showPhoneButton = true
         }
 
-        if showPhoneLabel {
-            headerView.phoneLabel.isUserInteractionEnabled = true
-            headerView.phoneLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(copyPhoneNumber)))
+        if showPhoneButton {
+            headerView.phoneButton.configureWithMenu {
+                HAMenu {
+                    HAMenuButton(title: Localizations.userOptionCopyPhoneNumber, image: UIImage(systemName: "doc.on.doc")) { [weak self] in
+                        self?.copyNumber()
+                    }
+                }
+            }
         }
 
-        headerView.phoneLabel.isHidden = !showPhoneLabel
+        headerView.phoneButton.isHidden = !showPhoneButton
         headerView.avatarViewButton.addTarget(self, action: #selector(avatarViewTapped), for: .touchUpInside)
     }
           
@@ -129,47 +145,28 @@ final class ProfileHeaderViewController: UIViewController, UserMenuHandler {
     }
     
     private func copyNumber() {
-        UIPasteboard.general.string = headerView.phoneLabel.text
+        UIPasteboard.general.string = headerView.phoneButton.title(for: .normal)
     }
-    
-    @objc private func copyPhoneNumber() {
-        let title = MainAppContext.shared.contactStore.fullName(for: headerView.userID ?? "", in: MainAppContext.shared.contactStore.viewContext)
-        let alert = UIAlertController(title: title, message: nil, preferredStyle: .actionSheet)
-
-        let copyNumberAction = UIAlertAction(title: Localizations.userOptionCopyPhoneNumber, style: .default) { [weak self] _ in
-            self?.copyNumber()
-        }
-        alert.addAction(copyNumberAction)
-
-        let cancel = UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
-        alert.view.tintColor = .systemBlue
-        alert.addAction(cancel)
-
-        present(alert, animated: true)
-    }
-    
 
     // MARK: Profile Photo Editing
 
-    @objc private func editProfilePhoto() {
-        guard headerView.avatarViewButton.avatarView.hasImage else {
-            presentPhotoPicker()
-            return
+    @HAMenuContentBuilder
+    private func editProfilePhotoMenu() -> HAMenu.Content {
+        if headerView.avatarViewButton.avatarView.hasImage {
+            HAMenuButton(title: Localizations.viewPhoto) { [weak self] in
+                self?.presentAvatar()
+            }
         }
-
-        let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        actionSheet.addAction(UIAlertAction(title: Localizations.viewPhoto, style: .default) { _ in
-            self.presentAvatar()
-        })
         
-        actionSheet.addAction(UIAlertAction(title: Localizations.takeOrChoosePhoto, style: .default) { _ in
-            self.presentPhotoPicker()
-        })
-        actionSheet.addAction(UIAlertAction(title: Localizations.deletePhoto, style: .destructive) { _ in
-            self.promptToDeleteProfilePhoto()
-        })
-        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
-        present(actionSheet, animated: true)
+        HAMenuButton(title: Localizations.takeOrChoosePhoto) { [weak self] in
+            self?.presentPhotoPicker()
+        }
+        
+        if headerView.avatarViewButton.avatarView.hasImage {
+            HAMenuButton(title: Localizations.deletePhoto) { [weak self] in
+                self?.promptToDeleteProfilePhoto()
+            }.destructive()
+        }
     }
     
     @objc private func avatarViewTapped() {
@@ -304,7 +301,7 @@ private final class ProfileHeaderView: UIView {
     private(set) var avatarViewButton: AvatarViewButton!
     private(set) var nameButton: UIButton!
     private var nameLabel: UILabel!
-    private(set) var phoneLabel: UILabel!
+    private(set) var phoneButton: UIButton!
 
     var isEditingAllowed: Bool = false {
         didSet {
@@ -429,12 +426,12 @@ private final class ProfileHeaderView: UIView {
         nameButton.titleEdgeInsets = UIEdgeInsets(top: .leastNormalMagnitude, left: .leastNormalMagnitude, bottom: .leastNormalMagnitude, right: .leastNormalMagnitude)
         nameButton.contentEdgeInsets = UIEdgeInsets(top: .leastNormalMagnitude, left: .leastNormalMagnitude, bottom: .leastNormalMagnitude, right: .leastNormalMagnitude)
 
-        phoneLabel = UILabel()
-        phoneLabel.numberOfLines = 1
-        phoneLabel.textColor = .secondaryLabel
-        phoneLabel.textAlignment = .left
-        phoneLabel.font = .systemFont(forTextStyle: .callout, maximumPointSize: Constants.MaxFontPointSize - 2)
-        phoneLabel.adjustsFontForContentSizeCategory = true
+        phoneButton = UIButton(type: .system)
+        phoneButton.setTitleColor(.secondaryLabel, for: .normal)
+        phoneButton.titleLabel?.numberOfLines = 1
+        phoneButton.titleLabel?.textAlignment = .left
+        phoneButton.titleLabel?.font = .systemFont(forTextStyle: .callout, maximumPointSize: Constants.MaxFontPointSize - 2)
+        phoneButton.titleLabel?.adjustsFontForContentSizeCategory = true
 
         addSubview(vStack)
         vStackTopAnchorConstraint = vStack.topAnchor.constraint(equalTo: self.topAnchor, constant: 32)
@@ -457,11 +454,11 @@ private final class ProfileHeaderView: UIView {
     }()
     
     private lazy var nameColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ nameLabel, nameButton, phoneLabel, actionPanel, unblockButton ])
+        let view = UIStackView(arrangedSubviews: [ nameLabel, nameButton, phoneButton, actionPanel, unblockButton ])
         view.axis = .vertical
         view.alignment = .center
         view.spacing = 5
-        view.setCustomSpacing(22, after: phoneLabel)
+        view.setCustomSpacing(22, after: phoneButton)
         
         view.translatesAutoresizingMaskIntoConstraints = false
     

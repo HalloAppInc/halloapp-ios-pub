@@ -1077,24 +1077,20 @@ extension FlatCommentsViewController: ContentInputDelegate {
     func inputViewDidSelectCamera(_ inputView: ContentInputView) {
         presentCameraViewController()
     }
-
-    func inputViewDidSelectContentOptions(_ inputView: ContentInputView) {
-        let action = ActionSheetViewController(title: "", message: "")
+    
+    func inputViewContentOptionsMenu(_ inputView: ContentInputView) -> HAMenu.Content {
         let cameraImage = UIImage(systemName: "camera.fill")?.withRenderingMode(.alwaysOriginal)
                                                              .withTintColor(.primaryBlue)
         let pickerImage = UIImage(systemName: "photo.fill.on.rectangle.fill")?.withRenderingMode(.alwaysOriginal)
                                                                               .withTintColor(.primaryBlue)
-
-        action.addAction(ActionSheetAction(title: Localizations.fabAccessibilityCamera, image: cameraImage, style: .default) { _ in
-            self.presentCameraViewController()
-        })
-
-        action.addAction(ActionSheetAction(title: Localizations.photoAndVideoLibrary, image: pickerImage, style: .default) { _ in
-            self.presentMediaPicker()
-        })
-
-        action.addAction(ActionSheetAction(title: Localizations.buttonCancel, style: .cancel))
-        present(action, animated: true)
+        
+        HAMenuButton(title: Localizations.fabAccessibilityCamera, image: cameraImage) { [weak self] in
+            self?.presentCameraViewController()
+        }
+        
+        HAMenuButton(title: Localizations.photoAndVideoLibrary, image: pickerImage) { [weak self] in
+            self?.presentMediaPicker()
+        }
     }
 
     private func presentCameraViewController() {

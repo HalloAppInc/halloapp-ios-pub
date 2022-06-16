@@ -24,7 +24,7 @@ class FeedPostView: UIView {
 
     var showUserAction: ((UserID) -> ())?
     var showGroupFeedAction: ((GroupID) -> ())?
-    var showMoreAction: ((UserID) -> ())?
+    var moreMenuContent: () -> HAMenu.Content = { [] }
     var commentAction: (() -> ())?
     var messageAction: (() -> ())?
     var showSeenByAction: (() -> ())?
@@ -234,9 +234,8 @@ class FeedPostView: UIView {
             guard let groupID = post.groupId else { return }
             self?.showGroupFeedAction?(groupID)
         }
-        headerView.showMoreAction = { [weak self] in
-            guard let self = self, let showMoreAction = self.showMoreAction else { return }
-            showMoreAction(post.userId)
+        headerView.moreMenuContent = { [weak self] in
+            return self?.moreMenuContent() ?? []
         }
         itemContentView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, displayData: displayData)
         itemContentView.didChangeMediaIndex = { [weak self] index in

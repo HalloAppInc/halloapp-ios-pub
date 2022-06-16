@@ -140,8 +140,7 @@ extension UserMenuHandler where Self: UIViewController {
 }
 
 // MARK: - creating menus
-
-extension UIMenu {
+extension HAMenu {
     struct UserMenuOptions: OptionSet {
         let rawValue: Int
         /// `.message` and `.call` actions.
@@ -156,28 +155,25 @@ extension UIMenu {
     /**
      Create a menu for a specific user.
      
-     - Returns: `nil` if `userID` is equal to the user's own id.
+     - Returns: An empty menu if `userID` is equal to the user's own id.
      */
-    static func menu(for userID: UserID, options: UserMenuOptions = .all, handler: @escaping (UserMenuAction) -> Void) -> UIMenu? {
+    static func actionsForUser(id userID: UserID, options: UserMenuOptions = .all, handler: @escaping @MainActor @Sendable (UserMenuAction) async -> Void) -> HAMenu {
         guard userID != MainAppContext.shared.userData.userId else {
-            return nil
+            return HAMenu { }.displayInline()
         }
-        
-        var items = [UIMenuElement]()
-        
-        if options.contains(.contactActions), let contactMenu = contactMenu(for: userID, handler: handler) {
-            items.append(contactMenu)
-        }
-        
-        if options.contains(.utilityActions) {
-            items.append(utilityMenu(for: userID, handler: handler))
-        }
-        
-        if options.contains(.blockAction) {
-            items.append(blockMenu(for: userID, handler: handler))
-        }
-        
-        return UIMenu(title: "", options: .displayInline, children: items)
+        return HAMenu {
+            if options.contains(.contactActions), let contactMenu = contactMenu(for: userID, handler: handler) {
+                contactMenu
+            }
+            
+            if options.contains(.utilityActions) {
+                utilityMenu(for: userID, handler: handler)
+            }
+            
+            if options.contains(.blockAction) {
+                blockMenu(for: userID, handler: handler)
+            }
+        }.displayInline()
     }
     
     /**
@@ -185,81 +181,76 @@ extension UIMenu {
      
      - Returns: `nil` if `userID` isn't in the contact store.
      */
-    private static func contactMenu(for userID: UserID, handler: @escaping (UserMenuAction) -> Void) -> UIMenu? {
+    private static func contactMenu(for userID: UserID, handler: @escaping @MainActor @Sendable (UserMenuAction) async -> Void) -> HAMenu? {
         let viewContext = MainAppContext.shared.contactStore.viewContext
         guard MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID, in: viewContext) else {
             return nil
         }
         
-        var items = [UIMenuElement]()
-        items.append(UIAction(title: Localizations.contextMenuMessageUser, image: .init(systemName: "message")) { _ in
-            handler(.message(userID))
-        })
-        
-        items.append(UIAction(title: Localizations.contextMenuAudioCall, image: .init(systemName: "phone")) { _ in
-            handler(.call(userID, .audio))
-        })
-        
-        items.append(UIAction(title: Localizations.contextMenuVideoCall, image: .init(systemName: "video")) { _ in
-            handler(.call(userID, .video))
-        })
-        
-        return UIMenu(title: "", options: .displayInline, children: items)
+        return HAMenu {
+            HAMenuButton(title: Localizations.contextMenuMessageUser, image: .init(systemName: "message")) {
+                await handler(.message(userID))
+            }
+            
+            HAMenuButton(title: Localizations.contextMenuAudioCall, image: .init(systemName: "phone")) {
+                await handler(.call(userID, .audio))
+            }
+            
+            HAMenuButton(title: Localizations.contextMenuVideoCall, image: .init(systemName: "video")) {
+                await handler(.call(userID, .video))
+            }
+        }.displayInline()
     }
     
     /**
      Get the second part of the menu that includes `.addContact`, `.safetyNumber`, and `.commonGroups`.
      */
-    private static func utilityMenu(for userID: UserID, handler: @escaping (UserMenuAction) -> Void) -> UIMenu {
-        var items = [UIMenuElement]()
-        let shouldAllowContactsAdd = !MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID, in: MainAppContext.shared.contactStore.viewContext) &&
-                                      MainAppContext.shared.contactStore.pushNumber(userID) != nil
-        
-        // add to contacts
-        if shouldAllowContactsAdd {
-            items.append(UIAction(title: Localizations.addToContactBook,
-                                  image: UIImage(systemName: "person.badge.plus")) { _ in
-                handler(.addContact(userID))
-            })
-        }
-        
-        // verify safety number
-        let context = MainAppContext.shared
-        if let keys = context.keyStore.keyBundle(in: MainAppContext.shared.keyStore.viewContext),
-           let bundle = context.keyStore.messageKeyBundle(for: userID, in: MainAppContext.shared.keyStore.viewContext)?.keyBundle,
-           let data = SafetyNumberData(keyBundle: bundle) {
+    private static func utilityMenu(for userID: UserID, handler: @escaping @MainActor @Sendable (UserMenuAction) async -> Void) -> HAMenu {
+        HAMenu {
+            let shouldAllowContactsAdd = !MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID, in: MainAppContext.shared.contactStore.viewContext) &&
+                                          MainAppContext.shared.contactStore.pushNumber(userID) != nil
             
-            items.append(UIAction(title: Localizations.safetyNumberTitle, image: UIImage(systemName: "number")) { _ in
-                handler(.safetyNumber(userID, contactData: data, bundle: keys))
-            })
-        }
-        
-        // groups in common
-        items.append(UIAction(title: Localizations.groupsInCommonButtonLabel,
-                              image: UIImage(named: "TabBarGroups")?.withTintColor(.label, renderingMode: .alwaysOriginal)) { _ in
-            handler(.commonGroups(userID))
-        })
-        
-        return UIMenu(title: "", options: .displayInline, children: items)
+            // add to contacts
+            if shouldAllowContactsAdd {
+                HAMenuButton(title: Localizations.addToContactBook, image: UIImage(systemName: "person.badge.plus")) {
+                    await handler(.addContact(userID))
+                }
+            }
+            
+            // verify safety number
+            let context = MainAppContext.shared
+            if let keys = context.keyStore.keyBundle(in: MainAppContext.shared.keyStore.viewContext),
+               let bundle = context.keyStore.messageKeyBundle(for: userID, in: MainAppContext.shared.keyStore.viewContext)?.keyBundle,
+               let data = SafetyNumberData(keyBundle: bundle) {
+                
+                HAMenuButton(title: Localizations.safetyNumberTitle, image: UIImage(systemName: "number")) {
+                    await handler(.safetyNumber(userID, contactData: data, bundle: keys))
+                }
+            }
+            
+            // groups in common
+            HAMenuButton(title: Localizations.groupsInCommonButtonLabel, image: UIImage(named: "TabBarGroups")?.withTintColor(.label, renderingMode: .alwaysOriginal)) {
+                await handler(.commonGroups(userID))
+            }
+        }.displayInline()
     }
     
     /**
      Get the last part of the menu that includes either `.block` or `.unblock`.
      */
-    private static func blockMenu(for userID: UserID, handler: @escaping (UserMenuAction) -> Void) -> UIMenu {
-        let isBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(userID)
-        
-        var block: UIAction!
-        if !isBlocked {
-            block = UIAction(title: Localizations.userOptionBlock, image: .init(systemName: "nosign"), attributes: .destructive) { _ in
-                handler(.block(userID))
+    private static func blockMenu(for userID: UserID, handler: @escaping @MainActor @Sendable (UserMenuAction) async -> Void) -> HAMenu {
+        HAMenu {
+            let isBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(userID)
+            
+            if !isBlocked {
+                HAMenuButton(title: Localizations.userOptionBlock, image: .init(systemName: "nosign")) {
+                    await handler(.block(userID))
+                }.destructive()
+            } else {
+                HAMenuButton(title: Localizations.userOptionUnblock, image: .init(systemName: "nosign")) {
+                    await handler(.unblock(userID))
+                }
             }
-        } else {
-            block = UIAction(title: Localizations.userOptionUnblock, image: .init(systemName: "nosign")) { _ in
-                handler(.unblock(userID))
-            }
-        }
-        
-        return UIMenu(title: "", options: .displayInline, children: [block])
+        }.displayInline()
     }
 }

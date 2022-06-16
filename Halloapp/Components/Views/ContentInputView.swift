@@ -19,7 +19,7 @@ protocol ContentInputDelegate: AnyObject {
     func inputView(_ inputView: ContentInputView, didChangeHeightTo height: CGFloat)
     func inputView(_ inputView: ContentInputView, didClose panel: InputContextPanel)
     func inputViewDidSelectCamera(_ inputView: ContentInputView)
-    func inputViewDidSelectContentOptions(_ inputView: ContentInputView)
+    @HAMenuContentBuilder func inputViewContentOptionsMenu(_ inputView: ContentInputView) -> HAMenu.Content
     func inputView(_ inputView: ContentInputView, didPaste image: PendingMedia)
     func inputView(_ inputView: ContentInputView, didTap selectedMedia: PendingMedia)
     
@@ -37,7 +37,7 @@ extension ContentInputDelegate {
     func inputView(_ inputView: ContentInputView, didChangeHeightTo height: CGFloat) { }
     func inputView(_ inputView: ContentInputView, didClose panel: InputContextPanel) { }
     func inputViewDidSelectCamera(_ inputView: ContentInputView) { }
-    func inputViewDidSelectContentOptions(_ inputView: ContentInputView) { }
+    @HAMenuContentBuilder func inputViewContentOptionsMenu(_ inputView: ContentInputView) -> HAMenu.Content { }
     func inputView(_ inputView: ContentInputView, didPaste image: PendingMedia) { }
     func inputView(_ inputView: ContentInputView, didTap selectedMedia: PendingMedia) { }
 
@@ -303,7 +303,12 @@ class ContentInputView: UIView {
         let config = UIImage.SymbolConfiguration(pointSize: 21, weight: .medium)
         let image = UIImage(systemName: "plus")?.withConfiguration(config)
         button.setImage(image, for: .normal)
-        button.addTarget(self, action: #selector(tappedShareOptions), for: .touchUpInside)
+        button.configureWithMenu {
+            HAMenu.lazy { [weak self] in
+                guard let self = self, let delegate = self.delegate else { return [] }
+                return delegate.inputViewContentOptionsMenu(self)
+            }
+        }
         
         button.setContentHuggingPriority(.required, for: .horizontal)
         button.setContentCompressionResistancePriority(.required, for: .horizontal)
@@ -803,11 +808,6 @@ extension ContentInputView {
     @objc
     private func tappedLibrary(_ button: UIButton) {
         delegate?.inputViewDidSelectCamera(self)
-    }
-    
-    @objc
-    private func tappedShareOptions(_ button: UIButton) {
-        delegate?.inputViewDidSelectContentOptions(self)
     }
     
     @objc

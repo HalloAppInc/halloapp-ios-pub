@@ -25,7 +25,7 @@ class MomentCollectionViewCell: UICollectionViewCell {
         let view = FeedItemHeaderView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.showUserAction = { [weak self] in self?.showUserAction?() }
-        view.showMoreAction = { [weak self] in self?.showMoreAction?() }
+        view.moreMenuContent = { [weak self] in self?.moreMenuContent() ?? [] }
         return view
     }()
 
@@ -49,7 +49,7 @@ class MomentCollectionViewCell: UICollectionViewCell {
 
     var openAction: (() -> Void)?
     var showUserAction: (() -> Void)?
-    var showMoreAction: (() -> Void)?
+    var moreMenuContent: () -> HAMenu.Content = { [] }
     var showSeenByAction: (() -> Void)?
     
     override init(frame: CGRect) {

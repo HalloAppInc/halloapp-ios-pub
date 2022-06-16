@@ -867,8 +867,8 @@ extension FeedCollectionViewController {
             self?.showUserFeed(for: feedPost.userId)
         }
 
-        cell.showMoreAction = { [weak self, feedPost] in
-            self?.showMoreMenu(for: feedPost)
+        cell.moreMenuContent = { [weak self] in
+            self?.moreMenu(for: feedPost) ?? []
         }
 
         cell.showSeenByAction = { [weak self, feedPost] in
@@ -910,8 +910,8 @@ extension FeedCollectionViewController {
             guard let self = self else { return }
             self.showGroupFeed(for: groupID)
         }
-        cell.showMoreAction = { [weak self] userID in
-            self?.showMoreMenu(for: feedPost)
+        cell.moreMenuContent = { [weak self] in
+            self?.moreMenu(for: feedPost) ?? []
         }
         cell.showPrivacyAction = { [weak self] in
             guard let self = self else { return }
@@ -959,32 +959,20 @@ extension FeedCollectionViewController {
         cell.delegate = self
     }
 
-    private func showMoreMenu(for feedPost: FeedPost) {
-        let menu = FeedPostMenuViewController.Menu {
-            if feedPost.hasSaveablePostMedia, feedPost.canSaveMedia {
-                FeedPostMenuViewController.Section {
-                    FeedPostMenuViewController.Item(style: .standard,
-                                                    icon: UIImage(systemName: "photo.on.rectangle.angled"),
-                                                    title: feedPost.media?.count ?? 0 > 1 ?
-                                                        Localizations.saveAllButton :
-                                                        Localizations.saveAllButtonSingular) { [weak self] _ in
-                        self?.savePostMedia(feedPost: feedPost)
-                    }
-                }
-            }
-
-            if feedPost.canDeletePost {
-                FeedPostMenuViewController.Section {
-                    FeedPostMenuViewController.Item(style: .destructive,
-                                                    icon: UIImage(systemName: "trash"),
-                                                    title: Localizations.deletePostButtonTitle) { [weak self] _ in
-                        self?.handleDeletePostTapped(postId: feedPost.id)
-                    }
-                }
+    @HAMenuContentBuilder
+    private func moreMenu(for feedPost: FeedPost) -> HAMenu.Content {
+        if feedPost.hasSaveablePostMedia, feedPost.canSaveMedia {
+            let title = (feedPost.media?.count ?? 0) > 1 ? Localizations.saveAllButton : Localizations.saveAllButtonSingular
+            HAMenuButton(title: title, image: UIImage(systemName: "photo.on.rectangle.angled")) { [weak self] in
+                self?.savePostMedia(feedPost: feedPost)
             }
         }
 
-        present(FeedPostMenuViewController(menu: menu), animated: true)
+        if feedPost.canDeletePost {
+            HAMenuButton(title: Localizations.deletePostButtonTitle, image: UIImage(systemName: "trash")) { [weak self] in
+                self?.handleDeletePostTapped(postId: feedPost.id)
+            }.destructive()
+        }
     }
 
     private func savePostMedia(feedPost: FeedPost) {

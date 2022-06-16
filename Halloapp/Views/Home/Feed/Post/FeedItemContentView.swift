@@ -386,8 +386,17 @@ final class FeedItemHeaderView: UIView {
 
     var showUserAction: (() -> ())? = nil
     var showGroupFeedAction: (() -> ())? = nil
-    var showMoreAction: (() -> ())? = nil
     var showPrivacyAction: (() -> ())? = nil
+    
+    var moreMenuContent: () -> HAMenu.Content = { [] } {
+        didSet {
+            moreButton.configureWithMenu {
+                HAMenu.lazy { [weak self] in
+                    return self?.moreMenuContent() ?? []
+                }
+            }
+        }
+    }
 
     private var contentSizeCategoryDidChangeCancellable: AnyCancellable!
 
@@ -508,7 +517,6 @@ final class FeedItemHeaderView: UIView {
         button.targetIncrease = 15
         button.setImage(image, for: .normal)
         button.tintColor = .label
-        button.addTarget(self, action: #selector(showMoreTapped), for: .touchUpInside)
         button.setContentHuggingPriority(.required, for: .horizontal)
         button.setContentHuggingPriority(.required, for: .vertical)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -543,12 +551,6 @@ final class FeedItemHeaderView: UIView {
         contentStackView.translatesAutoresizingMaskIntoConstraints = false
         return contentStackView
     }()
-
-    @objc private func showMoreTapped() {
-        if let action = showMoreAction {
-            action()
-        }
-    }
     
     @objc private func showPrivacyIndicatorTapped() {
         showPrivacyAction?()

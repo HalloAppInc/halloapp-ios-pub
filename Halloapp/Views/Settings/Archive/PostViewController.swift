@@ -172,40 +172,36 @@ extension PostViewController: UIGestureRecognizerDelegate {
 
 // MARK: Post Actions
 extension PostViewController {
+    @HAMenuContentBuilder
+    private func moreMenu() -> HAMenu.Content {
+        if post.hasSaveablePostMedia && post.canSaveMedia {
+            let saveMediaTitle = post.mediaCount > 1 ? Localizations.saveAllButton : Localizations.saveAllButtonSingular
+            HAMenuButton(title: saveMediaTitle) {
+                PHPhotoLibrary.requestAuthorization { status in
+                    switch status {
+                    case .authorized, .limited:
+                        self.saveMedia()
+                    default:
+                        self.mediaAuthorizationFailed()
+                    }
+                }
+            }
+        }
+
+        if post.canDeletePost {
+            HAMenuButton(title: Localizations.deletePostButtonTitle) { [weak self] in
+                self?.deletePost()
+            }.destructive()
+        }
+    }
+    
     private func setupPostActions() {
         postView.showUserAction = { [weak self] userId in
             self?.navigationController?.pushViewController(UserFeedViewController(userId: userId), animated: true)
         }
 
-        postView.showMoreAction = { [weak self] userId in
-            guard let self = self else { return }
-
-            let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-
-            if self.post.hasSaveablePostMedia && self.post.canSaveMedia {
-                let saveMediaTitle = self.post.mediaCount > 1 ? Localizations.saveAllButton : Localizations.saveAllButtonSingular
-
-                alert.addAction(UIAlertAction(title: saveMediaTitle, style: .default, handler:  { _ in
-                    PHPhotoLibrary.requestAuthorization { status in
-                        switch status {
-                        case .authorized, .limited:
-                            self.saveMedia()
-                        default:
-                            self.mediaAuthorizationFailed()
-                        }
-                    }
-                }))
-            }
-
-            if self.post.canDeletePost {
-                alert.addAction(UIAlertAction(title: Localizations.deletePostButtonTitle, style: .destructive) { _ in
-                    self.deletePost()
-                })
-            }
-
-            alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil))
-
-            self.present(alert, animated: true)
+        postView.moreMenuContent = { [weak self] in
+            return self?.moreMenu() ?? []
         }
         
         postView.contextAction = { [weak self] action in

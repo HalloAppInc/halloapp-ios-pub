@@ -140,74 +140,11 @@ class UserFeedViewController: FeedCollectionViewController {
     }
     
     private func setupMoreButton() {
-        if #available(iOS 14, *) {
-            // use new menu style if we can
-            navigationItem.rightBarButtonItem = UIBarButtonItem(title: nil,
-                                                                image: UIImage(systemName: "ellipsis"),
-                                                                 menu: UIMenu.menu(for: userId, options: [.utilityActions, .blockAction]) { [weak self] action in
-                self?.handle(action: action)
-            })
-        } else {
-            // TODO: remove this once iOS 13 is no longer supported
-            navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis"),
-                                                                style: .plain, target: self,
-                                                               action: #selector(moreButtonTapped))
-        }
-    }
-    
-    @objc func moreButtonTapped() {
-        guard !isOwnFeed else { return }
-
-        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
-        let alert = ActionSheetViewController(title: MainAppContext.shared.contactStore.fullName(for: userId, in: contactsViewContext), message: nil)
-
-        /* Add to Contact Book */
-        let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userId, in: MainAppContext.shared.contactStore.viewContext)
-        let pushNumberExist = MainAppContext.shared.contactStore.pushNumber(userId) != nil
-
-        if !isContactInAddressBook, pushNumberExist {
-            let action = UserMenuAction.addContact(userId)
-            let addToContactBookAction = ActionSheetAction(title: Localizations.addToContactBook, style: .default) { [weak self] _ in
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis")) {
+            HAMenu.actionsForUser(id: userId, options: [.utilityActions, .blockAction]) { [weak self] action in
                 self?.handle(action: action)
             }
-            alert.addAction(addToContactBookAction)
         }
-
-        /* Verify Safety Number */
-        if let userKeys = MainAppContext.shared.keyStore.keyBundle(in: MainAppContext.shared.keyStore.viewContext),
-           let contactKeyBundle = MainAppContext.shared.keyStore.messageKeyBundle(for: userId, in: MainAppContext.shared.keyStore.viewContext)?.keyBundle,
-           let contactData = SafetyNumberData(keyBundle: contactKeyBundle)
-        {
-            let action = UserMenuAction.safetyNumber(self.userId, contactData: contactData, bundle: userKeys)
-            let verifySafetyNumberAction = ActionSheetAction(title: Localizations.safetyNumberTitle, style: .default) { [weak self] _ in
-                self?.handle(action: action)
-            }
-            alert.addAction(verifySafetyNumberAction)
-        }
-
-        let groupCommonAction = ActionSheetAction(title: Localizations.groupsInCommonButtonLabel, style: .default) { [weak self, userId] _ in
-            self?.handle(action: UserMenuAction.commonGroups(userId))
-        }
-        alert.addAction(groupCommonAction)
-
-        /* Block on HalloApp */
-        if isUserBlocked {
-            let unblockUserAction = ActionSheetAction(title: Localizations.userOptionUnblock, style: .destructive) { [weak self, userId] _ in
-                self?.handle(action: .unblock(userId))
-            }
-            alert.addAction(unblockUserAction)
-        } else {
-            let blockUserAction = ActionSheetAction(title: Localizations.userOptionBlock, style: .destructive) { [weak self, userId] _ in
-                self?.handle(action: .block(userId))
-            }
-            alert.addAction(blockUserAction)
-        }
-
-        let cancel = ActionSheetAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
-
-        alert.addAction(cancel)
-
-        present(alert, animated: true)
     }
 
     override func showGroupName() -> Bool {

@@ -24,7 +24,7 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
 
     var showUserAction: ((UserID) -> ())?
     var showGroupFeedAction: ((GroupID) -> ())?
-    var showMoreAction: ((UserID) -> ())?
+    var moreMenuContent: () -> HAMenu.Content = { [] }
     var showPrivacyAction: (() -> ())?
     var commentAction: (() -> ())?
     var messageAction: (() -> ())?
@@ -216,9 +216,8 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
             guard let groupID = post.groupId else { return }
             self?.showGroupFeedAction?(groupID)
         }
-        headerView.showMoreAction = { [weak self] in
-            guard let self = self, let showMoreAction = self.showMoreAction else { return }
-            showMoreAction(post.userId)
+        headerView.moreMenuContent = { [weak self] in
+            self?.moreMenuContent() ?? []
         }
         headerView.showPrivacyAction = { [weak self] in
             self?.showPrivacyAction?()

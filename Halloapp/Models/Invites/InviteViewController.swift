@@ -322,14 +322,6 @@ extension InviteViewController: UICollectionViewDelegate, UICollectionViewDelega
         }
         return UIEdgeInsets(top: 0, left: 20, bottom: 15, right: 20)
     }
-
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-
-        guard let contact = dataSource.itemIdentifier(for: indexPath) else { return }
-        guard let inviteContact = contact as? InviteContact, inviteContact.userID == nil else { return }
-
-        showInviteContactActionSheet(for: inviteContact)
-    }
 }
 
 extension InviteViewController: UISearchResultsUpdating {
@@ -377,7 +369,7 @@ final class InviteCollectionViewCell: UICollectionViewCell {
     let topDivider = UIView()
 
     func configure( with contact: InviteContact,
-                    actions: InviteActions?,
+                    actions: InviteActions,
                     visitedActions: Set<InviteActionType>,
                     showDividers: Bool,
                     isTopDividerHidden: Bool,
@@ -394,8 +386,6 @@ final class InviteCollectionViewCell: UICollectionViewCell {
 }
 
 final class InviteCellView: UIView {
-
-    var action: InviteAction?
 
     private var isFirst: Bool = false
     private var isLast: Bool = false
@@ -418,7 +408,7 @@ final class InviteCellView: UIView {
         roundCorners(corner, radius: 13)
     }
 
-    func configure(with contact: InviteContact, actions: InviteActions?, visitedActions: Set<InviteActionType>, isFirstCell: Bool = false, isLastCell: Bool = false) {
+    func configure(with contact: InviteContact, actions: InviteActions, visitedActions: Set<InviteActionType>, isFirstCell: Bool = false, isLastCell: Bool = false) {
         isFirst = isFirstCell
         isLast = isLastCell
 
@@ -438,15 +428,23 @@ final class InviteCellView: UIView {
         nameLabel.text = contact.fullName
         subtitleLabel.text = [secondLine, thirdLine].compactMap({ $0 }).joined(separator: "\n")
 
-        let actionTypes = actions?.types ?? []
-
-        let canInvite = actionTypes.contains(.sms) || actionTypes.contains(.whatsApp)
+        let canInvite = !actions.types.isEmpty
         inviteButton.isHidden = !canInvite
 
-        let haveInvitedBefore = visitedActions.contains(.sms) || visitedActions.contains(.whatsApp)
-        inviteButton.backgroundColor = haveInvitedBefore ? .systemGray : .primaryBlue
-
-        action = actions?.action
+        let haveInvitedBefore = !visitedActions.isEmpty
+        inviteButton.setBackgroundColor(haveInvitedBefore ? .systemGray : .primaryBlue, for: .normal)
+        
+        inviteButton.configureWithMenu {
+            HAMenu {
+                HAMenuButton(title: Localizations.appNameSMS) {
+                    actions.action(.sms)
+                }.disabled(!actions.types.contains(.sms))
+                
+                HAMenuButton(title: Localizations.appNameWhatsApp) {
+                    actions.action(.whatsApp)
+                }.disabled(!actions.types.contains(.whatsApp))
+            }
+        }
         
         layoutSubviews() // needed for rounded corners when reusing cell
     }
@@ -498,33 +496,18 @@ final class InviteCellView: UIView {
         return label
     }()
 
-    private lazy var inviteButton: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ inviteLabel ])
-        view.axis = .horizontal
-        view.alignment = .center
-        view.backgroundColor = UIColor.primaryBlue
-        view.layer.cornerRadius = 8
-
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15)
-        view.isLayoutMarginsRelativeArrangement = true
-
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.heightAnchor.constraint(greaterThanOrEqualToConstant: 42).isActive = true
-        return view
-    }()
-
-    private lazy var inviteLabel: UILabel = {
-        let label = UILabel()
-        label.backgroundColor = .clear
-        label.numberOfLines = 1 // setContentHuggingPriority will not be respected when set to 0
-        label.textAlignment = .center
-        label.font = .systemFont(ofSize: 15, weight: .semibold)
-        label.textColor = UIColor.primaryWhiteBlack
-        label.text = Localizations.buttonInvite
-
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-        return label
+    private let inviteButton: CapsuleButton = {
+        let button = CapsuleButton(type: .system)
+        button.setTitle(Localizations.buttonInvite, for: .normal)
+        button.setTitleColor(.white, for: .normal)
+        
+        button.clipsToBounds = true
+        button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        button.contentEdgeInsets = UIEdgeInsets(top: 7, left: 16, bottom: 9, right: 16)
+        button.titleLabel?.adjustsFontSizeToFitWidth = true
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .medium)
+        button.titleLabel?.minimumScaleFactor = 0.5
+        return button
     }()
 
     static var forSizing: InviteCellView {
@@ -532,6 +515,16 @@ final class InviteCellView: UIView {
         cell.nameLabel.text = " "
         cell.subtitleLabel.text = " \n \n "
         return cell
+    }
+}
+
+extension InviteCellView {
+    private final class CapsuleButton: UIButton {
+        override func layoutSubviews() {
+            super.layoutSubviews()
+            layer.cornerRadius = min(bounds.width, bounds.height) / 2.0
+            layer.cornerCurve = .continuous
+        }
     }
 }
 

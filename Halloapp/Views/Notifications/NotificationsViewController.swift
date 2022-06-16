@@ -43,7 +43,7 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         navigationItem.title = Localizations.titleActivity
         installAvatarBarButton()
 
-        let readAll = UIBarButtonItem(title: Localizations.readAll, style: .plain, target: self, action: #selector(markAllNotificationsRead))
+        let readAll = UIBarButtonItem(title: Localizations.readAll, buildMenu: readAllMenu)
         readAll.tintColor = .primaryBlue
         navigationItem.rightBarButtonItem = readAll
 
@@ -272,15 +272,13 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         dismiss(animated: true)
     }
 
-    @objc private func markAllNotificationsRead() {
-        let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        actionSheet.addAction(UIAlertAction(title: Localizations.markAllRead, style:.destructive) { _ in
-            MainAppContext.shared.feedData.markNotificationsAsRead()
-            
-            self.memoizeScrollPosition()
-        })
-        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
-        present(actionSheet, animated: true)
+    private func readAllMenu() -> HAMenu {
+        HAMenu {
+            HAMenuButton(title: Localizations.markAllRead) { [weak self] in
+                MainAppContext.shared.feedData.markNotificationsAsRead()
+                self?.memoizeScrollPosition()
+            }.destructive()
+        }
     }
     
     private func memoizeScrollPosition() {
