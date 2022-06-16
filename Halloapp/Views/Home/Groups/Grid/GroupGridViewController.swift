@@ -184,12 +184,15 @@ class GroupGridViewController: UIViewController {
                     self?.navigationController?.pushViewController(GroupFeedViewController(groupId: groupID), animated: true)
                 }
                 header.composeGroupPost = { [weak self] in
-                    let newPostViewController = NewPostViewController(source: .noMedia, destination: .groupFeed(groupID)) { [weak self] didPost in
-                        if let self = self {
-                            self.dismiss(animated: true)
-                            self.dataSource.reloadSnapshot(animated: true)
+                    var viewControllerToDismiss: UIViewController?
+                    let newPostViewController = NewPostViewController(source: .noMedia, destination: .groupFeed(groupID)) { didPost in
+                        guard let viewControllerToDismiss = viewControllerToDismiss else {
+                            DDLogError("GroupGridViewController/Missing NewPostViewController to dismiss")
+                            return
                         }
+                        viewControllerToDismiss.dismiss(animated: true)
                     }
+                    viewControllerToDismiss = newPostViewController
                     newPostViewController.modalPresentationStyle = .fullScreen
                     self?.present(newPostViewController, animated: true)
                 }
@@ -321,7 +324,7 @@ extension GroupGridViewController: UIViewControllerScrollsToTop {
 
     func scrollToTop(animated: Bool) {
         collectionView.setContentOffset(CGPoint(x: 0.0, y: -collectionView.adjustedContentInset.top), animated: animated)
-        collectionView.scrollEmbeddedOrthoginalScrollViewsToOrigin(animated: true)
+        collectionView.scrollEmbeddedOrthoginalScrollViewsToOrigin(animated: animated)
     }
 }
 
