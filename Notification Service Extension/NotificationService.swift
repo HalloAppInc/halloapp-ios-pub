@@ -27,6 +27,7 @@ class NotificationService: UNNotificationServiceExtension  {
                        appTarget: AppTarget.notificationExtension)
     }()
 
+    private let processingQueue = DispatchQueue(label: "NotificationService", qos: .default)
     // NSE can run upto 30 seconds in most cases and 10 seconds should usually be good enough.
     private lazy var extensionRunTimeSec = ServerProperties.nseRuntimeSec
     let finalCleanupRunTimeSec = 3.0
@@ -65,7 +66,7 @@ class NotificationService: UNNotificationServiceExtension  {
 
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
         DDLogInfo("processDidReceive/begin \(request)")
-        DispatchQueue.main.async { [weak self] in
+        processingQueue.async { [weak self] in
             guard let self = self else { return }
             return self.processDidReceive(request: request, contentHandler: contentHandler)
         }
@@ -82,7 +83,7 @@ class NotificationService: UNNotificationServiceExtension  {
             self.cancellableSet.insert(
                 coreService.didDisconnect.sink { [weak self] in
                     guard let self = self else { return }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + self.finalCleanupRunTimeSec) {
+                    processingQueue.asyncAfter(deadline: .now() + self.finalCleanupRunTimeSec) {
                         self.terminateNseAndInvokeHandler()
                     }
                 })
@@ -98,10 +99,10 @@ class NotificationService: UNNotificationServiceExtension  {
     private func invokeCompletionHandlerLater() {
         DDLogInfo("Going to try to disconnect and invoke handler after some time.")
         // Try and disconnect after some time.
-        DispatchQueue.main.asyncAfter(deadline: .now() + extensionRunTimeSec) { [self] in
+        processingQueue.asyncAfter(deadline: .now() + extensionRunTimeSec) { [self] in
             DDLogInfo("disconnect now")
             service?.disconnect()
-            DispatchQueue.main.asyncAfter(deadline: .now() + finalCleanupRunTimeSec) { [self] in
+            processingQueue.asyncAfter(deadline: .now() + finalCleanupRunTimeSec) { [self] in
                 DDLogInfo("Invoking completion handler now")
                 terminateNseAndInvokeHandler()
             }
@@ -119,7 +120,7 @@ class NotificationService: UNNotificationServiceExtension  {
         DDLogWarn("NotificationService/serviceExtensionTimeWillExpire")
         // Called just before the extension will be terminated by the system.
         // Use this as an opportunity to deliver your "best attempt" at modified content, otherwise the original push payload will be used.
-        DispatchQueue.main.async { [self] in
+        processingQueue.async { [self] in
             service?.disconnectImmediately()
             DDLogInfo("Invoking completion handler now")
             terminateNseAndInvokeHandler()
