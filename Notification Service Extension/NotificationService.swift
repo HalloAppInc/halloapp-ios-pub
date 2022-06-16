@@ -83,7 +83,7 @@ class NotificationService: UNNotificationServiceExtension  {
             self.cancellableSet.insert(
                 coreService.didDisconnect.sink { [weak self] in
                     guard let self = self else { return }
-                    processingQueue.asyncAfter(deadline: .now() + self.finalCleanupRunTimeSec) {
+                    self.processingQueue.asyncAfter(deadline: .now() + self.finalCleanupRunTimeSec) {
                         self.terminateNseAndInvokeHandler()
                     }
                 })
