@@ -1773,12 +1773,11 @@ fileprivate class QuotedItemPanel: UIView, InputContextPanel {
         quoteFeedPanelTextLabel.attributedText = ham.parse(postInfo.text)
 
         if postInfo.userID == MainAppContext.shared.userData.userId {
-            quoteFeedPanelNameLabel.textColor = .chatOwnMsg
+            subviews.first?.backgroundColor = .quotedMessageOwnBackground
         } else {
-            quoteFeedPanelNameLabel.textColor = .label
+            subviews.first?.backgroundColor = .quotedMessageNotOwnBackground
         }
 
-        subviews.first?.backgroundColor = quoteFeedPanelNameLabel.textColor.withAlphaComponent(0.1)
         if let mediaType = postInfo.mediaType, let mediaLink = postInfo.mediaLink {
             configureMedia(mediaType, mediaLink)
         }
