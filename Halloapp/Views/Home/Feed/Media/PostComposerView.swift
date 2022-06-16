@@ -132,10 +132,6 @@ private extension Localizations {
     static var newPostTitle: String {
         NSLocalizedString("composer.post.title", value: "New Post", comment: "Composer New Post title.")
     }
-    
-    static var newMomentTitle: String {
-        NSLocalizedString("composer.moment.post.title", value: "New Moment", comment: "Composer New Moment Post title.")
-    }
 
     static var newMessageTitle: String {
         NSLocalizedString("composer.message.title", value: "New Message", comment: "Composer New Message title.")

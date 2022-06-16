@@ -301,18 +301,22 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
 
     private(set) lazy var floatingMenu: FloatingMenu = {
         let camButton = FloatingMenuButton.standardActionButton(
-            iconTemplate: UIImage(named: "icon_fab_compose_camera")?.withRenderingMode(.alwaysTemplate),
-            accessibilityLabel: Localizations.fabAccessibilityCamera,
-            action: { [weak self] in self?.presentNewPostViewController(source: .camera) })
+            iconTemplate: UIImage(named: "icon_fab_moment")?.withRenderingMode(.alwaysTemplate),
+            accessibilityLabel: Localizations.fabMoment,
+            action: { [weak self] in self?.createNewMoment() })
         composeCamPostButton = camButton
+
+        let symbolConfiguration = UIImage.SymbolConfiguration(pointSize: 20, weight: .semibold, scale: .medium)
+        let textIconName = view.effectiveUserInterfaceLayoutDirection == .leftToRight ? "text.alignleft" : "text.alignright"
+        let textIcon = UIImage(systemName: textIconName)?.withConfiguration(symbolConfiguration)
 
         var expandedButtons: [FloatingMenuButton] = [
             .standardActionButton(
-                iconTemplate: UIImage(named: "icon_fab_compose_image")?.withRenderingMode(.alwaysTemplate),
+                iconTemplate: UIImage(systemName: "photo.fill")?.withConfiguration(symbolConfiguration),
                 accessibilityLabel: Localizations.fabAccessibilityPhotoLibrary,
                 action: { [weak self] in self?.presentNewPostViewController(source: .library) }),
             .standardActionButton(
-                iconTemplate: UIImage(named: "icon_fab_compose_text")?.withRenderingMode(.alwaysTemplate),
+                iconTemplate: textIcon,
                 accessibilityLabel: Localizations.fabAccessibilityTextPost,
                 action: { [weak self] in self?.presentNewPostViewController(source: .noMedia) }),
             camButton

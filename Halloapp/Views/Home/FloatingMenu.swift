@@ -146,7 +146,7 @@ final class FloatingMenu: UIViewController {
     static var PermanentButtonExtraSpacing: CGFloat = 5
     static var HeaderSpacing: CGFloat = 20
     static var ShadowOpacity: Float = 0.2
-    static var ExpandedBackgroundColor: UIColor = .feedBackground.withAlphaComponent(0.9)
+    static var ExpandedBackgroundColor: UIColor = .feedBackground.withAlphaComponent(0.97)
     
     weak var presenter: FloatingMenuPresenter?
 

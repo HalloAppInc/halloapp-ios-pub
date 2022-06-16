@@ -141,6 +141,7 @@ class NewCameraViewController: UIViewController {
 
     var onPhotoCapture: ((UIImage) -> Void)?
     var onVideoCapture: ((URL) -> Void)?
+    var onDismiss: (() -> Void)?
 
     var subtitle: String? {
         didSet { subtitleLabel.text = subtitle }
@@ -226,6 +227,30 @@ class NewCameraViewController: UIViewController {
         if case .moment = configuration {
             preview.previewLayer.videoGravity = .resizeAspectFill
         }
+
+        installBarButtons()
+    }
+
+    private func installBarButtons() {
+        let image = UIImage(systemName: "chevron.down")?.withRenderingMode(.alwaysTemplate)
+        let barButton = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(dismissTapped))
+        barButton.tintColor = .white
+        navigationItem.leftBarButtonItem = barButton
+
+        let appearance = UINavigationBarAppearance()
+        appearance.backgroundColor = .black
+        appearance.shadowColor = nil
+        appearance.titleTextAttributes = [.font: UIFont.gothamFont(ofFixedSize: 16, weight: .medium)]
+
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.overrideUserInterfaceStyle = .dark
+    }
+
+    @objc
+    private func dismissTapped(_ sender: UIBarButtonItem) {
+        onDismiss?()
+        dismiss(animated: true)
     }
 
     private func subscribeToModelUpdates() {

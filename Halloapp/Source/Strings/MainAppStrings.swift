@@ -63,12 +63,18 @@ extension Localizations {
         NSLocalizedString("fab.post.button", value: "Post", comment: "Label for floating compose post menu on Group screen.")
     }
 
+    static var fabMoment: String {
+        NSLocalizedString("fab.moment.button",
+                   value: "Moment",
+                 comment: "Label for floating moment button on home feed.")
+    }
+
     static var fabAccessibilityCamera: String {
         NSLocalizedString("fab.accessibility.camera", value: "Camera", comment: "VoiceOver label for camera button in floating compose post menu in Home view.")
     }
 
     static var fabAccessibilityPhotoLibrary: String {
-        NSLocalizedString("fab.accessibility.photo.library", value: "Gallery", comment: "VoiceOver label for photo button in floating compose post menu in Home view.")
+        NSLocalizedString("fab.accessibility.photo.library", value: "Photo & Video", comment: "VoiceOver label for photo button in floating compose post menu in Home view.")
     }
 
     static var fabAccessibilityTextPost: String {

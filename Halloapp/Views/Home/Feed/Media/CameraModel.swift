@@ -545,7 +545,7 @@ extension CameraModel: AVCapturePhotoCaptureDelegate {
         guard let output = photoOutput else {
             return
         }
-
+        output.maxPhotoQualityPrioritization = .balanced
         isTakingPhoto = true
 
         let settings = AVCapturePhotoSettings.init(format: [AVVideoCodecKey: AVVideoCodecType.jpeg])

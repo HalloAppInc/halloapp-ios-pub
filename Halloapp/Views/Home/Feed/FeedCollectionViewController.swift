@@ -382,19 +382,8 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
             vc.delegate = self
             present(vc, animated: true)
         } else {
-            let newPostVC = NewPostViewController(source: .camera,
-                                             destination: .userFeed,
-                                           momentContext: .unlock(post.userID),
-                                               didFinish: { [weak self] didPost in
-                
-                if didPost {
-                    self?.startUnlockTransition(for: post)
-                } else {
-                    self?.dismiss(animated: true)
-                }
-            })
-            
-            present(newPostVC, animated: true)
+            let newMomentVC = NewMomentViewController(context: .unlock(post))
+            present(newMomentVC, animated: true)
         }
     }
 
@@ -403,20 +392,6 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         vc.delegate = self
 
         present(vc, animated: true)
-    }
-    
-    private func startUnlockTransition(for post: FeedPost) {
-        guard
-            let latest = MainAppContext.shared.feedData.fetchLatestMoment(using: MainAppContext.shared.feedData.viewContext),
-            let newPostVC = presentedViewController as? NewPostViewController
-        else {
-            dismiss(animated: true)
-            return
-        }
-        
-        let momentVC = MomentViewController(post: post, unlockingPost: latest, isFullScreen: false)
-        momentVC.delegate = self
-        newPostVC.containedNavigationController.pushViewController(momentVC, animated: true)
     }
 
     @objc
@@ -428,15 +403,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         source = .camera
         #endif
 
-        let vc = NewPostViewController(source: source,
-                                  destination: .userFeed,
-                                momentContext: .normal) { [weak self] didPost in
-            self?.dismiss(animated: true)
-            if didPost {
-                self?.scrollToTop(animated: true)
-            }
-        }
-
+        let vc = NewMomentViewController(context: .normal)
         present(vc, animated: true)
     }
 

@@ -387,13 +387,17 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
             action: { [weak self] in self?.presentNewPostViewController(source: .camera) })
         composeCamPostButton = camButton
 
+        let symbolConfiguration = UIImage.SymbolConfiguration(pointSize: 20, weight: .semibold, scale: .medium)
+        let textIconName = view.effectiveUserInterfaceLayoutDirection == .leftToRight ? "text.alignleft" : "text.alignright"
+        let textIcon = UIImage(systemName: textIconName)?.withConfiguration(symbolConfiguration)
+
         var expandedButtons: [FloatingMenuButton] = [
             .standardActionButton(
-                iconTemplate: UIImage(named: "icon_fab_compose_image")?.withRenderingMode(.alwaysTemplate),
+                iconTemplate: UIImage(systemName: "photo.fill")?.withConfiguration(symbolConfiguration),
                 accessibilityLabel: Localizations.fabAccessibilityPhotoLibrary,
                 action: { [weak self] in self?.presentNewPostViewController(source: .library) }),
             .standardActionButton(
-                iconTemplate: UIImage(named: "icon_fab_compose_text")?.withRenderingMode(.alwaysTemplate),
+                iconTemplate: textIcon,
                 accessibilityLabel: Localizations.fabAccessibilityTextPost,
                 action: { [weak self] in self?.presentNewPostViewController(source: .noMedia) }),
             camButton

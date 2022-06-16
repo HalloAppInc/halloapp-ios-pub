@@ -30,18 +30,6 @@ extension Localizations {
                           value: "Voice recording will not be saved if you discard this post.",
                           comment: "Warning message shown to the user before discarding a voice post")
     }
-
-    static var newMomentCameraSubtitle: String {
-        NSLocalizedString("camera.moment.subtitle",
-                   value: "Moments disappear after 24 hours and can only be viewed once",
-                 comment: "Text shown on the camera screen when composing a new moment.")
-    }
-
-    static var newMomentCameraUnlockSubtitle: String {
-        NSLocalizedString("camera.moment.unlock.subtitle",
-                   value: "To see %@'s moment, share your own",
-                 comment: "Text shown on the camera screen when composing a new moment to unlock someone else's moment.")
-    }
 }
 
 enum NewPostMediaSource {
