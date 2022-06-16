@@ -12,11 +12,41 @@ import AVFoundation
 import CoreCommon
 import Core
 
+extension NewCameraViewController {
+    struct Layout {
+        static func cornerRadius(for style: Configuration = .normal) -> CGFloat {
+            style == .moment ? 12 : 20
+        }
+
+        static func innerRadius(for style: Configuration = .normal) -> CGFloat {
+            let difference: CGFloat = style == .moment ? 4 : 7
+            return cornerRadius(for: style) - difference
+        }
+
+        static func padding(for style: Configuration = .normal) -> CGFloat {
+            style == .moment ? 8 : 10
+        }
+    }
+}
+
 class NewCameraViewController: UIViewController {
+    enum Configuration { case normal, moment }
+
+    let configuration: Configuration
 
     private lazy var model = CameraModel()
     private lazy var preview: CameraPreviewView = {
         let view = CameraPreviewView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
+    var aspectRatio: CGFloat {
+        configuration == .moment ? 1 : 4 / 3
+    }
+
+    private(set) lazy var background: UIView = {
+        let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
@@ -32,7 +62,7 @@ class NewCameraViewController: UIViewController {
         return stack
     }()
 
-    private lazy var shutterButton: CameraShutterButton = {
+    private(set) lazy var shutterButton: CameraShutterButton = {
         let shutter = CameraShutterButton()
         shutter.isEnabled = false
         shutter.onTap = { [weak self] in self?.handleShutterTap() }
@@ -96,11 +126,34 @@ class NewCameraViewController: UIViewController {
         return formatter
     }()
 
+    private lazy var subtitleLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.numberOfLines = 0
+        label.textAlignment = .center
+        label.textColor = .secondaryLabel
+        label.font = .systemFont(ofSize: 15)
+        return label
+    }()
+
     private var hideFocusIndicator: DispatchWorkItem?
     private var cancellables: Set<AnyCancellable> = []
 
     var onPhotoCapture: ((UIImage) -> Void)?
     var onVideoCapture: ((URL) -> Void)?
+
+    var subtitle: String? {
+        didSet { subtitleLabel.text = subtitle }
+    }
+
+    init(style: Configuration = .normal) {
+        self.configuration = style
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init(coder: NSCoder) {
+        fatalError("CameraViewController coder init not implemented...")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -109,7 +162,6 @@ class NewCameraViewController: UIViewController {
 
         model.delegate = self
         subscribeToModelUpdates()
-        model.start()
 
         installUI()
 
@@ -125,27 +177,32 @@ class NewCameraViewController: UIViewController {
         model.stop()
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        model.start()
+    }
+
     private func installUI() {
-        let background = UIView()
-        background.translatesAutoresizingMaskIntoConstraints = false
-        background.backgroundColor = .secondarySystemBackground
+        background.backgroundColor = configuration == .moment ? .momentPolaroid : .secondarySystemBackground
 
         view.addSubview(background)
         view.addSubview(preview)
         view.addSubview(controlStack)
         preview.addSubview(focusIndicator)
         view.addSubview(videoDurationLabel)
+        view.addSubview(subtitleLabel)
+
+        let padding = Layout.padding(for: configuration)
 
         NSLayoutConstraint.activate([
             background.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            background.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             background.widthAnchor.constraint(equalTo: view.widthAnchor, constant: -2),
             background.topAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.topAnchor),
-            background.bottomAnchor.constraint(lessThanOrEqualTo: view.bottomAnchor),
+            background.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor),
 
-            preview.topAnchor.constraint(equalTo: background.topAnchor, constant: 10),
-            preview.widthAnchor.constraint(equalTo: background.widthAnchor, constant: -20),
-            preview.heightAnchor.constraint(equalTo: preview.widthAnchor, multiplier: 4 / 3),
+            preview.topAnchor.constraint(equalTo: background.topAnchor, constant: padding),
+            preview.widthAnchor.constraint(equalTo: background.widthAnchor, constant: -padding * 2),
+            preview.heightAnchor.constraint(equalTo: preview.widthAnchor, multiplier: aspectRatio),
             preview.centerXAnchor.constraint(equalTo: background.centerXAnchor),
 
             controlStack.topAnchor.constraint(equalTo: preview.bottomAnchor),
@@ -155,10 +212,20 @@ class NewCameraViewController: UIViewController {
 
             videoDurationLabel.bottomAnchor.constraint(equalTo: background.topAnchor, constant: -10),
             videoDurationLabel.centerXAnchor.constraint(equalTo: background.centerXAnchor),
+
+            subtitleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            subtitleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 25),
+            subtitleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -25),
+            subtitleLabel.bottomAnchor.constraint(lessThanOrEqualTo: videoDurationLabel.topAnchor, constant: -30),
+            subtitleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
         ])
 
-        background.layer.cornerRadius = 20
-        preview.previewLayer.cornerRadius = 15
+        background.layer.cornerRadius = Layout.cornerRadius(for: configuration)
+        preview.previewLayer.cornerRadius = Layout.innerRadius(for: configuration)
+
+        if case .moment = configuration {
+            preview.previewLayer.videoGravity = .resizeAspectFill
+        }
     }
 
     private func subscribeToModelUpdates() {
@@ -337,7 +404,32 @@ extension NewCameraViewController: CameraModelDelegate {
     }
 
     func model(_ model: CameraModel, didTake photo: UIImage) {
-        onPhotoCapture?(photo)
+        if case .moment = configuration {
+            let cropped = cropImageForMoment(photo)
+            onPhotoCapture?(cropped)
+        } else {
+            onPhotoCapture?(photo)
+        }
+    }
+
+    private func cropImageForMoment(_ image: UIImage) -> UIImage {
+        guard let cgImage = image.cgImage else {
+            return image
+        }
+
+        let rect = preview.previewLayer.metadataOutputRectConverted(fromLayerRect: preview.previewLayer.bounds)
+        let width = CGFloat(cgImage.width)
+        let height = CGFloat(cgImage.height)
+        let crop = CGRect(x: rect.origin.x * width,
+                          y: rect.origin.y * height,
+                      width: rect.width * width,
+                     height: rect.height * height)
+
+        if let cropped = cgImage.cropping(to: crop) {
+            return UIImage(cgImage: cropped, scale: 1.0, orientation: image.imageOrientation)
+        }
+
+        return image
     }
 
     func model(_ model: CameraModel, didRecordVideoTo url: URL, error: Error?) {
