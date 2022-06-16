@@ -21,6 +21,7 @@ protocol CameraModelDelegate: AnyObject {
     @MainActor func modelDidStart(_ model: CameraModel)
 
     @MainActor func model(_ model: CameraModel, didTake photo: UIImage)
+    @MainActor func model(_ model: CameraModel, didRecordVideoTo url: URL, error: Error?)
 }
 
 extension CameraModel {
@@ -41,7 +42,10 @@ extension CameraModel {
     enum CameraModelError: Swift.Error {
         case permissions(AVMediaType)
         case cameraInitialization(AVCaptureDevice.Position)
-        case outputInitialization
+        case microphoneInitialization
+        case photoOutput
+        case videoOutput
+        case audioOutput
 
         var description: String? {
             switch self {
@@ -52,9 +56,15 @@ extension CameraModel {
             case .cameraInitialization(let side) where side == .back:
                 return NSLocalizedString("camera.init.error.1", value: "Cannot initialize the back camera", comment: "")
             case .cameraInitialization(let side) where side == .front:
-                return NSLocalizedString("camera.init.error.5", value: "Cannot access front camera", comment: "")
-            case .outputInitialization:
-                break
+                return NSLocalizedString("camera.init.error.2", value: "Cannot initialize the front camera", comment: "")
+            case .microphoneInitialization:
+                return NSLocalizedString("camera.init.error.3", value: "Cannot initialize the microphone", comment: "")
+            case .photoOutput:
+                return NSLocalizedString("camera.init.error.7", value: "Cannot capture photos", comment: "")
+            case .videoOutput:
+                return NSLocalizedString("camera.init.error.8", value: "Cannot record video", comment: "")
+            case .audioOutput:
+                return NSLocalizedString("camera.init.error.9", value: "Cannot record audio", comment: "")
             default:
                 break
             }
@@ -74,6 +84,17 @@ class CameraModel: NSObject {
     private(set) lazy var session: AVCaptureSession = {
         let session = AVCaptureSession()
         session.automaticallyConfiguresCaptureDeviceForWideColor = true
+        return session
+    }()
+
+    /// For capturing audio during video recording.
+    ///
+    /// We use a seperate session for audio for a couple of reasons:
+    /// 1. Prevent the orange status bar dot from appearing when there is no recording taking place
+    /// 2. Only pause the user's audio if they're recording video. Adding the input to the main capture
+    ///    session at record time causes a stutter in the preview.
+    private(set) lazy var audioSession: AVCaptureSession = {
+        let session = AVCaptureSession()
         return session
     }()
 
@@ -97,8 +118,22 @@ class CameraModel: NSObject {
 
     private var backInput: AVCaptureDeviceInput?
     private var frontInput: AVCaptureDeviceInput?
+    private var audioInput: AVCaptureDeviceInput?
 
     private var photoOutput: AVCapturePhotoOutput?
+
+// MARK: - video recording properties
+
+    private lazy var videoQueue = DispatchQueue(label: "video.writing.queue", qos: .userInitiated)
+    private var hasWrittenVideo = false
+    private var assetWriter: AVAssetWriter?
+    private var videoWriterInput: AVAssetWriterInput?
+    private var audioWriterInput: AVAssetWriterInput?
+    private var videoOutput: AVCaptureVideoDataOutput?
+    private var audioOuput: AVCaptureAudioDataOutput?
+
+    var maximumVideoDuration: TimeInterval = 60
+    private var videoTimeout: DispatchWorkItem?
 
     /// Maps each hardware camera to it's zoom values.
     private var zoomFactors: [AVCaptureDevice.DeviceType: ZoomFactor] = [:]
@@ -114,6 +149,9 @@ class CameraModel: NSObject {
 
     @Published private(set) var isTakingPhoto = false
     @Published private(set) var isRecordingVideo = false
+
+    @Published private(set) var videoDuration: Int?
+    private var videoDurationTimer: AnyCancellable?
 
     private var cancellables: Set<AnyCancellable> = []
 
@@ -247,6 +285,10 @@ extension CameraModel {
         if let input = backInput {
             session.addInput(input)
         }
+
+        if let input = audioInput {
+            audioSession.addInput(input)
+        }
     }
 
     private func setupBackCamera() throws {
@@ -284,13 +326,22 @@ extension CameraModel {
     }
 
     private func setupMicrophone() throws {
-        // TODO:
+        guard
+            let device = AVCaptureDevice.default(.builtInMicrophone, for: .audio, position: .unspecified),
+            let input = try? AVCaptureDeviceInput(device: device),
+            audioSession.canAddInput(input)
+        else {
+            throw CameraModelError.cameraInitialization(.front)
+        }
+
+        microphone = device
+        audioInput = input
     }
 
     private func setupPhotoOutput() throws {
         let output = AVCapturePhotoOutput()
         guard session.canAddOutput(output) else {
-            throw CameraModelError.outputInitialization
+            throw CameraModelError.photoOutput
         }
 
         session.addOutput(output)
@@ -299,15 +350,38 @@ extension CameraModel {
     }
 
     private func setupVideoOutput() throws {
-        // TODO:
+        let videoOutput = AVCaptureVideoDataOutput()
+        videoOutput.setSampleBufferDelegate(self, queue: videoQueue)
+
+        if session.canAddOutput(videoOutput) {
+            session.addOutput(videoOutput)
+            self.videoOutput = videoOutput
+        } else {
+            throw CameraModelError.videoOutput
+        }
+
+        let audioOutput = AVCaptureAudioDataOutput()
+        audioOutput.setSampleBufferDelegate(self, queue: videoQueue)
+
+        if audioSession.canAddOutput(audioOutput) {
+            audioSession.addOutput(audioOutput)
+            self.audioOuput = audioOutput
+        } else {
+            throw CameraModelError.audioOutput
+        }
     }
 
     private func stopCaptureSession() async {
         stopListeningForOrientation()
-        await perform { [session] in
+        await perform { [session, audioSession] in
             session.stopRunning()
+            audioSession.stopRunning()
+
             session.inputs.forEach { session.removeInput($0) }
             session.outputs.forEach { session.removeOutput($0) }
+
+            audioSession.inputs.forEach { audioSession.removeInput($0) }
+            audioSession.outputs.forEach { audioSession.removeOutput($0) }
         }
     }
 
@@ -463,7 +537,7 @@ extension CameraModel {
     }
 }
 
-// MARK: -
+// MARK: - taking photos
 
 extension CameraModel: AVCapturePhotoCaptureDelegate {
     ///
@@ -497,6 +571,222 @@ extension CameraModel: AVCapturePhotoCaptureDelegate {
         }
 
         Task { await delegate?.model(self, didTake: image) }
+    }
+}
+
+// MARK: - recording videos
+
+extension CameraModel: AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureAudioDataOutputSampleBufferDelegate {
+    private typealias Dimensions = (height: Int32, width: Int32)
+
+    private var videoURL: URL {
+        URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("\(UUID().uuidString).mp4")
+    }
+
+    func startRecording() {
+        guard !isRecordingVideo else {
+            return
+        }
+
+        Task {
+            DDLogInfo("CameraModel/startRecording")
+            await perform { [audioSession] in
+                audioSession.startRunning()
+            }
+
+            prepareForVideoRecording()
+            isRecordingVideo = true
+        }
+    }
+
+    func prepareForVideoRecording() {
+        prepareVideoRecordingInputs()
+
+        let timeout = DispatchWorkItem { [weak self] in self?.stopRecording() }
+        DispatchQueue.main.asyncAfter(deadline: .now() + maximumVideoDuration, execute: timeout)
+        videoTimeout = timeout
+
+        videoDurationTimer = Timer.publish(every: 1, on: .main, in: .default)
+            .autoconnect()
+            .scan(0) { seconds, _ in seconds + 1 }
+            .sink { [weak self] in self?.videoDuration = $0 }
+        videoDuration = 0
+    }
+
+    func stopRecording() {
+        guard isRecordingVideo, let writer = assetWriter else {
+            return
+        }
+
+        DDLogInfo("CameraModel/stopRecording")
+        isRecordingVideo = false
+
+        videoDurationTimer = nil
+        videoDuration = nil
+        videoTimeout?.cancel()
+        videoTimeout = nil
+
+        Task {
+            await writer.finishWriting()
+            if let error = writer.error {
+                DDLogError("CameraModel/stopRecording task/asset writer finished with error: \(String(describing: error))")
+            }
+
+            let viewError = writer.error == nil ? nil : CameraModelError.videoOutput
+            await delegate?.model(self, didRecordVideoTo: writer.outputURL, error: viewError)
+        }
+
+        cleanUpAfterRecordingVideo()
+    }
+
+    private func cleanUpAfterRecordingVideo() {
+        assetWriter = nil
+        videoWriterInput = nil
+        audioWriterInput = nil
+        hasWrittenVideo = false
+
+        sessionQueue.async { [audioSession] in
+            audioSession.stopRunning()
+        }
+    }
+
+    private func prepareVideoRecordingInputs() {
+        guard
+            let writer = try? AVAssetWriter(outputURL: videoURL, fileType: AVFileType.mp4),
+            let format = backCamera?.activeFormat.formatDescription
+        else {
+            DDLogError("CameraModel/prepareForVideoRecording/unable to create asset writer")
+            return
+        }
+
+        assetWriter = writer
+        let dimensions = CMVideoFormatDescriptionGetDimensions(format)
+        setupWriterInputs((dimensions.height, dimensions.width))
+
+        guard
+            let videoInput = videoWriterInput,
+            let audioInput = audioWriterInput,
+            writer.canAdd(videoInput),
+            writer.canAdd(audioInput)
+        else {
+            DDLogError("CameraModel/prepareForVideoRecording/unable to add inputs to asset writer")
+            return
+        }
+
+        writer.add(videoInput)
+        writer.add(audioInput)
+    }
+
+    private func setupWriterInputs(_ dimensions: Dimensions) {
+        let videoSettings = [
+            AVVideoCodecKey: AVVideoCodecType.h264,
+            AVVideoHeightKey: dimensions.height,
+            AVVideoWidthKey: dimensions.width,
+            AVVideoScalingModeKey: AVVideoScalingModeResizeAspectFill,
+        ] as [String : Any]
+
+        let videoInput = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
+        videoInput.expectsMediaDataInRealTime = true
+        videoInput.transform = videoTransform
+
+        let audioSettings = [
+            AVFormatIDKey: kAudioFormatMPEG4AAC,
+            AVNumberOfChannelsKey: 1,
+            AVSampleRateKey: 44100,
+            AVEncoderBitRateKey: 64000
+        ] as [String: Any]
+
+        let audioInput = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)
+        audioInput.expectsMediaDataInRealTime = true
+
+        self.videoWriterInput = videoInput
+        self.audioWriterInput = audioInput
+    }
+
+    private func scaleVideoDimensionsIfNecessary(_ dimensions: Dimensions) -> Dimensions {
+        let maxWidth: CGFloat = 1024
+        let ogHeight = CGFloat(dimensions.height)
+        let ogWidth = CGFloat(dimensions.width)
+
+        if ogWidth <= maxWidth {
+            return dimensions
+        }
+
+        let scaleFactor = maxWidth / ogWidth
+        let scaledHeight = Int32(ogHeight * scaleFactor)
+        let scaledWidth = Int32(ogWidth * scaleFactor)
+
+        return (scaledHeight, scaledWidth)
+    }
+
+    /// Used for rotating video according to the device's orientation.
+    ///
+    /// - note: Far more efficient than setting the orientation on the output, which causes the actual
+    ///         buffers to be rotated as they come in.
+    private var videoTransform: CGAffineTransform {
+        var rotation = CGAffineTransform.identity
+        switch orientation {
+        case .portraitUpsideDown:
+            rotation = rotation.rotated(by: -.pi / 2)
+        case .landscapeLeft:
+            // this seems to be the default; the other angles are based on this
+            break
+        case .landscapeRight:
+            rotation = rotation.rotated(by: .pi)
+        default:
+            rotation = rotation.rotated(by: .pi / 2)
+        }
+
+        return rotation
+    }
+
+    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+        guard
+            isRecordingVideo,
+            let writer = assetWriter,
+            let videoInput = videoWriterInput,
+            let audioInput = audioWriterInput
+        else {
+            return
+        }
+
+        if case .unknown = writer.status, output === videoOutput {
+            // make sure we start writing on a video sample buffer to avoid the initial frames being black
+            writer.startWriting()
+            writer.startSession(atSourceTime: sampleBuffer.presentationTimeStamp)
+        }
+
+        guard CMSampleBufferDataIsReady(sampleBuffer) else {
+            return
+        }
+
+        if output === videoOutput, videoInput.isReadyForMoreMediaData {
+            videoInput.append(sampleBuffer)
+            hasWrittenVideo = true
+        }
+
+        if output === audioOuput, hasWrittenVideo, audioInput.isReadyForMoreMediaData {
+            let correctedTimestamp = convertTimestamp(for: sampleBuffer)
+            CMSampleBufferSetOutputPresentationTimeStamp(sampleBuffer, newValue: correctedTimestamp)
+            audioInput.append(sampleBuffer)
+        }
+    }
+
+    private func convertTimestamp(for buffer: CMSampleBuffer) -> CMTime {
+        // since we use a seperate capture session for audio, we need to synchronize their clocks.
+        let clock: CMClock?
+        if #available(iOS 15.4, *) {
+            clock = session.synchronizationClock
+        } else {
+            clock = session.masterClock
+        }
+
+        let timestamp = buffer.presentationTimeStamp
+        if let clock = clock {
+            return clock.convertTime(timestamp, to: clock)
+        }
+
+        return timestamp
     }
 }
 

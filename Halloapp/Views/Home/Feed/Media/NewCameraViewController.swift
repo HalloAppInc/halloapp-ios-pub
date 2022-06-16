@@ -80,10 +80,27 @@ class NewCameraViewController: UIViewController {
         return view
     }()
 
+    private lazy var videoDurationLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = .white
+        label.font = .systemFont(ofSize: 16)
+        return label
+    }()
+
+    private lazy var durationFormatter: DateComponentsFormatter = {
+        let formatter = DateComponentsFormatter()
+        formatter.unitsStyle = .positional
+        formatter.allowedUnits = [.second, .minute]
+        formatter.zeroFormattingBehavior = .pad
+        return formatter
+    }()
+
     private var hideFocusIndicator: DispatchWorkItem?
     private var cancellables: Set<AnyCancellable> = []
 
     var onPhotoCapture: ((UIImage) -> Void)?
+    var onVideoCapture: ((URL) -> Void)?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -117,6 +134,7 @@ class NewCameraViewController: UIViewController {
         view.addSubview(preview)
         view.addSubview(controlStack)
         preview.addSubview(focusIndicator)
+        view.addSubview(videoDurationLabel)
 
         NSLayoutConstraint.activate([
             background.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -134,6 +152,9 @@ class NewCameraViewController: UIViewController {
             controlStack.leadingAnchor.constraint(equalTo: background.leadingAnchor),
             controlStack.trailingAnchor.constraint(equalTo: background.trailingAnchor),
             controlStack.bottomAnchor.constraint(equalTo: background.bottomAnchor),
+
+            videoDurationLabel.bottomAnchor.constraint(equalTo: background.topAnchor, constant: -10),
+            videoDurationLabel.centerXAnchor.constraint(equalTo: background.centerXAnchor),
         ])
 
         background.layer.cornerRadius = 20
@@ -154,6 +175,18 @@ class NewCameraViewController: UIViewController {
             let image = UIImage(named: name)?.withRenderingMode(.alwaysTemplate)
             self?.flashButton.setImage(image, for: .normal)
         }.store(in: &cancellables)
+
+        model.$videoDuration.receive(on: DispatchQueue.main).sink { [weak self] seconds in
+            self?.videoDurationLabel.isHidden = seconds == nil
+            if let seconds = seconds {
+                self?.videoDurationLabel.text = self?.durationFormatter.string(from: TimeInterval(seconds))
+            }
+        }.store(in: &cancellables)
+
+        model.$isRecordingVideo.receive(on: DispatchQueue.main).sink { [weak self] isRecording in
+            self?.flipCameraButton.isEnabled = !isRecording
+            self?.flashButton.isEnabled = !isRecording
+        }.store(in: &cancellables)
     }
 
     private func handleShutterTap() {
@@ -161,7 +194,11 @@ class NewCameraViewController: UIViewController {
     }
 
     private func handleShutterLongPress(_ ended: Bool) {
-        // TODO:
+        if ended {
+            model.stopRecording()
+        } else {
+            model.startRecording()
+        }
     }
     
     @objc
@@ -301,6 +338,14 @@ extension NewCameraViewController: CameraModelDelegate {
 
     func model(_ model: CameraModel, didTake photo: UIImage) {
         onPhotoCapture?(photo)
+    }
+
+    func model(_ model: CameraModel, didRecordVideoTo url: URL, error: Error?) {
+        if case let error as CameraModel.CameraModelError = error {
+            return showInitializationAlert(for: error)
+        }
+
+        onVideoCapture?(url)
     }
 }
 
