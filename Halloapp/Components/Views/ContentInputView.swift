@@ -478,7 +478,7 @@ class ContentInputView: UIView {
         self.style = style
         self.options = options
         super.init(frame: .zero)
-        backgroundColor = nil
+        backgroundColor = .primaryBg
         tintColor = .primaryBlue
         
         configureBlur()

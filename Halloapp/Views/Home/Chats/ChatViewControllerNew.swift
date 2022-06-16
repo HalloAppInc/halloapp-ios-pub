@@ -59,11 +59,13 @@ fileprivate enum MessageRow: Hashable, Equatable {
             return data.timestamp.chatMsgGroupingTimestamp(Date())
         case .chatMessage(let data), .retracted(let data), .media(let data), .audio(let data), .text(let data), .linkPreview(let data), .quoted(let data):
             return data.timestamp?.chatMsgGroupingTimestamp(Date()) ?? ""
-        case .chatCall(_), .unreadCountHeader(_):
-            return ""
+        case .chatCall(let data):
+            return data.timestamp?.chatMsgGroupingTimestamp(Date()) ?? ""
         case .addToContactBook:
             let time = timestamp ?? Calendar.current.startOfDay(for: Date())
             return  time.chatMsgGroupingTimestamp(Date())
+        case .unreadCountHeader(_):
+            return ""
         }
     }
 

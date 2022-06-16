@@ -133,7 +133,7 @@ class MessageCellViewCall: UICollectionViewCell {
                 attributes: [.font: messagefont, .foregroundColor: UIColor.timeHeaderText]))
         }
         // Call timestamp
-        if let timeStamp = callData.timestamp?.chatTimestamp(Date()) {
+        if let timeStamp = callData.timestamp?.chatDisplayTimestamp(Date()) {
             titleString.append(NSAttributedString(
                 string: "  " + timeStamp,
                 attributes: [.font: UIFont.systemFont(ofSize: 12, weight: .regular), .foregroundColor: UIColor.chatTime] ))
