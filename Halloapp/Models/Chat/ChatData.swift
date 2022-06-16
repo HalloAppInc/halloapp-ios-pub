@@ -2130,6 +2130,7 @@ extension ChatData {
                      chatReplyMessageMediaIndex: Int32) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
+            DDLogInfo("ChatData/sendMessage/createChatMsg/toUserId: \(toUserId)")
             self.createChatMsg( toUserId: toUserId,
                                 text: text,
                                 media: media,
@@ -2151,6 +2152,7 @@ extension ChatData {
     func sendMomentReply(to userID: UserID, postID: FeedPostID, text: String) async -> ChatMessage? {
         await withCheckedContinuation { continuation in
             performSeriallyOnBackgroundContext { context in
+                DDLogInfo("ChatData/sendMomentReply/createChatMsg/toUserId: \(userID)")
                 let id = self.createChatMsg(toUserId: userID,
                                                 text: text,
                                                media: [],
@@ -2188,7 +2190,7 @@ extension ChatData {
         let isMsgToYourself: Bool = toUserId == userData.userId
         
         // Create and save new ChatMessage object.
-        DDLogDebug("ChatData/createChatMsg/\(messageId)")
+        DDLogDebug("ChatData/createChatMsg/\(messageId)/toUserId: \(toUserId)")
         let chatMessage = ChatMessage(context: context)
         chatMessage.id = messageId
         chatMessage.toUserId = toUserId
