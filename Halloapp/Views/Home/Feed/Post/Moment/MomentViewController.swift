@@ -66,8 +66,10 @@ class MomentViewController: UIViewController {
 
     private var cancellables: Set<AnyCancellable> = []
 
+    private var replyMediaCancellable: AnyCancellable?
+
     private lazy var contentInputView: ContentInputView = {
-        let view = ContentInputView(style: .minimal, options: [])
+        let view = ContentInputView(style: .normal, options: [])
         view.autoresizingMask = [.flexibleHeight]
         view.blurView.isHidden = true
         view.delegate = self
@@ -591,12 +593,84 @@ extension MomentViewController: ContentInputDelegate {
         showToast()
 
         Task { @MainActor in
-            guard let message = await MainAppContext.shared.chatData.sendMomentReply(to: post.userID, postID: post.id, text: text) else {
+            guard let message = await MainAppContext.shared.chatData.sendMomentReply(to: post.userID, postID: post.id, text: text, media: content.media) else {
                 finalizeToast(success: false)
                 return
             }
 
             beginObserving(message: message)
+        }
+    }
+
+    func inputViewDidSelectContentOptions(_ inputView: ContentInputView) {
+        let action = ActionSheetViewController(title: "", message: "")
+        let cameraImage = UIImage(systemName: "camera.fill")?.withRenderingMode(.alwaysOriginal)
+                                                             .withTintColor(.primaryBlue)
+        let pickerImage = UIImage(systemName: "photo.fill.on.rectangle.fill")?.withRenderingMode(.alwaysOriginal)
+                                                                              .withTintColor(.primaryBlue)
+
+        action.addAction(ActionSheetAction(title: Localizations.fabAccessibilityCamera, image: cameraImage, style: .default) { _ in
+            self.presentCameraViewController()
+        })
+
+        action.addAction(ActionSheetAction(title: Localizations.photoAndVideoLibrary, image: pickerImage, style: .default) { _ in
+            self.presentMediaPicker()
+        })
+
+        action.addAction(ActionSheetAction(title: Localizations.buttonCancel, style: .cancel))
+        present(action, animated: true)
+    }
+
+    func presentMediaPicker() {
+        let vc = MediaPickerViewController(config: .moment) { [weak self] controller, _, _, media, cancel in
+            controller.dismiss(animated: true)
+            guard let media = media.first, !cancel else {
+                return
+            }
+
+            self?.addMediaWhenAvailable(media)
+        }
+
+        present(UINavigationController(rootViewController: vc), animated: true)
+    }
+
+    func inputViewDidSelectCamera(_ inputView: ContentInputView) {
+        presentCameraViewController()
+    }
+
+    private func presentCameraViewController() {
+        let vc = NewCameraViewController()
+        vc.onPhotoCapture = { [weak self] image in
+            vc.dismiss(animated: true)
+            let media = PendingMedia(type: .image)
+            media.image = image
+
+            self?.addMediaWhenAvailable(media)
+        }
+
+        vc.onVideoCapture = { [weak self] url in
+            vc.dismiss(animated: true)
+            let media = PendingMedia(type: .video)
+            media.originalVideoURL = url
+            media.fileURL = url
+
+            self?.addMediaWhenAvailable(media)
+        }
+
+        present(UINavigationController(rootViewController: vc), animated: true)
+    }
+
+    private func addMediaWhenAvailable(_ media: PendingMedia) {
+        replyMediaCancellable?.cancel()
+        guard !media.ready.value else {
+            contentInputView.add(media: media)
+            return
+        }
+
+        replyMediaCancellable = media.ready.sink { [weak self] ready in
+            if ready {
+                self?.contentInputView.add(media: media)
+            }
         }
     }
 }

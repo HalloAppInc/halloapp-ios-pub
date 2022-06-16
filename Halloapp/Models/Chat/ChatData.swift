@@ -2149,13 +2149,13 @@ extension ChatData {
 
     /// - Returns: A chat message object that should be used on the main thread.
     @discardableResult
-    func sendMomentReply(to userID: UserID, postID: FeedPostID, text: String) async -> ChatMessage? {
+    func sendMomentReply(to userID: UserID, postID: FeedPostID, text: String, media: [PendingMedia]) async -> ChatMessage? {
         await withCheckedContinuation { continuation in
             performSeriallyOnBackgroundContext { context in
                 DDLogInfo("ChatData/sendMomentReply/createChatMsg/toUserId: \(userID)")
                 let id = self.createChatMsg(toUserId: userID,
                                                 text: text,
-                                               media: [],
+                                               media: media,
                                      linkPreviewData: nil,
                                     linkPreviewMedia: nil,
                                           feedPostId: postID,

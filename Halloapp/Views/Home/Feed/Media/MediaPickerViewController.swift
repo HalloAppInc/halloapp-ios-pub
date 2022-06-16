@@ -101,6 +101,10 @@ struct MediaPickerConfig {
         MediaPickerConfig(destination: nil, privacyListType: nil, filter: .all, allowsMultipleSelection: false, isCameraEnabled: true)
     }
 
+    static var moment: MediaPickerConfig {
+        MediaPickerConfig(destination: nil, privacyListType: nil, filter: .all, allowsMultipleSelection: false, isCameraEnabled: false)
+    }
+
     static var image: MediaPickerConfig {
         MediaPickerConfig(destination: nil, privacyListType: nil, filter: .image, allowsMultipleSelection: false, isCameraEnabled: true)
     }

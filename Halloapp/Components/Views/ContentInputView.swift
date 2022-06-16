@@ -361,7 +361,7 @@ class ContentInputView: UIView {
     private lazy var voiceNoteTimeLabel: AudioRecorderTimeView = {
         let label = AudioRecorderTimeView()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.backgroundColor = .primaryBg
+        label.backgroundColor = .clear
         label.isHidden = true
         
         return label
