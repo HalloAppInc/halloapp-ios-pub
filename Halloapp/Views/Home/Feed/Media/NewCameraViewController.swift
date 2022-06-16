@@ -81,22 +81,20 @@ class NewCameraViewController: UIViewController {
         return button
     }()
 
-    private lazy var flipCameraButton: CameraButton = {
-        let button = CameraButton()
+    private lazy var flipCameraButton: UIButton = {
+        let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(UIImage(named: "CameraFlip")?.withRenderingMode(.alwaysTemplate), for: .normal)
-        button.tintColor = .white
-        button.setBackgroundColor(.tertiarySystemBackground, for: .normal)
+        button.tintColor = configuration == .moment ? .black : .white.withAlphaComponent(0.9)
         button.addTarget(self, action: #selector(flipCameraPushed), for: .touchUpInside)
         return button
     }()
 
-    private lazy var flashButton: CameraButton = {
-        let button = CameraButton()
+    private lazy var flashButton: UIButton = {
+        let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(UIImage(named: "CameraFlashOff")?.withRenderingMode(.alwaysTemplate), for: .normal)
-        button.tintColor = .white
-        button.setBackgroundColor(.tertiarySystemBackground, for: .normal)
+        button.tintColor = configuration == .moment ? .black : .white.withAlphaComponent(0.9)
         button.addTarget(self, action: #selector(flashButtonPushed), for: .touchUpInside)
         return button
     }()
@@ -165,6 +163,7 @@ class NewCameraViewController: UIViewController {
         subscribeToModelUpdates()
 
         installUI()
+        shutterButton.longPressGesture.isEnabled = configuration != .moment
 
         let pinch = UIPinchGestureRecognizer(target: self, action: #selector(pinchedToZoom))
         preview.addGestureRecognizer(pinch)

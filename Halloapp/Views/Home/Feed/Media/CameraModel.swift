@@ -533,7 +533,26 @@ extension CameraModel {
     }
 
     func zoom(using gesture: UIPinchGestureRecognizer) {
-        // TODO
+        guard
+            session.isRunning,
+            activeCamera != .unspecified,
+            let camera = activeCamera == .back ? backCamera : frontCamera
+        else {
+            return
+        }
+
+        let zoom = camera.videoZoomFactor * gesture.scale
+        gesture.scale = 1.0
+
+        do {
+            try camera.lockForConfiguration()
+            defer { camera.unlockForConfiguration() }
+            if camera.minAvailableVideoZoomFactor <= zoom && zoom <= camera.maxAvailableVideoZoomFactor {
+                camera.videoZoomFactor = zoom
+            }
+        } catch {
+            DDLogError("CameraModel/zoomUsingGesture failed to lock with error: \(error)")
+        }
     }
 }
 

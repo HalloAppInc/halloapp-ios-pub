@@ -36,7 +36,7 @@ class CameraShutterButton: UIControl {
         gesture.cancelsTouchesInView = false
         return gesture
     }()
-    private lazy var longPressGesture: UILongPressGestureRecognizer = {
+    private(set) lazy var longPressGesture: UILongPressGestureRecognizer = {
         let gesture = UILongPressGestureRecognizer(target: self, action: #selector(longPressed))
         gesture.minimumPressDuration = 0.4
         gesture.cancelsTouchesInView = false
@@ -141,7 +141,6 @@ class CameraShutterButton: UIControl {
         let alpha: CGFloat = isEnabled ? 0.9 :0.5
 
         circleLayer.fillColor = UIColor.white.withAlphaComponent(alpha).cgColor
-        tapGesture.isEnabled = isEnabled
-        longPressGesture.isEnabled = isEnabled
+        isUserInteractionEnabled = isEnabled
     }
 }
