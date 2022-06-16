@@ -1753,7 +1753,7 @@ fileprivate class QuotedItemPanel: UIView, InputContextPanel {
         addSubview(stackView)
         NSLayoutConstraint.activate([
             stackView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 8),
-            stackView.topAnchor.constraint(equalTo: self.topAnchor, constant: 8),
+            stackView.topAnchor.constraint(equalTo: self.topAnchor, constant: 0),
             stackView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -8),
             stackView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -8)
         ])
@@ -1835,12 +1835,12 @@ fileprivate class QuotedItemPanel: UIView, InputContextPanel {
     }()
 
     private lazy var quoteFeedPanelTextMediaContent: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ quoteFeedPanelTextContent, quoteFeedPanelImage ])
+        let view = UIStackView(arrangedSubviews: [ quoteFeedPanelImage, quoteFeedPanelTextContent ])
         view.axis = .horizontal
         view.alignment = .top
         view.spacing = 3
 
-        view.layoutMargins = UIEdgeInsets(top: 8, left: 5, bottom: 8, right: 8)
+        view.layoutMargins = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
         view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false
