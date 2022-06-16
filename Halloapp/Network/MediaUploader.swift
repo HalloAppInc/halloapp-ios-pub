@@ -131,8 +131,8 @@ final class MediaUploader {
     // Use Custom Alamofire session - we modify the timeoutIntervalForRequest parameter in the configuration
     lazy var afSession : Alamofire.Session = { [weak self] in
         let configuration = URLSessionConfiguration.default
-        // Set the timeout to be 20 seconds.
-        configuration.timeoutIntervalForRequest = TimeInterval(20)
+        // Set the timeout to be 15 seconds.
+        configuration.timeoutIntervalForRequest = TimeInterval(15)
 
         let session = Alamofire.Session(configuration: configuration)
         return session
@@ -222,9 +222,9 @@ final class MediaUploader {
             let error = response.error as Error? ?? MediaUploadError.unknownError
             guard let statusCode = response.response?.statusCode else {
                 // If the error is unknown - this is primarily due to loss of connection without a server response.
-                // so we should retry this task.
+                // so we should retry this task immediately.
                 DDLogError("MediaUploader/handleTusFailure/Failed/response: \(response)")
-                retryAfterDelay(task: task)
+                startMediaUpload(task: task)
                 return
             }
             DDLogInfo("MediaUploader/handleTusFailure/\(task.groupId)/\(task.index)/statusCode: \(statusCode)")
@@ -262,7 +262,7 @@ final class MediaUploader {
 
             default:
                 // For any other 4XX errors or 5XX errors
-                // Retry three time after (5, 10, 20) seconds. After three failures try direct upload by sending IQ without size attribute.
+                // Retry three time after (2, 4, 8) seconds. After three failures try direct upload by sending IQ without size attribute.
                 retryAfterDelay(task: task)
             }
         }
@@ -270,7 +270,7 @@ final class MediaUploader {
 
     func retryAfterDelay(task: Task) {
         // Try and resume task using a timer - with delay based on failureCount.
-        let timeDelay = Double(task.failureCount) * 5.0
+        let timeDelay = Double(task.failureCount) * 2.0
         DispatchQueue.main.asyncAfter(deadline: .now() + timeDelay) {
             self.startMediaUpload(task: task)
         }
