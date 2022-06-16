@@ -161,7 +161,7 @@ class ImageServer {
             guard let self = self else { return }
 
             for task in self.tasks {
-                guard task.id == id else { return }
+                guard task.id == id else { continue }
                 task.videoExporter?.cancel()
 
                 if case .success(let result) = task.result, !keepFiles {
@@ -178,7 +178,7 @@ class ImageServer {
             guard let self = self else { return }
 
             for task in self.tasks {
-                guard task.url == url else { return }
+                guard task.url == url else { continue }
                 task.videoExporter?.cancel()
 
                 if case .success(let result) = task.result, !keepFiles {
@@ -195,7 +195,7 @@ class ImageServer {
             guard let self = self else { return }
 
             for task in self.tasks {
-                guard task.id == nil else { return }
+                guard task.id == nil else { continue }
                 task.videoExporter?.cancel()
 
                 if case .success(let result) = task.result, !keepFiles {
