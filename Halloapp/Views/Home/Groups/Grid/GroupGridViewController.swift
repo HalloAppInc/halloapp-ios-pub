@@ -179,7 +179,7 @@ class GroupGridViewController: UIViewController {
                                                                          withReuseIdentifier: GroupGridHeader.reuseIdentifier,
                                                                          for: indexPath)
             if let header = header as? GroupGridHeader, let groupID = dataSource.groupID(at: indexPath.section) {
-                header.configure(with: groupID)
+                header.configure(with: groupID, unreadPostCountSubject: dataSource.unreadPostCountSubject(for: groupID))
                 header.openGroupFeed = { [weak self] in
                     self?.navigationController?.pushViewController(GroupFeedViewController(groupId: groupID), animated: true)
                 }

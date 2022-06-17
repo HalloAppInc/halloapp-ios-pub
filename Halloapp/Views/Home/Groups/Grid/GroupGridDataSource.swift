@@ -31,9 +31,11 @@ class GroupGridDataSource: NSObject {
     private var isSearching = false
     private var pendingSnapshot: NSDiffableDataSourceSnapshot<GroupID, FeedPostID>?
     private let dataSource: UICollectionViewDiffableDataSource<GroupID, FeedPostID>
-    private var unreadPostIDs = Set<FeedPostID>()
+    private var pendingUnreadPostIDs = Set<FeedPostID>()
     private var didLoadInitialSearchResultsForSearchSession = false
     private var didAddSelfPostInLastUpdate = false
+    private var unreadPostIDsByGroupID: [GroupID: Set<FeedPostID>] = [:]
+    private var unreadPostCountSubjects = NSMapTable<NSString, CurrentValueSubject<Int, Never>>.strongToWeakObjects()
 
     init(collectionView: UICollectionView,
          cellProvider: @escaping UICollectionViewDiffableDataSource<GroupID, FeedPostID>.CellProvider) {
@@ -91,8 +93,18 @@ class GroupGridDataSource: NSObject {
         return postsFetchedResultsController.fetchedObjects?.first { $0.id == feedPostID }
     }
 
+    func unreadPostCountSubject(for groupID: GroupID) -> CurrentValueSubject<Int, Never> {
+        if let unreadPostCountSubject = unreadPostCountSubjects.object(forKey: groupID as NSString) {
+            return unreadPostCountSubject
+        }
+        let unreadPostCountSubject = CurrentValueSubject<Int, Never>(unreadPostIDsByGroupID[groupID]?.count ?? 0)
+        unreadPostCountSubjects.setObject(unreadPostCountSubject, forKey: groupID as String as NSString)
+        return unreadPostCountSubject
+    }
+
     func reloadSnapshot(animated: Bool, completion: (() -> Void)? = nil) {
-        unreadPostIDs.removeAll()
+        unreadPostIDsByGroupID.removeAll()
+        pendingUnreadPostIDs.removeAll()
         unreadPostsCountSubject.send(0)
 
         var snapshot = NSDiffableDataSourceSnapshot<GroupID, FeedPostID>()
@@ -110,7 +122,13 @@ class GroupGridDataSource: NSObject {
             guard sortedGroupIDs.contains(section.name), let feedPosts = section.objects as? [FeedPost] else {
                 return
             }
+            unreadPostIDsByGroupID[section.name] = Set(feedPosts.filter { $0.status == .incoming }.map(\.id))
             snapshot.appendItems(feedPosts.map(\.id), toSection: section.name)
+        }
+
+        // Send new unread counts to all active subjects
+        for case let groupID as NSString in unreadPostCountSubjects.keyEnumerator() {
+            unreadPostCountSubjects.object(forKey: groupID)?.send(unreadPostIDsByGroupID[groupID as String]?.count ?? 0)
         }
     }
 
@@ -170,10 +188,11 @@ extension GroupGridDataSource: NSFetchedResultsControllerDelegate {
                         snapshot.appendItems([feedPost.id], toSection: groupID)
                     }
                 } else if snapshot.sectionIdentifiers.contains(groupID) {
-                    unreadPostIDs.insert(feedPost.id)
+                    pendingUnreadPostIDs.insert(feedPost.id)
                 }
             case .delete:
-                unreadPostIDs.remove(feedPost.id)
+                updateUnreadCounts(for: feedPost.id, in: groupID, isRead: true)
+                pendingUnreadPostIDs.remove(feedPost.id)
                 snapshot.deleteItems([feedPost.id])
             case .move:
                 // Do not reflect moves until reloaded
@@ -185,6 +204,7 @@ extension GroupGridDataSource: NSFetchedResultsControllerDelegate {
                     } else {
                         snapshot.reloadItems([feedPost.id])
                     }
+                    updateUnreadCounts(for: feedPost.id, in: groupID, isRead: feedPost.status != .incoming)
                 }
             @unknown default:
                 break
@@ -237,11 +257,24 @@ extension GroupGridDataSource: NSFetchedResultsControllerDelegate {
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         pendingSnapshot.flatMap { dataSource.apply($0) }
-        unreadPostsCountSubject.send(unreadPostIDs.count)
+        unreadPostsCountSubject.send(pendingUnreadPostIDs.count)
 
         if didAddSelfPostInLastUpdate {
             requestScrollToTopAnimatedSubject.send(true)
         }
+    }
+
+    // Unread post count helper functions
+
+    private func updateUnreadCounts(for postID: FeedPostID, in groupID: GroupID, isRead: Bool) {
+        var unreadPostIDs = unreadPostIDsByGroupID[groupID] ?? Set()
+        if isRead {
+            unreadPostIDs.remove(postID)
+        } else {
+            unreadPostIDs.insert(postID)
+        }
+        unreadPostIDsByGroupID[groupID] = unreadPostIDs
+        unreadPostCountSubjects.object(forKey: groupID as NSString)?.send(unreadPostIDs.count)
     }
 }
 
@@ -299,13 +332,19 @@ extension GroupGridDataSource: UISearchResultsUpdating {
             isSearching = true
 
             // reset any pending post notifications, we will reload after search is completed
-            unreadPostIDs.removeAll()
+            pendingUnreadPostIDs.removeAll()
             unreadPostsCountSubject.send(0)
 
             if let searchText = searchController.searchBar.text, !searchText.isEmpty {
                 dataSource.apply(snapshot(for: searchText), animatingDifferences: false)
                 requestScrollToTopAnimatedSubject.send(false)
                 didLoadInitialSearchResultsForSearchSession = true
+
+                // Remove unread post counts when we start typing
+                unreadPostIDsByGroupID.removeAll()
+                for case let groupID as NSString in unreadPostCountSubjects.keyEnumerator() {
+                    unreadPostCountSubjects.object(forKey: groupID)?.send(0)
+                }
             } else if didLoadInitialSearchResultsForSearchSession { // don't modify results until user has actually started to search
                 requestScrollToTopAnimatedSubject.send(false)
                 reloadSnapshot(animated: false)

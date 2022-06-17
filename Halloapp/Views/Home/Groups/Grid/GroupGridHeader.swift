@@ -34,8 +34,17 @@ class GroupGridHeader: UICollectionReusableView {
         return groupNameLabel
     }()
 
+    private let unreadPostCountLabel: UILabel = {
+        let unreadPostCountLabel = UILabel()
+        unreadPostCountLabel.adjustsFontForContentSizeCategory = true
+        unreadPostCountLabel.font = .gothamFont(forTextStyle: .subheadline, weight: .medium)
+        unreadPostCountLabel.textColor = .label.withAlphaComponent(0.75)
+        return unreadPostCountLabel
+    }()
+
     private var group: Group?
     private var groupNameChangedCancellable: AnyCancellable?
+    private var groupUnreadCountChangedCancellable: AnyCancellable?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -43,7 +52,7 @@ class GroupGridHeader: UICollectionReusableView {
         addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(headerTapped)))
         addInteraction(UIContextMenuInteraction(delegate: self))
 
-        let groupAvatarAndNameStackView = UIStackView(arrangedSubviews: [groupAvatarView, groupNameLabel])
+        let groupAvatarAndNameStackView = UIStackView(arrangedSubviews: [groupAvatarView, groupNameLabel, unreadPostCountLabel])
         groupAvatarAndNameStackView.alignment = .center
         groupAvatarAndNameStackView.axis = .horizontal
         groupAvatarAndNameStackView.isLayoutMarginsRelativeArrangement = true
@@ -51,6 +60,8 @@ class GroupGridHeader: UICollectionReusableView {
         groupAvatarAndNameStackView.spacing = 12
         groupAvatarAndNameStackView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(groupAvatarAndNameStackView)
+
+        groupAvatarAndNameStackView.setCustomSpacing(3, after: groupNameLabel)
 
         let postButton = RoundedRectButton()
         postButton.addTarget(self, action: #selector(composeButtonTapped), for: .touchUpInside)
@@ -72,7 +83,7 @@ class GroupGridHeader: UICollectionReusableView {
             groupAvatarAndNameStackView.leadingAnchor.constraint(equalTo: leadingAnchor),
             groupAvatarAndNameStackView.topAnchor.constraint(equalTo: topAnchor),
             groupAvatarAndNameStackViewBottomConstraint,
-            groupAvatarAndNameStackView.trailingAnchor.constraint(lessThanOrEqualTo: postButton.leadingAnchor),
+            groupAvatarAndNameStackView.trailingAnchor.constraint(lessThanOrEqualTo: postButton.leadingAnchor, constant: -12),
 
             postButton.widthAnchor.constraint(equalToConstant: Constants.postButtonSize),
             postButton.heightAnchor.constraint(equalToConstant: Constants.postButtonSize),
@@ -85,12 +96,16 @@ class GroupGridHeader: UICollectionReusableView {
         fatalError()
     }
 
-    func configure(with groupID: GroupID) {
+    func configure(with groupID: GroupID, unreadPostCountSubject: CurrentValueSubject<Int, Never>) {
         groupAvatarView.configure(groupId: groupID, squareSize: Constants.avatarSize, using: MainAppContext.shared.avatarStore)
 
         group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext)
         groupNameChangedCancellable = group?.publisher(for: \.name).sink { [weak self] in
             self?.groupNameLabel.text = $0
+        }
+
+        groupUnreadCountChangedCancellable = unreadPostCountSubject.sink { [weak self] in
+            self?.unreadPostCountLabel.text = $0 > 0 ? "(\($0))" : nil
         }
     }
 
