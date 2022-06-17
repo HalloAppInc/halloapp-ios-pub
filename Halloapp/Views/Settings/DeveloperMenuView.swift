@@ -26,6 +26,7 @@ private enum MenuTitles {
     static var resetFavoritesZeroState: String { "Reset Favorites Zero State" }
     static var addFavoritesNotification: String { "Add Favorites Notification" }
     static var enableNewGroupsTab: String { "Enable new groups tab (restart app to take effect)" }
+    static var resetMomentsFTUX: String { "Reset Moments FTUX" }
     static var logOut: String { "Log Out" }
 }
 
@@ -192,6 +193,14 @@ struct DeveloperMenuView: View {
                     .onReceive(Just(self.enableNewGroupsTab)) { value in
                         AppContext.shared.userDefaults.set(value, forKey: "enableNewGroupsTab")
                     }
+                Button {
+                    AppContext.shared.userDefaults.set(false, forKey: "shown.moment.explainer")
+                    AppContext.shared.userDefaults.set(false, forKey: "shown.moment.unlock.explainer")
+                    AppContext.shared.userDefaults.set(false, forKey: "shown.replace.moment.disclaimer")
+                    dismiss?()
+                } label: {
+                    Text(MenuTitles.resetMomentsFTUX)
+                }
                 // Log Out
                 Button(action: {
                     self.userData.logout(using: self.userData.viewContext)
