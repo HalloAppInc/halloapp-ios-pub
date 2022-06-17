@@ -428,3 +428,10 @@ extension UITableView {
         return numberOfSections > indexPath.section && numberOfRows(inSection: indexPath.section) > indexPath.row
     }
 }
+
+extension NotificationsViewController: UIViewControllerScrollsToTop {
+
+    func scrollToTop(animated: Bool) {
+        tableView.setContentOffset(CGPoint(x: 0, y: -tableView.adjustedContentInset.top), animated: animated)
+    }
+}
