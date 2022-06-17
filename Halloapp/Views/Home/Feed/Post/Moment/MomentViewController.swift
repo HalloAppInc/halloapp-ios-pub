@@ -79,8 +79,10 @@ class MomentViewController: UIViewController {
         return view
     }()
 
+    private lazy var dismissKeyboardGesture = UISwipeGestureRecognizer(target: self, action: #selector(keyboardDismissSwipe))
     private lazy var dismissPanGesture = UIPanGestureRecognizer(target: self, action: #selector(dismissPan))
     private lazy var dismissTapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissTapped))
+
     private lazy var dismissAnimator: DismissAnimator = {
         let animator = DismissAnimator(referenceView: view)
         animator.delegate = self
@@ -234,22 +236,10 @@ class MomentViewController: UIViewController {
 
         dismissPanGesture.delegate = self
         momentView.addGestureRecognizer(dismissPanGesture)
-    }
-    
-    private func installDismissButton() {
-        let config = UIImage.SymbolConfiguration(weight: .bold)
-        let image = UIImage(systemName: "chevron.down", withConfiguration: config)
-        
-        let button = UIButton(type: .system)
-        button.setImage(image, for: .normal)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.addTarget(self, action: #selector(dismissPushed), for: .touchUpInside)
-        view.addSubview(button)
-        
-        NSLayoutConstraint.activate([
-            button.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 15),
-            button.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
-        ])
+
+        dismissKeyboardGesture.direction = .down
+        dismissKeyboardGesture.delegate = self
+        view.addGestureRecognizer(dismissKeyboardGesture)
     }
 
     @objc
@@ -426,6 +416,13 @@ extension MomentViewController {
             installPushBehavior(gesture, velocity: velocity)
         default:
             break
+        }
+    }
+
+    @objc
+    private func keyboardDismissSwipe(_ gesture: UISwipeGestureRecognizer) {
+        if contentInputView.textView.isFirstResponder {
+            contentInputView.textView.resignFirstResponder()
         }
     }
 
