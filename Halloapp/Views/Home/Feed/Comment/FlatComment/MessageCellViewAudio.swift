@@ -53,7 +53,7 @@ class MessageCellViewAudio: MessageCellViewBase {
         leadingSpacer.widthAnchor.constraint(equalToConstant: 40).isActive = true
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
-        let view = UIStackView(arrangedSubviews: [ leadingSpacer, audioTimeLabel, spacer, timeLabel ])
+        let view = UIStackView(arrangedSubviews: [ leadingSpacer, audioTimeLabel, spacer, timeRow ])
         view.axis = .horizontal
         view.spacing = 0
         view.isLayoutMarginsRelativeArrangement = true
