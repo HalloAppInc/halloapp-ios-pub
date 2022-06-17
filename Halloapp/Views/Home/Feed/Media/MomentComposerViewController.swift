@@ -30,7 +30,7 @@ class MomentComposerViewController: UIViewController {
         imageView.contentMode = .scaleAspectFit
 
         label.text = PrivacyList.title(forPrivacyListType: .all)
-        label.font = .systemFont(ofSize: 14)
+        label.font = .systemFont(ofSize: 16)
         label.textColor = .secondaryLabel
 
         stack.translatesAutoresizingMaskIntoConstraints = false
@@ -52,6 +52,10 @@ class MomentComposerViewController: UIViewController {
 
         return pill
     }()
+
+    /// Displayed when the user taps on `audienceIndicator`
+    private var audienceDisclaimerView: UIView?
+    private var hideAudienceDisclaimerItem: DispatchWorkItem?
 
     private lazy var imageView: UIImageView = {
         let view = UIImageView()
@@ -180,6 +184,13 @@ class MomentComposerViewController: UIViewController {
 
         let barButton = UIBarButtonItem(image: UIImage(systemName: "xmark"), style: .plain, target: self, action: #selector(dismissTapped))
         navigationItem.leftBarButtonItem = barButton
+
+        let showTap = UITapGestureRecognizer(target: self, action: #selector(audiencePillTapped))
+        audienceIndicator.addGestureRecognizer(showTap)
+
+        let hideTap = UITapGestureRecognizer(target: self, action: #selector(hideAudiencePillTapped))
+        view.addGestureRecognizer(hideTap)
+        hideTap.cancelsTouchesInView = false
     }
 
     @objc
@@ -200,6 +211,93 @@ class MomentComposerViewController: UIViewController {
         } else {
             MainAppContext.shared.feedData.postMoment(media: media)
             onPost?()
+        }
+    }
+
+    @objc
+    private func audiencePillTapped(_ gesture: UITapGestureRecognizer) {
+        if audienceDisclaimerView == nil {
+            showAudienceDisclaimer()
+        } else {
+            hideAudienceDisclaimer()
+        }
+    }
+
+    @objc
+    private func hideAudiencePillTapped(_ gesture: UITapGestureRecognizer) {
+        if audienceDisclaimerView != nil {
+            hideAudienceDisclaimer()
+        }
+    }
+
+    private func showAudienceDisclaimer() {
+        let label = UILabel()
+        label.text = Localizations.momentAllContactsDisclaimer
+        label.font = .systemFont(forTextStyle: .subheadline, maximumPointSize: 22)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.numberOfLines = 0
+        label.textAlignment = .center
+
+        let container = UIVisualEffectView(effect: UIBlurEffect(style: .systemThickMaterialDark))
+        container.translatesAutoresizingMaskIntoConstraints = false
+
+        let background = UIView()
+        background.backgroundColor = .black
+        background.translatesAutoresizingMaskIntoConstraints = false
+
+        container.contentView.addSubview(label)
+        view.addSubview(container)
+
+        let padding: CGFloat = 12
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: container.contentView.leadingAnchor, constant: padding),
+            label.trailingAnchor.constraint(equalTo: container.contentView.trailingAnchor, constant: -padding),
+            label.topAnchor.constraint(equalTo: container.contentView.topAnchor, constant: padding),
+            label.bottomAnchor.constraint(equalTo: container.contentView.bottomAnchor, constant: -padding),
+
+            container.topAnchor.constraint(equalTo: audienceIndicator.bottomAnchor, constant: padding),
+            container.centerXAnchor.constraint(equalTo: audienceIndicator.centerXAnchor),
+            container.widthAnchor.constraint(lessThanOrEqualToConstant: view.bounds.width - 100),
+        ])
+
+        container.layer.masksToBounds = true
+        container.layer.cornerRadius = 12
+        container.layer.cornerCurve = .continuous
+        container.layer.borderColor = UIColor.white.withAlphaComponent(0.25).cgColor
+        container.layer.borderWidth = 0.5
+
+        container.transform = .identity.scaledBy(x: 0.2, y: 0.2)
+        container.alpha = 0
+
+        audienceDisclaimerView = container
+
+        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5) {
+            container.transform = .identity
+            container.alpha = 1
+        } completion: { [weak self] _ in
+            self?.scheduleAudienceDisclaimerHide()
+        }
+    }
+
+    private func scheduleAudienceDisclaimerHide() {
+        let item = DispatchWorkItem { [weak self] in
+            self?.hideAudienceDisclaimer()
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: item)
+        hideAudienceDisclaimerItem = item
+    }
+
+    private func hideAudienceDisclaimer() {
+        hideAudienceDisclaimerItem?.cancel()
+        hideAudienceDisclaimerItem = nil
+
+        UIView.animate(withDuration: 0.65, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5) {
+            self.audienceDisclaimerView?.transform = .identity.scaledBy(x: 0.2, y: 0.2)
+            self.audienceDisclaimerView?.alpha = 0
+        } completion: { [weak self] _ in
+            self?.audienceDisclaimerView?.removeFromSuperview()
+            self?.audienceDisclaimerView = nil
         }
     }
 
