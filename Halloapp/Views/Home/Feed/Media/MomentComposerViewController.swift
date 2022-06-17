@@ -213,7 +213,9 @@ class MomentComposerViewController: UIViewController {
             self?.replaceMoment()
         })
 
-        present(alert, animated: true)
+        present(alert, animated: true) {
+            self.hasShownReplacementDisclaimerBefore = true
+        }
     }
 
     private func replaceMoment() {

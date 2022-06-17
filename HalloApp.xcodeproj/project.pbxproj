@@ -268,6 +268,7 @@
 		A111BDFC27C96D9100E5DB4E /* UserMenuHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A111BDFB27C96D9100E5DB4E /* UserMenuHandler.swift */; };
 		A11272EA2856C5930009EBD7 /* NewMomentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11272E92856C5930009EBD7 /* NewMomentViewController.swift */; };
 		A11272EC2856E47B0009EBD7 /* MomentComposerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11272EB2856E47B0009EBD7 /* MomentComposerViewController.swift */; };
+		A11FA897285BE02900ACDA76 /* MomentsExplainerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11FA896285BE02900ACDA76 /* MomentsExplainerViewController.swift */; };
 		A15B2D96283EA9A0000CE989 /* LargeHitButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15B2D95283EA9A0000CE989 /* LargeHitButton.swift */; };
 		A15E6C782809FA1B008CAEA0 /* ProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15E6C772809FA1B008CAEA0 /* ProfileViewController.swift */; };
 		A15E6C80280DD778008CAEA0 /* FeedArchiveViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15E6C7F280DD778008CAEA0 /* FeedArchiveViewController.swift */; };
@@ -1019,6 +1020,7 @@
 		A111BDFB27C96D9100E5DB4E /* UserMenuHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserMenuHandler.swift; path = Halloapp/Views/Home/UserMenuHandler.swift; sourceTree = SOURCE_ROOT; };
 		A11272E92856C5930009EBD7 /* NewMomentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewMomentViewController.swift; sourceTree = "<group>"; };
 		A11272EB2856E47B0009EBD7 /* MomentComposerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentComposerViewController.swift; sourceTree = "<group>"; };
+		A11FA896285BE02900ACDA76 /* MomentsExplainerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentsExplainerViewController.swift; sourceTree = "<group>"; };
 		A15B2D95283EA9A0000CE989 /* LargeHitButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargeHitButton.swift; sourceTree = "<group>"; };
 		A15E6C772809FA1B008CAEA0 /* ProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewController.swift; sourceTree = "<group>"; };
 		A15E6C7F280DD778008CAEA0 /* FeedArchiveViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedArchiveViewController.swift; sourceTree = "<group>"; };
@@ -1978,6 +1980,7 @@
 				681E0DA924C8E0190073A03E /* NewPostViewController.swift */,
 				A11272E92856C5930009EBD7 /* NewMomentViewController.swift */,
 				A11272EB2856E47B0009EBD7 /* MomentComposerViewController.swift */,
+				A11FA896285BE02900ACDA76 /* MomentsExplainerViewController.swift */,
 				5B64B56124F3FA2E00BCBEA8 /* CameraController.swift */,
 				A1E695AB284304AF00025E38 /* NewCameraViewController.swift */,
 				A1E6767A28513F5E0086EDD2 /* CameraShutterButton.swift */,
@@ -3068,6 +3071,7 @@
 				EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */,
 				F878427C24F6C0FB0040B723 /* MediaAlbumsViewController.swift in Sources */,
 				6ABBD25F2601DEF80041B9ED /* FeedPostToFeed2MigrationPolicy.swift in Sources */,
+				A11FA897285BE02900ACDA76 /* MomentsExplainerViewController.swift in Sources */,
 				F49FF9F527F53C8B00EC86B2 /* FeedPostDisplayable.swift in Sources */,
 				3250C60427D0102D0032FEC4 /* VerificationCodeViewController.swift in Sources */,
 				F8606DD6257E7402006CD1A6 /* MediaExplorerImageCell.swift in Sources */,

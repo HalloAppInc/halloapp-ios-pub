@@ -74,6 +74,20 @@ final class NewMomentViewController: UIViewController {
         view.backgroundColor = .black
 
         showCamera()
+
+        if case .unlock(_) = context, !hasDisplayedUnlockingExplainer {
+            setupUnlockingExplainer()
+        }
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        if !hasDisplayedMomentsExplainer {
+            present(MomentsExplainerViewController(), animated: true) {
+                self.hasDisplayedMomentsExplainer = true
+            }
+        }
     }
 
     @objc
@@ -185,6 +199,93 @@ final class NewMomentViewController: UIViewController {
             viewController.view.topAnchor.constraint(equalTo: view.topAnchor),
             viewController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
+    }
+
+    /// The overlay that is above the camera when the user first attempts to unlock a moment.
+    private var unlockingExplainerOverlay: UIView?
+
+    private func setupUnlockingExplainer() {
+        let blur = UIVisualEffectView(effect: UIBlurEffect(style: .prominent))
+        blur.translatesAutoresizingMaskIntoConstraints = false
+        blur.layer.masksToBounds = true
+        blur.layer.cornerCurve = .continuous
+        blur.layer.cornerRadius = NewCameraViewController.Layout.innerRadius(for: .moment)
+
+        let label = UILabel()
+        label.numberOfLines = 0
+        label.textAlignment = .center
+        label.text = prompt
+
+        let button = CapsuleButton()
+        button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 30, bottom: 10, right: 30)
+        button.setBackgroundColor(.systemBlue, for: .normal)
+        button.setTitle(Localizations.buttonOK, for: .normal)
+
+        let stack = UIStackView(arrangedSubviews: [label, button])
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .vertical
+        stack.alignment = .center
+        stack.isLayoutMarginsRelativeArrangement = true
+        stack.layoutMargins = UIEdgeInsets(top: 25, left: 35, bottom: 15, right: 35)
+        stack.spacing = 20
+
+        cameraController.view.addSubview(blur)
+        blur.contentView.addSubview(stack)
+
+        NSLayoutConstraint.activate([
+            blur.leadingAnchor.constraint(equalTo: cameraController.preview.leadingAnchor),
+            blur.trailingAnchor.constraint(equalTo: cameraController.preview.trailingAnchor),
+            blur.topAnchor.constraint(equalTo: cameraController.preview.topAnchor),
+            blur.bottomAnchor.constraint(equalTo: cameraController.preview.bottomAnchor),
+
+            stack.leadingAnchor.constraint(equalTo: blur.contentView.leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: blur.contentView.trailingAnchor),
+            stack.topAnchor.constraint(greaterThanOrEqualTo: blur.contentView.topAnchor),
+            stack.bottomAnchor.constraint(lessThanOrEqualTo: blur.contentView.bottomAnchor),
+            stack.centerYAnchor.constraint(equalTo: blur.contentView.centerYAnchor)
+        ])
+
+        cameraController.shutterButton.isUserInteractionEnabled = false
+        cameraController.subtitleLabel.isHidden = true
+        unlockingExplainerOverlay = blur
+        button.addTarget(self, action: #selector(dismissUnlockingExplainer), for: .touchUpInside)
+    }
+
+    @objc
+    private func dismissUnlockingExplainer(_ sender: UIButton) {
+        cameraController.shutterButton.isUserInteractionEnabled = true
+        cameraController.subtitleLabel.isHidden = false
+        unlockingExplainerOverlay?.removeFromSuperview()
+
+        hasDisplayedUnlockingExplainer = true
+    }
+}
+
+// MARK: - FTUX computed properties
+
+extension NewMomentViewController {
+    /// Indicates whether we have shown the bottom sheet that explains the feature.
+    /// This is shown when the user opens the moments camera for the first time.
+    private var hasDisplayedMomentsExplainer: Bool {
+        get {
+            MainAppContext.shared.userDefaults.bool(forKey: "shown.moment.explainer")
+        }
+
+        set {
+            MainAppContext.shared.userDefaults.set(newValue, forKey: "shown.moment.explainer")
+        }
+    }
+
+    /// Shown as a blurred overlay above the camera. This is shown when the user attempts to
+    /// unlock someone else's moment for the first time.
+    private var hasDisplayedUnlockingExplainer: Bool {
+        get {
+            MainAppContext.shared.userDefaults.bool(forKey: "shown.moment.unlock.explainer")
+        }
+
+        set {
+            MainAppContext.shared.userDefaults.set(newValue, forKey: "shown.moment.unlock.explainer")
+        }
     }
 }
 

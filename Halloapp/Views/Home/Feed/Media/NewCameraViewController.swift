@@ -35,7 +35,7 @@ class NewCameraViewController: UIViewController {
     let configuration: Configuration
 
     private lazy var model = CameraModel()
-    private lazy var preview: CameraPreviewView = {
+    private(set) lazy var preview: CameraPreviewView = {
         let view = CameraPreviewView()
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
@@ -124,7 +124,7 @@ class NewCameraViewController: UIViewController {
         return formatter
     }()
 
-    private lazy var subtitleLabel: UILabel = {
+    private(set) lazy var subtitleLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.numberOfLines = 0
@@ -163,7 +163,7 @@ class NewCameraViewController: UIViewController {
         subscribeToModelUpdates()
 
         installUI()
-        shutterButton.longPressGesture.isEnabled = configuration != .moment
+        shutterButton.allowsLongPress = configuration != .moment
 
         let pinch = UIPinchGestureRecognizer(target: self, action: #selector(pinchedToZoom))
         preview.addGestureRecognizer(pinch)
@@ -468,7 +468,7 @@ extension NewCameraViewController: CameraModelDelegate {
 // MARK: - CameraPreviewView implementation
 
 /// A wrapper view for `AVCaptureVideoPreviewLayer`, so that it can be used with autolayout.
-fileprivate class CameraPreviewView: UIView {
+final class CameraPreviewView: UIView {
     private(set) lazy var previewLayer = AVCaptureVideoPreviewLayer()
 
     override init(frame: CGRect) {
