@@ -91,6 +91,8 @@ public final class NoiseStream: NSObject {
                 self.startHandshake()
             case .waiting(let error):
                 DDLogInfo("noise/connection/waiting [\(error.debugDescription)]")
+                self.state = .disconnected
+                self.connection = nil
             case .failed(let error):
                 DDLogInfo("noise/connection/failed [\(error.debugDescription)]")
                 self.state = .disconnected
