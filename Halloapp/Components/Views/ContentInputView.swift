@@ -480,9 +480,7 @@ class ContentInputView: UIView {
         super.init(frame: .zero)
         backgroundColor = .primaryBg
         tintColor = .primaryBlue
-        
-        configureBlur()
-        
+
         addSubview(vStack)
         vStack.constrain(to: self)
         
