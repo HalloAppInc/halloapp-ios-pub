@@ -291,8 +291,10 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
                         return
                     }
                 }
-                
-                self?.saveMedia()
+
+                DispatchQueue.main.async {
+                    self?.saveMedia()
+                }
             }
         }))
 
@@ -316,20 +318,19 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     }
     
     private func saveMedia() {
+        let media = self.explorerMedia(at: currentIndex)
+        let type = media.type
+        let url = media.url
+
         PHPhotoLibrary.shared().performChanges({ [weak self] in
             guard let self = self else { return }
-            let currentMedia = self.explorerMedia(at: self.currentIndex)
 
-            if currentMedia.type == .image {
-                if let url = currentMedia.url {
-                    PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: url)
-                    AppContext.shared.eventMonitor.count(.mediaSaved(type: .image, source: self.source))
-                }
-            } else if currentMedia.type == .video {
-                if let url = currentMedia.url {
-                    PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
-                    AppContext.shared.eventMonitor.count(.mediaSaved(type: .video, source: self.source))
-                }
+            if type == .image, let url = url {
+                PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: url)
+                AppContext.shared.eventMonitor.count(.mediaSaved(type: .image, source: self.source))
+            } else if type == .video, let url = url {
+                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
+                AppContext.shared.eventMonitor.count(.mediaSaved(type: .video, source: self.source))
             }
         }, completionHandler: { [weak self] success, error in
             DispatchQueue.main.async {

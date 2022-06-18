@@ -62,10 +62,6 @@ private extension Localizations {
     }
 }
 
-private struct Constants {
-    static let maxNumberOfPhotos = 10
-}
-
 enum MediaPickerFilter {
     case all, image, video
 }
@@ -84,6 +80,7 @@ struct MediaPickerConfig {
     var filter: MediaPickerFilter = .all
     var allowsMultipleSelection = true
     var isCameraEnabled = false
+    var maxNumberOfItems = ServerProperties.maxPostMediaItems
 
     static var feed: MediaPickerConfig {
         MediaPickerConfig(destination: .userFeed, privacyListType: .all, filter: .all, allowsMultipleSelection: true, isCameraEnabled: false)
@@ -94,7 +91,7 @@ struct MediaPickerConfig {
     }
 
     static func chat(id: UserID?) -> MediaPickerConfig {
-        MediaPickerConfig(destination: .chat(id), privacyListType: nil, filter: .all, allowsMultipleSelection: true, isCameraEnabled: true)
+        MediaPickerConfig(destination: .chat(id), privacyListType: nil, filter: .all, allowsMultipleSelection: true, isCameraEnabled: true, maxNumberOfItems: ServerProperties.maxChatMediaItems)
     }
 
     static var comments: MediaPickerConfig {
@@ -1063,9 +1060,9 @@ extension MediaPickerViewController: UICollectionViewDelegate {
 
         if selected.contains(asset) {
             deselect(collectionView, cell: cell, asset: asset)
-        } else if selected.count >= Constants.maxNumberOfPhotos {
+        } else if selected.count >= config.maxNumberOfItems {
             let alert = UIAlertController(title: Localizations.mediaLimitTitle,
-                                          message: Localizations.mediaLimitMessage(Constants.maxNumberOfPhotos),
+                                          message: Localizations.mediaLimitMessage(config.maxNumberOfItems),
                                           preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default))
             self.present(alert, animated: true)

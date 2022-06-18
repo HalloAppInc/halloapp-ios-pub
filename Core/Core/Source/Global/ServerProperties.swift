@@ -36,6 +36,8 @@ public struct ServerProperties {
         case inviteStrings = "invite_strings"
         case nseRuntimeSec = "nse_runtime_sec"
         case newChatUI = "new_chat_ui"
+        case maxPostMediaItems = "max_post_media_items"
+        case maxChatMediaItems = "max_chat_media_items"
     }
 
     private struct UserDefaultsKey {
@@ -70,6 +72,8 @@ public struct ServerProperties {
         static let isHomeCommentNotificationsEnabled = false
         static let nseRuntimeSec = 17.0
         static let newChatUI = false
+        static let maxPostMediaItems = 10
+        static let maxChatMediaItems = 30
     }
 
     // MARK: Storage
@@ -302,5 +306,13 @@ public struct ServerProperties {
         // lowercased locale because Apple has some capitalization in their language codes (e.g. pt-BR)
         // while the server keys do not
         return specificInviteString
+    }
+
+    public static var maxPostMediaItems: Int {
+        ServerProperties.integer(forKey: .maxPostMediaItems) ?? Defaults.maxPostMediaItems
+    }
+
+    public static var maxChatMediaItems: Int {
+        ServerProperties.integer(forKey: .maxChatMediaItems) ?? Defaults.maxChatMediaItems
     }
 }
