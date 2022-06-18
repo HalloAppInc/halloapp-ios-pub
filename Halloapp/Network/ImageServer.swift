@@ -39,19 +39,32 @@ struct ImageServerResult {
     var chunkSize: Int32
     var blobSize: Int64
 
-    func copy(to destination: URL) {
+    func copy(to destination: URL) -> Bool {
         let manager = FileManager.default
         let encrypted = url.appendingPathExtension("enc")
         let encryptedDestination = destination.appendingPathExtension("enc")
 
         do {
+            if manager.fileExists(atPath: destination.path) {
+                try manager.removeItem(at: destination)
+                DDLogInfo("ImageServer/result deleted url=[\(url)]")
+            }
+
+            if manager.fileExists(atPath: encryptedDestination.path) {
+                try manager.removeItem(at: encryptedDestination)
+                DDLogInfo("ImageServer/result deleted url=[\(encrypted)]")
+            }
+
             try manager.copyItem(at: url, to: destination)
             DDLogInfo("ImageServer/result copied from=[\(url)] to=[\(destination)]")
 
             try manager.copyItem(at: encrypted, to: encryptedDestination)
             DDLogInfo("ImageServer/result copied from=[\(encrypted)] to=[\(encryptedDestination)]")
+
+            return true
         } catch {
             DDLogError("ImageServer/result/copy/error [\(error)]")
+            return false
         }
     }
 

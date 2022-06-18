@@ -3040,9 +3040,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
                 ImageServer.shared.prepare(mediaItem.type, url: url, for: postId, index: Int(mediaIndex), shouldStreamVideo: mediaItem.blobVersion == .chunked) { [weak self] in
                     guard let self = self else { return }
+                    DDLogDebug("FeedData/process-mediaItem/\(postId)/\(mediaIndex)/result: \($0)")
                     switch $0 {
                     case .success(let result):
-                        result.copy(to: output)
+                        guard result.copy(to: output) else {
+                            break
+                        }
                         if result.url != url {
                             result.clear()
                         }
@@ -3061,17 +3064,19 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         }) {
                             self.upload(postId: postId, mediaIndex: mediaIndex, completion: uploadCompletion)
                         }
+                        return
                     case .failure(_):
-                        DDLogDebug("FeedData/process-mediaItem/failure: \(postId)/\(mediaIndex)")
-                        numberOfFailedUploads += 1
+                        break
+                    }
+                    DDLogDebug("FeedData/process-mediaItem/failure: \(postId)/\(mediaIndex)")
+                    numberOfFailedUploads += 1
 
-                        self.updateFeedPost(with: postId, block: { (feedPost) in
-                            if let media = feedPost.media?.first(where: { $0.order == mediaIndex }) {
-                                media.status = .uploadError
-                            }
-                        }) {
-                            uploadGroup.leave()
+                    self.updateFeedPost(with: postId, block: { (feedPost) in
+                        if let media = feedPost.media?.first(where: { $0.order == mediaIndex }) {
+                            media.status = .uploadError
                         }
+                    }) {
+                        uploadGroup.leave()
                     }
                 }
             } else {
@@ -3168,7 +3173,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     guard let self = self else { return }
                     switch $0 {
                     case .success(let result):
-                        result.copy(to: output)
+                        guard result.copy(to: output) else {
+                            break
+                        }
                         if result.url != url {
                             result.clear()
                         }
@@ -3185,17 +3192,19 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         }) {
                             self.uploadFeedLinkPreview(feedLinkPreviewId: linkPreviewID, mediaIndex: mediaIndex, completion: uploadCompletion)
                         }
+                        return
                     case .failure(_):
-                        DDLogDebug("FeedData/process-feedLinkPreview-mediaItem/failure: feedLinkPreview \(linkPreviewID)/\(mediaIndex) url\(url) output \(output)")
-                        numberOfFailedUploads += 1
+                        break
+                    }
+                    DDLogDebug("FeedData/process-feedLinkPreview-mediaItem/failure: feedLinkPreview \(linkPreviewID)/\(mediaIndex) url\(url) output \(output)")
+                    numberOfFailedUploads += 1
 
-                        self.updateFeedLinkPreview(with: linkPreviewID, block: { (feedLinkPreview) in
-                            if let media = feedLinkPreview.media?.first(where: { $0.order == mediaIndex }){
-                                media.status = .uploadError
-                            }
-                        }) {
-                            uploadGroup.leave()
+                    self.updateFeedLinkPreview(with: linkPreviewID, block: { (feedLinkPreview) in
+                        if let media = feedLinkPreview.media?.first(where: { $0.order == mediaIndex }){
+                            media.status = .uploadError
                         }
+                    }) {
+                        uploadGroup.leave()
                     }
                 }
             } else {
@@ -3289,7 +3298,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         guard let self = self else { return }
                         switch $0 {
                         case .success(let result):
-                            result.copy(to: output)
+                            guard result.copy(to: output) else {
+                                break
+                            }
                             if result.url != url {
                                 result.clear()
                             }
@@ -3308,17 +3319,19 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                             }) {
                                 self.uploadCommentMedia(postId: postID, commentId: commentID, mediaIndex: mediaIndex, completion: uploadCompletion)
                             }
+                            return
                         case .failure(_):
-                            DDLogDebug("FeedData/process-comment-mediaItem/failure: comment \(commentID)/\(mediaIndex) url\(url) output \(output)")
-                            numberOfFailedUploads += 1
+                            break
+                        }
+                        DDLogDebug("FeedData/process-comment-mediaItem/failure: comment \(commentID)/\(mediaIndex) url\(url) output \(output)")
+                        numberOfFailedUploads += 1
 
-                            self.updateFeedPostComment(with: commentID, block: { (feedComment) in
-                                if let media = feedComment.media?.first(where: { $0.order == mediaIndex }){
-                                    media.status = .uploadError
-                                }
-                            }) {
-                                uploadGroup.leave()
+                        self.updateFeedPostComment(with: commentID, block: { (feedComment) in
+                            if let media = feedComment.media?.first(where: { $0.order == mediaIndex }){
+                                media.status = .uploadError
                             }
+                        }) {
+                            uploadGroup.leave()
                         }
                     }
                 } else {
