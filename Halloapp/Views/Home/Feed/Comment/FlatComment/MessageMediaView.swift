@@ -12,8 +12,8 @@ import Combine
 import UIKit
 
 protocol MessageMediaViewDelegate: AnyObject {
-    func messageMediaView(_ view: PreviewImageView, forComment: FeedPostCommentID, didTapMediaAtIndex index: Int)
-    func messageMediaView(_ view: PreviewImageView, forMessage: ChatMessageID, didTapMediaAtIndex index: Int)
+    func messageMediaView(_ view: MediaImageView, forComment: FeedPostCommentID, didTapMediaAtIndex index: Int)
+    func messageMediaView(_ view: MediaImageView, forMessage: ChatMessageID, didTapMediaAtIndex index: Int)
 }
 
 class MessageMediaView: UIView {
@@ -22,8 +22,6 @@ class MessageMediaView: UIView {
     var feedPostComment: FeedPostComment?
 
     weak var delegate: MessageMediaViewDelegate?
-
-    private static let mediaLoadingQueue = DispatchQueue(label: "com.halloapp.media-loading", qos: .userInitiated)
 
     var MediaViewDimention: CGFloat { return 238.0 }
     var MediaViewCorner: CGFloat { return 10 }
@@ -63,22 +61,15 @@ class MessageMediaView: UIView {
     private func setupView() {
         translatesAutoresizingMaskIntoConstraints = false
 
-        for idx in 0..<4 {
-            let imageView = PreviewImageView()
+        for _ in 0..<4 {
+            let imageView = MediaImageView(configuration: .message)
+            imageView.translatesAutoresizingMaskIntoConstraints = false
+            imageView.isUserInteractionEnabled = true
+            imageView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onTapAction(sender:))))
             imageView.layer.cornerRadius = MediaViewCorner
 
             imageViews.append(imageView)
-            self.addSubview(imageView)
-
-            imageView.onTap = { [weak self] in
-                guard let self = self else { return }
-
-                if let commentID = self.feedPostComment?.id {
-                    self.delegate?.messageMediaView(imageView, forComment: commentID, didTapMediaAtIndex: idx)
-                } else if let messageID = self.chatMessage?.id {
-                    self.delegate?.messageMediaView(imageView, forMessage: messageID, didTapMediaAtIndex: idx)
-                }
-            }
+            addSubview(imageView)
         }
 
         NSLayoutConstraint.activate([
@@ -98,7 +89,7 @@ class MessageMediaView: UIView {
         moreImagesView.constrain(to: imageViews[3])
     }
 
-    private var imageViews: [PreviewImageView] = []
+    private var imageViews: [MediaImageView] = []
     private var imageViewsConstraints: [NSLayoutConstraint] = []
     private var cancellables: Set<AnyCancellable> = []
     
@@ -183,184 +174,29 @@ class MessageMediaView: UIView {
     }
 
     private func load(media: [CommonMedia]) {
-        let items = media[0..<min(imageViews.count, media.count)].map { (item: CommonMedia) -> (CommonMediaType, URL?) in
-            return (item.type, item.mediaURL)
-        }
+        let items = media[0..<min(imageViews.count, media.count)]
 
         for (idx, item) in items.enumerated() {
             let imageView = imageViews[idx]
-
-            if let url = item.1 {
-                display(url: url, type: item.0, in: imageView)
-            } else {
-                imageView.image = nil
-                imageView.isProgressHidden = false
-            }
-        }
-
-        listenForDownloadProgress(media: media)
-    }
-
-    private func listenForDownloadProgress(media: [CommonMedia]) {
-        var items: [String: (idx: Int, type: CommonMediaType)] = [:]
-        for (i, item) in media.enumerated() {
-            items[item.id] = (idx: i, type: item.type)
-        }
-
-        FeedDownloadManager.downloadProgress.receive(on: DispatchQueue.main).sink { [weak self] (id, progress) in
-            guard let self = self else { return }
-            guard let item = items[id] else { return }
-            guard self.imageViews.count > item.idx else { return }
-
-            self.imageViews[item.idx].progress = progress
-        }.store(in: &cancellables)
-
-        FeedDownloadManager.mediaDidBecomeAvailable.receive(on: DispatchQueue.main).sink { [weak self] (id, url) in
-            guard let self = self else { return }
-            guard let item = items[id] else { return }
-            guard self.imageViews.count > item.idx else { return }
-
-            self.display(url: url, type: item.type, in: self.imageViews[item.idx])
-        }.store(in: &cancellables)
-    }
-
-    private func display(url: URL, type: CommonMediaType, in imageView: PreviewImageView) {
-        let id: String? = chatMessage?.id
-        MessageMediaView.mediaLoadingQueue.async {
-            let image: UIImage?
-            switch type {
-            case .image:
-                image = UIImage(contentsOfFile: url.path)
-            case .video:
-                image = VideoUtils.videoPreviewImage(url: url)
-            case .audio:
-                return // this type is handled by another cell
-            }
-
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                guard self.chatMessage?.id == id else { return }
-                imageView.isVideo = type == .video
-                imageView.isProgressHidden = true
-                imageView.image = image
-            }
+            imageView.configure(with: item)
         }
     }
 
-    public func imageView(at index: Int) -> PreviewImageView? {
+    public func imageView(at index: Int) -> MediaImageView? {
         guard index < imageViews.count else { return nil }
         guard !imageViews[index].isHidden else { return nil }
 
         return imageViews[index]
     }
-}
 
-class PreviewImageView: UIImageView {
+    @objc private func onTapAction(sender: UITapGestureRecognizer) {
+        guard let imageView = sender.view as? MediaImageView else { return }
+        guard let idx = imageViews.firstIndex(of: imageView) else { return }
 
-    var isVideo = false {
-        didSet {
-            videoIndicatorView.isHidden = !isVideo
+        if let commentID = self.feedPostComment?.id {
+            self.delegate?.messageMediaView(imageView, forComment: commentID, didTapMediaAtIndex: idx)
+        } else if let messageID = self.chatMessage?.id {
+            self.delegate?.messageMediaView(imageView, forMessage: messageID, didTapMediaAtIndex: idx)
         }
-    }
-
-    var progress: Float {
-        set {
-            progressView.setProgress(newValue, animated: true)
-        }
-        get {
-            progressView.progress
-        }
-    }
-
-    var isProgressHidden = true {
-        didSet {
-            placeholderView.isHidden = isProgressHidden
-            progressView.isHidden = isProgressHidden
-        }
-    }
-
-    var onTap: (() -> Void)?
-
-    private lazy var videoIndicatorView: UIView = {
-        let imageConfig = UIImage.SymbolConfiguration(pointSize: 32)
-        let image = UIImage(systemName: "play.fill", withConfiguration: imageConfig)?
-            .withTintColor(.white, renderingMode: .alwaysOriginal)
-
-        let indicatorView = UIImageView(image: image)
-        indicatorView.translatesAutoresizingMaskIntoConstraints = false
-        indicatorView.contentMode = .center
-        indicatorView.isUserInteractionEnabled = false
-
-        indicatorView.layer.shadowColor = UIColor.black.cgColor
-        indicatorView.layer.shadowOffset = CGSize(width: 0, height: 1)
-        indicatorView.layer.shadowOpacity = 0.3
-        indicatorView.layer.shadowRadius = 4
-        indicatorView.layer.shadowPath = UIBezierPath(ovalIn: indicatorView.bounds).cgPath
-
-        indicatorView.isHidden = true
-
-        return indicatorView
-    }()
-
-    private lazy var placeholderView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.image = UIImage(systemName: "photo")
-        imageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .largeTitle)
-        imageView.contentMode = .center
-        imageView.tintColor = .systemGray3
-
-        imageView.isHidden = true
-
-        return imageView
-    }()
-
-    private lazy var progressView: CircularProgressView = {
-        let progressView = CircularProgressView()
-        progressView.translatesAutoresizingMaskIntoConstraints = false
-        progressView.barWidth = 2
-        progressView.trackTintColor = .systemGray3
-
-        progressView.isHidden = true
-
-        return progressView
-    }()
-
-    init() {
-        super.init(frame: .zero)
-        setup()
-    }
-
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setup()
-    }
-
-    private func setup() {
-        self.translatesAutoresizingMaskIntoConstraints = false
-        self.contentMode = .scaleAspectFill
-        self.layer.masksToBounds = true
-        self.isUserInteractionEnabled = true
-
-        addSubview(videoIndicatorView)
-        addSubview(placeholderView)
-        addSubview(progressView)
-
-        NSLayoutConstraint.activate([
-            videoIndicatorView.centerXAnchor.constraint(equalTo: centerXAnchor),
-            videoIndicatorView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            placeholderView.centerXAnchor.constraint(equalTo: centerXAnchor),
-            placeholderView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            progressView.centerXAnchor.constraint(equalTo: centerXAnchor),
-            progressView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            progressView.widthAnchor.constraint(equalToConstant: 72),
-            progressView.heightAnchor.constraint(equalToConstant: 72),
-        ])
-
-        addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onTapAction)))
-    }
-
-    @objc private func onTapAction() {
-        onTap?()
     }
 }

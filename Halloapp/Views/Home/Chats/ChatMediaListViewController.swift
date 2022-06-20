@@ -207,67 +207,15 @@ fileprivate class MediaCell: UICollectionViewCell {
         return String(describing: MediaCell.self)
     }
 
-    private static let mediaLoadingQueue = DispatchQueue(label: "com.halloapp.media-loading", qos: .userInitiated)
-
     var DefaultHeight: CGFloat { return 400 }
 
-    private var mediaID: String = ""
-    private var mediaType: CommonMediaType = .image
-    private var cancellables: Set<AnyCancellable> = []
-
-    private(set) lazy var imageView: UIImageView = {
-        let imageView = UIImageView()
+    private(set) lazy var imageView: MediaImageView = {
+        let imageView = MediaImageView(configuration: .mediaList)
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.contentMode = .scaleAspectFit
         imageView.layer.masksToBounds = true
         imageView.layer.cornerRadius = 10
 
         return imageView
-    }()
-
-    private lazy var videoIndicatorView: UIView = {
-        let imageConfig = UIImage.SymbolConfiguration(pointSize: 32)
-        let image = UIImage(systemName: "play.fill", withConfiguration: imageConfig)?
-            .withTintColor(.white, renderingMode: .alwaysOriginal)
-
-        let indicatorView = UIImageView(image: image)
-        indicatorView.translatesAutoresizingMaskIntoConstraints = false
-        indicatorView.contentMode = .center
-        indicatorView.isUserInteractionEnabled = false
-
-        indicatorView.layer.shadowColor = UIColor.black.cgColor
-        indicatorView.layer.shadowOffset = CGSize(width: 0, height: 1)
-        indicatorView.layer.shadowOpacity = 0.3
-        indicatorView.layer.shadowRadius = 4
-        indicatorView.layer.shadowPath = UIBezierPath(ovalIn: indicatorView.bounds).cgPath
-
-        indicatorView.isHidden = true
-
-        return indicatorView
-    }()
-
-    private lazy var placeholderView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.image = UIImage(systemName: "photo")
-        imageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .largeTitle)
-        imageView.contentMode = .center
-        imageView.tintColor = .systemGray3
-
-        imageView.isHidden = true
-
-        return imageView
-    }()
-
-    private lazy var progressView: CircularProgressView = {
-        let progressView = CircularProgressView()
-        progressView.translatesAutoresizingMaskIntoConstraints = false
-        progressView.barWidth = 2
-        progressView.trackTintColor = .systemGray3
-
-        progressView.isHidden = true
-
-        return progressView
     }()
 
     private lazy var imageViewHeightConstraint: NSLayoutConstraint = {
@@ -278,9 +226,6 @@ fileprivate class MediaCell: UICollectionViewCell {
         super.init(frame: frame)
 
         contentView.addSubview(imageView)
-        contentView.addSubview(videoIndicatorView)
-        contentView.addSubview(placeholderView)
-        contentView.addSubview(progressView)
 
         let imageViewBottomConstraint = imageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
         imageViewBottomConstraint.priority = .defaultHigh
@@ -291,14 +236,6 @@ fileprivate class MediaCell: UICollectionViewCell {
             imageView.topAnchor.constraint(equalTo: contentView.topAnchor),
             imageViewBottomConstraint,
             imageViewHeightConstraint,
-            videoIndicatorView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            videoIndicatorView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            placeholderView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            placeholderView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            progressView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            progressView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            progressView.widthAnchor.constraint(equalToConstant: 72),
-            progressView.heightAnchor.constraint(equalToConstant: 72),
         ])
     }
 
@@ -307,67 +244,9 @@ fileprivate class MediaCell: UICollectionViewCell {
     }
 
     func configure(with media: CommonMedia) {
-        cancellables.forEach { $0.cancel() }
-        cancellables.removeAll()
-
-        mediaID = media.id
-        mediaType = media.type
-
         let scale = contentView.bounds.width / CGFloat(media.width)
         imageViewHeightConstraint.constant = scale * CGFloat(media.height)
 
-        if let url = media.mediaURL {
-            load(url: url)
-        } else {
-            videoIndicatorView.isHidden = true
-            progressView.isHidden = false
-            placeholderView.isHidden = false
-            imageView.image = nil
-        }
-
-        listenForDownloadProgress()
-    }
-
-    private func listenForDownloadProgress() {
-        FeedDownloadManager.downloadProgress.receive(on: DispatchQueue.main).sink { [weak self] (id, progress) in
-            guard let self = self else { return }
-            guard id == self.mediaID else { return }
-
-            self.progressView.progress = progress
-        }.store(in: &cancellables)
-
-        FeedDownloadManager.mediaDidBecomeAvailable.receive(on: DispatchQueue.main).sink { [weak self] (id, url) in
-            guard let self = self else { return }
-            guard id == self.mediaID else { return }
-
-            self.load(url: url)
-        }.store(in: &cancellables)
-    }
-
-    private func load(url: URL) {
-        let id = mediaID
-        let type = mediaType
-
-        MediaCell.mediaLoadingQueue.async {
-            let image: UIImage?
-            switch type {
-            case .image:
-                image = UIImage(contentsOfFile: url.path)
-            case .video:
-                image = VideoUtils.videoPreviewImage(url: url)
-            case .audio:
-                return // only images and videos
-            }
-
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                guard id == self.mediaID else { return }
-
-                self.progressView.isHidden = true
-                self.placeholderView.isHidden = true
-                self.videoIndicatorView.isHidden = type != .video
-                self.imageView.image = image
-            }
-        }
+        imageView.configure(with: media)
     }
 }
