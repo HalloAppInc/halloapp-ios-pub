@@ -151,6 +151,12 @@
 /* Text indicating that calls are end-to-end encrypted */
 "call.encryption.text" = "Ende-zu-Ende-verschlüsselt";
 
+/* Title for call history event for an incoming call. */
+"call.history.incoming.call" = "%@ hat dich angerufen";
+
+/* Title for call history event for an outgoing call */
+"call.history.outgoing.call" = "Du hast %@ angerufen";
+
 /* Title for call history event. Appears next to details of a successful call. */
 "call.history.video.call" = "Videoanruf";
 
@@ -246,6 +252,9 @@
 
 /* Text shown on the camera screen when composing a new moment to unlock someone else's moment. */
 "camera.moment.unlock.subtitle" = "Um %@'s Moment zu sehen, teile deinen eigenen";
+
+/* Title of alert for when the app does not have permissions to access the camera. */
+"camera.permissions.title" = "Kamerazugriff";
 
 /* No comment provided by engineer. */
 "Cancel" = "Abbrechen";
@@ -428,7 +437,7 @@
 "composer.audio.a11y.stopRecording" = "Aufnahme stoppen";
 
 /* Instructions for audio post composer */
-"composer.audio.instructions" = "Zum Aufnehmen tippen";
+"composer.audio.instructions" = "Zur Aufnahme hier tippen";
 
 /* Title for audio post composer */
 "composer.audio.title" = "Neuer Audiobeitrag";
@@ -517,6 +526,9 @@
 /* Title for generic delete button. */
 "Delete" = "Löschen";
 
+/* Body of the bottom sheet that is presented only once to explain the moments feature. */
+"describing.moments" = "Schalte die Momente deiner Freunde frei, indem du deine eigenen teilst. Momente sind temporär und können nur einmal angesehen werden";
+
 /* link, tapping on which launched the flow to edit blocked contacts */
 "edit.blocked" = "Bearbeiten";
 
@@ -542,13 +554,16 @@
 "fab.accessibility.camera" = "Kamera";
 
 /* VoiceOver label for photo button in floating compose post menu in Home view. */
-"fab.accessibility.photo.library" = "Galerie";
+"fab.accessibility.photo.library" = "Foto & Video";
 
 /* VoiceOver label for text post button in floating compose post menu in Home view. */
 "fab.accessibility.text" = "Text";
 
 /* VoiceOver label for audio post button in floating compose post menu in Home view. */
 "fab.accessibility.voice" = "Audio";
+
+/* Label for floating moment button on home feed. */
+"fab.moment.button" = "Moment";
 
 /* Label for floating compose post menu on Group screen. */
 "fab.post.button" = "Beitrag";
@@ -790,6 +805,9 @@
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
 "group.feed.welcome.post.title" = "Lade Freunde zu deiner Gruppe ein";
 
+/* Indicates number of new posts on groups grid */
+"group.grid.n.posts" = "group.grid.n.posts";
+
 /* Action label for inviting others to join the group via link */
 "group.info.invite.to.group.via.link" = "Per Link zur Gruppe einladen";
 
@@ -904,6 +922,9 @@
 /* Title of failed video call screen alert. */
 "home.video.calls.fail.title" = "Videoanrufe werden derzeit nicht unterstützt.";
 
+/* Title of the bottom sheet that is presented only once to explain the moments feature. */
+"introducing.moments" = "Neu: Momente";
+
 /* Title of action sheet that allows the user to choose between sms and whatsapp to invite contact */
 "invite.action.sheet.title" = "%@ einladen per ...";
 
@@ -994,10 +1015,6 @@
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.camera.access.request" = "HalloApp hat keinen Zugriff auf deine Kamera. Um den Zugriff zu erlauben, tippe auf Einstellungen und aktiviere die Kamera";
 
-/* Label indicating that the camera is in photo mode
-   Label indicating that the camera is in video mode */
-"media.camera.mode.photo" = "VIDEO";
-
 /* Confirmation prompt in media composer. */
 "media.discard.confirmation" = "Möchtest du deine Änderungen verwerfen?";
 
@@ -1061,6 +1078,15 @@
 /* Text on loading screen while migrating data */
 "migration.inProgress" = "Daten optimieren…";
 
+/* Disclaimer to tell the user that their moments go to all of their contacts on HalloApp. */
+"moment.contacts.disclaimer" = "Dein Moment wird nur mit deinen HalloApp-Kontakten geteilt";
+
+/* Text displayed the first time the user acts to post a second moment in the same day. */
+"moment.replacement.disclaimer" = "Dieser neue Moment wird deinen vorherigen ersetzen.";
+
+/* Title of text displayed the first time the user acts to post a second moment in the same day. */
+"moment.replacement.title" = "Hinweis";
+
 /* For indicating that there was an error while uploading the post. */
 "moment.uploading.failure" = "Fehler beim Hochladen";
 
@@ -1112,6 +1138,12 @@
 /* Displayed in place of deleted feed posts. */
 "n.posts.deleted" = "%@ gelöschte Beiträge";
 
+/* Header that appears above unread messages in the comments view. */
+"n.unread.comments.title" = "n.unread.comments.title";
+
+/* Header that appears above unread messages in the chats view. */
+"n.unread.messages.title" = "n.unread.messages.title";
+
 /* Placeholder text shown in the middle of the Add New Group Members screen when user have no contacts (in ZeroZone) to add */
 "new.group.members.empty.placeholder" = "Deine Kontakte, die auf HalloApp sind, werden hier angezeigt";
 
@@ -1135,6 +1167,18 @@
 
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Neuer Moment";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.1" = "%@ hat einen neuen Moment geteilt";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.2" = "%1$@ und %2$@ haben neue Momente geteilt";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.3" = "%1$@, %2$@ und %3$@ haben neue Momente geteilt";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.5" = "%1$@, %2$@, %3$@ und weitere Kontakte haben neue Momente geteilt";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "Benachrichtigung.n.Fotos";
@@ -1643,6 +1687,9 @@
 /* Timestamp: `Yesterday` */
 "timestamp.yesterday" = "Gestern";
 
+/* Camera screen title */
+"title.camera" = "Kamera";
+
 /* Camera screen title for a new moment */
 "title.camera.moment" = "Neuer Moment";
 
@@ -1687,6 +1734,9 @@
 
 /* Title for the screen with information about who saw your post. */
 "title.your.post" = "Gesehen von";
+
+/* Text on the bottom sheet's button that dismisses the sheet. */
+"try.moments" = "Momente ausprobieren";
 
 /* Indicates which switch a user needs to turn on to enable contacts permissions. */
 "turn.on.contacts" = "Erlaube den Zugriff auf \"Kontakte\"";

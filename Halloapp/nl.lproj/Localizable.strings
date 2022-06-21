@@ -526,6 +526,9 @@
 /* Title for generic delete button. */
 "Delete" = "Verwijderen";
 
+/* Body of the bottom sheet that is presented only once to explain the moments feature. */
+"describing.moments" = "Ontgrendel momenten van je vrienden door je eigen moment te delen. Momenten zijn tijdelijk en verdwijnen nadat je ze één keer hebt bekeken";
+
 /* link, tapping on which launched the flow to edit blocked contacts */
 "edit.blocked" = "Bewerken";
 
@@ -551,13 +554,16 @@
 "fab.accessibility.camera" = "Camera";
 
 /* VoiceOver label for photo button in floating compose post menu in Home view. */
-"fab.accessibility.photo.library" = "Galerij";
+"fab.accessibility.photo.library" = "Foto & Video";
 
 /* VoiceOver label for text post button in floating compose post menu in Home view. */
 "fab.accessibility.text" = "Tekst";
 
 /* VoiceOver label for audio post button in floating compose post menu in Home view. */
 "fab.accessibility.voice" = "Audio";
+
+/* Label for floating moment button on home feed. */
+"fab.moment.button" = "Moment";
 
 /* Label for floating compose post menu on Group screen. */
 "fab.post.button" = "Post";
@@ -916,6 +922,9 @@
 /* Title of failed video call screen alert. */
 "home.video.calls.fail.title" = "Video-oproepen worden op dit moment niet ondersteund.";
 
+/* Title of the bottom sheet that is presented only once to explain the moments feature. */
+"introducing.moments" = "Introductie van Momenten";
+
 /* Title of action sheet that allows the user to choose between sms and whatsapp to invite contact */
 "invite.action.sheet.title" = "%@ uitnodigen via...";
 
@@ -1068,6 +1077,15 @@
 
 /* Text on loading screen while migrating data */
 "migration.inProgress" = "Gegevens Optimaliseren…";
+
+/* Disclaimer to tell the user that their moments go to all of their contacts on HalloApp. */
+"moment.contacts.disclaimer" = "Je moment wordt alleen gedeeld met je contacten op HalloApp";
+
+/* Text displayed the first time the user acts to post a second moment in the same day. */
+"moment.replacement.disclaimer" = "Dit nieuwe moment zal je vorige moment vervangen.";
+
+/* Title of text displayed the first time the user acts to post a second moment in the same day. */
+"moment.replacement.title" = "Opmerking";
 
 /* For indicating that there was an error while uploading the post. */
 "moment.uploading.failure" = "Fout";
@@ -1716,6 +1734,9 @@
 
 /* Title for the screen with information about who saw your post. */
 "title.your.post" = "Gezien Door";
+
+/* Text on the bottom sheet's button that dismisses the sheet. */
+"try.moments" = "Probeer Momenten";
 
 /* Indicates which switch a user needs to turn on to enable contacts permissions. */
 "turn.on.contacts" = "Zet “Contacten” aan";

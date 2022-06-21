@@ -140,7 +140,7 @@
 "notification.moment" = "Momen baru";
 
 /* New moment notification text to be shown to the user. */
-"notification.moment.1" = "%@ berbagi momen";
+"notification.moment.1" = "%@ berbagi momen baru";
 
 /* New moment notification text to be shown to the user. */
 "notification.moment.2" = "%1$@ dan %2$@ berbagi momen baru";
