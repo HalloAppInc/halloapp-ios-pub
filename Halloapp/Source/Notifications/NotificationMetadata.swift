@@ -507,9 +507,12 @@ class NotificationMetadata: Codable {
         // Collect names for batching.
         contactStore.performOnBackgroundContextAndWait { managedObjectContext in
             var count = 0;
+            var displayedUserIDs = Set<UserID>()
             for moment in moments.reversed() {
                 // Name wont be empty - since we'll atleast fallback on pushnames.
-                guard let name = contactStore.fullNameIfAvailable(for: moment.userId, ownName: nil, in: managedObjectContext) else {
+                guard !displayedUserIDs.contains(moment.userId),
+                      let name = contactStore.fullNameIfAvailable(for: moment.userId, ownName: nil, in: managedObjectContext) else
+                {
                     continue
                 }
                 if count == 0 {
@@ -522,6 +525,7 @@ class NotificationMetadata: Codable {
                     break
                 }
                 count += 1
+                displayedUserIDs.insert(moment.userId)
             }
         }
 
