@@ -372,9 +372,6 @@ final class NotificationProtoService: ProtoServiceCore {
 
             let completion = {
                 ack()
-                // This could be a moment - so try and update moment notifications.
-                // TODO: murali: we could try to improve this to run only on moments.
-                self.updateMomentNotifications()
             }
 
             // Try and delete the content.
@@ -423,6 +420,7 @@ final class NotificationProtoService: ProtoServiceCore {
                 if feedPost.isMoment {
                     // make the prompt card appear the top of the feed
                     AppContext.shared.coreFeedData.resetMomentPromptTimestamp()
+                    self.updateMomentNotifications()
                 }
 
                 if let groupID = feedPost.groupID,
