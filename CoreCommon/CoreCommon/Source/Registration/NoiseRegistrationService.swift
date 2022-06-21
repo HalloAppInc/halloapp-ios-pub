@@ -402,6 +402,9 @@ private extension VerificationCodeRequestError {
             return .requestCreationError
         case .wrongHashcashSolution:
             return .requestCreationError
+        case .invalidCountryCode, .invalidLength, .lineTypeVoip, .lineTypeFixed, .lineTypeOther:
+            // TODO: show better error responses to the user.
+            return .invalidPhoneNumber
         }
     }
 }
@@ -441,6 +444,9 @@ private extension VerificationCodeValidationError {
             return .badRequest
         case .internalServerError, .unknownReason, .UNRECOGNIZED:
             return .malformedResponse
+        case .invalidCountryCode, .invalidLength, .lineTypeVoip, .lineTypeFixed, .lineTypeOther:
+            // TODO: show better error responses to the user.
+            return .invalidPhoneNumber
         }
     }
 }

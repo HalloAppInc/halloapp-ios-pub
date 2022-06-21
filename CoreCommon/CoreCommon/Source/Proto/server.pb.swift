@@ -551,6 +551,8 @@ public struct Server_Post {
 
   public var psaTag: String = String()
 
+  public var momentUnlockUid: Int64 = 0
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum Tag: SwiftProtobuf.Enum {
@@ -4155,6 +4157,14 @@ public struct Server_Msg {
     set {_uniqueStorage()._payload = .contentMissing(newValue)}
   }
 
+  public var screenshotReceipt: Server_ScreenshotReceipt {
+    get {
+      if case .screenshotReceipt(let v)? = _storage._payload {return v}
+      return Server_ScreenshotReceipt()
+    }
+    set {_uniqueStorage()._payload = .screenshotReceipt(newValue)}
+  }
+
   public var retryCount: Int32 {
     get {return _storage._retryCount}
     set {_uniqueStorage()._retryCount = newValue}
@@ -4216,6 +4226,7 @@ public struct Server_Msg {
     case callSdp(Server_CallSdp)
     case webStanza(Server_WebStanza)
     case contentMissing(Server_ContentMissing)
+    case screenshotReceipt(Server_ScreenshotReceipt)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Msg.OneOf_Payload, rhs: Server_Msg.OneOf_Payload) -> Bool {
@@ -4393,6 +4404,10 @@ public struct Server_Msg {
       }()
       case (.contentMissing, .contentMissing): return {
         guard case .contentMissing(let l) = lhs, case .contentMissing(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.screenshotReceipt, .screenshotReceipt): return {
+        guard case .screenshotReceipt(let l) = lhs, case .screenshotReceipt(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -5486,6 +5501,22 @@ public struct Server_PlayedReceipt {
   public init() {}
 }
 
+public struct Server_ScreenshotReceipt {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var id: String = String()
+
+  public var threadID: String = String()
+
+  public var timestamp: Int64 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public struct Server_GroupChatRetract {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -6222,6 +6253,11 @@ public struct Server_OtpResponse {
     case internalServerError // = 9
     case invalidHashcashNonce // = 10
     case wrongHashcashSolution // = 11
+    case invalidCountryCode // = 12
+    case invalidLength // = 13
+    case lineTypeVoip // = 14
+    case lineTypeFixed // = 15
+    case lineTypeOther // = 16
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -6242,6 +6278,11 @@ public struct Server_OtpResponse {
       case 9: self = .internalServerError
       case 10: self = .invalidHashcashNonce
       case 11: self = .wrongHashcashSolution
+      case 12: self = .invalidCountryCode
+      case 13: self = .invalidLength
+      case 14: self = .lineTypeVoip
+      case 15: self = .lineTypeFixed
+      case 16: self = .lineTypeOther
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -6260,6 +6301,11 @@ public struct Server_OtpResponse {
       case .internalServerError: return 9
       case .invalidHashcashNonce: return 10
       case .wrongHashcashSolution: return 11
+      case .invalidCountryCode: return 12
+      case .invalidLength: return 13
+      case .lineTypeVoip: return 14
+      case .lineTypeFixed: return 15
+      case .lineTypeOther: return 16
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -6295,6 +6341,11 @@ extension Server_OtpResponse.Reason: CaseIterable {
     .internalServerError,
     .invalidHashcashNonce,
     .wrongHashcashSolution,
+    .invalidCountryCode,
+    .invalidLength,
+    .lineTypeVoip,
+    .lineTypeFixed,
+    .lineTypeOther,
   ]
 }
 
@@ -6419,6 +6470,11 @@ public struct Server_VerifyOtpResponse {
     case unableToOpenSignedPhrase // = 20
     case badRequest // = 21
     case internalServerError // = 22
+    case invalidCountryCode // = 23
+    case invalidLength // = 24
+    case lineTypeVoip // = 25
+    case lineTypeFixed // = 26
+    case lineTypeOther // = 27
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -6450,6 +6506,11 @@ public struct Server_VerifyOtpResponse {
       case 20: self = .unableToOpenSignedPhrase
       case 21: self = .badRequest
       case 22: self = .internalServerError
+      case 23: self = .invalidCountryCode
+      case 24: self = .invalidLength
+      case 25: self = .lineTypeVoip
+      case 26: self = .lineTypeFixed
+      case 27: self = .lineTypeOther
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -6479,6 +6540,11 @@ public struct Server_VerifyOtpResponse {
       case .unableToOpenSignedPhrase: return 20
       case .badRequest: return 21
       case .internalServerError: return 22
+      case .invalidCountryCode: return 23
+      case .invalidLength: return 24
+      case .lineTypeVoip: return 25
+      case .lineTypeFixed: return 26
+      case .lineTypeOther: return 27
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -6525,6 +6591,11 @@ extension Server_VerifyOtpResponse.Reason: CaseIterable {
     .unableToOpenSignedPhrase,
     .badRequest,
     .internalServerError,
+    .invalidCountryCode,
+    .invalidLength,
+    .lineTypeVoip,
+    .lineTypeFixed,
+    .lineTypeOther,
   ]
 }
 
@@ -6902,6 +6973,7 @@ extension Server_HomeFeedRerequest.ContentType: @unchecked Sendable {}
 extension Server_SeenReceipt: @unchecked Sendable {}
 extension Server_DeliveryReceipt: @unchecked Sendable {}
 extension Server_PlayedReceipt: @unchecked Sendable {}
+extension Server_ScreenshotReceipt: @unchecked Sendable {}
 extension Server_GroupChatRetract: @unchecked Sendable {}
 extension Server_ChatRetract: @unchecked Sendable {}
 extension Server_Prop: @unchecked Sendable {}
@@ -7706,6 +7778,7 @@ extension Server_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     8: .standard(proto: "media_counters"),
     9: .same(proto: "tag"),
     10: .standard(proto: "psa_tag"),
+    11: .standard(proto: "moment_unlock_uid"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -7724,6 +7797,7 @@ extension Server_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
       case 8: try { try decoder.decodeSingularMessageField(value: &self._mediaCounters) }()
       case 9: try { try decoder.decodeSingularEnumField(value: &self.tag) }()
       case 10: try { try decoder.decodeSingularStringField(value: &self.psaTag) }()
+      case 11: try { try decoder.decodeSingularInt64Field(value: &self.momentUnlockUid) }()
       default: break
       }
     }
@@ -7764,6 +7838,9 @@ extension Server_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     if !self.psaTag.isEmpty {
       try visitor.visitSingularStringField(value: self.psaTag, fieldNumber: 10)
     }
+    if self.momentUnlockUid != 0 {
+      try visitor.visitSingularInt64Field(value: self.momentUnlockUid, fieldNumber: 11)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -7778,6 +7855,7 @@ extension Server_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     if lhs._mediaCounters != rhs._mediaCounters {return false}
     if lhs.tag != rhs.tag {return false}
     if lhs.psaTag != rhs.psaTag {return false}
+    if lhs.momentUnlockUid != rhs.momentUnlockUid {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -12185,6 +12263,7 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     47: .standard(proto: "call_sdp"),
     48: .standard(proto: "web_stanza"),
     49: .standard(proto: "content_missing"),
+    50: .standard(proto: "screenshot_receipt"),
     21: .standard(proto: "retry_count"),
     25: .standard(proto: "rerequest_count"),
   ]
@@ -12793,6 +12872,19 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
             _storage._payload = .contentMissing(v)
           }
         }()
+        case 50: try {
+          var v: Server_ScreenshotReceipt?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .screenshotReceipt(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .screenshotReceipt(v)
+          }
+        }()
         default: break
         }
       }
@@ -13001,6 +13093,10 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
       case .contentMissing?: try {
         guard case .contentMissing(let v)? = _storage._payload else { preconditionFailure() }
         try visitor.visitSingularMessageField(value: v, fieldNumber: 49)
+      }()
+      case .screenshotReceipt?: try {
+        guard case .screenshotReceipt(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 50)
       }()
       default: break
       }
@@ -14091,6 +14187,50 @@ extension Server_PlayedReceipt: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
   }
 }
 
+extension Server_ScreenshotReceipt: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ScreenshotReceipt"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "id"),
+    2: .standard(proto: "thread_id"),
+    3: .same(proto: "timestamp"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.threadID) }()
+      case 3: try { try decoder.decodeSingularInt64Field(value: &self.timestamp) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.id.isEmpty {
+      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
+    }
+    if !self.threadID.isEmpty {
+      try visitor.visitSingularStringField(value: self.threadID, fieldNumber: 2)
+    }
+    if self.timestamp != 0 {
+      try visitor.visitSingularInt64Field(value: self.timestamp, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_ScreenshotReceipt, rhs: Server_ScreenshotReceipt) -> Bool {
+    if lhs.id != rhs.id {return false}
+    if lhs.threadID != rhs.threadID {return false}
+    if lhs.timestamp != rhs.timestamp {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Server_GroupChatRetract: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".GroupChatRetract"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -15148,6 +15288,11 @@ extension Server_OtpResponse.Reason: SwiftProtobuf._ProtoNameProviding {
     9: .same(proto: "INTERNAL_SERVER_ERROR"),
     10: .same(proto: "INVALID_HASHCASH_NONCE"),
     11: .same(proto: "WRONG_HASHCASH_SOLUTION"),
+    12: .same(proto: "INVALID_COUNTRY_CODE"),
+    13: .same(proto: "INVALID_LENGTH"),
+    14: .same(proto: "LINE_TYPE_VOIP"),
+    15: .same(proto: "LINE_TYPE_FIXED"),
+    16: .same(proto: "LINE_TYPE_OTHER"),
   ]
 }
 
@@ -15348,6 +15493,11 @@ extension Server_VerifyOtpResponse.Reason: SwiftProtobuf._ProtoNameProviding {
     20: .same(proto: "UNABLE_TO_OPEN_SIGNED_PHRASE"),
     21: .same(proto: "BAD_REQUEST"),
     22: .same(proto: "INTERNAL_SERVER_ERROR"),
+    23: .same(proto: "INVALID_COUNTRY_CODE"),
+    24: .same(proto: "INVALID_LENGTH"),
+    25: .same(proto: "LINE_TYPE_VOIP"),
+    26: .same(proto: "LINE_TYPE_FIXED"),
+    27: .same(proto: "LINE_TYPE_OTHER"),
   ]
 }
 

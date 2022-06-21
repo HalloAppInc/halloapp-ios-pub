@@ -191,6 +191,14 @@ public struct Server_EventData {
     set {_uniqueStorage()._edata = .groupHistoryReport(newValue)}
   }
 
+  public var homeDecryptionReport: Server_HomeDecryptionReport {
+    get {
+      if case .homeDecryptionReport(let v)? = _storage._edata {return v}
+      return Server_HomeDecryptionReport()
+    }
+    set {_uniqueStorage()._edata = .homeDecryptionReport(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Edata: Equatable {
@@ -205,6 +213,7 @@ public struct Server_EventData {
     case call(Server_Call)
     case fabAction(Server_FabAction)
     case groupHistoryReport(Server_GroupHistoryReport)
+    case homeDecryptionReport(Server_HomeDecryptionReport)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_EventData.OneOf_Edata, rhs: Server_EventData.OneOf_Edata) -> Bool {
@@ -254,6 +263,10 @@ public struct Server_EventData {
       }()
       case (.groupHistoryReport, .groupHistoryReport): return {
         guard case .groupHistoryReport(let l) = lhs, case .groupHistoryReport(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.homeDecryptionReport, .homeDecryptionReport): return {
+        guard case .homeDecryptionReport(let l) = lhs, case .homeDecryptionReport(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -1050,6 +1063,199 @@ extension Server_GroupDecryptionReport.Schedule: CaseIterable {
 
 #endif  // swift(>=4.2)
 
+public struct Server_HomeDecryptionReport {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var result: Server_HomeDecryptionReport.Status = .unknownStatus
+
+  public var reason: String = String()
+
+  public var contentID: String = String()
+
+  public var audienceType: Server_HomeDecryptionReport.AudienceType = .unknownAudienceType
+
+  public var itemType: Server_HomeDecryptionReport.ItemType = .unknownType
+
+  /// at time msg id was first encountered
+  public var originalVersion: String = String()
+
+  public var rerequestCount: UInt32 = 0
+
+  public var timeTakenS: UInt32 = 0
+
+  public var senderPlatform: Server_Platform = .unknown
+
+  public var senderVersion: String = String()
+
+  public var schedule: Server_HomeDecryptionReport.Schedule = .daily
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum Status: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknownStatus // = 0
+    case ok // = 1
+    case fail // = 2
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknownStatus
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknownStatus
+      case 1: self = .ok
+      case 2: self = .fail
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknownStatus: return 0
+      case .ok: return 1
+      case .fail: return 2
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public enum AudienceType: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknownAudienceType // = 0
+    case all // = 1
+    case only // = 2
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknownAudienceType
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknownAudienceType
+      case 1: self = .all
+      case 2: self = .only
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknownAudienceType: return 0
+      case .all: return 1
+      case .only: return 2
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public enum ItemType: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknownType // = 0
+    case post // = 1
+    case comment // = 2
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknownType
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknownType
+      case 1: self = .post
+      case 2: self = .comment
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknownType: return 0
+      case .post: return 1
+      case .comment: return 2
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public enum Schedule: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case daily // = 0
+    case resultBased // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .daily
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .daily
+      case 1: self = .resultBased
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .daily: return 0
+      case .resultBased: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Server_HomeDecryptionReport.Status: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_HomeDecryptionReport.Status] = [
+    .unknownStatus,
+    .ok,
+    .fail,
+  ]
+}
+
+extension Server_HomeDecryptionReport.AudienceType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_HomeDecryptionReport.AudienceType] = [
+    .unknownAudienceType,
+    .all,
+    .only,
+  ]
+}
+
+extension Server_HomeDecryptionReport.ItemType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_HomeDecryptionReport.ItemType] = [
+    .unknownType,
+    .post,
+    .comment,
+  ]
+}
+
+extension Server_HomeDecryptionReport.Schedule: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_HomeDecryptionReport.Schedule] = [
+    .daily,
+    .resultBased,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 public struct Server_GroupHistoryReport {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1234,6 +1440,8 @@ public struct Server_Call {
 
   /// wifi or cellular
   public var networkType: Server_Call.NetworkType = .unknownNetwork
+
+  public var isKrispActive: Bool = false
 
   /// json serialized version of the result of peer_connection.get_stats at the end of
   public var webrtcStats: String = String()
@@ -1456,6 +1664,11 @@ extension Server_GroupDecryptionReport: @unchecked Sendable {}
 extension Server_GroupDecryptionReport.Status: @unchecked Sendable {}
 extension Server_GroupDecryptionReport.ItemType: @unchecked Sendable {}
 extension Server_GroupDecryptionReport.Schedule: @unchecked Sendable {}
+extension Server_HomeDecryptionReport: @unchecked Sendable {}
+extension Server_HomeDecryptionReport.Status: @unchecked Sendable {}
+extension Server_HomeDecryptionReport.AudienceType: @unchecked Sendable {}
+extension Server_HomeDecryptionReport.ItemType: @unchecked Sendable {}
+extension Server_HomeDecryptionReport.Schedule: @unchecked Sendable {}
 extension Server_GroupHistoryReport: @unchecked Sendable {}
 extension Server_GroupHistoryReport.Schedule: @unchecked Sendable {}
 extension Server_Permissions: @unchecked Sendable {}
@@ -1500,6 +1713,7 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     18: .same(proto: "call"),
     19: .standard(proto: "fab_action"),
     20: .standard(proto: "group_history_report"),
+    21: .standard(proto: "home_decryption_report"),
   ]
 
   fileprivate class _StorageClass {
@@ -1687,6 +1901,19 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
             _storage._edata = .groupHistoryReport(v)
           }
         }()
+        case 21: try {
+          var v: Server_HomeDecryptionReport?
+          var hadOneofValue = false
+          if let current = _storage._edata {
+            hadOneofValue = true
+            if case .homeDecryptionReport(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._edata = .homeDecryptionReport(v)
+          }
+        }()
         default: break
         }
       }
@@ -1758,6 +1985,10 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       case .groupHistoryReport?: try {
         guard case .groupHistoryReport(let v)? = _storage._edata else { preconditionFailure() }
         try visitor.visitSingularMessageField(value: v, fieldNumber: 20)
+      }()
+      case .homeDecryptionReport?: try {
+        guard case .homeDecryptionReport(let v)? = _storage._edata else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 21)
       }()
       case nil: break
       }
@@ -2411,6 +2642,129 @@ extension Server_GroupDecryptionReport.Schedule: SwiftProtobuf._ProtoNameProvidi
   ]
 }
 
+extension Server_HomeDecryptionReport: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".HomeDecryptionReport"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "result"),
+    2: .same(proto: "reason"),
+    3: .standard(proto: "content_id"),
+    4: .standard(proto: "audience_type"),
+    5: .standard(proto: "item_type"),
+    6: .standard(proto: "original_version"),
+    7: .standard(proto: "rerequest_count"),
+    8: .standard(proto: "time_taken_s"),
+    9: .standard(proto: "sender_platform"),
+    10: .standard(proto: "sender_version"),
+    11: .same(proto: "schedule"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.result) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.reason) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.contentID) }()
+      case 4: try { try decoder.decodeSingularEnumField(value: &self.audienceType) }()
+      case 5: try { try decoder.decodeSingularEnumField(value: &self.itemType) }()
+      case 6: try { try decoder.decodeSingularStringField(value: &self.originalVersion) }()
+      case 7: try { try decoder.decodeSingularUInt32Field(value: &self.rerequestCount) }()
+      case 8: try { try decoder.decodeSingularUInt32Field(value: &self.timeTakenS) }()
+      case 9: try { try decoder.decodeSingularEnumField(value: &self.senderPlatform) }()
+      case 10: try { try decoder.decodeSingularStringField(value: &self.senderVersion) }()
+      case 11: try { try decoder.decodeSingularEnumField(value: &self.schedule) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.result != .unknownStatus {
+      try visitor.visitSingularEnumField(value: self.result, fieldNumber: 1)
+    }
+    if !self.reason.isEmpty {
+      try visitor.visitSingularStringField(value: self.reason, fieldNumber: 2)
+    }
+    if !self.contentID.isEmpty {
+      try visitor.visitSingularStringField(value: self.contentID, fieldNumber: 3)
+    }
+    if self.audienceType != .unknownAudienceType {
+      try visitor.visitSingularEnumField(value: self.audienceType, fieldNumber: 4)
+    }
+    if self.itemType != .unknownType {
+      try visitor.visitSingularEnumField(value: self.itemType, fieldNumber: 5)
+    }
+    if !self.originalVersion.isEmpty {
+      try visitor.visitSingularStringField(value: self.originalVersion, fieldNumber: 6)
+    }
+    if self.rerequestCount != 0 {
+      try visitor.visitSingularUInt32Field(value: self.rerequestCount, fieldNumber: 7)
+    }
+    if self.timeTakenS != 0 {
+      try visitor.visitSingularUInt32Field(value: self.timeTakenS, fieldNumber: 8)
+    }
+    if self.senderPlatform != .unknown {
+      try visitor.visitSingularEnumField(value: self.senderPlatform, fieldNumber: 9)
+    }
+    if !self.senderVersion.isEmpty {
+      try visitor.visitSingularStringField(value: self.senderVersion, fieldNumber: 10)
+    }
+    if self.schedule != .daily {
+      try visitor.visitSingularEnumField(value: self.schedule, fieldNumber: 11)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_HomeDecryptionReport, rhs: Server_HomeDecryptionReport) -> Bool {
+    if lhs.result != rhs.result {return false}
+    if lhs.reason != rhs.reason {return false}
+    if lhs.contentID != rhs.contentID {return false}
+    if lhs.audienceType != rhs.audienceType {return false}
+    if lhs.itemType != rhs.itemType {return false}
+    if lhs.originalVersion != rhs.originalVersion {return false}
+    if lhs.rerequestCount != rhs.rerequestCount {return false}
+    if lhs.timeTakenS != rhs.timeTakenS {return false}
+    if lhs.senderPlatform != rhs.senderPlatform {return false}
+    if lhs.senderVersion != rhs.senderVersion {return false}
+    if lhs.schedule != rhs.schedule {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_HomeDecryptionReport.Status: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN_STATUS"),
+    1: .same(proto: "OK"),
+    2: .same(proto: "FAIL"),
+  ]
+}
+
+extension Server_HomeDecryptionReport.AudienceType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN_AUDIENCE_TYPE"),
+    1: .same(proto: "ALL"),
+    2: .same(proto: "ONLY"),
+  ]
+}
+
+extension Server_HomeDecryptionReport.ItemType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN_TYPE"),
+    1: .same(proto: "POST"),
+    2: .same(proto: "COMMENT"),
+  ]
+}
+
+extension Server_HomeDecryptionReport.Schedule: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "DAILY"),
+    1: .same(proto: "RESULT_BASED"),
+  ]
+}
+
 extension Server_GroupHistoryReport: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".GroupHistoryReport"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -2551,6 +2905,7 @@ extension Server_Call: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     9: .standard(proto: "end_call_reason"),
     10: .standard(proto: "local_end_call"),
     11: .standard(proto: "network_type"),
+    12: .standard(proto: "is_krisp_active"),
     20: .standard(proto: "webrtc_stats"),
   ]
 
@@ -2570,6 +2925,7 @@ extension Server_Call: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
       case 9: try { try decoder.decodeSingularStringField(value: &self.endCallReason) }()
       case 10: try { try decoder.decodeSingularBoolField(value: &self.localEndCall) }()
       case 11: try { try decoder.decodeSingularEnumField(value: &self.networkType) }()
+      case 12: try { try decoder.decodeSingularBoolField(value: &self.isKrispActive) }()
       case 20: try { try decoder.decodeSingularStringField(value: &self.webrtcStats) }()
       default: break
       }
@@ -2607,6 +2963,9 @@ extension Server_Call: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     if self.networkType != .unknownNetwork {
       try visitor.visitSingularEnumField(value: self.networkType, fieldNumber: 11)
     }
+    if self.isKrispActive != false {
+      try visitor.visitSingularBoolField(value: self.isKrispActive, fieldNumber: 12)
+    }
     if !self.webrtcStats.isEmpty {
       try visitor.visitSingularStringField(value: self.webrtcStats, fieldNumber: 20)
     }
@@ -2624,6 +2983,7 @@ extension Server_Call: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     if lhs.endCallReason != rhs.endCallReason {return false}
     if lhs.localEndCall != rhs.localEndCall {return false}
     if lhs.networkType != rhs.networkType {return false}
+    if lhs.isKrispActive != rhs.isKrispActive {return false}
     if lhs.webrtcStats != rhs.webrtcStats {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
