@@ -312,6 +312,10 @@ extension UIColor {
         UIColor(named: "QuotedMessageNotOwnBackground")!
     }
 
+    class var quotedMessageNotOwnReplyBackground: UIColor {
+        UIColor(named: "QuotedMessageNotOwnReplyBackground")!
+    }
+
     class var timeHeaderBackground: UIColor {
         UIColor(named: "TimeHeaderBackground")!
     }

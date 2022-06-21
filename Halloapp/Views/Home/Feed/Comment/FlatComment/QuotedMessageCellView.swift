@@ -85,7 +85,7 @@ class QuotedMessageCellView: UIView {
         mediaView.isHidden = true
         mediaView.contentMode = .scaleAspectFill
         mediaView.clipsToBounds = true
-        mediaView.layer.cornerRadius = 2
+        mediaView.layer.cornerRadius = 3
         return mediaView
     }()
     
@@ -106,7 +106,7 @@ class QuotedMessageCellView: UIView {
     lazy var bubbleView: UIView = {
         let bubbleView = UIView()
         bubbleView.backgroundColor = UIColor.quotedMessageOwnBackground
-        bubbleView.layer.cornerRadius = 10
+        bubbleView.layer.cornerRadius = 8
         bubbleView.translatesAutoresizingMaskIntoConstraints = false
         return bubbleView
     }()

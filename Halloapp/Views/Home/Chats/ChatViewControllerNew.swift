@@ -101,6 +101,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     private var unreadMessagesHeaderVisible = false
     private var unreadCount: Int32 = 0
     private var scrollToLastMessageOnNextUpdate = false
+    private var didReceiveIncoming = false
     private var scrollToUnreadBanner = false
 
     fileprivate typealias ChatDataSource = UICollectionViewDiffableDataSource<String, MessageRow>
@@ -334,7 +335,23 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         return dataSource
     }()
 
-    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,
+                    didChange anObject: Any,
+                    at indexPath: IndexPath?,
+                    for type: NSFetchedResultsChangeType,
+                    newIndexPath: IndexPath?) {
+        switch type {
+        case .insert:
+            DDLogInfo("ChatViewControllerNew/didChange type insert")
+            if let chatMessage = anObject as? ChatMessage, chatMessage.userId == fromUserId {
+                didReceiveIncoming = true
+            } else {
+                didReceiveIncoming = false
+                scrollToLastMessageOnNextUpdate = true
+            }
+        default:
+            break
+        }
         updateCollectionViewData()
     }
 
@@ -413,11 +430,8 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         // Apply the new snapshot
         dataSource.apply(snapshot, animatingDifferences: true) { [weak self] in
             guard let self = self else { return }
-            DispatchQueue.main.async {
-                self.updateScrollingWhenDataChanges()
-            }
+            self.updateScrollingWhenDataChanges()
         }
-        isFirstLaunch = false
     }
 
     private func shouldShowAddToContactBookCell() -> Bool {
@@ -599,6 +613,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         jumpButtonConstraint?.isActive = true
         
         updateJumpButtonVisibility()
+        isFirstLaunch = false
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -630,17 +645,23 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
    }
 
    override func viewDidLayoutSubviews() {
+       DDLogError("ChatViewControllerNew/viewDidLayoutSubviews scrollToLastMessageOnNextUpdate: \(scrollToLastMessageOnNextUpdate)")
        super.viewDidLayoutSubviews()
        if scrollToUnreadBanner {
            scrollToUnreadBanner = false
            scrollToUnreadBannerCell()
+       } else if scrollToLastMessageOnNextUpdate  {
+           scrollToLastMessageOnNextUpdate = false
+           DDLogDebug("ChatViewControllerNew/updateScrollingWhenDataChanges/scrollToLastMessage/ on send message")
+           scrollToLastMessage(animated: isFirstLaunch ? false : true)
+           return
+       } else if didReceiveIncoming, jumpButton.alpha == 0 {
+           didReceiveIncoming = false
+           DDLogDebug("ChatViewControllerNew/updateScrollingWhenDataChanges/scrollToLastMessage/ on receive message")
+           scrollToLastMessage(animated: isFirstLaunch ? false : true)
+           return
        }
-       else {
-           if scrollToLastMessageOnNextUpdate || jumpButton.alpha == 0 {
-               scrollToLastMessageOnNextUpdate = false
-               scrollToLastMessage()
-           }
-       }
+       didReceiveIncoming = false
    }
 
    private func removeTransitionSnapshot() {
@@ -882,7 +903,6 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
         contentInputView.resetAfterPosting()
         removeChatDraft()
-        scrollToLastMessageOnNextUpdate = true
         if !firstActionHappened {
             didAction()
         }
@@ -1636,19 +1656,7 @@ extension ChatViewControllerNew: MessageViewChatDelegate {
     private func updateScrollingWhenDataChanges() {
         jumpButtonUnreadCount = unreadCount
         updateJumpButtonText()
-
-        guard !isFirstLaunch else {
-            return
-        }
-
-        // When data changes, if the jump button is not visible, the user is viewing the bottom of the comments,
-        // we scroll to bottom so they can see the new comments as they come in.
-        // Do not scroll to bottom if all comments are unread
-        if scrollToLastMessageOnNextUpdate || jumpButton.alpha == 0 {
-            scrollToLastMessageOnNextUpdate = false
-            scrollToLastMessage()
-            return
-        }
+        view.setNeedsLayout()
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -1688,12 +1696,12 @@ extension ChatViewControllerNew: MessageViewChatDelegate {
         jumpButtonUnreadCountLabel.text = jumpButtonUnreadCount > 0 ? String(jumpButtonUnreadCount) : nil
     }
 
-    @objc private func scrollToLastMessage() {
+    @objc private func scrollToLastMessage(animated: Bool) {
         guard let lastMessageIndexPath = lastMessageIndexPath() else {
             return
         }
         DDLogDebug("ChatViewControllerNew/scrollToLastMessage")
-        self.collectionView.scrollToItem(at: lastMessageIndexPath, at: .centeredVertically, animated: false)
+        self.collectionView.scrollToItem(at: lastMessageIndexPath, at: .centeredVertically, animated: animated)
         updateJumpButtonText()
     }
 
@@ -1775,7 +1783,7 @@ fileprivate class QuotedItemPanel: UIView, InputContextPanel {
         if postInfo.userID == MainAppContext.shared.userData.userId {
             subviews.first?.backgroundColor = .quotedMessageOwnBackground
         } else {
-            subviews.first?.backgroundColor = .quotedMessageNotOwnBackground
+            subviews.first?.backgroundColor = .quotedMessageNotOwnReplyBackground
         }
 
         if let mediaType = postInfo.mediaType, let mediaLink = postInfo.mediaLink {
@@ -1828,7 +1836,7 @@ fileprivate class QuotedItemPanel: UIView, InputContextPanel {
         stack.alignment = .top
         stack.spacing = 8
 
-        stack.layer.cornerRadius = 15
+        stack.layer.cornerRadius = 8
         stack.clipsToBounds = true
 
         return stack
@@ -1840,7 +1848,7 @@ fileprivate class QuotedItemPanel: UIView, InputContextPanel {
         view.alignment = .top
         view.spacing = 3
 
-        view.layoutMargins = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
+        view.layoutMargins = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
         view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -1863,7 +1871,7 @@ fileprivate class QuotedItemPanel: UIView, InputContextPanel {
     private lazy var quoteFeedPanelNameLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-        label.font = UIFont.preferredFont(forTextStyle: .headline)
+        label.font = UIFont.systemFont(ofSize: 13, weight: .semibold)
         label.textColor = UIColor.label
 
         return label
@@ -1882,7 +1890,7 @@ fileprivate class QuotedItemPanel: UIView, InputContextPanel {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
 
-        imageView.layer.cornerRadius = 5
+        imageView.layer.cornerRadius = 2
         imageView.layer.masksToBounds = true
         imageView.translatesAutoresizingMaskIntoConstraints = false
 
