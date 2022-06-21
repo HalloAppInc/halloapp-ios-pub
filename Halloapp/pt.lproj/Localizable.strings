@@ -151,6 +151,12 @@
 /* Text indicating that calls are end-to-end encrypted */
 "call.encryption.text" = "Criptografia de ponta a ponta";
 
+/* Title for call history event for an incoming call. */
+"call.history.incoming.call" = "%@ ligou para você";
+
+/* Title for call history event for an outgoing call */
+"call.history.outgoing.call" = "Você chamou %@";
+
 /* Title for call history event. Appears next to details of a successful call. */
 "call.history.video.call" = "Chamada de vídeo ";
 
@@ -246,6 +252,9 @@
 
 /* Text shown on the camera screen when composing a new moment to unlock someone else's moment. */
 "camera.moment.unlock.subtitle" = "Para ver o momento de %@, compartilhe o seu próprio";
+
+/* Title of alert for when the app does not have permissions to access the camera. */
+"camera.permissions.title" = "Acesso à câmera";
 
 /* No comment provided by engineer. */
 "Cancel" = "Cancelar";
@@ -1114,6 +1123,9 @@
 /* Header that appears above unread messages in the comments view. */
 "n.unread.comments.title" = "n.comentário.não lido.título";
 
+/* Header that appears above unread messages in the chats view. */
+"n.unread.messages.title" = "n.não lidas.mensagens.título";
+
 /* Placeholder text shown in the middle of the Add New Group Members screen when user have no contacts (in ZeroZone) to add */
 "new.group.members.empty.placeholder" = "Seus contatos que estão no HalloApp aparecerão aqui";
 
@@ -1137,6 +1149,18 @@
 
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Novo momento";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.1" = "%@ compartilhou um novo momento";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.2" = "%1$@ e %2$@ compartilharam novos momentos";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.3" = "%1$@, %2$@ e %3$@ compartilharam novos momentos";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.5" = "%1$@, %2$@, %3$@ e outros compartilharam novos momentos";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notificação.n.fotos";
@@ -1644,6 +1668,9 @@
 
 /* Timestamp: `Yesterday` */
 "timestamp.yesterday" = "Ontem";
+
+/* Camera screen title */
+"title.camera" = "Câmera";
 
 /* Camera screen title for a new moment */
 "title.camera.moment" = "Novo momento";

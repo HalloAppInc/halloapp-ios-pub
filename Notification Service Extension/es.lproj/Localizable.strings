@@ -137,7 +137,19 @@
 "notification.invite.accepted.content" = "%@ acaba de aceptar tu invitación a HalloApp 🎉";
 
 /* New moment notification text to be shown to the user. */
-"notification.moment" = "Nuevo momento";
+"notification.moment" = "Nuevo Momento";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.1" = "%@ compartió un Momento";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.2" = "%1$@ y %2$@ compartieron nuevos Momentos";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.3" = "%1$@, %2$@ y %3$@ compartieron nuevos Momentos";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.5" = "%1$@, %2$@, %3$@ y otros compartieron nuevos Momentos";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
@@ -182,7 +194,7 @@
 "notification.voicepost" = "Publicación de audio";
 
 /* String to auto-fill if a user tried to share to a friend. */
-"settings.share.text" = "Únete a mi red social de relaciones reales, HalloApp. Baja la aplicación gratis en halloapp.com/dl";
+"settings.share.text" = "Únete a mi red social de relaciones reales, HalloApp. Descarga la aplicación gratis en halloapp.com/dl";
 
 /* Button to edit favorites list */
 "title.edit.favorites" = "Edita tu lista de Favoritos";

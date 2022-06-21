@@ -35,7 +35,7 @@
 "activity.center.title" = "Actividad";
 
 /* Message shown when a user first joins */
-"activity.center.welcome.item" = "¡Bienvenido(a) a HalloApp!";
+"activity.center.welcome.item" = "¡Te damos la bienvenida a HalloApp!";
 
 /* First tab in the main app interface. */
 "activityCenter.promo.favorites" = "¡Mira la nueva función en Favoritos!";
@@ -151,6 +151,12 @@
 /* Text indicating that calls are end-to-end encrypted */
 "call.encryption.text" = "Cifrado de extremo a extremo";
 
+/* Title for call history event for an incoming call. */
+"call.history.incoming.call" = "%@ te llamó";
+
+/* Title for call history event for an outgoing call */
+"call.history.outgoing.call" = "Llamaste a %@";
+
 /* Title for call history event. Appears next to details of a successful call. */
 "call.history.video.call" = "Videollamada";
 
@@ -245,7 +251,10 @@
 "camera.moment.subtitle" = "Los Momentos desaparecen después de 24 horas y solo pueden ser vistos una vez";
 
 /* Text shown on the camera screen when composing a new moment to unlock someone else's moment. */
-"camera.moment.unlock.subtitle" = "Para ver el momento de %@ comparte el tuyo";
+"camera.moment.unlock.subtitle" = "Para ver el Momento de %@ comparte el tuyo";
+
+/* Title of alert for when the app does not have permissions to access the camera. */
+"camera.permissions.title" = "Acceso a la cámara";
 
 /* No comment provided by engineer. */
 "Cancel" = "Cancelar";
@@ -275,7 +284,7 @@
 "chat.event.security.keys.changed" = "La clave de seguridad con %@ ha sido cambiada";
 
 /* Chat entry that can be tapped to add the contact to address book */
-"chat.event.tap.to.add.contact" = "Toca para agregar a  %@ a tu libreta de contactos";
+"chat.event.tap.to.add.contact" = "Toca para agregar a %@ a tu libreta de contactos";
 
 /* Message text shown with the user who joined the group via invite link */
 "chat.group.event.join" = "%@ se unió al grupo con el enlace de invitación";
@@ -517,6 +526,9 @@
 /* Title for generic delete button. */
 "Delete" = "Eliminar";
 
+/* Body of the bottom sheet that is presented only once to explain the moments feature. */
+"describing.moments" = "Desbloquea los Momentos de tus amigos compartiendo los tuyos. Los Momentos son casuales, desaparecen después de verlos una vez.";
+
 /* link, tapping on which launched the flow to edit blocked contacts */
 "edit.blocked" = "Editar";
 
@@ -549,6 +561,9 @@
 
 /* VoiceOver label for audio post button in floating compose post menu in Home view. */
 "fab.accessibility.voice" = "Nota de voz";
+
+/* Label for floating moment button on home feed. */
+"fab.moment.button" = "Momento";
 
 /* Label for floating compose post menu on Group screen. */
 "fab.post.button" = "Publicación";
@@ -698,7 +713,7 @@
 "feed.welcome.post.body" = "Usa tu número de teléfono para conectarte con amigos y familia en un entorno sin anuncios, marcas, me gustan o influentes.\n\nHalloApp es para tí y para esos cercanos a tí, en privado. ¡Invita a tus amigos de verdad para empezar!";
 
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.title" = "Bienvenido(a) a HalloApp, un espacio para relaciones de verdad ✨";
+"feed.welcome.post.title" = "Te damos la bienvenida a HalloApp, un espacio para relaciones de verdad ✨";
 
 /* Text for 'more' cell prompting users to open the invite screen */
 "feedInviteCarousel.searchPrompt" = "Busca más amigos y familiares";
@@ -907,6 +922,9 @@
 /* Title of failed video call screen alert. */
 "home.video.calls.fail.title" = "No se pueden realizar videollamadas en este momento.";
 
+/* Title of the bottom sheet that is presented only once to explain the moments feature. */
+"introducing.moments" = "Te presentamos Momentos";
+
 /* Title of action sheet that allows the user to choose between sms and whatsapp to invite contact */
 "invite.action.sheet.title" = "Invita a %@ mediante...";
 
@@ -941,13 +959,13 @@
 "invite.text.specific" = "Hola %1$@, tengo una invitación para que te unas a HalloApp (una red social de relaciones reales para aquellos más cercanos a mí). Usa %2$@ para registrarte. Bájala en https://halloapp.com/dl";
 
 /* Version of an invitation to join HalloApp. The argument is the invitee's name. */
-"invite.text.specific.1" = "Hey %@, estoy en HalloApp. Baja la app para unirte a mí https://halloapp.com/install";
+"invite.text.specific.1" = "Hey %@, estoy en HalloApp. Descarga la app para unirte a mí https://halloapp.com/install";
 
 /* Version of an invitation to join HalloApp. The argument is the invitee's name. */
-"invite.text.specific.2" = "Oye, %@, sigamos en contacto en HalloApp. Bájala en https://halloapp.com/kit (HalloApp es una nueva aplicación social privada para amigos cercanos y familiares, sin anuncios ni algoritmos).";
+"invite.text.specific.2" = "Oye, %@, sigamos en contacto en HalloApp. Descárgala en https://halloapp.com/kit (HalloApp es una nueva aplicación social privada para amigos cercanos y familiares, sin anuncios ni algoritmos).";
 
 /* Version of an invitation to join HalloApp. */
-"invite.text.specific.3" = "Te invito a instalar HalloApp. Bájala gratis aquí: https://halloapp.com/free";
+"invite.text.specific.3" = "Te invito a instalar HalloApp. Descárgala gratis aquí: https://halloapp.com/free";
 
 /* Version of an invitation to join HalloApp. The argument is the invitee's name. */
 "invite.text.specific.4" = "Hey %@! Únete a mí en HalloApp, y comparte momentos verdaderos con amistades reales. Échale un vistazo: https://halloapp.com/new";
@@ -996,10 +1014,6 @@
 
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.camera.access.request" = "HalloApp no tiene acceso a tu cámara. Para permitir acceso, toca configuración y enciende la cámara";
-
-/* Label indicating that the camera is in photo mode
-   Label indicating that the camera is in video mode */
-"media.camera.mode.photo" = "VIDEO";
 
 /* Confirmation prompt in media composer. */
 "media.discard.confirmation" = "¿Te gustaría descartar lo que has editado?";
@@ -1064,6 +1078,15 @@
 /* Text on loading screen while migrating data */
 "migration.inProgress" = "Optimizando datos...";
 
+/* Disclaimer to tell the user that their moments go to all of their contacts on HalloApp. */
+"moment.contacts.disclaimer" = "Tu Momento solo se compartirá con tus contactos en HalloApp";
+
+/* Text displayed the first time the user acts to post a second moment in the same day. */
+"moment.replacement.disclaimer" = "Este nuevo Momento reemplazará al anterior.";
+
+/* Title of text displayed the first time the user acts to post a second moment in the same day. */
+"moment.replacement.title" = "Aviso";
+
 /* For indicating that there was an error while uploading the post. */
 "moment.uploading.failure" = "Error";
 
@@ -1115,6 +1138,12 @@
 /* Displayed in place of deleted feed posts. */
 "n.posts.deleted" = "%@ publicaciones borradas";
 
+/* Header that appears above unread messages in the comments view. */
+"n.unread.comments.title" = "\n";
+
+/* Header that appears above unread messages in the chats view. */
+"n.unread.messages.title" = "n.unread.messages.title";
+
 /* Placeholder text shown in the middle of the Add New Group Members screen when user have no contacts (in ZeroZone) to add */
 "new.group.members.empty.placeholder" = "Tus contactos que están en HalloApp aparecerán aquí";
 
@@ -1137,7 +1166,19 @@
 "notification.invite.accepted.content" = "%@ acaba de aceptar tu invitación a HalloApp 🎉";
 
 /* New moment notification text to be shown to the user. */
-"notification.moment" = "Nuevo momento";
+"notification.moment" = "Nuevo Momento";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.1" = "%@ compartió un Momento";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.2" = "%1$@ y %2$@ compartieron nuevos Momentos";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.3" = "%1$@, %2$@ y %3$@ compartieron nuevos Momentos";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.5" = "%1$@, %2$@, %3$@ y otros compartieron nuevos Momentos";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
@@ -1404,7 +1445,7 @@
 "registration.shucks" = "¡Caramba!";
 
 /* Shown above name and phone inputs */
-"registration.welcome" = "¡Bienvenido(a)!";
+"registration.welcome" = "¡Te damos la bienvenida!";
 
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Para verificar la seguridad de tu conexión con %@, comprueba que los números anteriores coinciden con los que aparecen en su dispositivo, o escanea el código QR de su teléfono.";
@@ -1578,10 +1619,10 @@
 "settings.privacy.posts" = "Publicaciones";
 
 /* String to auto-fill if a user tried to share to a friend. */
-"settings.share.text" = "Únete a mi red social de relaciones reales, HalloApp. Baja la aplicación gratis en halloapp.com/dl";
+"settings.share.text" = "Únete a mi red social de relaciones reales, HalloApp. Descarga la aplicación gratis en halloapp.com/dl";
 
 /* Prompt for the user to share a moment. */
-"share.moment.prompt" = "Comparte un momento";
+"share.moment.prompt" = "Comparte un Momento";
 
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "toca para devolver la llamada";
@@ -1646,6 +1687,9 @@
 /* Timestamp: `Yesterday` */
 "timestamp.yesterday" = "Ayer";
 
+/* Camera screen title */
+"title.camera" = "Cámara";
+
 /* Camera screen title for a new moment */
 "title.camera.moment" = "Nuevo Momento";
 
@@ -1690,6 +1734,9 @@
 
 /* Title for the screen with information about who saw your post. */
 "title.your.post" = "Visto por";
+
+/* Text on the bottom sheet's button that dismisses the sheet. */
+"try.moments" = "Prueba Momentos";
 
 /* Indicates which switch a user needs to turn on to enable contacts permissions. */
 "turn.on.contacts" = "Activar \"Contactos\"";
@@ -1755,7 +1802,7 @@
 "your.post.deletepost.confirmation" = "¿Eliminar esta publicación? Está acción no se puede deshacer.";
 
 /* Displayed when a post fails to delete */
-"your.post.deletepost.error" = "Error al borrar publicación";
+"your.post.deletepost.error" = "Error al eliminar publicación";
 
 /* Success toast when external share link is copied */
 "your.post.externalshare.copylink.success" = "Copiado al portapapeles";

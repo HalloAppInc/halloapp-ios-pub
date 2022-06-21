@@ -125,7 +125,7 @@
 "media.button.discard" = "Descartar";
 
 /* Button title. Refers to resetting photo / video to original version. */
-"media.button.reset" = "Restablecer";
+"media.button.reset" = "Reeniciar";
 
 /* Button title. Refers to undoing an edit of a photo. */
 "media.button.undo" = "Deshacer";
@@ -140,7 +140,7 @@
 "media.voiceover.button.close" = "Cerrar";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
-"media.voiceover.button.draw" = "Dibuja";
+"media.voiceover.button.draw" = "Dibujar";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.flip" = "Voltear";
@@ -152,7 +152,7 @@
 "media.voiceover.button.rotate" = "Rotar";
 
 /* String to auto-fill if a user tried to share to a friend. */
-"settings.share.text" = "Únete a mi red social de relaciones reales, HalloApp. Baja la aplicación gratis en halloapp.com/dl";
+"settings.share.text" = "Únete a mi red social de relaciones reales, HalloApp. Descarga la aplicación gratis en halloapp.com/dl";
 
 /* Title on edit button */
 "share.composer.button.edit" = "Editar";

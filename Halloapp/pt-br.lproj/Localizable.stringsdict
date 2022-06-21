@@ -318,7 +318,7 @@
 	<key>n.unread.messages.title</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>%#@n_unread_messages@</string>
+		<string>%#@n_ messages@_ não lidas_</string>
 		<key>n_unread_messages</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
@@ -330,9 +330,9 @@
 			<key>many</key>
 			<string>%d Unread Messages</string>
 			<key>one</key>
-			<string>%d Unread Message</string>
+			<string>%d mensagem não lida</string>
 			<key>other</key>
-			<string>%d Unread Messages</string>
+			<string>%d mensagens não lidas</string>
 			<key>two</key>
 			<string>%d Unread Messages</string>
 			<key>zero</key>

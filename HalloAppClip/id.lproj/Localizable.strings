@@ -2,7 +2,7 @@
 "button.install" = "Instal";
 
 /* Title for generic Next button. Mostly used to proceed to next screen in flow. */
-"button.next" = "Lanjut";
+"button.next" = "Berikutnya";
 
 /* Title for generic OK button. Mostly used in popups and as such. */
 "button.ok" = "Oke";

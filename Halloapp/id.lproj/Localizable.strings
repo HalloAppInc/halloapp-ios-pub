@@ -110,7 +110,7 @@
 "button.more" = "Lainnya";
 
 /* Title for generic Next button. Mostly used to proceed to next screen in flow. */
-"button.next" = "Selanjutnya";
+"button.next" = "Berikutnya";
 
 /* Title for generic Not Now button. Mostly used to complete some modal flow. */
 "button.not.now" = "Nanti";
@@ -150,6 +150,12 @@
 
 /* Text indicating that calls are end-to-end encrypted */
 "call.encryption.text" = "Dienkripsi ujung ke ujung";
+
+/* Title for call history event for an incoming call. */
+"call.history.incoming.call" = "%@ telah memanggil Anda";
+
+/* Title for call history event for an outgoing call */
+"call.history.outgoing.call" = "Anda telah memanggil %@";
 
 /* Title for call history event. Appears next to details of a successful call. */
 "call.history.video.call" = "Panggilan video";
@@ -520,6 +526,9 @@
 /* Title for generic delete button. */
 "Delete" = "Hapus";
 
+/* Body of the bottom sheet that is presented only once to explain the moments feature. */
+"describing.moments" = "Buka momen teman dengan berbagi momen Anda. Momen adalah fitur kasual, dan akan hilang setelah Anda melihatnya sekali.";
+
 /* link, tapping on which launched the flow to edit blocked contacts */
 "edit.blocked" = "Edit";
 
@@ -545,13 +554,16 @@
 "fab.accessibility.camera" = "Kamera";
 
 /* VoiceOver label for photo button in floating compose post menu in Home view. */
-"fab.accessibility.photo.library" = "Galeri";
+"fab.accessibility.photo.library" = "Foto & Video";
 
 /* VoiceOver label for text post button in floating compose post menu in Home view. */
 "fab.accessibility.text" = "Teks";
 
 /* VoiceOver label for audio post button in floating compose post menu in Home view. */
 "fab.accessibility.voice" = "Audio";
+
+/* Label for floating moment button on home feed. */
+"fab.moment.button" = "Momen";
 
 /* Label for floating compose post menu on Group screen. */
 "fab.post.button" = "Postingan";
@@ -910,6 +922,9 @@
 /* Title of failed video call screen alert. */
 "home.video.calls.fail.title" = "Panggilan video saat ini belum didukung.";
 
+/* Title of the bottom sheet that is presented only once to explain the moments feature. */
+"introducing.moments" = "Memperkenalkan Momen";
+
 /* Title of action sheet that allows the user to choose between sms and whatsapp to invite contact */
 "invite.action.sheet.title" = "Undang %@ lewat...";
 
@@ -1063,6 +1078,15 @@
 /* Text on loading screen while migrating data */
 "migration.inProgress" = "Mengoptimalkan Data…";
 
+/* Disclaimer to tell the user that their moments go to all of their contacts on HalloApp. */
+"moment.contacts.disclaimer" = "Momen Anda hanya dapat dibagikan dengan kontak Anda di HalloApp";
+
+/* Text displayed the first time the user acts to post a second moment in the same day. */
+"moment.replacement.disclaimer" = "Momen baru Anda akan menggantikan momen Anda sebelumnya";
+
+/* Title of text displayed the first time the user acts to post a second moment in the same day. */
+"moment.replacement.title" = "Peringatan";
+
 /* For indicating that there was an error while uploading the post. */
 "moment.uploading.failure" = "Kesalahan";
 
@@ -1073,7 +1097,7 @@
 "moment.uploading.success" = "Dibagikan!";
 
 /* Message displayed to say when moments will disappear. */
-"mymoment.disappear.time.label" = "Momen Anda telah dibagikan dengan dengan daftar kontak Anda. Momen akan hilang setelah 24 jam dan hanya dapat dilihat sekali.";
+"mymoment.disappear.time.label" = "Momen Anda telah dibagikan dengan daftar kontak Anda. Momen akan hilang setelah 24 jam dan hanya dapat dilihat sekali.";
 
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Pesan";
@@ -1145,7 +1169,7 @@
 "notification.moment" = "Momen baru";
 
 /* New moment notification text to be shown to the user. */
-"notification.moment.1" = "%@ berbagi momen";
+"notification.moment.1" = "%@ berbagi momen baru";
 
 /* New moment notification text to be shown to the user. */
 "notification.moment.2" = "%1$@ dan %2$@ berbagi momen baru";
@@ -1640,16 +1664,16 @@
 "thread.list.preview.new.user.default" = "%@ ada di HalloApp🎉";
 
 /* Last seen timestamp: full date in short format and time */
-"timestamp.last.seen.date.at.time" = "Terakhir terlihat %1$@ pada %2$@";
+"timestamp.last.seen.date.at.time" = "Terakhir dilihat %1$@, %2$@";
 
 /* Last seen timestamp: day of week and time */
-"timestamp.last.seen.dayofweek.at.time" = "Terakhir terlihat %1$@ pada %2$@";
+"timestamp.last.seen.dayofweek.at.time" = "Terakhir dilihat %1$@, %2$@";
 
 /* Last seen timestamp: today at specific time. */
-"timestamp.last.seen.today.at" = "Terakhir terlihat hari ini pada %@";
+"timestamp.last.seen.today.at" = "Terakhir dilihat hari ini %@";
 
 /* Last seen timestamp: yesterday at specific time. */
-"timestamp.last.seen.yesterday.at" = "Terakhir terlihat kemarin pada %@";
+"timestamp.last.seen.yesterday.at" = "Terakhir dilihat kemarin %@";
 
 /* Capitalized translation of `Now` to be used as timestamp. */
 "timestamp.now.capitalized" = "Sekarang";
@@ -1662,6 +1686,9 @@
 
 /* Timestamp: `Yesterday` */
 "timestamp.yesterday" = "Kemarin";
+
+/* Camera screen title */
+"title.camera" = "Kamera";
 
 /* Camera screen title for a new moment */
 "title.camera.moment" = "Momen Baru";
@@ -1707,6 +1734,9 @@
 
 /* Title for the screen with information about who saw your post. */
 "title.your.post" = "Dilihat oleh";
+
+/* Text on the bottom sheet's button that dismisses the sheet. */
+"try.moments" = "Coba Momen";
 
 /* Indicates which switch a user needs to turn on to enable contacts permissions. */
 "turn.on.contacts" = "Nyalakan \"Kontak\"";

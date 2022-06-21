@@ -80,7 +80,7 @@
 "registration.shucks" = "¡Caramba!";
 
 /* Shown above name and phone inputs */
-"registration.welcome" = "¡Bienvenido(a)!";
+"registration.welcome" = "¡Te damos la bienvenida!";
 
 /* Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account */
 "settings.account.deleted.message" = "No podrás iniciar sesión hasta que reinicies la aplicación";

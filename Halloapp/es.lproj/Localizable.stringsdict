@@ -199,7 +199,7 @@
 	<key>n.unread.comments.title</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>%#@n_comentarios_sin_leer@</string>
+		<string>%#@n_unread_comments@</string>
 		<key>n_unread_comments</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
@@ -207,9 +207,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>%d Comentario sin leer</string>
+			<string>%d comentario sin leer</string>
 			<key>other</key>
-			<string>%d Comentarios sin leer</string>
+			<string>%d comentarios sin leer</string>
 		</dict>
 	</dict>
 	<key>n.unread.messages.title</key>
@@ -223,9 +223,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>%d Unread Message</string>
+			<string>%d mensaje sin leer</string>
 			<key>other</key>
-			<string>%d Unread Messages</string>
+			<string>%d mensajes sin leer</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>
