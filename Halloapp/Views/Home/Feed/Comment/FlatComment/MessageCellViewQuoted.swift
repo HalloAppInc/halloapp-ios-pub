@@ -279,11 +279,11 @@ class MessageCellViewQuoted: MessageCellViewBase {
 
 extension MessageCellViewQuoted: MessageMediaViewDelegate {
 
-    func messageMediaView(_ view: PreviewImageView, forComment: FeedPostCommentID, didTapMediaAtIndex index: Int) {
+    func messageMediaView(_ view: MediaImageView, forComment: FeedPostCommentID, didTapMediaAtIndex index: Int) {
         self.commentDelegate?.messageView(view, forComment: forComment, didTapMediaAtIndex: index)
     }
 
-    func messageMediaView(_ view: PreviewImageView, forMessage: ChatMessageID, didTapMediaAtIndex index: Int) {
+    func messageMediaView(_ view: MediaImageView, forMessage: ChatMessageID, didTapMediaAtIndex index: Int) {
         self.chatDelegate?.messageView(self, for: forMessage, didTapMediaAtIndex: index)
     }
 }

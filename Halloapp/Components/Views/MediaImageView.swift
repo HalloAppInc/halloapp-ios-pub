@@ -19,12 +19,26 @@ class MediaImageView: UIImageView {
         fileprivate let playButtonSize: CGFloat
         fileprivate let maxVideoPreviewSize: CGSize
         fileprivate let useAnimatedVideoPreview: Bool
+        fileprivate let contentMode: UIView.ContentMode
         fileprivate let videoPreviewLength: TimeInterval = 2
         
         static let groupGrid = Configuration(progressViewSize: 72,
                                              playButtonSize: 32,
                                              maxVideoPreviewSize: CGSize(width: 160, height: 160),
-                                             useAnimatedVideoPreview: true)
+                                             useAnimatedVideoPreview: true,
+                                             contentMode: .scaleAspectFill)
+
+        static let message = Configuration(progressViewSize: 72,
+                                        playButtonSize: 32,
+                                        maxVideoPreviewSize: CGSize(width: 256, height: 256),
+                                        useAnimatedVideoPreview: false,
+                                        contentMode: .scaleAspectFill)
+
+        static let mediaList = Configuration(progressViewSize: 72,
+                                        playButtonSize: 32,
+                                        maxVideoPreviewSize: .zero,
+                                        useAnimatedVideoPreview: false,
+                                        contentMode: .scaleAspectFit)
     }
 
     private lazy var videoIndicator: UIImageView = {
@@ -207,8 +221,108 @@ class MediaImageView: UIImageView {
         }
     }
 
+    func configure(with media: CommonMedia) {
+        let mediaID = media.id
+        let mediaType = media.type
+        guard mediaID != currentMediaID else {
+            return
+        }
+
+        currentMediaID = mediaID
+        mediaLoadingCancellable?.cancel()
+        downloadProgressCancellable?.cancel()
+        mediaStatusCancellable?.cancel()
+
+        progressView.isHidden = media.mediaURL != nil
+        videoIndicator.isHidden = media.type != .video || configuration.useAnimatedVideoPreview
+
+        switch media.type {
+        case .audio:
+            showPlaceholderImage(for: .audio)
+            #if DEBUG
+            fatalError("MediaImageView cannot support audio")
+            #endif
+        case .image:
+            if let url = media.mediaURL {
+                load(media.type, url: url)
+            } else {
+                showPlaceholderImage(for: .image)
+            }
+        case .video:
+            if let url = media.mediaURL {
+                if configuration.useAnimatedVideoPreview {
+                    showMediaVideoLoop(videoURL: url)
+                } else {
+                    load(media.type, url: url)
+                }
+            } else {
+                showPlaceholderImage(for: .video)
+            }
+        }
+
+        downloadProgressCancellable = FeedDownloadManager.downloadProgress.receive(on: DispatchQueue.main).sink { [weak self] (id, progress) in
+            guard let self = self else { return }
+            guard id == self.currentMediaID else { return }
+
+            self.progressView.progress = progress
+        }
+
+        mediaLoadingCancellable = FeedDownloadManager.mediaDidBecomeAvailable.receive(on: DispatchQueue.main).sink { [weak self] (id, url) in
+            guard let self = self else { return }
+            guard id == self.currentMediaID else { return }
+
+            self.load(mediaType, url: url)
+
+            switch media.type {
+            case .audio:
+                break
+            case .image:
+                self.load(mediaType, url: url)
+            case .video:
+                if let url = media.mediaURL {
+                    if self.configuration.useAnimatedVideoPreview {
+                        self.showMediaVideoLoop(videoURL: url)
+                    } else {
+                        self.load(mediaType, url: url)
+                    }
+                }
+            }
+        }
+    }
+
+    private func load(_ type: CommonMediaType, url: URL) {
+        let id = currentMediaID
+
+        DispatchQueue.global(qos: .background).async { [weak self] in
+            guard let self = self else { return }
+
+            let image: UIImage?
+            switch type {
+            case .image:
+                image = UIImage(contentsOfFile: url.path)
+            case .video:
+                if self.configuration.maxVideoPreviewSize == .zero {
+                    image = VideoUtils.videoPreviewImage(url: url)
+                } else {
+                    image = VideoUtils.videoPreviewImage(url: url, size: self.configuration.maxVideoPreviewSize)
+                }
+            case .audio:
+                return // only images and videos
+            }
+
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                guard id == self.currentMediaID else { return }
+
+                self.progressView.isHidden = true
+                self.videoIndicator.isHidden = type != .video
+                self.showMediaImage(image)
+            }
+        }
+    }
+
     private func showMediaImage(_ mediaImage: UIImage?) {
-        contentMode = .scaleAspectFill
+        contentMode = configuration.contentMode
         clipsToBounds = true
         stopPlayingVideo()
         super.image = mediaImage
