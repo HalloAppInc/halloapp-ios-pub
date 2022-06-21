@@ -49,6 +49,10 @@ private extension Localizations {
     }
 }
 
+fileprivate enum DestinationSection {
+    case main, groups, contacts
+}
+
 class ShareDestinationViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     private let contacts: [ABContact]
     private let allGroups: [GroupListSyncItem]
@@ -304,26 +308,15 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
     }
 
     private func destinationForRow(at indexPath: IndexPath) -> ShareDestination? {
-        if isFiltering {
-            switch indexPath.section {
-            case 0:
-                return .group(filteredGroups[indexPath.row])
-            case 1:
-                return .contact(filteredContacts[indexPath.row])
-            default:
-                return nil
-            }
-        } else {
-            switch indexPath.section {
-            case 0:
-                return .feed(feedPrivacyTypes[indexPath.row])
-            case 1:
-                return .group(groups[indexPath.row])
-            case 2:
-                return .contact(contacts[indexPath.row])
-            default:
-                return nil
-            }
+        switch sectionAt(index: indexPath.section) {
+        case .main:
+            return .feed(feedPrivacyTypes[indexPath.row])
+        case .groups:
+            return .group(isFiltering ? filteredGroups[indexPath.row] : groups[indexPath.row])
+        case .contacts:
+            return .contact(isFiltering ? filteredContacts[indexPath.row] : contacts[indexPath.row])
+        case .none:
+            return nil
         }
     }
 
@@ -342,53 +335,83 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
 
     // MARK: Data Source
 
+    private func sectionAt(index: Int) -> DestinationSection? {
+        if isFiltering {
+            if index == 0 && filteredGroups.count > 0 {
+                return .groups
+            }
+
+            if index == 0 && filteredContacts.count >  0 {
+                return .contacts
+            }
+
+            if index == 1 && filteredContacts.count >  0 {
+                return .contacts
+            }
+        } else {
+            if index == 0 {
+                return .main
+            }
+
+            if index == 1 && groups.count > 0 {
+                return .groups
+            }
+
+            if index == 1 && contacts.count >  0 {
+                return .contacts
+            }
+
+            if index == 2 && contacts.count >  0 {
+                return .contacts
+            }
+        }
+
+        return nil
+    }
+
     func numberOfSections(in tableView: UITableView) -> Int {
-        return isFiltering ? 2 : 3
+        var count = 0
+
+        if !isFiltering {
+            count += 1 // main section
+        }
+
+        if isFiltering, filteredGroups.count > 0 {
+            count += 1
+        } else if !isFiltering, groups.count > 0 {
+            count += 1
+        }
+
+        if isFiltering, filteredContacts.count > 0 {
+            count += 1
+        } else if !isFiltering, contacts.count > 0 {
+            count += 1
+        }
+
+        return count
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if isFiltering {
-            switch section {
-            case 0:
-                return filteredGroups.count
-            case 1:
-                return filteredContacts.count
-            default:
-                return 0
-            }
-        } else {
-            switch section {
-            case 0:
-                return 2
-            case 1:
-                return groups.count
-            case 2:
-                return contacts.count
-            default:
-                return 0
-            }
+        switch sectionAt(index: section) {
+        case .main:
+            return 2
+        case .groups:
+            return isFiltering ? filteredGroups.count : groups.count
+        case .contacts:
+            return isFiltering ? filteredContacts.count : contacts.count
+        case .none:
+            return 0
         }
     }
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        if isFiltering {
-            switch section {
-            case 0:
-                return Localizations.groups
-            case 1:
-                return Localizations.contacts
-            default:
-                return nil
-            }
-        } else {
-            switch section {
-            case 1:
-                return Localizations.groups
-            case 2:
-                return Localizations.contacts
-            default:
-                return nil
-            }
+        switch sectionAt(index: section) {
+        case .groups:
+            return Localizations.groups
+        case .contacts:
+            return Localizations.contacts
+        case .none, .main:
+            return nil
         }
     }
     
@@ -456,7 +479,7 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
     }
 
     func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
-        if section == 1 && !isFiltering && hasMoreGroups {
+        if sectionAt(index: section) == .groups && !isFiltering && hasMoreGroups {
             let container = UIView()
 
             let moreGroupsButton = UIButton(type: .custom)
