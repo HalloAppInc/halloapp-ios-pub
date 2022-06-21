@@ -231,7 +231,7 @@
 		321C83E727CFE27F00DDD03A /* Keys */ = {
 			isa = PBXGroup;
 			children = (
-				32CE964727CFEE1300B4A2C1 /* CoreDataStack */,
+				32CE964727CFEE1300B4A2C1 /* CoreData Stack */,
 				32CE961027CFECD000B4A2C1 /* KeyData.swift */,
 				32CE961127CFECD000B4A2C1 /* Keys.swift */,
 				32CE961227CFECD000B4A2C1 /* KeyStore.swift */,
@@ -333,7 +333,7 @@
 			path = Contacts;
 			sourceTree = "<group>";
 		};
-		32CE964727CFEE1300B4A2C1 /* CoreDataStack */ = {
+		32CE964727CFEE1300B4A2C1 /* CoreData Stack */ = {
 			isa = PBXGroup;
 			children = (
 				32CE964A27CFEE4400B4A2C1 /* Keys.xcdatamodeld */,
@@ -348,7 +348,7 @@
 				32CE965127CFEE4400B4A2C1 /* UserKeyBundle+CoreDataClass.swift */,
 				32CE964F27CFEE4400B4A2C1 /* UserKeyBundle+CoreDataProperties.swift */,
 			);
-			path = CoreDataStack;
+			path = "CoreData Stack";
 			sourceTree = "<group>";
 		};
 		F404FC252810AC74008313FF /* Packages */ = {
