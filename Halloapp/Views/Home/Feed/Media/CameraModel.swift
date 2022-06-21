@@ -284,6 +284,7 @@ extension CameraModel {
 
         if let input = backInput {
             session.addInput(input)
+            activeCamera = .back
         }
 
         if let input = audioInput {

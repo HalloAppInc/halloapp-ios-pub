@@ -380,6 +380,9 @@ class NewCameraViewController: UIViewController {
 extension NewCameraViewController: CameraModelDelegate {
     func modelWillStart(_ model: CameraModel) {
         preview.previewLayer.session = model.session
+
+        preview.previewLayer.connection?.automaticallyAdjustsVideoMirroring = false
+        preview.previewLayer.connection?.isVideoMirrored = false
     }
 
     func modelDidStart(_ model: CameraModel) {
@@ -414,6 +417,8 @@ extension NewCameraViewController: CameraModelDelegate {
                 UIApplication.shared.open(url)
             }
         })
+
+        present(alert, animated: true)
     }
 
     /// Shown when there was some initialization error and the session could not start.
@@ -425,6 +430,8 @@ extension NewCameraViewController: CameraModelDelegate {
         alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default) { [weak self] _ in
             self?.dismiss(animated: true)
         })
+
+        present(alert, animated: true)
     }
 
     func model(_ model: CameraModel, didTake photo: UIImage) {
