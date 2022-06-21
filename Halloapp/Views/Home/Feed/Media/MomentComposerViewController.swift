@@ -34,13 +34,8 @@ class MomentComposerViewController: UIViewController {
         label.textColor = .secondaryLabel
 
         stack.translatesAutoresizingMaskIntoConstraints = false
-        stack.isLayoutMarginsRelativeArrangement = true
-        stack.layoutMargins = UIEdgeInsets(top: 5, left: 9, bottom: 5, right: 9)
-        stack.axis = .horizontal
-        stack.alignment = .center
-        stack.spacing = 5
-
         pill.addSubview(stack)
+
         NSLayoutConstraint.activate([
             stack.topAnchor.constraint(equalTo: pill.topAnchor),
             stack.leadingAnchor.constraint(equalTo: pill.leadingAnchor),
@@ -49,6 +44,12 @@ class MomentComposerViewController: UIViewController {
             imageView.widthAnchor.constraint(equalToConstant: 10),
             imageView.heightAnchor.constraint(equalToConstant: 10),
         ])
+
+        stack.isLayoutMarginsRelativeArrangement = true
+        stack.layoutMargins = UIEdgeInsets(top: 5, left: 9, bottom: 5, right: 9)
+        stack.axis = .horizontal
+        stack.alignment = .center
+        stack.spacing = 5
 
         return pill
     }()
@@ -149,10 +150,7 @@ class MomentComposerViewController: UIViewController {
 
         let padding = NewCameraViewController.Layout.padding(for: .moment)
         let imageViewHeight = imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor)
-        imageViewHeight.priority = .defaultHigh
-
         momentCardHeightConstraint.priority = .defaultHigh
-        momentCardTopConstraint.priority = .defaultHigh
 
         NSLayoutConstraint.activate([
             background.leadingAnchor.constraint(equalTo: view.leadingAnchor),
