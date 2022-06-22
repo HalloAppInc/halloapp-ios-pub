@@ -60,7 +60,7 @@ final class ProfileHeaderViewController: UIViewController, UserMenuHandler {
 
         headerView.avatarViewButton.configureWithMenu {
             HAMenu.lazy { [weak self] in
-                return self?.editProfilePhotoMenu() ?? []
+                self?.editProfilePhotoMenu()
             }
         }
         

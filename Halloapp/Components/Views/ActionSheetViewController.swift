@@ -312,13 +312,15 @@ class ActionSheetViewController: UIViewController, UIViewControllerTransitioning
         }
         
         private func configureImage() -> [NSLayoutConstraint] {
-            guard let image = action.image else {
+            guard let originalImage = action.image else {
                 return []
             }
             
-            let imageView = UIImageView(image: image)
+            let adjustedImage = (originalImage.renderingMode == .automatic) ? originalImage.withRenderingMode(.alwaysTemplate) : originalImage
+            let imageView = UIImageView(image: adjustedImage)
             imageView.contentMode = .scaleAspectFit
             imageView.translatesAutoresizingMaskIntoConstraints = false
+            imageView.tintColor  = (action.style != .destructive) ? .systemBlue : .systemRed
             addSubview(imageView)
             self.imageView = imageView
             

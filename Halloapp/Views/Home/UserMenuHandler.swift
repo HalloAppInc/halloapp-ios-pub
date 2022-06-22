@@ -162,8 +162,8 @@ extension HAMenu {
             return HAMenu { }.displayInline()
         }
         return HAMenu {
-            if options.contains(.contactActions), let contactMenu = contactMenu(for: userID, handler: handler) {
-                contactMenu
+            if options.contains(.contactActions) {
+                contactMenu(for: userID, handler: handler)
             }
             
             if options.contains(.utilityActions) {
@@ -229,7 +229,7 @@ extension HAMenu {
             }
             
             // groups in common
-            HAMenuButton(title: Localizations.groupsInCommonButtonLabel, image: UIImage(named: "TabBarGroups")?.withTintColor(.label, renderingMode: .alwaysOriginal)) {
+            HAMenuButton(title: Localizations.groupsInCommonButtonLabel, image: UIImage(named: "TabBarGroups")?.withRenderingMode(.alwaysTemplate)) {
                 await handler(.commonGroups(userID))
             }
         }.displayInline()

@@ -42,6 +42,7 @@ public protocol CoreService: CoreServiceCommon {
 
     // MARK: Keys
     func getGroupMemberIdentityKeys(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Server_GroupStanza>)
+    func getAudienceIdentityKeys(members: [UserID], completion: @escaping ServiceRequestCompletion<Server_WhisperKeysCollection>)
 
     // MARK: Chat
     func sendPresenceIfPossible(_ presenceType: PresenceType)

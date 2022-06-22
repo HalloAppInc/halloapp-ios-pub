@@ -600,16 +600,11 @@ extension MomentViewController: ContentInputDelegate {
     }
 
     func inputViewContentOptionsMenu(_ inputView: ContentInputView) -> HAMenu.Content {
-        let cameraImage = UIImage(systemName: "camera.fill")?.withRenderingMode(.alwaysOriginal)
-                                                             .withTintColor(.primaryBlue)
-        let pickerImage = UIImage(systemName: "photo.fill.on.rectangle.fill")?.withRenderingMode(.alwaysOriginal)
-                                                                              .withTintColor(.primaryBlue)
-
-        HAMenuButton(title: Localizations.fabAccessibilityCamera, image: cameraImage) { [weak self] in
+        HAMenuButton(title: Localizations.fabAccessibilityCamera, image: UIImage(systemName: "camera.fill")) { [weak self] in
             self?.presentCameraViewController()
         }
 
-        HAMenuButton(title: Localizations.photoAndVideoLibrary, image: pickerImage) { [weak self] in
+        HAMenuButton(title: Localizations.photoAndVideoLibrary, image: UIImage(systemName: "photo.fill.on.rectangle.fill")) { [weak self] in
             self?.presentMediaPicker()
         }
     }

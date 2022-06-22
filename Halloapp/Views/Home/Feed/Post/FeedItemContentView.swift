@@ -392,7 +392,7 @@ final class FeedItemHeaderView: UIView {
         didSet {
             moreButton.configureWithMenu {
                 HAMenu.lazy { [weak self] in
-                    return self?.moreMenuContent() ?? []
+                    self?.moreMenuContent()
                 }
             }
         }
