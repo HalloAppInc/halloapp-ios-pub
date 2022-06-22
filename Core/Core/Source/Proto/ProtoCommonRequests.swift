@@ -111,3 +111,24 @@ final class ProtoGroupMemberKeysRequest: ProtoRequest<Server_GroupStanza> {
             completion: completion)
     }
 }
+
+final class ProtoWhisperCollectionKeysRequest: ProtoRequest<Server_WhisperKeysCollection> {
+
+    init(members: [UserID], completion: @escaping Completion) {
+        let memberWhisperKeys: [Server_WhisperKeys] = members.map { memberUserID in
+            var whisperKeys = Server_WhisperKeys()
+            whisperKeys.action = .get
+            if let uid = Int64(memberUserID) {
+                whisperKeys.uid = uid
+            }
+            return whisperKeys
+        }
+
+        var collection = Server_WhisperKeysCollection()
+        collection.collection = memberWhisperKeys
+        super.init(
+            iqPacket: .iqPacket(type: .get, payload: .whisperKeysCollection(collection)),
+            transform: { (iq) in return .success(iq.whisperKeysCollection) },
+            completion: completion)
+    }
+}

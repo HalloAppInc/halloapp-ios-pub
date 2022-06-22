@@ -1645,4 +1645,11 @@ extension ProtoServiceCore: CoreService {
             self.enqueue(request: ProtoGroupMemberKeysRequest(groupID: groupID, completion: completion))
         }
     }
+
+    public func getAudienceIdentityKeys(members: [UserID], completion: @escaping ServiceRequestCompletion<Server_WhisperKeysCollection>) {
+        // Wait until connected to retry getting identity keys of various members.
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            self.enqueue(request: ProtoWhisperCollectionKeysRequest(members: members, completion: completion))
+        }
+    }
 }
