@@ -9,6 +9,7 @@ message Receipts {
         string user_id = 1;
         google.protobuf.Timestamp timestamp_delivered = 2;
         google.protobuf.Timestamp timestamp_seen = 3;
+        google.protobuf.Timestamp timestamp_screenshot = 4;
     }
 
     repeated Receipt receipts = 1;

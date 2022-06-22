@@ -16,6 +16,7 @@ class MessageCellViewAudio: MessageCellViewBase {
     private var audioMediaStatusCancellable: AnyCancellable?
 
     var AudioViewWidth: CGFloat { return contentView.bounds.width * 0.5 }
+    var AudioViewHeight: CGFloat { return contentView.bounds.width * 0.1 }
 
     // MARK: Audio Media
     
@@ -84,6 +85,7 @@ class MessageCellViewAudio: MessageCellViewBase {
         
         NSLayoutConstraint.activate([
             audioView.widthAnchor.constraint(equalToConstant: AudioViewWidth),
+            audioView.heightAnchor.constraint(equalToConstant: AudioViewHeight),
             rightAlignedConstraint,
             leftAlignedConstraint
         ])
@@ -154,6 +156,10 @@ class MessageCellViewAudio: MessageCellViewBase {
         }
     }
 
+    func playVoiceNote() {
+        audioView.play()
+    }
+
     func pauseVoiceNote() {
         audioView.pause()
     }
@@ -175,5 +181,8 @@ extension MessageCellViewAudio: AudioViewDelegate {
     }
 
     func audioViewDidEndPlaying(_ view: AudioView, completed: Bool) {
+        guard completed else { return }
+        guard let messageID = chatMessage?.id else { return }
+        chatDelegate?.messageView(self, didCompleteVoiceNote: messageID)
     }
 }

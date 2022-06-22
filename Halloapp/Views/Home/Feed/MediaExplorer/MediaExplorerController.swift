@@ -195,31 +195,21 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         transitioningDelegate = self
     }
 
-    init(media: [CommonMedia], index: Int) {
+    init(media: [CommonMedia], index: Int, canSaveMedia: Bool, source: MediaItemSource) {
         self.media = media.map { MediaExplorerMedia(media: $0) }
-        self.source = .chat
+        self.source = source
         self.currentIndex = index
+        self.canSaveMedia = canSaveMedia
 
         super.init(nibName: nil, bundle: nil)
 
-        self.currentIndex = computePosition(for: media[index])
+        if source == .chat, media.count > index, media[index].message != nil {
+            self.currentIndex = computePosition(for: media[index])
 
-        fetchedResultsController = makeFetchedResultsController(media[index])
-        fetchedResultsController?.delegate = self
-        try? fetchedResultsController?.performFetch()
-        
-        canSaveMedia = true
-
-        modalPresentationStyle = .overFullScreen
-        transitioningDelegate = self
-    }
-
-    init(quotedMedia: [CommonMedia], index: Int) {
-        media = quotedMedia.map { MediaExplorerMedia(media: $0) }
-        self.currentIndex = index
-        self.source = .chat
-
-        super.init(nibName: nil, bundle: nil)
+            fetchedResultsController = makeFetchedResultsController(media[index])
+            fetchedResultsController?.delegate = self
+            try? fetchedResultsController?.performFetch()
+        }
 
         modalPresentationStyle = .overFullScreen
         transitioningDelegate = self

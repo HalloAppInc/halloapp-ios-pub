@@ -84,6 +84,9 @@ fileprivate enum MessageRow: Hashable, Equatable {
 
 class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegate, UICollectionViewDelegate {
 
+    // Wait for ios to create a cell if it does not exist
+    let waitForCellDelay: TimeInterval = 0.25
+
     weak var chatViewControllerDelegate: ChatViewControllerDelegate?
 
     /// The `userID` of the user the client is receiving messages from
@@ -591,7 +594,8 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         configureTitleViewWithTypingIndicator()
         loadChatDraft(id: fromUserId)
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard(_:)))
-        view.addGestureRecognizer(tapGesture)
+        tapGesture.cancelsTouchesInView = false
+        collectionView.addGestureRecognizer(tapGesture)
 
     }
 
@@ -1473,7 +1477,7 @@ extension ChatViewControllerNew: MessageViewChatDelegate {
         guard let message = MainAppContext.shared.chatData.chatMessage(with: chatMessageID, in: viewContext) else { return }
 
         if message.orderedMedia.count == 1 {
-            let controller = MediaExplorerController(media: message.orderedMedia, index: index)
+            let controller = MediaExplorerController(media: message.orderedMedia, index: index, canSaveMedia: true, source: .chat)
             controller.animatorDelegate = self
 
             present(controller, animated: true)
@@ -1546,6 +1550,26 @@ extension ChatViewControllerNew: MessageViewChatDelegate {
        guard chatMessage.incomingStatus != .retracted else { return }
        guard ![.retracting, .retracted].contains(chatMessage.outgoingStatus) else { return }
        handleQuotedReply(msg: chatMessage)
+   }
+
+   func messageView(_ messageViewCell: MessageCellViewBase, didCompleteVoiceNote userId: UserID) {
+       guard let chatMessage = messageViewCell.chatMessage else { return }
+       playVoiceNote(after: chatMessage)
+   }
+
+   private func playVoiceNote(after chatMessage: ChatMessage) {
+       guard var nextIndexPath = dataSource.indexPath(for: messagerow(for: chatMessage)) else { return }
+       nextIndexPath.row += 1
+
+       DispatchQueue.main.asyncAfter(deadline: .now() + waitForCellDelay) {
+           guard let cell = self.collectionView.cellForItem(at: nextIndexPath) else { return }
+           if let audioCell = cell as? MessageCellViewAudio {
+               // Only auto play the next voice note if is from the same sender as the audio note that was just played.
+               guard audioCell.chatMessage?.fromUserId == chatMessage.fromUserId else { return }
+               self.collectionView.scrollToItem(at: nextIndexPath, at: .centeredVertically, animated: true)
+               audioCell.playVoiceNote()
+           }
+       }
    }
 
    private func handleQuotedReply(msg chatMessage: ChatMessage) {

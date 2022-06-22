@@ -133,7 +133,7 @@ class ChatMediaListViewController: UIViewController {
 // MARK: UICollectionViewDelegate
 extension ChatMediaListViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let controller = MediaExplorerController(media: message.orderedMedia, index: indexPath.row)
+        let controller = MediaExplorerController(media: message.orderedMedia, index: indexPath.row, canSaveMedia: true, source: .chat)
         controller.animatorDelegate = self
 
         present(controller, animated: true)
