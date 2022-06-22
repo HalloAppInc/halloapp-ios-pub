@@ -76,6 +76,7 @@
 		F404FC292810AD11008313FF /* SwiftNoise in Frameworks */ = {isa = PBXBuildFile; productRef = F404FC282810AD11008313FF /* SwiftNoise */; };
 		F4585C7627E152F700BF6ED6 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = F4585C7527E152F700BF6ED6 /* Sentry */; };
 		F4585C7C27E156B600BF6ED6 /* SentryLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4585C7B27E156B600BF6ED6 /* SentryLogger.swift */; };
+		F4B361612862821200764454 /* NSManagedObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B361602862821200764454 /* NSManagedObject.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -140,6 +141,7 @@
 		32CE966127CFF74800B4A2C1 /* CoreServiceCommon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreServiceCommon.swift; sourceTree = "<group>"; };
 		F404FC262810AC74008313FF /* swift-noise-protocol */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = "swift-noise-protocol"; path = "../swift-noise-protocol"; sourceTree = "<group>"; };
 		F4585C7B27E156B600BF6ED6 /* SentryLogger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SentryLogger.swift; sourceTree = "<group>"; };
+		F4B361602862821200764454 /* NSManagedObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSManagedObject.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -263,6 +265,7 @@
 				32CE95F927CFECC400B4A2C1 /* UIDevice.swift */,
 				32CE95F527CFECC400B4A2C1 /* UIImage.swift */,
 				32CE95FB27CFECC400B4A2C1 /* UserDefaults.swift */,
+				F4B361602862821200764454 /* NSManagedObject.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -486,6 +489,7 @@
 				32CE962227CFED0000B4A2C1 /* ErrorLogger.swift in Sources */,
 				32CE965727CFEE4400B4A2C1 /* MessageKey+CoreDataClass.swift in Sources */,
 				321C83F427CFEC0B00DDD03A /* Hashcash.swift in Sources */,
+				F4B361612862821200764454 /* NSManagedObject.swift in Sources */,
 				32CE962E27CFED0600B4A2C1 /* clients.pb.swift in Sources */,
 				32A4B71327D0044C00169682 /* AppContextCommon.swift in Sources */,
 				32CE964627CFED6F00B4A2C1 /* ABContact+CoreDataProperties.swift in Sources */,

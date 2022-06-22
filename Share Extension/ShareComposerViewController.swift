@@ -638,9 +638,14 @@ class ShareComposerViewController: UIViewController {
     private func share() {
         showUploadingAlert()
 
+        let text = mentionInput.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let mentionText = MentionText(
+            expandedText: mentionInput.text,
+            mentionRanges: mentionInput.mentions).trimmed()
+
         let queue = DispatchQueue(label: "com.halloapp.share.prepare", qos: .userInitiated)
-        ShareExtensionContext.shared.coreService.execute(whenConnectionStateIs: .connected, onQueue: queue) {
-            self.prepareAndUpload()
+        ShareExtensionContext.shared.coreService.execute(whenConnectionStateIs: .connected, onQueue: queue) { [media, linkPreviewData, linkPreviewMedia] in
+            self.prepareAndUpload(text: text, mentionText: mentionText, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
         }
     }
 
@@ -689,13 +694,7 @@ class ShareComposerViewController: UIViewController {
         }
     }
 
-    private func prepareAndUpload() {
-        let text = mentionInput.text.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        let mentionText = MentionText(
-            expandedText: mentionInput.text,
-            mentionRanges: mentionInput.mentions).trimmed()
-
+    private func prepareAndUpload(text: String, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?) {
         let uploadDispatchGroup = DispatchGroup()
         var results = [Result<String, Error>]()
 
@@ -724,12 +723,16 @@ class ShareComposerViewController: UIViewController {
                 addIntent(chatGroup: group)
             case .contact(let contact):
                 DDLogInfo("ShareComposerViewController/upload contact")
-                guard let userId = contact.userId else { return }
-                ShareExtensionContext.shared.dataStore.send(to: userId, text: text, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia) {
+                var userID: UserID?
+                contact.managedObjectContext?.performAndWait {
+                    userID = contact.userId
+                }
+                guard let userID = userID else { return }
+                ShareExtensionContext.shared.dataStore.send(to: userID, text: text, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia) {
                     results.append($0)
                     uploadDispatchGroup.leave()
                 }
-                addIntent(toUserId: userId)
+                addIntent(toUserId: userID)
             }
         }
 
@@ -786,8 +789,12 @@ class ShareComposerViewController: UIViewController {
                                                         conversationIdentifier: ConversationID(id: chatGroup.id, type: .group).description,
                                                         serviceName: nil,
                                                         sender: nil)
-            
-            let potentialUserAvatar = ShareExtensionContext.shared.avatarStore.groupAvatarData(for: chatGroup.id).image
+
+            var potentialUserAvatar: UIImage?
+            ShareExtensionContext.shared.avatarStore.viewContext.performAndWait {
+                potentialUserAvatar = ShareExtensionContext.shared.avatarStore.groupAvatarData(for: chatGroup.id).image
+            }
+
             guard let defaultAvatar = UIImage(named: "AvatarGroup") else { return }
             
             // Have to convert UIImage to data and then NIImage because NIImage(uiimage: UIImage) initializer was throwing exception
@@ -814,30 +821,32 @@ class ShareComposerViewController: UIViewController {
     private func addIntent(toUserId: UserID) {
         if #available(iOS 14.0, *) {
             let contactsContextView = ShareExtensionContext.shared.contactStore.viewContext
-            guard let fullName = ShareExtensionContext.shared.contactStore.fullNameIfAvailable(for: toUserId, ownName: Localizations.meCapitalized, in: contactsContextView) else { return }
-            
-            let recipient = INSpeakableString(spokenPhrase: fullName)
-            let sendMessageIntent = INSendMessageIntent(recipients: nil,
-                                                        content: nil,
-                                                        speakableGroupName: recipient,
-                                                        conversationIdentifier: ConversationID(id: toUserId, type: .chat).description,
-                                                        serviceName: nil, sender: nil)
-            
-            let potentialUserAvatar = ShareExtensionContext.shared.avatarStore.userAvatar(forUserId: toUserId).image
-            guard let defaultAvatar = UIImage(named: "AvatarUser") else { return }
-            
-            // Have to convert UIImage to data and then NIImage because NIImage(uiimage: UIImage) initializer was throwing exception
-            guard let userAvaterUIImage = (potentialUserAvatar ?? defaultAvatar).pngData() else { return }
-            let userAvatar = INImage(imageData: userAvaterUIImage)
-            
-            sendMessageIntent.setImage(userAvatar, forParameterNamed: \.speakableGroupName)
-            
-            let interaction = INInteraction(intent: sendMessageIntent, response: nil)
-            interaction.donate(completion: { error in
-                if let error = error {
-                    DDLogDebug("ChatViewController/sendMessage/\(error.localizedDescription)")
-                }
-            })
+            contactsContextView.performAndWait {
+                guard let fullName = ShareExtensionContext.shared.contactStore.fullNameIfAvailable(for: toUserId, ownName: Localizations.meCapitalized, in: contactsContextView) else { return }
+
+                let recipient = INSpeakableString(spokenPhrase: fullName)
+                let sendMessageIntent = INSendMessageIntent(recipients: nil,
+                                                            content: nil,
+                                                            speakableGroupName: recipient,
+                                                            conversationIdentifier: ConversationID(id: toUserId, type: .chat).description,
+                                                            serviceName: nil, sender: nil)
+
+                let potentialUserAvatar = ShareExtensionContext.shared.avatarStore.userAvatar(forUserId: toUserId).image
+                guard let defaultAvatar = UIImage(named: "AvatarUser") else { return }
+
+                // Have to convert UIImage to data and then NIImage because NIImage(uiimage: UIImage) initializer was throwing exception
+                guard let userAvaterUIImage = (potentialUserAvatar ?? defaultAvatar).pngData() else { return }
+                let userAvatar = INImage(imageData: userAvaterUIImage)
+
+                sendMessageIntent.setImage(userAvatar, forParameterNamed: \.speakableGroupName)
+
+                let interaction = INInteraction(intent: sendMessageIntent, response: nil)
+                interaction.donate(completion: { error in
+                    if let error = error {
+                        DDLogDebug("ChatViewController/sendMessage/\(error.localizedDescription)")
+                    }
+                })
+            }
         }
     }
 }

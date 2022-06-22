@@ -178,10 +178,6 @@ open class NotificationStore {
 
     public func save(id contentId: String, type contentTypeRaw: String) {
         self.performSeriallyOnBackgroundContext { managedObjectContext in
-            guard self.notificationStatus(predicate: NSPredicate(format: "contentId == %@", contentId), in: managedObjectContext) == nil else {
-                DDLogError("NotificationStore/save/Duplicate Notification Status: contentId: \(contentId)/contentTypeRaw: \(contentTypeRaw)")
-                return
-            }
             DDLogInfo("NotificationStore/save/contentId: \(contentId)/contentTypeRaw: \(contentTypeRaw)")
             let notificationStatus = NotificationStatus(context: managedObjectContext)
             notificationStatus.contentId = contentId
