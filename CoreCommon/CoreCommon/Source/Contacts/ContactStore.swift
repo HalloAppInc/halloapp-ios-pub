@@ -100,7 +100,9 @@ open class ContactStore {
         self.userData = userData
         persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
 
-        loadPushNamesAndNumbers()
+        viewContext.performAndWait {
+            loadPushNamesAndNumbers()
+        }
     }
 
     public func loadPushNamesAndNumbers() {
