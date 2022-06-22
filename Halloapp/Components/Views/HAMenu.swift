@@ -106,11 +106,19 @@ struct HAMenuContentBuilder {
         return [.menu(expression)]
     }
 
-    static func buildArray(_ components: [[HAMenuItem]]) -> [HAMenuItem] {
-        return Array(components.joined())
+    static func buildExpression(_ expression: [HAMenuItem]?) -> [HAMenuItem] {
+        return expression ?? []
     }
     
-    static func buildBlock(_ components: [HAMenuItem]...) -> [HAMenuItem] {
+    static func buildExpression(_ expression: HAMenuButton?) -> [HAMenuItem] {
+        return expression.map(buildExpression(_:)) ?? []
+    }
+    
+    static func buildExpression(_ expression: HAMenu?) -> [HAMenuItem] {
+        return expression.map(buildExpression(_:)) ?? []
+    }
+    
+    static func buildArray(_ components: [[HAMenuItem]]) -> [HAMenuItem] {
         return Array(components.joined())
     }
 
@@ -124,6 +132,10 @@ struct HAMenuContentBuilder {
 
     static func buildOptional(_ component: [HAMenuItem]?) -> [HAMenuItem] {
         return component ?? []
+    }
+    
+    static func buildBlock(_ components: [HAMenuItem]...) -> [HAMenuItem] {
+        return Array(components.joined())
     }
 }
 
@@ -219,9 +231,11 @@ extension UIAlertController {
 }
 
 extension ActionSheetViewController {
-    convenience init(buildMenu: () -> HAMenu) {
+    convenience init?(buildMenu: () -> HAMenu) {
         let menu = buildMenu()
         self.init(title: menu.title, message: menu.subtitle)
+        let flattenedContent = menu.flattenedContent()
+        guard !flattenedContent.isEmpty else { return nil }
         for item in menu.flattenedContent() {
             switch item {
             case let .button(button):
@@ -259,11 +273,22 @@ extension HAMenu {
 
 extension UIMenu {
     convenience init(menu: HAMenu) {
+        self.init(menu: menu, uncacheAction: nil)
+    }
+    
+    fileprivate convenience init(menu: HAMenu, uncacheAction: (@MainActor () -> Void)?) {
         let children: [UIMenuElement] = {
             if #available(iOS 14.0, *), menu.isLazy {
-                return [UIDeferredMenuElement { completion in
-                    completion(menu.uiMenuElements())
-                }]
+                if #available(iOS 15.0, *) {
+                    return [UIDeferredMenuElement.uncached { completion in
+                        completion(menu.uiMenuElements())
+                    }]
+                } else {
+                    return [UIDeferredMenuElement { completion in
+                        completion(menu.uiMenuElements())
+                        uncacheAction?()
+                    }]
+                }
             } else {
                 return menu.uiMenuElements()
             }
@@ -319,7 +344,19 @@ extension UIBarButtonItem {
     @MainActor convenience init(title: String? = nil, image: UIImage? = nil, buildMenu: () -> HAMenu) {
         let menu = buildMenu()
         if #available(iOS 14.0, *) {
-            self.init(title: title, image: image, primaryAction: nil, menu: UIMenu(menu: menu))
+            self.init(title: title, image: image, primaryAction: nil, menu: nil)
+            if menu.isLazy {
+                // A workaround to backport uncaching deferred menus to iOS 14.
+                // `uncache` reassigns the menu to itself to invalidate the cache.
+                // It is run immediately after the `UIDeferredMenuElement` resolves its content.
+                weak var weakSelf = self
+                func uncache() {
+                    weakSelf?.menu = UIMenu(menu: menu, uncacheAction: uncache)
+                }
+                uncache()
+            } else {
+                self.menu = UIMenu(menu: menu)
+            }
         } else {
             if let image = image {
                 self.init(image: image, style: .plain, target: nil, action: #selector(_performLegacyMenuAction(sender:)))
@@ -333,8 +370,9 @@ extension UIBarButtonItem {
                     assertionFailure("A view controller associated with the bar button can't be found")
                     return
                 }
-                let actionSheet = ActionSheetViewController { menu }
-                viewController.present(actionSheet, animated: true)
+                if let actionSheet = ActionSheetViewController(buildMenu: { menu }) {
+                    viewController.present(actionSheet, animated: true)
+                }
             }
         }
     }
@@ -342,7 +380,16 @@ extension UIBarButtonItem {
     @MainActor convenience init(systemItem: UIBarButtonItem.SystemItem, buildMenu: () -> HAMenu) {
         let menu = buildMenu()
         if #available(iOS 14.0, *) {
-            self.init(systemItem: systemItem, primaryAction: nil, menu: UIMenu(menu: menu))
+            self.init(systemItem: systemItem, primaryAction: nil, menu: nil)
+            if menu.isLazy {
+                weak var weakSelf = self
+                func uncache() {
+                    weakSelf?.menu = UIMenu(menu: menu, uncacheAction: uncache)
+                }
+                uncache()
+            } else {
+                self.menu = UIMenu(menu: menu)
+            }
         } else {
             self.init(barButtonSystemItem: systemItem, target: nil, action: #selector(_performLegacyMenuAction(sender:)))
             self.target = self
@@ -352,8 +399,9 @@ extension UIBarButtonItem {
                     assertionFailure("A view controller associated with the bar button can't be found")
                     return
                 }
-                let actionSheet = ActionSheetViewController { menu }
-                viewController.present(actionSheet, animated: true)
+                if let actionSheet = ActionSheetViewController(buildMenu: { menu }) {
+                    viewController.present(actionSheet, animated: true)
+                }
             }
         }
     }
@@ -363,7 +411,15 @@ extension UIButton {
     @MainActor func configureWithMenu(_ buildMenu: () -> HAMenu) {
         let menu = buildMenu()
         if #available(iOS 14.0, *) {
-            self.menu = UIMenu(menu: menu)
+            if menu.isLazy {
+                weak var weakSelf = self
+                func uncache() {
+                    weakSelf?.menu = UIMenu(menu: menu, uncacheAction: uncache)
+                }
+                uncache()
+            } else {
+                self.menu = UIMenu(menu: menu)
+            }
             self.showsMenuAsPrimaryAction = true
         } else {
             self.addTarget(self, action: #selector(_performLegacyMenuAction(sender:)), for: .touchUpInside)
@@ -372,8 +428,9 @@ extension UIButton {
                     assertionFailure("A view controller associated with the button can't be found")
                     return
                 }
-                let actionSheet = ActionSheetViewController { menu }
-                viewController.present(actionSheet, animated: true)
+                if let actionSheet = ActionSheetViewController(buildMenu: { menu }) {
+                    viewController.present(actionSheet, animated: true)
+                }
             }
         }
     }
