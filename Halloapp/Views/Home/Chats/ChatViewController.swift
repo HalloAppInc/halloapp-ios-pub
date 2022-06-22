@@ -637,14 +637,14 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     }
 
     private func presentMediaExplorer(media: [CommonMedia], At index: Int, withDelegate delegate: MediaListAnimatorDelegate) {
-        let controller = MediaExplorerController(media: media, index: index)
+        let controller = MediaExplorerController(media: media, index: index, canSaveMedia: true, source: .chat)
         controller.animatorDelegate = delegate
 
         present(controller, animated: true)
     }
 
     private func presentMediaExplorer(quotedMedia: [CommonMedia], At index: Int, withDelegate delegate: MediaListAnimatorDelegate) {
-        let controller = MediaExplorerController(quotedMedia: quotedMedia, index: index)
+        let controller = MediaExplorerController(media: quotedMedia, index: index, canSaveMedia: false, source: .post)
         controller.animatorDelegate = delegate
 
         present(controller, animated: true)

@@ -1473,7 +1473,7 @@ extension ChatViewControllerNew: MessageViewChatDelegate {
         guard let message = MainAppContext.shared.chatData.chatMessage(with: chatMessageID, in: viewContext) else { return }
 
         if message.orderedMedia.count == 1 {
-            let controller = MediaExplorerController(media: message.orderedMedia, index: index)
+            let controller = MediaExplorerController(media: message.orderedMedia, index: index, canSaveMedia: true, source: .chat)
             controller.animatorDelegate = self
 
             present(controller, animated: true)
