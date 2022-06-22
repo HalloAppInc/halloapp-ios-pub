@@ -186,6 +186,16 @@ public class AvatarStore: ServiceAvatarDelegate {
         let observedAvatar = userAvatar(forUserId: userID)
         observedAvatar.avatarId = nil
         observedAvatar.image = nil
+        
+        performSeriallyOnBackgroundContext { [weak self] context in
+            guard let self = self, let avatar = self.avatar(forUserId: userID, using: context) else { return }
+            self.removeAvatarFile(avatar: avatar)
+            do {
+                try context.save()
+            } catch let error as NSError {
+                DDLogError("AvatarStore/save/error [\(error)]")
+            }
+        }
     }
 
     public func uploadAvatar(image: UIImage, for userID: UserID, using service: CoreService) {
