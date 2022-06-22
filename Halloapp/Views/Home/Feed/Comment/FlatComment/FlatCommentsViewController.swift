@@ -394,6 +394,11 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(getMessageOptions))
         longPressGesture.delaysTouchesBegan = true
         collectionView.addGestureRecognizer(longPressGesture)
+
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard(_:)))
+        tapGesture.cancelsTouchesInView = false
+        collectionView.addGestureRecognizer(tapGesture)
+
     }
 
     @objc private func updateAfterTimerEnds() {

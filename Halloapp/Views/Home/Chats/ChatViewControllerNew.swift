@@ -594,7 +594,8 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         configureTitleViewWithTypingIndicator()
         loadChatDraft(id: fromUserId)
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard(_:)))
-        view.addGestureRecognizer(tapGesture)
+        tapGesture.cancelsTouchesInView = false
+        collectionView.addGestureRecognizer(tapGesture)
 
     }
 
