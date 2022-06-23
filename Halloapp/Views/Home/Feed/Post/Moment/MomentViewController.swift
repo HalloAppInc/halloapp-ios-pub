@@ -153,7 +153,6 @@ class MomentViewController: UIViewController {
         installGestures()
         backgroundView.backgroundColor = .momentFullscreenBg.withAlphaComponent(0.97)
 
-        momentView.timeLabel.textColor = .black.withAlphaComponent(0.9)
         momentView.dayOfWeekLabel.textColor = .black.withAlphaComponent(0.9)
         contentInputView.backgroundColor = backgroundView.backgroundColor
 

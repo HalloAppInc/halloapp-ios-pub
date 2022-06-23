@@ -112,14 +112,7 @@ class MomentView: UIView {
     
     private(set) lazy var dayOfWeekLabel: UILabel = {
         let label = UILabel()
-        label.font = .handwritingFont(forTextStyle: .body, weight: .regular, maximumPointSize: 26)
-        label.textColor = .black.withAlphaComponent(0.9)
-        return label
-    }()
-    
-    private(set) lazy var timeLabel: UILabel = {
-        let label = UILabel()
-        label.font = .handwritingFont(forTextStyle: .body, weight: .regular, maximumPointSize: 26)
+        label.font = .handwritingFont(forTextStyle: .body, pointSizeChange: 2, weight: .regular, maximumPointSize: 26)
         label.textColor = .black.withAlphaComponent(0.9)
         return label
     }()
@@ -129,6 +122,8 @@ class MomentView: UIView {
         stack.axis = .vertical
         stack.alignment = .trailing
         stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.isLayoutMarginsRelativeArrangement = true
+        stack.layoutMargins = UIEdgeInsets(top: 7, left: 0, bottom: 7, right: 0)
         return stack
     }()
     
@@ -190,7 +185,7 @@ class MomentView: UIView {
 
     private func installDetailViews() {
         footerView.addArrangedSubview(dayOfWeekLabel)
-        footerView.addArrangedSubview(timeLabel)
+
         addSubview(blurView)
         addSubview(overlayStack)
 
@@ -230,7 +225,6 @@ class MomentView: UIView {
         }
 
         dayOfWeekLabel.text = DateFormatter.dateTimeFormatterDayOfWeekLong.string(from: post.timestamp).uppercased()
-        timeLabel.text = DateFormatter.dateTimeFormatterTime.string(from: post.timestamp)
 
         avatarView.configure(with: post.userID, using: MainAppContext.shared.avatarStore)
         let name = MainAppContext.shared.contactStore.firstName(for: post.userID, in: MainAppContext.shared.contactStore.viewContext)
