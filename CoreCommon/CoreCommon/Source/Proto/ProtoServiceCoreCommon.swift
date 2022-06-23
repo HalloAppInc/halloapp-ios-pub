@@ -323,7 +323,7 @@ open class ProtoServiceCoreCommon: NSObject, ObservableObject {
             DispatchQueue.main.async {
                 self.isAppVersionKnownExpired.send(true)
             }
-        case .accountDeleted, .invalidResource, .invalidUidOrPassword, .ok, .spubMismatch, .unknownReason, .UNRECOGNIZED:
+        case .accountDeleted, .invalidUidOrPassword, .spubMismatch, .unknownReason, .UNRECOGNIZED:
             switch authResult.result {
             case .failure:
                 AppContextCommon.shared.userData.performSeriallyOnBackgroundContext { managedObjectContext in
@@ -332,6 +332,8 @@ open class ProtoServiceCoreCommon: NSObject, ObservableObject {
             case .UNRECOGNIZED, .unknown, .success:
                 DDLogError("ProtoServiceCore/authenticationFailed/unexpected-result [\(authResult.result)] [\(authResult.reason)]")
             }
+        case .invalidResource, .ok:
+            DDLogError("ProtoServiceCore/authenticationFailed/unexpected-result [\(authResult.result)] [\(authResult.reason)]")
         }
     }
 
