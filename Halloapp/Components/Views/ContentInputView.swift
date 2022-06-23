@@ -1171,7 +1171,7 @@ extension ContentInputView {
 
 // MARK: - circle button implementation
 
-fileprivate class CircleButton: UIButton {
+class CircleButton: UIButton {
     override init(frame: CGRect) {
         super.init(frame: frame)
         clipsToBounds = true

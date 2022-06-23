@@ -13,8 +13,11 @@ import CoreCommon
 import CocoaLumberjackSwift
 
 class MomentComposerViewController: UIViewController {
-    let image: UIImage
-    let media: PendingMedia
+
+    private var media: PendingMedia?
+    var image: UIImage? {
+        didSet { updateImage() }
+    }
 
     private var mediaProcessor: AnyCancellable?
 
@@ -41,8 +44,8 @@ class MomentComposerViewController: UIViewController {
             stack.leadingAnchor.constraint(equalTo: pill.leadingAnchor),
             stack.trailingAnchor.constraint(equalTo: pill.trailingAnchor),
             stack.bottomAnchor.constraint(equalTo: pill.bottomAnchor),
-            imageView.widthAnchor.constraint(equalToConstant: 10),
-            imageView.heightAnchor.constraint(equalToConstant: 10),
+            imageView.widthAnchor.constraint(equalToConstant: 13),
+            imageView.heightAnchor.constraint(equalToConstant: 13),
         ])
 
         stack.isLayoutMarginsRelativeArrangement = true
@@ -64,6 +67,7 @@ class MomentComposerViewController: UIViewController {
         view.layer.masksToBounds = true
         view.layer.cornerRadius = NewCameraViewController.Layout.innerRadius(for: .moment)
         view.layer.cornerCurve = .continuous
+        view.backgroundColor = .black
         return view
     }()
 
@@ -76,18 +80,42 @@ class MomentComposerViewController: UIViewController {
         return view
     }()
 
+    private lazy var placeholderContainer: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
+    private(set) lazy var placeholderBlur: BlurView = {
+        let view = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 0.5)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.layer.masksToBounds = true
+        view.layer.cornerRadius = NewCameraViewController.Layout.innerRadius(for: .moment)
+        return view
+    }()
+
+    /// The snapshot from the camera's viewfinder.
+    var placeholder: UIView? {
+        didSet {
+            oldValue?.removeFromSuperview()
+            setupPlaceholder()
+        }
+    }
+
     private lazy var sendButtonContainer: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
 
-    private lazy var sendButton: CircleButton = {
+    private(set) lazy var sendButton: CircleButton = {
         let button = CircleButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(UIImage(named: "icon_share"), for: .normal)
         button.setBackgroundColor(.lavaOrange, for: .normal)
+        button.setBackgroundColor(.lavaOrange.withAlphaComponent(0.6), for: .disabled)
         button.addTarget(self, action: #selector(sendButtonPushed), for: .touchUpInside)
+        button.isEnabled = false
         return button
     }()
 
@@ -108,21 +136,9 @@ class MomentComposerViewController: UIViewController {
     var onPost: (() -> Void)?
     var onCancel: (() -> Void)?
 
-    init(image: UIImage) {
-        self.image = image
-        media = PendingMedia(type: .image)
-        media.image = image.correctlyOrientedImage()
+    init() {
         super.init(nibName: nil, bundle: nil)
         title = Localizations.newMomentTitle
-
-        mediaProcessor = media.ready.sink { [weak self, media] ready in
-            guard ready, let url = media.fileURL else {
-                return
-            }
-
-            ImageServer.shared.prepare(media.type, url: url, shouldStreamVideo: false)
-            self?.mediaProcessor = nil
-        }
     }
 
     required init?(coder: NSCoder) {
@@ -148,6 +164,9 @@ class MomentComposerViewController: UIViewController {
         view.addSubview(sendButtonContainer)
         sendButtonContainer.addSubview(sendButton)
 
+        view.addSubview(placeholderContainer)
+        placeholderContainer.addSubview(placeholderBlur)
+
         let padding = NewCameraViewController.Layout.padding(for: .moment)
         let imageViewHeight = imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor)
         momentCardHeightConstraint.priority = .defaultHigh
@@ -163,6 +182,16 @@ class MomentComposerViewController: UIViewController {
             imageView.topAnchor.constraint(equalTo: background.topAnchor, constant: padding),
             imageViewHeight,
 
+            placeholderContainer.leadingAnchor.constraint(equalTo: imageView.leadingAnchor),
+            placeholderContainer.trailingAnchor.constraint(equalTo: imageView.trailingAnchor),
+            placeholderContainer.topAnchor.constraint(equalTo: imageView.topAnchor),
+            placeholderContainer.bottomAnchor.constraint(equalTo: imageView.bottomAnchor),
+
+            placeholderBlur.leadingAnchor.constraint(equalTo: placeholderContainer.leadingAnchor),
+            placeholderBlur.trailingAnchor.constraint(equalTo: placeholderContainer.trailingAnchor),
+            placeholderBlur.topAnchor.constraint(equalTo: placeholderContainer.topAnchor),
+            placeholderBlur.bottomAnchor.constraint(equalTo: placeholderContainer.bottomAnchor),
+
             sendButtonContainer.leadingAnchor.constraint(equalTo: background.leadingAnchor),
             sendButtonContainer.trailingAnchor.constraint(equalTo: background.trailingAnchor),
             sendButtonContainer.topAnchor.constraint(equalTo: imageView.bottomAnchor),
@@ -176,8 +205,7 @@ class MomentComposerViewController: UIViewController {
             audienceIndicator.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             audienceIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
         ])
-
-        imageView.image = image
+        
         navigationItem.setHidesBackButton(true, animated: false)
 
         let barButton = UIBarButtonItem(image: UIImage(systemName: "xmark"), style: .plain, target: self, action: #selector(dismissTapped))
@@ -191,6 +219,50 @@ class MomentComposerViewController: UIViewController {
         hideTap.cancelsTouchesInView = false
     }
 
+    private func setupPlaceholder() {
+        guard let placeholder = placeholder else {
+            return
+        }
+
+        placeholder.translatesAutoresizingMaskIntoConstraints = false
+        placeholderContainer.insertSubview(placeholder, at: 0)
+
+        NSLayoutConstraint.activate([
+            placeholder.leadingAnchor.constraint(equalTo: placeholderContainer.leadingAnchor),
+            placeholder.trailingAnchor.constraint(equalTo: placeholderContainer.trailingAnchor),
+            placeholder.topAnchor.constraint(equalTo: placeholderContainer.topAnchor),
+            placeholder.bottomAnchor.constraint(equalTo: placeholderContainer.bottomAnchor),
+        ])
+    }
+
+    private func updateImage() {
+        guard let image = image?.correctlyOrientedImage() else {
+            return
+        }
+
+        let media = PendingMedia(type: .image)
+        media.image = image
+        self.media = media
+
+        mediaProcessor = media.ready.sink { [weak self] ready in
+            guard ready, let url = media.fileURL else {
+                return
+            }
+
+            ImageServer.shared.prepare(media.type, url: url, shouldStreamVideo: false)
+            self?.mediaProcessor = nil
+        }
+
+        imageView.image = image
+        UIView.transition(with: view, duration: 0.2, options: [.transitionCrossDissolve, .curveEaseInOut]) {
+            self.placeholderContainer.alpha = 0
+            self.imageView.alpha = 1
+            self.sendButton.isEnabled = true
+        } completion: { _ in
+
+        }
+    }
+
     @objc
     private func dismissTapped(_ button: UIBarButtonItem) {
         mediaProcessor?.cancel()
@@ -199,6 +271,10 @@ class MomentComposerViewController: UIViewController {
 
     @objc
     private func sendButtonPushed(_ button: UIButton) {
+        guard let media = media else {
+            return
+        }
+
         if MainAppContext.shared.feedData.validMoment.value != nil {
             // user has already posted a moment for the day
             if !hasShownReplacementDisclaimerBefore {
@@ -315,6 +391,7 @@ class MomentComposerViewController: UIViewController {
     }
 
     private func replaceMoment() {
+        guard let media = media else { return }
         Task {
             do {
                 try await MainAppContext.shared.feedData.replaceMoment(media: media)
@@ -327,22 +404,6 @@ class MomentComposerViewController: UIViewController {
         }
 
         onPost?()
-    }
-}
-
-fileprivate class CircleButton: UIButton {
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        layer.masksToBounds = true
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError()
-    }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        layer.cornerRadius = bounds.height / 2
     }
 }
 

@@ -9,7 +9,6 @@
 import UIKit
 import Core
 import CoreCommon
-import CoreData
 import CocoaLumberjackSwift
 
 /// Handles the creation and posting of a moment, regardless of context.
@@ -24,6 +23,10 @@ final class NewMomentViewController: UIViewController {
 
     override var canBecomeFirstResponder: Bool {
         true
+    }
+
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        .lightContent
     }
 
     /// Displayed above the camera.
@@ -43,7 +46,8 @@ final class NewMomentViewController: UIViewController {
     private lazy var cameraController: NewCameraViewController = {
         let vc = NewCameraViewController(style: .moment)
         vc.title = Localizations.newMomentTitle
-        vc.onPhotoCapture = { [weak self] image in self?.handleTaken(image: image) }
+        vc.onShutterRelease = { [weak self] in self?.handleTaken() }
+        vc.onPhotoCapture = { [weak self] image in self?.composerController?.image = image }
         vc.subtitle = prompt
         return vc
     }()
@@ -53,15 +57,20 @@ final class NewMomentViewController: UIViewController {
         return nc
     }()
 
+    private var composerController: MomentComposerViewController?
     private var composerNavigationController: UIViewController?
 
     init(context: Context = .normal) {
         self.context = context
         super.init(nibName: nil, bundle: nil)
+        view.backgroundColor = .black
 
         overrideUserInterfaceStyle = .dark
-        modalPresentationStyle = .overCurrentContext
+        modalPresentationStyle = .custom
+        modalTransitionStyle = .coverVertical
+
         definesPresentationContext = true
+        modalPresentationCapturesStatusBarAppearance = true
     }
 
     required init?(coder: NSCoder) {
@@ -71,9 +80,8 @@ final class NewMomentViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         DDLogInfo("NewMomentViewController/viewDidLoad")
-        view.backgroundColor = .black
 
-        showCamera()
+        contain(cameraNavigationController)
 
         if case .unlock(_) = context, !hasDisplayedUnlockingExplainer {
             setupUnlockingExplainer()
@@ -95,12 +103,12 @@ final class NewMomentViewController: UIViewController {
         dismiss(animated: true)
     }
 
-    private func handleTaken(image: UIImage) {
-        displayComposer(with: image.correctlyOrientedImage())
+    private func handleTaken() {
+        displayComposer()
     }
 
-    private func displayComposer(with image: UIImage) {
-        let composer = MomentComposerViewController(image: image)
+    private func displayComposer() {
+        let composer = MomentComposerViewController()
         let composerNavigationController = UINavigationController(rootViewController: composer)
 
         composer.onPost = { [weak self] in
@@ -111,18 +119,24 @@ final class NewMomentViewController: UIViewController {
             self?.dismissComposer()
         }
 
-        composerNavigationController.view.alpha = 0
         contain(composerNavigationController)
-
         composer.view.layoutIfNeeded()
         composer.momentCardTopConstraint.constant = cameraController.background.frame.minY
         composer.momentCardHeightConstraint.constant = cameraController.background.bounds.height
 
         self.composerNavigationController = composerNavigationController
+        self.composerController = composer
 
-        UIView.transition(with: view, duration: 0.1, options: [.transitionCrossDissolve]) {
+        composer.sendButton.transform = .identity.scaledBy(x: 0.25, y: 0.25)
+        composer.sendButton.alpha = 0
+
+        let previewSnapshot = cameraController.preview.snapshotView(afterScreenUpdates: false)!
+        composer.placeholder = previewSnapshot
+
+        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.9, options: [.allowUserInteraction]) {
             self.cameraNavigationController.view.alpha = 0
-            composerNavigationController.view.alpha = 1
+            composer.sendButton.transform = .identity
+            composer.sendButton.alpha = 1
         } completion: { _ in
             self.cameraNavigationController.view.removeFromSuperview()
         }
@@ -132,23 +146,15 @@ final class NewMomentViewController: UIViewController {
         // go back to the camera
         contain(cameraNavigationController)
 
-        UIView.transition(with: view, duration: 0.2, options: [.transitionCrossDissolve]) {
+        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0) {
             self.cameraNavigationController.view.alpha = 1
             self.composerNavigationController?.view.alpha = 0
+            self.composerController?.sendButton.transform = .identity.scaledBy(x: 0.25, y: 0.25)
         } completion: { _ in
             self.composerNavigationController?.view.removeFromSuperview()
             self.composerNavigationController = nil
+            self.composerController = nil
         }
-    }
-
-    private func cancelComposer() {
-        composerNavigationController?.view.removeFromSuperview()
-        composerNavigationController = nil
-    }
-
-    private func showCamera() {
-        view.insertSubview(cameraNavigationController.view, at: 0)
-        contain(cameraNavigationController)
     }
 
     private func completeCompose() {
@@ -245,7 +251,7 @@ final class NewMomentViewController: UIViewController {
             stack.centerYAnchor.constraint(equalTo: blur.contentView.centerYAnchor)
         ])
 
-        cameraController.shutterButton.isUserInteractionEnabled = false
+        cameraController.isEnabled = false
         cameraController.subtitleLabel.isHidden = true
         unlockingExplainerOverlay = blur
         button.addTarget(self, action: #selector(dismissUnlockingExplainer), for: .touchUpInside)
@@ -253,7 +259,7 @@ final class NewMomentViewController: UIViewController {
 
     @objc
     private func dismissUnlockingExplainer(_ sender: UIButton) {
-        cameraController.shutterButton.isUserInteractionEnabled = true
+        cameraController.isEnabled = true
         cameraController.subtitleLabel.isHidden = false
         unlockingExplainerOverlay?.removeFromSuperview()
 
@@ -306,7 +312,7 @@ extension Localizations {
 
     static var newMomentCameraUnlockSubtitle: String {
         NSLocalizedString("camera.moment.unlock.subtitle",
-                   value: "To see %@'s moment, share your own",
+                   value: "To see %@’s moment, share your own",
                  comment: "Text shown on the camera screen when composing a new moment to unlock someone else's moment.")
     }
 }
