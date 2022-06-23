@@ -275,13 +275,13 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>few</key>
-			<string>%d Unread Messages</string>
+			<string>%d непрочитанных сообщений</string>
 			<key>many</key>
-			<string>%d Unread Messages</string>
+			<string>%d непрочитанных сообщений</string>
 			<key>one</key>
-			<string>%d Unread Message</string>
+			<string>%d непрочитанное сообщение</string>
 			<key>other</key>
-			<string>%d Unread Messages</string>
+			<string>%d непрочитанных сообщений</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>

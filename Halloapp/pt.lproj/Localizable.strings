@@ -526,6 +526,9 @@
 /* Title for generic delete button. */
 "Delete" = "Apagar";
 
+/* Body of the bottom sheet that is presented only once to explain the moments feature. */
+"describing.moments" = "Desbloqueie os momentos de seus amigos compartilhando os seus. Os momentos são casuais, eles desaparecem depois que você os vê uma vez.";
+
 /* link, tapping on which launched the flow to edit blocked contacts */
 "edit.blocked" = "Editar";
 
@@ -558,6 +561,9 @@
 
 /* VoiceOver label for audio post button in floating compose post menu in Home view. */
 "fab.accessibility.voice" = "Enviar Audio";
+
+/* Label for floating moment button on home feed. */
+"fab.moment.button" = "Momento";
 
 /* Label for floating compose post menu on Group screen. */
 "fab.post.button" = "Publicar";
@@ -916,6 +922,9 @@
 /* Title of failed video call screen alert. */
 "home.video.calls.fail.title" = "As videochamadas não são suportadas no momento.";
 
+/* Title of the bottom sheet that is presented only once to explain the moments feature. */
+"introducing.moments" = "Apresentando Momentos";
+
 /* Title of action sheet that allows the user to choose between sms and whatsapp to invite contact */
 "invite.action.sheet.title" = "Convidar %@ por...";
 
@@ -1068,6 +1077,15 @@
 
 /* Text on loading screen while migrating data */
 "migration.inProgress" = "Otimizando dados…";
+
+/* Disclaimer to tell the user that their moments go to all of their contacts on HalloApp. */
+"moment.contacts.disclaimer" = "Seu Momento será compartilhado apenas com seus contatos no HalloApp";
+
+/* Text displayed the first time the user acts to post a second moment in the same day. */
+"moment.replacement.disclaimer" = "Este novo momento substituirá o anterior.";
+
+/* Title of text displayed the first time the user acts to post a second moment in the same day. */
+"moment.replacement.title" = "Atenção";
 
 /* For indicating that there was an error while uploading the post. */
 "moment.uploading.failure" = "Erro";
@@ -1716,6 +1734,9 @@
 
 /* Title for the screen with information about who saw your post. */
 "title.your.post" = "Visto por";
+
+/* Text on the bottom sheet's button that dismisses the sheet. */
+"try.moments" = "Experimente Momentos";
 
 /* Indicates which switch a user needs to turn on to enable contacts permissions. */
 "turn.on.contacts" = "Ative “Contatos”";

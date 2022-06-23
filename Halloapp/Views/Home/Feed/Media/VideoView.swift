@@ -103,9 +103,9 @@ class VideoView: UIView {
             playButton.centerXAnchor.constraint(equalTo: centerXAnchor),
             playButton.centerYAnchor.constraint(equalTo: centerYAnchor),
             timeSeekView.heightAnchor.constraint(equalToConstant: 44),
-            timeSeekView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 20),
-            timeSeekView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -20),
-            timeSeekView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -64),
+            timeSeekView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 24),
+            timeSeekView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -24),
+            timeSeekView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8),
         ])
 
         let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap(sender:)))

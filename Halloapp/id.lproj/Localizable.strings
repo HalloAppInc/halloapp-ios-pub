@@ -379,6 +379,9 @@
 /* Alert title when missing microphone access */
 "chat.mic.access.denied.title" = "Tidak dapat mengakses mikrofon";
 
+/* cta label for creating a new group chat */
+"chat.new.group.label" = "Chat Grup Baru";
+
 /* Text below the contact's name when the contact is online in the Chat Screen */
 "chat.online.label" = "daring";
 
