@@ -83,8 +83,20 @@ class NewChatViewController: NewChatTableViewController {
         } catch {
             fatalError("Failed to fetch contacts. \(error)")
         }
+        if AppContext.shared.userDefaults.bool(forKey: "enableGroupChat") {
+            tableView.tableHeaderView = NewGroupChatHeaderView()
+        }
     }
 
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        updateHeaderViewHeight(for: tableView.tableHeaderView)
+    }
+
+    func updateHeaderViewHeight(for header: UIView?) {
+        guard let header = header else { return }
+        header.frame.size.height = header.systemLayoutSizeFitting(CGSize(width: view.bounds.width, height: 0)).height
+    }
     // MARK: ContactPickerViewController
 
     override func makeSearchResultsController() -> ContactPickerViewController<ABContact> {
