@@ -23,6 +23,8 @@ struct FeedPostReceipt {
     let contactName: String?
     let phoneNumber: String?
     let timestamp: Date
+    /// - note: Moments only.
+    let screenshotTimestamp: Date?
 }
 
 extension FeedPostReceipt : Hashable {
@@ -45,8 +47,28 @@ fileprivate extension ContactTableViewCell {
 
         nameLabel.text = receipt.contactName
         subtitleLabel.text = receipt.phoneNumber
+        accessoryLabel.attributedText = receipt.screenshotTimestamp != nil ? screenshotString : nil
 
         contentView.heightAnchor.constraint(greaterThanOrEqualToConstant: 62).isActive = true
+    }
+
+    private var screenshotString: NSAttributedString? {
+        guard let image = UIImage(systemName: "camera.viewfinder") else {
+            return nil
+        }
+
+        let imageString = NSMutableAttributedString(attachment: NSTextAttachment(image: image))
+        let string = NSLocalizedString("screenshot.title",
+                                value: "Screenshot",
+                              comment: "Title that indicates that someone took a screenshot.")
+
+        let textString = NSMutableAttributedString(string: " " + string)
+        imageString.append(textString)
+        // for handling bidirectional text
+        imageString.insert(NSAttributedString(string: "\u{2068}"), at: 0) // first strong isolate
+        imageString.insert(NSAttributedString(string: "\u{2069}"), at: imageString.length - 1) // pop directional isolate
+
+        return imageString
     }
 }
 
@@ -197,7 +219,7 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
     private func reloadData(from feedPost: FeedPost) {
         var seenReceipts = MainAppContext.shared.feedData.seenReceipts(for: feedPost)
         if seenReceipts.isEmpty {
-            seenReceipts.append(FeedPostReceipt(userId: "", type: .placeholder, contactName: nil, phoneNumber: nil, timestamp: Date()))
+            seenReceipts.append(FeedPostReceipt(userId: "", type: .placeholder, contactName: nil, phoneNumber: nil, timestamp: Date(), screenshotTimestamp: nil))
         }
 
         var allContactRowContacts = [ContactRow]()

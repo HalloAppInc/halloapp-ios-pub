@@ -2054,7 +2054,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             }
 
-
             for (userId, receipt) in seenReceipts {
                 guard let seenDate = receipt.seenDate else { continue }
 
@@ -2066,7 +2065,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 if contactName == nil {
                     contactName = contactStore.fullName(for: userId, in: managedObjectContext)
                 }
-                receipts.append(FeedPostReceipt(userId: userId, type: .seen, contactName: contactName!, phoneNumber: phoneNumber, timestamp: seenDate))
+
+                receipts.append(FeedPostReceipt(userId: userId,
+                                                  type: .seen,
+                                           contactName: contactName!,
+                                           phoneNumber: phoneNumber,
+                                             timestamp: seenDate,
+                                   screenshotTimestamp: receipt.screenshotDate))
             }
             receipts.sort(by: { $0.timestamp > $1.timestamp })
         }
