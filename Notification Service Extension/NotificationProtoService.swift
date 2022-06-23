@@ -1059,6 +1059,7 @@ final class NotificationProtoService: ProtoServiceCore {
         pendingRetractNotificationIds.forEach { contentId in
             removeNotification(id: contentId)
         }
+        pendingRetractNotificationIds.removeAll()
     }
 }
 
