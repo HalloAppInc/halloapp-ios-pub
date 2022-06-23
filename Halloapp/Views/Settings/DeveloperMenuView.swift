@@ -190,6 +190,7 @@ struct DeveloperMenuView: View {
                 } label: {
                     Text(MenuTitles.addFavoritesNotification)
                 }
+                // SwuiftUI supports a maximum of 10 subvies, add any new items to this group.
                 Group {
                     Toggle(MenuTitles.enableGroupChat, isOn: $enableGroupChat)
                         .onReceive(Just(self.enableGroupChat)) { value in
