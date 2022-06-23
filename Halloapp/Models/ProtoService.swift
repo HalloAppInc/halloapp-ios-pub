@@ -769,6 +769,9 @@ final class ProtoService: ProtoServiceCore {
                                     ack()
                                 case .failure(let error):
                                     DDLogError("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/failed rerequesting: \(error)")
+                                    if error.canAck {
+                                        ack()
+                                    }
                                 }
                             }
                         } else {
