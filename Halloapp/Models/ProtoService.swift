@@ -199,6 +199,11 @@ final class ProtoService: ProtoServiceCore {
                 playedReceipt.id = receipt.itemId
                 playedReceipt.threadID = threadID
                 return .playedReceipt(playedReceipt)
+            case .screenshot:
+                var screenshotReceipt = Server_ScreenshotReceipt()
+                screenshotReceipt.id = receipt.itemId
+                screenshotReceipt.threadID = threadID
+                return .screenshotReceipt(screenshotReceipt)
             }
         }()
 
@@ -600,6 +605,9 @@ final class ProtoService: ProtoServiceCore {
             handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id, ack: ack)
             hasAckBeenDelegated = true
         case .playedReceipt(let pbReceipt):
+            handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id, ack: ack)
+            hasAckBeenDelegated = true
+        case .screenshotReceipt(let pbReceipt):
             handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id, ack: ack)
             hasAckBeenDelegated = true
         case .chatStanza(let serverChat):
@@ -1112,8 +1120,6 @@ final class ProtoService: ProtoServiceCore {
         case .silentChatStanza(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .webStanza(_):
-            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
-        case .screenshotReceipt(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         }
     }
@@ -2185,6 +2191,10 @@ extension Server_SeenReceipt: ReceivedReceipt {
 
 extension Server_PlayedReceipt: ReceivedReceipt {
     var receiptType: HalloReceipt.`Type` { .played }
+}
+
+extension Server_ScreenshotReceipt: ReceivedReceipt {
+    var receiptType: HalloReceipt.`Type` { .screenshot }
 }
 
 extension PresenceType {

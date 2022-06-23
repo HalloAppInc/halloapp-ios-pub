@@ -63,6 +63,10 @@ class FeedPostReceiptInfoTransformer: ValueTransformer {
             if let date = receipt.seenDate {
                 pbReceipt.timestampSeen = Google_Protobuf_Timestamp(seconds: Int64(date.timeIntervalSince1970))
             }
+            if let date = receipt.screenshotDate {
+                pbReceipt.timestampScreenshot = Google_Protobuf_Timestamp(seconds: Int64(date.timeIntervalSince1970))
+            }
+
             return pbReceipt
         }
         return try? pbReceipts.serializedData()
@@ -77,7 +81,8 @@ class FeedPostReceiptInfoTransformer: ValueTransformer {
                 if !pbReceipt.userID.isEmpty {
                     let deliveredDate = pbReceipt.hasTimestampDelivered ? Date(timeIntervalSince1970: TimeInterval(pbReceipt.timestampDelivered.seconds)) : nil
                     let seenDate = pbReceipt.hasTimestampSeen ? Date(timeIntervalSince1970: TimeInterval(pbReceipt.timestampSeen.seconds)) : nil
-                    receiptsMap[pbReceipt.userID] = Receipt(deliveredDate: deliveredDate, seenDate: seenDate)
+                    let screenshotDate = pbReceipt.hasTimestampScreenshot ? Date(timeIntervalSince1970: TimeInterval(pbReceipt.timestampScreenshot.seconds)) : nil
+                    receiptsMap[pbReceipt.userID] = Receipt(deliveredDate: deliveredDate, seenDate: seenDate, screenshotDate: screenshotDate)
                 }
             }
             return receiptsMap

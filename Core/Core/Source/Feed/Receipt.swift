@@ -9,11 +9,13 @@
 import Foundation
 
 public struct Receipt {
-    public init(deliveredDate: Date? = nil, seenDate: Date? = nil) {
+    public init(deliveredDate: Date? = nil, seenDate: Date? = nil, screenshotDate: Date? = nil) {
         self.deliveredDate = deliveredDate
         self.seenDate = seenDate
+        self.screenshotDate = screenshotDate
     }
 
     public var deliveredDate: Date? = nil
     public var seenDate: Date? = nil
+    public var screenshotDate: Date? = nil
 }

@@ -2025,6 +2025,20 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
+    func sendScreenshotReceipt(for feedPost: FeedPost) {
+        guard feedPost.isMoment else {
+            DDLogError("FeedData/sendScreenshotReceipt/tried to send a screenshot receipt for a normal feed post")
+            return
+        }
+
+        DDLogInfo("FeedData/sendScreenshotReceipt")
+        service.sendReceipt(itemID: feedPost.id,
+                            thread: .feed,
+                              type: .screenshot,
+                        fromUserID: userData.userId,
+                          toUserID: feedPost.userId)
+    }
+
     func seenReceipts(for feedPost: FeedPost) -> [FeedPostReceipt] {
         guard let seenReceipts = feedPost.info?.receipts else {
             return []
@@ -4893,8 +4907,17 @@ extension FeedData: HalloFeedDelegate {
             if receipts[receipt.userId] == nil {
                 receipts[receipt.userId] = Receipt()
             }
-            receipts[receipt.userId]!.seenDate = receipt.timestamp
-            DDLogInfo("FeedData/seen-receipt/update  userId=[\(receipt.userId)]  ts=[\(receipt.timestamp!)]  itemId=[\(receipt.itemId)]")
+
+            var postReceipt = receipts[receipt.userId]!
+            if case .screenshot = receipt.type {
+                postReceipt.screenshotDate = receipt.timestamp
+                DDLogInfo("FeedData/screenshot-receipt/update  userId=[\(receipt.userId)]  ts=[\(receipt.timestamp!)]  itemId=[\(receipt.itemId)]")
+            } else {
+                postReceipt.seenDate = receipt.timestamp
+                DDLogInfo("FeedData/seen-receipt/update  userId=[\(receipt.userId)]  ts=[\(receipt.timestamp!)]  itemId=[\(receipt.itemId)]")
+            }
+
+            receipts[receipt.userId] = postReceipt
             feedPost.info!.receipts = receipts
             feedPost.didChangeValue(forKey: "info")
 

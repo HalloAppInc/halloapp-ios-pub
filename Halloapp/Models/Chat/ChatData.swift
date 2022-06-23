@@ -3495,6 +3495,9 @@ extension ChatData {
                 chatMessage.outgoingStatus = .seen
             case .played:
                 chatMessage.outgoingStatus = .played
+            case .screenshot:
+                DDLogError("ChatData/processInboundOneToOneMessageReceipt/processing screenshot receipt")
+                break
             }
 
             self.updateChatThreadStatus(type: .oneToOne, for: chatMessage.toUserId, messageId: chatMessage.id) { (chatThread) in
@@ -3505,6 +3508,8 @@ extension ChatData {
                     chatThread.lastMsgStatus = .seen
                 case .played:
                     chatThread.lastMsgStatus = .played
+                case .screenshot:
+                    break
                 }
             }
         }
@@ -4991,7 +4996,7 @@ extension ChatData: HalloChatDelegate {
             case .played:
                 guard chatMessage.incomingStatus == .played else { return }
                 chatMessage.incomingStatus = .sentPlayedReceipt
-            case .delivery:
+            case .delivery, .screenshot:
                 break
             }
         }
