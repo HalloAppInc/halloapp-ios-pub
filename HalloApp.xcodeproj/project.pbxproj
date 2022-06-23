@@ -40,6 +40,7 @@
 		3250C60927D0120D0032FEC4 /* PhoneInputViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3250C60627D0120D0032FEC4 /* PhoneInputViewController.swift */; };
 		3250C60A27D0120D0032FEC4 /* VerificationCodeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3250C60727D0120D0032FEC4 /* VerificationCodeViewController.swift */; };
 		3250C60B27D0120D0032FEC4 /* Localizations+Registration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3250C60827D0120D0032FEC4 /* Localizations+Registration.swift */; };
+		325A0D772863BA9A00223611 /* NewGroupChatHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 325A0D762863BA9A00223611 /* NewGroupChatHeaderView.swift */; };
 		326A757D28400B500058DFAA /* BlockedContactSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 326A757C28400B500058DFAA /* BlockedContactSheetViewController.swift */; };
 		327AB839272C8356001C0E00 /* ChatLinkPreview+CoreDataProperties copy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 327AB836272C8355001C0E00 /* ChatLinkPreview+CoreDataProperties copy.swift */; };
 		327AB83A272C8356001C0E00 /* ChatLinkPreview+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 327AB838272C8356001C0E00 /* ChatLinkPreview+CoreDataClass.swift */; };
@@ -657,6 +658,7 @@
 		3250C60627D0120D0032FEC4 /* PhoneInputViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhoneInputViewController.swift; sourceTree = "<group>"; };
 		3250C60727D0120D0032FEC4 /* VerificationCodeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VerificationCodeViewController.swift; sourceTree = "<group>"; };
 		3250C60827D0120D0032FEC4 /* Localizations+Registration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Localizations+Registration.swift"; sourceTree = "<group>"; };
+		325A0D762863BA9A00223611 /* NewGroupChatHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewGroupChatHeaderView.swift; sourceTree = "<group>"; };
 		326A757C28400B500058DFAA /* BlockedContactSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedContactSheetViewController.swift; sourceTree = "<group>"; };
 		327888B62764260500EACBCC /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		327888B72764260500EACBCC /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -1962,6 +1964,7 @@
 				326A757C28400B500058DFAA /* BlockedContactSheetViewController.swift */,
 				F8F5ED78284E17760094CB17 /* ChatMediaListViewController.swift */,
 				F84DF6842851E4FF00BEC721 /* MediaListAnimator.swift */,
+				325A0D762863BA9A00223611 /* NewGroupChatHeaderView.swift */,
 			);
 			path = Chats;
 			sourceTree = "<group>";
@@ -2905,6 +2908,7 @@
 				76538091243D4B33000AD9A1 /* FeedNotification+CoreDataClass.swift in Sources */,
 				761442C9245D4DE500DD9D1A /* UIButton.swift in Sources */,
 				768123A42485C56E008C5216 /* MainAppContext.swift in Sources */,
+				325A0D772863BA9A00223611 /* NewGroupChatHeaderView.swift in Sources */,
 				A15E6C80280DD778008CAEA0 /* FeedArchiveViewController.swift in Sources */,
 				E5230B2B267AABCA0046A2EB /* Intents.intentdefinition in Sources */,
 				A1EE101827ECDE0F00148CEB /* UnknownContactSheetViewController.swift in Sources */,
