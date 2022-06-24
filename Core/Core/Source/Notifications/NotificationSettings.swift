@@ -13,6 +13,7 @@ public struct NotificationUserDefaultKeys {
     public static let isSynchronized = "NotificationSettings1"   // Bool
     public static let postsEnabled = "NotificationSettings2"     // Bool
     public static let commentsEnabled = "NotificationSettings3"  // Bool
+    public static let momentsEnabled = "NotificationSettings4"    // Bool
 }
 
 
@@ -28,6 +29,13 @@ public struct NotificationSettings {
         get {
             AppContext.shared.userDefaults.register(defaults: [ NotificationUserDefaultKeys.commentsEnabled: true])
             return AppContext.shared.userDefaults.bool(forKey: NotificationUserDefaultKeys.commentsEnabled)
+        }
+    }
+
+    public static var isMomentsEnabled: Bool {
+        get {
+            AppContext.shared.userDefaults.register(defaults: [ NotificationUserDefaultKeys.momentsEnabled: true])
+            return AppContext.shared.userDefaults.bool(forKey: NotificationUserDefaultKeys.momentsEnabled)
         }
     }
 }

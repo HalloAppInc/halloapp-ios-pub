@@ -72,7 +72,7 @@ final class NotificationRequest {
 
     public static func updateMomentNotifications() {
         DDLogInfo("NotificationRequest/updateMomentNotifications")
-        guard NotificationSettings.current.isPostsEnabled else {
+        guard NotificationSettings.current.isMomentsEnabled else {
             DDLogInfo("NotificationRequest/updateMomentNotifications - skip due to userPreferences")
             return
         }

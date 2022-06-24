@@ -78,6 +78,7 @@ class NotificationSettingsViewController: UIViewController, UICollectionViewDele
     private func buildCollection(enabled: Bool) {
         let postsEnabled = NotificationSettings.current.isPostsEnabled
         let commentsEnabled = NotificationSettings.current.isCommentsEnabled
+        let momentsEnabled = NotificationSettings.current.isMomentsEnabled
         typealias Item = InsetCollectionView.Item
 
         collectionView.apply(InsetCollectionView.Collection {
@@ -91,6 +92,11 @@ class NotificationSettingsViewController: UIViewController, UICollectionViewDele
                      style: .toggle(initial: commentsEnabled,
                                   isEnabled: enabled,
                                   onChanged: { [weak self] in self?.commentsNotificationsChanged(to: $0) }))
+
+                Item(title: Localizations.momentNotifications,
+                     style: .toggle(initial: momentsEnabled,
+                                  isEnabled: enabled,
+                                  onChanged: { [weak self] in self?.momentsNotificationsChanged(to: $0) }))
             }
         }
         .seperators())
@@ -121,6 +127,10 @@ class NotificationSettingsViewController: UIViewController, UICollectionViewDele
 
     private func commentsNotificationsChanged(to value: Bool) {
         NotificationSettings.current.isCommentsEnabled = value
+    }
+
+    private func momentsNotificationsChanged(to value: Bool) {
+        NotificationSettings.current.isMomentsEnabled = value
     }
 
     @objc
@@ -220,6 +230,12 @@ private extension Localizations {
         NSLocalizedString("settings.notifications.comments",
                    value: "Comments",
                  comment: "Settings > Notifications: label for the toggle that turns new comment notifications on or off.")
+    }
+
+    static var momentNotifications: String {
+        NSLocalizedString("settings.notifications.moments",
+                   value: "Moments",
+                 comment: "Settings > Notifications: label for the toggle that turns new moment notifications on or off.")
     }
 
     static var notificationsDisabledInstructions: String {

@@ -974,6 +974,11 @@ final class NotificationProtoService: ProtoServiceCore {
     }
 
     private func updateMomentNotifications(checkForDuplicates: Bool = false) {
+        guard NotificationSettings.isMomentsEnabled else {
+            DDLogInfo("ProtoService/updateMomentNotifications - skip due to userPreferences")
+            return
+        }
+
         DDLogInfo("ProtoService/updateMomentNotifications")
         mainDataStore.performSeriallyOnBackgroundContext { managedObjectContext in
             let moments = AppContext.shared.coreFeedData.feedPosts(predicate:
