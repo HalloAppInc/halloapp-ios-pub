@@ -1170,7 +1170,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         guard !xmppComments.isEmpty else { return [] }
 
         let feedPostIds = Set(xmppComments.map{ $0.feedPostId })
-        var posts = feedPosts(with: feedPostIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
+        let posts = feedPosts(with: feedPostIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
         let commentIds = Set(xmppComments.map{ $0.id }).union(Set(xmppComments.compactMap{ $0.parentId }))
         var comments = feedComments(with: commentIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
         var ignoredCommentIds: Set<String> = []
@@ -1210,18 +1210,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 if let post = posts[xmppComment.feedPostId] {
                     DDLogInfo("FeedData/process-comments/existing-post [\(xmppComment.feedPostId)]")
                     feedPost = post
-                } else if let groupID = groupID {
-                    // Create a post only for missing group posts.
-                    DDLogInfo("FeedData/process-comments/missing-post [\(xmppComment.feedPostId)]/creating one")
-                    feedPost = FeedPost(context: managedObjectContext)
-                    feedPost.id = xmppComment.feedPostId
-                    feedPost.status = .rerequesting
-                    feedPost.userId = ""
-                    feedPost.timestamp = Date()
-                    feedPost.groupId = groupID
-                    posts[xmppComment.feedPostId] = feedPost
                 } else {
                     DDLogError("FeedData/process-comments/missing-post [\(xmppComment.feedPostId)]/skip comment")
+                    AppContext.shared.errorLogger?.logError(NSError(domain: "MissingPostForComment", code: 1009))
                     ignoredCommentIds.insert(xmppComment.id)
                     continue
                 }
