@@ -527,6 +527,20 @@ extension FeedViewController: UIViewControllerHandleTapNotification {
             if let vc = GroupFeedViewController(metadata: metadata) {
                 navigationController?.pushViewController(vc, animated: false)
             }
+        case .screenshot:
+            guard
+                let feedData = MainAppContext.shared.feedData,
+                let feedPost = feedData.feedPost(with: metadata.contentId, in: feedData.viewContext)
+            else {
+                // not necessarily an error since the moment could be expired / retracted
+                DDLogError("FeedViewController/processNotification/screenshot unable to find post \(metadata.contentId)")
+                return
+            }
+
+            DDLogDebug("FeedViewController/processNotification/screenshot for post \(feedPost.id)")
+            scrollTo(postId: feedPost.id)
+            let dashboard = PostDashboardViewController(feedPost: feedPost)
+            present(UINavigationController(rootViewController: dashboard), animated: true)
         default:
             break
         }
