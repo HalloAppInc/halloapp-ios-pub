@@ -266,54 +266,60 @@ class ContactStoreMain: ContactStore {
         }
 
         let syncManager = MainAppContext.shared.syncManager!
-
-        if ContactStore.contactsAccessAuthorized {
-            DDLogInfo("contacts/reload/required")
-            guard !isReloadingContacts else {
-                DDLogInfo("contacts/reload/already-in-progress")
-                return
+        
+        guard ContactStore.contactsAccessAuthorized else {
+            // TODO: delete local contact cache
+            self.deleteContactStoreData()
+            
+            if !syncManager.isSyncEnabled {
+                if userData.isLoggedIn {
+                    DispatchQueue.main.async {
+                        self.enableContactSync()
+                    }
+                }
             }
-            needReloadContacts = false
-            isReloadingContacts = true
+            return
+        }
 
-            DispatchQueue.main.async {
-                self.contactSerialQueue.async {
-                    syncManager.queue.sync {
-                        self.performOnBackgroundContextAndWait { managedObjectContext in
-                            self.reloadContacts(using: managedObjectContext) { deletedIds, error in
-                                if error == nil {
-                                    if deletedIds != nil {
-                                        syncManager.add(deleted: deletedIds!)
-                                    }
+        DDLogInfo("contacts/reload/required")
+        guard !isReloadingContacts else {
+            DDLogInfo("contacts/reload/already-in-progress")
+            return
+        }
+        needReloadContacts = false
+        isReloadingContacts = true
 
-                                    if syncManager.isSyncEnabled {
-                                        syncManager.requestSync()
-                                    } else if self.userData.isLoggedIn {
-                                        DispatchQueue.main.async {
-                                            self.enableContactSync()
-                                        }
-                                    }
-                                    
-                                    self.didAddressBookChange.send()
+        DispatchQueue.main.async {
+            self.contactSerialQueue.async {
+                syncManager.queue.sync {
+                    self.performOnBackgroundContextAndWait { managedObjectContext in
+                        self.reloadContacts(using: managedObjectContext) { deletedIds, error in
+                            if error == nil {
+                                if deletedIds != nil {
+                                    syncManager.add(deleted: deletedIds!)
                                 }
 
-                                DispatchQueue.main.async {
-                                    // Wait 2 seconds to allow incoming needReloadContacts requests to coalesce, and then
-                                    // check again to see if we need to reload the address book.
-                                    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 2.0) {
-                                        self.isReloadingContacts = false
-                                        self.reloadContactsIfNecessary()
+                                if syncManager.isSyncEnabled {
+                                    syncManager.requestSync()
+                                } else if self.userData.isLoggedIn {
+                                    DispatchQueue.main.async {
+                                        self.enableContactSync()
                                     }
+                                }
+                                
+                                self.didAddressBookChange.send()
+                            }
+
+                            DispatchQueue.main.async {
+                                // Wait 2 seconds to allow incoming needReloadContacts requests to coalesce, and then
+                                // check again to see if we need to reload the address book.
+                                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 2.0) {
+                                    self.isReloadingContacts = false
+                                    self.reloadContactsIfNecessary()
                                 }
                             }
                         }
                     }
-                }
-            }
-        } else if !syncManager.isSyncEnabled {
-            if userData.isLoggedIn {
-                DispatchQueue.main.async {
-                    self.enableContactSync()
                 }
             }
         }
