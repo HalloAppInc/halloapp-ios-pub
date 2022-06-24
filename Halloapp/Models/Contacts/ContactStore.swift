@@ -934,6 +934,7 @@ class ContactStoreMain: ContactStore {
             return "I"
         }
         var firstName: String? = nil
+        var fullName: String? = nil
 
         // Fetch from the address book.
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
@@ -943,9 +944,15 @@ class ContactStoreMain: ContactStore {
             if let name = contacts.first?.givenName {
                 firstName = name
             }
+            fullName = contacts.first?.fullName
         }
         catch {
             fatalError("Unable to fetch contacts: \(error)")
+        }
+
+        // Try full name if first name is empty
+        if firstName?.isEmpty ?? true {
+            firstName = fullName
         }
 
         // Try push name as necessary.
