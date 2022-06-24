@@ -15,7 +15,7 @@ import UIKit
 import Photos
 import CocoaLumberjackSwift
 
-class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLayout, UICollectionViewDataSource, UIScrollViewDelegate, UIGestureRecognizerDelegate, UIViewControllerTransitioningDelegate {
+class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLayout, UICollectionViewDataSource, UIScrollViewDelegate, UIGestureRecognizerDelegate, UIViewControllerTransitioningDelegate, UIViewControllerMediaSaving {
 
     private let spaceBetweenPages: CGFloat = 20
     private let swipeExitStartThreshold: CGFloat = 20
@@ -261,95 +261,13 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     }
     
     @objc func shareButtonPressed() {
-        let saveMediaConfirmationAlert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        
-        saveMediaConfirmationAlert.addAction(UIAlertAction(title: Localizations.alertSaveToCameraRollOption, style: .default, handler: { [weak self] _ in
-            PHPhotoLibrary.requestAuthorization { status in
-                // `.limited` was introduced in iOS 14, and only gives us partial access to the photo album. In this case we can still save to the camera roll
-                if #available(iOS 14, *) {
-                    guard status == .authorized || status == .limited else {
-                        DispatchQueue.main.async {
-                            self?.handleMediaAuthorizationFailure()
-                        }
-                        return
-                    }
-                } else {
-                    guard status == .authorized else {
-                        DispatchQueue.main.async {
-                            self?.handleMediaAuthorizationFailure()
-                        }
-                        return
-                    }
-                }
-
-                DispatchQueue.main.async {
-                    self?.saveMedia()
-                }
+        Task {
+            await saveMedia(source: source) {
+                let media = self.explorerMedia(at: currentIndex)
+                guard let url = media.url else { return [] }
+                return [(media.type, url)]
             }
-        }))
-
-        let cancelAction = UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
-        cancelAction.setValue(UIColor.lavaOrange, forKey: "titleTextColor")
-        saveMediaConfirmationAlert.addAction(cancelAction)
-        
-        saveMediaConfirmationAlert.view.tintColor = .systemBlue
-        
-        self.present(saveMediaConfirmationAlert, animated: true, completion: nil)
-    }
-    
-    private func handleMediaAuthorizationFailure() {
-        let alert = UIAlertController(title: Localizations.mediaPermissionsError, message: Localizations.mediaPermissionsErrorDescription, preferredStyle: .alert)
-        
-        DDLogInfo("MediaExplorerController/shareButtonPressed: User denied photos permissions")
-        
-        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
-        
-        present(alert, animated: true)
-    }
-    
-    private func saveMedia() {
-        let media = self.explorerMedia(at: currentIndex)
-        let type = media.type
-        let url = media.url
-
-        PHPhotoLibrary.shared().performChanges({ [weak self] in
-            guard let self = self else { return }
-
-            if type == .image, let url = url {
-                PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: url)
-                AppContext.shared.eventMonitor.count(.mediaSaved(type: .image, source: self.source))
-            } else if type == .video, let url = url {
-                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
-                AppContext.shared.eventMonitor.count(.mediaSaved(type: .video, source: self.source))
-            }
-        }, completionHandler: { [weak self] success, error in
-            DispatchQueue.main.async {
-                if success {
-                    self?.mediaSaved()
-                } else {
-                    self?.handleSaveError(error: error)
-                }
-            }
-        })
-    }
-    
-    private func mediaSaved() {
-        let toast = Toast(type: .icon(UIImage(named: "CheckmarkLong")?.withTintColor(.white)), text: Localizations.saveSuccessfulLabel)
-        toast.show(viewController: self, shouldAutodismiss: true)
-    }
-    
-    private func handleSaveError(error: Error?) {
-        let alert = UIAlertController(title: nil, message: Localizations.mediaSaveError, preferredStyle: .alert)
-        
-        if let error = error {
-            DDLogError("MediaExplorerController/shareButtonPressed/error: \(error)")
-        } else {
-            DDLogError("MediaExplorerController/shareButtonPressed/error: Unknown error")
         }
-        
-        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
-        
-        present(alert, animated: true)
     }
 
     override func viewDidLayoutSubviews() {

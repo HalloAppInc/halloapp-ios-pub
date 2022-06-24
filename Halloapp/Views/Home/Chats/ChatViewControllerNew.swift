@@ -82,7 +82,7 @@ fileprivate enum MessageRow: Hashable, Equatable {
 }
 
 
-class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegate, UICollectionViewDelegate {
+class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegate, UICollectionViewDelegate, UIViewControllerMediaSaving {
 
     // Wait for ios to create a cell if it does not exist
     let waitForCellDelay: TimeInterval = 0.25
@@ -949,67 +949,18 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     
     @MainActor
     private func saveAllMedia(in chatMessage: ChatMessage) async {
-        do {
-            let isAuthorizedToSave: Bool = await {
-                if #available(iOS 14, *) {
-                    let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
-                    return status == .authorized || status == .limited
-                } else {
-                    let status = await withCheckedContinuation { continuation in
-                        PHPhotoLibrary.requestAuthorization { continuation.resume(returning: $0) }
+        await saveMedia(source: .chat) {
+            chatMessage.media?
+                .compactMap { (media: CommonMedia) -> (type: CommonMediaType, url: URL)? in
+                    if let url = media.mediaURL ?? media.relativeFilePath.map({ MainAppContext.chatMediaDirectoryURL.appendingPathComponent($0, isDirectory: false) }) {
+                        return (media.type, url)
+                    } else {
+                        return nil
                     }
-                    return status == .authorized
                 }
-            }()
-            
-            guard isAuthorizedToSave else {
-                DDLogInfo("ChatViewControllerNew/saveAllMediaInMessage: User denied photos permissions")
-                
-                let alert = UIAlertController(title: Localizations.mediaPermissionsError, message: Localizations.mediaPermissionsErrorDescription, preferredStyle: .alert)
-                alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
-                present(alert, animated: true)
-                return
-            }
-            
-            var mediaInfo: [(type: CommonMediaType, url: URL)]? = nil
-            MainAppContext.shared.chatData.viewContext.performAndWait {
-                mediaInfo = chatMessage.media?
-                    .compactMap { (media: CommonMedia) -> (type: CommonMediaType, url: URL)? in
-                        if let url = media.mediaURL ?? media.relativeFilePath.map({ MainAppContext.chatMediaDirectoryURL.appendingPathComponent($0, isDirectory: false) }) {
-                            return (media.type, url)
-                        } else {
-                            return nil
-                        }
-                    }
-                    .filter { (type: CommonMediaType, _: URL) -> Bool in
-                        type == .image || type == .video
-                    }
-            }
-            
-            try await PHPhotoLibrary.shared().performChanges {
-                mediaInfo?
-                    .forEach { (type: CommonMediaType, url: URL) in
-                        if type == .image {
-                            PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: url)
-                            AppContext.shared.eventMonitor.count(.mediaSaved(type: .image, source: .chat))
-                        } else {
-                            PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
-                            AppContext.shared.eventMonitor.count(.mediaSaved(type: .video, source: .chat))
-                        }
-                    }
-            }
-            
-            let alert = UIAlertController(title: nil, message: Localizations.saveSuccessfulLabel, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
-            present(alert, animated: true)
-        } catch {
-            DDLogError("ChatViewControllerNew/saveAllMediaInMessage/error: \(error)")
-            
-            Task { @MainActor in
-                let alert = UIAlertController(title: nil, message: Localizations.mediaSaveError, preferredStyle: .alert)
-                alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
-                present(alert, animated: true)
-            }
+                .filter { (type: CommonMediaType, _: URL) -> Bool in
+                    type == .image || type == .video
+                } ?? []
         }
     }
 
