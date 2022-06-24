@@ -17,6 +17,12 @@ class CameraShutterButton: UIControl {
         CGSize(width: 75, height: 75)
     }
 
+    private lazy var feedbackGenerator: UIImpactFeedbackGenerator = {
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.prepare()
+        return generator
+    }()
+
     private lazy var circleLayer: CAShapeLayer = {
         let layer = CAShapeLayer()
         layer.fillColor = UIColor.white.withAlphaComponent(0.9).cgColor
@@ -36,6 +42,7 @@ class CameraShutterButton: UIControl {
         gesture.cancelsTouchesInView = false
         return gesture
     }()
+
     private lazy var longPressGesture: UILongPressGestureRecognizer = {
         let gesture = UILongPressGestureRecognizer(target: self, action: #selector(longPressed))
         gesture.minimumPressDuration = 0.4
@@ -106,6 +113,8 @@ class CameraShutterButton: UIControl {
 
         if !isHighlighted {
             animateButtonColor(to: .white.withAlphaComponent(0.9))
+        } else {
+            feedbackGenerator.impactOccurred(intensity: 0.75)
         }
     }
 

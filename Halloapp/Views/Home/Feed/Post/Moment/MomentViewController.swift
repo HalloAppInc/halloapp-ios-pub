@@ -22,6 +22,18 @@ class MomentViewController: UIViewController {
     let unlockingPost: FeedPost?
     weak var delegate: MomentViewControllerDelegate?
 
+    /// For operations such as expiration and taking a screenshot, we want to make sure the moment is visible.
+    private var isReadyForSensitiveOperations: Bool {
+        // not the user's own moment
+        post.userId != MainAppContext.shared.userData.userId &&
+        // the image is loaded
+        post.feedMedia.first?.isMediaAvailable ?? true &&
+        // no blur covering the image
+        momentView.state == .unlocked &&
+        // if this is an unlocking context, make sure the user's moment has been uploaded
+        unlockingPost?.status ?? .sent == .sent
+    }
+
     private(set) lazy var momentView: MomentView = {
         let view = MomentView()
         view.configure(with: post)
@@ -153,14 +165,15 @@ class MomentViewController: UIViewController {
         installGestures()
         backgroundView.backgroundColor = .momentFullscreenBg.withAlphaComponent(0.97)
 
-        momentView.timeLabel.textColor = .black.withAlphaComponent(0.9)
         momentView.dayOfWeekLabel.textColor = .black.withAlphaComponent(0.9)
         contentInputView.backgroundColor = backgroundView.backgroundColor
 
-        post.feedMedia.first?.$isMediaAvailable.sink { [weak self] isAvailable in
-            DispatchQueue.main.async {
-                self?.refreshAccessoryView(show: true)
-            }
+        post.feedMedia.first?.$isMediaAvailable.receive(on: DispatchQueue.main).sink { [weak self] isAvailable in
+            self?.refreshAccessoryView(show: true)
+        }.store(in: &cancellables)
+
+        NotificationCenter.default.publisher(for: UIApplication.userDidTakeScreenshotNotification).sink { [weak self] _ in
+            self?.screenshotWasTaken()
         }.store(in: &cancellables)
     }
 
@@ -281,12 +294,7 @@ class MomentViewController: UIViewController {
     }
 
     private func expireMomentIfReady() {
-        guard
-            post.userId != MainAppContext.shared.userData.userId,
-            post.feedMedia.first?.isMediaAvailable ?? true,
-            case .unlocked = momentView.state,
-            case .sent = unlockingPost?.status ?? .sent
-        else {
+        guard isReadyForSensitiveOperations else {
             DDLogInfo("MomentViewController/expireMomentIfReady/failed guard")
             return
         }
@@ -387,7 +395,7 @@ fileprivate class DismissAnimator: UIDynamicAnimator {
 
 // MARK: - Interactive dismiss methods
 
-extension MomentViewController {
+extension MomentViewController: UIDynamicAnimatorDelegate {
     @objc
     private func dismissPan(_ gesture: UIPanGestureRecognizer) {
         guard !contentInputView.textView.isFirstResponder else {
@@ -555,14 +563,6 @@ extension MomentViewController {
         momentView.isHidden = true
         dismissAnimator.snapshot = snapshot
     }
-}
-
-// MARK: - PostDashboardViewController delegate methods
-
-extension MomentViewController: PostDashboardViewControllerDelegate, UIDynamicAnimatorDelegate {
-    func postDashboardViewController(didRequestPerformAction action: PostDashboardViewController.UserAction) {
-        delegate?.postDashboardViewController(didRequestPerformAction: action)
-    }
 
     func dynamicAnimatorDidPause(_ animator: UIDynamicAnimator) {
         for case _ as UISnapBehavior in animator.behaviors {
@@ -575,9 +575,21 @@ extension MomentViewController: PostDashboardViewControllerDelegate, UIDynamicAn
             dismissAnimator.propertyAnimator?.startAnimation()
 
             refreshAccessoryView(show: true)
-
             break
         }
+    }
+}
+
+// MARK: - handling screenshots
+
+extension MomentViewController {
+    private func screenshotWasTaken() {
+        guard isReadyForSensitiveOperations else {
+            return
+        }
+
+        DDLogInfo("MomentViewController/screenshotWasTaken")
+        MainAppContext.shared.feedData.sendScreenshotReceipt(for: post)
     }
 }
 

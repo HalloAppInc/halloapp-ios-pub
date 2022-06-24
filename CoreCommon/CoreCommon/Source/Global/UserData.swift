@@ -133,8 +133,13 @@ public final class UserData: ObservableObject {
                 //Migrate the noise keys from persistent store to keychain
                 migrateNoiseKeys(using: viewContext)
             } else {
-                DDLogInfo("UserData/init/loading noise keys from keychain")
+                DDLogInfo("UserData/init/loading noise keys from keychain [\(userId)]")
                 noiseKeys = Keychain.loadNoiseUserKeypair(for: userId)
+                if noiseKeys == nil {
+                    DDLogInfo("UserData/init/noise keys not found")
+                } else {
+                    DDLogInfo("UserData/init/loaded noise keys")
+                }
             }
         }
 

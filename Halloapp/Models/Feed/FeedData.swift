@@ -1170,7 +1170,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         guard !xmppComments.isEmpty else { return [] }
 
         let feedPostIds = Set(xmppComments.map{ $0.feedPostId })
-        var posts = feedPosts(with: feedPostIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
+        let posts = feedPosts(with: feedPostIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
         let commentIds = Set(xmppComments.map{ $0.id }).union(Set(xmppComments.compactMap{ $0.parentId }))
         var comments = feedComments(with: commentIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
         var ignoredCommentIds: Set<String> = []
@@ -1210,18 +1210,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 if let post = posts[xmppComment.feedPostId] {
                     DDLogInfo("FeedData/process-comments/existing-post [\(xmppComment.feedPostId)]")
                     feedPost = post
-                } else if let groupID = groupID {
-                    // Create a post only for missing group posts.
-                    DDLogInfo("FeedData/process-comments/missing-post [\(xmppComment.feedPostId)]/creating one")
-                    feedPost = FeedPost(context: managedObjectContext)
-                    feedPost.id = xmppComment.feedPostId
-                    feedPost.status = .rerequesting
-                    feedPost.userId = ""
-                    feedPost.timestamp = Date()
-                    feedPost.groupId = groupID
-                    posts[xmppComment.feedPostId] = feedPost
                 } else {
                     DDLogError("FeedData/process-comments/missing-post [\(xmppComment.feedPostId)]/skip comment")
+                    AppContext.shared.errorLogger?.logError(NSError(domain: "MissingPostForComment", code: 1009))
                     ignoredCommentIds.insert(xmppComment.id)
                     continue
                 }
@@ -2025,6 +2016,20 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
+    func sendScreenshotReceipt(for feedPost: FeedPost) {
+        guard feedPost.isMoment else {
+            DDLogError("FeedData/sendScreenshotReceipt/tried to send a screenshot receipt for a normal feed post")
+            return
+        }
+
+        DDLogInfo("FeedData/sendScreenshotReceipt")
+        service.sendReceipt(itemID: feedPost.id,
+                            thread: .feed,
+                              type: .screenshot,
+                        fromUserID: userData.userId,
+                          toUserID: feedPost.userId)
+    }
+
     func seenReceipts(for feedPost: FeedPost) -> [FeedPostReceipt] {
         guard let seenReceipts = feedPost.info?.receipts else {
             return []
@@ -2040,7 +2045,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             }
 
-
             for (userId, receipt) in seenReceipts {
                 guard let seenDate = receipt.seenDate else { continue }
 
@@ -2052,7 +2056,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 if contactName == nil {
                     contactName = contactStore.fullName(for: userId, in: managedObjectContext)
                 }
-                receipts.append(FeedPostReceipt(userId: userId, type: .seen, contactName: contactName!, phoneNumber: phoneNumber, timestamp: seenDate))
+
+                receipts.append(FeedPostReceipt(userId: userId,
+                                                  type: .seen,
+                                           contactName: contactName!,
+                                           phoneNumber: phoneNumber,
+                                             timestamp: seenDate,
+                                   screenshotTimestamp: receipt.screenshotDate))
             }
             receipts.sort(by: { $0.timestamp > $1.timestamp })
         }
@@ -4893,8 +4903,17 @@ extension FeedData: HalloFeedDelegate {
             if receipts[receipt.userId] == nil {
                 receipts[receipt.userId] = Receipt()
             }
-            receipts[receipt.userId]!.seenDate = receipt.timestamp
-            DDLogInfo("FeedData/seen-receipt/update  userId=[\(receipt.userId)]  ts=[\(receipt.timestamp!)]  itemId=[\(receipt.itemId)]")
+
+            var postReceipt = receipts[receipt.userId]!
+            if case .screenshot = receipt.type {
+                postReceipt.screenshotDate = receipt.timestamp
+                DDLogInfo("FeedData/screenshot-receipt/update  userId=[\(receipt.userId)]  ts=[\(receipt.timestamp!)]  itemId=[\(receipt.itemId)]")
+            } else {
+                postReceipt.seenDate = receipt.timestamp
+                DDLogInfo("FeedData/seen-receipt/update  userId=[\(receipt.userId)]  ts=[\(receipt.timestamp!)]  itemId=[\(receipt.itemId)]")
+            }
+
+            receipts[receipt.userId] = postReceipt
             feedPost.info!.receipts = receipts
             feedPost.didChangeValue(forKey: "info")
 

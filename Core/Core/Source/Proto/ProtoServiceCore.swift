@@ -1007,7 +1007,7 @@ extension ProtoServiceCore: CoreService {
             guard let contentId = item.contentId,
                   let publisherUid = item.publisherUid,
                   let encryptedPayload = item.encryptedPayload else {
-                newCompletion(nil, GroupDecryptionFailure(nil, nil, .missingPayload, .payload))
+                newCompletion(nil, GroupDecryptionFailure(item.contentId, item.publisherUid, .missingPayload, .payload))
                 return
             }
 
@@ -1162,7 +1162,7 @@ extension ProtoServiceCore: CoreService {
         guard let contentId = item.contentId,
               let publisherUid = item.publisherUid,
               item.encryptedPayload != nil else {
-            completion(nil, GroupDecryptionFailure(nil, nil, .missingPayload, .payload))
+            completion(nil, GroupDecryptionFailure(item.contentId, item.publisherUid, .missingPayload, .payload))
             return
         }
 
@@ -1261,6 +1261,7 @@ extension ProtoServiceCore: CoreService {
     public func rerequestGroupFeedItemIfNecessary(id contentID: String, groupID: GroupID, contentType: GroupFeedRerequestContentType, failure: GroupDecryptionFailure, completion: @escaping ServiceRequestCompletion<Void>) {
         guard let authorUserID = failure.fromUserId else {
             DDLogError("proto/rerequestGroupFeedItemIfNecessary/\(contentID)/decrypt/authorUserID missing")
+            completion(.failure(.aborted))
             return
         }
 

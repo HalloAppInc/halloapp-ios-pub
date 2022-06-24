@@ -14,11 +14,12 @@ import CoreMotion
 import CocoaLumberjackSwift
 
 protocol CameraModelDelegate: AnyObject {
-    @MainActor func modelCoultNotStart(_ model: CameraModel, with error: Error)
+    @MainActor func modelCouldNotStart(_ model: CameraModel, with error: Error)
     /// This method is called just before the session's `startRunning()` method is called.
     /// It's a good place to attach a preview layer to the session.
     @MainActor func modelWillStart(_ model: CameraModel)
     @MainActor func modelDidStart(_ model: CameraModel)
+    @MainActor func modelDidStop(_ model: CameraModel)
 
     @MainActor func model(_ model: CameraModel, didTake photo: UIImage)
     @MainActor func model(_ model: CameraModel, didRecordVideoTo url: URL, error: Error?)
@@ -112,6 +113,8 @@ class CameraModel: NSObject {
         return queue
     }()
 
+    private var sessionIsSetup = false
+
     private var backCamera: AVCaptureDevice?
     private var frontCamera: AVCaptureDevice?
     private var microphone: AVCaptureDevice?
@@ -144,7 +147,7 @@ class CameraModel: NSObject {
 
     @Published private(set) var zoomFactor: CGFloat = 1
     @Published private(set) var orientation = UIDevice.current.orientation
-    @Published private(set) var activeCamera = AVCaptureDevice.Position.back
+    @Published private(set) var activeCamera = AVCaptureDevice.Position.unspecified
     @Published var isFlashEnabled = false
 
     @Published private(set) var isTakingPhoto = false
@@ -160,6 +163,10 @@ class CameraModel: NSObject {
 
         $orientation.receive(on: sessionQueue).sink { [weak self] orientation in
             self?.updatePhoto(orientation: orientation)
+        }.store(in: &cancellables)
+
+        $activeCamera.receive(on: sessionQueue).sink { [weak self] camera in
+            self?.updateVideoMirroring(for: camera)
         }.store(in: &cancellables)
     }
 
@@ -183,6 +190,20 @@ class CameraModel: NSObject {
         default:
             // retain the previous orientation
             break
+        }
+    }
+
+    private func updateVideoMirroring(for camera: AVCaptureDevice.Position) {
+        guard camera != .unspecified else {
+            return
+        }
+
+        if let connection = photoOutput?.connection(with: .video) {
+            connection.isVideoMirrored = camera == .front
+        }
+
+        if let connection = videoOutput?.connection(with: .video) {
+            connection.isVideoMirrored = camera == .front
         }
     }
 }
@@ -227,19 +248,29 @@ extension CameraModel {
     ///
     /// Assign a delegate prior to calling this method in order to receive possible errors.
     func start() {
-        Task { await setupAndStartSession() }
+        Task {
+            if sessionIsSetup {
+                await startSession()
+            } else {
+                await setupAndStartSession()
+            }
+        }
     }
 
-    func stop() {
-        Task { await stopCaptureSession() }
+    /// - Parameter teardown: `true` if the inputs and outputs for the capture sessions should be removed.
+    ///                       Passing `false` simply stops the capture sessions, and allows for quicker resumption
+    ///                       when subsequently calling `start()`.
+    func stop(teardown: Bool) {
+        Task { await stopCaptureSession(teardown: teardown) }
     }
 
     private func setupAndStartSession() async {
         do {
             try await setupSession()
+            sessionIsSetup = true
             await startSession()
         } catch {
-            await delegate?.modelCoultNotStart(self, with: error)
+            await delegate?.modelCouldNotStart(self, with: error)
         }
     }
 
@@ -347,7 +378,9 @@ extension CameraModel {
 
         session.addOutput(output)
         photoOutput = output
+
         updatePhoto(orientation: orientation)
+        updateVideoMirroring(for: activeCamera)
     }
 
     private func setupVideoOutput() throws {
@@ -372,18 +405,22 @@ extension CameraModel {
         }
     }
 
-    private func stopCaptureSession() async {
+    private func stopCaptureSession(teardown: Bool = true) async {
         stopListeningForOrientation()
         await perform { [session, audioSession] in
             session.stopRunning()
             audioSession.stopRunning()
 
-            session.inputs.forEach { session.removeInput($0) }
-            session.outputs.forEach { session.removeOutput($0) }
+            if teardown {
+                session.inputs.forEach { session.removeInput($0) }
+                session.outputs.forEach { session.removeOutput($0) }
 
-            audioSession.inputs.forEach { audioSession.removeInput($0) }
-            audioSession.outputs.forEach { audioSession.removeOutput($0) }
+                audioSession.inputs.forEach { audioSession.removeInput($0) }
+                audioSession.outputs.forEach { audioSession.removeOutput($0) }
+            }
         }
+
+        await delegate?.modelDidStop(self)
     }
 
     /// Maps each hardware camera to its logical and UI zoom value.
@@ -562,10 +599,12 @@ extension CameraModel {
 extension CameraModel: AVCapturePhotoCaptureDelegate {
     ///
     func takePhoto() {
-        guard let output = photoOutput else {
+        guard !isTakingPhoto, let output = photoOutput else {
             return
         }
-        output.maxPhotoQualityPrioritization = .balanced
+
+        // TODO: make this different for regular photos vs moments?
+        output.maxPhotoQualityPrioritization = .speed
         isTakingPhoto = true
 
         let settings = AVCapturePhotoSettings.init(format: [AVVideoCodecKey: AVVideoCodecType.jpeg])

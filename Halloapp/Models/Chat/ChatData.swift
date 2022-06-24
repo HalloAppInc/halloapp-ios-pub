@@ -1277,53 +1277,50 @@ class ChatData: ObservableObject {
     // MARK: Share Extension Merge Data
     
     func mergeData(from sharedDataStore: SharedDataStore, completion: @escaping (() -> ())) {
-        performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
-            guard let self = self else { return }
-
-            var messages: [SharedChatMessage] = []
-            sharedDataStore.performOnBackgroundContextAndWait { sharedManagedObjectContext in
-                messages = sharedDataStore.messages(in: sharedManagedObjectContext)
-            }
-
-            self.merge(messages: messages, from: sharedDataStore, using: managedObjectContext)
-        }
-
         DDLogInfo("ChatData/mergeData - \(sharedDataStore.source)/begin")
         let sharedMessageIds = sharedDataStore.chatMessageIds()
         DDLogInfo("ChatData/mergeData/sharedMessageIds: \(sharedMessageIds)")
 
-        mainDataStore.saveSeriallyOnBackgroundContext ({ managedObjectContext in
-            // TODO: murali@: we dont need the following merge in the future - leaving it in for now.
-            self.mergeMediaItems(from: sharedDataStore, using: managedObjectContext)
-        }) { [self] result in
-            switch result {
-            case .success:
-                mainDataStore.saveSeriallyOnBackgroundContext { [self] context in
-                    // Messages
-                    let sharedMessages = chatMessages(with: Set(sharedMessageIds), in: context)
-                    var mergedMessages = chatMessagesToProcess(in: context)
-                    mergedMessages.append(contentsOf: sharedMessages)
-                    let mergedMessageIds = mergedMessages.map { $0.id }
+        sharedDataStore.performSeriallyOnBackgroundContext { [self] sharedManagedObjectContext in
+            let messages = sharedDataStore.messages(in: sharedManagedObjectContext)
 
-                    updateUnreadChatsThreadCount()
-                    mergedMessages.forEach { chatMsg in
-                        didGetAChatMsg.send(chatMsg.fromUserId)
-                        chatMsg.hasBeenProcessed = true
-                    }
-
-                        // send pending chat messages
-                        processPendingChatMsgs()
-                        // download chat message media
-                        processInboundPendingChatMsgMedia()
-                        processInboundPendingChaLinkPreviewMedia()
-                        DDLogInfo("ChatData/mergeData/chatMessageIds: \(mergedMessageIds)")
-                }
-                sharedDataStore.clearChatMessageIds()
-            case .failure(let error):
-                DDLogDebug("ChatData/mergeData/error: \(error)")
+            performSeriallyOnBackgroundContext { [self] context in
+                merge(messages: messages, from: sharedDataStore, using: context)
             }
-            DDLogInfo("ChatData/mergeData - \(sharedDataStore.source)/done")
-            completion()
+
+            mainDataStore.saveSeriallyOnBackgroundContext ({ managedObjectContext in
+                // TODO: murali@: we dont need the following merge in the future - leaving it in for now.
+                self.mergeMediaItems(from: sharedDataStore, using: managedObjectContext)
+            }) { [self] result in
+                switch result {
+                case .success:
+                    mainDataStore.saveSeriallyOnBackgroundContext { [self] context in
+                        // Messages
+                        let sharedMessages = chatMessages(with: Set(sharedMessageIds), in: context)
+                        var mergedMessages = chatMessagesToProcess(in: context)
+                        mergedMessages.append(contentsOf: sharedMessages)
+                        let mergedMessageIds = mergedMessages.map { $0.id }
+
+                        updateUnreadChatsThreadCount()
+                        mergedMessages.forEach { chatMsg in
+                            didGetAChatMsg.send(chatMsg.fromUserId)
+                            chatMsg.hasBeenProcessed = true
+                        }
+
+                            // send pending chat messages
+                            processPendingChatMsgs()
+                            // download chat message media
+                            processInboundPendingChatMsgMedia()
+                            processInboundPendingChaLinkPreviewMedia()
+                            DDLogInfo("ChatData/mergeData/chatMessageIds: \(mergedMessageIds)")
+                    }
+                    sharedDataStore.clearChatMessageIds()
+                case .failure(let error):
+                    DDLogDebug("ChatData/mergeData/error: \(error)")
+                }
+                DDLogInfo("ChatData/mergeData - \(sharedDataStore.source)/done")
+                completion()
+            }
         }
     }
 
@@ -3495,6 +3492,9 @@ extension ChatData {
                 chatMessage.outgoingStatus = .seen
             case .played:
                 chatMessage.outgoingStatus = .played
+            case .screenshot:
+                DDLogError("ChatData/processInboundOneToOneMessageReceipt/processing screenshot receipt")
+                break
             }
 
             self.updateChatThreadStatus(type: .oneToOne, for: chatMessage.toUserId, messageId: chatMessage.id) { (chatThread) in
@@ -3505,6 +3505,8 @@ extension ChatData {
                     chatThread.lastMsgStatus = .seen
                 case .played:
                     chatThread.lastMsgStatus = .played
+                case .screenshot:
+                    break
                 }
             }
         }
@@ -4991,7 +4993,7 @@ extension ChatData: HalloChatDelegate {
             case .played:
                 guard chatMessage.incomingStatus == .played else { return }
                 chatMessage.incomingStatus = .sentPlayedReceipt
-            case .delivery:
+            case .delivery, .screenshot:
                 break
             }
         }

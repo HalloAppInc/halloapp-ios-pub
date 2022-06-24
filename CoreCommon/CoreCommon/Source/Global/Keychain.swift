@@ -101,6 +101,7 @@ final class Keychain {
         guard let item = loadKeychainItem(userID: userID, service: .noiseUser) as? NSDictionary,
               let data = item[kSecValueData] as? Data else
         {
+            DDLogInfo("Keychain/loadNoiseUserKeypair/no-data")
             return nil
         }
         do {
@@ -125,7 +126,11 @@ final class Keychain {
 
         var result: AnyObject?
         let status = SecItemCopyMatching(query, &result)
-        DDLogInfo("Keychain/load status [\(status)]")
+        let resultString: String = {
+            guard let result = result else { return "no-keychain-item" }
+            return String(describing: result)
+        }()
+        DDLogInfo("Keychain/load status [\(status)] [\(resultString)]")
 
         return result
     }

@@ -48,23 +48,14 @@ class NewCameraViewController: UIViewController {
     private(set) lazy var background: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.layer.cornerCurve = .continuous
         return view
     }()
-
-    private lazy var controlStack: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [flashButton, shutterButton, flipCameraButton])
-        stack.axis = .horizontal
-        stack.distribution = .equalCentering
-        stack.alignment = .center
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        stack.isLayoutMarginsRelativeArrangement = true
-        stack.layoutMargins = UIEdgeInsets(top: 15, left: 40, bottom: 15, right: 40)
-        return stack
-    }()
-
-    private(set) lazy var shutterButton: CameraShutterButton = {
+    
+    private lazy var shutterButton: CameraShutterButton = {
         let shutter = CameraShutterButton()
-        shutter.isEnabled = false
+        shutter.translatesAutoresizingMaskIntoConstraints = false
+        shutter.isEnabled = isEnabled
         shutter.onTap = { [weak self] in self?.handleShutterTap() }
         shutter.onLongPress = { [weak self] in self?.handleShutterLongPress($0) }
         return shutter
@@ -81,8 +72,9 @@ class NewCameraViewController: UIViewController {
         return button
     }()
 
-    private lazy var flipCameraButton: UIButton = {
-        let button = UIButton(type: .system)
+    private lazy var flipCameraButton: LargeHitButton = {
+        let button = LargeHitButton(type: .system)
+        button.targetIncrease = 12
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(UIImage(named: "CameraFlip")?.withRenderingMode(.alwaysTemplate), for: .normal)
         button.tintColor = configuration == .moment ? .black : .white.withAlphaComponent(0.9)
@@ -90,8 +82,9 @@ class NewCameraViewController: UIViewController {
         return button
     }()
 
-    private lazy var flashButton: UIButton = {
-        let button = UIButton(type: .system)
+    private lazy var flashButton: LargeHitButton = {
+        let button = LargeHitButton(type: .system)
+        button.targetIncrease = 12
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(UIImage(named: "CameraFlashOff")?.withRenderingMode(.alwaysTemplate), for: .normal)
         button.tintColor = configuration == .moment ? .black : .white.withAlphaComponent(0.9)
@@ -137,12 +130,19 @@ class NewCameraViewController: UIViewController {
     private var hideFocusIndicator: DispatchWorkItem?
     private var cancellables: Set<AnyCancellable> = []
 
+    var onShutterRelease: (() -> Void)?
     var onPhotoCapture: ((UIImage) -> Void)?
     var onVideoCapture: ((URL) -> Void)?
     var onDismiss: (() -> Void)?
 
     var subtitle: String? {
         didSet { subtitleLabel.text = subtitle }
+    }
+
+    var isEnabled: Bool = true {
+        didSet {
+            if oldValue != isEnabled { refreshEnabledState() }
+        }
     }
 
     init(style: Configuration = .normal) {
@@ -152,6 +152,10 @@ class NewCameraViewController: UIViewController {
 
     required init(coder: NSCoder) {
         fatalError("CameraViewController coder init not implemented...")
+    }
+
+    deinit {
+        model.stop(teardown: true)
     }
 
     override func viewDidLoad() {
@@ -174,11 +178,16 @@ class NewCameraViewController: UIViewController {
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        model.stop()
+
+        if !model.isTakingPhoto {
+            // if the view is removed while a photo is being taken and the session stops, we don't get a photo
+            model.stop(teardown: false)
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+
         model.start()
     }
 
@@ -187,16 +196,31 @@ class NewCameraViewController: UIViewController {
 
         view.addSubview(background)
         view.addSubview(preview)
-        view.addSubview(controlStack)
         preview.addSubview(focusIndicator)
         view.addSubview(videoDurationLabel)
         view.addSubview(subtitleLabel)
 
+        let controlsContainer = UIView()
+        let leftContainer = UIView()
+        let rightContainer = UIView()
+        controlsContainer.translatesAutoresizingMaskIntoConstraints = false
+        leftContainer.translatesAutoresizingMaskIntoConstraints = false
+        rightContainer.translatesAutoresizingMaskIntoConstraints = false
+
+        controlsContainer.addSubview(shutterButton)
+        controlsContainer.addSubview(leftContainer)
+        controlsContainer.addSubview(rightContainer)
+        leftContainer.addSubview(flashButton)
+        rightContainer.addSubview(flipCameraButton)
+        view.addSubview(controlsContainer)
+
         let padding = Layout.padding(for: configuration)
+        let minimizeControlHeight = controlsContainer.heightAnchor.constraint(equalToConstant: 0)
+        minimizeControlHeight.priority = UILayoutPriority(1)
 
         NSLayoutConstraint.activate([
             background.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            background.widthAnchor.constraint(equalTo: view.widthAnchor, constant: -2),
+            background.widthAnchor.constraint(equalTo: view.widthAnchor),
             background.topAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.topAnchor),
             background.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor),
 
@@ -205,10 +229,32 @@ class NewCameraViewController: UIViewController {
             preview.heightAnchor.constraint(equalTo: preview.widthAnchor, multiplier: aspectRatio),
             preview.centerXAnchor.constraint(equalTo: background.centerXAnchor),
 
-            controlStack.topAnchor.constraint(equalTo: preview.bottomAnchor),
-            controlStack.leadingAnchor.constraint(equalTo: background.leadingAnchor),
-            controlStack.trailingAnchor.constraint(equalTo: background.trailingAnchor),
-            controlStack.bottomAnchor.constraint(equalTo: background.bottomAnchor),
+            controlsContainer.topAnchor.constraint(equalTo: preview.bottomAnchor, constant: 10),
+            controlsContainer.leadingAnchor.constraint(equalTo: background.leadingAnchor),
+            controlsContainer.trailingAnchor.constraint(equalTo: background.trailingAnchor),
+            controlsContainer.bottomAnchor.constraint(equalTo: background.bottomAnchor, constant: -10),
+            minimizeControlHeight,
+
+            leftContainer.topAnchor.constraint(equalTo: controlsContainer.topAnchor),
+            leftContainer.leadingAnchor.constraint(equalTo: controlsContainer.leadingAnchor),
+            leftContainer.trailingAnchor.constraint(equalTo: shutterButton.leadingAnchor, constant: -10),
+            leftContainer.bottomAnchor.constraint(equalTo: controlsContainer.bottomAnchor),
+
+            rightContainer.topAnchor.constraint(equalTo: controlsContainer.topAnchor),
+            rightContainer.leadingAnchor.constraint(equalTo: shutterButton.trailingAnchor, constant: 10),
+            rightContainer.trailingAnchor.constraint(equalTo: controlsContainer.trailingAnchor),
+            rightContainer.bottomAnchor.constraint(equalTo: controlsContainer.bottomAnchor),
+
+            shutterButton.centerXAnchor.constraint(equalTo: controlsContainer.centerXAnchor),
+            shutterButton.centerYAnchor.constraint(equalTo: controlsContainer.centerYAnchor),
+            shutterButton.topAnchor.constraint(greaterThanOrEqualTo: controlsContainer.topAnchor, constant: 10),
+            shutterButton.bottomAnchor.constraint(lessThanOrEqualTo: controlsContainer.bottomAnchor, constant: 10),
+
+            flashButton.centerYAnchor.constraint(equalTo: leftContainer.centerYAnchor),
+            flashButton.centerXAnchor.constraint(equalTo: leftContainer.centerXAnchor),
+
+            flipCameraButton.centerYAnchor.constraint(equalTo: rightContainer.centerYAnchor),
+            flipCameraButton.centerXAnchor.constraint(equalTo: rightContainer.centerXAnchor),
 
             videoDurationLabel.bottomAnchor.constraint(equalTo: background.topAnchor, constant: -10),
             videoDurationLabel.centerXAnchor.constraint(equalTo: background.centerXAnchor),
@@ -228,6 +274,8 @@ class NewCameraViewController: UIViewController {
         }
 
         installBarButtons()
+        // have the buttons be disabled until the session is ready
+        refreshEnabledState()
     }
 
     private func installBarButtons() {
@@ -258,7 +306,7 @@ class NewCameraViewController: UIViewController {
         }.store(in: &cancellables)
 
         model.$activeCamera.receive(on: DispatchQueue.main).sink { [weak self] active in
-            self?.flipCameraButton.isEnabled = active != .unspecified
+            self?.flipCameraButton.isEnabled = active != .unspecified && (self?.isEnabled ?? false)
         }.store(in: &cancellables)
 
         model.$isFlashEnabled.receive(on: DispatchQueue.main).sink { [weak self] enabled in
@@ -274,14 +322,30 @@ class NewCameraViewController: UIViewController {
             }
         }.store(in: &cancellables)
 
+        model.$isTakingPhoto.receive(on: DispatchQueue.main).sink { [weak self] isTakingPhoto in
+            if !isTakingPhoto, self?.view.window == nil {
+                // finished taking a photo while the view controller is not visible
+                self?.model.stop(teardown: false)
+            }
+        }.store(in: &cancellables)
+
         model.$isRecordingVideo.receive(on: DispatchQueue.main).sink { [weak self] isRecording in
             self?.flipCameraButton.isEnabled = !isRecording
             self?.flashButton.isEnabled = !isRecording
         }.store(in: &cancellables)
     }
 
+    private func refreshEnabledState() {
+        let enabled = isEnabled && model.session.isRunning
+
+        shutterButton.isEnabled = enabled
+        flashButton.isEnabled = enabled
+        flipCameraButton.isEnabled = enabled && model.activeCamera != .unspecified
+    }
+
     private func handleShutterTap() {
         model.takePhoto()
+        onShutterRelease?()
     }
 
     private func handleShutterLongPress(_ ended: Bool) {
@@ -380,16 +444,17 @@ class NewCameraViewController: UIViewController {
 extension NewCameraViewController: CameraModelDelegate {
     func modelWillStart(_ model: CameraModel) {
         preview.previewLayer.session = model.session
-
-        preview.previewLayer.connection?.automaticallyAdjustsVideoMirroring = false
-        preview.previewLayer.connection?.isVideoMirrored = false
     }
 
     func modelDidStart(_ model: CameraModel) {
-        shutterButton.isEnabled = true
+        refreshEnabledState()
     }
 
-    func modelCoultNotStart(_ model: CameraModel, with error: Error) {
+    func modelDidStop(_ model: CameraModel) {
+        refreshEnabledState()
+    }
+
+    func modelCouldNotStart(_ model: CameraModel, with error: Error) {
         guard case let error as CameraModel.CameraModelError = error else {
             return
         }
@@ -481,6 +546,7 @@ final class CameraPreviewView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
 
+        layer.cornerCurve = .continuous
         layer.addSublayer(previewLayer)
     }
 
