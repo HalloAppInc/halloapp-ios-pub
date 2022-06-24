@@ -357,7 +357,8 @@ class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
         if videoGranted {
             return true
         } else {
-            showPermissionDeniedAlert(title: Localizations.cameraAccessPromptTitle, message: nil)
+            showPermissionDeniedAlert(title: Localizations.cameraAccessPromptTitle,
+                                      message: Localizations.cameraAccessPromptBody)
             return false
         }
     }
