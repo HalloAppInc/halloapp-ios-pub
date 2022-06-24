@@ -782,13 +782,13 @@ final class CallManager: NSObject, CXProviderDelegate {
                                             data: nil,
                                             messageId: nil,
                                             pushName: peerName)
-        AppContext.shared.notificationStore.runIfNotificationWasNotPresented(for: metadata.contentId) {
+        AppContext.shared.notificationStore.runIfNotificationWasNotPresented(for: metadata.identifier) {
             let notificationContent = UNMutableNotificationContent()
             notificationContent.populateMissedCallBody(using: metadata, contactStore: MainAppContext.shared.contactStore)
-            let request = UNNotificationRequest(identifier: metadata.contentId, content: notificationContent, trigger: nil)
+            let request = UNNotificationRequest(identifier: metadata.identifier, content: notificationContent, trigger: nil)
             let notificationCenter = UNUserNotificationCenter.current()
             notificationCenter.add(request, withCompletionHandler: nil)
-            AppContext.shared.notificationStore.save(id: metadata.contentId, type: metadata.contentType.rawValue)
+            AppContext.shared.notificationStore.save(id: metadata.identifier, type: metadata.contentType.rawValue)
             DDLogInfo("CallManager/presentMissedCallNotification/callID: \(callID)/success")
         }
     }

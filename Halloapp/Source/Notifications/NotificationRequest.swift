@@ -16,8 +16,8 @@ final class NotificationRequest {
 
     public static func createAndShow(from metadata: NotificationMetadata, with completionHandler: ((Error?) -> Void)? = nil) {
 
-        AppContext.shared.notificationStore.runIfNotificationWasNotPresented(for: metadata.contentId) {
-            DDLogInfo("NotificationRequest/createAndShow/contentId: \(metadata.contentId)")
+        AppContext.shared.notificationStore.runIfNotificationWasNotPresented(for: metadata.identifier) {
+            DDLogInfo("NotificationRequest/createAndShow/identifier: \(metadata.identifier)")
             let notificationContent = UNMutableNotificationContent()
             // populate only fills the fallback text for chat messages: so we need to explicitly fill chat body as well.
             // TODO(murali@): need to clean this call further.
@@ -63,10 +63,10 @@ final class NotificationRequest {
                 break
             }
             notificationContent.sound = .default
-            let request = UNNotificationRequest(identifier: metadata.contentId, content: notificationContent, trigger: nil)
+            let request = UNNotificationRequest(identifier: metadata.identifier, content: notificationContent, trigger: nil)
             let notificationCenter = UNUserNotificationCenter.current()
             notificationCenter.add(request, withCompletionHandler: completionHandler)
-            AppContext.shared.notificationStore.save(id: metadata.contentId, type: metadata.contentType.rawValue)
+            AppContext.shared.notificationStore.save(id: metadata.identifier, type: metadata.contentType.rawValue)
         }
     }
 
@@ -114,7 +114,7 @@ final class NotificationRequest {
                         return
                     }
 
-                    DDLogInfo("NotificationRequest/updateMomentNotifications/\(metadata.contentId)")
+                    DDLogInfo("NotificationRequest/updateMomentNotifications/\(metadata.identifier)")
                     let notificationContent = UNMutableNotificationContent()
                     notificationContent.title = content.title
                     notificationContent.subtitle = content.subtitle

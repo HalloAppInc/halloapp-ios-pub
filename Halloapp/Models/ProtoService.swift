@@ -1208,7 +1208,7 @@ final class ProtoService: ProtoServiceCore {
             return
         }
 
-        AppContext.shared.notificationStore.runIfNotificationWasNotPresented(for: metadata.contentId) {
+        AppContext.shared.notificationStore.runIfNotificationWasNotPresented(for: metadata.identifier) {
             let notification = UNMutableNotificationContent()
             notification.populate(from: metadata, contactStore: MainAppContext.shared.contactStore)
             notifications.append(notification)
@@ -1216,7 +1216,7 @@ final class ProtoService: ProtoServiceCore {
             let notificationCenter = UNUserNotificationCenter.current()
             notifications.forEach { (notificationContent) in
                 notificationCenter.add(UNNotificationRequest(identifier: UUID().uuidString, content: notificationContent, trigger: nil))
-                AppContext.shared.notificationStore.save(id: metadata.contentId, type: metadata.contentType.rawValue)
+                AppContext.shared.notificationStore.save(id: metadata.identifier, type: metadata.contentType.rawValue)
             }
         }
     }
