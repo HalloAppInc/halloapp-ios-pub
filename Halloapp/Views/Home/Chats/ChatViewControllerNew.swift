@@ -624,67 +624,67 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
        super.viewWillAppear(animated)
 
        removeTransitionSnapshot()
-   }
+    }
 
-   override func viewWillDisappear(_ animated: Bool) {
-       super.viewWillDisappear(animated)
-       if let id = fromUserId {
-           saveChatDraft(id: id)
-       }
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        if let id = fromUserId {
+            saveChatDraft(id: id)
+        }
 
-       pauseVoiceNotes()
-       MainAppContext.shared.chatData.setCurrentlyChattingWithUserId(for: nil)
+        pauseVoiceNotes()
+        MainAppContext.shared.chatData.setCurrentlyChattingWithUserId(for: nil)
 
-       navigationController?.navigationBar.backItem?.backBarButtonItem = UIBarButtonItem()
-       jumpButton.removeFromSuperview()
-       applyTransitionSnapshot()
-       if let chatWithUserId = fromUserId {
-           // TODO only if jump button is not visible.. call below line
+        navigationController?.navigationBar.backItem?.backBarButtonItem = UIBarButtonItem()
+        jumpButton.removeFromSuperview()
+        applyTransitionSnapshot()
+        if let chatWithUserId = fromUserId {
+            // TODO only if jump button is not visible.. call below line
             MainAppContext.shared.chatData.markThreadAsRead(type: .oneToOne, for: chatWithUserId)
-           // updates the number of chat threads with unread messages
-           MainAppContext.shared.chatData.updateUnreadChatsThreadCount()
-           // Remove chat notifications from this user when chatViewController for this user is active.
-           UNUserNotificationCenter.current().removeDeliveredChatNotifications(fromUserId: chatWithUserId)
-       }
-   }
+            // updates the number of chat threads with unread messages
+            MainAppContext.shared.chatData.updateUnreadChatsThreadCount()
+            // Remove chat notifications from this user when chatViewController for this user is active.
+            UNUserNotificationCenter.current().removeDeliveredChatNotifications(fromUserId: chatWithUserId)
+        }
+    }
 
-   override func viewDidLayoutSubviews() {
-       DDLogError("ChatViewControllerNew/viewDidLayoutSubviews scrollToLastMessageOnNextUpdate: \(scrollToLastMessageOnNextUpdate)")
-       super.viewDidLayoutSubviews()
-       if scrollToUnreadBanner {
-           scrollToUnreadBanner = false
-           scrollToUnreadBannerCell()
-       } else if scrollToLastMessageOnNextUpdate  {
-           scrollToLastMessageOnNextUpdate = false
-           DDLogDebug("ChatViewControllerNew/updateScrollingWhenDataChanges/scrollToLastMessage/ on send message")
-           scrollToLastMessage(animated: isFirstLaunch ? false : true)
+    override func viewDidLayoutSubviews() {
+        DDLogError("ChatViewControllerNew/viewDidLayoutSubviews scrollToLastMessageOnNextUpdate: \(scrollToLastMessageOnNextUpdate)")
+        super.viewDidLayoutSubviews()
+        if scrollToUnreadBanner {
+            scrollToUnreadBanner = false
+            scrollToUnreadBannerCell()
+        } else if scrollToLastMessageOnNextUpdate  {
+            scrollToLastMessageOnNextUpdate = false
+            DDLogDebug("ChatViewControllerNew/updateScrollingWhenDataChanges/scrollToLastMessage/ on send message")
+            scrollToLastMessage(animated: isFirstLaunch ? false : true)
+            return
+        } else if didReceiveIncoming, jumpButton.alpha == 0 {
+            didReceiveIncoming = false
+            DDLogDebug("ChatViewControllerNew/updateScrollingWhenDataChanges/scrollToLastMessage/ on receive message")
+            scrollToLastMessage(animated: isFirstLaunch ? false : true)
+            return
+        }
+        didReceiveIncoming = false
+    }
+
+    private func removeTransitionSnapshot() {
+        transitionSnapshot?.removeFromSuperview()
+        contentInputView.isHidden = false
+    }
+
+    private func applyTransitionSnapshot() {
+        // do this to maintain the blur effect of `contentInputView` during dismissal
+        guard let container = transitionCoordinator?.view(forKey: .from) else {
            return
-       } else if didReceiveIncoming, jumpButton.alpha == 0 {
-           didReceiveIncoming = false
-           DDLogDebug("ChatViewControllerNew/updateScrollingWhenDataChanges/scrollToLastMessage/ on receive message")
-           scrollToLastMessage(animated: isFirstLaunch ? false : true)
-           return
-       }
-       didReceiveIncoming = false
-   }
+        }
 
-   private func removeTransitionSnapshot() {
-       transitionSnapshot?.removeFromSuperview()
-       contentInputView.isHidden = false
-   }
+        let snapshot = UIScreen.main.snapshotView(afterScreenUpdates: false)
+        container.addSubview(snapshot)
 
-   private func applyTransitionSnapshot() {
-       // do this to maintain the blur effect of `contentInputView` during dismissal
-       guard let container = transitionCoordinator?.view(forKey: .from) else {
-           return
-       }
-
-       let snapshot = UIScreen.main.snapshotView(afterScreenUpdates: false)
-       container.addSubview(snapshot)
-
-       contentInputView.isHidden = true
-       self.transitionSnapshot = snapshot
-   }
+        contentInputView.isHidden = true
+        self.transitionSnapshot = snapshot
+    }
 
     private func setupUI() {
         collectionView.dataSource = dataSource
@@ -948,7 +948,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     }
     
     @MainActor
-    private func saveAllMedia(in chatMessage: ChatMessage) async {
+    func saveAllMedia(in chatMessage: ChatMessage) async {
         await saveMedia(source: .chat) {
             chatMessage.media?
                 .compactMap { (media: CommonMedia) -> (type: CommonMediaType, url: URL)? in
@@ -1412,8 +1412,7 @@ extension ChatViewControllerNew: PostComposerViewDelegate {
     }
 }
 
-extension ChatViewControllerNew: MessageViewChatDelegate {
-
+extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewControllerDelegate {
     func messageView(_ messageViewCell: MessageCellViewBase, didTapUserId userId: UserID) {
 
     }
@@ -1438,114 +1437,97 @@ extension ChatViewControllerNew: MessageViewChatDelegate {
     }
 
     func messageView(_ messageViewCell: MessageCellViewBase, didLongPressOn chatMessage: ChatMessage) {
-        let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        if chatMessage.incomingStatus != .retracted {
-            if let media = chatMessage.media, !media.isEmpty {
-                actionSheet.addAction(UIAlertAction(title: Localizations.saveAllButton, style: .default) { _ in
-                    Task { [weak self] in
-                        await self?.saveAllMedia(in: chatMessage)
-                    }
-                })
-            }
-            
-            actionSheet.addAction(UIAlertAction(title: Localizations.messageReply, style: .default) { [weak self] _ in
-                guard let self = self else { return }
-                self.handleQuotedReply(msg: chatMessage)
-             })
+        contentInputView.textView.resignFirstResponder()
+        guard let messageViewCellSuperview = messageViewCell.nameContentTimeRow.superview else {
+            return
+        }
+        guard let snapshotView = messageViewCell.nameContentTimeRow.snapshotView(afterScreenUpdates: true) else {
+            return
+        }
+        let convertedFrame = view.convert(messageViewCell.nameContentTimeRow.frame, from: messageViewCellSuperview)
+        snapshotView.frame = convertedFrame
+        let reactionView = ReactionViewController(messageViewCell: snapshotView, chatMessage: chatMessage)
+        reactionView.delegate = self
+        reactionView.modalPresentationStyle = .overFullScreen
+        reactionView.modalTransitionStyle = .crossDissolve
+        self.present(reactionView, animated: false)
+    }
 
-            if let messageText = chatMessage.rawText, !messageText.isEmpty {
-                actionSheet.addAction(UIAlertAction(title: Localizations.messageCopy, style: .default) { _ in
-                    let pasteboard = UIPasteboard.general
-                    pasteboard.string = messageText
-                })
-            }
+    func messageView(_ messageViewCell: MessageCellViewBase, jumpTo chatMessageID: ChatMessageID) {
+        scrollToMessage(id: chatMessageID, animated: true, highlightAfterScroll: true)
+    }
 
-            actionSheet.addAction(UIAlertAction(title: Localizations.messageDelete, style: .destructive) { [weak self] _ in
-                self?.showDeletionConfirmationMenu(for: chatMessage)
-            })
+    func messageView(_ messageViewCell: MessageCellViewBase, openPost feedPostId: String) {
+        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: MainAppContext.shared.feedData.viewContext) else {
+            DDLogWarn("ChatViewControllerNew/Quoted feed post \(feedPostId) not found")
+            return
+        }
 
-            if ServerProperties.isInternalUser {
-                actionSheet.message = MainAppContext.shared.cryptoData.details(
-                                        for: chatMessage.id,
-                                        dateFormatter: DateFormatter.dateTimeFormatterMonthDayTime,
-                                        in: MainAppContext.shared.cryptoData.viewContext)
+        let vc = feedPost.isMoment ? MomentViewController(post: feedPost) : PostViewController.viewController(for: feedPost)
+        present(vc, animated: true)
+    }
+
+    func messageView(_ messageViewCell: MessageCellViewBase, replyToChat chatMessage: ChatMessage) {
+        guard chatMessage.incomingStatus != .retracted else { return }
+        guard ![.retracting, .retracted].contains(chatMessage.outgoingStatus) else { return }
+        handleQuotedReply(msg: chatMessage)
+    }
+   
+    func handleMessageSave(_ reactionViewController: ReactionViewController, chatMessage: ChatMessage) {
+        Task{
+            await self.saveAllMedia(in: chatMessage)
+        }
+    }
+
+
+    func messageView(_ messageViewCell: MessageCellViewBase, didCompleteVoiceNote userId: UserID) {
+        guard let chatMessage = messageViewCell.chatMessage else { return }
+        playVoiceNote(after: chatMessage)
+    }
+
+    private func playVoiceNote(after chatMessage: ChatMessage) {
+        guard var nextIndexPath = dataSource.indexPath(for: messagerow(for: chatMessage)) else { return }
+        nextIndexPath.row += 1
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + waitForCellDelay) {
+            guard let cell = self.collectionView.cellForItem(at: nextIndexPath) else { return }
+            if let audioCell = cell as? MessageCellViewAudio {
+                // Only auto play the next voice note if is from the same sender as the audio note that was just played.
+                guard audioCell.chatMessage?.fromUserId == chatMessage.fromUserId else { return }
+                self.collectionView.scrollToItem(at: nextIndexPath, at: .centeredVertically, animated: true)
+                audioCell.playVoiceNote()
             }
         }
-        guard actionSheet.actions.count > 0 else { return }
+    }
 
-       actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+    func handleQuotedReply(msg chatMessage: ChatMessage) {
+        chatReplyMessageID = chatMessage.id
+        chatReplyMessageSenderID = chatMessage.fromUserId
 
-       self.present(actionSheet, animated: true)
-   }
+        guard let userID = chatReplyMessageSenderID else { return }
 
-   func messageView(_ messageViewCell: MessageCellViewBase, jumpTo chatMessageID: ChatMessageID) {
-       scrollToMessage(id: chatMessageID, animated: true, highlightAfterScroll: true)
-   }
-
-   func messageView(_ messageViewCell: MessageCellViewBase, openPost feedPostId: String) {
-       guard let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: MainAppContext.shared.feedData.viewContext) else {
-           DDLogWarn("ChatViewControllerNew/Quoted feed post \(feedPostId) not found")
-           return
-       }
-
-       let vc = feedPost.isMoment ? MomentViewController(post: feedPost) : PostViewController.viewController(for: feedPost)
-       present(vc, animated: true)
-   }
-
-   func messageView(_ messageViewCell: MessageCellViewBase, replyToChat chatMessage: ChatMessage) {
-       guard chatMessage.incomingStatus != .retracted else { return }
-       guard ![.retracting, .retracted].contains(chatMessage.outgoingStatus) else { return }
-       handleQuotedReply(msg: chatMessage)
-   }
-
-   func messageView(_ messageViewCell: MessageCellViewBase, didCompleteVoiceNote userId: UserID) {
-       guard let chatMessage = messageViewCell.chatMessage else { return }
-       playVoiceNote(after: chatMessage)
-   }
-
-   private func playVoiceNote(after chatMessage: ChatMessage) {
-       guard var nextIndexPath = dataSource.indexPath(for: messagerow(for: chatMessage)) else { return }
-       nextIndexPath.row += 1
-
-       DispatchQueue.main.asyncAfter(deadline: .now() + waitForCellDelay) {
-           guard let cell = self.collectionView.cellForItem(at: nextIndexPath) else { return }
-           if let audioCell = cell as? MessageCellViewAudio {
-               // Only auto play the next voice note if is from the same sender as the audio note that was just played.
-               guard audioCell.chatMessage?.fromUserId == chatMessage.fromUserId else { return }
-               self.collectionView.scrollToItem(at: nextIndexPath, at: .centeredVertically, animated: true)
-               audioCell.playVoiceNote()
-           }
-       }
-   }
-
-   private func handleQuotedReply(msg chatMessage: ChatMessage) {
-       chatReplyMessageID = chatMessage.id
-       chatReplyMessageSenderID = chatMessage.fromUserId
-
-       guard let userID = chatReplyMessageSenderID else { return }
-
-       if let mediaItem = chatMessage.media?.first(where: { $0.order == chatReplyMessageMediaIndex }) {
-          let mediaUrl = mediaItem.mediaURL ?? MainAppContext.chatMediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
-           let info = QuotedItemPanel.PostInfo(userID: userID,
+        if let mediaItem = chatMessage.media?.first(where: { $0.order == chatReplyMessageMediaIndex }) {
+            let mediaUrl = mediaItem.mediaURL ?? MainAppContext.chatMediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
+            let info = QuotedItemPanel.PostInfo(userID: userID,
                                                  text: chatMessage.rawText ?? "",
                                             mediaType: mediaItem.type,
                                             mediaLink: mediaUrl)
-           let panel = QuotedItemPanel()
-           panel.postInfo = info
-           contentInputView.display(context: panel)
-       } else {
-           let info = QuotedItemPanel.PostInfo(userID: userID,
+            let panel = QuotedItemPanel()
+            panel.postInfo = info
+            contentInputView.display(context: panel)
+        } else {
+            let info = QuotedItemPanel.PostInfo(userID: userID,
                                                  text: chatMessage.rawText ?? "",
                                             mediaType: nil,
                                             mediaLink: nil)
-           let panel = QuotedItemPanel()
-           panel.postInfo = info
-           contentInputView.display(context: panel)
-       }
-       contentInputView.textView.becomeFirstResponder()
-   }
+            let panel = QuotedItemPanel()
+            panel.postInfo = info
+            contentInputView.display(context: panel)
+        }
+        contentInputView.textView.becomeFirstResponder()
+    }
 
-   private func handleDraftQuotedReply(reply: ReplyContext) {
+    private func handleDraftQuotedReply(reply: ReplyContext) {
         if let mediaURLString = reply.media?.mediaURL, let mediaURL = URL(string: mediaURLString) {
             let info = QuotedItemPanel.PostInfo(userID: reply.replySenderID,
                                                   text: reply.text,
@@ -1563,27 +1545,29 @@ extension ChatViewControllerNew: MessageViewChatDelegate {
             panel.postInfo = info
             contentInputView.display(context: panel)
         }
-   }
+    }
 
-   func showDeletionConfirmationMenu(for chatMessage: ChatMessage) {
-       let chatMessageId = chatMessage.id
-       let alertController = UIAlertController(title: Localizations.chatDeleteTitle, message: nil, preferredStyle: .actionSheet)
+    func showDeletionConfirmationMenu(for chatMessage: ChatMessage) {
+        let chatMessageId = chatMessage.id
+        let alertController = UIAlertController(title: Localizations.chatDeleteTitle, message: nil, preferredStyle: .actionSheet)
 
-       if chatMessage.fromUserId == AppContext.shared.userData.userId,
-          [.sentOut, .delivered, .seen, .played].contains(chatMessage.outgoingStatus),
-          let toUserID = fromUserId {
-           alertController.addAction(UIAlertAction(title: Localizations.chatDeleteForEveryone, style: .destructive) { _ in
-               MainAppContext.shared.chatData.retractChatMessage(toUserID: toUserID, messageToRetractID: chatMessageId)
-           })
-       }
+        if chatMessage.fromUserId == AppContext.shared.userData.userId,
+           [.sentOut, .delivered, .seen, .played].contains(chatMessage.outgoingStatus),
+           let toUserID = fromUserId {
+            alertController.addAction(UIAlertAction(title: Localizations.chatDeleteForEveryone, style: .destructive) { _ in
+                MainAppContext.shared.chatData.retractChatMessage(toUserID: toUserID, messageToRetractID: chatMessageId)
+                
+            })
+            
+        }
+        
+        alertController.addAction(UIAlertAction(title: Localizations.chatDeleteForMe, style: .destructive) { _ in
+            MainAppContext.shared.chatData.deleteChatMessage(with: chatMessageId)
+        })
 
-       alertController.addAction(UIAlertAction(title: Localizations.chatDeleteForMe, style: .destructive) { _ in
-           MainAppContext.shared.chatData.deleteChatMessage(with: chatMessageId)
-       })
-
-       alertController.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
-       present(alertController, animated: true)
-   }
+        alertController.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+        present(alertController, animated: true)
+    }
 
     // MARK : Scrolling
     private func scrollToMessage(id: ChatMessageID, animated: Bool = false, highlightAfterScroll: Bool = false) {
