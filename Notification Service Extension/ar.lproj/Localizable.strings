@@ -139,6 +139,21 @@
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "لحظة جديدة";
 
+/* New moment notification text to be shown to the user. */
+"notification.moment.1" = "شارك %@ لحظة جديدة";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.2" = "شارك %1$@ و%2$@ لحظات جديدة";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.3" = "شارك %1$@ و%2$@ و%3$@ لحظات جديدة";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.5" = "شارك %1$@ و%2$@ و%3$@ وآخرون لحظات جديدة";
+
+/* New moment screenshot notification text to be shown to the user. */
+"notification.moment.screenshot" = "أخذ %@ لقطة شاشة للحظة الخاصة بك";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
 

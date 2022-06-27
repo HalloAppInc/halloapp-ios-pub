@@ -151,6 +151,12 @@
 /* Text indicating that calls are end-to-end encrypted */
 "call.encryption.text" = "مشفرة تشفيرًا تامًا";
 
+/* Title for call history event for an incoming call. */
+"call.history.incoming.call" = "%@ اتصل بك";
+
+/* Title for call history event for an outgoing call */
+"call.history.outgoing.call" = "اتصلت بـ %@";
+
 /* Title for call history event. Appears next to details of a successful call. */
 "call.history.video.call" = "مكالمة فيديو";
 
@@ -246,6 +252,9 @@
 
 /* Text shown on the camera screen when composing a new moment to unlock someone else's moment. */
 "camera.moment.unlock.subtitle" = "لرؤية لحظة %@، يجب مشاركة اللحظة الخاصة بك";
+
+/* Title of alert for when the app does not have permissions to access the camera. */
+"camera.permissions.title" = "الوصول إلى الكاميرا";
 
 /* No comment provided by engineer. */
 "Cancel" = "إلغاء";
@@ -369,6 +378,9 @@
 
 /* Alert title when missing microphone access */
 "chat.mic.access.denied.title" = "يتعذّر الوصول إلى الميكروفون";
+
+/* cta label for creating a new group chat */
+"chat.new.group.label" = "دردشة جماعية جديدة";
 
 /* Text below the contact's name when the contact is online in the Chat Screen */
 "chat.online.label" = "متصل";
@@ -517,6 +529,9 @@
 /* Title for generic delete button. */
 "Delete" = "حذف";
 
+/* Body of the bottom sheet that is presented only once to explain the moments feature. */
+"describing.moments" = "يمكنك إظهار لحظات أصدقائك بمشاركة اللحظة الخاصة بك. تتميز اللحظات بأنها مؤقتة، وتختفي بعد عرضها مرة واحدة.";
+
 /* link, tapping on which launched the flow to edit blocked contacts */
 "edit.blocked" = "تعديل";
 
@@ -542,13 +557,16 @@
 "fab.accessibility.camera" = "الكاميرا";
 
 /* VoiceOver label for photo button in floating compose post menu in Home view. */
-"fab.accessibility.photo.library" = "المعرض";
+"fab.accessibility.photo.library" = "الصورة والفيديو";
 
 /* VoiceOver label for text post button in floating compose post menu in Home view. */
 "fab.accessibility.text" = "نص";
 
 /* VoiceOver label for audio post button in floating compose post menu in Home view. */
 "fab.accessibility.voice" = "رسالة صوتية";
+
+/* Label for floating moment button on home feed. */
+"fab.moment.button" = "اللحظة";
 
 /* Label for floating compose post menu on Group screen. */
 "fab.post.button" = "منشور";
@@ -907,6 +925,9 @@
 /* Title of failed video call screen alert. */
 "home.video.calls.fail.title" = "مكالمات الفيديو غير مدعومة حاليًا.";
 
+/* Title of the bottom sheet that is presented only once to explain the moments feature. */
+"introducing.moments" = "التعريف بميزة اللحظات";
+
 /* Title of action sheet that allows the user to choose between sms and whatsapp to invite contact */
 "invite.action.sheet.title" = "دعوة %@ عبر...";
 
@@ -1060,6 +1081,15 @@
 /* Text on loading screen while migrating data */
 "migration.inProgress" = "جارٍ تحسين البيانات...";
 
+/* Disclaimer to tell the user that their moments go to all of their contacts on HalloApp. */
+"moment.contacts.disclaimer" = "لا يمكن مشاركة اللحظة الخاصة بك إلا مع جهات اتصالك على هالوآب";
+
+/* Text displayed the first time the user acts to post a second moment in the same day. */
+"moment.replacement.disclaimer" = "ستحل هذه اللحظة الجديدة محل اللحظة السابقة.";
+
+/* Title of text displayed the first time the user acts to post a second moment in the same day. */
+"moment.replacement.title" = "تنبيه";
+
 /* For indicating that there was an error while uploading the post. */
 "moment.uploading.failure" = "خطأ";
 
@@ -1114,6 +1144,9 @@
 /* Header that appears above unread messages in the comments view. */
 "n.unread.comments.title" = "n.unread.comments.title";
 
+/* Header that appears above unread messages in the chats view. */
+"n.unread.messages.title" = "n.unread.messages.title";
+
 /* Placeholder text shown in the middle of the Add New Group Members screen when user have no contacts (in ZeroZone) to add */
 "new.group.members.empty.placeholder" = "ستظهر جهات اتصالك على هالوآب هنا";
 
@@ -1137,6 +1170,21 @@
 
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "لحظة جديدة";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.1" = "شارك %@ لحظة جديدة";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.2" = "شارك %1$@ و%2$@ لحظات جديدة";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.3" = "شارك %1$@ و%2$@ و%3$@ لحظات جديدة";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.5" = "شارك %1$@ و%2$@ و%3$@ وآخرون لحظات جديدة";
+
+/* New moment screenshot notification text to be shown to the user. */
+"notification.moment.screenshot" = "أخذ %@ لقطة شاشة للحظة الخاصة بك";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
@@ -1423,6 +1471,9 @@
 /* Text shown to instruct using a QR code for joining a group */
 "scan.to.join.group.using.qr.code" = "للانضمام، يمكنك مسح رمز الاستجابة السريعة هذا بكاميرا الهاتف.";
 
+/* Title that indicates that someone took a screenshot. */
+"screenshot.title" = "لقطة شاشة";
+
 /* Text placed on the blurred overlay of a secret post. */
 "secret.post.entice" = "شارَك %@ إحدى اللحظات";
 
@@ -1567,6 +1618,9 @@
 /* Instructions for enabling notifications permissions */
 "settings.notifications.disabled.instructions" = "يُرجى تفعيل الإشعارات من الإعدادات.";
 
+/* Settings > Notifications: label for the toggle that turns new moment notifications on or off. */
+"settings.notifications.moments" = "اللحظات";
+
 /* Settings > Notifications: label for the toggle that turns new post notifications on or off. */
 "settings.notifications.posts" = "المنشورات";
 
@@ -1645,6 +1699,9 @@
 /* Timestamp: `Yesterday` */
 "timestamp.yesterday" = "الأمس";
 
+/* Camera screen title */
+"title.camera" = "الكاميرا";
+
 /* Camera screen title for a new moment */
 "title.camera.moment" = "لحظة جديدة";
 
@@ -1690,6 +1747,9 @@
 /* Title for the screen with information about who saw your post. */
 "title.your.post" = "شاهَدَه";
 
+/* Text on the bottom sheet's button that dismisses the sheet. */
+"try.moments" = "جرِّب اللحظات";
+
 /* Indicates which switch a user needs to turn on to enable contacts permissions. */
 "turn.on.contacts" = "تفعيل إذن \"جهات الاتصال\"";
 
@@ -1706,7 +1766,7 @@
 "unknown.contact.not.in.contact.book" = "هذا المُرسِل ليس ضمن قائمة جهات اتصالك.";
 
 /* Text that indicates the unlock action for a moment. */
-"unlock.title" = "فتح";
+"unlock.title" = "إظهار";
 
 /* Alert appearing after clicking an external share link that failed to load */
 "urlrouter.externalShare.failed" = "تعذّر تحميل المنشور";

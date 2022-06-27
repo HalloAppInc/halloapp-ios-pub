@@ -1085,7 +1085,7 @@
 "moment.contacts.disclaimer" = "Momen Anda hanya dapat dibagikan dengan kontak Anda di HalloApp";
 
 /* Text displayed the first time the user acts to post a second moment in the same day. */
-"moment.replacement.disclaimer" = "Momen baru Anda akan menggantikan momen Anda sebelumnya";
+"moment.replacement.disclaimer" = "Momen baru ini akan menggantikan momen Anda sebelumnya.";
 
 /* Title of text displayed the first time the user acts to post a second moment in the same day. */
 "moment.replacement.title" = "Peringatan";
@@ -1182,6 +1182,9 @@
 
 /* New moment notification text to be shown to the user. */
 "notification.moment.5" = "%1$@, %2$@, %3$@, dan lainnya berbagi momen baru";
+
+/* New moment screenshot notification text to be shown to the user. */
+"notification.moment.screenshot" = "%@ mengambil jepretan layar momen Anda";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
@@ -1406,7 +1409,7 @@
 "registration.code.resend.by.voice" = "Panggil saya";
 
 /* Text explaining why we need contact permissions */
-"registration.contacts.content" = "Untuk menghubungkanmu dengan teman & keluarga kami membutuhkan izinmu untuk mengakses kontak.";
+"registration.contacts.content" = "Untuk menghubungkan Anda dengan teman & keluarga Anda, kami memerlukan izin Anda untuk mengakses kontak Anda.";
 
 /* Title for text explaining why we need contact permissions */
 "registration.contacts.title" = "Satu hal terakhir";
@@ -1467,6 +1470,9 @@
 
 /* Text shown to instruct using a QR code for joining a group */
 "scan.to.join.group.using.qr.code" = "Untuk gabung, pindai kode QR ini dengan kamera ponselmu.";
+
+/* Title that indicates that someone took a screenshot. */
+"screenshot.title" = "Jepretan Layar";
 
 /* Text placed on the blurred overlay of a secret post. */
 "secret.post.entice" = "%@ berbagi momen";
@@ -1611,6 +1617,9 @@
 
 /* Instructions for enabling notifications permissions */
 "settings.notifications.disabled.instructions" = "Harap aktifkan notifikasi di Pengaturan.";
+
+/* Settings > Notifications: label for the toggle that turns new moment notifications on or off. */
+"settings.notifications.moments" = "Momen";
 
 /* Settings > Notifications: label for the toggle that turns new post notifications on or off. */
 "settings.notifications.posts" = "Unggahan";

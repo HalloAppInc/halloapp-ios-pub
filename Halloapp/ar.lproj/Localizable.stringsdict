@@ -325,17 +325,17 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>few</key>
-			<string>%d Unread Messages</string>
+			<string>%d رسائل غير مقروءة</string>
 			<key>many</key>
-			<string>%d Unread Messages</string>
+			<string>%d رسالة غير مقروءة</string>
 			<key>one</key>
-			<string>%d Unread Message</string>
+			<string>رسالة %d غير مقروءة</string>
 			<key>other</key>
-			<string>%d Unread Messages</string>
+			<string>%d رسالة غير مقروءة</string>
 			<key>two</key>
-			<string>%d Unread Messages</string>
+			<string>رسالتان %d غير مقروءتين</string>
 			<key>zero</key>
-			<string>%d Unread Messages</string>
+			<string>%d من الرسائل غير المقروءة</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>

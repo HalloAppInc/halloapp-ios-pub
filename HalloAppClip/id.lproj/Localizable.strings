@@ -38,7 +38,7 @@
 "registration.code.resend.by.voice" = "Panggil saya";
 
 /* Text explaining why we need contact permissions */
-"registration.contacts.content" = "Untuk menghubungkanmu dengan teman dan keluarga kami butuh izin untuk mengakses kontakmu.";
+"registration.contacts.content" = "Untuk menghubungkan Anda dengan teman & keluarga Anda, kami memerlukan izin Anda untuk mengakses kontak Anda.";
 
 /* Title for text explaining why we need contact permissions */
 "registration.contacts.title" = "Satu hal lagi";

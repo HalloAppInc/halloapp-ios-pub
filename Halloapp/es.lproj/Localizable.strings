@@ -379,6 +379,9 @@
 /* Alert title when missing microphone access */
 "chat.mic.access.denied.title" = "No se pudo acceder al micrófono";
 
+/* cta label for creating a new group chat */
+"chat.new.group.label" = "Nuevo chat grupal";
+
 /* Text below the contact's name when the contact is online in the Chat Screen */
 "chat.online.label" = "en línea";
 
@@ -1180,6 +1183,9 @@
 /* New moment notification text to be shown to the user. */
 "notification.moment.5" = "%1$@, %2$@, %3$@ y otros compartieron nuevos Momentos";
 
+/* New moment screenshot notification text to be shown to the user. */
+"notification.moment.screenshot" = "%@ tomó una captura de pantalla de tu Momento";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
 
@@ -1465,6 +1471,9 @@
 /* Text shown to instruct using a QR code for joining a group */
 "scan.to.join.group.using.qr.code" = "Para unirte, escanea el código QR con la cámara de tu teléfono.";
 
+/* Title that indicates that someone took a screenshot. */
+"screenshot.title" = "Captura de pantalla";
+
 /* Text placed on the blurred overlay of a secret post. */
 "secret.post.entice" = "%@ compartió un Momento";
 
@@ -1608,6 +1617,9 @@
 
 /* Instructions for enabling notifications permissions */
 "settings.notifications.disabled.instructions" = "Por favor, activa las notificaciones en Configuración.";
+
+/* Settings > Notifications: label for the toggle that turns new moment notifications on or off. */
+"settings.notifications.moments" = "Momentos";
 
 /* Settings > Notifications: label for the toggle that turns new post notifications on or off. */
 "settings.notifications.posts" = "Publicaciones";

@@ -214,5 +214,5 @@
 "uploading.bytes.progress" = "%1$@ dari %2$@";
 
 /* Message how many items are currently being upload */
-"uploading.n.items" = "item.n.unggahan";
+"uploading.n.items" = "uploading.n.items";
 
