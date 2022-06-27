@@ -42,6 +42,6 @@ class MessageUnreadHeaderView: UICollectionViewCell {
 
     func configure(headerText: String) {
         headerView.configure(headerText: headerText)
-        headerView.timestampLabel.font = UIFont.systemFont(ofSize: 15, weight: .regular)
+        headerView.timestampLabel.font = UIFont.scaledSystemFont(ofSize: 15, weight: .regular)
     }
 }
