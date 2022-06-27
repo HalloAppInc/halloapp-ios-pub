@@ -151,6 +151,9 @@
 /* New moment notification text to be shown to the user. */
 "notification.moment.5" = "@$1%، @$2%، @$3% و دیگران لحظه‌های جدیدی به اشتراک گذاشتند";
 
+/* New moment screenshot notification text to be shown to the user. */
+"notification.moment.screenshot" = "@% از لحظه شما عکس گرفت";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
 

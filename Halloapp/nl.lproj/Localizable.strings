@@ -1183,6 +1183,9 @@
 /* New moment notification text to be shown to the user. */
 "notification.moment.5" = "%1$@, %2$@, %3$@ en anderen hebben nieuwe momenten gedeeld";
 
+/* New moment screenshot notification text to be shown to the user. */
+"notification.moment.screenshot" = "%@ heeft een screenshot gemaakt van je moment";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
 
@@ -1468,6 +1471,9 @@
 /* Text shown to instruct using a QR code for joining a group */
 "scan.to.join.group.using.qr.code" = "Scan deze QR-code met de camera van je telefoon om deel te nemen.";
 
+/* Title that indicates that someone took a screenshot. */
+"screenshot.title" = "Screenshot";
+
 /* Text placed on the blurred overlay of a secret post. */
 "secret.post.entice" = "%@ heeft een moment gedeeld";
 
@@ -1611,6 +1617,9 @@
 
 /* Instructions for enabling notifications permissions */
 "settings.notifications.disabled.instructions" = "Zet meldingen aan in Instellingen.";
+
+/* Settings > Notifications: label for the toggle that turns new moment notifications on or off. */
+"settings.notifications.moments" = "Momenten";
 
 /* Settings > Notifications: label for the toggle that turns new post notifications on or off. */
 "settings.notifications.posts" = "Posts";

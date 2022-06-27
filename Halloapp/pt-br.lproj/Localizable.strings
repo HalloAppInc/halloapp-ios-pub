@@ -379,6 +379,9 @@
 /* Alert title when missing microphone access */
 "chat.mic.access.denied.title" = "Não é possível acessar o microfone";
 
+/* cta label for creating a new group chat */
+"chat.new.group.label" = "Novo bate-papo em grupo";
+
 /* Text below the contact's name when the contact is online in the Chat Screen */
 "chat.online.label" = "on-line";
 
@@ -1464,6 +1467,9 @@
 
 /* Text shown to instruct using a QR code for joining a group */
 "scan.to.join.group.using.qr.code" = "Para participar, escaneie este código QR com a câmera do seu telefone.";
+
+/* Title that indicates that someone took a screenshot. */
+"screenshot.title" = "Captura de tela";
 
 /* Text placed on the blurred overlay of a secret post. */
 "secret.post.entice" = "%@ compartilhou um momento";

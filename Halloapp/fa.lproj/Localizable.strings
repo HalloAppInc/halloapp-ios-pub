@@ -379,6 +379,9 @@
 /* Alert title when missing microphone access */
 "chat.mic.access.denied.title" = "عدم دسترسی به میکروفون";
 
+/* cta label for creating a new group chat */
+"chat.new.group.label" = "گروه جدید";
+
 /* Text below the contact's name when the contact is online in the Chat Screen */
 "chat.online.label" = "آنلاین";
 
@@ -1180,6 +1183,9 @@
 /* New moment notification text to be shown to the user. */
 "notification.moment.5" = "@$1%، @$2%، @$3% و دیگران لحظه‌های جدیدی به اشتراک گذاشتند";
 
+/* New moment screenshot notification text to be shown to the user. */
+"notification.moment.screenshot" = "@% از لحظه شما عکس گرفت";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
 
@@ -1465,6 +1471,9 @@
 /* Text shown to instruct using a QR code for joining a group */
 "scan.to.join.group.using.qr.code" = "برای پیوستن، کد کیو آر را با دوربین موبایل خود اسکن کنید.";
 
+/* Title that indicates that someone took a screenshot. */
+"screenshot.title" = "عکس از صفحه";
+
 /* Text placed on the blurred overlay of a secret post. */
 "secret.post.entice" = "@% لحظه‌ای را به اشراک گذاشت";
 
@@ -1608,6 +1617,9 @@
 
 /* Instructions for enabling notifications permissions */
 "settings.notifications.disabled.instructions" = "لطفاً اعلان‌ها را در تنظیمات آیفون فعال کنید.";
+
+/* Settings > Notifications: label for the toggle that turns new moment notifications on or off. */
+"settings.notifications.moments" = "لحظه‌ها";
 
 /* Settings > Notifications: label for the toggle that turns new post notifications on or off. */
 "settings.notifications.posts" = "پست‌ها";
