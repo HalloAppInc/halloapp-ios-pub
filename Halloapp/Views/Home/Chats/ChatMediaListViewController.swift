@@ -19,6 +19,9 @@ class ChatMediaListViewController: UIViewController {
     private let message: ChatMessage
     private let index: Int
 
+    private var animator: MediaListAnimator?
+    private var swipeExitRecognizer: SwipeToExitGestureRecognizer?
+
     init(userID: String, message: ChatMessage, index: Int) {
         self.userID = userID
         self.message = message
@@ -78,6 +81,10 @@ class ChatMediaListViewController: UIViewController {
         collectionView.delegate = self
 
         collectionView.register(MediaCell.self, forCellWithReuseIdentifier: MediaCell.reuseIdentifier)
+
+        swipeExitRecognizer = SwipeToExitGestureRecognizer(direction: .horizontal, action: backAction)
+        swipeExitRecognizer?.delegate = self
+        collectionView.addGestureRecognizer(swipeExitRecognizer!)
 
         return collectionView
     }()
@@ -140,6 +147,18 @@ extension ChatMediaListViewController: UICollectionViewDelegate {
     }
 }
 
+// MARK: UIGestureRecognizerDelegate
+extension ChatMediaListViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+
+        if gestureRecognizer == swipeExitRecognizer {
+            return true
+        }
+
+        return false
+    }
+}
+
 // MARK: UIViewControllerTransitioningDelegate
 extension ChatMediaListViewController: UIViewControllerTransitioningDelegate {
     func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
@@ -155,17 +174,36 @@ extension ChatMediaListViewController: UIViewControllerTransitioningDelegate {
     }
 
     func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        guard let indexPath = collectionView.indexPathsForVisibleItems.min() else { return nil }
+        let indexPath: IndexPath? = {
+            if let swipeExitRecognizer = swipeExitRecognizer, swipeExitRecognizer.inProgress {
+                return collectionView.indexPathForItem(at: swipeExitRecognizer.start)
+            } else {
+                return collectionView.indexPathsForVisibleItems.min()
+            }
+        }()
+
+        guard let indexPath = indexPath else { return nil }
 
         let media = message.orderedMedia[indexPath.row]
         guard let url = media.mediaURL else { return nil }
 
         let index = MediaIndex(index: indexPath.row, chatMessageID: message.id)
-        let animator = MediaListAnimator(presenting: false, media: url, with: media.type, and: media.size, at: index)
-        animator.fromDelegate = self
-        animator.toDelegate = animatorDelegate
+        animator = MediaListAnimator(presenting: false, media: url, with: media.type, and: media.size, at: index)
+        animator?.fromDelegate = self
+        animator?.toDelegate = animatorDelegate
 
         return animator
+    }
+
+    func interactionControllerForDismissal(using animator: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
+        guard let swipeExitRecognizer = swipeExitRecognizer else { return nil }
+
+        if swipeExitRecognizer.inProgress {
+            swipeExitRecognizer.animator = self.animator
+            return self.animator
+        } else {
+            return nil
+        }
     }
 }
 

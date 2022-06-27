@@ -20,6 +20,7 @@ class SwipeToExitGestureRecognizer: UIPanGestureRecognizer {
 
     weak var animator: MediaListAnimator?
     var inProgress = false
+    private(set) var start: CGPoint = .zero
 
     private let direction: SwipeToExitDirection
     private let action: () -> Void
@@ -45,6 +46,7 @@ class SwipeToExitGestureRecognizer: UIPanGestureRecognizer {
             } else if shouldBegin(translation: translation, velocity: velocity) {
                 sender.setTranslation(.zero, in: sender.view)
                 inProgress = true
+                start = sender.location(in: sender.view)
 
                 action()
             }
