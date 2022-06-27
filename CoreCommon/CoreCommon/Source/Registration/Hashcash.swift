@@ -65,6 +65,13 @@ class HashcashSolver {
                 DDLogInfo("HashcashSolver/solveNext/solved/waiting [no-completion]")
                 return
             }
+            guard solution.expiration > Date() else {
+                DDLogInfo("HashcashSolver/solveNext/refetching [expired-solution]")
+                self.completion = completion
+                state = .initial
+                execute()
+                return
+            }
             completion(.success(solution))
             self.completion = nil
             state = .initial
