@@ -333,6 +333,10 @@ class QuotedMessageCellView: UIView {
     }
 
     private func showMedia(media: CommonMedia) {
+        if let thumbnailData = media.previewData, media.type != .audio {
+            self.mediaView.image = UIImage(data: thumbnailData)
+            return
+        }
         if media.mediaURL != nil {
             displayMediaView(media: media)
         } else {
