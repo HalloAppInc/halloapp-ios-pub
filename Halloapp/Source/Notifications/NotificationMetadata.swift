@@ -515,49 +515,37 @@ class NotificationMetadata: Codable {
             return false
         }
 
-        let momentsCount = moments.count
-        guard momentsCount > 0 else {
+        guard moments.count > 0 else {
             return false
         }
 
-        var firstContactName: String = ""
-        var secondContactName: String = ""
-        var thirdContactName: String = ""
+        var contactNames = [String]()
 
         // Collect names for batching.
         contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-            var count = 0;
-            var displayedUserIDs = Set<UserID>()
             for moment in moments.reversed() {
-                // Name wont be empty - since we'll atleast fallback on pushnames.
-                guard !displayedUserIDs.contains(moment.userId),
-                      let name = contactStore.fullNameIfAvailable(for: moment.userId, ownName: nil, in: managedObjectContext) else
+                guard let name = contactStore.fullNameIfAvailable(for: moment.userId, ownName: nil, in: managedObjectContext),
+                      !name.isEmpty else
                 {
                     continue
                 }
-                if count == 0 {
-                    firstContactName = name
-                } else if count == 1 {
-                    secondContactName = name
-                } else if count == 2 {
-                    thirdContactName = name
-                } else {
-                    break
+                if !contactNames.contains(name) {
+                    contactNames.append(name)
                 }
-                count += 1
-                displayedUserIDs.insert(moment.userId)
             }
         }
 
         // Populate the batched notification title, subtitle and body.
-        if momentsCount == 1 {
-            body = String(format: Localizations.oneNewMomentNotificationTitle, firstContactName)
-        } else if momentsCount == 2 {
-            body = String(format: Localizations.twoNewMomentNotificationTitle, firstContactName, secondContactName, thirdContactName)
-        } else if momentsCount == 3 {
-            body = String(format: Localizations.threeNewMomentNotificationTitle, firstContactName, secondContactName, thirdContactName)
+        if contactNames.count == 1 {
+            body = String(format: Localizations.oneNewMomentNotificationTitle, contactNames[0])
+        } else if contactNames.count == 2 {
+            body = String(format: Localizations.twoNewMomentNotificationTitle, contactNames[0], contactNames[1])
+        } else if contactNames.count == 3 {
+            body = String(format: Localizations.threeNewMomentNotificationTitle, contactNames[0], contactNames[1], contactNames[2])
+        } else if contactNames.count > 3 {
+            body = String(format: Localizations.tooManyNewMomentNotificationTitle, contactNames[0], contactNames[1], contactNames[2])
         } else {
-            body = String(format: Localizations.tooManyNewMomentNotificationTitle, firstContactName, secondContactName, thirdContactName)
+            return false
         }
 
         subtitle = ""
