@@ -99,16 +99,16 @@ final class NotificationRequest {
                                                     messageId: nil,
                                                     pushName: nil)
                 metadata.isMoment = true
-                metadata.momentCount = moments.count
                 let momentsPostData = moments.map { $0.postData }
                 let content = NotificationMetadata.extractMomentNotification(for: metadata, using: momentsPostData)
+                metadata.momentNotificationText = content.body
                 let sound = moments.count < 2 ? UNNotificationSound.default : nil
 
                 // Dont update the notification if nothing changed about moments.
                 let notificationCenter = UNUserNotificationCenter.current()
                 notificationCenter.getMomentNotification { oldMetadata in
                     // Check count and from userId for moments.
-                    if oldMetadata?.momentCount == metadata.momentCount,
+                    if oldMetadata?.momentNotificationText == metadata.momentNotificationText,
                        oldMetadata?.fromId == metadata.fromId {
                         DDLogInfo("NotificationRequest/updateMomentNotifications/skip - since nothing changed")
                         return
