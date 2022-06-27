@@ -634,6 +634,12 @@ extension ProtoServiceCore: CoreService {
         // Block to first fetchSenderState and then encryptSenderState in 1-1 payload and then call the payload encryption block.
         AppContext.shared.messageCrypter.fetchSenderState(in: groupID) { result in
             switch result {
+            case .failure(.invalidUid):
+                DDLogError("ProtoServiceCore/makeGroupRerequestEncryptedPayload/\(groupID)/encryption/error: invalidUid/\(userID)")
+                itemPayloadEncryptionCompletion(nil)
+            case .failure(.invalidGroup):
+                DDLogError("ProtoServiceCore/makeGroupRerequestEncryptedPayload/\(groupID)/encryption/error: invalidGroup/\(groupID) for \(userID)")
+                itemPayloadEncryptionCompletion(nil)
             case .failure(let error):
                 DDLogError("ProtoServiceCore/makeGroupRerequestEncryptedPayload/\(groupID)/encryption/error [\(error)]")
                 completion(.failure(.missingKeyBundle))
