@@ -30,7 +30,7 @@ class MessageCellViewEvent: UICollectionViewCell {
 
     var messageLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 12, weight: .regular)
+        label.font = UIFont.scaledSystemFont(ofSize: 12, weight: .regular)
         label.alpha = 0.80
         label.textColor = UIColor.black
         label.textAlignment = .natural

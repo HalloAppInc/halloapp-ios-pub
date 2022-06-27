@@ -32,7 +32,7 @@ class MessageCellViewCall: UICollectionViewCell {
 
     var callEventLabel: UILabel = {
         let callEventLabel = UILabel()
-        callEventLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
+        callEventLabel.font = .scaledSystemFont(ofSize: 12, weight: .medium)
         callEventLabel.textColor = UIColor.timeHeaderText
         callEventLabel.textAlignment = .natural
         callEventLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -92,7 +92,7 @@ class MessageCellViewCall: UICollectionViewCell {
         let titleString: NSMutableAttributedString
         
         let iconConfiguration = UIImage.SymbolConfiguration(pointSize: 15)
-        let messagefont = UIFont.systemFont(ofSize: 12, weight: .medium)
+        let messagefont = UIFont.scaledSystemFont(ofSize: 12, weight: .medium)
 
         let name = MainAppContext.shared.contactStore.firstName(for: callData.userID, in: MainAppContext.shared.contactStore.viewContext)
         
@@ -136,7 +136,7 @@ class MessageCellViewCall: UICollectionViewCell {
         if let timeStamp = callData.timestamp?.chatDisplayTimestamp(Date()) {
             titleString.append(NSAttributedString(
                 string: "  " + timeStamp,
-                attributes: [.font: UIFont.systemFont(ofSize: 12, weight: .regular), .foregroundColor: UIColor.chatTime] ))
+                attributes: [.font: UIFont.scaledSystemFont(ofSize: 12, weight: .regular), .foregroundColor: UIColor.chatTime] ))
         }
         callEventLabel.attributedText = titleString
     }

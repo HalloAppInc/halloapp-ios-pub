@@ -24,7 +24,7 @@ class MessageChatHeaderView: UICollectionReusableView {
 
     var encryptionLabel: UILabel = {
         let encryptionLabel = UILabel()
-        encryptionLabel.font = UIFont.systemFont(ofSize: 12, weight: .regular)
+        encryptionLabel.font = .scaledSystemFont(ofSize: 12, weight: .regular)
         encryptionLabel.alpha = 0.80
         encryptionLabel.textColor = UIColor.black
         encryptionLabel.textAlignment = .center
@@ -71,7 +71,8 @@ class MessageChatHeaderView: UICollectionReusableView {
         NSLayoutConstraint.activate([
             encryptionBubble.widthAnchor.constraint(lessThanOrEqualToConstant: CGFloat(MaxWidthConstraint).rounded()),
             encryptionBubble.centerXAnchor.constraint(equalTo: centerXAnchor),
-            encryptionBubble.topAnchor.constraint(equalTo: topAnchor, constant: 14)
+            encryptionBubble.topAnchor.constraint(equalTo: topAnchor, constant: 14),
+            encryptionBubble.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 14),
         ])
     }
 

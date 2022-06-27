@@ -94,7 +94,7 @@ class QuotedMessageCellView: UIView {
         let textLabel = UILabel()
         textLabel.isUserInteractionEnabled = true
         textLabel.backgroundColor = .clear
-        textLabel.font = UIFont.systemFont(ofSize: 13)
+        textLabel.font = .scaledSystemFont(ofSize: 13)
         textLabel.translatesAutoresizingMaskIntoConstraints = false
         textLabel.isHidden = true
         textLabel.numberOfLines = 2
@@ -114,7 +114,7 @@ class QuotedMessageCellView: UIView {
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-        label.font = UIFont.boldSystemFont(ofSize: 13)
+        label.font = .scaledSystemFont(ofSize: 13, weight: .bold)
         label.textColor = .secondaryLabel.withAlphaComponent(0.2)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -177,10 +177,10 @@ class QuotedMessageCellView: UIView {
             mediaHeightConstraint,
             mediaView.leadingAnchor.constraint(equalTo: mediaTextView.leadingAnchor),
             mediaView.trailingAnchor.constraint(equalTo: nameTextRow.leadingAnchor, constant: -8),
-            mediaView.topAnchor.constraint(equalTo: mediaTextView.topAnchor),
-            mediaView.bottomAnchor.constraint(equalTo: mediaTextView.bottomAnchor),
-            nameTextRow.centerYAnchor.constraint(equalTo: mediaTextView.centerYAnchor),
+            mediaView.centerYAnchor.constraint(equalTo: mediaTextView.centerYAnchor),
             nameTextRow.trailingAnchor.constraint(equalTo: mediaTextView.trailingAnchor),
+            nameTextRow.topAnchor.constraint(equalTo: mediaTextView.topAnchor),
+            nameTextRow.bottomAnchor.constraint(equalTo: mediaTextView.bottomAnchor),
             nameTextRow.trailingAnchor.constraint(equalTo: mediaTextView.trailingAnchor)
         ])
     }

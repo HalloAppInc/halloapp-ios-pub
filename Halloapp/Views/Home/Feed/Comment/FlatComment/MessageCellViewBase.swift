@@ -45,7 +45,7 @@ class MessageCellViewBase: UICollectionViewCell {
         let label = UILabel()
         label.numberOfLines = 1
 
-        label.font = UIFont.systemFont(ofSize: 13, weight: .semibold)
+        label.font = .scaledSystemFont(ofSize: 13, weight: .semibold)
         label.textColor = .secondaryLabel
         label.isUserInteractionEnabled = true
 
@@ -69,7 +69,7 @@ class MessageCellViewBase: UICollectionViewCell {
         let textLabel = TextLabel()
         textLabel.isUserInteractionEnabled = true
         textLabel.backgroundColor = .clear
-        textLabel.font = UIFont.systemFont(ofSize: 15)
+        textLabel.font = UIFont.scaledSystemFont(ofSize: 15)
         textLabel.translatesAutoresizingMaskIntoConstraints = false
         textLabel.numberOfLines = 0
         textLabel.textColor = UIColor.primaryBlackWhite.withAlphaComponent(0.8)
@@ -113,7 +113,7 @@ class MessageCellViewBase: UICollectionViewCell {
     public lazy var timeLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-        label.font = UIFont.systemFont(ofSize: 12)
+        label.font = .scaledSystemFont(ofSize: 12)
         label.textColor = UIColor.chatTime
         label.translatesAutoresizingMaskIntoConstraints = false
         label.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -308,7 +308,7 @@ class MessageCellViewBase: UICollectionViewCell {
          let result = NSMutableAttributedString(string: timestamp)
          if let icon = statusIcon(chatMessage.outgoingStatus) {
              let imageSize = icon.size
-             let font = UIFont.systemFont(ofSize: timeLabel.font.pointSize - 1)
+             let font = UIFont.scaledSystemFont(ofSize: timeLabel.font.pointSize - 1)
 
              let scale = font.capHeight / imageSize.height
              let iconAttachment = NSTextAttachment(image: icon)

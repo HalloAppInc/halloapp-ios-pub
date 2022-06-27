@@ -12,7 +12,7 @@ class MessageHeaderView: UIView {
 
     var timestampLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
+        label.font = .scaledSystemFont(ofSize: 12, weight: .medium)
         label.textColor = UIColor.timeHeaderText
         label.textAlignment = .natural
         label.translatesAutoresizingMaskIntoConstraints = false
