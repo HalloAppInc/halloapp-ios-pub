@@ -22,6 +22,7 @@ extension SenderStateBundle {
     @NSManaged public var publicSignatureKey: Data
     @NSManaged public var userId: String
     @NSManaged public var groupSessionKeyBundle: GroupSessionKeyBundle
+    @NSManaged public var homeSessionKeyBundle: HomeSessionKeyBundle
     @NSManaged public var messageKeys: Set<GroupMessageKey>?
 
 }
