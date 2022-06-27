@@ -150,7 +150,9 @@ class NotificationMetadata: Codable {
     var groupName: String? = nil
     var normalizedPhone: String? = nil
     var isMoment: Bool = false
-    var momentCount: Int = 0
+    // TODO: We use this string to dedup batched notifications.
+    // This is okay for now - but using mentioned postIds/userIds would be better.
+    var momentNotificationText: String = ""
 
     var protoContainer: Clients_Container? {
         guard let protobufData = data else { return nil }
