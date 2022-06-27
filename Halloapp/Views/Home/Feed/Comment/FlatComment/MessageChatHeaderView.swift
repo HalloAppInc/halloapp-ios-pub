@@ -72,7 +72,7 @@ class MessageChatHeaderView: UICollectionReusableView {
             encryptionBubble.widthAnchor.constraint(lessThanOrEqualToConstant: CGFloat(MaxWidthConstraint).rounded()),
             encryptionBubble.centerXAnchor.constraint(equalTo: centerXAnchor),
             encryptionBubble.topAnchor.constraint(equalTo: topAnchor, constant: 14),
-            encryptionBubble.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 14),
+            encryptionBubble.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -14),
         ])
     }
 
