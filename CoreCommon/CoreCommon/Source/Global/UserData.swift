@@ -55,7 +55,7 @@ public final class UserData: ObservableObject {
     public var phoneInput = ""
     public var name = "" {
         didSet {
-            userNamePublisher.send(name)
+            userNamePublisher?.send(name)
         }
     }
 
@@ -119,26 +119,28 @@ public final class UserData: ObservableObject {
     init(storeDirectoryURL: URL, isAppClip: Bool) {
         self.isAppClip = isAppClip
         persistentStoreURL = storeDirectoryURL.appendingPathComponent("UserData.sqlite")
-        if let user = fetch(using: viewContext) {
-            self.countryCode = user.countryCode ?? "1"
-            self.phoneInput = user.phoneInput ?? ""
-            self.normalizedPhoneNumber = user.phone ?? ""
-            self.userId = user.userId ?? ""
-            self.name = user.name ?? ""
-            
-            // If this is the main app and noise keys are present in shared container, load noiseKeys from the container
-            if !isAppClip, let storePrivateKey = user.noisePrivateKey, let storePublicKey = user.noisePublicKey {
-                DDLogInfo("UserData/init/loading noise keys from persistent store")
-                noiseKeys = NoiseKeys(privateEdKey: storePrivateKey, publicEdKey: storePublicKey)
-                //Migrate the noise keys from persistent store to keychain
-                migrateNoiseKeys(using: viewContext)
-            } else {
-                DDLogInfo("UserData/init/loading noise keys from keychain [\(userId)]")
-                noiseKeys = Keychain.loadNoiseUserKeypair(for: userId)
-                if noiseKeys == nil {
-                    DDLogInfo("UserData/init/noise keys not found")
+        viewContext.performAndWait {
+            if let user = fetch(using: viewContext) {
+                self.countryCode = user.countryCode ?? "1"
+                self.phoneInput = user.phoneInput ?? ""
+                self.normalizedPhoneNumber = user.phone ?? ""
+                self.userId = user.userId ?? ""
+                self.name = user.name ?? ""
+
+                // If this is the main app and noise keys are present in shared container, load noiseKeys from the container
+                if !isAppClip, let storePrivateKey = user.noisePrivateKey, let storePublicKey = user.noisePublicKey {
+                    DDLogInfo("UserData/init/loading noise keys from persistent store")
+                    noiseKeys = NoiseKeys(privateEdKey: storePrivateKey, publicEdKey: storePublicKey)
+                    //Migrate the noise keys from persistent store to keychain
+                    migrateNoiseKeys(using: viewContext)
                 } else {
-                    DDLogInfo("UserData/init/loaded noise keys")
+                    DDLogInfo("UserData/init/loading noise keys from keychain [\(userId)]")
+                    noiseKeys = Keychain.loadNoiseUserKeypair(for: userId)
+                    if noiseKeys == nil {
+                        DDLogInfo("UserData/init/noise keys not found")
+                    } else {
+                        DDLogInfo("UserData/init/loaded noise keys")
+                    }
                 }
             }
         }

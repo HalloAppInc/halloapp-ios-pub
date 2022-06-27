@@ -14,11 +14,13 @@ import CoreData
 class DataStore: ShareExtensionDataStore {
 
     private let service: CoreService
+    private let mainDataStore: MainDataStore
     let mediaUploader: MediaUploader
     let mediaProcessingId = "shared-media-processing-id"
 
-    init(service: CoreService) {
+    init(service: CoreService, mainDataStore: MainDataStore) {
         self.service = service
+        self.mainDataStore = mainDataStore
         mediaUploader = MediaUploader(service: service)
         super.init()
     }
@@ -68,32 +70,46 @@ class DataStore: ShareExtensionDataStore {
                     case .success(let result):
                         result.copy(to: output)
 
-                        mediaItem.size = result.size
-                        mediaItem.key = result.key
-                        mediaItem.sha256 = result.sha256
-                        mediaItem.relativeFilePath = path
-                        mediaItem.chunkSize = result.chunkSize
-                        mediaItem.blobSize = result.blobSize
-                        self.save(managedObjectContext)
-                        self.uploadMedia(mediaItem: mediaItem, postOrMessageOrLinkPreviewId: postOrMessageOrLinkPreviewId, in: managedObjectContext, completion: onUploadCompletion)
+                        self.mainDataStore.performSeriallyOnBackgroundContext { context in
+                            guard let mediaItem = mediaItem.in(context: context) else {
+                                DDLogError("SharedDataStore/upload-media/prepare/failure - couold not find media item")
+                                onUploadCompletion(.failure(MediaUploadError.unknownError))
+                                return
+                            }
+                            mediaItem.size = result.size
+                            mediaItem.key = result.key
+                            mediaItem.sha256 = result.sha256
+                            mediaItem.relativeFilePath = path
+                            mediaItem.chunkSize = result.chunkSize
+                            mediaItem.blobSize = result.blobSize
+                            self.save(context)
+                            self.uploadMedia(mediaItem: mediaItem, postOrMessageOrLinkPreviewId: postOrMessageOrLinkPreviewId, completion: onUploadCompletion)
 
-                        // the original media file should be deleted after it's been processed to save space
-                        // nb: the original and processed files have different ids, should revisit to see if they could use the same one to make debugging easier
-                        do {
-                            try FileManager.default.removeItem(at: url)
-                            DDLogInfo("SharedDataStore/upload-media/prepare/success/delete original [\(url)]")
-                        } catch { }
+                            // the original media file should be deleted after it's been processed to save space
+                            // nb: the original and processed files have different ids, should revisit to see if they could use the same one to make debugging easier
+                            do {
+                                try FileManager.default.removeItem(at: url)
+                                DDLogInfo("SharedDataStore/upload-media/prepare/success/delete original [\(url)]")
+                            } catch { }
+                        }
                     case .failure(_):
                         numberOfFailedUploads += 1
 
-                        mediaItem.status = .uploadError
-                        self.save(managedObjectContext)
+                        self.mainDataStore.performSeriallyOnBackgroundContext { context in
+                            guard let mediaItem = mediaItem.in(context: context) else {
+                                DDLogError("SharedDataStore/upload-media/prepare/failure - couold not find media item")
+                                onUploadCompletion(.failure(MediaUploadError.unknownError))
+                                return
+                            }
+                            mediaItem.status = .uploadError
+                            self.save(context)
 
-                        uploadGroup.leave()
+                            uploadGroup.leave()
+                        }
                     }
                 }
             } else {
-                self.uploadMedia(mediaItem: mediaItem, postOrMessageOrLinkPreviewId: postOrMessageOrLinkPreviewId, in: managedObjectContext, completion: onUploadCompletion)
+                self.uploadMedia(mediaItem: mediaItem, postOrMessageOrLinkPreviewId: postOrMessageOrLinkPreviewId, completion: onUploadCompletion)
             }
         }
 
@@ -108,26 +124,33 @@ class DataStore: ShareExtensionDataStore {
         }
     }
 
-    private func uploadMedia(mediaItem: CommonMedia, postOrMessageOrLinkPreviewId: String, in managedObjectContext: NSManagedObjectContext, completion: @escaping MediaUploader.Completion) {
+    private func uploadMedia(mediaItem: CommonMedia, postOrMessageOrLinkPreviewId: String, completion: @escaping MediaUploader.Completion) {
         let mediaIndex = mediaItem.order
         let onDidGetURLs: (MediaURLInfo) -> () = { (mediaURLs) in
-            DDLogInfo("SharedDataStore/uploadMedia/\(mediaIndex)/acquired-urls [\(mediaURLs)]")
+            self.mainDataStore.performOnBackgroundContextAndWait { context in
+                guard let mediaItem = mediaItem.in(context: context) else {
+                    DDLogError("SharedDataStore/uploadMedia/\(mediaIndex)/acquired-urls - unable to find media item")
+                    return
+                }
 
-            // Save URLs acquired during upload to the database.
-            switch mediaURLs {
-            case .getPut(let getURL, let putURL):
-                mediaItem.uploadUrl = putURL
-                mediaItem.url = getURL
+                DDLogInfo("SharedDataStore/uploadMedia/\(mediaIndex)/acquired-urls [\(mediaURLs)]")
 
-            case .patch(let patchURL):
-                mediaItem.uploadUrl = patchURL
-                mediaItem.url = nil
+                // Save URLs acquired during upload to the database.
+                switch mediaURLs {
+                case .getPut(let getURL, let putURL):
+                    mediaItem.uploadUrl = putURL
+                    mediaItem.url = getURL
 
-            // this will be revisited when we refactor share extension.
-            case .download(let downloadURL):
-                mediaItem.url = downloadURL
+                case .patch(let patchURL):
+                    mediaItem.uploadUrl = patchURL
+                    mediaItem.url = nil
+
+                // this will be revisited when we refactor share extension.
+                case .download(let downloadURL):
+                    mediaItem.url = downloadURL
+                }
+                self.save(context)
             }
-            self.save(managedObjectContext)
         }
 
         guard let relativeFilePath = mediaItem.relativeFilePath else {
@@ -136,37 +159,55 @@ class DataStore: ShareExtensionDataStore {
         }
         let processed = fileURL(forRelativeFilePath: relativeFilePath)
         AppContext.shared.mediaHashStore.fetch(url: processed, blobVersion: mediaItem.blobVersion) { [weak self] upload in
-            guard let self = self else { return }
-            if let url = upload?.url {
-                DDLogInfo("Media \(processed) has been uploaded before at \(url).")
-                if let uploadUrl = mediaItem.uploadUrl {
-                    DDLogInfo("SharedDataStore/uploadMedia/upload url is supposed to be nil here/\(postOrMessageOrLinkPreviewId)/\(mediaIndex), uploadUrl: \(uploadUrl)")
-                    // we set it to be nil here explicitly.
-                    mediaItem.uploadUrl = nil
+            self?.mainDataStore.performSeriallyOnBackgroundContext { [weak self] context in
+                guard let self = self else { return }
+                guard let mediaItem = mediaItem.in(context: context) else {
+                    DDLogError("SharedDataStore/uploadMedia/failed to upload media, mediaItem not found")
+                    completion(.failure(MediaUploadError.unknownError))
+                    return
                 }
-                mediaItem.url = url
-            } else {
-                DDLogInfo("SharedDataStore/uploadMedia/uploading media now/\(postOrMessageOrLinkPreviewId)/\(mediaItem.order), index:\(mediaIndex)")
-            }
 
-            self.mediaUploader.upload(media: mediaItem, groupId: postOrMessageOrLinkPreviewId, didGetURLs: onDidGetURLs) { (uploadResult) in
-                switch uploadResult {
-                case .success(let details):
-                    mediaItem.url = details.downloadURL
-                    mediaItem.status = .uploaded
+                if let url = upload?.url {
+                    DDLogInfo("Media \(processed) has been uploaded before at \(url).")
 
-                    // If the download url was successfully refreshed - then use the old key and old hash.
-                    if mediaItem.url == upload?.url, let key = upload?.key, let sha256 = upload?.sha256 {
-                        mediaItem.key = key
-                        mediaItem.sha256 = sha256
+
+                    if let uploadUrl = mediaItem.uploadUrl {
+                        DDLogInfo("SharedDataStore/uploadMedia/upload url is supposed to be nil here/\(postOrMessageOrLinkPreviewId)/\(mediaIndex), uploadUrl: \(uploadUrl)")
+                        // we set it to be nil here explicitly.
+                        mediaItem.uploadUrl = nil
                     }
-                    AppExtensionContext.shared.mediaHashStore.update(url: processed, blobVersion: mediaItem.blobVersion, key: mediaItem.key, sha256: mediaItem.sha256, downloadURL: mediaItem.url!)
-                case .failure(let error):
-                    DDLogError("SharedDataStore/uploadMedia/failed to upload media, error: \(error)")
-                    mediaItem.status = .uploadError
+                    mediaItem.url = url
+                    self.save(context)
+                } else {
+                    DDLogInfo("SharedDataStore/uploadMedia/uploading media now/\(postOrMessageOrLinkPreviewId)/\(mediaIndex), index:\(mediaIndex)")
                 }
-                self.save(managedObjectContext)
-                completion(uploadResult)
+
+                self.mediaUploader.upload(media: mediaItem, groupId: postOrMessageOrLinkPreviewId, didGetURLs: onDidGetURLs) { (uploadResult) in
+                    self.mainDataStore.performSeriallyOnBackgroundContext { context in
+                        guard let mediaItem = mediaItem.in(context: context) else {
+                            DDLogError("SharedDataStore/uploadMedia/failed to upload media, mediaItem not found")
+                            completion(.failure(MediaUploadError.unknownError))
+                            return
+                        }
+                        switch uploadResult {
+                        case .success(let details):
+                            mediaItem.url = details.downloadURL
+                            mediaItem.status = .uploaded
+
+                            // If the download url was successfully refreshed - then use the old key and old hash.
+                            if mediaItem.url == upload?.url, let key = upload?.key, let sha256 = upload?.sha256 {
+                                mediaItem.key = key
+                                mediaItem.sha256 = sha256
+                            }
+                            AppExtensionContext.shared.mediaHashStore.update(url: processed, blobVersion: mediaItem.blobVersion, key: mediaItem.key, sha256: mediaItem.sha256, downloadURL: mediaItem.url!)
+                        case .failure(let error):
+                            DDLogError("SharedDataStore/uploadMedia/failed to upload media, error: \(error)")
+                            mediaItem.status = .uploadError
+                        }
+                        self.save(context)
+                        completion(uploadResult)
+                    }
+                }
             }
         }
     }
@@ -229,7 +270,7 @@ class DataStore: ShareExtensionDataStore {
         DDLogInfo("SharedDataStore/post/\(postId)/created")
 
         // 1. Save post to the db and copy media to permanent storage directory.
-        AppContext.shared.mainDataStore.saveSeriallyOnBackgroundContext { managedObjectContext in
+        mainDataStore.saveSeriallyOnBackgroundContext { managedObjectContext in
             let feedPost = FeedPost(context: managedObjectContext)
             feedPost.id = postId
             feedPost.userId = AppContext.shared.userData.userId
@@ -317,7 +358,14 @@ class DataStore: ShareExtensionDataStore {
                 self.upload(media: itemsToUpload, postOrMessageOrLinkPreviewId: postId, managedObjectContext: managedObjectContext) { (allItemsUploaded) in
                     if allItemsUploaded {
                         // Send if all items have been uploaded.
-                        self.send(post: feedPost, completion: completion)
+                        self.mainDataStore.performSeriallyOnBackgroundContext { context in
+                            guard let feedPost = feedPost.in(context: context) else {
+                                DDLogError("NotificationExtension/DataStore/new-post/could not find feed post to send")
+                                completion(.failure(MediaUploadError.unknownError))
+                                return
+                            }
+                            self.send(post: feedPost, completion: completion)
+                        }
                     } else {
                         completion(.failure(ShareError.mediaUploadFailed))
                     }
@@ -326,7 +374,14 @@ class DataStore: ShareExtensionDataStore {
                 self.upload(media: itemsToUpload.sorted(by: { $0.order < $1.order }), postOrMessageOrLinkPreviewId: linkPreview.id, managedObjectContext: managedObjectContext) { (allItemsUploaded) in
                     if allItemsUploaded {
                         // Send if all items have been uploaded.
-                        self.send(post: feedPost, completion: completion)
+                        self.mainDataStore.performSeriallyOnBackgroundContext { context in
+                            guard let feedPost = feedPost.in(context: context) else {
+                                DDLogError("NotificationExtension/DataStore/new-post/could not find feed post to send")
+                                completion(.failure(MediaUploadError.unknownError))
+                                return
+                            }
+                            self.send(post: feedPost, completion: completion)
+                        }
                     } else {
                         completion(.failure(ShareError.mediaUploadFailed))
                     }
@@ -353,30 +408,35 @@ class DataStore: ShareExtensionDataStore {
             feed = .personal(postAudience)
         }
 
-        let managedObjectContext = feedPost.managedObjectContext!
-
         DDLogError("SharedDataStore/post/\(feedPost.id)/send")
 
         service.publishPost(feedPost.postData, feed: feed) { result in
-            switch result {
-            case .success(let timestamp):
-                DDLogError("SharedDataStore/post/\(feedPost.id)/send/complete")
-
-                feedPost.status = .sent
-                feedPost.timestamp = timestamp
-                self.save(managedObjectContext)
-
-                completion(.success(feedPost.id))
-
-            case .failure(let error):
-                DDLogError("SharedDataStore/post/\(feedPost.id)/send/error \(error)")
-
-                if error.isKnownFailure {
-                    feedPost.status = .sendError
-                    self.save(managedObjectContext)
+            self.mainDataStore.performSeriallyOnBackgroundContext { context in
+                guard let feedPost = feedPost.in(context: context) else {
+                    DDLogError("NotificationExtension/DataStore/new-post/could not find feed post to send")
+                    completion(.failure(MediaUploadError.unknownError))
+                    return
                 }
+                switch result {
+                case .success(let timestamp):
+                    DDLogError("SharedDataStore/post/\(feedPost.id)/send/complete")
 
-                completion(.failure(error))
+                    feedPost.status = .sent
+                    feedPost.timestamp = timestamp
+                    self.save(context)
+
+                    completion(.success(feedPost.id))
+
+                case .failure(let error):
+                    DDLogError("SharedDataStore/post/\(feedPost.id)/send/error \(error)")
+
+                    if error.isKnownFailure {
+                        feedPost.status = .sendError
+                        self.save(context)
+                    }
+
+                    completion(.failure(error))
+                }
             }
         }
     }
@@ -389,7 +449,7 @@ class DataStore: ShareExtensionDataStore {
         DDLogInfo("SharedDataStore/message/\(messageId)/created")
         
         // 1. Save message to the db and copy media to permanent storage directory.
-        AppContext.shared.mainDataStore.saveSeriallyOnBackgroundContext { managedObjectContext in
+        mainDataStore.saveSeriallyOnBackgroundContext { managedObjectContext in
             let chatMessage = ChatMessage(context: managedObjectContext)
             chatMessage.id = messageId
             chatMessage.toUserId = userId
@@ -438,7 +498,7 @@ class DataStore: ShareExtensionDataStore {
             }
 
             // Update Chat Thread
-            if let chatThread = AppContext.shared.mainDataStore.chatThread(id: chatMessage.toUserID, in: managedObjectContext) {
+            if let chatThread = self.mainDataStore.chatThread(id: chatMessage.toUserID, in: managedObjectContext) {
                 chatThread.userID = chatMessage.toUserId
                 chatThread.lastMsgId = chatMessage.id
                 chatThread.lastMsgUserId = chatMessage.fromUserId
@@ -464,7 +524,14 @@ class DataStore: ShareExtensionDataStore {
                 self.upload(media: itemsToUpload, postOrMessageOrLinkPreviewId: messageId, managedObjectContext: managedObjectContext) { (allItemsUploaded) in
                     if allItemsUploaded {
                         // Send if all items have been uploaded.
-                        self.send(message: chatMessage, completion: completion)
+                        self.mainDataStore.performSeriallyOnBackgroundContext { context in
+                            guard let chatMessage = chatMessage.in(context: context) else {
+                                DDLogError("NotificationExtension/DataStore/new-chat/could not find chatMessage to send")
+                                completion(.failure(MediaUploadError.unknownError))
+                                return
+                            }
+                            self.send(message: chatMessage, completion: completion)
+                        }
                     } else {
                         completion(.failure(ShareError.mediaUploadFailed))
                     }
@@ -473,7 +540,14 @@ class DataStore: ShareExtensionDataStore {
                 self.upload(media: itemsToUpload.sorted(by: { $0.order < $1.order }), postOrMessageOrLinkPreviewId: linkPreview.id, managedObjectContext: managedObjectContext) { (allItemsUploaded) in
                     if allItemsUploaded {
                         // Send if all items have been uploaded.
-                        self.send(message: chatMessage, completion: completion)
+                        self.mainDataStore.performSeriallyOnBackgroundContext { context in
+                            guard let chatMessage = chatMessage.in(context: context) else {
+                                DDLogError("NotificationExtension/DataStore/new-chat/could not find chatMessage to send")
+                                completion(.failure(MediaUploadError.unknownError))
+                                return
+                            }
+                            self.send(message: chatMessage, completion: completion)
+                        }
                     } else {
                         completion(.failure(ShareError.mediaUploadFailed))
                     }
@@ -492,16 +566,20 @@ class DataStore: ShareExtensionDataStore {
             case .success:
                 // Found a case with chatMsg.status=sent but the shared.outgoingStatus=.uploading
                 // not clear how that can happen? check with team on this.
-                AppContext.shared.mainDataStore.performSeriallyOnBackgroundContext { _ in
-                    if let managedObjectContext = message.managedObjectContext {
-                        message.outgoingStatus = .sentOut
-                        self.save(managedObjectContext)
+                self.mainDataStore.performSeriallyOnBackgroundContext { context in
+                    guard let message = message.in(context: context) else {
+                        DDLogError("NotificationExtension/DataStore/new-chat/could not find chatMessage to send")
+                        completion(.failure(MediaUploadError.unknownError))
+                        return
                     }
-                }
+                    message.outgoingStatus = .sentOut
+                    self.save(context)
 
-                // ShareExtensions can die quickly. Give it some time to send enqueued posts or messages.
-                DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(500)) {
-                    completion(.success(message.id))
+                    let messageID = message.id
+                    // ShareExtensions can die quickly. Give it some time to send enqueued posts or messages.
+                    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(500)) {
+                        completion(.success(messageID))
+                    }
                 }
             case .failure(let error):
                 completion(.failure(error))

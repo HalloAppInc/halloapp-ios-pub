@@ -393,6 +393,7 @@
 		EAF3A1CF2334192000805FF9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1CD2334192000805FF9 /* LaunchScreen.storyboard */; };
 		EAF3A1DA2334192000805FF9 /* HalloappTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1D92334192000805FF9 /* HalloappTests.swift */; };
 		EAF3A1E52334192000805FF9 /* HalloappUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1E42334192000805FF9 /* HalloappUITests.swift */; };
+		EB9E73D2285D12C5009F1B45 /* ReactionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB9E73D1285D12C5009F1B45 /* ReactionViewController.swift */; };
 		EBA8265D28418BAF00590507 /* VerificationCodeTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBA8265C28418BAF00590507 /* VerificationCodeTextField.swift */; };
 		EE969F642847EE49006F491A /* HAMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE969F632847EE49006F491A /* HAMenu.swift */; };
 		F404FC392810B135008313FF /* Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F404FC372810B135008313FF /* Core.framework */; };
@@ -1148,6 +1149,7 @@
 		EAF3A1E02334192000805FF9 /* HalloAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HalloAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		EAF3A1E42334192000805FF9 /* HalloappUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloappUITests.swift; sourceTree = "<group>"; };
 		EAF3A1E62334192000805FF9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		EB9E73D1285D12C5009F1B45 /* ReactionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReactionViewController.swift; sourceTree = "<group>"; };
 		EBA8265C28418BAF00590507 /* VerificationCodeTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationCodeTextField.swift; sourceTree = "<group>"; };
 		EE969F632847EE49006F491A /* HAMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HAMenu.swift; sourceTree = "<group>"; };
 		F404FC372810B135008313FF /* Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1950,6 +1952,7 @@
 				32C83FB8268FC8FE00BEB4F5 /* NewChatPermissionDeniedController.swift */,
 				EAD476CC245513EF00EF8591 /* ChatListViewController.swift */,
 				EAA0799625AFC71600B384AB /* ThreadListCell.swift */,
+				EB9E73D1285D12C5009F1B45 /* ReactionViewController.swift */,
 				EA3585742450BE3300E6E8AB /* ChatViewController.swift */,
 				A1AE40CA282DAB3F00C3EF3A /* QuotedMomentView.swift */,
 				EAEE49D9276A76ED0042E654 /* ChatTitleView.swift */,
@@ -3019,6 +3022,7 @@
 				764D5AEC248F0F3B009295F3 /* UINavigationBar.swift in Sources */,
 				E5959702268E3F6500AA3BB9 /* DeleteAccountModel.swift in Sources */,
 				76538099243D4C08000AD9A1 /* FeedDownloadManager.swift in Sources */,
+				EB9E73D2285D12C5009F1B45 /* ReactionViewController.swift in Sources */,
 				EA50FBA426FE82D00097C451 /* HAMarkdown.swift in Sources */,
 				68E4619625C9C93B008B5698 /* ExpiredVersionViewController.swift in Sources */,
 				761B3962241D9C4D00858251 /* SyncSession.swift in Sources */,

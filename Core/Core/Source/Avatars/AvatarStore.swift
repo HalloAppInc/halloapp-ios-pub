@@ -68,7 +68,7 @@ public class AvatarStore: ServiceAvatarDelegate {
         return container
     }()
 
-    private var viewContext: NSManagedObjectContext
+    public var viewContext: NSManagedObjectContext
     private let fullSizeImageCache = NSCache<NSString, UIImage>()
 
     public init() {

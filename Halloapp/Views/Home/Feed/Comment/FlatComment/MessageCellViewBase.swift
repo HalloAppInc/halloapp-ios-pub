@@ -480,8 +480,9 @@ extension MessageCellViewBase: UIGestureRecognizerDelegate {
 
     @objc public func showMessageOptions(_ recognizer: UILongPressGestureRecognizer) {
         guard let chatMessage = chatMessage else { return }
-
-        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
-        chatDelegate?.messageView(self, didLongPressOn: chatMessage)
+        if(recognizer.state == .began) {
+            UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+            chatDelegate?.messageView(self, didLongPressOn: chatMessage)
+        }
     }
 }

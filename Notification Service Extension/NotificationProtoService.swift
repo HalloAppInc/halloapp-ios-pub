@@ -368,7 +368,7 @@ final class NotificationProtoService: ProtoServiceCore {
             hasAckBeenDelegated = true
             let postID = metadata.contentId
             // removeNotification if available.
-            removeNotification(id: metadata.contentId)
+            removeNotification(id: metadata.identifier)
 
             let completion = {
                 ack()
@@ -438,7 +438,7 @@ final class NotificationProtoService: ProtoServiceCore {
             hasAckBeenDelegated = true
             let commentID = metadata.contentId
             // removeNotification if available.
-            removeNotification(id: metadata.contentId)
+            removeNotification(id: metadata.identifier)
 
             let completion = {
                 ack()
@@ -485,13 +485,36 @@ final class NotificationProtoService: ProtoServiceCore {
 
         case .chatMessageRetract, .groupChatMessageRetract:
             // removeNotification if available.
-            removeNotification(id: metadata.contentId)
+            removeNotification(id: metadata.identifier)
             // save these messages to be processed by the main app.
             notificationDataStore.saveServerMsg(contentId: msg.id, serverMsgPb: serverMsgPb)
 
         case .groupChatMessage, .chatRerequest, .missedAudioCall, .missedVideoCall:
             notificationDataStore.saveServerMsg(contentId: msg.id, serverMsgPb: serverMsgPb)
 
+        case .screenshot:
+            hasAckBeenDelegated = true
+            mainDataStore.performSeriallyOnBackgroundContext { context in
+                guard let post = self.coreFeedData.feedPost(with: metadata.contentId, in: context) else {
+                    DDLogError("didReceiveRequest/error no post for screen shot receipt [\(metadata.contentId)]")
+                    return ack()
+                }
+
+                let info = post.info ?? ContentPublishInfo(context: context)
+                var receipts = info.receipts ?? [:]
+                if receipts[metadata.fromId] == nil {
+                    receipts[metadata.fromId] = Receipt()
+                }
+
+                receipts[metadata.fromId]?.screenshotDate = metadata.timestamp
+                info.receipts = receipts
+                post.info = info
+
+                self.mainDataStore.save(context)
+                self.presentScreenshotNotification(for: metadata)
+
+                ack()
+            }
         }
     }
 
@@ -539,7 +562,7 @@ final class NotificationProtoService: ProtoServiceCore {
                         downloadTask?.feedMediaObjectId = firstMediaItem.objectID
                     } else {
                         let notificationContent = self.extractAndHoldNotificationContent(for: metadata, using: postData)
-                        self.presentNotification(for: metadata.contentId, with: notificationContent)
+                        self.presentNotification(for: metadata.identifier, with: notificationContent)
                     }
                 }
             case .failure(let error):
@@ -761,13 +784,13 @@ final class NotificationProtoService: ProtoServiceCore {
                 do {
                     let fileURL = self.downloadManager.fileURL(forRelativeFilePath: relativeFilePath)
                     attachment = try UNNotificationAttachment(identifier: quotedMediaItem.id, url: fileURL, options: nil)
-                    self.presentNotification(for: metadata.contentId, with: notificationContent, using: [attachment])
+                    self.presentNotification(for: metadata.identifier, with: notificationContent, using: [attachment])
                 } catch {
                     DDLogError("NotificationExtension/media/attachment-create/error \(error)")
-                    self.presentNotification(for: metadata.contentId, with: notificationContent)
+                    self.presentNotification(for: metadata.identifier, with: notificationContent)
                 }
             } else {
-                self.presentNotification(for: metadata.contentId, with: notificationContent)
+                self.presentNotification(for: metadata.identifier, with: notificationContent)
             }
         }
     }
@@ -835,6 +858,20 @@ final class NotificationProtoService: ProtoServiceCore {
         }
     }
 
+    private func presentScreenshotNotification(for metadata: NotificationMetadata) {
+        runIfNotificationWasNotPresented(for: metadata.identifier) { [self] in
+            let notificationContent = UNMutableNotificationContent()
+            notificationContent.populateScreenshotBody(using: metadata, contactStore: AppExtensionContext.shared.contactStore)
+            notificationContent.sound = .default
+            self.pendingNotificationContent[metadata.identifier] = notificationContent
+
+            let notificationCenter = UNUserNotificationCenter.current()
+            let request = UNNotificationRequest(identifier: metadata.identifier, content: notificationContent, trigger: nil)
+            notificationCenter.add(request)
+            recordPresentingNotification(for: metadata.identifier, type: metadata.contentType.rawValue)
+        }
+    }
+
     // MARK: Present or Update Notifications
 
     private func extractAndHoldNotificationContent(for metadata: NotificationMetadata, using postData: PostData) -> UNMutableNotificationContent {
@@ -845,7 +882,7 @@ final class NotificationProtoService: ProtoServiceCore {
         notificationContent.sound = UNNotificationSound.default
         notificationContent.userInfo[NotificationMetadata.contentTypeKey] = metadata.contentType.rawValue
         notificationContent.userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
-        self.pendingNotificationContent[metadata.contentId] = notificationContent
+        self.pendingNotificationContent[metadata.identifier] = notificationContent
         return notificationContent
     }
 
@@ -857,24 +894,24 @@ final class NotificationProtoService: ProtoServiceCore {
         notificationContent.sound = UNNotificationSound.default
         notificationContent.userInfo[NotificationMetadata.contentTypeKey] = metadata.contentType.rawValue
         notificationContent.userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
-        self.pendingNotificationContent[metadata.contentId] = notificationContent
+        self.pendingNotificationContent[metadata.identifier] = notificationContent
         return notificationContent
     }
 
     // Used to present contact/inviter notifications.
     private func presentNotification(for metadata: NotificationMetadata) {
-        runIfNotificationWasNotPresented(for: metadata.contentId) { [self] in
+        runIfNotificationWasNotPresented(for: metadata.identifier) { [self] in
             DDLogDebug("ProtoService/presentNotification")
             let notificationContent = UNMutableNotificationContent()
             notificationContent.populate(from: metadata, contactStore: AppExtensionContext.shared.contactStore)
             notificationContent.badge = AppExtensionContext.shared.applicationIconBadgeNumber as NSNumber?
             notificationContent.sound = UNNotificationSound.default
             notificationContent.userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
-            self.pendingNotificationContent[metadata.contentId] = notificationContent
+            self.pendingNotificationContent[metadata.identifier] = notificationContent
 
             let notificationCenter = UNUserNotificationCenter.current()
-            notificationCenter.add(UNNotificationRequest(identifier: metadata.contentId, content: notificationContent, trigger: nil))
-            recordPresentingNotification(for: metadata.contentId, type: metadata.contentType.rawValue)
+            notificationCenter.add(UNNotificationRequest(identifier: metadata.identifier, content: notificationContent, trigger: nil))
+            recordPresentingNotification(for: metadata.identifier, type: metadata.contentType.rawValue)
         }
     }
 
@@ -913,7 +950,7 @@ final class NotificationProtoService: ProtoServiceCore {
         }
 
         if isImportantComment || isUserMentioned || isGroupCommentFromContact || isGroupCommentOnInterestedPost || isHomeFeedCommentFromContact {
-            runIfNotificationWasNotPresented(for: metadata.contentId) { [self] in
+            runIfNotificationWasNotPresented(for: metadata.identifier) { [self] in
                 guard NotificationSettings.isCommentsEnabled else {
                     DDLogDebug("ProtoService/CommentNotification - skip due to userPreferences")
                     return
@@ -925,11 +962,11 @@ final class NotificationProtoService: ProtoServiceCore {
                 notificationContent.badge = AppExtensionContext.shared.applicationIconBadgeNumber as NSNumber?
                 notificationContent.sound = UNNotificationSound.default
                 notificationContent.userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
-                self.pendingNotificationContent[metadata.contentId] = notificationContent
+                self.pendingNotificationContent[metadata.identifier] = notificationContent
 
                 let notificationCenter = UNUserNotificationCenter.current()
-                notificationCenter.add(UNNotificationRequest(identifier: metadata.contentId, content: notificationContent, trigger: nil))
-                recordPresentingNotification(for: metadata.contentId, type: metadata.contentType.rawValue)
+                notificationCenter.add(UNNotificationRequest(identifier: metadata.identifier, content: notificationContent, trigger: nil))
+                recordPresentingNotification(for: metadata.identifier, type: metadata.contentType.rawValue)
             }
         } else {
             DDLogInfo("ProtoService/Ignoring push for this comment")
@@ -937,6 +974,11 @@ final class NotificationProtoService: ProtoServiceCore {
     }
 
     private func updateMomentNotifications(checkForDuplicates: Bool = false) {
+        guard NotificationSettings.isMomentsEnabled else {
+            DDLogInfo("ProtoService/updateMomentNotifications - skip due to userPreferences")
+            return
+        }
+
         DDLogInfo("ProtoService/updateMomentNotifications")
         mainDataStore.performSeriallyOnBackgroundContext { managedObjectContext in
             let moments = AppContext.shared.coreFeedData.feedPosts(predicate:
@@ -1067,12 +1109,12 @@ final class NotificationProtoService: ProtoServiceCore {
 
 extension NotificationProtoService {
 
-    public func runIfNotificationWasNotPresented(for contentId: String, completion: @escaping () -> Void) {
-        AppContext.shared.notificationStore.runIfNotificationWasNotPresented(for: contentId, completion: completion)
+    public func runIfNotificationWasNotPresented(for identifier: String, completion: @escaping () -> Void) {
+        AppContext.shared.notificationStore.runIfNotificationWasNotPresented(for: identifier, completion: completion)
     }
 
-    public func recordPresentingNotification(for contentId: String, type: String) {
-        AppContext.shared.notificationStore.save(id: contentId, type: type)
+    public func recordPresentingNotification(for identifier: String, type: String) {
+        AppContext.shared.notificationStore.save(id: identifier, type: type)
     }
 }
 

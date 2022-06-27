@@ -12,7 +12,7 @@ import Foundation
 import Photos
 import UIKit
 
-class PostViewController: UIViewController, UserMenuHandler, ShareMenuPresenter {
+class PostViewController: UIViewController, UserMenuHandler, ShareMenuPresenter, UIViewControllerMediaSaving {
 
     private let post: FeedPostDisplayable
     private let showFooter: Bool
@@ -176,13 +176,20 @@ extension PostViewController {
     private func moreMenu() -> HAMenu.Content {
         if post.hasSaveablePostMedia && post.canSaveMedia {
             let saveMediaTitle = post.mediaCount > 1 ? Localizations.saveAllButton : Localizations.saveAllButtonSingular
-            HAMenuButton(title: saveMediaTitle) {
-                PHPhotoLibrary.requestAuthorization { status in
-                    switch status {
-                    case .authorized, .limited:
-                        self.saveMedia()
-                    default:
-                        self.mediaAuthorizationFailed()
+            HAMenuButton(title: saveMediaTitle) { [weak self] in
+                guard let self = self else { return }
+                await self.saveMedia(source: .post) {
+                    // Get media from cache if available
+                    let media = self.post.feedMedia
+
+                    guard !media.contains(where: { !$0.isMediaAvailable || $0.fileURL == nil }) else {
+                        DDLogError("PostViewController/saveMedia/error: Missing media")
+                        return []
+                    }
+                    
+                    return media.compactMap { (item: FeedMedia) -> (type: CommonMediaType, url: URL)? in
+                        guard let url = item.fileURL else { return nil }
+                        return (item.type, url)
                     }
                 }
             }
@@ -271,17 +278,6 @@ extension PostViewController {
         }
     }
 
-    private func mediaAuthorizationFailed() {
-        DispatchQueue.main.async {
-            DDLogInfo("PostViewController/save-media: User denied photos permissions")
-
-            let alert = UIAlertController(title: Localizations.mediaPermissionsError, message: Localizations.mediaPermissionsErrorDescription, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
-
-            self.present(alert, animated: true)
-        }
-    }
-
     private func deletePost() {
         let alert = UIAlertController(title: nil, message: Localizations.deletePostConfirmationPrompt, preferredStyle: .actionSheet)
         alert.addAction(UIAlertAction(title: Localizations.deletePostButtonTitle, style: .destructive) { [post] _ in
@@ -300,79 +296,6 @@ extension PostViewController {
         alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
 
         self.present(alert, animated: true)
-    }
-
-    private func saveMedia() {
-        // Get media from cache if available
-        let media = post.feedMedia
-
-        guard media.first(where: { !$0.isMediaAvailable || $0.fileURL == nil }) == nil else {
-            DDLogError("PostViewController/saveMedia/error: Missing media")
-            return
-        }
-
-        PHPhotoLibrary.shared().performChanges({
-            for item in media {
-                guard let url = item.fileURL else { continue }
-
-                if item.type == .image {
-                    PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: url)
-                    AppContext.shared.eventMonitor.count(.mediaSaved(type: .image, source: .post))
-                } else if item.type == .video {
-                    PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
-                    AppContext.shared.eventMonitor.count(.mediaSaved(type: .video, source: .post))
-                }
-            }
-        }, completionHandler: { [weak self] success, error in
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-
-                DDLogInfo("PostViewController/saveMedia/success: \(success)/error: \(String(describing: error))")
-                if success {
-                    self.mediaSaved()
-                } else if let error = error {
-                    DDLogError("PostViewController/saveMedia/error: Unable to save media [\(error)]")
-                    self.mediaSaveFailed()
-                }
-            }
-        })
-    }
-
-    private func mediaSaveFailed() {
-        let alert = UIAlertController(title: Localizations.mediaSaveError, message: nil, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
-
-        present(alert, animated: true)
-    }
-
-    private func mediaSaved() {
-        let savedLabel = UILabel()
-        savedLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        let imageAttachment = NSTextAttachment()
-        imageAttachment.image = UIImage(named: "CheckmarkLong")?.withTintColor(.white)
-
-        let fullString = NSMutableAttributedString()
-        fullString.append(NSAttributedString(attachment: imageAttachment))
-        fullString.append(NSAttributedString(string: " ")) // Space between localized string for saved and checkmark
-        fullString.append(NSAttributedString(string: Localizations.saveSuccessfulLabel))
-        savedLabel.attributedText = fullString
-
-        savedLabel.layer.cornerRadius = 13
-        savedLabel.clipsToBounds = true
-        savedLabel.textColor = .white
-        savedLabel.backgroundColor = .primaryBlue
-        savedLabel.textAlignment = .center
-
-        view.addSubview(savedLabel)
-        savedLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
-        savedLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 22.5).isActive = true
-        savedLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -22.5).isActive = true
-        savedLabel.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor).isActive = true
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-            savedLabel.removeFromSuperview()
-        }
     }
 }
 

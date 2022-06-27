@@ -21,7 +21,7 @@ protocol FeedCollectionViewControllerDelegate: AnyObject {
     func feedCollectionViewController(_ feedCollectionViewController: FeedCollectionViewController, userActioned: Bool)
 }
 
-class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, UserMenuHandler, ShareMenuPresenter {
+class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, UserMenuHandler, ShareMenuPresenter, UIViewControllerMediaSaving {
 
     weak var delegate: FeedCollectionViewControllerDelegate?
 
@@ -976,45 +976,17 @@ extension FeedCollectionViewController {
     }
 
     private func savePostMedia(feedPost: FeedPost) {
-        PHPhotoLibrary.requestAuthorization { [weak self] status in
-            // `.limited` was introduced in iOS 14, and only gives us partial access to the photo album. In this case we can still save to the camera roll
-            if #available(iOS 14, *) {
-                guard status == .authorized || status == .limited else {
-                    DispatchQueue.main.async {
-                        self?.handleMediaAuthorizationFailure()
-                    }
-                    return
+        Task {
+            await self.saveMedia(source: .post) {
+                guard let expectedMedia = feedPost.media else { return [] } // Get the media data to determine how many should be downloaded
+                let media = self.getMedia(feedPost: feedPost) // Get the media from memory
+                guard expectedMedia.count == media.count else {
+                    DDLogError("FeedCollectionViewController/saveAllButton/error: Downloaded media not same size as expected")
+                    return []
                 }
-            } else {
-                guard status == .authorized else {
-                    DispatchQueue.main.async {
-                        self?.handleMediaAuthorizationFailure()
-                    }
-                    return
-                }
+                return media
             }
-
-            guard let expectedMedia = feedPost.media, let self = self else { return } // Get the media data to determine how many should be downloaded
-            let media = self.getMedia(feedPost: feedPost) // Get the media from memory
-
-            // Make sure the media in memory is the correct number or items
-            guard expectedMedia.count == media.count else {
-                DDLogError("FeedCollectionViewController/saveAllButton/error: Downloaded media not same size as expected")
-                return
-            }
-
-            self.saveMedia(media: media)
         }
-    }
-    
-    private func handleMediaAuthorizationFailure() {
-        let alert = UIAlertController(title: Localizations.mediaPermissionsError, message: Localizations.mediaPermissionsErrorDescription, preferredStyle: .alert)
-        
-        DDLogInfo("FeedCollectionViewController/shareAllButtonPressed: User denied photos permissions")
-        
-        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
-        
-        present(alert, animated: true)
     }
     
     private func getMedia(feedPost: FeedPost) -> [(type: CommonMediaType, url: URL)] {
@@ -1029,39 +1001,6 @@ extension FeedCollectionViewController {
         }
         
         return mediaItems
-    }
-    
-    private func saveMedia(media: [(type: CommonMediaType, url: URL)]) {
-        PHPhotoLibrary.shared().performChanges({
-            for media in media {
-                if media.type == .image {
-                    PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: media.url)
-                    AppContext.shared.eventMonitor.count(.mediaSaved(type: .image, source: .post))
-                } else if media.type == .video {
-                    PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: media.url)
-                    AppContext.shared.eventMonitor.count(.mediaSaved(type: .video, source: .post))
-                }
-            }
-        }, completionHandler: { [weak self] success, error in
-            DispatchQueue.main.async {
-                if success {
-                    self?.mediaSaved()
-                } else {
-                    self?.handleMediaSaveError(error: error)
-                }
-            }
-        })
-    }
-    
-    private func mediaSaved() {
-        let toast = Toast(type: .icon(UIImage(named: "CheckmarkLong")?.withTintColor(.white)), text: Localizations.saveSuccessfulLabel)
-        toast.show(viewController: self, shouldAutodismiss: true)
-    }
-    
-    private func handleMediaSaveError(error: Error?) {
-        let alert = UIAlertController(title: Localizations.mediaSaveError, message: nil, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
-        self.present(alert, animated: true, completion: nil)
     }
     
     private func handleDeletePostTapped(postId: FeedPostID) {

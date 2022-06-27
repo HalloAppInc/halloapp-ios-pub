@@ -1758,6 +1758,28 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
+    private func presentLocalNotificationsForScreenshot(receipt: HalloReceipt) async {
+        guard await UIApplication.shared.applicationState != .active else {
+            return
+        }
+
+        if await UNUserNotificationCenter.current().getScreenshotIdsForDeliveredNotifications().contains(receipt.itemId) {
+            DDLogInfo("FeedData/presentLocalNotificationsForScreenshot/already delivered notification for \(receipt.itemId)")
+            return
+        }
+
+        let metadata = NotificationMetadata(contentId: receipt.itemId,
+                                          contentType: .screenshot,
+                                               fromId: receipt.userId,
+                                            timestamp: receipt.timestamp,
+                                                 data: nil,
+                                            messageId: nil)
+
+        DispatchQueue.main.async {
+            NotificationRequest.createAndShow(from: metadata)
+        }
+    }
+
     // MARK: Retracts
     
     let didProcessGroupFeedPostRetract = PassthroughSubject<FeedPostID, Never>()
@@ -4907,6 +4929,7 @@ extension FeedData: HalloFeedDelegate {
             var postReceipt = receipts[receipt.userId]!
             if case .screenshot = receipt.type {
                 postReceipt.screenshotDate = receipt.timestamp
+                Task { await self.presentLocalNotificationsForScreenshot(receipt: receipt) }
                 DDLogInfo("FeedData/screenshot-receipt/update  userId=[\(receipt.userId)]  ts=[\(receipt.timestamp!)]  itemId=[\(receipt.itemId)]")
             } else {
                 postReceipt.seenDate = receipt.timestamp

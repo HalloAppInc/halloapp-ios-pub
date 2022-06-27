@@ -39,6 +39,7 @@ struct ImageServerResult {
     var chunkSize: Int32
     var blobSize: Int64
 
+    @discardableResult
     func copy(to destination: URL) -> Bool {
         let manager = FileManager.default
         let encrypted = url.appendingPathExtension("enc")

@@ -10,6 +10,7 @@ import CocoaLumberjackSwift
 import Core
 import CoreCommon
 import UIKit
+import Photos
 
 protocol UIViewControllerScrollsToTop {
 
@@ -92,5 +93,75 @@ protocol UIViewControllerHandleTapNotification {
 fileprivate class LargeHitAvatarButton: AvatarViewButton {
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
         return bounds.insetBy(dx: -12, dy: -12).contains(point)
+    }
+}
+
+protocol UIViewControllerMediaSaving: UIViewController {
+    /// Attempt to save the media provided by `mediaInfoProvider` to Photos.
+    /// Handles requesting authorization and informing users about the result.
+    ///
+    /// - Parameters:
+    ///   - source: Source of the media.
+    ///   - mediaInfoProvider: Provides media types and urls. Managed objects from **view contexts** are safe to access in the closure.
+    /// - Returns: A boolean indicating whether saving was successful.
+    @discardableResult @MainActor
+    func saveMedia(source: MediaItemSource, _ mediaInfoProvider: @MainActor @Sendable () async throws -> [(type: CommonMediaType, url: URL)]) async -> Bool
+}
+
+extension UIViewControllerMediaSaving {
+    @discardableResult @MainActor
+    func saveMedia(source: MediaItemSource, _ mediaInfoProvider: @MainActor @Sendable () async throws -> [(type: CommonMediaType, url: URL)]) async -> Bool {
+        do {
+            let isAuthorizedToSave: Bool = await {
+                if #available(iOS 14, *) {
+                    let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
+                    return status == .authorized || status == .limited
+                } else {
+                    let status = await withCheckedContinuation { continuation in
+                        PHPhotoLibrary.requestAuthorization { continuation.resume(returning: $0) }
+                    }
+                    return status == .authorized
+                }
+            }()
+            
+            guard isAuthorizedToSave else {
+                DDLogInfo("UIViewControllerMediaSaving/saveMedia: User denied media saving permissions")
+                
+                let alert = UIAlertController(title: Localizations.mediaPermissionsError, message: Localizations.mediaPermissionsErrorDescription, preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
+                present(alert, animated: true)
+                return false
+            }
+            
+            let mediaInfo = try await mediaInfoProvider()
+            
+            try await PHPhotoLibrary.shared().performChanges {
+                for (type, url) in mediaInfo {
+                    if type == .image {
+                        PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: url)
+                        AppContext.shared.eventMonitor.count(.mediaSaved(type: .image, source: source))
+                    } else {
+                        PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
+                        AppContext.shared.eventMonitor.count(.mediaSaved(type: .video, source: source))
+                    }
+                }
+            }
+            
+            let toast = Toast(type: .icon(UIImage(named: "CheckmarkLong")?.withTintColor(.white)), text: Localizations.saveSuccessfulLabel)
+            toast.show(viewController: self, shouldAutodismiss: true)
+            
+            return true
+        } catch {
+            DDLogError("UIViewControllerMediaSaving/saveMedia/error: \(error)")
+            
+            // TODO: Remove switching to MainActor when adopting Swift 5.7
+            _ = { @MainActor in
+                let alert = UIAlertController(title: nil, message: Localizations.mediaSaveError, preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
+                present(alert, animated: true)
+            }()
+            
+            return false
+        }
     }
 }

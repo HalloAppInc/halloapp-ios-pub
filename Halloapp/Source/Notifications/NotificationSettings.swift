@@ -23,10 +23,14 @@ class NotificationSettings: ObservableObject {
 
     private init() {
         NotificationSettings.migrateSettings()
-        MainAppContext.shared.userDefaults.register(defaults: [ NotificationUserDefaultKeys.postsEnabled: true, NotificationUserDefaultKeys.commentsEnabled: true ])
+        MainAppContext.shared.userDefaults.register(defaults: [NotificationUserDefaultKeys.postsEnabled: true,
+                                                               NotificationUserDefaultKeys.commentsEnabled: true,
+                                                               NotificationUserDefaultKeys.momentsEnabled: true,])
+
         isPostsEnabled = MainAppContext.shared.userDefaults.bool(forKey: NotificationUserDefaultKeys.postsEnabled)
         isCommentsEnabled = MainAppContext.shared.userDefaults.bool(forKey: NotificationUserDefaultKeys.commentsEnabled)
-        DDLogInfo("NotificationSettings/values: \(isPostsEnabled): \(isCommentsEnabled)")
+        isMomentsEnabled = MainAppContext.shared.userDefaults.bool(forKey: NotificationUserDefaultKeys.momentsEnabled)
+        DDLogInfo("NotificationSettings/values: \(isPostsEnabled): \(isCommentsEnabled): \(isMomentsEnabled)")
     }
 
     static func migrateSettings() {
@@ -69,6 +73,14 @@ class NotificationSettings: ObservableObject {
                 MainAppContext.shared.userDefaults.set(isCommentsEnabled, forKey: NotificationUserDefaultKeys.commentsEnabled)
                 MainAppContext.shared.userDefaults.set(false, forKey: NotificationUserDefaultKeys.isSynchronized)
                 sendConfigIfNecessary(using: MainAppContext.shared.service)
+            }
+        }
+    }
+
+    var isMomentsEnabled: Bool {
+        didSet {
+            if oldValue != isMomentsEnabled {
+                MainAppContext.shared.userDefaults.set(isMomentsEnabled, forKey: NotificationUserDefaultKeys.momentsEnabled)
             }
         }
     }

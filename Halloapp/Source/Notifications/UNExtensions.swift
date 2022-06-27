@@ -30,6 +30,14 @@ private extension UNNotificationRequest {
         }
         return nil
     }
+
+    var screenshotPostId: FeedPostID? {
+        if let notificationContent = NotificationMetadata.load(from: self), case .screenshot = notificationContent.contentType {
+            return notificationContent.contentId
+        }
+
+        return nil
+    }
 }
 
 extension UNMutableNotificationContent {
@@ -100,6 +108,14 @@ extension UNMutableNotificationContent {
         DDLogInfo("UNExtensions/populateMissedCallBody")
     }
 
+    func populateScreenshotBody(using metadata: NotificationMetadata, contactStore: ContactStore) {
+        metadata.populateScreenshotContent(contactStore: contactStore)
+        title = metadata.title
+        body = metadata.body
+        userInfo[NotificationMetadata.contentTypeKey] = metadata.contentType.rawValue
+        userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
+        DDLogInfo("UNExtensions/populateScreenshotBody")
+    }
 }
 
 extension UNUserNotificationCenter {
@@ -127,6 +143,10 @@ extension UNUserNotificationCenter {
             let ids = notifications.compactMap({ $0.request.feedPostCommentId })
             completion(ids)
         }
+    }
+
+    func getScreenshotIdsForDeliveredNotifications() async -> [FeedPostID] {
+        return await deliveredNotifications().compactMap { $0.request.screenshotPostId }
     }
 
     private func removeDeliveredNotifications(matching predicate: @escaping (NotificationMetadata) -> (Bool)) {
@@ -320,5 +340,11 @@ extension Localizations {
         NSLocalizedString("notification.moment.5",
                           value: "%1@, %2@, %3@ and others shared new moments",
                           comment: "New moment notification text to be shown to the user.")
+    }
+
+    static var momentScreenshotNotificationTitle: String {
+        NSLocalizedString("notification.moment.screenshot",
+                   value: "%@ took a screenshot of your moment",
+                 comment: "New moment screenshot notification text to be shown to the user.")
     }
 }
