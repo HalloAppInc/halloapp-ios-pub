@@ -178,8 +178,8 @@ extension ChatMediaListViewController: MediaListAnimatorDelegate {
         }
     }
 
-    func transitionDidEnd(presenting: Bool, with index: MediaIndex) {
-        if !presenting, message.id != index.chatMessageID {
+    func transitionDidEnd(presenting: Bool, with index: MediaIndex, success: Bool) {
+        if !presenting, message.id != index.chatMessageID, success {
             dismiss(animated: false)
         }
     }

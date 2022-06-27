@@ -18,16 +18,12 @@ import CocoaLumberjackSwift
 class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLayout, UICollectionViewDataSource, UIScrollViewDelegate, UIGestureRecognizerDelegate, UIViewControllerTransitioningDelegate, UIViewControllerMediaSaving {
 
     private let spaceBetweenPages: CGFloat = 20
-    private let swipeExitStartThreshold: CGFloat = 20
-    private let swipeExitFinishThreshold: CGFloat = 100
-    private let swipeExitVeleocityThreshold: CGFloat = 600
 
     private var media: [MediaExplorerMedia]
     private var collectionView: UICollectionView!
     private var tapRecorgnizer: UITapGestureRecognizer!
     private var doubleTapRecorgnizer: UITapGestureRecognizer!
-    private var swipeExitRecognizer: UIPanGestureRecognizer!
-    private var swipeExitInProgress = false
+    private var swipeExitRecognizer: SwipeToExitGestureRecognizer!
     private var isSystemUIHidden = false
     private var isTransition = false
     private var animator: MediaListAnimator?
@@ -352,8 +348,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         doubleTapRecorgnizer.delegate = self
         collectionView.addGestureRecognizer(doubleTapRecorgnizer)
 
-        swipeExitRecognizer = UIPanGestureRecognizer(target: self, action: #selector(onSwipeExitAction(sender:)))
-        swipeExitRecognizer.maximumNumberOfTouches = 1
+        swipeExitRecognizer = SwipeToExitGestureRecognizer(direction: .vertical, action: backAction)
         swipeExitRecognizer.delegate = self
         collectionView.addGestureRecognizer(swipeExitRecognizer)
 
@@ -537,54 +532,18 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         }
     }
 
-    @objc private func onSwipeExitAction(sender: UIPanGestureRecognizer) {
-        let translation = sender.translation(in: sender.view)
-        let velocity = sender.velocity(in: sender.view)
+    // MARK: UIViewControllerTransitioningDelegate
 
-        switch sender.state {
-        case .changed:
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        if gestureRecognizer == swipeExitRecognizer {
             let cell = collectionView.cellForItem(at: IndexPath(item: currentIndex, section: 0))
             if let cell = cell as? MediaExplorerImageCell, cell.isZoomed {
-                return
+                return false
             }
-
-            if !swipeExitInProgress && abs(translation.y) > swipeExitStartThreshold && abs(translation.y) > abs(translation.x) {
-                sender.setTranslation(.zero, in: sender.view)
-                swipeExitInProgress = true
-                backAction()
-            } else if swipeExitInProgress {
-                animator?.move(translation)
-            }
-        case .cancelled:
-            guard swipeExitInProgress else { return }
-            swipeExitInProgress = false
-            animator?.cancelInteractiveTransition()
-        case .ended:
-            guard swipeExitInProgress else { return }
-            swipeExitInProgress = false
-
-            if swipeExitShouldFinish(translation: translation, velocity: velocity) {
-                animator?.finishInteractiveTransition()
-            } else {
-                animator?.cancelInteractiveTransition()
-            }
-
-            // Restore collectionView position in place.
-            // It alsp prevents brisk diagonal movements to activate collectionView swipe
-            // while swipe exit is in progress
-            let x = collectionView.frame.width * CGFloat(currentIndex)
-            collectionView.setContentOffset(CGPoint(x: x, y: collectionView.contentOffset.y), animated: false)
-        default:
-            break
         }
-    }
 
-    private func swipeExitShouldFinish(translation: CGPoint, velocity: CGPoint) -> Bool {
-        return (translation.x * translation.x + translation.y * translation.y > swipeExitFinishThreshold * swipeExitFinishThreshold) ||
-            (velocity.x * velocity.x + velocity.y * velocity.y > swipeExitVeleocityThreshold * swipeExitVeleocityThreshold)
+        return true
     }
-
-    // MARK: UIViewControllerTransitioningDelegate
 
     func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
 
@@ -614,7 +573,12 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     }
 
     func interactionControllerForDismissal(using animator: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
-        return swipeExitInProgress ? self.animator : nil
+        if swipeExitRecognizer.inProgress {
+            swipeExitRecognizer.animator = self.animator
+            return self.animator
+        } else {
+            return nil
+        }
     }
 }
 
@@ -635,6 +599,16 @@ extension MediaExplorerController: MediaListAnimatorDelegate {
     func scrollToTransitionView(at index: MediaIndex) {
         // on entering transition the currentIndex is set in the init function
         collectionView.scrollToItem(at: IndexPath(row: currentIndex, section: 0), at: .centeredHorizontally, animated: false)
+    }
+
+    func transitionDidEnd(presenting: Bool, with index: MediaIndex, success: Bool) {
+        if !success, !presenting {
+            // Restore collectionView position in place.
+            // It alsp prevents brisk diagonal movements to activate collectionView swipe
+            // while swipe exit is in progress
+            let x = collectionView.frame.width * CGFloat(currentIndex)
+            collectionView.setContentOffset(CGPoint(x: x, y: collectionView.contentOffset.y), animated: false)
+        }
     }
 }
 

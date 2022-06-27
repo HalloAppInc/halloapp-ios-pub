@@ -437,6 +437,7 @@
 		F8003DDE24D7C30D00628719 /* MediaPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */; };
 		F82D303727722522006D1245 /* ShareDestinationRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F82D303627722522006D1245 /* ShareDestinationRowView.swift */; };
 		F82D303A27733437006D1245 /* Localizable.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = F82D303927733437006D1245 /* Localizable.stringsdict */; };
+		F82EFC2828657987007B45CF /* SwipeToExitGestureRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F82EFC2728657987007B45CF /* SwipeToExitGestureRecognizer.swift */; };
 		F84A8E5925D408C3003A8528 /* VideoEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F84A8E5825D408C3003A8528 /* VideoEditViewController.swift */; };
 		F84DF6852851E4FF00BEC721 /* MediaListAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F84DF6842851E4FF00BEC721 /* MediaListAnimator.swift */; };
 		F850677826A55DAC00A120EC /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F850677726A55DAC00A120EC /* AudioRecorder.swift */; };
@@ -1185,6 +1186,7 @@
 		F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPickerViewController.swift; sourceTree = "<group>"; };
 		F82D303627722522006D1245 /* ShareDestinationRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareDestinationRowView.swift; sourceTree = "<group>"; };
 		F82D303927733437006D1245 /* Localizable.stringsdict */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; path = Localizable.stringsdict; sourceTree = "<group>"; };
+		F82EFC2728657987007B45CF /* SwipeToExitGestureRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeToExitGestureRecognizer.swift; sourceTree = "<group>"; };
 		F84A8E5825D408C3003A8528 /* VideoEditViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoEditViewController.swift; sourceTree = "<group>"; };
 		F84DF6842851E4FF00BEC721 /* MediaListAnimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaListAnimator.swift; sourceTree = "<group>"; };
 		F850677726A55DAC00A120EC /* AudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorder.swift; sourceTree = "<group>"; };
@@ -1967,6 +1969,7 @@
 				326A757C28400B500058DFAA /* BlockedContactSheetViewController.swift */,
 				F8F5ED78284E17760094CB17 /* ChatMediaListViewController.swift */,
 				F84DF6842851E4FF00BEC721 /* MediaListAnimator.swift */,
+				F82EFC2728657987007B45CF /* SwipeToExitGestureRecognizer.swift */,
 				325A0D762863BA9A00223611 /* NewGroupChatHeaderView.swift */,
 			);
 			path = Chats;
@@ -3076,6 +3079,7 @@
 				EA0D20152368B04B008B8289 /* FeedData.swift in Sources */,
 				F41F82972798D2AC0021BF40 /* GroupInviteSheetViewController.swift in Sources */,
 				E598D4C0265F0188001A436A /* ConversationID.swift in Sources */,
+				F82EFC2828657987007B45CF /* SwipeToExitGestureRecognizer.swift in Sources */,
 				EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */,
 				F878427C24F6C0FB0040B723 /* MediaAlbumsViewController.swift in Sources */,
 				6ABBD25F2601DEF80041B9ED /* FeedPostToFeed2MigrationPolicy.swift in Sources */,

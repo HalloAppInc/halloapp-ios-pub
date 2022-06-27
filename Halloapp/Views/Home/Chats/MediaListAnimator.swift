@@ -18,7 +18,7 @@ protocol MediaListAnimatorDelegate: AnyObject {
     func scrollToTransitionView(at index: MediaIndex)
     func timeForVideo(at index: MediaIndex) -> CMTime?
     func transitionDidBegin(presenting: Bool, with index: MediaIndex)
-    func transitionDidEnd(presenting: Bool, with index: MediaIndex)
+    func transitionDidEnd(presenting: Bool, with index: MediaIndex, success: Bool)
 }
 
 extension MediaListAnimatorDelegate {
@@ -33,7 +33,7 @@ extension MediaListAnimatorDelegate {
     func transitionDidBegin(presenting: Bool, with index: MediaIndex) {
     }
 
-    func transitionDidEnd(presenting: Bool, with index: MediaIndex) {
+    func transitionDidEnd(presenting: Bool, with index: MediaIndex, success: Bool) {
     }
 }
 
@@ -163,6 +163,9 @@ class MediaListAnimator: NSObject, UIViewControllerAnimatedTransitioning, UIView
 
             transitionView.removeFromSuperview()
             transitionContext.completeTransition(false)
+
+            self.fromDelegate?.transitionDidEnd(presenting: self.presenting, with: self.index, success: false)
+            self.toDelegate?.transitionDidEnd(presenting: self.presenting, with: self.index, success: false)
         }
     }
 
@@ -181,6 +184,9 @@ class MediaListAnimator: NSObject, UIViewControllerAnimatedTransitioning, UIView
         else {
             transitionContext.view(forKey: .to)?.alpha = 1
             transitionContext.completeTransition(true)
+
+            fromDelegate?.transitionDidEnd(presenting: presenting, with: index, success: false)
+            toDelegate?.transitionDidEnd(presenting: presenting, with: index, success: false)
             return
         }
 
@@ -221,8 +227,8 @@ class MediaListAnimator: NSObject, UIViewControllerAnimatedTransitioning, UIView
 
             transitionContext.completeTransition(success)
 
-            self.fromDelegate?.transitionDidEnd(presenting: self.presenting, with: self.index)
-            self.toDelegate?.transitionDidEnd(presenting: self.presenting, with: self.index)
+            self.fromDelegate?.transitionDidEnd(presenting: self.presenting, with: self.index, success: success)
+            self.toDelegate?.transitionDidEnd(presenting: self.presenting, with: self.index, success: success)
         }
     }
 
