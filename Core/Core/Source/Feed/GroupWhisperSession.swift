@@ -124,6 +124,9 @@ final class GroupWhisperSession {
             case .empty:
                 DDLogInfo("GroupWhisperSession/\(groupID)/set-state/empty")
                 return
+            case .failed:
+                DDLogInfo("GroupWhisperSession/\(groupID)/set-state/failed")
+                return
             }
         }
     }
@@ -216,6 +219,7 @@ final class GroupWhisperSession {
         case retrievingKeys(incomingSession: GroupIncomingSession?)
         case updatingHash(attempts: Int, keyBundle: GroupKeyBundle)
         case ready(keyBundle: GroupKeyBundle)
+        case failed
 
         var keyBundle: GroupKeyBundle {
             switch self {
@@ -229,6 +233,8 @@ final class GroupWhisperSession {
                 return keyBundle
             case .ready(let keyBundle):
                 return keyBundle
+            case .failed:
+                return GroupKeyBundle(outgoingSession: nil, incomingSession: incomingSession, pendingUids: [])
             }
         }
 
@@ -236,7 +242,7 @@ final class GroupWhisperSession {
             switch self {
             case .awaitingSetup(let attempts, _):
                 return attempts
-            case .ready, .retrievingKeys, .updatingHash, .empty:
+            case .ready, .retrievingKeys, .updatingHash, .empty, .failed:
                 return nil
             }
         }
@@ -245,7 +251,7 @@ final class GroupWhisperSession {
             switch self {
             case .updatingHash(let attempts, _):
                 return attempts
-            case .ready, .retrievingKeys, .awaitingSetup, .empty:
+            case .ready, .retrievingKeys, .awaitingSetup, .empty, .failed:
                 return nil
             }
         }
@@ -260,7 +266,7 @@ final class GroupWhisperSession {
                 return keyBundle.incomingSession
             case .ready(let keyBundle):
                 return keyBundle.incomingSession
-            case .empty:
+            case .empty, .failed:
                 return nil
             }
         }
@@ -358,6 +364,21 @@ final class GroupWhisperSession {
                     DDLogInfo("GroupWhisperSession/\(groupID)/execute/sync - \(members.count)")
                     sync(members: members)
                 }
+
+            case .failed:
+                switch task {
+                case .encryption(_, _, let completion):
+                    DDLogInfo("GroupWhisperSession/\(groupID)/execute/encrypting")
+                    completion(.failure(.invalidGroup))
+                case .decryption(_, _, _, let completion):
+                    DDLogInfo("GroupWhisperSession/\(groupID)/execute/decrypting")
+                    completion(.failure(.invalidGroup))
+                case .fetchSenderState(let completion):
+                    DDLogInfo("GroupWhisperSession/\(groupID)/execute/fetchSenderState")
+                    completion(.failure(.invalidGroup))
+                case .membersAdded, .membersRemoved, .removePending, .updateAudienceHash, .updateSenderState, .sync:
+                    DDLogInfo("GroupWhisperSession/\(groupID)/ignore")
+                }
             }
             pendingTasks.removeFirst()
         }
@@ -379,7 +400,7 @@ final class GroupWhisperSession {
     private func executeRemoveMembers(userIds: [UserID]) {
         DDLogInfo("GroupWhisperSession/executeRemoveMembers/\(groupID)/state: \(state)")
         switch state {
-        case .empty, .retrievingKeys, .updatingHash:
+        case .empty, .retrievingKeys, .updatingHash, .failed:
             DDLogError("GroupWhisperSession/executeRemoveMembers/\(groupID)/Invalid state")
             return
         case .awaitingSetup(let attempts, var incomingSession):
@@ -409,7 +430,7 @@ final class GroupWhisperSession {
         // TODO: murali@: think more if we have to remove these Uids if the list is different.
         DDLogInfo("GroupWhisperSession/executeRemovePending/\(groupID)/state: \(state)")
         switch state {
-        case .empty, .awaitingSetup, .retrievingKeys, .updatingHash:
+        case .empty, .awaitingSetup, .retrievingKeys, .updatingHash, .failed:
             DDLogError("GroupWhisperSession/executeRemovePending/\(groupID)/Invalid state")
             return
         case .ready(var groupKeyBundle):
@@ -607,7 +628,7 @@ final class GroupWhisperSession {
 
             let currentState = self.state
             switch currentState {
-            case .empty, .updatingHash, .retrievingKeys:
+            case .empty, .updatingHash, .retrievingKeys, .failed:
                 DDLogError("GroupWhisperSession/executeDecryption/\(groupID)/Invalid state")
                 return
             case .ready(_):
@@ -656,8 +677,8 @@ final class GroupWhisperSession {
         service.getGroupMemberIdentityKeys(groupID: groupID) { result in
             self.sessionQueue.async {
                 switch self.state {
-                case .empty:
-                    DDLogError("GroupWhisperSession/setupOutbound/\(self.groupID)/Invalid empty state")
+                case .empty, .failed:
+                    DDLogError("GroupWhisperSession/setupOutbound/\(self.groupID)/Invalid state")
                     return
                 case .awaitingSetup, .retrievingKeys, .updatingHash:
                     DDLogInfo("GroupWhisperSession/\(self.groupID)/setupOutbound/received-keys")
@@ -670,22 +691,24 @@ final class GroupWhisperSession {
 
                 var members: [UserID] = []
                 // Initialize outgoing session if possible
-                let outgoingSession: GroupOutgoingSession? = {
-                    switch result {
-                    case .failure(let error):
-                        DDLogError("GroupWhisperSession/\(self.groupID)/setupOutbound/error [\(error)]")
-                        return nil
-                    case .success(let protoGroupStanza):
-                        var memberKeys: [UserID : Data] = [:]
-                        for member in protoGroupStanza.members {
-                            memberKeys[UserID(member.uid)] = member.identityKey
-                            members.append(UserID(member.uid))
-                        }
-                        DDLogInfo("GroupWhisperSession/setupOutbound/\(self.groupID)/state \(self.state) setting it up")
-                        DDLogInfo("GroupWhisperSession/setupOutbound/\(self.groupID)/audienceHash from server: \(protoGroupStanza.audienceHash.toHexString())")
-                        return Whisper.setupGroupOutgoingSession(for: self.groupID, memberKeys: memberKeys)
+                let outgoingSession: GroupOutgoingSession?
+                switch result {
+                case .failure(.serverError("not_member")):
+                    outgoingSession = nil
+                    self.updateState(to: .failed)
+                case .failure(let error):
+                    DDLogError("GroupWhisperSession/\(self.groupID)/setupOutbound/error [\(error)]")
+                    outgoingSession = nil
+                case .success(let protoGroupStanza):
+                    var memberKeys: [UserID : Data] = [:]
+                    for member in protoGroupStanza.members {
+                        memberKeys[UserID(member.uid)] = member.identityKey
+                        members.append(UserID(member.uid))
                     }
-                }()
+                    DDLogInfo("GroupWhisperSession/setupOutbound/\(self.groupID)/state \(self.state) setting it up")
+                    DDLogInfo("GroupWhisperSession/setupOutbound/\(self.groupID)/audienceHash from server: \(protoGroupStanza.audienceHash.toHexString())")
+                    outgoingSession = Whisper.setupGroupOutgoingSession(for: self.groupID, memberKeys: memberKeys)
+                }
 
                 if let outgoingSession = outgoingSession {
                     let pendingUids = members.filter{ $0 != ownUserID }
@@ -714,7 +737,7 @@ final class GroupWhisperSession {
         // TODO: We could try having a limit (say 3 times): similar to setting up outbound keys.
         let attemptNumber = 1 + (state.failedUpdateHashAttempts ?? 0)
         switch state {
-        case .empty, .retrievingKeys, .awaitingSetup, .updatingHash:
+        case .empty, .retrievingKeys, .awaitingSetup, .updatingHash, .failed:
             DDLogError("GroupWhisperSession/executeUpdateAudienceHash/\(groupID)/Invalid state")
             return
         case .ready(let groupKeyBundle):
@@ -799,8 +822,8 @@ final class GroupWhisperSession {
         }
 
         switch self.state {
-        case .empty:
-            DDLogError("GroupWhisperSession/updateIncomingSession/\(groupID)/Invalid empty state")
+        case .empty, .failed:
+            DDLogError("GroupWhisperSession/updateIncomingSession/\(groupID)/Invalid state")
             return
         case .awaitingSetup(let setupAttempts, var incomingSession):
             if incomingSession == nil {
@@ -853,8 +876,8 @@ final class GroupWhisperSession {
         groupKeyBundle.pendingUids = groupKeyBundle.pendingUids.filter { membersSet.contains($0) }
 
         switch self.state {
-        case .empty:
-            DDLogError("GroupWhisperSession/sync/\(groupID)/Invalid empty state")
+        case .empty, .failed:
+            DDLogError("GroupWhisperSession/sync/\(groupID)/Invalid state")
             return
         case .awaitingSetup(let setupAttempts, _):
             self.updateState(to: .awaitingSetup(attempts: setupAttempts, incomingSession: groupKeyBundle.incomingSession), saveToKeyStore: true)

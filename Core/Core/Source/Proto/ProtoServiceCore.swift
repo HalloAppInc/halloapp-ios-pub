@@ -255,7 +255,7 @@ extension ProtoServiceCore: CoreService {
                 case .failure(let error):
                     DDLogError("ProtoServiceCore/publishPostInternal/\(post.id)/makePublishPostPayload/error [\(error)]")
                     AppContext.shared.eventMonitor.count(.groupEncryption(error: error, itemType: .post))
-                    completion(.failure(.malformedRequest))
+                    completion(.failure(.aborted))
                 case .success(let iqPayload):
                     DDLogError("ProtoServiceCore/publishPostInternal/\(post.id)/makePublishPostPayload/success")
                     AppContext.shared.eventMonitor.count(.groupEncryption(error: nil, itemType: .post))
@@ -323,7 +323,7 @@ extension ProtoServiceCore: CoreService {
                 case .failure(let failure):
                     DDLogInfo("ProtoServiceCore/resendPost/\(post.id)/failure: \(failure), aborting to: \(toUserID)")
                     AppContext.shared.eventMonitor.count(.groupEncryption(error: failure, itemType: .post))
-                    completion(.failure(RequestError.malformedRequest))
+                    completion(.failure(.aborted))
                 case .success(let serverGroupFeedItem):
                     let messageID = PacketID.generate()
                     DDLogInfo("ProtoServiceCore/resendPost/\(post.id)/message/\(messageID)/to: \(toUserID)")
@@ -372,7 +372,7 @@ extension ProtoServiceCore: CoreService {
                 case .failure(let failure):
                     DDLogInfo("ProtoServiceCore/resendComment/\(comment.id)/failure: \(failure), aborting to: \(toUserID)")
                     AppContext.shared.eventMonitor.count(.groupEncryption(error: failure, itemType: .comment))
-                    completion(.failure(RequestError.malformedRequest))
+                    completion(.failure(.aborted))
                 case .success(let serverGroupFeedItem):
                     let messageID = PacketID.generate()
                     DDLogInfo("ProtoServiceCore/resendComment/\(comment.id)/message/\(messageID)/to: \(toUserID)")
@@ -433,7 +433,7 @@ extension ProtoServiceCore: CoreService {
                 case .failure(let error):
                     DDLogError("ProtoServiceCore/publishCommentInternal/\(comment.id)/makePublishCommentPayload/error [\(error)]")
                     AppContext.shared.eventMonitor.count(.groupEncryption(error: error, itemType: .comment))
-                    completion(.failure(.malformedRequest))
+                    completion(.failure(.aborted))
                 case .success(let iqPayload):
                     DDLogError("ProtoServiceCore/publishCommentInternal/\(comment.id)/makePublishCommentPayload/success")
                     AppContext.shared.eventMonitor.count(.groupEncryption(error: nil, itemType: .comment))
@@ -1432,7 +1432,7 @@ extension ProtoServiceCore: CoreService {
 
             self.makeChatStanza(message) { chat, error in
                 guard let chat = chat else {
-                    completion(.failure(RequestError.malformedRequest))
+                    completion(.failure(.aborted))
                     return
                 }
 
