@@ -97,7 +97,6 @@ class MomentViewController: UIViewController {
 
     private lazy var dismissAnimator: DismissAnimator = {
         let animator = DismissAnimator(referenceView: view)
-        animator.delegate = self
         return animator
     }()
 
@@ -386,16 +385,12 @@ fileprivate class DismissAnimator: UIDynamicAnimator {
         snapshot?.removeFromSuperview()
         snapshot = nil
         attachment = nil
-
-        propertyAnimator?.stopAnimation(false)
-        propertyAnimator?.finishAnimation(at: .start)
-        propertyAnimator = nil
     }
 }
 
 // MARK: - Interactive dismiss methods
 
-extension MomentViewController: UIDynamicAnimatorDelegate {
+extension MomentViewController {
     @objc
     private func dismissPan(_ gesture: UIPanGestureRecognizer) {
         guard !contentInputView.textView.isFirstResponder else {
@@ -404,8 +399,8 @@ extension MomentViewController: UIDynamicAnimatorDelegate {
         }
 
         switch gesture.state {
-        case .began:
-            dismissAnimator.reset()
+        case .began where dismissAnimator.snapshot == nil:
+            // don't start if the animation is being reset
             installDismissSnapshot()
             installAttachmentBehavior(gesture)
             createPropertyAnimator()
@@ -417,7 +412,8 @@ extension MomentViewController: UIDynamicAnimatorDelegate {
             dismissAnimator.removeAllBehaviors()
 
             if !shouldCompleteInteractiveDismiss(gesture) {
-                return installSnapBehavior()
+                refreshAccessoryView(show: true)
+                return resetDismissAnimation()
             }
 
             let velocity = gesture.velocity(in: view)
@@ -462,18 +458,21 @@ extension MomentViewController: UIDynamicAnimatorDelegate {
      Creates the behavior that snaps the view back in place if the conditions to complete the dismiss
      interaction fail.
      */
-    private func installSnapBehavior() {
+    private func resetDismissAnimation() {
         guard let snapshot = dismissAnimator.snapshot else {
             return
         }
 
-        let snap = UISnapBehavior(item: snapshot, snapTo: momentView.center)
-        snap.damping = 1
-        snap.action = { [weak self] in
-            self?.updatePropertyAnimator()
+        UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 0.95, initialSpringVelocity: 1) {
+            snapshot.transform = .identity
+            snapshot.center = self.momentView.center
+        } completion: { _ in
+            self.momentView.isHidden = false
+            self.dismissAnimator.reset()
         }
 
-        dismissAnimator.addBehavior(snap)
+        dismissAnimator.propertyAnimator?.isReversed = true
+        dismissAnimator.propertyAnimator?.startAnimation()
     }
 
     private func shouldCompleteInteractiveDismiss(_ gesture: UIPanGestureRecognizer) -> Bool {
@@ -540,7 +539,7 @@ extension MomentViewController: UIDynamicAnimatorDelegate {
     }
 
     private func createPropertyAnimator() {
-        dismissAnimator.propertyAnimator = UIViewPropertyAnimator(duration: 0.4, curve: .linear) {
+        dismissAnimator.propertyAnimator = UIViewPropertyAnimator(duration: 0.3, curve: .linear) {
             self.headerView.alpha = 0.25
             self.unlockingMomentStack.alpha = 0.25
         }
@@ -562,21 +561,6 @@ extension MomentViewController: UIDynamicAnimatorDelegate {
         view.addSubview(snapshot)
         momentView.isHidden = true
         dismissAnimator.snapshot = snapshot
-    }
-
-    func dynamicAnimatorDidPause(_ animator: UIDynamicAnimator) {
-        for case _ as UISnapBehavior in animator.behaviors {
-            dismissAnimator.removeAllBehaviors()
-            dismissAnimator.snapshot?.removeFromSuperview()
-            dismissAnimator.snapshot = nil
-            momentView.isHidden = false
-
-            dismissAnimator.propertyAnimator?.isReversed = true
-            dismissAnimator.propertyAnimator?.startAnimation()
-
-            refreshAccessoryView(show: true)
-            break
-        }
     }
 }
 
