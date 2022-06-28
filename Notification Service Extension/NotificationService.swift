@@ -34,10 +34,10 @@ class NotificationService: UNNotificationServiceExtension  {
     var contentHandler: ((UNNotificationContent) -> Void)!
     private var service: CoreService? = nil
     private var cancellableSet = Set<AnyCancellable>()
-    private func recordPushEvent(requestID: String, messageID: String?) {
+    private func recordPushEvent(requestID: String) {
         let timestamp = Date()
         DDLogInfo("NotificationService/recordPushEvent/requestId: \(requestID), timestamp: \(timestamp)")
-        AppContext.shared.observeAndSave(event: .pushReceived(id: messageID ?? requestID, timestamp: timestamp))
+        AppContext.shared.observeAndSave(event: .pushReceived(id: requestID, timestamp: timestamp))
     }
 
     // MARK: Reachability
@@ -79,6 +79,7 @@ class NotificationService: UNNotificationServiceExtension  {
         setUpReachability()
         service = AppExtensionContext.shared.coreService
         service?.startConnectingIfNecessary()
+        recordPushEvent(requestID: request.identifier)
         if let coreService = service {
             self.cancellableSet.insert(
                 coreService.didDisconnect.sink { [weak self] in
@@ -91,7 +92,6 @@ class NotificationService: UNNotificationServiceExtension  {
 
         DDLogInfo("didReceiveRequest/begin processing \(request)")
 
-//        recordPushEvent(requestID: request.identifier, messageID: nil)
         self.contentHandler = contentHandler
         invokeCompletionHandlerLater()
     }
