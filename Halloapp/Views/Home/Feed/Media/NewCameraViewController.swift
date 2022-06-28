@@ -51,6 +51,12 @@ class NewCameraViewController: UIViewController {
         view.layer.cornerCurve = .continuous
         return view
     }()
+
+    private lazy var controlsContainer: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
     
     private lazy var shutterButton: CameraShutterButton = {
         let shutter = CameraShutterButton()
@@ -139,6 +145,10 @@ class NewCameraViewController: UIViewController {
         didSet { subtitleLabel.text = subtitle }
     }
 
+    var hideControls: Bool = false {
+        didSet { controlsContainer.isHidden = hideControls }
+    }
+
     var isEnabled: Bool = true {
         didSet {
             if oldValue != isEnabled { refreshEnabledState() }
@@ -200,10 +210,8 @@ class NewCameraViewController: UIViewController {
         view.addSubview(videoDurationLabel)
         view.addSubview(subtitleLabel)
 
-        let controlsContainer = UIView()
         let leftContainer = UIView()
         let rightContainer = UIView()
-        controlsContainer.translatesAutoresizingMaskIntoConstraints = false
         leftContainer.translatesAutoresizingMaskIntoConstraints = false
         rightContainer.translatesAutoresizingMaskIntoConstraints = false
 
@@ -306,7 +314,8 @@ class NewCameraViewController: UIViewController {
         }.store(in: &cancellables)
 
         model.$activeCamera.receive(on: DispatchQueue.main).sink { [weak self] active in
-            self?.flipCameraButton.isEnabled = active != .unspecified && (self?.isEnabled ?? false)
+            let enabled = active != .unspecified && (self?.isEnabled ?? false) && (self?.model.session.isRunning ?? false)
+            self?.flipCameraButton.isEnabled = enabled
         }.store(in: &cancellables)
 
         model.$isFlashEnabled.receive(on: DispatchQueue.main).sink { [weak self] enabled in
@@ -499,13 +508,12 @@ extension NewCameraViewController: CameraModelDelegate {
         present(alert, animated: true)
     }
 
+    func model(_ model: CameraModel, shouldAlter image: UIImage) -> UIImage {
+        return .moment == configuration ? cropImageForMoment(image) : image
+    }
+
     func model(_ model: CameraModel, didTake photo: UIImage) {
-        if case .moment = configuration {
-            let cropped = cropImageForMoment(photo)
-            onPhotoCapture?(cropped)
-        } else {
-            onPhotoCapture?(photo)
-        }
+        onPhotoCapture?(photo)
     }
 
     private func cropImageForMoment(_ image: UIImage) -> UIImage {

@@ -21,6 +21,7 @@ protocol CameraModelDelegate: AnyObject {
     @MainActor func modelDidStart(_ model: CameraModel)
     @MainActor func modelDidStop(_ model: CameraModel)
 
+    func model(_ model: CameraModel, shouldAlter image: UIImage) -> UIImage
     @MainActor func model(_ model: CameraModel, didTake photo: UIImage)
     @MainActor func model(_ model: CameraModel, didRecordVideoTo url: URL, error: Error?)
 }
@@ -376,6 +377,7 @@ extension CameraModel {
             throw CameraModelError.photoOutput
         }
 
+        output.maxPhotoQualityPrioritization = .speed
         session.addOutput(output)
         photoOutput = output
 
@@ -603,8 +605,6 @@ extension CameraModel: AVCapturePhotoCaptureDelegate {
             return
         }
 
-        // TODO: make this different for regular photos vs moments?
-        output.maxPhotoQualityPrioritization = .speed
         isTakingPhoto = true
 
         let settings = AVCapturePhotoSettings.init(format: [AVVideoCodecKey: AVVideoCodecType.jpeg])
@@ -621,6 +621,10 @@ extension CameraModel: AVCapturePhotoCaptureDelegate {
             return
         }
 
+        Task(priority: .userInitiated) { await deliverTaken(photo: photo) }
+    }
+
+    private func deliverTaken(photo: AVCapturePhoto) async {
         guard
             let data = photo.fileDataRepresentation(),
             let image = UIImage(data: data)
@@ -629,7 +633,8 @@ extension CameraModel: AVCapturePhotoCaptureDelegate {
             return
         }
 
-        Task { await delegate?.model(self, didTake: image) }
+        let final = delegate?.model(self, shouldAlter: image) ?? image
+        await delegate?.model(self, didTake: final)
     }
 }
 

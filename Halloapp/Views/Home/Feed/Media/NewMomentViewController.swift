@@ -46,8 +46,8 @@ final class NewMomentViewController: UIViewController {
     private lazy var cameraController: NewCameraViewController = {
         let vc = NewCameraViewController(style: .moment)
         vc.title = Localizations.newMomentTitle
-        vc.onShutterRelease = { [weak self] in self?.handleTaken() }
-        vc.onPhotoCapture = { [weak self] image in self?.composerController?.image = image }
+        vc.onShutterRelease = { [weak self] in self?.displayIntermediateState() }
+        vc.onPhotoCapture = { [weak self] in self?.displayComposer(with: $0) }
         vc.subtitle = prompt
         return vc
     }()
@@ -57,6 +57,7 @@ final class NewMomentViewController: UIViewController {
         return nc
     }()
 
+    private var sendButtonSnapshot: UIView?
     private var composerController: MomentComposerViewController?
     private var composerNavigationController: UIViewController?
 
@@ -103,14 +104,14 @@ final class NewMomentViewController: UIViewController {
         dismiss(animated: true)
     }
 
-    private func handleTaken() {
-        displayComposer()
-    }
+    /// After the photo has been delivered by the camera. Displays the composer with the enabled send button.
+    private func displayComposer(with image: UIImage) {
+        guard let composer = composerController else {
+            DDLogError("NewMomentViewController/displayComposer/composer does not exist")
+            return
+        }
 
-    private func displayComposer() {
-        let composer = MomentComposerViewController()
-        let composerNavigationController = UINavigationController(rootViewController: composer)
-
+        composer.image = image
         composer.onPost = { [weak self] in
             self?.completeCompose()
         }
@@ -119,35 +120,57 @@ final class NewMomentViewController: UIViewController {
             self?.dismissComposer()
         }
 
+        UIView.transition(with: view, duration: 0.3) {
+            self.cameraNavigationController.view.alpha = 0
+            self.sendButtonSnapshot?.alpha = 0
+        } completion: { _ in
+            self.sendButtonSnapshot?.removeFromSuperview()
+            self.sendButtonSnapshot = nil
+            self.cameraNavigationController.view.removeFromSuperview()
+            self.cameraNavigationController.view.alpha = 1
+        }
+    }
+
+    /// After the user takes the photo. Displays the disabled send button while the camera's viewfinder is still active.
+    private func displayIntermediateState() {
+        let composer = MomentComposerViewController()
+        let composerNavigationController = UINavigationController(rootViewController: composer)
+
+        view.insertSubview(composerNavigationController.view, at: 0)
         contain(composerNavigationController)
-        composer.view.layoutIfNeeded()
         composer.momentCardTopConstraint.constant = cameraController.background.frame.minY
         composer.momentCardHeightConstraint.constant = cameraController.background.bounds.height
+
+        guard let sendButtonSnapshot = composer.sendButton.snapshotView(afterScreenUpdates: true) else {
+            DDLogError("NewMomentViewController/displayIntermediateState/unable to create send button snapshot")
+            return composerNavigationController.view.removeFromSuperview()
+        }
 
         self.composerNavigationController = composerNavigationController
         self.composerController = composer
 
-        composer.sendButton.transform = .identity.scaledBy(x: 0.25, y: 0.25)
-        composer.sendButton.alpha = 0
+        sendButtonSnapshot.center = view.convert(composer.sendButton.center, from: composer.sendButton.superview)
+        sendButtonSnapshot.transform = .identity.scaledBy(x: 0.25, y: 0.25)
+        sendButtonSnapshot.alpha = 0
 
-        let previewSnapshot = cameraController.preview.snapshotView(afterScreenUpdates: false)!
-        composer.placeholder = previewSnapshot
+        view.addSubview(sendButtonSnapshot)
+        cameraController.hideControls = true
+        self.sendButtonSnapshot = sendButtonSnapshot
 
-        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.9, options: [.allowUserInteraction]) {
-            self.cameraNavigationController.view.alpha = 0
-            composer.sendButton.transform = .identity
-            composer.sendButton.alpha = 1
-        } completion: { _ in
-            self.cameraNavigationController.view.removeFromSuperview()
+        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.9) {
+            sendButtonSnapshot.alpha = 1
+            sendButtonSnapshot.transform = .identity
         }
     }
 
+    /// Dismisses the composer and goes back to the camera.
     private func dismissComposer() {
         // go back to the camera
+        view.insertSubview(cameraNavigationController.view, at: 0)
         contain(cameraNavigationController)
+        cameraController.hideControls = false
 
         UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0) {
-            self.cameraNavigationController.view.alpha = 1
             self.composerNavigationController?.view.alpha = 0
             self.composerController?.sendButton.transform = .identity.scaledBy(x: 0.25, y: 0.25)
         } completion: { _ in
@@ -193,11 +216,13 @@ final class NewMomentViewController: UIViewController {
 
     /// Helper for adding a view controller as a child.
     private func contain(_ viewController: UIViewController) {
-        addChild(viewController)
-        viewController.didMove(toParent: self)
+        if viewController.view.superview !== view {
+            view.addSubview(viewController.view)
+        }
 
         viewController.view.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(viewController.view)
+        addChild(viewController)
+        viewController.didMove(toParent: self)
 
         NSLayoutConstraint.activate([
             viewController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -205,6 +230,9 @@ final class NewMomentViewController: UIViewController {
             viewController.view.topAnchor.constraint(equalTo: view.topAnchor),
             viewController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
+
+        // ensures that everything gets aligned correctly when using snapshots
+        viewController.view.layoutIfNeeded()
     }
 
     /// The overlay that is above the camera when the user first attempts to unlock a moment.
