@@ -41,30 +41,12 @@ class MomentViewController: UIViewController {
         return view
     }()
     
-    private lazy var unlockingMomentStack: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [unlockingMomentView, unlockingPostProgressLabel])
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        stack.axis = .vertical
-        stack.spacing = 5
-        stack.setContentHuggingPriority(.required, for: .vertical)
-        stack.setContentCompressionResistancePriority(.required, for: .vertical)
-        return stack
-    }()
-    
     private lazy var unlockingMomentView: MinimalMomentView = {
         let view = MinimalMomentView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.setContentHuggingPriority(.required, for: .vertical)
         view.setContentCompressionResistancePriority(.required, for: .vertical)
         return view
-    }()
-    
-    private lazy var unlockingPostProgressLabel: UILabel = {
-        let label = UILabel()
-        label.font = .preferredFont(forTextStyle: .footnote)
-        label.textColor = .secondaryLabel
-        label.text = Localizations.momentUploadingProgress
-        return label
     }()
     
     private lazy var headerView: FeedItemHeaderView = {
@@ -174,6 +156,17 @@ class MomentViewController: UIViewController {
         NotificationCenter.default.publisher(for: UIApplication.userDidTakeScreenshotNotification).sink { [weak self] _ in
             self?.screenshotWasTaken()
         }.store(in: &cancellables)
+
+        let uploadControl = UploadProgressControl()
+        view.addSubview(uploadControl)
+        uploadControl.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            uploadControl.widthAnchor.constraint(equalToConstant: 75),
+            uploadControl.heightAnchor.constraint(equalToConstant: 75),
+            uploadControl.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            uploadControl.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+        ])
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -223,15 +216,15 @@ class MomentViewController: UIViewController {
             return
         }
 
-        view.addSubview(unlockingMomentStack)
+        view.addSubview(unlockingMomentView)
         unlockingMomentView.configure(with: unlockingPost)
         momentView.setState(unlockingPost.status == .sent ? .unlocked : .indeterminate)
 
         NSLayoutConstraint.activate([
-            headerView.topAnchor.constraint(equalTo: unlockingMomentStack.bottomAnchor, constant: 10),
-            unlockingMomentStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -15),
-            unlockingMomentStack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 5),
-            unlockingMomentStack.widthAnchor.constraint(equalToConstant: 75),
+            headerView.topAnchor.constraint(equalTo: unlockingMomentView.bottomAnchor, constant: 7),
+            unlockingMomentView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -15),
+            unlockingMomentView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 5),
+            unlockingMomentView.widthAnchor.constraint(equalToConstant: 75),
         ])
         
         unlockingPost.publisher(for: \.statusValue).sink { [weak self] _ in
@@ -279,14 +272,9 @@ class MomentViewController: UIViewController {
         
         switch unlockingPost.status {
         case .sent:
-            unlockingPostProgressLabel.text = Localizations.momentUploadingSuccess
             momentView.setState(.unlocked, animated: true)
             refreshAccessoryView(show: true)
             expireMomentIfReady()
-        case .sending:
-            unlockingPostProgressLabel.text = Localizations.momentUploadingProgress
-        case .sendError:
-            unlockingPostProgressLabel.text = Localizations.momentUploadingFailed
         default:
             break
         }
@@ -541,7 +529,7 @@ extension MomentViewController {
     private func createPropertyAnimator() {
         dismissAnimator.propertyAnimator = UIViewPropertyAnimator(duration: 0.3, curve: .linear) {
             self.headerView.alpha = 0.25
-            self.unlockingMomentStack.alpha = 0.25
+            self.unlockingMomentView.alpha = 0.25
         }
 
         dismissAnimator.propertyAnimator?.addCompletion { [weak self] _ in

@@ -280,6 +280,7 @@
 		A1AE40CB282DAB3F00C3EF3A /* QuotedMomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AE40CA282DAB3F00C3EF3A /* QuotedMomentView.swift */; };
 		A1AE40CF283DA7DB00C3EF3A /* QuotedMediaPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AE40CE283DA7DB00C3EF3A /* QuotedMediaPanel.swift */; };
 		A1AFA975286A7E99005B0DEA /* MinimalMomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AFA974286A7E99005B0DEA /* MinimalMomentView.swift */; };
+		A1AFA979286B6460005B0DEA /* UploadProgressControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AFA978286B6460005B0DEA /* UploadProgressControl.swift */; };
 		A1AFE7742819F485008BBC80 /* MomentCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AFE7732819F485008BBC80 /* MomentCollectionViewCell.swift */; };
 		A1AFE776281FAA6B008BBC80 /* MomentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AFE775281FAA6B008BBC80 /* MomentViewController.swift */; };
 		A1AFE7782821E135008BBC80 /* MomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AFE7772821E135008BBC80 /* MomentView.swift */; };
@@ -1036,6 +1037,7 @@
 		A1AE40CA282DAB3F00C3EF3A /* QuotedMomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotedMomentView.swift; sourceTree = "<group>"; };
 		A1AE40CE283DA7DB00C3EF3A /* QuotedMediaPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotedMediaPanel.swift; sourceTree = "<group>"; };
 		A1AFA974286A7E99005B0DEA /* MinimalMomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MinimalMomentView.swift; sourceTree = "<group>"; };
+		A1AFA978286B6460005B0DEA /* UploadProgressControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadProgressControl.swift; sourceTree = "<group>"; };
 		A1AFE7732819F485008BBC80 /* MomentCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentCollectionViewCell.swift; sourceTree = "<group>"; };
 		A1AFE775281FAA6B008BBC80 /* MomentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentViewController.swift; sourceTree = "<group>"; };
 		A1AFE7772821E135008BBC80 /* MomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentView.swift; sourceTree = "<group>"; };
@@ -1564,6 +1566,7 @@
 				F49C8E622835A52900E881E3 /* RoundedRectButton.swift */,
 				F4C29B15283D5A4C00A4FE08 /* MediaImageView.swift */,
 				EE969F632847EE49006F491A /* HAMenu.swift */,
+				A1AFA978286B6460005B0DEA /* UploadProgressControl.swift */,
 				A193F57028107A9B00B13D4B /* InsetCollectionView.swift */,
 			);
 			path = Views;
@@ -2915,6 +2918,7 @@
 				E5959700268E3F3800AA3BB9 /* DeleteAccountView.swift in Sources */,
 				76B5B52F2501EEBE0055E712 /* UNExtensions.swift in Sources */,
 				76538091243D4B33000AD9A1 /* FeedNotification+CoreDataClass.swift in Sources */,
+				A1AFA979286B6460005B0DEA /* UploadProgressControl.swift in Sources */,
 				761442C9245D4DE500DD9D1A /* UIButton.swift in Sources */,
 				768123A42485C56E008C5216 /* MainAppContext.swift in Sources */,
 				325A0D772863BA9A00223611 /* NewGroupChatHeaderView.swift in Sources */,

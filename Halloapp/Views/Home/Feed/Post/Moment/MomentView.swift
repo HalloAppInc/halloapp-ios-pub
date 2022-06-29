@@ -46,12 +46,12 @@ class MomentView: UIView {
     private(set) var feedPost: FeedPost?
 
     private(set) lazy var mediaView: MediaCarouselView = {
-        var config = MediaCarouselViewConfiguration.default
-        config.cornerRadius = Layout.innerRadius
-        config.borderWidth = 0
-        let view = MediaCarouselView(media: [], initialIndex: nil, configuration: config)
+        let view = MediaCarouselView(media: [], initialIndex: nil, configuration: .moment)
         view.delegate = self
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .systemGray
+        view.layer.cornerRadius = Layout.innerRadius
+        view.layer.cornerCurve = .continuous
         return view
     }()
     

@@ -18,13 +18,35 @@ class MinimalMomentView: UIView {
     private(set) var feedPost: FeedPost?
     private var mediaLoader: AnyCancellable?
 
-    private var imageView: UIImageView = {
+    private lazy var imageView: UIImageView = {
         let view = UIImageView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.contentMode = .scaleAspectFill
         view.layer.masksToBounds = true
         view.layer.cornerRadius = 4
         return view
+    }()
+
+    private lazy var overlay: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .black.withAlphaComponent(0.5)
+        return view
+    }()
+
+    private lazy var progressControl: UploadProgressControl = {
+        let control = UploadProgressControl()
+        control.translatesAutoresizingMaskIntoConstraints = false
+        control.tintColor = .white.withAlphaComponent(0.9)
+        control.showSuccessIndicator = true
+
+        control.onRetry = { [weak self] in
+            if let id = self?.feedPost?.id {
+                MainAppContext.shared.feedData.retryPosting(postId: id)
+            }
+        }
+
+        return control
     }()
 
     override init(frame: CGRect) {
@@ -35,6 +57,9 @@ class MinimalMomentView: UIView {
         layer.cornerRadius = 5
 
         addSubview(imageView)
+        addSubview(overlay)
+        addSubview(progressControl)
+
         let padding: CGFloat = 3
         NSLayoutConstraint.activate([
             imageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
@@ -42,6 +67,16 @@ class MinimalMomentView: UIView {
             imageView.topAnchor.constraint(equalTo: topAnchor, constant: padding),
             imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor),
             imageView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12),
+
+            overlay.leadingAnchor.constraint(equalTo: imageView.leadingAnchor),
+            overlay.trailingAnchor.constraint(equalTo: imageView.trailingAnchor),
+            overlay.topAnchor.constraint(equalTo: imageView.topAnchor),
+            overlay.bottomAnchor.constraint(equalTo: imageView.bottomAnchor),
+
+            progressControl.widthAnchor.constraint(equalTo: imageView.widthAnchor, multiplier: 0.4),
+            progressControl.heightAnchor.constraint(equalTo: progressControl.widthAnchor),
+            progressControl.centerXAnchor.constraint(equalTo: imageView.centerXAnchor),
+            progressControl.centerYAnchor.constraint(equalTo: imageView.centerYAnchor),
         ])
     }
 
@@ -63,5 +98,7 @@ class MinimalMomentView: UIView {
                 self?.imageView.image = media.image
             }
         }
+
+        progressControl.configure(with: post)
     }
 }

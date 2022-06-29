@@ -878,6 +878,10 @@ extension FeedCollectionViewController {
         cell.openAction = { [weak self, feedPost] in
             self?.presentMomentViewController(for: feedPost)
         }
+
+        cell.uploadProgressControl.onRetry = { [weak self] in
+            self?.retrySending(postId: feedPost.id)
+        }
     }
 
     func configure(cell: FeedPostCollectionViewCell, withActiveFeedPost feedPost: FeedPost) {

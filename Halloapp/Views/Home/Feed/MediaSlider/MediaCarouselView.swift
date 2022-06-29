@@ -52,6 +52,13 @@ struct MediaCarouselViewConfiguration {
     static var minimal: MediaCarouselViewConfiguration {
         get { MediaCarouselViewConfiguration(isPagingEnabled: false, isZoomEnabled: false, showVideoPlaybackControls: false, cellSpacing: 10, cornerRadius: 5) }
     }
+
+    static var moment: MediaCarouselViewConfiguration {
+        var config = MediaCarouselViewConfiguration()
+        config.cornerRadius = MomentView.Layout.innerRadius
+        config.borderWidth = 0
+        return config
+    }
 }
 
 struct MediaCarouselSupplementaryItem {

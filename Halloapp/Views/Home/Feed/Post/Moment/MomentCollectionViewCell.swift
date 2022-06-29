@@ -37,6 +37,14 @@ class MomentCollectionViewCell: UICollectionViewCell {
         return view
     }()
 
+    private(set) lazy var uploadProgressControl: UploadProgressControl = {
+        let control = UploadProgressControl()
+        control.translatesAutoresizingMaskIntoConstraints = false
+        control.tintColor = .label.withAlphaComponent(0.4)
+        control.lineWidth = 3
+        return control
+    }()
+
     private var momentViewLeading: NSLayoutConstraint?
     private var momentViewTrailing: NSLayoutConstraint?
 
@@ -120,6 +128,7 @@ class MomentCollectionViewCell: UICollectionViewCell {
         momentView.configure(with: post)
         headerView.configure(with: post, contentWidth: bounds.width, showGroupName: false)
         facePileView.configure(with: post)
+        uploadProgressControl.configure(with: post)
 
         openTapGesture.isEnabled = post.userId == MainAppContext.shared.userData.userId
     }
@@ -142,6 +151,7 @@ class MomentCollectionViewCell: UICollectionViewCell {
 
         contentView.addSubview(headerView)
         contentView.addSubview(facePileView)
+        contentView.addSubview(uploadProgressControl)
 
         let spacing = MomentView.LayoutConstants.interCardSpacing
 
@@ -157,20 +167,31 @@ class MomentCollectionViewCell: UICollectionViewCell {
         faceBottom.priority = .defaultHigh
         faceTrailing.priority = .defaultHigh
 
+        let controlLeading = uploadProgressControl.leadingAnchor.constraint(equalTo: momentView.leadingAnchor)
+        controlLeading.priority = .defaultHigh
+
         NSLayoutConstraint.activate([
             headerTop,
             headerLeading,
             headerTrailing,
+
             momentTop,
             momentBottom,
+
             faceBottom,
-            faceTrailing
+            faceTrailing,
+
+            controlLeading,
+            uploadProgressControl.centerYAnchor.constraint(equalTo: facePileView.centerYAnchor),
+            uploadProgressControl.heightAnchor.constraint(equalToConstant: 15),
+            uploadProgressControl.widthAnchor.constraint(equalTo: uploadProgressControl.heightAnchor),
         ])
     }
 
     private func removeHeaderAndFooter() {
         headerView.removeFromSuperview()
         facePileView.removeFromSuperview()
+        uploadProgressControl.removeFromSuperview()
     }
 
     @objc
