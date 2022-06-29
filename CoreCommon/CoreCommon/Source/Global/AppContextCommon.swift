@@ -138,6 +138,16 @@ open class AppContextCommon {
                 self?.coreServiceCommon.credentials = nil
             }
         )
+        cancellableSet.insert(AppContextCommon.monitorAndLogLowPowerMode())
+    }
+
+    private static func monitorAndLogLowPowerMode() -> AnyCancellable {
+        NotificationCenter.default.publisher(for: .NSProcessInfoPowerStateDidChange)
+            .map { _ in ProcessInfo.processInfo.isLowPowerModeEnabled }
+            .prepend(ProcessInfo.processInfo.isLowPowerModeEnabled)
+            .sink { isLowPowerModeEnabled in
+                DDLogInfo("AppContextCommon/monitorAndLogLowPowerMode isLowPowerModeEnabled: \(isLowPowerModeEnabled)")
+            }
     }
 
     static func phoneNumberKitMetadataCallback() throws -> Data? {
