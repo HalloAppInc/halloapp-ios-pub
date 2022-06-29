@@ -148,6 +148,7 @@ open class ProtoServiceCoreCommon: NSObject, ObservableObject {
             return
         }
         guard let stream = stream else { return }
+        DDLogInfo("proto/connect")
 
         shouldReconnectOnConnectionLoss = true
         reconnectDelay = 2
