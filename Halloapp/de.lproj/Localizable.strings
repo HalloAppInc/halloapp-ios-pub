@@ -379,6 +379,9 @@
 /* Alert title when missing microphone access */
 "chat.mic.access.denied.title" = "Zugriff auf das Mikrofon nicht möglich";
 
+/* cta label for creating a new group chat */
+"chat.new.group.label" = "Neuer Gruppen-Chat";
+
 /* Text below the contact's name when the contact is online in the Chat Screen */
 "chat.online.label" = "online";
 
@@ -527,7 +530,7 @@
 "Delete" = "Löschen";
 
 /* Body of the bottom sheet that is presented only once to explain the moments feature. */
-"describing.moments" = "Schalte die Momente deiner Freunde frei, indem du deine eigenen teilst. Momente sind temporär und können nur einmal angesehen werden";
+"describing.moments" = "Entsperre die Momente deiner Freunde, indem du deine eigenen teilst. Momente sind temporär und können nur einmal angesehen werden";
 
 /* link, tapping on which launched the flow to edit blocked contacts */
 "edit.blocked" = "Bearbeiten";
@@ -1180,6 +1183,9 @@
 /* New moment notification text to be shown to the user. */
 "notification.moment.5" = "%1$@, %2$@, %3$@ und weitere Kontakte haben neue Momente geteilt";
 
+/* New moment screenshot notification text to be shown to the user. */
+"notification.moment.screenshot" = "%@ hat einen Screenshot von deinem Moment gemacht";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "Benachrichtigung.n.Fotos";
 
@@ -1465,6 +1471,9 @@
 /* Text shown to instruct using a QR code for joining a group */
 "scan.to.join.group.using.qr.code" = "Um beizutreten, scanne diesen QR-Code mit deiner Handykamera.";
 
+/* Title that indicates that someone took a screenshot. */
+"screenshot.title" = "Screenshot";
+
 /* Text placed on the blurred overlay of a secret post. */
 "secret.post.entice" = "%@ hat einen Moment geteilt";
 
@@ -1608,6 +1617,9 @@
 
 /* Instructions for enabling notifications permissions */
 "settings.notifications.disabled.instructions" = "Bitte die Benachrichtigungen in den Einstellungen aktivieren.";
+
+/* Settings > Notifications: label for the toggle that turns new moment notifications on or off. */
+"settings.notifications.moments" = "Momente";
 
 /* Settings > Notifications: label for the toggle that turns new post notifications on or off. */
 "settings.notifications.posts" = "Beiträge";

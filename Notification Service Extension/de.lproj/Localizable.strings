@@ -151,6 +151,9 @@
 /* New moment notification text to be shown to the user. */
 "notification.moment.5" = "%1$@, %2$@, %3$@ und weitere Kontakte haben neue Momente geteilt";
 
+/* New moment screenshot notification text to be shown to the user. */
+"notification.moment.screenshot" = "%@ hat einen Screenshot von deinem Moment gemacht";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
 

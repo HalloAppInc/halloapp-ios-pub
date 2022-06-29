@@ -1109,7 +1109,7 @@
 "mypost.action.view.profile" = "Profiel bekijken";
 
 /* Message displayed to say when posts will disappear for posts shared with contacts. */
-"mypost.contacts.disappear.time.label" = "Je post verdwijnt na 30 dagen. Je telefooncontacten die lid worden van HalloApp kunnen je niet-verlopen posts zien.";
+"mypost.contacts.disappear.time.label" = "Je post verdwijnt na 30 dagen. Je contacten die lid worden van HalloApp kunnen je niet-verlopen posts zien.";
 
 /* Generic message displayed to say when posts will disappear. */
 "mypost.disappear.time.label" = "Je post verdwijnt na 30 dagen.";

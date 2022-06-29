@@ -260,7 +260,7 @@
 "Cancel" = "Cancelar";
 
 /* Text shown in the chat interface informing the user that the contact is blocked */
-"chat.blocked.contact.label" = "Este contato está bloqueado, toque para desbloquear";
+"chat.blocked.contact.label" = "Você bloqueou este contato";
 
 /* Title of the bottom sheet shown in the chat screen of a contact that is blocked. The bottom sheet contains an unblock button. */
 "chat.contact.is.blocked.title.label" = "O contato está bloqueado, você não receberá nenhuma mensagem até desbloqueá-lo.";
@@ -362,7 +362,7 @@
 "chat.message.photo" = "Foto";
 
 /* Text shown when content input text field is empty for chat screens. */
-"chat.message.placeholder" = "Escreva uma mensagem";
+"chat.message.placeholder" = "Nova mensagem";
 
 /* Text shown in place of a received message we are not able to process yet. */
 "chat.message.unsupported" = "A sua versão do HalloApp não suporta este tipo de mensagem.";
@@ -419,7 +419,7 @@
 "comment.reply" = "Responder";
 
 /* Placeholder text for the comment input field when there is no user input. */
-"comment.textfield.placeholder" = "Fazer um comentário";
+"comment.textfield.placeholder" = "Novo comentário";
 
 /* Text displayed in place of a comment that is not supported in the current app version. */
 "comment.unsupported" = "A sua versão do HalloApp não suporta este tipo de comentário.";
@@ -557,7 +557,7 @@
 "fab.accessibility.camera" = "Câmara";
 
 /* VoiceOver label for photo button in floating compose post menu in Home view. */
-"fab.accessibility.photo.library" = "Galeria de fotografias";
+"fab.accessibility.photo.library" = "Foto & Video";
 
 /* VoiceOver label for text post button in floating compose post menu in Home view. */
 "fab.accessibility.text" = "Texto";
@@ -821,7 +821,7 @@
 "group.invite.link.copied" = "Copiado para a área de transferência";
 
 /* Text to describe what the group invite link is */
-"group.invite.link.description" = "Qualquer pessoa com o HalloApp pode usar este link para entrar neste grupo.";
+"group.invite.link.description" = "Qualquer pessoa com HalloApp pode seguir este link para participar deste grupo. No entanto, eles não receberão automaticamente o conteúdo postado antes de ingressar no grupo.";
 
 /* Text label above the group link section in group invite screen */
 "group.invite.link.label" = "LINK DO GRUPO";
@@ -1183,6 +1183,9 @@
 /* New moment notification text to be shown to the user. */
 "notification.moment.5" = "%1$@, %2$@, %3$@ e outros compartilharam novos momentos";
 
+/* New moment screenshot notification text to be shown to the user. */
+"notification.moment.screenshot" = "%@ tirou uma captura de tela do seu momento";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notificação.n.fotos";
 
@@ -1325,7 +1328,7 @@
 "profile.groups.in.common" = "Grupos em comum";
 
 /* This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun. */
-"profile.header.call.user" = "chamada de voz";
+"profile.header.call.user" = "voz";
 
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
 "profile.header.message.user" = "Enviar Mensagem";
@@ -1358,7 +1361,7 @@
 "profile.name.length" = "%1$d/%2$d";
 
 /* Row in Profile screen. */
-"profile.row.about" = "Acerca";
+"profile.row.about" = "Sobre o HalloApp";
 
 /* Row in Profile Screen */
 "profile.row.account" = "Conta";
@@ -1614,6 +1617,9 @@
 
 /* Instructions for enabling notifications permissions */
 "settings.notifications.disabled.instructions" = "Por favor, ative as notificações em Configurações.";
+
+/* Settings > Notifications: label for the toggle that turns new moment notifications on or off. */
+"settings.notifications.moments" = "Momentos";
 
 /* Settings > Notifications: label for the toggle that turns new post notifications on or off. */
 "settings.notifications.posts" = "Publicações";
