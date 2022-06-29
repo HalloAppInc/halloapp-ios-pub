@@ -378,6 +378,9 @@ final class NotificationProtoService: ProtoServiceCore {
             mainDataStore.performSeriallyOnBackgroundContext { managedObjectContext in
                 guard let feedPost = AppContext.shared.coreFeedData.feedPost(with: postID, in: managedObjectContext) else {
                     DDLogError("NotificationExtension/retract-post/error Missing post. [\(postID)]")
+                    // TODO: save these messages and let the main app process them.
+                    // We should update our code to handle these messages to be out of order.
+                    self.notificationDataStore.saveServerMsg(notificationMetadata: metadata)
                     completion()
                     return
                 }
@@ -448,6 +451,9 @@ final class NotificationProtoService: ProtoServiceCore {
             mainDataStore.performSeriallyOnBackgroundContext { managedObjectContext in
                 guard let feedComment = AppContext.shared.coreFeedData.feedComment(with: commentID, in: managedObjectContext) else {
                     DDLogError("NotificationExtension/retract-comment/error Missing comment. [\(commentID)]")
+                    // TODO: save these messages and let the main app process them.
+                    // We should update our code to handle these messages to be out of order.
+                    self.notificationDataStore.saveServerMsg(notificationMetadata: metadata)
                     completion()
                     return
                 }
