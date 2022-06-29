@@ -385,7 +385,7 @@ private extension VerificationCodeRequestError {
     static func error(with reason: Server_OtpResponse.Reason) -> VerificationCodeRequestError {
         switch reason {
         case .invalidPhoneNumber:
-            return .invalidPhoneNumber
+            return .invalidPhoneNumber(reason: nil)
         case .invalidClientVersion:
             return .invalidClientVersion
         case .otpFail:
@@ -402,9 +402,16 @@ private extension VerificationCodeRequestError {
             return .requestCreationError
         case .wrongHashcashSolution:
             return .requestCreationError
-        case .invalidCountryCode, .invalidLength, .lineTypeVoip, .lineTypeFixed, .lineTypeOther:
-            // TODO: show better error responses to the user.
-            return .invalidPhoneNumber
+        case .invalidCountryCode:
+            return .invalidPhoneNumber(reason: .invalidCountryCode)
+        case .invalidLength:
+            return .invalidPhoneNumber(reason: .invalidLength)
+        case .lineTypeVoip:
+            return .invalidPhoneNumber(reason: .lineTypeVoip)
+        case .lineTypeFixed:
+            return .invalidPhoneNumber(reason: .lineTypeFixed)
+        case .lineTypeOther:
+            return .invalidPhoneNumber(reason: .lineTypeOther)
         }
     }
 }

@@ -24,14 +24,22 @@ public struct RegistrationErrorResponse: Error {
     public var error: Error
     public var retryDelay: TimeInterval?
 }
-public enum VerificationCodeRequestError: String, Error, RawRepresentable {
-    case invalidPhoneNumber = "invalid_phone_number"        // phone number provided is invalid
-    case notInvited = "not_invited"
-    case smsFailure = "sms_fail"
-    case invalidClientVersion = "invalid_client_version"    // client version has expired.
+public enum VerificationCodeRequestError: Error {
+    case invalidPhoneNumber(reason: InvalidPhoneNumberReason?) // phone number provided is invalid
+    case notInvited
+    case smsFailure
+    case invalidClientVersion // client version has expired.
     case requestCreationError
-    case retriedTooSoon = "retried_too_soon"
+    case retriedTooSoon
     case malformedResponse // everything else
+    
+    public enum InvalidPhoneNumberReason {
+        case invalidCountryCode
+        case invalidLength
+        case lineTypeVoip
+        case lineTypeFixed
+        case lineTypeOther
+    }
 }
 
 public enum GetGroupNameError: String, Error, RawRepresentable {

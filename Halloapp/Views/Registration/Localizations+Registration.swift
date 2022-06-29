@@ -36,8 +36,21 @@ extension Localizations {
         NSLocalizedString("registration.invalidphone", value: "Shucks!", comment: "Title for popup that appears when user tries to register invalid number")
     }
 
-    static var registrationInvalidPhoneText: String {
-        NSLocalizedString("registration.invalidphone.only", value: "The phone number you entered is invalid. Please recheck.", comment: "Popup that appears when user tries to register invalid number")
+    static func registrationInvalidPhoneText(reason: VerificationCodeRequestError.InvalidPhoneNumberReason?) -> String {
+        switch reason {
+        case .invalidCountryCode:
+            return NSLocalizedString("registration.invalidphone.invalidCountryCode", value: "The phone number you entered has an invalid country code. Please recheck.", comment: "Popup that appears when user tries to register a number with invalid country code")
+        case .invalidLength:
+            return NSLocalizedString("registration.invalidphone.invalidLength", value: "The phone number you entered has an invalid length. Please recheck.", comment: "Popup that appears when user tries to register a number with invalid length")
+        case .lineTypeVoip:
+            return NSLocalizedString("registration.invalidphone.lineTypeVoip", value: "The phone number you entered is not a mobile number. Please recheck.", comment: "Popup that appears when user tries to register a VoIP number")
+        case .lineTypeFixed:
+            return NSLocalizedString("registration.invalidphone.lineTypeFixed", value: "The phone number you entered is not a mobile number. Please recheck.", comment: "Popup that appears when user tries to register a landline number")
+        case .lineTypeOther:
+            return NSLocalizedString("registration.invalidphone.lineTypeOther", value: "The phone number you entered is not a mobile number. Please recheck.", comment: "Popup that appears when user tries to register a number with unknown line type")
+        case .none:
+            return NSLocalizedString("registration.invalidphone.only", value: "The phone number you entered is invalid. Please recheck.", comment: "Popup that appears when user tries to register invalid number")
+        }
     }
 
     static var registrationCodeDisclaimer: String {
