@@ -67,7 +67,7 @@ final class MomentPromptView: UIView {
     private lazy var gradientView: GradientView = {
         let view = GradientView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.layer.cornerRadius = Layout.innerRadius()
+        view.layer.cornerRadius = Layout.innerRadius
         view.layer.cornerCurve = .continuous
         view.layer.masksToBounds = true
         return view
@@ -117,7 +117,7 @@ final class MomentPromptView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        layer.cornerRadius = Layout.cornerRadius()
+        layer.cornerRadius = Layout.cornerRadius
         layer.masksToBounds = false
         clipsToBounds = false
 
@@ -138,7 +138,7 @@ final class MomentPromptView: UIView {
         addSubview(gradientView)
         addSubview(overlayStack)
 
-        let spacing = Layout.mediaPadding()
+        let spacing = Layout.mediaPadding
         let avatarDiameter = Layout.avatarDiameter
         NSLayoutConstraint.activate([
             gradientView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: spacing),
@@ -160,7 +160,7 @@ final class MomentPromptView: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: Layout.cornerRadius()).cgPath
+        layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: Layout.cornerRadius).cgPath
     }
 
     private func displayPermissionAllowedState() {

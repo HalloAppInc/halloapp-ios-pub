@@ -51,8 +51,8 @@ class MomentViewController: UIViewController {
         return stack
     }()
     
-    private lazy var unlockingMomentView: MomentView = {
-        let view = MomentView(style: .minimal)
+    private lazy var unlockingMomentView: MinimalMomentView = {
+        let view = MinimalMomentView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.setContentHuggingPriority(.required, for: .vertical)
         view.setContentCompressionResistancePriority(.required, for: .vertical)

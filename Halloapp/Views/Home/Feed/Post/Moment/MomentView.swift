@@ -16,21 +16,20 @@ import CoreCommon
 extension MomentView {
     /// - note: Also used by `MomentPromptView`.
     struct Layout {
-        static func cornerRadius(for style: Style = .normal) -> CGFloat {
-            style == .minimal ? 7 : 12
+        static var cornerRadius: CGFloat {
+            12
         }
 
-        static func innerRadius(for style: Style = .normal) -> CGFloat {
-            let difference: CGFloat = style == .minimal ? 2 : 5
-            return cornerRadius(for: style) - difference
+        static var innerRadius: CGFloat {
+            cornerRadius - 5
         }
 
-        static func mediaPadding(for style: Style = .normal) -> CGFloat {
-            style == .minimal ? 3 : 7
+        static var mediaPadding: CGFloat {
+            7
         }
 
-        static func footerPadding(for style: Style = .normal) -> CGFloat {
-            style == .minimal ? 9 : 14
+        static var footerPadding: CGFloat {
+            14
         }
 
         static var avatarDiameter: CGFloat {
@@ -41,18 +40,14 @@ extension MomentView {
 
 class MomentView: UIView {
     typealias LayoutConstants = FeedPostCollectionViewCell.LayoutConstants
-
-    enum Style { case normal, minimal }
     enum State { case locked, unlocked, indeterminate }
-    
-    let style: Style
+
     private(set) var state: State = .locked
-    
     private(set) var feedPost: FeedPost?
 
     private(set) lazy var mediaView: MediaCarouselView = {
         var config = MediaCarouselViewConfiguration.default
-        config.cornerRadius = Layout.innerRadius(for: style)
+        config.cornerRadius = Layout.innerRadius
         config.borderWidth = 0
         let view = MediaCarouselView(media: [], initialIndex: nil, configuration: config)
         view.delegate = self
@@ -63,7 +58,7 @@ class MomentView: UIView {
     private lazy var blurView: UIVisualEffectView = {
         let view = UIVisualEffectView(effect: UIBlurEffect(style: .regular))
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.layer.cornerRadius = Layout.innerRadius(for: style)
+        view.layer.cornerRadius = Layout.innerRadius
         view.layer.cornerCurve = .continuous
         view.layer.masksToBounds = true
         return view
@@ -131,24 +126,24 @@ class MomentView: UIView {
     var avatarAction: (() -> Void)?
     var buttonAction: (() -> Void)?
 
-    init(style: Style = .normal) {
-        self.style = style
-        super.init(frame: .zero)
-        layer.cornerRadius = Layout.cornerRadius(for: style)
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+
+        layer.cornerRadius = Layout.cornerRadius
         layer.cornerCurve = .circular
         backgroundColor = .momentPolaroid
 
         addSubview(mediaView)
         addSubview(footerView)
 
-        let footerPadding = Layout.footerPadding(for: style)
-        let mediaPadding = Layout.mediaPadding(for: style)
+        let footerPadding = Layout.footerPadding
+        let mediaPadding = Layout.mediaPadding
 
         let mediaHeightConstraint = mediaView.heightAnchor.constraint(equalTo: mediaView.widthAnchor)
         let footerBottomConstraint = footerView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -footerPadding)
         mediaHeightConstraint.priority = .defaultHigh
         footerBottomConstraint.priority = .defaultHigh
-        
+
         NSLayoutConstraint.activate([
             mediaView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: mediaPadding),
             mediaView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -mediaPadding),
@@ -159,27 +154,21 @@ class MomentView: UIView {
             footerView.topAnchor.constraint(equalTo: mediaView.bottomAnchor, constant: footerPadding - 2),
             footerBottomConstraint,
         ])
-        
+
         layer.shadowOpacity = 0.75
         layer.shadowColor = UIColor.feedPostShadow.cgColor
         layer.shadowOffset = CGSize(width: 0, height: 5)
         layer.shadowRadius = 5
-        
+
         layer.masksToBounds = false
         clipsToBounds = false
 
-        if case .normal = style {
-            installDetailViews()
-        } else {
-            footerView.isHidden = true
-        }
+        installDetailViews()
 
-        MainAppContext.shared.feedData.validMoment.sink { [weak self] moment in
-            DispatchQueue.main.async {
-                let title = moment == nil ? Localizations.unlock : Localizations.view
-                self?.actionButton.button.setTitle(title, for: .normal)
-                self?.setNeedsLayout()
-            }
+        MainAppContext.shared.feedData.validMoment.receive(on: DispatchQueue.main).sink { [weak self] moment in
+            let title = moment == nil ? Localizations.unlock : Localizations.view
+            self?.actionButton.button.setTitle(title, for: .normal)
+            self?.setNeedsLayout()
         }.store(in: &cancellables)
     }
 
@@ -213,7 +202,7 @@ class MomentView: UIView {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: Layout.cornerRadius(for: style)).cgPath
+        layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: Layout.cornerRadius).cgPath
     }
     
     func configure(with post: FeedPost) {

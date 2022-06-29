@@ -15,7 +15,7 @@ class MomentCollectionViewCell: UICollectionViewCell {
     static let reuseIdentifier = "secretPostCell"
 
     private(set) lazy var momentView: MomentView = {
-        let view = MomentView(style: .normal)
+        let view = MomentView()
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
