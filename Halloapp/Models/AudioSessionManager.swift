@@ -139,7 +139,13 @@ class AudioSessionManager {
             case .audioCall:
                 category = .playAndRecord
                 options = .allowBluetooth
-                mode = .voiceChat
+                // Workaround for issue where CallKit incorrectly terminates speakerphone calls when the power button is pressed.
+                switch activeAudioSession.portOverride {
+                case .speaker:
+                    mode = .videoChat
+                default:
+                    mode = .voiceChat
+                }
             case .videoCall:
                 category = .playAndRecord
                 options = .allowBluetooth
