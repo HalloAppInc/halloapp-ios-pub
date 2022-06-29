@@ -83,11 +83,11 @@ struct MediaPickerConfig {
     var maxNumberOfItems = ServerProperties.maxPostMediaItems
 
     static var feed: MediaPickerConfig {
-        MediaPickerConfig(destination: .userFeed, privacyListType: .all, filter: .all, allowsMultipleSelection: true, isCameraEnabled: false)
+        MediaPickerConfig(destination: .userFeed, privacyListType: .all, filter: .all, allowsMultipleSelection: true, isCameraEnabled: true)
     }
 
     static func group(id: GroupID) -> MediaPickerConfig {
-        MediaPickerConfig(destination: .groupFeed(id), privacyListType: nil, filter: .all, allowsMultipleSelection: true, isCameraEnabled: false)
+        MediaPickerConfig(destination: .groupFeed(id), privacyListType: nil, filter: .all, allowsMultipleSelection: true, isCameraEnabled: true)
     }
 
     static func chat(id: UserID?) -> MediaPickerConfig {
