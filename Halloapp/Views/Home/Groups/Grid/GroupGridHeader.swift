@@ -69,6 +69,8 @@ class GroupGridHeader: UICollectionReusableView {
         postButton.imageView?.tintColor = .primaryWhiteBlack
         postButton.setImage(UIImage(systemName: "plus")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 16, weight: .semibold)),
                             for: .normal)
+        // ugh
+        postButton.contentEdgeInsets = UIEdgeInsets(top: 0, left: 1.0 / UIScreen.main.scale, bottom: 0, right: -1.0 / UIScreen.main.scale)
         postButton.translatesAutoresizingMaskIntoConstraints = false
         addSubview(postButton)
 

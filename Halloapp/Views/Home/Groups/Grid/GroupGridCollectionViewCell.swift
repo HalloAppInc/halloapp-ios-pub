@@ -19,7 +19,7 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
     var openPost: (() -> Void)?
 
     private struct Constants {
-        static let commentIndicatorSize: CGFloat = 5
+        static let commentIndicatorSize: CGFloat = 7
         static let audioAvatarSize: CGFloat = 60
         static let audioAvatarMicSize: CGFloat = 32
     }
@@ -92,7 +92,6 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
 
     private let commentIndicator: UIView = {
         let commentIndicator = UIView()
-        commentIndicator.backgroundColor = .systemBlue
         commentIndicator.layer.cornerRadius = Constants.commentIndicatorSize / 2
         return commentIndicator
     }()
@@ -129,6 +128,7 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
     // MARK: Util
 
     private var audioAvatarChangedCancellable: AnyCancellable?
+    private var linkDetectionWorkItem: DispatchWorkItem?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -200,7 +200,8 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         footerStackView.isLayoutMarginsRelativeArrangement = true
         footerStackView.isUserInteractionEnabled = true
         footerStackView.layoutMargins = UIEdgeInsets(top: 6, left: 8, bottom: 6, right: 8)
-        footerStackView.spacing = 6
+        footerStackView.setCustomSpacing(4, after: commentImageView)
+        footerStackView.setCustomSpacing(6, after: commentLabel)
         footerStackView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(footerStackView)
 
@@ -263,6 +264,7 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
 
     func configure(with post: FeedPost) {
         audioAvatarChangedCancellable?.cancel()
+        linkDetectionWorkItem?.cancel()
 
         let contactsViewContext = MainAppContext.shared.contactStore.viewContext
         nameLabel.text = MainAppContext.shared.contactStore.fullNameIfAvailable(for: post.userID,
@@ -338,12 +340,43 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
                                                                                       mentions: post.orderedMentions,
                                                                                       in: MainAppContext.shared.contactStore.viewContext)
                 let mentionFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
-                textLabel.attributedText = mentionText.flatMap {
+                let attributedText = mentionText.flatMap {
                     HAMarkdown(font: baseFont, color: textColor)
                         .parse($0)
                         .applyingFontForMentions(mentionFont)
                 }
+                textLabel.attributedText = attributedText
                 textLabelMinimumScaleFactor = 0.7
+
+                if let attributedText = attributedText {
+                    // manually detect links as we are using a uilabel to handle text scaling
+                    let workItem = DispatchWorkItem { [weak self] in
+                        guard let dataDetector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue),
+                              let mutableAttributedText = attributedText.mutableCopy() as? NSMutableAttributedString else {
+                            return
+                        }
+                        // Invert link color to match text
+                        let linkColor = UIColor {
+                            switch $0.userInterfaceStyle {
+                            case .dark:
+                                return UIColor.primaryBlue.resolvedColor(with: UITraitCollection(userInterfaceStyle: .light))
+                            default:
+                                return UIColor.primaryBlue.resolvedColor(with: UITraitCollection(userInterfaceStyle: .dark))
+                            }
+                        }
+                        dataDetector.enumerateMatches(in: mutableAttributedText.string,
+                                                      options: [],
+                                                      range: NSRange(location: 0, length: mutableAttributedText.length)) { result, _, _ in
+                            result.flatMap { mutableAttributedText.addAttribute(.foregroundColor, value: linkColor, range: $0.range) }
+                        }
+                        DispatchQueue.main.async { [weak self] in
+                            self?.textLabel.attributedText = mutableAttributedText
+                        }
+                    }
+                    linkDetectionWorkItem = workItem
+                    DispatchQueue.global(qos: .userInteractive).async(execute: workItem)
+                }
+
             }
             textLabel.minimumScaleFactor = textLabelMinimumScaleFactor
             textBackground.backgroundColor = Self.backgroundColor(for: post.id)
@@ -375,7 +408,13 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         trailingContentTypeImageView.image = trailingContentTypeImage
         trailingContentTypeImageView.isHidden = (trailingContentTypeImage == nil)
 
-        commentIndicator.alpha = (post.unreadCount > 0) ? 1 : 0
+        if post.unreadCount > 0 {
+            commentIndicator.backgroundColor = .commentIndicatorUnread
+        } else if post.hasComments {
+            commentIndicator.backgroundColor = .systemGray4
+        } else {
+            commentIndicator.backgroundColor = .clear
+        }
 
         // Initiate download for images that were not yet downloaded.
         MainAppContext.shared.feedData.downloadMedia(in: [post])

@@ -216,11 +216,13 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
     }
 
     override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
+        // Adjust bottom inset before any scrolling occurs in super.didLayoutSubviews
         let bottomInset = view.bounds.maxY - floatingMenu.triggerButton.frame.minY - collectionView.safeAreaInsets.bottom
         if bottomInset != collectionView.contentInset.bottom {
             collectionView.contentInset.bottom = bottomInset
         }
+
+        super.viewDidLayoutSubviews()
 
         guard collectionView.contentSize != .zero, shouldRestoreScrollPosition, let scrollPosition = Self.cachedScrollPositions[groupId] else {
             return

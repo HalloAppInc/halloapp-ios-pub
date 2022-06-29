@@ -19,6 +19,12 @@ class GroupGridViewController: UIViewController {
 
     private lazy var collectionView: UICollectionView = {
         let configuration = UICollectionViewCompositionalLayoutConfiguration()
+        configuration.boundarySupplementaryItems = [
+            NSCollectionLayoutBoundarySupplementaryItem(layoutSize: .init(widthDimension: .fractionalWidth(1), heightDimension: .estimated(44)),
+                                                        elementKind: GroupGridSearchBar.elementKind,
+                                                        alignment: .topLeading)
+
+        ]
         configuration.interSectionSpacing = 8
 
         let layout = UICollectionViewCompositionalLayout(sectionProvider: { [weak self] in self?.sectionProvider(section: $0, layoutEnvironment: $1) },
@@ -26,6 +32,7 @@ class GroupGridViewController: UIViewController {
 
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.backgroundColor = nil
+        collectionView.contentInset = UIEdgeInsets(top: -10, left: 0, bottom: 0, right: 0) // Hide top of search bar
         collectionView.register(GroupGridCollectionViewCell.self,
                                 forCellWithReuseIdentifier: GroupGridCollectionViewCell.reuseIdentifier)
         collectionView.register(GroupGridHeader.self,
@@ -34,6 +41,9 @@ class GroupGridViewController: UIViewController {
         collectionView.register(GroupGridSeparator.self,
                                 forSupplementaryViewOfKind: GroupGridSeparator.elementKind,
                                 withReuseIdentifier: GroupGridSeparator.reuseIdentifier)
+        collectionView.register(GroupGridSearchBar.self,
+                                forSupplementaryViewOfKind: GroupGridSearchBar.elementKind,
+                                withReuseIdentifier: GroupGridSearchBar.reuseIdentifier)
         collectionView.scrollsToTop = true
         collectionView.keyboardDismissMode = .interactive
         return collectionView
@@ -47,17 +57,27 @@ class GroupGridViewController: UIViewController {
 
     private lazy var refreshControl = UIRefreshControl()
 
+    private lazy var searchController: UISearchController = {
+        let searchController = UISearchController()
+        searchController.delegate = self
+        searchController.hidesNavigationBarDuringPresentation = false
+        searchController.searchBar.autocapitalizationType = .none
+        searchController.searchBar.backgroundImage = UIImage()
+        searchController.searchBar.tintColor = .primaryBlue
+        searchController.searchBar.searchTextField.backgroundColor = .searchBarBg
+        searchController.searchResultsUpdater = dataSource
+        searchController.automaticallyShowsSearchResultsController = false
+        searchController.obscuresBackgroundDuringPresentation = false
+        return searchController
+    }()
+
     private var unreadPostCountCancellable: AnyCancellable?
     private var requestScrollToTopAnimatedCancellable: AnyCancellable?
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let searchController = UISearchController()
-        searchController.delegate = self
-        searchController.hidesNavigationBarDuringPresentation = false
-        searchController.searchResultsUpdater = dataSource
-        navigationItem.searchController = searchController
+        definesPresentationContext = true // required for UISearchBar not to overlap navigation bar when active
 
         installAvatarBarButton()
 
@@ -114,6 +134,14 @@ class GroupGridViewController: UIViewController {
         if transitionCoordinator == nil {
             dataSource.reloadSnapshot(animated: false)
             scrollToTop(animated: false)
+        }
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+
+        if searchController.isActive, searchController.searchBar.text?.isEmpty ?? true {
+            searchController.isActive = false
         }
     }
 
@@ -203,6 +231,14 @@ class GroupGridViewController: UIViewController {
             return collectionView.dequeueReusableSupplementaryView(ofKind: GroupGridSeparator.elementKind,
                                                                    withReuseIdentifier: GroupGridSeparator.reuseIdentifier,
                                                                    for: indexPath)
+        case GroupGridSearchBar.elementKind:
+            let groupGridSearchBar = collectionView.dequeueReusableSupplementaryView(ofKind: GroupGridSearchBar.elementKind,
+                                                                   withReuseIdentifier: GroupGridSearchBar.reuseIdentifier,
+                                                                   for: indexPath)
+            if let groupGridSearchBar = groupGridSearchBar as? GroupGridSearchBar {
+                groupGridSearchBar.searchBar = searchController.searchBar
+            }
+            return groupGridSearchBar
         default:
             return nil
         }
@@ -226,7 +262,7 @@ class GroupGridViewController: UIViewController {
     }
 
     @objc func refreshControlDidRefresh(_ refreshControl: UIRefreshControl?) {
-        if let searchController = navigationItem.searchController, searchController.isActive {
+        if searchController.isActive {
             refreshControl?.endRefreshing()
             searchController.isActive = false
         } else {

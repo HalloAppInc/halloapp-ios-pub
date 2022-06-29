@@ -171,6 +171,9 @@ extension GroupGridDataSource: NSFetchedResultsControllerDelegate {
                     break
                 }
                 if feedPost.userID == AppContext.shared.userData.userId {
+                    guard snapshot.sectionIdentifiers.contains(groupID) else {
+                        break
+                    }
                     didAddSelfPostInLastUpdate = true
                     // Display any of our own posts right away
                     let itemIdentifiers = snapshot.itemIdentifiers(inSection: groupID)
@@ -184,8 +187,12 @@ extension GroupGridDataSource: NSFetchedResultsControllerDelegate {
                     }
                     if let postIDToInsertBefore = postIDToInsertBefore {
                         snapshot.insertItems([feedPost.id], beforeItem: postIDToInsertBefore)
-                    } else {
+                    } else if snapshot.sectionIdentifiers.contains(groupID) {
                         snapshot.appendItems([feedPost.id], toSection: groupID)
+                    }
+                    // Move section to top
+                    if let firstSectionGroupID = snapshot.sectionIdentifiers.first, firstSectionGroupID != groupID {
+                        snapshot.moveSection(groupID, beforeSection: firstSectionGroupID)
                     }
                 } else if snapshot.sectionIdentifiers.contains(groupID) {
                     pendingUnreadPostIDs.insert(feedPost.id)
