@@ -3672,93 +3672,98 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     // cleans up old upload data since for now we do not remove the originals right after uploading
     public func cleanUpOldUploadData(directoryURL: URL) {
-        DDLogInfo("FeedData/cleanUpOldUploadData")
-        guard let enumerator = FileManager.default.enumerator(atPath: directoryURL.path) else { return }
-        let encryptedSuffix = "enc"
-        let encryptedExtSuffix = ".\(encryptedSuffix)"
-        let processedSuffix = "processed"
+        // Create our own context so we don't block the main queue, this can be a lengthy operation
+        let context = mainDataStore.persistentContainer.newBackgroundContext()
+        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        context.perform {
+            DDLogInfo("FeedData/cleanUpOldUploadData")
+            guard let enumerator = FileManager.default.enumerator(atPath: directoryURL.path) else { return }
+            let encryptedSuffix = "enc"
+            let encryptedExtSuffix = ".\(encryptedSuffix)"
+            let processedSuffix = "processed"
 
-        enumerator.forEach({ file in
-            // check if it's an encrypted file that ends with .enc
-            guard let relativeFilePath = file as? String else { return }
-            guard relativeFilePath.hasSuffix(encryptedExtSuffix) else { return }
+            enumerator.forEach({ file in
+                // check if it's an encrypted file that ends with .enc
+                guard let relativeFilePath = file as? String else { return }
+                guard relativeFilePath.hasSuffix(encryptedExtSuffix) else { return }
 
-            // get the last part of the path, which is the filename
-            var relativeFilePathComponents = relativeFilePath.components(separatedBy: "/")
-            guard let fileName = relativeFilePathComponents.last else { return }
+                // get the last part of the path, which is the filename
+                var relativeFilePathComponents = relativeFilePath.components(separatedBy: "/")
+                guard let fileName = relativeFilePathComponents.last else { return }
 
-            // get the id (with index) of the message from the filename
-            var fileNameComponents = fileName.components(separatedBy: ".")
-            guard let fileNameWithIndex = fileNameComponents.first else { return }
+                // get the id (with index) of the message from the filename
+                var fileNameComponents = fileName.components(separatedBy: ".")
+                guard let fileNameWithIndex = fileNameComponents.first else { return }
 
-            var fileNameWithIndexComponents = fileNameWithIndex.components(separatedBy: "-")
+                var fileNameWithIndexComponents = fileNameWithIndex.components(separatedBy: "-")
 
-            // strip out the index part of the id only if it's a feedPost, comments and urlpreviews do not have index suffix
-            // brittle assumption that the index will be less than 3 digits and an id separated with "-" will have more than 2
-            if let mediaIndex = fileNameWithIndexComponents.last, mediaIndex.count < 3 {
-                fileNameWithIndexComponents.removeLast()
-            }
-            let contentID = fileNameWithIndexComponents.joined(separator: "-")
-            DDLogInfo("FeedData/cleanUpOldUploadData/file: \(file)/contentID: \(contentID)")
-
-            if let feedPost = MainAppContext.shared.feedData.feedPost(with: contentID, in: viewContext) {
-                feedPost.media?.forEach { (media) in
-                    guard media.status == .uploaded else { return }
-                    DDLogVerbose("FeedData/cleanUpOldUploadData/clean up existing feedpost upload data: \(media.relativeFilePath ?? "")")
-                    ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: media.relativeFilePath)
+                // strip out the index part of the id only if it's a feedPost, comments and urlpreviews do not have index suffix
+                // brittle assumption that the index will be less than 3 digits and an id separated with "-" will have more than 2
+                if let mediaIndex = fileNameWithIndexComponents.last, mediaIndex.count < 3 {
+                    fileNameWithIndexComponents.removeLast()
                 }
-                feedPost.comments?.forEach { comment in
-                    comment.media?.forEach { media in
+                let contentID = fileNameWithIndexComponents.joined(separator: "-")
+                DDLogInfo("FeedData/cleanUpOldUploadData/file: \(file)/contentID: \(contentID)")
+
+                if let feedPost = MainAppContext.shared.feedData.feedPost(with: contentID, in: context) {
+                    feedPost.media?.forEach { (media) in
+                        guard media.status == .uploaded else { return }
+                        DDLogVerbose("FeedData/cleanUpOldUploadData/clean up existing feedpost upload data: \(media.relativeFilePath ?? "")")
+                        ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: media.relativeFilePath)
+                    }
+                    feedPost.comments?.forEach { comment in
+                        comment.media?.forEach { media in
+                            guard media.status == .uploaded else { return }
+                            DDLogVerbose("FeedData/cleanUpOldUploadData/clean up existing media comment upload data: \(media.relativeFilePath ?? "")")
+                            ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: media.relativeFilePath)
+                        }
+                    }
+                    feedPost.linkPreviews?.forEach { linkPreview in
+                        linkPreview.media?.forEach { media in
+                            guard media.status == .uploaded else { return }
+                            DDLogVerbose("FeedData/cleanUpOldUploadData/clean up existing link preview upload data: \(media.relativeFilePath ?? "")")
+                            ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: media.relativeFilePath)
+                        }
+                    }
+                } else if let feedPostComment = MainAppContext.shared.feedData.feedComment(with: contentID, in: context) {
+                    feedPostComment.media?.forEach { media in
                         guard media.status == .uploaded else { return }
                         DDLogVerbose("FeedData/cleanUpOldUploadData/clean up existing media comment upload data: \(media.relativeFilePath ?? "")")
                         ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: media.relativeFilePath)
                     }
-                }
-                feedPost.linkPreviews?.forEach { linkPreview in
-                    linkPreview.media?.forEach { media in
+                    feedPostComment.linkPreviews?.forEach { linkPreview in
+                        linkPreview.media?.forEach { media in
+                            guard media.status == .uploaded else { return }
+                            DDLogVerbose("FeedData/cleanUpOldUploadData/clean up existing link preview upload data: \(media.relativeFilePath ?? "")")
+                            ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: media.relativeFilePath)
+                        }
+                    }
+                } else if let feedLinkPreview = MainAppContext.shared.feedData.feedLinkPreview(with: contentID, in: context) {
+                    feedLinkPreview.media?.forEach { media in
                         guard media.status == .uploaded else { return }
                         DDLogVerbose("FeedData/cleanUpOldUploadData/clean up existing link preview upload data: \(media.relativeFilePath ?? "")")
                         ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: media.relativeFilePath)
                     }
-                }
-            } else if let feedPostComment = MainAppContext.shared.feedData.feedComment(with: contentID, in: viewContext) {
-                feedPostComment.media?.forEach { media in
-                    guard media.status == .uploaded else { return }
-                    DDLogVerbose("FeedData/cleanUpOldUploadData/clean up existing media comment upload data: \(media.relativeFilePath ?? "")")
-                    ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: media.relativeFilePath)
-                }
-                feedPostComment.linkPreviews?.forEach { linkPreview in
-                    linkPreview.media?.forEach { media in
-                        guard media.status == .uploaded else { return }
-                        DDLogVerbose("FeedData/cleanUpOldUploadData/clean up existing link preview upload data: \(media.relativeFilePath ?? "")")
-                        ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: media.relativeFilePath)
+                } else {
+                    // Content does not exist anymore, get the processed relative filepath and clean up
+                    if fileNameComponents.count == 4, fileNameComponents[3] == encryptedSuffix, fileNameComponents[1] == processedSuffix {
+                        // remove .enc
+                        fileNameComponents.removeLast()
+                        let processedFileName = fileNameComponents.joined(separator: ".")
+
+                        // remove the last part of the path, which is the filename
+                        relativeFilePathComponents.removeLast()
+                        let relativeFilePathForProcessed = relativeFilePathComponents.joined(separator: "/")
+
+                        // form the processed filename's relative path
+                        let processedRelativeFilePath = relativeFilePathForProcessed + "/" + processedFileName
+
+                        DDLogVerbose("FeedData/cleanUpOldUploadData/clean up unused upload data: \(processedRelativeFilePath)")
+                        ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: processedRelativeFilePath)
                     }
                 }
-            } else if let feedLinkPreview = MainAppContext.shared.feedData.feedLinkPreview(with: contentID, in: viewContext) {
-                feedLinkPreview.media?.forEach { media in
-                    guard media.status == .uploaded else { return }
-                    DDLogVerbose("FeedData/cleanUpOldUploadData/clean up existing link preview upload data: \(media.relativeFilePath ?? "")")
-                    ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: media.relativeFilePath)
-                }
-            } else {
-                // Content does not exist anymore, get the processed relative filepath and clean up
-                if fileNameComponents.count == 4, fileNameComponents[3] == encryptedSuffix, fileNameComponents[1] == processedSuffix {
-                    // remove .enc
-                    fileNameComponents.removeLast()
-                    let processedFileName = fileNameComponents.joined(separator: ".")
-
-                    // remove the last part of the path, which is the filename
-                    relativeFilePathComponents.removeLast()
-                    let relativeFilePathForProcessed = relativeFilePathComponents.joined(separator: "/")
-
-                    // form the processed filename's relative path
-                    let processedRelativeFilePath = relativeFilePathForProcessed + "/" + processedFileName
-
-                    DDLogVerbose("FeedData/cleanUpOldUploadData/clean up unused upload data: \(processedRelativeFilePath)")
-                    ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: processedRelativeFilePath)
-                }
-            }
-        })
+            })
+        }
     }
 
     // MARK: Deletion

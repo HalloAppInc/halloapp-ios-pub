@@ -3039,64 +3039,69 @@ extension ChatData {
     // cleans up old upload data since prior to build 173 we did not do so
     // this will be a redundant clean up after the first run and can be revisited to see if it's needed
     private func cleanUpOldUploadData(directoryURL: URL) {
-        DDLogInfo("ChatData/cleanUpOldUploadData")
-        guard let enumerator = FileManager.default.enumerator(atPath: directoryURL.path) else { return }
-        let encryptedSuffix = "enc"
-        let encryptedExtSuffix = ".\(encryptedSuffix)"
-        let processedSuffix = "processed"
+        // Create our own context so we don't block the main queue, this can be a lengthy operation
+        let context = mainDataStore.persistentContainer.newBackgroundContext()
+        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        context.perform {
+            DDLogInfo("ChatData/cleanUpOldUploadData")
+            guard let enumerator = FileManager.default.enumerator(atPath: directoryURL.path) else { return }
+            let encryptedSuffix = "enc"
+            let encryptedExtSuffix = ".\(encryptedSuffix)"
+            let processedSuffix = "processed"
 
-        enumerator.forEach({ file in
-            // check if it's an encrypted file that ends with .enc
-            guard let relativeFilePath = file as? String else { return }
-            guard relativeFilePath.hasSuffix(encryptedExtSuffix) else { return }
+            enumerator.forEach({ file in
+                // check if it's an encrypted file that ends with .enc
+                guard let relativeFilePath = file as? String else { return }
+                guard relativeFilePath.hasSuffix(encryptedExtSuffix) else { return }
 
-            // get the last part of the path, which is the filename
-            var relativeFilePathComponents = relativeFilePath.components(separatedBy: "/")
-            guard let fileName = relativeFilePathComponents.last else { return }
+                // get the last part of the path, which is the filename
+                var relativeFilePathComponents = relativeFilePath.components(separatedBy: "/")
+                guard let fileName = relativeFilePathComponents.last else { return }
 
-            // get the id (with index) of the message from the filename
-            var fileNameComponents = fileName.components(separatedBy: ".")
-            guard let fileNameWithIndex = fileNameComponents.first else { return }
+                // get the id (with index) of the message from the filename
+                var fileNameComponents = fileName.components(separatedBy: ".")
+                guard let fileNameWithIndex = fileNameComponents.first else { return }
 
-            // strip out the index part of the id
-            var fileNameWithIndexComponents = fileNameWithIndex.components(separatedBy: "-")
-            fileNameWithIndexComponents.removeLast()
-            let msgID = fileNameWithIndexComponents.joined(separator: "-")
+                // strip out the index part of the id
+                var fileNameWithIndexComponents = fileNameWithIndex.components(separatedBy: "-")
+                fileNameWithIndexComponents.removeLast()
+                let msgID = fileNameWithIndexComponents.joined(separator: "-")
 
-            DDLogInfo("ChatData/cleanUpOldUploadData/file: \(file)/msgID: \(msgID)")
-            if let chatMessage = MainAppContext.shared.chatData.chatMessage(with: msgID, in: MainAppContext.shared.chatData.viewContext) {
-                // message exists, clean up any upload data in all the media
-                chatMessage.media?.forEach { (media) in
-                    guard media.outgoingStatus == .uploaded else { return }
-                    DDLogInfo("ChatData/cleanUpOldUploadData/clean up existing message upload data: \(media.relativeFilePath ?? "")")
-                    ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: media.relativeFilePath)
-                }
-                chatMessage.linkPreviews?.forEach { linkPreview in
-                    linkPreview.media?.forEach { media in
+                DDLogInfo("ChatData/cleanUpOldUploadData/file: \(file)/msgID: \(msgID)")
+                if let chatMessage = MainAppContext.shared.chatData.chatMessage(with: msgID, in: context) {
+                    // message exists, clean up any upload data in all the media
+                    chatMessage.media?.forEach { (media) in
                         guard media.outgoingStatus == .uploaded else { return }
-                        DDLogVerbose("ChatData/cleanUpOldUploadData/clean up existing link preview upload data: \(media.relativeFilePath ?? "")")
+                        DDLogInfo("ChatData/cleanUpOldUploadData/clean up existing message upload data: \(media.relativeFilePath ?? "")")
                         ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: media.relativeFilePath)
                     }
+                    chatMessage.linkPreviews?.forEach { linkPreview in
+                        linkPreview.media?.forEach { media in
+                            guard media.outgoingStatus == .uploaded else { return }
+                            DDLogVerbose("ChatData/cleanUpOldUploadData/clean up existing link preview upload data: \(media.relativeFilePath ?? "")")
+                            ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: media.relativeFilePath)
+                        }
+                    }
+                } else {
+                    // message does not exist anymore, get the processed relative filepath and clean up
+                    if fileNameComponents.count == 4, fileNameComponents[3] == encryptedSuffix, fileNameComponents[1] == processedSuffix {
+                        // remove .enc
+                        fileNameComponents.removeLast()
+                        let processedFileName = fileNameComponents.joined(separator: ".")
+
+                        // remove the last part of the path, which is the filename
+                        relativeFilePathComponents.removeLast()
+                        let relativeFilePathForProcessed = relativeFilePathComponents.joined(separator: "/")
+
+                        // form the processed filename's relative path
+                        let processedRelativeFilePath = relativeFilePathForProcessed + "/" + processedFileName
+
+                        DDLogInfo("ChatData/cleanUpOldUploadData/clean up deleted message upload data: \(processedRelativeFilePath)")
+                        ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: processedRelativeFilePath)
+                    }
                 }
-            } else {
-                // message does not exist anymore, get the processed relative filepath and clean up
-                if fileNameComponents.count == 4, fileNameComponents[3] == encryptedSuffix, fileNameComponents[1] == processedSuffix {
-                    // remove .enc
-                    fileNameComponents.removeLast()
-                    let processedFileName = fileNameComponents.joined(separator: ".")
-
-                    // remove the last part of the path, which is the filename
-                    relativeFilePathComponents.removeLast()
-                    let relativeFilePathForProcessed = relativeFilePathComponents.joined(separator: "/")
-
-                    // form the processed filename's relative path
-                    let processedRelativeFilePath = relativeFilePathForProcessed + "/" + processedFileName
-
-                    DDLogInfo("ChatData/cleanUpOldUploadData/clean up deleted message upload data: \(processedRelativeFilePath)")
-                    ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: processedRelativeFilePath)
-                }
-            }
-        })
+            })
+        }
     }
 
     // MARK: 1-1 Core Data Deleting
