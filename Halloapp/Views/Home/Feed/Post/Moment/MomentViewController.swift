@@ -180,9 +180,13 @@ class MomentViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        post.feedMedia.first?.$isMediaAvailable.sink { [weak self] _ in
-            self?.expireMomentIfReady()
-        }.store(in: &cancellables)
+        if post.feedMedia.first?.isMediaAvailable ?? true {
+            expireMomentIfReady()
+        } else {
+            post.feedMedia.first?.imageDidBecomeAvailable.sink { [weak self] _ in
+                self?.expireMomentIfReady()
+            }.store(in: &cancellables)
+        }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
