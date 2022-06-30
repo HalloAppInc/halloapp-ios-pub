@@ -112,4 +112,11 @@ extension UIFont {
         }
         return UIFont(descriptor: italicDescriptor, size: pointSize)
     }
+    
+    var withBoldIfAvailable: UIFont {
+        guard let BoldDescriptor = fontDescriptor.withSymbolicTraits(.traitBold) else {
+            return self
+        }
+        return UIFont(descriptor: BoldDescriptor, size: pointSize)
+    }
 }

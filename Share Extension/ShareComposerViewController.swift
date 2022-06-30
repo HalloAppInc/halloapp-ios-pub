@@ -593,6 +593,22 @@ class ShareComposerViewController: UIViewController {
         mentions = input.mentions
 
         updateMentionPickerContent()
+        textViewDidChange(textView)
+    }
+    
+    private func updateWithMention() {
+        guard mentionInput.mentions.isEmpty == false else {
+            return
+        }
+        let defaultFont = textView.font ?? UIFont.preferredFont(forTextStyle: .body)
+        let attributedString = NSMutableAttributedString(attributedString: self.textView.attributedText)
+        for range in mentionInput.mentions.keys {
+            attributedString.setAttributes([
+                .strokeWidth: NSNumber.init(value: -3.0),
+                .font: defaultFont,
+            ], range: range)
+        }
+        textView.attributedText = attributedString
     }
 
     // MARK: Markdown
@@ -861,6 +877,7 @@ extension ShareComposerViewController: UITextViewDelegate {
         updateMentionPickerContent()
         updateLinkPreviewViewIfNecessary()
         updateWithMarkdown()
+        updateWithMention()
         highlightLinks()
     }
 
@@ -889,6 +906,7 @@ extension ShareComposerViewController: UITextViewDelegate {
             textView.text = input.text
             textView.selectedRange = input.selectedRange
             mentions = input.mentions
+            textViewDidChange(textView)
             return false
         }
     }

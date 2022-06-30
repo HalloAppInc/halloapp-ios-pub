@@ -1308,6 +1308,7 @@ fileprivate struct TextView: UIViewRepresentable {
                 uiView.mentions = mentionInput.mentions
                 self.input.value = mentionInput
                 self.pendingMention = nil
+                context.coordinator.textViewDidChange(uiView)
             }
         }
 
@@ -1405,6 +1406,21 @@ fileprivate struct TextView: UIViewRepresentable {
             }
         }
 
+        private func updateWithMention(_ textView: UITextView) {
+            guard parent.input.value.mentions.isEmpty == false else {
+                return
+            }
+            let defaultFont = textView.font ?? UIFont.preferredFont(forTextStyle: .body)
+            let attributedString = NSMutableAttributedString(attributedString: textView.attributedText)
+            for range in parent.input.value.mentions.keys {
+                attributedString.setAttributes([
+                    .font: defaultFont,
+                    .strokeWidth: NSNumber.init(value: -3.0),
+                ], range: range)
+            }
+            textView.attributedText = attributedString
+        }
+
         private func acceptMentionPickerItem(_ item: MentionableUser) {
             let input = parent.input.value
             guard let mentionCandidateRange = input.rangeOfMentionCandidateAtCurrentPosition() else {
@@ -1458,6 +1474,7 @@ fileprivate struct TextView: UIViewRepresentable {
             updateMentionPickerContent()
             updateLinkPreviewViewIfNecessary()
             updateWithMarkdown(textView)
+            updateWithMention(textView)
         }
 
         func textViewDidChangeSelection(_ textView: UITextView) {

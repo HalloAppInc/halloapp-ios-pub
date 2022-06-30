@@ -840,6 +840,20 @@ extension ContentInputView {
     }
 }
 
+extension NSAttributedString {
+    func trimmedAttributedString() -> NSAttributedString {
+        let invertedSet = CharacterSet.whitespacesAndNewlines.inverted
+        let startRange = string.rangeOfCharacter(from: invertedSet)
+        let endRange = string.rangeOfCharacter(from: invertedSet, options: .backwards)
+        guard let startLocation = startRange?.upperBound, let endLocation = endRange?.lowerBound else {
+            return NSAttributedString(string: string)
+        }
+        let location = string.distance(from: string.startIndex, to: startLocation) - 1
+        let length = string.distance(from: startLocation, to: endLocation) + 2
+        let range = NSRange(location: location, length: length)
+        return attributedSubstring(from: range)
+    }
+}
 // MARK: - text view delegate methods
 
 extension ContentInputView: ContentTextViewDelegate {
@@ -866,6 +880,7 @@ extension ContentInputView: ContentTextViewDelegate {
         self.textView.checkLinkPreview()
         sendTypingNotification()
         updateWithMarkdown()
+        updateWithMention()
     }
     
     func textViewDidEndEditing(_ textView: UITextView) {
@@ -882,7 +897,7 @@ extension ContentInputView: ContentTextViewDelegate {
             textState = .valid
         }
         
-        textView.text = text
+        textView.attributedText = textView.attributedText.trimmedAttributedString()
         textView.invalidateIntrinsicContentSize()
     }
     
@@ -951,6 +966,21 @@ extension ContentInputView: ContentTextViewDelegate {
         let ham = HAMarkdown(font: font ?? .systemFont(ofSize: 10), color: .label)
         textView.attributedText = ham.parseInPlace(text)
         textView.selectedTextRange = selected
+    }
+    
+    private func updateWithMention() {
+        guard self.textView.mentions.isEmpty == false else {
+            return
+        }
+        let defaultFont = textView.font ?? UIFont.preferredFont(forTextStyle: .subheadline)
+        let attributedString = NSMutableAttributedString(attributedString: self.textView.attributedText)
+        for range in self.textView.mentions.keys {
+            attributedString.setAttributes([
+                .strokeWidth: NSNumber.init(value: -3.0),
+                .font: defaultFont,
+            ], range: range)
+        }
+        self.textView.attributedText = attributedString
     }
 }
 
