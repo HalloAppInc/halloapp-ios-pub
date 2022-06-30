@@ -78,6 +78,27 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         return audioDurationLabel
     }()
 
+    private let newPostIndicator: UIView = {
+        let newPostLabel = UILabel()
+        newPostLabel.font = .scaledSystemFont(ofSize: 13, weight: .bold)
+        newPostLabel.text = Localizations.newPostIndicator
+        newPostLabel.textColor = .primaryWhiteBlack
+        newPostLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        let newPostView = PillView()
+        newPostView.fillColor = .lavaOrange
+        newPostView.addSubview(newPostLabel)
+
+        NSLayoutConstraint.activate([
+            newPostLabel.leadingAnchor.constraint(equalTo: newPostView.leadingAnchor, constant: 6),
+            newPostLabel.topAnchor.constraint(equalTo: newPostView.topAnchor),
+            newPostLabel.bottomAnchor.constraint(equalTo: newPostView.bottomAnchor, constant: -2),
+            newPostLabel.trailingAnchor.constraint(equalTo: newPostView.trailingAnchor, constant: -6),
+        ])
+
+        return newPostView
+    }()
+
     // MARK: Header Views
 
     private let nameLabel: UILabel = {
@@ -134,6 +155,7 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         super.init(frame: frame)
 
         contentView.backgroundColor = .feedPostBackground
+        contentView.clipsToBounds = true
         contentView.layer.cornerRadius = 9
 
         layer.shadowRadius = 8.0
@@ -172,6 +194,9 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         trailingContentTypeImageView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(trailingContentTypeImageView)
 
+        newPostIndicator.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(newPostIndicator)
+
         // Header
         let headerStackView = UIStackView(arrangedSubviews: [nameLabel])
         headerStackView.alignment = .center
@@ -181,6 +206,10 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         headerStackView.spacing = 6
         headerStackView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(headerStackView)
+
+        let headerStackViewBackground = UIVisualEffectView(effect: UIBlurEffect(style: .systemThinMaterial))
+        headerStackViewBackground.translatesAutoresizingMaskIntoConstraints = false
+        headerStackView.insertSubview(headerStackViewBackground, at: 0)
 
         // Footer
         let commentImageView = UIImageView(image: UIImage(named: "FeedPostComment")?.withRenderingMode(.alwaysTemplate))
@@ -205,32 +234,41 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         footerStackView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(footerStackView)
 
+        let footerStackViewBackground = UIVisualEffectView(effect: UIBlurEffect(style: .systemThinMaterial))
+        footerStackViewBackground.translatesAutoresizingMaskIntoConstraints = false
+        footerStackView.insertSubview(footerStackViewBackground, at: 0)
+
         NSLayoutConstraint.activate([
             // Header
             headerStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             headerStackView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            headerStackView.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor),
+            headerStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+
+            headerStackViewBackground.leadingAnchor.constraint(equalTo: headerStackView.leadingAnchor),
+            headerStackViewBackground.topAnchor.constraint(equalTo: headerStackView.topAnchor),
+            headerStackViewBackground.bottomAnchor.constraint(equalTo: headerStackView.bottomAnchor),
+            headerStackViewBackground.trailingAnchor.constraint(equalTo: headerStackView.trailingAnchor),
 
             // Body
             textBackground.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            textBackground.topAnchor.constraint(equalTo: headerStackView.bottomAnchor),
+            textBackground.topAnchor.constraint(equalTo: contentView.topAnchor),
             textBackground.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            textBackground.bottomAnchor.constraint(equalTo: footerStackView.topAnchor),
+            textBackground.bottomAnchor.constraint(equalTo: footerStackView.bottomAnchor),
 
             textLabel.leadingAnchor.constraint(equalTo: textBackground.leadingAnchor, constant: 12),
             textLabel.trailingAnchor.constraint(equalTo: textBackground.trailingAnchor, constant: -12),
-            textLabel.topAnchor.constraint(greaterThanOrEqualTo: textBackground.topAnchor, constant: 12),
+            textLabel.topAnchor.constraint(greaterThanOrEqualTo: headerStackView.bottomAnchor, constant: 4),
             textLabel.centerYAnchor.constraint(equalTo: textBackground.centerYAnchor),
 
             imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            imageView.topAnchor.constraint(equalTo: headerStackView.bottomAnchor),
+            imageView.topAnchor.constraint(equalTo: contentView.topAnchor),
             imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            imageView.bottomAnchor.constraint(equalTo: footerStackView.topAnchor),
+            imageView.bottomAnchor.constraint(equalTo: footerStackView.bottomAnchor),
 
             audioBlurView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            audioBlurView.topAnchor.constraint(equalTo: headerStackView.bottomAnchor),
+            audioBlurView.topAnchor.constraint(equalTo: contentView.topAnchor),
             audioBlurView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            audioBlurView.bottomAnchor.constraint(equalTo: footerStackView.topAnchor),
+            audioBlurView.bottomAnchor.constraint(equalTo: footerStackView.bottomAnchor),
 
             audioAvatarView.widthAnchor.constraint(equalToConstant: Constants.audioAvatarSize),
             audioAvatarView.heightAnchor.constraint(equalToConstant: Constants.audioAvatarSize),
@@ -244,7 +282,10 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
             leadingContentTypeImageView.bottomAnchor.constraint(equalTo: footerStackView.topAnchor),
 
             trailingContentTypeImageView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            trailingContentTypeImageView.topAnchor.constraint(equalTo: headerStackView.bottomAnchor),
+            trailingContentTypeImageView.bottomAnchor.constraint(equalTo: footerStackView.topAnchor),
+
+            newPostIndicator.topAnchor.constraint(equalTo: headerStackView.bottomAnchor, constant: 5),
+            newPostIndicator.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -5),
 
             // Footer
             commentIndicator.widthAnchor.constraint(equalToConstant: Constants.commentIndicatorSize),
@@ -252,7 +293,12 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
 
             footerStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             footerStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            footerStackView.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor),
+            footerStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+
+            footerStackViewBackground.leadingAnchor.constraint(equalTo: footerStackView.leadingAnchor),
+            footerStackViewBackground.topAnchor.constraint(equalTo: footerStackView.topAnchor),
+            footerStackViewBackground.bottomAnchor.constraint(equalTo: footerStackView.bottomAnchor),
+            footerStackViewBackground.trailingAnchor.constraint(equalTo: footerStackView.trailingAnchor),
         ])
 
         updateBorderAndShadowColors()
@@ -324,7 +370,14 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         } else {
             // Text post
             let baseFont = UIFont.scaledSystemFont(ofSize: 19, weight: .regular)
-            let textColor = UIColor.label.withAlphaComponent(0.9)
+            let textColor = UIColor {
+                switch $0.userInterfaceStyle {
+                case .dark:
+                    return .white.withAlphaComponent(0.6)
+                default:
+                    return .white.withAlphaComponent(0.8)
+                }
+            }
 
             let textLabelMinimumScaleFactor: CGFloat
             if post.isUnsupported {
@@ -355,19 +408,10 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
                               let mutableAttributedText = attributedText.mutableCopy() as? NSMutableAttributedString else {
                             return
                         }
-                        // Invert link color to match text
-                        let linkColor = UIColor {
-                            switch $0.userInterfaceStyle {
-                            case .dark:
-                                return UIColor.primaryBlue.resolvedColor(with: UITraitCollection(userInterfaceStyle: .light))
-                            default:
-                                return UIColor.primaryBlue.resolvedColor(with: UITraitCollection(userInterfaceStyle: .dark))
-                            }
-                        }
                         dataDetector.enumerateMatches(in: mutableAttributedText.string,
                                                       options: [],
                                                       range: NSRange(location: 0, length: mutableAttributedText.length)) { result, _, _ in
-                            result.flatMap { mutableAttributedText.addAttribute(.foregroundColor, value: linkColor, range: $0.range) }
+                            result.flatMap { mutableAttributedText.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: $0.range) }
                         }
                         DispatchQueue.main.async { [weak self] in
                             self?.textLabel.attributedText = mutableAttributedText
@@ -407,6 +451,8 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         }
         trailingContentTypeImageView.image = trailingContentTypeImage
         trailingContentTypeImageView.isHidden = (trailingContentTypeImage == nil)
+
+        newPostIndicator.isHidden = post.status != .incoming
 
         if post.unreadCount > 0 {
             commentIndicator.backgroundColor = .commentIndicatorUnread
@@ -475,15 +521,15 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         UIColor(named: "GroupFeedCellBackground11"),
         UIColor(named: "GroupFeedCellBackground12"),
     ].compactMap { $0 }
-        .map { color in
-            UIColor { traitCollection in
-                var h: CGFloat = 0, s: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-                color.resolvedColor(with: traitCollection).getHue(&h, saturation: &s, brightness: &b, alpha: &a)
-                return UIColor(hue: h, saturation: 0.1, brightness: b, alpha: a)
-            }
-        }
 
     private static func backgroundColor(for postID: FeedPostID) -> UIColor {
         return postBackgroundColors[abs(postID.hashValue % postBackgroundColors.count)]
+    }
+}
+
+extension Localizations {
+
+    static var newPostIndicator: String {
+        NSLocalizedString("groupGrid.newPostIndicator", value: "new", comment: "Tag for new posts in groups grid")
     }
 }

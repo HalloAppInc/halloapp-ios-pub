@@ -29,22 +29,13 @@ class GroupGridHeader: UICollectionReusableView {
     private let groupNameLabel: UILabel = {
         let groupNameLabel = UILabel()
         groupNameLabel.adjustsFontForContentSizeCategory = true
-        groupNameLabel.font = .gothamFont(forTextStyle: .subheadline, weight: .medium)
+        groupNameLabel.font = .scaledGothamFont(ofSize: 21, weight: .medium)
         groupNameLabel.textColor = .label.withAlphaComponent(0.75)
         return groupNameLabel
     }()
 
-    private let unreadPostCountLabel: UILabel = {
-        let unreadPostCountLabel = UILabel()
-        unreadPostCountLabel.adjustsFontForContentSizeCategory = true
-        unreadPostCountLabel.font = .gothamFont(forTextStyle: .subheadline, weight: .medium)
-        unreadPostCountLabel.textColor = .label.withAlphaComponent(0.75)
-        return unreadPostCountLabel
-    }()
-
     private var group: Group?
     private var groupNameChangedCancellable: AnyCancellable?
-    private var groupUnreadCountChangedCancellable: AnyCancellable?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -52,7 +43,7 @@ class GroupGridHeader: UICollectionReusableView {
         addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(headerTapped)))
         addInteraction(UIContextMenuInteraction(delegate: self))
 
-        let groupAvatarAndNameStackView = UIStackView(arrangedSubviews: [groupAvatarView, groupNameLabel, unreadPostCountLabel])
+        let groupAvatarAndNameStackView = UIStackView(arrangedSubviews: [groupAvatarView, groupNameLabel])
         groupAvatarAndNameStackView.alignment = .center
         groupAvatarAndNameStackView.axis = .horizontal
         groupAvatarAndNameStackView.isLayoutMarginsRelativeArrangement = true
@@ -65,7 +56,7 @@ class GroupGridHeader: UICollectionReusableView {
 
         let postButton = RoundedRectButton()
         postButton.addTarget(self, action: #selector(composeButtonTapped), for: .touchUpInside)
-        postButton.backgroundTintColor = .lavaOrange
+        postButton.backgroundTintColor = .primaryBlue
         postButton.imageView?.tintColor = .primaryWhiteBlack
         postButton.setImage(UIImage(systemName: "plus")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 16, weight: .semibold)),
                             for: .normal)
@@ -98,16 +89,12 @@ class GroupGridHeader: UICollectionReusableView {
         fatalError()
     }
 
-    func configure(with groupID: GroupID, unreadPostCountSubject: CurrentValueSubject<Int, Never>) {
+    func configure(with groupID: GroupID) {
         groupAvatarView.configure(groupId: groupID, squareSize: Constants.avatarSize, using: MainAppContext.shared.avatarStore)
 
         group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext)
         groupNameChangedCancellable = group?.publisher(for: \.name).sink { [weak self] in
             self?.groupNameLabel.text = $0
-        }
-
-        groupUnreadCountChangedCancellable = unreadPostCountSubject.sink { [weak self] in
-            self?.unreadPostCountLabel.text = $0 > 0 ? "(\($0))" : nil
         }
     }
 
