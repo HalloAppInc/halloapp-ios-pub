@@ -80,6 +80,10 @@ open class AppContextCommon {
         sharedDirectoryURL.appendingPathComponent("CommonMediaStore")
     }()
 
+    open class var sentryTracesSampleRate: NSNumber {
+        return 0
+    }
+
     // MARK: Initializer
     open class var shared: AppContextCommon {
         get {
@@ -91,7 +95,10 @@ open class AppContextCommon {
         #if !DEBUG
         SentrySDK.start { options in
             options.dsn = "https://ed03b5bdacbe4571927f8f2c93a45790@o473086.ingest.sentry.io/6126729"
+            options.enableAutoPerformanceTracking = true
+            options.enableUserInteractionTracing = true
             options.maxBreadcrumbs = 500
+            options.tracesSampler = { _ in return Self.sentryTracesSampleRate } // lazy, as nothing is initialized at this point
         }
 
         let sentryLogger = SentryLogger(logFormatter: LogFormatter())
