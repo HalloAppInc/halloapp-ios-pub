@@ -36,11 +36,19 @@ class MomentPromptCollectionViewCell: UICollectionViewCell {
 
         let leading = promptView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor)
         let trailing = promptView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
+        let top = promptView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: spacing)
+        let bottom = promptView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -spacing)
+
+        // silences some constraint warnings we'd otherwise get with `.required`.
+        let priority = UILayoutPriority(UILayoutPriority.required.rawValue - 1)
+        top.priority = priority
+        bottom.priority = priority
+
         NSLayoutConstraint.activate([
             leading,
             trailing,
-            promptView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: spacing),
-            promptView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -spacing),
+            top,
+            bottom,
         ])
 
         previewViewLeading = leading
