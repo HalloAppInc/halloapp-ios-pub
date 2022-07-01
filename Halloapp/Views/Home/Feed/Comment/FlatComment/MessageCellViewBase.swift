@@ -21,7 +21,7 @@ class MessageCellViewBase: UICollectionViewCell {
     var feedPostComment: FeedPostComment?
     var chatMessage: ChatMessage?
     public var isOwnMessage: Bool = false
-    public var isPreviousMessageOwnMessage: Bool = false
+    public var isPreviousMessageFromSameSender: Bool = false
     public var userNameColorAssignment: UIColor = UIColor.primaryBlue
     weak var commentDelegate: MessageViewCommentDelegate?
     weak var chatDelegate: MessageViewChatDelegate?
@@ -273,7 +273,7 @@ class MessageCellViewBase: UICollectionViewCell {
     func configureWith(comment: FeedPostComment, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
         feedPostComment = comment
         isOwnMessage = comment.userId == MainAppContext.shared.userData.userId
-        isPreviousMessageOwnMessage = isPreviousMessageFromSameSender
+        self.isPreviousMessageFromSameSender = isPreviousMessageFromSameSender
         userNameColorAssignment = userColorAssignment
         nameLabel.textColor = userNameColorAssignment
         timeLabel.text = comment.timestamp.chatDisplayTimestamp()
@@ -282,9 +282,10 @@ class MessageCellViewBase: UICollectionViewCell {
         }
     }
 
-    func configureWith(message: ChatMessage) {
+    func configureWith(message: ChatMessage, isPreviousMessageFromSameSender: Bool) {
         chatMessage = message
         isOwnMessage = message.fromUserId == MainAppContext.shared.userData.userId
+        self.isPreviousMessageFromSameSender = isPreviousMessageFromSameSender
         timeLabel.text = message.timestamp?.chatDisplayTimestamp()
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(showMessageOptions(_:)))
             self.isUserInteractionEnabled = true
@@ -362,7 +363,7 @@ class MessageCellViewBase: UICollectionViewCell {
             rightAlignedConstraint.priority = UILayoutPriority(1)
             leftAlignedConstraint.priority = UILayoutPriority(800)
         }
-        if isPreviousMessageOwnMessage {
+        if isPreviousMessageFromSameSender {
             messageRow.layoutMargins = UIEdgeInsets(top: 2, left: 10, bottom: 2, right: 10)
         } else {
             messageRow.layoutMargins = UIEdgeInsets(top: 3, left: 10, bottom: 3, right: 10)

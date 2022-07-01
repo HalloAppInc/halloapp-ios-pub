@@ -98,9 +98,9 @@ class MessageViewCell: MessageCellViewBase {
         }
     }
 
-    override func configureWith(message: ChatMessage) {
+    override func configureWith(message: ChatMessage, isPreviousMessageFromSameSender: Bool) {
         timeLabel.text = message.timestamp?.chatDisplayTimestamp()
-        super.configureWith(message: message)
+        super.configureWith(message: message, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
         configureCell()
         if [.retracted, .retracting].contains(message.outgoingStatus) || [.retracted].contains(message.incomingStatus) {
             configureRetracted(text: Localizations.chatMessageDeleted)

@@ -184,8 +184,8 @@ class MessageCellViewQuoted: MessageCellViewBase {
         configureCell()
     }
 
-    override func configureWith(message: ChatMessage) {
-        super.configureWith(message: message)
+    override func configureWith(message: ChatMessage, isPreviousMessageFromSameSender: Bool) {
+        super.configureWith(message: message, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
         audioMediaStatusCancellable?.cancel()
         guard message.chatReplyMessageID != nil || message.feedPostId != nil else { return }
         configureText(chatMessage: message)

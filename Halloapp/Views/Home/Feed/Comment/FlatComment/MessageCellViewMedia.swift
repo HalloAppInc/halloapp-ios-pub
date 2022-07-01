@@ -79,8 +79,8 @@ class MessageCellViewMedia: MessageCellViewBase {
         configureCell()
     }
 
-    override func configureWith(message: ChatMessage) {
-        super.configureWith(message: message)
+    override func configureWith(message: ChatMessage, isPreviousMessageFromSameSender: Bool) {
+        super.configureWith(message: message, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
         configureText(chatMessage: message)
 
         if let media = message.media?.sorted(by: { $0.order < $1.order }), !media.isEmpty {

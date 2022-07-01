@@ -88,6 +88,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     let waitForCellDelay: TimeInterval = 0.25
 
     weak var chatViewControllerDelegate: ChatViewControllerDelegate?
+    var previousChatSenderInfo: [ChatMessageID: Bool] = [:]
 
     /// The `userID` of the user the client is receiving messages from
     private var fromUserId: String?
@@ -390,6 +391,9 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             ($0.timestamp ?? .distantFuture) < ($1.timestamp ?? .distantFuture)
         }
 
+        // populate a dictionary: wach chatMessage isPreviousMessageSameSender
+        computePreviousChatSenderInfo(messageRows: messageRows)
+
         // Insert all messages into snapshot sorted by timestamp and grouped into sections by headerTime
         for messageRow in messageRows {
             if !snapshot.sectionIdentifiers.contains(messageRow.headerTime) {
@@ -449,6 +453,23 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         DDLogInfo("ChatViewControllerNew/shouldShowAddToContactBookCell/will show AddToContactBookCell for user: \(userID) ")
         return true
 
+    }
+
+    private func computePreviousChatSenderInfo(messageRows: [MessageRow]) {
+        var previousChatMessage: ChatMessage? = nil
+        for messageRow in messageRows {
+            switch messageRow {
+            case .chatMessage(let currentChatMessage), .retracted(let currentChatMessage), .media(let currentChatMessage), .audio(let currentChatMessage), .text(let currentChatMessage), .linkPreview(let currentChatMessage), .quoted(let currentChatMessage):
+                if let previousChatMessage = previousChatMessage {
+                    previousChatSenderInfo[currentChatMessage.id] = previousChatMessage.fromUserID == currentChatMessage.fromUserID ? true : false
+                } else {
+                    previousChatSenderInfo[currentChatMessage.id] = false
+                }
+                previousChatMessage = currentChatMessage
+            default:
+                previousChatMessage = nil
+            }
+        }
     }
 
     private func messagerow(for chatMessage: ChatMessage) -> MessageRow {
@@ -762,7 +783,8 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     }
 
     private func configureCell(itemCell: MessageCellViewBase, for chatMessage: ChatMessage) {
-        itemCell.configureWith(message: chatMessage)
+        let isPreviousMessageFromSameSender = previousChatSenderInfo[chatMessage.id]
+        itemCell.configureWith(message: chatMessage, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender ?? false)
         itemCell.textLabel.delegate = self
         itemCell.chatDelegate = self
     }

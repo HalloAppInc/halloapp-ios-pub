@@ -65,9 +65,9 @@ class MessageCellViewText: MessageCellViewBase {
         super.configureCell()
     }
 
-    override func configureWith(message: ChatMessage) {
+    override func configureWith(message: ChatMessage, isPreviousMessageFromSameSender: Bool) {
         timeLabel.text = message.timestamp?.chatDisplayTimestamp()
-        super.configureWith(message: message)
+        super.configureWith(message: message, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
         configureText(chatMessage: message)
         super.configureCell()
     }

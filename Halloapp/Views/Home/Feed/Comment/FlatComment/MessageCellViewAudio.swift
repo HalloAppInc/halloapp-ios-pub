@@ -113,12 +113,12 @@ class MessageCellViewAudio: MessageCellViewBase {
         configureCell()
     }
 
-    override func configureWith(message: ChatMessage) {
+    override func configureWith(message: ChatMessage, isPreviousMessageFromSameSender: Bool) {
         if audioMediaStatusCancellable != nil {
             audioMediaStatusCancellable?.cancel()
             audioMediaStatusCancellable = nil
         }
-        super.configureWith(message: message)
+        super.configureWith(message: message, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
         if message.media?.count == 1, let media = message.media?.first, media.type == .audio {
             configureAudio(audioMedia: media,
                            isOwn: message.fromUserId == MainAppContext.shared.userData.userId,
