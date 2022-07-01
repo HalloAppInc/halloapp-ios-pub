@@ -424,7 +424,6 @@
 		F45D9F7F282C4E4B005BAD9D /* GroupGridHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45D9F7E282C4E4B005BAD9D /* GroupGridHeader.swift */; };
 		F470251027ED31A6008CD37F /* URLRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F470250F27ED31A6008CD37F /* URLRouter.swift */; };
 		F494BEE72745E7DB00982E49 /* ActionSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */; };
-		F49C8E612835906600E881E3 /* GroupGridSeparator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49C8E602835906600E881E3 /* GroupGridSeparator.swift */; };
 		F49C8E632835A52900E881E3 /* RoundedRectButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49C8E622835A52900E881E3 /* RoundedRectButton.swift */; };
 		F49D2E6427EE6A8900195566 /* URLRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49D2E6027EE6A5300195566 /* URLRouterTests.swift */; };
 		F49FF9F527F53C8B00EC86B2 /* FeedPostDisplayable.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49FF9F227F53C8A00EC86B2 /* FeedPostDisplayable.swift */; };
@@ -1175,7 +1174,6 @@
 		F45D9F7E282C4E4B005BAD9D /* GroupGridHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridHeader.swift; sourceTree = "<group>"; };
 		F470250F27ED31A6008CD37F /* URLRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLRouter.swift; sourceTree = "<group>"; };
 		F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionSheetViewController.swift; sourceTree = "<group>"; };
-		F49C8E602835906600E881E3 /* GroupGridSeparator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridSeparator.swift; sourceTree = "<group>"; };
 		F49C8E622835A52900E881E3 /* RoundedRectButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedRectButton.swift; sourceTree = "<group>"; };
 		F49D2E6027EE6A5300195566 /* URLRouterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLRouterTests.swift; sourceTree = "<group>"; };
 		F49FF9F227F53C8A00EC86B2 /* FeedPostDisplayable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedPostDisplayable.swift; sourceTree = "<group>"; };
@@ -2307,7 +2305,6 @@
 				F45D9F782825DF62005BAD9D /* GroupGridCollectionViewCell.swift */,
 				F45D9F7C282C3ACF005BAD9D /* GroupGridDataSource.swift */,
 				F45D9F7E282C4E4B005BAD9D /* GroupGridHeader.swift */,
-				F49C8E602835906600E881E3 /* GroupGridSeparator.swift */,
 				F427125F286A721B009C56FA /* GroupGridSearchBar.swift */,
 			);
 			path = Grid;
@@ -2879,7 +2876,6 @@
 				F41FAA4227E52B7E00FC5090 /* BottomSheetViewController.swift in Sources */,
 				761EE21E24B5135400B30632 /* MFMessageComposeView.swift in Sources */,
 				323F99ED2808D0B100C8AB69 /* FavoritesInformationViewController.swift in Sources */,
-				F49C8E612835906600E881E3 /* GroupGridSeparator.swift in Sources */,
 				F850677A26A7FDDF00A120EC /* AudioView.swift in Sources */,
 				EAA424FB24ECF1480025CBBE /* ChatGroupMember+CoreDataProperties.swift in Sources */,
 				F45D9F7F282C4E4B005BAD9D /* GroupGridHeader.swift in Sources */,

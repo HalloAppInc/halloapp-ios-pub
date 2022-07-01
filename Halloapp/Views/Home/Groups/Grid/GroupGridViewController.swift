@@ -36,9 +36,6 @@ class GroupGridViewController: UIViewController {
         collectionView.register(GroupGridHeader.self,
                                 forSupplementaryViewOfKind: GroupGridHeader.elementKind,
                                 withReuseIdentifier: GroupGridHeader.reuseIdentifier)
-        collectionView.register(GroupGridSeparator.self,
-                                forSupplementaryViewOfKind: GroupGridSeparator.elementKind,
-                                withReuseIdentifier: GroupGridSeparator.reuseIdentifier)
         collectionView.register(GroupGridSearchBar.self,
                                 forSupplementaryViewOfKind: GroupGridSearchBar.elementKind,
                                 withReuseIdentifier: GroupGridSearchBar.reuseIdentifier)
@@ -147,19 +144,13 @@ class GroupGridViewController: UIViewController {
 
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: size, subitems: [item])
 
-        let headerItem = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: .init(widthDimension: .fractionalWidth(1),
-                                                                                       heightDimension: .estimated(44)),
-                                                                     elementKind: GroupGridHeader.elementKind,
-                                                                     alignment: .top)
-        let separatorItem = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: .init(widthDimension: .fractionalWidth(1),
-                                                                                          heightDimension: .absolute(isSectionEmpty ? 1 : 16)),
-                                                                        elementKind: GroupGridSeparator.elementKind,
-                                                                        alignment: .bottom)
-        separatorItem.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 14, bottom: 0, trailing: -14)
-
         let section = NSCollectionLayoutSection(group: group)
-        section.boundarySupplementaryItems = [headerItem, separatorItem]
-        section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 14, bottom: 0, trailing: 14)
+        section.boundarySupplementaryItems = [
+            NSCollectionLayoutBoundarySupplementaryItem(layoutSize: .init(widthDimension: .fractionalWidth(1), heightDimension: .estimated(44)),
+                                                        elementKind: GroupGridHeader.elementKind,
+                                                        alignment: .top)
+        ]
+        section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 14, bottom: isSectionEmpty ? 0 : 16, trailing: 14)
         section.interGroupSpacing = 10
         section.orthogonalScrollingBehavior = .continuous
 
@@ -212,10 +203,6 @@ class GroupGridViewController: UIViewController {
                 header.menuActionsForGroup = { [weak self] in self?.menuActionsForGroup(groupID: $0) ?? [] }
             }
             return header
-        case GroupGridSeparator.elementKind:
-            return collectionView.dequeueReusableSupplementaryView(ofKind: GroupGridSeparator.elementKind,
-                                                                   withReuseIdentifier: GroupGridSeparator.reuseIdentifier,
-                                                                   for: indexPath)
         case GroupGridSearchBar.elementKind:
             let groupGridSearchBar = collectionView.dequeueReusableSupplementaryView(ofKind: GroupGridSearchBar.elementKind,
                                                                    withReuseIdentifier: GroupGridSearchBar.reuseIdentifier,

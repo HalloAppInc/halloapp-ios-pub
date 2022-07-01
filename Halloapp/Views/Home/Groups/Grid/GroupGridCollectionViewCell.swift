@@ -158,10 +158,10 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         contentView.clipsToBounds = true
         contentView.layer.cornerRadius = 9
 
-        layer.shadowRadius = 8.0
-        layer.shadowOffset = CGSize(width: 0, height: 8)
-        layer.shadowColor = UIColor.feedPostShadow.cgColor
-        layer.shadowOpacity = 1.0
+        layer.shadowRadius = 10.0
+        layer.shadowOffset = .zero
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOpacity = 0.08
 
         // Body
         // Add first to position below other content
@@ -456,9 +456,9 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         newPostIndicator.isHidden = post.status != .incoming
 
         if post.unreadCount > 0 {
-            commentIndicator.backgroundColor = .commentIndicatorUnread
+            commentIndicator.backgroundColor = .groupFeedCommentIndicatorUnread
         } else if post.hasComments {
-            commentIndicator.backgroundColor = .systemGray4
+            commentIndicator.backgroundColor = .groupFeedCommentIndicatorRead
         } else {
             commentIndicator.backgroundColor = .clear
         }

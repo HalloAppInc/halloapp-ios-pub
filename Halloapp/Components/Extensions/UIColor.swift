@@ -371,4 +371,12 @@ extension UIColor {
     class var groupNewPostsToastShadow: UIColor {
         UIColor(named: "GroupNewPostsToastShadow")!
     }
+
+    class var groupFeedCommentIndicatorUnread: UIColor {
+        UIColor(named: "GroupFeedCommentIndicatorUnread")!
+    }
+
+    class var groupFeedCommentIndicatorRead: UIColor {
+        UIColor(named: "GroupFeedCommentIndicatorRead")!
+    }
 }
