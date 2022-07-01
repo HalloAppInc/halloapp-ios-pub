@@ -15,7 +15,15 @@ fileprivate struct LayoutConstants {
     static let profilePictureTrailingSpaceNormal: CGFloat = 10
 }
 
+protocol MessageCommentViewHeaderPreviewDelegate: AnyObject {
+    func messageCommentHeaderView(_ view: MessageCommentViewHeaderPreview, didTapGroupWithID groupId: GroupID)
+    func messageCommentHeaderView(_ view: MessageCommentViewHeaderPreview, didTapProfilePictureUserId userId: UserID)
+    func messageCommentHeaderView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int)
+}
+
 class MessageCommentViewHeaderPreview: UICollectionReusableView {
+
+    weak var delegate: MessageCommentViewHeaderPreviewDelegate?
 
     lazy var profilePictureButton: AvatarViewButton = {
         let button = AvatarViewButton()
@@ -109,6 +117,9 @@ class MessageCommentViewHeaderPreview: UICollectionReusableView {
             vStack.topAnchor.constraint(equalTo: self.topAnchor, constant: 8),
             vStack.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -8),
         ])
+        groupNameLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(showGroupFeed)))
+        contactNameLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(showUserFeedForPostAuthor)))
+
     }
 
     func configure(withPost feedPost: FeedPost) {
@@ -128,6 +139,20 @@ class MessageCommentViewHeaderPreview: UICollectionReusableView {
         } else {
             groupNameLabel.isHidden = true
             groupIndicatorLabel.isHidden = true
+        }
+    }
+
+    // MARK: UI Actions
+
+    @objc private func showUserFeedForPostAuthor() {
+        if let feedPost = feedPost {
+            delegate?.messageCommentHeaderView(self, didTapProfilePictureUserId: feedPost.userId)
+        }
+    }
+
+    @objc private func showGroupFeed() {
+        if let feedPost = feedPost, let groupId = feedPost.groupId {
+            delegate?.messageCommentHeaderView(self, didTapGroupWithID: groupId)
         }
     }
 }

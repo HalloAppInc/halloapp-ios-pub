@@ -59,6 +59,8 @@ fileprivate enum MessageRow: Hashable, Equatable {
 
 class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NSFetchedResultsControllerDelegate {
 
+    private let navigationTitleView = NavigationTitleView()
+
     private var loadingTimer = Timer()
 
     fileprivate typealias CommentDataSource = UICollectionViewDiffableDataSource<String, MessageRow>
@@ -351,6 +353,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         self.feedPostId = feedPostId
         super.init(nibName: nil, bundle: nil)
         self.hidesBottomBarWhenPushed = true
+        navigationTitleView.delegate = self
         initPostFetchedResultsController()
     }
     
@@ -820,8 +823,6 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         return dataSource.indexPath(for: messagerow(for: comment))
     }
 
-    private let navigationTitleView = NavigationTitleView()
-
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         updateJumpButtonVisibility()
         let x = -(scrollView.adjustedContentInset.top)
@@ -951,6 +952,17 @@ extension FlatCommentsViewController: MessageCommentHeaderViewDelegate {
         let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost, source: .post)
         controller.animatorDelegate = view
         present(controller, animated: true)
+    }
+}
+
+extension FlatCommentsViewController: MessageCommentViewHeaderPreviewDelegate {
+
+    func messageCommentHeaderView(_ view: MessageCommentViewHeaderPreview, didTapGroupWithID groupId: GroupID) {
+        showGroupFeed(groupId: groupId)
+    }
+
+    func messageCommentHeaderView(_ view: MessageCommentViewHeaderPreview, didTapProfilePictureUserId userId: UserID) {
+        showUserFeed(for: userId)
     }
 }
 
@@ -1230,6 +1242,13 @@ extension FlatCommentsViewController: ContentInputDelegate {
 
 extension FlatCommentsViewController {
     private class NavigationTitleView: UIView {
+
+        weak var delegate: MessageCommentViewHeaderPreviewDelegate? {
+            didSet {
+                headerView.delegate = delegate
+            }
+        }
+
         let headerView: MessageCommentViewHeaderPreview = {
             let navigationHeaderView = MessageCommentViewHeaderPreview()
             navigationHeaderView.translatesAutoresizingMaskIntoConstraints = false
