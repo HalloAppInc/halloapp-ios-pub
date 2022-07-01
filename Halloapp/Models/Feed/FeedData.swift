@@ -4142,7 +4142,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             if image.save(to: uploadFileURL) {
                 let imageSize = image.size
                 let groupID = "\(post.id)-external"
-                mediaUploader.upload(media: SimpleMediaUploadable(encryptedFileURL: uploadFileURL),
+                mediaUploader.upload(media: SimpleMediaUploadable(type: .image, encryptedFileURL: uploadFileURL),
                                      groupId: groupID,
                                      didGetURLs: { _ in }) { [weak mediaUploader] result in
                     // By default, completed tasks are not cleard from the media uploader.

@@ -12,6 +12,7 @@ import Combine
 import Core
 import CoreCommon
 import Foundation
+import Sentry
 
 enum MediaUploadError: Error {
     case canceled
@@ -27,6 +28,8 @@ enum MediaUploadType {
 
 protocol MediaUploadable {
 
+    var type: CommonMediaType { get }
+
     var index: Int { get }
 
     var encryptedFileURL: URL? { get }
@@ -36,6 +39,7 @@ protocol MediaUploadable {
 
 struct SimpleMediaUploadable: MediaUploadable {
 
+    let type: CommonMediaType
     let index = 0
     let encryptedFileURL: URL?
     let urlInfo: MediaURLInfo? = nil
@@ -72,13 +76,26 @@ final class MediaUploader {
         var didGetUrls: FetchUrls
         var failureCount: Int64 = 0
         var mediaUrls: MediaURLInfo?
-        init(groupId: String, mediaUrls: MediaURLInfo?, index: Int, fileURL: URL, didGetUrls: @escaping FetchUrls, completion: @escaping Completion) {
+        var sentryTransaction: Span
+
+        init(type: CommonMediaType, groupId: String, mediaUrls: MediaURLInfo?, index: Int, fileURL: URL, didGetUrls: @escaping FetchUrls, completion: @escaping Completion) {
             self.groupId = groupId
             self.mediaUrls = mediaUrls
             self.index = index
             self.fileURL = fileURL
             self.didGetUrls = didGetUrls
             self.completion = completion
+
+            let operation: String
+            switch type {
+            case .image:
+                operation = "image-upload"
+            case .audio:
+                operation = "audio-upload"
+            case .video:
+                operation = "video-upload"
+            }
+            sentryTransaction = SentrySDK.startTransaction(name: "Media Upload", operation: operation)
         }
 
         func cancel() {
@@ -90,6 +107,7 @@ final class MediaUploader {
 
             isCanceled = true
             uploadRequest?.cancel()
+            sentryTransaction.finish(status: .cancelled)
             completion(.failure(MediaUploadError.canceled))
         }
 
@@ -101,6 +119,7 @@ final class MediaUploader {
             DDLogDebug("MediaUploader/task/\(groupId)-\(index)/finished")
 
             isFinished = true
+            sentryTransaction.finish()
             let details = UploadDetails(downloadURL: downloadURL!, fileSize: Int(totalUploadSize))
             completion(.success(details))
         }
@@ -113,6 +132,7 @@ final class MediaUploader {
             DDLogDebug("MediaUploader/task/\(groupId)-\(index)/failed [\(error)]")
 
             isFinished = true
+            sentryTransaction.finish(status: .unknownError)
             completion(.failure(error))
         }
 
@@ -313,7 +333,7 @@ final class MediaUploader {
             completion(.failure(MediaUploadError.canceled))
             return
         }
-        let task = Task(groupId: groupId, mediaUrls: urlInfo, index: Int(mediaItem.index), fileURL: fileURL, didGetUrls: didGetURLs, completion: completion)
+        let task = Task(type: mediaItem.type, groupId: groupId, mediaUrls: urlInfo, index: Int(mediaItem.index), fileURL: fileURL, didGetUrls: didGetURLs, completion: completion)
         // Task might fail immediately so make sure it's added before being started.
         addTask(task: task)
 
