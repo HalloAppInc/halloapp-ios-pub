@@ -15,8 +15,6 @@ import UIKit
 
 class GroupGridViewController: UIViewController {
 
-    private let newPostToast = GroupGridNewPostToast()
-
     private lazy var collectionView: UICollectionView = {
         let configuration = UICollectionViewCompositionalLayoutConfiguration()
         configuration.boundarySupplementaryItems = [
@@ -94,15 +92,7 @@ class GroupGridViewController: UIViewController {
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(collectionView)
 
-        newPostToast.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(newPostToastTapped)))
-        newPostToast.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(newPostToast)
-
         NSLayoutConstraint.activate([
-            newPostToast.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
-            newPostToast.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            newPostToast.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 8),
-
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.topAnchor.constraint(equalTo: view.topAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -110,11 +100,6 @@ class GroupGridViewController: UIViewController {
         ])
 
         dataSource.performFetch()
-        newPostToast.configure(unreadCount: 0, animated: false)
-
-        unreadPostCountCancellable = dataSource.unreadPostsCountSubject.sink { [newPostToast] unreadCount in
-            newPostToast.configure(unreadCount: unreadCount, animated: newPostToast.window != nil)
-        }
 
         requestScrollToTopAnimatedCancellable = dataSource.requestScrollToTopAnimatedSubject.sink { [weak self] animated in
             self?.scrollToTop(animated: animated)
@@ -132,7 +117,7 @@ class GroupGridViewController: UIViewController {
         // Any animated transition back to here will be from some presented / pushed view controller
         // Reload content only if we're switching tabs
         if transitionCoordinator == nil {
-            dataSource.reloadSnapshot(animated: false)
+            dataSource.reload(animated: false)
             scrollToTop(animated: false)
         }
     }
@@ -257,7 +242,7 @@ class GroupGridViewController: UIViewController {
     }
 
     @objc func newPostToastTapped() {
-        dataSource.reloadSnapshot(animated: true)
+        dataSource.reload(animated: true)
         scrollToTop(animated: true)
     }
 
@@ -266,7 +251,7 @@ class GroupGridViewController: UIViewController {
             refreshControl?.endRefreshing()
             searchController.isActive = false
         } else {
-            dataSource.reloadSnapshot(animated: true) {
+            dataSource.reload(animated: true) {
                 refreshControl?.endRefreshing()
             }
         }

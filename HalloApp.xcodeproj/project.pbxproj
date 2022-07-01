@@ -424,7 +424,6 @@
 		F45D9F7F282C4E4B005BAD9D /* GroupGridHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45D9F7E282C4E4B005BAD9D /* GroupGridHeader.swift */; };
 		F470251027ED31A6008CD37F /* URLRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F470250F27ED31A6008CD37F /* URLRouter.swift */; };
 		F494BEE72745E7DB00982E49 /* ActionSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */; };
-		F49C8E5D282F07C700E881E3 /* GroupGridNewPostToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49C8E5C282F07C700E881E3 /* GroupGridNewPostToast.swift */; };
 		F49C8E612835906600E881E3 /* GroupGridSeparator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49C8E602835906600E881E3 /* GroupGridSeparator.swift */; };
 		F49C8E632835A52900E881E3 /* RoundedRectButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49C8E622835A52900E881E3 /* RoundedRectButton.swift */; };
 		F49D2E6427EE6A8900195566 /* URLRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49D2E6027EE6A5300195566 /* URLRouterTests.swift */; };
@@ -1176,7 +1175,6 @@
 		F45D9F7E282C4E4B005BAD9D /* GroupGridHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridHeader.swift; sourceTree = "<group>"; };
 		F470250F27ED31A6008CD37F /* URLRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLRouter.swift; sourceTree = "<group>"; };
 		F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionSheetViewController.swift; sourceTree = "<group>"; };
-		F49C8E5C282F07C700E881E3 /* GroupGridNewPostToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridNewPostToast.swift; sourceTree = "<group>"; };
 		F49C8E602835906600E881E3 /* GroupGridSeparator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridSeparator.swift; sourceTree = "<group>"; };
 		F49C8E622835A52900E881E3 /* RoundedRectButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedRectButton.swift; sourceTree = "<group>"; };
 		F49D2E6027EE6A5300195566 /* URLRouterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLRouterTests.swift; sourceTree = "<group>"; };
@@ -2309,7 +2307,6 @@
 				F45D9F782825DF62005BAD9D /* GroupGridCollectionViewCell.swift */,
 				F45D9F7C282C3ACF005BAD9D /* GroupGridDataSource.swift */,
 				F45D9F7E282C4E4B005BAD9D /* GroupGridHeader.swift */,
-				F49C8E5C282F07C700E881E3 /* GroupGridNewPostToast.swift */,
 				F49C8E602835906600E881E3 /* GroupGridSeparator.swift */,
 				F427125F286A721B009C56FA /* GroupGridSearchBar.swift */,
 			);
@@ -3173,7 +3170,6 @@
 				32C90672278CC9C500E292EE /* MessageTimeHeaderView.swift in Sources */,
 				68629294265C660D00C54367 /* FeedPermissionAlert.swift in Sources */,
 				68CCB16726964851007015FA /* InitializingViewController.swift in Sources */,
-				F49C8E5D282F07C700E881E3 /* GroupGridNewPostToast.swift in Sources */,
 				F4F157DC276AA5B7002FDB9E /* DeleteAccountTextView.swift in Sources */,
 				EAA4C0A12739F505002F1628 /* AddGroupMembersWelcomeView.swift in Sources */,
 				EA039C6326C49BC4002CC4CF /* EditGroupDescViewController.swift in Sources */,
