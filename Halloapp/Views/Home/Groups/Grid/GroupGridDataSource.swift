@@ -15,6 +15,7 @@ import UIKit
 
 class GroupGridDataSource: NSObject {
 
+    @Published var isEmpty = true
     let requestScrollToTopAnimatedSubject = PassthroughSubject<Bool, Never>()
 
     var supplementaryViewProvider: UICollectionViewDiffableDataSource<GroupID, FeedPostID>.SupplementaryViewProvider? {
@@ -90,7 +91,9 @@ class GroupGridDataSource: NSObject {
     }
 
     func reload(animated: Bool, completion: (() -> Void)? = nil) {
-        dataSource.apply(currentSnapshot(), animatingDifferences: animated)
+        let snapshot = currentSnapshot()
+        dataSource.apply(snapshot, animatingDifferences: animated)
+        isEmpty = !isSearching && snapshot.sectionIdentifiers.isEmpty
     }
 
     func performFetch() {
@@ -174,6 +177,7 @@ extension GroupGridDataSource: NSFetchedResultsControllerDelegate {
             snapshot.reloadItems(updatedFeedPostIDs)
         }
         dataSource.apply(snapshot)
+        isEmpty = !isSearching && snapshot.sectionIdentifiers.isEmpty
 
         if didAddSelfPostInLastUpdate {
             requestScrollToTopAnimatedSubject.send(true)
@@ -231,22 +235,19 @@ extension GroupGridDataSource: UISearchResultsUpdating {
     }
 
     func updateSearchResults(for searchController: UISearchController) {
-        if searchController.isActive {
+        if searchController.isActive, let searchText = searchController.searchBar.text, !searchText.isEmpty {
             isSearching = true
-
-            if let searchText = searchController.searchBar.text, !searchText.isEmpty {
-                dataSource.apply(snapshot(for: searchText), animatingDifferences: false)
-                requestScrollToTopAnimatedSubject.send(false)
-                didLoadInitialSearchResultsForSearchSession = true
-            } else if didLoadInitialSearchResultsForSearchSession { // don't modify results until user has actually started to search
-                requestScrollToTopAnimatedSubject.send(false)
-                reload(animated: false)
-            }
+            didLoadInitialSearchResultsForSearchSession = true
+            isEmpty = false
+            dataSource.apply(snapshot(for: searchText), animatingDifferences: false)
+            requestScrollToTopAnimatedSubject.send(false)
         } else {
-            didLoadInitialSearchResultsForSearchSession = false
             isSearching = false
             reload(animated: false)
-            requestScrollToTopAnimatedSubject.send(false)
+            if didLoadInitialSearchResultsForSearchSession {
+                requestScrollToTopAnimatedSubject.send(false)
+                didLoadInitialSearchResultsForSearchSession = false
+            }
         }
     }
 }

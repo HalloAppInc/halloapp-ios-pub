@@ -28,8 +28,33 @@ class GroupGridViewController: UIViewController {
         let layout = UICollectionViewCompositionalLayout(sectionProvider: { [weak self] in self?.sectionProvider(section: $0, layoutEnvironment: $1) },
                                                          configuration: configuration)
 
+        let emptyView = UIView()
+
+        let emptyImageView = UIImageView(image: UIImage(named: "ChatEmpty")?.withRenderingMode(.alwaysTemplate))
+        emptyImageView.tintColor = .label.withAlphaComponent(0.2)
+
+        let emptyLabel = UILabel()
+        emptyLabel.numberOfLines = 0
+        emptyLabel.text = Localizations.nuxGroupsListEmpty
+        emptyLabel.textAlignment = .center
+        emptyLabel.textColor = .secondaryLabel
+
+        let emptyStackView = UIStackView(arrangedSubviews: [emptyImageView, emptyLabel])
+        emptyStackView.axis = .vertical
+        emptyStackView.alignment = .center
+        emptyStackView.spacing = 12
+        emptyStackView.translatesAutoresizingMaskIntoConstraints = false
+        emptyView.addSubview(emptyStackView)
+
+        NSLayoutConstraint.activate([
+            emptyStackView.centerXAnchor.constraint(equalTo: emptyView.centerXAnchor),
+            emptyStackView.centerYAnchor.constraint(equalTo: emptyView.centerYAnchor),
+            emptyStackView.widthAnchor.constraint(equalTo: emptyView.widthAnchor, multiplier: 0.6),
+        ])
+
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.backgroundColor = nil
+        collectionView.backgroundView = emptyView
         collectionView.contentInset = UIEdgeInsets(top: -10, left: 0, bottom: 0, right: 0) // Hide top of search bar
         collectionView.register(GroupGridCollectionViewCell.self,
                                 forCellWithReuseIdentifier: GroupGridCollectionViewCell.reuseIdentifier)
@@ -66,7 +91,7 @@ class GroupGridViewController: UIViewController {
         return searchController
     }()
 
-    private var unreadPostCountCancellable: AnyCancellable?
+    private var isEmptyCancellable: AnyCancellable?
     private var requestScrollToTopAnimatedCancellable: AnyCancellable?
 
     override func viewDidLoad() {
@@ -97,6 +122,10 @@ class GroupGridViewController: UIViewController {
         ])
 
         dataSource.performFetch()
+
+        isEmptyCancellable = dataSource.$isEmpty.sink { [weak self] isEmpty in
+            self?.collectionView.backgroundView?.isHidden = !isEmpty
+        }
 
         requestScrollToTopAnimatedCancellable = dataSource.requestScrollToTopAnimatedSubject.sink { [weak self] animated in
             self?.scrollToTop(animated: animated)
@@ -285,7 +314,7 @@ class GroupGridViewController: UIViewController {
         } else {
             let groupName = group.name
             return [
-                UIAction(title: Localizations.groupsListRemoveMessage, attributes: [.destructive]) { [weak self] _ in
+                UIAction(title: Localizations.buttonRemove, attributes: [.destructive]) { [weak self] _ in
                     let actionSheet = UIAlertController(title: groupName,
                                                         message: Localizations.groupsListRemoveMessage,
                                                         preferredStyle: .alert)
