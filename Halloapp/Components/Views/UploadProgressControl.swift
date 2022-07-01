@@ -17,26 +17,17 @@ import CocoaLumberjackSwift
 class UploadProgressControl: UIControl {
     private enum State { case uploading, success, failure }
 
-    private var progressState: State = .uploading {
-        didSet {
-            if oldValue != progressState { animateStateChange() }
-        }
-    }
+    private var progressState: State = .uploading
 
     private(set) var feedPost: FeedPost?
     private var processingCancellable: AnyCancellable?
     private var uploadingCancellable: AnyCancellable?
     private var postStatusCancellable: AnyCancellable?
 
-    private lazy var circleLayer: CAShapeLayer = {
-        let layer = CAShapeLayer()
-        layer.fillColor = UIColor.clear.cgColor
-        layer.strokeColor = tintColor.cgColor
-        layer.lineWidth = 4
-        layer.lineCap = .round
-        layer.transform = CATransform3DRotate(layer.transform, -.pi / 2, 0, 0, 1)
-        layer.strokeEnd = 0
-        return layer
+    private lazy var progressIndicator: ProgressViewContainer = {
+        let view = ProgressViewContainer()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
     }()
 
     /// Displays either the checkmark or the retry arrow. When it's the latter, the control
@@ -80,8 +71,8 @@ class UploadProgressControl: UIControl {
     }
 
     var lineWidth: CGFloat {
-        get { circleLayer.lineWidth }
-        set { circleLayer.lineWidth = newValue }
+        get { progressIndicator.circleLayer.lineWidth }
+        set { progressIndicator.circleLayer.lineWidth = newValue }
     }
 
     override var isHighlighted: Bool {
@@ -93,7 +84,7 @@ class UploadProgressControl: UIControl {
     override var tintColor: UIColor! {
         didSet {
             // TODO: switch to tintColorDidChange
-            circleLayer.strokeColor = tintColor.cgColor
+            progressIndicator.circleLayer.strokeColor = tintColor.cgColor
             statusIndicator.tintColor = tintColor
         }
     }
@@ -101,7 +92,7 @@ class UploadProgressControl: UIControl {
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        layer.addSublayer(circleLayer)
+        addSubview(progressIndicator)
         addSubview(statusIndicator)
 
         NSLayoutConstraint.activate([
@@ -109,6 +100,11 @@ class UploadProgressControl: UIControl {
             statusIndicator.trailingAnchor.constraint(equalTo: trailingAnchor),
             statusIndicator.topAnchor.constraint(equalTo: topAnchor),
             statusIndicator.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            progressIndicator.leadingAnchor.constraint(equalTo: leadingAnchor),
+            progressIndicator.trailingAnchor.constraint(equalTo: trailingAnchor),
+            progressIndicator.topAnchor.constraint(equalTo: topAnchor),
+            progressIndicator.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
 
         addTarget(self, action: #selector(retryTapped), for: .touchUpInside)
@@ -118,17 +114,11 @@ class UploadProgressControl: UIControl {
         fatalError("UploadProgressControl coder init not implemented...")
     }
 
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        circleLayer.frame = bounds
-        circleLayer.path = UIBezierPath(ovalIn: bounds).cgPath
-    }
-
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
 
         if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
-            circleLayer.strokeColor = tintColor.cgColor
+            progressIndicator.circleLayer.strokeColor = tintColor.cgColor
         }
     }
 
@@ -145,12 +135,13 @@ class UploadProgressControl: UIControl {
         let imageServer = ImageServer.shared
 
         if case .sent = post.status {
-            progressState = .success
+            updateState(to: .success)
             return
         }
 
-        progressState = .uploading
-        progress = 0.05
+        updateState(to: .uploading)
+        let initialProgress = totalProgress(for: post.id, count: post.mediaCount)
+        progress = initialProgress > 0 ? initialProgress : 0.05
 
         processingCancellable = imageServer.progress
             .compactMap { [weak self] (id: FeedPostID) -> Float? in
@@ -174,11 +165,11 @@ class UploadProgressControl: UIControl {
             .sink { [weak self] _ in
                 switch post.status {
                 case .sending:
-                    self?.progressState = .uploading
+                    self?.updateState(to: .uploading, animate: true)
                 case .sendError:
-                    self?.progressState = .failure
+                    self?.updateState(to: .failure, animate: true)
                 case .sent:
-                    self?.progressState = .success
+                    self?.updateState(to: .success, animate: true)
                 default:
                     break
                 }
@@ -203,29 +194,31 @@ class UploadProgressControl: UIControl {
         return (processProgress + uploadProgress) / 2
     }
 
-    private func animateStateChange() {
+    private func updateState(to newState: State, animate: Bool = false) {
+        progressState = newState
+        var delay: TimeInterval = .zero
+
+        switch animate {
+        case true where newState == .success:
+            // first fill the circle before hiding it
+            delay = 0.3
+            animateProgress(to: 1)
+            fallthrough
+        case true:
+            return UIView.animate(withDuration: 0.3, delay: delay) { self.updateState(to: newState, animate: false) }
+        case false:
+            refreshViewsAfterStateChange()
+        }
+    }
+
+    private func refreshViewsAfterStateChange() {
         statusIndicator.image = statusImage
 
-        UIView.transition(with: self, duration: 0.3, options: [.transitionCrossDissolve]) {
-            self.updateState()
-        }
-    }
-
-    private func updateState() {
-        let progressOpacity: Float = progressState == .uploading ? 1 : 0
+        let progressOpacity: CGFloat = progressState == .uploading ? 1 : 0
         let indicatorOpacity: CGFloat = progressState == .uploading ? 0 : 1
 
-        circleLayer.opacity = progressOpacity
+        progressIndicator.alpha = progressOpacity
         statusIndicator.alpha = indicatorOpacity
-    }
-
-    private func performAutoHide() {
-        UIView.animate(withDuration: 0.3) {
-            self.alpha = 0
-        } completion: { [weak self] _ in
-            self?.alpha = 1
-            self?.isHidden = true
-        }
     }
 
     private func updateHighlightState() {
@@ -238,21 +231,33 @@ class UploadProgressControl: UIControl {
     }
 
     private func updateProgress() {
-        guard let progress = progress else {
-            circleLayer.strokeEnd = 0
+        guard
+            let post = feedPost,
+            var progress = progress
+        else {
+            progressIndicator.circleLayer.strokeEnd = 0
             return
         }
 
-        let value = CGFloat(progress)
+        // don't go beyond a certain point if the post isn't uploaded
+        let threshold: Float = 0.9
+        progress = progress >= threshold && post.status != .sent ? threshold : progress
+
+        animateProgress(to: progress)
+    }
+
+    private func animateProgress(to value: Float) {
+        let value = CGFloat(value)
+
         let animation = CABasicAnimation(keyPath: "strokeEnd")
 
-        animation.fromValue = circleLayer.strokeEnd
+        animation.fromValue = progressIndicator.circleLayer.strokeEnd
         animation.toValue = value
         animation.duration = 0.2
         animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
 
-        circleLayer.add(animation, forKey: nil)
-        circleLayer.strokeEnd = value
+        progressIndicator.circleLayer.add(animation, forKey: nil)
+        progressIndicator.circleLayer.strokeEnd = value
     }
 
     @objc
@@ -260,5 +265,36 @@ class UploadProgressControl: UIControl {
         if case .failure = progressState {
             onRetry?()
         }
+    }
+}
+
+// MARK: - ProgressViewContainer implementation
+
+/// - note: We use this wrapper so that we can animate its `alpha` value in a `UIView` animation block.
+fileprivate class ProgressViewContainer: UIView {
+    private(set) lazy var circleLayer: CAShapeLayer = {
+        let layer = CAShapeLayer()
+        layer.fillColor = UIColor.clear.cgColor
+        layer.strokeColor = tintColor.cgColor
+        layer.lineWidth = 4
+        layer.lineCap = .round
+        layer.transform = CATransform3DRotate(layer.transform, -.pi / 2, 0, 0, 1)
+        layer.strokeEnd = 0
+        return layer
+    }()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        layer.addSublayer(circleLayer)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("ProgressViewContainer coder init not implemented...")
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        circleLayer.frame = bounds
+        circleLayer.path = UIBezierPath(ovalIn: bounds).cgPath
     }
 }
