@@ -58,6 +58,21 @@
 /* Title for popup that appears when user tries to register invalid number */
 "registration.invalidphone" = "¡Caramba!";
 
+/* Popup that appears when user tries to register a number with invalid country code */
+"registration.invalidphone.invalidCountryCode" = "El número de teléfono que ingresaste tiene un código de país inválido. Por favor, verifícalo.";
+
+/* Popup that appears when user tries to register a number with invalid length */
+"registration.invalidphone.invalidLength" = "El número de teléfono que ingresaste tiene una longitud inválida. Por favor, verifícalo.";
+
+/* Popup that appears when user tries to register a landline number */
+"registration.invalidphone.lineTypeFixed" = "El número de teléfono que ingresaste no es un número de teléfono móvil. Por favor, verifícalo.";
+
+/* Popup that appears when user tries to register a number with unknown line type */
+"registration.invalidphone.lineTypeOther" = "El número de teléfono que ingresaste no es un número de teléfono móvil. Por favor, verifícalo.";
+
+/* Popup that appears when user tries to register a VoIP number */
+"registration.invalidphone.lineTypeVoip" = "El número de teléfono que ingresaste no es un número de teléfono móvil. Por favor, verifícalo.";
+
 /* Popup that appears when user tries to register invalid number */
 "registration.invalidphone.only" = "El número de teléfono que marcaste no es válido. Por favor, revísalo.";
 

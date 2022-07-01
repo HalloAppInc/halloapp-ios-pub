@@ -808,9 +808,6 @@
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
 "group.feed.welcome.post.title" = "Undang teman ke dalam grupmu";
 
-/* Indicates number of new posts on groups grid */
-"group.grid.n.posts" = "group.grid.n.posts";
-
 /* Action label for inviting others to join the group via link */
 "group.info.invite.to.group.via.link" = "Undang ke Grup lewat Tautan";
 
@@ -873,6 +870,9 @@
 
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Ketuk di sini untuk info grup";
+
+/* Tag for new posts in groups grid */
+"groupGrid.newPostIndicator" = "baru";
 
 /* More info menu item */
 "groupGridHeader.moreInfo" = "Info Lainnya";
@@ -1428,6 +1428,21 @@
 
 /* Title for popup that appears when user tries to register invalid number */
 "registration.invalidphone" = "Aduh!";
+
+/* Popup that appears when user tries to register a number with invalid country code */
+"registration.invalidphone.invalidCountryCode" = "Nomor telepon yang Anda masukkan memiliki kode negara yang tidak valid. Silakan periksa ulang.";
+
+/* Popup that appears when user tries to register a number with invalid length */
+"registration.invalidphone.invalidLength" = "Nomor telepon yang Anda masukkan memiliki panjang yang tidak valid. Silakan periksa ulang.";
+
+/* Popup that appears when user tries to register a landline number */
+"registration.invalidphone.lineTypeFixed" = "Nomor telepon yang Anda masukkan bukan nomor ponsel. Silakan periksa ulang.";
+
+/* Popup that appears when user tries to register a number with unknown line type */
+"registration.invalidphone.lineTypeOther" = "Nomor telepon yang Anda masukkan bukan nomor ponsel. Silakan periksa ulang.";
+
+/* Popup that appears when user tries to register a VoIP number */
+"registration.invalidphone.lineTypeVoip" = "Nomor telepon yang Anda masukkan bukan nomor ponsel. Silakan periksa ulang.";
 
 /* Popup that appears when user tries to register invalid number */
 "registration.invalidphone.only" = "Nomor telepon yang kamu masukkan tidak valid. Periksa kembali.";

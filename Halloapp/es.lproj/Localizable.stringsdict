@@ -109,9 +109,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>un participante</string>
+			<string>un miembro</string>
 			<key>other</key>
-			<string>%d participantes</string>
+			<string>%d miembros</string>
 			<key>zero</key>
 			<string>No hay miembros</string>
 		</dict>

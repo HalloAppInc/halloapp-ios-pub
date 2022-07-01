@@ -74,7 +74,7 @@
 "chat.mic.access.denied.message" = "Para poder grabar audio, por favor ve a Configuración y enciende el micrófono";
 
 /* Alert title when missing microphone access */
-"chat.mic.access.denied.title" = "No se pudo acceder al micrófono";
+"chat.mic.access.denied.title" = "Sin acceso al micrófono";
 
 /* Title for generic delete button. */
 "Delete" = "Eliminar";

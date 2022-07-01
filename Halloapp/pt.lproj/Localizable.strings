@@ -808,9 +808,6 @@
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
 "group.feed.welcome.post.title" = "Convidar um amigo para o seu grupo";
 
-/* Indicates number of new posts on groups grid */
-"group.grid.n.posts" = "grupo.rede.n.postagens";
-
 /* Action label for inviting others to join the group via link */
 "group.info.invite.to.group.via.link" = "Convidar para o grupo via link";
 

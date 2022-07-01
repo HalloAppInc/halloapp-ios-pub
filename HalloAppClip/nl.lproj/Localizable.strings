@@ -58,6 +58,21 @@
 /* Title for popup that appears when user tries to register invalid number */
 "registration.invalidphone" = "Oeps!";
 
+/* Popup that appears when user tries to register a number with invalid country code */
+"registration.invalidphone.invalidCountryCode" = "Het ingevoerde telefoonnummer heeft een ongeldige landcode. Controleer nogmaals alsjeblieft.";
+
+/* Popup that appears when user tries to register a number with invalid length */
+"registration.invalidphone.invalidLength" = "Het ingevoerde telefoonnummer heeft een ongeldige lengte. Controleer nogmaals alsjeblieft.";
+
+/* Popup that appears when user tries to register a landline number */
+"registration.invalidphone.lineTypeFixed" = "Het ingevoerde telefoonnummer is geen mobiel nummer. Controleer nogmaals alsjeblieft.";
+
+/* Popup that appears when user tries to register a number with unknown line type */
+"registration.invalidphone.lineTypeOther" = "Het ingevoerde telefoonnummer is geen mobiel nummer. Controleer nogmaals alsjeblieft.";
+
+/* Popup that appears when user tries to register a VoIP number */
+"registration.invalidphone.lineTypeVoip" = "Het ingevoerde telefoonnummer is geen mobiel nummer. Controleer nogmaals alsjeblieft.";
+
 /* Popup that appears when user tries to register invalid number */
 "registration.invalidphone.only" = "Het ingevoerde telefoonnummer is ongeldig. Controleer het nummer opnieuw.";
 

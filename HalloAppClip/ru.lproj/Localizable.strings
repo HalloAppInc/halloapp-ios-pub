@@ -58,6 +58,21 @@
 /* Title for popup that appears when user tries to register invalid number */
 "registration.invalidphone" = "Незадача!";
 
+/* Popup that appears when user tries to register a number with invalid country code */
+"registration.invalidphone.invalidCountryCode" = "Введенный вами номер телефона содержит неверный код страны. Пожалуйста, перепроверьте.";
+
+/* Popup that appears when user tries to register a number with invalid length */
+"registration.invalidphone.invalidLength" = "Введенный номер телефона имеет недопустимую длину. Пожалуйста, перепроверьте.";
+
+/* Popup that appears when user tries to register a landline number */
+"registration.invalidphone.lineTypeFixed" = "Введенный номер телефона не является номером мобильного телефона. Пожалуйста, перепроверьте.";
+
+/* Popup that appears when user tries to register a number with unknown line type */
+"registration.invalidphone.lineTypeOther" = "Введенный номер телефона не является номером мобильного телефона. Пожалуйста, перепроверьте.";
+
+/* Popup that appears when user tries to register a VoIP number */
+"registration.invalidphone.lineTypeVoip" = "Введенный номер телефона не является номером мобильного телефона. Пожалуйста, перепроверьте.";
+
 /* Popup that appears when user tries to register invalid number */
 "registration.invalidphone.only" = "Вы ввели неправильный номер телефона. Пожалуйста, перепроверьте его.";
 

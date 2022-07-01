@@ -74,7 +74,7 @@
 "chat.mic.access.denied.message" = "Para poder grabar audio, por favor ve a Configuración y enciende el micrófono";
 
 /* Alert title when missing microphone access */
-"chat.mic.access.denied.title" = "No se pudo acceder al micrófono";
+"chat.mic.access.denied.title" = "Sin acceso al micrófono";
 
 /* Title for generic delete button. */
 "Delete" = "Eliminar";
@@ -134,7 +134,7 @@
 "media.discard.confirmation" = "¿Te gustaría descartar lo que has editado?";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
-"media.voiceover.button.annotate" = "Comentar";
+"media.voiceover.button.annotate" = "Anotar";
 
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Cerrar";

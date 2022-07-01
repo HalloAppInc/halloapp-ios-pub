@@ -808,9 +808,6 @@
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
 "group.feed.welcome.post.title" = "Nodig vrienden uit voor je groep";
 
-/* Indicates number of new posts on groups grid */
-"group.grid.n.posts" = "group.grid.n.posts";
-
 /* Action label for inviting others to join the group via link */
 "group.info.invite.to.group.via.link" = "Uitnodigen voor Groep via Link";
 
@@ -873,6 +870,9 @@
 
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Tik hier voor groepsinformatie";
+
+/* Tag for new posts in groups grid */
+"groupGrid.newPostIndicator" = "nieuw";
 
 /* More info menu item */
 "groupGridHeader.moreInfo" = "Meer Info";
@@ -1388,7 +1388,7 @@
 "profile.title.your.name" = "Jouw Naam";
 
 /* Title for the button allowing the user to view their own profile photo. */
-"profile.view.photo" = "Foto bekijken";
+"profile.view.photo" = "Foto Bekijken";
 
 /* Disclaimer text about receiving SMS verification code */
 "registration.code.disclaimer" = "Je ontvangt een verificatiecode.\nJe provider kan hiervoor kosten in rekening brengen.";
@@ -1428,6 +1428,21 @@
 
 /* Title for popup that appears when user tries to register invalid number */
 "registration.invalidphone" = "Oeps!";
+
+/* Popup that appears when user tries to register a number with invalid country code */
+"registration.invalidphone.invalidCountryCode" = "Het ingevoerde telefoonnummer heeft een ongeldige landcode. Controleer nogmaals alsjeblieft.";
+
+/* Popup that appears when user tries to register a number with invalid length */
+"registration.invalidphone.invalidLength" = "Het ingevoerde telefoonnummer heeft een ongeldige lengte. Controleer nogmaals alsjeblieft.";
+
+/* Popup that appears when user tries to register a landline number */
+"registration.invalidphone.lineTypeFixed" = "Het ingevoerde telefoonnummer is geen mobiel nummer. Controleer nogmaals alsjeblieft.";
+
+/* Popup that appears when user tries to register a number with unknown line type */
+"registration.invalidphone.lineTypeOther" = "Het ingevoerde telefoonnummer is geen mobiel nummer. Controleer nogmaals alsjeblieft.";
+
+/* Popup that appears when user tries to register a VoIP number */
+"registration.invalidphone.lineTypeVoip" = "Het ingevoerde telefoonnummer is geen mobiel nummer. Controleer nogmaals alsjeblieft.";
 
 /* Popup that appears when user tries to register invalid number */
 "registration.invalidphone.only" = "Het ingevoerde telefoonnummer is ongeldig. Controleer het nummer opnieuw.";

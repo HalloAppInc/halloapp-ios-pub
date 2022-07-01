@@ -137,7 +137,7 @@
 "button.update" = "Actualizar";
 
 /* Label for button that opens chat during call */
-"call.button.chat" = "conversación";
+"call.button.chat" = "chat";
 
 /* Label for button that ends call */
 "call.button.end" = "terminar llamada";
@@ -269,16 +269,16 @@
 "chat.create.new.group" = "Crear nuevo grupo";
 
 /* Button to retract a chat message for everyone */
-"chat.delete.everyone" = "Borrar para todos";
+"chat.delete.everyone" = "Eliminar para todos";
 
 /* Button to locally delete a chat message */
-"chat.delete.me" = "Borrar para mi";
+"chat.delete.me" = "Eliminar para mi";
 
 /* Title of deletion menu */
-"chat.delete.title" = "¿Deseas borrar el mensaje seleccionado?";
+"chat.delete.title" = "¿Deseas eliminar el mensaje seleccionado?";
 
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
-"chat.encryption.label" = "Todos los mensajes en HalloApp están cifrados de extremo a extremo. Toca para más información.";
+"chat.encryption.label" = "Todos los mensajes en HalloApp están cifrados de extremo a extremo. Más información";
 
 /* Text shown in Chat when the security keys of the contact user is chatting with, have changed */
 "chat.event.security.keys.changed" = "La clave de seguridad con %@ ha sido cambiada";
@@ -323,10 +323,10 @@
 "chat.group.info.message.user" = "Enviar mensaje";
 
 /* Text label shown when the user is not a member of the group */
-"chat.group.info.not.a.member.label" = "No eres un miembro de este grupo";
+"chat.group.info.not.a.member.label" = "No eres miembro de este grupo";
 
 /* Text for menu option of removing a group member */
-"chat.group.info.remove.from.group" = "Sacar del grupo";
+"chat.group.info.remove.from.group" = "Eliminar del grupo";
 
 /* Title of screen that shows group information */
 "chat.group.info.title" = "Información del grupo";
@@ -377,7 +377,7 @@
 "chat.mic.access.denied.message" = "Para poder grabar audio, por favor ve a Configuración y enciende el micrófono";
 
 /* Alert title when missing microphone access */
-"chat.mic.access.denied.title" = "No se pudo acceder al micrófono";
+"chat.mic.access.denied.title" = "Sin acceso al micrófono";
 
 /* cta label for creating a new group chat */
 "chat.new.group.label" = "Nuevo chat grupal";
@@ -404,7 +404,7 @@
 "comment.delete.action" = "Eliminar comentario";
 
 /* Confirmation text displayed at comment deletion prompt */
-"comment.delete.confirmation" = "¿Eliminar este comentario? Esta acción no se puede deshacer.";
+"comment.delete.confirmation" = "¿Eliminar este comentario? Esta acción no se puede revertir.";
 
 /* Text displayed in place of deleted comment. */
 "comment.deleted" = "Este comentario ha sido eliminado";
@@ -563,7 +563,7 @@
 "fab.accessibility.text" = "Enviar mensaje de texto";
 
 /* VoiceOver label for audio post button in floating compose post menu in Home view. */
-"fab.accessibility.voice" = "Nota de voz";
+"fab.accessibility.voice" = "Mensaje de voz";
 
 /* Label for floating moment button on home feed. */
 "fab.moment.button" = "Momento";
@@ -713,7 +713,7 @@
 "feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
 
 /* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.body" = "Usa tu número de teléfono para conectarte con amigos y familia en un entorno sin anuncios, marcas, me gustan o influentes.\n\nHalloApp es para tí y para esos cercanos a tí, en privado. ¡Invita a tus amigos de verdad para empezar!";
+"feed.welcome.post.body" = "Usa tu número de teléfono para conectarte con amigos y familia en un entorno sin anuncios, marcas, me gustan o influentes.\n\nHalloApp es para ti y para esos cercanos a ti, en privado. ¡Invita a tus amigos de verdad para empezar!";
 
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
 "feed.welcome.post.title" = "Te damos la bienvenida a HalloApp, un espacio para relaciones de verdad ✨";
@@ -808,9 +808,6 @@
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
 "group.feed.welcome.post.title" = "Invita a tus amistades a este grupo";
 
-/* Indicates number of new posts on groups grid */
-"group.grid.n.posts" = "group.grid.n.posts";
-
 /* Action label for inviting others to join the group via link */
 "group.info.invite.to.group.via.link" = "Invitar al grupo a través de un enlace";
 
@@ -827,13 +824,13 @@
 "group.invite.link.label" = "ENLACE DE GRUPO";
 
 /* Text shown when link is reset */
-"group.invite.link.reset" = "Restablecer el enlace";
+"group.invite.link.reset" = "Enlace restablecido";
 
 /* Label for opening QR screen */
 "group.invite.qr.code" = "Código QR";
 
 /* Label for resetting link */
-"group.invite.reset.link" = "Restablecer el enlace";
+"group.invite.reset.link" = "Restablecer enlace";
 
 /* Warning shown when user clicks on reset link action */
 "group.invite.reset.link.warning" = "Si se restablece este enlace de invitación, nadie podrá usarlo para unirse al grupo.";
@@ -873,6 +870,9 @@
 
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Toca aquí para ver la información del grupo";
+
+/* Tag for new posts in groups grid */
+"groupGrid.newPostIndicator" = "nuevo";
 
 /* More info menu item */
 "groupGridHeader.moreInfo" = "Más información";
@@ -1043,7 +1043,7 @@
 "media.save.needs.permissions" = "Necesitamos permiso para guardar fotos";
 
 /* Description telling the user why the photos couldn't be saved */
-"media.save.no.access" = "No se pueden guardar las fotos sin acceso al rollo de cámara.";
+"media.save.no.access" = "No se pueden guardar fotos sin acceso a la cámara.";
 
 /* Alert displayed explaining to the user that the media save operation failed */
 "media.save.not.saved" = "No se pudo guardar la foto";
@@ -1052,13 +1052,13 @@
 "media.save.saved" = "Guardado en rollo de cámara";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
-"media.voiceover.button.annotate" = "Comentar";
+"media.voiceover.button.annotate" = "Anotar";
 
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Cerrar";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
-"media.voiceover.button.draw" = "Dibuja";
+"media.voiceover.button.draw" = "Dibujar";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.flip" = "Voltear";
@@ -1118,7 +1118,7 @@
 "mypost.favorites.disappear.time.label" = "Tu publicación se compartió con tus Favoritos y desaparecerá después de 30 días.";
 
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
-"mypost.hide.posts.confirmation" = "¿Estás seguro que quieres ocultar todas las publicaciones futuras de %@? Siempre puedes hacer este cambio más adelante.";
+"mypost.hide.posts.confirmation" = "¿Estás seguro que quieres ocultar todas las publicaciones futuras de %@? Puedes hacer este cambio más adelante.";
 
 /* Placeholder text displayed in My Post Info screen when no one has seen the post yet. */
 "mypost.not.viewed.yet" = "Nadie ha visto aún tu publicación";
@@ -1139,7 +1139,7 @@
 "n.others.replied" = "n.others.replied";
 
 /* Displayed in place of deleted feed posts. */
-"n.posts.deleted" = "%@ publicaciones borradas";
+"n.posts.deleted" = "%@ publicaciones eliminadas";
 
 /* Header that appears above unread messages in the comments view. */
 "n.unread.comments.title" = "\n";
@@ -1429,6 +1429,21 @@
 /* Title for popup that appears when user tries to register invalid number */
 "registration.invalidphone" = "¡Caramba!";
 
+/* Popup that appears when user tries to register a number with invalid country code */
+"registration.invalidphone.invalidCountryCode" = "El número de teléfono que ingresaste tiene un código de país inválido. Por favor, verifícalo.";
+
+/* Popup that appears when user tries to register a number with invalid length */
+"registration.invalidphone.invalidLength" = "El número de teléfono que ingresaste tiene una longitud inválida. Por favor, verifícalo.";
+
+/* Popup that appears when user tries to register a landline number */
+"registration.invalidphone.lineTypeFixed" = "El número de teléfono que ingresaste no es un número de teléfono móvil. Por favor, verifícalo.";
+
+/* Popup that appears when user tries to register a number with unknown line type */
+"registration.invalidphone.lineTypeOther" = "El número de teléfono que ingresaste no es un número de teléfono móvil. Por favor, verifícalo.";
+
+/* Popup that appears when user tries to register a VoIP number */
+"registration.invalidphone.lineTypeVoip" = "El número de teléfono que ingresaste no es un número de teléfono móvil. Por favor, verifícalo.";
+
 /* Popup that appears when user tries to register invalid number */
 "registration.invalidphone.only" = "El número de teléfono que marcaste no es válido. Por favor, revísalo.";
 
@@ -1526,7 +1541,7 @@
 "setting.up.halloapp" = "Configurando HalloApp";
 
 /* Title of alert telling the user they're about to delete their account */
-"settings.account.delete.action.title" = "Borrar cuenta";
+"settings.account.delete.action.title" = "Eliminar cuenta";
 
 /* Action that will occur when users delete their account */
 "settings.account.delete.bullet1" = "Eliminar tu información de cuenta y foto de perfil";
@@ -1709,7 +1724,7 @@
 "title.chat.new.message" = "Nuevo mensaje";
 
 /* Third tab in the main app interface. */
-"title.chats" = "Conversaciones";
+"title.chats" = "Chats";
 
 /* Title for the Comments screen. */
 "title.comments" = "Comentarios";
@@ -1811,7 +1826,7 @@
 "your.post.deletepost.button" = "Eliminar publicación";
 
 /* Post deletion confirmation. Displayed as action sheet title. */
-"your.post.deletepost.confirmation" = "¿Eliminar esta publicación? Está acción no se puede deshacer.";
+"your.post.deletepost.confirmation" = "¿Eliminar esta publicación? Está acción no se puede revertir.";
 
 /* Displayed when a post fails to delete */
 "your.post.deletepost.error" = "Error al eliminar publicación";
