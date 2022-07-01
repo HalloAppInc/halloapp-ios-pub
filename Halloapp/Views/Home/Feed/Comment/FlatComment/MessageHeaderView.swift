@@ -8,6 +8,11 @@
 
 import UIKit
 
+enum MessageHeaderViewConfiguration {
+    case small
+    case large
+}
+
 class MessageHeaderView: UIView {
 
     var timestampLabel: UILabel = {
@@ -22,7 +27,6 @@ class MessageHeaderView: UIView {
 
     private lazy var timestampView: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ timestampLabel])
-        view.layoutMargins = UIEdgeInsets(top: 3, left: 18, bottom: 3, right: 18)
         view.isLayoutMarginsRelativeArrangement = true
         view.translatesAutoresizingMaskIntoConstraints = false
 
@@ -31,8 +35,8 @@ class MessageHeaderView: UIView {
         subView.layer.cornerRadius = 10
         subView.layer.masksToBounds = false
         subView.translatesAutoresizingMaskIntoConstraints = false
-        subView.layer.borderWidth = 0
-        subView.layer.borderColor = UIColor.black.withAlphaComponent(0.18).cgColor
+        subView.layer.borderWidth = 0.3
+        subView.layer.borderColor = UIColor.primaryBlackWhite.withAlphaComponent(0.4).cgColor
         subView.layer.shadowColor = UIColor.black.cgColor
         subView.layer.shadowOpacity = 0.08
         subView.layer.shadowOffset = CGSize(width: 0, height: 1)
@@ -43,17 +47,16 @@ class MessageHeaderView: UIView {
         return view
     }()
 
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        commonInit()
-    }
-
     required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        commonInit()
+        fatalError("init(coder:) has not been implemented")
     }
 
-    private func commonInit() {
+    init(_ messageHeaderViewConfiguration: MessageHeaderViewConfiguration = .small) {
+        super.init(frame: .zero)
+        commonInit(messageHeaderViewConfiguration: messageHeaderViewConfiguration)
+    }
+
+    private func commonInit(messageHeaderViewConfiguration: MessageHeaderViewConfiguration) {
         self.preservesSuperviewLayoutMargins = true
         self.addSubview(timestampView)
         NSLayoutConstraint.activate([
@@ -61,6 +64,13 @@ class MessageHeaderView: UIView {
             timestampView.topAnchor.constraint(equalTo: topAnchor, constant: 8),
             timestampView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -6)
         ])
+
+        switch messageHeaderViewConfiguration {
+        case .small:
+            timestampView.layoutMargins = UIEdgeInsets(top: 3, left: 18, bottom: 3, right: 18)
+        case .large:
+            timestampView.layoutMargins = UIEdgeInsets(top: 5, left: 25, bottom: 5, right: 25)
+        }
     }
 
     func configure(headerText: String) {

@@ -17,13 +17,13 @@ class MessageUnreadHeaderView: UICollectionViewCell {
     private var headerView: MessageHeaderView
 
     override init(frame: CGRect) {
-        headerView = MessageHeaderView()
+        headerView = MessageHeaderView(.large)
         super.init(frame: frame)
         commonInit()
     }
 
     required init?(coder: NSCoder) {
-        headerView = MessageHeaderView()
+        headerView = MessageHeaderView(.large)
         super.init(coder: coder)
         commonInit()
     }
