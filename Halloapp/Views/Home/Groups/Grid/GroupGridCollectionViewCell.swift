@@ -293,12 +293,13 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
 
             footerStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             footerStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            footerStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            footerStackView.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor),
 
-            footerStackViewBackground.leadingAnchor.constraint(equalTo: footerStackView.leadingAnchor),
+            // footerStackView is leading aligned, while the background is full-width
+            footerStackViewBackground.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             footerStackViewBackground.topAnchor.constraint(equalTo: footerStackView.topAnchor),
             footerStackViewBackground.bottomAnchor.constraint(equalTo: footerStackView.bottomAnchor),
-            footerStackViewBackground.trailingAnchor.constraint(equalTo: footerStackView.trailingAnchor),
+            footerStackViewBackground.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
         ])
 
         updateBorderAndShadowColors()
