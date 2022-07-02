@@ -8,29 +8,17 @@
 import Foundation
 
 extension TimeInterval {
-    // 08:20
-    private static let durationFormatter: DateComponentsFormatter = {
-        let formatter = DateComponentsFormatter()
-        formatter.zeroFormattingBehavior = .pad
-        formatter.allowedUnits = [.minute, .second]
-
-        return formatter
-    }()
 
     // 8:20
     public var formatted: String {
-        guard var formatted = Self.durationFormatter.string(from: self) else { return "\(self)" }
-
-        if formatted.hasPrefix("0") == true && formatted.count > 4 {
-            formatted = String(formatted.dropFirst())
-        }
-
-        return formatted
+        let seconds = Int(self)
+        return String(format: "%d:%.2d", seconds / 60, seconds % 60)
     }
 
     // 8:20.742
     public var formattedPrecise: String {
-        let ms = String(Int(self * 1000) % 1000)
-        return formatted + "." + (String(repeating: "0", count: 3 - ms.count) + ms)
+        let seconds = Int(self)
+        let milliseconds = Int(truncatingRemainder(dividingBy: 1) * 1000)
+        return String(format: "%d:%.2d.%.3d", seconds / 60, seconds % 60, milliseconds)
     }
 }
