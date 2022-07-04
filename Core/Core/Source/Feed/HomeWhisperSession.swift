@@ -38,6 +38,7 @@ private enum HomeCryptoTask {
     case fetchSenderState(HomeSenderStateCompletion)
     case updateSenderState(UserID, Clients_SenderState)
     case fetchCommentKey(FeedPostID, HomeCommentKeyCompletion)
+    case saveCommentKey(FeedPostID, Data)
 }
 
 public struct HomeKeyBundle {
@@ -230,6 +231,13 @@ final class HomeWhisperSession {
         }
     }
 
+    public func saveCommentKey(for postID: FeedPostID, commentKey: Data) {
+        sessionQueue.async {
+            self.pendingTasks.append(.saveCommentKey(postID, commentKey))
+            self.executeTasks()
+        }
+    }
+
     // MARK: Private
     // MARK: *All private functions should be called on sessionQueue!*
 
@@ -363,6 +371,9 @@ final class HomeWhisperSession {
                         return
                     }
                     completion(.success(commentKey.rawData))
+                case .saveCommentKey(let feedPostID, let data):
+                    DDLogInfo("HomeWhisperSession/\(type)/execute/saveCommentKey")
+                    keyStore.saveCommentKey(postID: feedPostID, commentKeyData: data)
                 }
 
             // We pause all tasks in this state because we are working on a serviceRequest here.
@@ -423,6 +434,9 @@ final class HomeWhisperSession {
                         return
                     }
                     completion(.success(commentKey.rawData))
+                case .saveCommentKey(let feedPostID, let data):
+                    DDLogInfo("HomeWhisperSession/\(type)/execute/saveCommentKey")
+                    keyStore.saveCommentKey(postID: feedPostID, commentKeyData: data)
                 }
             }
             pendingTasks.removeFirst()

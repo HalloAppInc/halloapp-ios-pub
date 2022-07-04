@@ -315,4 +315,16 @@ extension KeyStore {
             }
         }
     }
+
+    func saveCommentKey(postID: FeedPostID, commentKeyData: Data) {
+        self.performSeriallyOnBackgroundContext { managedObjectContext in
+            let feedPostCommentKey = FeedPostCommentKey(context: managedObjectContext)
+            feedPostCommentKey.postID = postID
+            feedPostCommentKey.commentKey = commentKeyData
+            DDLogInfo("KeyStore/saveCommentKey/postID: \(postID)/\(commentKeyData)/done")
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+        }
+    }
 }

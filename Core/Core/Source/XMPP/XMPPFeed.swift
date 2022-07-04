@@ -715,6 +715,38 @@ extension Server_GroupFeedItem {
 }
 
 extension Server_FeedItem {
+    var contentId: String? {
+        switch self.item {
+        case .post(let post): return post.id
+        case .comment(let comment): return comment.id
+        default: return nil
+        }
+    }
+
+    var publisherUid: UserID? {
+        switch self.item {
+        case .post(let post): return UserID(post.publisherUid)
+        case .comment(let comment): return UserID(comment.publisherUid)
+        default: return nil
+        }
+    }
+
+    var encryptedPayload: Data? {
+        switch self.item {
+        case .post(let post): return post.encPayload.isEmpty ? nil : post.encPayload
+        case .comment(let comment): return comment.encPayload.isEmpty ? nil : comment.encPayload
+        default: return nil
+        }
+    }
+
+    public var contentType: HomeFeedRerequestContentType? {
+        switch self.item {
+        case .post: return .post
+        case .comment: return .comment
+        default: return nil
+        }
+    }
+
     public var itemAction: ItemAction {
         switch self.action {
         case .retract:
@@ -725,6 +757,24 @@ extension Server_FeedItem {
             return .share
         case .UNRECOGNIZED(_):
             return .none
+        }
+    }
+
+    public var sessionType: HomeSessionType {
+        switch item {
+        case .post(let post):
+            switch post.audience.type {
+            case .all:
+                return .all
+            case .only:
+                return .favorites
+            default:
+                return .all
+            }
+        case .comment(_):
+            return .all
+        default:
+            return .all
         }
     }
 }

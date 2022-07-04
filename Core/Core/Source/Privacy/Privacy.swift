@@ -58,6 +58,15 @@ public struct FeedAudience {
     }
 }
 
+extension FeedAudience {
+    public var homeSessionType: HomeSessionType {
+        switch self.audienceType {
+        case .all: return .all
+        default: return .favorites
+        }
+    }
+}
+
 
 public final class PrivacyListItem: Codable {
 

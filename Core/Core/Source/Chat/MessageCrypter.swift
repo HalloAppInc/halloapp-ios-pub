@@ -17,6 +17,8 @@ public typealias EncryptionCompletion = (Result<(EncryptedData, EncryptionLogInf
 public typealias DecryptionCompletion = (Result<Data, DecryptionFailure>) -> Void
 public typealias GroupFeedRerequestType = Server_GroupFeedRerequest.RerequestType
 public typealias GroupFeedRerequestContentType = Server_GroupFeedRerequest.ContentType
+public typealias HomeFeedRerequestType = Server_HomeFeedRerequest.RerequestType
+public typealias HomeFeedRerequestContentType = Server_HomeFeedRerequest.ContentType
 
 public final class MessageCrypter: KeyStoreDelegate {
     private var cancellableSet: Set<AnyCancellable> = []
@@ -314,7 +316,7 @@ public final class MessageCrypter: KeyStoreDelegate {
     public func updateSenderState(
         with senderState: Clients_SenderState?,
         for userID: UserID,
-        for type: HomeSessionType)
+        type: HomeSessionType)
     {
         queue.async {
             let session = self.loadHomeSession(for: type)
@@ -330,6 +332,17 @@ public final class MessageCrypter: KeyStoreDelegate {
         queue.async {
             let session = self.loadHomeSession(for: type)
             session.fetchCommentKey(for: postID, completion: completion)
+        }
+    }
+
+    public func saveCommentKey(
+        postID: FeedPostID,
+        commentKey: Data,
+        for type: HomeSessionType)
+    {
+        queue.async {
+            let session = self.loadHomeSession(for: type)
+            session.saveCommentKey(for: postID, commentKey: commentKey)
         }
     }
 
@@ -422,6 +435,20 @@ public struct GroupDecryptionFailure: Error {
     public var fromUserId: UserID?
     public var error: DecryptionError
     public var rerequestType: GroupFeedRerequestType
+}
+
+public struct HomeDecryptionFailure: Error {
+    public init(_ id: String?, _ fromUserId: UserID?, _ error: DecryptionError, _ rerequestType: HomeFeedRerequestType) {
+        self.contentId = id
+        self.fromUserId = fromUserId
+        self.error = error
+        self.rerequestType = rerequestType
+    }
+
+    public var contentId: String?
+    public var fromUserId: UserID?
+    public var error: DecryptionError
+    public var rerequestType: HomeFeedRerequestType
 }
 
 // Add new error cases at the end (the index is used as the error code)

@@ -14,7 +14,7 @@ let userDefaultsKeyForRequestLogs = "serverRequestedLogs"
 
 open class ProtoServiceCore: ProtoServiceCoreCommon {
 
-    private enum GroupProcessingState {
+    private enum ProcessingState {
         case ready
         case busy
     }
@@ -25,7 +25,11 @@ open class ProtoServiceCore: ProtoServiceCoreCommon {
     public weak var avatarDelegate: ServiceAvatarDelegate?
 
     private var pendingWorkItems = [GroupID: [DispatchWorkItem]]()
-    private var groupStates = [GroupID: GroupProcessingState]()
+    private var groupStates = [GroupID: ProcessingState]()
+
+    private var pendingHomeWorkItems = [HomeSessionType: [DispatchWorkItem]]()
+    private var homeStates = [HomeSessionType: ProcessingState]()
+
     private var isLogUploadInProgress: Bool = false
 
     private var uploadLogsTimer: DispatchSourceTimer?
@@ -249,16 +253,14 @@ extension ProtoServiceCore: CoreService {
         // Request will fail immediately if we're not connected, therefore delay sending until connected.
         ///TODO: add option of canceling posting.
         execute(whenConnectionStateIs: .connected, onQueue: .main) {
-            DDLogInfo("ProtoServiceCore/publishPostInternal/\(post.id)/execute/begin")
+            DDLogInfo("ProtoServiceCore/publishPostInternal/\(post.id)/execute/begin/feed: \(feed)")
             self.makePublishPostPayload(post, feed: feed) { result in
                 switch result {
                 case .failure(let error):
                     DDLogError("ProtoServiceCore/publishPostInternal/\(post.id)/makePublishPostPayload/error [\(error)]")
-                    AppContext.shared.eventMonitor.count(.groupEncryption(error: error, itemType: .post))
-                    completion(.failure(.aborted))
+                    completion(.failure(.malformedRequest))
                 case .success(let iqPayload):
                     DDLogError("ProtoServiceCore/publishPostInternal/\(post.id)/makePublishPostPayload/success")
-                    AppContext.shared.eventMonitor.count(.groupEncryption(error: nil, itemType: .post))
                     let request = ProtoRequest<Server_Iq.OneOf_Payload>(
                         iqPacket: .iqPacket(type: .set, payload: iqPayload),
                         transform: { (iq) in
@@ -281,6 +283,12 @@ extension ProtoServiceCore: CoreService {
                                     AppContext.shared.messageCrypter.removePending(userIds: receiverUids, in: groupFeedItem.gid)
                                     completion(.success(Date(timeIntervalSince1970: TimeInterval(groupFeedItem.post.timestamp))))
                                 case .feedItem(let feedItem):
+                                    switch feed {
+                                    case .personal(let feedAudience):
+                                        AppContext.shared.messageCrypter.removePending(userIds: Array(feedAudience.userIds), for: feedAudience.homeSessionType)
+                                    case .group(_):
+                                        break
+                                    }
                                     DDLogInfo("ProtoServiceCore/publishPostInternal/\(post.id)/success, feedItem \(feedItem.post.id)")
                                     completion(.success(Date(timeIntervalSince1970: TimeInterval(feedItem.post.timestamp))))
                                 default:
@@ -318,27 +326,21 @@ extension ProtoServiceCore: CoreService {
                 return
             }
 
-            makeGroupRerequestFeedItem(post, feed: feed, to: toUserID) { result in
+            let payloadCompletion: (Result<Server_Msg.OneOf_Payload, EncryptionError>) -> Void = { result in
                 switch result {
-                case .failure(let failure):
-                    DDLogInfo("ProtoServiceCore/resendPost/\(post.id)/failure: \(failure), aborting to: \(toUserID)")
-                    AppContext.shared.eventMonitor.count(.groupEncryption(error: failure, itemType: .post))
-                    completion(.failure(.aborted))
-                case .success(let serverGroupFeedItem):
+                case .success(let payload):
                     let messageID = PacketID.generate()
-                    DDLogInfo("ProtoServiceCore/resendPost/\(post.id)/message/\(messageID)/to: \(toUserID)")
                     let packet = Server_Packet.msgPacket(
                         from: fromUserID,
                         to: toUserID,
                         id: messageID,
-                        type: .groupchat,
+                        type: .normal,
                         rerequestCount: rerequestCount,
-                        payload: .groupFeedItem(serverGroupFeedItem))
+                        payload: payload)
 
                     guard let packetData = try? packet.serializedData() else {
-                        AppContext.shared.eventMonitor.count(.groupEncryption(error: .serialization, itemType: .post))
                         DDLogError("ProtoServiceCore/resendPost/\(post.id)/message/\(messageID)/error could not serialize groupFeedItem message!")
-                        completion(.failure(RequestError.malformedRequest))
+                        completion(.failure(.aborted))
                         return
                     }
 
@@ -348,14 +350,18 @@ extension ProtoServiceCore: CoreService {
                             completion(.failure(RequestError.notConnected))
                             return
                         }
-                        AppContext.shared.eventMonitor.count(.groupEncryption(error: nil, itemType: .post))
                         DDLogInfo("ProtoServiceCore/resendPost/\(post.id)/message/\(messageID) sending encrypted")
                         self.send(packetData)
                         DDLogInfo("ProtoServiceCore/resendPost/\(post.id)/message/\(messageID) success")
                         completion(.success(()))
                     }
+                case .failure(let error):
+                    DDLogError("ProtoServiceCore/resendPost/\(post.id)/error: \(error)")
+                    completion(.failure(.aborted))
                 }
             }
+
+            makePostRerequestFeedItem(post, feed: feed, to: toUserID, completion: payloadCompletion)
         }
     }
 
@@ -367,27 +373,21 @@ extension ProtoServiceCore: CoreService {
                 return
             }
 
-            makeGroupRerequestFeedItem(comment, groupID: groupId, to: toUserID) { result in
+            let payloadCompletion: (Result<Server_Msg.OneOf_Payload, EncryptionError>) -> Void = { result in
                 switch result {
-                case .failure(let failure):
-                    DDLogInfo("ProtoServiceCore/resendComment/\(comment.id)/failure: \(failure), aborting to: \(toUserID)")
-                    AppContext.shared.eventMonitor.count(.groupEncryption(error: failure, itemType: .comment))
-                    completion(.failure(.aborted))
-                case .success(let serverGroupFeedItem):
+                case .success(let payload):
                     let messageID = PacketID.generate()
-                    DDLogInfo("ProtoServiceCore/resendComment/\(comment.id)/message/\(messageID)/to: \(toUserID)")
                     let packet = Server_Packet.msgPacket(
                         from: fromUserID,
                         to: toUserID,
                         id: messageID,
-                        type: .groupchat,
+                        type: .normal,
                         rerequestCount: rerequestCount,
-                        payload: .groupFeedItem(serverGroupFeedItem))
+                        payload: payload)
 
                     guard let packetData = try? packet.serializedData() else {
-                        AppContext.shared.eventMonitor.count(.groupEncryption(error: .serialization, itemType: .comment))
                         DDLogError("ProtoServiceCore/resendComment/\(comment.id)/message/\(messageID)/error could not serialize groupFeedItem message!")
-                        completion(.failure(RequestError.malformedRequest))
+                        completion(.failure(.aborted))
                         return
                     }
 
@@ -397,14 +397,18 @@ extension ProtoServiceCore: CoreService {
                             completion(.failure(RequestError.notConnected))
                             return
                         }
-                        AppContext.shared.eventMonitor.count(.groupEncryption(error: nil, itemType: .comment))
                         DDLogInfo("ProtoServiceCore/resendComment/\(comment.id)/message/\(messageID) sending encrypted")
                         self.send(packetData)
                         DDLogInfo("ProtoServiceCore/resendComment/\(comment.id)/message/\(messageID) success")
                         completion(.success(()))
                     }
+                case .failure(let error):
+                    DDLogError("ProtoServiceCore/resendComment/\(comment.id)/error: \(error)")
+                    completion(.failure(.aborted))
                 }
             }
+
+            makeCommentRerequestFeedItem(comment, groupID: groupId, to: toUserID, completion: payloadCompletion)
         }
     }
 
@@ -432,11 +436,9 @@ extension ProtoServiceCore: CoreService {
                 switch result {
                 case .failure(let error):
                     DDLogError("ProtoServiceCore/publishCommentInternal/\(comment.id)/makePublishCommentPayload/error [\(error)]")
-                    AppContext.shared.eventMonitor.count(.groupEncryption(error: error, itemType: .comment))
-                    completion(.failure(.aborted))
+                    completion(.failure(.malformedRequest))
                 case .success(let iqPayload):
                     DDLogError("ProtoServiceCore/publishCommentInternal/\(comment.id)/makePublishCommentPayload/success")
-                    AppContext.shared.eventMonitor.count(.groupEncryption(error: nil, itemType: .comment))
                     let request = ProtoRequest<Server_Iq.OneOf_Payload>(
                         iqPacket: .iqPacket(type: .set, payload: iqPayload),
                         transform: { (iq) in
@@ -486,23 +488,11 @@ extension ProtoServiceCore: CoreService {
     }
 
     private func makePublishPostPayload(_ post: PostData, feed: Feed, completion: @escaping (Result<Server_Iq.OneOf_Payload, EncryptionError>) -> Void) {
-        guard let payloadData = try? post.clientContainer.serializedData() else {
+        guard let payloadData = try? post.clientContainer.serializedData(),
+              var serverPost = post.serverPost else {
             completion(.failure(.serialization))
             return
         }
-
-        var serverPost = Server_Post()
-        serverPost.payload = payloadData
-        serverPost.id = post.id
-        serverPost.publisherUid = Int64(post.userId) ?? 0
-        serverPost.timestamp = Int64(post.timestamp.timeIntervalSince1970)
-        
-        if case .moment(_) = post.content {
-            serverPost.tag = .secretPost
-        }
-
-        // Add media counters.
-        serverPost.mediaCounters = post.serverMediaCounters
 
         switch feed {
         case .group(let groupID):
@@ -513,31 +503,22 @@ extension ProtoServiceCore: CoreService {
             makeGroupEncryptedPayload(payloadData: payloadData, groupID: groupID, oneOfItem: .post(serverPost)) { result in
                 switch result {
                 case .failure(let failure):
+                    AppContext.shared.eventMonitor.count(.groupEncryption(error: failure, itemType: .post))
                     completion(.failure(failure))
                 case .success(let serverGroupFeedItem):
+                    AppContext.shared.eventMonitor.count(.groupEncryption(error: nil, itemType: .post))
                     completion(.success(.groupFeedItem(serverGroupFeedItem)))
                 }
             }
         case .personal(let audience):
-            var serverAudience = Server_Audience()
-            serverAudience.uids = audience.userIds.compactMap { Int64($0) }
-            serverAudience.type = {
-                switch audience.audienceType {
-                case .all: return .all
-                case .blacklist: return .except
-                case .whitelist: return .only
-                case .group:
-                    DDLogError("ProtoServiceCore/makePublishPostPayload/error unsupported audience type [\(audience.audienceType)]")
-                    return .only
+            makeHomePostEncryptedPayload(post: post, audience: audience) { result in
+                switch result {
+                case .success(let feedItem):
+                    completion(.success(.feedItem(feedItem)))
+                case .failure(let error):
+                    completion(.failure(error))
                 }
-            }()
-            serverPost.audience = serverAudience
-
-            var item = Server_FeedItem()
-            item.action = .publish
-            item.item = .post(serverPost)
-
-            completion(.success(.feedItem(item)))
+            }
         }
     }
 
@@ -552,24 +533,26 @@ extension ProtoServiceCore: CoreService {
             serverComment.payload = Data()
         }
 
-        // Add media counters.
-        serverComment.mediaCounters = comment.serverMediaCounters
-
         if let groupID = groupID {
             makeGroupEncryptedPayload(payloadData: payloadData, groupID: groupID, oneOfItem: .comment(serverComment)) { result in
                 switch result {
                 case .failure(let failure):
+                    AppContext.shared.eventMonitor.count(.groupEncryption(error: failure, itemType: .comment))
                     completion(.failure(failure))
                 case .success(let serverGroupFeedItem):
+                    AppContext.shared.eventMonitor.count(.groupEncryption(error: nil, itemType: .comment))
                     completion(.success(.groupFeedItem(serverGroupFeedItem)))
                 }
             }
         } else {
-            var item = Server_FeedItem()
-            item.action = .publish
-            item.item = .comment(serverComment)
-
-            completion(.success(.feedItem(item)))
+            makeHomeCommentEncryptedPayload(comment: comment) { result in
+                switch result {
+                case .success(let feedItem):
+                    completion(.success(.feedItem(feedItem)))
+                case .failure(let error):
+                    completion(.failure(error))
+                }
+            }
         }
     }
 
@@ -672,6 +655,185 @@ extension ProtoServiceCore: CoreService {
                     }
                 } catch {
                     DDLogError("proto/makeGroupRerequestEncryptedPayload/\(groupID)/senderState-serialization/error \(error)")
+                    completion(.failure(.serialization))
+                    return
+                }
+            }
+        }
+    }
+
+    private func makeHomePostEncryptedPayload(post: PostData, audience: FeedAudience, completion: @escaping (Result<Server_FeedItem, EncryptionError>) -> Void) {
+        var item = Server_FeedItem()
+        item.action = .publish
+        item.senderClientVersion = AppContext.userAgent
+
+        var serverAudience = Server_Audience()
+        var type: HomeSessionType = .all
+        serverAudience.uids = audience.userIds.compactMap { Int64($0) }
+        switch audience.audienceType {
+        case .all:
+            type = .all
+            serverAudience.type = .all
+        case .whitelist:
+            type = .favorites
+            serverAudience.type = .only
+        case .group, .blacklist:
+            DDLogError("ProtoServiceCore/makeHomePostEncryptedPayload/error unsupported audience type [\(audience.audienceType)]")
+            type = .favorites
+            serverAudience.type = .only
+        }
+        let postID = post.id
+
+        // encrypt the containerPayload
+        AppContext.shared.messageCrypter.fetchCommentKey(postID: postID, for: type) { commentResult in
+            switch commentResult {
+            case .success(let data):
+                var postData = post
+                postData.commentKey = data
+                if let serverPostData = postData.serverPost {
+                    var serverPost = serverPostData
+                    serverPost.audience = serverAudience
+                    let audienceUserIds = Array(audience.userIds)
+                    AppContext.shared.messageCrypter.encrypt(serverPost.payload,
+                                                             with: postID,
+                                                             for: type,
+                                                             audienceMemberUids: audienceUserIds) { result in
+                        switch result {
+                        case .success(let homeEncryptedData):
+                            do {
+                                var clientEncryptedPayload = Clients_EncryptedPayload()
+                                clientEncryptedPayload.senderStateEncryptedPayload = homeEncryptedData.data
+                                serverPost.encPayload = try clientEncryptedPayload.serializedData()
+                                item.item = .post(serverPost)
+                                item.senderStateBundles = homeEncryptedData.senderStateBundles
+                                DDLogError("ProtoServiceCore/makeHomePostEncryptedPayload/\(type)/postID: \(postID)/success")
+                                completion(.success(item))
+                            } catch {
+                                DDLogError("ProtoServiceCore/makeHomePostEncryptedPayload/\(type)/postID: \(postID)/error [\(error)]")
+                                completion(.failure(.serialization))
+                            }
+                        case .failure(let error):
+                            DDLogError("ProtoServiceCore/makeHomePostEncryptedPayload/\(type)/postID: \(postID)/error [\(error)]")
+                            completion(.failure(error))
+                        }
+                    }
+                } else {
+                    DDLogError("ProtoServiceCore/makeHomePostEncryptedPayload/\(type)/postID: \(postID)/error serialization")
+                    completion(.failure(.serialization))
+                }
+            case .failure(let error):
+                DDLogError("ProtoServiceCore/makeHomePostEncryptedPayload/\(type)/postID: \(postID)/error \(error)")
+                completion(.failure(error))
+            }
+        }
+    }
+
+    private func makeHomeCommentEncryptedPayload(comment: CommentData, completion: @escaping (Result<Server_FeedItem, EncryptionError>) -> Void) {
+        var item = Server_FeedItem()
+        item.action = .publish
+        item.senderClientVersion = AppContext.userAgent
+
+        let type: HomeSessionType = .all
+        let postID = comment.feedPostId
+
+        guard var serverComment = comment.serverComment else {
+            completion(.failure(.serialization))
+            return
+        }
+        let payloadData = serverComment.payload
+
+        AppContext.shared.messageCrypter.encrypt(payloadData, with: postID, for: type) { result in
+            switch result {
+            case .success(let data):
+                do {
+                    var clientEncryptedPayload = Clients_EncryptedPayload()
+                    clientEncryptedPayload.commentKeyEncryptedPayload = data
+                    serverComment.encPayload = try clientEncryptedPayload.serializedData()
+                    item.item = .comment(serverComment)
+                    DDLogError("ProtoServiceCore/makeHomePostEncryptedPayload/\(type)/postID: \(postID)/success")
+                    completion(.success(item))
+                } catch {
+                    DDLogError("ProtoServiceCore/makeHomePostEncryptedPayload/\(type)/postID: \(postID)/error [\(error)]")
+                    completion(.failure(.serialization))
+                }
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }
+    }
+
+    private func makeHomeRerequestEncryptedPayload(post: PostData, type: HomeSessionType, for userID: UserID, completion: @escaping (Result<(Clients_EncryptedPayload, Server_SenderStateWithKeyInfo?), EncryptionError>) -> Void) {
+
+        // Block to encrypt item payload using 1-1 channel.
+        let itemPayloadEncryptionCompletion: ((Data, Server_SenderStateWithKeyInfo?) -> Void) = { (payloadData,
+                                                                                                   senderStateWithKeyInfo) in
+            AppContext.shared.messageCrypter.encrypt(payloadData, for: userID) { result in
+                switch result {
+                case .failure(let error):
+                    DDLogError("ProtoServiceCore/makeHomeRerequestEncryptedPayload/\(type)/failed to encrypt for userID: \(userID)")
+                    completion(.failure(error))
+                    return
+                case .success((let oneToOneEncryptedData, _)):
+                    DDLogError("ProtoServiceCore/makeHomeRerequestEncryptedPayload/\(type)/success for userID: \(userID)")
+                    var clientEncryptedPayload = Clients_EncryptedPayload()
+                    clientEncryptedPayload.oneToOneEncryptedPayload = oneToOneEncryptedData.data
+                    completion(.success((clientEncryptedPayload, senderStateWithKeyInfo)))
+                }
+            }
+        }
+
+        let commentKeyFetchCompletion: ((Server_SenderStateWithKeyInfo?) -> Void) = { senderStateWithKeyInfo in
+            AppContext.shared.messageCrypter.fetchCommentKey(postID: post.id, for: .all) { result in
+                switch result {
+                case .failure(let error):
+                    completion(.failure(error))
+                case .success(let data):
+                    var newPost = post
+                    newPost.commentKey = data
+                    if let serverPostData = newPost.serverPost {
+                        itemPayloadEncryptionCompletion(serverPostData.payload, senderStateWithKeyInfo)
+                    } else {
+                        completion(.failure(.serialization))
+                    }
+                }
+            }
+        }
+
+        // Block to first fetchSenderState and then encryptSenderState in 1-1 payload and then call the payload encryption block.
+        AppContext.shared.messageCrypter.fetchSenderState(for: type) { result in
+            switch result {
+            case .failure(let error):
+                DDLogError("ProtoServiceCore/makeHomeRerequestEncryptedPayload/\(type)/encryption/error [\(error)]")
+                completion(.failure(.missingKeyBundle))
+            case .success(let homeSenderState):
+                // construct own senderState
+                var senderKey = Clients_SenderKey()
+                senderKey.chainKey = homeSenderState.senderKey.chainKey
+                senderKey.publicSignatureKey = homeSenderState.senderKey.publicSignatureKey
+                var senderState = Clients_SenderState()
+                senderState.senderKey = senderKey
+                senderState.currentChainIndex = homeSenderState.chainIndex
+                do{
+                    let senderStatePayload = try senderState.serializedData()
+                    // Encrypt senderState here and then call the payload encryption block.
+                    AppContext.shared.messageCrypter.encrypt(senderStatePayload, for: userID) { result in
+                        switch result {
+                        case .failure(let error):
+                            DDLogError("ProtoServiceCore/makeHomeRerequestEncryptedPayload/\(type)/failed to encrypt for userID: \(userID)")
+                            completion(.failure(error))
+                            return
+                        case .success((let encryptedData, _)):
+                            var senderStateWithKeyInfo = Server_SenderStateWithKeyInfo()
+                            if let publicKey = encryptedData.identityKey, !publicKey.isEmpty {
+                                senderStateWithKeyInfo.publicKey = publicKey
+                                senderStateWithKeyInfo.oneTimePreKeyID = Int64(encryptedData.oneTimeKeyId)
+                            }
+                            senderStateWithKeyInfo.encSenderState = encryptedData.data
+                            commentKeyFetchCompletion(senderStateWithKeyInfo)
+                        }
+                    }
+                } catch {
+                    DDLogError("proto/makeHomeRerequestEncryptedPayload/\(type)/senderState-serialization/error \(error)")
                     completion(.failure(.serialization))
                     return
                 }
@@ -799,20 +961,12 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
-    private func makeGroupRerequestFeedItem(_ post: PostData, feed: Feed, to toUserID: UserID, completion: @escaping (Result<Server_GroupFeedItem, EncryptionError>) -> Void) {
-        guard let payloadData = try? post.clientContainer.serializedData() else {
+    private func makePostRerequestFeedItem(_ post: PostData, feed: Feed, to toUserID: UserID, completion: @escaping (Result<Server_Msg.OneOf_Payload, EncryptionError>) -> Void) {
+        guard let payloadData = try? post.clientContainer.serializedData(),
+              var serverPost = post.serverPost else {
             completion(.failure(.serialization))
             return
         }
-
-        var serverPost = Server_Post()
-        serverPost.payload = payloadData
-        serverPost.id = post.id
-        serverPost.publisherUid = Int64(post.userId) ?? 0
-        serverPost.timestamp = Int64(post.timestamp.timeIntervalSince1970)
-
-        // Add media counters.
-        serverPost.mediaCounters = post.serverMediaCounters
 
         switch feed {
         case .group(let groupID):
@@ -827,6 +981,31 @@ extension ProtoServiceCore: CoreService {
             makeGroupRerequestEncryptedPayload(payloadData: payloadData, groupID: groupID, for: toUserID) { result in
                 switch result {
                 case .failure(let failure):
+                    AppContext.shared.eventMonitor.count(.groupEncryption(error: failure, itemType: .post))
+                    completion(.failure(failure))
+                case .success((let clientEncryptedPayload, let senderStateWithKeyInfo)):
+                    AppContext.shared.eventMonitor.count(.groupEncryption(error: nil, itemType: .post))
+                    do {
+                        serverPost.encPayload = try clientEncryptedPayload.serializedData()
+                        item.item = .post(serverPost)
+                        if let senderStateWithKeyInfo = senderStateWithKeyInfo {
+                            item.senderState = senderStateWithKeyInfo
+                        }
+                        completion(.success(.groupFeedItem(item)))
+                    } catch {
+                        DDLogError("ProtoServiceCore/makePostRerequestFeedItem/\(groupID)/payload-serialization/error \(error)")
+                        completion(.failure(.serialization))
+                        return
+                    }
+                }
+            }
+        case .personal(let audience):
+            var item = Server_FeedItem()
+            item.action = .publish
+            item.senderClientVersion = AppContext.userAgent
+            makeHomeRerequestEncryptedPayload(post: post, type: audience.homeSessionType, for: toUserID) { result in
+                switch result {
+                case .failure(let failure):
                     completion(.failure(failure))
                 case .success((let clientEncryptedPayload, let senderStateWithKeyInfo)):
                     do {
@@ -835,21 +1014,18 @@ extension ProtoServiceCore: CoreService {
                         if let senderStateWithKeyInfo = senderStateWithKeyInfo {
                             item.senderState = senderStateWithKeyInfo
                         }
-                        completion(.success(item))
+                        completion(.success(.feedItem(item)))
                     } catch {
-                        DDLogError("ProtoServiceCore/makeGroupRerequestFeedItem/\(groupID)/payload-serialization/error \(error)")
+                        DDLogError("ProtoServiceCore/makePostRerequestFeedItem/personal/payload-serialization/error \(error)")
                         completion(.failure(.serialization))
                         return
                     }
                 }
             }
-        case .personal(_):
-            DDLogError("ProtoServiceCore/makeGroupRerequestFeedItem/post/unsupported resending messages")
-            completion(.failure(.missingKeyBundle))
         }
     }
 
-    private func makeGroupRerequestFeedItem(_ comment: CommentData, groupID: GroupID?, to toUserID: UserID, completion: @escaping (Result<Server_GroupFeedItem, EncryptionError>) -> Void) {
+    private func makeCommentRerequestFeedItem(_ comment: CommentData, groupID: GroupID?, to toUserID: UserID, completion: @escaping (Result<Server_Msg.OneOf_Payload, EncryptionError>) -> Void) {
         guard var serverComment = comment.serverComment else {
             completion(.failure(.serialization))
             return
@@ -879,7 +1055,7 @@ extension ProtoServiceCore: CoreService {
                         if let senderStateWithKeyInfo = senderStateWithKeyInfo {
                             item.senderState = senderStateWithKeyInfo
                         }
-                        completion(.success(item))
+                        completion(.success(.groupFeedItem(item)))
                     } catch {
                         DDLogError("ProtoServiceCore/makeGroupRerequestFeedItem/\(groupID)/payload-serialization/error \(error)")
                         completion(.failure(.serialization))
@@ -888,8 +1064,79 @@ extension ProtoServiceCore: CoreService {
                 }
             }
         } else {
-            DDLogError("ProtoServiceCore/makeGroupRerequestFeedItem/comment/unsupported resending messages")
-            completion(.failure(.missingKeyBundle))
+            // Same as initial encryption - since comment key will be present already.
+            makeHomeCommentEncryptedPayload(comment: comment) { result in
+                switch result {
+                case .success(let feedItem):
+                    completion(.success(.feedItem(feedItem)))
+                case .failure(let error):
+                    completion(.failure(error))
+                }
+            }
+        }
+    }
+
+    public func decryptHomeFeedPayload(for item: Server_FeedItem, completion: @escaping (FeedContent?, HomeDecryptionFailure?) -> Void) {
+        let sessionType = item.sessionType
+        let newCompletion: (FeedContent?, HomeDecryptionFailure?) -> Void = { [weak self] content, decryptionFailure in
+            guard let self = self else { return }
+            completion(content, decryptionFailure)
+            DispatchQueue.main.async {
+                self.homeStates[sessionType] = .ready
+                self.executePendingWorkItems(for: sessionType)
+            }
+        }
+
+        let work = DispatchWorkItem {
+            guard let contentId = item.contentId,
+                  let publisherUid = item.publisherUid,
+                  let encryptedPayload = item.encryptedPayload else {
+                newCompletion(nil, HomeDecryptionFailure(nil, nil, .missingPayload, .payload))
+                return
+            }
+
+            guard let contentType = item.contentType else {
+                newCompletion(nil, HomeDecryptionFailure(nil, nil, .invalidPayload, .payload))
+                return
+            }
+
+            switch contentType {
+            case .post:
+                DDLogInfo("ProtoServiceCore/decryptHomeFeedPayload/contentId/\(sessionType)/\(contentId), publisherUid: \(publisherUid)/begin")
+                self.decryptHomePostPayloadAndSenderState(encryptedPayload, postID: contentId, type: sessionType, with: item.senderState, from: publisherUid) { result in
+                    switch result {
+                    case .failure(let homeDecryptionFailure):
+                        newCompletion(nil, homeDecryptionFailure)
+                    case .success(let decryptedPayload):
+                        self.parseHomePayloadContent(payload: decryptedPayload, item: item, completion: newCompletion)
+                    }
+                    DDLogInfo("ProtoServiceCore/decryptHomeFeedPayload/contentId/\(sessionType)/\(contentId), publisherUid: \(publisherUid)/end")
+                }
+            case .comment:
+                DDLogInfo("ProtoServiceCore/decryptHomeFeedPayload/contentId/\(sessionType)/\(contentId), publisherUid: \(publisherUid)/begin")
+                self.decryptHomeCommentPayload(encryptedPayload, commentID: contentId, postID: item.comment.postID, type: sessionType, from: publisherUid) { result in
+                    switch result {
+                    case .failure(let homeDecryptionFailure):
+                        newCompletion(nil, homeDecryptionFailure)
+                    case .success(let decryptedPayload):
+                        self.parseHomePayloadContent(payload: decryptedPayload, item: item, completion: newCompletion)
+                    }
+                }
+                DDLogInfo("ProtoServiceCore/decryptHomeFeedPayload/contentId/\(sessionType)/\(contentId), publisherUid: \(publisherUid)/end")
+            default:
+                newCompletion(nil, HomeDecryptionFailure(nil, nil, .invalidPayload, .payload))
+            }
+        }
+
+        DispatchQueue.main.async { [self] in
+            // Append task to pendingWorkItems and try to perform task.
+            if var pendingHomeItems = pendingHomeWorkItems[sessionType] {
+                pendingHomeItems.append(work)
+                self.pendingHomeWorkItems[sessionType] = pendingHomeItems
+            } else {
+                pendingHomeWorkItems[sessionType] = [work]
+            }
+            executePendingWorkItems(for: sessionType)
         }
     }
 
@@ -1040,6 +1287,7 @@ extension ProtoServiceCore: CoreService {
             executePendingWorkItems(for: groupID)
         }
     }
+
 
     /// this function must run on main queue asynchronously.
     /// that ensures that the state and pendingWorkItems variables are always modified on the same queue.
@@ -1207,6 +1455,211 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
+    /// this function must run on main queue asynchronously.
+    /// that ensures that the state and pendingWorkItems variables are always modified on the same queue.
+    private func executePendingWorkItems(for type: HomeSessionType) {
+        if homeStates[type] != .busy {
+            DDLogInfo("proto/executePendingWorkItems/gid:\(type)/checking!")
+            if var pendingHomeItems = pendingHomeWorkItems[type],
+               !pendingHomeItems.isEmpty,
+               let firstWork = pendingHomeItems.first {
+                DDLogInfo("proto/executePendingWorkItems/type:\(type)/working on it!")
+                homeStates[type] = .busy
+                pendingHomeItems.removeFirst()
+                pendingHomeWorkItems[type] = pendingHomeItems
+                firstWork.perform()
+            } else {
+                DDLogInfo("proto/executePendingWorkItems/type:\(type)/done!")
+                homeStates[type] = .ready
+                pendingHomeWorkItems[type] = nil
+            }
+        } else {
+            DDLogInfo("proto/executePendingWorkItems/type:\(type)/waiting!")
+        }
+    }
+
+    public func decryptHomePostPayloadAndSenderState(_ payload: Data,
+                                                     postID: FeedPostID,
+                                                     type: HomeSessionType,
+                                                     with clientSenderState: Server_SenderStateWithKeyInfo,
+                                                     from publisherUid: UserID,
+                                                     completion: @escaping (Result<Data, HomeDecryptionFailure>) -> Void) {
+        if !clientSenderState.encSenderState.isEmpty {
+            // We might already have an e2e session setup with this user.
+            // but we have to overwrite our current session with this user. our code does this.
+            AppContext.shared.messageCrypter.decrypt(
+                EncryptedData(
+                    data: clientSenderState.encSenderState,
+                    identityKey: clientSenderState.publicKey.isEmpty ? nil : clientSenderState.publicKey,
+                    oneTimeKeyId: Int(clientSenderState.oneTimePreKeyID)),
+                from: publisherUid) { [self] result in
+                    // After decrypting sender state.
+                    switch result {
+                    case .success(let decryptedData):
+                        DDLogInfo("proto/decryptHomePostPayloadAndSenderState/\(type)/success/decrypted senderState successfully")
+                        do {
+                            let senderState = try Clients_SenderState(serializedData: decryptedData)
+                            self.decryptHomePostPayload(payload, postID: postID, type: type, with: senderState, from: publisherUid, completion: completion)
+                        } catch {
+                            DDLogError("proto/decryptHomePostPayloadAndSenderState/\(type)/error/invalid senderState \(error)")
+                        }
+                    case .failure(let failure):
+                        DDLogError("proto/decryptHomePostPayloadAndSenderState/\(type)/error/\(failure.error)")
+                        completion(.failure(HomeDecryptionFailure(postID, publisherUid, failure.error, .senderState)))
+                        return
+                    }
+            }
+        } else {
+            decryptHomePostPayload(payload, postID: postID, type: type, with: nil, from: publisherUid, completion: completion)
+        }
+    }
+
+    public func decryptHomePostPayload(_ payload: Data,
+                                       postID: FeedPostID,
+                                       type: HomeSessionType,
+                                       with senderState: Clients_SenderState?,
+                                       from publisherUid: UserID,
+                                       completion: @escaping (Result<Data, HomeDecryptionFailure>) -> Void) {
+
+        // Decrypt payload using the home channel.
+        let homeDecryptPayloadCompletion: ((Clients_SenderState?, Data) -> Void) = { (senderState, homeEncryptedPayload) in
+            // Decrypt the actual payload now.
+            AppContext.shared.messageCrypter.decrypt(homeEncryptedPayload, from: publisherUid, postID: postID, with: senderState, for: type) { result in
+                switch result {
+                case .success(let decryptedPayload):
+                    completion(.success(decryptedPayload))
+                case .failure(let error):
+                    DDLogError("proto/decryptHomePostPayload/\(type)/error/\(error)")
+                    completion(.failure(HomeDecryptionFailure(postID, publisherUid, error, .payload)))
+                }
+            }
+        }
+
+        // Decrypt payload using the 1-1 channel.
+        let oneToOneDecryptPayloadCompletion: ((Data) -> Void) = { oneToOneEncryptedPayload in
+            // Decrypt the actual payload now.
+            AppContext.shared.messageCrypter.decrypt(EncryptedData(
+                data: oneToOneEncryptedPayload,
+                identityKey: nil,
+                oneTimeKeyId: 0),
+            from: publisherUid) { result in
+                switch result {
+                case .success(let decryptedPayload):
+                    completion(.success(decryptedPayload))
+                case .failure(let error):
+                    DDLogError("proto/decryptHomePostPayload/\(type)/error/\(error)")
+                    completion(.failure(HomeDecryptionFailure(postID, publisherUid, error.error, .payload)))
+                }
+            }
+        }
+
+        do {
+            // Call the appropriate completion block to decrypt the payload using the group channel or the 1-1 channel.
+            let clientEncryptedPayload = try Clients_EncryptedPayload(serializedData: payload)
+            switch clientEncryptedPayload.payload {
+            case .oneToOneEncryptedPayload(let oneToOneEncryptedPayload):
+                DDLogInfo("proto/decryptHomePostPayload/oneToOneEncryptedPayload")
+                oneToOneDecryptPayloadCompletion(oneToOneEncryptedPayload)
+                AppContext.shared.messageCrypter.updateSenderState(with: senderState, for: publisherUid, type: type)
+            case .senderStateEncryptedPayload(let groupEncryptedPayload):
+                DDLogInfo("proto/decryptHomePostPayload/senderStateEncryptedPayload")
+                homeDecryptPayloadCompletion(senderState, groupEncryptedPayload)
+            default:
+                DDLogError("proto/decryptHomePostPayload/\(type)/error/invalid payload")
+                completion(.failure(HomeDecryptionFailure(postID, publisherUid, .invalidPayload, .payload)))
+                return
+            }
+        } catch {
+            DDLogError("proto/decryptHomePostPayload/\(type)/error/invalid payload \(error)")
+            completion(.failure(HomeDecryptionFailure(postID, publisherUid, .deserialization, .payload)))
+            return
+        }
+    }
+
+    public func decryptHomeCommentPayload(_ payload: Data,
+                                          commentID: FeedPostCommentID,
+                                          postID: FeedPostID,
+                                          type: HomeSessionType,
+                                          from publisherUid: UserID,
+                                          completion: @escaping (Result<Data, HomeDecryptionFailure>) -> Void) {
+        do {
+            // Call the appropriate completion block to decrypt the payload using the group channel or the 1-1 channel.
+            let clientEncryptedPayload = try Clients_EncryptedPayload(serializedData: payload)
+            switch clientEncryptedPayload.payload {
+            case .commentKeyEncryptedPayload(let data):
+                AppContext.shared.messageCrypter.decrypt(data, from: publisherUid, postID: postID, for: type) { result in
+                    switch result {
+                    case .success(let decryptedPayload):
+                        completion(.success(decryptedPayload))
+                    case .failure(let error):
+                        DDLogError("proto/decryptHomeCommentPayload/error/\(error)")
+                        completion(.failure(HomeDecryptionFailure(commentID, publisherUid, error, .payload)))
+                    }
+                }
+            default:
+                DDLogError("proto/decryptHomeCommentPayload/error/invalid payload")
+                completion(.failure(HomeDecryptionFailure(commentID, publisherUid, .invalidPayload, .payload)))
+                return
+            }
+        } catch {
+            DDLogError("proto/decryptHomeCommentPayload/error/invalid payload \(error)")
+            completion(.failure(HomeDecryptionFailure(commentID, publisherUid, .deserialization, .payload)))
+            return
+        }
+    }
+
+    private func parseHomePayloadContent(payload: Data, item: Server_FeedItem, completion: @escaping (FeedContent?, HomeDecryptionFailure?) -> Void) {
+        guard let contentId = item.contentId,
+              let publisherUid = item.publisherUid,
+              item.encryptedPayload != nil else {
+            completion(nil, HomeDecryptionFailure(nil, nil, .missingPayload, .payload))
+            return
+        }
+
+        switch item.item {
+        case .post(let serverPost):
+            guard let post = PostData(id: serverPost.id,
+                                      userId: publisherUid,
+                                      timestamp: Date(timeIntervalSince1970: TimeInterval(serverPost.timestamp)),
+                                      payload: payload,
+                                      status: .received,
+                                      isShared: false,
+                                      audience: serverPost.audience) else {
+                DDLogError("proto/parseHomePayloadContent/post/\(serverPost.id)/error could not make post object")
+                completion(nil, HomeDecryptionFailure(contentId, publisherUid, .invalidPayload, .payload))
+                return
+            }
+            DDLogInfo("proto/parseHomePayloadContent/post/\(post.id)/success")
+            if let commentKey = post.commentKey,
+               let homeSessionType = post.audience?.homeSessionType {
+                DDLogInfo("proto/parseHomePayloadContent/post/\(post.id)/try and saveCommentKey")
+                AppContext.shared.messageCrypter.saveCommentKey(postID: serverPost.id, commentKey: commentKey, for: homeSessionType)
+            } else {
+                DDLogError("proto/parseHomePayloadContent/post/\(post.id)/failed to extract commentKey")
+                // TODO: need to send rerequest on post stanza here - since we failed to get comment key.
+                // The only way to get commentKey would be to rerequest the post.
+            }
+            completion(.newItems([.post(post)]), nil)
+        case .comment(let serverComment):
+            guard let comment = CommentData(id: serverComment.id,
+                                            userId: publisherUid,
+                                            feedPostId: serverComment.postID,
+                                            parentId: serverComment.parentCommentID.isEmpty ? nil: serverComment.parentCommentID,
+                                            timestamp: Date(timeIntervalSince1970: TimeInterval(serverComment.timestamp)),
+                                            payload: payload,
+                                            status: .received) else {
+                DDLogError("proto/parseHomePayloadContent/comment/\(serverComment.id)/error could not make comment object")
+                completion(nil, HomeDecryptionFailure(contentId, publisherUid, .invalidPayload, .payload))
+                return
+            }
+            DDLogInfo("proto/parseHomePayloadContent/comment/\(comment.id)/success")
+            completion(.newItems([.comment(comment, publisherName: serverComment.publisherName)]), nil)
+        default:
+            DDLogError("proto/parseHomePayloadContent/error/invalidPayload")
+            completion(nil, HomeDecryptionFailure(contentId, publisherUid, .invalidPayload, .payload))
+        }
+    }
+
     public func reportGroupDecryptionResult(error: DecryptionError?, contentID: String, contentType: GroupDecryptionReportContentType, groupID: GroupID, timestamp: Date, sender: UserAgent?, rerequestCount: Int) {
         if (error == .missingPayload) {
             DDLogInfo("proto/reportGroupDecryptionResult/\(contentID)/\(contentType)/\(groupID)/payload is missing - not error.")
@@ -1326,6 +1779,85 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
+    // Checks if the home feed item is decrypted and saved in the dataStore.
+    public func isHomeFeedItemDecryptedAndSaved(contentID: String) -> Bool {
+        var isHomeFeedItemDecrypted = false
+
+        AppContext.shared.mainDataStore.performOnBackgroundContextAndWait { managedObjectContext in
+            if let post = AppContext.shared.coreFeedData.feedPost(with: contentID, in: managedObjectContext), post.status != .rerequesting {
+                isHomeFeedItemDecrypted = true
+            } else if let comment = AppContext.shared.coreFeedData.feedComment(with: contentID, in: managedObjectContext), comment.status != .rerequesting {
+                isHomeFeedItemDecrypted = true
+            }
+        }
+
+        if isHomeFeedItemDecrypted {
+            DDLogInfo("ProtoService/isHomeFeedItemDecryptedAndSaved/contentID \(contentID) success")
+            return true
+        }
+        DDLogInfo("ProtoService/isHomeFeedItemDecryptedAndSaved/contentID \(contentID) - content is missing.")
+        return false
+    }
+
+    public func rerequestHomeFeedItemIfNecessary(id contentID: String, contentType: HomeFeedRerequestContentType, failure: HomeDecryptionFailure, completion: @escaping ServiceRequestCompletion<Void>) {
+        guard let authorUserID = failure.fromUserId else {
+            DDLogError("proto/rerequestHomeFeedItemIfNecessary/\(contentID)/decrypt/authorUserID missing")
+            return
+        }
+
+        // Dont rerequest messages that were already decrypted and saved.
+        if !isHomeFeedItemDecryptedAndSaved(contentID: contentID) {
+            self.rerequestHomeFeedItem(contentId: contentID,
+                                       authorUserID: authorUserID,
+                                       rerequestType: failure.rerequestType,
+                                       contentType: contentType,
+                                       completion: completion)
+        }
+    }
+
+    private func rerequestHomeFeedItem(contentId: String, authorUserID: UserID, rerequestType: HomeFeedRerequestType, contentType: HomeFeedRerequestContentType, completion: @escaping ServiceRequestCompletion<Void>) {
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            guard let fromUserID = self.credentials?.userID else {
+                DDLogError("ProtoServiceCore/rerequestHomeFeedItem/error no-user-id")
+                completion(.failure(.aborted))
+                return
+            }
+
+            var homeFeedRerequest = Server_HomeFeedRerequest()
+            homeFeedRerequest.id = contentId
+            homeFeedRerequest.rerequestType = rerequestType
+            homeFeedRerequest.contentType = contentType
+            DDLogInfo("ProtoServiceCore/rerequestHomeFeedItem/\(contentId) rerequesting")
+
+            let packet = Server_Packet.msgPacket(
+                from: fromUserID,
+                to: authorUserID,
+                id: PacketID.generate(),
+                type: .normal,
+                rerequestCount: 0,
+                payload: .homeFeedRerequest(homeFeedRerequest))
+
+            guard let packetData = try? packet.serializedData() else {
+                DDLogError("ProtoServiceCore/rerequestHomeFeedItem/\(contentId)/error could not serialize rerequest stanza!")
+                completion(.failure(.malformedRequest))
+                return
+            }
+
+            DispatchQueue.main.async {
+                guard self.isConnected else {
+                    DDLogInfo("ProtoServiceCore/rerequestHomeFeedItem/\(contentId) aborting (disconnected)")
+                    completion(.failure(.notConnected))
+                    return
+                }
+
+                DDLogInfo("ProtoServiceCore/rerequestHomeFeedItem/\(contentId) sending")
+                self.send(packetData)
+                DDLogInfo("ProtoServiceCore/rerequestHomeFeedItem/\(contentId) success")
+                completion(.success(()))
+            }
+        }
+    }
+
     public func handleContentMissing(_ contentMissing: Server_ContentMissing, ack: (() -> Void)?) {
         // We get this message when client rerequest content from another user when they dont have the content.
         let contentID = contentMissing.contentID
@@ -1362,6 +1894,7 @@ extension ProtoServiceCore: CoreService {
             // TODO: murali@: check if we are we reporting call stats on 1-1 channel.
             break
         case .homeFeedPost, .homeFeedComment:
+            // TODO: murali@: update stats here.
             break
         case .UNRECOGNIZED, .unknown:
             break

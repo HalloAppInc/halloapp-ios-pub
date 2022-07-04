@@ -483,6 +483,7 @@ public extension PostData {
         case .retracted, .unsupported, .waiting:
             break
         }
+        container.commentKey = commentKey ?? Data()
         return container
     }
 
@@ -505,6 +506,13 @@ public extension PostData {
         serverPost.payload = payloadData
         serverPost.publisherUid = Int64(userId) ?? 0
         serverPost.timestamp = Int64(timestamp.timeIntervalSince1970)
+
+        if case .moment(_) = content {
+            serverPost.tag = .secretPost
+        }
+        // Add media counters.
+        serverPost.mediaCounters = serverMediaCounters
+
         return serverPost
     }
 }
@@ -561,6 +569,8 @@ public extension CommentData {
             return nil
         }
 
+        // Add media counters.
+        comment.mediaCounters = serverMediaCounters
         return comment
     }
 }
