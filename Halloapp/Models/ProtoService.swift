@@ -426,6 +426,52 @@ final class ProtoService: ProtoServiceCore {
 
     }
 
+    private func payloadContents(for items: [Server_FeedItem], status: FeedItemStatus) -> [FeedContent] {
+        var retracts = [FeedRetract]()
+        var elements = [FeedElement]()
+
+        // This function is used for groupFeedItems from server and for fallback to unencrypted payload.
+        // So, use serverProp value to decide whether to fallback to plainTextContent when status is .rerequesting
+        let fallback: Bool = status == .rerequesting ? ServerProperties.useClearTextHomeFeedContent : true
+        for item in items {
+            let isShared: Bool = item.action == .share
+            switch item.item {
+            case .post(let serverPost):
+                if !isShared && item.action == .retract {
+                    retracts.append(.post(serverPost.id))
+                } else {
+                    guard let post = PostData(serverPost, status: status, itemAction: item.itemAction,
+                                              usePlainTextPayload: fallback, isShared: isShared) else {
+                        DDLogError("proto/payloadContents/\(serverPost.id)/error could not make post object")
+                        continue
+                    }
+                    elements.append(.post(post))
+                }
+            case .comment(let serverComment):
+                if !isShared && item.action == .retract {
+                    retracts.append(.comment(serverComment.id))
+                } else {
+                    guard let comment = CommentData(serverComment, status: status, itemAction: item.itemAction,
+                                                    usePlainTextPayload: fallback, isShared: isShared) else {
+                        DDLogError("proto/payloadContents/\(serverComment.id)/error could not make comment object")
+                        continue
+                    }
+                    elements.append(.comment(comment, publisherName: serverComment.publisherName))
+                }
+            case .none:
+                DDLogError("ProtoService/payloadContents/error missing item")
+            }
+        }
+
+        switch (elements.isEmpty, retracts.isEmpty) {
+        case (true, true): return []
+        case (true, false): return [.retracts(retracts)]
+        case (false, true): return [.newItems(elements)]
+        case (false, false): return [.retracts(retracts), .newItems(elements)]
+        }
+
+    }
+
     // Checks if the message is decrypted and saved in the main app's data store.
     // TODO: discuss with garrett on other options here.
     // We should move the cryptoData keystore to be accessible by all extensions and the main app.
@@ -717,9 +763,116 @@ final class ProtoService: ProtoServiceCore {
                     messageID: pbGroupChatRetract.id
                 ))
             }
-        case .feedItem(let pbFeedItem):
-            handleHomeFeedItems([pbFeedItem], isEligibleForNotification: isEligibleForNotification, ack: ack)
-            hasAckBeenDelegated = true
+
+        case .feedItem(let item):
+            guard let delegate = feedDelegate else {
+                DDLogError("proto/handleFeedItem/delegate missing")
+                break
+            }
+
+            guard let contentID = item.contentId else {
+                DDLogError("proto/handleFeedItem/contentID missing")
+                break
+            }
+
+            switch item.action {
+            case .publish:
+                // Dont process groupFeedItems that were already decrypted and saved.
+                if isHomeFeedItemDecryptedAndSaved(contentID: contentID) {
+                    DDLogInfo("proto/didReceive/\(msg.id)/isHomeFeedItemDecryptedAndSaved/\(contentID)/already saved - skip")
+                    return
+                }
+                hasAckBeenDelegated = true
+                decryptHomeFeedPayload(for: item) { content, homeDecryptionFailure in
+                    // Separate completion block to send rerequests and acks after saving content.
+                    let completion = {
+                        // Ack only on saves and successful rerequest if necessary.
+                        if let failure = homeDecryptionFailure,
+                           let contentType = item.contentType {
+                            DDLogError("proto/handleFeedItem/\(msg.id)/\(contentID)/decrypt/error \(failure.error)")
+                            if failure.error == .missingCommentKey {
+                                AppContext.shared.errorLogger?.logError(NSError(domain: "missingCommentKey", code: 1010))
+                            }
+                            self.rerequestHomeFeedItemIfNecessary(id: contentID, contentType: contentType, failure: failure) { result in
+                                switch result {
+                                case .success:
+                                    self.updateMessageStatus(id: msg.id, status: .rerequested)
+                                    // Ack only on successful rereq
+                                    ack()
+                                case .failure(let error):
+                                    DDLogError("proto/handleFeedItem/\(msg.id)/\(contentID)/failed rerequesting: \(error)")
+                                }
+                            }
+                        } else {
+                            DDLogError("proto/handleFeedItem/\(msg.id)/\(contentID)/decrypt/success")
+                            ack()
+                        }
+                        // TODO: report metrics.
+                    }
+
+                    if let content = content {
+                        DDLogInfo("proto/handleFeedItem/\(msg.id)/\(contentID)/successfully decrypted content")
+                        let payload = HalloServiceFeedPayload(content: content, group: nil, isEligibleForNotification: isEligibleForNotification)
+
+                        delegate.halloService(self, didReceiveFeedPayload: payload, ack: completion)
+                    } else {
+
+                        DDLogError("proto/handleFeedItem/\(msg.id)/\(contentID)/failed to decrypt/using unencrypted content")
+                        // fallback to existing logic of using unencrypted payload
+                        let contents = self.payloadContents(for: [item], status: .rerequesting)
+                        if contents.isEmpty {
+                            completion()
+                        } else {
+                            // TODO(murali@): why are we sending multiple acks if at all here?
+                            for content in contents  {
+                                let payload = HalloServiceFeedPayload(content: content, group: nil, isEligibleForNotification: isEligibleForNotification)
+                                delegate.halloService(self, didReceiveFeedPayload: payload, ack: completion)
+                            }
+                        }
+                    }
+                }
+
+            case .retract:
+                hasAckBeenDelegated = true
+                processHomeFeedRetract(for: item) {
+                    let contents = self.payloadContents(for: [item], status: .received)
+                    if contents.isEmpty {
+                        ack()
+                    } else {
+                        for content in contents  {
+                            let payload = HalloServiceFeedPayload(content: content, group: nil, isEligibleForNotification: isEligibleForNotification)
+                            delegate.halloService(self, didReceiveFeedPayload: payload, ack: ack)
+                        }
+                    }
+                }
+
+            default:
+                break
+            }
+
+        case .homeFeedRerequest(let rerequest):
+            guard let delegate = feedDelegate else {
+                DDLogError("proto/handleHomeFeedRerequest/delegate missing")
+                break
+            }
+            let userID = UserID(msg.fromUid)
+
+            // Check key integrity -- do we need this?
+            // MainAppContext.shared.keyData.service(self, didReceiveRerequestWithRerequestCount: Int(msg.rerequestCount))
+
+            switch rerequest.rerequestType {
+            case .payload:
+                delegate.halloService(self, didRerequestHomeFeedItem: rerequest.id, contentType: rerequest.contentType, from: userID, ack: ack)
+                hasAckBeenDelegated = true
+            case .senderState:
+                hasAckBeenDelegated = true
+                AppContext.shared.messageCrypter.resetWhisperSession(for: userID)
+                // we are acking the message here - what if we fail to reset the session properly
+                delegate.halloService(self, didRerequestHomeFeedItem: rerequest.id, contentType: rerequest.contentType, from: userID, ack: ack)
+            case .UNRECOGNIZED(_), .unknownType:
+                return
+            }
+
         case .feedItems(let pbFeedItems):
             handleHomeFeedItems(pbFeedItems.items, isEligibleForNotification: isEligibleForNotification, ack: ack)
             hasAckBeenDelegated = true

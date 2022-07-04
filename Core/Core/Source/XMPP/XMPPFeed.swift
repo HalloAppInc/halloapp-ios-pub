@@ -715,7 +715,7 @@ extension Server_GroupFeedItem {
 }
 
 extension Server_FeedItem {
-    var contentId: String? {
+    public var contentId: String? {
         switch self.item {
         case .post(let post): return post.id
         case .comment(let comment): return comment.id
@@ -723,7 +723,7 @@ extension Server_FeedItem {
         }
     }
 
-    var publisherUid: UserID? {
+    public var publisherUid: UserID? {
         switch self.item {
         case .post(let post): return UserID(post.publisherUid)
         case .comment(let comment): return UserID(comment.publisherUid)
@@ -731,7 +731,7 @@ extension Server_FeedItem {
         }
     }
 
-    var encryptedPayload: Data? {
+    public var encryptedPayload: Data? {
         switch self.item {
         case .post(let post): return post.encPayload.isEmpty ? nil : post.encPayload
         case .comment(let comment): return comment.encPayload.isEmpty ? nil : comment.encPayload

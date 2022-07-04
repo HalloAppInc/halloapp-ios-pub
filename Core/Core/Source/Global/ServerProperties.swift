@@ -38,6 +38,8 @@ public struct ServerProperties {
         case newChatUI = "new_chat_ui"
         case maxPostMediaItems = "max_post_media_items"
         case maxChatMediaItems = "max_chat_media_items"
+        case sendClearTextHomeFeedContent = "cleartext_home_feed"
+        case useClearTextHomeFeedContent = "use_cleartext_home_feed"
     }
 
     private struct UserDefaultsKey {
@@ -74,6 +76,8 @@ public struct ServerProperties {
         static let newChatUI = false
         static let maxPostMediaItems = 10
         static let maxChatMediaItems = 30
+        static let sendClearTextHomeFeedContent = true
+        static let useClearTextHomeFeedContent = true
     }
 
     // MARK: Storage
@@ -252,6 +256,14 @@ public struct ServerProperties {
 
     public static var useClearTextGroupFeedContent: Bool {
         ServerProperties.bool(forKey: .useClearTextGroupFeedContent) ?? Defaults.useClearTextGroupFeedContent
+    }
+
+    public static var sendClearTextHomeFeedContent: Bool {
+        ServerProperties.bool(forKey: .sendClearTextHomeFeedContent) ?? Defaults.sendClearTextHomeFeedContent
+    }
+
+    public static var useClearTextHomeFeedContent: Bool {
+        ServerProperties.bool(forKey: .useClearTextHomeFeedContent) ?? Defaults.useClearTextHomeFeedContent
     }
 
     public static var callWaitTimeoutSec: Int {

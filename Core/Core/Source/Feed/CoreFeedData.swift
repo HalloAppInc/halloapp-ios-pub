@@ -577,4 +577,106 @@ public class CoreFeedData {
             }
         }
     }
+
+    public func handleRerequest(for contentID: String, contentType: HomeFeedRerequestContentType, from userID: UserID, ack: (() -> Void)?) {
+        handleRerequest(for: contentID, contentType: contentType, from: userID) { result in
+            switch result {
+            case .failure(let error):
+                if error.canAck {
+                    ack?()
+                }
+            case .success:
+                ack?()
+            }
+        }
+    }
+
+    public func handleRerequest(for contentID: String, contentType: HomeFeedRerequestContentType,
+                                from userID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
+        mainDataStore.saveSeriallyOnBackgroundContext { [mainDataStore] managedObjectContext in
+            let resendInfo = mainDataStore.fetchContentResendInfo(for: contentID, userID: userID, in: managedObjectContext)
+            resendInfo.retryCount += 1
+            // retryCount indicates number of times content has been rerequested until now: increment and use it when sending.
+            let rerequestCount = resendInfo.retryCount
+            DDLogInfo("FeedData/handleRerequest/\(contentID)/userID: \(userID)/rerequestCount: \(rerequestCount)")
+            guard rerequestCount <= 5 else {
+                DDLogError("FeedData/handleRerequest/\(contentID)/userID: \(userID)/rerequestCount: \(rerequestCount) - aborting")
+                completion(.failure(.aborted))
+                return
+            }
+
+            switch contentType {
+            case .post:
+                guard let post = self.feedPost(with: contentID, in: managedObjectContext) else {
+                    DDLogError("FeedData/handleRerequest/\(contentID)/error could not find post")
+                    self.service.sendContentMissing(id: contentID, type: .homeFeedPost, to: userID) { result in
+                        completion(result)
+                    }
+                    return
+                }
+
+                DDLogInfo("FeedData/handleRerequest/postID: \(post.id) begin/userID: \(userID)/rerequestCount: \(rerequestCount)")
+                guard let audience = post.audience else {
+                    DDLogInfo("FeedData/handleRerequest/postID: \(post.id) /audience is missing")
+                    completion(.failure(.aborted))
+                    return
+                }
+                // Dont send audience when responding to rerequests.
+                let feed: Feed = .personal(FeedAudience(audienceType: audience.audienceType, userIds: Set<UserID>()))
+                resendInfo.post = post
+
+                // Handle rerequests for posts based on status.
+                switch post.status {
+                case .retracting, .retracted:
+                    DDLogInfo("FeedData/handleRerequest/postID: \(post.id)/userID: \(userID)/sending retract")
+                    self.service.retractPost(post.id, in: nil, to: userID, completion: completion)
+                default:
+                    self.service.resendPost(post.postData, feed: feed, rerequestCount: rerequestCount, to: userID) { result in
+                        switch result {
+                        case .success():
+                            DDLogInfo("FeedData/handleRerequest/postID: \(post.id) success/userID: \(userID)/rerequestCount: \(rerequestCount)")
+                            // TODO: murali@: update rerequestCount only on success.
+                        case .failure(let error):
+                            DDLogError("FeedData/handleRerequest/postID: \(post.id) error \(error)")
+                        }
+                        completion(result)
+                    }
+                }
+
+            case .comment:
+                guard let comment = self.feedComment(with: contentID, in: managedObjectContext) else {
+                    DDLogError("FeedData/handleRerequest/\(contentID)/error could not find comment")
+                    self.service.sendContentMissing(id: contentID, type: .homeFeedComment, to: userID) { result in
+                        completion(result)
+                    }
+                    return
+                }
+
+                DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id) begin/userID: \(userID)/rerequestCount: \(rerequestCount)")
+                resendInfo.comment = comment
+
+                let groupId = comment.post.groupId
+
+                // Handle rerequests for comments based on status.
+                switch comment.status {
+                case .retracting, .retracted:
+                    DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id)/userID: \(userID)/sending retract")
+                    self.service.retractComment(comment.id, postID: comment.post.id, in: groupId, to: userID, completion: completion)
+                default:
+                    self.service.resendComment(comment.commentData, groupId: groupId, rerequestCount: rerequestCount, to: userID) { result in
+                        switch result {
+                        case .success():
+                            DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id) success/userID: \(userID)/rerequestCount: \(rerequestCount)")
+                            // TODO: murali@: update rerequestCount only on success.
+                        case .failure(let error):
+                            DDLogError("FeedData/handleRerequest/commentID: \(comment.id) error \(error)")
+                        }
+                        completion(result)
+                    }
+                }
+            case .unknown, .UNRECOGNIZED:
+                completion(.failure(.aborted))
+            }
+        }
+    }
 }

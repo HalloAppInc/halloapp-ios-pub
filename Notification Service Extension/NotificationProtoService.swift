@@ -240,6 +240,23 @@ final class NotificationProtoService: ProtoServiceCore {
                 return
             }
 
+        // Handle home rerequest stanzas.
+        case .homeFeedRerequest(let homeFeedRerequest):
+            let contentID = homeFeedRerequest.id
+            let fromUserID = UserID(msg.fromUid)
+
+            switch homeFeedRerequest.rerequestType {
+            case .payload:
+                hasAckBeenDelegated = true
+                AppContext.shared.coreFeedData.handleRerequest(for: contentID, contentType: homeFeedRerequest.contentType, from: fromUserID, ack: ack)
+            case .senderState:
+                hasAckBeenDelegated = true
+                AppContext.shared.messageCrypter.resetWhisperSession(for: fromUserID)
+                AppContext.shared.coreFeedData.handleRerequest(for: contentID, contentType: homeFeedRerequest.contentType, from: fromUserID, ack: ack)
+            case .UNRECOGNIZED(_), .unknownType:
+                return
+            }
+
         // We get this message when client rerequested content from another user and they dont have the content.
         case .contentMissing(let contentMissing):
             let contentID = contentMissing.contentID
@@ -266,34 +283,43 @@ final class NotificationProtoService: ProtoServiceCore {
         }
 
         switch metadata.contentType {
-        case .feedPost:
-            guard let postData = metadata.postData(audience: msg.feedItem.post.audience) else {
-                DDLogError("didReceiveRequest/error Invalid fields in metadata.")
+
+        case .feedPost, .feedComment:
+            let contentType: FeedElementType
+            switch metadata.contentType {
+            case .feedPost:
+                contentType = .post
+            case .feedComment:
+                contentType = .comment
+            default:
                 return
             }
+
             hasAckBeenDelegated = true
             mainDataStore.performSeriallyOnBackgroundContext { context in
                 if let feedPost = self.coreFeedData.feedPost(with: metadata.contentId, in: context), feedPost.status != .rerequesting {
-                    DDLogError("didReceiveRequest/error duplicate feedPost [\(metadata.contentId)]")
+                    DDLogError("didReceiveRequest/error duplicate feedPost [\(metadata.contentId)]/status: \(feedPost.status)")
+                    ack()
+                    return
+                } else if let feedComment = self.coreFeedData.feedComment(with: metadata.contentId, in: context), feedComment.status != .rerequesting {
+                    DDLogError("didReceiveRequest/error duplicate feedComment [\(metadata.contentId)]/status: \(feedComment.status)")
                     ack()
                     return
                 }
-                self.processPostData(postData: postData, status: .received, metadata: metadata, ack: ack)
-            }
 
-        case .feedComment:
-            guard let commentData = metadata.commentData() else {
-                DDLogError("didReceiveRequest/error Invalid fields in metadata.")
-                return
-            }
-            hasAckBeenDelegated = true
-            mainDataStore.performSeriallyOnBackgroundContext { context in
-                if let feedComment = self.coreFeedData.feedComment(with: metadata.contentId, in: context), feedComment.status != .rerequesting {
-                    DDLogError("didReceiveRequest/error duplicate feedComment [\(metadata.contentId)]")
-                    ack()
-                    return
+                // Decrypt and process the payload now
+                do {
+                    guard let serverFeedItemPb = metadata.serverFeedItemPb else {
+                        DDLogError("MetadataError/could not find serverGroupFeedItem stanza, contentId: \(metadata.contentId), contentType: \(metadata.contentType)")
+                        ack()
+                        return
+                    }
+                    let serverFeedItem = try Server_FeedItem(serializedData: serverFeedItemPb)
+                    DDLogInfo("NotificationExtension/requesting decryptfeedItem \(metadata.contentId)")
+                    self.decryptAndProcessHomeFeedItem(contentID: metadata.contentId, contentType: contentType, item: serverFeedItem, metadata: metadata, ack: ack)
+                } catch {
+                    DDLogError("NotificationExtension/feedItem/Failed serverFeedItem: \(String(describing: metadata.serverFeedItemPb)), error: \(error)")
                 }
-                self.processCommentData(commentData: commentData, status: .received, metadata: metadata, ack: ack)
             }
 
         // Separate out groupFeedItems: we need to decrypt them, process and populate content accordingly.
@@ -328,7 +354,7 @@ final class NotificationProtoService: ProtoServiceCore {
                     DDLogInfo("NotificationExtension/requesting decryptGroupFeedItem \(metadata.contentId)")
                     self.decryptAndProcessGroupFeedItem(contentID: metadata.contentId, contentType: contentType, item: serverGroupFeedItem, metadata: metadata, ack: ack)
                 } catch {
-                    DDLogError("NotificationExtension/ChatMessage/Failed serverChatStanzaStr: \(String(describing: metadata.serverChatStanzaPb)), error: \(error)")
+                    DDLogError("NotificationExtension/ChatMessage/Failed serverGroupFeedItem: \(String(describing: metadata.serverGroupFeedItemPb)), error: \(error)")
                 }
             }
 
@@ -591,6 +617,61 @@ final class NotificationProtoService: ProtoServiceCore {
             case .failure(let error):
                 DDLogError("NotificationExtension/processCommentData/error saving comment [\(commentData.id)]/error: \(error)")
             }
+        }
+    }
+
+    // MARK: Handle HomeFeed Items.
+
+    // Decrypt, process and ack home feed items
+    private func decryptAndProcessHomeFeedItem(contentID: String, contentType: FeedElementType,
+                                               item: Server_FeedItem, metadata: NotificationMetadata, ack: @escaping () -> ()) {
+        decryptHomeFeedPayload(for: item) { content, homeDecryptionFailure in
+            if let content = content, homeDecryptionFailure == nil {
+                DDLogError("NotificationExtension/decryptAndProcessHomeFeedItem/contentID/\(contentID)/success")
+                switch content {
+                case .newItems(let newItems):
+                    guard let newItem = newItems.first, newItems.count == 1 else {
+                        DDLogError("NotificationExtension/decryptAndProcessHomeFeedItem/contentID/\(contentID)/too many items - invalid decrypted payload.")
+                        ack()
+                        return
+                    }
+                    switch newItem {
+                    case .post(let postData):
+                        self.processPostData(postData: postData, status: .received, metadata: metadata, ack: ack)
+                    case .comment(let commentData, _):
+                        self.processCommentData(commentData: commentData, status: .received, metadata: metadata, ack: ack)
+                    }
+                case .retracts(_):
+                    // This is not possible - since these are never encrypted in the first place as of now.
+                    DDLogError("NotificationExtension/decryptAndProcessHomeFeedItem/contentID/\(contentID)/content is retract")
+                    ack()
+                    return
+                }
+            } else {
+                DDLogError("NotificationExtension/decryptAndProcessHomeFeedItem/contentID/\(contentID)/failure \(homeDecryptionFailure.debugDescription)")
+                if let decryptionFailure = homeDecryptionFailure,
+                   let rerequestContentType = item.contentType {
+                    // Use serverProp value to decide whether to fallback to plainTextContent.
+                    let fallback = ServerProperties.useClearTextHomeFeedContent
+                    if decryptionFailure.error == .missingCommentKey {
+                        AppContext.shared.errorLogger?.logError(NSError(domain: "missingCommentKey", code: 1010))
+                    }
+                    self.rerequestHomeFeedItemIfNecessary(id: contentID, contentType: rerequestContentType, failure: decryptionFailure) { result in
+                        switch result {
+                        case .success: break
+                        case .failure(let error):
+                            DDLogError("NotificationExtension/decryptAndProcessGroupFeedItem/contentID/\(contentID)/failed rerequest: \(error)")
+                        }
+                        switch contentType {
+                        case .post:
+                            self.processPostData(postData: metadata.postData(status: .rerequesting, usePlainTextPayload: fallback, audience: item.post.audience), status: .decryptionError, metadata: metadata, ack: ack)
+                        case .comment:
+                            self.processCommentData(commentData: metadata.commentData(status: .rerequesting, usePlainTextPayload: fallback), status: .decryptionError, metadata: metadata, ack: ack)
+                        }
+                    }
+                }
+            }
+            // TODO: report metrics
         }
     }
 

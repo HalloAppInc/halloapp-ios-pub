@@ -698,6 +698,10 @@ extension ProtoServiceCore: CoreService {
                                                              with: postID,
                                                              for: type,
                                                              audienceMemberUids: audienceUserIds) { result in
+                        // Clear unencrypted payload if server prop is disabled.
+                        if !ServerProperties.sendClearTextHomeFeedContent {
+                            serverPost.payload = Data()
+                        }
                         switch result {
                         case .success(let homeEncryptedData):
                             do {
@@ -741,6 +745,10 @@ extension ProtoServiceCore: CoreService {
             return
         }
         let payloadData = serverComment.payload
+        // Clear unencrypted payload if server prop is disabled.
+        if !ServerProperties.sendClearTextHomeFeedContent {
+            serverComment.payload = Data()
+        }
 
         AppContext.shared.messageCrypter.encrypt(payloadData, with: postID, for: type) { result in
             switch result {
@@ -841,7 +849,7 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
-    public func retractPost(_ id: FeedPostID, in groupID: GroupID, to toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
+    public func retractPost(_ id: FeedPostID, in groupID: GroupID?, to toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
         // Request will fail immediately if we're not connected, therefore delay sending until connected.
         ///TODO: add option of canceling posting.
         execute(whenConnectionStateIs: .connected, onQueue: .main) {
@@ -864,12 +872,21 @@ extension ProtoServiceCore: CoreService {
             var serverPost = Server_Post()
             serverPost.id = id
             serverPost.publisherUid = fromUID
-            var groupFeedItem = Server_GroupFeedItem()
-            groupFeedItem.action = .retract
-            groupFeedItem.item = .post(serverPost)
-            groupFeedItem.gid = groupID
 
-            packet.msg.payload = .groupFeedItem(groupFeedItem)
+            if let groupID = groupID {
+                var groupFeedItem = Server_GroupFeedItem()
+                groupFeedItem.action = .retract
+                groupFeedItem.item = .post(serverPost)
+                groupFeedItem.gid = groupID
+
+                packet.msg.payload = .groupFeedItem(groupFeedItem)
+            } else {
+                var feedItem = Server_FeedItem()
+                feedItem.action = .retract
+                feedItem.item = .post(serverPost)
+
+                packet.msg.payload = .feedItem(feedItem)
+            }
 
             guard let packetData = try? packet.serializedData() else {
                 DDLogError("ProtoService/retractPost/error could not serialize packet")
@@ -877,13 +894,13 @@ extension ProtoServiceCore: CoreService {
                 return
             }
 
-            DDLogInfo("ProtoService/retractPost/\(id)/group: \(groupID)/to:\(toUserID)")
+            DDLogInfo("ProtoService/retractPost/\(id)/group: \(groupID ?? "nil")/to:\(toUserID)")
             self.send(packetData)
             completion(.success(()))
         }
     }
 
-    public func retractComment(_ id: FeedPostCommentID, postID: FeedPostID, in groupID: GroupID, to toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
+    public func retractComment(_ id: FeedPostCommentID, postID: FeedPostID, in groupID: GroupID?, to toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
         // Request will fail immediately if we're not connected, therefore delay sending until connected.
         ///TODO: add option of canceling posting.
         execute(whenConnectionStateIs: .connected, onQueue: .main) {
@@ -910,12 +927,21 @@ extension ProtoServiceCore: CoreService {
             serverComment.id = id
             serverComment.postID = postID
             serverComment.publisherUid = fromUID
-            var groupFeedItem = Server_GroupFeedItem()
-            groupFeedItem.action = .retract
-            groupFeedItem.item = .comment(serverComment)
-            groupFeedItem.gid = groupID
 
-            packet.msg.payload = .groupFeedItem(groupFeedItem)
+            if let groupID = groupID {
+                var groupFeedItem = Server_GroupFeedItem()
+                groupFeedItem.action = .retract
+                groupFeedItem.item = .comment(serverComment)
+                groupFeedItem.gid = groupID
+
+                packet.msg.payload = .groupFeedItem(groupFeedItem)
+            } else {
+                var feedItem = Server_FeedItem()
+                feedItem.action = .retract
+                feedItem.item = .comment(serverComment)
+
+                packet.msg.payload = .feedItem(feedItem)
+            }
 
             guard let packetData = try? packet.serializedData() else {
                 DDLogError("ProtoService/retractComment/error could not serialize packet")
@@ -923,7 +949,7 @@ extension ProtoServiceCore: CoreService {
                 return
             }
 
-            DDLogInfo("ProtoService/retractComment/\(id)/group: \(groupID)/to:\(toUserID)")
+            DDLogInfo("ProtoService/retractComment/\(id)/group: \(groupID ?? "nil")/to:\(toUserID)")
             self.send(packetData)
             completion(.success(()))
         }
@@ -1000,6 +1026,10 @@ extension ProtoServiceCore: CoreService {
                 }
             }
         case .personal(let audience):
+            // Clear unencrypted payload if server prop is disabled.
+            if !ServerProperties.sendClearTextHomeFeedContent {
+                serverPost.payload = Data()
+            }
             var item = Server_FeedItem()
             item.action = .publish
             item.senderClientVersion = AppContext.userAgent
@@ -1096,7 +1126,7 @@ extension ProtoServiceCore: CoreService {
             }
 
             guard let contentType = item.contentType else {
-                newCompletion(nil, HomeDecryptionFailure(nil, nil, .invalidPayload, .payload))
+                newCompletion(nil, HomeDecryptionFailure(nil, nil, .missingPayload, .payload))
                 return
             }
 
@@ -1126,6 +1156,34 @@ extension ProtoServiceCore: CoreService {
             default:
                 newCompletion(nil, HomeDecryptionFailure(nil, nil, .invalidPayload, .payload))
             }
+        }
+
+        DispatchQueue.main.async { [self] in
+            // Append task to pendingWorkItems and try to perform task.
+            if var pendingHomeItems = pendingHomeWorkItems[sessionType] {
+                pendingHomeItems.append(work)
+                self.pendingHomeWorkItems[sessionType] = pendingHomeItems
+            } else {
+                pendingHomeWorkItems[sessionType] = [work]
+            }
+            executePendingWorkItems(for: sessionType)
+        }
+    }
+
+    public func processHomeFeedRetract(for item: Server_FeedItem, completion: @escaping () -> Void) {
+        let sessionType = item.sessionType
+
+        let newCompletion: () -> Void = { [weak self] in
+            guard let self = self else { return }
+            completion()
+            DispatchQueue.main.async {
+                self.homeStates[sessionType] = .ready
+                self.executePendingWorkItems(for: sessionType)
+            }
+        }
+
+        let work = DispatchWorkItem {
+            newCompletion()
         }
 
         DispatchQueue.main.async { [self] in
@@ -1326,11 +1384,7 @@ extension ProtoServiceCore: CoreService {
                     data: clientSenderState.encSenderState,
                     identityKey: clientSenderState.publicKey.isEmpty ? nil : clientSenderState.publicKey,
                     oneTimeKeyId: Int(clientSenderState.oneTimePreKeyID)),
-                from: publisherUid) { [weak self] result in
-                    guard let self = self else {
-                        completion(.failure(GroupDecryptionFailure(contentId, publisherUid, .missingSenderState, .senderState)))
-                        return
-                    }
+                from: publisherUid) { [self] result in
                     // After decrypting sender state.
                     switch result {
                     case .success(let decryptedData):

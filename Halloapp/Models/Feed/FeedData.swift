@@ -4894,8 +4894,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
 extension FeedData: HalloFeedDelegate {
 
+    func halloService(_ halloService: HalloService, didRerequestHomeFeedItem contentID: String, contentType: HomeFeedRerequestContentType, from userID: UserID, ack: (() -> Void)?) {
+        DDLogDebug("FeedData/didRerequestHomeFeedItem [\(contentID)] - [\(contentType)] - from: \(userID)")
+        AppContext.shared.coreFeedData.handleRerequest(for: contentID, contentType: contentType, from: userID, ack: ack)
+    }
+
     func halloService(_ halloService: HalloService, didRerequestGroupFeedItem contentID: String, contentType: GroupFeedRerequestContentType, from userID: UserID, ack: (() -> Void)?) {
-        DDLogDebug("FeedData/didRerequestContent [\(contentID)] - [\(contentType)] - from: \(userID)")
+        DDLogDebug("FeedData/didRerequestGroupFeedItem [\(contentID)] - [\(contentType)] - from: \(userID)")
         AppContext.shared.coreFeedData.handleRerequest(for: contentID, contentType: contentType, from: userID, ack: ack)
     }
 

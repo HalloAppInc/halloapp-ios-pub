@@ -136,6 +136,8 @@ class NotificationMetadata: Codable {
 
     // GroupFeedItem specific fields
     var serverGroupFeedItemPb: Data? = nil
+    // HomeFeedItem specific fields
+    var serverFeedItemPb: Data? = nil
 
 
     // Fields to set in the actual UNMutableNotificationContent
@@ -345,6 +347,12 @@ class NotificationMetadata: Codable {
                 pushName = comment.publisherName
             default:
                 DDLogError("NotificationMetadata/init/feedItem Invalid item, message: \(msg)")
+                return nil
+            }
+            do {
+                serverFeedItemPb = try feedItem.serializedData()
+            } catch {
+                DDLogError("NotificationMetadata/init/feedItem could not serialize payload: \(msg)")
                 return nil
             }
         case .groupFeedItem(let groupFeedItem):
