@@ -514,8 +514,10 @@ extension ProtoServiceCore: CoreService {
             makeHomePostEncryptedPayload(post: post, audience: audience) { result in
                 switch result {
                 case .success(let feedItem):
+                    AppContext.shared.eventMonitor.count(.homeEncryption(error: nil, itemType: .post))
                     completion(.success(.feedItem(feedItem)))
                 case .failure(let error):
+                    AppContext.shared.eventMonitor.count(.homeEncryption(error: error, itemType: .post))
                     completion(.failure(error))
                 }
             }
@@ -548,8 +550,10 @@ extension ProtoServiceCore: CoreService {
             makeHomeCommentEncryptedPayload(comment: comment) { result in
                 switch result {
                 case .success(let feedItem):
+                    AppContext.shared.eventMonitor.count(.homeEncryption(error: nil, itemType: .comment))
                     completion(.success(.feedItem(feedItem)))
                 case .failure(let error):
+                    AppContext.shared.eventMonitor.count(.homeEncryption(error: error, itemType: .comment))
                     completion(.failure(error))
                 }
             }
@@ -1036,8 +1040,10 @@ extension ProtoServiceCore: CoreService {
             makeHomeRerequestEncryptedPayload(post: post, type: audience.homeSessionType, for: toUserID) { result in
                 switch result {
                 case .failure(let failure):
+                    AppContext.shared.eventMonitor.count(.homeEncryption(error: failure, itemType: .post))
                     completion(.failure(failure))
                 case .success((let clientEncryptedPayload, let senderStateWithKeyInfo)):
+                    AppContext.shared.eventMonitor.count(.homeEncryption(error: nil, itemType: .post))
                     do {
                         serverPost.encPayload = try clientEncryptedPayload.serializedData()
                         item.item = .post(serverPost)
@@ -1077,8 +1083,10 @@ extension ProtoServiceCore: CoreService {
             makeGroupRerequestEncryptedPayload(payloadData: payloadData, groupID: groupID, for: toUserID) { result in
                 switch result {
                 case .failure(let failure):
+                    AppContext.shared.eventMonitor.count(.groupEncryption(error: failure, itemType: .comment))
                     completion(.failure(failure))
                 case .success((let clientEncryptedPayload, let senderStateWithKeyInfo)):
+                    AppContext.shared.eventMonitor.count(.groupEncryption(error: nil, itemType: .comment))
                     do {
                         serverComment.encPayload = try clientEncryptedPayload.serializedData()
                         item.item = .comment(serverComment)
@@ -1098,8 +1106,10 @@ extension ProtoServiceCore: CoreService {
             makeHomeCommentEncryptedPayload(comment: comment) { result in
                 switch result {
                 case .success(let feedItem):
+                    AppContext.shared.eventMonitor.count(.homeEncryption(error: nil, itemType: .comment))
                     completion(.success(.feedItem(feedItem)))
                 case .failure(let error):
+                    AppContext.shared.eventMonitor.count(.homeEncryption(error: error, itemType: .comment))
                     completion(.failure(error))
                 }
             }
@@ -1731,6 +1741,32 @@ extension ProtoServiceCore: CoreService {
                                             rerequestCount: rerequestCount)
     }
 
+    public func reportHomeDecryptionResult(error: DecryptionError?, contentID: String, contentType: HomeDecryptionReportContentType, type: HomeSessionType, timestamp: Date, sender: UserAgent?, rerequestCount: Int) {
+
+        let audienceType: HomeDecryptionReportAudienceType
+        switch type {
+        case .all:
+            audienceType = .all
+        case .favorites:
+            audienceType = .only
+        }
+
+        if (error == .missingPayload) {
+            DDLogInfo("proto/reportHomeDecryptionResult/\(contentID)/\(contentType)/\(audienceType)/payload is missing - not error.")
+            return
+        }
+        let errorString = error?.rawValue ?? ""
+        DDLogInfo("proto/reportHomeDecryptionResult/\(contentID)/\(contentType)/\(audienceType)/error value: \(errorString)")
+        AppContext.shared.eventMonitor.count(.homeDecryption(error: error, itemTypeString: contentType.rawValue, sender: sender))
+        AppContext.shared.cryptoData.update(contentID: contentID,
+                                            contentType: contentType,
+                                            audienceType: audienceType,
+                                            timestamp: timestamp,
+                                            error: errorString,
+                                            sender: sender,
+                                            rerequestCount: rerequestCount)
+    }
+
     // Checks if the oneToOne content is decrypted and saved in the stats dataStore.
     public func isOneToOneContentDecryptedAndSaved(contentID: String) -> Bool {
         var isOneToOneContentDecrypted = false
@@ -1923,7 +1959,8 @@ extension ProtoServiceCore: CoreService {
         let maxCount = 5
         // Set rerequestCount to 5 to indicate max.
         // Set gid to be empty - where necessary.
-        // We got contentMissing upon sending a rerequest so we wont update gid on the counter anyways.
+        // Set audienceType to all - where necessary
+        // We got contentMissing upon sending a rerequest so we wont update gid/audienceType on the counter anyways.
         switch contentType {
         case .chat:
             // Update 1-1 stats.
@@ -1947,9 +1984,12 @@ extension ProtoServiceCore: CoreService {
         case .call:
             // TODO: murali@: check if we are we reporting call stats on 1-1 channel.
             break
-        case .homeFeedPost, .homeFeedComment:
-            // TODO: murali@: update stats here.
-            break
+        case .homeFeedPost:
+            reportHomeDecryptionResult(error: error, contentID: contentID, contentType: .post,
+                                       type: .all, timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount)
+        case .homeFeedComment:
+            reportHomeDecryptionResult(error: error, contentID: contentID, contentType: .comment,
+                                       type: .all, timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount)
         case .UNRECOGNIZED, .unknown:
             break
         }

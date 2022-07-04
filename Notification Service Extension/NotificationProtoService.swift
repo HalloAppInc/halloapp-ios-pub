@@ -671,7 +671,22 @@ final class NotificationProtoService: ProtoServiceCore {
                     }
                 }
             }
-            // TODO: report metrics
+            let contentTypeValue: HomeDecryptionReportContentType = {
+                switch contentType {
+                case .post:
+                    return .post
+                case .comment:
+                    return .comment
+                }
+            }()
+            self.reportHomeDecryptionResult(
+                error: homeDecryptionFailure?.error,
+                contentID: contentID,
+                contentType: contentTypeValue,
+                type: item.sessionType,
+                timestamp: Date(),
+                sender: UserAgent(string: item.senderClientVersion),
+                rerequestCount: Int(metadata.rerequestCount))
         }
     }
 

@@ -152,6 +152,42 @@ private extension DiscreteEvent {
             }
             return .decryptionReport(report)
 
+        case .homeDecryptionReport(let id, let audienceType, let contentType, let error, let clientVersion, let sender, let rerequestCount, let timeTaken):
+            var report = Server_HomeDecryptionReport()
+            // This is contentID
+            report.contentID = id
+            switch audienceType {
+            case .all:
+                report.audienceType = .all
+            case .only:
+                report.audienceType = .only
+            }
+            switch contentType {
+            case .post:
+                report.itemType = .post
+            case .comment:
+                report.itemType = .comment
+            }
+            if error.isEmpty {
+                report.result = .ok
+            } else {
+                report.result = .fail
+                report.reason = error
+            }
+            report.senderVersion = sender?.version ?? ""
+            report.senderPlatform = sender?.platform.serverPlatform ?? Server_Platform.unknown
+            report.originalVersion = clientVersion
+            report.rerequestCount = UInt32(rerequestCount)
+            report.timeTakenS = UInt32(timeTaken)
+            // deadline is 1day = 86400seconds, so if timeTaken is beyond that.
+            // schedule is result_based.
+            if report.timeTakenS > 86400 {
+                report.schedule = .resultBased
+            } else {
+                report.schedule = .daily
+            }
+            return .homeDecryptionReport(report)
+
         case .groupDecryptionReport(let id, let gid, let contentType, let error, let clientVersion, let sender, let rerequestCount, let timeTaken):
             var report = Server_GroupDecryptionReport()
             // This is contentID

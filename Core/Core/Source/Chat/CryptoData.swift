@@ -158,6 +158,44 @@ public final class CryptoData {
         }
     }
 
+    public func update(contentID: String, contentType: HomeDecryptionReportContentType, audienceType: HomeDecryptionReportAudienceType, timestamp: Date, error: String, sender: UserAgent?, rerequestCount: Int) {
+        performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
+            guard let self = self else { return }
+
+            let isItemAlreadyDecrypted: Bool
+            if let itemResult = self.fetchGroupFeedItemDecryption(id: contentID, in: managedObjectContext) {
+                isItemAlreadyDecrypted = itemResult.isSuccess()
+            } else {
+                isItemAlreadyDecrypted = false
+            }
+            guard let homeFeedItemDecryption = self.fetchHomeFeedItemDecryption(id: contentID, in: managedObjectContext) ??
+                    self.createHomeFeedItemDecryption(id: contentID, contentType: contentType, audienceType: audienceType, timestamp: timestamp, sender: sender, in: managedObjectContext) else
+            {
+                DDLogError("CryptoData/update/\(contentID)/audienceType: \(audienceType)/error could not find or create decryption report")
+                return
+            }
+            guard !isItemAlreadyDecrypted else {
+                DDLogInfo("CryptoData/update/\(contentID)/audienceType: \(audienceType)/skipping already decrypted")
+                return
+            }
+            homeFeedItemDecryption.rerequestCount = Int32(rerequestCount)
+            homeFeedItemDecryption.decryptionError = error
+            homeFeedItemDecryption.timeDecrypted = error == "" ? Date() : nil
+            // If error is empty - then mark the item as not reported, so that client reports this stat to server again.
+            if error.isEmpty {
+                homeFeedItemDecryption.hasBeenReported = false
+            }
+            if managedObjectContext.hasChanges {
+                do {
+                    try managedObjectContext.save()
+                    DDLogInfo("CryptoData/update/\(contentID)/audienceType: \(audienceType)/saved [\(error)]")
+                } catch {
+                    DDLogError("CryptoData/update/\(contentID)/audienceType: \(audienceType)/save/error [\(error)]")
+                }
+            }
+        }
+    }
+
     public func generateReport(markEventsReported: Bool = true, using managedObjectContext: NSManagedObjectContext) -> [DiscreteEvent] {
         let messageFetchRequest: NSFetchRequest<MessageDecryption> = MessageDecryption.fetchRequest()
         messageFetchRequest.predicate = NSPredicate(format: "hasBeenReported == false")
@@ -235,6 +273,8 @@ public final class CryptoData {
 
     public func cryptoResult(for contentID: String, in managedObjectContext: NSManagedObjectContext) -> CryptoResult? {
         if let error = fetchGroupFeedItemDecryption(id: contentID, in: managedObjectContext)?.decryptionError {
+            return error.isEmpty ? .success : .failure
+        } else if let error = fetchHomeFeedItemDecryption(id: contentID, in: managedObjectContext)?.decryptionError {
             return error.isEmpty ? .success : .failure
         } else {
             return nil
@@ -419,6 +459,24 @@ public final class CryptoData {
         }
     }
 
+    public func fetchHomeFeedItemDecryption(id: String, in context: NSManagedObjectContext) -> HomeFeedItemDecryption? {
+        let fetchRequest: NSFetchRequest<HomeFeedItemDecryption> = HomeFeedItemDecryption.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "contentID == %@", id)
+        fetchRequest.returnsObjectsAsFaults = false
+
+        do {
+            let results = try context.fetch(fetchRequest)
+            if results.count > 1 {
+                DDLogError("CryptoData/fetchHomeFeedItemDecryption/\(id)/error multiple-results [\(results.count) found]")
+            }
+            return results.first
+        }
+        catch {
+            DDLogError("CryptoData/fetchHomeFeedItemDecryption/\(id)/error \(error)")
+            return nil
+        }
+    }
+
     public func fetchGroupFeedItemDecryption(id: String, in context: NSManagedObjectContext) -> GroupFeedItemDecryption? {
         let fetchRequest: NSFetchRequest<GroupFeedItemDecryption> = GroupFeedItemDecryption.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "contentID == %@", id)
@@ -466,6 +524,18 @@ public final class CryptoData {
             DDLogError("CryptoData/fetchAll/error \(error)")
             return []
         }
+    }
+
+    private func createHomeFeedItemDecryption(id: String, contentType: HomeDecryptionReportContentType, audienceType: HomeDecryptionReportAudienceType, timestamp: Date, sender: UserAgent?, in context: NSManagedObjectContext) -> HomeFeedItemDecryption? {
+        let decryption = HomeFeedItemDecryption(context: context)
+        decryption.contentID = id
+        decryption.contentType = contentType.rawValue
+        decryption.audienceType = audienceType.rawValue
+        decryption.timeReceived = timestamp
+        decryption.userAgentSender = sender?.description ?? ""
+        decryption.userAgentReceiver = AppContext.userAgent
+        decryption.hasBeenReported = false
+        return decryption
     }
 
     private func createGroupFeedItemDecryption(id: String, contentType: GroupDecryptionReportContentType, groupID: GroupID, timestamp: Date, sender: UserAgent?, in context: NSManagedObjectContext) -> GroupFeedItemDecryption? {
@@ -607,6 +677,54 @@ extension MessageDecryption {
 
     public func isSuccess() -> Bool {
         return decryptionResult == "success"
+    }
+}
+
+extension HomeFeedItemDecryption {
+    func isReadyToBeReported(withDeadline deadline: TimeInterval) -> Bool {
+        guard let timeReceived = timeReceived else { return false }
+        return timeReceived.timeIntervalSinceNow < -deadline
+    }
+
+    func report(deadline: TimeInterval) -> DiscreteEvent? {
+        guard
+            let clientVersion = UserAgent(string: userAgentReceiver ?? "")?.version,
+            let timeReceived = timeReceived,
+            let contentID = contentID,
+            let contentType = contentType,
+            let audienceType = audienceType,
+            let userAgentSender = userAgentSender
+            else
+        {
+            return nil
+        }
+        let audienceTypeValue = HomeDecryptionReportAudienceType(rawValue: audienceType) ?? .all
+        let contentTypeValue = HomeDecryptionReportContentType(rawValue: contentType) ?? .post
+
+        guard isReadyToBeReported(withDeadline: deadline) else {
+            return nil
+        }
+
+        let timeTaken: TimeInterval = {
+            if let timeDecrypted = timeDecrypted {
+                return timeDecrypted.timeIntervalSince(timeReceived)
+            } else {
+                return deadline
+            }
+        }()
+
+        return .homeDecryptionReport(id: contentID,
+                                     audienceType: audienceTypeValue,
+                                     contentType: contentTypeValue,
+                                     error: decryptionError ?? "",
+                                     clientVersion: clientVersion,
+                                     sender: UserAgent(string: userAgentSender),
+                                     rerequestCount: Int(rerequestCount),
+                                     timeTaken: timeTaken)
+    }
+
+    public func isSuccess() -> Bool {
+        return (decryptionError ?? "").isEmpty
     }
 }
 

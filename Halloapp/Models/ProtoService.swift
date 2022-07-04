@@ -775,6 +775,17 @@ final class ProtoService: ProtoServiceCore {
                 break
             }
 
+            let contentType: HomeDecryptionReportContentType
+            switch item.item {
+            case .post:
+                contentType = .post
+            case .comment:
+                contentType = .comment
+            default:
+                DDLogError("proto/handleFeedItem/invalid item stanza")
+                return
+            }
+
             switch item.action {
             case .publish:
                 // Dont process groupFeedItems that were already decrypted and saved.
@@ -784,6 +795,7 @@ final class ProtoService: ProtoServiceCore {
                 }
                 hasAckBeenDelegated = true
                 decryptHomeFeedPayload(for: item) { content, homeDecryptionFailure in
+                    let receiptTimestamp = Date()
                     // Separate completion block to send rerequests and acks after saving content.
                     let completion = {
                         // Ack only on saves and successful rerequest if necessary.
@@ -807,7 +819,14 @@ final class ProtoService: ProtoServiceCore {
                             DDLogError("proto/handleFeedItem/\(msg.id)/\(contentID)/decrypt/success")
                             ack()
                         }
-                        // TODO: report metrics.
+                        self.reportHomeDecryptionResult(
+                            error: homeDecryptionFailure?.error,
+                            contentID: contentID,
+                            contentType: contentType,
+                            type: item.sessionType,
+                            timestamp: receiptTimestamp,
+                            sender: UserAgent(string: item.senderClientVersion),
+                            rerequestCount: Int(msg.rerequestCount))
                     }
 
                     if let content = content {
@@ -1264,8 +1283,6 @@ final class ProtoService: ProtoServiceCore {
             handleContentMissing(contentMissing, ack: ack)
 
         case .inviteeNotice:
-            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
-        case .homeFeedRerequest(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .marketingAlert(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")

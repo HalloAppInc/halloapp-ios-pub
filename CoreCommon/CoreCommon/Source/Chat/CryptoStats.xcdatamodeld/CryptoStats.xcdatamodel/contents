@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19206" systemVersion="20G165" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="20086" systemVersion="21F79" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="GroupFeedHistoryDecryption" representedClassName="GroupFeedHistoryDecryption" syncable="YES">
         <attribute name="groupID" optional="YES" attributeType="String"/>
         <attribute name="hasBeenReported" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
@@ -20,6 +20,18 @@
         <attribute name="contentType" attributeType="String"/>
         <attribute name="decryptionError" optional="YES" attributeType="String"/>
         <attribute name="groupID" attributeType="String"/>
+        <attribute name="hasBeenReported" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="rerequestCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="timeDecrypted" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="timeReceived" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="userAgentReceiver" optional="YES" attributeType="String"/>
+        <attribute name="userAgentSender" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="HomeFeedItemDecryption" representedClassName="HomeFeedItemDecryption" syncable="YES" codeGenerationType="class">
+        <attribute name="audienceType" optional="YES" attributeType="String"/>
+        <attribute name="contentID" optional="YES" attributeType="String"/>
+        <attribute name="contentType" optional="YES" attributeType="String"/>
+        <attribute name="decryptionError" optional="YES" attributeType="String"/>
         <attribute name="hasBeenReported" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="rerequestCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="timeDecrypted" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
@@ -48,5 +60,6 @@
         <element name="GroupFeedHistoryDecryption" positionX="-63" positionY="90" width="128" height="149"/>
         <element name="GroupFeedItemDecryption" positionX="-63" positionY="54" width="128" height="179"/>
         <element name="MessageDecryption" positionX="-63" positionY="-18" width="128" height="179"/>
+        <element name="HomeFeedItemDecryption" positionX="-45" positionY="117" width="128" height="179"/>
     </elements>
 </model>

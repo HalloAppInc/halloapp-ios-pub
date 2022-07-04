@@ -51,6 +51,28 @@ public extension CountableEvent {
         return CountableEvent(namespace: "crypto", metric: "group_encryption", extraDimensions: extraDimensions)
     }
 
+    static func homeDecryption(error: DecryptionError?, itemTypeString: String, sender: UserAgent?) -> CountableEvent {
+        var extraDimensions = ["result": error == nil ? "ok" : "fail"]
+        if let error = error {
+            extraDimensions["failure_reason"] = error.rawValue
+        }
+        extraDimensions["version"] = AppContext.appVersionForService
+        extraDimensions["item_type"] = itemTypeString
+        extraDimensions["senderPlatform"] = sender?.platform.rawValue.lowercased()
+        extraDimensions["senderVersion"] = sender?.version
+        return CountableEvent(namespace: "crypto", metric: "home_decryption", extraDimensions: extraDimensions)
+    }
+
+    static func homeEncryption(error: EncryptionError?, itemType: FeedElementType) -> CountableEvent {
+        var extraDimensions = ["result": error == nil ? "ok" : "fail"]
+        if let error = error {
+            extraDimensions["failure_reason"] = error.rawValue
+        }
+        extraDimensions["version"] = AppContext.appVersionForService
+        extraDimensions["item_type"] = itemType.rawString
+        return CountableEvent(namespace: "crypto", metric: "home_encryption", extraDimensions: extraDimensions)
+    }
+
     static func mediaSaved(type: Clients_MediaType, source: MediaItemSource) -> CountableEvent {
         var extraDimensions = [String: String]()
         switch type {
