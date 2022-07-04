@@ -44,6 +44,7 @@ public struct PostData {
 
     // MARK: FeedPost
     public var content: PostContent
+    public var commentKey: Data?
 
     public var audience: FeedAudience?
 
@@ -145,7 +146,7 @@ public struct PostData {
         return counters
     }
 
-    public init(id: FeedPostID, userId: UserID, content: PostContent, timestamp: Date = Date(), status: FeedItemStatus, isShared: Bool = false, audience: FeedAudience?) {
+    public init(id: FeedPostID, userId: UserID, content: PostContent, timestamp: Date = Date(), status: FeedItemStatus, isShared: Bool = false, audience: FeedAudience?, commentKey: Data?) {
         self.id = id
         self.userId = userId
         self.content = content
@@ -153,9 +154,10 @@ public struct PostData {
         self.status = status
         self.isShared = isShared
         self.audience = audience
+        self.commentKey = commentKey
     }
 
-    public init(id: FeedPostID, userId: UserID, content: PostContent, timestamp: Date = Date(), status: FeedItemStatus, isShared: Bool = false, audience: Server_Audience?) {
+    public init(id: FeedPostID, userId: UserID, content: PostContent, timestamp: Date = Date(), status: FeedItemStatus, isShared: Bool = false, audience: Server_Audience?, commentKey: Data?) {
         var feedAudience: FeedAudience?
         // Setup audience
         if let audience = audience {
@@ -176,7 +178,8 @@ public struct PostData {
                 feedAudience = FeedAudience(audienceType: audienceType, userIds: Set(audienceUserIDs))
             }
         }
-        self.init(id: id, userId: userId, content: content, timestamp: timestamp, status: status, isShared: isShared, audience: feedAudience)
+        self.init(id: id, userId: userId, content: content, timestamp: timestamp, status: status,
+                  isShared: isShared, audience: feedAudience, commentKey: commentKey)
     }
 
     public init?(_ serverPost: Server_Post, status: FeedItemStatus, itemAction: ItemAction, usePlainTextPayload: Bool = true,
@@ -194,13 +197,13 @@ public struct PostData {
                 case .none, .publish, .share:
                     self.init(id: postId, userId: userId, timestamp: timestamp, payload: serverPost.payload, status: status, isShared: isShared, audience: serverPost.audience)
                 case .retract:
-                    self.init(id: postId, userId: userId, content: .retracted, timestamp: timestamp, status: status, isShared: isShared, audience: serverPost.audience)
+                    self.init(id: postId, userId: userId, content: .retracted, timestamp: timestamp, status: status, isShared: isShared, audience: serverPost.audience, commentKey: nil)
                 }
             } else {
                 self.init(id: postId, userId: userId, timestamp: timestamp, payload: serverPost.payload, status: status, isShared: isShared, audience: serverPost.audience)
             }
         } else {
-            self.init(id: postId, userId: userId, content: .waiting, timestamp: timestamp, status: status, isShared: isShared, audience: serverPost.audience)
+            self.init(id: postId, userId: userId, content: .waiting, timestamp: timestamp, status: status, isShared: isShared, audience: serverPost.audience, commentKey: nil)
         }
     }
 
@@ -208,30 +211,36 @@ public struct PostData {
         guard let processedContent = PostData.extractContent(postId: id, payload: payload) else {
             return nil
         }
-        self.init(id: id, userId: userId, content: processedContent, timestamp: timestamp, status: status, isShared: isShared, audience: audience)
+        let commentKey = PostData.extractCommentKey(postId: id, payload: payload)
+        self.init(id: id, userId: userId, content: processedContent, timestamp: timestamp, status: status,
+                  isShared: isShared, audience: audience, commentKey: commentKey)
     }
 
     public init?(id: String, userId: UserID, timestamp: Date, payload: Data, status: FeedItemStatus, isShared: Bool = false, audience: Server_Audience?) {
         guard let processedContent = PostData.extractContent(postId: id, payload: payload) else {
             return nil
         }
-        self.init(id: id, userId: userId, content: processedContent, timestamp: timestamp, status: status, isShared: isShared, audience: audience)
+        let commentKey = PostData.extractCommentKey(postId: id, payload: payload)
+        self.init(id: id, userId: userId, content: processedContent, timestamp: timestamp, status: status,
+                  isShared: isShared, audience: audience, commentKey: commentKey)
     }
 
     public init?(blob: Clients_PostContainerBlob) {
         // Re-convert the postContainer to data so that we can save it for unsupported posts
         guard let payload = try? blob.postContainer.serializedData(),
-              let content = Self.extractContent(postId: blob.postID, postContainer: blob.postContainer, payload: payload) else {
+              let content = Self.extractContent(postId: blob.postID, postContainer: blob.postContainer, payload: payload)  else {
             return nil
         }
 
+        let commentKey = blob.postContainer.commentKey
         self.init(id: blob.postID,
                   userId: String(blob.uid),
                   content: content,
                   timestamp: Date(timeIntervalSince1970: TimeInterval(blob.timestamp)),
                   status: .received,
                   isShared: false,
-                  audience: nil as FeedAudience?)
+                  audience: nil as FeedAudience?,
+                  commentKey: commentKey.isEmpty ? nil : commentKey)
     }
 
     private static func extractContent(postId: FeedPostID, payload: Data) -> PostContent? {
@@ -242,6 +251,20 @@ public struct PostData {
         if protoContainer.hasPostContainer {
             // Future-proof post
             return extractContent(postId: postId, postContainer: protoContainer.postContainer, payload: payload)
+        } else {
+            DDLogError("Unrecognized post (no post or post container set)")
+            return nil
+        }
+    }
+
+    private static func extractCommentKey(postId: FeedPostID, payload: Data) -> Data? {
+        guard let protoContainer = try? Clients_Container(serializedData: payload) else {
+            DDLogError("Could not deserialize post [\(postId)]")
+            return nil
+        }
+        if protoContainer.hasPostContainer {
+            let commentKey = protoContainer.postContainer.commentKey
+            return commentKey.isEmpty ? nil : commentKey
         } else {
             DDLogError("Unrecognized post (no post or post container set)")
             return nil

@@ -14,32 +14,32 @@ public typealias GroupEncryptionCompletion = (Result<GroupEncryptedData, Encrypt
 public typealias GroupDecryptionCompletion = (Result<Data, DecryptionError>) -> Void
 public typealias GroupSenderStateCompletion = (Result<GroupSenderState, EncryptionError>) -> Void
 
-public struct GroupSenderKey {
+public struct SenderKey {
     var chainKey: Data
     var publicSignatureKey: Data
 }
 
-public struct GroupIncomingSenderState {
-    var senderKey: GroupSenderKey
+public struct IncomingSenderState {
+    var senderKey: SenderKey
     var currentChainIndex: Int
     var unusedMessageKeys: [Int32: Data]
 }
 
-extension GroupIncomingSenderState {
+extension IncomingSenderState {
     init(senderState: Clients_SenderState) {
-        senderKey = GroupSenderKey(chainKey: senderState.senderKey.chainKey, publicSignatureKey: senderState.senderKey.publicSignatureKey)
+        senderKey = SenderKey(chainKey: senderState.senderKey.chainKey, publicSignatureKey: senderState.senderKey.publicSignatureKey)
         currentChainIndex = Int(senderState.currentChainIndex)
         unusedMessageKeys = [:]
     }
 }
 
 public struct GroupIncomingSession {
-    var senderStates: [UserID: GroupIncomingSenderState]
+    var senderStates: [UserID: IncomingSenderState]
 }
 
 public struct GroupOutgoingSession {
     var audienceHash: Data?
-    var senderKey: GroupSenderKey
+    var senderKey: SenderKey
     var currentChainIndex: Int
     var privateSigningKey: Data
 }
@@ -69,17 +69,17 @@ public enum GroupSessionState: Int16 {
 }
 
 public struct GroupEncryptedData {
-    public init(data: Data, senderKey: GroupSenderKey?, chainIndex: Int?, audienceHash: Data, receiverUids: [UserID], senderStateBundles: [Server_SenderStateBundle]) {
+    public init(data: Data, senderKey: SenderKey?, chainIndex: Int?, audienceHash: Data, receiverUids: [UserID], senderStateBundles: [Server_SenderStateBundle]) {
         self.data = data
         self.senderKey = senderKey
-        self.chainIndex = chainIndex == nil ? nil : Int32(chainIndex!)
+        self.chainIndex = chainIndex.flatMap { Int32($0) }
         self.audienceHash = audienceHash
         self.receiverUids = receiverUids
         self.senderStateBundles = senderStateBundles
     }
 
     public var data: Data
-    public var senderKey: GroupSenderKey?
+    public var senderKey: SenderKey?
     public var chainIndex: Int32?
     public var audienceHash: Data
     public var receiverUids: [UserID]
@@ -87,12 +87,12 @@ public struct GroupEncryptedData {
 }
 
 public struct GroupSenderState {
-    public init(senderKey: GroupSenderKey, chainIndex: Int) {
+    public init(senderKey: SenderKey, chainIndex: Int) {
         self.senderKey = senderKey
         self.chainIndex = Int32(chainIndex)
     }
 
-    public var senderKey: GroupSenderKey
+    public var senderKey: SenderKey
     public var chainIndex: Int32
 }
 
@@ -511,7 +511,7 @@ final class GroupWhisperSession {
     }
 
     private func constructGroupEncryptedData(_ data: Data,
-                                             senderKey: GroupSenderKey?,
+                                             senderKey: SenderKey?,
                                              chainIndex: Int?,
                                              audienceHash: Data,
                                              pendingUids: [UserID],
@@ -803,9 +803,9 @@ final class GroupWhisperSession {
     private func updateIncomingSession(from userID: UserID, with incomingSenderState: Clients_SenderState?) {
         // TODO: murali@: this can be improved i think - since we dont expect to run in retrievingKeys/updatingHash state.
         DDLogInfo("GroupWhisperSession/updateIncomingSession/\(groupID)/from \(userID)/begin")
-        let groupIncomingSenderState: GroupIncomingSenderState? = {
+        let groupIncomingSenderState: IncomingSenderState? = {
             if let incomingSenderState = incomingSenderState {
-                return GroupIncomingSenderState(senderState: incomingSenderState)
+                return IncomingSenderState(senderState: incomingSenderState)
             } else {
                 let keyBundle = self.state.keyBundle
                 guard let groupIncomingSession = keyBundle.incomingSession else {
@@ -902,17 +902,17 @@ final class GroupWhisperSession {
             let ownUserID = AppContext.shared.userData.userId
 
             // Obtain all senderStates including own copy.
-            var memberSenderStates: [UserID: GroupIncomingSenderState] = [:]
+            var memberSenderStates: [UserID: IncomingSenderState] = [:]
             groupSessionKeyBundle.senderStates?.forEach{ senderState in
                 var messageKeys: [Int32: Data] = [:]
                 senderState.messageKeys?.forEach { groupMessageKey in
                     messageKeys[groupMessageKey.chainIndex] = groupMessageKey.messageKey
                 }
-                let senderKey = GroupSenderKey(chainKey: senderState.chainKey,
-                                               publicSignatureKey: senderState.publicSignatureKey)
-                let incomingSenderState = GroupIncomingSenderState(senderKey: senderKey,
-                                                                   currentChainIndex: Int(senderState.currentChainIndex),
-                                                                   unusedMessageKeys: messageKeys)
+                let senderKey = SenderKey(chainKey: senderState.chainKey,
+                                          publicSignatureKey: senderState.publicSignatureKey)
+                let incomingSenderState = IncomingSenderState(senderKey: senderKey,
+                                                              currentChainIndex: Int(senderState.currentChainIndex),
+                                                              unusedMessageKeys: messageKeys)
                 memberSenderStates[senderState.userId] = incomingSenderState
             }
 

@@ -219,6 +219,120 @@ public final class MessageCrypter: KeyStoreDelegate {
         }
     }
 
+    public func encrypt(
+        _ data: Data,
+        with postID: FeedPostID,
+        for type: HomeSessionType,
+        audienceMemberUids: [UserID],
+        completion: @escaping HomePostEncryptionCompletion)
+    {
+        queue.async {
+            let session = self.loadHomeSession(for: type)
+            session.encryptPost(data, postID: postID, audienceMemberUids: audienceMemberUids, completion: completion)
+        }
+    }
+
+    public func encrypt(
+        _ data: Data,
+        with postID: FeedPostID,
+        for type: HomeSessionType,
+        completion: @escaping HomeCommentEncryptionCompletion)
+    {
+        queue.async {
+            let session = self.loadHomeSession(for: type)
+            session.encryptComment(data, postID: postID, completion: completion)
+        }
+    }
+
+    public func decrypt(
+        _ data: Data,
+        from userID: UserID,
+        postID: FeedPostID,
+        with senderState: Clients_SenderState?,
+        for type: HomeSessionType,
+        completion: @escaping HomeDecryptionCompletion)
+    {
+        queue.async {
+            let session = self.loadHomeSession(for: type)
+            session.decryptPost(data, from: userID, postID: postID, with: senderState, completion: completion)
+        }
+    }
+
+    public func decrypt(
+        _ data: Data,
+        from userID: UserID,
+        postID: FeedPostID,
+        for type: HomeSessionType,
+        completion: @escaping HomeDecryptionCompletion)
+    {
+        queue.async {
+            let session = self.loadHomeSession(for: type)
+            session.decryptComment(data, from: userID, postID: postID, completion: completion)
+        }
+    }
+
+    public func removePending(
+        userIds: [UserID],
+        for type: HomeSessionType)
+    {
+        queue.async {
+            let session = self.loadHomeSession(for: type)
+            session.removePending(userIds: userIds)
+        }
+    }
+
+    public func removeMembers(
+        userIds: [UserID],
+        for type: HomeSessionType)
+    {
+        queue.async {
+            let session = self.loadHomeSession(for: type)
+            session.removeMembers(userIds: userIds)
+        }
+    }
+
+    public func addMembers(
+        userIds: [UserID],
+        for type: HomeSessionType)
+    {
+        queue.async {
+            let session = self.loadHomeSession(for: type)
+            session.addMembers(userIds: userIds)
+        }
+    }
+
+    public func fetchSenderState(
+        for type: HomeSessionType,
+        completion: @escaping HomeSenderStateCompletion)
+    {
+        queue.async {
+            let session = self.loadHomeSession(for: type)
+            session.fetchSenderState(completion: completion)
+        }
+    }
+
+    public func updateSenderState(
+        with senderState: Clients_SenderState?,
+        for userID: UserID,
+        for type: HomeSessionType)
+    {
+        queue.async {
+            let session = self.loadHomeSession(for: type)
+            session.updateSenderState(with: senderState, for: userID)
+        }
+    }
+
+    public func fetchCommentKey(
+        postID: FeedPostID,
+        for type: HomeSessionType,
+        completion: @escaping HomeCommentKeyCompletion)
+    {
+        queue.async {
+            let session = self.loadHomeSession(for: type)
+            session.fetchCommentKey(for: postID, completion: completion)
+        }
+    }
+
 
     // MARK: Private
 
@@ -226,6 +340,7 @@ public final class MessageCrypter: KeyStoreDelegate {
     private let keyStore: KeyStore
     private var userSessions = [UserID: WhisperSession]()
     private var groupSessions = [GroupID: GroupWhisperSession]()
+    private var homeSessions = [String: HomeWhisperSession]()
     private var queue = DispatchQueue(label: "com.halloapp.message-crypter", qos: .userInitiated)
 
     private func loadSession(for userID: UserID) -> WhisperSession {
@@ -248,6 +363,16 @@ public final class MessageCrypter: KeyStoreDelegate {
         }
     }
 
+    private func loadHomeSession(for type: HomeSessionType) -> HomeWhisperSession {
+        if let session = homeSessions[type.rawStringValue] {
+            return session
+        } else {
+            let newSession = HomeWhisperSession(type: type, service: service, keyStore: keyStore)
+            homeSessions[type.rawStringValue] = newSession
+            return newSession
+        }
+    }
+
     // Triggered when managedObjectContext of the keystore changes.
     // This indicates that all the keyBundles we loaded in-memory could be void.
     // We should let those sessions refetch and update their keys.
@@ -259,6 +384,9 @@ public final class MessageCrypter: KeyStoreDelegate {
             self.groupSessions.forEach{ (_, session) in
                 session.reloadKeysFromKeyStore()
             }
+            self.homeSessions.forEach{ (_, session) in
+                session.reloadKeysFromKeyStore()
+            }
         }
     }
 
@@ -267,6 +395,7 @@ public final class MessageCrypter: KeyStoreDelegate {
         queue.async {
             self.userSessions.removeAll()
             self.groupSessions.removeAll()
+            self.homeSessions.removeAll()
         }
     }
 }
@@ -317,6 +446,7 @@ public enum DecryptionError: String, Error {
     case missingPayload
     case missingContent
     case invalidGroup
+    case missingCommentKey
 }
 
 // Add new error cases at the end (the index is used as the error code)
@@ -331,4 +461,5 @@ public enum EncryptionError: String, Error {
     case missingEncryptedSenderState
     case invalidUid
     case invalidGroup
+    case missingCommentKey
 }

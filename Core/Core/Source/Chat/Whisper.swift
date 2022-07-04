@@ -15,6 +15,51 @@ import Sodium
 final class Whisper {
     static let audienceHashLength = 6 // audienceHash is 6 bytes.
 
+    static func generateCommentKey(for postID: FeedPostID, using session: HomeOutgoingSession) -> Result<Data, EncryptionError> {
+        guard let commentSymmetricRatchet = symmetricRatchet(chainKey: session.senderKey.chainKey.bytes, style: .comment) else {
+            DDLogError("Whisper/generateCommentKey/ratchetFailure")
+            return .failure(.ratchetFailure)
+        }
+        // TODO: (murali@): remove this eventually!
+        DDLogVerbose("Whisper/generateCommentKey/success/data: \(commentSymmetricRatchet.messageKey)")
+        return .success(Data(commentSymmetricRatchet.messageKey))
+    }
+
+    /// Encrypt comment using commentKey for home feed
+    static func signAndEncrypt(_ unencrypted: Data, using commentKey: CommentKey) -> Result<Data, EncryptionError> {
+
+        // TODO: (murali@): updates logs with first few bytes of the keys only?
+        DDLogInfo("Whisper/signAndEncrypt/commentAESKey [\(commentKey.aesKey)...]")
+        DDLogInfo("Whisper/signAndEncrypt/commentHMACKey [\(commentKey.hmacKey)...]")
+
+        let sodium = Sodium()
+        guard let ivBytes = sodium.randomBytes.buf(length: 16) else {
+            DDLogError("Whisper/setupGroupOutgoingSession/randomBytesGenerationFailed")
+            return .failure(.aesError)
+        }
+        let iv = Data(ivBytes)
+
+        // Encrypt PlainText
+        guard let encrypted = try? AES(key: commentKey.aesKey, blockMode: CBC(iv: iv.bytes), padding: .pkcs7).encrypt(unencrypted.bytes) else {
+            DDLogError("Whisper/signAndEncrypt/aesError")
+            return .failure(.aesError)
+        }
+
+        // Compute MAC for encryptedData
+        guard let HMAC = try? CryptoSwift.HMAC(key: commentKey.hmacKey, variant: .sha256).authenticate([UInt8](encrypted)) else {
+            DDLogError("Whisper/signAndEncrypt/hmacError")
+            return .failure(.hmacError)
+        }
+
+        var data = iv
+        data += encrypted
+        data += HMAC
+
+        // TODO: (murali@): remove this eventually!
+        DDLogVerbose("Whisper/signAndEncrypt/success/data: \(data.bytes)")
+        return .success(data)
+    }
+
     /// Sign and encrypt data for group feed
     static func signAndEncrypt(_ unencrypted: Data, session: GroupOutgoingSession) -> Result<(encryptedData: Data, chainKey: Data), EncryptionError> {
 
@@ -59,6 +104,52 @@ final class Whisper {
         // TODO: (murali@): remove this eventually!
         DDLogVerbose("Whisper/signAndEncrypt/success/data: \(data.bytes)")
         return .success((encryptedData: data, chainKey: Data(symmetricRatchet.updatedChainKey)))
+    }
+
+    /// Sign and encrypt data for home feed
+    static func signAndEncrypt(_ unencrypted: Data, session: HomeOutgoingSession) -> Result<(encryptedData: Data, chainKey: Data), EncryptionError> {
+
+        // TODO: (murali@): updates logs with first few bytes of the keys only?
+        DDLogInfo("Whisper/signAndEncrypt/currentChainIndex [\(session.currentChainIndex)]")
+        DDLogInfo("Whisper/signAndEncrypt/chainKey [\(session.senderKey.chainKey.bytes)...]")
+        DDLogInfo("Whisper/signAndEncrypt/privateSignKey [\(session.privateSigningKey.bytes)...]")
+
+        // Sign plainText
+        let sodium = Sodium()
+        guard let signature = sodium.sign.signature(message: unencrypted.bytes, secretKey: session.privateSigningKey.bytes) else {
+            DDLogError("Whisper/signAndEncrypt/signing plainText data failed")
+            return .failure(.signing)
+        }
+
+        DDLogInfo("Whisper/signAndEncrypt/lengths \(unencrypted.count) + \(signature.count)")
+        // Obtain signedPlainText
+        var signed = unencrypted.bytes
+        signed.append(contentsOf: signature)
+        guard let chainSymmetricRatchet = symmetricRatchet(chainKey: session.senderKey.chainKey.bytes, style: .feed),
+              let messageKey = MessageKeyContents(data: Data(chainSymmetricRatchet.messageKey)) else {
+            DDLogError("Whisper/signAndEncrypt/ratchetFailure")
+            return .failure(.ratchetFailure)
+        }
+
+        // Encrypt signedPlainText
+        guard let encrypted = try? AES(key: messageKey.aesKey, blockMode: CBC(iv: messageKey.iv), padding: .pkcs7).encrypt(Array(signed)) else {
+            DDLogError("Whisper/signAndEncrypt/aesError")
+            return .failure(.aesError)
+        }
+
+        // Compute MAC for encryptedData
+        guard let HMAC = try? CryptoSwift.HMAC(key: messageKey.hmac, variant: .sha256).authenticate([UInt8](encrypted)) else {
+            DDLogError("Whisper/signAndEncrypt/hmacError")
+            return .failure(.hmacError)
+        }
+
+        var data = Int32(session.currentChainIndex).asBigEndianData
+        data += encrypted
+        data += HMAC
+
+        // TODO: (murali@): remove this eventually!
+        DDLogVerbose("Whisper/signAndEncrypt/success/data: \(data.bytes)")
+        return .success((encryptedData: data, chainKey: Data(chainSymmetricRatchet.updatedChainKey)))
     }
 
     /// Encrypt 1-1 message
@@ -139,13 +230,13 @@ final class Whisper {
         }
     }
 
-    /// Decrypt data from group
-    static func decrypt(_ payload: EncryptedGroupPayload, senderState: GroupIncomingSenderState) -> Result<(data: Data, senderState: GroupIncomingSenderState), DecryptionError> {
+    /// Decrypt data from group feed
+    static func decrypt(_ payload: EncryptedGroupPayload, senderState: IncomingSenderState) -> Result<(data: Data, senderState: IncomingSenderState), DecryptionError> {
 
         // TODO: add logs with keys used for decryption?
-        var updatedSenderState: GroupIncomingSenderState
+        var updatedSenderState: IncomingSenderState
 
-        switch ratchetSenderState(senderState, to: payload.chainIndex) {
+        switch ratchetSenderState(senderState, to: payload.chainIndex, style: .group) {
         case .failure(let error):
             DDLogError("Whisper/decryptGroup/ratchetSenderState/error \(error)")
             return .failure(error)
@@ -212,6 +303,116 @@ final class Whisper {
         }
     }
 
+    /// Decrypt data from home feed
+    static func decryptHome(_ payload: EncryptedGroupPayload, senderState: IncomingSenderState) -> Result<(data: Data, senderState: IncomingSenderState), DecryptionError> {
+
+        // TODO: add logs with keys used for decryption?
+        var updatedSenderState: IncomingSenderState
+
+        switch ratchetSenderState(senderState, to: payload.chainIndex, style: .feed) {
+        case .failure(let error):
+            DDLogError("Whisper/decryptGroup/ratchetSenderState/error \(error)")
+            return .failure(error)
+        case .success(let senderState):
+            DDLogInfo("Whisper/decryptGroup/ratchetSenderState/success")
+            updatedSenderState = senderState
+        }
+
+        guard let messageKeyData = updatedSenderState.unusedMessageKeys[payload.chainIndex],
+              let messageKey = MessageKeyContents(data: messageKeyData) else
+        {
+            DDLogError("Whisper/decryptGroup/error missingMessageKey")
+            return .failure(.missingMessageKey)
+        }
+        updatedSenderState.unusedMessageKeys[payload.chainIndex] = nil
+        let signatureKey = updatedSenderState.senderKey.publicSignatureKey
+
+        // TODO: (murali@): change these logs to only log prefix of these keys.
+        DDLogInfo("Whisper/decryptGroup/messageKey [\(messageKey.data.bytes)...]")
+        DDLogInfo("Whisper/decryptGroup/publicSignKey [\(signatureKey.bytes)...]")
+
+        let calculatedHMAC: Array<UInt8>
+        do {
+            // Calculate HMAC
+            calculatedHMAC = try CryptoSwift
+                .HMAC(key: messageKey.hmac, variant: .sha256)
+                .authenticate(payload.encryptedSignedMessage.bytes)
+        } catch {
+            DDLogError("Whisper/decryptGroup/error hmacMismatch")
+            return .failure(.hmacMismatch)
+        }
+
+        // Verify HMAC
+        guard payload.hmac.bytes == calculatedHMAC else {
+            DDLogError("Whisper/decryptGroup/error hmacMismatch")
+            return .failure(.hmacMismatch)
+        }
+
+        do {
+            // Decrypt data
+            let aes = try AES(key: messageKey.aesKey, blockMode: CBC(iv: messageKey.iv), padding: .pkcs7)
+            let decrypted = try aes.decrypt(payload.encryptedSignedMessage.bytes)
+
+            // Obtain signedPayload
+            guard let signedPayload = SignedPayload(data: Data(decrypted)) else {
+                DDLogError("Whisper/decryptGroup/error invalidPayload")
+                return .failure(.invalidPayload)
+            }
+
+            // Verify signature
+            let sodium = Sodium()
+            if sodium.sign.verify(message: signedPayload.payload.bytes, publicKey: signatureKey.bytes, signature: signedPayload.signature.bytes) {
+                let data = signedPayload.payload
+                DDLogInfo("Whisper/decryptGroup/success")
+                return .success((data: data, senderState: updatedSenderState))
+            } else {
+                DDLogError("Whisper/decryptGroup/error signatureMisMatch")
+                return .failure(.signatureMisMatch)
+            }
+
+        } catch {
+            DDLogError("Whisper/decryptGroup/error aesError")
+            return .failure(.aesError)
+        }
+    }
+
+    /// Decrypt comment using commentKey for home feed
+    static func decrypt(_ payload: CommentEncryptedPayload, using commentKey: CommentKey) -> Result<Data, DecryptionError> {
+
+        // TODO: (murali@): change these logs to only log prefix of these keys.
+        DDLogInfo("Whisper/decrypt/commentAESKey [\(commentKey.aesKey)...]")
+        DDLogInfo("Whisper/decrypt/commentHMACKey [\(commentKey.hmacKey)...]")
+
+        let calculatedHMAC: Array<UInt8>
+        do {
+            // Calculate HMAC
+            calculatedHMAC = try CryptoSwift
+                .HMAC(key: commentKey.hmacKey, variant: .sha256)
+                .authenticate(payload.encrypted.bytes)
+        } catch {
+            DDLogError("Whisper/decryptGroup/error hmacMismatch")
+            return .failure(.hmacMismatch)
+        }
+
+        // Verify HMAC
+        guard payload.hmac.bytes == calculatedHMAC else {
+            DDLogError("Whisper/decryptGroup/error hmacMismatch")
+            return .failure(.hmacMismatch)
+        }
+
+        do {
+            // Decrypt data
+            let aes = try AES(key: commentKey.aesKey, blockMode: CBC(iv: payload.iv.bytes), padding: .pkcs7)
+            let decrypted = try aes.decrypt(payload.encrypted.bytes)
+
+            return .success(Data(decrypted))
+
+        } catch {
+            DDLogError("Whisper/decryptGroup/error aesError")
+            return .failure(.aesError)
+        }
+    }
+
     static func setupGroupOutgoingSession(for groupId: GroupID, memberKeys: [UserID : Data]) -> GroupOutgoingSession? {
         DDLogInfo("Whisper/setupGroupOutgoingSession/groupId: \(groupId), memberCount: \(memberKeys.count)")
 
@@ -235,8 +436,8 @@ final class Whisper {
         }
 
         // setup outgoingSession
-        let senderKey = GroupSenderKey(chainKey: Data(chainKey),
-                                       publicSignatureKey: Data(signKeyPair.publicKey))
+        let senderKey = SenderKey(chainKey: Data(chainKey),
+                                  publicSignatureKey: Data(signKeyPair.publicKey))
         let outgoingSession = GroupOutgoingSession(audienceHash: audienceHash,
                                                    senderKey: senderKey,
                                                    currentChainIndex: 0,
@@ -464,7 +665,7 @@ final class Whisper {
         return .success(keyBundle)
     }
 
-    private static func ratchetSenderState(_ senderState: GroupIncomingSenderState, to chainIndex: Int32) -> Result<GroupIncomingSenderState, DecryptionError> {
+    private static func ratchetSenderState(_ senderState: IncomingSenderState, to chainIndex: Int32, style: RatchetStyle) -> Result<IncomingSenderState, DecryptionError> {
         var newSenderState = senderState
         DDLogInfo("Whisper/ratchetSenderState/begin/startIndex: \(newSenderState.currentChainIndex), endIndex: \(chainIndex)")
 
@@ -476,7 +677,7 @@ final class Whisper {
 
         // ratchet one more than the chainIndex - so that we take the messageKey and store it inside the state.
         while newSenderState.currentChainIndex < chainIndex + 1 {
-            guard let symmetricRatchet = Self.symmetricRatchet(chainKey: newSenderState.senderKey.chainKey.bytes, style: .group) else {
+            guard let symmetricRatchet = Self.symmetricRatchet(chainKey: newSenderState.senderKey.chainKey.bytes, style: style) else {
                 DDLogError("Whisper/ratchetSenderState/group/error - ratchet failure, chainkey: \(newSenderState.senderKey.chainKey.bytes)")
                 return .failure(.ratchetFailure)
             }
@@ -680,20 +881,37 @@ final class Whisper {
     private enum RatchetStyle {
         case oneToOne
         case group
+        case feed
+        case comment
     }
 
     private static func symmetricRatchet(chainKey: [UInt8], style: RatchetStyle = .oneToOne) -> (messageKey: [UInt8], updatedChainKey: [UInt8])? {
         let messageInfo, chainInfo: Array<UInt8>
+        let messageKeyLength: Int
         switch style {
         case .oneToOne:
             messageInfo = [0x01]
             chainInfo = [0x02]
+            messageKeyLength = 80
         case .group:
             messageInfo = [0x03]
             chainInfo = [0x04]
+            messageKeyLength = 80
+        case .feed:
+            messageInfo = [0x05]
+            chainInfo = [0x06]
+            messageKeyLength = 80
+        case .comment:
+            messageInfo = [0x07]
+            chainInfo = [0x08]
+            messageKeyLength = 64
         }
-        guard let messageKey = try? HKDF(password: chainKey, info: messageInfo, keyLength: 80, variant: .sha256).calculate() else { return nil }
-        guard let updatedChainKey = try? HKDF(password: chainKey, info: chainInfo, keyLength: 32, variant: .sha256).calculate() else { return nil }
+        guard let messageKey = try? HKDF(password: chainKey, info: messageInfo, keyLength: messageKeyLength, variant: .sha256).calculate() else {
+            return nil
+        }
+        guard let updatedChainKey = try? HKDF(password: chainKey, info: chainInfo, keyLength: 32, variant: .sha256).calculate() else {
+            return nil
+        }
         return (messageKey, updatedChainKey)
     }
 
@@ -708,6 +926,30 @@ final class Whisper {
         let updatedChainKey = Array(hkdf[32...63])
 
         return (updatedRootKey, updatedChainKey)
+    }
+
+    static func setupHomeOutgoingSession(for type: HomeSessionType) -> HomeOutgoingSession? {
+        DDLogInfo("Whisper/setupHomeOutgoingSession/type: \(type)")
+
+        // Generate signingKeyPair
+        let sodium = Sodium()
+        guard let signKeyPair = sodium.sign.keyPair() else {
+            DDLogError("Whisper/setupGroupOutgoingSession/keyPairGenerationFailed")
+            return nil
+        }
+
+        // Generate random bytes for chainKey
+        guard let chainKey = sodium.randomBytes.buf(length: 32) else {
+            DDLogError("Whisper/setupGroupOutgoingSession/randomBytesGenerationFailed")
+            return nil
+        }
+
+        // setup outgoingSession
+        let senderKey = SenderKey(chainKey: Data(chainKey),
+                                  publicSignatureKey: Data(signKeyPair.publicKey))
+        let outgoingSession = HomeOutgoingSession(senderKey: senderKey, currentChainIndex: 0, privateSigningKey: Data(signKeyPair.secretKey))
+        DDLogInfo("Whisper/setupGroupOutgoingSession/success")
+        return outgoingSession
     }
 }
 
@@ -772,6 +1014,42 @@ struct SignedPayload {
     }
 }
 
+struct CommentEncryptedPayload {
+    var iv: Data
+    var encrypted: Data
+    var hmac: Data
+
+    init?(data: Data) {
+        // iv (16) + payload + signature (32) Length
+        let minimumLength = 48
+        guard data.count > minimumLength else {
+            DDLogError("Whisper/CommentEncryptedPayload/error too small [\(data.count)]")
+            return nil
+        }
+
+        self.iv = data.prefix(16)
+        self.hmac = data.suffix(32)
+        self.encrypted = data.dropLast(32).dropFirst(16)
+    }
+}
+
+public struct CommentKey {
+    var aesKey: [UInt8]
+    var hmacKey: [UInt8]
+    var rawData: Data
+
+    init?(data: Data) {
+        // 32 byte AES + 32 byte HMAC key
+        guard data.count >= 64 else {
+            DDLogError("Whisper/invalidCommentKey [\(data.count) bytes]")
+            return nil
+        }
+
+        self.aesKey = data[0...31].bytes
+        self.hmacKey = data[32...63].bytes
+        self.rawData = data
+    }
+}
 
 struct EncryptedPayload {
     var ephemeralPublicKey: Data

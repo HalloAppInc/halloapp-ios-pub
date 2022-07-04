@@ -157,7 +157,8 @@ public extension FeedPost {
             content: postContent,
             timestamp: timestamp,
             status: feedItemStatus,
-            audience: audience)
+            audience: audience,
+            commentKey: nil)
     }
 
     public var orderedMentions: [MentionData] {

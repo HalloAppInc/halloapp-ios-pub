@@ -894,7 +894,7 @@ extension NotificationMetadata {
                 }
                 return postData
             } else {
-                return PostData(id: contentId, userId: fromId, content: .waiting, status: status, audience: audience)
+                return PostData(id: contentId, userId: fromId, content: .waiting, status: status, audience: audience, commentKey: nil)
             }
         } else {
             return nil

@@ -130,7 +130,8 @@ extension SharedFeedPost {
             content: postContent,
             timestamp: timestamp,
             status: feedItemStatus,
-            audience: audience)
+            audience: audience,
+            commentKey: nil)
     }
 
     public var orderedMentions: [FeedMentionProtocol] {
