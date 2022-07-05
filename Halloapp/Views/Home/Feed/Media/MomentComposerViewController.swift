@@ -207,9 +207,12 @@ class MomentComposerViewController: UIViewController {
         ])
         
         navigationItem.setHidesBackButton(true, animated: false)
+        let configuration = UIImage.SymbolConfiguration(weight: .bold)
+        let image = UIImage(systemName: "xmark", withConfiguration: configuration)?.withRenderingMode(.alwaysTemplate)
+        let barButton = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(dismissTapped))
 
-        let barButton = UIBarButtonItem(image: UIImage(systemName: "xmark"), style: .plain, target: self, action: #selector(dismissTapped))
         navigationItem.leftBarButtonItem = barButton
+        barButton.tintColor = .white
 
         let showTap = UITapGestureRecognizer(target: self, action: #selector(audiencePillTapped))
         audienceIndicator.addGestureRecognizer(showTap)

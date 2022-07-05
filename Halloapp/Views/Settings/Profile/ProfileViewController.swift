@@ -42,7 +42,8 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate {
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(collectionView)
 
-        let chevron = UIImage(systemName: "chevron.down")
+        let configuration = UIImage.SymbolConfiguration(weight: .bold)
+        let chevron = UIImage(systemName: "chevron.down", withConfiguration: configuration)
         let button = UIButton(type: .system)
         button.setImage(chevron, for: .normal)
         button.addTarget(self, action: #selector(dismissPushed), for: .touchUpInside)

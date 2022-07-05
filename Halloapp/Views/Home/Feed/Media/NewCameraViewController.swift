@@ -287,7 +287,8 @@ class NewCameraViewController: UIViewController {
     }
 
     private func installBarButtons() {
-        let image = UIImage(systemName: "chevron.down")?.withRenderingMode(.alwaysTemplate)
+        let configuration = UIImage.SymbolConfiguration(weight: .bold)
+        let image = UIImage(systemName: "chevron.down", withConfiguration: configuration)?.withRenderingMode(.alwaysTemplate)
         let barButton = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(dismissTapped))
         barButton.tintColor = .white
         navigationItem.leftBarButtonItem = barButton
