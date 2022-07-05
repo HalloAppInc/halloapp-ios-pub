@@ -147,7 +147,7 @@ class CameraModel: NSObject {
 // MARK: - published properties
 
     @Published private(set) var zoomFactor: CGFloat = 1
-    @Published private(set) var orientation = UIDevice.current.orientation
+    @Published private(set) var orientation: UIDeviceOrientation = .portrait
     @Published private(set) var activeCamera = AVCaptureDevice.Position.unspecified
     @Published var isFlashEnabled = false
 

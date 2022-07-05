@@ -150,6 +150,10 @@ final class FloatingMenu: UIViewController {
     
     weak var presenter: FloatingMenuPresenter?
 
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        .portrait
+    }
+
     init(presenter: FloatingMenuPresenter, expandedButtons: [FloatingMenuButton] = [], expandedHeader: String? = nil) {
         self.triggerButton = presenter.makeTriggerButton()
         self.anchorButton = presenter.makeTriggerButton()
