@@ -247,7 +247,6 @@ private class PostCollectionViewCell: UICollectionViewCell {
 
         Self.mediaLoadingQueue.async { [weak self] in
             guard let self = self else { return }
-            guard post.id == self.feedPost?.id else { return }
 
             let thumbnail: UIImage?
             switch item.type {
