@@ -18,7 +18,7 @@ class MinimalMomentView: UIView {
     private(set) var feedPost: FeedPost?
     private var mediaLoader: AnyCancellable?
 
-    private lazy var imageView: UIImageView = {
+    private(set) lazy var imageView: UIImageView = {
         let view = UIImageView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.contentMode = .scaleAspectFill
@@ -31,6 +31,8 @@ class MinimalMomentView: UIView {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = .black.withAlphaComponent(0.5)
+        //view.layer.masksToBounds = true
+        view.layer.cornerRadius = 4
         return view
     }()
 
@@ -94,9 +96,11 @@ class MinimalMomentView: UIView {
         if media.isMediaAvailable {
             imageView.image = media.image
         } else {
-            mediaLoader = media.$isMediaAvailable.receive(on: DispatchQueue.main).sink { [weak self] _ in
-                self?.imageView.image = media.image
-            }
+            mediaLoader = media.imageDidBecomeAvailable
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] image in
+                    self?.imageView.image = media.image
+                }
         }
 
         progressControl.configure(with: post)

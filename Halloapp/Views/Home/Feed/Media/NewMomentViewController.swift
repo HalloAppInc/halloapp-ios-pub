@@ -10,6 +10,7 @@ import UIKit
 import Core
 import CoreCommon
 import CocoaLumberjackSwift
+import Combine
 
 /// Handles the creation and posting of a moment, regardless of context.
 final class NewMomentViewController: UIViewController {
@@ -60,6 +61,8 @@ final class NewMomentViewController: UIViewController {
     private var sendButtonSnapshot: UIView?
     private var composerController: MomentComposerViewController?
     private var composerNavigationController: UIViewController?
+
+    private var startUnlockTransitionCancellable: AnyCancellable?
 
     init(context: Context = .normal) {
         self.context = context
@@ -189,28 +192,79 @@ final class NewMomentViewController: UIViewController {
             return dismiss(animated: true)
         }
 
-        DDLogInfo("NewMomentViewController/completeCompose")
-
         let vc = MomentViewController(post: post, unlockingPost: latest)
-        vc.view.alpha = 0
-        contain(vc)
+        // force the view to load without adding it to the hierarchy since we don't want
+        // viewDidAppear to be called yet
+        vc.loadViewIfNeeded()
 
-        vc.becomeFirstResponder()
-        transitioningDelegate = vc
+        // want to ensure that the the image view is populated before taking the snapshot
+        if vc.unlockingMomentView.imageView.image != nil {
+            performUnlockTransition(for: vc)
+        } else {
+            DDLogInfo("NewMomentViewController/completeCompose/creating transition cancellable")
+            startUnlockTransitionCancellable = vc.unlockingMomentView.imageView.publisher(for: \.image)
+                .compactMap { $0 }
+                .sink { [weak self] _ in
+                    DDLogInfo("NewMomentViewController/completeCompose/starting transition via cancellable")
+                    self?.startUnlockTransitionCancellable = nil
+                    self?.performUnlockTransition(for: vc)
+                }
+        }
+    }
 
-        cameraController.removeFromParent()
-        composerNavigationController?.removeFromParent()
+    private func performUnlockTransition(for momentViewController: MomentViewController) {
+        view.insertSubview(momentViewController.view, at: 0)
+        contain(momentViewController)
+        guard
+            let composer = composerController,
+            let composeSnapshot = composer.container.snapshotView(afterScreenUpdates: true),
+            let unlockSnapshot = momentViewController.unlockingMomentView.snapshotView(afterScreenUpdates: true)
+        else {
+            return dismiss(animated: true)
+        }
 
-        UIView.animateKeyframes(withDuration: 0.3, delay: 0) {
-            UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.8) {
-                vc.view.alpha = 1
+        DDLogInfo("NewMomentViewController/performUnlockTransition")
+
+        let finalCenter = view.convert(momentViewController.unlockingMomentView.center, from: momentViewController.unlockingMomentView.superview)
+        let finalSize = momentViewController.unlockingMomentView.frame.size
+
+        composeSnapshot.center = view.convert(composer.container.center, from: composer.container.superview)
+        view.addSubview(composeSnapshot)
+        // align the two snapshots
+        unlockSnapshot.frame = composeSnapshot.frame
+        view.insertSubview(unlockSnapshot, belowSubview: composeSnapshot)
+
+        momentViewController.view.alpha = 0
+        momentViewController.unlockingMomentView.alpha = 0
+        composerNavigationController?.view.removeFromSuperview()
+
+        UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 0.85, initialSpringVelocity: 0.5, options: [.curveEaseOut]) {
+            composeSnapshot.frame.size = finalSize
+            composeSnapshot.center = finalCenter
+
+            unlockSnapshot.frame = composeSnapshot.frame
+            composeSnapshot.alpha = 0
+
+            composer.sendButton.transform = .identity.scaledBy(x: 0.1, y: 0.1)
+            composer.sendButton.alpha = 0
+
+        } completion: { _ in
+            momentViewController.unlockingMomentView.alpha = 1
+            composeSnapshot.removeFromSuperview()
+            // transition the snapshot to the actual view gracefully
+            UIView.transition(with: self.view, duration: 0.25, options: [.transitionCrossDissolve]) {
+                unlockSnapshot.alpha = 0
+            } completion: { _ in
+                unlockSnapshot.removeFromSuperview()
             }
 
-            UIView.addKeyframe(withRelativeStartTime: 0.9, relativeDuration: 0.1) {
-                self.view.backgroundColor = .clear
-                self.cameraController.view.alpha = 0
-                self.composerNavigationController?.view.alpha = 0
-            }
+            self.transitioningDelegate = momentViewController
+            momentViewController.becomeFirstResponder()
+            DDLogInfo("NewMomentViewController/performUnlockTransition/completed transition")
+        }
+
+        UIView.animate(withDuration: 0.3, delay: 0.2, options: [.curveEaseInOut]) {
+            momentViewController.view.alpha = 1
         }
     }
 

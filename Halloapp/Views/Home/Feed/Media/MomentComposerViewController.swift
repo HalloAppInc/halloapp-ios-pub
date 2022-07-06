@@ -71,7 +71,7 @@ class MomentComposerViewController: UIViewController {
         return view
     }()
 
-    private lazy var background: UIView = {
+    private(set) lazy var container: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = .momentPolaroid
@@ -79,28 +79,6 @@ class MomentComposerViewController: UIViewController {
         view.layer.cornerCurve = .continuous
         return view
     }()
-
-    private lazy var placeholderContainer: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-
-    private(set) lazy var placeholderBlur: BlurView = {
-        let view = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 0.5)
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.layer.masksToBounds = true
-        view.layer.cornerRadius = NewCameraViewController.Layout.innerRadius(for: .moment)
-        return view
-    }()
-
-    /// The snapshot from the camera's viewfinder.
-    var placeholder: UIView? {
-        didSet {
-            oldValue?.removeFromSuperview()
-            setupPlaceholder()
-        }
-    }
 
     private lazy var sendButtonContainer: UIView = {
         let view = UIView()
@@ -120,8 +98,8 @@ class MomentComposerViewController: UIViewController {
     }()
 
     /// Used to align the card with the camera on the previous screen.
-    private(set) lazy var momentCardTopConstraint = background.topAnchor.constraint(equalTo: view.topAnchor)
-    private(set) lazy var momentCardHeightConstraint = background.heightAnchor.constraint(equalToConstant: 200)
+    private(set) lazy var momentCardTopConstraint = container.topAnchor.constraint(equalTo: view.topAnchor)
+    private(set) lazy var momentCardHeightConstraint = container.heightAnchor.constraint(equalToConstant: 200)
 
     private var hasShownReplacementDisclaimerBefore: Bool {
         get {
@@ -159,43 +137,30 @@ class MomentComposerViewController: UIViewController {
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
 
         view.addSubview(audienceIndicator)
-        view.addSubview(background)
-        view.addSubview(imageView)
-        view.addSubview(sendButtonContainer)
+        view.addSubview(container)
+        container.addSubview(imageView)
+        container.addSubview(sendButtonContainer)
         sendButtonContainer.addSubview(sendButton)
-
-        view.addSubview(placeholderContainer)
-        placeholderContainer.addSubview(placeholderBlur)
 
         let padding = NewCameraViewController.Layout.padding(for: .moment)
         let imageViewHeight = imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor)
         momentCardHeightConstraint.priority = .defaultHigh
 
         NSLayoutConstraint.activate([
-            background.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            background.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            container.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            container.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             momentCardTopConstraint,
             momentCardHeightConstraint,
 
-            imageView.leadingAnchor.constraint(equalTo: background.leadingAnchor, constant: padding),
-            imageView.trailingAnchor.constraint(equalTo: background.trailingAnchor, constant: -padding),
-            imageView.topAnchor.constraint(equalTo: background.topAnchor, constant: padding),
+            imageView.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: padding),
+            imageView.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -padding),
+            imageView.topAnchor.constraint(equalTo: container.topAnchor, constant: padding),
             imageViewHeight,
 
-            placeholderContainer.leadingAnchor.constraint(equalTo: imageView.leadingAnchor),
-            placeholderContainer.trailingAnchor.constraint(equalTo: imageView.trailingAnchor),
-            placeholderContainer.topAnchor.constraint(equalTo: imageView.topAnchor),
-            placeholderContainer.bottomAnchor.constraint(equalTo: imageView.bottomAnchor),
-
-            placeholderBlur.leadingAnchor.constraint(equalTo: placeholderContainer.leadingAnchor),
-            placeholderBlur.trailingAnchor.constraint(equalTo: placeholderContainer.trailingAnchor),
-            placeholderBlur.topAnchor.constraint(equalTo: placeholderContainer.topAnchor),
-            placeholderBlur.bottomAnchor.constraint(equalTo: placeholderContainer.bottomAnchor),
-
-            sendButtonContainer.leadingAnchor.constraint(equalTo: background.leadingAnchor),
-            sendButtonContainer.trailingAnchor.constraint(equalTo: background.trailingAnchor),
+            sendButtonContainer.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            sendButtonContainer.trailingAnchor.constraint(equalTo: container.trailingAnchor),
             sendButtonContainer.topAnchor.constraint(equalTo: imageView.bottomAnchor),
-            sendButtonContainer.bottomAnchor.constraint(equalTo: background.bottomAnchor),
+            sendButtonContainer.bottomAnchor.constraint(equalTo: container.bottomAnchor),
 
             sendButton.centerXAnchor.constraint(equalTo: sendButtonContainer.centerXAnchor),
             sendButton.centerYAnchor.constraint(equalTo: sendButtonContainer.centerYAnchor),
@@ -222,22 +187,6 @@ class MomentComposerViewController: UIViewController {
         hideTap.cancelsTouchesInView = false
     }
 
-    private func setupPlaceholder() {
-        guard let placeholder = placeholder else {
-            return
-        }
-
-        placeholder.translatesAutoresizingMaskIntoConstraints = false
-        placeholderContainer.insertSubview(placeholder, at: 0)
-
-        NSLayoutConstraint.activate([
-            placeholder.leadingAnchor.constraint(equalTo: placeholderContainer.leadingAnchor),
-            placeholder.trailingAnchor.constraint(equalTo: placeholderContainer.trailingAnchor),
-            placeholder.topAnchor.constraint(equalTo: placeholderContainer.topAnchor),
-            placeholder.bottomAnchor.constraint(equalTo: placeholderContainer.bottomAnchor),
-        ])
-    }
-
     private func updateImage() {
         guard let image = image?.correctlyOrientedImage() else {
             return
@@ -257,13 +206,7 @@ class MomentComposerViewController: UIViewController {
         }
 
         imageView.image = image
-        UIView.transition(with: view, duration: 0.2, options: [.transitionCrossDissolve, .curveEaseInOut]) {
-            self.placeholderContainer.alpha = 0
-            self.imageView.alpha = 1
-            self.sendButton.isEnabled = true
-        } completion: { _ in
-
-        }
+        sendButton.isEnabled = true
     }
 
     @objc
@@ -277,6 +220,8 @@ class MomentComposerViewController: UIViewController {
         guard let media = media else {
             return
         }
+
+        sendButton.isEnabled = false
 
         if MainAppContext.shared.feedData.validMoment.value != nil {
             // user has already posted a moment for the day
