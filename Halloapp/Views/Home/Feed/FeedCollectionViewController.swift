@@ -645,6 +645,8 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
                let feedPost = feedDataSource.item(at: indexPath.item)?.post
             {
                 feedCell.refreshTimestamp(using: feedPost)
+            } else if let momentCell = collectionView.cellForItem(at: indexPath) as? MomentCollectionViewCell {
+                momentCell.refreshTimestamp()
             }
         }
     }

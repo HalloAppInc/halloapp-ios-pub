@@ -14,6 +14,8 @@ import CoreCommon
 class MomentCollectionViewCell: UICollectionViewCell {
     static let reuseIdentifier = "secretPostCell"
 
+    private(set) var post: FeedPost?
+
     private(set) lazy var momentView: MomentView = {
         let view = MomentView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -109,6 +111,8 @@ class MomentCollectionViewCell: UICollectionViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
 
+        post = nil
+
         momentView.prepareForReuse()
         facePileView.prepareForReuse()
         headerView.prepareForReuse()
@@ -119,6 +123,7 @@ class MomentCollectionViewCell: UICollectionViewCell {
             return
         }
 
+        self.post = post
         if post.userID == MainAppContext.shared.userData.userId {
             installHeaderAndFooter()
         } else {
@@ -142,6 +147,12 @@ class MomentCollectionViewCell: UICollectionViewCell {
         }
 
         facePileView.configure(with: post)
+    }
+
+    func refreshTimestamp() {
+        if let post = post {
+            headerView.refreshTimestamp(with: post)
+        }
     }
 
     private func installHeaderAndFooter() {

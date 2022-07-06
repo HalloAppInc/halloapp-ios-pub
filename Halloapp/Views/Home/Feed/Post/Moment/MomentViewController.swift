@@ -149,13 +149,23 @@ class MomentViewController: UIViewController {
         momentView.dayOfWeekLabel.textColor = .black.withAlphaComponent(0.9)
         contentInputView.backgroundColor = backgroundView.backgroundColor
 
-        post.feedMedia.first?.$isMediaAvailable.receive(on: DispatchQueue.main).sink { [weak self] isAvailable in
-            self?.refreshAccessoryView(show: true)
-        }.store(in: &cancellables)
+        post.feedMedia.first?.$isMediaAvailable.receive(on: DispatchQueue.main)
+            .sink { [weak self] isAvailable in
+                self?.refreshAccessoryView(show: true)
+            }
+            .store(in: &cancellables)
 
-        NotificationCenter.default.publisher(for: UIApplication.userDidTakeScreenshotNotification).sink { [weak self] _ in
-            self?.screenshotWasTaken()
-        }.store(in: &cancellables)
+        NotificationCenter.default.publisher(for: UIApplication.userDidTakeScreenshotNotification)
+            .sink { [weak self] _ in
+                self?.screenshotWasTaken()
+            }
+            .store(in: &cancellables)
+
+        NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
+            .sink { [weak self, post] _ in
+                self?.headerView.refreshTimestamp(with: post)
+            }
+            .store(in: &cancellables)
 
         let uploadControl = UploadProgressControl()
         view.addSubview(uploadControl)
