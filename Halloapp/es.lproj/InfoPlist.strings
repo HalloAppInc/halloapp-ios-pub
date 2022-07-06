@@ -11,5 +11,5 @@
 "NSMicrophoneUsageDescription" = "Esto permite que hagas llamadas, envíes audios y mensajes, y grabes videos con sonidos.";
 
 /* Privacy - Photo Library Usage Description */
-"NSPhotoLibraryUsageDescription" = "Esto permite compartir fotos y videos de tu librería y guardar los que haces.";
+"NSPhotoLibraryUsageDescription" = "Esto permite compartir fotos y videos de tu galería y guardar los que haces.";
 

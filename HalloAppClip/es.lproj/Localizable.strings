@@ -41,7 +41,7 @@
 "registration.contacts.content" = "Para poder conectarte con tus amigos y familiares necesitaremos tu permiso para acceder a tus contactos.";
 
 /* Title for text explaining why we need contact permissions */
-"registration.contacts.title" = "Una última cosa";
+"registration.contacts.title" = "Por último";
 
 /* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
 "registration.free.app.notice" = "Gratis en la App Store de iPhone";

@@ -713,7 +713,7 @@
 "feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
 
 /* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.body" = "يتيح لك التطبيق استخدام رقم هاتفك للتواصل مع الأصدقاء والعائلة بدون أي إعلانات أو علامات تجارية أو تسجيلات إعجاب أو مشاهير.\n\nهالوآب مصمم لتمكينك من التواصل مع المقرّبين منك، وبخصوصية تامة. أرسل دعوات لأصدقائك الفعليين لبدء استخدام التطبيق.\n";
+"feed.welcome.post.body" = "يتيح لك التطبيق استخدام رقم هاتفك للتواصل مع الأصدقاء والعائلة بدون أي إعلانات أو علامات تجارية أو تسجيلات إعجاب أو مؤثرين.\n\nهالوآب مصمم لتمكينك من التواصل مع المقرّبين منك، وبخصوصية تامة. أرسل دعوات لأصدقائك الفعليين لبدء استخدام التطبيق.\n";
 
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
 "feed.welcome.post.title" = "مرحبًا بك في هالوآب، تطبيق المحادثة مع معارفك الحقيقيين ✨";

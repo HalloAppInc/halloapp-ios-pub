@@ -391,6 +391,12 @@
 /* When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply. */
 "chat.quoted.moment.label" = "Moment";
 
+/* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has been deleted. */
+"chat.quoted.post.deleted.label" = "Post verwijderd";
+
+/* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has expired. */
+"chat.quoted.post.expired.label" = "Post verlopen";
+
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "aan het typen...";
 
@@ -404,7 +410,7 @@
 "comment.delete.action" = "Reactie Verwijderen";
 
 /* Confirmation text displayed at comment deletion prompt */
-"comment.delete.confirmation" = "Deze reactie verwijderen? Dit kan niet ongedaan worden gemaakt.";
+"comment.delete.confirmation" = "Deze reactie verwijderen? Deze actie kan niet ongedaan worden gemaakt.";
 
 /* Text displayed in place of deleted comment. */
 "comment.deleted" = "Deze reactie is verwijderd";
@@ -1822,11 +1828,17 @@
 /* Text that indicates a view action. */
 "view.title" = "Bekijken";
 
+/* Moment deletion confirmation. Displays as action sheet title. */
+"your.moment.delete.confirmation" = "Dit moment verwijderen? Deze actie kan niet ongedaan worden gemaakt.";
+
+/* Title for the button that confirms intent to delete your own moment. */
+"your.moment.delete.title" = "Moment Verwijderen";
+
 /* Title for the button that confirms intent to delete your own post. */
 "your.post.deletepost.button" = "Post Verwijderen";
 
 /* Post deletion confirmation. Displayed as action sheet title. */
-"your.post.deletepost.confirmation" = "Deze post verwijderen? Dit kan niet ongedaan worden gemaakt.";
+"your.post.deletepost.confirmation" = "Deze post verwijderen? Deze actie kan niet ongedaan worden gemaakt.";
 
 /* Displayed when a post fails to delete */
 "your.post.deletepost.error" = "Verwijderen van post mislukt";

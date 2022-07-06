@@ -32,7 +32,7 @@
 "button.done" = "Listo";
 
 /* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
-"button.go.to.settings" = "Ir a configuración";
+"button.go.to.settings" = "Ir a Configuración";
 
 /* Title for generic Invite button. */
 "button.invite" = "Invitar";
@@ -92,7 +92,7 @@
 "feed.privacy.list.dismiss.edit.favorites" = "Ahora no";
 
 /* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
-"feed.privacy.list.notOwn.only.description" = "Esta publicación solo se comparte con una audiencia limitada. Puedes cambiar tu audiencia en la configuración de privacidad en cualquier momento.";
+"feed.privacy.list.notOwn.only.description" = "Solo las personas en la lista de Favoritos de %@ pueden ver esta publicación.";
 
 /* Header for the favorites list when editing contacts to share with. */
 "feed.privacy.list.only.details" = "Selecciona quién verá esta publicación";
@@ -101,7 +101,7 @@
 "feed.privacy.list.only.title" = "Favoritos";
 
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
-"feed.privacy.list.own.only.description" = "Esta publicación solo se comparte con un grupo personalizado de contactos. Puedes cambiar tu audiencia cada vez que realices una nueva publicación, o en Configuración > Privacidad.";
+"feed.privacy.list.own.only.description" = "Solo las personas en tu lista de Favoritos pueden ver esta publicación.";
 
 /* Button to edit favorites */
 "feed.privacy.list.set.favorites" = "Configura Favoritos";
@@ -161,7 +161,7 @@
 "notification.n.videos" = "notification.n.videos";
 
 /* Title for the new comment notification. */
-"notification.new.comment" = "Nuevo comentario";
+"notification.new.comment" = "Nuevo Comentario";
 
 /* Content for contact notification. */
 "notification.new.contact.content" = "%@ está ahora en HalloApp";
@@ -170,10 +170,10 @@
 "notification.new.friend.content" = "%@ ya está en HalloApp";
 
 /* Fallback text for new message notification. */
-"notification.new.message" = "Nuevo mensaje";
+"notification.new.message" = "Nuevo Mensaje";
 
 /* Title for the new feed post notification. */
-"notification.new.post" = "Nueva publicación";
+"notification.new.post" = "Nueva Publicación";
 
 /* New post notification text when post is one photo without caption. */
 "notification.one.photo" = "📷 foto";

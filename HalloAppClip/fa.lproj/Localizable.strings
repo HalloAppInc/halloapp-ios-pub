@@ -58,6 +58,21 @@
 /* Title for popup that appears when user tries to register invalid number */
 "registration.invalidphone" = "آخ!";
 
+/* Popup that appears when user tries to register a number with invalid country code */
+"registration.invalidphone.invalidCountryCode" = "شماره تلفن که وارد کردید کد کشور اشتباه دارد. دوباره چک کنید.";
+
+/* Popup that appears when user tries to register a number with invalid length */
+"registration.invalidphone.invalidLength" = "شماره تلفن که وارد کردید تعداد ارقام معتبر ندارد. دوباره چک کنید.";
+
+/* Popup that appears when user tries to register a landline number */
+"registration.invalidphone.lineTypeFixed" = "شماره تلفن که وارد کردید شماره موبایل نیست. دوباره چک کنید.";
+
+/* Popup that appears when user tries to register a number with unknown line type */
+"registration.invalidphone.lineTypeOther" = "شماره تلفن که وارد کردید شماره موبایل نیست. دوباره چک کنید.";
+
+/* Popup that appears when user tries to register a VoIP number */
+"registration.invalidphone.lineTypeVoip" = "شماره تلفن که وارد کردید شماره موبایل نیست. دوباره چک کنید.";
+
 /* Popup that appears when user tries to register invalid number */
 "registration.invalidphone.only" = "شماره تلفنی که وارد کردید قابل قبول نیست. لطفاً دوباره بررسی کنید.";
 

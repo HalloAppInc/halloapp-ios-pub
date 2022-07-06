@@ -713,7 +713,7 @@
 "feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
 
 /* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.body" = "Verwende deine Handynummer, um dich mit deinen Freunden und deiner Familie in einem digitalen Raum ohne Werbung, Marken, Likes und Influencer zu verbinden.\n\nHalloApp ist für dich und die Menschen, die dir nahe stehen - ganz privat. Lade deine echten Freunde ein, um loszulegen!";
+"feed.welcome.post.body" = "Verwende deine Handynummer, um dich mit deinen Freunden und deiner Familie in einem digitalen Raum ohne Werbung, Marken, Likes und Influencer zu vernetzen.\n\nHalloApp ist für dich und die Menschen, die dir nahe stehen - ganz privat. Lade deine echten Freunde ein, um loszulegen!";
 
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
 "feed.welcome.post.title" = "Willkommen bei HalloApp, ein digitaler Raum für echte Beziehungen ✨";

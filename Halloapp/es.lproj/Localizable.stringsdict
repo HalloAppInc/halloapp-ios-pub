@@ -143,9 +143,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>No se pudo preparar el archivo. Inténtalo de nuevo o selecciona una foto o video diferente.</string>
+			<string>Error al preparar el archivo. Inténtalo nuevamente o selecciona una foto o video diferente.</string>
 			<key>other</key>
-			<string>No se pudieron preparar %d archivos multimedia. Inténtalo de nuevo o trata de seleccionar una foto o video diferente.</string>
+			<string>Error al preparar %d archivos. Inténtalo nuevamente o selecciona una foto o video diferente.</string>
 		</dict>
 	</dict>
 	<key>n.invites.count</key>
@@ -271,9 +271,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>Puedes seleccionar hasta un artículo</string>
+			<string>Puedes seleccionar hasta un objeto</string>
 			<key>other</key>
-			<string>Puedes seleccionar hasta %d artículos</string>
+			<string>Puedes seleccionar hasta %d objetos</string>
 		</dict>
 	</dict>
 	<key>privacy.n.contacts</key>

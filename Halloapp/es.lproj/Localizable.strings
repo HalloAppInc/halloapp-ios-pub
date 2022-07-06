@@ -8,7 +8,7 @@
 "• %@" = "• %@";
 
 /* About screen: body text. */
-"about.body.1" = "¡HalloApp ya está aquí! Y la estamos construyendo para ti y tus seres queridos. \n\nHemos hecho que las aplicaciones sociales vuelvan a lo esencial, agregando un nivel de seguridad y privacidad al que creemos que todo el mundo debe tener acceso.\n\nHalloApp nunca va a usar tu información personal o mostrarte anuncios.\nEn vez de esto, con el tiempo esperamos poder añadir nuevas funciones por un pequeño costo.";
+"about.body.1" = "¡HalloApp ya está aquí! Y la estamos construyendo para ti y tus seres queridos. \n\nHemos hecho que las apps sociales vuelvan a lo esencial, agregando un nivel de seguridad y privacidad que creemos que debe estar a disposición de todos.\n\nHalloApp nunca va a usar tu información personal o mostrarte anuncios.\nEn vez de esto, con el tiempo esperamos poder añadir nuevas funciones por un pequeño costo.";
 
 /* About screen: body text. */
 "about.body.2" = "Gracias por usar y compartir HalloApp con tus amigos y familia. Cada semana la optimizamos más.";
@@ -95,7 +95,7 @@
 "button.done" = "Listo";
 
 /* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
-"button.go.to.settings" = "Ir a configuración";
+"button.go.to.settings" = "Ir a Configuración";
 
 /* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
 "button.install" = "Instalar";
@@ -242,7 +242,7 @@
 "camera.init.error.8" = "No se puede grabar videos";
 
 /* No comment provided by engineer. */
-"camera.init.error.9" = "No se pudo grabar el audio";
+"camera.init.error.9" = "No se puedo grabar audio";
 
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Error al inicializar";
@@ -296,7 +296,7 @@
 "chat.group.event.member.left" = "%@ se salió";
 
 /* Message text shown when you leave a group */
-"chat.group.event.member.left.you" = "Te fuiste";
+"chat.group.event.member.left.you" = "Te saliste";
 
 /* Action label for adding members to a group */
 "chat.group.info.add.members" = "Agregar miembros";
@@ -362,7 +362,7 @@
 "chat.message.photo" = "Foto";
 
 /* Text shown when content input text field is empty for chat screens. */
-"chat.message.placeholder" = "Nuevo mensaje";
+"chat.message.placeholder" = "Nuevo Mensaje";
 
 /* Text shown in place of a received message we are not able to process yet. */
 "chat.message.unsupported" = "Tu versión de HalloApp no admite este tipo de mensaje.";
@@ -390,6 +390,12 @@
 
 /* When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply. */
 "chat.quoted.moment.label" = "Momento";
+
+/* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has been deleted. */
+"chat.quoted.post.deleted.label" = "Publicación eliminada";
+
+/* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has expired. */
+"chat.quoted.post.expired.label" = "Publicación caducada";
 
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "escribiendo...";
@@ -419,7 +425,7 @@
 "comment.reply" = "Responder";
 
 /* Placeholder text for the comment input field when there is no user input. */
-"comment.textfield.placeholder" = "Nuevo comentario";
+"comment.textfield.placeholder" = "Nuevo Comentario";
 
 /* Text displayed in place of a comment that is not supported in the current app version. */
 "comment.unsupported" = "Tu versión de HalloApp no admite este tipo de comentario.";
@@ -443,7 +449,7 @@
 "composer.audio.instructions" = "Toca para grabar";
 
 /* Title for audio post composer */
-"composer.audio.title" = "Nueva publicación de audio";
+"composer.audio.title" = "Nueva Publicación de audio";
 
 /* Title on edit button */
 "composer.button.edit" = "Editar";
@@ -470,7 +476,7 @@
 "composer.message.subtitle" = "Enviando a %@";
 
 /* Composer New Message title. */
-"composer.message.title" = "Nuevo mensaje";
+"composer.message.title" = "Nuevo Mensaje";
 
 /* Composer New Moment Post title. */
 "composer.moment.post.title" = "Nuevo Momento";
@@ -482,7 +488,7 @@
 "composer.placeholder.text.post" = "Escribe un publicación";
 
 /* Composer New Post title. */
-"composer.post.title" = "Nueva publicación";
+"composer.post.title" = "Nueva Publicación";
 
 /* Feed Privacy indicator in post composer. */
 "composer.privacy.value.excluded" = "Compartir con algunos de mis contactos";
@@ -557,7 +563,7 @@
 "fab.accessibility.camera" = "Cámara";
 
 /* VoiceOver label for photo button in floating compose post menu in Home view. */
-"fab.accessibility.photo.library" = "Galería de fotos";
+"fab.accessibility.photo.library" = "Fotos y videos";
 
 /* VoiceOver label for text post button in floating compose post menu in Home view. */
 "fab.accessibility.text" = "Enviar mensaje de texto";
@@ -593,7 +599,7 @@
 "feed.home.notification.other.comment.w.text" = "<$author$> comentó: <$text$>";
 
 /* Text shown in indicator when new posts come in while user is scrolled down */
-"feed.new.posts.indicator" = "Nuevas publicaciones";
+"feed.new.posts.indicator" = "Nuevas Publicaciones";
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification..other.comment.no.text" = "<$author$> también comentó";
@@ -677,7 +683,7 @@
 "feed.privacy.list.except.title" = "Esconder publicaciones de...";
 
 /* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
-"feed.privacy.list.notOwn.only.description" = "Esta publicación solo se comparte con una audiencia limitada. Puedes cambiar tu audiencia en la configuración de privacidad en cualquier momento.";
+"feed.privacy.list.notOwn.only.description" = "Solo las personas en la lista de Favoritos de %@ pueden ver esta publicación.";
 
 /* Settings > Privacy > Posts > Favorites privacy setting. */
 "feed.privacy.list.only" = "Favoritos";
@@ -689,7 +695,7 @@
 "feed.privacy.list.only.title" = "Favoritos";
 
 /* Description of the alert shown to user indicating their post is only shown to their favorites audience */
-"feed.privacy.list.own.only.description" = "Esta publicación solo se comparte con un grupo personalizado de contactos. Puedes cambiar tu audiencia cada vez que realices una nueva publicación, o en Configuración > Privacidad.";
+"feed.privacy.list.own.only.description" = "Solo las personas en tu lista de Favoritos pueden ver esta publicación.";
 
 /* Button to edit favorites */
 "feed.privacy.list.set.favorites" = "Configura Favoritos";
@@ -866,7 +872,7 @@
 "group.preview.join.error.title" = "No pudiste unirte al grupo";
 
 /* Label for joining group action */
-"group.preview.join.group" = "Unirse al grupo";
+"group.preview.join.group" = "Unirse";
 
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Toca aquí para ver la información del grupo";
@@ -899,7 +905,7 @@
 "home.calls.fail.audio.text" = "Por favor, inténtalo más tarde.";
 
 /* Title of failed audio capture alert during a call. */
-"home.calls.fail.audio.title" = "No se pudo grabar el audio durante la llamada de HalloApp.";
+"home.calls.fail.audio.title" = "No se pudo grabar audio en la llamada de HalloApp.";
 
 /* Text shown to users on call failure. */
 "home.calls.fail.text" = "Lo siento, inténtalo más tarde.";
@@ -1016,7 +1022,7 @@
 "media.button.undo" = "Deshacer";
 
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
-"media.camera.access.request" = "HalloApp no tiene acceso a tu cámara. Para permitir acceso, toca configuración y enciende la cámara";
+"media.camera.access.request" = "HalloApp no tiene acceso a tu cámara. Para permitir acceso, ve a Configuración y enciende la cámara";
 
 /* Confirmation prompt in media composer. */
 "media.discard.confirmation" = "¿Te gustaría descartar lo que has editado?";
@@ -1193,7 +1199,7 @@
 "notification.n.videos" = "notification.n.videos";
 
 /* Title for the new comment notification. */
-"notification.new.comment" = "Nuevo comentario";
+"notification.new.comment" = "Nuevo Comentario";
 
 /* Content for contact notification. */
 "notification.new.contact.content" = "%@ está ahora en HalloApp";
@@ -1202,10 +1208,10 @@
 "notification.new.friend.content" = "%@ ahora está en HalloApp";
 
 /* Fallback text for new message notification. */
-"notification.new.message" = "Nuevo mensaje";
+"notification.new.message" = "Nuevo Mensaje";
 
 /* Title for the new feed post notification. */
-"notification.new.post" = "Nueva publicación";
+"notification.new.post" = "Nueva Publicación";
 
 /* New post notification text when post is one photo without caption. */
 "notification.one.photo" = "📷 foto";
@@ -1253,7 +1259,7 @@
 "open.camera" = "Abrir cámara";
 
 /* button to launch photo and video library */
-"photo.and.video.library" = "Biblioteca de fotos y videos";
+"photo.and.video.library" = "Galería de fotos y videos";
 
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "Por favor, otorga acceso en configuración";
@@ -1280,7 +1286,7 @@
 "picker.media.limit.settings" = "Cambiar configuración";
 
 /* Alert title in media picker when selecting over limit. */
-"picker.media.limit.title" = "Cantidad máxima de artículos";
+"picker.media.limit.title" = "Cantidad máxima de objetos";
 
 /* An option to update limited access. */
 "picker.media.limit.updateSelection" = "Actualizar imagen y selección de video";
@@ -1289,7 +1295,7 @@
 "picker.media.n.limit" = "picker.media.n.limit";
 
 /* Title for the picker screen. */
-"post.controller.picker.title" = "Nueva publicación";
+"post.controller.picker.title" = "Nueva Publicación";
 
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted" = "Esta publicación se eliminó";
@@ -1316,7 +1322,7 @@
 "privacy.n.contacts" = "privacidad.n.contactos";
 
 /* Error banner displayed when there is a failure syncing preivacy settings, displayed on the privacy view */
-"privacy.sync.failure" = "No se pudo sincronizar la configuración de privacidad. Por favor, inténtalo más tarde.";
+"privacy.sync.failure" = "Error al sincronizar la configuración de privacidad. Por favor, inténtalo más tarde.";
 
 /* Placeholder text for the text field for private replies. The argument is the first name of the contact. */
 "private.reply.placeholder" = "Responder a %@";
@@ -1514,7 +1520,7 @@
 "server.marketing.title" = "¡Hola!";
 
 /* fallback text in notification for a new comment */
-"server.new.comment" = "Nuevo comentario";
+"server.new.comment" = "Nuevo Comentario";
 
 /* fallback text in notification when a new contact joins */
 "server.new.contact" = "%@ ya está en HalloApp";
@@ -1526,10 +1532,10 @@
 "server.new.inviter" = "%@ acaba de aceptar tu invitación en HalloApp 🎉";
 
 /* fallback text in notification for a new chat message */
-"server.new.message" = "Nuevo mensaje";
+"server.new.message" = "Nuevo Mensaje";
 
 /* fallback text in notification for a new feed post */
-"server.new.post" = "Nueva publicación";
+"server.new.post" = "Nueva Publicación";
 
 /* text in the sms sent with verification code */
 "server.sms.verification" = "Tu código de verificación de HalloApp";
@@ -1592,7 +1598,7 @@
 "settings.account.export.error" = "Hubo un error al intentar conseguir tus datos.";
 
 /* Explanation about what the data export function is. English language version taken from WhatsApp. */
-"settings.account.export.explanation" = "Crea una memoria sobre tu información y configuración en tu cuenta de HalloApp, que puedes acceder o transferir a otra aplicación. Esta memoria no incluye tus mensajes.";
+"settings.account.export.explanation" = "Crea un reporte sobre tu información y configuración en tu cuenta de HalloApp, que puedes acceder o transferir a otra aplicación. Esta reporte no incluye tus mensajes.";
 
 /* String indicating device is awaiting a server response. Only visible in iOS 13. */
 "settings.account.export.loading" = "Cargando datos...";
@@ -1721,7 +1727,7 @@
 "title.camera.moment" = "Nuevo Momento";
 
 /* Title for new message screen where user chooses who to message */
-"title.chat.new.message" = "Nuevo mensaje";
+"title.chat.new.message" = "Nuevo Mensaje";
 
 /* Third tab in the main app interface. */
 "title.chats" = "Chats";
@@ -1730,7 +1736,7 @@
 "title.comments" = "Comentarios";
 
 /* Title for the picker screen. */
-"title.comments.picker" = "Nuevo comentario";
+"title.comments.picker" = "Nuevo Comentario";
 
 /* Button to edit favorites list */
 "title.edit.favorites" = "Edita tu lista de Favoritos";
@@ -1822,6 +1828,12 @@
 /* Text that indicates a view action. */
 "view.title" = "Ver";
 
+/* Moment deletion confirmation. Displays as action sheet title. */
+"your.moment.delete.confirmation" = "¿Eliminar este Momento? Esta acción no se puede revertir.";
+
+/* Title for the button that confirms intent to delete your own moment. */
+"your.moment.delete.title" = "Eliminar Momento";
+
 /* Title for the button that confirms intent to delete your own post. */
 "your.post.deletepost.button" = "Eliminar publicación";
 
@@ -1844,7 +1856,7 @@
 "your.post.externalshare.revoke" = "Revocar enlace";
 
 /* Message that revoking external share link failed. */
-"your.post.externalshare.revoke.error" = "No se pudo revocar el enlace para compartir externamente";
+"your.post.externalshare.revoke.error" = "Error al revocar el enlace para compartir externamente";
 
 /* Notification that a link was successfully revoked */
 "your.post.externalshare.revoke.success" = "Enlace revocado";
