@@ -92,7 +92,7 @@ class GroupGridDataSource: NSObject {
 
     func reload(animated: Bool, completion: (() -> Void)? = nil) {
         let snapshot = currentSnapshot()
-        dataSource.apply(snapshot, animatingDifferences: animated)
+        dataSource.apply(snapshot, animatingDifferences: animated, completion: completion)
         isEmpty = !isSearching && snapshot.sectionIdentifiers.isEmpty
     }
 
