@@ -597,7 +597,9 @@ class ShareComposerViewController: UIViewController {
     }
     
     private func updateWithMention() {
-        guard mentionInput.mentions.isEmpty == false else {
+        guard mentionInput.mentions.isEmpty == false,
+        let selected = textView.selectedTextRange
+        else {
             return
         }
         let defaultFont = textView.font ?? UIFont.preferredFont(forTextStyle: .body)
@@ -611,6 +613,7 @@ class ShareComposerViewController: UIViewController {
             ], range: range)
         }
         textView.attributedText = attributedString
+        textView.selectedTextRange = selected
     }
 
     // MARK: Markdown

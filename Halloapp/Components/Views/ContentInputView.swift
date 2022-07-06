@@ -970,7 +970,9 @@ extension ContentInputView: ContentTextViewDelegate {
     }
     
     private func updateWithMention() {
-        guard self.textView.mentions.isEmpty == false else {
+        guard self.textView.mentions.isEmpty == false,
+        let selected = textView.selectedTextRange
+        else {
             return
         }
         let defaultFont = textView.font ?? UIFont.preferredFont(forTextStyle: .subheadline)
@@ -984,6 +986,7 @@ extension ContentInputView: ContentTextViewDelegate {
             ], range: range)
         }
         self.textView.attributedText = attributedString
+        textView.selectedTextRange = selected
     }
 }
 

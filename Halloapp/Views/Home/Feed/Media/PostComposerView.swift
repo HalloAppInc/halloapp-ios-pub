@@ -1407,7 +1407,9 @@ fileprivate struct TextView: UIViewRepresentable {
         }
 
         private func updateWithMention(_ textView: UITextView) {
-            guard parent.input.value.mentions.isEmpty == false else {
+            guard parent.input.value.mentions.isEmpty == false,
+            let selected = textView.selectedTextRange
+            else {
                 return
             }
             let defaultFont = textView.font ?? UIFont.preferredFont(forTextStyle: .body)
@@ -1421,6 +1423,7 @@ fileprivate struct TextView: UIViewRepresentable {
                 ], range: range)
             }
             textView.attributedText = attributedString
+            textView.selectedTextRange = selected
         }
 
         private func acceptMentionPickerItem(_ item: MentionableUser) {
