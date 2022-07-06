@@ -490,3 +490,17 @@ public enum EncryptionError: String, Error {
     case invalidGroup
     case missingCommentKey
 }
+
+
+extension EncryptionError {
+    func serviceError() -> RequestError {
+        switch self {
+        // These errors are unrecoverable crypto states and we abort it - we return .aborted
+        case .invalidUid, .invalidGroup, .missingCommentKey: return .aborted
+        // These are some serious crypto errors that should only occur in the case of malformed keys.
+        case .aesError, .hmacError, .ratchetFailure, .serialization, .signing: return .aborted
+        // These are errors that could happen due to connection failures and we can recover from these.
+        case .missingKeyBundle, .missingAudienceHash, .missingEncryptedSenderState: return .malformedRequest
+        }
+    }
+}

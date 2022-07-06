@@ -192,7 +192,7 @@ extension ProtoServiceCore: CoreService {
                 switch result {
                 case .failure(let error):
                     DDLogError("ProtoServiceCore/resendHistoryResendPayload/\(historyResendID)/\(groupID)/failed to encrypt packet for \(userID): \(error)")
-                    completion(.failure(.aborted))
+                    completion(.failure(error.serviceError()))
                 case .success((let clientEncryptedPayload, let senderStateWithKeyInfo)):
                     var historyResend = Server_HistoryResend()
                     historyResend.id = historyResendID
@@ -357,7 +357,7 @@ extension ProtoServiceCore: CoreService {
                     }
                 case .failure(let error):
                     DDLogError("ProtoServiceCore/resendPost/\(post.id)/error: \(error)")
-                    completion(.failure(.aborted))
+                    completion(.failure(error.serviceError()))
                 }
             }
 
@@ -404,7 +404,7 @@ extension ProtoServiceCore: CoreService {
                     }
                 case .failure(let error):
                     DDLogError("ProtoServiceCore/resendComment/\(comment.id)/error: \(error)")
-                    completion(.failure(.aborted))
+                    completion(.failure(error.serviceError()))
                 }
             }
 
@@ -571,7 +571,7 @@ extension ProtoServiceCore: CoreService {
             switch result {
             case .failure(let error):
                 DDLogError("ProtoServiceCore/makeGroupEncryptedPayload/\(groupID)/encryption/error [\(error)]")
-                completion(.failure(.missingKeyBundle))
+                completion(.failure(error))
             case .success(let groupEncryptedData):
                 item.audienceHash = groupEncryptedData.audienceHash
                 item.senderStateBundles = groupEncryptedData.senderStateBundles
@@ -629,7 +629,7 @@ extension ProtoServiceCore: CoreService {
                 itemPayloadEncryptionCompletion(nil)
             case .failure(let error):
                 DDLogError("ProtoServiceCore/makeGroupRerequestEncryptedPayload/\(groupID)/encryption/error [\(error)]")
-                completion(.failure(.missingKeyBundle))
+                completion(.failure(error))
             case .success(let groupSenderState):
                 // construct own senderState
                 var senderKey = Clients_SenderKey()
@@ -816,7 +816,7 @@ extension ProtoServiceCore: CoreService {
             switch result {
             case .failure(let error):
                 DDLogError("ProtoServiceCore/makeHomeRerequestEncryptedPayload/\(type)/encryption/error [\(error)]")
-                completion(.failure(.missingKeyBundle))
+                completion(.failure(error))
             case .success(let homeSenderState):
                 // construct own senderState
                 var senderKey = Clients_SenderKey()
