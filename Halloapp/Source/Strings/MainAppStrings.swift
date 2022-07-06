@@ -262,11 +262,11 @@ extension Localizations {
     }
 
     static var postExpiredLabel: String {
-        NSLocalizedString("chat.quoted.post.expired.label", value: "Post expired", comment: "When user replies privatelyto a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has expired.")
+        NSLocalizedString("chat.quoted.post.expired.label", value: "Post expired", comment: "When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has expired.")
     }
 
     static var postDeletedLabel: String {
-        NSLocalizedString("chat.quoted.post.deleted.label", value: "Post deleted", comment: "When user replies privatelyto a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has been deleted.")
+        NSLocalizedString("chat.quoted.post.deleted.label", value: "Post deleted", comment: "When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has been deleted.")
     }
 
     static var voiceCall: String {

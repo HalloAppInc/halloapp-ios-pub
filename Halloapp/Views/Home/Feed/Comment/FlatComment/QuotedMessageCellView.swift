@@ -66,7 +66,7 @@ class QuotedMessageCellView: UIView {
     lazy var mediaWidthConstraint = mediaView.widthAnchor.constraint(equalToConstant: Constants.QuotedMediaSize)
     lazy var mediaWidthConstraintHidden = mediaView.widthAnchor.constraint(equalToConstant: 0)
     lazy var mediaHeightConstraint = mediaView.heightAnchor.constraint(equalToConstant: Constants.QuotedMediaSize)
-    lazy var quotedPanelMinHeightConstraint = mediaTextView.heightAnchor.constraint(greaterThanOrEqualToConstant    : Constants.QuotedMediaSize)
+    lazy var quotedPanelMinHeightConstraint = mediaTextView.heightAnchor.constraint(greaterThanOrEqualToConstant: Constants.QuotedMediaSize)
 
     var hasMedia: Bool = false  {
         didSet {
@@ -125,7 +125,7 @@ class QuotedMessageCellView: UIView {
     }()
 
     private lazy var nameTextRow: UIStackView = {
-        let vStack = UIStackView(arrangedSubviews: [ nameLabel, textLabel])
+        let vStack = UIStackView(arrangedSubviews: [ nameLabel, textLabel, UIView()])
         vStack.axis = .vertical
         vStack.alignment = .fill
         vStack.isLayoutMarginsRelativeArrangement = true
@@ -239,16 +239,10 @@ class QuotedMessageCellView: UIView {
 
     private func configureQuotedFeedPost(quoted: ChatQuoted) {
         if let feedPostID = quoted.message?.feedPostID, let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostID, in: MainAppContext.shared.feedData.viewContext) {
-            // For own posts it is ok to see
-            if feedPost.userID == MainAppContext.shared.userData.userId {
-                configureText(text: quoted.rawText ?? "", mentions: quoted.orderedMentions)
-                configureMedia(media: quoted.media)
-                return
-            }
-            switch feedPost.status {
-            case .retracted, .retracting:
+            // For posts that are retracted and current user is not author, show "post deleted" view
+            if (feedPost.status == .retracted || feedPost.status == .retracting) && feedPost.userID != MainAppContext.shared.userData.userId {
                 configureText(text: Localizations.postDeletedLabel, mentions: quoted.orderedMentions)
-            default:
+            } else {
                 configureText(text: quoted.rawText ?? "", mentions: quoted.orderedMentions)
                 configureMedia(media: quoted.media)
             }
