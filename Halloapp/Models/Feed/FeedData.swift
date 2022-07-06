@@ -1275,16 +1275,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 // Clear cached media if any.
                 setCachedMedia(nil, for: feedPost.id)
 
-                // Set status to be rerequesting if necessary.
-                if xmppComment.status == .rerequesting {
-                    comment.status = .rerequesting
-                } else {
-                    comment.status = .incoming
-                }
-
                 switch xmppComment.content {
                 case .text(let mentionText, let linkPreviewData):
-                    comment.status = .incoming
                     comment.rawText = mentionText.collapsedText
                     comment.mentions = mentionText.mentionsArray
                     // Process link preview if present
@@ -1348,19 +1340,39 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     feedCommentMedia.sha256 = media.sha256
                     feedCommentMedia.comment = comment
                 case .retracted:
-                    DDLogError("FeedData/process-comments/incoming-retracted-comment [\(xmppComment.id)]")
-                    comment.status = .retracted
                     comment.rawText = ""
                 case .unsupported(let data):
-                    comment.status = .unsupported
                     comment.rawData = data
                     comment.rawText = ""
+                case .waiting:
+                    comment.rawText = ""
+                }
+
+                // Set status for each comment appropriately.
+                switch xmppComment.content {
+                case .album, .text, .voiceNote:
+                    // Mark our own comments as seen in case server sends us old comments following re-registration
+                    if comment.userId == userData.userId {
+                        comment.status = .sent
+                    } else {
+                        // Set status to be rerequesting if necessary.
+                        if xmppComment.status == .rerequesting {
+                            comment.status = .rerequesting
+                        } else {
+                            comment.status = .incoming
+                        }
+                    }
+                case .retracted:
+                    DDLogError("FeedData/process-comments/incoming-retracted-comment [\(xmppComment.id)]")
+                    comment.status = .retracted
+                case .unsupported(let data):
+                    comment.status = .unsupported
+                    feedPost.rawData = data
                 case .waiting:
                     comment.status = .rerequesting
                     if xmppComment.status != .rerequesting {
                         DDLogError("FeedData/process-comments/invalid content [\(xmppComment.id)] with status: \(xmppComment.status)")
                     }
-                    comment.rawText = ""
                 }
 
                 comments[comment.id] = comment

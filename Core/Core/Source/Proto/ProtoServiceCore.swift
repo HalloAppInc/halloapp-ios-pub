@@ -1340,8 +1340,8 @@ extension ProtoServiceCore: CoreService {
                 case .success(let decryptedPayload):
                     self.parseGroupPayloadContent(payload: decryptedPayload, item: item, completion: newCompletion)
                 }
+                DDLogInfo("ProtoServiceCore/decryptGroupFeedPayload/contentId/\(item.gid)/\(contentId), publisherUid: \(publisherUid)/end")
             }
-            DDLogInfo("ProtoServiceCore/decryptGroupFeedPayload/contentId/\(item.gid)/\(contentId), publisherUid: \(publisherUid)/end")
         }
 
         DispatchQueue.main.async { [self] in
