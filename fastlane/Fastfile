@@ -31,6 +31,11 @@ platform :ios do
       xcodeproj: "HalloApp.xcodeproj",
       skip_info_plist: true
     )
+    increment_build_number(
+      build_number: build_number,
+      xcodeproj: "CoreCommon/CoreCommon.xcodeproj",
+      skip_info_plist: true
+    )
   end
 
   lane :new_build do
