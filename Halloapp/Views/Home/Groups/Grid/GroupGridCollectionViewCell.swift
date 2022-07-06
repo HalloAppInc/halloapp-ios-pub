@@ -82,7 +82,7 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         let newPostLabel = UILabel()
         newPostLabel.font = .scaledSystemFont(ofSize: 13, weight: .bold)
         newPostLabel.text = Localizations.newPostIndicator
-        newPostLabel.textColor = .primaryWhiteBlack
+        newPostLabel.textColor = .white
         newPostLabel.translatesAutoresizingMaskIntoConstraints = false
 
         let newPostView = PillView()
@@ -345,9 +345,6 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         var showAudioView = false
 
         if let visibleMedia = visibleMedia {
-            // load image, if available
-            visibleMedia.loadImage()
-
             switch visibleMedia.type {
             case .audio:
                 let userAvatar = MainAppContext.shared.avatarStore.userAvatar(forUserId: post.userID)
@@ -357,6 +354,7 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
 
                 imageView.clipsToBounds = true
                 imageView.contentMode = .scaleAspectFill
+                imageView.transform = CGAffineTransform(scaleX: sqrt(2.0), y: sqrt(2.0)) // scale up to fill entire background
                 imageView.image = userAvatar.image ?? AvatarView.defaultImage
                 audioAvatarChangedCancellable = userAvatar.imageDidChange.sink { [weak self] image in
                     self?.imageView.image = image ?? AvatarView.defaultImage
@@ -364,6 +362,7 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
                 showAudioView = true
                 showImageView = true
             case .image, .video:
+                imageView.transform = .identity
                 visibleMedia.loadImage()
                 imageView.configure(with: visibleMedia)
                 showImageView = true
