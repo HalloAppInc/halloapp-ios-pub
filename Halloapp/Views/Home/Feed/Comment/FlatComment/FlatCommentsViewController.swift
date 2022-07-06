@@ -590,7 +590,11 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     }
     
     private func messagerow(for comment: FeedPostComment) -> MessageRow {
-        if [.retracted, .retracting, .rerequesting, .unsupported].contains(comment.status) {
+        // TODO: We need to add rerequesting here after encryption is fully ready.
+        if [.retracted, .retracting, .unsupported].contains(comment.status) {
+            return MessageRow.comment(comment)
+        }
+        if comment.isWaiting {
             return MessageRow.comment(comment)
         }
         // Quoted Comment

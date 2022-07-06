@@ -762,12 +762,19 @@ extension ProtoServiceCore: CoreService {
                     clientEncryptedPayload.commentKeyEncryptedPayload = data
                     serverComment.encPayload = try clientEncryptedPayload.serializedData()
                     item.item = .comment(serverComment)
-                    DDLogError("ProtoServiceCore/makeHomePostEncryptedPayload/\(type)/postID: \(postID)/success")
+                    DDLogError("ProtoServiceCore/makeHomeCommentEncryptedPayload/\(comment.id)/\(type)/postID: \(postID)/success")
                     completion(.success(item))
                 } catch {
-                    DDLogError("ProtoServiceCore/makeHomePostEncryptedPayload/\(type)/postID: \(postID)/error [\(error)]")
+                    DDLogError("ProtoServiceCore/makeHomeCommentEncryptedPayload/\(comment.id)/\(type)/postID: \(postID)/error [\(error)]")
                     completion(.failure(.serialization))
                 }
+            case .failure(.missingCommentKey):
+                // TODO: We should fail here eventually.
+                // For now - allow this since old posts wont have comment keys.
+                serverComment.encPayload = Data()
+                item.item = .comment(serverComment)
+                DDLogError("ProtoServiceCore/makeHomeCommentEncryptedPayload/\(comment.id)/\(type)/postID: \(postID)/posting without encryption")
+                completion(.success(item))
             case .failure(let error):
                 completion(.failure(error))
             }

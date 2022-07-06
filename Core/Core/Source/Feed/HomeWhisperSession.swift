@@ -321,12 +321,13 @@ final class HomeWhisperSession {
                     setupOutbound(audienceUserIds: audienceUserIds)
                     return
                 case .commentEncryption(let data, let feedPostID, let completion):
-                    guard let commentKey = commentKey(for: feedPostID) else {
+                    DDLogInfo("HomeWhisperSession/\(type)/execute/commentEncryption")
+                    if let commentKey = commentKey(for: feedPostID) {
+                        executeCommentEncryption(data, using: commentKey, completion: completion)
+                    } else {
                         DDLogError("HomeWhisperSession/\(type)/execute/commentEncryption/missing commentKey for postID: \(feedPostID)")
-                        completion(.failure(.missingKeyBundle))
-                        return
+                        completion(.failure(.missingCommentKey))
                     }
-                    executeCommentEncryption(data, using: commentKey, completion: completion)
                 case .postDecryption(let data, let userID, let feedPostID, let incomingSenderState, let completion):
                     DDLogInfo("HomeWhisperSession/\(type)/execute/postDecryption")
                     executePostDecryption(data, from: userID, postID: feedPostID, with: incomingSenderState, completion: completion)
@@ -394,12 +395,12 @@ final class HomeWhisperSession {
                     }
                 case .commentEncryption(let data, let feedPostID, let completion):
                     DDLogInfo("HomeWhisperSession/\(type)/execute/commentEncryption")
-                    guard let commentKey = commentKey(for: feedPostID) else {
+                    if let commentKey = commentKey(for: feedPostID) {
+                        executeCommentEncryption(data, using: commentKey, completion: completion)
+                    } else {
                         DDLogError("HomeWhisperSession/\(type)/execute/commentEncryption/missing commentKey for postID: \(feedPostID)")
-                        completion(.failure(.missingKeyBundle))
-                        return
+                        completion(.failure(.missingCommentKey))
                     }
-                    executeCommentEncryption(data, using: commentKey, completion: completion)
                 case .postDecryption(let data, let userID, let feedPostID, let incomingSenderState, let completion):
                     DDLogInfo("HomeWhisperSession/\(type)/execute/postDecryption")
                     executePostDecryption(data, from: userID, postID: feedPostID, with: incomingSenderState, completion: completion)
