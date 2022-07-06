@@ -629,11 +629,6 @@ final class FeedItemHeaderView: UIView {
             contentStackView.addArrangedSubview(moreButton)
         }
 
-        if let post = post as? FeedPost, post.isMoment {
-            timestampLabel.isHidden = true
-            contentStackView.alignment = .center
-        }
-
         configureGroupLabel(with: post.groupId, contentWidth: contentWidth, showGroupName: showGroupName)
         refreshTimestamp(with: post)
     }
