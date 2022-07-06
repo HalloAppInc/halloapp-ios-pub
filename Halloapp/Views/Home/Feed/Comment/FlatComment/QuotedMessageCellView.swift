@@ -66,6 +66,7 @@ class QuotedMessageCellView: UIView {
     lazy var mediaWidthConstraint = mediaView.widthAnchor.constraint(equalToConstant: Constants.QuotedMediaSize)
     lazy var mediaWidthConstraintHidden = mediaView.widthAnchor.constraint(equalToConstant: 0)
     lazy var mediaHeightConstraint = mediaView.heightAnchor.constraint(equalToConstant: Constants.QuotedMediaSize)
+    lazy var quotedPanelMinHeightConstraint = mediaTextView.heightAnchor.constraint(greaterThanOrEqualToConstant    : Constants.QuotedMediaSize)
 
     var hasMedia: Bool = false  {
         didSet {
@@ -181,7 +182,8 @@ class QuotedMessageCellView: UIView {
             nameTextRow.trailingAnchor.constraint(equalTo: mediaTextView.trailingAnchor),
             nameTextRow.topAnchor.constraint(equalTo: mediaTextView.topAnchor),
             nameTextRow.bottomAnchor.constraint(equalTo: mediaTextView.bottomAnchor),
-            nameTextRow.trailingAnchor.constraint(equalTo: mediaTextView.trailingAnchor)
+            nameTextRow.trailingAnchor.constraint(equalTo: mediaTextView.trailingAnchor),
+            quotedPanelMinHeightConstraint,
         ])
     }
     
@@ -225,9 +227,7 @@ class QuotedMessageCellView: UIView {
         }
         switch quoted.type {
         case .feedpost:
-            configureText(text: quoted.rawText ?? "", mentions: quoted.orderedMentions)
-            configureMedia(media: quoted.media)
-            configureCell()
+            configureQuotedFeedPost(quoted: quoted)
             textLabel.textColor = UIColor.quotedMessageText
         case .moment:
             configureQuotedMoment(quoted: quoted)
@@ -235,6 +235,27 @@ class QuotedMessageCellView: UIView {
             break
         }
         configureCell()
+    }
+
+    private func configureQuotedFeedPost(quoted: ChatQuoted) {
+        if let feedPostID = quoted.message?.feedPostID, let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostID, in: MainAppContext.shared.feedData.viewContext) {
+            // For own posts it is ok to see
+            if feedPost.userID == MainAppContext.shared.userData.userId {
+                configureText(text: quoted.rawText ?? "", mentions: quoted.orderedMentions)
+                configureMedia(media: quoted.media)
+                return
+            }
+            switch feedPost.status {
+            case .retracted, .retracting:
+                configureText(text: Localizations.postDeletedLabel, mentions: quoted.orderedMentions)
+            default:
+                configureText(text: quoted.rawText ?? "", mentions: quoted.orderedMentions)
+                configureMedia(media: quoted.media)
+            }
+        } else {
+            // handle post expired
+            configureText(text: Localizations.postExpiredLabel, mentions: quoted.orderedMentions)
+        }
     }
 
     private func configureQuotedMoment(quoted: ChatQuoted) {
@@ -252,6 +273,8 @@ class QuotedMessageCellView: UIView {
                     if let image = UIImage(contentsOfFile: mediaURL.path) {
                         mediaView.image = image
                     } else {
+                        // This should ideally never happen : issue #3031
+                        configureExpiredPost(isMoment: true)
                         DDLogError("QuotedMessageCellView/configureQuotedMoment/Incoming/configureQuotedMoment/no-image/fileURL \(mediaURL)")
                     }
                 }
@@ -267,6 +290,16 @@ class QuotedMessageCellView: UIView {
             mediaView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 26, weight: .regular)
             mediaView.tintColor = UIColor.primaryBlackWhite.withAlphaComponent(0.3)
             mediaView.layer.masksToBounds = true
+        }
+    }
+
+    private func configureExpiredPost(isMoment: Bool) {
+        hasText = true
+        hasMedia = false
+        if isMoment {
+            textLabel.attributedText = NSAttributedString(string: Localizations.momentExpiredLabel)
+        } else {
+            textLabel.attributedText = NSAttributedString(string: Localizations.postExpiredLabel)
         }
     }
 
