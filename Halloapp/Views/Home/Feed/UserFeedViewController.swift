@@ -226,6 +226,31 @@ class UserFeedViewController: FeedCollectionViewController {
             title = titleText
         }
     }
+
+    override func modifyItems(_ items: [FeedDisplayItem]) -> [FeedDisplayItem] {
+        var items = super.modifyItems(items)
+        let context = MainAppContext.shared
+
+        if userId == context.userData.userId, context.feedData.validMoment.value == nil {
+            // show the moment prompt in the user's own feed
+            let promptTimestamp = MainAppContext.shared.feedData.momentPromptTimestamp()
+            let firstOldest = items.firstIndex {
+                switch $0 {
+                case .post(let post) where post.timestamp < promptTimestamp:
+                    return true
+                case .event(let event) where event.timestamp < promptTimestamp:
+                    return true
+                default:
+                    return false
+                }
+            }
+
+            let index = firstOldest ?? 0
+            items.insert(.momentPrompt, at: index)
+        }
+
+        return items
+    }
 }
 
 extension UserFeedViewController: CNContactViewControllerDelegate, ProfileHeaderDelegate {

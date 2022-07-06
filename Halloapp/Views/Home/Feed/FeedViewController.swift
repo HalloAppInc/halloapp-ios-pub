@@ -157,11 +157,7 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
                 }
             }
 
-            var index = 0
-            if let firstOldest = firstOldest, firstOldest != 0 {
-                index = firstOldest - 1
-            }
-
+            let index = firstOldest ?? 0
             result.insert(.momentPrompt, at: index)
         }
 
