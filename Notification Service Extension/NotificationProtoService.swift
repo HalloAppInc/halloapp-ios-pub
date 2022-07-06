@@ -658,7 +658,8 @@ final class NotificationProtoService: ProtoServiceCore {
                     }
                     self.rerequestHomeFeedItemIfNecessary(id: contentID, contentType: rerequestContentType, failure: decryptionFailure) { result in
                         switch result {
-                        case .success: break
+                        case .success:
+                            DDLogError("NotificationExtension/decryptAndProcessGroupFeedItem/contentID/\(contentID)/send rerequest success")
                         case .failure(let error):
                             DDLogError("NotificationExtension/decryptAndProcessGroupFeedItem/contentID/\(contentID)/failed rerequest: \(error)")
                         }

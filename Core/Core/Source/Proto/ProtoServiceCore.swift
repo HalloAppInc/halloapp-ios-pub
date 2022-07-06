@@ -1131,12 +1131,12 @@ extension ProtoServiceCore: CoreService {
             guard let contentId = item.contentId,
                   let publisherUid = item.publisherUid,
                   let encryptedPayload = item.encryptedPayload else {
-                newCompletion(nil, HomeDecryptionFailure(nil, nil, .missingPayload, .payload))
+                newCompletion(nil, HomeDecryptionFailure(item.contentId, item.publisherUid, .missingPayload, .payload))
                 return
             }
 
             guard let contentType = item.contentType else {
-                newCompletion(nil, HomeDecryptionFailure(nil, nil, .missingPayload, .payload))
+                newCompletion(nil, HomeDecryptionFailure(contentId, publisherUid, .missingPayload, .payload))
                 return
             }
 
@@ -1164,7 +1164,7 @@ extension ProtoServiceCore: CoreService {
                 }
                 DDLogInfo("ProtoServiceCore/decryptHomeFeedPayload/contentId/\(sessionType)/\(contentId), publisherUid: \(publisherUid)/end")
             default:
-                newCompletion(nil, HomeDecryptionFailure(nil, nil, .invalidPayload, .payload))
+                newCompletion(nil, HomeDecryptionFailure(contentId, publisherUid, .invalidPayload, .payload))
             }
         }
 
@@ -1676,7 +1676,7 @@ extension ProtoServiceCore: CoreService {
         guard let contentId = item.contentId,
               let publisherUid = item.publisherUid,
               item.encryptedPayload != nil else {
-            completion(nil, HomeDecryptionFailure(nil, nil, .missingPayload, .payload))
+            completion(nil, HomeDecryptionFailure(item.contentId, item.publisherUid, .missingPayload, .payload))
             return
         }
 
