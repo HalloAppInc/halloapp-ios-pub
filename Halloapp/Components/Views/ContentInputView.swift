@@ -962,8 +962,9 @@ extension ContentInputView: ContentTextViewDelegate {
             return
         }
         
-        let font = textView.font
-        let ham = HAMarkdown(font: font ?? .systemFont(ofSize: 10), color: .label)
+        let font = textView.font ?? UIFont.preferredFont(forTextStyle: .subheadline)
+        let color = textView.textColor ?? .label
+        let ham = HAMarkdown(font: font, color: color)
         textView.attributedText = ham.parseInPlace(text)
         textView.selectedTextRange = selected
     }
@@ -973,11 +974,13 @@ extension ContentInputView: ContentTextViewDelegate {
             return
         }
         let defaultFont = textView.font ?? UIFont.preferredFont(forTextStyle: .subheadline)
+        let defaultColor = textView.textColor ?? .label
         let attributedString = NSMutableAttributedString(attributedString: self.textView.attributedText)
         for range in self.textView.mentions.keys {
             attributedString.setAttributes([
                 .strokeWidth: NSNumber.init(value: -3.0),
                 .font: defaultFont,
+                .foregroundColor: defaultColor,
             ], range: range)
         }
         self.textView.attributedText = attributedString
