@@ -949,10 +949,6 @@ extension FeedCollectionViewController {
             guard let self = self else { return }
             self.retrySending(postId: postId)
         }
-        cell.deleteAction = { [weak self] in
-            guard let self = self else { return }
-            self.handleDeletePostTapped(postId: postId)
-        }
         cell.contextAction = { [weak self] action in
             self?.handle(action: action)
         }
@@ -973,8 +969,9 @@ extension FeedCollectionViewController {
         }
 
         if feedPost.canDeletePost {
-            HAMenuButton(title: Localizations.deletePostButtonTitle, image: UIImage(systemName: "trash")) { [weak self] in
-                self?.handleDeletePostTapped(postId: feedPost.id)
+            let title = feedPost.isMoment ? Localizations.deleteMomentButtonTitle : Localizations.deletePostButtonTitle
+            HAMenuButton(title: title, image: UIImage(systemName: "trash")) { [weak self] in
+                self?.handleDeletePostTapped(post: feedPost)
             }.destructive()
         }
     }
@@ -1007,10 +1004,13 @@ extension FeedCollectionViewController {
         return mediaItems
     }
     
-    private func handleDeletePostTapped(postId: FeedPostID) {
-        let actionSheet = UIAlertController(title: nil, message: Localizations.deletePostConfirmationPrompt, preferredStyle: .actionSheet)
-        actionSheet.addAction(UIAlertAction(title: Localizations.deletePostButtonTitle, style: .destructive) { _ in
-            self.reallyRetractPost(postId: postId)
+    private func handleDeletePostTapped(post: FeedPost) {
+        let title = post.isMoment ? Localizations.deleteMomentButtonTitle : Localizations.deletePostButtonTitle
+        let message = post.isMoment ? Localizations.deleteMomentConfirmationPrompt : Localizations.deletePostConfirmationPrompt
+
+        let actionSheet = UIAlertController(title: nil, message: message, preferredStyle: .actionSheet)
+        actionSheet.addAction(UIAlertAction(title: title, style: .destructive) { _ in
+            self.reallyRetractPost(postId: post.id)
         })
         actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         actionSheet.view.tintColor = .systemBlue
@@ -1248,10 +1248,24 @@ extension Localizations {
     static var deletePostConfirmationPrompt: String = {
         NSLocalizedString("your.post.deletepost.confirmation", value: "Delete this post? This action cannot be undone.", comment: "Post deletion confirmation. Displayed as action sheet title.")
     }()
+
     static var deletePostButtonTitle: String = {
         NSLocalizedString("your.post.deletepost.button", value: "Delete Post", comment: "Title for the button that confirms intent to delete your own post.")
     }()
+
     static var deletePostError: String {
         NSLocalizedString("your.post.deletepost.error", value: "Error deleting post", comment: "Displayed when a post fails to delete")
+    }
+
+    static var deleteMomentButtonTitle: String {
+        NSLocalizedString("your.moment.delete.title",
+                   value: "Delete Moment",
+                 comment: "Title for the button that confirms intent to delete your own moment.")
+    }
+
+    static var deleteMomentConfirmationPrompt: String {
+        NSLocalizedString("your.moment.delete.confirmation",
+                   value: "Delete this moment? This action cannot be undone.",
+                 comment: "Moment deletion confirmation. Displays as action sheet title.")
     }
 }
