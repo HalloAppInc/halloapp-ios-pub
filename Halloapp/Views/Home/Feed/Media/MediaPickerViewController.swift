@@ -139,17 +139,20 @@ class MediaPickerViewController: UIViewController {
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.allowsMultipleSelection = true
         collectionView.register(AssetViewCell.self, forCellWithReuseIdentifier: AssetViewCell.reuseIdentifier)
-        collectionView.contentInset = UIEdgeInsets(top: 80, left: 0, bottom: 80, right: 0)
         collectionView.dataSource = self
 
         return collectionView
     }()
 
     private lazy var nextButton: UIButton = {
+        let iconConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .bold)
+        let icon = UIImage(systemName: "chevron.right", withConfiguration: iconConfig)?
+                    .withTintColor(.white, renderingMode: .alwaysOriginal)
+
         let attributedTitle = NSAttributedString(string: Localizations.buttonNext,
                                                  attributes: [.kern: 0.5, .foregroundColor: UIColor.white])
         let disabledAttributedTitle = NSAttributedString(string: Localizations.buttonNext,
-                                                         attributes: [.kern: 0.5, .foregroundColor: UIColor.gray])
+                                                         attributes: [.kern: 0.5, .foregroundColor: UIColor.white])
 
         class MediaPickerButton: UIButton {
 
@@ -163,7 +166,7 @@ class MediaPickerViewController: UIViewController {
             }
 
             private func updateBackgrounds() {
-                setBackgroundColor(.primaryBlue, for: .normal)
+                setBackgroundColor(.lavaOrange, for: .normal)
                 setBackgroundColor(.label.withAlphaComponent(0.19), for: .disabled)
             }
 
@@ -181,9 +184,19 @@ class MediaPickerViewController: UIViewController {
         button.setAttributedTitle(attributedTitle, for: .normal)
         button.setAttributedTitle(disabledAttributedTitle, for: .disabled)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
+        button.setImage(icon, for: .normal)
         button.layer.cornerRadius = 22
         button.layer.masksToBounds = true
-        button.contentEdgeInsets = UIEdgeInsets(top: -1.5, left: 8, bottom: 0, right: 8)
+        button.contentEdgeInsets = UIEdgeInsets(top: -1.5, left: 24, bottom: 0, right: 28)
+
+        // keep image on the right & tappable
+        if case .rightToLeft = view.effectiveUserInterfaceLayoutDirection {
+            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -8, bottom: 0, right: 8)
+            button.semanticContentAttribute = .forceLeftToRight
+        } else {
+            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: -8)
+            button.semanticContentAttribute = .forceRightToLeft
+        }
 
         NSLayoutConstraint.activate([
             button.heightAnchor.constraint(equalToConstant: 44),
@@ -196,48 +209,67 @@ class MediaPickerViewController: UIViewController {
     }()
 
     private lazy var albumsButton: UIButton = {
-        let iconConfig = UIImage.SymbolConfiguration(pointSize: 11, weight: .bold)
-        let icon = UIImage(systemName: "chevron.down", withConfiguration: iconConfig)
+        let iconConfig = UIImage.SymbolConfiguration(pointSize: 9, weight: .bold)
+        let icon = UIImage(systemName: "chevron.down", withConfiguration: iconConfig)?
+                    .withTintColor(.white, renderingMode: .alwaysOriginal)
 
-        let button = UIButton(type: .system)
+        class GradientButton: UIButton {
+            override class var layerClass: AnyClass {
+                CAGradientLayer.self
+            }
+        }
+
+        let button = GradientButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.titleLabel?.font = .gothamFont(ofFixedSize: 16, weight: .medium)
-        button.setTitleColor(.label.withAlphaComponent(0.9), for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 14, weight: .bold)
+        button.setTitleColor(.white, for: .normal)
         button.setImage(icon, for: .normal)
-        
-        let insets: UIEdgeInsets
+        button.layer.cornerRadius = 15
+        button.layer.masksToBounds = true
+        button.layer.shadowPath = UIBezierPath(roundedRect: button.bounds, cornerRadius: 15).cgPath
+        button.layer.shadowColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.4).cgColor
+        button.layer.shadowOpacity = 1
+        button.layer.shadowRadius = 10
+        button.layer.shadowOffset = CGSize(width: 0, height: 1)
+
+        if let background = button.layer as? CAGradientLayer {
+            background.colors = [
+              UIColor(red: 0.15, green: 0.15, blue: 0.15, alpha: 1).cgColor,
+              UIColor(red: 0.108, green: 0.108, blue: 0.108, alpha: 1).cgColor
+            ]
+            background.locations = [0, 1]
+            background.startPoint = CGPoint(x: 0.25, y: 0.5)
+            background.endPoint = CGPoint(x: 0.75, y: 0.5)
+        }
+
+        // keep image on the right & tappable
         if case .rightToLeft = view.effectiveUserInterfaceLayoutDirection {
-            // keep image on the right & tappable
             button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -8, bottom: 0, right: 0)
             button.semanticContentAttribute = .forceLeftToRight
         } else {
             button.imageEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 0)
             button.semanticContentAttribute = .forceRightToLeft
         }
+
+        button.contentEdgeInsets = UIEdgeInsets(top: 6, left: 24, bottom: 7, right: 28)
         
         button.addTarget(self, action: #selector(openAlbumsAction), for: .touchUpInside)
+
         return button
     }()
 
     private lazy var actionsContainerView: UIView = {
-        let spacer = UIView()
-        spacer.translatesAutoresizingMaskIntoConstraints = false
-
-        let row = UIStackView(arrangedSubviews: [albumsButton, spacer, nextButton])
-        row.translatesAutoresizingMaskIntoConstraints = false
-        row.axis = .horizontal
-        row.alignment = .center
-
         let container = UIView()
         container.translatesAutoresizingMaskIntoConstraints = false
         container.backgroundColor = .feedBackground
-        container.addSubview(row)
+        container.addSubview(nextButton)
+        container.addSubview(cameraButton)
 
         NSLayoutConstraint.activate([
-            row.heightAnchor.constraint(equalToConstant: 80),
-            row.topAnchor.constraint(equalTo: container.topAnchor),
-            row.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 24),
-            row.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -18),
+            nextButton.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+            nextButton.topAnchor.constraint(equalTo: container.topAnchor, constant: 12),
+            cameraButton.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -16),
+            cameraButton.centerYAnchor.constraint(equalTo: nextButton.centerYAnchor),
         ])
 
         return container
@@ -293,104 +325,16 @@ class MediaPickerViewController: UIViewController {
         return bubble
     }()
 
-    private var changeDestinationIconConstraint: NSLayoutConstraint?
-    private lazy var changeDestinationIcon: UIImageView = {
-        let iconImage = UIImage(named: "PrivacySettingMyContacts")?
-            .withTintColor(.white, renderingMode: .alwaysOriginal)
-        let icon = UIImageView(image: iconImage)
-        icon.translatesAutoresizingMaskIntoConstraints = false
-        icon.contentMode = .scaleAspectFit
-
-        let iconConstraint = icon.widthAnchor.constraint(equalToConstant: 13)
-        NSLayoutConstraint.activate([
-            iconConstraint,
-            icon.heightAnchor.constraint(equalTo: icon.widthAnchor),
-        ])
-        changeDestinationIconConstraint = iconConstraint
-
-        return icon
-    }()
-
-    private lazy var changeDestinationLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = .white
-        label.font = .systemFont(ofSize: 14, weight: .medium)
-
-        return label
-    }()
-
-    private lazy var changeDestinationButton: UIButton = {
-        let arrowImage = UIImage(named: "ArrowDownSmall")?.withTintColor(.white, renderingMode: .alwaysOriginal)
-        let arrow = UIImageView(image: arrowImage)
-        arrow.translatesAutoresizingMaskIntoConstraints = false
-
-        let stack = UIStackView(arrangedSubviews: [changeDestinationIcon, changeDestinationLabel, arrow])
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        stack.axis = .horizontal
-        stack.alignment = .center
-        stack.spacing = 6
-        stack.isUserInteractionEnabled = false
-
-        let button = UIButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.setBackgroundColor(.primaryBlue, for: .normal)
-        button.layer.cornerRadius = 14
-        button.layer.masksToBounds = true
-        button.addTarget(self, action: #selector(changeDestinationAction), for: .touchUpInside)
-
-        button.addSubview(stack)
-
-        NSLayoutConstraint.activate([
-            stack.heightAnchor.constraint(equalToConstant: 28),
-            stack.topAnchor.constraint(equalTo: button.topAnchor),
-            stack.bottomAnchor.constraint(equalTo: button.bottomAnchor),
-            stack.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: 10),
-            stack.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -10),
-        ])
-
-        return button
-    }()
-
-    private lazy var changeDestinationRow: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-
-        view.addSubview(changeDestinationButton)
-
-        NSLayoutConstraint.activate([
-            changeDestinationButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            changeDestinationButton.heightAnchor.constraint(equalTo: view.heightAnchor),
-        ])
-
-        return view
-    }()
-
-    private lazy var backButton: UIButton = {
-        let imageColor = UIColor.label.withAlphaComponent(0.9)
-        let imageConfig = UIImage.SymbolConfiguration(weight: .bold)
-        let image = UIImage(systemName: "xmark", withConfiguration: imageConfig)?.withTintColor(imageColor)
-
-        let button = UIButton(type: .system)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(image, for: .normal)
-        button.addTarget(self, action: #selector(cancelAction), for: .touchUpInside)
-
-        NSLayoutConstraint.activate([
-            button.widthAnchor.constraint(equalToConstant: 44),
-            button.heightAnchor.constraint(equalToConstant: 44),
-        ])
-
-        return button
-    }()
-
     private lazy var cameraButton: UIButton = {
-        let imageColor = UIColor.label.withAlphaComponent(0.9)
         let imageConfig = UIImage.SymbolConfiguration(scale: .large)
-        let image = UIImage(systemName: "camera.fill", withConfiguration: imageConfig)?.withTintColor(imageColor)
+        let image = UIImage(systemName: "camera.circle.fill")?
+            .withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
 
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.contentHorizontalAlignment = .fill
+        button.contentVerticalAlignment = .fill
+        button.imageView?.contentMode = .scaleAspectFit
         button.setImage(image, for: .normal)
         button.addTarget(self, action: #selector(cameraAction), for: .touchUpInside)
 
@@ -402,58 +346,7 @@ class MediaPickerViewController: UIViewController {
         return button
     }()
 
-    private lazy var titleLabel: UILabel = {
-        let title = UILabel()
-        title.translatesAutoresizingMaskIntoConstraints = false
-        title.textAlignment = .center
-        title.font = .gothamFont(ofFixedSize: 15, weight: .medium)
-        title.textColor = .label.withAlphaComponent(0.9)
-
-        return title
-    }()
-
-
-    private var customNavigationContentTopConstraint: NSLayoutConstraint?
-    private lazy var customNavigationBar: UIView = {
-        let container = UIView()
-        container.translatesAutoresizingMaskIntoConstraints = false
-        container.backgroundColor = .feedBackground
-
-        let spacer = UIView()
-        spacer.translatesAutoresizingMaskIntoConstraints = false
-
-        let navigationRow = UIStackView(arrangedSubviews: [backButton, spacer, cameraButton])
-        navigationRow.translatesAutoresizingMaskIntoConstraints = false
-        navigationRow.axis = .horizontal
-        navigationRow.alignment = .center
-        navigationRow.distribution = .equalSpacing
-        navigationRow.addSubview(titleLabel)
-
-        let rowsView = UIStackView(arrangedSubviews: [navigationRow, changeDestinationRow])
-        rowsView.translatesAutoresizingMaskIntoConstraints = false
-        rowsView.axis = .vertical
-        rowsView.alignment = .fill
-        rowsView.spacing = -4
-
-        container.addSubview(rowsView)
-
-        NSLayoutConstraint.activate([
-            navigationRow.heightAnchor.constraint(equalToConstant: 44),
-            titleLabel.centerXAnchor.constraint(equalTo: navigationRow.centerXAnchor),
-            titleLabel.centerYAnchor.constraint(equalTo: navigationRow.centerYAnchor),
-            rowsView.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 8),
-            rowsView.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -8),
-            rowsView.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -9),
-        ])
-
-        customNavigationContentTopConstraint = rowsView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8)
-
-        return container
-    }()
-
     private var isAnyCallOngoingCancellable: AnyCancellable?
-    private var privacyCancellable: AnyCancellable?
-    private var changeDestinationAvatarCancellable: AnyCancellable?
     
     init(config: MediaPickerConfig, selected: [PendingMedia] = [] , didFinish: @escaping MediaPickerViewControllerCallback) {
         self.config = config
@@ -477,39 +370,34 @@ class MediaPickerViewController: UIViewController {
         view.backgroundColor = .feedBackground
 
         view.addSubview(collectionView)
+        view.addSubview(albumsButton)
         view.addSubview(actionsContainerView)
         view.addSubview(limitedAccessBubble)
-        view.addSubview(customNavigationBar)
-
-        collectionView.constrain(to: view)
 
         NSLayoutConstraint.activate([
-            actionsContainerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -80),
+            collectionView.topAnchor.constraint(equalTo: view.topAnchor),
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: actionsContainerView.topAnchor),
+            actionsContainerView.heightAnchor.constraint(equalToConstant: 90),
             actionsContainerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             actionsContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             actionsContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             limitedAccessBubble.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 20),
             limitedAccessBubble.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -20),
             limitedAccessBubble.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -20),
-            customNavigationBar.topAnchor.constraint(equalTo: view.topAnchor),
-            customNavigationBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            customNavigationBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            albumsButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            albumsButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
         ])
-        customNavigationContentTopConstraint?.isActive = true
+
+        let backImageConfig = UIImage.SymbolConfiguration(weight: .bold)
+        let backImage = UIImage(systemName: "chevron.down", withConfiguration: backImageConfig)?.withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
+        navigationItem.leftBarButtonItem = UIBarButtonItem(image: backImage, style: .plain, target: self, action: #selector(cancelAction))
+
+        title = Localizations.fabAccessibilityPhotoLibrary
 
         updateNavigation()
         albumsButton.setTitle("", for: .normal)
-
-        if config.destination != nil {
-            updateChangeDestinationBtn()
-
-            privacyCancellable = MainAppContext.shared.privacySettings.objectWillChange.sink { [weak self] _ in
-                guard let self = self else { return }
-                DispatchQueue.main.async {
-                    self.updateChangeDestinationBtn()
-                }
-            }
-        }
 
         setupZoom()
         setupPreviews()
@@ -529,13 +417,9 @@ class MediaPickerViewController: UIViewController {
                 self.config.privacyListType = privacyListType
                 self.config.destination = .userFeed
             }
+
             self.present(favoritesVC, animated: true)
         }
-    }
-
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        navigationController?.setNavigationBarHidden(true, animated: false)
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -651,17 +535,9 @@ class MediaPickerViewController: UIViewController {
         config.destination = destination
 
         updateNavigation()
-        updateChangeDestinationBtn()
     }
     
     private func updateNavigation() {
-        let backImageColor = UIColor.label.withAlphaComponent(0.9)
-        let backImageConfig = UIImage.SymbolConfiguration(weight: .bold)
-        let backImage = UIImage(systemName: selected.count > 0 ? "xmark" : "chevron.down", withConfiguration: backImageConfig)?.withTintColor(backImageColor)
-        backButton.setImage(backImage, for: .normal)
-
-        titleLabel.text = title
-
         nextButton.isHidden = !config.allowsMultipleSelection
         nextButton.isEnabled = selected.count > 0
 
@@ -670,73 +546,8 @@ class MediaPickerViewController: UIViewController {
             let isVideoCallOngoing = MainAppContext.shared.callManager.activeCall?.isVideoCall ?? false
             cameraButton.isEnabled = !isVideoCallOngoing
         }
-
-        changeDestinationRow.isHidden = config.destination == nil
-        if case .chat = config.destination {
-            changeDestinationRow.isHidden = true
-        }
     }
 
-    private func updateChangeDestinationBtn() {
-        guard let destination = config.destination else { return }
-
-        changeDestinationIcon.isHidden = false
-        changeDestinationIcon.layer.cornerRadius = 0
-        changeDestinationIcon.layer.masksToBounds = false
-        changeDestinationAvatarCancellable?.cancel()
-
-        switch destination {
-        case .userFeed:
-            guard let privacy = config.privacyListType else { return }
-
-            switch privacy {
-            case .all:
-                changeDestinationIcon.image = UIImage(named: "PrivacySettingMyContacts")?.withTintColor(.white, renderingMode: .alwaysOriginal)
-                changeDestinationButton.setBackgroundColor(.primaryBlue, for: .normal)
-            case .whitelist:
-                changeDestinationIcon.image = UIImage(named: "PrivacySettingFavoritesInversed")
-                changeDestinationButton.setBackgroundColor(.favoritesBg, for: .normal)
-            default:
-                changeDestinationIcon.image = UIImage(named: "settingsSettings")?.withTintColor(.white, renderingMode: .alwaysOriginal)
-                changeDestinationButton.setBackgroundColor(.primaryBlue, for: .normal)
-            }
-
-            changeDestinationIconConstraint?.constant = 13
-
-            changeDestinationLabel.text = PrivacyList.name(forPrivacyListType: privacy)
-        case .groupFeed(let groupId):
-            changeDestinationButton.setBackgroundColor(.primaryBlue, for: .normal)
-            
-            let avatarData = MainAppContext.shared.avatarStore.groupAvatarData(for: groupId)
-
-            if let image = avatarData.image {
-                changeDestinationIcon.image = image
-                changeDestinationIcon.layer.cornerRadius = 6
-                changeDestinationIcon.layer.masksToBounds = true
-            } else {
-                changeDestinationIcon.image = AvatarView.defaultGroupImage
-
-                if !avatarData.isEmpty {
-                    changeDestinationAvatarCancellable = avatarData.imageDidChange.sink { [weak self] image in
-                        guard let self = self else { return }
-                        guard let image = image else { return }
-                        self.changeDestinationIcon.image = image
-                    }
-
-                    avatarData.loadImage(using: MainAppContext.shared.avatarStore)
-                }
-            }
-
-            changeDestinationIconConstraint?.constant = 19
-
-            if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) {
-                changeDestinationLabel.text = group.name
-            }
-        case .chat:
-            break
-        }
-    }
-    
     private func setupZoom() {
         let zoomRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(self.onZoom(sender:)))
         collectionView.addGestureRecognizer(zoomRecognizer)
@@ -993,7 +804,6 @@ class MediaPickerViewController: UIViewController {
     }
 
     @objc private func cancelAction() {
-        privacyCancellable?.cancel() // prevent blue pill changing during closing animation
         didFinish(self, config.destination, self.config.privacyListType, [], true)
     }
 
@@ -1010,19 +820,6 @@ class MediaPickerViewController: UIViewController {
         }
 
         present(controller, animated: true)
-    }
-
-    @objc private func changeDestinationAction() {
-        guard let destination = config.destination, let privacyListType = config.privacyListType else { return }
-
-        let controller = ChangeDestinationViewController(destination: destination, privacyListType: privacyListType) { controller, destination, privacyListType in
-            controller.dismiss(animated: true)
-            self.config.privacyListType = privacyListType
-            self.config.destination = destination
-            self.updateChangeDestinationBtn()
-        }
-
-        present(UINavigationController(rootViewController: controller), animated: true)
     }
 
     @objc private func closeLimitedAccessBuble() {
@@ -1375,7 +1172,7 @@ fileprivate class AssetViewCell: UICollectionViewCell {
                 indicatorLabel.isHidden = false
             }
         } else {
-            indicator.layer.borderColor = CGColor(srgbRed: 1.0, green: 1.0, blue: 1.0, alpha: 0.7)
+            indicator.layer.borderColor = CGColor(srgbRed: 1.0, green: 1.0, blue: 1.0, alpha: 0.9)
             indicator.backgroundColor = .clear
             indicatorLabel.isHidden = true
         }
