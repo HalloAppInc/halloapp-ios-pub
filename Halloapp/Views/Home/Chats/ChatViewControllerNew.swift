@@ -1479,7 +1479,7 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
     }
 
     func messageView(_ messageViewCell: MessageCellViewBase, openPost feedPostId: String) {
-        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: MainAppContext.shared.feedData.viewContext) else {
+        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: MainAppContext.shared.feedData.viewContext, archived: true) else {
             DDLogWarn("ChatViewControllerNew/Quoted feed post \(feedPostId) not found")
             return
         }
