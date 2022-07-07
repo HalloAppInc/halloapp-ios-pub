@@ -178,6 +178,19 @@ extension Localizations {
 
     // MARK: Misc
 
+    static var newPostTitle: String {
+        NSLocalizedString("composer.post.title", value: "New Post", comment: "Composer New Post title.")
+    }
+
+    static var chatGroupInfoLeaveGroup: String {
+        NSLocalizedString("chat.group.info.leave.group", value: "Leave group", comment: "Action label for leaving group")
+    }
+
+    static func leaveGroupConfirmation(groupName: String) -> String {
+        let format = NSLocalizedString("chat.group.leave.group.confirmation", value: "Leave “%@”?", comment: "Confirmation message presented when leaving a group")
+        return String(format: format, groupName)
+    }
+
     static var inviteFriendsAndFamily: String {
         NSLocalizedString("app.ios.invite.friends", value: "Invite friends & family", comment: "Title of view where users can invite friends and family.")
     }

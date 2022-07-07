@@ -216,19 +216,7 @@ class GroupGridViewController: UIViewController {
                 header.openGroupFeed = { [weak self] in
                     self?.navigationController?.pushViewController(GroupFeedViewController(groupId: groupID), animated: true)
                 }
-                header.composeGroupPost = { [weak self] in
-                    var viewControllerToDismiss: UIViewController?
-                    let newPostViewController = NewPostViewController(source: .noMedia, destination: .groupFeed(groupID)) { didPost in
-                        guard let viewControllerToDismiss = viewControllerToDismiss else {
-                            DDLogError("GroupGridViewController/Missing NewPostViewController to dismiss")
-                            return
-                        }
-                        viewControllerToDismiss.dismiss(animated: true)
-                    }
-                    viewControllerToDismiss = newPostViewController
-                    newPostViewController.modalPresentationStyle = .fullScreen
-                    self?.present(newPostViewController, animated: true)
-                }
+                header.composeGroupPost = { [weak self] in self?.createPost(in: groupID) }
                 header.menuActionsForGroup = { [weak self] in self?.menuActionsForGroup(groupID: $0) ?? [] }
             }
             return header
@@ -257,11 +245,6 @@ class GroupGridViewController: UIViewController {
         }
     }
 
-    @objc func newPostToastTapped() {
-        dataSource.reload(animated: true)
-        scrollToTop(animated: true)
-    }
-
     @objc func refreshControlDidRefresh(_ refreshControl: UIRefreshControl?) {
         if searchController.isActive {
             refreshControl?.endRefreshing()
@@ -273,7 +256,7 @@ class GroupGridViewController: UIViewController {
         }
     }
 
-    @objc func createGroup() {
+    @objc private func createGroup() {
         guard ContactStore.contactsAccessAuthorized else {
             present(UINavigationController(rootViewController: NewGroupMembersPermissionDeniedController()), animated: true)
             return
@@ -298,34 +281,94 @@ class GroupGridViewController: UIViewController {
         }), animated: true)
     }
 
+    private func createPost(in groupID: GroupID) {
+        var viewControllerToDismiss: UIViewController?
+        let newPostViewController = NewPostViewController(source: .noMedia, destination: .groupFeed(groupID)) { didPost in
+            guard let viewControllerToDismiss = viewControllerToDismiss else {
+                DDLogError("GroupGridViewController/Missing NewPostViewController to dismiss")
+                return
+            }
+            viewControllerToDismiss.dismiss(animated: true)
+        }
+        viewControllerToDismiss = newPostViewController
+        newPostViewController.modalPresentationStyle = .fullScreen
+        present(newPostViewController, animated: true)
+    }
+
+    private func leaveGroup(id: GroupID) {
+        guard let group = MainAppContext.shared.chatData.chatGroup(groupId: id, in: MainAppContext.shared.chatData.viewContext) else {
+            DDLogError("GroupGridViewController/Cannot find chat group to leave")
+            return
+        }
+
+        let actionSheet = UIAlertController(title: nil, message: Localizations.leaveGroupConfirmation(groupName: group.name), preferredStyle: .actionSheet)
+        actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoLeaveGroup, style: .destructive) { _ in
+            MainAppContext.shared.service.leaveGroup(groupID: id) { _ in }
+         })
+         actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+         present(actionSheet, animated: true)
+    }
+
+    private func deleteGroup(id: GroupID) {
+        let chatData = MainAppContext.shared.chatData!
+        let actionSheet = UIAlertController(title: chatData.chatGroup(groupId: id, in: chatData.viewContext)?.name,
+                                            message: Localizations.groupsListRemoveMessage,
+                                            preferredStyle: .alert)
+        actionSheet.addAction(UIAlertAction(title: Localizations.buttonRemove, style: .destructive) { [weak self] _ in
+            let isMember = chatData.chatGroupMember(groupId: id, memberUserId: MainAppContext.shared.userData.userId, in: chatData.viewContext) != nil
+
+            if isMember {
+                MainAppContext.shared.service.leaveGroup(groupID: id) { result in
+                    switch result {
+                    case .success:
+                        chatData.deleteChatGroup(groupId: id)
+                    case .failure(let error):
+                        DDLogError("GroupGridViewController/Failed to leave group during deletion: \(error)")
+
+                        let alertController = UIAlertController(title: nil, message: Localizations.groupsGridDeleteGroupFailed, preferredStyle: .alert)
+                        alertController.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default))
+                        self?.present(alertController, animated: true)
+                    }
+                }
+            } else {
+                chatData.deleteChatGroup(groupId: id)
+            }
+        })
+        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+        present(actionSheet, animated: true)
+    }
+
     func menuActionsForGroup(groupID: GroupID) -> [UIMenuElement] {
         let chatData = MainAppContext.shared.chatData!
         guard let group = chatData.chatGroup(groupId: groupID, in: chatData.viewContext) else {
             return []
         }
 
-        let userID = MainAppContext.shared.userData.userId
-        if chatData.chatGroupMember(groupId: group.id, memberUserId: userID, in: chatData.viewContext) != nil {
-            return [
-                UIAction(title: Localizations.groupsGridHeaderMoreInfo) { [weak self] _ in
-                    self?.navigationController?.pushViewController(GroupInfoViewController(for: groupID), animated: true)
-                }
-            ]
-        } else {
-            let groupName = group.name
-            return [
-                UIAction(title: Localizations.buttonRemove, attributes: [.destructive]) { [weak self] _ in
-                    let actionSheet = UIAlertController(title: groupName,
-                                                        message: Localizations.groupsListRemoveMessage,
-                                                        preferredStyle: .alert)
-                    actionSheet.addAction(UIAlertAction(title: Localizations.buttonRemove, style: .destructive) { _ in
-                        MainAppContext.shared.chatData.deleteChatGroup(groupId: groupID)
-                    })
-                    actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
-                    self?.present(actionSheet, animated: true)
-                }
-            ]
+        var actions: [UIMenuElement] = []
+
+        let isMember = chatData.chatGroupMember(groupId: group.id, memberUserId: MainAppContext.shared.userData.userId, in: chatData.viewContext) != nil
+        if isMember {
+            actions.append(UIAction(title: Localizations.newPost, image: UIImage(systemName: "plus.circle"), handler: { [weak self] _ in
+                self?.createPost(in: groupID)
+            }))
         }
+
+        actions.append(UIAction(title: Localizations.groupsGridHeaderMoreInfo, image: UIImage(systemName: "info.circle"), handler: { [weak self] _ in
+            self?.navigationController?.pushViewController(GroupInfoViewController(for: groupID), animated: true)
+        }))
+
+        if isMember {
+            actions.append(UIAction(title: Localizations.chatGroupInfoLeaveGroup, image: UIImage(systemName: "rectangle.portrait.and.arrow.right"), handler: { [weak self] _ in
+                self?.leaveGroup(id: groupID)
+            }))
+        }
+
+        return [
+            UIMenu(options: .displayInline, children: actions),
+            UIAction(title: Localizations.groupsGridButtonDelete, image: UIImage(systemName: "trash"), attributes: [.destructive]) { [weak self] _ in
+                self?.deleteGroup(id: groupID)
+            }
+        ]
     }
 }
 
@@ -377,6 +420,14 @@ extension GroupGridViewController: UISearchControllerDelegate {
 }
 
 extension Localizations {
+
+    static var groupsGridDeleteGroupFailed: String {
+        NSLocalizedString("groupGrid.deletion.error", value: "Failed to delete group", comment: "Error message when a group fails to delete")
+    }
+
+    static var groupsGridButtonDelete: String {
+        NSLocalizedString("groupGrid.deletion.title", value: "Delete Group", comment: "Title of button that deletes a group")
+    }
 
     static var groupsGridHeaderMoreInfo: String {
         NSLocalizedString("groupGridHeader.moreInfo", value: "More Info", comment: "More info menu item")

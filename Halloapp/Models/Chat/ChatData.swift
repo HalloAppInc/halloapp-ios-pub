@@ -4652,7 +4652,13 @@ extension ChatData {
     }
 
     private func processGroupLeaveAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
-        
+        // If the group no longer exists, and we're the removed member, we've likely deleted the group.  Do not attempt to recreate or add events.
+        if chatGroup(groupId: xmppGroup.groupId, in: managedObjectContext) == nil,
+           xmppGroup.members?.count == 1, let member = xmppGroup.members?.first, member.action == .leave, member.userId == userData.userId {
+            DDLogDebug("ChatData/group/process/new/skip-leave-member [\(xmppGroup.groupId)]")
+            return
+        }
+
         _ = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
 
         var membersRemoved: [UserID] = []

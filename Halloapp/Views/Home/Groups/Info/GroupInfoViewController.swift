@@ -1263,10 +1263,6 @@ private extension Localizations {
         NSLocalizedString("chat.group.info.admin.label", value: "Admin", comment: "Label shown in the members list when member is an admin")
     }
 
-    static var chatGroupInfoLeaveGroup: String {
-        NSLocalizedString("chat.group.info.leave.group", value: "Leave group", comment: "Action label for leaving group")
-    }
-
     static var chatGroupInfoNotAMemberLabel: String {
         NSLocalizedString("chat.group.info.not.a.member.label", value: "You are not a member of this group", comment: "Text label shown when the user is not a member of the group")
     }
@@ -1291,10 +1287,5 @@ private extension Localizations {
 
     static var chatGroupInfoRemoveFromGroup: String {
         NSLocalizedString("chat.group.info.remove.from.group", value: "Remove From Group", comment: "Text for menu option of removing a group member")
-    }
-
-    static func leaveGroupConfirmation(groupName: String) -> String {
-        let format = NSLocalizedString("chat.group.leave.group.confirmation", value: "Leave “%@”?", comment: "Confirmation message presented when leaving a group")
-        return String(format: format, groupName)
     }
 }

@@ -24,6 +24,16 @@ class GroupGridHeader: UICollectionReusableView {
         static let avatarSize: CGFloat = 32
     }
 
+    private let groupAvatarAndNameStackView: UIStackView = {
+        let groupAvatarAndNameStackView = UIStackView()
+        groupAvatarAndNameStackView.alignment = .center
+        groupAvatarAndNameStackView.axis = .horizontal
+        groupAvatarAndNameStackView.isLayoutMarginsRelativeArrangement = true
+        groupAvatarAndNameStackView.layoutMargins = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
+        groupAvatarAndNameStackView.spacing = 12
+        return groupAvatarAndNameStackView
+    }()
+
     private let groupAvatarView: AvatarView = AvatarView()
 
     private let groupNameLabel: UILabel = {
@@ -43,16 +53,10 @@ class GroupGridHeader: UICollectionReusableView {
         addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(headerTapped)))
         addInteraction(UIContextMenuInteraction(delegate: self))
 
-        let groupAvatarAndNameStackView = UIStackView(arrangedSubviews: [groupAvatarView, groupNameLabel])
-        groupAvatarAndNameStackView.alignment = .center
-        groupAvatarAndNameStackView.axis = .horizontal
-        groupAvatarAndNameStackView.isLayoutMarginsRelativeArrangement = true
-        groupAvatarAndNameStackView.layoutMargins = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
-        groupAvatarAndNameStackView.spacing = 12
+        groupAvatarAndNameStackView.addArrangedSubview(groupAvatarView)
+        groupAvatarAndNameStackView.addArrangedSubview(groupNameLabel)
         groupAvatarAndNameStackView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(groupAvatarAndNameStackView)
-
-        groupAvatarAndNameStackView.setCustomSpacing(3, after: groupNameLabel)
 
         let postButton = RoundedRectButton()
         postButton.addTarget(self, action: #selector(composeButtonTapped), for: .touchUpInside)
@@ -122,5 +126,21 @@ extension GroupGridHeader: UIContextMenuInteractionDelegate {
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
             return UIMenu(title: groupName, image: nil, identifier: nil, options: [], children: items)
         }
+    }
+
+    private func targetedPreview() -> UITargetedPreview {
+        let params = UIPreviewParameters()
+        params.visiblePath = UIBezierPath(roundedRect: groupAvatarAndNameStackView.bounds.insetBy(dx: -12, dy: 0), cornerRadius: 6)
+        return UITargetedPreview(view: groupAvatarAndNameStackView, parameters: params)
+    }
+
+    func contextMenuInteraction(_ interaction: UIContextMenuInteraction,
+                                previewForHighlightingMenuWithConfiguration configuration: UIContextMenuConfiguration) -> UITargetedPreview? {
+        return targetedPreview()
+    }
+
+    func contextMenuInteraction(_ interaction: UIContextMenuInteraction,
+                                previewForDismissingMenuWithConfiguration configuration: UIContextMenuConfiguration) -> UITargetedPreview? {
+        return targetedPreview()
     }
 }

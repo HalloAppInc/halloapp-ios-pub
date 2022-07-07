@@ -149,10 +149,6 @@ private extension Localizations {
         NSLocalizedString("composer.max.video.length.message", value: "Please select another video or tap the edit button.", comment: "Alert message in composer when a video is too long")
     }
 
-    static var newPostTitle: String {
-        NSLocalizedString("composer.post.title", value: "New Post", comment: "Composer New Post title.")
-    }
-
     static var newMessageTitle: String {
         NSLocalizedString("composer.message.title", value: "New Message", comment: "Composer New Message title.")
     }
