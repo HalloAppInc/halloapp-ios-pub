@@ -152,36 +152,43 @@ class Toast: UIView {
             return
         }
 
-        var keyWindow: UIWindow?
-        for case let scene as UIWindowScene in UIApplication.shared.connectedScenes where scene.activationState == .foregroundActive {
-            for window in scene.windows {
-                if window.isKeyWindow {
-                    keyWindow = window
-                    break
+        let rootView: UIView
+        let rootViewTopAnchor: NSLayoutYAxisAnchor
+        if let viewController = viewController {
+            rootView = viewController.view
+            rootViewTopAnchor = rootView.safeAreaLayoutGuide.topAnchor
+        } else {
+            var keyWindow: UIWindow?
+            for case let scene as UIWindowScene in UIApplication.shared.connectedScenes where scene.activationState == .foregroundActive {
+                for window in scene.windows {
+                    if window.isKeyWindow {
+                        keyWindow = window
+                        break
+                    }
                 }
             }
-        }
 
-        guard let rootView = viewController?.view ?? keyWindow?.rootViewController?.view else {
-            DDLogError("Unable to find view to present toast")
-            return
+            guard let keyWindow = keyWindow else {
+                DDLogError("Unable to find view to present toast")
+                return
+            }
+            rootView = keyWindow
+
+            // Make space for call bar if contained in RootViewController
+            if let rootViewController = keyWindow.rootViewController as? RootViewController, rootViewController.view.isDescendant(of: keyWindow) {
+                rootViewTopAnchor = rootViewController.primaryViewContainer.safeAreaLayoutGuide.topAnchor
+            } else {
+                rootViewTopAnchor = rootView.safeAreaLayoutGuide.topAnchor
+            }
         }
 
         translatesAutoresizingMaskIntoConstraints = false
         rootView.addSubview(self)
 
-        // Make space for call bar if contained in RootViewController
-        let topAnchor: NSLayoutYAxisAnchor
-        if let rootViewController = keyWindow?.rootViewController as? RootViewController, rootView.isDescendant(of: rootViewController.view) {
-            topAnchor = rootViewController.primaryViewContainer.safeAreaLayoutGuide.topAnchor
-        } else {
-            topAnchor = rootView.safeAreaLayoutGuide.topAnchor
-        }
-
         NSLayoutConstraint.activate([
             leadingAnchor.constraint(greaterThanOrEqualTo: rootView.readableContentGuide.leadingAnchor, constant: -8),
             centerXAnchor.constraint(equalTo: rootView.readableContentGuide.centerXAnchor),
-            self.topAnchor.constraint(equalTo: topAnchor, constant: 52),
+            topAnchor.constraint(equalTo: rootViewTopAnchor, constant: 52),
         ])
 
         alpha = 0
