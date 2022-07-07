@@ -155,6 +155,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 
     static private let cellReuseIdentifierImage = "MediaCarouselCellImage"
     static private let cellReuseIdentifierVideo = "MediaCarouselCellVideo"
+    static private let cellReuseIdentifierNonPlayingVideo = "MediaCarouselCellNonPlayingVideo"
     static private let cellReuseIdentifierEmpty = "MediaCarouselCellEmpty"
 
     private class MediaCarouselCollectionViewLayout: UICollectionViewFlowLayout {
@@ -187,9 +188,10 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
             layout.sectionInset = .zero
         }
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collectionView.register(MediaCarouselImageCollectionViewCell.self, forCellWithReuseIdentifier: MediaCarouselView.cellReuseIdentifierImage)
-        collectionView.register(MediaCarouselVideoCollectionViewCell.self, forCellWithReuseIdentifier: MediaCarouselView.cellReuseIdentifierVideo)
-        collectionView.register(MediaCarouselEmptyCollectionViewCell.self, forCellWithReuseIdentifier: MediaCarouselView.cellReuseIdentifierEmpty)
+        collectionView.register(MediaCarouselImageCollectionViewCell.self, forCellWithReuseIdentifier: Self.cellReuseIdentifierImage)
+        collectionView.register(MediaCarouselVideoCollectionViewCell.self, forCellWithReuseIdentifier: Self.cellReuseIdentifierVideo)
+        collectionView.register(MediaCarouselSimpleVideoViewCell.self, forCellWithReuseIdentifier: Self.cellReuseIdentifierNonPlayingVideo)
+        collectionView.register(MediaCarouselEmptyCollectionViewCell.self, forCellWithReuseIdentifier: Self.cellReuseIdentifierEmpty)
         collectionView.isPagingEnabled = configuration.isPagingEnabled
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.backgroundColor = .clear
@@ -260,10 +262,11 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
             let reuseIdentifier: String = {
                 switch feedMedia.type {
                 case .image: return Self.cellReuseIdentifierImage
-                case .video: return Self.cellReuseIdentifierVideo
+                case .video: return self.configuration.disablePlayback ? Self.cellReuseIdentifierNonPlayingVideo : Self.cellReuseIdentifierVideo
                 case .audio: return Self.cellReuseIdentifierEmpty
                 }
             }()
+
             if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as?
                 MediaCarouselCollectionViewCell {
                 if indexPath.item == self.currentIndex,
@@ -571,6 +574,8 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         if let imageCell = collectionView.cellForItem(at: indexPath) as? MediaCarouselImageCollectionViewCell {
             return imageCell
         } else if let videoCell = collectionView.cellForItem(at: indexPath) as? MediaCarouselVideoCollectionViewCell {
+            return videoCell
+        } else if let videoCell = collectionView.cellForItem(at: indexPath) as? MediaCarouselSimpleVideoViewCell {
             return videoCell
         }
 
@@ -1212,35 +1217,181 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     
     /// View that gets overlayed on videos to indicate they can be played.
     private var playButtonView: UIView {
-        let size: CGFloat = 100
-        let config = UIImage.SymbolConfiguration(pointSize: 30)
-        let iconColor = UIColor.primaryWhiteBlack
-        let icon = UIImage(systemName: "play.fill", withConfiguration: config)!.withTintColor(iconColor, renderingMode: .alwaysOriginal)
-
-        let playButton = UIButton.systemButton(with: icon, target: self, action: #selector(startPlayback))
+        let playButton = MediaCarouselVideoPlayButton()
         playButton.translatesAutoresizingMaskIntoConstraints = false
-        playButton.layer.cornerRadius = size / 2
-        playButton.clipsToBounds = true
-
-        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
-        let blurredEffectBackgroundView = BlurView(effect: blurEffect, intensity: 0.5)
-        blurredEffectBackgroundView.isUserInteractionEnabled = false
-        blurredEffectBackgroundView.translatesAutoresizingMaskIntoConstraints = false
-
-        playButton.insertSubview(blurredEffectBackgroundView, at: 0)
-        blurredEffectBackgroundView.constrain(to: playButton)
-
         contentView.addSubview(playButton)
-
         NSLayoutConstraint.activate([
-            playButton.widthAnchor.constraint(equalToConstant: size),
-            playButton.heightAnchor.constraint(equalToConstant: size),
             playButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             playButton.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
         ])
-
-        playButton.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 25, leading: 30, bottom: 25, trailing: 30)
-        
         return playButton
+    }
+}
+
+fileprivate class MediaCarouselSimpleVideoViewCell: MediaCarouselCollectionViewCell {
+
+    private let imageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .largeTitle)
+        imageView.tintColor = .systemGray3
+        return imageView
+    }()
+
+    private let playButton: UIButton = {
+        let playButton = MediaCarouselVideoPlayButton()
+        playButton.isUserInteractionEnabled = false
+        return playButton
+    }()
+
+    private let borderView: RoundedRectView = {
+        let borderView = RoundedRectView()
+        borderView.fillColor = .clear
+        return borderView
+    }()
+
+    private(set) var videoURL: URL?
+    private var videoLoadingCancellable: AnyCancellable?
+    private var preferredContentMode: UIView.ContentMode = .scaleAspectFit
+    private var showsVideoPlaybackControls = true
+    private var isShowingPlaceholder = false {
+        didSet {
+            imageView.contentMode = isShowingPlaceholder ? .center : preferredContentMode
+            playButton.isHidden = isShowingPlaceholder || !showsVideoPlaybackControls
+            borderView.isHidden = isShowingPlaceholder
+            setNeedsLayout()
+        }
+    }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(imageView)
+
+        playButton.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(playButton)
+
+        contentView.addSubview(borderView)
+
+        NSLayoutConstraint.activate([
+            imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            imageView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            imageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+
+            playButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            playButton.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+        ])
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError()
+    }
+
+    override func apply(configuration: MediaCarouselViewConfiguration) {
+        super.apply(configuration: configuration)
+
+        preferredContentMode = configuration.alwaysScaleToFitContent ? .scaleAspectFit : .scaleAspectFill
+        borderView.cornerRadius = configuration.cornerRadius
+        borderView.strokeColor = configuration.borderColor
+        borderView.lineWidth = configuration.borderWidth
+        showsVideoPlaybackControls = configuration.showVideoPlaybackControls
+    }
+
+    override func configure(with media: FeedMedia, supplementaryViewsProvider provider: () -> [MediaCarouselSupplementaryItem]) {
+        super.configure(with: media, supplementaryViewsProvider: provider)
+
+        configure(videoURL: media.fileURL)
+
+        if !media.isMediaAvailable {
+            videoLoadingCancellable = media.videoDidBecomeAvailable.receive(on: DispatchQueue.main).sink { [weak self] videoURL in
+                self?.configure(videoURL: videoURL)
+            }
+        }
+
+        constrainSupplemenaryViews(to: imageView, offset: .zero)
+    }
+
+    private func configure(videoURL: URL?) {
+        guard videoURL != self.videoURL else {
+            return
+        }
+        self.videoURL = videoURL
+
+        if let videoURL = videoURL {
+            isShowingPlaceholder = false
+            imageView.image = VideoUtils.videoPreviewImage(url: videoURL)
+        } else {
+            // show preview image
+            isShowingPlaceholder = true
+            imageView.image = UIImage(systemName: "video")
+        }
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+
+        guard !isShowingPlaceholder, borderView.cornerRadius > 0 else {
+            imageView.layer.mask = nil
+            borderView.frame = bounds
+            return
+        }
+
+        let imageBounds: CGRect
+        if imageView.contentMode == .scaleAspectFit, let image = imageView.image {
+            imageBounds = AVMakeRect(aspectRatio: image.size, insideRect: bounds)
+        } else {
+            imageBounds = bounds
+        }
+
+        let maskLayer = imageView.layer.mask ?? CALayer()
+        maskLayer.cornerRadius = borderView.cornerRadius
+        maskLayer.backgroundColor = UIColor.black.cgColor
+        maskLayer.frame = imageBounds
+        imageView.layer.mask = maskLayer
+
+        borderView.frame = imageBounds
+
+        CATransaction.commit()
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+
+        videoLoadingCancellable?.cancel()
+    }
+}
+
+fileprivate class MediaCarouselVideoPlayButton: UIButton {
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+
+        clipsToBounds = true
+        directionalLayoutMargins = NSDirectionalEdgeInsets(top: 25, leading: 30, bottom: 25, trailing: 30)
+        imageView?.tintColor = .primaryWhiteBlack
+        setImage(UIImage(systemName: "play.fill")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 30)), for: .normal)
+
+        let blurredEffectBackgroundView = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 0.5)
+        blurredEffectBackgroundView.isUserInteractionEnabled = false
+        blurredEffectBackgroundView.translatesAutoresizingMaskIntoConstraints = false
+        insertSubview(blurredEffectBackgroundView, at: 0)
+        blurredEffectBackgroundView.constrain(to: self)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError()
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        layer.cornerRadius = min(bounds.width, bounds.height) / 2
+    }
+
+    override var intrinsicContentSize: CGSize {
+        return CGSize(width: 100, height: 100)
     }
 }
