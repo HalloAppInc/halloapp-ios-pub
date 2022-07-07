@@ -422,6 +422,14 @@ class MediaPickerViewController: UIViewController {
         }
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+
+        if navigationController?.isNavigationBarHidden == true {
+            navigationController?.isNavigationBarHidden = false
+        }
+    }
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
