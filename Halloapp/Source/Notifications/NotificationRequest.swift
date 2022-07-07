@@ -77,8 +77,8 @@ final class NotificationRequest {
             return
         }
         AppContext.shared.mainDataStore.performSeriallyOnBackgroundContext { managedObjectContext in
-            let moments = AppContext.shared.coreFeedData.feedPosts(predicate:
-                                                                    NSPredicate(format: "isMoment = YES && statusValue = %d", FeedPost.Status.incoming.rawValue),
+            let predicate = NSPredicate(format: "isMoment = YES && (statusValue = %d || statusValue = %d)", FeedPost.Status.incoming.rawValue, FeedPost.Status.rerequesting.rawValue)
+            let moments = AppContext.shared.coreFeedData.feedPosts(predicate: predicate,
                                                                    sortDescriptors: [NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: true)],
                                                                    in: managedObjectContext)
             DDLogInfo("NotificationRequest/updateMomentNotifications/count: \(moments.count)")

@@ -1084,9 +1084,8 @@ final class NotificationProtoService: ProtoServiceCore {
 
         DDLogInfo("ProtoService/updateMomentNotifications")
         mainDataStore.performSeriallyOnBackgroundContext { managedObjectContext in
-            let moments = AppContext.shared.coreFeedData.feedPosts(predicate:
-                                                                    NSPredicate(format: "isMoment = YES && statusValue == %d",
-                                                                                FeedPost.Status.incoming.rawValue),
+            let predicate = NSPredicate(format: "isMoment = YES && (statusValue = %d || statusValue = %d)", FeedPost.Status.incoming.rawValue, FeedPost.Status.rerequesting.rawValue)
+            let moments = AppContext.shared.coreFeedData.feedPosts(predicate: predicate,
                                                                    in: managedObjectContext)
             DDLogInfo("ProtoService/updateMomentNotifications/count: \(moments.count)")
             guard moments.count > 0,
