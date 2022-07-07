@@ -333,12 +333,12 @@ final class HomeWhisperSession {
                     executePostDecryption(data, from: userID, postID: feedPostID, with: incomingSenderState, completion: completion)
                 case .commentDecryption(let data, _, let feedPostID, let completion):
                     DDLogInfo("HomeWhisperSession/\(type)/execute/commentDecryption")
-                    guard let commentKey = commentKey(for: feedPostID) else {
+                    if let commentKey = commentKey(for: feedPostID) {
+                        executeCommentDecryption(data, using: commentKey, completion: completion)
+                    } else {
                         DDLogError("HomeWhisperSession/\(type)/execute/commentDecryption/missing commentKey for postID: \(feedPostID)")
                         completion(.failure(.missingCommentKey))
-                        return
                     }
-                    executeCommentDecryption(data, using: commentKey, completion: completion)
                 case .membersAdded(let memberUserIds):
                     DDLogInfo("HomeWhisperSession/\(type)/execute/membersAdded: \(memberUserIds.count)")
                     executeAddMembers(userIds: memberUserIds)
@@ -364,7 +364,7 @@ final class HomeWhisperSession {
                     guard let commentKey = commentKey(for: feedPostID, createIfNecessary: true) else {
                         guard setupAttempts < 3 else {
                             DDLogError("HomeWhisperSession/\(type)/execute/fetchCommentKey outbound setup failed \(setupAttempts) times")
-                            completion(.failure(.missingCommentKey))
+                            completion(.failure(.missingKeyBundle))
                             return
                         }
                         DDLogInfo("HomeWhisperSession/\(type)/execute/fetchCommentKey pausing (needs outbound setup)")
@@ -406,12 +406,12 @@ final class HomeWhisperSession {
                     executePostDecryption(data, from: userID, postID: feedPostID, with: incomingSenderState, completion: completion)
                 case .commentDecryption(let data, _, let feedPostID, let completion):
                     DDLogInfo("HomeWhisperSession/\(type)/execute/commentDecryption")
-                    guard let commentKey = commentKey(for: feedPostID) else {
+                    if let commentKey = commentKey(for: feedPostID) {
+                        executeCommentDecryption(data, using: commentKey, completion: completion)
+                    } else {
                         DDLogError("HomeWhisperSession/\(type)/execute/commentDecryption/missing commentKey for postID: \(feedPostID)")
                         completion(.failure(.missingCommentKey))
-                        return
                     }
-                    executeCommentDecryption(data, using: commentKey, completion: completion)
                 case .membersAdded(let memberUserids):
                     DDLogInfo("HomeWhisperSession/\(type)/execute/membersAdded: \(memberUserids.count)")
                     executeAddMembers(userIds: memberUserids)

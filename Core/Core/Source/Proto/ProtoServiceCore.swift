@@ -1168,8 +1168,9 @@ extension ProtoServiceCore: CoreService {
                     case .success(let decryptedPayload):
                         self.parseHomePayloadContent(payload: decryptedPayload, item: item, completion: newCompletion)
                     }
+                    DDLogInfo("ProtoServiceCore/decryptHomeFeedPayload/contentId/\(sessionType)/\(contentId), publisherUid: \(publisherUid)/end")
                 }
-                DDLogInfo("ProtoServiceCore/decryptHomeFeedPayload/contentId/\(sessionType)/\(contentId), publisherUid: \(publisherUid)/end")
+
             default:
                 newCompletion(nil, HomeDecryptionFailure(contentId, publisherUid, .invalidPayload, .payload))
             }

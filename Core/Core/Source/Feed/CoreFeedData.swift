@@ -65,6 +65,7 @@ public class CoreFeedData {
         mainDataStore.saveSeriallyOnBackgroundContext({ context in
 
             if let existingPost = self.feedPost(with: postData.id, in: context) {
+                DDLogInfo("CoreFeedData/savePostData/existing [\(existingPost.id)]/status: \(existingPost.status)")
                 // If status = .none for an existing post, we need to process the newly received post.
                 if existingPost.status == .none {
                     DDLogInfo("CoreFeedData/savePostData/existing [\(existingPost.id)]/status is none/need to update")
