@@ -1640,10 +1640,7 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
 
     func updateJumpButtonVisibility() {
         let hideJumpButton: Bool
-        guard let lastMessageIndexPath = lastMessageIndexPath() else {
-            return
-        }
-        if let lastCommentLayoutAttributes = collectionView.layoutAttributesForItem(at: lastMessageIndexPath) {
+        if let lastMessageIndexPath = lastMessageIndexPath(), let lastCommentLayoutAttributes = collectionView.layoutAttributesForItem(at: lastMessageIndexPath) {
             // Display jump button when the last message is no longer visible
             let insetBounds = collectionView.bounds.inset(by: collectionView.adjustedContentInset)
             hideJumpButton = insetBounds.intersects(lastCommentLayoutAttributes.frame)
