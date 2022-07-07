@@ -59,10 +59,6 @@ open class AppContext: AppContextCommon {
         return "\(version) (\(buildNumber))"
     }()
 
-    override open class var sentryTracesSampleRate: NSNumber {
-        return ServerProperties.isInternalUser ? 1.0 : 0.0
-    }
-
     open var applicationIconBadgeNumber: Int {
         get { userDefaults.integer(forKey: "ApplicationIconBadgeNumber") }
         set { userDefaults.set(newValue, forKey: "ApplicationIconBadgeNumber") }

@@ -40,6 +40,7 @@ public struct ServerProperties {
         case maxChatMediaItems = "max_chat_media_items"
         case sendClearTextHomeFeedContent = "cleartext_home_feed"
         case useClearTextHomeFeedContent = "use_cleartext_home_feed"
+        case enableSentryPerfTracking = "enable_sentry_perf_tracking"
     }
 
     private struct UserDefaultsKey {
@@ -78,6 +79,7 @@ public struct ServerProperties {
         static let maxChatMediaItems = 30
         static let sendClearTextHomeFeedContent = true
         static let useClearTextHomeFeedContent = true
+        static let enableSentryPerfTracking = false
     }
 
     // MARK: Storage
@@ -326,5 +328,9 @@ public struct ServerProperties {
 
     public static var maxChatMediaItems: Int {
         ServerProperties.integer(forKey: .maxChatMediaItems) ?? Defaults.maxChatMediaItems
+    }
+
+    public static var enableSentryPerfTracking: Bool {
+        ServerProperties.bool(forKey: .enableSentryPerfTracking) ?? Defaults.enableSentryPerfTracking
     }
 }
