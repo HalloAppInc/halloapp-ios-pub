@@ -812,6 +812,9 @@ final class ProtoService: ProtoServiceCore {
                                     // Ack only on successful rereq
                                     ack()
                                 case .failure(let error):
+                                    if error.canAck {
+                                        ack()
+                                    }
                                     DDLogError("proto/handleFeedItem/\(msg.id)/\(contentID)/failed rerequesting: \(error)")
                                 }
                             }

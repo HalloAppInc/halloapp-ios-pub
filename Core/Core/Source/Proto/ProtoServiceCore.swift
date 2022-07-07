@@ -1823,12 +1823,16 @@ extension ProtoServiceCore: CoreService {
 
         // Dont rerequest messages that were already decrypted and saved.
         if !isGroupFeedItemDecryptedAndSaved(contentID: contentID) {
+            DDLogInfo("proto/rerequestGroupFeedItemIfNecessary/\(contentID)/decrypt/content is missing - so send a rerequest")
             self.rerequestGroupFeedItem(contentId: contentID,
                                         groupID: groupID,
                                         authorUserID: authorUserID,
                                         rerequestType: failure.rerequestType,
                                         contentType: contentType,
                                         completion: completion)
+        } else {
+            DDLogInfo("proto/rerequestGroupFeedItemIfNecessary/\(contentID)/decrypt/content already exists")
+            completion(.success(()))
         }
     }
 
@@ -1899,16 +1903,21 @@ extension ProtoServiceCore: CoreService {
     public func rerequestHomeFeedItemIfNecessary(id contentID: String, contentType: HomeFeedRerequestContentType, failure: HomeDecryptionFailure, completion: @escaping ServiceRequestCompletion<Void>) {
         guard let authorUserID = failure.fromUserId else {
             DDLogError("proto/rerequestHomeFeedItemIfNecessary/\(contentID)/decrypt/authorUserID missing")
+            completion(.failure(.malformedRequest))
             return
         }
 
         // Dont rerequest messages that were already decrypted and saved.
         if !isHomeFeedItemDecryptedAndSaved(contentID: contentID) {
+            DDLogInfo("proto/rerequestHomeFeedItemIfNecessary/\(contentID)/decrypt/content is missing - so send a rerequest")
             self.rerequestHomeFeedItem(contentId: contentID,
                                        authorUserID: authorUserID,
                                        rerequestType: failure.rerequestType,
                                        contentType: contentType,
                                        completion: completion)
+        } else {
+            DDLogInfo("proto/rerequestHomeFeedItemIfNecessary/\(contentID)/decrypt/content already exists")
+            completion(.success(()))
         }
     }
 
