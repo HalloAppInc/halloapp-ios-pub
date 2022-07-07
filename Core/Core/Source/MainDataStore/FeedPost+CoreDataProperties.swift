@@ -23,6 +23,7 @@ public extension FeedPost {
         case seen = 8
         case unsupported = 9
         case rerequesting = 10
+        case expired = 11
     }
 
     @nonobjc class func fetchRequest() -> NSFetchRequest<FeedPost> {
@@ -72,6 +73,10 @@ public extension FeedPost {
         get {
             return self.status == .rerequesting
         }
+    }
+
+    var isExpired: Bool {
+        status == .expired
     }
 
     var isWaiting: Bool {
@@ -145,7 +150,7 @@ public extension FeedPost {
         case .none, .unsupported: return .none
         case .sending, .sent, .seenSending: return .sent
         case .sendError: return .sendError
-        case .incoming, .seen, .retracted, .retracting: return .received
+        case .incoming, .seen, .retracted, .retracting, .expired: return .received
         case .rerequesting: return .rerequesting
         }
     }

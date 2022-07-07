@@ -214,7 +214,7 @@ final class FeedDataSource: NSObject {
             // remove moments that are older than a day; a user's own moments remain visible in the archive
             if !$0.isMoment {
                 return true
-            } else if $0.timestamp < momentCutoff || $0.status == .retracted {
+            } else if $0.timestamp < momentCutoff || $0.status == .retracted || $0.status == .expired {
                 // no tombstones for moments
                 return false
             }

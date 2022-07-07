@@ -1020,7 +1020,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             case .none, .unsupported, .rerequesting:
                 DDLogInfo("FeedData/process-posts/updating [\(xmppPost.id)] current status: \(feedPost.status)")
                 break
-            case .incoming, .seen, .seenSending, .sendError, .sending, .sent, .retracted, .retracting:
+            case .incoming, .seen, .seenSending, .sendError, .sending, .sent, .retracted, .retracting, .expired:
                 DDLogError("FeedData/process-posts/skipping [duplicate] [\(xmppPost.id)] current status: \(feedPost.status)")
                 continue
             }
@@ -4005,10 +4005,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             ])
 
             let results = try? context.fetch(request)
-            let expiredMoments = (results ?? []).map { $0.id }
+            let expiredMomentIDs = (results ?? []).map { $0.id }
 
-            self.deletePosts(with: expiredMoments, in: context)
-            self.deleteAssociatedData(for: expiredMoments, in: context)
+            self.deleteAssociatedData(for: expiredMomentIDs, in: context)
+            results?.forEach { post in
+                // TODO: use the `.expired` status for normal feed posts vs deleting them entirely?
+                self.deleteMedia(feedPost: post)
+                post.status = .expired
+            }
+
             self.save(context)
         }
     }
@@ -4398,10 +4403,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 return
             }
 
-            self?.deletePosts(with: [moment.id], in: context)
+            self?.deleteMedia(feedPost: moment)
             self?.deleteAssociatedData(for: [moment.id], in: context)
+            moment.status = .expired
 
-            DDLogInfo("FeedData/momentWasViewed/finished update block")
+            DDLogInfo("FeedData/momentWasViewed/finished update: \(moment.id) status: \(moment.status)")
         }
     }
 
@@ -4972,8 +4978,8 @@ extension FeedData: HalloFeedDelegate {
 
     func halloService(_ halloService: HalloService, didSendFeedReceipt receipt: HalloReceipt) {
         updateFeedPost(with: receipt.itemId) { (feedPost) in
-            // Dont mark the status to be seen if the post is retracted or if the post is rerequested.
-            if !feedPost.isPostRetracted && !feedPost.isRerequested {
+            // Dont mark the status to be seen if the post is retracted, rerequested, or expired.
+            if !feedPost.isPostRetracted && !feedPost.isRerequested && !feedPost.isExpired {
                 feedPost.status = .seen
             }
         }
