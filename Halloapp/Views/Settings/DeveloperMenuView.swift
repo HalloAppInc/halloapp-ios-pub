@@ -27,6 +27,7 @@ private enum MenuTitles {
     static var addFavoritesNotification: String { "Add Favorites Notification" }
     static var enableNewGroupsTab: String { "Enable new groups tab (restart app to take effect)" }
     static var enableGroupChat: String { "Enable Group Chat" }
+    static var enableUIKitComposer: String { "Enable UIKit Composer" }
     static var resetMomentsFTUX: String { "Reset Moments FTUX" }
     static var logOut: String { "Log Out" }
 }
@@ -36,6 +37,7 @@ struct DeveloperMenuView: View {
     @State var useTestServer = MainAppContext.shared.coreService.useTestServer
     @State var enableGroupChat = AppContext.shared.userDefaults.bool(forKey: "enableGroupChat")
     @State var enableNewGroupsTab = AppContext.shared.userDefaults.bool(forKey: "enableNewGroupsTab")
+    @State var enableUIKitComposer = AppContext.shared.userDefaults.bool(forKey: "enableUIKitComposer")
 
     // TODO: Temporarily turn off and potentially remove
 //    @ObservedObject var videoSettings = VideoSettings.shared
@@ -200,6 +202,11 @@ struct DeveloperMenuView: View {
                     Toggle(MenuTitles.enableNewGroupsTab, isOn: $enableNewGroupsTab)
                         .onReceive(Just(self.enableNewGroupsTab)) { value in
                             AppContext.shared.userDefaults.set(value, forKey: "enableNewGroupsTab")
+                        }
+
+                    Toggle(MenuTitles.enableUIKitComposer, isOn: $enableUIKitComposer)
+                        .onReceive(Just(self.enableUIKitComposer)) { value in
+                            AppContext.shared.userDefaults.set(value, forKey: "enableUIKitComposer")
                         }
                 }
                 Button {

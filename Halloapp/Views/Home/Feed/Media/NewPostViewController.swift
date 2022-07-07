@@ -167,13 +167,19 @@ final class NewPostViewController: UIViewController {
             configuration = .moment
         }
 
-        return PostComposerViewController(
-            mediaToPost: state.pendingMedia,
-            initialInput: state.pendingInput,
-            configuration: configuration,
-            initialPostType: state.mediaSource,
-            voiceNote: state.pendingVoiceNote,
-            delegate: self)
+        if AppContext.shared.userDefaults.bool(forKey: "enableUIKitComposer") {
+            return ComposerViewController(config: .userPost, type: state.mediaSource, input: state.pendingInput, media: state.pendingMedia, voiceNote: state.pendingVoiceNote) { controller, result , success in
+                self.containedNavigationController.popViewController(animated: true)
+            }
+        } else {
+            return PostComposerViewController(
+                mediaToPost: state.pendingMedia,
+                initialInput: state.pendingInput,
+                configuration: configuration,
+                initialPostType: state.mediaSource,
+                voiceNote: state.pendingVoiceNote,
+                delegate: self)
+        }
     }
 
     private func makeNewCameraViewController() -> UIViewController {

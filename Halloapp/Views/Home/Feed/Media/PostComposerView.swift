@@ -19,6 +19,26 @@ enum PostComposerDestination: Equatable {
     case userFeed
     case groupFeed(GroupID)
     case chat(UserID?)
+
+    init(_ destination: FeedPostDestination) {
+        switch destination {
+        case .userFeed:
+            self = .userFeed
+        case .groupFeed(let groupID):
+            self = .groupFeed(groupID)
+        }
+    }
+
+    func feedPostDestination() -> FeedPostDestination? {
+        switch self {
+        case .userFeed:
+            return .userFeed
+        case .groupFeed(let groupID):
+            return .groupFeed(groupID)
+        case .chat:
+            return nil
+        }
+    }
 }
 
 class PostComposerViewConfiguration: ObservableObject {

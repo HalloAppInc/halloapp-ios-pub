@@ -436,6 +436,7 @@
 		F4F157DC276AA5B7002FDB9E /* DeleteAccountTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F157DB276AA5B7002FDB9E /* DeleteAccountTextView.swift */; };
 		F4FF3ADC27FCD25F00CD4998 /* ExternalSharePost.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FF3ADB27FCD25F00CD4998 /* ExternalSharePost.swift */; };
 		F8003DDE24D7C30D00628719 /* MediaPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */; };
+		F825BC922863867B00BB85A0 /* ComposerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F825BC912863867B00BB85A0 /* ComposerViewController.swift */; };
 		F82D303727722522006D1245 /* ShareDestinationRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F82D303627722522006D1245 /* ShareDestinationRowView.swift */; };
 		F82D303A27733437006D1245 /* Localizable.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = F82D303927733437006D1245 /* Localizable.stringsdict */; };
 		F82EFC2828657987007B45CF /* SwipeToExitGestureRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F82EFC2728657987007B45CF /* SwipeToExitGestureRecognizer.swift */; };
@@ -1186,6 +1187,7 @@
 		F4F157DB276AA5B7002FDB9E /* DeleteAccountTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountTextView.swift; sourceTree = "<group>"; };
 		F4FF3ADB27FCD25F00CD4998 /* ExternalSharePost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalSharePost.swift; sourceTree = "<group>"; };
 		F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPickerViewController.swift; sourceTree = "<group>"; };
+		F825BC912863867B00BB85A0 /* ComposerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerViewController.swift; sourceTree = "<group>"; };
 		F82D303627722522006D1245 /* ShareDestinationRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareDestinationRowView.swift; sourceTree = "<group>"; };
 		F82D303927733437006D1245 /* Localizable.stringsdict */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; path = Localizable.stringsdict; sourceTree = "<group>"; };
 		F82EFC2728657987007B45CF /* SwipeToExitGestureRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeToExitGestureRecognizer.swift; sourceTree = "<group>"; };
@@ -2006,6 +2008,7 @@
 				F40F7C6A274C8158008144DE /* PostAudioView.swift */,
 				F40F7C8627570707008144DE /* AudioPostComposer.swift */,
 				F4063F2E276836F50068B9ED /* ShareButton.swift */,
+				F825BC912863867B00BB85A0 /* ComposerViewController.swift */,
 			);
 			path = Media;
 			sourceTree = "<group>";
@@ -2944,6 +2947,7 @@
 				EAEE49F1277153660042E654 /* ChatEvent+CoreDataProperties.swift in Sources */,
 				761B3957241D815800858251 /* SyncManager.swift in Sources */,
 				F4B91DF8278FCEEB00DF70C1 /* CADisplayLink.swift in Sources */,
+				F825BC922863867B00BB85A0 /* ComposerViewController.swift in Sources */,
 				76538094243D4B33000AD9A1 /* FeedNotification+CoreDataProperties.swift in Sources */,
 				A11272EA2856C5930009EBD7 /* NewMomentViewController.swift in Sources */,
 				76538097243D4B33000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */,
