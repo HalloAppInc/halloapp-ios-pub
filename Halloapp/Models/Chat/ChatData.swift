@@ -4519,7 +4519,7 @@ extension ChatData {
                     self.getAndSyncGroup(groupId: $0.groupId)
                 }
             })
-
+            self.save(managedObjectContext)
         }
     }
 
