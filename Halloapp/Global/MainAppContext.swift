@@ -371,9 +371,9 @@ class MainAppContext: AppContext {
 
     func beginBackgroundTask(_ itemId: String, expirationHandler: (() -> Void)? = nil) {
         backgroundTaskQueue.async { [self] in
-            if backgroundTaskIds[itemId] != nil {
+            if let taskID = backgroundTaskIds[itemId] {
                 DDLogInfo("end existing background task: [\(itemId)]")
-                endBackgroundTask(itemId)
+                UIApplication.shared.endBackgroundTask(taskID)
             }
             DDLogInfo("background task create [\(itemId)]")
             backgroundTaskIds[itemId] = UIApplication.shared.beginBackgroundTask(withName: "background-task-\(itemId)") { [weak self] in
