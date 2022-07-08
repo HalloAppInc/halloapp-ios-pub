@@ -212,7 +212,7 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
         // Check only possible lengths for the national phone number
         let possibleLengths = phoneNumberKit.possiblePhoneNumberLengths(forCountry: regionID, phoneNumberType: .mobile, lengthType: .national)
         guard possibleLengths.contains(nationalNumber.count) else {
-            DDLogError("PhoneInputViewController/validateUserInput - invalid phone number \(nationalNumber), possibleLengths: \(possibleLengths)")
+            DDLogInfo("PhoneInputViewController/validateUserInput - invalid phone number \(nationalNumber), possibleLengths: \(possibleLengths)")
             return .invalid(textFieldPhoneNumber)
         }
         guard !userName.isEmpty else {

@@ -89,7 +89,7 @@ open class ProtoServiceCore: ProtoServiceCoreCommon {
 
     public func uploadOneTimePreKeysIfNecessary() {
         guard UserDefaults.shared.bool(forKey: AppContextCommon.shared.keyData.userDefaultsKeyForOneTimePreKeys) else {
-            DDLogError("ProtoServiceCore/uploadOneTimePreKeysIfNecessary/finished uploading OneTimePreKeys")
+            DDLogInfo("ProtoServiceCore/uploadOneTimePreKeysIfNecessary/finished uploading OneTimePreKeys")
             return
         }
         AppContextCommon.shared.keyData.uploadMoreOneTimePreKeys()
