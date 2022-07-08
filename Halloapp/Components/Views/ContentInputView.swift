@@ -79,7 +79,9 @@ extension ContentInputView {
         /// User has added a photo or video.
         /// - note: Only for comments.
         case media
-        /// User is holding down on `voiceNoteControl`.
+        /// User is holding down on `voiceNoteControl` but recording hasn't started yet.
+        case audioRecordingStarting
+        /// User is holding down on `voiceNoteControl` and recording is taking place.
         case audioRecording
         /// `voiceNoteControl` is locked.
         case audioRecordingLocked
@@ -361,7 +363,7 @@ class ContentInputView: UIView {
     private lazy var voiceNoteTimeLabel: AudioRecorderTimeView = {
         let label = AudioRecorderTimeView()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.backgroundColor = .clear
+        label.backgroundColor = .feedBackground
         label.isHidden = true
         
         return label
@@ -639,6 +641,9 @@ class ContentInputView: UIView {
         var enablePostButton = false
 
         switch (textState, mediaState) {
+        case (_, .audioRecordingStarting):
+            hideTextView = true
+            voiceNoteTimeLabel.text = ""
         case (_, .audioRecording):
             hideTextView = true
             hideVoiceNoteTimeLabel = false
@@ -1000,7 +1005,7 @@ extension ContentInputView: AudioRecorderControlViewDelegate {
         }
         
         textViewDidEndEditing(self.textView)
-        mediaState = .audioRecording
+        mediaState = .audioRecordingStarting
         return true
     }
     
@@ -1136,7 +1141,7 @@ extension ContentInputView: AudioRecorderDelegate {
     }
     
     func audioRecorderStarted(_ recorder: AudioRecorder) {
-        
+        mediaState = .audioRecording
     }
     
     func audioRecorderStopped(_ recorder: AudioRecorder) {
