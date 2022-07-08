@@ -149,12 +149,6 @@ class MomentViewController: UIViewController {
         momentView.dayOfWeekLabel.textColor = .black.withAlphaComponent(0.9)
         contentInputView.backgroundColor = backgroundView.backgroundColor
 
-        post.feedMedia.first?.$isMediaAvailable.receive(on: DispatchQueue.main)
-            .sink { [weak self] isAvailable in
-                self?.refreshAccessoryView(show: true)
-            }
-            .store(in: &cancellables)
-
         NotificationCenter.default.publisher(for: UIApplication.userDidTakeScreenshotNotification)
             .sink { [weak self] _ in
                 self?.screenshotWasTaken()
@@ -193,9 +187,12 @@ class MomentViewController: UIViewController {
         if post.feedMedia.first?.isMediaAvailable ?? true {
             expireMomentIfReady()
         } else {
-            post.feedMedia.first?.imageDidBecomeAvailable.sink { [weak self] _ in
-                self?.expireMomentIfReady()
-            }.store(in: &cancellables)
+            post.feedMedia.first?.imageDidBecomeAvailable
+                .sink { [weak self] _ in
+                    self?.expireMomentIfReady()
+                    self?.refreshAccessoryView(show: true)
+                }
+                .store(in: &cancellables)
         }
     }
 
@@ -207,16 +204,7 @@ class MomentViewController: UIViewController {
     }
 
     private func refreshAccessoryView(show: Bool) {
-        guard
-            post.userID != MainAppContext.shared.userData.userId,
-            showAccessoryView != show,
-            post.feedMedia.first?.isMediaAvailable ?? false,
-            case .unlocked = momentView.state
-        else {
-            // we want to show the accessory view when:
-            // 1. post isn't locked (not blurred)
-            // 2. media is available
-            // 3. someone else's post
+        guard isReadyForSensitiveOperations, show != showAccessoryView else {
             return
         }
 
