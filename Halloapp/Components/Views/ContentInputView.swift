@@ -780,6 +780,11 @@ class ContentInputView: UIView {
 
         return true
     }
+
+    func trimText() {
+        textView.mentionText = textView.mentionText.trimmed()
+        textViewDidChange(textView)
+    }
 }
 
 // MARK: - button selectors
@@ -845,20 +850,6 @@ extension ContentInputView {
     }
 }
 
-extension NSAttributedString {
-    func trimmedAttributedString() -> NSAttributedString {
-        let invertedSet = CharacterSet.whitespacesAndNewlines.inverted
-        let startRange = string.rangeOfCharacter(from: invertedSet)
-        let endRange = string.rangeOfCharacter(from: invertedSet, options: .backwards)
-        guard let startLocation = startRange?.upperBound, let endLocation = endRange?.lowerBound else {
-            return NSAttributedString(string: string)
-        }
-        let location = string.distance(from: string.startIndex, to: startLocation) - 1
-        let length = string.distance(from: startLocation, to: endLocation) + 2
-        let range = NSRange(location: location, length: length)
-        return attributedSubstring(from: range)
-    }
-}
 // MARK: - text view delegate methods
 
 extension ContentInputView: ContentTextViewDelegate {
@@ -901,8 +892,8 @@ extension ContentInputView: ContentTextViewDelegate {
         } else {
             textState = .valid
         }
-        
-        textView.attributedText = textView.attributedText.trimmedAttributedString()
+
+        trimText()
         textView.invalidateIntrinsicContentSize()
     }
     
