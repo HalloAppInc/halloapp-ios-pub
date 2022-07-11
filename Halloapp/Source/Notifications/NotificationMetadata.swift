@@ -89,6 +89,7 @@ enum NotificationContentType: String, RawRepresentable, Codable {
 }
 
 class NotificationMetadata: Codable {
+    enum MomentType: Codable { case normal, unlock }
 
     static let userInfoKeyMetadata = "metadata"
     static let userDefaultsKeyRawData = "rawdata"
@@ -151,7 +152,8 @@ class NotificationMetadata: Codable {
     var groupId: String? = nil
     var groupName: String? = nil
     var normalizedPhone: String? = nil
-    var isMoment: Bool = false
+    var momentContext: MomentType? = nil
+
     // TODO: We use this string to dedup batched notifications.
     // This is okay for now - but using mentioned postIds/userIds would be better.
     var momentNotificationText: String = ""
@@ -324,8 +326,10 @@ class NotificationMetadata: Codable {
                 data = post.payload
                 pushName = post.publisherName
                 switch post.tag {
+                case .secretPost where post.momentUnlockUid == Int64(AppContextCommon.shared.userData.userId):
+                    momentContext = .unlock
                 case .secretPost:
-                    isMoment = true
+                    momentContext = .normal
                 default:
                     break
                 }
@@ -521,11 +525,7 @@ class NotificationMetadata: Codable {
     }
 
     func populateContent(using moments: [PostData], contactStore: ContactStore) -> Bool {
-        guard contentType == .feedPost else {
-            return false
-        }
-
-        guard moments.count > 0 else {
+        guard contentType == .feedPost, moments.count > 0, let context = momentContext else {
             return false
         }
 
@@ -546,15 +546,25 @@ class NotificationMetadata: Codable {
         }
 
         // Populate the batched notification title, subtitle and body.
-        if contactNames.count == 1 {
+
+        switch (context, contactNames.count) {
+        case (.normal, 1):
             body = String(format: Localizations.oneNewMomentNotificationTitle, contactNames[0])
-        } else if contactNames.count == 2 {
+        case (.normal, 2):
             body = String(format: Localizations.twoNewMomentNotificationTitle, contactNames[0], contactNames[1])
-        } else if contactNames.count == 3 {
+        case (.normal, 3):
             body = String(format: Localizations.threeNewMomentNotificationTitle, contactNames[0], contactNames[1], contactNames[2])
-        } else if contactNames.count > 3 {
+        case (.normal, 4...):
             body = String(format: Localizations.tooManyNewMomentNotificationTitle, contactNames[0], contactNames[1], contactNames[2])
-        } else {
+        case (.unlock, 1):
+            body = String(format: Localizations.oneUnlockedMomentNotificationTitle, contactNames[0])
+        case (.unlock, 2):
+            body = String(format: Localizations.twoUnlockedMomentNotificationTitle, contactNames[0], contactNames[1])
+        case (.unlock, 3):
+            body = String(format: Localizations.threeUnlockedMomentNotificationTitle, contactNames[0], contactNames[1], contactNames[2])
+        case (.unlock, 4...):
+            body = String(format: Localizations.tooManyUnlockedMomentNotificationTitle, contactNames[0], contactNames[1], contactNames[2])
+        default:
             return false
         }
 

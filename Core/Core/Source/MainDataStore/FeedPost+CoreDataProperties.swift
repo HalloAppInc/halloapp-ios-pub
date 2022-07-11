@@ -54,6 +54,12 @@ public extension FeedPost {
     @NSManaged var lastUpdated: Date?
     @NSManaged var hasBeenProcessed: Bool
 
+    /// The user ID of the moment that was unlocked by this post.
+    ///
+    /// The actual ID is only useful for the user's own (outgoing) moments.
+    /// For other user's (incoming) moments, this value will either be the user's own ID, or `nil`.
+    @NSManaged var unlockedMomentUserID: UserID?
+
     var status: Status {
         get {
             return Status(rawValue: self.statusValue)!
@@ -106,7 +112,7 @@ public extension FeedPost {
         
         if isMoment, let media = media?.first {
             let mediaData = FeedMediaData(from: media)
-            return .moment(mediaData)
+            return .moment(mediaData, unlockedUserID: unlockedMomentUserID)
         }
 
         let mentionText = MentionText(

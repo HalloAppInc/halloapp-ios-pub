@@ -105,6 +105,10 @@ public class CoreFeedData {
             feedPost.lastUpdated = Date()
             feedPost.hasBeenProcessed = hasBeenProcessed
 
+            if case let .moment(_, unlockedUserID) = postData.content {
+                feedPost.unlockedMomentUserID = unlockedUserID
+            }
+
             // Status
             switch postData.content {
             case .album, .text, .voiceNote, .moment:

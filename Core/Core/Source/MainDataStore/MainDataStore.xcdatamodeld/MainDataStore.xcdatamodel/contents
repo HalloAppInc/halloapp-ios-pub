@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="20086" systemVersion="21E258" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="21223.11" systemVersion="21F79" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="Call" representedClassName="Call" syncable="YES">
         <attribute name="answered" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="callID" attributeType="String"/>
@@ -158,6 +158,7 @@
         <attribute name="rawText" optional="YES" attributeType="String"/>
         <attribute name="statusValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="unlockedMomentUserID" optional="YES" attributeType="String"/>
         <attribute name="unreadCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="userID" attributeType="String"/>
         <relationship name="comments" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FeedPostComment" inverseName="post" inverseEntity="FeedPostComment"/>
@@ -246,7 +247,7 @@
         <element name="ContentResendInfo" positionX="-63" positionY="45" width="128" height="119"/>
         <element name="ExternalShareInfo" positionX="-54" positionY="54" width="128" height="74"/>
         <element name="FeedActivity" positionX="18" positionY="99" width="128" height="179"/>
-        <element name="FeedPost" positionX="-18" positionY="81" width="128" height="299"/>
+        <element name="FeedPost" positionX="-18" positionY="81" width="128" height="314"/>
         <element name="FeedPostComment" positionX="0" positionY="90" width="128" height="239"/>
         <element name="Group" positionX="9" positionY="162" width="128" height="164"/>
         <element name="GroupEvent" positionX="45" positionY="198" width="128" height="134"/>

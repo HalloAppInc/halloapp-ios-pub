@@ -12,11 +12,15 @@ import CoreCommon
 import CocoaLumberjackSwift
 import Combine
 
+enum MomentContext {
+    case normal
+    case unlock(FeedPost)
+}
+
 /// Handles the creation and posting of a moment, regardless of context.
 final class NewMomentViewController: UIViewController {
-    enum Context { case normal, unlock(FeedPost) }
 
-    let context: Context
+    let context: MomentContext
 
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         .portrait
@@ -64,7 +68,7 @@ final class NewMomentViewController: UIViewController {
 
     private var startUnlockTransitionCancellable: AnyCancellable?
 
-    init(context: Context = .normal) {
+    init(context: MomentContext = .normal) {
         self.context = context
         super.init(nibName: nil, bundle: nil)
         view.backgroundColor = .black
@@ -136,7 +140,7 @@ final class NewMomentViewController: UIViewController {
 
     /// After the user takes the photo. Displays the disabled send button while the camera's viewfinder is still active.
     private func displayIntermediateState() {
-        let composer = MomentComposerViewController()
+        let composer = MomentComposerViewController(context: context)
         let composerNavigationController = UINavigationController(rootViewController: composer)
 
         view.insertSubview(composerNavigationController.view, at: 0)

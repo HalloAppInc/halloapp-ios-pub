@@ -665,7 +665,9 @@ final class NotificationProtoService: ProtoServiceCore {
                         }
                         switch contentType {
                         case .post:
-                            self.processPostData(postData: metadata.postData(status: .rerequesting, usePlainTextPayload: fallback, audience: item.post.audience), status: .decryptionError, metadata: metadata, ack: ack)
+                            var postData = metadata.postData(status: .rerequesting, usePlainTextPayload: fallback, audience: item.post.audience)
+                            postData?.update(with: item.post)
+                            self.processPostData(postData: postData, status: .decryptionError, metadata: metadata, ack: ack)
                         case .comment:
                             self.processCommentData(commentData: metadata.commentData(status: .rerequesting, usePlainTextPayload: fallback), status: .decryptionError, metadata: metadata, ack: ack)
                         }
@@ -1085,48 +1087,66 @@ final class NotificationProtoService: ProtoServiceCore {
         DDLogInfo("ProtoService/updateMomentNotifications")
         mainDataStore.performSeriallyOnBackgroundContext { managedObjectContext in
             let predicate = NSPredicate(format: "isMoment = YES && (statusValue = %d || statusValue = %d)", FeedPost.Status.incoming.rawValue, FeedPost.Status.rerequesting.rawValue)
-            let moments = AppContext.shared.coreFeedData.feedPosts(predicate: predicate,
-                                                                   in: managedObjectContext)
-            DDLogInfo("ProtoService/updateMomentNotifications/count: \(moments.count)")
-            guard moments.count > 0,
-                  let firstMoment = moments.first,
-                  let lastMoment = moments.last else {
-                return
-            }
-            do {
-                // We use the oldest notification identifier to replace that notification.
-                // But the metadata in the notification refers to the last moment - so that tapping takes us to the latest moment.
-                let notificationIdentifier = firstMoment.id
-                let metadata = NotificationMetadata(contentId: lastMoment.id,
-                                                    contentType: .feedPost,
-                                                    fromId: lastMoment.userId,
-                                                    timestamp: lastMoment.timestamp,
-                                                    data: try lastMoment.postData.clientContainer.serializedData(),
-                                                    messageId: nil,
-                                                    pushName: nil)
-                metadata.isMoment = true
-                let momentsPostData = moments.map { $0.postData }
-                let content = NotificationMetadata.extractMomentNotification(for: metadata, using: momentsPostData)
-                metadata.momentNotificationText = content.body
+            let moments = AppContext.shared.coreFeedData.feedPosts(predicate: predicate, in: managedObjectContext)
 
-                // Dont update the notification if nothing changed about moments.
-                let notificationCenter = UNUserNotificationCenter.current()
-                notificationCenter.getMomentNotification { oldMetadata in
-                    // Check from userId for moments and the notification text displayed
-                    if oldMetadata?.momentNotificationText == metadata.momentNotificationText,
-                       oldMetadata?.fromId == metadata.fromId {
-                        DDLogInfo("ProtoService/updateMomentNotifications/skip - since nothing changed")
-                        return
-                    }
-                    // We only check for duplicates only in the case of first moment - that is when we need a sound too.
-                    // We avoid checking in all other cases including retractions.
-                    let shouldCheckForDuplicates: Bool = (moments.count < 2) && checkForDuplicates
-                    // Overwrite duplicates if any.
-                    self.presentNotification(for: notificationIdentifier, with: content, checkForDuplicates: shouldCheckForDuplicates)
+            var unlockedMoments = [FeedPost]()
+            var normalMoments = [FeedPost]()
+
+            for moment in moments {
+                if moment.unlockedMomentUserID != nil {
+                    unlockedMoments.append(moment)
+                } else {
+                    normalMoments.append(moment)
                 }
-            } catch {
-                DDLogError("ProtoService/updateMomentNotifications/error: \(error)")
             }
+
+            DDLogInfo("ProtoService/updateMomentNotifications/count: normal: \(normalMoments.count) unlocked: \(unlockedMoments.count)")
+            self.batchMomentNotifications(for: .normal, moments: normalMoments, checkForDuplicates: checkForDuplicates)
+            self.batchMomentNotifications(for: .unlock, moments: unlockedMoments, checkForDuplicates: checkForDuplicates)
+        }
+    }
+
+    private func batchMomentNotifications(for context: NotificationMetadata.MomentType, moments: [FeedPost], checkForDuplicates: Bool) {
+        guard
+            let firstMoment = moments.first,
+            let lastMoment = moments.last
+        else {
+            return
+        }
+
+        do {
+            // We use the oldest notification identifier to replace that notification.
+            // But the metadata in the notification refers to the last moment - so that tapping takes us to the latest moment.
+            let notificationIdentifier = firstMoment.id
+            let metadata = NotificationMetadata(contentId: lastMoment.id,
+                                                contentType: .feedPost,
+                                                fromId: lastMoment.userId,
+                                                timestamp: lastMoment.timestamp,
+                                                data: try lastMoment.postData.clientContainer.serializedData(),
+                                                messageId: nil,
+                                                pushName: nil)
+            metadata.momentContext = context
+            let momentsPostData = moments.map { $0.postData }
+            let content = NotificationMetadata.extractMomentNotification(for: metadata, using: momentsPostData)
+            metadata.momentNotificationText = content.body
+
+            // Dont update the notification if nothing changed about moments.
+            let notificationCenter = UNUserNotificationCenter.current()
+            notificationCenter.getMomentNotification(for: context) { oldMetadata in
+                // Check from userId for moments and the notification text displayed
+                if oldMetadata?.momentNotificationText == metadata.momentNotificationText,
+                   oldMetadata?.fromId == metadata.fromId {
+                    DDLogInfo("ProtoService/updateMomentNotifications/skip - since nothing changed")
+                    return
+                }
+                // We only check for duplicates only in the case of first moment - that is when we need a sound too.
+                // We avoid checking in all other cases including retractions.
+                let shouldCheckForDuplicates: Bool = (moments.count < 2) && checkForDuplicates
+                // Overwrite duplicates if any.
+                self.presentNotification(for: notificationIdentifier, with: content, checkForDuplicates: shouldCheckForDuplicates)
+            }
+        } catch {
+            DDLogError("ProtoService/updateMomentNotifications/error: \(error)")
         }
     }
 

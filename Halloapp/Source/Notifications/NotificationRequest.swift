@@ -81,56 +81,74 @@ final class NotificationRequest {
             let moments = AppContext.shared.coreFeedData.feedPosts(predicate: predicate,
                                                                    sortDescriptors: [NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: true)],
                                                                    in: managedObjectContext)
-            DDLogInfo("NotificationRequest/updateMomentNotifications/count: \(moments.count)")
-            guard moments.count > 0,
-                  let firstMoment = moments.first,
-                  let lastMoment = moments.last else {
-                return
-            }
-            do {
-                // We use the oldest notification identifier to replace that notification.
-                // But the metadata in the notification refers to the last moment - so that tapping takes us to the latest moment.
-                let notificationIdentifier = firstMoment.id
-                let metadata = NotificationMetadata(contentId: lastMoment.id,
-                                                    contentType: .feedPost,
-                                                    fromId: lastMoment.userId,
-                                                    timestamp: lastMoment.timestamp,
-                                                    data: try lastMoment.postData.clientContainer.serializedData(),
-                                                    messageId: nil,
-                                                    pushName: nil)
-                metadata.isMoment = true
-                let momentsPostData = moments.map { $0.postData }
-                let content = NotificationMetadata.extractMomentNotification(for: metadata, using: momentsPostData)
-                metadata.momentNotificationText = content.body
-                let sound = moments.count < 2 ? UNNotificationSound.default : nil
 
-                // Dont update the notification if nothing changed about moments.
-                let notificationCenter = UNUserNotificationCenter.current()
-                notificationCenter.getMomentNotification { oldMetadata in
-                    // Check count and from userId for moments.
-                    if oldMetadata?.momentNotificationText == metadata.momentNotificationText,
-                       oldMetadata?.fromId == metadata.fromId {
-                        DDLogInfo("NotificationRequest/updateMomentNotifications/skip - since nothing changed")
-                        return
-                    }
+            var unlockedMoments = [FeedPost]()
+            var normalMoments = [FeedPost]()
 
-                    DDLogInfo("NotificationRequest/updateMomentNotifications/\(metadata.identifier)")
-                    let notificationContent = UNMutableNotificationContent()
-                    notificationContent.title = content.title
-                    notificationContent.subtitle = content.subtitle
-                    notificationContent.body = content.body
-                    notificationContent.userInfo = content.userInfo
-                    notificationContent.sound = sound
-                    notificationContent.badge = AppContext.shared.applicationIconBadgeNumber as NSNumber?
-
-                    notificationCenter.add(UNNotificationRequest(identifier: notificationIdentifier,
-                                                                 content: notificationContent,
-                                                                 trigger: nil))
+            for moment in moments {
+                if moment.unlockedMomentUserID != nil {
+                    unlockedMoments.append(moment)
+                } else {
+                    normalMoments.append(moment)
                 }
-            } catch {
-                DDLogError("ProtoService/updateMomentNotifications/error: \(error)")
             }
+
+            DDLogInfo("NotificationRequest/updateMomentNotifications/count: normal: \(normalMoments.count) unlocked: \(unlockedMoments.count)")
+            batchMomentNotifications(for: .normal, moments: normalMoments)
+            batchMomentNotifications(for: .unlock, moments: unlockedMoments)
         }
     }
 
+    private static func batchMomentNotifications(for context: NotificationMetadata.MomentType, moments: [FeedPost]) {
+        guard
+            let firstMoment = moments.first,
+            let lastMoment = moments.last
+        else {
+            return
+        }
+
+        do {
+            // We use the oldest notification identifier to replace that notification.
+            // But the metadata in the notification refers to the last moment - so that tapping takes us to the latest moment.
+            let notificationIdentifier = firstMoment.id
+            let metadata = NotificationMetadata(contentId: lastMoment.id,
+                                                contentType: .feedPost,
+                                                fromId: lastMoment.userId,
+                                                timestamp: lastMoment.timestamp,
+                                                data: try lastMoment.postData.clientContainer.serializedData(),
+                                                messageId: nil,
+                                                pushName: nil)
+            metadata.momentContext = context
+            let momentsPostData = moments.map { $0.postData }
+            let content = NotificationMetadata.extractMomentNotification(for: metadata, using: momentsPostData)
+            metadata.momentNotificationText = content.body
+            let sound = moments.count < 2 ? UNNotificationSound.default : nil
+
+            // Dont update the notification if nothing changed about moments.
+            let notificationCenter = UNUserNotificationCenter.current()
+            notificationCenter.getMomentNotification(for: context) { oldMetadata in
+                // Check count and from userId for moments.
+                if oldMetadata?.momentNotificationText == metadata.momentNotificationText,
+                   oldMetadata?.fromId == metadata.fromId {
+                    DDLogInfo("NotificationRequest/updateMomentNotifications/skip - since nothing changed")
+                    return
+                }
+
+                DDLogInfo("NotificationRequest/updateMomentNotifications/\(metadata.identifier)")
+                let notificationContent = UNMutableNotificationContent()
+                notificationContent.title = content.title
+                notificationContent.subtitle = content.subtitle
+                notificationContent.body = content.body
+                notificationContent.userInfo = content.userInfo
+                notificationContent.sound = sound
+                notificationContent.badge = AppContext.shared.applicationIconBadgeNumber as NSNumber?
+
+                notificationCenter.add(UNNotificationRequest(identifier: notificationIdentifier,
+                                                             content: notificationContent,
+                                                             trigger: nil))
+            }
+        } catch {
+            DDLogError("ProtoService/updateMomentNotifications/error: \(error)")
+        }
+    }
 }

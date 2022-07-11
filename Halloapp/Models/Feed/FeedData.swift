@@ -1033,8 +1033,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.lastUpdated = xmppPost.timestamp
              // This is safe to always update as we skip processing any existing posts if fromExternalShare
             feedPost.fromExternalShare = fromExternalShare
-            if case .moment = xmppPost.content {
+
+            if case let .moment(_, unlockUID) = xmppPost.content {
                 feedPost.isMoment = true
+                feedPost.unlockedMomentUserID = unlockUID
             }
 
             switch xmppPost.content {
@@ -1136,7 +1138,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         let postObjectIDs = newPosts.map { $0.objectID }
         DispatchQueue.main.async {
             let managedObjectContext = self.viewContext
-            let feedPosts = postObjectIDs.compactMap{ try? managedObjectContext.existingObject(with: $0) as? FeedPost }
+            let feedPosts = postObjectIDs.compactMap { try? managedObjectContext.existingObject(with: $0) as? FeedPost }
 
             // Initiate downloads from the main thread to avoid race condition with downloads initiated from FeedTableView.
             // Only initiate downloads for feed posts received in real-time.
@@ -2636,7 +2638,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     
     let didSendGroupFeedPost = PassthroughSubject<FeedPost, Never>()
 
-    func post(text: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?, to destination: FeedPostDestination, feedAudience: FeedAudience, isMoment: Bool = false) {
+    func post(text: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?, to destination: FeedPostDestination, feedAudience: FeedAudience, momentContext: MomentContext? = nil) {
         let managedObjectContext = viewContext
         let postId: FeedPostID = PacketID.generate()
 
@@ -2652,8 +2654,17 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         feedPost.rawText = text.collapsedText
         feedPost.status = .sending
         feedPost.timestamp = Date()
-        feedPost.isMoment = isMoment
         feedPost.lastUpdated = Date()
+
+        switch momentContext {
+        case .unlock(let unlockedPost):
+            feedPost.unlockedMomentUserID = unlockedPost.userId
+            fallthrough
+        case .normal:
+            feedPost.isMoment = true
+        case .none:
+            feedPost.isMoment = false
+        }
 
         // Add mentions
         feedPost.mentions = text.mentionsArray.map {

@@ -14,6 +14,8 @@ import CocoaLumberjackSwift
 
 class MomentComposerViewController: UIViewController {
 
+    let context: MomentContext
+
     private var media: PendingMedia?
     var image: UIImage? {
         didSet { updateImage() }
@@ -114,7 +116,8 @@ class MomentComposerViewController: UIViewController {
     var onPost: (() -> Void)?
     var onCancel: (() -> Void)?
 
-    init() {
+    init(context: MomentContext) {
+        self.context = context
         super.init(nibName: nil, bundle: nil)
         title = Localizations.newMomentTitle
     }
@@ -231,7 +234,7 @@ class MomentComposerViewController: UIViewController {
                 replaceMoment()
             }
         } else {
-            MainAppContext.shared.feedData.postMoment(media: media)
+            MainAppContext.shared.feedData.postMoment(context: context, media: media)
             onPost?()
         }
     }
@@ -363,7 +366,7 @@ extension FeedData {
     @MainActor
     func replaceMoment(media: PendingMedia) async throws {
         guard let current = MainAppContext.shared.feedData.validMoment.value else {
-            await MainActor.run { postMoment(media: media) }
+            await MainActor.run { postMoment(context: .normal, media: media) }
             return
         }
 
@@ -381,10 +384,10 @@ extension FeedData {
         }
 
         DDLogInfo("FeedData/replaceMoment/finished retraction of post with id: \(current.id)")
-        await MainActor.run { postMoment(media: media) }
+        await MainActor.run { postMoment(context: .normal, media: media) }
     }
 
-    func postMoment(media: PendingMedia) {
+    func postMoment(context: MomentContext, media: PendingMedia) {
         guard let audience = try? MainAppContext.shared.privacySettings.feedAudience(for: .all) else {
             DDLogError("FeedData/postMoment/unable to get feed audience")
             return
@@ -397,7 +400,7 @@ extension FeedData {
                                 linkPreviewMedia: nil,
                                               to: .userFeed,
                                     feedAudience: audience,
-                                        isMoment: true)
+                                   momentContext: context)
     }
 }
 

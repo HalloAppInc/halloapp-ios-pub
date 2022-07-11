@@ -323,8 +323,7 @@ extension NewPostViewController: PostComposerViewDelegate {
                                  linkPreviewData: linkPreviewData,
                                 linkPreviewMedia: linkPreviewMedia,
                                               to: self.destination,
-                                            feedAudience: feedAudience,
-                                        isMoment: isMoment)
+                                    feedAudience: feedAudience)
         cleanupAndFinish(didPost: true)
     }
 

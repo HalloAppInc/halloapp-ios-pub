@@ -1690,7 +1690,7 @@ extension ProtoServiceCore: CoreService {
 
         switch item.item {
         case .post(let serverPost):
-            guard let post = PostData(id: serverPost.id,
+            guard var post = PostData(id: serverPost.id,
                                       userId: publisherUid,
                                       timestamp: Date(timeIntervalSince1970: TimeInterval(serverPost.timestamp)),
                                       payload: payload,
@@ -1711,6 +1711,8 @@ extension ProtoServiceCore: CoreService {
                 // TODO: need to send rerequest on post stanza here - since we failed to get comment key.
                 // The only way to get commentKey would be to rerequest the post.
             }
+
+            post.update(with: serverPost)
             completion(.newItems([.post(post)]), nil)
         case .comment(let serverComment):
             guard let comment = CommentData(id: serverComment.id,

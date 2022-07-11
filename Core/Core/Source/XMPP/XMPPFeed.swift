@@ -19,7 +19,7 @@ public enum PostContent {
     case retracted
     case unsupported(Data)
     case voiceNote(FeedMediaData)
-    case moment(FeedMediaData)
+    case moment(FeedMediaData, unlockedUserID: UserID?)
     case waiting
 }
 
@@ -74,7 +74,7 @@ public struct PostData {
             return media
         case .voiceNote(let mediaItem):
             return [mediaItem]
-        case .moment(let media):
+        case .moment(let media, _):
             return [media]
         case .retracted, .text, .unsupported, .waiting:
             return []
@@ -129,7 +129,7 @@ public struct PostData {
             return MediaCounters()
         case .voiceNote:
             return MediaCounters(numImages: 0, numVideos: 0, numAudio: 1)
-        case .moment(let media):
+        case .moment(let media, _):
             // can only be an image for now, but leaving this in for eventual video support
             return MediaCounters(numImages: media.type == .image ? 1 : 0,
                                  numVideos: media.type == .video ? 1 : 0,
@@ -204,6 +204,10 @@ public struct PostData {
             }
         } else {
             self.init(id: postId, userId: userId, content: .waiting, timestamp: timestamp, status: status, isShared: isShared, audience: serverPost.audience, commentKey: nil)
+        }
+
+        if case let .moment(media, _) = content, serverPost.momentUnlockUid == Int64(AppContextCommon.shared.userData.userId) {
+            self.content = .moment(media, unlockedUserID: AppContextCommon.shared.userData.userId)
         }
     }
 
@@ -308,9 +312,15 @@ public struct PostData {
             guard let media = FeedMediaData(id: "\(postId)-moment", clientImage: moment.image) else {
                 return .unsupported(payload)
             }
-            return .moment(media)
+            return .moment(media, unlockedUserID: nil)
         case .none:
             return .unsupported(payload)
+        }
+    }
+
+    public mutating func update(with serverPost: Server_Post) {
+        if case let .moment(media, _) = content, serverPost.momentUnlockUid == Int64(AppContextCommon.shared.userData.userId) {
+            content = .moment(media, unlockedUserID: AppContextCommon.shared.userData.userId)
         }
     }
 }

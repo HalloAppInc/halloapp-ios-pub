@@ -120,11 +120,11 @@ extension UNMutableNotificationContent {
 
 extension UNUserNotificationCenter {
 
-    func getMomentNotification(completion: @escaping (NotificationMetadata?) -> ()) {
+    func getMomentNotification(for context: NotificationMetadata.MomentType, completion: @escaping (NotificationMetadata?) -> ()) {
         getDeliveredNotifications { (notifications) in
             for notification in notifications {
                 guard let metadata = NotificationMetadata.load(from: notification.request),
-                      metadata.isMoment else { continue }
+                      metadata.momentContext == context else { continue }
                 completion(metadata)
             }
             completion(nil)
@@ -206,7 +206,7 @@ extension UNUserNotificationCenter {
 
     func removeDeliveredMomentNotifications() {
         removeDeliveredNotifications { (notificationMetadata) -> (Bool) in
-            return notificationMetadata.isMoment
+            return notificationMetadata.momentContext != nil
         }
     }
 }
@@ -340,6 +340,30 @@ extension Localizations {
         NSLocalizedString("notification.moment.5",
                           value: "%1@, %2@, %3@ and others shared new moments",
                           comment: "New moment notification text to be shown to the user.")
+    }
+
+    static var oneUnlockedMomentNotificationTitle: String {
+        NSLocalizedString("notification.unlocked.moment.1",
+                   value: "%@ shared a new moment and unlocked yours",
+                 comment: "New moment unlock notification text to be shown to the user.")
+    }
+
+    static var twoUnlockedMomentNotificationTitle: String {
+        NSLocalizedString("notification.unlocked.moment.2",
+                   value: "%1@ and %2@ shared a new moment and unlocked yours",
+                 comment: "New moment unlock notification text to be shown to the user.")
+    }
+
+    static var threeUnlockedMomentNotificationTitle: String {
+        NSLocalizedString("notification.unlocked.moment.3",
+                   value: "%1@, %2@, and %3@ shared a new moment and unlocked yours",
+                 comment: "New moment unlock notification text to be shown to the user.")
+    }
+
+    static var tooManyUnlockedMomentNotificationTitle: String {
+        NSLocalizedString("notification.unlocked.moment.4",
+                   value: "%1@, %2@, %3@, and others shared a new moment and unlocked yours",
+                 comment: "New moment unlock notification text to be shown to the user.")
     }
 
     static var momentScreenshotNotificationTitle: String {
