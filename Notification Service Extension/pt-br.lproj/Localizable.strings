@@ -140,7 +140,7 @@
 "notification.moment" = "Novo Momento";
 
 /* New moment notification text to be shown to the user. */
-"notification.moment.1" = "%@ compartilhou um momento";
+"notification.moment.1" = "%@ compartilhou um momento novo";
 
 /* New moment notification text to be shown to the user. */
 "notification.moment.2" = "%1$@ e %2$@ compartilharam novos momentos";

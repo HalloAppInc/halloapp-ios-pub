@@ -59,7 +59,7 @@
 "app.name.halloapp" = "HalloApp";
 
 /* Placeholder text for when the archive is empty */
-"archive.empty.placeholder" = "Postinganmu akan diarsipkan di sini setelah 30 hari";
+"archive.empty.placeholder" = "Postingan Anda akan diarsipkan di sini setelah 30 hari";
 
 /* Archive navigation label */
 "archive.title.label" = "Arsipkan";
@@ -260,10 +260,10 @@
 "Cancel" = "Batalkan";
 
 /* Text shown in the chat interface informing the user that the contact is blocked */
-"chat.blocked.contact.label" = "Kontak memblokir kontak ini";
+"chat.blocked.contact.label" = "Anda memblokir kontak ini";
 
 /* Title of the bottom sheet shown in the chat screen of a contact that is blocked. The bottom sheet contains an unblock button. */
-"chat.contact.is.blocked.title.label" = "Kontak diblokir, Anda tidak akan menerima pesan hingga Anda membuka blokir kontak tersebut.";
+"chat.contact.is.blocked.title.label" = "Kontak diblokir, Anda tidak akan menerima pesan apa pun hingga Anda membuka blokir kontak tersebut.";
 
 /* Label for creating a new group */
 "chat.create.new.group" = "Membuat Grup Baru";
@@ -281,34 +281,34 @@
 "chat.encryption.label" = "Semua pesan di HalloApp dienkripsi ujung ke ujung. Ketuk untuk mempelajari lebih lanjut.";
 
 /* Text shown in Chat when the security keys of the contact user is chatting with, have changed */
-"chat.event.security.keys.changed" = "Kunci keamanan dengan %@ berubah";
+"chat.event.security.keys.changed" = "Kunci keamanan dengan %@ telah berubah";
 
 /* Chat entry that can be tapped to add the contact to address book */
 "chat.event.tap.to.add.contact" = "Ketuk untuk menambahkan %@ ke buku alamat Anda";
 
 /* Message text shown with the user who joined the group via invite link */
-"chat.group.event.join" = "%@ bergabung dengan grup via Tautan Undangan Grup";
+"chat.group.event.join" = "%@ telah bergabung dengan grup melalui Tautan Undangan Grup";
 
 /* Message text shown when you join a group via invite link */
-"chat.group.event.join.you" = "Kamu bergabung ke grup lewat Tautan Undangan Grup";
+"chat.group.event.join.you" = "Anda telah bergabung dengan grup melalui Tautan Undangan Grup";
 
 /* Message text shown with the user who left the group */
-"chat.group.event.member.left" = "%@ pergi";
+"chat.group.event.member.left" = "%@ keluar";
 
 /* Message text shown when you leave a group */
-"chat.group.event.member.left.you" = "Kamu keluar";
+"chat.group.event.member.left.you" = "Anda keluar";
 
 /* Action label for adding members to a group */
 "chat.group.info.add.members" = "Tambahkan Anggota";
 
 /* Label shown in the members list when member is an admin */
-"chat.group.info.admin.label" = "administrator";
+"chat.group.info.admin.label" = "Admin";
 
 /* Text label for a color selection of group feed background color */
 "chat.group.info.bg.color.label" = "Warna";
 
 /* Text label for default selection of group feed background color */
-"chat.group.info.bg.default.label" = "Standar";
+"chat.group.info.bg.default.label" = "Default";
 
 /* Text for menu option of demoting a group member */
 "chat.group.info.demote" = "Hapus sebagai administrator";
@@ -332,7 +332,7 @@
 "chat.group.info.title" = "Info Grup";
 
 /* Text for menu option of viewing profile */
-"chat.group.info.view.profile" = "Lihat profil";
+"chat.group.info.view.profile" = "Lihat Profil";
 
 /* Confirmation message presented when leaving a group */
 "chat.group.leave.group.confirmation" = "Tinggalkan “%@”?";
@@ -344,7 +344,7 @@
 "chat.group.photo.label" = "Foto Grup";
 
 /* Action to take a picture or choose a photo from the library to use for the group photo */
-"chat.group.take.or.choose.photo" = "Ambil atau pilih foto";
+"chat.group.take.or.choose.photo" = "Ambil atau Pilih Foto";
 
 /* Label for inviting friends */
 "chat.invite.friends" = "Undang Teman";
@@ -365,16 +365,16 @@
 "chat.message.placeholder" = "Pesan Baru";
 
 /* Text shown in place of a received message we are not able to process yet. */
-"chat.message.unsupported" = "Versi HalloApp-mu tidak mendukung jenis pesan ini.";
+"chat.message.unsupported" = "Versi HalloApp Anda tidak mendukung jenis pesan ini.";
 
 /* Message text shown in a message that have video media but no text */
 "chat.message.video" = "Video";
 
 /* Text shown in place of a received message we are not able to decrypt yet. */
-"chat.message.waiting" = "Menanti pesan ini. Ini mungkin butuh waktu.";
+"chat.message.waiting" = "Menunggu pesan ini. Proses ini mungkin memerlukan waktu yang lama.";
 
 /* Alert message when missing microphone access */
-"chat.mic.access.denied.message" = "Untuk mengaktifkan perekaman audio, ketuk pada pengaturan dan kemudian nyalakan Mikrofon";
+"chat.mic.access.denied.message" = "Untuk mengaktifkan rekaman audio, silakan ketuk Pengaturan lalu nyalakan Mikrofon";
 
 /* Alert title when missing microphone access */
 "chat.mic.access.denied.title" = "Tidak dapat mengakses mikrofon";
@@ -383,13 +383,19 @@
 "chat.new.group.label" = "Chat Grup Baru";
 
 /* Text below the contact's name when the contact is online in the Chat Screen */
-"chat.online.label" = "daring";
+"chat.online.label" = "online";
 
 /* When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply when the moment has expired. */
 "chat.quoted.moment.expired.label" = "Momen kedaluwarsa";
 
 /* When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply. */
 "chat.quoted.moment.label" = "Momen";
+
+/* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has been deleted. */
+"chat.quoted.post.deleted.label" = "Postingan dihapus";
+
+/* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has expired. */
+"chat.quoted.post.expired.label" = "Postingan kedaluwarsa";
 
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "sedang mengetik...";
@@ -398,7 +404,7 @@
 "chat.unblocked.contact.label" = "Anda membuka blokir kontak ini";
 
 /* Text shown when user is about to remove the chat */
-"chats.list.remove.message" = "Dengan menghapus percakapan ini, Anda akan menghapus riwayat percakapan dan isi dari telepon genggam Anda.";
+"chats.list.remove.message" = "Dengan menghapus chat ini, Anda akan menghapus riwayat chat dan konten dari perangkat Anda.";
 
 /* Title for the button in comment deletion confirmation prompt. */
 "comment.delete.action" = "Hapus komentar";
@@ -413,7 +419,7 @@
 "comment.deleting" = "Menghapus komentar";
 
 /* Text displayed in place of comment timestamp while comment is being posted. */
-"comment.posting" = "Mengirimkan...";
+"comment.posting" = "Memposting...";
 
 /* Title for the button displayed under feed post comment. Verb. */
 "comment.reply" = "Balas";
@@ -425,7 +431,7 @@
 "comment.unsupported" = "Versi HalloApp-mu tidak mendukung jenis komentar ini.";
 
 /* Warning text displayed in Comments when post wasn't available. */
-"comments.post.loading.failed" = "Terjadi kesalahan saat membuka kiriman ini. Coba lagi nanti.";
+"comments.post.loading.failed" = "Terjadi kesalahan saat mencoba memuat postingan ini. Silakan coba lagi nanti.";
 
 /* Accessibility label for add images button */
 "composer.audio.a11y.addImages" = "Tambahkan Gambar";
@@ -452,7 +458,7 @@
 "composer.delete.recording.title" = "Hapus rekaman suara?";
 
 /* Warning message shown to the user before discarding a voice post */
-"composer.deletevoicenote.message" = "Rekaman suara tidak akan disimpan jika kamu membuang postingan ini.";
+"composer.deletevoicenote.message" = "Rekaman suara tidak akan disimpan jika Anda membuang postingan ini.";
 
 /* Title for alert when closing the post composer with a voice note */
 "composer.deletevoicenote.title" = "Buang Postingan?";
@@ -479,7 +485,7 @@
 "composer.placeholder.media.description" = "Tulis deskripsi";
 
 /* Placeholder text in text post composer screen. */
-"composer.placeholder.text.post" = "Menulis kiriman";
+"composer.placeholder.text.post" = "Tulis postingan";
 
 /* Composer New Post title. */
 "composer.post.title" = "Postingan Baru";
@@ -548,7 +554,7 @@
 "externalShare.og.description.media" = "Postingan media";
 
 /* Description of an externally shared post containing just text */
-"externalShare.og.description.text" = "Postingan Teks";
+"externalShare.og.description.text" = "Postingan teks";
 
 /* Title for posts that are externally shared, 'John Smith's HalloApp Post' */
 "externalShare.og.title3" = "Postingan HalloApp %@";
@@ -569,7 +575,7 @@
 "fab.moment.button" = "Momen";
 
 /* Label for floating compose post menu on Group screen. */
-"fab.post.button" = "Postingan";
+"fab.post.button" = "Posting";
 
 /* Indicates that an item has failed to be sent. */
 "failed.to.send" = "Gagal mengirim";
@@ -581,52 +587,52 @@
 "feed.deleting" = "Sedang menghapus...";
 
 /* Text for group feed notification displayed in Activity Center. */
-"feed.group.notification.other.comment.no.text" = "<$author$> memberikan komentar";
+"feed.group.notification.other.comment.no.text" = "<$author$> mengomentari";
 
 /* Text for group feed notification displayed in Activity Center. */
-"feed.group.notification.other.comment.w.text" = "<$author$> memberikan komentar: <$text$>";
+"feed.group.notification.other.comment.w.text" = "<$author$> mengomentari: <$text$>";
 
 /* Text for home feed notification displayed in Activity Center. */
-"feed.home.notification.other.comment.no.text" = "<$author$> memberikan komentar";
+"feed.home.notification.other.comment.no.text" = "<$author$> mengomentari";
 
 /* Text for home feed notification displayed in Activity Center. */
-"feed.home.notification.other.comment.w.text" = "<$author$> memberikan komentar: <$text$>";
+"feed.home.notification.other.comment.w.text" = "<$author$> mengomentari: <$text$>";
 
 /* Text shown in indicator when new posts come in while user is scrolled down */
 "feed.new.posts.indicator" = "Postingan Baru";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification..other.comment.no.text" = "<$author$> juga memberikan komentar";
+"feed.notification..other.comment.no.text" = "<$author$> juga mengomentari";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.commented.no.text" = "<$author$> memberikan komentar pada kiriman Anda";
+"feed.notification.commented.no.text" = "<$author$> mengomentari postingan Anda";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.commented.w.text" = "<$author$> memberikan komentar: <$text$>";
+"feed.notification.commented.w.text" = "<$author$> mengomentari: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.deleted.comment" = "<$author$> telah menghapus komentar";
+"feed.notification.deleted.comment" = "<$author$> menghapus komentar";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.deleted.post" = "<$author$> telah memberikan komentar. Kiriman ini sudah dihapus.";
+"feed.notification.deleted.post" = "<$author$> mengomentari. Postingan ini telah dihapus.";
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification.mention.comment.no.text" = "<$author$> menyebut Anda di komentar";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.comment.w.text" = "<$author$> menyebutmu dalam komentar: <$text$>";
+"feed.notification.mention.comment.w.text" = "<$author$> menyebut Anda di komentar: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.post.no.text" = "<$author$> menyebutmu dalam pos";
+"feed.notification.mention.post.no.text" = "<$author$> menyebut Anda di postingan";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.post.w.text" = "<$author$> menyebutmu dalam pos: <$text$>";
+"feed.notification.mention.post.w.text" = "<$author$> menyebut Anda di postingan: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.other.comment.w.text" = "<$author$> juga berkomentar: <$text$>";
+"feed.notification.other.comment.w.text" = "<$author$> juga mengomentari: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.replied.no.text" = "<$author$> membalas komentarmu";
+"feed.notification.replied.no.text" = "<$author$> membalas komentar Anda";
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification.replied.w.text" = "<$author$> membalas: <$text$>";
@@ -635,16 +641,16 @@
 "feed.post.archived.timestamp" = "Diarsipkan %@";
 
 /* Shown when post fails or is canceled. */
-"feed.post.failed" = "Gagal mengepos.";
+"feed.post.failed" = "Gagal memposting.";
 
 /* Shown when receiving a new (unsupported) type of post. */
-"feed.post.unsupported" = "Versi HalloApp-mu tidak mendukung jenis pos ini.";
+"feed.post.unsupported" = "Versi HalloApp Anda tidak mendukung jenis postingan ini.";
 
 /* Text shown in place of a received post we are not able to decrypt yet. */
-"feed.post.waiting" = "Menunggu postingan ini. Ini dapat butuh beberapa saat.";
+"feed.post.waiting" = "Menunggu postingan ini. Proses ini mungking akan memerlukan waktu yang lama.";
 
 /* Shown while content is being posted to feed */
-"feed.posting" = "Mengepos...";
+"feed.posting" = "Memposting...";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.all" = "Bagikan ke semua kontak saya";
@@ -656,7 +662,7 @@
 "feed.privacy.descr.only" = "Hanya bagikan dengan kontak terpilih";
 
 /* Header describing what these options are for */
-"feed.privacy.header" = "Siapa yang akan melihat postingan saya";
+"feed.privacy.header" = "Yang akan melihat postingan saya";
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.all" = "Kontak Saya";
@@ -674,7 +680,7 @@
 "feed.privacy.list.except.details" = "Pilih siapa yang tidak dapat melihat postingan ini";
 
 /* Title for the list when selecting contacts to not share with. */
-"feed.privacy.list.except.title" = "Sembunyikan Postingan Dari...";
+"feed.privacy.list.except.title" = "Sembunyikan Postingan dari...";
 
 /* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
 "feed.privacy.list.notOwn.only.description" = "Hanya orang di daftar Favorit %@ dapat meilihat postingan ini.";
@@ -713,10 +719,10 @@
 "feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
 
 /* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.body" = "Gunakan nomor teleponmu untuk terhubung dengan teman dan keluarga dalam sebuah wadah tanpa iklan, tanpa merek, tanpa sukaan, dan tanpa influencer.\n\nHalloApp ditujukan untukmu, dan orang terdekatmu, secara privat. Undang teman sungguhanmu untuk memulai!";
+"feed.welcome.post.body" = "Gunakan nomor telepon Anda untuk terhubung dengan teman dan keluarga di aplikasi tanpa iklan, tanpa merek, tanpa fitur suka, dan tanpa influencer.\n\nHalloApp adalah Anda dan orang-orang terdekat Anda, secara pribadi. Undang teman sejati Anda untuk memulai!";
 
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.title" = "Selamat datang di HalloApp, sebuah wadah untuk relasi sungguhan ✨";
+"feed.welcome.post.title" = "Selamat datang di HalloApp, tempat untuk jaringan hubungan nyata ✨";
 
 /* Text for 'more' cell prompting users to open the invite screen */
 "feedInviteCarousel.searchPrompt" = "Cari teman dan keluarga lainnya";
@@ -728,7 +734,7 @@
 "feedpost.button.comment" = "Komentar";
 
 /* Button under someoneelse's post. Verb. */
-"feedpost.button.reply" = "Balas secara Privat";
+"feedpost.button.reply" = "Balas secara Pribadi";
 
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Tambah deskripsi grup";
@@ -803,10 +809,10 @@
 "group.feed.n.members" = "feed.grup.n.anggota";
 
 /* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
-"group.feed.welcome.post.body" = "Bagikan tautan ini ke teman dan mereka akan otomatis bergabung ke dalam grupmu.";
+"group.feed.welcome.post.body" = "Bagikan tautan ini dengan teman dan mereka akan secara otomatis bergabung dendan grup Anda.";
 
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
-"group.feed.welcome.post.title" = "Undang teman ke dalam grupmu";
+"group.feed.welcome.post.title" = "Undang teman ke grup Anda";
 
 /* Action label for inviting others to join the group via link */
 "group.info.invite.to.group.via.link" = "Undang ke Grup lewat Tautan";
@@ -871,6 +877,12 @@
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Ketuk di sini untuk info grup";
 
+/* Error message when a group fails to delete */
+"groupGrid.deletion.error" = "Gagal menghapus grup";
+
+/* Title of button that deletes a group */
+"groupGrid.deletion.title" = "Hapus Grup";
+
 /* Tag for new posts in groups grid */
 "groupGrid.newPostIndicator" = "baru";
 
@@ -878,7 +890,7 @@
 "groupGridHeader.moreInfo" = "Info Lainnya";
 
 /* Text shown in notification when the user is added to a new group */
-"groups.add.notification" = "Kamu ditambahkan ke grup baru";
+"groups.add.notification" = "Anda ditambahkan ke grup baru";
 
 /* A label to show that the groups below are groups in common */
 "groups.common" = "Grup Bersama";
@@ -1118,13 +1130,13 @@
 "mypost.favorites.disappear.time.label" = "Postingan Anda telah dibagikan dengan Favorit Anda dan akan hilang setelah 30 hari.";
 
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
-"mypost.hide.posts.confirmation" = "Yakin ingin menyembunyikan semua pos mendatangmu dari %@? Kamu dapat selalu mengubah ini nanti.";
+"mypost.hide.posts.confirmation" = "Apakah Anda yakin ingin menyembunyikan semua postingan mendatang Anda dari %@? Anda dapat mengubah pengaturan ini nanti.";
 
 /* Placeholder text displayed in My Post Info screen when no one has seen the post yet. */
 "mypost.not.viewed.yet" = "Belum ada yang melihat postingan";
 
 /* Your Post screen: label for the row that opens the invite screen */
-"mypost.row.invite.to.halloapp" = "Undang Ke Halloapp";
+"mypost.row.invite.to.halloapp" = "Undang ke Halloapp";
 
 /* Your Post screen: label for the row that opens the privacy screen */
 "mypost.row.manage.privacy" = "Kelola Privasi";
@@ -1139,7 +1151,7 @@
 "n.others.replied" = "n.others.replied";
 
 /* Displayed in place of deleted feed posts. */
-"n.posts.deleted" = "%@ posting dihapus";
+"n.posts.deleted" = "%@ postingan dihapus";
 
 /* Header that appears above unread messages in the comments view. */
 "n.unread.comments.title" = "n.unread.comments.title";
@@ -1160,28 +1172,28 @@
 "not.in.group.banner.text" = "Kamu tak lagi ada di grup ini";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
-"notification.commented.with.text" = "Berkomentar: %@";
+"notification.commented.with.text" = "Mengomentari: %@";
 
 /* Content for unknown contact notification. */
-"notification.contact.unknown.content" = "Salah satu kontakmu kini menggunakan HalloApp";
+"notification.contact.unknown.content" = "Salah satu kontak Anda sekarang di HalloApp";
 
 /* Content for inviter notification. */
-"notification.invite.accepted.content" = "%@ baru saja menerima undanganmu untuk bergabung ke HalloApp 🎉";
+"notification.invite.accepted.content" = "%@ baru saja menerima undangan Anda untuk bergabung dengan HalloApp 🎉";
 
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Momen baru";
 
 /* New moment notification text to be shown to the user. */
-"notification.moment.1" = "%@ berbagi momen baru";
+"notification.moment.1" = "%@ membagikan momen baru";
 
 /* New moment notification text to be shown to the user. */
-"notification.moment.2" = "%1$@ dan %2$@ berbagi momen baru";
+"notification.moment.2" = "%1$@ dan %2$@ membagikan momen baru";
 
 /* New moment notification text to be shown to the user. */
-"notification.moment.3" = "%1$@, %2$@, dan %3$@ berbagi momen baru";
+"notification.moment.3" = "%1$@, %2$@, dan %3$@ membagikan momen baru";
 
 /* New moment notification text to be shown to the user. */
-"notification.moment.5" = "%1$@, %2$@, %3$@, dan lainnya berbagi momen baru";
+"notification.moment.5" = "%1$@, %2$@, %3$@, dan lainnya membagikan momen baru";
 
 /* New moment screenshot notification text to be shown to the user. */
 "notification.moment.screenshot" = "%@ mengambil jepretan layar momen Anda";
@@ -1199,7 +1211,7 @@
 "notification.new.contact.content" = "%@ sekarang di HalloApp";
 
 /* Content for friend notification. */
-"notification.new.friend.content" = "%@ kini ada di HalloApp";
+"notification.new.friend.content" = "%@ sekarang di HalloApp";
 
 /* Fallback text for new message notification. */
 "notification.new.message" = "Pesan Baru";
@@ -1235,7 +1247,7 @@
 "nux.chat.empty" = "Kontak & pesanmu akan tampil di sini";
 
 /* Text for new user popup pointing at chat list */
-"nux.chat.list" = "Di sinilah kamu akan menemukan pesan dari teman dan keluarga. Saat pengguna baru bergabung ke HalloApp kamu dapat melihatnya di sini.";
+"nux.chat.list" = "Di sinilah Anda akan menemukan pesan dari teman & keluarga. Saat pengguna baru bergabung dengan HalloApp, Anda dapat melihatnya di sini.";
 
 /* Shown on groups in common when there are no groups to display */
 "nux.groups.common.list.empty" = "Anda tidak memiliki grup bersama";
@@ -1244,10 +1256,10 @@
 "nux.groups.list.empty" = "Grupmu akan tampil di sini";
 
 /* Shown on home feed when no posts are available */
-"nux.home.feed.empty" = "Posmu dari kontak telepon akan tampil di sini";
+"nux.home.feed.empty" = "Postingan dari kontak ponsel Anda akan tampil di sini";
 
 /* Text for new user popup pointing at new post button */
-"nux.new.post.button" = "Ketuk untuk berbagi info terbaru dengan teman & keluarga di HalloApp";
+"nux.new.post.button" = "Ketuk untuk berbagi pembaruan dengan teman & keluarga di HalloApp";
 
 /* Title of the button that opens the camera. */
 "open.camera" = "Buka Kamera";
@@ -1292,22 +1304,22 @@
 "post.controller.picker.title" = "Postingan Baru";
 
 /* Displayed in place of a deleted feed post. */
-"post.has.been.deleted" = "Postingan ini sudah dihapus";
+"post.has.been.deleted" = "Postingan ini telah dihapus";
 
 /* Displayed in place of a deleted feed post. */
-"post.has.been.deleted.by.author" = "%@ menghapus posnya";
+"post.has.been.deleted.by.author" = "%@ menghapus postingannya";
 
 /* Displayed in place of a deleted feed post. */
-"post.has.been.deleted.by.you" = "Kamu menghapus posmu";
+"post.has.been.deleted.by.you" = "Anda telah menghapus postingan";
 
 /* Header when selecting all or some contacts to share with */
-"post.privacy.header.contacts" = "Siapa yang akan melihat postingan ini";
+"post.privacy.header.contacts" = "Yang akan melihat postingan ini";
 
 /* Header when selecting a group to share with */
 "post.privacy.header.groups" = "Bagikan hanya dengan grup";
 
 /* Controller title for changing destination and privacy */
-"post.privacy.title" = "Bagikan Dengan...";
+"post.privacy.title" = "Bagikan dengan...";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Diblokir";
@@ -1376,7 +1388,7 @@
 "profile.row.invite" = "Undang ke HalloApp";
 
 /* Row in Settings screen */
-"profile.row.my.posts" = "Pos Saya";
+"profile.row.my.posts" = "Postingan Saya";
 
 /* Title for the button allowing to select a new profile photo. */
 "profile.take.choose.photo" = "Ambil atau Pilih Foto";
@@ -1505,10 +1517,10 @@
 "server.marketing.body" = "Undang temanmu untuk menikmati HalloApp!";
 
 /* body of the marketing alert to encourage more posting */
-"server.marketing.post.body" = "Apa yang kamu lakukan sekarang mungkin menarik bagi teman-teman sungguhanmu.";
+"server.marketing.post.body" = "Yang Anda lakukan sekarang mungkin menarik untuk teman sejati Anda.";
 
 /* title of the marketing alert to encourage more posting */
-"server.marketing.post.title" = "Bingung ingin membagikan apa?";
+"server.marketing.post.title" = "Bingung ingin berbagi apa?";
 
 /* title of the marketing alert sent to users */
 "server.marketing.title" = "Halo!";
@@ -1625,25 +1637,25 @@
 "settings.app.version" = "HalloApp Versi %@";
 
 /* Settings menu section. */
-"settings.notifications" = "Notifikasi";
+"settings.notifications" = "Pemberitahuan";
 
 /* Settings > Notifications: label for the toggle that turns new comment notifications on or off. */
 "settings.notifications.comments" = "Komentar";
 
 /* Instructions for enabling notifications permissions */
-"settings.notifications.disabled.instructions" = "Harap aktifkan notifikasi di Pengaturan.";
+"settings.notifications.disabled.instructions" = "Nyalakan pemberitahuan di Pengaturan.";
 
 /* Settings > Notifications: label for the toggle that turns new moment notifications on or off. */
 "settings.notifications.moments" = "Momen";
 
 /* Settings > Notifications: label for the toggle that turns new post notifications on or off. */
-"settings.notifications.posts" = "Unggahan";
+"settings.notifications.posts" = "Postingan";
 
 /* Settings menu section */
 "settings.privacy" = "Privasi";
 
 /* Settings > Privacy: name of a setting that defines who can see your posts. */
-"settings.privacy.posts" = "Unggahan";
+"settings.privacy.posts" = "Postingan";
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Bergabunglah dengan jaringan relasi sungguhan saya di HalloApp. Unduh gratis di halloapp.com/dl";
@@ -1724,7 +1736,7 @@
 "title.chat.new.message" = "Pesan Baru";
 
 /* Third tab in the main app interface. */
-"title.chats" = "Obrolan";
+"title.chats" = "Chat";
 
 /* Title for the Comments screen. */
 "title.comments" = "Komentar";
@@ -1742,7 +1754,7 @@
 "title.home" = "Beranda";
 
 /* Row in Settings screen */
-"title.notifications" = "Notifikasi";
+"title.notifications" = "Pemberitahuan";
 
 /* Row in Settings screen */
 "title.privacy" = "Privasi";
@@ -1754,7 +1766,7 @@
 "title.select.group.members.title" = "Tambah Anggota Baru";
 
 /* Fourth tab in the main app interface */
-"title.settings" = "Setelan";
+"title.settings" = "Pengaturan";
 
 /* Row in Settings screen */
 "title.storage" = "Penyimpanan";
@@ -1822,6 +1834,12 @@
 /* Text that indicates a view action. */
 "view.title" = "Lihat";
 
+/* Moment deletion confirmation. Displays as action sheet title. */
+"your.moment.delete.confirmation" = "Hapus momen ini? Tindakan ini tidak dapat diurungkan.";
+
+/* Title for the button that confirms intent to delete your own moment. */
+"your.moment.delete.title" = "Hapus Momen";
+
 /* Title for the button that confirms intent to delete your own post. */
 "your.post.deletepost.button" = "Hapus Postingan";
 
@@ -1838,7 +1856,7 @@
 "your.post.externalshare.description2" = "Siapa pun dengan tautan ini dapat melihat postingan Anda. Tautan akan kedaluwarsa dengan postingan Anda. Pratinjau tautan tidak dienkripsi.";
 
 /* Message that external share failed. */
-"your.post.externalshare.error" = "Gagal mengunggah postingan ke bagikan eksternal";
+"your.post.externalshare.error" = "Gagal mengunggah postingan ke berbagi eksternal";
 
 /* Button to invalidate an external share link */
 "your.post.externalshare.revoke" = "Batalkan Tautan";

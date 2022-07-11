@@ -371,7 +371,7 @@
 "chat.message.video" = "Video";
 
 /* Text shown in place of a received message we are not able to decrypt yet. */
-"chat.message.waiting" = "Warte auf diese Nachricht. Das kann einen Moment dauern.";
+"chat.message.waiting" = "Warten auf diese Nachricht. Das kann einen Moment dauern.";
 
 /* Alert message when missing microphone access */
 "chat.mic.access.denied.message" = "Für Audioaufnahmen bitte in den Einstellungen das Mikrofon aktivieren";
@@ -386,10 +386,16 @@
 "chat.online.label" = "online";
 
 /* When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply when the moment has expired. */
-"chat.quoted.moment.expired.label" = "Moment abgelaufen";
+"chat.quoted.moment.expired.label" = "Moment ist abgelaufen";
 
 /* When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply. */
 "chat.quoted.moment.label" = "Moment";
+
+/* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has been deleted. */
+"chat.quoted.post.deleted.label" = "Beitrag ist gelöscht";
+
+/* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has expired. */
+"chat.quoted.post.expired.label" = "Beitrag ist abgelaufen";
 
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "schreibt...";
@@ -575,7 +581,7 @@
 "failed.to.send" = "Senden fehlgeschlagen";
 
 /* Text shown in place of a received post we are not able to decrypt yet. */
-"feed.comment.waiting" = "Warte auf diesen Kommentar. Das kann eine Weile dauern.";
+"feed.comment.waiting" = "Warten auf diesen Kommentar. Das kann eine Weile dauern.";
 
 /* Shown while content is being retracted from feed */
 "feed.deleting" = "wird gelöscht...";
@@ -641,7 +647,7 @@
 "feed.post.unsupported" = "Deine HalloApp-Version unterstützt diese Art von Beitrag nicht.";
 
 /* Text shown in place of a received post we are not able to decrypt yet. */
-"feed.post.waiting" = "Warte auf diesen Beitrag. Das kann einen Moment dauern.";
+"feed.post.waiting" = "Warten auf diesen Beitrag. Das kann einen Moment dauern.";
 
 /* Shown while content is being posted to feed */
 "feed.posting" = "Beitrag wird geposted...";
@@ -870,6 +876,12 @@
 
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Für Gruppen-Info hier tippen";
+
+/* Error message when a group fails to delete */
+"groupGrid.deletion.error" = "Gruppe kann nicht gelöscht werden";
+
+/* Title of button that deletes a group */
+"groupGrid.deletion.title" = "Gruppe löschen";
 
 /* Tag for new posts in groups grid */
 "groupGrid.newPostIndicator" = "neu";
@@ -1212,6 +1224,18 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 Video";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.1" = "%@ hat einen neuen Moment geteilt, um deinen zu entsperren";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.2" = "%1$@ und %2$@ haben einen neuen Moment geteilt, um deinen zu entsperren";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.3" = "%1$@, %2$@ und %3$@ haben einen neuen Moment geteilt, um deinen zu entsperren";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ und weitere Kontakte haben einen neuen Moment geteilt, um deinen zu entsperren";
 
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 Verpasster Videoanruf";
@@ -1568,7 +1592,7 @@
 "settings.account.delete.header" = "Das Löschen deines Accounts wird:";
 
 /* Alert message telling the user that account deletion is irreversible */
-"settings.account.delete.irreversible.label" = "Dieser Vorgang kann nicht rückgängig gemacht werden";
+"settings.account.delete.irreversible.label" = "Diese Aktion kann nicht rückgängig gemacht werden";
 
 /* Text field placeholder for collecting feedback before deleing account */
 "settings.account.delete.phone.number.placeholder" = "Feedback";
@@ -1577,7 +1601,7 @@
 "settings.account.delete.phone.number.prompt" = "Zur Bestätigung bitte deine Handynummer eingeben";
 
 /* String that's displayed when a spinner is not available to indicate that the view is waiting for a response from the server */
-"settings.account.delete.spinner.replacement" = "Warte auf Serverantwort";
+"settings.account.delete.spinner.replacement" = "Warten auf Serverantwort";
 
 /* Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account */
 "settings.account.deleted.message" = "Du kannst dich erst wieder anmelden, wenn du die Anwendung neu startest";
@@ -1821,6 +1845,12 @@
 
 /* Text that indicates a view action. */
 "view.title" = "Ansehen";
+
+/* Moment deletion confirmation. Displays as action sheet title. */
+"your.moment.delete.confirmation" = "Diesen Moment löschen? Diese Aktion kann nicht rückgängig gemacht werden.";
+
+/* Title for the button that confirms intent to delete your own moment. */
+"your.moment.delete.title" = "Moment löschen";
 
 /* Title for the button that confirms intent to delete your own post. */
 "your.post.deletepost.button" = "Beitrag löschen";

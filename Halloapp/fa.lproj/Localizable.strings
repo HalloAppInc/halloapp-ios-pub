@@ -391,6 +391,12 @@
 /* When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply. */
 "chat.quoted.moment.label" = "لحظه";
 
+/* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has been deleted. */
+"chat.quoted.post.deleted.label" = "پست حذف شد";
+
+/* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has expired. */
+"chat.quoted.post.expired.label" = "زمان پست گذشت";
+
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "در حال نوشتن...";
 
@@ -557,7 +563,7 @@
 "fab.accessibility.camera" = "دوربین";
 
 /* VoiceOver label for photo button in floating compose post menu in Home view. */
-"fab.accessibility.photo.library" = "آلبوم عکس";
+"fab.accessibility.photo.library" = "آلبوم عکس و فیلم";
 
 /* VoiceOver label for text post button in floating compose post menu in Home view. */
 "fab.accessibility.text" = "متن";
@@ -871,6 +877,12 @@
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "برای اطلاعات گروه اینجا کلیک کنید";
 
+/* Error message when a group fails to delete */
+"groupGrid.deletion.error" = "خطا در حذف گروه";
+
+/* Title of button that deletes a group */
+"groupGrid.deletion.title" = "حذف گروه";
+
 /* Tag for new posts in groups grid */
 "groupGrid.newPostIndicator" = "جدید";
 
@@ -1172,7 +1184,7 @@
 "notification.moment" = "لحظه جدید";
 
 /* New moment notification text to be shown to the user. */
-"notification.moment.1" = "@% لحظه‌ای را به اشراک گذاشت";
+"notification.moment.1" = "@% لحظه‌ جدیدی به اشراک گذاشت";
 
 /* New moment notification text to be shown to the user. */
 "notification.moment.2" = "@$1% و @$2% لحظه‌های جدیدی به اشتراک گذاشتند";
@@ -1821,6 +1833,12 @@
 
 /* Text that indicates a view action. */
 "view.title" = "مشاهده کردن";
+
+/* Moment deletion confirmation. Displays as action sheet title. */
+"your.moment.delete.confirmation" = "لحظه حذف شود؟ این عمل غیر قابل بازگشت است.";
+
+/* Title for the button that confirms intent to delete your own moment. */
+"your.moment.delete.title" = "حذف لحظه";
 
 /* Title for the button that confirms intent to delete your own post. */
 "your.post.deletepost.button" = "حذف پست";

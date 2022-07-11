@@ -139,6 +139,21 @@
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Yeni anlık";
 
+/* New moment notification text to be shown to the user. */
+"notification.moment.1" = "%@ yeni anlık paylaştı";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.2" = "%1$@ ve %2$@ yeni anlıklar paylaştı";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.3" = "%1$@, %2$@ ve %3$@ yeni anlıklar paylaştı";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.5" = "%1$@, %2$@, %3$@, vd., yeni anlıklar paylaştı";
+
+/* New moment screenshot notification text to be shown to the user. */
+"notification.moment.screenshot" = "%@, anlığının ekran görüntüsünü aldı";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
 

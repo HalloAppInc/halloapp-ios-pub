@@ -391,6 +391,12 @@
 /* When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply. */
 "chat.quoted.moment.label" = "Момент";
 
+/* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has been deleted. */
+"chat.quoted.post.deleted.label" = "Сообщение удалено";
+
+/* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has expired. */
+"chat.quoted.post.expired.label" = "Сообщение истекло";
+
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "печатает...";
 
@@ -1821,6 +1827,12 @@
 
 /* Text that indicates a view action. */
 "view.title" = "Смотреть";
+
+/* Moment deletion confirmation. Displays as action sheet title. */
+"your.moment.delete.confirmation" = "Удалить этот момент? Это действие не может быть отменено.";
+
+/* Title for the button that confirms intent to delete your own moment. */
+"your.moment.delete.title" = "Удалить момент";
 
 /* Title for the button that confirms intent to delete your own post. */
 "your.post.deletepost.button" = "Удалить пост";

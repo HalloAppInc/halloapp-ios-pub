@@ -391,6 +391,12 @@
 /* When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply. */
 "chat.quoted.moment.label" = "اللحظة";
 
+/* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has been deleted. */
+"chat.quoted.post.deleted.label" = "تم حذف المنشور";
+
+/* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has expired. */
+"chat.quoted.post.expired.label" = "انتهت صلاحية المنشور";
+
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "جارٍ الكتابة...";
 
@@ -870,6 +876,15 @@
 
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "انقر هنا لعرض معلومات المجموعة";
+
+/* Error message when a group fails to delete */
+"groupGrid.deletion.error" = "تعذّر حذف المجموعة";
+
+/* Title of button that deletes a group */
+"groupGrid.deletion.title" = "حذف المجموعة";
+
+/* Tag for new posts in groups grid */
+"groupGrid.newPostIndicator" = "جديد";
 
 /* More info menu item */
 "groupGridHeader.moreInfo" = "مزيد من المعلومات";
@@ -1426,6 +1441,21 @@
 /* Title for popup that appears when user tries to register invalid number */
 "registration.invalidphone" = "عذرًا!";
 
+/* Popup that appears when user tries to register a number with invalid country code */
+"registration.invalidphone.invalidCountryCode" = "رقم الهاتف الذي أدخلته يحتوي على رمز بلد غير صالح. يُرجى التحقق منه.";
+
+/* Popup that appears when user tries to register a number with invalid length */
+"registration.invalidphone.invalidLength" = "طول رقم الهاتف الذي أدخلته غير صالح. يُرجى التحقق منه.";
+
+/* Popup that appears when user tries to register a landline number */
+"registration.invalidphone.lineTypeFixed" = "رقم الهاتف الذي أدخلته ليس رقم جوّال. يُرجى التحقق منه.";
+
+/* Popup that appears when user tries to register a number with unknown line type */
+"registration.invalidphone.lineTypeOther" = "رقم الهاتف الذي أدخلته ليس رقم جوّال. يُرجى التحقق منه.";
+
+/* Popup that appears when user tries to register a VoIP number */
+"registration.invalidphone.lineTypeVoip" = "رقم الهاتف الذي أدخلته ليس رقم جوّال. يُرجى التحقق منه.";
+
 /* Popup that appears when user tries to register invalid number */
 "registration.invalidphone.only" = "رقم الهاتف الذي أدخلته غير صالح. يُرجى إعادة التحقق.";
 
@@ -1803,6 +1833,12 @@
 
 /* Text that indicates a view action. */
 "view.title" = "عرض";
+
+/* Moment deletion confirmation. Displays as action sheet title. */
+"your.moment.delete.confirmation" = "هل تريد حذف هذه اللحظة؟ لا يمكن التراجع عن هذا الإجراء.";
+
+/* Title for the button that confirms intent to delete your own moment. */
+"your.moment.delete.title" = "حذف اللحظة";
 
 /* Title for the button that confirms intent to delete your own post. */
 "your.post.deletepost.button" = "حذف المنشور";

@@ -877,6 +877,12 @@
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Tik hier voor groepsinformatie";
 
+/* Error message when a group fails to delete */
+"groupGrid.deletion.error" = "Verwijderen van groep mislukt";
+
+/* Title of button that deletes a group */
+"groupGrid.deletion.title" = "Groep Verwijderen";
+
 /* Tag for new posts in groups grid */
 "groupGrid.newPostIndicator" = "nieuw";
 

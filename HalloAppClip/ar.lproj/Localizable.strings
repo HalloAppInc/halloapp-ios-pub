@@ -58,6 +58,21 @@
 /* Title for popup that appears when user tries to register invalid number */
 "registration.invalidphone" = "عذرًا!";
 
+/* Popup that appears when user tries to register a number with invalid country code */
+"registration.invalidphone.invalidCountryCode" = "رقم الهاتف الذي أدخلته يحتوي على رمز بلد غير صالح. يُرجى التحقق منه.";
+
+/* Popup that appears when user tries to register a number with invalid length */
+"registration.invalidphone.invalidLength" = "طول رقم الهاتف الذي أدخلته غير صالح. يُرجى التحقق منه.";
+
+/* Popup that appears when user tries to register a landline number */
+"registration.invalidphone.lineTypeFixed" = "رقم الهاتف الذي أدخلته ليس رقم جوّال. يُرجى التحقق منه.";
+
+/* Popup that appears when user tries to register a number with unknown line type */
+"registration.invalidphone.lineTypeOther" = "رقم الهاتف الذي أدخلته ليس رقم جوّال. يُرجى التحقق منه.";
+
+/* Popup that appears when user tries to register a VoIP number */
+"registration.invalidphone.lineTypeVoip" = "رقم الهاتف الذي أدخلته ليس رقم جوّال. يُرجى التحقق منه.";
+
 /* Popup that appears when user tries to register invalid number */
 "registration.invalidphone.only" = "رقم الهاتف الذي أدخلته غير صالح. يُرجى إعادة التحقق.";
 

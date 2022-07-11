@@ -151,6 +151,12 @@
 /* Text indicating that calls are end-to-end encrypted */
 "call.encryption.text" = "Uçtan uca şifreli";
 
+/* Title for call history event for an incoming call. */
+"call.history.incoming.call" = "%@, seni aradı";
+
+/* Title for call history event for an outgoing call */
+"call.history.outgoing.call" = "%@ kişisini aradın";
+
 /* Title for call history event. Appears next to details of a successful call. */
 "call.history.video.call" = "Görüntülü arama";
 
@@ -247,11 +253,14 @@
 /* Text shown on the camera screen when composing a new moment to unlock someone else's moment. */
 "camera.moment.unlock.subtitle" = "%@ kişisinin anlığını görebilmek için kendinkini paylaş";
 
+/* Title of alert for when the app does not have permissions to access the camera. */
+"camera.permissions.title" = "Kamera erişimi";
+
 /* No comment provided by engineer. */
 "Cancel" = "İptal et";
 
 /* Text shown in the chat interface informing the user that the contact is blocked */
-"chat.blocked.contact.label" = "Bu kişi engelli, engeli kaldırmak için dokun";
+"chat.blocked.contact.label" = "Bu kişiyi engelledin";
 
 /* Title of the bottom sheet shown in the chat screen of a contact that is blocked. The bottom sheet contains an unblock button. */
 "chat.contact.is.blocked.title.label" = "Bu kişi engellendi; engelini kaldırmadığın sürece ondan mesaj alamazsın.";
@@ -370,8 +379,23 @@
 /* Alert title when missing microphone access */
 "chat.mic.access.denied.title" = "Mikrofon kullanılamıyor.";
 
+/* cta label for creating a new group chat */
+"chat.new.group.label" = "Yeni grup sohbeti";
+
 /* Text below the contact's name when the contact is online in the Chat Screen */
 "chat.online.label" = "çevrimiçi";
+
+/* When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply when the moment has expired. */
+"chat.quoted.moment.expired.label" = "Anlığın süresi doldu";
+
+/* When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply. */
+"chat.quoted.moment.label" = "Anlık";
+
+/* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has been deleted. */
+"chat.quoted.post.deleted.label" = "Gönderi silindi";
+
+/* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has expired. */
+"chat.quoted.post.expired.label" = "Gönderinin süresi doldu";
 
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "yazıyor...";
@@ -401,7 +425,7 @@
 "comment.reply" = "Yanıtla";
 
 /* Placeholder text for the comment input field when there is no user input. */
-"comment.textfield.placeholder" = "Yorum ekle";
+"comment.textfield.placeholder" = "Yeni yorum";
 
 /* Text displayed in place of a comment that is not supported in the current app version. */
 "comment.unsupported" = "HalloApp sürümün, bu tür yorumları desteklemiyor.";
@@ -511,6 +535,9 @@
 /* Title for generic delete button. */
 "Delete" = "Sil";
 
+/* Body of the bottom sheet that is presented only once to explain the moments feature. */
+"describing.moments" = "Anlık paylaşarak arkadaşlarının anlık kilidini aç. Anlıklar geçicidir; görüldükten sonra kaybolurlar. ";
+
 /* link, tapping on which launched the flow to edit blocked contacts */
 "edit.blocked" = "Düzenle";
 
@@ -536,13 +563,16 @@
 "fab.accessibility.camera" = "Kamera";
 
 /* VoiceOver label for photo button in floating compose post menu in Home view. */
-"fab.accessibility.photo.library" = "Galeri";
+"fab.accessibility.photo.library" = "Fotoğraf & Video";
 
 /* VoiceOver label for text post button in floating compose post menu in Home view. */
 "fab.accessibility.text" = "Metin";
 
 /* VoiceOver label for audio post button in floating compose post menu in Home view. */
 "fab.accessibility.voice" = "Ses";
+
+/* Label for floating moment button on home feed. */
+"fab.moment.button" = "Anlık";
 
 /* Label for floating compose post menu on Group screen. */
 "fab.post.button" = "Gönderi";
@@ -794,7 +824,7 @@
 "group.invite.link.copied" = "Panoya kopyalandı";
 
 /* Text to describe what the group invite link is */
-"group.invite.link.description" = "HalloApp kullanan herkes gruba üye olmak için bu ilişimi kullanabilir. Ancak gruba katılmadan önceki içeriği göremezler.";
+"group.invite.link.description" = "HalloApp kullanan herkes gruba üye olmak için bu ilişimi kullanabilir. Ancak gruba katılmadan önceki içeriği göremezler. ";
 
 /* Text label above the group link section in group invite screen */
 "group.invite.link.label" = "GRUP İLİŞİMİ";
@@ -847,6 +877,12 @@
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Grup bilgisi için dokun";
 
+/* Tag for new posts in groups grid */
+"groupGrid.newPostIndicator" = "yeni";
+
+/* More info menu item */
+"groupGridHeader.moreInfo" = "Daha fazla bilgi";
+
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Yeni bir gruba eklendin";
 
@@ -894,6 +930,9 @@
 
 /* Title of failed video call screen alert. */
 "home.video.calls.fail.title" = "Görüntülü arama henüz desteklenmiyor.";
+
+/* Title of the bottom sheet that is presented only once to explain the moments feature. */
+"introducing.moments" = "Anlık tanıtımı";
 
 /* Title of action sheet that allows the user to choose between sms and whatsapp to invite contact */
 "invite.action.sheet.title" = "%@ kişisini ... yoluyla davet et";
@@ -1048,6 +1087,15 @@
 /* Text on loading screen while migrating data */
 "migration.inProgress" = "Veriler optimize ediliyor";
 
+/* Disclaimer to tell the user that their moments go to all of their contacts on HalloApp. */
+"moment.contacts.disclaimer" = "Anlıkların yalnızca HalloApp kişilerinle paylaşılacak";
+
+/* Text displayed the first time the user acts to post a second moment in the same day. */
+"moment.replacement.disclaimer" = "Bu anlık, öncekinin yerine geçecek.";
+
+/* Title of text displayed the first time the user acts to post a second moment in the same day. */
+"moment.replacement.title" = "Uyarılar";
+
 /* For indicating that there was an error while uploading the post. */
 "moment.uploading.failure" = "Hata";
 
@@ -1093,8 +1141,17 @@
 /* Indicates how many invites are remaining */
 "n.invites.remaining" = "n.davetiye kaldı";
 
+/* Summary when multiple commenters commented on the same post you commented on */
+"n.others.replied" = "n.others.replied";
+
 /* Displayed in place of deleted feed posts. */
 "n.posts.deleted" = "%@ gönderi silindi";
+
+/* Header that appears above unread messages in the comments view. */
+"n.unread.comments.title" = "n.unread.comments.title";
+
+/* Header that appears above unread messages in the chats view. */
+"n.unread.messages.title" = "n.unread.messages.title";
 
 /* Placeholder text shown in the middle of the Add New Group Members screen when user have no contacts (in ZeroZone) to add */
 "new.group.members.empty.placeholder" = "HalloApp'teki kişilerin burada görünecek";
@@ -1119,6 +1176,21 @@
 
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Yeni anlık";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.1" = "%@ yeni anlık paylaştı";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.2" = "%1$@ ve %2$@ yeni anlıklar paylaştı";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.3" = "%1$@, %2$@ ve %3$@ yeni anlıklar paylaştı";
+
+/* New moment notification text to be shown to the user. */
+"notification.moment.5" = "%1$@, %2$@, %3$@, vd., yeni anlıklar paylaştı";
+
+/* New moment screenshot notification text to be shown to the user. */
+"notification.moment.screenshot" = "%@, anlığının ekran görüntüsünü aldı";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
@@ -1262,7 +1334,7 @@
 "profile.groups.in.common" = "Ortak Gruplar";
 
 /* This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun. */
-"profile.header.call.user" = "Sesli arama";
+"profile.header.call.user" = "sesli arama";
 
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
 "profile.header.message.user" = "Mesaj";
@@ -1295,7 +1367,7 @@
 "profile.name.length" = "%1$d/%2$d";
 
 /* Row in Profile screen. */
-"profile.row.about" = "Hakkında";
+"profile.row.about" = "HalloApp Hakkında";
 
 /* Row in Profile Screen */
 "profile.row.account" = "Hesap";
@@ -1314,6 +1386,9 @@
 
 /* Title for the button allowing to select a new profile photo. */
 "profile.take.choose.photo" = "Fotoğraf çek ya da seç";
+
+/* Title of the screen with the user's profile. */
+"profile.title" = "Profil";
 
 /* Title for the screen allowing to edit profile name */
 "profile.title.your.name" = "Adın";
@@ -1360,6 +1435,21 @@
 /* Title for popup that appears when user tries to register invalid number */
 "registration.invalidphone" = "Tüh!";
 
+/* Popup that appears when user tries to register a number with invalid country code */
+"registration.invalidphone.invalidCountryCode" = "Girdiğin numaranın şehir kodu geçersiz. Lütfen tekrar dene.";
+
+/* Popup that appears when user tries to register a number with invalid length */
+"registration.invalidphone.invalidLength" = "Girdiğin numaranın uzunluğu geçersiz. Lütfen tekrar dene.";
+
+/* Popup that appears when user tries to register a landline number */
+"registration.invalidphone.lineTypeFixed" = "Girdiğin numara cep numarası değil. Lütfen tekrar dene.";
+
+/* Popup that appears when user tries to register a number with unknown line type */
+"registration.invalidphone.lineTypeOther" = "Girdiğin numara cep numarası değil. Lütfen tekrar dene.";
+
+/* Popup that appears when user tries to register a VoIP number */
+"registration.invalidphone.lineTypeVoip" = "Girdiğin numara cep numarası değil. Lütfen tekrar dene.";
+
 /* Popup that appears when user tries to register invalid number */
 "registration.invalidphone.only" = "Girdiğin telefon numarası geçersiz. Lütfen kontrol et.";
 
@@ -1401,6 +1491,9 @@
 
 /* Text shown to instruct using a QR code for joining a group */
 "scan.to.join.group.using.qr.code" = "Katılmak için bu QR kodunu telefonunun kamerasıyla tara.";
+
+/* Title that indicates that someone took a screenshot. */
+"screenshot.title" = "Ekran görüntüsü";
 
 /* Text placed on the blurred overlay of a secret post. */
 "secret.post.entice" = "%@ anlık paylaştı";
@@ -1546,6 +1639,9 @@
 /* Instructions for enabling notifications permissions */
 "settings.notifications.disabled.instructions" = "Lütfen Ayarlar'a git ve bildirimleri aç";
 
+/* Settings > Notifications: label for the toggle that turns new moment notifications on or off. */
+"settings.notifications.moments" = "Anlıklar";
+
 /* Settings > Notifications: label for the toggle that turns new post notifications on or off. */
 "settings.notifications.posts" = "Gönderiler";
 
@@ -1624,6 +1720,9 @@
 /* Timestamp: `Yesterday` */
 "timestamp.yesterday" = "Dün";
 
+/* Camera screen title */
+"title.camera" = "Kamera";
+
 /* Camera screen title for a new moment */
 "title.camera.moment" = "Yeni anlık";
 
@@ -1668,6 +1767,9 @@
 
 /* Title for the screen with information about who saw your post. */
 "title.your.post" = "... tarafından görüldü";
+
+/* Text on the bottom sheet's button that dismisses the sheet. */
+"try.moments" = "Anlık'ı dene";
 
 /* Indicates which switch a user needs to turn on to enable contacts permissions. */
 "turn.on.contacts" = "\"Kişilerim\"i aç";
@@ -1725,6 +1827,12 @@
 
 /* Text that indicates a view action. */
 "view.title" = "Gör";
+
+/* Moment deletion confirmation. Displays as action sheet title. */
+"your.moment.delete.confirmation" = "Bu anlığı sil? Bu işlem geri alınamaz.";
+
+/* Title for the button that confirms intent to delete your own moment. */
+"your.moment.delete.title" = "Anlığı sil";
 
 /* Title for the button that confirms intent to delete your own post. */
 "your.post.deletepost.button" = "Gönderiyi sil";

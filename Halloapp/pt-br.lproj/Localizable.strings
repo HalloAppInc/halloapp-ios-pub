@@ -260,7 +260,7 @@
 "Cancel" = "Cancelar";
 
 /* Text shown in the chat interface informing the user that the contact is blocked */
-"chat.blocked.contact.label" = "O contato está bloqueado. Toque para desbloquear";
+"chat.blocked.contact.label" = "Você bloqueou este contato";
 
 /* Title of the bottom sheet shown in the chat screen of a contact that is blocked. The bottom sheet contains an unblock button. */
 "chat.contact.is.blocked.title.label" = "O contato está bloqueado, você não receberá nenhuma mensagem até desbloqueá-lo.";
@@ -278,7 +278,7 @@
 "chat.delete.title" = "Excluir mensagem selecionada?";
 
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
-"chat.encryption.label" = "Os chats são criptografados de ponta a ponta e o HalloApp não tem acesso a eles. Toque para saber mais.";
+"chat.encryption.label" = "Todas as mensagens no HalloApp são criptografadas de ponta a ponta. Toque para saber mais";
 
 /* Text shown in Chat when the security keys of the contact user is chatting with, have changed */
 "chat.event.security.keys.changed" = "Chaves de segurança com %@ alteradas";
@@ -362,7 +362,7 @@
 "chat.message.photo" = "Foto";
 
 /* Text shown when content input text field is empty for chat screens. */
-"chat.message.placeholder" = "Escreva uma mensagem";
+"chat.message.placeholder" = "Nova mensagem";
 
 /* Text shown in place of a received message we are not able to process yet. */
 "chat.message.unsupported" = "Sua versão do HalloApp não suporta este tipo de mensagem.";
@@ -390,6 +390,12 @@
 
 /* When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply. */
 "chat.quoted.moment.label" = "Momento";
+
+/* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has been deleted. */
+"chat.quoted.post.deleted.label" = "Postagem excluída";
+
+/* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has expired. */
+"chat.quoted.post.expired.label" = "Postagem expirada";
 
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "digitando...";
@@ -419,7 +425,7 @@
 "comment.reply" = "Responder";
 
 /* Placeholder text for the comment input field when there is no user input. */
-"comment.textfield.placeholder" = "Adicione um comentário";
+"comment.textfield.placeholder" = "Novo comentário";
 
 /* Text displayed in place of a comment that is not supported in the current app version. */
 "comment.unsupported" = "Sua versão do HalloApp não suporta este tipo de comentário.";
@@ -557,7 +563,7 @@
 "fab.accessibility.camera" = "Câmera";
 
 /* VoiceOver label for photo button in floating compose post menu in Home view. */
-"fab.accessibility.photo.library" = "Galeria de fotos";
+"fab.accessibility.photo.library" = "Foto & Video";
 
 /* VoiceOver label for text post button in floating compose post menu in Home view. */
 "fab.accessibility.text" = "Texto";
@@ -818,7 +824,7 @@
 "group.invite.link.copied" = "Copiado para a área de transferência";
 
 /* Text to describe what the group invite link is */
-"group.invite.link.description" = "Qualquer pessoa com o HalloApp pode seguir este link para entrar neste grupo.";
+"group.invite.link.description" = "Qualquer pessoa com HalloApp pode seguir este link para participar deste grupo. No entanto, eles não receberão automaticamente o conteúdo postado antes de ingressar no grupo.";
 
 /* Text label above the group link section in group invite screen */
 "group.invite.link.label" = "LINK DO GRUPO";
@@ -870,6 +876,15 @@
 
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Clique aqui para obter informações do grupo";
+
+/* Error message when a group fails to delete */
+"groupGrid.deletion.error" = "Falha ao excluir grupo";
+
+/* Title of button that deletes a group */
+"groupGrid.deletion.title" = "Excluir grupo";
+
+/* Tag for new posts in groups grid */
+"groupGrid.newPostIndicator" = "Novo";
 
 /* More info menu item */
 "groupGridHeader.moreInfo" = "Mais informações";
@@ -1169,7 +1184,7 @@
 "notification.moment" = "Novo Momento";
 
 /* New moment notification text to be shown to the user. */
-"notification.moment.1" = "%@ compartilhou um momento";
+"notification.moment.1" = "%@ compartilhou um momento novo";
 
 /* New moment notification text to be shown to the user. */
 "notification.moment.2" = "%1$@ e %2$@ compartilharam novos momentos";
@@ -1325,7 +1340,7 @@
 "profile.groups.in.common" = "Grupos em comum";
 
 /* This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun. */
-"profile.header.call.user" = "chamada de voz";
+"profile.header.call.user" = "voz";
 
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
 "profile.header.message.user" = "Mensagem \n";
@@ -1358,7 +1373,7 @@
 "profile.name.length" = "%1$d/%2$d";
 
 /* Row in Profile screen. */
-"profile.row.about" = "Sobre";
+"profile.row.about" = "Sobre o HalloApp";
 
 /* Row in Profile Screen */
 "profile.row.account" = "Conta";
@@ -1425,6 +1440,21 @@
 
 /* Title for popup that appears when user tries to register invalid number */
 "registration.invalidphone" = "Droga!";
+
+/* Popup that appears when user tries to register a number with invalid country code */
+"registration.invalidphone.invalidCountryCode" = "O número de telefone que você digitou tem um código de país inválido. Por favor, cheque novamente.";
+
+/* Popup that appears when user tries to register a number with invalid length */
+"registration.invalidphone.invalidLength" = "O número de telefone que você digitou tem um comprimento inválido. Por favor, cheque novamente.";
+
+/* Popup that appears when user tries to register a landline number */
+"registration.invalidphone.lineTypeFixed" = "O número de telefone que você digitou não é um número de celular. Por favor, cheque novamente.";
+
+/* Popup that appears when user tries to register a number with unknown line type */
+"registration.invalidphone.lineTypeOther" = "O número de telefone que você digitou não é um número de celular. Por favor, cheque novamente.";
+
+/* Popup that appears when user tries to register a VoIP number */
+"registration.invalidphone.lineTypeVoip" = "O número de telefone que você digitou não é um número de celular. Por favor, cheque novamente.";
 
 /* Popup that appears when user tries to register invalid number */
 "registration.invalidphone.only" = "O número de telefone que você inseriu é inválido. Por favor, cheque novamente.";
@@ -1803,6 +1833,12 @@
 
 /* Text that indicates a view action. */
 "view.title" = "Visualizar";
+
+/* Moment deletion confirmation. Displays as action sheet title. */
+"your.moment.delete.confirmation" = "Excluir este momento? Essa ação não pode ser desfeita.";
+
+/* Title for the button that confirms intent to delete your own moment. */
+"your.moment.delete.title" = "Excluir momento";
 
 /* Title for the button that confirms intent to delete your own post. */
 "your.post.deletepost.button" = "Excluir postagem";

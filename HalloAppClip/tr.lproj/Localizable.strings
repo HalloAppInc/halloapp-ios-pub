@@ -58,6 +58,21 @@
 /* Title for popup that appears when user tries to register invalid number */
 "registration.invalidphone" = "Tüh!";
 
+/* Popup that appears when user tries to register a number with invalid country code */
+"registration.invalidphone.invalidCountryCode" = "Girdiğin numaranın şehir kodu geçersiz. Lütfen tekrar dene.";
+
+/* Popup that appears when user tries to register a number with invalid length */
+"registration.invalidphone.invalidLength" = "Girdiğin numaranın uzunluğu geçersiz. Lütfen tekrar dene.";
+
+/* Popup that appears when user tries to register a landline number */
+"registration.invalidphone.lineTypeFixed" = "Girdiğin numara cep numarası değil. Lütfen tekrar dene.";
+
+/* Popup that appears when user tries to register a number with unknown line type */
+"registration.invalidphone.lineTypeOther" = "Girdiğin numara cep numarası değil. Lütfen tekrar dene.";
+
+/* Popup that appears when user tries to register a VoIP number */
+"registration.invalidphone.lineTypeVoip" = "Girdiğin numara cep numarası değil. Lütfen tekrar dene.";
+
 /* Popup that appears when user tries to register invalid number */
 "registration.invalidphone.only" = "Girdiğin telefon numarası geçersiz. Lütfen kontrol et.";
 

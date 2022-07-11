@@ -140,7 +140,7 @@
 "notification.moment" = "لحظه جدید";
 
 /* New moment notification text to be shown to the user. */
-"notification.moment.1" = "@% لحظه‌ای را به اشراک گذاشت";
+"notification.moment.1" = "@% لحظه‌ جدیدی به اشراک گذاشت";
 
 /* New moment notification text to be shown to the user. */
 "notification.moment.2" = "@$1% و @$2% لحظه‌های جدیدی به اشتراک گذاشتند";

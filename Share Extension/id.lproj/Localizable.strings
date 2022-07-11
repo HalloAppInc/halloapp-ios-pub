@@ -71,7 +71,7 @@
 "button.update" = "Perbarui";
 
 /* Alert message when missing microphone access */
-"chat.mic.access.denied.message" = "Untuk mengaktifkan perekaman audio, silakan ketuk Pengaturan lalu nyalakan Mikrofon";
+"chat.mic.access.denied.message" = "Untuk mengaktifkan rekaman audio, silakan ketuk Pengaturan lalu nyalakan Mikrofon";
 
 /* Alert title when missing microphone access */
 "chat.mic.access.denied.title" = "Gagal mengakses mikrofon";
@@ -164,7 +164,7 @@
 "share.composer.placeholder" = "Tulis deskripsi";
 
 /* Placeholder when sharing text only. */
-"share.composer.placeholder.text" = "Tuliskan unggahan";
+"share.composer.placeholder.text" = "Tulis postingan";
 
 /* Alert dialog message shown when uploading fails. */
 "share.composer.uploading.fail.message" = "Silakan coba lagi nanti.";
