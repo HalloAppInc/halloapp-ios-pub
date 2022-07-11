@@ -101,6 +101,8 @@ class MinimalMomentView: UIView {
                 .sink { [weak self] image in
                     self?.imageView.image = media.image
                 }
+
+            media.loadImage()
         }
 
         progressControl.configure(with: post)
