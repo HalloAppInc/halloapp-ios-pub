@@ -42,58 +42,6 @@ public class ReactionViewController: UIViewController {
         return toolbar
     }()
     
-    private lazy var saveAllButton: ReactionContextMenuButton = {
-        let button = ReactionContextMenuButton()
-        let tap = UITapGestureRecognizer(target: self, action: #selector(handleSaveAll))
-        button.addGestureRecognizer(tap)
-        button.titleLabel.text = Localizations.buttonSave
-        guard let image = UIImage(systemName: "square.and.arrow.down", withConfiguration: iconConfig) else {
-            button.titleLabel.font = UIFont.systemFont(ofSize: UIFont.systemFontSize)
-            return button
-        }
-        button.imageView.image = image
-        return button
-    }()
-    
-    private lazy var replyButton: ReactionContextMenuButton = {
-        let button = ReactionContextMenuButton()
-        let tap = UITapGestureRecognizer(target: self, action: #selector(handleReply))
-        button.addGestureRecognizer(tap)
-        button.titleLabel.text = Localizations.messageReply
-        guard let image = UIImage(systemName: "arrowshape.turn.up.left", withConfiguration: iconConfig) else {
-            button.titleLabel.font = UIFont.systemFont(ofSize: UIFont.systemFontSize)
-            return button
-        }
-        button.imageView.image = image
-        return button
-    }()
-    
-    private lazy var copyButton: ReactionContextMenuButton = {
-        let button = ReactionContextMenuButton()
-        let tap = UITapGestureRecognizer(target: self, action: #selector(handleCopy))
-        button.addGestureRecognizer(tap)
-        button.titleLabel.text = Localizations.messageCopy
-        guard let image = UIImage(systemName: "doc.on.doc", withConfiguration: iconConfig) else {
-            button.titleLabel.font = UIFont.systemFont(ofSize: UIFont.systemFontSize)
-            return button
-        }
-        button.imageView.image = image
-        return button
-    }()
-    
-    private lazy var deleteButton: ReactionContextMenuButton = {
-        let button = ReactionContextMenuButton()
-        let tap = UITapGestureRecognizer(target: self, action: #selector(handleDelete))
-        button.addGestureRecognizer(tap)
-        button.titleLabel.text = Localizations.messageDelete
-        guard let image = UIImage(systemName: "trash", withConfiguration: iconConfig) else {
-            button.titleLabel.font = UIFont.systemFont(ofSize: UIFont.systemFontSize)
-            return button
-        }
-        button.imageView.image = image
-        return button
-    }()
-    
     init(messageViewCell: UIView, chatMessage: ChatMessage) {
         self.messageViewCell = messageViewCell
         self.chatMessage = chatMessage
@@ -102,6 +50,17 @@ public class ReactionViewController: UIViewController {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func createMenuButton(imageName: String, labelName: String) -> UIControl {
+        let config = UIImage.SymbolConfiguration(pointSize: 25, weight: .light)
+        let image = UIImage(systemName: imageName, withConfiguration: config)
+        let button = LabeledIconButton(image: image, title: labelName)
+        button.heightAnchor.constraint(greaterThanOrEqualToConstant: 55).isActive = true
+        button.widthAnchor.constraint(greaterThanOrEqualToConstant: 65).isActive = true
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.isUserInteractionEnabled = true
+        return button
     }
     
     public override func viewDidLoad() {
@@ -118,17 +77,26 @@ public class ReactionViewController: UIViewController {
         if chatMessage.incomingStatus != .retracted {
             items.append(space)
             if let media = chatMessage.media, !media.isEmpty {
+                let saveAllButton = createMenuButton(imageName: "square.and.arrow.down", labelName: Localizations.buttonSave)
+                saveAllButton.addTarget(self, action: #selector(handleSaveAll), for: .touchUpInside)
                 items.append(UIBarButtonItem(customView: saveAllButton))
                 items.append(space)
             }
             
+            let replyButton = createMenuButton(imageName: "arrowshape.turn.up.left", labelName: Localizations.messageReply)
+            replyButton.addTarget(self, action: #selector(handleReply), for: .touchUpInside)
             items.append(UIBarButtonItem(customView: replyButton))
             items.append(space)
             
             if let messageText = chatMessage.rawText, !messageText.isEmpty {
+                let copyButton = createMenuButton(imageName: "doc.on.doc", labelName: Localizations.messageCopy)
+                copyButton.addTarget(self, action: #selector(handleCopy), for: .touchUpInside)
                 items.append(UIBarButtonItem(customView: copyButton))
                 items.append(space)
             }
+
+            let deleteButton = createMenuButton(imageName: "trash", labelName: Localizations.messageDelete)
+            deleteButton.addTarget(self, action: #selector(handleDelete), for: .touchUpInside)
             items.append(UIBarButtonItem(customView: deleteButton))
             items.append(space)
         }
@@ -194,32 +162,5 @@ public class ReactionViewController: UIViewController {
         }
         dismiss(animated: true)
         delegate.showDeletionConfirmationMenu(for: chatMessage)
-    }
-}
-
-private class ReactionContextMenuButton: UIControl {
-    let imageView = UIImageView()
-    let titleLabel = UILabel()
-    
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        
-        titleLabel.font = UIFont.systemFont(ofSize: 12)
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-
-        let stack = UIStackView()
-        stack.addArrangedSubview(imageView)
-        stack.addArrangedSubview(titleLabel)
-        stack.axis = .vertical
-        stack.alignment = .center
-        stack.spacing = 0
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(stack)
-        stack.constrain(to: self)
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
     }
 }
