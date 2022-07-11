@@ -401,7 +401,10 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard(_:)))
         tapGesture.cancelsTouchesInView = false
         collectionView.addGestureRecognizer(tapGesture)
-
+        if let inputAccessoryView = inputAccessoryView {
+            let height = inputAccessoryView.systemLayoutSizeFitting(CGSize(width: view.bounds.width, height: .greatestFiniteMagnitude)).height
+            collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: height, right: 0)
+        }
     }
 
     @objc private func updateAfterTimerEnds() {

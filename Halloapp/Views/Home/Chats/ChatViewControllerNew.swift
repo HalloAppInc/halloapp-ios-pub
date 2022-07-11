@@ -617,7 +617,10 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard(_:)))
         tapGesture.cancelsTouchesInView = false
         collectionView.addGestureRecognizer(tapGesture)
-
+        if let inputAccessoryView = inputAccessoryView {
+            let height = inputAccessoryView.systemLayoutSizeFitting(CGSize(width: view.bounds.width, height: .greatestFiniteMagnitude)).height
+            collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: height, right: 0)
+        }
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -677,7 +680,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             scrollToUnreadBannerCell()
         } else if scrollToLastMessageOnNextUpdate  {
             scrollToLastMessageOnNextUpdate = false
-            DDLogDebug("ChatViewControllerNew/updateScrollingWhenDataChanges/scrollToLastMessage/ on send message")
+            DDLogDebug("ChatViewControllerNew/updateScrollingWhenDataChanges/scrollToLastMessage/ on send message isFirstLaunch: \(isFirstLaunch)")
             scrollToLastMessage(animated: isFirstLaunch ? false : true)
             return
         } else if didReceiveIncoming, jumpButton.alpha == 0 {
@@ -1672,7 +1675,6 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
         guard let lastMessageIndexPath = lastMessageIndexPath() else {
             return
         }
-        DDLogDebug("ChatViewControllerNew/scrollToLastMessage")
         self.collectionView.scrollToItem(at: lastMessageIndexPath, at: .centeredVertically, animated: animated)
         updateJumpButtonText()
     }
