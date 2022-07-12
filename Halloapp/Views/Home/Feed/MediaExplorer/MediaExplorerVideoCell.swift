@@ -26,7 +26,7 @@ class MediaExplorerVideoCell: UICollectionViewCell {
     private var videoConstraints: [NSLayoutConstraint] = []
 
     private(set) lazy var video: VideoView = {
-        let view = VideoView(playbackControls: .advanced)
+        let view = VideoView(playbackControls: .custom)
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
@@ -108,6 +108,7 @@ class MediaExplorerVideoCell: UICollectionViewCell {
         contentView.addSubview(placeHolderView)
         contentView.addSubview(progressView)
         contentView.addSubview(video)
+        contentView.addSubview(video.timeSeekView)
 
         NSLayoutConstraint.activate([
             placeHolderView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
@@ -116,6 +117,9 @@ class MediaExplorerVideoCell: UICollectionViewCell {
             progressView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             progressView.widthAnchor.constraint(equalToConstant: 80),
             progressView.heightAnchor.constraint(equalToConstant: 80),
+            video.timeSeekView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
+            video.timeSeekView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
+            video.timeSeekView.bottomAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.bottomAnchor, constant: -28),
         ])
 
         mediaPlaybackCancellable = MainAppContext.shared.mediaDidStartPlaying.sink { [weak self] url in

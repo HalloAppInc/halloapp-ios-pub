@@ -11,7 +11,7 @@ import Foundation
 import UIKit
 
 class VideoView: UIView {
-    enum PlaybackControls { case simple, advanced }
+    enum PlaybackControls { case simple, advanced, custom }
 
     public var videoRectDidChange = PassthroughSubject<CGRect, Never>()
 
@@ -86,7 +86,7 @@ class VideoView: UIView {
         return button
     }()
 
-    private lazy var timeSeekView: TimeSeekView = {
+    private(set) lazy var timeSeekView: TimeSeekView = {
         let timeSeekView = TimeSeekView()
         timeSeekView.translatesAutoresizingMaskIntoConstraints = false
 
@@ -103,9 +103,6 @@ class VideoView: UIView {
             playButton.centerXAnchor.constraint(equalTo: centerXAnchor),
             playButton.centerYAnchor.constraint(equalTo: centerYAnchor),
             timeSeekView.heightAnchor.constraint(equalToConstant: 44),
-            timeSeekView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 24),
-            timeSeekView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -24),
-            timeSeekView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8),
         ])
 
         let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap(sender:)))
@@ -117,6 +114,15 @@ class VideoView: UIView {
         case .simple:
             timeSeekView.isHidden = true
         case .advanced:
+            timeSeekView.isHidden = false
+            timeSeekView.alpha = 1
+
+            NSLayoutConstraint.activate([
+                timeSeekView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 24),
+                timeSeekView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -24),
+                timeSeekView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8),
+            ])
+        case .custom:
             timeSeekView.isHidden = false
             timeSeekView.alpha = 1
         }
@@ -162,7 +168,7 @@ class VideoView: UIView {
             switch playbackControls {
             case .simple:
                 togglePlay()
-            case .advanced:
+            case .advanced, .custom:
                 if !playButton.isHidden {
                     togglePlay()
                 }
@@ -176,7 +182,7 @@ class VideoView: UIView {
     }
 }
 
-fileprivate class TimeSeekView : UIView {
+class TimeSeekView : UIView {
     private var rateObservation: NSKeyValueObservation?
     private var timeObservation: Any?
 
