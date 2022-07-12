@@ -96,7 +96,9 @@ class MomentViewController: UIViewController {
     }
 
     private var toast: Toast?
-    private var replyCancellable: AnyCancellable?
+
+    private var replyStatusPublisher: Publishers.MergeMany<AnyPublisher<Bool, Never>>?
+    private var replyStatusCancellable: AnyCancellable?
 
     init(post: FeedPost, unlockingPost: FeedPost? = nil, isFullScreen: Bool = true) {
         self.post = post
@@ -293,6 +295,12 @@ class MomentViewController: UIViewController {
     }
 
     private func showToast() {
+        guard toast == nil else {
+            // reset back to the indicator in case it's in a finalized state
+            toast?.update(type: .activityIndicator, text: Localizations.sending, shouldAutodismiss: false)
+            return
+        }
+
         toast = Toast(type: .activityIndicator, text: Localizations.sending)
         toast?.show(viewController: self, shouldAutodismiss: false)
     }
@@ -303,27 +311,6 @@ class MomentViewController: UIViewController {
 
         toast?.update(type: .icon(icon), text: text, shouldAutodismiss: true)
         toast = nil
-    }
-
-    private func beginObserving(message: ChatMessage) {
-        replyCancellable?.cancel()
-        replyCancellable = message.publisher(for: \.outgoingStatusValue).sink { [weak self] _ in
-            let success: Bool?
-            switch message.outgoingStatus {
-            case .sentOut, .delivered, .seen, .played:
-                success = true
-            case .error, .retracted:
-                success = false
-            case .none, .pending, .retracting:
-                success = nil
-            }
-
-            if let success = success {
-                self?.finalizeToast(success: success)
-                self?.replyCancellable?.cancel()
-                self?.replyCancellable = nil
-            }
-        }
     }
 }
 
@@ -570,19 +557,42 @@ extension MomentViewController {
 // MARK: - ContentInputView delegate methods
 
 extension MomentViewController: ContentInputDelegate {
+
     func inputView(_ inputView: ContentInputView, didPost content: ContentInputView.InputContent) {
-        contentInputView.textView.resignFirstResponder()
         let text = content.mentionText.trimmed().collapsedText
+        contentInputView.textView.resignFirstResponder()
+
         showToast()
 
-        Task { @MainActor in
+        Task { @MainActor [weak self] in
             guard let message = await MainAppContext.shared.chatData.sendMomentReply(to: post.userID, postID: post.id, text: text, media: content.media) else {
-                finalizeToast(success: false)
+                self?.finalizeToast(success: false)
                 return
             }
 
-            beginObserving(message: message)
+            self?.beginObserving(message: message)
         }
+    }
+
+    private func beginObserving(message: ChatMessage) {
+        let existing = replyStatusPublisher?.publishers ?? []
+        let manyPublisher = Publishers.MergeMany(existing + [message.didSendPublisher])
+
+        replyStatusCancellable = manyPublisher
+            .collect()
+            .sink { [weak self] result in
+                if result.allSatisfy { $0 } {
+                    DDLogInfo("MomentViewController/beginObserving-message/successfully sent \(result.count) messages")
+                    self?.finalizeToast(success: true)
+                } else {
+                    DDLogError("MomentViewController/beginObserving-message/failed to send \(result.count) messages")
+                    self?.finalizeToast(success: false)
+                }
+
+                self?.replyStatusPublisher = nil
+            }
+
+        replyStatusPublisher = manyPublisher
     }
 
     func inputViewContentOptionsMenu(_ inputView: ContentInputView) -> HAMenu.Content {
@@ -790,6 +800,28 @@ fileprivate class MomentDismisser: NSObject, UIViewControllerAnimatedTransitioni
         } completion: { _ in
             transitionContext.completeTransition(true)
         }
+    }
+}
+
+// MARK: - ChatMessage extension
+
+fileprivate extension ChatMessage {
+    /// A publisher for notifying whether the message has been sent or not.
+    /// Sends `true` if the message has been successfully sent. Only fires once.
+    var didSendPublisher: AnyPublisher<Bool, Never> {
+        return publisher(for: \.outgoingStatusValue)
+            .compactMap {
+                switch ChatMessage.OutgoingStatus(rawValue: $0) {
+                case .sentOut, .delivered, .seen, .played:
+                    return true
+                case .error, .retracted:
+                    return false
+                default:
+                    return nil
+                }
+            }
+            .first()
+            .eraseToAnyPublisher()
     }
 }
 
