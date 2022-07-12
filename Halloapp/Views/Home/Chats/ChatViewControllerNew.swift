@@ -1600,16 +1600,20 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
             return
         }
         DDLogDebug("ChatViewControllerNew/scrollToMessage ChatMessageID:\(id) animated:\(animated)")
+        scrollToItemAtIndexPath(indexPath: indexPath, animated: animated)
+
+        if highlightAfterScroll {
+            highlightMessage(id: id)
+        }
+    }
+
+    private func scrollToItemAtIndexPath(indexPath: IndexPath, animated: Bool) {
         collectionView.scrollToItem(at: indexPath, at: .centeredVertically, animated: animated)
         if !animated {
             // Attempt to get a more exact position than provided from estimated sizes.
             // Not compatible with animation, but useful for finding initial scroll positions
             collectionView.layoutIfNeeded()
             collectionView.scrollToItem(at: indexPath, at: .centeredVertically, animated: false)
-        }
-
-        if highlightAfterScroll {
-            highlightMessage(id: id)
         }
     }
 
@@ -1675,7 +1679,7 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
         guard let lastMessageIndexPath = lastMessageIndexPath() else {
             return
         }
-        self.collectionView.scrollToItem(at: lastMessageIndexPath, at: .centeredVertically, animated: animated)
+        scrollToItemAtIndexPath(indexPath: lastMessageIndexPath, animated: animated)
         updateJumpButtonText()
     }
 
@@ -1690,7 +1694,7 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
     private func scrollToUnreadBannerCell() {
         DDLogDebug("ChatViewControllerNew/scrollToUnreadBannerCell")
         guard let indexPath = dataSource.indexPath(for: MessageRow.unreadCountHeader(Int32(unreadCount))) else { return }
-        collectionView.scrollToItem(at: indexPath, at: .centeredVertically, animated: false)
+        scrollToItemAtIndexPath(indexPath: indexPath, animated: false)
         updateJumpButtonText()
     }
 }
