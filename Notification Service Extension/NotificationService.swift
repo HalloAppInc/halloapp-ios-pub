@@ -20,7 +20,7 @@ class NotificationService: UNNotificationServiceExtension  {
     private static let initializeAppContext: Void = {
         DDLogInfo("NotificationService/initializeAppContext")
         let serviceBuilder: ServiceBuilder = {
-            return NotificationProtoService(credentials: $0, passiveMode: false, automaticallyReconnect: false)
+            return NotificationProtoService(credentials: $0, passiveMode: false, automaticallyReconnect: true)
         }
         initAppContext(AppExtensionContext.self,
                        serviceBuilder: serviceBuilder,
