@@ -407,7 +407,7 @@ class ContentInputView: UIView {
     }()
     
     private lazy var mentionPicker: HorizontalMentionPickerView = {
-        let picker = HorizontalMentionPickerView(avatarStore: MainAppContext.shared.avatarStore)
+        let picker = HorizontalMentionPickerView(config: .default, avatarStore: MainAppContext.shared.avatarStore)
         picker.clipsToBounds = true
         picker.translatesAutoresizingMaskIntoConstraints = false
         // Hide until content is set

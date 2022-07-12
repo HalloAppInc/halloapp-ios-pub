@@ -15,14 +15,38 @@ private enum MentionPickerViewSection: CaseIterable {
 
 fileprivate struct MentionPickerConstants {
     static let cellReuse = "MentionPickerItemReuse"
-    static let avatarDiameter: CGFloat = 29
-    static let rowHeight: CGFloat = 55
+    static let cellLayoutMargins = NSDirectionalEdgeInsets(top: 7, leading: 8, bottom: 7, trailing: 8)
+    static let avatarDiameter: CGFloat = 30
+}
+
+struct HorizontalMentionPickerConfig {
+    var contentInsets: NSDirectionalEdgeInsets
+
+    var rowHeight: CGFloat {
+        let contentHeight = max(UIFont.preferredFont(forTextStyle: .footnote).lineHeight, MentionPickerConstants.avatarDiameter)
+        return contentHeight + MentionPickerConstants.cellLayoutMargins.top + MentionPickerConstants.cellLayoutMargins.bottom + contentInsets.top + contentInsets.bottom
+    }
+
+    static var `default`: HorizontalMentionPickerConfig {
+        HorizontalMentionPickerConfig(
+            contentInsets: NSDirectionalEdgeInsets(top: 9, leading: 10, bottom: 0, trailing: 10)
+        )
+    }
+
+    static var composer: HorizontalMentionPickerConfig {
+        HorizontalMentionPickerConfig(
+            contentInsets: NSDirectionalEdgeInsets(top: 8, leading: 12, bottom: 0, trailing: 12)
+        )
+    }
 }
 
 final class HorizontalMentionPickerView: UIView {
-    init(avatarStore: AvatarStore) {
+    init(config: HorizontalMentionPickerConfig, avatarStore: AvatarStore) {
+        self.config = config
         self.avatarStore = avatarStore
+
         super.init(frame: .zero)
+
         setupView()
     }
 
@@ -32,7 +56,7 @@ final class HorizontalMentionPickerView: UIView {
 
     override var intrinsicContentSize: CGSize {
         CGSize(width: UIView.noIntrinsicMetric,
-              height: items.isEmpty ? 0 : MentionPickerConstants.rowHeight)
+               height: items.isEmpty ? 0 : config.rowHeight)
     }
     
     private var items: [MentionableUser] = []
@@ -40,8 +64,15 @@ final class HorizontalMentionPickerView: UIView {
     
     // MARK: Private
 
+    private let config: HorizontalMentionPickerConfig
     private let avatarStore: AvatarStore
     private lazy var collectionView: UICollectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout())
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        collectionView.collectionViewLayout.invalidateLayout()
+        collectionView.setNeedsDisplay()
+    }
     
     private func createLayout() -> UICollectionViewCompositionalLayout {
         let itemSize = NSCollectionLayoutSize(widthDimension: .estimated(44), heightDimension: .fractionalHeight(1))
@@ -52,8 +83,8 @@ final class HorizontalMentionPickerView: UIView {
         
         let section = NSCollectionLayoutSection(group: group)
         section.orthogonalScrollingBehavior = .continuous
-        section.interGroupSpacing = 9
-        section.contentInsets = NSDirectionalEdgeInsets(top: 9, leading: 10, bottom: 0, trailing: 10)
+        section.interGroupSpacing = 8
+        section.contentInsets = config.contentInsets
         
         let layout = UICollectionViewCompositionalLayout(section: section)
         layout.configuration.scrollDirection = .horizontal
@@ -151,9 +182,16 @@ final class HorizontalMentionPickerItemCell: UICollectionViewCell {
     
     private let nameLabel = UILabel()
     private let avatarView = AvatarView()
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        nameLabel.font = .preferredFont(forTextStyle: .footnote)
+    }
     
     private func setupView() {
         backgroundColor = .feedPostBackground
+        contentView.directionalLayoutMargins = MentionPickerConstants.cellLayoutMargins
+
         nameLabel.font = .preferredFont(forTextStyle: .footnote)
         nameLabel.textColor = .label
 
@@ -165,7 +203,7 @@ final class HorizontalMentionPickerItemCell: UICollectionViewCell {
         contentView.addSubview(stackView)
         stackView.translatesAutoresizingMaskIntoConstraints = false
         stackView.constrainMargins(to: contentView)
-        
+
         avatarView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             avatarView.heightAnchor.constraint(equalToConstant: MentionPickerConstants.avatarDiameter),
@@ -174,7 +212,7 @@ final class HorizontalMentionPickerItemCell: UICollectionViewCell {
         
         layer.borderWidth = 0.5
         layer.borderColor = UIColor.black.withAlphaComponent(0.1).cgColor
-        layer.cornerRadius = 12
+        layer.cornerRadius = 14
         layer.shadowColor = UIColor.black.withAlphaComponent(0.08).cgColor
         layer.shadowOffset = CGSize(width: 0, height: 2)
         layer.shadowRadius = 1.5

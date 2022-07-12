@@ -60,8 +60,8 @@ fileprivate struct Constants {
     static let controlSize: CGFloat = 34
     static let backgroundRadius: CGFloat = 20
 
-    static let postTextHorizontalPadding: CGFloat = 16
-    static let postTextVerticalPadding: CGFloat = 10
+    static let postTextHorizontalPadding: CGFloat = 18
+    static let postTextVerticalPadding: CGFloat = 12
 
     static let sendButtonHeight: CGFloat = 52
     static let postTextNoMediaMinHeight: CGFloat = 265 - 2 * postTextVerticalPadding
@@ -82,6 +82,8 @@ fileprivate struct Constants {
     static func getFontSize(textSize: Int, isPostWithMedia: Bool) -> UIFont {
         return isPostWithMedia || textSize > 180 ? smallFont : largeFont
     }
+
+    static let textViewTextColor = UIColor.label.withAlphaComponent(0.9)
 }
 
 class ComposerViewController: UIViewController {
@@ -277,7 +279,7 @@ class ComposerViewController: UIViewController {
     private var constraints: [NSLayoutConstraint] = []
 
     private lazy var mainViewBottomConstraint: NSLayoutConstraint = {
-        mainView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        mainView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
     }()
 
     private lazy var mediaCarouselHeightConstraint: NSLayoutConstraint = {
@@ -413,6 +415,103 @@ class ComposerViewController: UIViewController {
         return label
     }()
 
+    private lazy var textViewPlaceholder: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = .systemFont(ofSize: 16)
+        label.textColor = .label.withAlphaComponent(0.4)
+
+        return label
+    }()
+
+    private lazy var textViewHeightConstraint: NSLayoutConstraint = {
+        textView.heightAnchor.constraint(equalToConstant: 0)
+    }()
+
+    private lazy var textView: ContentTextView = {
+        let textView = ContentTextView()
+        textView.translatesAutoresizingMaskIntoConstraints = false
+        textView.delegate = self
+        textView.isEditable = true
+        textView.isUserInteractionEnabled = true
+        textView.backgroundColor = .clear
+        textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        textView.font = Constants.getFontSize(textSize: input.text.count, isPostWithMedia: media.count > 0)
+        textView.tintColor = .systemBlue
+        textView.textColor = Constants.textViewTextColor
+        textView.text = input.text
+        textView.mentions = input.mentions
+
+        textView.addSubview(textViewPlaceholder)
+
+        NSLayoutConstraint.activate([
+            textViewPlaceholder.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: 5),
+            textViewPlaceholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: 9)
+        ])
+
+        return textView
+    }()
+
+    private lazy var mentionPickerView: HorizontalMentionPickerView = {
+        let picker = HorizontalMentionPickerView(config: .composer, avatarStore: MainAppContext.shared.avatarStore)
+        picker.translatesAutoresizingMaskIntoConstraints = false
+        picker.clipsToBounds = true
+        picker.isHidden = true
+        picker.didSelectItem = { [weak self] item in
+            self?.textView.accept(mention: item)
+            self?.updateMentionPicker()
+        }
+
+        return picker
+    }()
+
+    private lazy var audioRecorderControlView: AudioRecorderControlView = {
+        let controlView = AudioRecorderControlView(configuration: .post)
+        controlView.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            controlView.widthAnchor.constraint(equalToConstant: 24),
+            controlView.heightAnchor.constraint(equalToConstant: 24),
+        ])
+
+        return controlView
+    }()
+
+    private lazy var textFieldView: UIView = {
+        let backgroundView = ShadowView()
+        backgroundView.translatesAutoresizingMaskIntoConstraints = false
+        backgroundView.backgroundColor = .secondarySystemGroupedBackground
+        backgroundView.layer.cornerRadius = 20
+        backgroundView.layer.masksToBounds = true
+        backgroundView.layer.borderWidth = 0.5
+        backgroundView.layer.borderColor = UIColor.black.withAlphaComponent(0.12).cgColor
+        backgroundView.layer.shadowOpacity = 1
+        backgroundView.layer.shadowRadius = 1
+        backgroundView.layer.shadowOffset = CGSize(width: 0, height: 1)
+        backgroundView.layer.shadowPath = UIBezierPath(roundedRect: backgroundView.bounds, cornerRadius: 20).cgPath
+        backgroundView.layer.shadowColor = UIColor.black.withAlphaComponent(0.04).cgColor
+
+        let field = UIStackView(arrangedSubviews: [])
+        field.translatesAutoresizingMaskIntoConstraints = false
+        field.spacing = 0
+        field.axis = .horizontal
+        field.alignment = .center
+        field.isLayoutMarginsRelativeArrangement = true
+        field.layoutMargins = UIEdgeInsets(top: 7, left: 18, bottom: 7, right: 18)
+        field.addSubview(backgroundView)
+        field.addArrangedSubview(textView)
+        field.addArrangedSubview(audioRecorderControlView)
+
+        NSLayoutConstraint.activate([
+            backgroundView.leadingAnchor.constraint(equalTo: field.leadingAnchor),
+            backgroundView.trailingAnchor.constraint(equalTo: field.trailingAnchor),
+            backgroundView.topAnchor.constraint(equalTo: field.topAnchor),
+            backgroundView.bottomAnchor.constraint(equalTo: field.bottomAnchor),
+        ])
+
+        return field
+    }()
+
     init(
         config: ComposerConfig,
         type: NewPostMediaSource,
@@ -497,11 +596,22 @@ class ComposerViewController: UIViewController {
             contentView.layoutMargins = UIEdgeInsets(top: Constants.verticalPadding, left: Constants.horizontalPadding, bottom: Constants.verticalPadding, right: Constants.horizontalPadding)
 
             contentView.addArrangedSubview(mediaCarouselView)
-            constraints.append(mediaCarouselHeightConstraint)
-
-            updateMediaCarouselHeight()
-
             contentView.addArrangedSubview(mediaErrorLabel)
+
+            bottomView.addSubview(mentionPickerView)
+            bottomView.addSubview(textFieldView)
+
+            constraints.append(mediaCarouselHeightConstraint)
+            constraints.append(mentionPickerView.leadingAnchor.constraint(equalTo: bottomView.leadingAnchor))
+            constraints.append(mentionPickerView.trailingAnchor.constraint(equalTo: bottomView.trailingAnchor))
+            constraints.append(mentionPickerView.topAnchor.constraint(equalTo: bottomView.topAnchor))
+            constraints.append(textFieldView.leadingAnchor.constraint(equalTo: bottomView.leadingAnchor, constant: 12))
+            constraints.append(textFieldView.trailingAnchor.constraint(equalTo: bottomView.trailingAnchor, constant: -12))
+            constraints.append(textFieldView.topAnchor.constraint(equalTo: mentionPickerView.bottomAnchor, constant: 8))
+            constraints.append(textFieldView.bottomAnchor.constraint(equalTo: bottomView.bottomAnchor))
+            constraints.append(textViewHeightConstraint)
+
+            textViewPlaceholder.text = Localizations.writeDescription
 
             listenForMediaErrors()
 
@@ -510,20 +620,42 @@ class ComposerViewController: UIViewController {
             //     carouselView
             //     failed items warning
             //   bottomView
+            //     mentions
             //     textView
+            //     send btn
         } else if initialType == .voiceNote || audioComposerRecorder.voiceNote != nil {
             // audio only
             //   contentView
             //     card with audio buttons only
-            //   bottomView height = 0
+            //   bottomView
+            //     send btn + media btn
         } else {
             // text only
             //   contentView
+            //     mentions
             //     card with text only
-            //   bottomView height = 0
+            //   bottomView
+            //     send btn + media btn
         }
 
         NSLayoutConstraint.activate(constraints)
+
+        updateUI()
+    }
+
+    private func updateUI() {
+        if media.count > 0 {
+            // update complex media, text and audio ui
+            updateMediaCarouselHeight()
+            updateTextViewFontAndHeight()
+
+            audioRecorderControlView.isHidden = !input.text.isEmpty
+            textViewPlaceholder.isHidden = !input.text.isEmpty
+        } else if initialType == .voiceNote || audioComposerRecorder.voiceNote != nil {
+            // update audio only ui
+        } else {
+            // update text only ui
+        }
     }
 
     private func updateMediaCarouselHeight() {
@@ -549,6 +681,15 @@ class ComposerViewController: UIViewController {
                 }
             }
         }
+    }
+
+    private func updateTextViewFontAndHeight() {
+        let font = Constants.getFontSize(textSize: input.text.count, isPostWithMedia: media.count > 0)
+        textView.font = font
+
+        let size = textView.sizeThatFits(CGSize(width: textView.frame.size.width, height: CGFloat.greatestFiniteMagnitude))
+
+        textViewHeightConstraint.constant = min(size.height, 86)
     }
 
     private func listenForMediaErrors() {
@@ -796,7 +937,7 @@ extension ComposerViewController {
 // MARK: MediaCarouselViewDelegate
 extension ComposerViewController: MediaCarouselViewDelegate {
     func mediaCarouselView(_ view: MediaCarouselView, indexChanged newIndex: Int) {
-        self.index = newIndex
+        index = newIndex
     }
 
     func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
@@ -879,8 +1020,126 @@ extension ComposerViewController: MediaCarouselViewDelegate {
     private func updateMediaState(animated: Bool) {
         let items = media.map { FeedMedia($0, feedPostId: "") }
         mediaCarouselView.refreshData(media: items, index: index, animated: animated)
-        updateMediaCarouselHeight()
         listenForMediaErrors()
+        updateUI()
+    }
+}
+
+// MARK: UITextViewDelegate
+extension ComposerViewController: ContentTextViewDelegate {
+    func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+        if let contentTextView = textView as? ContentTextView {
+
+            if (contentTextView.shouldChangeMentionText(in: range, text: text)) {
+                return true
+            } else {
+                updateUI()
+                return false
+            }
+        } else {
+            return true
+        }
+    }
+
+    func textViewDidChange(_ textView: UITextView) {
+        input.text = textView.text ?? ""
+
+        if let contentTextView = textView as? ContentTextView {
+            input.mentions = contentTextView.mentions
+        }
+
+        updateUI()
+
+        updateMentionPicker()
+        // TODO: updateLinkPreviewViewIfNecessary()
+        updateWithMarkdown(textView)
+        updateWithMention(textView)
+    }
+
+    func textViewDidChangeSelection(_ textView: UITextView) {
+        input.selectedRange = textView.selectedRange
+        updateMentionPicker()
+    }
+
+    // MARK: ContentTextViewDelegate
+    func textViewShouldDetectLink(_ textView: ContentTextView) -> Bool {
+        return false
+    }
+
+    func textView(_ textView: ContentTextView, didPaste image: UIImage) {
+    }
+
+    private func updateWithMarkdown(_ textView: UITextView) {
+        guard textView.markedTextRange == nil else { return } // account for IME
+        let font = textView.font ?? UIFont.preferredFont(forTextStyle: .body)
+        let color = Constants.textViewTextColor
+
+        let ham = HAMarkdown(font: font, color: color)
+        if let text = textView.text {
+            if let selectedRange = textView.selectedTextRange {
+                textView.attributedText = ham.parseInPlace(text)
+                textView.selectedTextRange = selectedRange
+            }
+        }
+    }
+}
+
+// MARK: Mentions
+
+extension ComposerViewController {
+    private func updateWithMention(_ textView: UITextView) {
+        guard input.mentions.isEmpty == false,
+        let selected = textView.selectedTextRange
+        else {
+            return
+        }
+        let defaultFont = textView.font ?? UIFont.preferredFont(forTextStyle: .body)
+        let defaultColor = textView.textColor ?? .label
+        let attributedString = NSMutableAttributedString(attributedString: textView.attributedText)
+        for range in input.mentions.keys {
+            attributedString.setAttributes([
+                .font: defaultFont,
+                .strokeWidth: -3,
+                .foregroundColor: defaultColor,
+            ], range: range)
+        }
+        textView.attributedText = attributedString
+        textView.selectedTextRange = selected
+    }
+
+    private func updateMentionPicker() {
+        let mentionables = mentionableUsers()
+
+        // don't animate the initial load
+        let shouldShow = !mentionables.isEmpty
+        let shouldAnimate = mentionPickerView.isHidden != shouldShow
+        mentionPickerView.updateItems(mentionables, animated: shouldAnimate)
+
+        mentionPickerView.isHidden = !shouldShow
+    }
+
+    private func mentionableUsers() -> [MentionableUser] {
+        guard let candidateRange = input.rangeOfMentionCandidateAtCurrentPosition() else {
+            return []
+        }
+
+        let mentionCandidate = input.text[candidateRange]
+        let trimmedInput = String(mentionCandidate.dropFirst())
+
+
+        let mentionableUsers: [MentionableUser]
+        switch config.destination {
+        case .userFeed:
+            mentionableUsers = Mentions.mentionableUsersForNewPost(privacyListType: config.privacyListType)
+        case .groupFeed(let id):
+            mentionableUsers = Mentions.mentionableUsers(forGroupID: id, in: MainAppContext.shared.feedData.viewContext)
+        case .chat(_):
+            mentionableUsers = []
+        }
+
+        return mentionableUsers.filter {
+            Mentions.isPotentialMatch(fullName: $0.fullName, input: trimmedInput)
+        }
     }
 }
 
