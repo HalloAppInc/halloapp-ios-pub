@@ -518,8 +518,6 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         UIColor(named: "GroupFeedCellBackground8"),
         UIColor(named: "GroupFeedCellBackground9"),
         UIColor(named: "GroupFeedCellBackground10"),
-        UIColor(named: "GroupFeedCellBackground11"),
-        UIColor(named: "GroupFeedCellBackground12"),
     ].compactMap { $0 }
 
     private static func backgroundColor(for postID: FeedPostID) -> UIColor {
