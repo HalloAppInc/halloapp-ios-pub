@@ -1319,6 +1319,35 @@ extension ChatViewControllerNew: ContentInputDelegate {
         HAMenuButton(title: Localizations.fabAccessibilityCamera, image: UIImage(systemName: "camera.fill")) { [weak self] in
             self?.presentCameraViewController()
         }
+        if AppContext.shared.userDefaults.bool(forKey: "enableLocationSharing") {
+            HAMenuButton(title: "Location", image: UIImage(systemName: "location.fill")) { [weak self] in
+                self?.presentLocationSharingViewController()
+            }
+        }
+    }
+    
+    private func presentLocationSharingViewController() {
+        let locationSharingViewController = LocationSharingViewController()
+        locationSharingViewController.viewModel.sharePlacemark
+            .first()
+            .flatMap(LocationMessage.from(placemark:))
+            .flatMap { (message: LocationMessage) -> AnyPublisher<(text: String, media: PendingMedia), Never> in
+                let media = PendingMedia(type: .image)
+                return media.ready
+                    .filter { $0 }
+                    .map { _ in (message.text, media) }
+                    .handleEvents(receiveSubscription: { _ in
+                        media.image = message.image
+                    })
+                    .eraseToAnyPublisher()
+            }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] (text, media) in
+                self?.dismiss(animated: true)
+                self?.sendMessage(text: text, media: [media], linkPreviewData: nil, linkPreviewMedia: nil)
+            }
+            .store(in: &cancellableSet)
+        present(UINavigationController(rootViewController: locationSharingViewController), animated: true)
     }
     
     private func presentCameraViewController() {

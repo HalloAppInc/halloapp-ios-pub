@@ -50,6 +50,8 @@
 	<string>This lets you make calls, send audio posts and messages, and record videos with sound.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This lets you share photos and videos from your library and save the ones you capture.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>This lets you browse and share locations near you.</string>
 	<key>NSUserActivityTypes</key>
 	<array>
 		<string>INSendMessageIntent</string>

@@ -206,6 +206,12 @@ struct HAMenuButton {
             }
         }
     }
+    
+    func on(_ newValue: Bool = true) -> Self {
+        modifying { copy in
+            copy.state = newValue ? .on : .off
+        }
+    }
 }
 
 extension UIAlertController {
