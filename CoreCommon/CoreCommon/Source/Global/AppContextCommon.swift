@@ -95,6 +95,7 @@ open class AppContextCommon {
         #if !DEBUG
         SentrySDK.start { options in
             options.dsn = "https://ed03b5bdacbe4571927f8f2c93a45790@o473086.ingest.sentry.io/6126729"
+            options.enableAppHangTracking = true
             options.enableAutoPerformanceTracking = true
             options.enableUserInteractionTracing = true
             options.maxBreadcrumbs = 500
