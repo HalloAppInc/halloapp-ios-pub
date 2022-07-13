@@ -48,12 +48,15 @@ class GroupGridDataSource: NSObject {
             NSPredicate(format: "groupID != nil"),
             NSPredicate(format: "timestamp >= %@", FeedData.postCutoffDate as NSDate),
             NSPredicate(format: "fromExternalShare == NO"),
-            NSPredicate(format: "NOT statusValue IN %@", [FeedPost.Status.retracting, FeedPost.Status.retracted].map(\.rawValue))
+            NSPredicate(format: "NOT statusValue IN %@", [FeedPost.Status.retracting, FeedPost.Status.retracted].map(\.rawValue)),
         ])
         fetchRequest.sortDescriptors = [
             NSSortDescriptor(keyPath: \FeedPost.groupID, ascending: true),
             NSSortDescriptor(keyPath: \FeedPost.lastUpdated, ascending: false),
             NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false),
+        ]
+        fetchRequest.relationshipKeyPathsForPrefetching = [
+            "comments"
         ]
         return NSFetchedResultsController(fetchRequest: fetchRequest,
                                           managedObjectContext: MainAppContext.shared.mainDataStore.viewContext,
@@ -155,8 +158,6 @@ extension GroupGridDataSource: NSFetchedResultsControllerDelegate {
             if feedPost.userID == MainAppContext.shared.userData.userId {
                 didAddSelfPostInLastUpdate = true
             }
-        case .update, .move: // moves are usually due to content changing, which is not reflected with another update
-            updatedPostIDs.append(feedPost.id)
         default:
             break
         }
@@ -169,13 +170,7 @@ extension GroupGridDataSource: NSFetchedResultsControllerDelegate {
         } else {
             snapshot = currentSnapshot()
         }
-        // Because we are just using snapshots, we must manually mark items to reconfigure
-        let updatedFeedPostIDs = Array(Set(snapshot.itemIdentifiers).intersection(Set(updatedPostIDs)))
-        if #available(iOS 15.0, *) {
-            snapshot.reconfigureItems(updatedFeedPostIDs)
-        } else {
-            snapshot.reloadItems(updatedFeedPostIDs)
-        }
+
         dataSource.apply(snapshot)
         isEmpty = !isSearching && snapshot.sectionIdentifiers.isEmpty
 

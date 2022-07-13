@@ -117,6 +117,13 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         return commentIndicator
     }()
 
+    // MARK: Progress Overlay
+
+    private let progressView: GroupGridProgressView = {
+        let progressControl = GroupGridProgressView()
+        return progressControl
+    }()
+
     private class ContentIndicatorImageView: UIImageView {
 
         init() {
@@ -149,6 +156,8 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
     // MARK: Util
 
     private var audioAvatarChangedCancellable: AnyCancellable?
+    private var cancellables = Set<AnyCancellable>()
+    private var uploadProgressCancellables = Set<AnyCancellable>()
     private var linkDetectionWorkItem: DispatchWorkItem?
 
     override init(frame: CGRect) {
@@ -238,6 +247,10 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         footerStackViewBackground.translatesAutoresizingMaskIntoConstraints = false
         footerStackView.insertSubview(footerStackViewBackground, at: 0)
 
+        // Progress View
+        progressView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(progressView)
+
         NSLayoutConstraint.activate([
             // Header
             headerStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
@@ -300,6 +313,12 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
             footerStackViewBackground.topAnchor.constraint(equalTo: footerStackView.topAnchor),
             footerStackViewBackground.bottomAnchor.constraint(equalTo: footerStackView.bottomAnchor),
             footerStackViewBackground.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+
+            // Progress View
+            progressView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            progressView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            progressView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            progressView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
         ])
 
         updateBorderAndShadowColors()
@@ -309,14 +328,107 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         fatalError()
     }
 
+    private var configuredPostID: FeedPostID?
+
     func configure(with post: FeedPost) {
-        audioAvatarChangedCancellable?.cancel()
-        linkDetectionWorkItem?.cancel()
+        guard post.id != configuredPostID else {
+            return
+        }
+
+        let postID = post.id
+        configuredPostID = postID
+
+        cancellables.forEach { $0.cancel() }
+        cancellables.removeAll()
+        uploadProgressCancellables.forEach { $0.cancel() }
+        uploadProgressCancellables.removeAll()
 
         let contactsViewContext = MainAppContext.shared.contactStore.viewContext
         nameLabel.text = MainAppContext.shared.contactStore.fullNameIfAvailable(for: post.userID,
                                                                                 ownName: Localizations.meCapitalized,
                                                                                 in: contactsViewContext) ?? Localizations.unknownContact
+
+        progressView.cancelAction = { MainAppContext.shared.feedData.cancelMediaUpload(postId: postID) }
+        progressView.deleteAction = { MainAppContext.shared.feedData.deleteUnsentPost(postID: postID) }
+        progressView.retryAction = { MainAppContext.shared.feedData.retryPosting(postId: postID) }
+
+        let mediaCount = post.feedMedia.count
+        let statusPublisher = post.publisher(for: \.statusValue).compactMap { FeedPost.Status(rawValue: $0) }
+
+        // Content
+        statusPublisher
+            .sink { [weak self, post] _ in self?.configureContent(with: post) }
+            .store(in: &cancellables)
+
+        // Comment Indicator
+        Publishers.CombineLatest(post.publisher(for: \.comments), post.publisher(for: \.unreadCount))
+            .sink { [commentIndicator] (comments, unreadCount) in
+                if unreadCount > 0 {
+                    commentIndicator.backgroundColor = .groupFeedCommentIndicatorUnread
+                } else if let comments = comments, !comments.isEmpty {
+                    commentIndicator.backgroundColor = .groupFeedCommentIndicatorRead
+                } else {
+                    commentIndicator.backgroundColor = .clear
+                }
+            }
+            .store(in: &cancellables)
+
+        // New Post Indicator
+        statusPublisher
+            .sink { [newPostIndicator] status in newPostIndicator.isHidden = status != .incoming }
+            .store(in: &cancellables)
+
+        // Uploading overlay
+        var animateStatusChange = false // Don't animate changes on initial bind
+        statusPublisher
+            .sink { [weak self, progressView] status in
+                guard let self = self else {
+                    return
+                }
+                switch status {
+                case .sending, .retracting:
+                    progressView.setState(.uploading, animated: animateStatusChange)
+                    if mediaCount > 0 {
+                        var animateProgressChange = false
+                        // Send PostID to handle initial progress population
+                        Publishers.Merge3(ImageServer.shared.progress, MainAppContext.shared.feedData.mediaUploader.uploadProgressDidChange, Just(postID))
+                            .filter { $0 == postID }
+                            .map { _ in
+                                var (processingCount, processingProgress) = ImageServer.shared.progress(for: postID)
+                                var (uploadCount, uploadProgress) = MainAppContext.shared.feedData.mediaUploader.uploadProgress(forGroupId: postID)
+
+                                processingProgress = processingProgress * Float(processingCount) / Float(mediaCount)
+                                uploadProgress = uploadProgress * Float(uploadCount) / Float(mediaCount)
+                                return (processingProgress + uploadProgress) / 2.0
+                            }
+                            .receive(on: DispatchQueue.main)
+                            .sink { progress in
+                                progressView.setProgress(progress, animated: animateProgressChange)
+                                animateProgressChange = true
+                            }
+                            .store(in: &self.uploadProgressCancellables)
+                    } else {
+                        // For non media posts, show a tiny bit of progress
+                        progressView.setProgress(0.1)
+                    }
+                case .sendError:
+                    self.uploadProgressCancellables.removeAll()
+                    progressView.setState(.failed, animated: animateStatusChange)
+                default:
+                    self.uploadProgressCancellables.removeAll()
+                    progressView.setState(.hidden, animated: animateStatusChange)
+                }
+                animateStatusChange = true
+            }
+            .store(in: &cancellables)
+
+        // Initiate download for images that were not yet downloaded.
+        MainAppContext.shared.feedData.downloadMedia(in: [post])
+    }
+
+    private func configureContent(with post: FeedPost) {
+        linkDetectionWorkItem?.cancel()
+
         var isLinkPreview = false
         var isAlbum = false
         var hasAudio = false
@@ -356,9 +468,9 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
                 imageView.contentMode = .scaleAspectFill
                 imageView.transform = CGAffineTransform(scaleX: sqrt(2.0), y: sqrt(2.0)) // scale up to fill entire background
                 imageView.image = userAvatar.image ?? AvatarView.defaultImage
-                audioAvatarChangedCancellable = userAvatar.imageDidChange.sink { [weak self] image in
-                    self?.imageView.image = image ?? AvatarView.defaultImage
-                }
+                userAvatar.imageDidChange
+                    .sink { [imageView] in imageView.image = $0 ?? AvatarView.defaultImage }
+                    .store(in: &cancellables)
                 showAudioView = true
                 showImageView = true
             case .image, .video:
@@ -451,19 +563,6 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         }
         trailingContentTypeImageView.image = trailingContentTypeImage
         trailingContentTypeImageView.isHidden = (trailingContentTypeImage == nil)
-
-        newPostIndicator.isHidden = post.status != .incoming
-
-        if post.unreadCount > 0 {
-            commentIndicator.backgroundColor = .groupFeedCommentIndicatorUnread
-        } else if post.hasComments {
-            commentIndicator.backgroundColor = .groupFeedCommentIndicatorRead
-        } else {
-            commentIndicator.backgroundColor = .clear
-        }
-
-        // Initiate download for images that were not yet downloaded.
-        MainAppContext.shared.feedData.downloadMedia(in: [post])
     }
 
     func startAnimations() {
