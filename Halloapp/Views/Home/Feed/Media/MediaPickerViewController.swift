@@ -187,14 +187,14 @@ class MediaPickerViewController: UIViewController {
         button.setImage(icon, for: .normal)
         button.layer.cornerRadius = 22
         button.layer.masksToBounds = true
-        button.contentEdgeInsets = UIEdgeInsets(top: -1.5, left: 24, bottom: 0, right: 28)
+        button.contentEdgeInsets = UIEdgeInsets(top: -1.5, left: 32, bottom: 0, right: 38)
 
         // keep image on the right & tappable
         if case .rightToLeft = view.effectiveUserInterfaceLayoutDirection {
-            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -8, bottom: 0, right: 8)
+            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -12, bottom: 0, right: 12)
             button.semanticContentAttribute = .forceLeftToRight
         } else {
-            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: -8)
+            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: 12, bottom: 0, right: -12)
             button.semanticContentAttribute = .forceRightToLeft
         }
 
@@ -217,16 +217,20 @@ class MediaPickerViewController: UIViewController {
             override class var layerClass: AnyClass {
                 CAGradientLayer.self
             }
+
+            override func layoutSubviews() {
+                super.layoutSubviews()
+                layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: layer.cornerRadius).cgPath
+            }
         }
 
         let button = GradientButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.titleLabel?.font = .systemFont(ofSize: 14, weight: .bold)
+        button.titleLabel?.font = .systemFont(ofSize: 14, weight: .medium)
         button.setTitleColor(.white, for: .normal)
         button.setImage(icon, for: .normal)
         button.layer.cornerRadius = 15
         button.layer.masksToBounds = true
-        button.layer.shadowPath = UIBezierPath(roundedRect: button.bounds, cornerRadius: 15).cgPath
         button.layer.shadowColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.4).cgColor
         button.layer.shadowOpacity = 1
         button.layer.shadowRadius = 10
@@ -263,13 +267,10 @@ class MediaPickerViewController: UIViewController {
         container.translatesAutoresizingMaskIntoConstraints = false
         container.backgroundColor = .feedBackground
         container.addSubview(nextButton)
-        container.addSubview(cameraButton)
 
         NSLayoutConstraint.activate([
             nextButton.centerXAnchor.constraint(equalTo: container.centerXAnchor),
             nextButton.topAnchor.constraint(equalTo: container.topAnchor, constant: 12),
-            cameraButton.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -16),
-            cameraButton.centerYAnchor.constraint(equalTo: nextButton.centerYAnchor),
         ])
 
         return container
@@ -325,25 +326,20 @@ class MediaPickerViewController: UIViewController {
         return bubble
     }()
 
-    private lazy var cameraButton: UIButton = {
-        let imageConfig = UIImage.SymbolConfiguration(scale: .large)
-        let image = UIImage(systemName: "camera.circle.fill")?
-            .withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
+    private lazy var cameraButtonItem: UIBarButtonItem = {
+        let imageConfig = UIImage.SymbolConfiguration(weight: .bold)
+        let image = UIImage(systemName: "camera.fill", withConfiguration: imageConfig)?
+                    .withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
 
-        let button = UIButton(type: .system)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.contentHorizontalAlignment = .fill
-        button.contentVerticalAlignment = .fill
-        button.imageView?.contentMode = .scaleAspectFit
-        button.setImage(image, for: .normal)
-        button.addTarget(self, action: #selector(cameraAction), for: .touchUpInside)
+        return UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(cameraAction))
+    }()
 
-        NSLayoutConstraint.activate([
-            button.widthAnchor.constraint(equalToConstant: 44),
-            button.heightAnchor.constraint(equalToConstant: 44),
-        ])
+    private lazy var backButtonItem: UIBarButtonItem = {
+        let imageConfig = UIImage.SymbolConfiguration(weight: .bold)
+        let image = UIImage(systemName: "chevron.down", withConfiguration: imageConfig)?
+                    .withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
 
-        return button
+        return  UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(cancelAction))
     }()
 
     private var isAnyCallOngoingCancellable: AnyCancellable?
@@ -390,9 +386,12 @@ class MediaPickerViewController: UIViewController {
             albumsButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
         ])
 
-        let backImageConfig = UIImage.SymbolConfiguration(weight: .bold)
-        let backImage = UIImage(systemName: "chevron.down", withConfiguration: backImageConfig)?.withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
-        navigationItem.leftBarButtonItem = UIBarButtonItem(image: backImage, style: .plain, target: self, action: #selector(cancelAction))
+
+        navigationItem.leftBarButtonItem = backButtonItem
+
+        if config.isCameraEnabled {
+            navigationItem.rightBarButtonItem = cameraButtonItem
+        }
 
         title = Localizations.fabAccessibilityPhotoLibrary
 
@@ -407,7 +406,7 @@ class MediaPickerViewController: UIViewController {
 
         isAnyCallOngoingCancellable = MainAppContext.shared.callManager.isAnyCallOngoing.sink { [weak self] activeCall in
             let isVideoCallOngoing = activeCall?.isVideoCall ?? false
-            self?.cameraButton.isEnabled = !isVideoCallOngoing
+            self?.cameraButtonItem.isEnabled = !isVideoCallOngoing
         }
 
         //Show the favorites education modal only once to the user
@@ -549,10 +548,9 @@ class MediaPickerViewController: UIViewController {
         nextButton.isHidden = !config.allowsMultipleSelection
         nextButton.isEnabled = selected.count > 0
 
-        cameraButton.isHidden = !config.isCameraEnabled
         if config.isCameraEnabled {
             let isVideoCallOngoing = MainAppContext.shared.callManager.activeCall?.isVideoCall ?? false
-            cameraButton.isEnabled = !isVideoCallOngoing
+            cameraButtonItem.isEnabled = !isVideoCallOngoing
         }
     }
 
