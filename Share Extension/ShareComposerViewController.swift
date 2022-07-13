@@ -603,13 +603,12 @@ class ShareComposerViewController: UIViewController {
             return
         }
         let defaultFont = textView.font ?? UIFont.preferredFont(forTextStyle: .body)
-        let defaultColor = textView.textColor ?? .label
         let attributedString = NSMutableAttributedString(attributedString: self.textView.attributedText)
         for range in mentionInput.mentions.keys {
             attributedString.setAttributes([
                 .strokeWidth: NSNumber.init(value: -3.0),
                 .font: defaultFont,
-                .foregroundColor: defaultColor,
+                .foregroundColor: Constants.textViewTextColor,
             ], range: range)
         }
         textView.attributedText = attributedString

@@ -1429,13 +1429,12 @@ fileprivate struct TextView: UIViewRepresentable {
                 return
             }
             let defaultFont = textView.font ?? UIFont.preferredFont(forTextStyle: .body)
-            let defaultColor = textView.textColor ?? .label
             let attributedString = NSMutableAttributedString(attributedString: textView.attributedText)
             for range in parent.input.value.mentions.keys {
                 attributedString.setAttributes([
                     .font: defaultFont,
                     .strokeWidth: NSNumber.init(value: -3.0),
-                    .foregroundColor: defaultColor,
+                    .foregroundColor: Constants.textViewTextColor,
                 ], range: range)
             }
             textView.attributedText = attributedString

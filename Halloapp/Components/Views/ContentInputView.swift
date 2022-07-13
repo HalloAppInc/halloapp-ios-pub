@@ -51,6 +51,9 @@ protocol InputContextPanel: UIView {
 }
 
 // MARK: - constants
+fileprivate struct Constants {
+    static let textViewTextColor = UIColor.label.withAlphaComponent(0.9)
+}
 
 extension ContentInputView {
     struct Options: OptionSet {
@@ -959,7 +962,7 @@ extension ContentInputView: ContentTextViewDelegate {
         }
         
         let font = textView.font ?? UIFont.preferredFont(forTextStyle: .subheadline)
-        let color = textView.textColor ?? .label
+        let color = Constants.textViewTextColor
         let ham = HAMarkdown(font: font, color: color)
         textView.attributedText = ham.parseInPlace(text)
         textView.selectedTextRange = selected
@@ -972,13 +975,12 @@ extension ContentInputView: ContentTextViewDelegate {
             return
         }
         let defaultFont = textView.font ?? UIFont.preferredFont(forTextStyle: .subheadline)
-        let defaultColor = textView.textColor ?? .label
         let attributedString = NSMutableAttributedString(attributedString: self.textView.attributedText)
         for range in self.textView.mentions.keys {
             attributedString.setAttributes([
                 .strokeWidth: NSNumber.init(value: -3.0),
                 .font: defaultFont,
-                .foregroundColor: defaultColor,
+                .foregroundColor: Constants.textViewTextColor,
             ], range: range)
         }
         self.textView.attributedText = attributedString
