@@ -283,7 +283,7 @@ class GroupGridViewController: UIViewController {
 
     private func createPost(in groupID: GroupID) {
         var viewControllerToDismiss: UIViewController?
-        let newPostViewController = NewPostViewController(source: .noMedia, destination: .groupFeed(groupID)) { didPost in
+        let newPostViewController = NewPostViewController(source: .unified, destination: .groupFeed(groupID)) { didPost in
             guard let viewControllerToDismiss = viewControllerToDismiss else {
                 DDLogError("GroupGridViewController/Missing NewPostViewController to dismiss")
                 return

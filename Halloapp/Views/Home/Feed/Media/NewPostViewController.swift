@@ -37,6 +37,7 @@ enum NewPostMediaSource {
     case camera
     case noMedia
     case voiceNote
+    case unified
 }
 
 enum NewMomentContext {
@@ -149,7 +150,7 @@ final class NewPostViewController: UIViewController {
             return makeMediaPickerViewControllerNew()
         case .camera:
             return UINavigationController(rootViewController: makeNewCameraViewController())
-        case .noMedia, .voiceNote:
+        case .noMedia, .voiceNote, .unified:
             return UINavigationController(rootViewController: makeComposerViewController())
         }
     }

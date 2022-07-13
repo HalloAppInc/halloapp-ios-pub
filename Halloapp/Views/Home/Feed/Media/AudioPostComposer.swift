@@ -115,7 +115,7 @@ struct AudioPostComposer: View {
                 .accessibility(hidden: state != .recorded)
                 .opacity(state == .recorded ? 1 : 0)
                 Spacer()
-                ShareButton(action: shareAction)
+                ShareButton(showTitle: false, action: shareAction)
                 .accessibility(label: Text(Localizations.shareRecordingA11yLabel))
                 .disabled(!isReadyToShare)
             }
@@ -151,7 +151,7 @@ struct AudioPostComposerDurationView: View {
                 .frame(width: 8, height: 8)
                 .opacity(isAnimating ? 1 : 0.2)
                 .scaleEffect(isAnimating ? 1 : 0.8)
-                .animation(Animation.easeInOut(duration: 0.6).repeatForever())
+                .animation(Animation.easeInOut(duration: 0.6).repeatForever(), value: isAnimating)
                 .onAppear {
                     isAnimating.toggle()
                 }
@@ -242,6 +242,16 @@ class AudioComposerRecorder: NSObject, ObservableObject {
     @Published var recorderControlsExpanded = false
 
     @Published var voiceNote: PendingMedia?
+
+    @Published var hasVoiceNoteOrLockedRecording = false
+
+    var hasVoiceNoteOrLockedRecordingPublisher: AnyPublisher<Bool, Never> {
+        Publishers.CombineLatest3($voiceNote, $recorderControlsLocked, $isRecording)
+            .map { voiceNote, recorderControlsLocked, isRecording in
+                return voiceNote != nil || isRecording && recorderControlsLocked
+            }
+            .eraseToAnyPublisher()
+    }
 
     private var isAnyCallOngoingCancellable: AnyCancellable?
 

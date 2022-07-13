@@ -438,7 +438,7 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
     }
 
     private func presentNewPostViewController(source: NewPostMediaSource) {
-        let fabActionType: FabActionType
+        let fabActionType: FabActionType?
         switch source {
         case .library:
             fabActionType = .gallery
@@ -448,8 +448,12 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
             fabActionType = .text
         case .voiceNote:
             fabActionType = .audio
+        case .unified:
+            fabActionType = nil // only used in group grid
         }
-        AppContext.shared.observeAndSave(event: .fabAction(type: fabActionType))
+        if let fabActionType = fabActionType {
+            AppContext.shared.observeAndSave(event: .fabAction(type: fabActionType))
+        }
         if source == .voiceNote && MainAppContext.shared.callManager.isAnyCallActive {
             // When we have an active call ongoing: we should not record audio.
             // We should present an alert saying that this action is not allowed.

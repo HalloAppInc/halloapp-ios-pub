@@ -173,6 +173,10 @@ private extension Localizations {
     static var deleteVoiceRecordingTitle: String {
         NSLocalizedString("composer.delete.recording.title", value: "Delete voice recording?", comment: "Title warning that a voice recording will be deleted")
     }
+
+    static var addMedia: String {
+        NSLocalizedString("composer.addmedia", value: "Add media", comment: "Label for add media button in post composer")
+    }
 }
 
 class PostComposerViewController: UIViewController {
@@ -818,11 +822,11 @@ fileprivate struct PostComposerView: View {
                 mediaItems.$value,
                 mediaReadyAndNotFailedPublisher,
                 inputToPost.$value,
-                audioComposerRecorder.$voiceNote
-            ).map { (mediaItems, mediaReady, inputValue, voiceNote) in
+                audioComposerRecorder.hasVoiceNoteOrLockedRecordingPublisher
+            ).map { (mediaItems, mediaReady, inputValue, hasVoiceNoteOrLockedRecording) in
                 if mediaItems.count > 0 {
                     return mediaReady
-                } else if voiceNote != nil {
+                } else if hasVoiceNoteOrLockedRecording {
                     return true
                 } else {
                     return !inputValue.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -980,12 +984,17 @@ fileprivate struct PostComposerView: View {
         }
     }
 
-    var shareButton: some View {
-        ShareButton {
+    func shareButton(showTitle: Bool) -> some View {
+        ShareButton(showTitle: showTitle) {
             guard !self.isPosting.value else { return }
 
             if audioComposerRecorder.isRecording {
                 audioComposerRecorder.stopRecording(cancel: false)
+            }
+
+            // The keyboard can still be visible while recording, behind other content.
+            if audioComposerRecorder.voiceNote != nil {
+                inputToPost.value.text = ""
             }
 
             self.share()
@@ -1051,7 +1060,7 @@ fileprivate struct PostComposerView: View {
                                         .padding(.horizontal)
                                         .padding(.bottom, 10)
                                 }
-                            } else if initialPostType == .voiceNote || audioComposerRecorder.voiceNote != nil {
+                            } else if initialPostType == .voiceNote || (initialPostType != .unified && audioComposerRecorder.voiceNote != nil) {
                                 audioRecordingView
                             } else {
                                 ZStack(alignment: .top) {
@@ -1072,24 +1081,76 @@ fileprivate struct PostComposerView: View {
                                         }
                                         .frame(maxHeight: scrollGeometry.size.height - 2 * PostComposerLayoutConstants.verticalPadding)
                                     }
-
-                                    VStack {
-                                        Spacer()
-                                        HStack {
-                                            Button(action: { presentPicker = true }) {
-                                                Image("icon_add_photo")
-                                                    .renderingMode(.template)
-                                                    .foregroundColor(.blue)
-                                            }
-                                            .padding(.leading, 10)
-                                            
+                                    if initialPostType == .unified, audioComposerRecorder.voiceNote != nil {
+                                        VStack {
                                             Spacer()
-                                            shareButton
+                                            Spacer()
+                                            Button(action: { presentPicker = true }) {
+                                                VStack(alignment: .center, spacing: 6) {
+                                                    Image("icon_add_photo")
+                                                    Text(Localizations.addMedia)
+                                                        .font(.system(size: 16, weight: .medium))
+                                                }
+                                                .foregroundColor(.blue)
+
+                                            }
+                                            Spacer()
+                                            AudioComposerPlayer(configuration: .unifiedComposer,
+                                                                recorder: audioComposerRecorder,
+                                                                presentDeleteVoiceNote: $presentDeleteVoiceNote)
+                                                .fixedSize(horizontal: false, vertical: true)
                                         }
                                         .padding(12)
-                                        .background(Color(.secondarySystemGroupedBackground)).opacity(0.95)
+                                        .background(Color(.secondarySystemGroupedBackground))
+                                    } else {
+                                        VStack {
+                                            if audioComposerRecorder.recorderControlsExpanded {
+                                                // Block out postTextView (we cannot remove it will dismiss the keyboard, which will rearrange the entire view)
+                                                Color(.secondarySystemGroupedBackground)
+                                                    .frame(maxHeight: .infinity)
+                                            } else {
+                                                Spacer()
+                                            }
+                                            HStack {
+                                                if initialPostType == .unified, audioComposerRecorder.recorderControlsExpanded {
+                                                    AudioPostComposerDurationView(time: audioComposerRecorder.duration)
+                                                        .padding(.leading, 10)
+                                                    if audioComposerRecorder.recorderControlsLocked {
+                                                        Spacer()
+                                                        Button(action: { audioComposerRecorder.stopRecording(cancel: false) }) {
+                                                            Text(Localizations.buttonStop)
+                                                                .font(.system(size: 17, weight: .semibold))
+                                                                .foregroundColor(.primaryBlue)
+                                                        }
+                                                    }
+                                                } else {
+                                                    Button(action: { presentPicker = true }) {
+                                                        Image("icon_add_photo")
+                                                            .renderingMode(.template)
+                                                            .foregroundColor(.blue)
+                                                    }
+                                                    .padding(.leading, 10)
+                                                }
+
+                                                Spacer()
+
+                                                if initialPostType == .unified {
+                                                    AudioComposerRecorderControl(recorder: audioComposerRecorder)
+                                                        .frame(width: 24, height: 24)
+                                                        .disabled(!inputToPost.value.text.isEmpty || audioComposerRecorder.isRecording)
+                                                        .padding(.trailing, 6)
+                                                        .padding(.leading, 18) // some additional padding to center the stop button
+                                                } else {
+                                                    shareButton(showTitle: false)
+                                                }
+                                            }
+                                            .padding(12)
+                                            .background(Color(.secondarySystemGroupedBackground)).opacity(0.95)
+                                        }
                                     }
                                 }
+                                .transition(.opacity)
+                                .animation(.easeInOut(duration: 0.15), value: audioComposerRecorder.recorderControlsExpanded)
                             }
                         }
                         .clipShape(RoundedRectangle(cornerRadius: PostComposerLayoutConstants.backgroundRadius))
@@ -1101,7 +1162,11 @@ fileprivate struct PostComposerView: View {
                             AnyView(Rectangle().fill(Color.clear))
                         )
                         .padding(.horizontal, mediaCount > 0 ? 0 : PostComposerLayoutConstants.horizontalPadding)
-                        .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
+                        .padding(.vertical, initialPostType == .unified ? 4 : PostComposerLayoutConstants.verticalPadding)
+                        if initialPostType == .unified, mediaCount == 0 {
+                            shareButton(showTitle: true)
+                                .padding(.bottom, PostComposerLayoutConstants.verticalPadding)
+                        }
                     }
                     .frame(height: scrollGeometry.size.height - 80)
                     .padding(.top, 80)
@@ -1157,6 +1222,7 @@ fileprivate struct PostComposerView: View {
                                 AudioComposerRecorderControl(recorder: audioComposerRecorder)
                                     .frame(width: 24, height: 24)
                                     .padding(.horizontal, PostComposerLayoutConstants.postTextHorizontalPadding)
+                                    .disabled(!inputToPost.value.text.isEmpty)
                             }
                         }
                         .frame(minHeight: 60)
@@ -1166,16 +1232,22 @@ fileprivate struct PostComposerView: View {
                         .shadow(color: .black.opacity(self.colorScheme == .dark ? 0 : 0.04), radius: 2, y: 1)
                         .zIndex(1)
                     }
-                    
-                    if configuration.isMoment {
-                        // want the share button to be on the right, not centered
-                        Spacer()
+
+                    if initialPostType != .unified {
+                        if configuration.isMoment {
+                            // want the share button to be on the right, not centered
+                            Spacer()
+                        }
+                        shareButton(showTitle: false)
+                            .offset(y: -2)
+                            .offset(x: configuration.isMoment ? -15 : 0)
                     }
-                    shareButton
-                        .offset(y: -2)
-                        .offset(x: configuration.isMoment ? -15 : 0)
                 }
                 .padding(10)
+                if initialPostType == .unified {
+                    shareButton(showTitle: true)
+                        .padding(.bottom, 10)
+                }
             }
         }
         .frame(maxHeight: .infinity)
@@ -1237,7 +1309,7 @@ fileprivate struct PostComposerView: View {
     }
     
     private func shouldGoBackAfterMediaDeletion() -> Bool {
-        guard mediaCount == 1, audioComposerRecorder.voiceNote == nil else {
+        guard mediaCount == 1, audioComposerRecorder.voiceNote == nil, initialPostType != .unified else {
             return false
         }
         

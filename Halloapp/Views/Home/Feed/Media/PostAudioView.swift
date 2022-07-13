@@ -36,6 +36,9 @@ struct PostAudioViewConfiguration {
     static let composerWithMedia = PostAudioViewConfiguration(showDeleteButton: true,
                                                               backgroundColor: .secondarySystemGroupedBackground)
 
+    static let unifiedComposer = PostAudioViewConfiguration(showDeleteButton: true,
+                                                            backgroundColor: .feedPostAudioPlayerBackground)
+
     static let feed = PostAudioViewConfiguration(showDeleteButton: false,
                                                  backgroundColor: .feedPostAudioPlayerBackground)
 
