@@ -581,6 +581,12 @@ extension Localizations {
                  comment: "Version of an invitation to join HalloApp. The argument is the invitee's name.")
     }
 
+    static var specficInviteTextVariation5: String {
+        NSLocalizedString("invite.text.specific.5",
+                   value: "I’m inviting you to join me on HalloApp. It is a private and secure app to share pictures, chat and call your friends. Get it at https://halloapp.com/get",
+                 comment: "Version of an invitation to join HalloApp. No arguments")
+    }
+
     static func outOfInvitesWith(date: Date) -> String {
         let dateFormatter = DateFormatter()
         dateFormatter.timeStyle = .short
