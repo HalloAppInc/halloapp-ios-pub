@@ -104,7 +104,14 @@ class ComposerViewController: UIViewController {
     private var mediaCarouselHeightCancellable: AnyCancellable?
     private var changeDestinationAvatarCancellable: AnyCancellable?
 
-    private let audioComposerRecorder = AudioComposerRecorder()
+    private var voiceNote: PendingMedia?
+    private var audioRecorderControlsLocked = false
+    private lazy var audioRecorder: AudioRecorder = {
+        let audioRecorder = AudioRecorder()
+        audioRecorder.delegate = self
+
+        return audioRecorder
+    }()
 
     private lazy var backButton: UIButton = {
         let imageColor = UIColor.label.withAlphaComponent(0.9)
@@ -468,6 +475,7 @@ class ComposerViewController: UIViewController {
     private lazy var audioRecorderControlView: AudioRecorderControlView = {
         let controlView = AudioRecorderControlView(configuration: .post)
         controlView.translatesAutoresizingMaskIntoConstraints = false
+        controlView.delegate = self
 
         NSLayoutConstraint.activate([
             controlView.widthAnchor.constraint(equalToConstant: 24),
@@ -475,6 +483,16 @@ class ComposerViewController: UIViewController {
         ])
 
         return controlView
+    }()
+
+    private lazy var audioPlayerView: PostAudioView = {
+        let view = PostAudioView(configuration: .composerWithMedia)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.delegate = self
+        view.isSeen = true
+        view.isHidden = true
+
+        return view
     }()
 
     private lazy var textFieldView: UIView = {
@@ -501,15 +519,47 @@ class ComposerViewController: UIViewController {
         field.addSubview(backgroundView)
         field.addArrangedSubview(textView)
         field.addArrangedSubview(audioRecorderControlView)
+        field.addSubview(voiceNoteTimeLabel)
+        field.addSubview(stopVoiceRecordingButton)
+        field.addSubview(audioPlayerView)
 
         NSLayoutConstraint.activate([
             backgroundView.leadingAnchor.constraint(equalTo: field.leadingAnchor),
             backgroundView.trailingAnchor.constraint(equalTo: field.trailingAnchor),
             backgroundView.topAnchor.constraint(equalTo: field.topAnchor),
             backgroundView.bottomAnchor.constraint(equalTo: field.bottomAnchor),
+            voiceNoteTimeLabel.leadingAnchor.constraint(equalTo: field.leadingAnchor, constant: 28),
+            voiceNoteTimeLabel.centerYAnchor.constraint(equalTo: field.centerYAnchor),
+            stopVoiceRecordingButton.centerXAnchor.constraint(equalTo: field.centerXAnchor),
+            stopVoiceRecordingButton.centerYAnchor.constraint(equalTo: field.centerYAnchor),
+            audioPlayerView.leadingAnchor.constraint(equalTo: field.leadingAnchor),
+            audioPlayerView.trailingAnchor.constraint(equalTo: field.trailingAnchor),
+            audioPlayerView.centerYAnchor.constraint(equalTo: field.centerYAnchor),
         ])
 
         return field
+    }()
+
+    private lazy var voiceNoteTimeLabel: AudioRecorderTimeView = {
+        let label = AudioRecorderTimeView()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.backgroundColor = .clear
+        label.isHidden = true
+
+        return label
+    }()
+
+    // note: Displays when the audio recorder is in the locked state.
+    private lazy var stopVoiceRecordingButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.tintColor = .primaryBlue
+        button.setTitle(Localizations.buttonStop, for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 19)
+        button.addTarget(self, action: #selector(stopVoiceRecordingAction), for: .touchUpInside)
+        button.isHidden = true
+
+        return button
     }()
 
     init(
@@ -524,9 +574,8 @@ class ComposerViewController: UIViewController {
         self.initialType = type
         self.input = input
         self.media = media
+        self.voiceNote = voiceNote
         self.completion = completion
-
-        audioComposerRecorder.voiceNote = voiceNote
 
         super.init(nibName: nil, bundle: nil)
     }
@@ -623,7 +672,7 @@ class ComposerViewController: UIViewController {
             //     mentions
             //     textView
             //     send btn
-        } else if initialType == .voiceNote || audioComposerRecorder.voiceNote != nil {
+        } else if initialType == .voiceNote || voiceNote != nil {
             // audio only
             //   contentView
             //     card with audio buttons only
@@ -649,9 +698,20 @@ class ComposerViewController: UIViewController {
             updateMediaCarouselHeight()
             updateTextViewFontAndHeight()
 
-            audioRecorderControlView.isHidden = !input.text.isEmpty
+            textView.alpha = audioRecorder.isRecording || voiceNote != nil ? 0 : 1
+
+            audioRecorderControlView.isHidden = !input.text.isEmpty || voiceNote != nil
             textViewPlaceholder.isHidden = !input.text.isEmpty
-        } else if initialType == .voiceNote || audioComposerRecorder.voiceNote != nil {
+
+            voiceNoteTimeLabel.isHidden = !audioRecorder.isRecording
+            stopVoiceRecordingButton.isHidden = !audioRecorder.isRecording || !audioRecorderControlsLocked
+
+            audioPlayerView.isHidden = voiceNote == nil
+
+            if let voiceNote = voiceNote, audioPlayerView.url != voiceNote.fileURL {
+                audioPlayerView.url = voiceNote.fileURL
+            }
+        } else if initialType == .voiceNote || voiceNote != nil {
             // update audio only ui
         } else {
             // update text only ui
@@ -724,7 +784,7 @@ class ComposerViewController: UIViewController {
     @objc private func backAction() {
         ImageServer.shared.clearUnattachedTasks(keepFiles: false)
 
-        let result = ComposerResult(config: config, input: input, voiceNote: audioComposerRecorder.voiceNote, media: media)
+        let result = ComposerResult(config: config, input: input, voiceNote: voiceNote, media: media)
         completion(self, result, false)
     }
 
@@ -818,7 +878,7 @@ class ComposerViewController: UIViewController {
 
         let mentionText = MentionText(expandedText: input.text, mentionRanges: input.mentions).trimmed()
 
-        if let voiceNote = audioComposerRecorder.voiceNote {
+        if let voiceNote = voiceNote {
             media.append(voiceNote)
         }
 
@@ -905,7 +965,7 @@ class ComposerViewController: UIViewController {
         // don't dimiss when
         // - has a voice note
         // - started as text post and still has text
-        return audioComposerRecorder.voiceNote == nil && !(initialType == .noMedia && !input.text.isEmpty)
+        return voiceNote == nil && !(initialType == .noMedia && !input.text.isEmpty)
     }
 }
 
@@ -1140,6 +1200,122 @@ extension ComposerViewController {
         return mentionableUsers.filter {
             Mentions.isPotentialMatch(fullName: $0.fullName, input: trimmedInput)
         }
+    }
+}
+
+extension ComposerViewController: AudioRecorderControlViewDelegate {
+    func audioRecorderControlViewShouldStart(_ view: AudioRecorderControlView) -> Bool {
+        guard !MainAppContext.shared.callManager.isAnyCallActive else {
+            alertMicrophoneAccessDeniedDuringCall()
+            return false
+        }
+
+        return true
+    }
+
+    func audioRecorderControlViewStarted(_ view: AudioRecorderControlView) {
+        audioRecorder.start()
+    }
+
+    func audioRecorderControlViewFinished(_ view: AudioRecorderControlView, cancel: Bool) {
+        audioRecorder.stop(cancel: cancel)
+    }
+
+    func audioRecorderControlViewLocked(_ view: AudioRecorderControlView) {
+        audioRecorderControlsLocked = true
+        updateUI()
+    }
+
+    private func alertMicrophoneAccessDeniedDuringCall() {
+        let alert = UIAlertController(title: Localizations.failedActionDuringCallTitle,
+                                    message: Localizations.failedActionDuringCallNoticeText,
+                             preferredStyle: .alert)
+
+        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: { _ in }))
+        present(alert, animated: true)
+    }
+}
+
+extension ComposerViewController: AudioRecorderDelegate {
+    func audioRecorderMicrophoneAccessDenied(_ recorder: AudioRecorder) {
+        DispatchQueue.main.async { [weak self] in
+            self?.alertMicrophoneAccessDenied()
+        }
+    }
+
+    func audioRecorderStarted(_ recorder: AudioRecorder) {
+        DispatchQueue.main.async { [weak self] in
+            self?.voiceNoteTimeLabel.text = 0.formatted
+            self?.updateUI()
+        }
+    }
+
+    func audioRecorderStopped(_ recorder: AudioRecorder) {
+        DispatchQueue.main.async { [weak self] in
+            self?.audioRecorderControlsLocked = false
+            self?.saveRecording()
+            self?.updateUI()
+        }
+    }
+
+    func audioRecorderInterrupted(_ recorder: AudioRecorder) {
+        DispatchQueue.main.async { [weak self] in
+            self?.audioRecorderControlsLocked = false
+            self?.saveRecording()
+            self?.updateUI()
+        }
+    }
+
+    func audioRecorder(_ recorder: AudioRecorder, at time: String) {
+        DispatchQueue.main.async { [weak self] in
+            self?.voiceNoteTimeLabel.text = time
+        }
+    }
+
+    private func alertMicrophoneAccessDenied() {
+        let alert = UIAlertController(title: Localizations.micAccessDeniedTitle,
+                                    message: Localizations.micAccessDeniedMessage,
+                             preferredStyle: .alert)
+
+        alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+        alert.addAction(UIAlertAction(title: Localizations.settingsAppName, style: .default) { _ in
+            if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(settingsURL)
+            }
+        })
+
+        present(alert, animated: true)
+    }
+
+    private func saveRecording() {
+        guard audioRecorder.url != nil, let url = audioRecorder.saveVoicePost() else {
+            return
+        }
+
+        let pendingMedia = PendingMedia(type: .audio)
+        pendingMedia.fileURL = url
+        pendingMedia.size = .zero
+        pendingMedia.order = 0
+        voiceNote = pendingMedia
+    }
+
+    @objc private func stopVoiceRecordingAction() {
+        if audioRecorder.isRecording {
+            audioRecorder.stop(cancel: false)
+        }
+    }
+}
+
+extension ComposerViewController: PostAudioViewDelegate {
+    func postAudioViewDidRequestDeletion(_ postAudioView: PostAudioView) {
+        let alert = UIAlertController(title: Localizations.deleteVoiceRecordingTitle, message: nil, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: Localizations.buttonDelete, style: .destructive, handler: { [weak self] _ in
+            self?.voiceNote = nil
+            self?.updateUI()
+        }))
+        alert.addAction(.init(title: Localizations.buttonCancel, style: .cancel))
+
+        present(alert, animated: true)
     }
 }
 
