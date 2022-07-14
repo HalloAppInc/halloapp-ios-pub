@@ -684,7 +684,7 @@ class NotificationMetadata: Codable {
                     body = "\(mediaIcon) \(body)"
                 }
             }
-        case .moment(_):
+        case .moment(_, _):
             subtitle = Localizations.newMomentNotificationSubtitle
             body = ""
         case .voiceNote:

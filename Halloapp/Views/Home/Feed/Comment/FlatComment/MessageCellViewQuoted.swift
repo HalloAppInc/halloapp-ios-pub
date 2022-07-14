@@ -163,7 +163,7 @@ class MessageCellViewQuoted: MessageCellViewBase {
             nameContentTimeRow.addArrangedSubview(quotedMessageView)
         }
         //Configure media view
-        if let media = MainAppContext.shared.feedData.media(commentID: comment.id, in: MainAppContext.shared.feedData.viewContext) {
+        if MainAppContext.shared.feedData.media(commentID: comment.id, in: MainAppContext.shared.feedData.viewContext) != nil {
             if let commentMedia = comment.media, commentMedia.count > 0 {
                 // Audio comment
                 if comment.media?.count == 1, let media = comment.media?.first, media.type == .audio {

@@ -192,6 +192,10 @@ class AudioView : UIStackView {
 
     deinit {
         pause()
+        invalidatePlayerAndDisplayLink()
+    }
+
+    private func invalidatePlayerAndDisplayLink() {
         player = nil
         displayLink?.invalidate()
     }

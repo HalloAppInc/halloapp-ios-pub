@@ -402,7 +402,10 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     
     deinit {
         DDLogDebug("ChatViewController/deinit/\(fromUserId ?? "")")
-        
+        updateChatState()
+    }
+
+    private func updateChatState() {
         if let fromUserId = fromUserId {
             MainAppContext.shared.chatData.sendChatState(type: .oneToOne,
                                                            id: fromUserId,

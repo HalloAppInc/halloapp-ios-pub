@@ -581,7 +581,7 @@ extension MomentViewController: ContentInputDelegate {
         replyStatusCancellable = manyPublisher
             .collect()
             .sink { [weak self] result in
-                if result.allSatisfy { $0 } {
+                if result.allSatisfy({ $0 }) {
                     DDLogInfo("MomentViewController/beginObserving-message/successfully sent \(result.count) messages")
                     self?.finalizeToast(success: true)
                 } else {

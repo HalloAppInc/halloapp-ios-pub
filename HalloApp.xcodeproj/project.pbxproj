@@ -20,7 +20,7 @@
 		2446D68624CB6DA9005BAD3C /* ContactTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F774D246224C30063645A /* ContactTableViewCell.swift */; };
 		2446D68B24CF732B005BAD3C /* DataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2446D68A24CF732B005BAD3C /* DataStore.swift */; };
 		24AA69DC24DDC6DA00ED65CE /* SharedAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1C82334192000805FF9 /* SharedAssets.xcassets */; };
-		24D743E024B3D199001111BF /* Share Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 24D743D624B3D199001111BF /* Share Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		24D743E024B3D199001111BF /* Share Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 24D743D624B3D199001111BF /* Share Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		320AC73927D17EC30069048D /* HalloAppClip.app in Embed AppClip */ = {isa = PBXBuildFile; fileRef = 329E03F8268247BC00C2D250 /* HalloAppClip.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		32151C1D28207B330057D794 /* ChatViewControllerNew.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32151C1C28207B330057D794 /* ChatViewControllerNew.swift */; };
 		321A70112704FF13005603B8 /* FeedLinkPreview+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 321A70102704FF13005603B8 /* FeedLinkPreview+CoreDataProperties.swift */; };
@@ -239,7 +239,7 @@
 		7665478A252BE44C00379BEF /* GroupFeedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76654789252BE44C00379BEF /* GroupFeedViewController.swift */; };
 		76714DD9250AC3B800779C4E /* DataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76714DD8250AC3B800779C4E /* DataStore.swift */; };
 		768123972485A240008C5216 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768123962485A240008C5216 /* NotificationService.swift */; };
-		7681239B2485A240008C5216 /* Notification Service Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 768123942485A240008C5216 /* Notification Service Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		7681239B2485A240008C5216 /* Notification Service Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 768123942485A240008C5216 /* Notification Service Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		768123A42485C56E008C5216 /* MainAppContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768123A32485C56E008C5216 /* MainAppContext.swift */; };
 		7681242D2486EAC2008C5216 /* AppExtensionContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7681242C2486EAC2008C5216 /* AppExtensionContext.swift */; };
 		7688FA4025489E26006B86B3 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 7688FA3E25489E26006B86B3 /* Localizable.strings */; };
@@ -296,7 +296,7 @@
 		A1FE830727E2913500024641 /* ContentTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1FE830627E2913500024641 /* ContentTextView.swift */; };
 		E5230B1E267AABA60046A2EB /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E5230B1D267AABA60046A2EB /* Intents.framework */; };
 		E5230B21267AABA60046A2EB /* IntentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5230B20267AABA60046A2EB /* IntentHandler.swift */; };
-		E5230B25267AABA60046A2EB /* Intents Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = E5230B1C267AABA60046A2EB /* Intents Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		E5230B25267AABA60046A2EB /* Intents Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E5230B1C267AABA60046A2EB /* Intents Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E5230B2B267AABCA0046A2EB /* Intents.intentdefinition in Sources */ = {isa = PBXBuildFile; fileRef = E5230B0F267A61BC0046A2EB /* Intents.intentdefinition */; };
 		E5230B2C267AABCE0046A2EB /* Intents.intentdefinition in Sources */ = {isa = PBXBuildFile; fileRef = E5230B0F267A61BC0046A2EB /* Intents.intentdefinition */; };
 		E537A1B726792AEF0008B286 /* ChatDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = E537A1B626792AEF0008B286 /* ChatDraft.swift */; };
@@ -588,17 +588,17 @@
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		768123A02485A240008C5216 /* Embed App Extensions */ = {
+		768123A02485A240008C5216 /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				E5230B25267AABA60046A2EB /* Intents Extension.appex in Embed App Extensions */,
-				24D743E024B3D199001111BF /* Share Extension.appex in Embed App Extensions */,
-				7681239B2485A240008C5216 /* Notification Service Extension.appex in Embed App Extensions */,
+				E5230B25267AABA60046A2EB /* Intents Extension.appex in Embed Foundation Extensions */,
+				24D743E024B3D199001111BF /* Share Extension.appex in Embed Foundation Extensions */,
+				7681239B2485A240008C5216 /* Notification Service Extension.appex in Embed Foundation Extensions */,
 			);
-			name = "Embed App Extensions";
+			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		768123CB2485D9F5008C5216 /* Embed Frameworks */ = {
@@ -2504,7 +2504,7 @@
 				EAF3A1BB2334191E00805FF9 /* Sources */,
 				EAF3A1BC2334191E00805FF9 /* Frameworks */,
 				EAF3A1BD2334191E00805FF9 /* Resources */,
-				768123A02485A240008C5216 /* Embed App Extensions */,
+				768123A02485A240008C5216 /* Embed Foundation Extensions */,
 				768123CB2485D9F5008C5216 /* Embed Frameworks */,
 				320AC73627D17EB00069048D /* Embed AppClip */,
 			);
@@ -2569,7 +2569,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1250;
-				LastUpgradeCheck = 1200;
+				LastUpgradeCheck = 1400;
 				ORGANIZATIONNAME = "HalloApp, Inc.";
 				TargetAttributes = {
 					24D743D524B3D199001111BF = {
