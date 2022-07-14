@@ -101,7 +101,7 @@ class ComposerViewController: UIViewController {
     private var videoTooLong = false
 
     private var cancellables: Set<AnyCancellable> = []
-    private var mediaCarouselHeightCancellable: AnyCancellable?
+    private var mediaReadyCancellable: AnyCancellable?
     private var changeDestinationAvatarCancellable: AnyCancellable?
 
     private var voiceNote: PendingMedia?
@@ -562,6 +562,70 @@ class ComposerViewController: UIViewController {
         return button
     }()
 
+    private lazy var sendButton: UIButton = {
+        let iconConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .bold)
+        let icon = UIImage(systemName: "chevron.right", withConfiguration: iconConfig)?
+                    .withTintColor(.white, renderingMode: .alwaysOriginal)
+
+        let attributedTitle = NSAttributedString(string: Localizations.sendTo,
+                                                 attributes: [.kern: 0.5, .foregroundColor: UIColor.white])
+        let disabledAttributedTitle = NSAttributedString(string: Localizations.sendTo,
+                                                         attributes: [.kern: 0.5, .foregroundColor: UIColor.white])
+
+        class LavaButton: UIButton {
+
+            override init(frame: CGRect) {
+                super.init(frame: frame)
+                updateBackgrounds()
+            }
+
+            required init?(coder: NSCoder) {
+                fatalError("init(coder:) has not been implemented")
+            }
+
+            private func updateBackgrounds() {
+                setBackgroundColor(.lavaOrange, for: .normal)
+                setBackgroundColor(.label.withAlphaComponent(0.19), for: .disabled)
+            }
+
+            override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+                super.traitCollectionDidChange(previousTraitCollection)
+                if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+                    updateBackgrounds()
+                }
+            }
+        }
+
+        let button = LavaButton(type: .custom)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        // Attributed strings do not respect button title colors
+        button.setAttributedTitle(attributedTitle, for: .normal)
+        button.setAttributedTitle(disabledAttributedTitle, for: .disabled)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
+        button.setImage(icon, for: .normal)
+        button.layer.cornerRadius = 22
+        button.layer.masksToBounds = true
+        button.contentEdgeInsets = UIEdgeInsets(top: -1.5, left: 32, bottom: 0, right: 38)
+
+        // keep image on the right & tappable
+        if case .rightToLeft = view.effectiveUserInterfaceLayoutDirection {
+            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -12, bottom: 0, right: 12)
+            button.semanticContentAttribute = .forceLeftToRight
+        } else {
+            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: 12, bottom: 0, right: -12)
+            button.semanticContentAttribute = .forceRightToLeft
+        }
+
+        NSLayoutConstraint.activate([
+            button.heightAnchor.constraint(equalToConstant: 44),
+            button.widthAnchor.constraint(greaterThanOrEqualToConstant: 90),
+        ])
+
+        button.addTarget(self, action: #selector(share), for: .touchUpInside)
+
+        return button
+    }()
+
     init(
         config: ComposerConfig,
         type: NewPostMediaSource,
@@ -649,6 +713,7 @@ class ComposerViewController: UIViewController {
 
             bottomView.addSubview(mentionPickerView)
             bottomView.addSubview(textFieldView)
+            bottomView.addSubview(sendButton)
 
             constraints.append(mediaCarouselHeightConstraint)
             constraints.append(mentionPickerView.leadingAnchor.constraint(equalTo: bottomView.leadingAnchor))
@@ -657,8 +722,10 @@ class ComposerViewController: UIViewController {
             constraints.append(textFieldView.leadingAnchor.constraint(equalTo: bottomView.leadingAnchor, constant: 12))
             constraints.append(textFieldView.trailingAnchor.constraint(equalTo: bottomView.trailingAnchor, constant: -12))
             constraints.append(textFieldView.topAnchor.constraint(equalTo: mentionPickerView.bottomAnchor, constant: 8))
-            constraints.append(textFieldView.bottomAnchor.constraint(equalTo: bottomView.bottomAnchor))
             constraints.append(textViewHeightConstraint)
+            constraints.append(sendButton.centerXAnchor.constraint(equalTo: bottomView.centerXAnchor))
+            constraints.append(sendButton.topAnchor.constraint(equalTo: textFieldView.bottomAnchor, constant: 11))
+            constraints.append(sendButton.bottomAnchor.constraint(equalTo: bottomView.bottomAnchor))
 
             textViewPlaceholder.text = Localizations.writeDescription
 
@@ -711,6 +778,16 @@ class ComposerViewController: UIViewController {
             if let voiceNote = voiceNote, audioPlayerView.url != voiceNote.fileURL {
                 audioPlayerView.url = voiceNote.fileURL
             }
+
+            sendButton.isEnabled = media.allSatisfy({ $0.ready.value })
+
+            mediaReadyCancellable = Publishers.MergeMany(media.map { $0.ready }).sink { [weak self] _ in
+                guard let self = self else { return }
+                guard self.media.allSatisfy({ $0.ready.value }) else { return }
+
+                self.updateMediaCarouselHeight()
+                self.sendButton.isEnabled = true
+            }
         } else if initialType == .voiceNote || voiceNote != nil {
             // update audio only ui
         } else {
@@ -719,28 +796,12 @@ class ComposerViewController: UIViewController {
     }
 
     private func updateMediaCarouselHeight() {
-        mediaCarouselHeightCancellable = nil
+        guard self.media.allSatisfy({ $0.ready.value }) else { return }
 
-        let setHeight: () -> Void = { [weak self] in
-            guard let self = self else { return }
+        let width = UIScreen.main.bounds.width - 4 * Constants.horizontalPadding
+        let items = media.map { FeedMedia($0, feedPostId: "") }
 
-            let width = UIScreen.main.bounds.width - 4 * Constants.horizontalPadding
-            let items = self.media.map { FeedMedia($0, feedPostId: "") }
-
-            self.mediaCarouselHeightConstraint.constant = MediaCarouselView.preferredHeight(for: items, width: width)
-        }
-
-        if media.allSatisfy({ $0.ready.value }) {
-            setHeight()
-        } else {
-            mediaCarouselHeightCancellable = Publishers.MergeMany(media.map { $0.ready }).sink { [weak self] _ in
-                guard let self = self else { return }
-
-                if self.media.allSatisfy({ $0.ready.value }) {
-                    setHeight()
-                }
-            }
-        }
+        mediaCarouselHeightConstraint.constant = MediaCarouselView.preferredHeight(for: items, width: width)
     }
 
     private func updateTextViewFontAndHeight() {
@@ -872,7 +933,7 @@ class ComposerViewController: UIViewController {
         }
     }
 
-    private func share() {
+    @objc private func share() {
         guard !isSharing else { return }
         isSharing = true
 
@@ -977,7 +1038,7 @@ extension ComposerViewController {
             guard let info = KeyboardNotificationInfo(userInfo: notification.userInfo) else { return }
 
             UIView.animate(withKeyboardNotificationInfo: info) {
-                self.mainViewBottomConstraint.constant = -info.endFrame.height
+                self.mainViewBottomConstraint.constant = -info.endFrame.height + 16
                 self.view?.layoutIfNeeded()
             }
         }.store(in: &cancellables)
@@ -1320,6 +1381,10 @@ extension ComposerViewController: PostAudioViewDelegate {
 }
 
 private extension Localizations {
+
+    static var sendTo: String {
+        NSLocalizedString("composer.button.send.to", value: "Send To", comment: "Send button title")
+    }
 
     static var writeDescription: String {
         NSLocalizedString("composer.placeholder.media.description", value: "Write a description", comment: "Placeholder text for media caption field in post composer.")
