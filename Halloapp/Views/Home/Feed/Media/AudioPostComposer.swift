@@ -403,6 +403,7 @@ fileprivate struct AudioComposerRecorderControlView: UIViewRepresentable {
         if showMicPermissionsAlert {
             uiView.hide()
         }
+        uiView.isEnabled = context.environment.isEnabled
     }
 
     func makeCoordinator() -> Coordinator {

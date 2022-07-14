@@ -37,6 +37,12 @@ class AudioRecorderControlView: UIView {
                                            cancelButtonTranslationMultiplier: 1)
     }
 
+    public var isEnabled = true {
+        didSet {
+            updateEnabledState()
+        }
+    }
+
     public weak var delegate: AudioRecorderControlViewDelegate?
 
     private let configuration: Configuration
@@ -209,13 +215,8 @@ class AudioRecorderControlView: UIView {
         lockButtonVertical.isActive = true
         cancelButtonHorizontal.isActive = true
 
-        isAnyCallOngoingCancellable = MainAppContext.shared.callManager.isAnyCallOngoing.sink { [weak self] activeCall in
-            guard let self = self else {
-                return
-            }
-            let hasActiveCall = activeCall != nil
-            self.mainButton.alpha = hasActiveCall ? 0.42 : 1
-            self.isUserInteractionEnabled = !hasActiveCall
+        isAnyCallOngoingCancellable = MainAppContext.shared.callManager.isAnyCallOngoing.sink { [weak self] _ in
+            self?.updateEnabledState()
         }
 
         let longPressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(longPressGestureChanged(_:)))
@@ -428,5 +429,11 @@ extension AudioRecorderControlView: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         // Take priority over all other gesture recongizers
         return true
+    }
+
+    private func updateEnabledState() {
+        let isEnabled = self.isEnabled && MainAppContext.shared.callManager.isAnyCallOngoing.value == nil
+        mainButton.alpha = isEnabled ? 1 : 0.42
+        isUserInteractionEnabled = isEnabled
     }
 }
