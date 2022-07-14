@@ -66,25 +66,20 @@ class LocationListViewController: UIViewController {
     private func collection(fromLocations locations: [MKMapItem]) -> InsetCollectionView.Collection {
         InsetCollectionView.Collection {
             Section {
-                return locations.map { location in
-                    Item(title: location.name ?? Localizations.locationSharingUntitledLocation, icon: UIImage(systemName: "location.magnifyingglass")) { [locationSelected = viewModel.locationSelected] in
+                for location in locations {
+                    Item(title: location.name ?? Localizations.locationSharingUntitledLocation, subtitle: location.placemark.thoroughfare, icon: UIImage(systemName: "location.magnifyingglass")) { [locationSelected = viewModel.locationSelected] in
                         locationSelected.send(location)
                     }
                 }
             }
         }
-        .seperators()
+        .separators()
     }
 }
 
 extension LocationListViewController: InsetCollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        guard let item = self.collectionView.data.itemIdentifier(for: indexPath) as? InsetCollectionView.Item else {
-            return
-        }
-        
-        collectionView.deselectItem(at: indexPath, animated: true)
-        item.action?()
+        insetCollectionView(didSelectItemAt: indexPath)
     }
 }
 
