@@ -217,126 +217,144 @@ class AudioRecorderControlView: UIView {
             self.mainButton.alpha = hasActiveCall ? 0.42 : 1
             self.isUserInteractionEnabled = !hasActiveCall
         }
+
+        let longPressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(longPressGestureChanged(_:)))
+        longPressGestureRecognizer.allowableMovement = -1
+        longPressGestureRecognizer.delegate = self
+        longPressGestureRecognizer.minimumPressDuration = 0
+        addGestureRecognizer(longPressGestureRecognizer)
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard !isStarting && !hasStarted else { return }
-        guard let touch = touches.first else { return }
-        startLocation = touch.location(in: self)
-        let shouldStart = delegate?.audioRecorderControlViewShouldStart(self) ?? false
-        if shouldStart {
+    @objc private func longPressGestureChanged(_ longPressGestureRecognizer: UILongPressGestureRecognizer) {
+        switch longPressGestureRecognizer.state {
+        case .possible:
+            break
+        case .began:
+            guard !isStarting, !hasStarted, delegate?.audioRecorderControlViewShouldStart(self) ?? false else {
+                return
+            }
+            startLocation = longPressGestureRecognizer.location(in: self)
             show()
             isStarting = true
             hasStarted = false
-        }
-    }
-
-    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard hasStarted else { return }
-        guard let touch = touches.first else { return }
-
-        let location = touch.location(in: self)
-        let distanceX = startLocation.x - location.x
-        let distanceY = startLocation.y - location.y
-
-        if !isLockInProgress && !isCancelInProgress {
-            if distanceX > distanceY && distanceX > actionInProgressThreshold {
-                isCancelInProgress = true
-            } else if distanceY > actionInProgressThreshold {
-                isLockInProgress = true
+        case .changed:
+            guard hasStarted else {
+                return
             }
-        }
 
-        if isLockInProgress {
-            let diff = (distanceY - actionInProgressThreshold)
+            let location = longPressGestureRecognizer.location(in: self)
+            let distanceX = startLocation.x - location.x
+            let distanceY = startLocation.y - location.y
 
-            if distanceY > actionDoneThreshold {
-                delegate?.audioRecorderControlViewLocked(self)
-                hide()
-            } else if distanceY > actionActivationThreshold {
-                let progress = (distanceY - actionActivationThreshold) / (actionDoneThreshold - actionActivationThreshold)
-                cancelButton.alpha = 0
-                leftArrow.alpha = 0
-                topArrow.alpha = 0
-                expandingContainerWidth.constant = expandMinSize
-                expandingContainerHeight.constant = expandMinSize
-                lockButton.alpha = 1 - progress
-
-                stopLockButtonLevitation()
-                lockButtonVertical.constant = actionOffset - (configuration.expandMaxSize - expandMinSize) / 2 - diff
-            } else if distanceY > actionInProgressThreshold {
-                let progress = diff / (actionActivationThreshold - actionInProgressThreshold)
-                cancelButton.alpha = 1 - progress
-                leftArrow.alpha = 1 - progress
-                topArrow.alpha = 1 - progress
-                expandingContainerWidth.constant = (configuration.expandMaxSize - expandMinSize) * (1 - progress) + expandMinSize
-                expandingContainerHeight.constant = (configuration.expandMaxSize - expandMinSize) * (1 - progress) + expandMinSize
-                expandingContainer.layer.cornerRadius = expandingContainerWidth.constant / 2
-                blurredBackground.layer.cornerRadius = expandingContainerWidth.constant / 2
-                lockButton.alpha = 1
-
-                stopLockButtonLevitation()
-                lockButtonVertical.constant = actionOffset - (configuration.expandMaxSize - expandingContainerWidth.constant) / 2 - diff
-            } else {
-                isLockInProgress = false
-                cancelButton.alpha = 1
-                leftArrow.alpha = 1
-                topArrow.alpha = 1
-                expandingContainerWidth.constant = configuration.expandMaxSize
-                expandingContainerHeight.constant = configuration.expandMaxSize
-                lockButton.alpha = 1
-                lockButtonVertical.constant = actionOffset
-
-                levitateLockButton()
+            if !isLockInProgress, !isCancelInProgress {
+                if distanceX > distanceY, distanceX > actionInProgressThreshold {
+                    isCancelInProgress = true
+                } else if distanceY > actionInProgressThreshold {
+                    isLockInProgress = true
+                }
             }
-        } else if isCancelInProgress {
-            let diff = (distanceX - actionInProgressThreshold)
 
-            if distanceX > actionDoneThreshold {
-                delegate?.audioRecorderControlViewFinished(self, cancel: true)
-                hide()
-            } else if distanceX > actionActivationThreshold {
-                let progress = (distanceX - actionActivationThreshold) / (actionDoneThreshold - actionActivationThreshold)
-                lockButton.alpha = 0
-                leftArrow.alpha = 0
-                topArrow.alpha = 0
-                expandingContainerWidth.constant = expandMinSize
-                expandingContainerHeight.constant = expandMinSize
-                cancelButton.alpha = 1 - progress
-                cancelButtonHorizontal.constant = actionOffset - (configuration.expandMaxSize - expandMinSize) / 2 - configuration.cancelButtonTranslationMultiplier * diff
+            if isLockInProgress {
+                let diff = (distanceY - actionInProgressThreshold)
 
-                stopLockButtonLevitation()
-            } else if distanceX > actionInProgressThreshold {
-                let progress = diff / (actionActivationThreshold - actionInProgressThreshold)
-                lockButton.alpha = 1 - progress
-                leftArrow.alpha = 1 - progress
-                topArrow.alpha = 1 - progress
-                expandingContainerWidth.constant = (configuration.expandMaxSize - expandMinSize) * (1 - progress) + expandMinSize
-                expandingContainerHeight.constant = (configuration.expandMaxSize - expandMinSize) * (1 - progress) + expandMinSize
-                expandingContainer.layer.cornerRadius = expandingContainerWidth.constant / 2
-                blurredBackground.layer.cornerRadius = expandingContainerWidth.constant / 2
-                cancelButton.alpha = 1
-                cancelButtonHorizontal.constant = actionOffset - (configuration.expandMaxSize - expandingContainerWidth.constant) / 2 - configuration.cancelButtonTranslationMultiplier * diff
-                stopLockButtonLevitation()
-            } else {
-                isCancelInProgress = false
-                lockButton.alpha = 1
-                leftArrow.alpha = 1
-                topArrow.alpha = 1
-                expandingContainerWidth.constant = configuration.expandMaxSize
-                expandingContainerHeight.constant = configuration.expandMaxSize
-                cancelButton.alpha = 1
-                cancelButtonHorizontal.constant = actionOffset
+                if distanceY > actionDoneThreshold {
+                    delegate?.audioRecorderControlViewLocked(self)
+                    hide()
+                } else if distanceY > actionActivationThreshold {
+                    let progress = (distanceY - actionActivationThreshold) / (actionDoneThreshold - actionActivationThreshold)
+                    cancelButton.alpha = 0
+                    leftArrow.alpha = 0
+                    topArrow.alpha = 0
+                    expandingContainerWidth.constant = expandMinSize
+                    expandingContainerHeight.constant = expandMinSize
+                    lockButton.alpha = 1 - progress
 
-                levitateLockButton()
+                    stopLockButtonLevitation()
+                    lockButtonVertical.constant = actionOffset - (configuration.expandMaxSize - expandMinSize) / 2 - diff
+                } else if distanceY > actionInProgressThreshold {
+                    let progress = diff / (actionActivationThreshold - actionInProgressThreshold)
+                    cancelButton.alpha = 1 - progress
+                    leftArrow.alpha = 1 - progress
+                    topArrow.alpha = 1 - progress
+                    expandingContainerWidth.constant = (configuration.expandMaxSize - expandMinSize) * (1 - progress) + expandMinSize
+                    expandingContainerHeight.constant = (configuration.expandMaxSize - expandMinSize) * (1 - progress) + expandMinSize
+                    expandingContainer.layer.cornerRadius = expandingContainerWidth.constant / 2
+                    blurredBackground.layer.cornerRadius = expandingContainerWidth.constant / 2
+                    lockButton.alpha = 1
+
+                    stopLockButtonLevitation()
+                    lockButtonVertical.constant = actionOffset - (configuration.expandMaxSize - expandingContainerWidth.constant) / 2 - diff
+                } else {
+                    isLockInProgress = false
+                    cancelButton.alpha = 1
+                    leftArrow.alpha = 1
+                    topArrow.alpha = 1
+                    expandingContainerWidth.constant = configuration.expandMaxSize
+                    expandingContainerHeight.constant = configuration.expandMaxSize
+                    lockButton.alpha = 1
+                    lockButtonVertical.constant = actionOffset
+
+                    levitateLockButton()
+                }
+            } else if isCancelInProgress {
+                let diff = (distanceX - actionInProgressThreshold)
+
+                if distanceX > actionDoneThreshold {
+                    delegate?.audioRecorderControlViewFinished(self, cancel: true)
+                    hide()
+                } else if distanceX > actionActivationThreshold {
+                    let progress = (distanceX - actionActivationThreshold) / (actionDoneThreshold - actionActivationThreshold)
+                    lockButton.alpha = 0
+                    leftArrow.alpha = 0
+                    topArrow.alpha = 0
+                    expandingContainerWidth.constant = expandMinSize
+                    expandingContainerHeight.constant = expandMinSize
+                    cancelButton.alpha = 1 - progress
+                    cancelButtonHorizontal.constant = actionOffset - (configuration.expandMaxSize - expandMinSize) / 2 - configuration.cancelButtonTranslationMultiplier * diff
+
+                    stopLockButtonLevitation()
+                } else if distanceX > actionInProgressThreshold {
+                    let progress = diff / (actionActivationThreshold - actionInProgressThreshold)
+                    lockButton.alpha = 1 - progress
+                    leftArrow.alpha = 1 - progress
+                    topArrow.alpha = 1 - progress
+                    expandingContainerWidth.constant = (configuration.expandMaxSize - expandMinSize) * (1 - progress) + expandMinSize
+                    expandingContainerHeight.constant = (configuration.expandMaxSize - expandMinSize) * (1 - progress) + expandMinSize
+                    expandingContainer.layer.cornerRadius = expandingContainerWidth.constant / 2
+                    blurredBackground.layer.cornerRadius = expandingContainerWidth.constant / 2
+                    cancelButton.alpha = 1
+                    cancelButtonHorizontal.constant = actionOffset - (configuration.expandMaxSize - expandingContainerWidth.constant) / 2 - configuration.cancelButtonTranslationMultiplier * diff
+                    stopLockButtonLevitation()
+                } else {
+                    isCancelInProgress = false
+                    lockButton.alpha = 1
+                    leftArrow.alpha = 1
+                    topArrow.alpha = 1
+                    expandingContainerWidth.constant = configuration.expandMaxSize
+                    expandingContainerHeight.constant = configuration.expandMaxSize
+                    cancelButton.alpha = 1
+                    cancelButtonHorizontal.constant = actionOffset
+
+                    levitateLockButton()
+                }
             }
-        }
 
-        layoutIfNeeded()
+            setNeedsLayout()
+        case .ended:
+            if isStarting || hasStarted {
+                delegate?.audioRecorderControlViewFinished(self, cancel: false)
+            }
+
+            hide()
+        case .cancelled, .failed:
+            hide()
+        @unknown default:
+            break
+        }
     }
 
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
@@ -360,25 +378,13 @@ class AudioRecorderControlView: UIView {
         lockButtonAnimator = nil
     }
 
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if isStarting || hasStarted {
-            delegate?.audioRecorderControlViewFinished(self, cancel: false)
-        }
-
-        hide()
-    }
-
-    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        hide()
-    }
-
     private func show() {
         expandingContainer.isHidden = false
         expandingContainerWidth.constant = expandMinSize
         expandingContainerHeight.constant = expandMinSize
         expandingContainer.layer.cornerRadius = expandingContainerWidth.constant / 2
         blurredBackground.layer.cornerRadius = expandingContainerWidth.constant / 2
-        layoutIfNeeded()
+        setNeedsLayout()
         
         UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.75, initialSpringVelocity: 0) {
             // using the same animation parameters as the FAB
@@ -413,6 +419,14 @@ class AudioRecorderControlView: UIView {
 
         lockButtonVertical.constant = actionOffset
         cancelButtonHorizontal.constant = actionOffset
-        layoutIfNeeded()
+        setNeedsLayout()
+    }
+}
+
+extension AudioRecorderControlView: UIGestureRecognizerDelegate {
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        // Take priority over all other gesture recongizers
+        return true
     }
 }
