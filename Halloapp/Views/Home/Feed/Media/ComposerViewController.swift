@@ -102,7 +102,6 @@ class ComposerViewController: UIViewController {
 
     private var cancellables: Set<AnyCancellable> = []
     private var mediaReadyCancellable: AnyCancellable?
-    private var changeDestinationAvatarCancellable: AnyCancellable?
 
     private var voiceNote: PendingMedia?
     private var audioRecorderControlsLocked = false
@@ -113,129 +112,18 @@ class ComposerViewController: UIViewController {
         return audioRecorder
     }()
 
-    private lazy var backButton: UIButton = {
-        let imageColor = UIColor.label.withAlphaComponent(0.9)
+    private lazy var backButtonItem: UIBarButtonItem = {
         let imageConfig = UIImage.SymbolConfiguration(weight: .bold)
-        let image = UIImage(systemName: "chevron.left", withConfiguration: imageConfig)?.withTintColor(imageColor)
+        let image = UIImage(systemName: "chevron.left", withConfiguration: imageConfig)?
+                    .withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
 
-        let button = UIButton(type: .system)
-        button.translatesAutoresizingMaskIntoConstraints = false
+        let button = UIButton(type: .custom)
         button.setImage(image, for: .normal)
+        button.setTitle(Localizations.addMore, for: .normal)
+        button.setTitleColor(.primaryBlue, for: .normal)
         button.addTarget(self, action: #selector(backAction), for: .touchUpInside)
 
-        NSLayoutConstraint.activate([
-            button.widthAnchor.constraint(equalToConstant: 44),
-            button.heightAnchor.constraint(equalToConstant: 44),
-        ])
-
-        return button
-    }()
-
-    private lazy var titleLabel: UILabel = {
-        let title = UILabel()
-        title.translatesAutoresizingMaskIntoConstraints = false
-        title.textAlignment = .center
-        title.font = .gothamFont(ofFixedSize: 15, weight: .medium)
-        title.textColor = .label.withAlphaComponent(0.9)
-
-        return title
-    }()
-
-    private var changeDestinationIconConstraint: NSLayoutConstraint?
-    private lazy var changeDestinationIcon: UIImageView = {
-        let iconImage = UIImage(named: "PrivacySettingMyContacts")?
-            .withTintColor(.white, renderingMode: .alwaysOriginal)
-        let icon = UIImageView(image: iconImage)
-        icon.translatesAutoresizingMaskIntoConstraints = false
-        icon.contentMode = .scaleAspectFit
-
-        let iconConstraint = icon.widthAnchor.constraint(equalToConstant: 13)
-        NSLayoutConstraint.activate([
-            iconConstraint,
-            icon.heightAnchor.constraint(equalTo: icon.widthAnchor),
-        ])
-        changeDestinationIconConstraint = iconConstraint
-
-        return icon
-    }()
-
-    private lazy var changeDestinationLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = .white
-        label.font = .systemFont(ofSize: 14, weight: .medium)
-
-        return label
-    }()
-
-    private lazy var changeDestinationButton: UIButton = {
-        let arrowImage = UIImage(named: "ArrowDownSmall")?.withTintColor(.white, renderingMode: .alwaysOriginal)
-        let arrow = UIImageView(image: arrowImage)
-        arrow.translatesAutoresizingMaskIntoConstraints = false
-
-        let stack = UIStackView(arrangedSubviews: [changeDestinationIcon, changeDestinationLabel, arrow])
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        stack.axis = .horizontal
-        stack.alignment = .center
-        stack.spacing = 6
-        stack.isUserInteractionEnabled = false
-
-        let button = UIButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.setBackgroundColor(.primaryBlue, for: .normal)
-        button.layer.cornerRadius = 14
-        button.layer.masksToBounds = true
-        button.addTarget(self, action: #selector(changeDestinationAction), for: .touchUpInside)
-
-        button.addSubview(stack)
-
-        NSLayoutConstraint.activate([
-            stack.heightAnchor.constraint(equalToConstant: 28),
-            stack.topAnchor.constraint(equalTo: button.topAnchor),
-            stack.bottomAnchor.constraint(equalTo: button.bottomAnchor),
-            stack.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: 10),
-            stack.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -10),
-        ])
-
-        return button
-    }()
-
-    private lazy var changeDestinationRow: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-
-        view.addSubview(changeDestinationButton)
-
-        NSLayoutConstraint.activate([
-            changeDestinationButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            changeDestinationButton.heightAnchor.constraint(equalTo: view.heightAnchor),
-        ])
-
-        return view
-    }()
-
-    private lazy var customNavigationView: UIView = {
-        let navigationRow = UIView()
-        navigationRow.translatesAutoresizingMaskIntoConstraints = false
-        navigationRow.addSubview(backButton)
-        navigationRow.addSubview(titleLabel)
-
-        NSLayoutConstraint.activate([
-            navigationRow.heightAnchor.constraint(equalToConstant: 44),
-            backButton.leadingAnchor.constraint(equalTo: navigationRow.leadingAnchor),
-            backButton.centerYAnchor.constraint(equalTo: navigationRow.centerYAnchor),
-            titleLabel.centerXAnchor.constraint(equalTo: navigationRow.centerXAnchor),
-            titleLabel.centerYAnchor.constraint(equalTo: navigationRow.centerYAnchor),
-        ])
-
-        let rowsView = UIStackView(arrangedSubviews: [navigationRow, changeDestinationRow])
-        rowsView.translatesAutoresizingMaskIntoConstraints = false
-        rowsView.axis = .vertical
-        rowsView.alignment = .fill
-        rowsView.spacing = -4
-        rowsView.layoutMargins = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
-
-        return rowsView
+        return UIBarButtonItem(customView: button)
     }()
 
     private lazy var contentView: UIStackView = {
@@ -275,7 +163,7 @@ class ComposerViewController: UIViewController {
     }()
 
     private lazy var mainView: UIStackView = {
-        let mainView = UIStackView(arrangedSubviews: [customNavigationView, scrollView, bottomView])
+        let mainView = UIStackView(arrangedSubviews: [scrollView, bottomView])
         mainView.spacing = 0
         mainView.translatesAutoresizingMaskIntoConstraints = false
         mainView.axis = .vertical
@@ -665,19 +553,10 @@ class ComposerViewController: UIViewController {
 
         switch config.destination {
         case .chat(_):
-            titleLabel.text = Localizations.newMessageTitle
+            title = Localizations.newMessageTitle
         default:
-            titleLabel.text = Localizations.newPostTitle
+            title = Localizations.newPostTitle
         }
-
-        MainAppContext.shared.privacySettings.feedPrivacySettingDidChange.sink { [weak self] in
-            guard let self = self else { return }
-            DispatchQueue.main.async {
-                self.updateChangeDestinationBtn()
-            }
-        }.store(in: &cancellables)
-
-        updateChangeDestinationBtn()
 
         // show the favorites education modal only once to the user
         if !AppContext.shared.userDefaults.bool(forKey: "hasFavoritesModalBeenShown") {
@@ -686,7 +565,6 @@ class ComposerViewController: UIViewController {
             let vc = FavoritesInformationViewController() { privacyListType in
                 self.config.privacyListType = privacyListType
                 self.config.destination = .userFeed
-                self.updateChangeDestinationBtn()
             }
 
             present(vc, animated: true)
@@ -695,16 +573,13 @@ class ComposerViewController: UIViewController {
         handleKeyboardUpdates()
     }
 
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        navigationController?.setNavigationBarHidden(true, animated: false)
-    }
-
     private func configureUI() {
         NSLayoutConstraint.deactivate(constraints)
         constraints.removeAll()
 
         if media.count > 0 {
+            navigationItem.leftBarButtonItem = backButtonItem
+
             contentView.isLayoutMarginsRelativeArrangement = true
             contentView.layoutMargins = UIEdgeInsets(top: Constants.verticalPadding, left: Constants.horizontalPadding, bottom: Constants.verticalPadding, right: Constants.horizontalPadding)
 
@@ -852,84 +727,6 @@ class ComposerViewController: UIViewController {
     @objc private func previewTapped() {
         if let url = linkPreviewData?.url {
             URLRouter.shared.handleOrOpen(url: url)
-        }
-    }
-
-    @objc private func changeDestinationAction() {
-        if case .chat = config.destination {
-            return
-        }
-
-        let controller = ChangeDestinationViewController(destination: config.destination, privacyListType: config.privacyListType) { controller, destination, privacyListType in
-            controller.dismiss(animated: true)
-
-            // ALWAYS change privacyListType before destination
-            self.config.privacyListType = privacyListType
-            self.config.destination = destination
-            self.updateChangeDestinationBtn()
-        }
-
-        present(UINavigationController(rootViewController: controller), animated: true)
-    }
-
-    private func updateChangeDestinationBtn() {
-        changeDestinationIcon.isHidden = false
-        changeDestinationIcon.layer.cornerRadius = 0
-        changeDestinationIcon.layer.masksToBounds = false
-        changeDestinationAvatarCancellable?.cancel()
-
-        switch config.destination {
-        case .userFeed:
-            let privacy = config.privacyListType
-
-            switch privacy {
-            case .all:
-                changeDestinationIcon.image = UIImage(named: "PrivacySettingMyContacts")?.withTintColor(.white, renderingMode: .alwaysOriginal)
-                changeDestinationButton.setBackgroundColor(.primaryBlue, for: .normal)
-            case .whitelist:
-                changeDestinationIcon.image = UIImage(named: "PrivacySettingFavoritesInversed")
-                changeDestinationButton.setBackgroundColor(.favoritesBg, for: .normal)
-            default:
-                changeDestinationIcon.image = UIImage(named: "settingsSettings")?.withTintColor(.white, renderingMode: .alwaysOriginal)
-                changeDestinationButton.setBackgroundColor(.primaryBlue, for: .normal)
-            }
-
-            changeDestinationIconConstraint?.constant = 13
-
-            changeDestinationLabel.text = PrivacyList.name(forPrivacyListType: privacy)
-        case .groupFeed(let groupId):
-            changeDestinationButton.setBackgroundColor(.primaryBlue, for: .normal)
-            let avatarData = MainAppContext.shared.avatarStore.groupAvatarData(for: groupId)
-            if let image = avatarData.image {
-                changeDestinationIcon.image = image
-                changeDestinationIcon.layer.cornerRadius = 6
-                changeDestinationIcon.layer.masksToBounds = true
-            } else {
-                changeDestinationIcon.image = AvatarView.defaultGroupImage
-
-                if !avatarData.isEmpty {
-                    changeDestinationAvatarCancellable = avatarData.imageDidChange.sink { [weak self] image in
-                        guard let self = self else { return }
-                        guard let image = image else { return }
-                        self.changeDestinationIcon.image = image
-                    }
-
-                    avatarData.loadImage(using: MainAppContext.shared.avatarStore)
-                }
-            }
-
-            changeDestinationIconConstraint?.constant = 19
-
-            if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) {
-                changeDestinationLabel.text = group.name
-            }
-        case .chat(let userId):
-            changeDestinationIcon.isHidden = true
-
-            if let userId = userId {
-                let name = MainAppContext.shared.contactStore.fullName(for: userId, in: MainAppContext.shared.contactStore.viewContext)
-                changeDestinationLabel.text = Localizations.newMessageSubtitle(recipient: name)
-            }
         }
     }
 
