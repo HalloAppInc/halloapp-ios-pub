@@ -806,6 +806,7 @@ final class HomeWhisperSession {
                                        incomingSession: self.state.incomingSession,
                                        audienceUids: audienceUserIds),
                     saveToKeyStore: true)
+        self.executeTasks()
     }
 
     private func updateIncomingSession(from userID: UserID, with incomingSenderState: Clients_SenderState?) {
