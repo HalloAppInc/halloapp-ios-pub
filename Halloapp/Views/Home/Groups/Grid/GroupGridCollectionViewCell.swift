@@ -393,7 +393,7 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
                         // Send PostID to handle initial progress population
                         Publishers.Merge3(ImageServer.shared.progress, MainAppContext.shared.feedData.mediaUploader.uploadProgressDidChange, Just(postID))
                             .filter { $0 == postID }
-                            .map { _ in
+                            .map { _ -> Float in
                                 var (processingCount, processingProgress) = ImageServer.shared.progress(for: postID)
                                 var (uploadCount, uploadProgress) = MainAppContext.shared.feedData.mediaUploader.uploadProgress(forGroupId: postID)
 
