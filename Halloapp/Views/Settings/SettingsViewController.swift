@@ -50,7 +50,7 @@ class SettingsViewController: UIViewController, UICollectionViewDelegate {
                 Item(title: Localizations.accountRow, action: { [weak self] in self?.openAccount() })
             }
         }
-        .seperators()
+        .separators()
         .disclosure())
     }
     

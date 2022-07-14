@@ -99,7 +99,7 @@ class NotificationSettingsViewController: UIViewController, UICollectionViewDele
                                   onChanged: { [weak self] in self?.momentsNotificationsChanged(to: $0) }))
             }
         }
-        .seperators())
+        .separators())
     }
     
     func collectionView(_ collectionView: UICollectionView, shouldHighlightItemAt indexPath: IndexPath) -> Bool {

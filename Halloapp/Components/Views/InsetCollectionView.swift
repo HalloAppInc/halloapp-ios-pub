@@ -11,12 +11,24 @@ import Combine
 
 protocol InsetCollectionViewDelegate: UICollectionViewDelegate {
     var collectionView: InsetCollectionView { get }
+    func insetCollectionView(didSelectItemAt indexPath: IndexPath)
 }
 
 // MARK: - default delegate implementations
 
 extension InsetCollectionViewDelegate {
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    /**
+     A default implementation for `collectionView(_:didSelectItemAt:)` provided by ``InsetCollectionView``.
+     
+     > Important: Due to restrictions on protocol extensions, aside from making the delegate conform to ``InsetCollectionViewDelegate``, you have to manually add the following code to adopt the default implementation.
+     
+     ```swift
+     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+         insetCollectionView(didSelectItemAt: indexPath)
+     }
+     ```
+     */
+    func insetCollectionView(didSelectItemAt indexPath: IndexPath) {
         guard let item = self.collectionView.data.itemIdentifier(for: indexPath) as? InsetCollectionView.Item else {
             return
         }
@@ -38,7 +50,7 @@ extension InsetCollectionView {
 
 /// A collection view with an appearance similar to that of an inset-grouped table view.
 class InsetCollectionView: UICollectionView {
-    typealias Configuration = (showSeperators: Bool, showDisclosureIndicator: Bool)
+    typealias Configuration = (showSeparators: Bool, showDisclosureIndicator: Bool)
     private var configuration: Configuration = (true, true)
     
     private(set) lazy var data: UICollectionViewDiffableDataSource<Section, AnyHashable> = {
@@ -68,7 +80,7 @@ class InsetCollectionView: UICollectionView {
             snapshot.appendItems(section.items, toSection: section)
         }
 
-        configuration = (collection.showSeperators, collection.showDisclosureIndicator)
+        configuration = (collection.showSeparators, collection.showDisclosureIndicator)
         data.apply(snapshot)
     }
 }
@@ -151,8 +163,8 @@ extension InsetCollectionView {
         let disclosure = configuration.showDisclosureIndicator ? UIImage(systemName: "chevron.forward")?.withRenderingMode(.alwaysTemplate) : nil
         cell.disclosureView.image = disclosure
 
-        if configuration.showSeperators {
-            cell.seperator.isHidden = isLastItem
+        if configuration.showSeparators {
+            cell.separator.isHidden = isLastItem
         }
     }
 }
@@ -170,6 +182,25 @@ fileprivate class StandardCollectionViewCell: InsetCollectionViewCell {
         label.font = .systemFont(ofSize: 17, weight: .regular)
         
         return label
+    }()
+    
+    let subtitleLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.numberOfLines = 1
+        label.font = .preferredFont(forTextStyle: .caption1)
+        label.textColor = .secondaryLabel
+        
+        return label
+    }()
+    
+    fileprivate lazy var titleVStack: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel])
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.distribution = .fillProportionally
+        stackView.axis = .vertical
+        
+        return stackView
     }()
     
     let imageView: UIImageView = {
@@ -197,7 +228,7 @@ fileprivate class StandardCollectionViewCell: InsetCollectionViewCell {
         return imageView
     }()
     
-    fileprivate let seperator: UIView = {
+    fileprivate let separator: UIView = {
         let view = UIView()
         view.backgroundColor = .separator
         view.isHidden = true
@@ -205,14 +236,14 @@ fileprivate class StandardCollectionViewCell: InsetCollectionViewCell {
         return view
     }()
     
-    private lazy var titleLabelLeadingConstraint = titleLabel.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor)
+    private lazy var titleVStackLeadingConstraint = titleVStack.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor)
     
     override init(frame: CGRect) {
         super.init(frame: frame)
         
         contentView.addSubview(imageView)
-        contentView.addSubview(titleLabel)
-        contentView.addSubview(seperator)
+        contentView.addSubview(titleVStack)
+        contentView.addSubview(separator)
         contentView.addSubview(accessoryContainer)
         contentView.addSubview(disclosureView)
         
@@ -225,10 +256,10 @@ fileprivate class StandardCollectionViewCell: InsetCollectionViewCell {
             imageView.centerXAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor, constant: 10),
             imageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
 
-            titleLabelLeadingConstraint,
-            titleLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            titleLabel.topAnchor.constraint(greaterThanOrEqualTo: contentView.topAnchor),
-            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: accessoryContainer.leadingAnchor, constant: 5),
+            titleVStackLeadingConstraint,
+            titleVStack.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            titleVStack.topAnchor.constraint(greaterThanOrEqualTo: contentView.topAnchor),
+            titleVStack.trailingAnchor.constraint(lessThanOrEqualTo: accessoryContainer.leadingAnchor, constant: 5),
 
             accessoryContainer.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             accessoryContainer.trailingAnchor.constraint(equalTo: disclosureView.leadingAnchor, constant: 0),
@@ -237,10 +268,10 @@ fileprivate class StandardCollectionViewCell: InsetCollectionViewCell {
             disclosureView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             disclosureView.centerXAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
 
-            seperator.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            seperator.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
-            seperator.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            seperator.heightAnchor.constraint(equalToConstant: 1.0 / UIScreen.main.scale),
+            separator.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            separator.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
+            separator.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            separator.heightAnchor.constraint(equalToConstant: 1.0 / UIScreen.main.scale),
 
             minimizeHeight,
         ])
@@ -254,15 +285,17 @@ fileprivate class StandardCollectionViewCell: InsetCollectionViewCell {
         super.configure(with: item, configuration: configuration)
 
         titleLabel.text = item.title
+        subtitleLabel.text = item.subtitle
+        subtitleLabel.isHidden = (item.subtitle == nil)
         imageView.image = item.icon
-        titleLabelLeadingConstraint.constant = item.icon == nil ? 0 : 33
+        titleVStackLeadingConstraint.constant = item.icon == nil ? 0 : 33
 
         if configuration.showDisclosureIndicator {
             disclosureView.image = UIImage(systemName: "chevron.forward")?.withRenderingMode(.alwaysTemplate)
         }
 
-        if configuration.showSeperators {
-            seperator.isHidden = false
+        if configuration.showSeparators {
+            separator.isHidden = false
         }
     }
 }
@@ -455,15 +488,15 @@ extension Modifier {
 extension InsetCollectionView {
     struct Collection: Modifier {
         private(set) var showDisclosureIndicator = false
-        private(set) var showSeperators = false
+        private(set) var showSeparators = false
         let sections: [Section]
         
         init(@CollectionBuilder _ builder: () -> [Section]) {
             sections = builder()
         }
 
-        func seperators() -> Self {
-            modify { $0.showSeperators = true }
+        func separators() -> Self {
+            modify { $0.showSeparators = true }
         }
 
         func disclosure() -> Self {
@@ -499,13 +532,15 @@ extension InsetCollectionView {
         
         let identifier: AnyHashable
         let title: String
+        let subtitle: String?
         let icon: UIImage?
         let style: Style
         let action: (() -> Void)?
 
-        init(identifier: AnyHashable = UUID(), title: String = "", icon: UIImage? = nil, style: Style = .standard, action: (() -> Void)? = nil) {
+        init(identifier: AnyHashable = UUID(), title: String = "", subtitle: String? = nil, icon: UIImage? = nil, style: Style = .standard, action: (() -> Void)? = nil) {
             self.identifier = identifier
             self.title = title
+            self.subtitle = subtitle
             self.icon = icon
             self.style = style
             self.action = action
@@ -530,6 +565,10 @@ extension InsetCollectionView {
             return Array(components.joined())
         }
         
+        static func buildArray(_ components: [[Section]]) -> [Section] {
+            return Array(components.joined())
+        }
+        
         static func buildEither(first component: [Section]) -> [Section] {
             return component
         }
@@ -550,6 +589,10 @@ extension InsetCollectionView {
         }
         
         static func buildBlock(_ components: [Item]...) -> [Item] {
+            return Array(components.joined())
+        }
+        
+        static func buildArray(_ components: [[Item]]) -> [Item] {
             return Array(components.joined())
         }
         

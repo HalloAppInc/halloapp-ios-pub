@@ -72,7 +72,7 @@ class PrivacyViewController: UIViewController, UICollectionViewDelegate {
                                         action: { [weak self] in self?.openBlockedContacts() })
             }
         }
-        .seperators()
+        .separators()
         .disclosure())
     }
     

@@ -60,7 +60,7 @@ class AccountSettingsViewController: UIViewController, UICollectionViewDelegate 
                 Item(title: Localizations.deleteAccount, action: { [weak self] in self?.openDeleteView() })
             }
         }
-        .seperators()
+        .separators()
         .disclosure())
     }
     

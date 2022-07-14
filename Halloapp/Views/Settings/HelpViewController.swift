@@ -123,7 +123,7 @@ class HelpViewController: UIViewController, UICollectionViewDelegate {
                 }
             }
         }
-        .seperators()
+        .separators()
         .disclosure())
     }
     
