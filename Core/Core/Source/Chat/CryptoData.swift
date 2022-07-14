@@ -163,7 +163,7 @@ public final class CryptoData {
             guard let self = self else { return }
 
             let isItemAlreadyDecrypted: Bool
-            if let itemResult = self.fetchGroupFeedItemDecryption(id: contentID, in: managedObjectContext) {
+            if let itemResult = self.fetchHomeFeedItemDecryption(id: contentID, in: managedObjectContext) {
                 isItemAlreadyDecrypted = itemResult.isSuccess()
             } else {
                 isItemAlreadyDecrypted = false
@@ -205,6 +205,10 @@ public final class CryptoData {
         groupFeedItemFetchRequest.predicate = NSPredicate(format: "hasBeenReported == false")
         groupFeedItemFetchRequest.returnsObjectsAsFaults = false
 
+        let homeFeedItemFetchRequest: NSFetchRequest<HomeFeedItemDecryption> = HomeFeedItemDecryption.fetchRequest()
+        homeFeedItemFetchRequest.predicate = NSPredicate(format: "hasBeenReported == false")
+        homeFeedItemFetchRequest.returnsObjectsAsFaults = false
+
         let groupFeedHistoryFetchRequest: NSFetchRequest<GroupFeedHistoryDecryption> = GroupFeedHistoryDecryption.fetchRequest()
         groupFeedHistoryFetchRequest.predicate = NSPredicate(format: "hasBeenReported == false")
         groupFeedHistoryFetchRequest.returnsObjectsAsFaults = false
@@ -221,9 +225,15 @@ public final class CryptoData {
             let groupReadyEvents = groupUnreportedEvents.filter { $0.isReadyToBeReported(withDeadline: deadline) }
             DDLogInfo("CryptoData/generateReport-group [\(groupReadyEvents.count) ready of \(groupUnreportedEvents.count) unreported]")
 
+            // GroupHistory report decryption events.
             let groupHistoryUnreportedEvents = try managedObjectContext.fetch(groupFeedHistoryFetchRequest)
             let groupHistoryReadyEvents = groupHistoryUnreportedEvents.filter { $0.isReadyToBeReported(withDeadline: deadline) }
             DDLogInfo("CryptoData/generateReport-groupHistory [\(groupHistoryReadyEvents.count) ready of \(groupHistoryUnreportedEvents.count) unreported]")
+
+            // HomeFeed decryption events.
+            let homeFeedUnreportedEvents = try managedObjectContext.fetch(homeFeedItemFetchRequest)
+            let homeFeedReadyEvents = homeFeedUnreportedEvents.filter { $0.isReadyToBeReported(withDeadline: deadline) }
+            DDLogInfo("CryptoData/generateReport-home [\(homeFeedReadyEvents.count) ready of \(homeFeedUnreportedEvents.count) unreported]")
 
             if markEventsReported {
                 if !messageReadyEvents.isEmpty {
@@ -235,9 +245,12 @@ public final class CryptoData {
                 if !groupHistoryReadyEvents.isEmpty {
                     markGroupFeedHistoryDecryptionsAsReported(groupHistoryReadyEvents.map { $0.objectID })
                 }
+                if !homeFeedReadyEvents.isEmpty {
+                    markHomeDecryptionsAsReported(homeFeedReadyEvents.map { $0.objectID })
+                }
             }
 
-            return messageReadyEvents.compactMap { $0.report(deadline: deadline) } + groupReadyEvents.compactMap { $0.report(deadline: deadline) }
+            return messageReadyEvents.compactMap { $0.report(deadline: deadline) } + groupReadyEvents.compactMap { $0.report(deadline: deadline) } + homeFeedReadyEvents.compactMap { $0.report(deadline: deadline) }
         }
         catch {
             DDLogError("CryptoData/generateReport/error \(error)")
@@ -599,7 +612,7 @@ public final class CryptoData {
         performSeriallyOnBackgroundContext { managedObjectContext in
             for id in managedObjectIDs {
                 guard let groupFeedItemDecryption = try? managedObjectContext.existingObject(with: id) as? GroupFeedItemDecryption else {
-                    DDLogError("CryptoData/markDecryptionsAsReported/\(id)/error could not find row to update")
+                    DDLogError("CryptoData/markGroupDecryptionsAsReported/\(id)/error could not find row to update")
                     continue
                 }
                 groupFeedItemDecryption.hasBeenReported = true
@@ -608,7 +621,7 @@ public final class CryptoData {
                 do {
                     try managedObjectContext.save()
                 } catch {
-                    DDLogError("CryptoData/markDecryptionsAsReported/save/error [\(error)]")
+                    DDLogError("CryptoData/markGroupDecryptionsAsReported/save/error [\(error)]")
                 }
             }
         }
@@ -628,6 +641,25 @@ public final class CryptoData {
                     try managedObjectContext.save()
                 } catch {
                     DDLogError("CryptoData/markGroupFeedHistoryDecryptionsAsReported/save/error [\(error)]")
+                }
+            }
+        }
+    }
+
+    private func markHomeDecryptionsAsReported(_ managedObjectIDs: [NSManagedObjectID]) {
+        performSeriallyOnBackgroundContext { managedObjectContext in
+            for id in managedObjectIDs {
+                guard let homeFeedItemDecryption = try? managedObjectContext.existingObject(with: id) as? HomeFeedItemDecryption else {
+                    DDLogError("CryptoData/markHomeDecryptionsAsReported/\(id)/error could not find row to update")
+                    continue
+                }
+                homeFeedItemDecryption.hasBeenReported = true
+            }
+            if managedObjectContext.hasChanges {
+                do {
+                    try managedObjectContext.save()
+                } catch {
+                    DDLogError("CryptoData/markDecryptionsAsReported/save/error [\(error)]")
                 }
             }
         }
