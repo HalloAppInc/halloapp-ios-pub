@@ -433,8 +433,11 @@ class MediaImageView: UIImageView {
             player.preventsDisplaySleepDuringVideoPlayback = false
             player.isMuted = true
             let playerLayer = layer as! AVPlayerLayer
-            playerLayer.player = player
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
             playerLayer.videoGravity = .resizeAspectFill
+            playerLayer.player = player
+            CATransaction.commit()
             self.player = player
         }
 
