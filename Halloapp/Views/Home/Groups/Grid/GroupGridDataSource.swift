@@ -27,12 +27,9 @@ class GroupGridDataSource: NSObject {
         }
     }
 
-    // Must call reloadData after setting to true
-    private var isSearching = false
+    private var searchText: String?
     private let dataSource: UICollectionViewDiffableDataSource<GroupID, FeedPostID>
-    private var didLoadInitialSearchResultsForSearchSession = false
     private var didAddSelfPostInLastUpdate = false
-    private var updatedPostIDs: [FeedPostID] = []
 
     init(collectionView: UICollectionView,
          cellProvider: @escaping UICollectionViewDiffableDataSource<GroupID, FeedPostID>.CellProvider) {
@@ -96,7 +93,7 @@ class GroupGridDataSource: NSObject {
     func reload(animated: Bool, completion: (() -> Void)? = nil) {
         let snapshot = currentSnapshot()
         dataSource.apply(snapshot, animatingDifferences: animated, completion: completion)
-        isEmpty = !isSearching && snapshot.sectionIdentifiers.isEmpty
+        isEmpty = (searchText?.isEmpty ?? true) && snapshot.sectionIdentifiers.isEmpty
     }
 
     func performFetch() {
@@ -110,6 +107,14 @@ class GroupGridDataSource: NSObject {
     }
 
     private func currentSnapshot() -> NSDiffableDataSourceSnapshot<GroupID, FeedPostID> {
+        if let searchText = searchText, !searchText.isEmpty {
+            return snapshot(for: searchText)
+        } else {
+            return snapshot()
+        }
+    }
+
+    private func snapshot() -> NSDiffableDataSourceSnapshot<GroupID, FeedPostID> {
         var snapshot = NSDiffableDataSourceSnapshot<GroupID, FeedPostID>()
 
         if let sortedGroupIDs = threadsFetchedResultsController.fetchedObjects?.compactMap(\.groupID) {
@@ -136,53 +141,8 @@ class GroupGridDataSource: NSObject {
 
         return snapshot
     }
-}
 
-extension GroupGridDataSource: NSFetchedResultsControllerDelegate {
-
-    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        updatedPostIDs.removeAll()
-        didAddSelfPostInLastUpdate = false
-    }
-
-    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,
-                    didChange anObject: Any,
-                    at indexPath: IndexPath?,
-                    for type: NSFetchedResultsChangeType,
-                    newIndexPath: IndexPath?) {
-        guard controller == postsFetchedResultsController, let feedPost = anObject as? FeedPost else {
-            return
-        }
-        switch type {
-        case .insert:
-            if feedPost.userID == MainAppContext.shared.userData.userId {
-                didAddSelfPostInLastUpdate = true
-            }
-        default:
-            break
-        }
-    }
-
-    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        var snapshot: NSDiffableDataSourceSnapshot<GroupID, FeedPostID>
-        if isSearching {
-            snapshot = dataSource.snapshot()
-        } else {
-            snapshot = currentSnapshot()
-        }
-
-        dataSource.apply(snapshot)
-        isEmpty = !isSearching && snapshot.sectionIdentifiers.isEmpty
-
-        if didAddSelfPostInLastUpdate {
-            requestScrollToTopAnimatedSubject.send(true)
-        }
-    }
-}
-
-extension GroupGridDataSource: UISearchResultsUpdating {
-
-    private func snapshot(for search: String) -> NSDiffableDataSourceSnapshot<GroupID, FeedPostID> {
+    private func snapshot(for searchText: String) -> NSDiffableDataSourceSnapshot<GroupID, FeedPostID> {
         var snapshot = NSDiffableDataSourceSnapshot<GroupID, FeedPostID>()
 
         var matchingTitleGroupIDs: [GroupID] = []
@@ -194,13 +154,13 @@ extension GroupGridDataSource: UISearchResultsUpdating {
                 return
             }
 
-            if thread.title?.localizedCaseInsensitiveContains(search) ?? false {
+            if thread.title?.localizedCaseInsensitiveContains(searchText) ?? false {
                 matchingTitleGroupIDs.append(groupID)
             } else {
                 let memberUserIDs = MainAppContext.shared.chatData.chatGroupMemberUserIDs(groupID: groupID,
                                                                                           in: MainAppContext.shared.chatData.viewContext)
                 let matchingMemberUserIDs = MainAppContext.shared.contactStore.fullNames(forUserIds: Set(memberUserIDs))
-                    .filter { $0.value.localizedCaseInsensitiveContains(search) }
+                    .filter { $0.value.localizedCaseInsensitiveContains(searchText) }
                     .map { $0.key }
 
                 if !matchingMemberUserIDs.isEmpty {
@@ -228,21 +188,63 @@ extension GroupGridDataSource: UISearchResultsUpdating {
 
         return snapshot
     }
+}
+
+extension GroupGridDataSource: NSFetchedResultsControllerDelegate {
+
+    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        didAddSelfPostInLastUpdate = false
+    }
+
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,
+                    didChange anObject: Any,
+                    at indexPath: IndexPath?,
+                    for type: NSFetchedResultsChangeType,
+                    newIndexPath: IndexPath?) {
+        guard controller == postsFetchedResultsController, let feedPost = anObject as? FeedPost else {
+            return
+        }
+        switch type {
+        case .insert:
+            if feedPost.userID == MainAppContext.shared.userData.userId {
+                didAddSelfPostInLastUpdate = true
+            }
+        default:
+            break
+        }
+    }
+
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        reload(animated: true)
+
+        if didAddSelfPostInLastUpdate {
+            requestScrollToTopAnimatedSubject.send(true)
+        }
+    }
+}
+
+extension GroupGridDataSource: UISearchResultsUpdating {
 
     func updateSearchResults(for searchController: UISearchController) {
-        if searchController.isActive, let searchText = searchController.searchBar.text, !searchText.isEmpty {
-            isSearching = true
-            didLoadInitialSearchResultsForSearchSession = true
-            isEmpty = false
-            dataSource.apply(snapshot(for: searchText), animatingDifferences: false)
-            requestScrollToTopAnimatedSubject.send(false)
-        } else {
-            isSearching = false
-            reload(animated: false)
-            if didLoadInitialSearchResultsForSearchSession {
-                requestScrollToTopAnimatedSubject.send(false)
-                didLoadInitialSearchResultsForSearchSession = false
+        let currentSearchText: String? = {
+            if !searchController.isActive {
+                return nil
             }
+
+            let trimmedSearchText = searchController.searchBar.text?.trimmingCharacters(in: .whitespacesAndNewlines)
+
+            // normalize "" -> nil
+            if trimmedSearchText?.isEmpty ?? true {
+                return nil
+            }
+
+            return trimmedSearchText
+        }()
+
+        if searchText != currentSearchText {
+            searchText = currentSearchText
+            requestScrollToTopAnimatedSubject.send(false)
+            reload(animated: false)
         }
     }
 }

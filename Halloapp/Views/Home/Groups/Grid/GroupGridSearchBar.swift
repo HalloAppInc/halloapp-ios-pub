@@ -17,6 +17,10 @@ class GroupGridSearchBar: UICollectionReusableView {
 
     var searchBar: UISearchBar? {
         didSet {
+            guard oldValue !== searchBar else {
+                return
+            }
+
             oldValue?.removeFromSuperview()
 
             guard let searchBar = searchBar else {
