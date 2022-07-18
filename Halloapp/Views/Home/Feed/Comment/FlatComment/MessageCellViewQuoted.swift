@@ -275,6 +275,10 @@ class MessageCellViewQuoted: MessageCellViewBase {
             }
         }
     }
+
+    override func playVoiceNote() {
+        audioView.play()
+    }
 }
 
 extension MessageCellViewQuoted: MessageMediaViewDelegate {
@@ -300,6 +304,9 @@ extension MessageCellViewQuoted: AudioViewDelegate {
         MainAppContext.shared.feedData.markCommentAsPlayed(commentId: commentId)
     }
     func audioViewDidEndPlaying(_ view: AudioView, completed: Bool) {
+        guard completed else { return }
+        guard let messageID = chatMessage?.id else { return }
+        chatDelegate?.messageView(self, didCompleteVoiceNote: messageID)
     }
 }
 

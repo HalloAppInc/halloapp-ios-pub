@@ -156,7 +156,7 @@ class MessageCellViewAudio: MessageCellViewBase {
         }
     }
 
-    func playVoiceNote() {
+    override func playVoiceNote() {
         audioView.play()
     }
 

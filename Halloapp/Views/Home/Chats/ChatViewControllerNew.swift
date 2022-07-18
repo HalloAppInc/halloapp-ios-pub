@@ -1544,7 +1544,8 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
 
         DispatchQueue.main.asyncAfter(deadline: .now() + waitForCellDelay) {
             guard let cell = self.collectionView.cellForItem(at: nextIndexPath) else { return }
-            if let audioCell = cell as? MessageCellViewAudio {
+            let audioCell = (cell as? MessageCellViewAudio != nil) ? (cell as? MessageCellViewAudio) : (cell as? MessageCellViewQuoted)
+            if let audioCell = audioCell {
                 // Only auto play the next voice note if is from the same sender as the audio note that was just played.
                 guard audioCell.chatMessage?.fromUserId == chatMessage.fromUserId else { return }
                 self.collectionView.scrollToItem(at: nextIndexPath, at: .centeredVertically, animated: true)

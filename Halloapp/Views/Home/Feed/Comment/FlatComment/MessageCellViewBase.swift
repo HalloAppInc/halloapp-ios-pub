@@ -369,6 +369,10 @@ class MessageCellViewBase: UICollectionViewCell {
             messageRow.layoutMargins = UIEdgeInsets(top: 3, left: 10, bottom: 3, right: 10)
         }
     }
+
+    func playVoiceNote() {
+        // no op
+    }
 }
 
 // MARK: UIGestureRecognizer Delegates
