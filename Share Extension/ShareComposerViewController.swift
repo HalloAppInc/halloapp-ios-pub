@@ -123,6 +123,10 @@ class ShareComposerViewController: UIViewController {
         return rowView
     } ()
 
+    private lazy var shareButton: UIBarButtonItem = {
+        return UIBarButtonItem(title: Localizations.buttonShare, style: .done, target: self, action: #selector(shareAction))
+    }()
+
     init(destinations: [ShareDestination], completion: @escaping ([ShareDestination]) -> Void) {
         self.destinations = destinations
         self.completion = completion
@@ -164,7 +168,6 @@ class ShareComposerViewController: UIViewController {
     }
 
     private func setupNavigationBar() {
-        let shareButton = UIBarButtonItem(title: Localizations.buttonShare, style: .done, target: self, action: #selector(shareAction))
         shareButton.tintColor = .systemBlue
 
         let contactsOnly = destinations.filter {
@@ -635,6 +638,7 @@ class ShareComposerViewController: UIViewController {
 
     @objc func shareAction() {
         guard media.count > 0 || !textView.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        shareButton.isEnabled = false
         if let linkViewImage = linkViewImage {
             linkPreviewMedia = PendingMedia(type: .image)
             linkPreviewMedia?.image = linkViewImage
