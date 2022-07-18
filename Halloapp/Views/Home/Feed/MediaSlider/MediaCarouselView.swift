@@ -1218,6 +1218,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     /// View that gets overlayed on videos to indicate they can be played.
     private var playButtonView: UIView {
         let playButton = MediaCarouselVideoPlayButton()
+        playButton.addTarget(self, action: #selector(startPlayback), for: .touchUpInside)
         playButton.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(playButton)
         NSLayoutConstraint.activate([
