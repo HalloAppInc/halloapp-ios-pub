@@ -308,16 +308,20 @@ extension UIMenu {
     }
 }
 
-extension UIBarButtonItem {
+private var _legacyMenuActionKey: Void?
 
-    private static var _legacyMenuActionKey: Void = ()
-    
+extension UIBarButtonItem {
     private var _legacyMenuAction: () -> Void {
         get {
-            return objc_getAssociatedObject(self, &Self._legacyMenuActionKey) as! () -> ()
+            if let action = objc_getAssociatedObject(self, &_legacyMenuActionKey) as? () -> Void {
+                return action
+            } else {
+                DDLogError("UIBarButtonItem/_legacyMenuAction/getter: Error getting associated object")
+                return { }
+            }
         }
         set {
-            objc_setAssociatedObject(self, &Self._legacyMenuActionKey, newValue, objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &_legacyMenuActionKey, newValue, objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
 
@@ -328,20 +332,22 @@ extension UIBarButtonItem {
 }
 
 extension UIButton {
-    
-    private static var _legacyMenuActionKey: Void = ()
-    
     private var _legacyMenuAction: () -> Void {
         get {
-            return objc_getAssociatedObject(self, &Self._legacyMenuActionKey) as! () -> ()
+            if let action = objc_getAssociatedObject(self, &_legacyMenuActionKey) as? () -> Void {
+                return action
+            } else {
+                DDLogError("UIButton/_legacyMenuAction/getter: Error getting associated object")
+                return { }
+            }
         }
         set {
-            objc_setAssociatedObject(self, &Self._legacyMenuActionKey, newValue, objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &_legacyMenuActionKey, newValue, objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
 
     @objc
-    private func _performLegacyMenuAction(sender: UIBarButtonItem) {
+    private func _performLegacyMenuAction(sender: UIButton) {
         _legacyMenuAction()
     }
 }
