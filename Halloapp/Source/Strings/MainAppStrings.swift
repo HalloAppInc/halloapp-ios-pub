@@ -91,6 +91,10 @@ extension Localizations {
         NSLocalizedString("message.reply", value: "Reply", comment: "Message action. Verb.")
     }
 
+    static var messageForward: String {
+        NSLocalizedString("message.forward", value: "Forward", comment: "Call to action to forward a message")
+    }
+
     static var messageCopy: String {
         NSLocalizedString("message.copy", value: "Copy", comment: "Message action. Verb.")
     }

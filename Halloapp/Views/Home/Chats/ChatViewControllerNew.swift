@@ -1581,6 +1581,11 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
         contentInputView.textView.becomeFirstResponder()
     }
 
+    func handleForwarding(msg chatMessage: ChatMessage) {
+        let vc = DestinationPickerViewController()
+        present(UINavigationController(rootViewController: vc), animated: true)
+    }
+
     private func handleDraftQuotedReply(reply: ReplyContext) {
         if let mediaURLString = reply.media?.mediaURL, let mediaURL = URL(string: mediaURLString) {
             let info = QuotedItemPanel.PostInfo(userID: reply.replySenderID,

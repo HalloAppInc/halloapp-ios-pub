@@ -50,6 +50,9 @@
 		328447C0282D8B6300F76AB5 /* MessageCellViewEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 328447BF282D8B6300F76AB5 /* MessageCellViewEvent.swift */; };
 		328447C4282DD48700F76AB5 /* MessageCellViewCall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 328447C3282DD48700F76AB5 /* MessageCellViewCall.swift */; };
 		328B64102756D53900899525 /* FlatCommentsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 328B640F2756D53900899525 /* FlatCommentsViewController.swift */; };
+		3295A55B28808EC1007642B5 /* DestinationPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3295A55A28808EC1007642B5 /* DestinationPickerViewController.swift */; };
+		3295A55D28809491007642B5 /* DestinationCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3295A55C28809491007642B5 /* DestinationCell.swift */; };
+		3295A55F2880DDD8007642B5 /* DestinationBackgroundDecorationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3295A55E2880DDD8007642B5 /* DestinationBackgroundDecorationView.swift */; };
 		329DFD56270CF70200B85CFF /* Feed4ToFeed5.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 329DFD55270CF70200B85CFF /* Feed4ToFeed5.xcmappingmodel */; };
 		329DFD61270F691F00B85CFF /* CommentLinkPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329DFD60270F691F00B85CFF /* CommentLinkPreviewView.swift */; };
 		329E03FB268247BD00C2D250 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E03FA268247BD00C2D250 /* AppDelegate.swift */; };
@@ -681,6 +684,9 @@
 		328447BF282D8B6300F76AB5 /* MessageCellViewEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageCellViewEvent.swift; sourceTree = "<group>"; };
 		328447C3282DD48700F76AB5 /* MessageCellViewCall.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageCellViewCall.swift; sourceTree = "<group>"; };
 		328B640F2756D53900899525 /* FlatCommentsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlatCommentsViewController.swift; sourceTree = "<group>"; };
+		3295A55A28808EC1007642B5 /* DestinationPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DestinationPickerViewController.swift; sourceTree = "<group>"; };
+		3295A55C28809491007642B5 /* DestinationCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DestinationCell.swift; sourceTree = "<group>"; };
+		3295A55E2880DDD8007642B5 /* DestinationBackgroundDecorationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DestinationBackgroundDecorationView.swift; sourceTree = "<group>"; };
 		329DFD55270CF70200B85CFF /* Feed4ToFeed5.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = Feed4ToFeed5.xcmappingmodel; sourceTree = "<group>"; };
 		329DFD60270F691F00B85CFF /* CommentLinkPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentLinkPreviewView.swift; sourceTree = "<group>"; };
 		329E03F8268247BC00C2D250 /* HalloAppClip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HalloAppClip.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2149,6 +2155,9 @@
 				68CD603325E463FA0056D13E /* ConnectionBanner.swift */,
 				323F99EC2808D0B100C8AB69 /* FavoritesInformationViewController.swift */,
 				F408E27A281B0BDE00A49B29 /* MigrationViewController.swift */,
+				3295A55A28808EC1007642B5 /* DestinationPickerViewController.swift */,
+				3295A55C28809491007642B5 /* DestinationCell.swift */,
+				3295A55E2880DDD8007642B5 /* DestinationBackgroundDecorationView.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -2910,6 +2919,7 @@
 				761EE21E24B5135400B30632 /* MFMessageComposeView.swift in Sources */,
 				323F99ED2808D0B100C8AB69 /* FavoritesInformationViewController.swift in Sources */,
 				F850677A26A7FDDF00A120EC /* AudioView.swift in Sources */,
+				3295A55D28809491007642B5 /* DestinationCell.swift in Sources */,
 				EAA424FB24ECF1480025CBBE /* ChatGroupMember+CoreDataProperties.swift in Sources */,
 				F45D9F7F282C4E4B005BAD9D /* GroupGridHeader.swift in Sources */,
 				F8E6DCDF271EB06F005EECC5 /* TimeInterval.swift in Sources */,
@@ -2954,6 +2964,7 @@
 				A15E6C80280DD778008CAEA0 /* FeedArchiveViewController.swift in Sources */,
 				E5230B2B267AABCA0046A2EB /* Intents.intentdefinition in Sources */,
 				A1EE101827ECDE0F00148CEB /* UnknownContactSheetViewController.swift in Sources */,
+				3295A55F2880DDD8007642B5 /* DestinationBackgroundDecorationView.swift in Sources */,
 				EA27790925B91E58009CA884 /* PrivacyViewController.swift in Sources */,
 				EAD476F62458F03700EF8591 /* ChatMessageLegacy+CoreDataClass.swift in Sources */,
 				761C6168242D89F90028AE19 /* TextLabel.swift in Sources */,
@@ -3005,6 +3016,7 @@
 				32C83FC42690463C00BEB4F5 /* PrivacyPermissionDeniedController.swift in Sources */,
 				7653F2FA255DB4E7001CC946 /* FeedCollectionViewController.swift in Sources */,
 				F408E27B281B0BDE00A49B29 /* MigrationViewController.swift in Sources */,
+				3295A55B28808EC1007642B5 /* DestinationPickerViewController.swift in Sources */,
 				EA8D4721233C25B8006E2BA5 /* VerificationViewController.swift in Sources */,
 				68C8264B251A77A000BB8F3A /* NUX.swift in Sources */,
 				3283059727D2A88E00AD661A /* MessageCellViewText.swift in Sources */,

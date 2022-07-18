@@ -15,6 +15,7 @@ import CocoaLumberjackSwift
 protocol ReactionViewControllerDelegate: AnyObject {
     func handleMessageSave(_ reactionViewController: ReactionViewController, chatMessage: ChatMessage)
     func handleQuotedReply(msg chatMessage: ChatMessage)
+    func handleForwarding(msg chatMessage: ChatMessage)
     func showDeletionConfirmationMenu(for chatMessage: ChatMessage)
 }
 
@@ -88,6 +89,12 @@ public class ReactionViewController: UIViewController {
             items.append(UIBarButtonItem(customView: replyButton))
             items.append(space)
             
+            let forwardButton = createMenuButton(imageName: "arrowshape.turn.up.right", labelName: Localizations.messageForward)
+            forwardButton.addTarget(self, action: #selector(handleForwarding), for: .touchUpInside)
+            //Temporarily commenting this out until forwarding is implemented.
+            //items.append(UIBarButtonItem(customView: forwardButton))
+            //items.append(space)
+            
             if let messageText = chatMessage.rawText, !messageText.isEmpty {
                 let copyButton = createMenuButton(imageName: "doc.on.doc", labelName: Localizations.messageCopy)
                 copyButton.addTarget(self, action: #selector(handleCopy), for: .touchUpInside)
@@ -144,6 +151,15 @@ public class ReactionViewController: UIViewController {
         }
         dismiss(animated: true)
         delegate.handleQuotedReply(msg: chatMessage)
+    }
+
+    @objc
+    private func handleForwarding() {
+        guard let delegate = delegate else {
+            return
+        }
+        dismiss(animated: true)
+        delegate.handleForwarding(msg: chatMessage)
     }
     
     @objc
