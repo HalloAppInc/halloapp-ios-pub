@@ -342,6 +342,14 @@ public struct Clients_ChatContainer {
     set {message = .files(newValue)}
   }
 
+  public var reaction: Clients_Reaction {
+    get {
+      if case .reaction(let v)? = message {return v}
+      return Clients_Reaction()
+    }
+    set {message = .reaction(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Message: Equatable {
@@ -350,6 +358,7 @@ public struct Clients_ChatContainer {
     case contactCard(Clients_ContactCard)
     case voiceNote(Clients_VoiceNote)
     case files(Clients_Files)
+    case reaction(Clients_Reaction)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Clients_ChatContainer.OneOf_Message, rhs: Clients_ChatContainer.OneOf_Message) -> Bool {
@@ -375,6 +384,10 @@ public struct Clients_ChatContainer {
       }()
       case (.files, .files): return {
         guard case .files(let l) = lhs, case .files(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.reaction, .reaction): return {
+        guard case .reaction(let l) = lhs, case .reaction(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -816,6 +829,18 @@ public struct Clients_File {
   fileprivate var _data: Clients_EncryptedResource? = nil
 }
 
+public struct Clients_Reaction {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var emoji: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public struct Clients_AlbumMedia {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1210,6 +1235,7 @@ extension Clients_StreamingInfo: @unchecked Sendable {}
 extension Clients_Video: @unchecked Sendable {}
 extension Clients_Files: @unchecked Sendable {}
 extension Clients_File: @unchecked Sendable {}
+extension Clients_Reaction: @unchecked Sendable {}
 extension Clients_AlbumMedia: @unchecked Sendable {}
 extension Clients_AlbumMedia.OneOf_Media: @unchecked Sendable {}
 extension Clients_Album: @unchecked Sendable {}
@@ -1624,6 +1650,7 @@ extension Clients_ChatContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
     4: .standard(proto: "contact_card"),
     5: .standard(proto: "voice_note"),
     6: .same(proto: "files"),
+    7: .same(proto: "reaction"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1698,6 +1725,19 @@ extension Clients_ChatContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
           self.message = .files(v)
         }
       }()
+      case 7: try {
+        var v: Clients_Reaction?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .reaction(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .reaction(v)
+        }
+      }()
       default: break
       }
     }
@@ -1731,6 +1771,10 @@ extension Clients_ChatContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
     case .files?: try {
       guard case .files(let v)? = self.message else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
+    }()
+    case .reaction?: try {
+      guard case .reaction(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
     }()
     case nil: break
     }
@@ -2504,6 +2548,38 @@ extension Clients_File: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
   public static func ==(lhs: Clients_File, rhs: Clients_File) -> Bool {
     if lhs._data != rhs._data {return false}
     if lhs.filename != rhs.filename {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Clients_Reaction: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".Reaction"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "emoji"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.emoji) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.emoji.isEmpty {
+      try visitor.visitSingularStringField(value: self.emoji, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Clients_Reaction, rhs: Clients_Reaction) -> Bool {
+    if lhs.emoji != rhs.emoji {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
