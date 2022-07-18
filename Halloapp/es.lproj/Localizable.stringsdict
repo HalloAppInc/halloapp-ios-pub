@@ -109,7 +109,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>un miembro</string>
+			<string>%d miembro</string>
 			<key>other</key>
 			<string>%d miembros</string>
 			<key>zero</key>
@@ -127,9 +127,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>%d nueva publicación</string>
+			<string>nueva publicación de %d</string>
 			<key>other</key>
-			<string>%d nuevas publicaciones</string>
+			<string>nuevas publicaciones de %d</string>
 		</dict>
 	</dict>
 	<key>media.prepare.failed.n.count</key>
@@ -143,9 +143,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>Error al preparar el archivo. Inténtalo nuevamente o selecciona una foto o video diferente.</string>
+			<string>Error al preparar el archivo multimedia. Inténtalo nuevamente o selecciona una foto o video diferente.</string>
 			<key>other</key>
-			<string>Error al preparar %d archivos. Inténtalo nuevamente o selecciona una foto o video diferente.</string>
+			<string>Error al preparar %d archivos multimedia. Inténtalo nuevamente o selecciona una foto o video diferente.</string>
 		</dict>
 	</dict>
 	<key>n.invites.count</key>
@@ -271,9 +271,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>Puedes seleccionar hasta un objeto</string>
+			<string>Puedes seleccionar hasta un archivo multimedia</string>
 			<key>other</key>
-			<string>Puedes seleccionar hasta %d objetos</string>
+			<string>Puedes seleccionar hasta %d archivos multimedia</string>
 		</dict>
 	</dict>
 	<key>privacy.n.contacts</key>

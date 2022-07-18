@@ -5,7 +5,7 @@
 "button.next" = "Berikutnya";
 
 /* Title for generic OK button. Mostly used in popups and as such. */
-"button.ok" = "Oke";
+"button.ok" = "OkE";
 
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Perbarui";
@@ -14,22 +14,22 @@
 "home.update.notice.button.exit" = "Keluar";
 
 /* Text shown to users who have old versions of the app */
-"home.update.notice.text" = "Harap perbarui ke versi HalloApp terkini";
+"home.update.notice.text" = "Silakan perbarui ke versi HalloApp terbaru";
 
 /* Title of update notice shown to users who have old versions of the app */
-"home.update.notice.title" = "Versi ini sudah usang";
+"home.update.notice.title" = "Versi ini telah usang";
 
 /* Disclaimer text about receiving SMS verification code */
-"registration.code.disclaimer" = "Kamu akan menerima kode verifikasi.\nDapat berlaku biaya operator.";
+"registration.code.disclaimer" = "Anda akan menerima kode verifikasi.\nDapat dikenakan biaya operator.";
 
 /* Error message to display when user enters incorrect verification code */
-"registration.code.incorrect" = "Kode yang kamu masukkan salah";
+"registration.code.incorrect" = "Kode yang Anda masukkan salah";
 
 /* Instructions for filling in SMS verification code. Parameter is formatted phone number */
 "registration.code.instructions" = "Masukkan kode yang kami kirim ke %@";
 
 /* Error message to display when we cannot send a verification code */
-"registration.code.request.error" = "Gagal mengirim kode. Cobalah kembali nanti.";
+"registration.code.request.error" = "Tidak dapat mengirim kode. Silakan coba lagi nanti.";
 
 /* Button label to resend verification code */
 "registration.code.resend" = "Kirim Ulang SMS";
@@ -38,16 +38,16 @@
 "registration.code.resend.by.voice" = "Panggil saya";
 
 /* Text explaining why we need contact permissions */
-"registration.contacts.content" = "Untuk menghubungkan Anda dengan teman & keluarga Anda, kami memerlukan izin Anda untuk mengakses kontak Anda.";
+"registration.contacts.content" = "Untuk menghubungkan Anda dengan teman & keluarga Anda, kami memerlukan izin untuk mengakses kontak Anda.";
 
 /* Title for text explaining why we need contact permissions */
 "registration.contacts.title" = "Satu hal lagi";
 
 /* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
-"registration.free.app.notice" = "Gratis di iPhone App Store";
+"registration.free.app.notice" = "Gratis di App Store iPhone";
 
 /* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
-"registration.group.name" = "Anda diundang untuk bergabung ke grup %@";
+"registration.group.name" = "Anda diundang untuk bergabung dengan grup %@";
 
 /* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
 "registration.install.app.to.continue" = "Instal HalloApp untuk melanjutkan";
@@ -56,7 +56,7 @@
 "registration.install.app.to.join.group" = "Instal HalloApp untuk membuka %@";
 
 /* Title for popup that appears when user tries to register invalid number */
-"registration.invalidphone" = "Aduh!";
+"registration.invalidphone" = "Ups!";
 
 /* Popup that appears when user tries to register a number with invalid country code */
 "registration.invalidphone.invalidCountryCode" = "Nomor telepon yang Anda masukkan memiliki kode negara yang tidak valid. Silakan periksa ulang.";
@@ -74,31 +74,31 @@
 "registration.invalidphone.lineTypeVoip" = "Nomor telepon yang Anda masukkan bukan nomor ponsel. Silakan periksa ulang.";
 
 /* Popup that appears when user tries to register invalid number */
-"registration.invalidphone.only" = "Nomor telepon yang kamu masukkan tidak valid. Periksa kembali.";
+"registration.invalidphone.only" = "Nomor telepon yang Anda masukkan tidak valid. Silakan periksa ulang.";
 
 /* Popup that appears when user tries to register uninvited number */
-"registration.invite.only" = "Jika kamu mengikuti Tautan Undangan Grup untuk mendaftar, silakan klik kembali tautan untuk menyelesaikan pendaftaran dan bergabung ke grup.";
+"registration.invite.only" = "Jika Anda menggunakan Tautan Undangan Grup untuk mendaftar, silakan klik lagi tautan tersebut untuk menyelesaikan pendaftaran dan bergabung dengan grup.";
 
 /* Placeholder text for name entry */
-"registration.nameEntry.placeholder" = "Namamu";
+"registration.nameEntry.placeholder" = "Nama Anda";
 
 /* Placeholder text for phone entry */
 "registration.phoneEntry.placeholder" = "Nomor telepon";
 
 /* Text for modal describing how we use contacts data */
-"registration.privacy.content" = "HalloApp hanya menggunakan kolom nomor telepon untuk mencocokkanmu dengan teman di HalloApp, dan tidak menyebarkan data tambahan apa pun dari buku kontakmu.";
+"registration.privacy.content" = "HalloApp hanya menggunakan nomor telepon untuk dicocokkan dengan teman Anda di HalloApp, dan tidak mengirimkan data tambahan apa pun dari buku kontak Anda.";
 
 /* Title for modal describing how we use contacts data */
-"registration.privacy.title" = "Privasimu adalah prioritas kami";
+"registration.privacy.title" = "Privasi Anda adalah prioritas kami";
 
 /* Title for popup that appears when user tries to register uninvited number */
-"registration.shucks" = "Wah!";
+"registration.shucks" = "Ups!";
 
 /* Shown above name and phone inputs */
-"registration.welcome" = "Selamat datang!";
+"registration.welcome" = "Selamat Datang!";
 
 /* Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account */
-"settings.account.deleted.message" = "Anda tidak akan dapat masuk sampai memulai ulang aplikasi";
+"settings.account.deleted.message" = "Anda tidak akan dapat masuk hingga memulai ulang aplikasi";
 
 /* Alert title telling the user that their account was successfully deleted */
 "settings.account.deleted.title" = "Akun berhasil dihapus";

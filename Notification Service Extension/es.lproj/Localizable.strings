@@ -8,7 +8,7 @@
 "app.name.halloapp" = "HalloApp";
 
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
-"button.add" = "Añadir";
+"button.add" = "Agregar";
 
 /* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Cancelar";
@@ -83,7 +83,7 @@
 "feed.privacy.descr.all" = "Compartir con todos mis contactos";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.except" = "Compartir con todos mis contactos excepto con la gente que yo seleccione";
+"feed.privacy.descr.except" = "Compartir con mis contactos excepto con la gente que yo escoja";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Compartir solamente con contactos seleccionados";
@@ -95,7 +95,7 @@
 "feed.privacy.list.notOwn.only.description" = "Solo las personas en la lista de Favoritos de %@ pueden ver esta publicación.";
 
 /* Header for the favorites list when editing contacts to share with. */
-"feed.privacy.list.only.details" = "Selecciona quién verá esta publicación";
+"feed.privacy.list.only.details" = "Quién verá esta publicación";
 
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.only.title" = "Favoritos";
@@ -128,7 +128,7 @@
 "media.button.discard" = "Descartar";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
-"notification.commented.with.text" = "Comentó: %@";
+"notification.commented.with.text" = "Comentario: %@";
 
 /* Content for unknown contact notification. */
 "notification.contact.unknown.content" = "Uno de tus contactos está ahora en HalloApp";
@@ -137,22 +137,22 @@
 "notification.invite.accepted.content" = "%@ acaba de aceptar tu invitación a HalloApp 🎉";
 
 /* New moment notification text to be shown to the user. */
-"notification.moment" = "Nuevo Momento";
+"notification.moment" = "Nuevo momento";
 
 /* New moment notification text to be shown to the user. */
-"notification.moment.1" = "%@ compartió un Momento";
+"notification.moment.1" = "%@ compartió un momento";
 
 /* New moment notification text to be shown to the user. */
-"notification.moment.2" = "%1$@ y %2$@ compartieron nuevos Momentos";
+"notification.moment.2" = "%1$@ y %2$@ compartieron nuevos momentos";
 
 /* New moment notification text to be shown to the user. */
-"notification.moment.3" = "%1$@, %2$@ y %3$@ compartieron nuevos Momentos";
+"notification.moment.3" = "%1$@, %2$@ y %3$@ compartieron nuevos momentos";
 
 /* New moment notification text to be shown to the user. */
-"notification.moment.5" = "%1$@, %2$@, %3$@ y otros compartieron nuevos Momentos";
+"notification.moment.5" = "%1$@, %2$@, %3$@ y otros compartieron nuevos momentos";
 
 /* New moment screenshot notification text to be shown to the user. */
-"notification.moment.screenshot" = "%@ tomó una captura de pantalla de tu Momento";
+"notification.moment.screenshot" = "%@ tomó una captura de pantalla de tu momento";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
@@ -181,11 +181,23 @@
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 video";
 
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.1" = "%@ compartió un nuevo momento y desbloqueó el tuyo";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.2" = "%1$@ y %2$@ compartieron un nuevo momento y desbloquearon el tuyo";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.3" = "%1$@, %2$@ y %3$@ compartieron un nuevo momento y desbloquearon el tuyo";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ y otros compartieron un nuevo momento y desbloquearon el tuyo";
+
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 Videollamada perdida";
 
 /* Missed voice call notification text to be shown to the user. */
-"notification.voicecall.missed" = "☎️ Llamada de voz perdida";
+"notification.voicecall.missed" = "☎️ Llamada perdida";
 
 /* New post notification text when post is a voice note. */
 "notification.voicecomment" = "Comentario de audio";

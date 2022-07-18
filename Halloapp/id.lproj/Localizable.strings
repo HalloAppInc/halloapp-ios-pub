@@ -8,13 +8,13 @@
 "• %@" = "• %@";
 
 /* About screen: body text. */
-"about.body.1" = "HalloApp telah hadir! Dan kami menciptakannya untukmu dan orang terdekatmu. Kami mengembalikan aplikasi sosial ke intinya, sembari menambahkan lapisan pengaman dan privasi yang kami pikir sepatutnya dimiliki oleh semua pengguna di dunia. HalloApp tidak akan pernah menggunakan informasi personalmu atau menampilkan iklan padamu. Alih-alih, kami berencana akan menawarkan fitur tambahan dengan harga terjangkau.";
+"about.body.1" = "HalloApp telah hadir! Kami membuatnya untuk Anda dan orang-orang terdekat Anda. Kami mengembalikan aplikasi sosial ke intinya dengan menambahkan lapisan keamanan dan privasi yang layak dimiliki oleh semua pengguna di dunia. HalloApp tidak akan pernah menggunakan informasi pribadi Anda atau menampilkan iklan. Selain itu, kami berencana akan menawarkan fitur tambahan dengan harga terjangkau.";
 
 /* About screen: body text. */
-"about.body.2" = "Terima kasih sudah menggunakan dan membagikan HalloApp dengan teman dan keluarga. Setiap minggu kami meningkatkan performa aplikasi kami.";
+"about.body.2" = "Terima kasih telah menggunakan dan membagikan HalloApp dengan teman dan keluarga Anda. Setiap minggu kami meningkatkan performa aplikasi kami.";
 
 /* About screen: footer text. Parameter is support email address. */
-"about.footer" = "Jika Anda memiliki pertanyaan atau tanggapan, kirim surat elektronik ke %@";
+"about.footer" = "Jika Anda memiliki pertanyaan atau umpan balik, silakan hubungi kami melalui email di %@";
 
 /* About screen: greeting. */
 "about.hallo" = "Halo";
@@ -23,31 +23,31 @@
 "about.title" = "Tentang";
 
 /* Longer title for the button that confirms marking all items in the activity center as read. */
-"activity.center.button.mark.all.read" = "Tandai semua sudah dibaca";
+"activity.center.button.mark.all.read" = "Tandai Semua sebagai Dibaca";
 
 /* Short title for the button in activity center. */
-"activity.center.button.read.all" = "Baca Semua";
+"activity.center.button.read.all" = "Dibaca Semua";
 
 /* Message shown when a user first joins from a friend's invitation (e.g., 'You accepted David's invite 🎉' */
-"activity.center.invite.accepted.item" = "kamu menerima undangan %@ 🎉";
+"activity.center.invite.accepted.item" = "Anda menerima undangan %@ 🎉";
 
 /* Title for the activity center screen. */
 "activity.center.title" = "Aktivitas";
 
 /* Message shown when a user first joins */
-"activity.center.welcome.item" = "Selamat datang di HalloApp!";
+"activity.center.welcome.item" = "Selamat Datang di HalloApp!";
 
 /* First tab in the main app interface. */
-"activityCenter.promo.favorites" = "Silakan lihat fitur Favorit baru!";
+"activityCenter.promo.favorites" = "Lihat fitur Favorit baru!";
 
 /* Text label for action button to add the contact to the address book */
-"add.to.contact.book" = "Tambah ke Daftar Kontak";
+"add.to.contact.book" = "Tambahkan ke Buku Kontak";
 
 /* Title for alert shown when there's no internet connectivity */
-"alert.no.internet.title" = "Tidak Ada Koneksi Internet";
+"alert.no.internet.title" = "Tidak Ada Sambungan Internet";
 
 /* Message to tell the user to try again when they have internet connectivity again */
-"alert.no.internet.try.again" = "Harap pastikan kamu punya konektivitas internet, lalu cobalah kembali.";
+"alert.no.internet.try.again" = "Pastikan Anda memiliki sambungan internet, lalu coba lagi.";
 
 /* Title of view where users can invite friends and family. */
 "app.ios.invite.friends" = "Undang teman & keluarga";
@@ -71,7 +71,7 @@
 "banner.no.connection" = "Tidak Ada Sambungan";
 
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
-"button.add" = "Tambah";
+"button.add" = "Tambahkan";
 
 /* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Batalkan";
@@ -80,7 +80,7 @@
 "button.cancel.capitalized" = "BATALKAN";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
-"button.continue" = "Lanjut";
+"button.continue" = "Lanjutkan";
 
 /* Title for generic copy URL button */
 "button.copy.link" = "Salin Tautan";
@@ -89,13 +89,13 @@
 "button.create" = "Buat";
 
 /* Title for generic Dismiss button. Mostly used to complete some modal flow. */
-"button.dismiss" = "Hilangkan";
+"button.dismiss" = "Tutup";
 
 /* Title for generic Done button. Mostly used to complete some modal flow. */
 "button.done" = "Selesai";
 
 /* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
-"button.go.to.settings" = "Ke Pengaturan";
+"button.go.to.settings" = "Buka Pengaturan";
 
 /* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
 "button.install" = "Instal";
@@ -116,7 +116,7 @@
 "button.not.now" = "Nanti";
 
 /* Title for generic OK button. Mostly used in popups and as such. */
-"button.ok" = "Oke";
+"button.ok" = "OKE";
 
 /* Title for generic Remove button. Mostly used to complete some modal flow. */
 "button.remove" = "Hapus";
@@ -131,10 +131,10 @@
 "button.share" = "Bagikan";
 
 /* Title for generic Stop button. Currently used to stop an audio recording) */
-"button.stop" = "Stop";
+"button.stop" = "Hentikan";
 
 /* Title for generic Update button. Mostly used to complete some modal flow. */
-"button.update" = "Memperbarui";
+"button.update" = "Perbarui";
 
 /* Label for button that opens chat during call */
 "call.button.chat" = "chat";
@@ -152,10 +152,10 @@
 "call.encryption.text" = "Dienkripsi ujung ke ujung";
 
 /* Title for call history event for an incoming call. */
-"call.history.incoming.call" = "%@ telah memanggil Anda";
+"call.history.incoming.call" = "%@ memanggil Anda";
 
 /* Title for call history event for an outgoing call */
-"call.history.outgoing.call" = "Anda telah memanggil %@";
+"call.history.outgoing.call" = "Anda memanggil %@";
 
 /* Title for call history event. Appears next to details of a successful call. */
 "call.history.video.call" = "Panggilan video";
@@ -167,7 +167,7 @@
 "call.history.voice.call" = "Panggilan suara";
 
 /* Title for call history event. Appears next to details of a missed call. */
-"call.history.voice.call.missed" = "Panggilan suara terlewatkan";
+"call.history.voice.call.missed" = "Panggilan suara tak terjawab";
 
 /* Status display when user mutes their own audio during a call. */
 "call.mute.local.audio" = "mikrofon mati";
@@ -194,7 +194,7 @@
 "call.status.calling" = "memanggil...";
 
 /* Status displayed while call is connecting */
-"call.status.connecting" = "menyambungkan...";
+"call.status.connecting" = "menghubungkan...";
 
 /* Status displayed when call fails. */
 "call.status.failed" = "panggilan gagal";
@@ -209,22 +209,22 @@
 "call.status.muted" = "panggilan dibisukan";
 
 /* Status displayed when reconnecting during call */
-"call.status.reconnecting" = "menyambungkan ulang...";
+"call.status.reconnecting" = "menghubungkan ulang...";
 
 /* Status displayed while outgoing call is ringing */
 "call.status.ringing" = "berdering...";
 
 /* Generic error when trying to use camera */
-"camera.error" = "Eror kamera";
+"camera.error" = "Kesalahan kamera";
 
 /* No comment provided by engineer. */
-"camera.init.error.1" = "Tidak dapat menyiapkan kamera belakang";
+"camera.init.error.1" = "Tidak dapat memulai kamera belakang";
 
 /* No comment provided by engineer. */
-"camera.init.error.2" = "Tidak dapat menyiapkan kamera depan";
+"camera.init.error.2" = "Tidak dapat memulai kamera depan";
 
 /* No comment provided by engineer. */
-"camera.init.error.3" = "Tidak dapat menyiapkan mikrofon";
+"camera.init.error.3" = "Tidak dapat memulai mikrofon";
 
 /* No comment provided by engineer. */
 "camera.init.error.4" = "Tidak dapat mengakses kamera belakang";
@@ -245,7 +245,7 @@
 "camera.init.error.9" = "Tidak dapat merekam audio";
 
 /* Title for a popup alerting about camera initialization error. */
-"camera.init.error.title" = "Terjadi kesalahan";
+"camera.init.error.title" = "Kesalahan memulai";
 
 /* Text shown on the camera screen when composing a new moment. */
 "camera.moment.subtitle" = "Momen akan hilang setelah 24 jam dan hanya dapat dilihat sekali";
@@ -311,19 +311,19 @@
 "chat.group.info.bg.default.label" = "Default";
 
 /* Text for menu option of demoting a group member */
-"chat.group.info.demote" = "Hapus sebagai administrator";
+"chat.group.info.demote" = "Memberhentikan sebagai Admin";
 
 /* Action label for leaving group */
-"chat.group.info.leave.group" = "Meninggalkan grup";
+"chat.group.info.leave.group" = "Keluar dari grup";
 
 /* Text for menu option of making a group member admin */
-"chat.group.info.make.group.admin" = "Membuat Administrator Grup";
+"chat.group.info.make.group.admin" = "Membuat Admin Grup";
 
 /* Text for menu option of messaging user */
 "chat.group.info.message.user" = "Pesan";
 
 /* Text label shown when the user is not a member of the group */
-"chat.group.info.not.a.member.label" = "Anda bukan anggota dari grup ini";
+"chat.group.info.not.a.member.label" = "Anda bukan anggota grup ini";
 
 /* Text for menu option of removing a group member */
 "chat.group.info.remove.from.group" = "Hapus dari Grup";
@@ -335,7 +335,7 @@
 "chat.group.info.view.profile" = "Lihat Profil";
 
 /* Confirmation message presented when leaving a group */
-"chat.group.leave.group.confirmation" = "Tinggalkan “%@”?";
+"chat.group.leave.group.confirmation" = "Keluar dari “%@”?";
 
 /* Label shown above group name input box */
 "chat.group.name.label" = "Nama Grup";
@@ -356,7 +356,7 @@
 "chat.message.audiopost" = "Postingan audio";
 
 /* Message text shown for the message that was deleted */
-"chat.message.deleted" = "Pesan ini telah dihapus.";
+"chat.message.deleted" = "Pesan ini dihapus.";
 
 /* Message text shown in a message that have photo media but no text */
 "chat.message.photo" = "Foto";
@@ -371,7 +371,7 @@
 "chat.message.video" = "Video";
 
 /* Text shown in place of a received message we are not able to decrypt yet. */
-"chat.message.waiting" = "Menunggu pesan ini. Proses ini mungkin memerlukan waktu yang lama.";
+"chat.message.waiting" = "Menunggu pesan ini. Proses ini mungkin memerlukan waktu beberapa saat.";
 
 /* Alert message when missing microphone access */
 "chat.mic.access.denied.message" = "Untuk mengaktifkan rekaman audio, silakan ketuk Pengaturan lalu nyalakan Mikrofon";
@@ -407,13 +407,13 @@
 "chats.list.remove.message" = "Dengan menghapus chat ini, Anda akan menghapus riwayat chat dan konten dari perangkat Anda.";
 
 /* Title for the button in comment deletion confirmation prompt. */
-"comment.delete.action" = "Hapus komentar";
+"comment.delete.action" = "Hapus Komentar";
 
 /* Confirmation text displayed at comment deletion prompt */
-"comment.delete.confirmation" = "Hapus komentar ini? Penghapusan harus diselesaikan";
+"comment.delete.confirmation" = "Hapus komentar ini? Tindakan ini tidak dapat diurungkan.";
 
 /* Text displayed in place of deleted comment. */
-"comment.deleted" = "Komentar ini sudah dihapus";
+"comment.deleted" = "Komentar ini telah dihapus";
 
 /* Text displayed in place of a comment that is currently being deleted. */
 "comment.deleting" = "Menghapus komentar";
@@ -428,10 +428,13 @@
 "comment.textfield.placeholder" = "Komentar Baru";
 
 /* Text displayed in place of a comment that is not supported in the current app version. */
-"comment.unsupported" = "Versi HalloApp-mu tidak mendukung jenis komentar ini.";
+"comment.unsupported" = "Versi HalloApp Anda tidak mendukung jenis komentar ini.";
 
 /* Warning text displayed in Comments when post wasn't available. */
 "comments.post.loading.failed" = "Terjadi kesalahan saat mencoba memuat postingan ini. Silakan coba lagi nanti.";
+
+/* Label for add media button in post composer */
+"composer.addmedia" = "Tambahkan media";
 
 /* Accessibility label for add images button */
 "composer.audio.a11y.addImages" = "Tambahkan Gambar";
@@ -443,16 +446,19 @@
 "composer.audio.a11y.startRecording" = "Mulai Merekam";
 
 /* Accessibility label for stopping an audio recording */
-"composer.audio.a11y.stopRecording" = "Stop Merekam";
+"composer.audio.a11y.stopRecording" = "Berhenti Merekam";
 
 /* Instructions for audio post composer */
-"composer.audio.instructions" = "Ketuk untuk rekam";
+"composer.audio.instructions" = "Ketuk untuk merekam";
 
 /* Title for audio post composer */
 "composer.audio.title" = "Postingan Audio Baru";
 
 /* Title on edit button */
 "composer.button.edit" = "Edit";
+
+/* Send button title */
+"composer.button.send.to" = "Kirim ke";
 
 /* Title warning that a voice recording will be deleted */
 "composer.delete.recording.title" = "Hapus rekaman suara?";
@@ -470,13 +476,13 @@
 "composer.max.video.length.message" = "Pilih video lain atau pilih tombol edit.";
 
 /* Alert title in composer when a video is too long */
-"composer.max.video.length.title" = "Video ini telah berakhir berdurasi %.0f detik";
+"composer.max.video.length.title" = "Video berdurasi lebih dari %.0f detik";
 
 /* Composer subtitle for messages. */
 "composer.message.subtitle" = "Mengirimkan ke %@";
 
 /* Composer New Message title. */
-"composer.message.title" = "Pesan baru";
+"composer.message.title" = "Pesan Baru";
 
 /* Composer New Moment Post title. */
 "composer.moment.post.title" = "Momen Baru";
@@ -491,25 +497,25 @@
 "composer.post.title" = "Postingan Baru";
 
 /* Feed Privacy indicator in post composer. */
-"composer.privacy.value.excluded" = "Membagikan dengan beberapa kontak";
+"composer.privacy.value.excluded" = "Berbagi dengan beberapa kontak saya";
 
 /* Feed Privacy indicator in post composer. */
-"composer.privacy.value.my.contacts" = "Membagikan kontak";
+"composer.privacy.value.my.contacts" = "Berbagi dengan kontak saya";
 
 /* Feed Privacy indicator in post composer. */
-"composer.privacy.value.n.selected" = "penyusun.kerahasiaan.nilai.n.dipilih";
+"composer.privacy.value.n.selected" = "composer.privacy.value.n.selected";
 
 /* Show the user that the title is tappable */
 "composer.subtitle.cta" = "Ketuk untuk mengubah";
 
 /* No comment provided by engineer. */
-"CONNECTION" = "KONEKSI";
+"CONNECTION" = "SAMBUNGAN";
 
 /* Shown when user denies contacts permission */
-"contacts.access.denied" = "Izinkan HalloApp mengakses kontak Anda sehingga Anda dapat mengirim dan menerima pembaruan";
+"contacts.access.denied" = "Izinkan HalloApp mengakses kontak Anda agar Anda dapat mengirim dan menerima pembaruan";
 
 /* Message requesting the user enable contacts permission */
-"contacts.permission.explanation" = "Untuk membantumu terhubung dengan teman dan keluarga izinkan HalloApp mengakses kontakmu.";
+"contacts.permission.explanation" = "Untuk membantu Anda terhubung dengan teman dan keluarga, izinkan HalloApp mengakses kontak Anda.";
 
 /* Title for modal view when showing how to change contact permissions. */
 "contacts.permission.explanation.title" = "Kontak";
@@ -524,10 +530,10 @@
 "create.group.description.placeholder" = "Tambahkan deskripsi (opsional)";
 
 /* Alert message telling the user to try creating the group again after an error */
-"create.group.error" = "Terjadi eror saat membuat grup, harap coba kembali";
+"create.group.error" = "Terdapat kesalahan saat membuat grup, silakan coba lagi";
 
 /* Placeholder text shown inside the group name input box when it's empty */
-"create.group.name.placeholder" = "Beri nama grup kamu";
+"create.group.name.placeholder" = "Beri nama grup Anda";
 
 /* Title of group creation screen */
 "create.group.title" = "Informasi Grup";
@@ -536,7 +542,7 @@
 "Delete" = "Hapus";
 
 /* Body of the bottom sheet that is presented only once to explain the moments feature. */
-"describing.moments" = "Buka momen teman dengan berbagi momen Anda. Momen adalah fitur kasual, dan akan hilang setelah Anda melihatnya sekali.";
+"describing.moments" = "Buka momen teman dengan membagikan momen Anda. Momen adalah fitur kasual, dan akan hilang setelah Anda melihatnya sekali.";
 
 /* link, tapping on which launched the flow to edit blocked contacts */
 "edit.blocked" = "Edit";
@@ -545,7 +551,7 @@
 "edit.favorites" = "Edit Favorit";
 
 /* Text to show on profile for users you are not connected with */
-"exchange.phone.numbers.to.connect" = "Agar dapat tersambung, Anda harus mengganti nomor telepon";
+"exchange.phone.numbers.to.connect" = "Agar dapat terhubung, Anda harus bertukar nomor telepon";
 
 /* Description of an externally shared post containing an audio post */
 "externalShare.og.description.audio" = "Postingan audio";
@@ -581,10 +587,10 @@
 "failed.to.send" = "Gagal mengirim";
 
 /* Text shown in place of a received post we are not able to decrypt yet. */
-"feed.comment.waiting" = "Menunggu komentar ini. Ini dapat butuh beberapa saat.";
+"feed.comment.waiting" = "Menunggu komentar ini. Proses ini mungkin memerlukan waktu beberapa saat.";
 
 /* Shown while content is being retracted from feed */
-"feed.deleting" = "Sedang menghapus...";
+"feed.deleting" = "Menghapus...";
 
 /* Text for group feed notification displayed in Activity Center. */
 "feed.group.notification.other.comment.no.text" = "<$author$> mengomentari";
@@ -611,7 +617,7 @@
 "feed.notification.commented.w.text" = "<$author$> mengomentari: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.deleted.comment" = "<$author$> menghapus komentar";
+"feed.notification.deleted.comment" = "<$author$> menghapus komentar mereka";
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification.deleted.post" = "<$author$> mengomentari. Postingan ini telah dihapus.";
@@ -647,7 +653,7 @@
 "feed.post.unsupported" = "Versi HalloApp Anda tidak mendukung jenis postingan ini.";
 
 /* Text shown in place of a received post we are not able to decrypt yet. */
-"feed.post.waiting" = "Menunggu postingan ini. Proses ini mungking akan memerlukan waktu yang lama.";
+"feed.post.waiting" = "Menunggu postingan ini. Proses ini mungkin memerlukan waktu beberapa saat.";
 
 /* Shown while content is being posted to feed */
 "feed.posting" = "Memposting...";
@@ -656,10 +662,10 @@
 "feed.privacy.descr.all" = "Bagikan ke semua kontak saya";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.except" = "Bagikan ke kontak kecuali orang yang saya pilih";
+"feed.privacy.descr.except" = "Bagikan dengan kontak saya kecuali orang yang saya pilih";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.only" = "Hanya bagikan dengan kontak terpilih";
+"feed.privacy.descr.only" = "Hanya bagikan dengan kontak yang dipilih";
 
 /* Header describing what these options are for */
 "feed.privacy.header" = "Yang akan melihat postingan saya";
@@ -701,7 +707,7 @@
 "feed.privacy.list.set.favorites" = "Atur Favorit";
 
 /* Description of the new Favorites functionality. */
-"feed.privacy.list.set.favorites.description" = "Sekarang Anda dapat membuat daftar kontak favorit dan membagikan postingan Anda dengan mereka.";
+"feed.privacy.list.set.favorites.description" = "Sekarang Anda dapat membuat daftar kontak favorit dan membagikan postingan HalloApp Anda dengan mereka.";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Kontak Saya";
@@ -719,7 +725,7 @@
 "feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
 
 /* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.body" = "Gunakan nomor telepon Anda untuk terhubung dengan teman dan keluarga di aplikasi tanpa iklan, tanpa merek, tanpa fitur suka, dan tanpa influencer.\n\nHalloApp adalah Anda dan orang-orang terdekat Anda, secara pribadi. Undang teman sejati Anda untuk memulai!";
+"feed.welcome.post.body" = "Gunakan nomor telepon Anda untuk terhubung dengan teman dan keluarga di aplikasi tanpa iklan, tanpa merek, tanpa fitur suka, dan tanpa influencer.\n\nHalloApp adalah aplikasi untuk Anda dan orang-orang terdekat Anda, sepenuhnya pribadi. Undang teman sejati Anda untuk memulai!";
 
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
 "feed.welcome.post.title" = "Selamat datang di HalloApp, tempat untuk jaringan hubungan nyata ✨";
@@ -728,7 +734,7 @@
 "feedInviteCarousel.searchPrompt" = "Cari teman dan keluarga lainnya";
 
 /* Title for section of contacts to invite in feed */
-"feedInviteCarousel.title" = "HalloApp sangatlah menyenangkan dengan teman dan keluarga";
+"feedInviteCarousel.title" = "HalloApp adalah app yang menyenangkan untuk teman & keluarga";
 
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Komentar";
@@ -737,13 +743,13 @@
 "feedpost.button.reply" = "Balas secara Pribadi";
 
 /* Placeholder text shown in group description input box when there's no description */
-"group.add.description" = "Tambah deskripsi grup";
+"group.add.description" = "Tambahkan deskripsi grup";
 
 /* Label shown above background selection row */
-"group.background.label" = "Latar belakang";
+"group.background.label" = "Latar Belakang";
 
 /* Label for choosing a color at the group background preview screen */
-"group.bg.pick.a.color.label" = "PILIH SATU WARNA";
+"group.bg.pick.a.color.label" = "PILIH WARNA";
 
 /* Title of group background screen */
 "group.bg.title" = "Latar Belakang";
@@ -755,58 +761,58 @@
 "group.event.added.member" = "%1$@ menambahkan %2$@";
 
 /* Message text shown when you add a group member */
-"group.event.added.member.you" = "Kamu menambahkan %1@";
+"group.event.added.member.you" = "Anda menambahkan %1@";
 
 /* Message text shown with the user who changed the group avatar */
-"group.event.changed.avatar" = "%@ mengganti ikon grup";
+"group.event.changed.avatar" = "%@ mengubah ikon grup";
 
 /* Message text shown with the user who changed the group avatar */
-"group.event.changed.avatar.you" = "Kamu mengganti ikon grup";
+"group.event.changed.avatar.you" = "Anda mengubah ikon grup";
 
 /* Message text shown with the user who changed the background */
-"group.event.changed.background" = "%@ ubah warna latar belakang";
+"group.event.changed.background" = "%@ mengubah warna latar belakang";
 
 /* Message text shown when you change the background */
-"group.event.changed.background.you" = "Kamu mengganti warna latar";
+"group.event.changed.background.you" = "Anda mengubah warna latar belakang";
 
 /* Message text shown with the user who changed the group description */
 "group.event.changed.description" = "%1@ mengubah deskripsi grup";
 
 /* Message text shown when you change the group description */
-"group.event.changed.description.you" = "Kamu mengubah deskripsi grup";
+"group.event.changed.description.you" = "Anda mengubah deskripsi grup";
 
 /* Message text shown with the user who changed the group name */
-"group.event.changed.name" = "%1$@ mengganti nama grup menjadi \"%2$@\"";
+"group.event.changed.name" = "%1$@ mengubah nama grup menjadi \"%2$@\"";
 
 /* Message text shown when you change the group name */
-"group.event.changed.name.you" = "Kamu mengganti nama grup menjadi \"%1@\"";
+"group.event.changed.name.you" = "Anda mengubah nama grup menjadi \"%1@\"";
 
 /* Message text shown with the user who created the group */
 "group.event.created.group" = "%1$@ membuat grup \"%2$@\"";
 
 /* Message text shown when you create a group */
-"group.event.created.group.you" = "Kamu membuat grup \"%1@\"";
+"group.event.created.group.you" = "Anda membuat grup \"%1@\"";
 
 /* Message text shown with the user who demoted a group admin */
-"group.event.demoted.member" = "%1$@ menghapus %2$@ sebagai admin";
+"group.event.demoted.member" = "%1$@ mengeluarkan %2$@ sebagai admin";
 
 /* Message text shown when you demote a group admin */
-"group.event.demoted.member.you" = "Kamu menghapus %1@ sebagai admin";
+"group.event.demoted.member.you" = "Anda mengeluarkan %1@ sebagai admin";
 
 /* Message text shown with the user who promoted a group member */
 "group.event.promoted.member" = "%1$@ menjadikan %2$@ sebagai admin";
 
 /* Message text shown when you promote a group member */
-"group.event.promoted.member.you" = "Kamu menjadikan %1@ sebagai admin";
+"group.event.promoted.member.you" = "Anda menjadikan %1@ sebagai admin";
 
 /* Message text shown with the user who removed a group member */
 "group.event.removed.member" = "%1$@ mengeluarkan %2$@";
 
 /* Message text shown when you remove a group member */
-"group.event.removed.member.you" = "Kamu menghapus %1@";
+"group.event.removed.member.you" = "Anda mengeluarkan %1@";
 
 /* Indicates how many members are in the group */
-"group.feed.n.members" = "feed.grup.n.anggota";
+"group.feed.n.members" = "group.feed.n.members";
 
 /* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
 "group.feed.welcome.post.body" = "Bagikan tautan ini dengan teman dan mereka akan secara otomatis bergabung dendan grup Anda.";
@@ -815,13 +821,13 @@
 "group.feed.welcome.post.title" = "Undang teman ke grup Anda";
 
 /* Action label for inviting others to join the group via link */
-"group.info.invite.to.group.via.link" = "Undang ke Grup lewat Tautan";
+"group.info.invite.to.group.via.link" = "Undang ke Grup melalui Tautan";
 
 /* Label for copying link */
 "group.invite.copy.link" = "Salin Tautan";
 
 /* Text shown when link is copied */
-"group.invite.link.copied" = "Tersalin ke Papan Klip";
+"group.invite.link.copied" = "Disalin ke Papan Klip";
 
 /* Text to describe what the group invite link is */
 "group.invite.link.description" = "Siapa pun dengan HalloApp dapat mengikuti tautan ini untuk bergabung dengan grup ini. Namun, mereka tidak akan menerima konten yang diposting secara otomatis sebelum bergabung dengan grup.";
@@ -830,25 +836,25 @@
 "group.invite.link.label" = "TAUTAN GRUP";
 
 /* Text shown when link is reset */
-"group.invite.link.reset" = "Tautan Setel Ulang";
+"group.invite.link.reset" = "Tautan Diatur Ulang";
 
 /* Label for opening QR screen */
 "group.invite.qr.code" = "Kode QR";
 
 /* Label for resetting link */
-"group.invite.reset.link" = "Setel Ulang Tautan";
+"group.invite.reset.link" = "Atur Ulang Tautan";
 
 /* Warning shown when user clicks on reset link action */
-"group.invite.reset.link.warning" = "Jika tautan undangan ini disetel ulang, tak akan ada yang bisa memakainya untuk bergabung dengan grup.";
+"group.invite.reset.link.warning" = "Jika tautan undangan ini diatur ulang, tidak ada yang dapat menggunakannya untuk bergabung dengan grup.";
 
 /* Label for sharing link */
 "group.invite.share.link" = "Bagikan Tautan";
 
 /* Text shown before the sharing link */
-"group.invite.share.link.message" = "Klik tautan ini untuk bergabung ke grup HalloApp saya:";
+"group.invite.share.link.message" = "Klik tautan ini untuk bergabung dengan grup HalloApp saya:";
 
 /* Title of group invite screen */
-"group.invite.title" = "Undang Grup";
+"group.invite.title" = "Undangan Grup";
 
 /* Title of invite sheet */
 "group.invitesheet.title" = "Bagikan tautan ini dengan teman & keluarga dan mereka akan bergabung dengan grup HalloApp ini secara otomatis";
@@ -860,19 +866,19 @@
 "group.members.label" = "Anggota";
 
 /* Text for alert box when the user clicks on an invalid group invite link */
-"group.preview.get.info.error.invalid.link" = "Tautan undangan grup tidak sah";
+"group.preview.get.info.error.invalid.link" = "Tautan undangan grup tidak valid";
 
 /* Text for alert box when the user can't join the group via group link when the group is full */
 "group.preview.join.error.group.full" = "Grup penuh";
 
 /* Text for alert box when the user can't join the group via group link when link is invalid */
-"group.preview.join.error.invalid.link" = "Tautan tidak sah";
+"group.preview.join.error.invalid.link" = "Tautan tidak valid";
 
 /* Title for alert box when the user can't join the group via group link */
-"group.preview.join.error.title" = "Gagal bergabung ke grup";
+"group.preview.join.error.title" = "Tidak dapat begabung dengan grup";
 
 /* Label for joining group action */
-"group.preview.join.group" = "Gabung Grup";
+"group.preview.join.group" = "Bergabung dengan Grup";
 
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Ketuk di sini untuk info grup";
@@ -886,6 +892,9 @@
 /* Tag for new posts in groups grid */
 "groupGrid.newPostIndicator" = "baru";
 
+/* Shown when post fails or is canceled. */
+"groupGrid.post.failed" = "Gagal memposting";
+
 /* More info menu item */
 "groupGridHeader.moreInfo" = "Info Lainnya";
 
@@ -896,7 +905,7 @@
 "groups.common" = "Grup Bersama";
 
 /* Text shown when user is about to remove the group */
-"groups.list.remove.message" = "Yakin ingin menghapus grup ini beserta kontennya dari perangkatmu?";
+"groups.list.remove.message" = "Apakah Anda yakin ingin menghapus grup ini dan kontennya dari perangkat Anda?";
 
 /* The name of the group that is created for the user when they are new and in the zero zone (no contacts and no content) */
 "groups.NUX.user.group.name" = "Grup %@";
@@ -905,46 +914,46 @@
 "groups.title" = "Dengan %@";
 
 /* Text shown in the email body when sending logs from the help screen */
-"help.send.logs.email.body" = "Harap tulis masukan atau deskripsi masalahmu pada kolom di atas. \n\nVersi %1$@ - %2$@\n%3$@";
+"help.send.logs.email.body" = "Silakan tulis umpan balik atau deskripsi masalah pada bidang di atas. \n\nVersi %1$@ - %2$@\n%3$@";
 
 /* Text shown to users on failed audio capture alert during a call. */
-"home.calls.fail.audio.text" = "Cobalah beberapa saat lagi.";
+"home.calls.fail.audio.text" = "Silakan coba lagi nanti.";
 
 /* Title of failed audio capture alert during a call. */
-"home.calls.fail.audio.title" = "Gagal merekam audio saat panggilan HalloApp.";
+"home.calls.fail.audio.title" = "Tidak dapat merekam audio saat panggilan HalloApp.";
 
 /* Text shown to users on call failure. */
-"home.calls.fail.text" = "Pastikan ponselmu punya koneksi internet lalu cobalah lagi.";
+"home.calls.fail.text" = "Pastikan ponsel Anda memiliki sambungan internet, lalu coba lagi.";
 
 /* Title of failed call screen alert. */
-"home.calls.fail.title" = "Gagal membuat panggilan.";
+"home.calls.fail.title" = "Tidak dapat melakukan panggilan.";
 
 /* Text shown to users trying to open the call screen. */
-"home.calls.notice.text" = "Kamu tidak punya panggilan aktif saat ini.";
+"home.calls.notice.text" = "Anda tidak memiliki panggilan yang aktif saat ini.";
 
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Keluar";
 
 /* Text shown to users who have old versions of the app */
-"home.update.notice.text" = "Harap perbarui ke versi terkini HalloApp";
+"home.update.notice.text" = "Silakan perbarui ke versi terbaru HalloApp";
 
 /* Title of update notice shown to users who have old versions of the app */
-"home.update.notice.title" = "Versi ini sudah usang";
+"home.update.notice.title" = "Versi ini telah usang";
 
 /* Text shown to users on video call failure. */
 "home.video.calls.fail.text" = "Segera hadir...";
 
 /* Title of failed video call screen alert. */
-"home.video.calls.fail.title" = "Panggilan video saat ini belum didukung.";
+"home.video.calls.fail.title" = "Panggilan video saat ini tidak didukung.";
 
 /* Title of the bottom sheet that is presented only once to explain the moments feature. */
 "introducing.moments" = "Memperkenalkan Momen";
 
 /* Title of action sheet that allows the user to choose between sms and whatsapp to invite contact */
-"invite.action.sheet.title" = "Undang %@ lewat...";
+"invite.action.sheet.title" = "Undang %@ melalui...";
 
 /* Displayed below contact name in contact list that is displayed when inviting someone to HalloApp. */
-"invite.already.halloapp.user" = "Sudah jadi pengguna HalloApp";
+"invite.already.halloapp.user" = "Sudah menjadi pengguna HalloApp";
 
 /* Title for button that launches system SMS app to send invite. As short as possible! */
 "invite.app.sms" = "Pesan";
@@ -956,19 +965,19 @@
 "invite.contact.count" = "%d kontak di HalloApp";
 
 /* Body of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
-"invite.error.alert.message" = "Terjadi sesuatu. Cobalah kembali nanti.";
+"invite.error.alert.message" = "Terjadi kesalahan. Silakan coba lagi nanti.";
 
 /* Title of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
-"invite.error.alert.title" = "Gagal mengundang";
+"invite.error.alert.title" = "Tidak dapat mengundang";
 
 /* Displayed when user does not have any invites left. Parameter is date. */
-"invite.out.of.invites.w.date" = "Kamu kehabisan undangan. Kembalilah lagi setelah %@";
+"invite.out.of.invites.w.date" = "Anda kehabisan undangan. Silakan periksa kembali setelah %@";
 
 /* Displayed white user is inviting someone. */
 "invite.please.wait" = "Harap tunggu...";
 
 /* Text of invitation to join HalloApp. */
-"invite.text" = "Bergabunglah dengan saya di HalloApp - sebuah cara simpel, privat dan aman untuk tetap terhubung dengan teman dan keluarga. Dapatkan di https://halloapp.com/dl";
+"invite.text" = "Bergabunglah dengan saya di HalloApp, cara sederhana, pribadi, dan aman untuk tetap terhubung dengan teman dan keluarga. Dapatkan di https://halloapp.com/dl";
 
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
 "invite.text.specific" = "Halo %1$@, saya memiliki undangan untuk Anda bergabung dengan saya di HalloApp, jejaring hubungan sungguhan untuk mereka yang terdekat dengan saya. Gunakan %2$@ untuk mendaftar. Dapatkan di https://halloapp.com/dl";
@@ -977,19 +986,22 @@
 "invite.text.specific.1" = "Halo %@, saya menggunakan HalloApp. Unduh untuk bergabung dengan saya, https://halloapp.com/install";
 
 /* Version of an invitation to join HalloApp. The argument is the invitee's name. */
-"invite.text.specific.2" = "Halo %@, ayo terus terhubung di HalloApp. Unduh di https://halloapp.com/kit (HalloApp adalah app sosial pribadi baru untuk teman dan keluarga dekat, dengan bebas iklan atau algoritma).";
+"invite.text.specific.2" = "Halo %@, ayo tetap terhubung di HalloApp. Unduh di https://halloapp.com/kit (HalloApp adalah app sosial pribadi baru untuk teman dan keluarga dekat, bebas iklan atau algoritma).";
 
 /* Version of an invitation to join HalloApp. */
-"invite.text.specific.3" = "Saya mengundang Anda untuk menginstal HalloApp. Unduh secara gratis di sini: https://halloapp.com/free";
+"invite.text.specific.3" = "Saya mengundang Anda untuk menginstal HalloApp. Unduh gratis di sini: https://halloapp.com/free";
 
 /* Version of an invitation to join HalloApp. The argument is the invitee's name. */
-"invite.text.specific.4" = "Halo %@! Bergabung dengan saya di HalloApp dan berbagi momen bermakna dengan teman sejati. Lihat: https://halloapp.com/new";
+"invite.text.specific.4" = "Halo %@! Bergabunglah dengan saya di HalloApp dan berbagi momen bermakna dengan teman sejati. Lihat: https://halloapp.com/new";
+
+/* Version of an invitation to join HalloApp. No arguments */
+"invite.text.specific.5" = "Saya mengundang Anda untuk bergabung dengan saya di HalloApp. App pribadi dan aman untuk berbagi foto, chat, dan menghubungi teman Anda. Dapatkan di https://halloapp.com/get";
 
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Undang Teman";
 
 /* Title of cell at the top of the invite screen */
-"invite.via.link" = "Undang lewat tautan";
+"invite.via.link" = "Undang melalui tautan";
 
 /* Contacts including this in their name are excluded from the invite carousel */
 "invitemanager.spam" = "spam";
@@ -1007,10 +1019,46 @@
 "link.invite.friend" = "Undang teman";
 
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
-"link.learnMore" = "Pelajari lebih jauh";
+"link.learnMore" = "Pelajari lebih lanjut";
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
-"link.update.your.app" = "Perbarui aplikasimu.";
+"link.update.your.app" = "Perbarui app Anda.";
+
+/* General message of the alert for failures in location sharing features. */
+"locationSharing.alert.error" = "Terjadi kesalahan. Silakan coba lagi nanti.";
+
+/* Title of the alert for failures in location searches. */
+"locationSharing.alert.localSearchFailed.title" = "Gagal mencari lokasi";
+
+/* Message of the alert requesting location access for a feature. */
+"locationSharing.alert.locationAccessRequired.message" = "Anda dapat mengaktifkan izin ini di Pengaturan.";
+
+/* Title of the alert requesting location access for a feature. */
+"locationSharing.alert.locationAccessRequired.title" = "HalloApp memerlukan akses ke lokasi Anda untuk fitur ini.";
+
+/* Title of the alert for failures resolving a location from the map. */
+"locationSharing.alert.locationResolvingFailed.title" = "Tidak dapat menyelesaikan lokasi";
+
+/* Title of the menu to choose map type. */
+"locationSharing.chooseMap" = "Pilih Peta";
+
+/* Subtitle of the user location callout. Parameter is the formatted length measurement of accuracy (including unit). */
+"locationSharing.locationAccuracyDescription" = "Akurat hingga %@";
+
+/* The explore map type (as in Apple Maps). */
+"locationSharing.mapType.explore" = "Jelajahi";
+
+/* The satellite map type (as in Apple Maps). */
+"locationSharing.mapType.satellite" = "Satelit";
+
+/* The menu action to focus on user location. */
+"locationSharing.myLocation" = "Lokasi Saya";
+
+/* Title of the location sharing main screen. */
+"locationSharing.navTitle" = "Lokasi";
+
+/* Title of a location in location list if it does not have a name. */
+"locationSharing.untitledLocation" = "Lokasi Tanpa Judul";
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Saya";
@@ -1022,16 +1070,16 @@
 "media.button.discard" = "Hapus";
 
 /* Button title. Refers to resetting photo / video to original version. */
-"media.button.reset" = "Atur ulang";
+"media.button.reset" = "Atur Ulang";
 
 /* Button title. Refers to undoing an edit of a photo. */
 "media.button.undo" = "Urungkan";
 
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
-"media.camera.access.request" = "HalloApp tidak memiliki akses ke kamera. Untuk mengizinkan akses, ketuk Pengaturan dan nyalakan Kamera";
+"media.camera.access.request" = "HalloApp tidak memiliki akses ke kamera Anda. Untuk mengizinkan akses, ketuk Pengaturan dan nyalakan Kamera";
 
 /* Confirmation prompt in media composer. */
-"media.discard.confirmation" = "Ingin menghapus editanmu?";
+"media.discard.confirmation" = "Apakah Anda ingin menghapus perubahan Anda?";
 
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.mic.access.request.body" = "Untuk merekam video dengan suara, HalloApp memerlukan akses mikrofon. Untuk mengizinkan akses, ketuk Pengaturan dan nyalakan Mikrofon.";
@@ -1052,7 +1100,7 @@
 "media.save.camera.roll" = "Simpan ke Rol Kamera";
 
 /* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
-"media.save.needs.permissions" = "Izin foto diperlukan";
+"media.save.needs.permissions" = "Diperlukan izin foto";
 
 /* Description telling the user why the photos couldn't be saved */
 "media.save.no.access" = "Foto tidak dapat disimpan tanpa akses ke rol kamera.";
@@ -1064,7 +1112,7 @@
 "media.save.saved" = "Disimpan ke Rol Kamera";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
-"media.voiceover.button.annotate" = "Memberi Anotasi";
+"media.voiceover.button.annotate" = "Berikan Anotasi";
 
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Tutup";
@@ -1076,7 +1124,7 @@
 "media.voiceover.button.flip" = "Balik";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
-"media.voiceover.button.mute" = "Senyapkan";
+"media.voiceover.button.mute" = "Bisukan";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.rotate" = "Putar";
@@ -1160,16 +1208,16 @@
 "n.unread.messages.title" = "n.unread.messages.title";
 
 /* Placeholder text shown in the middle of the Add New Group Members screen when user have no contacts (in ZeroZone) to add */
-"new.group.members.empty.placeholder" = "Kontakmu yang menggunakan HalloApp akan muncul di sini";
+"new.group.members.empty.placeholder" = "Kontak Anda yang menggunakan HalloApp akan muncul di sini";
 
 /* Alert text shown when max group size is reached when selecting/adding group members */
-"new.group.members.max.size.alert" = "Maks. besar grup adalah %d";
+"new.group.members.max.size.alert" = "Jumlah maksimal grup adalah %d orang";
 
 /* Title for alert that pops up when user attempts to save an empty contact list */
 "no.contact.selected" = "Tidak ada kontak yang dipilih";
 
 /* Text shown to indicate user is not in the group anymore */
-"not.in.group.banner.text" = "Kamu tak lagi ada di grup ini";
+"not.in.group.banner.text" = "Anda tidak lagi di grup ini";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
 "notification.commented.with.text" = "Mengomentari: %@";
@@ -1225,6 +1273,18 @@
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 video";
 
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.1" = "%@ membagikan pesan baru dan membuka momen Anda";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.2" = "%1$@ dan %2$@ membagikan pesan baru dan membuka momen Anda";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.3" = "%1$@, %2$@, dan %3$@ membagikan momen baru serta membuka momen Anda";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@, dan lainnya membagikan momen baru serta membuka momen Anda";
+
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 Panggilan video tak terjawab";
 
@@ -1244,19 +1304,19 @@
 "nux.activity.center.icon" = "Halo!";
 
 /* Shown on chats list when there are no contacts or messages to display */
-"nux.chat.empty" = "Kontak & pesanmu akan tampil di sini";
+"nux.chat.empty" = "Kontak & pesan Anda akan muncul di sini";
 
 /* Text for new user popup pointing at chat list */
-"nux.chat.list" = "Di sinilah Anda akan menemukan pesan dari teman & keluarga. Saat pengguna baru bergabung dengan HalloApp, Anda dapat melihatnya di sini.";
+"nux.chat.list" = "Di sini Anda akan menemukan pesan dari teman & keluarga Anda. Saat pengguna baru bergabung dengan HalloApp, Anda dapat melihatnya di sini.";
 
 /* Shown on groups in common when there are no groups to display */
 "nux.groups.common.list.empty" = "Anda tidak memiliki grup bersama";
 
 /* Shown on groups list when there are no groups to display */
-"nux.groups.list.empty" = "Grupmu akan tampil di sini";
+"nux.groups.list.empty" = "Grup Anda akan muncul di sini";
 
 /* Shown on home feed when no posts are available */
-"nux.home.feed.empty" = "Postingan dari kontak ponsel Anda akan tampil di sini";
+"nux.home.feed.empty" = "Postingan dari kontak Anda di ponsel akan muncul di sini";
 
 /* Text for new user popup pointing at new post button */
 "nux.new.post.button" = "Ketuk untuk berbagi pembaruan dengan teman & keluarga di HalloApp";
@@ -1268,7 +1328,7 @@
 "photo.and.video.library" = "Perpustakaan Foto & Video";
 
 /* Message in media picker when access is denied. */
-"picker.access.denied.message" = "Harap berikan akses dari Pengaturan";
+"picker.access.denied.message" = "Berikan akses dari Pengaturan";
 
 /* An option to give access from settings */
 "picker.access.denied.settings" = "Pengaturan";
@@ -1277,10 +1337,10 @@
 "picker.access.denied.title" = "Akses Foto Ditolak";
 
 /* Message shown only limited access to media. */
-"picker.access.limited.message" = "Kamu telah memberi HalloApp akses ke jumlah foto dan video terpilih.";
+"picker.access.limited.message" = "Anda telah memberi HalloApp akses ke sejumlah foto dan video yang dipilih.";
 
 /* Alert message in media picker when unable to load media file. */
-"picker.media.fail.message" = "Harap coba kembali atau pilih foto atau video berbeda.";
+"picker.media.fail.message" = "Silakan coba lagi atau pilih foto atau video lain.";
 
 /* Alert title in media picker when unable to load media file. */
 "picker.media.fail.title" = "Gagal memuat media";
@@ -1292,10 +1352,10 @@
 "picker.media.limit.settings" = "Ubah pengaturan";
 
 /* Alert title in media picker when selecting over limit. */
-"picker.media.limit.title" = "Memilih item maksimal";
+"picker.media.limit.title" = "Jumlah maksimum item yang dapat dipilih";
 
 /* An option to update limited access. */
-"picker.media.limit.updateSelection" = "Perbarui seleksi gambar & video";
+"picker.media.limit.updateSelection" = "Perbarui pilihan gambar & video";
 
 /* Message in media picker when selecting over limit. */
 "picker.media.n.limit" = "picker.media.n.limit";
@@ -1310,7 +1370,7 @@
 "post.has.been.deleted.by.author" = "%@ menghapus postingannya";
 
 /* Displayed in place of a deleted feed post. */
-"post.has.been.deleted.by.you" = "Anda telah menghapus postingan";
+"post.has.been.deleted.by.you" = "Anda menghapus postingan Anda";
 
 /* Header when selecting all or some contacts to share with */
 "post.privacy.header.contacts" = "Yang akan melihat postingan ini";
@@ -1346,7 +1406,7 @@
 "profile.header.message.user" = "pesan";
 
 /* Text for unblocking user under profile header */
-"profile.header.unblock.user" = "Buka blokir";
+"profile.header.unblock.user" = "Buka Blokir";
 
 /* This is a verb.  The text is clickable, under a contact name and starts a video call with that contact. It should not be translated as a noun. */
 "profile.header.video.call.user" = "video";
@@ -1355,10 +1415,10 @@
 "profile.help.calls" = "Panggilan";
 
 /* Item in Profile > Help screen. */
-"profile.help.faq" = "Pertanyaan Populer";
+"profile.help.faq" = "Tanya Jawab";
 
 /* Item in Profile > Help screen. */
-"profile.help.feedback" = "Bagikan Masukan & Log";
+"profile.help.feedback" = "Bagikan Umpan Balik & Log";
 
 /* Item in Profile > Help screen. */
 "profile.help.pp" = "Kebijakan Privasi";
@@ -1367,13 +1427,13 @@
 "profile.help.share.logs" = "Bagikan Log";
 
 /* Item in Profile > Help screen. */
-"profile.help.tos" = "Syarat Layanan";
+"profile.help.tos" = "Ketentuan Layanan";
 
 /* Displays remaining number of characters user is allowed to enter while editing their profile name, as well as maximum allowed name length. */
 "profile.name.length" = "%1$d/%2$d";
 
 /* Row in Profile screen. */
-"profile.row.about" = "Mengenai HalloApp";
+"profile.row.about" = "Tentang HalloApp";
 
 /* Row in Profile Screen */
 "profile.row.account" = "Akun";
@@ -1397,40 +1457,40 @@
 "profile.title" = "Profil";
 
 /* Title for the screen allowing to edit profile name */
-"profile.title.your.name" = "Namamu";
+"profile.title.your.name" = "Nama Anda";
 
 /* Title for the button allowing the user to view their own profile photo. */
 "profile.view.photo" = "Lihat Foto";
 
 /* Disclaimer text about receiving SMS verification code */
-"registration.code.disclaimer" = "Kamu akan menerima kode verifikasi.\nBiaya operator dapat berlaku.";
+"registration.code.disclaimer" = "Anda akan menerima kode verifikasi.\nDapat dikenakan biaya operator.";
 
 /* Error message to display when user enters incorrect verification code */
-"registration.code.incorrect" = "Kode yang kamu masukkan salah";
+"registration.code.incorrect" = "Kode yang Anda masukkan salah";
 
 /* Instructions for filling in SMS verification code. Parameter is formatted phone number */
-"registration.code.instructions" = "Masukkan kode yang kami kirimkan ke %@";
+"registration.code.instructions" = "Masukkan kode yang kami kirim ke %@";
 
 /* Error message to display when we cannot send a verification code */
-"registration.code.request.error" = "Gagal mengirim kode. Cobalah kembali nanti.";
+"registration.code.request.error" = "Tidak dapat mengirim kode. Silakan coba lagi nanti.";
 
 /* Button label to resend verification code */
-"registration.code.resend" = "Kirim ulang SMS";
+"registration.code.resend" = "Kirim Ulang SMS";
 
 /* Button label to resend verification code by voice call */
 "registration.code.resend.by.voice" = "Panggil saya";
 
 /* Text explaining why we need contact permissions */
-"registration.contacts.content" = "Untuk menghubungkan Anda dengan teman & keluarga Anda, kami memerlukan izin Anda untuk mengakses kontak Anda.";
+"registration.contacts.content" = "Untuk menghubungkan Anda dengan teman & keluarga Anda, kami memerlukan izin untuk mengakses kontak Anda.";
 
 /* Title for text explaining why we need contact permissions */
-"registration.contacts.title" = "Satu hal terakhir";
+"registration.contacts.title" = "Satu hal lagi";
 
 /* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
-"registration.free.app.notice" = "Gratis di iPhone App Store";
+"registration.free.app.notice" = "Gratis di App Store iPhone";
 
 /* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
-"registration.group.name" = "Anda diundang untuk bergabung ke grup %@";
+"registration.group.name" = "Anda diundang untuk bergabung dengan grup %@";
 
 /* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
 "registration.install.app.to.continue" = "Instal HalloApp untuk melanjutkan";
@@ -1439,7 +1499,7 @@
 "registration.install.app.to.join.group" = "Instal HalloApp untuk membuka %@";
 
 /* Title for popup that appears when user tries to register invalid number */
-"registration.invalidphone" = "Aduh!";
+"registration.invalidphone" = "Ups!";
 
 /* Popup that appears when user tries to register a number with invalid country code */
 "registration.invalidphone.invalidCountryCode" = "Nomor telepon yang Anda masukkan memiliki kode negara yang tidak valid. Silakan periksa ulang.";
@@ -1457,31 +1517,31 @@
 "registration.invalidphone.lineTypeVoip" = "Nomor telepon yang Anda masukkan bukan nomor ponsel. Silakan periksa ulang.";
 
 /* Popup that appears when user tries to register invalid number */
-"registration.invalidphone.only" = "Nomor telepon yang kamu masukkan tidak valid. Periksa kembali.";
+"registration.invalidphone.only" = "Nomor telepon yang Anda masukkan tidak valid. Silakan periksa ulang.";
 
 /* Popup that appears when user tries to register uninvited number */
-"registration.invite.only" = "Jika kamu menggunakan Tautan Undangan Grup untuk mendaftar, silakan klik lagi tautannya untuk menyelesaikan pendaftaran dan bergabung ke grup.";
+"registration.invite.only" = "Jika Anda menggunakan Tautan Undangan Grup untuk mendaftar, silakan klik lagi tautan tersebut untuk menyelesaikan pendaftaran dan bergabung dengan grup.";
 
 /* Placeholder text for name entry */
-"registration.nameEntry.placeholder" = "Namamu";
+"registration.nameEntry.placeholder" = "Nama Anda";
 
 /* Placeholder text for phone entry */
 "registration.phoneEntry.placeholder" = "Nomor telepon";
 
 /* Text for modal describing how we use contacts data */
-"registration.privacy.content" = "HalloApp hanya menggunakan kolom nomor telepon untuk mencocokkanmu dengan teman-teman di HalloApp, dan tidak mengirimkan data tambahan apa pun dari buku kontakmu.";
+"registration.privacy.content" = "HalloApp hanya menggunakan nomor telepon untuk dicocokkan dengan teman Anda di HalloApp, dan tidak mengirimkan data tambahan apa pun dari buku kontak Anda.";
 
 /* Title for modal describing how we use contacts data */
-"registration.privacy.title" = "Privasimu adalah prioritas kami";
+"registration.privacy.title" = "Privasi Anda adalah prioritas kami";
 
 /* Title for popup that appears when user tries to register uninvited number */
 "registration.shucks" = "Ups!";
 
 /* Shown above name and phone inputs */
-"registration.welcome" = "Selamat datang!";
+"registration.welcome" = "Selamat Datang!";
 
 /* Instructions for how to use the safety number verification UI */
-"safety.number.instructions" = "Untuk memverifikasi keamanan koneksimu dengan %@, pastikan angka di atas sama dengan yang ditunjukkan pada perangkat mereka, atau pindai kode QR di ponsel mereka.";
+"safety.number.instructions" = "Untuk memverifikasi keamanan hubungan Anda dengan %@, pastikan angka di atas sama dengan yang ditampilkan di perangkat mereka, atau pindai kode QR di ponsel mereka.";
 
 /* Message to show when safety number cannot be succesfully verified */
 "safety.number.not.verified" = "Gagal memverifikasi nomor keamanan untuk %@";
@@ -1496,7 +1556,7 @@
 "safety.number.verified" = "Berhasil memverifikasi nomor keamanan untuk %@!";
 
 /* Text shown to instruct using a QR code for joining a group */
-"scan.to.join.group.using.qr.code" = "Untuk gabung, pindai kode QR ini dengan kamera ponselmu.";
+"scan.to.join.group.using.qr.code" = "Untuk bergabung, pindai kode QR ini dengan kamera ponsel Anda.";
 
 /* Title that indicates that someone took a screenshot. */
 "screenshot.title" = "Jepretan Layar";
@@ -1505,7 +1565,7 @@
 "secret.post.entice" = "%@ berbagi momen";
 
 /* Message that pops up when user attempts to save an empty contact list */
-"select.at.least.one.contact" = "Harap pilih setidaknya satu kontak.";
+"select.at.least.one.contact" = "Silakan pilih setidaknya satu kontak.";
 
 /* Indicates that an item is in the process of being sent. */
 "sending.title" = "Mengirim";
@@ -1514,7 +1574,7 @@
 "sent.title" = "Terkirim";
 
 /* body of the marketing alert sent to users */
-"server.marketing.body" = "Undang temanmu untuk menikmati HalloApp!";
+"server.marketing.body" = "Undang teman Anda untuk menikmati HalloApp!";
 
 /* body of the marketing alert to encourage more posting */
 "server.marketing.post.body" = "Yang Anda lakukan sekarang mungkin menarik untuk teman sejati Anda.";
@@ -1529,13 +1589,13 @@
 "server.new.comment" = "Komentar Baru";
 
 /* fallback text in notification when a new contact joins */
-"server.new.contact" = "%@ kini ada di HalloApp";
+"server.new.contact" = "%@ sekarang di HalloApp";
 
 /* fallback text in notification when user is added to a new group */
 "server.new.group" = "Anda ditambahkan ke grup baru";
 
 /* fallback text in notification when an invitee joins */
-"server.new.inviter" = "%@ baru menerima undangan Anda untuk bergabung di HalloApp 🎉";
+"server.new.inviter" = "%@ baru saja menerima undangan Anda untuk bergabung dengan HalloApp 🎉";
 
 /* fallback text in notification for a new chat message */
 "server.new.message" = "Pesan Baru";
@@ -1550,61 +1610,61 @@
 "server.voicecall.verification" = "Kode verifikasi HalloApp Anda adalah";
 
 /* Displayed while syncing account immediately after registration */
-"setting.up.halloapp" = "Menyiapkan HalloApp";
+"setting.up.halloapp" = "Mengatur HalloApp";
 
 /* Title of alert telling the user they're about to delete their account */
 "settings.account.delete.action.title" = "Hapus Akun";
 
 /* Action that will occur when users delete their account */
-"settings.account.delete.bullet1" = "Hapus info akun Anda dan foto profil Anda";
+"settings.account.delete.bullet1" = "Menghapus info akun dan foto profil Anda";
 
 /* Action that will occur when users delete their account */
-"settings.account.delete.bullet2" = "Keluarkan Anda dari semua grup HalloApp";
+"settings.account.delete.bullet2" = "Mengeluarkan Anda dari semua grup HalloApp";
 
 /* Action that will occur when users delete their account */
-"settings.account.delete.bullet3" = "Hapus riwayat pesan Anda di ponsel ini";
+"settings.account.delete.bullet3" = "Menghapus riwayat pesan Anda di ponsel ini";
 
 /* Button to continue to the next step of deleting account after warning */
-"settings.account.delete.continue.title" = "Lanjut";
+"settings.account.delete.continue.title" = "Lanjutkan";
 
 /* Label telling the user that their account has been deleted */
 "settings.account.delete.deleted" = "Akun Dihapus";
 
 /* Alert telling user that their account could not be deleted, and that it's likely due to their phone number */
-"settings.account.delete.error" = "Ada kesalahan menghapus akun Anda. Pastikan nomor telepon Anda benar.";
+"settings.account.delete.error" = "Terdapat kesalahan saat menghapus akun Anda. Pastikan nomor telepon Anda benar.";
 
 /* Text field label asking for feedback before deleting account */
-"settings.account.delete.feedback.prompt" = "Punya masukan untuk tim HalloApp? (Opsional)";
+"settings.account.delete.feedback.prompt" = "Memiliki umpan balik untuk tim HalloApp? (Opsional)";
 
 /* Label above list of things that will happen if they delete their account */
 "settings.account.delete.header" = "Menghapus akun Anda akan:";
 
 /* Alert message telling the user that account deletion is irreversible */
-"settings.account.delete.irreversible.label" = "Tindakan ini tidak dapat dikembalikan";
+"settings.account.delete.irreversible.label" = "Tindakan ini tidak dapat diubah";
 
 /* Text field placeholder for collecting feedback before deleing account */
-"settings.account.delete.phone.number.placeholder" = "Masukan";
+"settings.account.delete.phone.number.placeholder" = "Umpan Balik";
 
 /* Text field label for account deletion phone number */
-"settings.account.delete.phone.number.prompt" = "Masukkan nomor ponsel untuk mengonfirmasi";
+"settings.account.delete.phone.number.prompt" = "Masukkan nomor telepon untuk mengonfirmasi";
 
 /* String that's displayed when a spinner is not available to indicate that the view is waiting for a response from the server */
 "settings.account.delete.spinner.replacement" = "Menunggu respons server";
 
 /* Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account */
-"settings.account.deleted.message" = "Anda tidak akan dapat masuk sampai memulai ulang aplikasi";
+"settings.account.deleted.message" = "Anda tidak akan dapat masuk hingga memulai ulang aplikasi";
 
 /* Alert title telling the user that their account was successfully deleted */
 "settings.account.deleted.title" = "Akun berhasil dihapus";
 
 /* Label telling the user when their data export will be made available. %1$@ is a date. */
-"settings.account.export.date.available" = "Untuk alasan keamanan, data Anda akan tersedia pada %1$@";
+"settings.account.export.date.available" = "Demi keamanan, data Anda akan tersedia pada tanggal %1$@";
 
 /* Label alerting the user that we were unable to retrieve the data. */
-"settings.account.export.error" = "Ada kesalahan mengambil data Anda.";
+"settings.account.export.error" = "Terdapat kesalahan saat mengambil data Anda.";
 
 /* Explanation about what the data export function is. English language version taken from WhatsApp. */
-"settings.account.export.explanation" = "Membuat laporan informasi dan pengaturan Akun HalloApp, yang dapat Anda akses atau portkan ke aplikasi lain. Laporan ini tidak termasuk pesan Anda.";
+"settings.account.export.explanation" = "Buat laporan informasi dan pengaturan Akun HalloApp Anda, yang dapat diakses atau diekspor ke app lain. Laporan ini tidak termasuk pesan Anda.";
 
 /* String indicating device is awaiting a server response. Only visible in iOS 13. */
 "settings.account.export.loading" = "Memuat Data...";
@@ -1613,10 +1673,10 @@
 "settings.account.export.navbar" = "Ekspor Data";
 
 /* Label for when the date at which the exported user data will be available is not determined. */
-"settings.account.export.not.found" = "Tanggal saat data Anda akan tersedia tidak dapat ditetapkan.";
+"settings.account.export.not.found" = "Tanggal saat data Anda akan tersedia tidak dapat ditentukan.";
 
 /* Button to open the user data exported from HalloApp. */
-"settings.account.export.open.data" = "Buka data ekspor";
+"settings.account.export.open.data" = "Buka data yang diekspor";
 
 /* Navigation bar title informing the user that this page lets them export their user data. */
 "settings.account.export.request.button" = "Minta Ekspor Data";
@@ -1658,7 +1718,7 @@
 "settings.privacy.posts" = "Postingan";
 
 /* String to auto-fill if a user tried to share to a friend. */
-"settings.share.text" = "Bergabunglah dengan jaringan relasi sungguhan saya di HalloApp. Unduh gratis di halloapp.com/dl";
+"settings.share.text" = "Bergabunglah dengan jaringan hubungan nyata saya di HalloApp. Unduh gratis di halloapp.com/dl";
 
 /* Prompt for the user to share a moment. */
 "share.moment.prompt" = "Bagikan momen";
@@ -1682,7 +1742,7 @@
 "textlabel.context.menu.share" = "Bagikan...";
 
 /* Link to expand truncated text. */
-"textlabel.more" = "...lebih banyak";
+"textlabel.more" = "...lainnya";
 
 /* Same as profile.header.call.user, but capitalized */
 "textview.context.menu.audio.call.user" = "Panggilan video";
@@ -1790,7 +1850,7 @@
 "unknown.contact.accept.to.message" = "Terima Pesan";
 
 /* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
-"unknown.contact.not.in.contact.book" = "Pengirim ini tidak ada di buku kontakmu.";
+"unknown.contact.not.in.contact.book" = "Pengirim ini tidak ada di buku kontak Anda.";
 
 /* Text that indicates the unlock action for a moment. */
 "unlock.title" = "Buka";
@@ -1802,7 +1862,7 @@
 "user.block" = "Blokir";
 
 /* Message asking if the user is sure they want to block this user */
-"user.block.message" = "Yakin ingin memblokir %@ di HalloApp? Kamu dapat selalu mengubah ini nanti.";
+"user.block.message" = "Apakah Anda yakin ingin memblokir %@ di HalloApp? Anda dapat mengubah pengaturan ini nanti.";
 
 /* Option when user taps more on profile page */
 "user.option.block" = "Blokir di HalloApp";
@@ -1817,7 +1877,7 @@
 "user.unblock" = "Buka Blokir";
 
 /* Message asking if the user is sure they want to unblock this user */
-"user.unblock.message" = "Anda yakin ingin membuka blokir %@ pada HalloApp? Anda selalu dapat mengubah ini nanti.";
+"user.unblock.message" = "Apakah Anda yakin ingin membuka blokir %@ di HalloApp? Anda dapat mengubah pengaturan ini nanti.";
 
 /* Button to start voice call. Should be translated as verb. */
 "user.voice.call" = "Panggil";
@@ -1850,10 +1910,10 @@
 "your.post.deletepost.error" = "Kesalahan menghapus postingan";
 
 /* Success toast when external share link is copied */
-"your.post.externalshare.copylink.success" = "Salin ke Papan Klip";
+"your.post.externalshare.copylink.success" = "Disalin ke Papan Klip";
 
 /* Message on header of post menu explaining external share */
-"your.post.externalshare.description2" = "Siapa pun dengan tautan ini dapat melihat postingan Anda. Tautan akan kedaluwarsa dengan postingan Anda. Pratinjau tautan tidak dienkripsi.";
+"your.post.externalshare.description2" = "Siapa pun yang memiliki tautan ini dapat melihat postingan Anda. Tautan akan kedaluwarsa dengan postingan Anda. Pratinjau tautan tidak dienkripsi.";
 
 /* Message that external share failed. */
 "your.post.externalshare.error" = "Gagal mengunggah postingan ke berbagi eksternal";

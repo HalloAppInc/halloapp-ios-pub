@@ -28,7 +28,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>other</key>
-			<string>Membagikan kontak dengan %d</string>
+			<string>Membagikan dengan %d kontak saya</string>
 		</dict>
 	</dict>
 	<key>feed.privacy.value.n.contacts.excluded</key>
@@ -42,7 +42,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>other</key>
-			<string>%d Kontak Dikeluarkan</string>
+			<string>%d Kontak Dikecualikan</string>
 		</dict>
 	</dict>
 	<key>feed.privacy.value.n.contacts.selected</key>
@@ -70,7 +70,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>other</key>
-			<string>%d Dikeluarkan</string>
+			<string>%d Dikecualikan</string>
 		</dict>
 	</dict>
 	<key>feed.privacy.value.n.selected</key>
@@ -128,7 +128,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>other</key>
-			<string>Gagal menyiapkan media. Silakan coba lagi atau pilih foto/video berbeda.</string>
+			<string>Gagal menyiapkan media. Silakan coba lagi atau pilih foto/video lain.</string>
 		</dict>
 	</dict>
 	<key>n.invites.count</key>
@@ -142,7 +142,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>other</key>
-			<string>Kamu punya %d undangan.</string>
+			<string>Anda memiliki %d undangan.</string>
 		</dict>
 	</dict>
 	<key>n.invites.remaining</key>
@@ -156,7 +156,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>other</key>
-			<string>Kamu punya sisa %d undangan</string>
+			<string>Anda memiliki %d sisa undangan</string>
 		</dict>
 	</dict>
 	<key>n.others.replied</key>
@@ -184,7 +184,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>other</key>
-			<string>%d Komentar yang Belum Dibaca</string>
+			<string>%d Komentar Belum Dibaca</string>
 		</dict>
 	</dict>
 	<key>n.unread.messages.title</key>
@@ -240,7 +240,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>other</key>
-			<string>Anda dapat pilih maksimal satu item</string>
+			<string>Anda dapat memilih hingga satu item</string>
 		</dict>
 	</dict>
 	<key>privacy.n.contacts</key>
@@ -256,7 +256,7 @@
 			<key>other</key>
 			<string>%d Kontak</string>
 			<key>zero</key>
-			<string>Tidak ada</string>
+			<string>Tidak Anda</string>
 		</dict>
 	</dict>
 </dict>

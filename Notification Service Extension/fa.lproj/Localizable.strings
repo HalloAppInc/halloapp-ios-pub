@@ -181,6 +181,18 @@
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "ویدیو 📹";
 
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.1" = "@% لحظه‌ای را به اشتراک گذاشت و لحظه شما را باز کرد";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.2" = "@$1% و @$2% لحظه‌ای را به اشتراک گذاشتند و لحظه شما را باز کرد";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.3" = "@$1% و @$2% و @$3% لحظه‌ای را به اشتراک گذاشتند و لحظه شما را باز کرد";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.4" = "@$1% و @$2% و @$3% و دیگران لحظه‌ای را به اشتراک گذاشتند و لحظه شما را باز کرد";
+
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 تماس ویدیویی از دست رفته";
 

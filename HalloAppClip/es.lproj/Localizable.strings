@@ -74,7 +74,7 @@
 "registration.invalidphone.lineTypeVoip" = "El número de teléfono que ingresaste no es un número de teléfono móvil. Por favor, verifícalo.";
 
 /* Popup that appears when user tries to register invalid number */
-"registration.invalidphone.only" = "El número de teléfono que marcaste no es válido. Por favor, revísalo.";
+"registration.invalidphone.only" = "El número de teléfono que marcaste es inválido. Por favor, verifícalo.";
 
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Si has seguido un enlace de invitación a un grupo para registrarte, vuelve a pulsar el enlace para finalizar el registro y unirte al grupo.";

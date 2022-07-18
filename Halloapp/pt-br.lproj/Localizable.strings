@@ -886,6 +886,9 @@
 /* Tag for new posts in groups grid */
 "groupGrid.newPostIndicator" = "Novo";
 
+/* Shown when post fails or is canceled. */
+"groupGrid.post.failed" = "Falha ao postar";
+
 /* More info menu item */
 "groupGridHeader.moreInfo" = "Mais informações";
 
@@ -985,6 +988,9 @@
 /* Version of an invitation to join HalloApp. The argument is the invitee's name. */
 "invite.text.specific.4" = "Ei %@! Junte-se a mim no HalloApp e compartilhe momentos reais com amigos reais. Confira: https://halloapp.com/new";
 
+/* Version of an invitation to join HalloApp. No arguments */
+"invite.text.specific.5" = "Estou convidando você para se juntar a mim no HalloApp. É um aplicativo privado e seguro para compartilhar fotos, conversar e ligar para seus amigos. Obtenha em https://halloapp.com/get";
+
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Convidar amigos";
 
@@ -1011,6 +1017,42 @@
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Atualize seu aplicativo.";
+
+/* General message of the alert for failures in location sharing features. */
+"locationSharing.alert.error" = "Algo deu errado. Por favor, tente novamente mais tarde.";
+
+/* Title of the alert for failures in location searches. */
+"locationSharing.alert.localSearchFailed.title" = "Falha na pesquisa de local";
+
+/* Message of the alert requesting location access for a feature. */
+"locationSharing.alert.locationAccessRequired.message" = "Você pode habilitar essa permissão em Configurações.";
+
+/* Title of the alert requesting location access for a feature. */
+"locationSharing.alert.locationAccessRequired.title" = "HalloApp requer acesso à sua localização para este recurso.";
+
+/* Title of the alert for failures resolving a location from the map. */
+"locationSharing.alert.locationResolvingFailed.title" = "Não foi possível resolver o local";
+
+/* Title of the menu to choose map type. */
+"locationSharing.chooseMap" = "Escolha o mapa";
+
+/* Subtitle of the user location callout. Parameter is the formatted length measurement of accuracy (including unit). */
+"locationSharing.locationAccuracyDescription" = "Preciso de %@";
+
+/* The explore map type (as in Apple Maps). */
+"locationSharing.mapType.explore" = "Explorar";
+
+/* The satellite map type (as in Apple Maps). */
+"locationSharing.mapType.satellite" = "Satélite";
+
+/* The menu action to focus on user location. */
+"locationSharing.myLocation" = "Minha Localização";
+
+/* Title of the location sharing main screen. */
+"locationSharing.navTitle" = "Localização";
+
+/* Title of a location in location list if it does not have a name. */
+"locationSharing.untitledLocation" = "Localização sem título";
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Eu";
@@ -1224,6 +1266,18 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 vídeo";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.1" = "%@ compartilhou um novo momento e desbloqueou o seu";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.2" = "%1$@ e %2$@ compartilharam um novo momento e desbloquearam o seu";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.3" = "%1$@, %2$@ e %3$@ compartilharam um novo momento e desbloquearam o seu";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ e outros compartilharam um novo momento e desbloquearam o seu";
 
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 Chamada de vídeo perdida";

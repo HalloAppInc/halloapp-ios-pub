@@ -41,7 +41,7 @@
 "activityCenter.promo.favorites" = "¡Mira la nueva función en Favoritos!";
 
 /* Text label for action button to add the contact to the address book */
-"add.to.contact.book" = "Añadir a libreta de contactos";
+"add.to.contact.book" = "Agregar a libreta de contactos";
 
 /* Title for alert shown when there's no internet connectivity */
 "alert.no.internet.title" = "No hay conexión a Internet";
@@ -71,7 +71,7 @@
 "banner.no.connection" = "Sin conexión a Internet";
 
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
-"button.add" = "Añadir";
+"button.add" = "Agregar";
 
 /* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Cancelar";
@@ -164,13 +164,13 @@
 "call.history.video.call.missed" = "Videollamada perdida";
 
 /* Title for call history event. Appears next to details of a successful call. */
-"call.history.voice.call" = "Llamada de voz";
+"call.history.voice.call" = "Llamada";
 
 /* Title for call history event. Appears next to details of a missed call. */
-"call.history.voice.call.missed" = "Llamada de voz perdida";
+"call.history.voice.call.missed" = "Llamada perdida";
 
 /* Status display when user mutes their own audio during a call. */
-"call.mute.local.audio" = "micrófono está apagado";
+"call.mute.local.audio" = "el micrófono está apagado";
 
 /* Status display when user mutes their own audio and video during a call. */
 "call.mute.local.audio.video" = "la cámara y el micrófono estás apagados";
@@ -179,13 +179,13 @@
 "call.mute.local.video" = "la cámara está apagada";
 
 /* Status display when peer mutes audio during a call. */
-"call.mute.remote.audio" = "%@ silenciar esta llamada";
+"call.mute.remote.audio" = "%@ silenció esta llamada";
 
 /* Status display when peer mutes both audio and video during a call. */
-"call.mute.remote.audio.video" = "%@ la cámara y el micrófono están apagados";
+"call.mute.remote.audio.video" = "la cámara y el micrófono de %@ están apagados";
 
 /* Status display when peer mutes video during a call. */
-"call.mute.remote.video" = "%@ la cámara está apagada";
+"call.mute.remote.video" = "la cámara de %@ está apagada";
 
 /* Status displayed when the other side is busy. */
 "call.status.busy" = "en otra llamada";
@@ -197,7 +197,7 @@
 "call.status.connecting" = "conectando...";
 
 /* Status displayed when call fails. */
-"call.status.failed" = "error en la llamada";
+"call.status.failed" = "Error al llamar";
 
 /* Status displayed when call is on hold. */
 "call.status.held" = "en espera";
@@ -215,7 +215,7 @@
 "call.status.ringing" = "llamando...";
 
 /* Generic error when trying to use camera */
-"camera.error" = "Error de cámara";
+"camera.error" = "Error en la cámara";
 
 /* No comment provided by engineer. */
 "camera.init.error.1" = "No se puede iniciar la cámara trasera";
@@ -248,10 +248,10 @@
 "camera.init.error.title" = "Error al inicializar";
 
 /* Text shown on the camera screen when composing a new moment. */
-"camera.moment.subtitle" = "Los Momentos desaparecen después de 24 horas y solo pueden ser vistos una vez";
+"camera.moment.subtitle" = "Los momentos desaparecen después de 24 horas y solo pueden ser vistos una vez";
 
 /* Text shown on the camera screen when composing a new moment to unlock someone else's moment. */
-"camera.moment.unlock.subtitle" = "Para ver el Momento de %@ comparte el tuyo";
+"camera.moment.unlock.subtitle" = "Para ver el momento de %@ comparte el tuyo";
 
 /* Title of alert for when the app does not have permissions to access the camera. */
 "camera.permissions.title" = "Acceso a la cámara";
@@ -281,7 +281,7 @@
 "chat.encryption.label" = "Todos los mensajes en HalloApp están cifrados de extremo a extremo. Más información";
 
 /* Text shown in Chat when the security keys of the contact user is chatting with, have changed */
-"chat.event.security.keys.changed" = "La clave de seguridad con %@ ha sido cambiada";
+"chat.event.security.keys.changed" = "La clave de seguridad con %@ fue cambiada";
 
 /* Chat entry that can be tapped to add the contact to address book */
 "chat.event.tap.to.add.contact" = "Toca para agregar a %@ a tu libreta de contactos";
@@ -365,7 +365,7 @@
 "chat.message.placeholder" = "Nuevo Mensaje";
 
 /* Text shown in place of a received message we are not able to process yet. */
-"chat.message.unsupported" = "Tu versión de HalloApp no admite este tipo de mensaje.";
+"chat.message.unsupported" = "Tu versión de HalloApp es incompatible con este tipo de mensaje.";
 
 /* Message text shown in a message that have video media but no text */
 "chat.message.video" = "Video";
@@ -413,7 +413,7 @@
 "comment.delete.confirmation" = "¿Eliminar este comentario? Esta acción no se puede revertir.";
 
 /* Text displayed in place of deleted comment. */
-"comment.deleted" = "Este comentario ha sido eliminado";
+"comment.deleted" = "Este comentario fue eliminado";
 
 /* Text displayed in place of a comment that is currently being deleted. */
 "comment.deleting" = "Eliminar comentario";
@@ -428,10 +428,13 @@
 "comment.textfield.placeholder" = "Nuevo Comentario";
 
 /* Text displayed in place of a comment that is not supported in the current app version. */
-"comment.unsupported" = "Tu versión de HalloApp no admite este tipo de comentario.";
+"comment.unsupported" = "Tu versión de HalloApp es incompatible con este tipo de comentario.";
 
 /* Warning text displayed in Comments when post wasn't available. */
-"comments.post.loading.failed" = "Error al cargar la publicación. Inténtalo más tarde.";
+"comments.post.loading.failed" = "Error al tratar de cargar la publicación. Inténtalo más tarde.";
+
+/* Label for add media button in post composer */
+"composer.addmedia" = "Agregar archivo multimedia";
 
 /* Accessibility label for add images button */
 "composer.audio.a11y.addImages" = "Agregar imágenes";
@@ -454,6 +457,9 @@
 /* Title on edit button */
 "composer.button.edit" = "Editar";
 
+/* Send button title */
+"composer.button.send.to" = "Enviar a";
+
 /* Title warning that a voice recording will be deleted */
 "composer.delete.recording.title" = "¿Eliminar grabación de voz?";
 
@@ -464,7 +470,7 @@
 "composer.deletevoicenote.title" = "¿Eliminar publicación?";
 
 /* Label shown when only single media item selected */
-"composer.label.more" = "Añadir más";
+"composer.label.more" = "Agregar más";
 
 /* Alert message in composer when a video is too long */
 "composer.max.video.length.message" = "Por favor selecciona otro video o toca el botón para editar.";
@@ -479,10 +485,10 @@
 "composer.message.title" = "Nuevo Mensaje";
 
 /* Composer New Moment Post title. */
-"composer.moment.post.title" = "Nuevo Momento";
+"composer.moment.post.title" = "Nuevo momento";
 
 /* Placeholder text for media caption field in post composer. */
-"composer.placeholder.media.description" = "Escribe una descripción";
+"composer.placeholder.media.description" = "Agrega una descripción";
 
 /* Placeholder text in text post composer screen. */
 "composer.placeholder.text.post" = "Escribe un publicación";
@@ -521,7 +527,7 @@
 "create.group.default.name.my.new.group" = "Mi nuevo grupo";
 
 /* Placeholder text shown inside the group description input box when it's empty */
-"create.group.description.placeholder" = "Añade una descripción (opcional)";
+"create.group.description.placeholder" = "Agrega una descripción (opcional)";
 
 /* Alert message telling the user to try creating the group again after an error */
 "create.group.error" = "Hubo un error al crear el grupo, inténtalo de nuevo";
@@ -536,7 +542,7 @@
 "Delete" = "Eliminar";
 
 /* Body of the bottom sheet that is presented only once to explain the moments feature. */
-"describing.moments" = "Desbloquea los Momentos de tus amigos compartiendo los tuyos. Los Momentos son casuales, desaparecen después de verlos una vez.";
+"describing.moments" = "Desbloquea los momentos de tus amigos compartiendo los tuyos. Los momentos son casuales, desaparecen después de verlos una vez.";
 
 /* link, tapping on which launched the flow to edit blocked contacts */
 "edit.blocked" = "Editar";
@@ -545,13 +551,13 @@
 "edit.favorites" = "Editar favoritos";
 
 /* Text to show on profile for users you are not connected with */
-"exchange.phone.numbers.to.connect" = "Para conectarte debes intercambiar números de teléfono";
+"exchange.phone.numbers.to.connect" = "Para conectarse deben intercambiar números de teléfono";
 
 /* Description of an externally shared post containing an audio post */
 "externalShare.og.description.audio" = "Publicación de audio";
 
 /* Description of an externally shared post containing photos/videos */
-"externalShare.og.description.media" = "Publicación de medios";
+"externalShare.og.description.media" = "Publicación de archivos multimedia";
 
 /* Description of an externally shared post containing just text */
 "externalShare.og.description.text" = "Publicación de texto";
@@ -578,7 +584,7 @@
 "fab.post.button" = "Publicación";
 
 /* Indicates that an item has failed to be sent. */
-"failed.to.send" = "Error en el envío";
+"failed.to.send" = "Error al enviar";
 
 /* Text shown in place of a received post we are not able to decrypt yet. */
 "feed.comment.waiting" = "Esperando por el comentario. Esto puede demorar un poco.";
@@ -614,7 +620,7 @@
 "feed.notification.deleted.comment" = "<$author$> eliminó su comentario";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.deleted.post" = "<$author$> comentó. Esta publicación ha sido eliminada.";
+"feed.notification.deleted.post" = "<$author$> comentó. Esta publicación fue eliminada.";
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification.mention.comment.no.text" = "<$author$> te mencionó en un comentario";
@@ -638,13 +644,13 @@
 "feed.notification.replied.w.text" = "<$author$> respondió: <$text$>";
 
 /* Archived date timestamp */
-"feed.post.archived.timestamp" = "Archivado %@";
+"feed.post.archived.timestamp" = "Archivado el %@";
 
 /* Shown when post fails or is canceled. */
-"feed.post.failed" = "Error en la publicación.";
+"feed.post.failed" = "Error al publicar.";
 
 /* Shown when receiving a new (unsupported) type of post. */
-"feed.post.unsupported" = "Tu versión de HalloApp no admite este tipo de publicación.";
+"feed.post.unsupported" = "Tu versión de HalloApp es incompatible con este tipo de publicación.";
 
 /* Text shown in place of a received post we are not able to decrypt yet. */
 "feed.post.waiting" = "Esperando por la publicación. Esto puede demorar un poco.";
@@ -656,7 +662,7 @@
 "feed.privacy.descr.all" = "Compartir con todos tus contactos";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.except" = "Compartir con mis contactos, excepto con las personas que seleccione";
+"feed.privacy.descr.except" = "Compartir con mis contactos, excepto con las personas que escoja";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Compartir solo con los contactos seleccionados";
@@ -677,7 +683,7 @@
 "feed.privacy.list.except" = "Mis contactos excepto ...";
 
 /* Header for the list when selecting contacts to not share with. */
-"feed.privacy.list.except.details" = "Selecciona quién no verá esta publicaión";
+"feed.privacy.list.except.details" = "Escoge quién no verá esta publicaión";
 
 /* Title for the list when selecting contacts to not share with. */
 "feed.privacy.list.except.title" = "Esconder publicaciones de...";
@@ -689,7 +695,7 @@
 "feed.privacy.list.only" = "Favoritos";
 
 /* Header for the favorites list when editing contacts to share with. */
-"feed.privacy.list.only.details" = "Selecciona quién verá esta publicación";
+"feed.privacy.list.only.details" = "Quién verá esta publicación";
 
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.only.title" = "Favoritos";
@@ -737,7 +743,7 @@
 "feedpost.button.reply" = "Responder en privado";
 
 /* Placeholder text shown in group description input box when there's no description */
-"group.add.description" = "Añadir descripción del grupo";
+"group.add.description" = "Agrega la descripción del grupo";
 
 /* Label shown above background selection row */
 "group.background.label" = "Fondo de pantalla";
@@ -779,22 +785,22 @@
 "group.event.changed.name" = "%1$@ cambió el nombre del grupo a \"%2$@\"";
 
 /* Message text shown when you change the group name */
-"group.event.changed.name.you" = "Cambiaste el nombre del grupo por el de \"%1@\"";
+"group.event.changed.name.you" = "Cambiaste el nombre del grupo por \"%1@\"";
 
 /* Message text shown with the user who created the group */
 "group.event.created.group" = "%1$@ creó el grupo \"%2$@\"";
 
 /* Message text shown when you create a group */
-"group.event.created.group.you" = "Has creado el grupo \"%1@\"";
+"group.event.created.group.you" = "Creaste el grupo \"%1@\"";
 
 /* Message text shown with the user who demoted a group admin */
-"group.event.demoted.member" = "%1$@ eliminó a %2$@ como administrador";
+"group.event.demoted.member" = "%1$@ descartó a %2$@ como administrador";
 
 /* Message text shown when you demote a group admin */
-"group.event.demoted.member.you" = "Eliminaste a %1@ como administrador";
+"group.event.demoted.member.you" = "Descartaste a %1@ como administrador";
 
 /* Message text shown with the user who promoted a group member */
-"group.event.promoted.member" = "%1$@ designó a %2$@ como admin.";
+"group.event.promoted.member" = "%1$@ designó a %2$@ como administrador";
 
 /* Message text shown when you promote a group member */
 "group.event.promoted.member.you" = "Designaste a %1@ como administrador";
@@ -842,13 +848,13 @@
 "group.invite.reset.link.warning" = "Si se restablece este enlace de invitación, nadie podrá usarlo para unirse al grupo.";
 
 /* Label for sharing link */
-"group.invite.share.link" = "Compartir el enlace";
+"group.invite.share.link" = "Compartir enlace";
 
 /* Text shown before the sharing link */
 "group.invite.share.link.message" = "Haz clic en este enlace para unirte a mi grupo de HalloApp:";
 
 /* Title of group invite screen */
-"group.invite.title" = "Enlace de invitación al grupo";
+"group.invite.title" = "Invitación al grupo";
 
 /* Title of invite sheet */
 "group.invitesheet.title" = "Compartir este enlace con amigos y familia y ellos se unirán automáticamente a HalloApp";
@@ -860,13 +866,13 @@
 "group.members.label" = "Miembros";
 
 /* Text for alert box when the user clicks on an invalid group invite link */
-"group.preview.get.info.error.invalid.link" = "El enlace de invitación al grupo no es válido";
+"group.preview.get.info.error.invalid.link" = "El enlace de invitación al grupo es inválido";
 
 /* Text for alert box when the user can't join the group via group link when the group is full */
 "group.preview.join.error.group.full" = "El grupo está lleno";
 
 /* Text for alert box when the user can't join the group via group link when link is invalid */
-"group.preview.join.error.invalid.link" = "El enlace no es válido";
+"group.preview.join.error.invalid.link" = "El enlace es inválido";
 
 /* Title for alert box when the user can't join the group via group link */
 "group.preview.join.error.title" = "No pudiste unirte al grupo";
@@ -886,6 +892,9 @@
 /* Tag for new posts in groups grid */
 "groupGrid.newPostIndicator" = "nuevo";
 
+/* Shown when post fails or is canceled. */
+"groupGrid.post.failed" = "Error al publicar";
+
 /* More info menu item */
 "groupGridHeader.moreInfo" = "Más información";
 
@@ -896,7 +905,7 @@
 "groups.common" = "Grupos en común";
 
 /* Text shown when user is about to remove the group */
-"groups.list.remove.message" = "¿Estás seguro que quieres eliminar este grupo y su contenido del dispositivo?";
+"groups.list.remove.message" = "¿Quieres eliminar este grupo y su contenido del dispositivo?";
 
 /* The name of the group that is created for the user when they are new and in the zero zone (no contacts and no content) */
 "groups.NUX.user.group.name" = "Grupo de %@";
@@ -917,7 +926,7 @@
 "home.calls.fail.text" = "Lo siento, inténtalo más tarde.";
 
 /* Title of failed call screen alert. */
-"home.calls.fail.title" = "Error al intentar llamar.";
+"home.calls.fail.title" = "Error al llamar.";
 
 /* Text shown to users trying to open the call screen. */
 "home.calls.notice.text" = "No hay llamada en curso en este momento.";
@@ -962,7 +971,7 @@
 "invite.error.alert.title" = "Error en la invitación";
 
 /* Displayed when user does not have any invites left. Parameter is date. */
-"invite.out.of.invites.w.date" = "Ya no tienes más invitaciones. Vuelve a revisar después del %@";
+"invite.out.of.invites.w.date" = "Ya no tienes más invitaciones. Vuelve a revisar después de %@";
 
 /* Displayed white user is inviting someone. */
 "invite.please.wait" = "Por favor espera...";
@@ -984,6 +993,9 @@
 
 /* Version of an invitation to join HalloApp. The argument is the invitee's name. */
 "invite.text.specific.4" = "Hey %@! Únete a mí en HalloApp, y comparte momentos verdaderos con amistades reales. Échale un vistazo: https://halloapp.com/new";
+
+/* Version of an invitation to join HalloApp. No arguments */
+"invite.text.specific.5" = "Te invito a que te unas a mí en HalloApp. Una aplicación privada y segura para compartir fotos, chatear y llamar a tus amigos. Consíguela en https://halloapp.com/get";
 
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Invitar";
@@ -1011,6 +1023,42 @@
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Actualiza tu aplicación.";
+
+/* General message of the alert for failures in location sharing features. */
+"locationSharing.alert.error" = "Algo salió mal. Por favor, inténtalo más tarde.";
+
+/* Title of the alert for failures in location searches. */
+"locationSharing.alert.localSearchFailed.title" = "Error en la búsqueda de ubicación";
+
+/* Message of the alert requesting location access for a feature. */
+"locationSharing.alert.locationAccessRequired.message" = "Puedes habilitar este permiso en Configuración.";
+
+/* Title of the alert requesting location access for a feature. */
+"locationSharing.alert.locationAccessRequired.title" = "HalloApp requiere acceso a tu ubicación para esta función.";
+
+/* Title of the alert for failures resolving a location from the map. */
+"locationSharing.alert.locationResolvingFailed.title" = "No se pudo encontrar la ubicación";
+
+/* Title of the menu to choose map type. */
+"locationSharing.chooseMap" = "Elegir mapa";
+
+/* Subtitle of the user location callout. Parameter is the formatted length measurement of accuracy (including unit). */
+"locationSharing.locationAccuracyDescription" = "Exactitud de %@";
+
+/* The explore map type (as in Apple Maps). */
+"locationSharing.mapType.explore" = "Explorar";
+
+/* The satellite map type (as in Apple Maps). */
+"locationSharing.mapType.satellite" = "Satélite";
+
+/* The menu action to focus on user location. */
+"locationSharing.myLocation" = "Mi ubicación";
+
+/* Title of the location sharing main screen. */
+"locationSharing.navTitle" = "Ubicación";
+
+/* Title of a location in location list if it does not have a name. */
+"locationSharing.untitledLocation" = "Ubicación desconocida";
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Yo";
@@ -1094,10 +1142,10 @@
 "migration.inProgress" = "Optimizando datos...";
 
 /* Disclaimer to tell the user that their moments go to all of their contacts on HalloApp. */
-"moment.contacts.disclaimer" = "Tu Momento solo se compartirá con tus contactos en HalloApp";
+"moment.contacts.disclaimer" = "Tu momento solo se compartirá con tus contactos en HalloApp";
 
 /* Text displayed the first time the user acts to post a second moment in the same day. */
-"moment.replacement.disclaimer" = "Este nuevo Momento reemplazará al anterior.";
+"moment.replacement.disclaimer" = "Este nuevo momento reemplazará al anterior.";
 
 /* Title of text displayed the first time the user acts to post a second moment in the same day. */
 "moment.replacement.title" = "Aviso";
@@ -1112,7 +1160,7 @@
 "moment.uploading.success" = "¡Compartido!";
 
 /* Message displayed to say when moments will disappear. */
-"mymoment.disappear.time.label" = "Tu Momento fue compartido con tu lista de contactos. Los Momentos desaparecen después de 24 horas y solo se pueden ver una vez.";
+"mymoment.disappear.time.label" = "Tu momento fue compartido con tu lista de contactos. Los momentos desaparecen después de 24 horas y solo se pueden ver una vez.";
 
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Enviar un mensaje";
@@ -1130,7 +1178,7 @@
 "mypost.favorites.disappear.time.label" = "Tu publicación se compartió con tus Favoritos y desaparecerá después de 30 días.";
 
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
-"mypost.hide.posts.confirmation" = "¿Estás seguro que quieres ocultar todas las publicaciones futuras de %@? Puedes hacer este cambio más adelante.";
+"mypost.hide.posts.confirmation" = "¿Quieres ocultar todas las publicaciones futuras de %@? Puedes cambiarlo después.";
 
 /* Placeholder text displayed in My Post Info screen when no one has seen the post yet. */
 "mypost.not.viewed.yet" = "Nadie ha visto aún tu publicación";
@@ -1154,7 +1202,7 @@
 "n.posts.deleted" = "%@ publicaciones eliminadas";
 
 /* Header that appears above unread messages in the comments view. */
-"n.unread.comments.title" = "\n";
+"n.unread.comments.title" = "n.unread.comments.title\n";
 
 /* Header that appears above unread messages in the chats view. */
 "n.unread.messages.title" = "n.unread.messages.title";
@@ -1163,7 +1211,7 @@
 "new.group.members.empty.placeholder" = "Tus contactos que están en HalloApp aparecerán aquí";
 
 /* Alert text shown when max group size is reached when selecting/adding group members */
-"new.group.members.max.size.alert" = "El tamaño máximo de grupo es %d";
+"new.group.members.max.size.alert" = "El tamaño máximo del grupo es %d";
 
 /* Title for alert that pops up when user attempts to save an empty contact list */
 "no.contact.selected" = "No has seleccionado contacto";
@@ -1181,22 +1229,22 @@
 "notification.invite.accepted.content" = "%@ acaba de aceptar tu invitación a HalloApp 🎉";
 
 /* New moment notification text to be shown to the user. */
-"notification.moment" = "Nuevo Momento";
+"notification.moment" = "Nuevo momento";
 
 /* New moment notification text to be shown to the user. */
-"notification.moment.1" = "%@ compartió un Momento";
+"notification.moment.1" = "%@ compartió un momento";
 
 /* New moment notification text to be shown to the user. */
-"notification.moment.2" = "%1$@ y %2$@ compartieron nuevos Momentos";
+"notification.moment.2" = "%1$@ y %2$@ compartieron nuevos momentos";
 
 /* New moment notification text to be shown to the user. */
-"notification.moment.3" = "%1$@, %2$@ y %3$@ compartieron nuevos Momentos";
+"notification.moment.3" = "%1$@, %2$@ y %3$@ compartieron nuevos momentos";
 
 /* New moment notification text to be shown to the user. */
-"notification.moment.5" = "%1$@, %2$@, %3$@ y otros compartieron nuevos Momentos";
+"notification.moment.5" = "%1$@, %2$@, %3$@ y otros compartieron nuevos momentos";
 
 /* New moment screenshot notification text to be shown to the user. */
-"notification.moment.screenshot" = "%@ tomó una captura de pantalla de tu Momento";
+"notification.moment.screenshot" = "%@ tomó una captura de pantalla de tu momento";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
@@ -1225,11 +1273,23 @@
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 video";
 
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.1" = "%@ compartió un nuevo momento y desbloqueó el tuyo";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.2" = "%1$@ y %2$@ compartieron un nuevo momento y desbloquearon el tuyo";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.3" = "%1$@, %2$@ y %3$@ compartieron un nuevo momento y desbloquearon el tuyo";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ y otros compartieron un nuevo momento y desbloquearon el tuyo";
+
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 Videollamada perdida";
 
 /* Missed voice call notification text to be shown to the user. */
-"notification.voicecall.missed" = "☎️ Llamada de voz perdida";
+"notification.voicecall.missed" = "☎️ Llamada perdida";
 
 /* New post notification text when post is a voice note. */
 "notification.voicecomment" = "Comentario de audio";
@@ -1250,13 +1310,13 @@
 "nux.chat.list" = "Aquí encontrarás mensajes de tus amigos y familiares. Cuando alguien nuevo se une a HalloApp lo podrás ver aquí.";
 
 /* Shown on groups in common when there are no groups to display */
-"nux.groups.common.list.empty" = "No hay grupo en común";
+"nux.groups.common.list.empty" = "No hay grupos en común";
 
 /* Shown on groups list when there are no groups to display */
 "nux.groups.list.empty" = "Tus grupos aparecerán aquí";
 
 /* Shown on home feed when no posts are available */
-"nux.home.feed.empty" = "Las publicaciones de tus contactos de teléfono aparecerán aquí";
+"nux.home.feed.empty" = "Las publicaciones de tus contactos aparecerán aquí";
 
 /* Text for new user popup pointing at new post button */
 "nux.new.post.button" = "Toca para compartir una novedad con tus amigos y familia en HalloApp";
@@ -1268,7 +1328,7 @@
 "photo.and.video.library" = "Galería de fotos y videos";
 
 /* Message in media picker when access is denied. */
-"picker.access.denied.message" = "Por favor, otorga acceso en configuración";
+"picker.access.denied.message" = "Por favor, otorga acceso en Configuración";
 
 /* An option to give access from settings */
 "picker.access.denied.settings" = "Configuración";
@@ -1283,7 +1343,7 @@
 "picker.media.fail.message" = "Inténtalo de nuevo o selecciona un video o una foto diferente.";
 
 /* Alert title in media picker when unable to load media file. */
-"picker.media.fail.title" = "Error al cargar la foto o el video";
+"picker.media.fail.title" = "Error al cargar archivo multimedia";
 
 /* Button shown to update limited access to media. */
 "picker.media.limit.button" = "Actualizar";
@@ -1292,7 +1352,7 @@
 "picker.media.limit.settings" = "Cambiar configuración";
 
 /* Alert title in media picker when selecting over limit. */
-"picker.media.limit.title" = "Cantidad máxima de objetos";
+"picker.media.limit.title" = "Cantidad máxima de archivos multimedia";
 
 /* An option to update limited access. */
 "picker.media.limit.updateSelection" = "Actualizar imagen y selección de video";
@@ -1457,7 +1517,7 @@
 "registration.invalidphone.lineTypeVoip" = "El número de teléfono que ingresaste no es un número de teléfono móvil. Por favor, verifícalo.";
 
 /* Popup that appears when user tries to register invalid number */
-"registration.invalidphone.only" = "El número de teléfono que marcaste no es válido. Por favor, revísalo.";
+"registration.invalidphone.only" = "El número de teléfono que marcaste es inválido. Por favor, verifícalo.";
 
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Si seguiste un enlace de invitación de grupo para registrarte, haz clic en el enlace nuevamente para finalizar el registro y unirte al grupo.\n";
@@ -1502,7 +1562,7 @@
 "screenshot.title" = "Captura de pantalla";
 
 /* Text placed on the blurred overlay of a secret post. */
-"secret.post.entice" = "%@ compartió un Momento";
+"secret.post.entice" = "%@ compartió un momento";
 
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Por favor, selecciona al menos un contacto.";
@@ -1571,7 +1631,7 @@
 "settings.account.delete.deleted" = "Cuenta eliminada";
 
 /* Alert telling user that their account could not be deleted, and that it's likely due to their phone number */
-"settings.account.delete.error" = "Hubo un error al eliminar tu cuenta. Por favor, revisa que tu número de teléfono esté escrito correctamente.";
+"settings.account.delete.error" = "Hubo un error al eliminar tu cuenta. Por favor, revisa que tu número de teléfono esté correcto.";
 
 /* Text field label asking for feedback before deleting account */
 "settings.account.delete.feedback.prompt" = "¿Algún comentario para el equipo de HalloApp?";
@@ -1604,7 +1664,7 @@
 "settings.account.export.error" = "Hubo un error al intentar conseguir tus datos.";
 
 /* Explanation about what the data export function is. English language version taken from WhatsApp. */
-"settings.account.export.explanation" = "Crea un reporte sobre tu información y configuración en tu cuenta de HalloApp, que puedes acceder o transferir a otra aplicación. Esta reporte no incluye tus mensajes.";
+"settings.account.export.explanation" = "Crea un reporte sobre tu información y configuración en tu cuenta de HalloApp, que puedes acceder o transferir a otra aplicación. Este reporte no incluye tus mensajes.";
 
 /* String indicating device is awaiting a server response. Only visible in iOS 13. */
 "settings.account.export.loading" = "Cargando datos...";
@@ -1661,13 +1721,13 @@
 "settings.share.text" = "Únete a mi red social de relaciones reales, HalloApp. Descarga la aplicación gratis en halloapp.com/dl";
 
 /* Prompt for the user to share a moment. */
-"share.moment.prompt" = "Comparte un Momento";
+"share.moment.prompt" = "Comparte un momento";
 
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "toca para devolver la llamada";
 
 /* One of the items in context menu presented upon long press on web link. */
-"textlabel.context.menu.add.reading.list" = "Añadir a la lista de lectura";
+"textlabel.context.menu.add.reading.list" = "Agregar a la lista de lectura";
 
 /* One of the items in context menu presented upon long press on linkified phone number in text. Parameter is the phone number. */
 "textlabel.context.menu.call.number" = "Llamar a %@";
@@ -1715,7 +1775,7 @@
 "timestamp.last.seen.yesterday.at" = "Visto por última vez ayer a las %@ ";
 
 /* Capitalized translation of `Now` to be used as timestamp. */
-"timestamp.now.capitalized" = "Justo ahora";
+"timestamp.now.capitalized" = "Ahora";
 
 /* Lowercase translation of `Now` to be used as timestamp. */
 "timestamp.now.lowercase" = "ahora";
@@ -1730,7 +1790,7 @@
 "title.camera" = "Cámara";
 
 /* Camera screen title for a new moment */
-"title.camera.moment" = "Nuevo Momento";
+"title.camera.moment" = "Nuevo momento";
 
 /* Title for new message screen where user chooses who to message */
 "title.chat.new.message" = "Nuevo Mensaje";
@@ -1802,7 +1862,7 @@
 "user.block" = "Bloquear";
 
 /* Message asking if the user is sure they want to block this user */
-"user.block.message" = "¿Estás seguro de que quieres bloquear a %@ en HalloApp? Siempre puedes cambiarlo más tarde.";
+"user.block.message" = "¿Quieres bloquear a %@ en HalloApp? Puedes cambiarlo después.";
 
 /* Option when user taps more on profile page */
 "user.option.block" = "Bloquear en HalloApp";
@@ -1817,7 +1877,7 @@
 "user.unblock" = "Desbloquear";
 
 /* Message asking if the user is sure they want to unblock this user */
-"user.unblock.message" = "¿Seguro que quieres desbloquear a %@ en HalloApp? Siempre puedes cambiar esto más tarde.";
+"user.unblock.message" = "¿Quieres desbloquear a %@ en HalloApp? Puedes cambiarlo después.";
 
 /* Button to start voice call. Should be translated as verb. */
 "user.voice.call" = "Llamar";
@@ -1835,10 +1895,10 @@
 "view.title" = "Ver";
 
 /* Moment deletion confirmation. Displays as action sheet title. */
-"your.moment.delete.confirmation" = "¿Eliminar este Momento? Esta acción no se puede revertir.";
+"your.moment.delete.confirmation" = "¿Eliminar este momento? Esta acción no se puede revertir.";
 
 /* Title for the button that confirms intent to delete your own moment. */
-"your.moment.delete.title" = "Eliminar Momento";
+"your.moment.delete.title" = "Eliminar momento";
 
 /* Title for the button that confirms intent to delete your own post. */
 "your.post.deletepost.button" = "Eliminar publicación";
@@ -1856,7 +1916,7 @@
 "your.post.externalshare.description2" = "Cualquiera que tenga el enlace puede ver tu publicación. El enlace caduca con tu publicación. La vista previa del enlace no está cifrada.";
 
 /* Message that external share failed. */
-"your.post.externalshare.error" = "Error al subir publicación para compartir de forma externa";
+"your.post.externalshare.error" = "Error al subir publicación para compartir externamente";
 
 /* Button to invalidate an external share link */
 "your.post.externalshare.revoke" = "Revocar enlace";

@@ -7,6 +7,9 @@
 /* Privacy - Contacts Usage Description */
 "NSContactsUsageDescription" = "مخاطب‌های خود را وارد سرور هالواپ کنید تا بتوانید پست‌های دوستانتان را ببینید و اجازه دهید آن‌ها پست‌های شما را ببینند.";
 
+/* Privacy - Location When In Use Usage Description */
+"NSLocationWhenInUseUsageDescription" = "این به شما اجازه میدهد مکان‌های اطرافتان را مشاهده کنید و به اشتراک بگذارید.";
+
 /* Privacy - Microphone Usage Description */
 "NSMicrophoneUsageDescription" = "این به شما اجازه میدهد ویدیو با صدا ضبط کنید.";
 

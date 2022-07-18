@@ -59,19 +59,19 @@
 "registration.invalidphone" = "Ups!";
 
 /* Popup that appears when user tries to register a number with invalid country code */
-"registration.invalidphone.invalidCountryCode" = "Die eingegebene Ländervorwahl ist ungültig. Bitte noch einmal prüfen.";
+"registration.invalidphone.invalidCountryCode" = "Die eingegebene Ländervorwahl ist ungültig. Bitte erneut prüfen.";
 
 /* Popup that appears when user tries to register a number with invalid length */
-"registration.invalidphone.invalidLength" = "Die Länge der eingegebenen Handynummer ist ungültig. Bitte noch einmal prüfen.";
+"registration.invalidphone.invalidLength" = "Die Länge der eingegebenen Handynummer ist ungültig. Bitte erneut prüfen.";
 
 /* Popup that appears when user tries to register a landline number */
-"registration.invalidphone.lineTypeFixed" = "Die eingegebene Telefonnummer ist keine Handynummer. Bitte noch einmal prüfen.";
+"registration.invalidphone.lineTypeFixed" = "Die eingegebene Telefonnummer ist keine Handynummer. Bitte erneut prüfen.";
 
 /* Popup that appears when user tries to register a number with unknown line type */
-"registration.invalidphone.lineTypeOther" = "Die eingegebene Telefonnummer ist keine Handynummer. Bitte noch einmal prüfen.";
+"registration.invalidphone.lineTypeOther" = "Die eingegebene Telefonnummer ist keine Handynummer. Bitte erneut prüfen.";
 
 /* Popup that appears when user tries to register a VoIP number */
-"registration.invalidphone.lineTypeVoip" = "Die eingegebene Telefonnummer ist keine Handynummer. Bitte noch einmal prüfen.";
+"registration.invalidphone.lineTypeVoip" = "Die eingegebene Telefonnummer ist keine Handynummer. Bitte erneut prüfen.";
 
 /* Popup that appears when user tries to register invalid number */
 "registration.invalidphone.only" = "Die eingegebene Handynummer ist ungültig. Bitte prüfe die Nummer und versuche es noch einmal.";

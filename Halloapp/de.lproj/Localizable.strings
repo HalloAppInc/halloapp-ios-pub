@@ -433,6 +433,9 @@
 /* Warning text displayed in Comments when post wasn't available. */
 "comments.post.loading.failed" = "Beim Laden dieses Beitrags ist ein Fehler aufgetreten. Bitte versuche es später noch einmal.";
 
+/* Label for add media button in post composer */
+"composer.addmedia" = "Medien hinzufügen";
+
 /* Accessibility label for add images button */
 "composer.audio.a11y.addImages" = "Bilder hinzufügen";
 
@@ -453,6 +456,9 @@
 
 /* Title on edit button */
 "composer.button.edit" = "Bearbeiten";
+
+/* Send button title */
+"composer.button.send.to" = "Senden an";
 
 /* Title warning that a voice recording will be deleted */
 "composer.delete.recording.title" = "Sprachaufnahme löschen?";
@@ -578,7 +584,7 @@
 "fab.post.button" = "Beitrag";
 
 /* Indicates that an item has failed to be sent. */
-"failed.to.send" = "Senden fehlgeschlagen";
+"failed.to.send" = "Kann nicht gesendet werden";
 
 /* Text shown in place of a received post we are not able to decrypt yet. */
 "feed.comment.waiting" = "Warten auf diesen Kommentar. Das kann eine Weile dauern.";
@@ -641,7 +647,7 @@
 "feed.post.archived.timestamp" = "Archiviert am %@";
 
 /* Shown when post fails or is canceled. */
-"feed.post.failed" = "Posten fehlgeschlagen.";
+"feed.post.failed" = "Kann nicht gepostet werden.";
 
 /* Shown when receiving a new (unsupported) type of post. */
 "feed.post.unsupported" = "Deine HalloApp-Version unterstützt diese Art von Beitrag nicht.";
@@ -886,6 +892,9 @@
 /* Tag for new posts in groups grid */
 "groupGrid.newPostIndicator" = "neu";
 
+/* Shown when post fails or is canceled. */
+"groupGrid.post.failed" = "Kann nicht gepostet werden";
+
 /* More info menu item */
 "groupGridHeader.moreInfo" = "Mehr Informationen";
 
@@ -968,10 +977,10 @@
 "invite.please.wait" = "Bitte warten...";
 
 /* Text of invitation to join HalloApp. */
-"invite.text" = "Mach mit bei HalloApp — eine Möglichkeit ganz einfach, privat und sicher den Kontakt zu Freunden und zur Familie zu halten. Hol sie dir auf: https://halloapp.com/dl";
+"invite.text" = "Mach mit bei HalloApp - ganz einfach, privat und sicher den Kontakt zu Freunden und zur Familie halten. Hol dir die App unter: https://halloapp.com/dl";
 
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
-"invite.text.specific" = "Hey %1$@, ich lade dich ein, dich auch bei HalloApp anzumelden. Ein Netzwerk für echte Beziehungen und diejenigen, die einem am nächsten stehen. Nutze %2$@ zur Registrierung und hol sie dir auf https://halloapp.com/dl";
+"invite.text.specific" = "Hey %1$@, ich lade dich ein, dich auch bei HalloApp anzumelden. Ein Netzwerk für echte Beziehungen und diejenigen, die einem am nächsten stehen. Verwende %2$@ zur Registrierung und hol dir die App unter https://halloapp.com/dl";
 
 /* Version of an invitation to join HalloApp. The argument is the invitee's name. */
 "invite.text.specific.1" = "Hey %@, ich bin auf HalloApp. Mach mit und lade die App hier herunter: https://halloapp.com/install";
@@ -984,6 +993,9 @@
 
 /* Version of an invitation to join HalloApp. The argument is the invitee's name. */
 "invite.text.specific.4" = "Hey %@! Mach mit bei HalloApp und teile echte Momente mit echten Freunden. Schau es dir an: https://halloapp.com/new";
+
+/* Version of an invitation to join HalloApp. No arguments */
+"invite.text.specific.5" = "Ich lade dich ein, dich auch bei HalloApp anzumelden. Eine private und sichere App, um Bilder zu teilen, zu chatten und deine Freunde anzurufen. Hol dir die App unter: https://halloapp.com/get";
 
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Freunde einladen";
@@ -1011,6 +1023,42 @@
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Meine App aktualisieren.";
+
+/* General message of the alert for failures in location sharing features. */
+"locationSharing.alert.error" = "Etwas ist schiefgelaufen. Bitte versuche es später noch einmal.";
+
+/* Title of the alert for failures in location searches. */
+"locationSharing.alert.localSearchFailed.title" = "Standortsuche fehlgeschlagen";
+
+/* Message of the alert requesting location access for a feature. */
+"locationSharing.alert.locationAccessRequired.message" = "Du kannst diese Berechtigung in den Einstellungen aktivieren.";
+
+/* Title of the alert requesting location access for a feature. */
+"locationSharing.alert.locationAccessRequired.title" = "Für diese Funktion benötigt HalloApp den Zugriff auf deinen Standort.";
+
+/* Title of the alert for failures resolving a location from the map. */
+"locationSharing.alert.locationResolvingFailed.title" = "Standort kann nicht ermittelt werden";
+
+/* Title of the menu to choose map type. */
+"locationSharing.chooseMap" = "Karte auswählen";
+
+/* Subtitle of the user location callout. Parameter is the formatted length measurement of accuracy (including unit). */
+"locationSharing.locationAccuracyDescription" = "Genau auf %@";
+
+/* The explore map type (as in Apple Maps). */
+"locationSharing.mapType.explore" = "Erkunden";
+
+/* The satellite map type (as in Apple Maps). */
+"locationSharing.mapType.satellite" = "Satellite";
+
+/* The menu action to focus on user location. */
+"locationSharing.myLocation" = "Mein Standort";
+
+/* Title of the location sharing main screen. */
+"locationSharing.navTitle" = "Standort";
+
+/* Title of a location in location list if it does not have a name. */
+"locationSharing.untitledLocation" = "Unbenannter Standort";
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Ich";
@@ -1295,7 +1343,7 @@
 "picker.media.fail.message" = "Versuch es bitte noch einmal oder wähle ein anderes Foto oder Video aus.";
 
 /* Alert title in media picker when unable to load media file. */
-"picker.media.fail.title" = "Mediendatei konnte nicht geladen werden";
+"picker.media.fail.title" = "Mediendatei kann nicht geladen werden";
 
 /* Button shown to update limited access to media. */
 "picker.media.limit.button" = "Aktualisieren";
@@ -1340,7 +1388,7 @@
 "privacy.n.contacts" = "privacy.n.contacts";
 
 /* Error banner displayed when there is a failure syncing preivacy settings, displayed on the privacy view */
-"privacy.sync.failure" = "Privatsphäre-Einstellungen konnten nicht synchronisiert werden. Bitte versuche es später noch einmal.";
+"privacy.sync.failure" = "Privatsphäre-Einstellungen können nicht synchronisiert werden. Bitte versuche es später noch einmal.";
 
 /* Placeholder text for the text field for private replies. The argument is the first name of the contact. */
 "private.reply.placeholder" = "Antwort an %@";
@@ -1454,19 +1502,19 @@
 "registration.invalidphone" = "Ups!";
 
 /* Popup that appears when user tries to register a number with invalid country code */
-"registration.invalidphone.invalidCountryCode" = "Die eingegebene Ländervorwahl ist ungültig. Bitte noch einmal prüfen.";
+"registration.invalidphone.invalidCountryCode" = "Die eingegebene Ländervorwahl ist ungültig. Bitte erneut prüfen.";
 
 /* Popup that appears when user tries to register a number with invalid length */
-"registration.invalidphone.invalidLength" = "Die Länge der eingegebenen Handynummer ist ungültig. Bitte noch einmal prüfen.";
+"registration.invalidphone.invalidLength" = "Die Länge der eingegebenen Handynummer ist ungültig. Bitte erneut prüfen.";
 
 /* Popup that appears when user tries to register a landline number */
-"registration.invalidphone.lineTypeFixed" = "Die eingegebene Telefonnummer ist keine Handynummer. Bitte noch einmal prüfen.";
+"registration.invalidphone.lineTypeFixed" = "Die eingegebene Telefonnummer ist keine Handynummer. Bitte erneut prüfen.";
 
 /* Popup that appears when user tries to register a number with unknown line type */
-"registration.invalidphone.lineTypeOther" = "Die eingegebene Telefonnummer ist keine Handynummer. Bitte noch einmal prüfen.";
+"registration.invalidphone.lineTypeOther" = "Die eingegebene Telefonnummer ist keine Handynummer. Bitte erneut prüfen.";
 
 /* Popup that appears when user tries to register a VoIP number */
-"registration.invalidphone.lineTypeVoip" = "Die eingegebene Telefonnummer ist keine Handynummer. Bitte noch einmal prüfen.";
+"registration.invalidphone.lineTypeVoip" = "Die eingegebene Telefonnummer ist keine Handynummer. Bitte erneut prüfen.";
 
 /* Popup that appears when user tries to register invalid number */
 "registration.invalidphone.only" = "Die eingegebene Handynummer ist ungültig. Bitte prüfe die Nummer und versuche es noch einmal.";
@@ -1583,7 +1631,7 @@
 "settings.account.delete.deleted" = "Account wurde gelöscht";
 
 /* Alert telling user that their account could not be deleted, and that it's likely due to their phone number */
-"settings.account.delete.error" = "Beim Löschen deines Accounts ist ein Fehler aufgetreten. Bitte deine Handynummer überprüfen.";
+"settings.account.delete.error" = "Beim Löschen deines Accounts ist ein Fehler aufgetreten. Bitte überprüfe deine Handynummer.";
 
 /* Text field label asking for feedback before deleting account */
 "settings.account.delete.feedback.prompt" = "Hast du Feedback für das Team von HalloApp? (optional)";
@@ -1808,7 +1856,7 @@
 "unlock.title" = "Entsperren";
 
 /* Alert appearing after clicking an external share link that failed to load */
-"urlrouter.externalShare.failed" = "Beitrag konnte nicht geladen werden";
+"urlrouter.externalShare.failed" = "Beitrag kann nicht geladen werden";
 
 /* Button to confirm blocking user via profile page */
 "user.block" = "Blocken";
@@ -1868,13 +1916,13 @@
 "your.post.externalshare.description2" = "Jeder, der den Link hat, kann deinen Beitrag sehen. Der Link läuft mit deinem Beitrag ab. Die Linkvorschau ist unverschlüsselt.";
 
 /* Message that external share failed. */
-"your.post.externalshare.error" = "Beitrag für externe Freigabe konnte nicht hochgeladen werden";
+"your.post.externalshare.error" = "Beitrag für externe Freigabe kann nicht hochgeladen werden";
 
 /* Button to invalidate an external share link */
 "your.post.externalshare.revoke" = "Link widerrufen";
 
 /* Message that revoking external share link failed. */
-"your.post.externalshare.revoke.error" = "Link für externe Freigabe konnte nicht widerrufen werden";
+"your.post.externalshare.revoke.error" = "Link für externe Freigabe kann nicht widerrufen werden";
 
 /* Notification that a link was successfully revoked */
 "your.post.externalshare.revoke.success" = "Link widerrufen";

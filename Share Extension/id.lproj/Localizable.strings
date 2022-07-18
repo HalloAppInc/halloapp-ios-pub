@@ -1,14 +1,14 @@
 /* Title for alert shown when there's no internet connectivity */
-"alert.no.internet.title" = "Tidak Ada Koneksi Internet";
+"alert.no.internet.title" = "Tidak Ada Sambungan Internet";
 
 /* Message to tell the user to try again when they have internet connectivity again */
-"alert.no.internet.try.again" = "Periksa apakah Anda tersambung ke internet, lalu coba lagi.";
+"alert.no.internet.try.again" = "Silakan periksa jika Anda terhubung ke internet, lalu coba lagi.";
 
 /* Company name */
 "app.name.halloapp" = "HalloApp";
 
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
-"button.add" = "Tambah";
+"button.add" = "Tambahkan";
 
 /* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Batalkan";
@@ -17,7 +17,7 @@
 "button.cancel.capitalized" = "BATALKAN";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
-"button.continue" = "Lanjut";
+"button.continue" = "Lanjutkan";
 
 /* Title for generic copy URL button */
 "button.copy.link" = "Salin Tautan";
@@ -32,13 +32,13 @@
 "button.done" = "Selesai";
 
 /* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
-"button.go.to.settings" = "Ke Pengaturan";
+"button.go.to.settings" = "Buka Pengaturan";
 
 /* Title for generic Invite button. */
 "button.invite" = "Undang";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
-"button.learn.more" = "Selengkapnya";
+"button.learn.more" = "Pelajari Lebih Lanjut";
 
 /* Title for generic More button. Mostly used to complete some modal flow. */
 "button.more" = "Lainnya";
@@ -50,7 +50,7 @@
 "button.not.now" = "Nanti";
 
 /* Title for generic OK button. Mostly used in popups and as such. */
-"button.ok" = "Baik";
+"button.ok" = "OKE";
 
 /* Title for generic Remove button. Mostly used to complete some modal flow. */
 "button.remove" = "Hapus";
@@ -65,7 +65,7 @@
 "button.share" = "Bagikan";
 
 /* Title for generic Stop button. Currently used to stop an audio recording) */
-"button.stop" = "Stop";
+"button.stop" = "Hentikan";
 
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Perbarui";
@@ -74,19 +74,19 @@
 "chat.mic.access.denied.message" = "Untuk mengaktifkan rekaman audio, silakan ketuk Pengaturan lalu nyalakan Mikrofon";
 
 /* Alert title when missing microphone access */
-"chat.mic.access.denied.title" = "Gagal mengakses mikrofon";
+"chat.mic.access.denied.title" = "Tidak dapat mengakses mikrofon";
 
 /* Title for generic delete button. */
 "Delete" = "Hapus";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.all" = "Bagikan dengan semua kontak";
+"feed.privacy.descr.all" = "Bagikan dengan semua kontak saya";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.except" = "Bagikan dengan kontak kecuali orang yang saya pilih";
+"feed.privacy.descr.except" = "Bagikan dengan kontak saya kecuali orang yang saya pilih";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.only" = "Hanya bagikan dengan kontak pilihan";
+"feed.privacy.descr.only" = "Hanya bagikan dengan kontak yang dipilih";
 
 /* Button to dismiss edit favorites modal */
 "feed.privacy.list.dismiss.edit.favorites" = "Nanti";
@@ -107,16 +107,16 @@
 "feed.privacy.list.set.favorites" = "Atur Favorit";
 
 /* Description of the new Favorites functionality. */
-"feed.privacy.list.set.favorites.description" = "Sekarang Anda dapat membuat daftar kontak favorit dan membagikan postingan Anda dengan mereka.";
+"feed.privacy.list.set.favorites.description" = "Sekarang Anda dapat membuat daftar kontak favorit dan membagikan postingan HalloApp Anda dengan mereka.";
 
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Cari";
 
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
-"link.learnMore" = "Pelajari lebih banyak";
+"link.learnMore" = "Pelajari lebih lanjut";
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
-"link.update.your.app" = "Perbarui aplikasimu.";
+"link.update.your.app" = "Perbarui app Anda.";
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Saya";
@@ -125,16 +125,16 @@
 "media.button.discard" = "Buang";
 
 /* Button title. Refers to resetting photo / video to original version. */
-"media.button.reset" = "Atur ulang";
+"media.button.reset" = "Atur Ulang";
 
 /* Button title. Refers to undoing an edit of a photo. */
 "media.button.undo" = "Urungkan";
 
 /* Confirmation prompt in media composer. */
-"media.discard.confirmation" = "Apakah Anda ingin menghapus editan Anda?";
+"media.discard.confirmation" = "Apakah Anda ingin menghapus perubahan Anda?";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
-"media.voiceover.button.annotate" = "Memberi Anotasi";
+"media.voiceover.button.annotate" = "Berikan Anotasi";
 
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Tutup";
@@ -152,7 +152,7 @@
 "media.voiceover.button.rotate" = "Putar";
 
 /* String to auto-fill if a user tried to share to a friend. */
-"settings.share.text" = "Bergabunglah dengan jaringan relasi sungguhan saya di HalloApp. Unduh gratis di halloapp.com/dl";
+"settings.share.text" = "Bergabunglah dengan jaringan hubungan nyata saya di HalloApp. Unduh gratis di halloapp.com/dl";
 
 /* Title on edit button */
 "share.composer.button.edit" = "Edit";
@@ -173,10 +173,10 @@
 "share.composer.uploading.fail.title" = "Gagal mengunggah";
 
 /* Contacts category label */
-"share.destination.contacts" = "Kontak Terkini";
+"share.destination.contacts" = "Kontak Terbaru";
 
 /* Groups category label */
-"share.destination.groups" = "Grupmu";
+"share.destination.groups" = "Grup Anda";
 
 /* Share on the home feed label with all my contacts
    Share to all contacts */
@@ -196,10 +196,10 @@
 "share.destination.title" = "HalloApp";
 
 /* Message of alert when user is not logged in */
-"share.notlogged.message" = "Bukalah HalloApp dan masuk.";
+"share.notlogged.message" = "Silakan buka HalloApp dan masuk.";
 
 /* Title of alert when user is not logged in */
-"share.notlogged.title" = "Kamu tidak masuk";
+"share.notlogged.title" = "Anda tidak masuk";
 
 /* Button to edit favorites list */
 "title.edit.favorites" = "Edit daftar Favorit Anda";

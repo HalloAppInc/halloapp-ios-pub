@@ -8,7 +8,7 @@
 "app.name.halloapp" = "HalloApp";
 
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
-"button.add" = "Añadir";
+"button.add" = "Agregar";
 
 /* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Cancelar";
@@ -83,7 +83,7 @@
 "feed.privacy.descr.all" = "Comparte con todos mis contactos";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.except" = "Comparte con todos mis contactos excepto con gente que yo seleccione";
+"feed.privacy.descr.except" = "Comparte con todos mis contactos excepto con gente que yo escoja";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Compartir solamente con contactos seleccionados";
@@ -95,7 +95,7 @@
 "feed.privacy.list.notOwn.only.description" = "Solo las personas en la lista de Favoritos de %@ pueden ver esta publicación.";
 
 /* Header for the favorites list when editing contacts to share with. */
-"feed.privacy.list.only.details" = "Selecciona quién verá esta publicación";
+"feed.privacy.list.only.details" = "Quién verá esta publicación";
 
 /* Title of the alert shown to user indicating their post is only shown to their favorites audience */
 "feed.privacy.list.only.title" = "Favoritos";
@@ -125,7 +125,7 @@
 "media.button.discard" = "Descartar";
 
 /* Button title. Refers to resetting photo / video to original version. */
-"media.button.reset" = "Reeniciar";
+"media.button.reset" = "Restablecer";
 
 /* Button title. Refers to undoing an edit of a photo. */
 "media.button.undo" = "Deshacer";
@@ -161,10 +161,10 @@
 "share.composer.destinations.label" = "Compartir con";
 
 /* Placeholder for media caption. */
-"share.composer.placeholder" = "Escribe una descripción";
+"share.composer.placeholder" = "Agrega una descripción";
 
 /* Placeholder when sharing text only. */
-"share.composer.placeholder.text" = "Escribe una publicación";
+"share.composer.placeholder.text" = "Crea una publicación";
 
 /* Alert dialog message shown when uploading fails. */
 "share.composer.uploading.fail.message" = "Por favor, inténtalo más tarde.";
@@ -184,7 +184,7 @@
 
 /* Alert title when a direct to contact sharing is missing
    Alert title when a direct to group sharing is missing */
-"share.destination.missing.group" = "Grupo %@ desaparecido";
+"share.destination.missing.group" = "Grupo %@ no encontrado";
 
 /* Show more groups in the share group selection */
 "share.destination.more" = "Mostrar más...";

@@ -7,6 +7,9 @@
 /* Privacy - Contacts Usage Description */
 "NSContactsUsageDescription" = "يجب السماح لهالوآب بالوصول إلى جهات اتصالك لتتمكن أنت وأصدقاؤك وعائلتك من رؤية منشورات بعضكم البعض.";
 
+/* Privacy - Location When In Use Usage Description */
+"NSLocationWhenInUseUsageDescription" = "يتيح لك ذلك تصفُّح المواقع القريبة منك ومشاركتها.";
+
 /* Privacy - Microphone Usage Description */
 "NSMicrophoneUsageDescription" = "يتيح لك هذا إجراء المكالمات وإرسال المنشورات والرسائل الصوتية وتسجيل الفيديوهات مع تضمين الصوت.";
 

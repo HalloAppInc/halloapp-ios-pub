@@ -461,7 +461,7 @@
 "composer.deletevoicenote.message" = "لن يتم حفظ التسجيل الصوتي إذا ألغيت هذا المنشور.";
 
 /* Title for alert when closing the post composer with a voice note */
-"composer.deletevoicenote.title" = "إلغاء المنشور؟";
+"composer.deletevoicenote.title" = "تجاهل المنشور؟";
 
 /* Label shown when only single media item selected */
 "composer.label.more" = "إضافة المزيد";
@@ -1012,6 +1012,42 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "تحديث التطبيق";
 
+/* General message of the alert for failures in location sharing features. */
+"locationSharing.alert.error" = "حدث خطأ، يُرجى إعادة المحاولة لاحقًا.";
+
+/* Title of the alert for failures in location searches. */
+"locationSharing.alert.localSearchFailed.title" = "تعذَّر البحث في المواقع";
+
+/* Message of the alert requesting location access for a feature. */
+"locationSharing.alert.locationAccessRequired.message" = "يمكنك تمكين هذا الإذن من الإعدادات.";
+
+/* Title of the alert requesting location access for a feature. */
+"locationSharing.alert.locationAccessRequired.title" = "يحتاج هالوآب للوصول إلى موقعك لتمكين هذه الميزة.";
+
+/* Title of the alert for failures resolving a location from the map. */
+"locationSharing.alert.locationResolvingFailed.title" = "تعذَّر تحديد الموقع";
+
+/* Title of the menu to choose map type. */
+"locationSharing.chooseMap" = "اختيار الخريطة";
+
+/* Subtitle of the user location callout. Parameter is the formatted length measurement of accuracy (including unit). */
+"locationSharing.locationAccuracyDescription" = "دقيق بنسبة %@";
+
+/* The explore map type (as in Apple Maps). */
+"locationSharing.mapType.explore" = "استكشاف";
+
+/* The satellite map type (as in Apple Maps). */
+"locationSharing.mapType.satellite" = "قمر صناعي";
+
+/* The menu action to focus on user location. */
+"locationSharing.myLocation" = "موقعي";
+
+/* Title of the location sharing main screen. */
+"locationSharing.navTitle" = "الموقع";
+
+/* Title of a location in location list if it does not have a name. */
+"locationSharing.untitledLocation" = "موقع بلا عنوان";
+
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "أنا";
 
@@ -1019,7 +1055,7 @@
 "media.albums" = "الألبومات";
 
 /* Button title. Refers to discarding photo/video edits in media composer. */
-"media.button.discard" = "إلغاء";
+"media.button.discard" = "تجاهل";
 
 /* Button title. Refers to resetting photo / video to original version. */
 "media.button.reset" = "إعادة التعيين";
@@ -1031,7 +1067,7 @@
 "media.camera.access.request" = "لم يتم منح هالوآب إذن الوصول إلى الكاميرا. لتمكين الوصول، انقر على \"الإعدادات\" وشغِّل الكاميرا";
 
 /* Confirmation prompt in media composer. */
-"media.discard.confirmation" = "هل تريد إلغاء تعديلاتك؟";
+"media.discard.confirmation" = "هل تريد تجاهل تعديلاتك؟";
 
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.mic.access.request.body" = "لتسجيل الفيديوهات مع تضمين الصوت، يحتاج هالوآب إلى إذن الوصول إلى الميكروفون. لتمكين الوصول، انقر على \"الإعدادات\" وشغِّل الميكروفون.";
@@ -1224,6 +1260,18 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 فيديو";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.1" = "شارك %@ لحظة جديدة وشاهد اللحظة الخاصة بك";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.2" = "شارك %1$@ و%2$@ لحظة جديدة وشاهدا اللحظة الخاصة بك";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.3" = "شارك %1$@ و%2$@ و%3$@ لحظة جديدة وشاهدوا اللحظة الخاصة بك";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.4" = "شارك %1$@ و%2$@ و%3$@ وآخرون لحظة جديدة وشاهدوا اللحظة الخاصة بك";
 
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 مكالمة فيديو فائتة";

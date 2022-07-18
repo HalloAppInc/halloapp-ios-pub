@@ -122,7 +122,7 @@
 "meCapitalized" = "أنا";
 
 /* Button title. Refers to discarding photo/video edits in media composer. */
-"media.button.discard" = "إلغاء";
+"media.button.discard" = "تجاهل";
 
 /* Button title. Refers to resetting photo / video to original version. */
 "media.button.reset" = "إعادة التعيين";
@@ -131,7 +131,7 @@
 "media.button.undo" = "تراجع";
 
 /* Confirmation prompt in media composer. */
-"media.discard.confirmation" = "هل تريد إلغاء تعديلاتك؟";
+"media.discard.confirmation" = "هل تريد تجاهل تعديلاتك؟";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.annotate" = "إضافة نص";

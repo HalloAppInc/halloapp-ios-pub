@@ -143,9 +143,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>Mediendatei konnte nicht erstellt werden. Bitte versuche es noch einmal oder wähle ein anderes Foto/Video aus.</string>
+			<string>Mediendatei kann nicht erstellt werden. Bitte versuche es noch einmal oder wähle ein anderes Foto/Video aus.</string>
 			<key>other</key>
-			<string>%d Mediendateien konnten nicht erstellt werden. Bitte versuche es noch einmal oder wähle ein anderes Foto/Video aus.</string>
+			<string>%d Mediendateien können nicht erstellt werden. Bitte versuche es noch einmal oder wähle ein anderes Foto/Video aus.</string>
 		</dict>
 	</dict>
 	<key>n.invites.count</key>

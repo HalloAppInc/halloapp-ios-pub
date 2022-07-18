@@ -433,6 +433,9 @@
 /* Warning text displayed in Comments when post wasn't available. */
 "comments.post.loading.failed" = "Er is een fout opgetreden tijdens het laden van deze post. Probeer het later opnieuw.";
 
+/* Label for add media button in post composer */
+"composer.addmedia" = "Media toevoegen";
+
 /* Accessibility label for add images button */
 "composer.audio.a11y.addImages" = "Afbeeldingen Toevoegen";
 
@@ -886,6 +889,9 @@
 /* Tag for new posts in groups grid */
 "groupGrid.newPostIndicator" = "nieuw";
 
+/* Shown when post fails or is canceled. */
+"groupGrid.post.failed" = "Plaatsen is mislukt";
+
 /* More info menu item */
 "groupGridHeader.moreInfo" = "Meer Info";
 
@@ -985,6 +991,9 @@
 /* Version of an invitation to join HalloApp. The argument is the invitee's name. */
 "invite.text.specific.4" = "Hey %@! Doe met me mee op HalloApp en deel echte momenten met echte vrienden. Bekijk het hier: https://halloapp.com/new";
 
+/* Version of an invitation to join HalloApp. No arguments */
+"invite.text.specific.5" = "Ik nodig je uit om met me mee te doen op HalloApp. Het is een privé en veilige app waarmee je foto's kunt delen, chatten en je vrienden bellen. Download de app op https://halloapp.com/get";
+
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Vrienden uitnodigen";
 
@@ -1011,6 +1020,42 @@
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Mijn app bijwerken.";
+
+/* General message of the alert for failures in location sharing features. */
+"locationSharing.alert.error" = "Er ging iets mis. Probeer het later opnieuw.";
+
+/* Title of the alert for failures in location searches. */
+"locationSharing.alert.localSearchFailed.title" = "Locatie zoeken mislukt";
+
+/* Message of the alert requesting location access for a feature. */
+"locationSharing.alert.locationAccessRequired.message" = "Je kunt deze toestemming inschakelen in Instellingen.";
+
+/* Title of the alert requesting location access for a feature. */
+"locationSharing.alert.locationAccessRequired.title" = "HalloApp heeft voor deze functie toegang nodig tot je locatie.";
+
+/* Title of the alert for failures resolving a location from the map. */
+"locationSharing.alert.locationResolvingFailed.title" = "Kon locatie niet identificeren";
+
+/* Title of the menu to choose map type. */
+"locationSharing.chooseMap" = "Kies Kaart";
+
+/* Subtitle of the user location callout. Parameter is the formatted length measurement of accuracy (including unit). */
+"locationSharing.locationAccuracyDescription" = "Nauwkeurig tot %@";
+
+/* The explore map type (as in Apple Maps). */
+"locationSharing.mapType.explore" = "Verken";
+
+/* The satellite map type (as in Apple Maps). */
+"locationSharing.mapType.satellite" = "Satelliet";
+
+/* The menu action to focus on user location. */
+"locationSharing.myLocation" = "Mijn Locatie";
+
+/* Title of the location sharing main screen. */
+"locationSharing.navTitle" = "Locatie";
+
+/* Title of a location in location list if it does not have a name. */
+"locationSharing.untitledLocation" = "Naamloze Locatie";
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Ik";
@@ -1224,6 +1269,18 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 video";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.1" = "%@ heeft een nieuw moment gedeeld en die van jou ontgrendeld";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.2" = "%1$@ en %2$@ hebben een nieuw moment gedeeld en die van jou ontgrendeld";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.3" = "%1$@, %2$@ en %3$@ hebben een nieuw moment gedeeld en die van jou ontgrendeld";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ en anderen hebben een nieuw moment gedeeld en die van jou ontgrendeld";
 
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 Gemiste video-oproep";

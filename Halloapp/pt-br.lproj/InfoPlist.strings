@@ -7,6 +7,9 @@
 /* Privacy - Contacts Usage Description */
 "NSContactsUsageDescription" = "Permita que o HalloApp acesse seus contatos para poder compartilhar e ver postagens de seus amigos e familiares.";
 
+/* Privacy - Location When In Use Usage Description */
+"NSLocationWhenInUseUsageDescription" = "Isso permite que você navegue e compartilhe locais perto de você.";
+
 /* Privacy - Microphone Usage Description */
 "NSMicrophoneUsageDescription" = "Isso lhe permite fazer chamadas, enviar postagens e mensagens de áudio e gravar vídeos com som.";
 
