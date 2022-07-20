@@ -174,50 +174,53 @@ final class ProtoService: ProtoServiceCore {
     private func _sendReceipt(_ receipt: HalloReceipt, to toUserID: UserID, messageID: String = PacketID.generate()) {
         unackedReceipts[messageID] = (receipt, toUserID)
 
-        let threadID: String = {
-            switch receipt.thread {
-            case .group(let threadID): return threadID
-            case .feed: return "feed"
-            case .none: return ""
+        DDLogInfo("proto/_sendReceipt/\(receipt.itemId)/wait to execute when connected")
+        execute(whenConnectionStateIs: .connected, onQueue: .main) { [self] in
+            let threadID: String = {
+                switch receipt.thread {
+                case .group(let threadID): return threadID
+                case .feed: return "feed"
+                case .none: return ""
+                }
+            }()
+
+            let payloadContent: Server_Msg.OneOf_Payload = {
+                switch receipt.type {
+                case .delivery:
+                    var deliveryReceipt = Server_DeliveryReceipt()
+                    deliveryReceipt.id = receipt.itemId
+                    deliveryReceipt.threadID = threadID
+                    return .deliveryReceipt(deliveryReceipt)
+                case .read:
+                    var seenReceipt = Server_SeenReceipt()
+                    seenReceipt.id = receipt.itemId
+                    seenReceipt.threadID = threadID
+                    return .seenReceipt(seenReceipt)
+                case .played:
+                    var playedReceipt = Server_PlayedReceipt()
+                    playedReceipt.id = receipt.itemId
+                    playedReceipt.threadID = threadID
+                    return .playedReceipt(playedReceipt)
+                case .screenshot:
+                    var screenshotReceipt = Server_ScreenshotReceipt()
+                    screenshotReceipt.id = receipt.itemId
+                    screenshotReceipt.threadID = threadID
+                    return .screenshotReceipt(screenshotReceipt)
+                }
+            }()
+
+            let packet = Server_Packet.msgPacket(
+                from: receipt.userId,
+                to: toUserID,
+                id: messageID,
+                payload: payloadContent)
+
+            if let data = try? packet.serializedData(), self.isConnected {
+                DDLogInfo("proto/_sendReceipt/\(receipt.itemId)/sending")
+                send(data)
+            } else {
+                DDLogInfo("proto/_sendReceipt/\(receipt.itemId)/skipping (disconnected)")
             }
-        }()
-
-        let payloadContent: Server_Msg.OneOf_Payload = {
-            switch receipt.type {
-            case .delivery:
-                var deliveryReceipt = Server_DeliveryReceipt()
-                deliveryReceipt.id = receipt.itemId
-                deliveryReceipt.threadID = threadID
-                return .deliveryReceipt(deliveryReceipt)
-            case .read:
-                var seenReceipt = Server_SeenReceipt()
-                seenReceipt.id = receipt.itemId
-                seenReceipt.threadID = threadID
-                return .seenReceipt(seenReceipt)
-            case .played:
-                var playedReceipt = Server_PlayedReceipt()
-                playedReceipt.id = receipt.itemId
-                playedReceipt.threadID = threadID
-                return .playedReceipt(playedReceipt)
-            case .screenshot:
-                var screenshotReceipt = Server_ScreenshotReceipt()
-                screenshotReceipt.id = receipt.itemId
-                screenshotReceipt.threadID = threadID
-                return .screenshotReceipt(screenshotReceipt)
-            }
-        }()
-
-        let packet = Server_Packet.msgPacket(
-            from: receipt.userId,
-            to: toUserID,
-            id: messageID,
-            payload: payloadContent)
-
-        if let data = try? packet.serializedData(), self.isConnected {
-            DDLogInfo("proto/_sendReceipt/\(receipt.itemId)/sending")
-            send(data)
-        } else {
-            DDLogInfo("proto/_sendReceipt/\(receipt.itemId)/skipping (disconnected)")
         }
     }
 
@@ -229,31 +232,32 @@ final class ProtoService: ProtoServiceCore {
 
     /// Should only be called on serviceQueue
     private func _sendAcks(messageIDs: [String]) {
-        guard self.isConnected else {
-            DDLogInfo("proto/_sendAcks/enqueueing (disconnected) [\(messageIDs.joined(separator: ","))]")
-            self.pendingAcks += messageIDs
-            return
-        }
-        serviceQueue.async {
-            // Mark .active messages as .processed (leave .rerequested messages as-is)
-            messageIDs
-                .filter { self.messageStatus[$0] == .active }
-                .forEach { self.messageStatus[$0] = .processed }
-        }
-
-        let packets: [Server_Packet] = Set(messageIDs).map {
-            var ack = Server_Ack()
-            ack.id = $0
-            var packet = Server_Packet()
-            packet.stanza = .ack(ack)
-            return packet
-        }
-        for packet in packets {
-            if let data = try? packet.serializedData() {
-                DDLogInfo("ProtoService/_sendAcks/\(packet.ack.id)/sending")
-                send(data)
-            } else {
-                DDLogError("ProtoService/_sendAcks/\(packet.ack.id)/error could not serialize packet")
+        execute(whenConnectionStateIs: .connected, onQueue: .main) { [self] in
+            guard self.isConnected else {
+                DDLogInfo("proto/_sendAcks/enqueueing (disconnected) [\(messageIDs.joined(separator: ","))]")
+                self.pendingAcks += messageIDs
+                return
+            }
+            serviceQueue.async {
+                // Mark .active messages as .processed (leave .rerequested messages as-is)
+                messageIDs
+                    .filter { self.messageStatus[$0] == .active }
+                    .forEach { self.messageStatus[$0] = .processed }
+            }
+            let packets: [Server_Packet] = Set(messageIDs).map {
+                var ack = Server_Ack()
+                ack.id = $0
+                var packet = Server_Packet()
+                packet.stanza = .ack(ack)
+                return packet
+            }
+            for packet in packets {
+                if let data = try? packet.serializedData() {
+                    DDLogInfo("ProtoService/_sendAcks/\(packet.ack.id)/sending")
+                    send(data)
+                } else {
+                    DDLogError("ProtoService/_sendAcks/\(packet.ack.id)/error could not serialize packet")
+                }
             }
         }
     }
