@@ -64,6 +64,11 @@ class HelpViewController: UIViewController, UICollectionViewDelegate {
         collectionView.collectionViewLayout = layout
         return collectionView
     }()
+    
+    private lazy var activityIndicator: ActivityIndicator = {
+        let activityIndicator = ActivityIndicator(frame: view.frame)
+        return activityIndicator
+    }()
 
     init() {
         super.init(nibName: nil, bundle: nil)
@@ -76,14 +81,16 @@ class HelpViewController: UIViewController, UICollectionViewDelegate {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         view.backgroundColor = .primaryBg
         collectionView.backgroundColor = nil
         collectionView.delegate = self
         
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(collectionView)
+        
         NSLayoutConstraint.activate([
+            
             collectionView.topAnchor.constraint(equalTo: view.topAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -153,14 +160,22 @@ class HelpViewController: UIViewController, UICollectionViewDelegate {
 
     private func sendLogs() {
         DDLogInfo("HelpViewController/sendLogs")
+        view.addSubview(activityIndicator)
+        activityIndicator.show()
+        
         let viewController = MFMailComposeViewController.makeEmailLogsViewController(delegate: self)
         present(viewController, animated: true)
+        activityIndicator.hide()
     }
 
     private func shareLogs() {
         DDLogInfo("HelpViewController/shareLogs")
+        view.addSubview(activityIndicator)
+        activityIndicator.show()
+        
         let viewController = UIActivityViewController.makeShareLogsViewController()
         present(viewController, animated: true)
+        activityIndicator.hide()
     }
 }
 
@@ -205,6 +220,43 @@ private extension MFMailComposeViewController {
         }
 
         return vc
+    }
+}
+
+fileprivate class ActivityIndicator: UIView {
+    private lazy var dimmerView: BlurView = {
+        let dimmerView = BlurView(effect: UIBlurEffect(style: .systemThickMaterial), intensity: 0.3)
+        dimmerView.isUserInteractionEnabled = false
+        return dimmerView
+    }()
+    
+    private lazy var flutterIndicator: UIActivityIndicatorView = {
+        let flutterIndicator = UIActivityIndicatorView(style: .large)
+        flutterIndicator.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
+        return flutterIndicator
+    }()
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        dimmerView.frame = frame
+        dimmerView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        dimmerView.contentView.addSubview(flutterIndicator)
+        flutterIndicator.center = dimmerView.center
+        addSubview(dimmerView)
+
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    func show() {
+        flutterIndicator.startAnimating()
+        self.isHidden = false
+    }
+    
+    func hide() {
+        flutterIndicator.stopAnimating()
+        self.isHidden = true
     }
 }
 
