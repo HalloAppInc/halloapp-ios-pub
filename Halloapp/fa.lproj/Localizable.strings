@@ -457,6 +457,9 @@
 /* Title on edit button */
 "composer.button.edit" = "ویرایش";
 
+/* Send button title */
+"composer.button.send.to" = "فرستادن به";
+
 /* Title warning that a voice recording will be deleted */
 "composer.delete.recording.title" = "حذف پیام صوتی";
 
@@ -1372,10 +1375,12 @@
 /* Header when selecting all or some contacts to share with */
 "post.privacy.header.contacts" = "کسانی که این پست را میبینند";
 
-/* Header when selecting a group to share with */
+/* Header when selecting a group to share with
+   Header when selecting groups to share with */
 "post.privacy.header.groups" = "به اشتراک گذاشتن فقط با یک گروه";
 
-/* Controller title for changing destination and privacy */
+/* Controller title for changing destination and privacy
+   Header when selecting contacts to share with */
 "post.privacy.title" = "به اشتراک گذاشتن با...";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */

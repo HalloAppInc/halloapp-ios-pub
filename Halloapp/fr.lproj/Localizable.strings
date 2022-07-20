@@ -1219,10 +1219,12 @@
 /* Header when selecting all or some contacts to share with */
 "post.privacy.header.contacts" = "Qui verra cette publication";
 
-/* Header when selecting a group to share with */
+/* Header when selecting a group to share with
+   Header when selecting groups to share with */
 "post.privacy.header.groups" = "Partager seulement avec un groupe";
 
-/* Controller title for changing destination and privacy */
+/* Controller title for changing destination and privacy
+   Header when selecting contacts to share with */
 "post.privacy.title" = "Partager avec...";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */

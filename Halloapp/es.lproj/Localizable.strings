@@ -1135,6 +1135,9 @@
 /* Message action. Verb. */
 "message.delete" = "Eliminar";
 
+/* Call to action to forward a message */
+"message.forward" = "Reenviar";
+
 /* Message action. Verb. */
 "message.reply" = "Responder";
 
@@ -1375,10 +1378,12 @@
 /* Header when selecting all or some contacts to share with */
 "post.privacy.header.contacts" = "Quién verá esta publicación";
 
-/* Header when selecting a group to share with */
+/* Header when selecting a group to share with
+   Header when selecting groups to share with */
 "post.privacy.header.groups" = "Compartir solo con un grupo";
 
-/* Controller title for changing destination and privacy */
+/* Controller title for changing destination and privacy
+   Header when selecting contacts to share with */
 "post.privacy.title" = "Compartir con...";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */

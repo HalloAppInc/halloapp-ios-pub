@@ -433,6 +433,9 @@
 /* Warning text displayed in Comments when post wasn't available. */
 "comments.post.loading.failed" = "حدث خطأ أثناء محاولة تحميل هذا المنشور. يُرجى إعادة المحاولة لاحقًا.";
 
+/* Label for add media button in post composer */
+"composer.addmedia" = "إضافة وسائط";
+
 /* Accessibility label for add images button */
 "composer.audio.a11y.addImages" = "إضافة صور";
 
@@ -453,6 +456,9 @@
 
 /* Title on edit button */
 "composer.button.edit" = "تعديل";
+
+/* Send button title */
+"composer.button.send.to" = "إرسال إلى";
 
 /* Title warning that a voice recording will be deleted */
 "composer.delete.recording.title" = "حذف التسجيل الصوتي؟";
@@ -886,6 +892,9 @@
 /* Tag for new posts in groups grid */
 "groupGrid.newPostIndicator" = "جديد";
 
+/* Shown when post fails or is canceled. */
+"groupGrid.post.failed" = "تعذّر النشر";
+
 /* More info menu item */
 "groupGridHeader.moreInfo" = "مزيد من المعلومات";
 
@@ -984,6 +993,9 @@
 
 /* Version of an invitation to join HalloApp. The argument is the invitee's name. */
 "invite.text.specific.4" = "مرحبًا %@! يمكنك الانضمام معي إلى هالوآب، ومشاركة اللحظات الحقيقية مع الأصدقاء الفعليين. تجربة التطبيق من هنا: https://halloapp.com/new";
+
+/* Version of an invitation to join HalloApp. No arguments */
+"invite.text.specific.5" = "هذه دعوة مني لتنضم إليّ في استخدام هالوآب، وهو تطبيق يتمتع بالخصوصية والأمان حيث يمكنك من خلاله مشاركة الصور والدردشة مع الأصدقاء والاتصال بهم. يمكنك تنزيله من https://halloapp.com/get";
 
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "دعوة الأصدقاء";
@@ -1122,6 +1134,9 @@
 
 /* Message action. Verb. */
 "message.delete" = "حذف";
+
+/* Call to action to forward a message */
+"message.forward" = "إعادة توجيه";
 
 /* Message action. Verb. */
 "message.reply" = "ردّ";
@@ -1363,11 +1378,13 @@
 /* Header when selecting all or some contacts to share with */
 "post.privacy.header.contacts" = "لمن سيظهر المنشور";
 
-/* Header when selecting a group to share with */
-"post.privacy.header.groups" = "المشاركة مع مجموعة فقط";
+/* Header when selecting a group to share with
+   Header when selecting groups to share with */
+"post.privacy.header.groups" = "مجموعاتك";
 
-/* Controller title for changing destination and privacy */
-"post.privacy.title" = "المشاركة مع...";
+/* Controller title for changing destination and privacy
+   Header when selecting contacts to share with */
+"post.privacy.title" = "جهات الاتصال الحديثة";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "محظورة";

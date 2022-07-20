@@ -65,7 +65,7 @@
 "archive.title.label" = "Archiv";
 
 /* Label shown on the cancel action */
-"audio.control.cancel" = "wischen zum Abbrechen";
+"audio.control.cancel" = "zum Abbrechen wischen";
 
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "Keine Verbindung";
@@ -542,7 +542,7 @@
 "Delete" = "Löschen";
 
 /* Body of the bottom sheet that is presented only once to explain the moments feature. */
-"describing.moments" = "Entsperre die Momente deiner Freunde, indem du deine eigenen teilst. Momente sind temporär und können nur einmal angesehen werden";
+"describing.moments" = "Schalte die Momente deiner Freunde frei, indem du deine eigenen teilst. Momente sind temporär und du kannst sie nur einmal anschauen";
 
 /* link, tapping on which launched the flow to edit blocked contacts */
 "edit.blocked" = "Bearbeiten";
@@ -725,7 +725,7 @@
 "feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
 
 /* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.body" = "Verwende deine Handynummer, um dich mit deinen Freunden und deiner Familie in einem digitalen Raum ohne Werbung, Marken, Likes und Influencer zu vernetzen.\n\nHalloApp ist für dich und die Menschen, die dir nahe stehen - ganz privat. Lade deine echten Freunde ein, um loszulegen!";
+"feed.welcome.post.body" = "Verwende deine Handynummer, um dich mit deinen Freunden und deiner Familie in einem digitalen Raum ohne Werbung, Marken, Likes und Influencer zu vernetzen.\n\nHalloApp ist für dich und die Menschen, die dir nahestehen - ganz privat. Lade deine echten Freunde ein, um loszulegen!";
 
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
 "feed.welcome.post.title" = "Willkommen bei HalloApp, ein digitaler Raum für echte Beziehungen ✨";
@@ -1135,6 +1135,9 @@
 /* Message action. Verb. */
 "message.delete" = "Löschen";
 
+/* Call to action to forward a message */
+"message.forward" = "Weiterleiten";
+
 /* Message action. Verb. */
 "message.reply" = "Antworten";
 
@@ -1274,16 +1277,16 @@
 "notification.one.video" = "📹 Video";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.1" = "%@ hat einen neuen Moment geteilt, um deinen zu entsperren";
+"notification.unlocked.moment.1" = "%@ hat einen neuen Moment geteilt, um deinen freizuschalten";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.2" = "%1$@ und %2$@ haben einen neuen Moment geteilt, um deinen zu entsperren";
+"notification.unlocked.moment.2" = "%1$@ und %2$@ haben einen neuen Moment geteilt, um deinen freizuschalten";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.3" = "%1$@, %2$@ und %3$@ haben einen neuen Moment geteilt, um deinen zu entsperren";
+"notification.unlocked.moment.3" = "%1$@, %2$@ und %3$@ haben einen neuen Moment geteilt, um deinen freizuschalten";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ und weitere Kontakte haben einen neuen Moment geteilt, um deinen zu entsperren";
+"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ und weitere Kontakte haben einen neuen Moment geteilt, um deinen freizuschalten";
 
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 Verpasster Videoanruf";
@@ -1375,11 +1378,13 @@
 /* Header when selecting all or some contacts to share with */
 "post.privacy.header.contacts" = "Wer wird diesen Beitrag sehen";
 
-/* Header when selecting a group to share with */
-"post.privacy.header.groups" = "Nur mit einer Gruppe teilen";
+/* Header when selecting a group to share with
+   Header when selecting groups to share with */
+"post.privacy.header.groups" = "Deine Gruppen";
 
-/* Controller title for changing destination and privacy */
-"post.privacy.title" = "Teilen mit ...";
+/* Controller title for changing destination and privacy
+   Header when selecting contacts to share with */
+"post.privacy.title" = "Neueste Kontakte";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Geblockte Kontakte";
@@ -1853,7 +1858,7 @@
 "unknown.contact.not.in.contact.book" = "Dieser Absender ist nicht in deinen Kontakten.";
 
 /* Text that indicates the unlock action for a moment. */
-"unlock.title" = "Entsperren";
+"unlock.title" = "Freischalten";
 
 /* Alert appearing after clicking an external share link that failed to load */
 "urlrouter.externalShare.failed" = "Beitrag kann nicht geladen werden";

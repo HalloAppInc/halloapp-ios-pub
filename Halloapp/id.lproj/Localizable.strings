@@ -1135,6 +1135,9 @@
 /* Message action. Verb. */
 "message.delete" = "Hapus";
 
+/* Call to action to forward a message */
+"message.forward" = "Teruskan";
+
 /* Message action. Verb. */
 "message.reply" = "Balas";
 
@@ -1375,11 +1378,13 @@
 /* Header when selecting all or some contacts to share with */
 "post.privacy.header.contacts" = "Yang akan melihat postingan ini";
 
-/* Header when selecting a group to share with */
-"post.privacy.header.groups" = "Bagikan hanya dengan grup";
+/* Header when selecting a group to share with
+   Header when selecting groups to share with */
+"post.privacy.header.groups" = "Grup Anda";
 
-/* Controller title for changing destination and privacy */
-"post.privacy.title" = "Bagikan dengan...";
+/* Controller title for changing destination and privacy
+   Header when selecting contacts to share with */
+"post.privacy.title" = "Kontak Terbaru";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Diblokir";

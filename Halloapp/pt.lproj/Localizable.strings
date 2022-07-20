@@ -433,6 +433,9 @@
 /* Warning text displayed in Comments when post wasn't available. */
 "comments.post.loading.failed" = "Ocorreu um erro ao tentar carregar esta publicação. Por favor, tente novamente mais tarde.";
 
+/* Label for add media button in post composer */
+"composer.addmedia" = "Adicionar mídia";
+
 /* Accessibility label for add images button */
 "composer.audio.a11y.addImages" = "Adicionar Imagens";
 
@@ -453,6 +456,9 @@
 
 /* Title on edit button */
 "composer.button.edit" = "Editar";
+
+/* Send button title */
+"composer.button.send.to" = "Enviar para";
 
 /* Title warning that a voice recording will be deleted */
 "composer.delete.recording.title" = "Excluir gravação de voz?";
@@ -1129,6 +1135,9 @@
 /* Message action. Verb. */
 "message.delete" = "Apagar";
 
+/* Call to action to forward a message */
+"message.forward" = "Avançar";
+
 /* Message action. Verb. */
 "message.reply" = "Responder";
 
@@ -1369,10 +1378,12 @@
 /* Header when selecting all or some contacts to share with */
 "post.privacy.header.contacts" = "Quem verá esta postagem";
 
-/* Header when selecting a group to share with */
+/* Header when selecting a group to share with
+   Header when selecting groups to share with */
 "post.privacy.header.groups" = "Compartilhar apenas com um grupo";
 
-/* Controller title for changing destination and privacy */
+/* Controller title for changing destination and privacy
+   Header when selecting contacts to share with */
 "post.privacy.title" = "Compartilhar Com...";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
