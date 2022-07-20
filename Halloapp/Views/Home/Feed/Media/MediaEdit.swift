@@ -47,12 +47,10 @@ class MediaEdit : ObservableObject {
     private var hFlipped = false
     private var vFlipped = false
 
-    private let cropRegion: MediaEditCropRegion
-    private let maxAspectRatio: CGFloat?
+    private let config: MediaEditConfig
 
-    init(cropRegion: MediaEditCropRegion, maxAspectRatio: CGFloat?, media: PendingMedia) {
-        self.cropRegion = cropRegion
-        self.maxAspectRatio = maxAspectRatio
+    init(config: MediaEditConfig, media: PendingMedia) {
+        self.config = config
         self.media = media
 
         if let edit = media.edit {
@@ -158,7 +156,7 @@ class MediaEdit : ObservableObject {
     }
 
     func shouldProcess() -> Bool {
-        return type == .image && cropRegion != .any
+        return type == .image && config.cropRegion != .any
     }
 
     func process() -> PendingMedia {
@@ -321,14 +319,14 @@ class MediaEdit : ObservableObject {
         guard type == .image else { return .zero }
         guard let image = original else { return .zero }
 
-        switch cropRegion {
+        switch config.cropRegion {
         case .circle, .square:
             let size = min(image.size.width, image.size.height)
             return CGRect(x: image.size.width / 2 - size / 2, y: image.size.height / 2  - size / 2, width: size, height: size)
         case .any:
             var crop = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
 
-            if let maxAspectRatio = maxAspectRatio, crop.size.height / crop.size.width > maxAspectRatio {
+            if let maxAspectRatio = config.maxAspectRatio, crop.size.height / crop.size.width > maxAspectRatio {
                 crop.size.height = (crop.size.width * maxAspectRatio).rounded()
                 crop.origin.y = image.size.height / 2 - crop.size.height / 2
             }
@@ -359,7 +357,7 @@ class MediaEdit : ObservableObject {
         offset.x = oy
         offset.y = -ox
 
-        if let maxAspectRatio = maxAspectRatio {
+        if let maxAspectRatio = config.maxAspectRatio {
             let ratio = cropRect.size.height / cropRect.size.width
             cropRect.size.height = cropRect.size.width * min(maxAspectRatio, ratio)
         }

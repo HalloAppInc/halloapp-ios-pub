@@ -126,6 +126,28 @@ class ComposerViewController: UIViewController {
         return UIBarButtonItem(customView: button)
     }()
 
+    private lazy var cropButtonItem: UIBarButtonItem = {
+        let imageConfig = UIImage.SymbolConfiguration(weight: .bold)
+        let image = UIImage(systemName: "crop.rotate", withConfiguration: imageConfig)?
+                    .withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
+
+        return UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(cropAction))
+    }()
+
+    private lazy var annotateButtonItem: UIBarButtonItem = {
+        let imageConfig = UIImage.SymbolConfiguration(weight: .bold)
+        let image = UIImage(named: "Annotate")?.withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
+
+        return UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(annotateAction))
+    }()
+
+    private lazy var drawButtonItem: UIBarButtonItem = {
+        let imageConfig = UIImage.SymbolConfiguration(weight: .bold)
+        let image = UIImage(named: "Draw")?.withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
+
+        return UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(drawAction))
+    }()
+
     private lazy var contentView: UIStackView = {
         let contentView = UIStackView()
         contentView.translatesAutoresizingMaskIntoConstraints = false
@@ -211,35 +233,6 @@ class ComposerViewController: UIViewController {
                 deleteButton.heightAnchor.constraint(equalToConstant: Constants.controlSize)
             ])
 
-            let editBackground = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-            editBackground.translatesAutoresizingMaskIntoConstraints = false
-            editBackground.isUserInteractionEnabled = false
-
-            let editImageConfiguration = UIImage.SymbolConfiguration(pointSize: 22)
-            let editImage = UIImage(systemName: "pencil.circle.fill", withConfiguration: editImageConfiguration)?.withTintColor(.white, renderingMode: .alwaysOriginal)
-
-            let editButton = UIButton(type: .custom)
-            editButton.translatesAutoresizingMaskIntoConstraints = false
-            editButton.setImage(editImage, for: .normal)
-            editButton.setTitle(Localizations.edit, for: .normal)
-            editButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .medium)
-            editButton.layer.cornerRadius = Constants.controlRadius
-            editButton.clipsToBounds = true
-            editButton.imageEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 12)
-            editButton.contentEdgeInsets = UIEdgeInsets(top: 0, left: 4, bottom: 1, right: 6)
-            editButton.addTarget(self, action: #selector(self.editMediaAction), for: .touchUpInside)
-            editButton.insertSubview(editBackground, at: 0)
-            if let imageView = editButton.imageView {
-                editButton.bringSubviewToFront(imageView)
-            }
-            if let titleLabel = editButton.titleLabel {
-                editButton.bringSubviewToFront(titleLabel)
-            }
-
-            editBackground.constrain(to: editButton)
-            NSLayoutConstraint.activate([
-                editButton.heightAnchor.constraint(equalToConstant: Constants.controlSize)
-            ])
 
             let topTrailingActions = UIStackView(arrangedSubviews: [deleteButton])
             topTrailingActions.translatesAutoresizingMaskIntoConstraints = false
@@ -247,15 +240,8 @@ class ComposerViewController: UIViewController {
             topTrailingActions.isLayoutMarginsRelativeArrangement = true
             topTrailingActions.layoutMargins = UIEdgeInsets(top: Constants.controlSpacing, left: 0, bottom: 0, right: Constants.controlSpacing)
 
-            let bottomTrailingActions = UIStackView(arrangedSubviews: [editButton])
-            bottomTrailingActions.translatesAutoresizingMaskIntoConstraints = false
-            bottomTrailingActions.axis = .horizontal
-            bottomTrailingActions.isLayoutMarginsRelativeArrangement = true
-            bottomTrailingActions.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: Constants.controlSpacing, right: Constants.controlSpacing)
-
             return [
                 MediaCarouselSupplementaryItem(anchors: [.top, .trailing], view: topTrailingActions),
-                MediaCarouselSupplementaryItem(anchors: [.bottom, .trailing], view: bottomTrailingActions),
             ]
         }
         configuration.pageControlViewsProvider = { [weak self] numberOfPages in
@@ -551,13 +537,6 @@ class ComposerViewController: UIViewController {
 
         configureUI()
 
-        switch config.destination {
-        case .chat(_):
-            title = Localizations.newMessageTitle
-        default:
-            title = Localizations.newPostTitle
-        }
-
         // show the favorites education modal only once to the user
         if !AppContext.shared.userDefaults.bool(forKey: "hasFavoritesModalBeenShown") {
             AppContext.shared.userDefaults.set(true, forKey: "hasFavoritesModalBeenShown")
@@ -662,6 +641,20 @@ class ComposerViewController: UIViewController {
 
                 self.updateMediaCarouselHeight()
                 self.sendButton.isEnabled = true
+            }
+
+            guard 0 <= index, index < media.count else {
+                DDLogDebug("ComposerViewController/updateUI index out of bounds")
+                return
+            }
+
+            switch media[index].type {
+            case .image:
+                navigationItem.rightBarButtonItems = [drawButtonItem, annotateButtonItem, cropButtonItem]
+            case .video:
+                navigationItem.rightBarButtonItems = [cropButtonItem]
+            case .audio:
+                navigationItem.rightBarButtonItems = []
             }
         } else if initialType == .voiceNote || voiceNote != nil {
             // update audio only ui
@@ -855,7 +848,8 @@ extension ComposerViewController {
 // MARK: MediaCarouselViewDelegate
 extension ComposerViewController: MediaCarouselViewDelegate {
     func mediaCarouselView(_ view: MediaCarouselView, indexChanged newIndex: Int) {
-        index = newIndex
+        index = max(0, min(newIndex, media.count - 1))
+        updateUI()
     }
 
     func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
@@ -872,10 +866,12 @@ extension ComposerViewController: MediaCarouselViewDelegate {
         MediaCarouselView.stopAllPlayback()
 
         let controller = MediaPickerViewController(config: .more, selected: media) { controller, _, _, media, cancel in
+            controller.dismiss(animated: true)
+
             guard !cancel else { return }
 
             let assets = Set(self.media.map(\.asset))
-            if let idx = media.firstIndex(where: { assets.contains($0.asset) }) {
+            if let idx = media.firstIndex(where: { !assets.contains($0.asset) }) {
                 // focus on the first newly added item if possible
                 self.index = idx
             } else if let idx = media.firstIndex(where: { $0.asset == self.media[self.index].asset }) {
@@ -897,6 +893,8 @@ extension ComposerViewController: MediaCarouselViewDelegate {
     @objc func deleteMediaAction() {
         media.remove(at: index)
 
+        index = max(0, min(index, media.count - 1))
+
         if media.count == 0 {
             if shouldDismissWhenNoMedia() {
                 backAction()
@@ -908,28 +906,61 @@ extension ComposerViewController: MediaCarouselViewDelegate {
         }
     }
 
-    @objc func editMediaAction() {
+    @objc private func cropAction() {
         MediaCarouselView.stopAllPlayback()
 
-        let controller = MediaEditViewController(mediaToEdit: media, selected: index) { controller, media, selected, cancel in
+        guard 0 <= index, index < media.count else {
+            DDLogDebug("ComposerViewController/cropAction index out of bounds")
+            return
+        }
+
+        let controller = MediaEditViewController(config: .crop, mediaToEdit: [media[index]], selected: 0) { controller, media, selected, cancel in
             controller.dismiss(animated: true)
 
             guard !cancel else { return }
 
-            let beforeCount = self.media.count
+            self.media[self.index] = media[0]
+            self.updateMediaState(animated: false)
+        }
 
-            self.media = media
-            self.index = selected
+        present(controller.withNavigationController(), animated: true)
+    }
 
-            if media.count == 0 {
-                if self.shouldDismissWhenNoMedia() {
-                    self.backAction()
-                } else {
-                    self.configureUI()
-                }
-            } else {
-                self.updateMediaState(animated: beforeCount != media.count)
-            }
+    @objc private func annotateAction() {
+        MediaCarouselView.stopAllPlayback()
+
+        guard 0 <= index, index < media.count else {
+            DDLogDebug("ComposerViewController/annotateAction index out of bounds")
+            return
+        }
+
+        let controller = MediaEditViewController(config: .annotate, mediaToEdit: [media[index]], selected: 0) { controller, media, selected, cancel in
+            controller.dismiss(animated: true)
+
+            guard !cancel else { return }
+
+            self.media[self.index] = media[0]
+            self.updateMediaState(animated: false)
+        }
+
+        present(controller.withNavigationController(), animated: true)
+    }
+
+    @objc private func drawAction() {
+        MediaCarouselView.stopAllPlayback()
+
+        guard 0 <= index, index < media.count else {
+            DDLogDebug("ComposerViewController/drawAction index out of bounds")
+            return
+        }
+
+        let controller = MediaEditViewController(config: .draw, mediaToEdit: [media[index]], selected: 0) { controller, media, selected, cancel in
+            controller.dismiss(animated: true)
+
+            guard !cancel else { return }
+
+            self.media[self.index] = media[0]
+            self.updateMediaState(animated: false)
         }
 
         present(controller.withNavigationController(), animated: true)

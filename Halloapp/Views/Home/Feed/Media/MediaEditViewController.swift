@@ -53,18 +53,75 @@ private extension Localizations {
     }
 }
 
+fileprivate struct Constants {
+    static let previewSize: CGFloat = 80
+}
+
 typealias MediaEditViewControllerCallback = (MediaEditViewController, [PendingMedia], Int, Bool) -> Void
 
 enum MediaEditCropRegion {
     case circle, square, any
 }
 
+struct MediaEditMode: OptionSet {
+    let rawValue: Int
+
+    static let crop = MediaEditMode(rawValue: 1 << 0)
+    static let annotate = MediaEditMode(rawValue: 1 << 1)
+    static let draw = MediaEditMode(rawValue: 1 << 2)
+
+    static let all: MediaEditMode = [.crop, .annotate, .draw]
+}
+
+struct MediaEditConfig {
+    var mode: MediaEditMode = .all
+    var dark: Bool
+    var showPreviews: Bool
+    var cropRegion: MediaEditCropRegion
+    var maxAspectRatio: CGFloat? = nil
+
+    var canCrop: Bool {
+        mode.contains(.crop)
+    }
+
+    var canAnnotate: Bool {
+        mode.contains(.annotate)
+    }
+
+    var canDraw: Bool {
+        mode.contains(.draw)
+    }
+
+    static var `default`: MediaEditConfig {
+        MediaEditConfig(mode: .all, dark: true, showPreviews: true, cropRegion: .any)
+    }
+
+    static var groupAvatar: MediaEditConfig {
+        MediaEditConfig(mode: .all, dark: true, showPreviews: true, cropRegion: .square)
+    }
+
+    static var profile: MediaEditConfig {
+        MediaEditConfig(mode: .all, dark: true, showPreviews: true, cropRegion: .circle)
+    }
+
+    static var crop: MediaEditConfig {
+        MediaEditConfig(mode: .crop, dark: false, showPreviews: false, cropRegion: .any)
+    }
+
+    static var annotate: MediaEditConfig {
+        MediaEditConfig(mode: .annotate, dark: false, showPreviews: false, cropRegion: .any)
+    }
+
+    static var draw: MediaEditConfig {
+        MediaEditConfig(mode: .draw, dark: false, showPreviews: false, cropRegion: .any)
+    }
+}
+
 class MediaEditViewController: UIViewController {
+    private var config: MediaEditConfig
     private var media: [MediaEdit]
     private var selected: Int
     private var editViewController: UIViewController?
-    private let cropRegion: MediaEditCropRegion
-    private let maxAspectRatio: CGFloat?
     private var processing = false
     private let didFinish: MediaEditViewControllerCallback
     private var mutedCancellable: AnyCancellable?
@@ -72,50 +129,84 @@ class MediaEditViewController: UIViewController {
     private var undoStackCancellable: AnyCancellable?
     private var draggingAnnotationCancellable: AnyCancellable?
 
-    private lazy var undoButton: UIButton = {
-        let undoButton = UIButton()
-        undoButton.translatesAutoresizingMaskIntoConstraints = false
-        undoButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
-        undoButton.setTitle(Localizations.buttonUndo, for: .normal)
-        undoButton.setTitleColor(.white, for: .normal)
-        undoButton.setTitleColor(.white.withAlphaComponent(0.6), for: .highlighted)
-        undoButton.setImage(UIImage(named: "Undo")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
-        // right negative padding should be equal to the left padding or the text might get cut off by ellipsis
-        undoButton.titleEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: -8)
-        undoButton.addTarget(self, action: #selector(undoAction), for: .touchUpInside)
+    private lazy var undoButtonItem: UIBarButtonItem = {
+        let imageConfig = UIImage.SymbolConfiguration(weight: .bold)
+        let image = UIImage(named: "Undo")
 
-        NSLayoutConstraint.activate([
-            undoButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 75),
-        ])
+        let item = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(undoAction))
+        item.tintColor = .primaryBlue
 
-        return undoButton
+        return item
     }()
 
-    private lazy var buttonsView: UIView = {
-        let doneBtn = UIButton()
-        doneBtn.translatesAutoresizingMaskIntoConstraints = false
-        doneBtn.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
-        doneBtn.setTitle(Localizations.buttonDone, for: .normal)
-        doneBtn.setTitleColor(.white, for: .normal)
-        doneBtn.setTitleColor(.white.withAlphaComponent(0.6), for: .highlighted)
-        doneBtn.setBackgroundColor(.primaryBlue, for: .normal)
-        doneBtn.contentEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 1, right: 0)
-        doneBtn.layer.cornerRadius = 22
-        doneBtn.layer.masksToBounds = true
-        doneBtn.addTarget(self, action: #selector(doneAction), for: .touchUpInside)
+    private lazy var rotateButtonItem: UIBarButtonItem = {
+        let rotateBtn = UIBarButtonItem(image: UIImage(named: "Rotate"), style: .plain, target: self, action: #selector(rotateAction))
+        rotateBtn.tintColor = .primaryBlue
+        rotateBtn.accessibilityLabel = Localizations.voiceOverButtonRotate
 
-        doneBtn.heightAnchor.constraint(equalToConstant: 44).isActive = true
-        doneBtn.widthAnchor.constraint(equalToConstant: 90).isActive = true
+        return rotateBtn
+    }()
 
-        let spacer = UIView()
-        spacer.translatesAutoresizingMaskIntoConstraints = false
+    private lazy var flipButtonItem: UIBarButtonItem = {
+        let flipBtn = UIBarButtonItem(image: UIImage(named: "Flip"), style: .plain, target: self, action: #selector(flipAction))
+        flipBtn.tintColor = .primaryBlue
+        flipBtn.accessibilityLabel = Localizations.voiceOverButtonFlip
 
-        let buttonsView = UIStackView(arrangedSubviews: [undoButton, spacer, doneBtn])
-        buttonsView.translatesAutoresizingMaskIntoConstraints = false
-        buttonsView.axis = .horizontal
-        buttonsView.alignment = .center
+        return flipBtn
+    }()
 
-        return buttonsView
+    private lazy var drawButtonItem: UIBarButtonItem = {
+        let drawIcon = UIImage(named: "Draw")?.withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
+        let drawBtn = UIButton(frame: CGRect(x: 0, y: 0, width: 44, height: 44))
+        drawBtn.setImage(drawIcon, for: .normal)
+        drawBtn.layer.cornerRadius = 22
+        drawBtn.clipsToBounds = true
+        drawBtn.addTarget(self, action: #selector(drawAction), for: .touchUpInside)
+
+        let item = UIBarButtonItem(customView: drawBtn)
+        item.accessibilityLabel = Localizations.voiceOverButtonDraw
+
+        return item
+    }()
+
+    private lazy var annotateButtonItem: UIBarButtonItem = {
+        let annotateIcon = UIImage(named: "Annotate")?.withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
+        let annotateBtn = UIButton(frame: CGRect(x: 0, y: 0, width: 44, height: 44))
+        annotateBtn.setImage(annotateIcon, for: .normal)
+        annotateBtn.layer.cornerRadius = 22
+        annotateBtn.clipsToBounds = true
+        annotateBtn.addTarget(self, action: #selector(annotateAction), for: .touchUpInside)
+
+        let item = UIBarButtonItem(customView: annotateBtn)
+        item.accessibilityLabel = Localizations.voiceOverButtonAnnotate
+
+        return item
+    }()
+
+    private lazy var muteButtonItem: UIBarButtonItem = {
+        let muteButtonItem = UIBarButtonItem(image: muteIcon(media[selected].muted), style: .plain, target: self, action: #selector(toggleMuteAction))
+        muteButtonItem.accessibilityLabel = Localizations.voiceOverButtonMute
+        muteButtonItem.tintColor = .primaryBlue
+
+        return muteButtonItem
+    }()
+
+    private lazy var doneButton: UIButton = {
+        let doneButton = UIButton()
+        doneButton.translatesAutoresizingMaskIntoConstraints = false
+        doneButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
+        doneButton.setTitle(Localizations.buttonDone, for: .normal)
+        doneButton.setTitleColor(.white, for: .normal)
+        doneButton.setTitleColor(.white.withAlphaComponent(0.6), for: .highlighted)
+        doneButton.setBackgroundColor(.primaryBlue, for: .normal)
+        doneButton.contentEdgeInsets = UIEdgeInsets(top: 0, left: 40, bottom: 1, right: 40)
+        doneButton.layer.cornerRadius = 22
+        doneButton.layer.masksToBounds = true
+        doneButton.addTarget(self, action: #selector(doneAction), for: .touchUpInside)
+
+        doneButton.heightAnchor.constraint(equalToConstant: 44).isActive = true
+
+        return doneButton
     }()
 
     private lazy var previewCollectionView: UICollectionView = {
@@ -124,7 +215,7 @@ class MediaEditViewController: UIViewController {
         layout.minimumLineSpacing = 10
         layout.sectionInset = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 8)
         layout.scrollDirection = .horizontal
-        layout.itemSize = CGSize(width: 80, height: 80)
+        layout.itemSize = CGSize(width: Constants.previewSize, height: Constants.previewSize)
 
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
@@ -145,13 +236,12 @@ class MediaEditViewController: UIViewController {
     }
 
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        .lightContent
+        config.dark ? .lightContent : super.preferredStatusBarStyle
     }
-    
-    init(cropRegion: MediaEditCropRegion = .any, mediaToEdit media: [PendingMedia], selected position: Int?, maxAspectRatio: CGFloat? = nil, didFinish: @escaping MediaEditViewControllerCallback) {
-        self.cropRegion = cropRegion
-        self.media = media.map { MediaEdit(cropRegion: cropRegion, maxAspectRatio: maxAspectRatio, media: $0) }
-        self.maxAspectRatio = maxAspectRatio
+
+    init(config: MediaEditConfig, mediaToEdit media: [PendingMedia], selected position: Int?, didFinish: @escaping MediaEditViewControllerCallback) {
+        self.config = config
+        self.media = media.map { MediaEdit(config: config, media: $0) }
         self.didFinish = didFinish
 
         if let position = position, 0 <= position && position < media.count {
@@ -172,37 +262,38 @@ class MediaEditViewController: UIViewController {
         controller.modalPresentationStyle = .fullScreen
         controller.delegate = self
 
+        if config.dark {
+            controller.navigationBar.overrideUserInterfaceStyle = .dark
+        }
+
+        controller.navigationBar.isTranslucent = true
+        controller.navigationBar.backgroundColor = .clear
+
         return controller
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        overrideUserInterfaceStyle = .dark
+
+        if config.dark {
+            overrideUserInterfaceStyle = .dark
+        }
 
         setupNavigation()
 
-        let bottomBackground = UIView()
-        bottomBackground.translatesAutoresizingMaskIntoConstraints = false
-        bottomBackground.backgroundColor = .systemGray6
-
-        view.backgroundColor = .black
-        view.addSubview(bottomBackground)
-        view.addSubview(buttonsView)
+        view.backgroundColor = config.dark ? .black : .feedBackground
+        view.addSubview(doneButton)
         view.addSubview(previewCollectionView)
 
+        let previewHeight = media.count > 1 && config.showPreviews ? Constants.previewSize : 0
+
         NSLayoutConstraint.activate([
-            buttonsView.heightAnchor.constraint(equalToConstant: 44),
-            buttonsView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            buttonsView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
-            buttonsView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -18),
-            previewCollectionView.heightAnchor.constraint(equalToConstant: media.count > 1 ? 80 : 0),
+            doneButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            doneButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            previewCollectionView.heightAnchor.constraint(equalToConstant: previewHeight),
             previewCollectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             previewCollectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            previewCollectionView.bottomAnchor.constraint(equalTo: buttonsView.topAnchor, constant: -20),
-            bottomBackground.topAnchor.constraint(equalTo: previewCollectionView.topAnchor, constant: media.count > 1 ? -14 : 0),
-            bottomBackground.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            bottomBackground.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            bottomBackground.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            previewCollectionView.bottomAnchor.constraint(equalTo: doneButton.topAnchor, constant: -20),
         ])
 
         updateEditViewController()
@@ -211,12 +302,13 @@ class MediaEditViewController: UIViewController {
     }
 
     private func setupNavigation() {
-        navigationController?.navigationBar.overrideUserInterfaceStyle = .dark
-        navigationController?.navigationBar.isTranslucent = true
-        navigationController?.navigationBar.backgroundColor = .clear
+        navigationItem.standardAppearance = .transparentAppearance
+        navigationItem.compactAppearance = .transparentAppearance
+        navigationItem.scrollEdgeAppearance = .transparentAppearance
 
-        let backImage = UIImage(systemName: "xmark", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))?.withTintColor(.white, renderingMode: .alwaysOriginal)
+        let backImage = UIImage(systemName: "chevron.left", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: backImage, style: .plain, target: self, action: #selector(backAction))
+        navigationItem.leftBarButtonItem?.tintColor = .primaryBlue
 
         updateNavigation()
     }
@@ -241,69 +333,51 @@ class MediaEditViewController: UIViewController {
             }
         }
 
-        undoButton.isHidden = media[selected].undoStack.count == 0
+        undoButtonItem.isEnabled = media[selected].undoStack.count > 0
         undoStackCancellable = media[selected].$undoStack.sink { [weak self] stack in
-            self?.undoButton.isHidden = stack.count == 0
+            self?.undoButtonItem.isEnabled = stack.count > 0
         }
 
         switch media[selected].type {
         case .image:
             navigationItem.rightBarButtonItems = []
 
-            if isDrawingEnabled {
-                let drawIcon = UIImage(named: "Draw")?.withTintColor(.white, renderingMode: .alwaysOriginal)
-                let drawBtn = UIButton(frame: CGRect(x: 0, y: 0, width: 44, height: 44))
-                drawBtn.setImage(drawIcon, for: .normal)
-                drawBtn.layer.cornerRadius = 22
-                drawBtn.clipsToBounds = true
-                drawBtn.addTarget(self, action: #selector(drawAction), for: .touchUpInside)
-
+            if isDrawingEnabled, config.canDraw, let button = drawButtonItem.customView as? UIButton {
                 if media[selected].isDrawing {
-                    drawBtn.setBackgroundColor(media[selected].drawingColor, for: .normal)
+                    button.setBackgroundColor(media[selected].drawingColor, for: .normal)
 
                     drawingColorCancellable = media[selected].$drawingColor.sink {
-                        drawBtn.setBackgroundColor($0, for: .normal)
+                        button.setBackgroundColor($0, for: .normal)
                     }
+                } else {
+                    drawingColorCancellable = nil
+                    button.setBackgroundColor(.clear, for: .normal)
                 }
 
-                let drawBarBtn = UIBarButtonItem(customView: drawBtn)
-                drawBarBtn.accessibilityLabel = Localizations.voiceOverButtonDraw
-                navigationItem.rightBarButtonItems?.append(drawBarBtn)
-
-                let annotateIcon = UIImage(named: "Annotate")?.withTintColor(.white, renderingMode: .alwaysOriginal)
-                let annotateBtn = UIButton(frame: CGRect(x: 0, y: 0, width: 44, height: 44))
-                annotateBtn.setImage(annotateIcon, for: .normal)
-                annotateBtn.layer.cornerRadius = 22
-                annotateBtn.clipsToBounds = true
-                annotateBtn.addTarget(self, action: #selector(annotateAction), for: .touchUpInside)
-
-                if media[selected].isAnnotating {
-                    annotateBtn.setBackgroundColor(media[selected].drawingColor, for: .normal)
-
-                    drawingColorCancellable = media[selected].$drawingColor.sink {
-                        annotateBtn.setBackgroundColor($0, for: .normal)
-                    }
-                }
-
-                let annotateBarBtn = UIBarButtonItem(customView: annotateBtn)
-                annotateBarBtn.accessibilityLabel = Localizations.voiceOverButtonAnnotate
-                navigationItem.rightBarButtonItems?.append(annotateBarBtn)
+                navigationItem.rightBarButtonItems?.append(drawButtonItem)
             }
 
-            let rotateIcon = UIImage(named: "Rotate")?.withTintColor(.white, renderingMode: .alwaysOriginal)
-            let rotateBtn = UIBarButtonItem(image: rotateIcon, style: .plain, target: self, action: #selector(rotateAction))
-            rotateBtn.accessibilityLabel = Localizations.voiceOverButtonFlip
-            navigationItem.rightBarButtonItems?.append(rotateBtn)
+            if isDrawingEnabled, config.canAnnotate, let button = annotateButtonItem.customView as? UIButton {
+                if media[selected].isAnnotating {
+                    button.setBackgroundColor(media[selected].drawingColor, for: .normal)
 
-            let flipIcon = UIImage(named: "Flip")?.withTintColor(.white, renderingMode: .alwaysOriginal)
-            let flipBtn = UIBarButtonItem(image: flipIcon, style: .plain, target: self, action: #selector(flipAction))
-            flipBtn.accessibilityLabel = Localizations.voiceOverButtonRotate
-            navigationItem.rightBarButtonItems?.append(flipBtn)
+                    drawingColorCancellable = media[selected].$drawingColor.sink {
+                        button.setBackgroundColor($0, for: .normal)
+                    }
+                } else {
+                    drawingColorCancellable = nil
+                    button.setBackgroundColor(.clear, for: .normal)
+                }
+
+                navigationItem.rightBarButtonItems?.append(annotateButtonItem)
+            }
+
+            if config.canCrop {
+                navigationItem.rightBarButtonItems?.append(rotateButtonItem)
+                navigationItem.rightBarButtonItems?.append(flipButtonItem)
+            }
         case .video:
-            let muteBtn = UIBarButtonItem(image: muteIcon(media[selected].muted), style: .plain, target: self, action: #selector(toggleMuteAction))
-            muteBtn.accessibilityLabel = Localizations.voiceOverButtonMute
-            muteBtn.tintColor = .white
-            navigationItem.rightBarButtonItems = [muteBtn]
+            navigationItem.rightBarButtonItems = [muteButtonItem]
 
             mutedCancellable = media[selected].$muted.sink { [weak self] in
                 guard let self = self else { return }
@@ -312,6 +386,8 @@ class MediaEditViewController: UIViewController {
         case .audio:
             break // audio edit is not currently suported
         }
+
+        navigationItem.rightBarButtonItems?.append(undoButtonItem)
     }
 
     private func muteIcon(_ muted: Bool) -> UIImage {
@@ -327,9 +403,9 @@ class MediaEditViewController: UIViewController {
         let controller: UIViewController
         switch media[selected].type {
         case .image:
-            controller = ImageEditViewController(media[selected], cropRegion: cropRegion, maxAspectRatio: maxAspectRatio)
+            controller = ImageEditViewController(media[selected], config: config)
         case .video:
-            controller = VideoEditViewController(media[selected])
+            controller = VideoEditViewController(media[selected], config: config)
         case .audio:
             return // audio edit is not currently suported
         }
@@ -342,7 +418,7 @@ class MediaEditViewController: UIViewController {
         NSLayoutConstraint.activate([
             controller.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             controller.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            controller.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            controller.view.topAnchor.constraint(equalTo: view.topAnchor),
             controller.view.bottomAnchor.constraint(equalTo: previewCollectionView.topAnchor, constant: -14),
         ])
 

@@ -18,8 +18,8 @@ import UIKit
 
 class ImageEditViewController: UIHostingController<ImageEditView> {
 
-    init(_ media: MediaEdit, cropRegion: MediaEditCropRegion = .any, maxAspectRatio: CGFloat? = nil) {
-        super.init(rootView: ImageEditView(media: media, cropRegion: cropRegion, maxAspectRatio: maxAspectRatio))
+    init(_ media: MediaEdit, config: MediaEditConfig) {
+        super.init(rootView: ImageEditView(media: media, config: config))
     }
 
     required init?(coder: NSCoder) {
@@ -37,8 +37,7 @@ struct ImageEditView: View {
     private let epsilon = CGFloat(1e-6)
 
     @ObservedObject var media: MediaEdit
-    let cropRegion: MediaEditCropRegion
-    let maxAspectRatio: CGFloat?
+    let config: MediaEditConfig
 
     @State private var isDragging = false
     @State private var startingOffset = CGPoint.zero
@@ -116,7 +115,7 @@ struct ImageEditView: View {
             crop.origin.y += deltaY
         }
 
-        if let maxAspectRatio = maxAspectRatio, (crop.size.height / crop.size.width) - maxAspectRatio > epsilon {
+        if let maxAspectRatio = config.maxAspectRatio, (crop.size.height / crop.size.width) - maxAspectRatio > epsilon {
             switch currentCropSection {
             case .none, .inside:
                 break
@@ -157,7 +156,7 @@ struct ImageEditView: View {
 
             guard currentCropSection != .none else { return }
 
-            switch cropRegion {
+            switch config.cropRegion {
             case .circle, .square:
                 currentCropSection = .inside
             case .any:
@@ -259,7 +258,7 @@ struct ImageEditView: View {
                                             let y = (media.scale - 1) * (inner.size.height / 2) + location.y - offset.height
 
                                             currentPath.append(CGPoint(x: x / media.scale, y: y / media.scale))
-                                        } else {
+                                        } else if config.canCrop {
                                             onDragCropRegion(location, in: inner.size)
                                         }
                                     }
@@ -272,7 +271,7 @@ struct ImageEditView: View {
                                             media.layers.append(.path(Scaler.scale(path: path, by: image.size.width / inner.size.width)))
                                             media.undoStack.append(.remove)
                                             currentPath = []
-                                        } else {
+                                        } else if config.canCrop {
                                             onDragCropRegionEnd()
                                         }
                                     }
@@ -293,17 +292,21 @@ struct ImageEditView: View {
                             )
                             .overlay(GeometryReader { inner in
                                 CropRegion(
-                                    cropRegion: cropRegion,
+                                    cropRegion: config.cropRegion,
                                     region: Scaler.scale(crop: media.cropRect, from: image.size, to: inner.size),
-                                    isDrawing: media.isDrawing || media.isAnnotating,
+                                    canCrop: !media.isDrawing && !media.isAnnotating && config.canCrop,
                                     isDragging: isDragging
                                 )
                                 .allowsHitTesting(false)
                             })
                         Spacer()
-                    }.frame(maxWidth: .infinity)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(8)
 
                     if media.isAnnotating {
+                        Color.black.opacity(0.7).edgesIgnoringSafeArea(.all)
+
                         TextView(text: $currentText, font: $media.annotationFont, color: $media.drawingColor)
                             .frame(height: TextView.height(for: currentText, font: media.annotationFont, width: outer.size.width))
                             .onTapGesture {
@@ -312,7 +315,7 @@ struct ImageEditView: View {
                             }
                             .offset(y: -100)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .background(Color.black.opacity(0.7))
+                            .contentShape(Rectangle())
                             .onTapGesture {
                                 let text = currentText.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
                                 media.isAnnotating = false
@@ -356,14 +359,14 @@ struct ImageEditView: View {
 
                     if (media.isDrawing || media.isAnnotating) && !isDragging {
                         ColorPicker(color: $media.drawingColor)
-                            .offset(x: -14)
+                            .offset(x: -30, y: 8)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                     }
                 }
             }
-            .padding(8)
+
             .edgesIgnoringSafeArea(.bottom)
-            .background(Color.black)
+            .background(config.dark ? Color.black.edgesIgnoringSafeArea(.all) : Color.feedBackground.edgesIgnoringSafeArea(.all))
         }
     }
 }
@@ -584,10 +587,11 @@ fileprivate struct DrawingBoard: View {
     }
 }
 
+
 fileprivate struct ColorPicker: View {
     @Binding var color: UIColor
 
-    private let height: CGFloat = 322
+    private let height: CGFloat = 193
     private let colors: [UIColor] = [
         UIColor(red: 1, green: 0.271, blue: 0, alpha: 1),
         UIColor(red: 1, green: 0.54, blue: 0, alpha: 1),
@@ -605,7 +609,7 @@ fileprivate struct ColorPicker: View {
     var body: some View {
         RoundedRectangle(cornerRadius: 19)
             .fill(.linearGradient(stops: zip(colors, locations).map { Gradient.Stop(color: Color($0.0), location: $0.1) }, startPoint: .bottom, endPoint: .top))
-            .shadow(color: .black.opacity(0.9), radius: 10, x: 0, y: 0)
+            .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 1)
             .gesture(DragGesture(minimumDistance: 0).onChanged {
                 let position = (height - min(height, max(0, $0.location.y))) / height
                 var index = 0
@@ -630,7 +634,7 @@ fileprivate struct ColorPicker: View {
 
                 color = UIColor(red: r1 + (r2 - r1) * prcnt, green: g1 + (g2 - g1) * prcnt, blue: b1 + (b2 - b1) * prcnt, alpha: a1 + (a2 - a1) * prcnt)
             })
-            .frame(width: 36, height: height)
+            .frame(width: 15, height: height)
     }
 }
 
@@ -698,7 +702,7 @@ fileprivate struct CropRegion: View {
 
     let cropRegion: MediaEditCropRegion
     let region: CGRect
-    let isDrawing: Bool
+    let canCrop: Bool
     let isDragging: Bool
 
     private let borderThickness: CGFloat = 2
@@ -709,7 +713,7 @@ fileprivate struct CropRegion: View {
         GeometryReader { geometry in
             // Shadow
             Path { path in
-                path.addRect(CGRect(x: -1, y: -1, width: geometry.size.width + 2, height: geometry.size.height + 2))
+                path.addRoundedRect(in: CGRect(x: -1, y: -1, width: geometry.size.width + 2, height: geometry.size.height + 2), cornerSize: cornerSize)
 
                 switch cropRegion {
                 case .circle:
@@ -722,7 +726,7 @@ fileprivate struct CropRegion: View {
 
             // Border
             Path { path in
-                guard !isDrawing else { return }
+                guard canCrop else { return }
                 let offset = borderThickness / 2
                 let region = self.region.insetBy(dx: -offset + 1, dy: -offset + 1)
 
@@ -733,11 +737,11 @@ fileprivate struct CropRegion: View {
                     path.addRoundedRect(in: region, cornerSize: cornerSize)
                 }
             }
-            .stroke(Color.mediaEditBorder, lineWidth: borderThickness)
+            .stroke(Color.lavaOrange, lineWidth: borderThickness)
 
             // Border Handles
             Path { path in
-                guard !isDrawing else { return }
+                guard canCrop else { return }
                 guard cropRegion == .any else { return }
 
                 let radius: CGFloat = 15
@@ -763,11 +767,11 @@ fileprivate struct CropRegion: View {
                 path.addArc(center: bottomLeft, radius: radius, startAngle: .degrees(180), endAngle: .degrees(90), clockwise: true)
 
             }
-            .stroke(Color.mediaEditBorder, lineWidth: borderThickness * 2)
+            .stroke(Color.lavaOrange, lineWidth: borderThickness * 2)
 
             // Grid
             Path { path in
-                guard !isDrawing && isDragging else { return }
+                guard canCrop && isDragging else { return }
                 guard cropRegion == .any else { return }
 
                 path.move(to: CGPoint(x: self.region.minX + self.region.width / 3, y: self.region.minY))
@@ -782,7 +786,7 @@ fileprivate struct CropRegion: View {
                 path.move(to: CGPoint(x: self.region.minX, y: self.region.minY + self.region.height * 2 / 3))
                 path.addLine(to: CGPoint(x: self.region.maxX, y: self.region.minY + self.region.height * 2 / 3))
             }
-            .stroke(Color.mediaEditGrid, lineWidth: 1)
+            .stroke(Color.lavaOrange, lineWidth: 1)
         }
     }
 }

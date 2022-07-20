@@ -290,7 +290,7 @@ class CreateGroupViewController: UIViewController {
             if cancel || media.count == 0 {
                 controller.dismiss(animated: true)
             } else {
-                let edit = MediaEditViewController(cropRegion: .square, mediaToEdit: media, selected: 0) { controller, media, index, cancel in
+                let edit = MediaEditViewController(config: .groupAvatar, mediaToEdit: media, selected: 0) { controller, media, index, cancel in
                     controller.dismiss(animated: true)
 
                     if !cancel && media.count > 0 {

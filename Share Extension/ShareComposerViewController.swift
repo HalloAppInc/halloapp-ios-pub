@@ -964,7 +964,7 @@ extension ShareComposerViewController: UICollectionViewDataSource, UICollectionV
     }
 
     private func edit(index: Int) {
-        let controller = MediaEditViewController(mediaToEdit: media, selected: index, maxAspectRatio: nil) { [weak self] controller, media, selected, cancel in
+        let controller = MediaEditViewController(config: .default, mediaToEdit: media, selected: index) { [weak self] controller, media, selected, cancel in
             controller.dismiss(animated: true)
 
             guard let self = self else { return }

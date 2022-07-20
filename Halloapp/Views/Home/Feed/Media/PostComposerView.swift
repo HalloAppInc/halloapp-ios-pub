@@ -421,7 +421,7 @@ class PostComposerViewController: UIViewController {
 
                 MediaCarouselView.stopAllPlayback()
 
-                let editController = MediaEditViewController(mediaToEdit: self.mediaItems.value, selected: index, maxAspectRatio: self.configuration.mediaEditMaxAspectRatio) { controller, media, selected, cancel in
+                let editController = MediaEditViewController(config: .default, mediaToEdit: self.mediaItems.value, selected: index) { controller, media, selected, cancel in
                     controller.dismiss(animated: true)
 
                     completion(media, selected, cancel)

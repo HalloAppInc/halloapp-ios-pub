@@ -19,43 +19,64 @@ import UIKit
 class VideoEditViewController : UIViewController {
     private let thumbnailsCount = 6
 
+    private let config: MediaEditConfig
     private let media: MediaEdit
-    private var rangeView: VideoRangeView!
-    private let thumbnailsView: UIStackView = {
+
+    private lazy var rangeView: VideoRangeView = {
+        let rangeView = VideoRangeView(start: media.start, end: media.end) { [weak self] in
+            guard let self = self else { return }
+
+            self.updateDuration()
+
+            if self.media.start == self.rangeView.start && self.media.end != self.rangeView.end {
+                self.reset(toStart: false)
+            } else {
+                self.reset(toStart: true)
+            }
+
+            self.media.start = self.rangeView.start
+            self.media.end = self.rangeView.end
+        }
+
+        rangeView.translatesAutoresizingMaskIntoConstraints = false
+
+        return rangeView
+    }()
+
+    private lazy var thumbnailsView: UIStackView = {
         let stack = UIStackView()
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.axis = .horizontal
         stack.distribution = .fillEqually
         stack.alignment = .fill
         stack.clipsToBounds = true
+        stack.layer.cornerRadius = 2
+        stack.layer.masksToBounds = true
 
         return stack
     }()
-    private let videoView: VideoView = {
+
+    private lazy var videoView: VideoView = {
         let view = VideoView()
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.roundCorner(20)
+
         return view
     }()
-    private let durationView: UILabel = {
+
+    private lazy var trimTimesView: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.systemFont(ofSize: 15, weight: .medium)
-        label.textColor = .white
+        label.font = UIFont.systemFont(ofSize: 13, weight: .medium)
+        label.textColor = self.config.dark ? .white : .label.withAlphaComponent(0.5)
 
         return label
     }()
-    private let trimTimesView: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.systemFont(ofSize: 15, weight: .medium)
-        label.textColor = .white
 
-        return label
-    }()
-    private let playbackView: UIView = {
+    private lazy var playbackView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = .white.withAlphaComponent(0.7)
+        view.backgroundColor = .primaryBlue
 
         return view
     }()
@@ -77,8 +98,9 @@ class VideoEditViewController : UIViewController {
     }
     private var cancellableSet: Set<AnyCancellable> = []
 
-    init(_ media: MediaEdit) {
+    init(_ media: MediaEdit, config: MediaEditConfig) {
         self.media = media
+        self.config = config
 
         super.init(nibName: nil, bundle: nil)
     }
@@ -91,47 +113,28 @@ class VideoEditViewController : UIViewController {
         super.viewDidLoad()
         DDLogInfo("VideoEditViewController/viewDidLoad")
 
-        rangeView = VideoRangeView(start: media.start, end: media.end) { [weak self] in
-            guard let self = self else { return }
-
-            self.updateDuration()
-
-            if self.media.start == self.rangeView.start && self.media.end != self.rangeView.end {
-                self.reset(toStart: false)
-            } else {
-                self.reset(toStart: true)
-            }
-
-            self.media.start = self.rangeView.start
-            self.media.end = self.rangeView.end
-        }
-        rangeView.translatesAutoresizingMaskIntoConstraints = false
-
-        view.backgroundColor = .black
+        view.backgroundColor = config.dark ? .black : .feedBackground
         view.addSubview(trimTimesView)
         view.addSubview(thumbnailsView)
-        view.addSubview(rangeView)
-        view.addSubview(durationView)
-        view.addSubview(videoView)
         view.addSubview(playbackView)
+        view.addSubview(rangeView)
+        view.addSubview(videoView)
 
         NSLayoutConstraint.activate([
-            trimTimesView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            trimTimesView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             thumbnailsView.heightAnchor.constraint(equalToConstant: 44),
-            thumbnailsView.topAnchor.constraint(equalTo: trimTimesView.bottomAnchor, constant: 8),
+            thumbnailsView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             thumbnailsView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10 + rangeView.handleRadius),
             thumbnailsView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10 - rangeView.handleRadius),
             rangeView.heightAnchor.constraint(equalToConstant: 44),
-            rangeView.topAnchor.constraint(equalTo: trimTimesView.bottomAnchor, constant: 8),
+            rangeView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             rangeView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
             rangeView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
-            durationView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            durationView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            videoView.topAnchor.constraint(equalTo: rangeView.bottomAnchor, constant: 16),
-            videoView.bottomAnchor.constraint(equalTo: durationView.topAnchor, constant: -8),
-            videoView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            videoView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            trimTimesView.topAnchor.constraint(equalTo: thumbnailsView.bottomAnchor, constant: 6),
+            trimTimesView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            videoView.topAnchor.constraint(equalTo: trimTimesView.bottomAnchor, constant: 9),
+            videoView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            videoView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
+            videoView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
             playbackView.centerYAnchor.constraint(equalTo: rangeView.centerYAnchor),
             playbackView.widthAnchor.constraint(equalToConstant: 2),
             playbackView.heightAnchor.constraint(equalTo: rangeView.heightAnchor),
@@ -179,6 +182,11 @@ class VideoEditViewController : UIViewController {
                 self.reset()
             }
         })
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        updateDuration()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -230,7 +238,7 @@ class VideoEditViewController : UIViewController {
         guard let interval = videoView.player?.currentItem?.duration else { return }
         guard interval.isNumeric else { return }
 
-        durationView.text = TimeInterval(endTime.seconds - startTime.seconds).formatted
+        parent?.title = TimeInterval(endTime.seconds - startTime.seconds).formatted
         trimTimesView.text = TimeInterval(startTime.seconds).formattedPrecise + " - " + TimeInterval(endTime.seconds).formattedPrecise
     }
 
@@ -284,6 +292,7 @@ private class VideoRangeView : UIView {
 
     let handleRadius = CGFloat(6)
     let borderWidth = CGFloat(2)
+    let borderRadius = CGFloat(2)
     let shadowColor = UIColor.black.withAlphaComponent(0.7)
     let threshold = CGFloat(44)
 
@@ -367,14 +376,20 @@ private class VideoRangeView : UIView {
     }
 
     private func drawShadow(_ rect: CGRect) {
-        let shadowCut = rect.inset(by: UIEdgeInsets(
+        let shadowRect = rect.inset(by: UIEdgeInsets(
+            top: 0,
+            left: handleRadius,
+            bottom: 0,
+            right: handleRadius
+        ))
+        let shadowCutRect = rect.inset(by: UIEdgeInsets(
             top: 0,
             left: (rect.width - handleRadius) * start + handleRadius,
             bottom: 0,
             right: (rect.width - handleRadius) * (1 - end) + handleRadius
         ))
-        let path = UIBezierPath(rect: rect)
-        path.append(UIBezierPath(rect: shadowCut))
+        let path = UIBezierPath(roundedRect: shadowRect, cornerRadius: borderRadius)
+        path.append(UIBezierPath(roundedRect: shadowCutRect, cornerRadius: borderRadius))
         path.usesEvenOddFillRule = true
         shadowColor.setFill()
         path.fill()
@@ -388,19 +403,19 @@ private class VideoRangeView : UIView {
             right: (rect.width - handleRadius) * (1 - end) + handleRadius
         ))
 
-        let borderPath = UIBezierPath(rect: borderRect)
+        let borderPath = UIBezierPath(roundedRect: borderRect, cornerRadius: borderRadius)
         borderPath.lineWidth = borderWidth
-        UIColor.white.setStroke()
+        UIColor.lavaOrange.setStroke()
         borderPath.stroke()
 
         let leftHandleCenter = CGPoint(x: borderRect.minX, y: borderRect.height / 2)
         let leftHandlePath = UIBezierPath(arcCenter: leftHandleCenter, radius: handleRadius, startAngle: 0, endAngle: 2 * .pi, clockwise: true)
-        UIColor.white.setFill()
+        UIColor.lavaOrange.setFill()
         leftHandlePath.fill()
 
         let rightHandleCenter = CGPoint(x: borderRect.maxX, y: borderRect.height / 2)
         let rightHandlePath = UIBezierPath(arcCenter: rightHandleCenter, radius: handleRadius, startAngle: 0, endAngle: 2 * .pi, clockwise: true)
-        UIColor.white.setFill()
+        UIColor.lavaOrange.setFill()
         rightHandlePath.fill()
     }
 }

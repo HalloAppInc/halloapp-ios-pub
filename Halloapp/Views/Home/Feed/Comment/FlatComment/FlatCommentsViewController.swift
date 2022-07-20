@@ -1149,7 +1149,7 @@ extension FlatCommentsViewController: ContentInputDelegate {
     }
 
     func inputView(_ inputView: ContentInputView, didTap selectedMedia: PendingMedia) {
-        let editController = MediaEditViewController(mediaToEdit: [selectedMedia], selected: nil) { [weak self] controller, media, selected, cancel in
+        let editController = MediaEditViewController(config: .default, mediaToEdit: [selectedMedia], selected: nil) { [weak self] controller, media, selected, cancel in
             self?.dismiss(animated: true)
             self?.addMediaWhenAvailable(media[selected])
         }.withNavigationController()

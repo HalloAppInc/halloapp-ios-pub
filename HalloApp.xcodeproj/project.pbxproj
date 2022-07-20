@@ -467,6 +467,7 @@
 		F88E5C95275A14D500290A89 /* MediaPickerPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = F88E5C94275A14D500290A89 /* MediaPickerPreview.swift */; };
 		F893C86F25E5213000068F00 /* VideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F893C86E25E5213000068F00 /* VideoView.swift */; };
 		F89589562732A58300874054 /* ChangeDestinationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F89589552732A58300874054 /* ChangeDestinationViewController.swift */; };
+		F8AF95D92885E8FF004D809E /* UINavigationBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764D5AEB248F0F3B009295F3 /* UINavigationBar.swift */; };
 		F8B0F7612745785400235CCF /* ShareDataLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8B0F7602745785400235CCF /* ShareDataLoader.swift */; };
 		F8BD92412819BC8900F35E7A /* Gotham-ThinIta.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBC9244E2EB700986617 /* Gotham-ThinIta.otf */; };
 		F8BD92422819BC8900F35E7A /* Gotham-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBBB244E2EB500986617 /* Gotham-Medium.otf */; };
@@ -2810,6 +2811,7 @@
 				F8EC3A7D281820F70041D8E3 /* UIButton.swift in Sources */,
 				F8EC3A7B281820470041D8E3 /* MediaEditViewController.swift in Sources */,
 				68D2915125096F0700AF5061 /* MentionPickerView.swift in Sources */,
+				F8AF95D92885E8FF004D809E /* UINavigationBar.swift in Sources */,
 				24009EBA24BE3FA200155DE2 /* ShareDestinationViewController.swift in Sources */,
 				F8EC3A7C281820C60041D8E3 /* MediaEdit.swift in Sources */,
 				EAAFC9F02708267C004EAE29 /* HAMarkdown.swift in Sources */,
