@@ -3853,6 +3853,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             self.deleteMedia(feedLinkPreview: $0)
             feedPost.managedObjectContext?.delete($0)
         }
+
+        setCachedMedia(nil, for: feedPost.id)
     }
     
     private func deleteMedia(feedPostComment: FeedPostComment) {
