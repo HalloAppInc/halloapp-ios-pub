@@ -900,7 +900,9 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     }()
 
     override var inputAccessoryView: UIView? {
-        return contentInputView
+        // Check presentedViewController state to fix the issue that the input accessory view is not dismissed
+        // when presenting a view controller modally while the keyboard is onscreen.
+        return (presentedViewController?.isBeingDismissed ?? true) ? contentInputView : nil
     }
 
     override var canBecomeFirstResponder: Bool {

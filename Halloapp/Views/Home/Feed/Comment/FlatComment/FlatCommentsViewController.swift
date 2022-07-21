@@ -891,7 +891,9 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     }
 
     override var inputAccessoryView: ContentInputView? {
-        return showInputView ? self.messageInputView : nil
+        // Check presentedViewController state to fix the issue that the input accessory view is not dismissed
+        // when presenting a view controller modally while the keyboard is onscreen.
+        return (showInputView && (presentedViewController?.isBeingDismissed ?? true)) ? self.messageInputView : nil
     }
 
     // MARK: Draft Comments
