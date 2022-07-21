@@ -380,12 +380,14 @@ struct AudioComposerPlayer: UIViewRepresentable {
 
 struct AudioComposerRecorderControl: View {
 
+    let configuration: AudioRecorderControlView.Configuration
+
     @State private var showMicPermissionsAlert = false
 
     @ObservedObject var recorder: AudioComposerRecorder
 
     var body: some View {
-        AudioComposerRecorderControlView(recorder: recorder, showMicPermissionsAlert: $showMicPermissionsAlert)
+        AudioComposerRecorderControlView(configuration: configuration, recorder: recorder, showMicPermissionsAlert: $showMicPermissionsAlert)
             .alert(isPresented: $showMicPermissionsAlert, content: {
                 AudioComposerRecorder.micPermissionsAlert
             })
@@ -400,11 +402,12 @@ struct AudioComposerRecorderControl: View {
 
 fileprivate struct AudioComposerRecorderControlView: UIViewRepresentable {
 
+    let configuration: AudioRecorderControlView.Configuration
     @ObservedObject var recorder: AudioComposerRecorder
     @Binding var showMicPermissionsAlert: Bool
 
     func makeUIView(context: Context) -> AudioRecorderControlView {
-        let controlView = AudioRecorderControlView(configuration: .post)
+        let controlView = AudioRecorderControlView(configuration: configuration)
         controlView.delegate = context.coordinator
         return controlView
     }

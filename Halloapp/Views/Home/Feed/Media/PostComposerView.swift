@@ -1135,8 +1135,8 @@ fileprivate struct PostComposerView: View {
                                                 Spacer()
 
                                                 if initialPostType == .unified {
-                                                    AudioComposerRecorderControl(recorder: audioComposerRecorder)
-                                                        .frame(width: 24, height: 24)
+                                                    AudioComposerRecorderControl(configuration: .unifiedPost, recorder: audioComposerRecorder)
+                                                        .frame(width: 30, height: 30)
                                                         .disabled(!inputToPost.value.text.isEmpty || audioComposerRecorder.isRecording)
                                                         .padding(.trailing, 6)
                                                         .padding(.leading, 18) // some additional padding to center the stop button
@@ -1219,7 +1219,7 @@ fileprivate struct PostComposerView: View {
                             }
                             .zIndex(1)
                             if voiceNotesEnabled, inputToPost.value.text.isEmpty, !audioComposerRecorder.recorderControlsLocked, !configuration.isMoment {
-                                AudioComposerRecorderControl(recorder: audioComposerRecorder)
+                                AudioComposerRecorderControl(configuration: .post, recorder: audioComposerRecorder)
                                     .frame(width: 24, height: 24)
                                     .padding(.horizontal, PostComposerLayoutConstants.postTextHorizontalPadding)
                                     .disabled(!inputToPost.value.text.isEmpty)

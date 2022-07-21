@@ -37,13 +37,9 @@ class GroupGridProgressView: UIView {
     private let retryButton: UIButton = {
         let retryIcon = UIImage(systemName: "arrow.clockwise")
         let retryButton = UIButton(type: .system)
+        retryButton.imageEdgeInsets = UIEdgeInsets(top: -2, left: 0, bottom: 2, right: 0)
         retryButton.setImage(retryIcon?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 20, weight: .bold)), for: .normal)
         retryButton.tintColor = .white
-        // negate for positioning the button icon
-        retryButton.imageEdgeInsets = retryIcon.flatMap {
-            let insets = $0.alignmentRectInsets
-            return UIEdgeInsets(top: -insets.top, left: -insets.left, bottom: -insets.bottom, right: -insets.right)
-        } ?? .zero
         return retryButton
     }()
 

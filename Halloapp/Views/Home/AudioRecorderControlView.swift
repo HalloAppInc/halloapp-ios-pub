@@ -27,13 +27,16 @@ protocol AudioRecorderControlViewDelegate: AnyObject {
 class AudioRecorderControlView: UIView {
 
     struct Configuration {
+        fileprivate let mainImage: UIImage?
         fileprivate let expandMaxSize: CGFloat
         fileprivate let cancelButtonTranslationMultiplier: CGFloat
 
-        static let post = Configuration(expandMaxSize: 160,
-                                        cancelButtonTranslationMultiplier: 0.25)
+        static let post = Configuration(mainImage: UIImage(named: "Microphone"), expandMaxSize: 160, cancelButtonTranslationMultiplier: 0.25)
 
-        static let comment = Configuration(expandMaxSize: 230,
+        static let unifiedPost = Configuration(mainImage: UIImage(named: "mic_big"), expandMaxSize: 160, cancelButtonTranslationMultiplier: 0.25)
+
+        static let comment = Configuration(mainImage: UIImage(named: "Microphone"),
+                                           expandMaxSize: 230,
                                            cancelButtonTranslationMultiplier: 1)
     }
 
@@ -54,7 +57,7 @@ class AudioRecorderControlView: UIView {
     }
 
     private lazy var mainButton: UIImageView = {
-        let imageView = UIImageView(image: UIImage(named: "Microphone")?.withRenderingMode(.alwaysTemplate))
+        let imageView = UIImageView(image: configuration.mainImage?.withRenderingMode(.alwaysTemplate))
         imageView.tintColor = .primaryBlue
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFit
@@ -75,11 +78,11 @@ class AudioRecorderControlView: UIView {
     }()
 
     private lazy var lockButton: UIView = {
-        let icon = UIImageView(image: UIImage(named: "Lock")?.withTintColor(.white))
+        let icon = UIImageView(image: UIImage(systemName: "lock.fill")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 16)))
         icon.translatesAutoresizingMaskIntoConstraints = false
-        icon.contentMode = .scaleAspectFit
 
         let button = UIView()
+        button.tintColor = .white
         button.translatesAutoresizingMaskIntoConstraints = false
         button.backgroundColor = .primaryBlue
         button.layer.cornerRadius = 19
@@ -89,8 +92,6 @@ class AudioRecorderControlView: UIView {
         button.heightAnchor.constraint(equalToConstant: 38).isActive = true
 
         button.addSubview(icon)
-        icon.widthAnchor.constraint(equalToConstant: 24).isActive = true
-        icon.heightAnchor.constraint(equalToConstant: 24).isActive = true
         icon.centerXAnchor.constraint(equalTo: button.centerXAnchor).isActive = true
         icon.centerYAnchor.constraint(equalTo: button.centerYAnchor).isActive = true
 
