@@ -169,8 +169,36 @@ final class NewPostViewController: UIViewController {
         }
 
         if AppContext.shared.userDefaults.bool(forKey: "enableUIKitComposer") {
-            return ComposerViewController(config: .userPost, type: state.mediaSource, input: state.pendingInput, media: state.pendingMedia, voiceNote: state.pendingVoiceNote) { controller, result , success in
+            return ComposerViewController(config: .userPost, type: state.mediaSource, input: state.pendingInput, media: state.pendingMedia, voiceNote: state.pendingVoiceNote) { [weak self] controller, result , success in
+                guard let self = self else { return }
+
                 self.containedNavigationController.popViewController(animated: true)
+
+                if success {
+                    // TODO: share
+                } else {
+                    switch self.state.mediaSource {
+                    case .library:
+                        (self.containedNavigationController.topViewController as? MediaPickerViewController)?.reset(
+                            destination: result.config.destination,
+                            privacyListType: result.config.privacyListType,
+                            selected: result.media
+                        )
+                    case .camera:
+                        break
+                    default:
+                        self.cleanupAndFinish()
+                    }
+
+                    switch result.config.destination {
+                    case .userFeed:
+                        self.destination = .userFeed
+                    case .groupFeed(let groupID):
+                        self.destination = .groupFeed(groupID)
+                    case .chat:
+                        break
+                    }
+                }
             }
         } else {
             return PostComposerViewController(

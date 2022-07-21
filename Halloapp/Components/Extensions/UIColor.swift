@@ -186,6 +186,22 @@ extension UIColor {
         UIColor(named: "AudioComposerDeleteButtonForeground")!
     }
 
+    class var audioComposerHelperText: UIColor {
+        UIColor(named: "AudioComposerHelperText")!
+    }
+
+    class var audioComposerTitleText: UIColor {
+        UIColor(named: "AudioComposerTitleText")!
+    }
+
+    class var audioComposerRecordButtonBackground: UIColor {
+        UIColor(named: "AudioComposerRecordButtonBackground")!
+    }
+
+    class var audioComposerRecordButtonForeground: UIColor {
+        UIColor(named: "AudioComposerRecordButtonForeground")!
+    }
+
     class var toastBackground: UIColor {
         UIColor(named: "ToastBackground")!
     }
