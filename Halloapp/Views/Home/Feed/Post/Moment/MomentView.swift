@@ -36,7 +36,7 @@ extension MomentView {
         }
 
         static var avatarDiameter: CGFloat {
-            95
+            85
         }
     }
 }
@@ -87,11 +87,17 @@ class MomentView: UIView {
         return view
     }()
     
-    private lazy var actionButton: ShadowedCapsuleButton = {
-        let view = ShadowedCapsuleButton()
-        view.button.setTitle(Localizations.view, for: .normal)
-        view.button.addTarget(self, action: #selector(actionButtonPushed), for: .touchUpInside)
-        return view
+    private lazy var actionButton: RoundedRectButton = {
+        let button = RoundedRectButton()
+        button.setTitle(Localizations.view, for: .normal)
+        button.overrideUserInterfaceStyle = .dark
+        button.backgroundTintColor = .systemBlue
+        button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 17, bottom: 10, right: 17)
+        button.titleLabel?.font = .gothamFont(forTextStyle: .title3, pointSizeChange: -2, weight: .medium, maximumPointSize: 30)
+        button.layer.allowsEdgeAntialiasing = true
+        button.layer.cornerCurve = .circular
+        button.addTarget(self, action: #selector(actionButtonPushed), for: .touchUpInside)
+        return button
     }()
     
     private lazy var promptLabel: UILabel = {
@@ -114,7 +120,7 @@ class MomentView: UIView {
         stack.layoutMargins = UIEdgeInsets(top: 3, left: 20, bottom: 0, right: 20)
         stack.distribution = .fill
         stack.alignment = .center
-        stack.setCustomSpacing(20, after: avatarView)
+        stack.setCustomSpacing(10, after: avatarView)
         stack.setCustomSpacing(10, after: promptLabel)
         return stack
     }()
@@ -155,6 +161,8 @@ class MomentView: UIView {
 
         let footerPadding = Layout.footerPadding
         let mediaPadding = Layout.mediaPadding
+
+        mediaView.layer.allowsEdgeAntialiasing = true
 
         let mediaHeightConstraint = mediaView.heightAnchor.constraint(equalTo: mediaView.widthAnchor)
         let footerBottomConstraint = footerView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -footerPadding)
@@ -198,18 +206,20 @@ class MomentView: UIView {
             footerBottomConstraint,
         ])
 
-        layer.shadowOpacity = 0.75
+        layer.shadowOpacity = 0.85
         layer.shadowColor = UIColor.feedPostShadow.cgColor
-        layer.shadowOffset = CGSize(width: 0, height: 5)
-        layer.shadowRadius = 5
+        layer.shadowOffset = CGSize(width: 0, height: 3)
+        layer.shadowRadius = 7
 
         layer.masksToBounds = false
         clipsToBounds = false
 
         footerView.addArrangedSubview(dayOfWeekLabel)
 
-        layer.borderWidth = 0.4 / UIScreen.main.scale
-        layer.borderColor = UIColor(red: 0.83, green: 0.83, blue: 0.83, alpha: 1.00).cgColor
+        layer.borderWidth = 0.5 / UIScreen.main.scale
+        layer.borderColor = UIColor(red: 0.71, green: 0.71, blue: 0.71, alpha: 1.00).cgColor
+        // helps with how the border renders when the view is being rotated
+        layer.allowsEdgeAntialiasing = true
 
         MainAppContext.shared.feedData.validMoment
             .receive(on: DispatchQueue.main)
@@ -301,7 +311,7 @@ class MomentView: UIView {
         mediaView.isHidden = mediaHidden
         dayOfWeekLabel.isHidden = dayHidden
         promptLabel.text = promptText
-        actionButton.button.setTitle(buttonText, for: .normal)
+        actionButton.setTitle(buttonText, for: .normal)
 
         state = newState
         setNeedsLayout()
@@ -345,55 +355,6 @@ extension MomentView: MediaCarouselViewDelegate {
     
     func mediaCarouselView(_ view: MediaCarouselView, didZoomMediaAtIndex index: Int, withScale scale: CGFloat) {
         
-    }
-}
-
-// MARK: - ShadowedCapsuleButton implementation
-
-extension MomentView {
-    ///
-    class ShadowedCapsuleButton: UIView {
-        let button: UIButton
-
-        override init(frame: CGRect) {
-            button = UIButton(type: .system)
-            super.init(frame: frame)
-
-            button.translatesAutoresizingMaskIntoConstraints = false
-            addSubview(button)
-
-            NSLayoutConstraint.activate([
-                button.leadingAnchor.constraint(equalTo: leadingAnchor),
-                button.trailingAnchor.constraint(equalTo: trailingAnchor),
-                button.topAnchor.constraint(equalTo: topAnchor),
-                button.bottomAnchor.constraint(equalTo: bottomAnchor),
-            ])
-
-//            layer.shadowOpacity = 1
-//            layer.shadowColor = UIColor.black.withAlphaComponent(0.2).cgColor
-//            layer.shadowRadius = 1
-//            layer.shadowOffset = .init(width: 0, height: 1)
-            layer.masksToBounds = false
-            clipsToBounds = false
-
-            button.layer.masksToBounds = true
-            button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 17, bottom: 10, right: 17)
-            button.setBackgroundColor(.systemBlue, for: .normal)
-            button.setTitleColor(.white, for: .normal)
-            button.titleLabel?.font = .gothamFont(forTextStyle: .title3, pointSizeChange: -2, weight: .medium, maximumPointSize: 30)
-        }
-
-        required init?(coder: NSCoder) {
-            fatalError("ShadowedCapsuleButton coder init not implemented...")
-        }
-
-        override func layoutSubviews() {
-            super.layoutSubviews()
-
-            button.layer.cornerRadius = min(bounds.width, bounds.height) / 2.0
-            // trying with no shadow for now; might change later
-            //layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: button.layer.cornerRadius).cgPath
-        }
     }
 }
 

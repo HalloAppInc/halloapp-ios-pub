@@ -121,7 +121,7 @@ class StackedMomentView: UIView {
         }
 
         let aboveViewAngle = visibleViews.last?.transform.rotationAngle ?? 1
-        view.transform = CGAffineTransform(rotationAngle: aboveViewAngle == .zero ? -0.095 : .zero)
+        view.transform = CGAffineTransform(rotationAngle: aboveViewAngle == .zero ? -0.05 : .zero)
 
         sendSubviewToBack(view)
         view.isHidden = false
