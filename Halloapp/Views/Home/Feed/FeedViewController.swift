@@ -143,22 +143,12 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         }
 
         if MainAppContext.shared.feedData.validMoment.value == nil {
-            // in this case we don't care about the moment's status (could have failed to upload),
-            // as long as the user tried to post one, we won't display the prompt
-            let promptTimestamp = MainAppContext.shared.feedData.momentPromptTimestamp()
-            let firstOldest = result.firstIndex {
-                switch $0 {
-                case .post(let post) where post.timestamp < promptTimestamp:
-                    return true
-                case .event(let event) where event.timestamp < promptTimestamp:
-                    return true
-                default:
-                    return false
-                }
+            switch result.first {
+            case .momentStack(_):
+                break
+            default:
+                result.insert(.momentStack([.prompt]), at: 0)
             }
-
-            let index = firstOldest ?? 0
-            result.insert(.momentPrompt, at: index)
         }
 
         return result

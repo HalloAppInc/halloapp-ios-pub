@@ -1833,11 +1833,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.rawText = nil
             feedPost.status = .retracted
 
-            if feedPost.isMoment {
-                // make the prompt card appear the top of the feed
-                AppContext.shared.coreFeedData.resetMomentPromptTimestamp()
-            }
-
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
             }
@@ -4421,30 +4416,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             moment.status = .expired
 
             DDLogInfo("FeedData/momentWasViewed/finished update: \(moment.id) status: \(moment.status)")
-        }
-    }
-
-    /**
-     Get the timestamp for where the moment prompt should appear in the feed.
-
-     If the last timestamp was from a different day, the timestamp will be reset to the current time,
-     meaning that the prompt will appear at the top of the feed.
-     */
-    func momentPromptTimestamp() -> Date {
-        let previous = MainAppContext.shared.userDefaults.double(forKey: "momentPrompt")
-        guard previous != .zero else {
-            let new = Date()
-            MainAppContext.shared.userDefaults.set(new.timeIntervalSince1970, forKey: "momentPrompt")
-            return new
-        }
-
-        let date = Date(timeIntervalSince1970: previous)
-        let now = Date()
-        if Calendar.current.isDate(date, inSameDayAs: now) {
-            return date
-        } else {
-            MainAppContext.shared.userDefaults.set(now.timeIntervalSince1970, forKey: "momentPrompt")
-            return now
         }
     }
 

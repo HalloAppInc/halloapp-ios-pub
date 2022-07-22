@@ -36,15 +36,21 @@ final class FeedDataSource: NSObject {
         self.fetchRequest = fetchRequest
         super.init()
 
-        NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification, object: nil).receive(on: DispatchQueue.main).sink { [weak self] _ in
-            self?.verifyOldestUnexpiredMoment()
-        }.store(in: &cancellables)
+        NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification, object: nil)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.verifyOldestUnexpiredMoment()
+            }
+            .store(in: &cancellables)
 
-        MainAppContext.shared.feedData.validMoment.receive(on: DispatchQueue.main).sink { [weak self] _ in
-            // in this case we want to refresh since we want the prompt cell to be
-            // inserted again
-            self?.refresh()
-        }.store(in: &cancellables)
+        MainAppContext.shared.feedData.validMoment
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                // in this case we want to refresh since we want the prompt cell to be
+                // inserted again
+                self?.refresh()
+            }
+            .store(in: &cancellables)
     }
 
     weak var delegate: FeedDataSourceDelegate?
@@ -59,11 +65,13 @@ final class FeedDataSource: NSObject {
     func index(of feedPostID: FeedPostID) -> Int? {
         return displayItems.firstIndex(where: {
             switch $0 {
+            case .momentStack(let moments):
+                return moments.contains(where: { $0.moment?.id == feedPostID })
             case .moment(let post):
                 return post.id == feedPostID
             case .post(let post):
                 return post.id == feedPostID
-            case .event, .groupWelcome, .inviteCarousel, .momentPrompt, .welcome:
+            case .event, .groupWelcome, .inviteCarousel, .welcome:
                 return false
             }
         })
@@ -187,8 +195,8 @@ final class FeedDataSource: NSObject {
     /// Merges lists of posts and events (sorted by descending timestamp) into a single display item list
     private func makeDisplayItems(orderedPosts: [FeedPost], orderedEvents: [FeedEvent]) -> [FeedDisplayItem] {
         var originalItems = [FeedDisplayItem]()
-        let filteredPosts = filterOutMoments(orderedPosts)
-
+        let (filteredPosts, validMoments) = filterOutMoments(orderedPosts)
+        
         originalItems.append(contentsOf: filteredPosts.map { $0.isMoment ? .moment($0) : .post($0) })
         originalItems.append(contentsOf: orderedEvents.map { FeedDisplayItem.event($0) })
         
@@ -198,36 +206,49 @@ final class FeedDataSource: NSObject {
             return t1 > t2
         }
 
+        if !validMoments.isEmpty {
+            originalItems.insert(.momentStack(validMoments), at: 0)
+        }
+
         //merge consecutive deletion posts when the count of consecutive deletion posts >=3
         let displayItems = mergeDeletionPosts(originalItems: originalItems)
         return displayItems
     }
 
-    /**
-     Filters out expired moments.
-     */
-    private func filterOutMoments(_ orderedPosts: [FeedPost]) -> [FeedPost] {
+    /// Filters out expired moments and seperates valid moments from regular feed posts.
+    private func filterOutMoments(_ orderedPosts: [FeedPost]) -> (posts: [FeedPost], moments: [MomentStackItem]) {
         let momentCutoff = FeedData.momentCutoffDate
+        var stackedMoments = [MomentStackItem]()
         oldestUnexpiredMoment = nil
 
-        return orderedPosts.filter {
-            // remove moments that are older than a day; a user's own moments remain visible in the archive
-            if !$0.isMoment {
+        // regular feed posts and the user's own moment
+        let nonStackedPosts = orderedPosts.filter {
+            guard $0.isMoment else {
                 return true
-            } else if $0.timestamp < momentCutoff || $0.status == .retracted || $0.status == .expired {
+            }
+
+            if $0.timestamp < momentCutoff || $0.status == .retracted || $0.status == .expired {
                 // no tombstones for moments
                 return false
             }
 
             // post is a moment and is valid
+            // keep track of the oldest valid moment so that we can refresh when the app foregrounds
             if let currentOldest = oldestUnexpiredMoment {
                 oldestUnexpiredMoment = $0.timestamp < currentOldest ? $0.timestamp : currentOldest
             } else {
                 oldestUnexpiredMoment = $0.timestamp
             }
 
-            return true
+            if $0.userId == MainAppContext.shared.userData.userId {
+                return true
+            }
+
+            stackedMoments.append(.moment($0))
+            return false
         }
+
+        return (nonStackedPosts, stackedMoments)
     }
 
     /**
@@ -327,21 +348,21 @@ enum FeedDisplaySection {
 enum FeedDisplayItem: Hashable, Equatable {
     case post(FeedPost)
     case moment(FeedPost)
+    case momentStack([MomentStackItem])
     case event(FeedEvent)
     case welcome
     case groupWelcome(GroupID)
     case inviteCarousel
-    case momentPrompt
 
     var post: FeedPost? {
         switch self {
         case .post(let post): return post
         case .moment(let post): return post
+        case .momentStack: return nil
         case .event: return nil
         case .welcome: return nil
         case .groupWelcome: return nil
         case .inviteCarousel: return nil
-        case .momentPrompt: return nil
         }
     }
     
@@ -349,11 +370,11 @@ enum FeedDisplayItem: Hashable, Equatable {
         switch self {
         case .post: return nil
         case .moment: return nil
+        case .momentStack: return nil
         case .event(let event): return event
         case .welcome: return nil
         case .groupWelcome: return nil
         case .inviteCarousel: return nil
-        case .momentPrompt: return nil
         }
     }
     
@@ -365,7 +386,7 @@ enum FeedDisplayItem: Hashable, Equatable {
         case .welcome: return nil
         case .groupWelcome(let groupID): return groupID
         case .inviteCarousel: return nil
-        case .momentPrompt: return nil
+        case .momentStack: return nil
         }
     }
 }

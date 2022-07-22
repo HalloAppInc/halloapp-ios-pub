@@ -11,10 +11,13 @@ import Combine
 import Core
 import CoreCommon
 
+protocol MomentViewDelegate: AnyObject {
+    func momentView(_ momentView: MomentView, didSelect action: MomentView.Action)
+}
+
 // MARK: - static methods for layout values
 
 extension MomentView {
-    /// - note: Also used by `MomentPromptView`.
     struct Layout {
         static var cornerRadius: CGFloat {
             12
@@ -40,7 +43,9 @@ extension MomentView {
 
 class MomentView: UIView {
     typealias LayoutConstants = FeedPostCollectionViewCell.LayoutConstants
-    enum State { case locked, unlocked, indeterminate }
+    enum State { case locked, unlocked, indeterminate, prompt }
+
+    enum Action { case open(moment: FeedPost), camera, view(profile: UserID) }
 
     private(set) var state: State = .locked
     private(set) var feedPost: FeedPost?
@@ -57,6 +62,15 @@ class MomentView: UIView {
     
     private lazy var blurView: UIVisualEffectView = {
         let view = UIVisualEffectView(effect: UIBlurEffect(style: .regular))
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.layer.cornerRadius = Layout.innerRadius
+        view.layer.cornerCurve = .continuous
+        view.layer.masksToBounds = true
+        return view
+    }()
+
+    private lazy var gradientView: GradientView = {
+        let view = GradientView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.layer.cornerRadius = Layout.innerRadius
         view.layer.cornerCurve = .continuous
@@ -123,8 +137,8 @@ class MomentView: UIView {
     }()
     
     private var cancellables: Set<AnyCancellable> = []
-    var avatarAction: (() -> Void)?
-    var buttonAction: (() -> Void)?
+
+    weak var delegate: MomentViewDelegate?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -133,25 +147,54 @@ class MomentView: UIView {
         layer.cornerCurve = .circular
         backgroundColor = .momentPolaroid
 
+        addSubview(gradientView)
         addSubview(mediaView)
         addSubview(footerView)
+        addSubview(blurView)
+        addSubview(overlayStack)
 
         let footerPadding = Layout.footerPadding
         let mediaPadding = Layout.mediaPadding
 
         let mediaHeightConstraint = mediaView.heightAnchor.constraint(equalTo: mediaView.widthAnchor)
         let footerBottomConstraint = footerView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -footerPadding)
+        let avatarDiameter = Layout.avatarDiameter
         mediaHeightConstraint.priority = .defaultHigh
         footerBottomConstraint.priority = .defaultHigh
+
+        let minimizeFooterHeight = footerView.heightAnchor.constraint(equalToConstant: 1)
+        minimizeFooterHeight.priority = UILayoutPriority(1)
 
         NSLayoutConstraint.activate([
             mediaView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: mediaPadding),
             mediaView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -mediaPadding),
             mediaView.topAnchor.constraint(equalTo: topAnchor, constant: mediaPadding),
             mediaHeightConstraint,
+
+            gradientView.leadingAnchor.constraint(equalTo: mediaView.leadingAnchor),
+            gradientView.trailingAnchor.constraint(equalTo: mediaView.trailingAnchor),
+            gradientView.topAnchor.constraint(equalTo: mediaView.topAnchor),
+            gradientView.bottomAnchor.constraint(equalTo: mediaView.bottomAnchor),
+
+            blurView.leadingAnchor.constraint(equalTo: mediaView.leadingAnchor),
+            blurView.topAnchor.constraint(equalTo: mediaView.topAnchor),
+            blurView.trailingAnchor.constraint(equalTo: mediaView.trailingAnchor),
+            blurView.bottomAnchor.constraint(equalTo: mediaView.bottomAnchor),
+
+            overlayStack.leadingAnchor.constraint(equalTo: blurView.leadingAnchor),
+            overlayStack.topAnchor.constraint(greaterThanOrEqualTo: blurView.topAnchor),
+            overlayStack.trailingAnchor.constraint(equalTo: blurView.trailingAnchor),
+            overlayStack.bottomAnchor.constraint(lessThanOrEqualTo: blurView.bottomAnchor),
+            overlayStack.centerYAnchor.constraint(equalTo: blurView.centerYAnchor),
+
+            avatarView.widthAnchor.constraint(equalToConstant: avatarDiameter),
+            avatarView.heightAnchor.constraint(equalToConstant: avatarDiameter),
+
             footerView.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor),
             footerView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -footerPadding - 8),
             footerView.topAnchor.constraint(equalTo: mediaView.bottomAnchor, constant: footerPadding - 2),
+            footerView.heightAnchor.constraint(greaterThanOrEqualTo: mediaView.heightAnchor, multiplier: 0.15),
+            minimizeFooterHeight,
             footerBottomConstraint,
         ])
 
@@ -163,37 +206,19 @@ class MomentView: UIView {
         layer.masksToBounds = false
         clipsToBounds = false
 
-        installDetailViews()
-
-        MainAppContext.shared.feedData.validMoment.receive(on: DispatchQueue.main).sink { [weak self] moment in
-            let title = moment == nil ? Localizations.unlock : Localizations.view
-            self?.actionButton.button.setTitle(title, for: .normal)
-            self?.setNeedsLayout()
-        }.store(in: &cancellables)
-    }
-
-    private func installDetailViews() {
         footerView.addArrangedSubview(dayOfWeekLabel)
 
-        addSubview(blurView)
-        addSubview(overlayStack)
+        layer.borderWidth = 0.4 / UIScreen.main.scale
+        layer.borderColor = UIColor(red: 0.83, green: 0.83, blue: 0.83, alpha: 1.00).cgColor
 
-        let diameter = Layout.avatarDiameter
-        NSLayoutConstraint.activate([
-            blurView.leadingAnchor.constraint(equalTo: mediaView.leadingAnchor),
-            blurView.topAnchor.constraint(equalTo: mediaView.topAnchor),
-            blurView.trailingAnchor.constraint(equalTo: mediaView.trailingAnchor),
-            blurView.bottomAnchor.constraint(equalTo: mediaView.bottomAnchor),
-            overlayStack.leadingAnchor.constraint(equalTo: blurView.leadingAnchor),
-            overlayStack.topAnchor.constraint(greaterThanOrEqualTo: blurView.topAnchor),
-            overlayStack.trailingAnchor.constraint(equalTo: blurView.trailingAnchor),
-            overlayStack.bottomAnchor.constraint(lessThanOrEqualTo: blurView.bottomAnchor),
-            overlayStack.centerYAnchor.constraint(equalTo: blurView.centerYAnchor),
-            avatarView.widthAnchor.constraint(equalToConstant: diameter),
-            avatarView.heightAnchor.constraint(equalToConstant: diameter),
-        ])
-
-        footerView.setCustomSpacing(-1, after: dayOfWeekLabel)
+        MainAppContext.shared.feedData.validMoment
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                if let state = self?.state, state != .prompt {
+                    self?.setState(state)
+                }
+            }
+            .store(in: &cancellables)
     }
     
     required init?(coder: NSCoder) {
@@ -204,29 +229,34 @@ class MomentView: UIView {
         super.layoutSubviews()
         layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: Layout.cornerRadius).cgPath
     }
-    
-    func configure(with post: FeedPost) {
+
+    func configure(with post: FeedPost?) {
+        guard let post = post else {
+            return configureForPrompt()
+        }
+
         feedPost = post
         mediaView.refreshData(media: post.feedMedia, index: 0, animated: false)
-
         for media in post.feedMedia where !media.isMediaAvailable {
             media.loadImage()
         }
 
         dayOfWeekLabel.text = DateFormatter.dateTimeFormatterDayOfWeekLong.string(from: post.timestamp).uppercased()
-
         avatarView.configure(with: post.userID, using: MainAppContext.shared.avatarStore)
-        let name = MainAppContext.shared.contactStore.firstName(for: post.userID, in: MainAppContext.shared.contactStore.viewContext)
-        promptLabel.text = String(format: Localizations.secretPostEntice, name)
 
-        let buttonTitle = MainAppContext.shared.feedData.validMoment.value == nil ? Localizations.unlock : Localizations.view
-        actionButton.button.setTitle(buttonTitle, for: .normal)
-        
-        let isOwnPost = post.userID == MainAppContext.shared.userData.userId
-        blurView.isHidden = isOwnPost
-        overlayStack.isHidden = isOwnPost
+        let isOwnPost = MainAppContext.shared.userData.userId == post.userId
+        let state: State = isOwnPost ? .unlocked : .locked
+
+        setState(state)
     }
-    
+
+    private func configureForPrompt() {
+        feedPost = nil
+        avatarView.configure(with: MainAppContext.shared.userData.userId, using: MainAppContext.shared.avatarStore)
+
+        setState(.prompt)
+    }
+
     func prepareForReuse() {
         avatarView.prepareForReuse()
     }
@@ -235,30 +265,64 @@ class MomentView: UIView {
         if animated {
             return UIView.animate(withDuration: 0.3) { self.setState(newState) }
         }
-        
+
+        var blurAlpha: CGFloat = 1
+        var overlayAlpha: CGFloat = 1
+        var mediaHidden = false
+        var dayHidden = false
+        var promptText = ""
+        var buttonText = MainAppContext.shared.feedData.validMoment.value == nil ? Localizations.unlock : Localizations.view
+
+        if let post = feedPost {
+            let name = MainAppContext.shared.contactStore.firstName(for: post.userID,
+                                                                     in: MainAppContext.shared.contactStore.viewContext)
+            promptText = String(format: Localizations.secretPostEntice, name)
+        }
+
         switch newState {
         case .locked:
-            blurView.alpha = 1
-            overlayStack.alpha = 1
+            break
         case .unlocked:
-            blurView.alpha = 0
-            overlayStack.alpha = 0
+            blurAlpha = 0
+            overlayAlpha = 0
         case .indeterminate:
-            blurView.alpha = 1
-            overlayStack.alpha = 0
+            overlayAlpha = 0
+        case .prompt:
+            blurAlpha = 0
+            mediaHidden = true
+            dayHidden = true
+            promptText = Localizations.shareMoment
+            buttonText = Localizations.openCamera
         }
-        
+
+        blurView.effect = blurAlpha == .zero ? nil : UIBlurEffect(style: .regular)
+        blurView.isUserInteractionEnabled = newState != .unlocked
+        overlayStack.alpha = overlayAlpha
+        mediaView.isHidden = mediaHidden
+        dayOfWeekLabel.isHidden = dayHidden
+        promptLabel.text = promptText
+        actionButton.button.setTitle(buttonText, for: .normal)
+
         state = newState
+        setNeedsLayout()
     }
     
     @objc
     private func actionButtonPushed(_ button: UIButton) {
-        buttonAction?()
+        if let post = feedPost {
+            delegate?.momentView(self, didSelect: .open(moment: post))
+        } else {
+            delegate?.momentView(self, didSelect: .camera)
+        }
     }
 
     @objc
     private func avatarTapped(_ gesture: UITapGestureRecognizer) {
-        avatarAction?()
+        if let id = feedPost?.userId {
+            delegate?.momentView(self, didSelect: .view(profile: id))
+        } else if case .prompt = state {
+            delegate?.momentView(self, didSelect: .view(profile: MainAppContext.shared.userData.userId))
+        }
     }
 }
 
@@ -270,7 +334,9 @@ extension MomentView: MediaCarouselViewDelegate {
     }
     
     func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
-        buttonAction?()
+        if let post = feedPost {
+            delegate?.momentView(self, didSelect: .open(moment: post))
+        }
     }
     
     func mediaCarouselView(_ view: MediaCarouselView, didDoubleTapMediaAtIndex index: Int) {
@@ -331,13 +397,43 @@ extension MomentView {
     }
 }
 
+// MARK: - GradientView implementation
+
+fileprivate class GradientView: UIView {
+    override class var layerClass: AnyClass {
+        get {
+            return CAGradientLayer.self
+        }
+    }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        guard let gradient = layer as? CAGradientLayer else {
+            return
+        }
+
+        gradient.colors = [
+            UIColor(red: 0.45, green: 0.45, blue: 0.43, alpha: 1.00).cgColor,
+            UIColor(red: 0.22, green: 0.22, blue: 0.20, alpha: 1.00).cgColor,
+        ]
+
+        gradient.startPoint = CGPoint.zero
+        gradient.endPoint = CGPoint(x: 0, y: 1)
+        gradient.locations = [0.0, 1.0]
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("GradientView coder init not implemented...")
+    }
+}
+
 // MARK: - localization
 
 extension Localizations {
     static var secretPostEntice: String {
-        NSLocalizedString("secret.post.entice",
-                   value: "%@ shared a moment",
-                 comment: "Text placed on the blurred overlay of a secret post.")
+        NSLocalizedString("shared.moment",
+                   value: "%@’s moment",
+                 comment: "Text placed on the blurred overlay of someone else's moment.")
     }
 
     static var view: String {
@@ -350,5 +446,17 @@ extension Localizations {
         NSLocalizedString("unlock.title",
                    value: "Unlock",
                  comment: "Text that indicates the unlock action for a moment.")
+    }
+
+    static var shareMoment: String {
+        NSLocalizedString("share.moment.prompt",
+                   value: "Share a moment",
+                 comment: "Prompt for the user to share a moment.")
+    }
+
+    static var openCamera: String {
+        NSLocalizedString("open.camera",
+                   value: "Open Camera",
+                 comment: "Title of the button that opens the camera.")
     }
 }

@@ -197,7 +197,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         collectionView.register(GroupFeedWelcomeCell.self, forCellWithReuseIdentifier: GroupFeedWelcomeCell.reuseIdentifier)
         collectionView.register(FeedInviteCarouselCell.self, forCellWithReuseIdentifier: FeedInviteCarouselCell.reuseIdentifier)
         collectionView.register(MomentCollectionViewCell.self, forCellWithReuseIdentifier: MomentCollectionViewCell.reuseIdentifier)
-        collectionView.register(MomentPromptCollectionViewCell.self, forCellWithReuseIdentifier: MomentPromptCollectionViewCell.reuseIdentifier)
+        collectionView.register(StackedMomentCollectionViewCell.self, forCellWithReuseIdentifier: StackedMomentCollectionViewCell.reuseIdentifier)
 
         view.addSubview(collectionView)
         collectionView.constrain(to: view)
@@ -373,25 +373,19 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         }
     }
     
-    func presentMomentViewController(for post: FeedPost) {
+    func presentMomentViewController(for post: FeedPost, using momentView: MomentView) {
         if let latest = MainAppContext.shared.feedData.fetchLatestMoment(using: MainAppContext.shared.feedData.viewContext) {
             let userID = MainAppContext.shared.userData.userId
             let unlocker = (post.userId == userID || latest.status == .sent) ? nil : latest
             // user may have uploaded using the prompt card and it's still pending, in this case we show the unlock flow
             let vc = MomentViewController(post: post, unlockingPost: unlocker)
-            vc.delegate = self
+            //vc.delegate = self
+            vc.transitionStartView = momentView
             present(vc, animated: true)
         } else {
             let newMomentVC = NewMomentViewController(context: .unlock(post))
             present(newMomentVC, animated: true)
         }
-    }
-
-    private func presentMomentViewController(_ post: FeedPost) {
-        let vc = MomentViewController(post: post)
-        vc.delegate = self
-
-        present(vc, animated: true)
     }
 
     @objc
@@ -747,6 +741,12 @@ extension FeedCollectionViewController {
                     self?.configure(cell: postCell, withSecretFeedPost: feedPost)
                 }
                 return cell
+            case .momentStack(let stackItems):
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: StackedMomentCollectionViewCell.reuseIdentifier, for: indexPath)
+                if let stackCell = cell as? StackedMomentCollectionViewCell {
+                    self?.configure(cell: stackCell, with: stackItems)
+                }
+                return cell
             case .post(let feedPost):
                 guard !feedPost.isPostRetracted else {
                     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedEventCollectionViewCell.reuseIdentifier, for: indexPath)
@@ -757,7 +757,6 @@ extension FeedCollectionViewController {
                 if let postCell = cell as? FeedPostCollectionViewCell {
                     self?.configure(cell: postCell, withActiveFeedPost: feedPost)
                 }
-
                 return cell
             case .welcome:
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedWelcomeCell.reuseIdentifier, for: indexPath)
@@ -765,12 +764,12 @@ extension FeedCollectionViewController {
                     if indexPath.row > 5 {
                         welcomeCell.configure(showCloseButton: true)
                     }
-
+                    
                     welcomeCell.openInvite = { [weak self] in
                         guard let self = self else { return }
                         self.showInviteScreen()
                     }
-
+                    
                     welcomeCell.closeWelcomePost = {
                         MainAppContext.shared.nux.stopShowingWelcomePost(id: MainAppContext.shared.userData.userId)
                         UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseOut, animations: {
@@ -784,15 +783,15 @@ extension FeedCollectionViewController {
             case .groupWelcome(let groupID):
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: GroupFeedWelcomeCell.reuseIdentifier, for: indexPath)
                 if let groupFeedWelcomeCell = cell as? GroupFeedWelcomeCell {
-
+                    
                     let showCloseButton = indexPath.row > 5
                     groupFeedWelcomeCell.configure(groupID: groupID, showCloseButton: showCloseButton)
-
+                    
                     groupFeedWelcomeCell.openShareLink = { [weak self] link in
                         guard let self = self else { return }
                         self.shareGroupInviteLink(link)
                     }
-
+                    
                     groupFeedWelcomeCell.closeWelcomePost = {
                         MainAppContext.shared.nux.stopShowingWelcomePost(id: groupID)
                         UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseOut, animations: {
@@ -817,15 +816,6 @@ extension FeedCollectionViewController {
                         AppContext.shared.contactStore.hideContactFromSuggestedInvites(normalizedPhoneNumber: contact.normalizedPhoneNumber)
                     }
                 }
-                return cell
-            case .momentPrompt:
-                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MomentPromptCollectionViewCell.reuseIdentifier, for: indexPath)
-
-                let promptCell = cell as? MomentPromptCollectionViewCell
-                promptCell?.promptView.openCamera = { [weak self] in
-                    self?.createNewMoment()
-                }
-
                 return cell
             }
         }
@@ -857,13 +847,6 @@ extension FeedCollectionViewController {
     
     func configure(cell: MomentCollectionViewCell, withSecretFeedPost feedPost: FeedPost) {
         cell.configure(with: feedPost, contentWidth: cellContentWidth)
-        cell.momentView.avatarAction = { [weak self, feedPost] in
-            self?.showUserFeed(for: feedPost.userId)
-        }
-
-        cell.momentView.buttonAction = { [weak self, feedPost] in
-            self?.presentMomentViewController(for: feedPost)
-        }
 
         cell.showUserAction = { [weak self, feedPost] in
             self?.showUserFeed(for: feedPost.userId)
@@ -878,11 +861,26 @@ extension FeedCollectionViewController {
         }
 
         cell.openAction = { [weak self, feedPost] in
-            self?.presentMomentViewController(for: feedPost)
+            self?.presentMomentViewController(for: feedPost, using: cell.momentView)
         }
 
         cell.uploadProgressControl.onRetry = { [weak self] in
             self?.retrySending(postId: feedPost.id)
+        }
+    }
+
+    func configure(cell: StackedMomentCollectionViewCell, with items: [MomentStackItem]) {
+        cell.configure(with: items)
+
+        cell.stackedView.actionCallback = { [weak self] momentView, action in
+            switch action {
+            case .open(moment: let moment):
+                self?.presentMomentViewController(for: moment, using: momentView)
+            case .camera:
+                self?.createNewMoment()
+            case .view(profile: let userID):
+                self?.showUserFeed(for: userID)
+            }
         }
     }
 
@@ -1104,7 +1102,7 @@ extension FeedCollectionViewController: FeedPostCollectionViewCellDelegate {
     }
 }
 
-extension FeedCollectionViewController: PostDashboardViewControllerDelegate, MomentViewControllerDelegate {
+extension FeedCollectionViewController: PostDashboardViewControllerDelegate {
 
     func postDashboardViewController(didRequestPerformAction action: PostDashboardViewController.UserAction) {
         let actionToPerformOnDashboardDismiss: () -> ()
@@ -1123,7 +1121,7 @@ extension FeedCollectionViewController: PostDashboardViewControllerDelegate, Mom
                     let vc = ChatViewController(for: userId, with: postId)
                     self.navigationController?.pushViewController(vc, animated: true)
                 }
-                
+
             }
 
         case .blacklist(let userId):
@@ -1133,17 +1131,6 @@ extension FeedCollectionViewController: PostDashboardViewControllerDelegate, Mom
         }
 
         dismiss(animated: true, completion: actionToPerformOnDashboardDismiss)
-    }
-
-    func initialTransitionView(for post: FeedPost) -> MomentView? {
-        guard
-            let index = collectionViewDataSource?.indexPath(for: .moment(post)),
-            let cell = collectionView.cellForItem(at: index) as? MomentCollectionViewCell
-        else {
-            return nil
-        }
-
-        return cell.momentView
     }
 }
 

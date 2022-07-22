@@ -11,7 +11,7 @@ import Combine
 import Core
 import CoreCommon
 
-class MomentCollectionViewCell: UICollectionViewCell {
+class MomentCollectionViewCell: UICollectionViewCell, MomentViewDelegate {
     static let reuseIdentifier = "secretPostCell"
 
     private(set) var post: FeedPost?
@@ -19,6 +19,7 @@ class MomentCollectionViewCell: UICollectionViewCell {
     private(set) lazy var momentView: MomentView = {
         let view = MomentView()
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.delegate = self
         return view
     }()
 
@@ -208,5 +209,16 @@ class MomentCollectionViewCell: UICollectionViewCell {
     @objc
     private func didTapMoment(_ gesture: UITapGestureRecognizer) {
         openAction?()
+    }
+
+    func momentView(_ momentView: MomentView, didSelect action: MomentView.Action) {
+        switch action {
+        case .open(_):
+            openAction?()
+        case .view(_):
+            showUserAction?()
+        default:
+            break
+        }
     }
 }

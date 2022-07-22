@@ -24,11 +24,6 @@ public class CoreFeedData {
         self.service = service
     }
 
-    public func resetMomentPromptTimestamp() {
-        DDLogInfo("FeedData/resetMomentPromptTimestamp")
-        AppContext.shared.userDefaults.set(Double.zero, forKey: "momentPrompt")
-    }
-
     public func feedPost(with feedPostId: FeedPostID, in managedObjectContext: NSManagedObjectContext) -> FeedPost? {
         return feedPosts(predicate: NSPredicate(format: "id == %@", feedPostId), in: managedObjectContext).first
     }

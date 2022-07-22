@@ -448,7 +448,6 @@ final class NotificationProtoService: ProtoServiceCore {
 
                 if feedPost.isMoment {
                     // make the prompt card appear the top of the feed
-                    AppContext.shared.coreFeedData.resetMomentPromptTimestamp()
                     self.updateMomentNotifications()
                 }
 
