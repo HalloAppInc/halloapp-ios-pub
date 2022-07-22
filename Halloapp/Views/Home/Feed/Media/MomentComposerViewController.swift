@@ -103,15 +103,8 @@ class MomentComposerViewController: UIViewController {
     private(set) lazy var momentCardTopConstraint = container.topAnchor.constraint(equalTo: view.topAnchor)
     private(set) lazy var momentCardHeightConstraint = container.heightAnchor.constraint(equalToConstant: 200)
 
-    private var hasShownReplacementDisclaimerBefore: Bool {
-        get {
-            MainAppContext.shared.userDefaults.bool(forKey: "shown.replace.moment.disclaimer")
-        }
-
-        set {
-            MainAppContext.shared.userDefaults.set(newValue, forKey: "shown.replace.moment.disclaimer")
-        }
-    }
+    @UserDefault(key: "shown.replace.moment.disclaimer", defaultValue: false)
+    private static var hasShownReplacementDisclaimer: Bool
 
     var onPost: (() -> Void)?
     var onCancel: (() -> Void)?
@@ -228,7 +221,7 @@ class MomentComposerViewController: UIViewController {
 
         if MainAppContext.shared.feedData.validMoment.value != nil {
             // user has already posted a moment for the day
-            if !hasShownReplacementDisclaimerBefore {
+            if !Self.hasShownReplacementDisclaimer {
                 presentReplacementDisclaimer()
             } else {
                 replaceMoment()
@@ -337,7 +330,7 @@ class MomentComposerViewController: UIViewController {
         })
 
         present(alert, animated: true) {
-            self.hasShownReplacementDisclaimerBefore = true
+            Self.hasShownReplacementDisclaimer = true
         }
     }
 

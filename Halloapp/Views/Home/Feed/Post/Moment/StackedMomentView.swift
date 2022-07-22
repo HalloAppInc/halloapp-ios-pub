@@ -55,6 +55,9 @@ class StackedMomentView: UIView {
 
     var actionCallback: ((MomentView, MomentView.Action) -> Void)?
 
+    /// Appears when the user has never before swiped when there are > 1 items in the stack.
+    private var ftuxLabel: UILabel?
+
     override init(frame: CGRect) {
         super.init(frame: frame)
 
@@ -92,6 +95,10 @@ class StackedMomentView: UIView {
             if let item = iterator?.next() {
                 insertItemAtBottom(item)
             }
+        }
+
+        if items.count > 1, !Self.hasSwipedStack {
+            installFTUX()
         }
     }
 
@@ -250,12 +257,76 @@ class StackedMomentView: UIView {
     }
 
     private func didSwipe() {
-        visibleViews.remove(at: 0)
+        let previousTopMoment = visibleViews.remove(at: 0)
         guard let item = iterator?.next() else {
             return
         }
 
         insertItemAtBottom(item)
+        removeFTUXIfNecessary(previousTopMoment)
+    }
+}
+
+// MARK: - FTUX methods
+
+extension StackedMomentView {
+
+    @UserDefault(key: "shown.moment.stack.indicator", defaultValue: false)
+    static private var hasSwipedStack: Bool
+
+    private func installFTUX() {
+        guard
+            let topMoment = topView,
+            let momentFooterView = topMoment.dayOfWeekLabel.superview,
+            let swipeImage = UIImage(systemName: "hand.draw")
+        else {
+            return
+        }
+
+        if let ftuxLabel = ftuxLabel, let momentView = ftuxLabel.superview as? MomentView {
+            // it's possible that the FTUX was attached to a view that is now somewhere else in the stack
+            ftuxLabel.removeFromSuperview()
+            momentView.dayOfWeekLabel.alpha = 1
+        }
+
+        topMoment.dayOfWeekLabel.alpha = 0
+
+        let imageString = NSMutableAttributedString(attachment: NSTextAttachment(image: swipeImage))
+        let textString = NSMutableAttributedString(string: "  " + Localizations.swipeForMore)
+        imageString.addAttributes([.font: UIFont.systemFont(ofSize: 17, weight: .semibold)], range: NSMakeRange(0, imageString.length))
+        textString.addAttributes([.font: UIFont.gothamFont(ofFixedSize: 16, weight: .medium)], range: NSMakeRange(0, textString.length))
+
+        imageString.append(textString)
+        imageString.insert(NSAttributedString(string: "\u{2068}"), at: 0) // first strong isolate
+        imageString.insert(NSAttributedString(string: "\u{2069}"), at: imageString.length - 1) // pop directional isolate
+        imageString.addAttributes([.foregroundColor: UIColor.lavaOrange], range: NSMakeRange(0, imageString.length))
+
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.attributedText = imageString
+        label.textAlignment = .center
+
+        topMoment.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.topAnchor.constraint(equalTo: momentFooterView.topAnchor),
+            label.bottomAnchor.constraint(equalTo: momentFooterView.bottomAnchor),
+            label.leadingAnchor.constraint(equalTo: topMoment.leadingAnchor, constant: MomentView.Layout.mediaPadding),
+            label.trailingAnchor.constraint(equalTo: topMoment.trailingAnchor, constant: -MomentView.Layout.mediaPadding),
+        ])
+
+        ftuxLabel = label
+    }
+
+    private func removeFTUXIfNecessary(_ momentView: MomentView) {
+        guard let ftuxLabel = ftuxLabel else {
+            return
+        }
+
+        momentView.dayOfWeekLabel.alpha = 1
+        ftuxLabel.removeFromSuperview()
+        self.ftuxLabel = nil
+
+        Self.hasSwipedStack = true
     }
 }
 
@@ -324,5 +395,16 @@ fileprivate extension UISpringTimingParameters {
         }
 
         self.init(dampingRatio: damping, initialVelocity: velocity)
+    }
+}
+
+// MARK: - localization
+
+fileprivate extension Localizations {
+
+    static var swipeForMore: String {
+        NSLocalizedString("moments.swipe.for.more",
+                   value: "swipe for more",
+                 comment: "Text shown on the moments stack to indicate that the stack is interactive. Only shown the first time.")
     }
 }

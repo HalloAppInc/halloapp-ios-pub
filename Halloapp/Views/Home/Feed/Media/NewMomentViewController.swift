@@ -68,6 +68,9 @@ final class NewMomentViewController: UIViewController {
 
     private var startUnlockTransitionCancellable: AnyCancellable?
 
+    /// The overlay that is above the camera when the user first attempts to unlock a moment.
+    private var unlockingExplainerOverlay: UIView?
+
     init(context: MomentContext = .normal) {
         self.context = context
         super.init(nibName: nil, bundle: nil)
@@ -91,7 +94,7 @@ final class NewMomentViewController: UIViewController {
 
         contain(cameraNavigationController)
 
-        if case .unlock(_) = context, !hasDisplayedUnlockingExplainer {
+        if case .unlock(_) = context, !Self.hasDisplayedUnlockingExplainer {
             setupUnlockingExplainer()
         }
     }
@@ -99,9 +102,9 @@ final class NewMomentViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        if !hasDisplayedMomentsExplainer {
+        if !Self.hasDisplayedMomentsExplainer {
             present(MomentsExplainerViewController(), animated: true) {
-                self.hasDisplayedMomentsExplainer = true
+                Self.hasDisplayedMomentsExplainer = true
             }
         }
     }
@@ -292,9 +295,20 @@ final class NewMomentViewController: UIViewController {
         // ensures that everything gets aligned correctly when using snapshots
         viewController.view.layoutIfNeeded()
     }
+}
 
-    /// The overlay that is above the camera when the user first attempts to unlock a moment.
-    private var unlockingExplainerOverlay: UIView?
+// MARK: - FTUX methods
+
+extension NewMomentViewController {
+    /// Indicates whether we have shown the bottom sheet that explains the feature.
+    /// This is shown when the user opens the moments camera for the first time.
+    @UserDefault(key: "shown.moment.explainer", defaultValue: false)
+    private static var hasDisplayedMomentsExplainer: Bool
+
+    /// Shown as a blurred overlay above the camera. This is shown when the user attempts to
+    /// unlock someone else's moment for the first time.
+    @UserDefault(key: "shown.moment.unlock.explainer", defaultValue: false)
+    private static var hasDisplayedUnlockingExplainer: Bool
 
     private func setupUnlockingExplainer() {
         let blur = UIVisualEffectView(effect: UIBlurEffect(style: .prominent))
@@ -349,35 +363,7 @@ final class NewMomentViewController: UIViewController {
         cameraController.subtitleLabel.isHidden = false
         unlockingExplainerOverlay?.removeFromSuperview()
 
-        hasDisplayedUnlockingExplainer = true
-    }
-}
-
-// MARK: - FTUX computed properties
-
-extension NewMomentViewController {
-    /// Indicates whether we have shown the bottom sheet that explains the feature.
-    /// This is shown when the user opens the moments camera for the first time.
-    private var hasDisplayedMomentsExplainer: Bool {
-        get {
-            MainAppContext.shared.userDefaults.bool(forKey: "shown.moment.explainer")
-        }
-
-        set {
-            MainAppContext.shared.userDefaults.set(newValue, forKey: "shown.moment.explainer")
-        }
-    }
-
-    /// Shown as a blurred overlay above the camera. This is shown when the user attempts to
-    /// unlock someone else's moment for the first time.
-    private var hasDisplayedUnlockingExplainer: Bool {
-        get {
-            MainAppContext.shared.userDefaults.bool(forKey: "shown.moment.unlock.explainer")
-        }
-
-        set {
-            MainAppContext.shared.userDefaults.set(newValue, forKey: "shown.moment.unlock.explainer")
-        }
+        Self.hasDisplayedUnlockingExplainer = true
     }
 }
 

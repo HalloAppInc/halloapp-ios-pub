@@ -220,6 +220,7 @@ struct DeveloperMenuView: View {
                     AppContext.shared.userDefaults.set(false, forKey: "shown.moment.explainer")
                     AppContext.shared.userDefaults.set(false, forKey: "shown.moment.unlock.explainer")
                     AppContext.shared.userDefaults.set(false, forKey: "shown.replace.moment.disclaimer")
+                    AppContext.shared.userDefaults.set(false, forKey: "shown.moment.stack.indicator")
                     dismiss?()
                 } label: {
                     Text(MenuTitles.resetMomentsFTUX)
