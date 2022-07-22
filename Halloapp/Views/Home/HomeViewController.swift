@@ -42,23 +42,10 @@ class HomeViewController: UITabBarController {
     private func commonSetup() {
         self.delegate = self
 
-        let barButtonItemTitleTextAttributes: [NSAttributedString.Key : Any] = [.font: UIFont.systemFont(ofSize: 17, weight: .medium)]
-
-        let barButtonItemAppearance = UIBarButtonItemAppearance()
-        barButtonItemAppearance.configureWithDefault(for: .plain)
-        barButtonItemAppearance.normal.titleTextAttributes = barButtonItemTitleTextAttributes
-        barButtonItemAppearance.highlighted.titleTextAttributes = barButtonItemTitleTextAttributes
-        barButtonItemAppearance.disabled.titleTextAttributes = barButtonItemTitleTextAttributes
-        barButtonItemAppearance.focused.titleTextAttributes = barButtonItemTitleTextAttributes
-
-        let navigationBarAppearance = UINavigationBarAppearance()
-        navigationBarAppearance.configureWithOpaqueBackground()
-        navigationBarAppearance.buttonAppearance = barButtonItemAppearance
-
         // Set background color for navigation bar and search bar system-wide.
-        UINavigationBar.appearance().standardAppearance = navigationBarAppearance
-        UINavigationBar.appearance().scrollEdgeAppearance = navigationBarAppearance
-        UINavigationBar.appearance().compactAppearance = navigationBarAppearance
+        UINavigationBar.appearance().standardAppearance = .opaqueAppearance
+        UINavigationBar.appearance().scrollEdgeAppearance = .opaqueAppearance
+        UINavigationBar.appearance().compactAppearance = .opaqueAppearance
         UISearchBar.appearance().backgroundColor = .primaryBg
 
         // need to set UITabBarItem in addition to appearance as the very first load does not respect appearance (for font)

@@ -31,6 +31,15 @@ extension UINavigationBarAppearance {
 
     class var opaqueAppearance: UINavigationBarAppearance {
         get {
+            let barButtonItemTitleTextAttributes: [NSAttributedString.Key : Any] = [.font: UIFont.systemFont(ofSize: 17, weight: .medium)]
+
+            let barButtonItemAppearance = UIBarButtonItemAppearance()
+            barButtonItemAppearance.configureWithDefault(for: .plain)
+            barButtonItemAppearance.normal.titleTextAttributes = barButtonItemTitleTextAttributes
+            barButtonItemAppearance.highlighted.titleTextAttributes = barButtonItemTitleTextAttributes
+            barButtonItemAppearance.disabled.titleTextAttributes = barButtonItemTitleTextAttributes
+            barButtonItemAppearance.focused.titleTextAttributes = barButtonItemTitleTextAttributes
+
             let appearance = UINavigationBarAppearance()
             appearance.configureWithOpaqueBackground()
             appearance.configureTitleTextAttributes()
@@ -38,7 +47,7 @@ extension UINavigationBarAppearance {
             appearance.setBackIndicatorImage(UIImage(named: "NavbarBack"), transitionMaskImage: UIImage(named: "NavbarBack"))
             appearance.backgroundColor = .primaryBg
             appearance.backButtonAppearance = .transparentAppearance
-            appearance.buttonAppearance = UIBarButtonItemAppearance(style: .plain)
+            appearance.buttonAppearance = barButtonItemAppearance
             appearance.shadowColor = nil
             return appearance
         }
