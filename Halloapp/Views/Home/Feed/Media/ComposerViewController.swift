@@ -340,14 +340,57 @@ class ComposerViewController: UIViewController {
         return textView
     }()
 
+    private lazy var textComposerPlaceholder: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = .systemFont(ofSize: 20)
+        label.textColor = .label.withAlphaComponent(0.4)
+
+        return label
+    }()
+
+    private lazy var textComposerView: ContentTextView = {
+        let textView = ContentTextView()
+        textView.translatesAutoresizingMaskIntoConstraints = false
+        textView.delegate = self
+        textView.isScrollEnabled = true
+        textView.isEditable = true
+        textView.isUserInteractionEnabled = true
+        textView.backgroundColor = .clear
+        textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        textView.font = Constants.getFontSize(textSize: input.text.count, isPostWithMedia: media.count > 0)
+        textView.tintColor = .systemBlue
+        textView.textColor = Constants.textViewTextColor
+        textView.text = input.text
+        textView.mentions = input.mentions
+
+        textView.addSubview(textComposerPlaceholder)
+
+        NSLayoutConstraint.activate([
+            textComposerPlaceholder.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: 5),
+            textComposerPlaceholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: 9),
+            textView.heightAnchor.constraint(greaterThanOrEqualToConstant: 86),
+        ])
+
+        return textView
+    }()
+
     private lazy var mentionPickerView: HorizontalMentionPickerView = {
         let picker = HorizontalMentionPickerView(config: .composer, avatarStore: MainAppContext.shared.avatarStore)
         picker.translatesAutoresizingMaskIntoConstraints = false
+        picker.setContentHuggingPriority(.defaultHigh, for: .vertical)
         picker.clipsToBounds = true
         picker.isHidden = true
         picker.didSelectItem = { [weak self] item in
-            self?.textView.accept(mention: item)
-            self?.updateMentionPicker()
+            guard let self = self else { return }
+
+            if self.media.count > 0 {
+                self.textView.accept(mention: item)
+            } else {
+                self.textComposerView.accept(mention: item)
+            }
+
+            self.updateMentionPicker()
         }
 
         return picker
@@ -572,6 +615,22 @@ class ComposerViewController: UIViewController {
         return button
     }()
 
+    private lazy var linkPreviewView: PostComposerLinkPreviewView = {
+        let linkPreviewView = PostComposerLinkPreviewView() { [weak self] resetLink, linkPreviewData, linkPreviewImage in
+            guard let self = self else { return }
+
+            self.linkPreviewView.isHidden = resetLink
+            self.linkPreviewData = linkPreviewData
+            self.linkPreviewImage = linkPreviewImage
+        }
+
+        linkPreviewView.translatesAutoresizingMaskIntoConstraints = false
+        linkPreviewView.isHidden = true
+        linkPreviewView.setContentHuggingPriority(.defaultHigh, for: .vertical)
+
+        return linkPreviewView
+    }()
+
     private lazy var sendButton: UIButton = {
         let iconConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .bold)
         let icon = UIImage(systemName: "chevron.right", withConfiguration: iconConfig)?
@@ -777,18 +836,49 @@ class ComposerViewController: UIViewController {
             constraints.append(audioComposerMeterView.centerXAnchor.constraint(equalTo: audioComposerRecordButton.centerXAnchor))
             constraints.append(audioComposerMeterView.centerYAnchor.constraint(equalTo: audioComposerRecordButton.centerYAnchor))
             constraints.append(sendButton.centerXAnchor.constraint(equalTo: bottomView.centerXAnchor))
-            constraints.append(sendButton.topAnchor.constraint(equalTo: bottomView.topAnchor))
+            constraints.append(sendButton.topAnchor.constraint(equalTo: bottomView.topAnchor, constant: 8))
             constraints.append(sendButton.bottomAnchor.constraint(equalTo: bottomView.bottomAnchor))
             constraints.append(mediaPickerButton.trailingAnchor.constraint(equalTo: bottomView.trailingAnchor, constant: -14))
-            constraints.append(mediaPickerButton.centerYAnchor.constraint(equalTo: bottomView.centerYAnchor))
+            constraints.append(mediaPickerButton.centerYAnchor.constraint(equalTo: sendButton.centerYAnchor))
         } else {
+            title = Localizations.fabAccessibilityTextPost
             navigationItem.leftBarButtonItem = closeButtonItem
-            // text only
-            //   contentView
-            //     mentions
-            //     card with text only
-            //   bottomView
-            //     send btn + media btn
+            navigationItem.rightBarButtonItems = []
+
+            let stack = UIStackView(arrangedSubviews: [textComposerView, linkPreviewView])
+            stack.translatesAutoresizingMaskIntoConstraints = false
+            stack.axis = .vertical
+            stack.spacing = 8
+
+            cardView.addSubview(stack)
+
+            let cardWrapperView = UIView()
+            cardWrapperView.translatesAutoresizingMaskIntoConstraints = false
+            cardWrapperView.addSubview(cardView)
+
+            contentView.layoutMargins = .zero
+            contentView.addArrangedSubview(mentionPickerView)
+            contentView.addArrangedSubview(cardWrapperView)
+
+            bottomView.addSubview(sendButton)
+            bottomView.addSubview(mediaPickerButton)
+
+            constraints.append(contentView.heightAnchor.constraint(greaterThanOrEqualTo: scrollView.frameLayoutGuide.heightAnchor, constant: -16))
+            constraints.append(cardWrapperView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: -12))
+            constraints.append(cardWrapperView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: 12))
+            constraints.append(cardWrapperView.topAnchor.constraint(equalTo: cardView.topAnchor))
+            constraints.append(cardWrapperView.bottomAnchor.constraint(equalTo: cardView.bottomAnchor))
+            constraints.append(stack.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 12))
+            constraints.append(stack.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -12))
+            constraints.append(stack.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 12))
+            constraints.append(stack.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -12))
+            constraints.append(sendButton.centerXAnchor.constraint(equalTo: bottomView.centerXAnchor))
+            constraints.append(sendButton.topAnchor.constraint(equalTo: bottomView.topAnchor, constant: 8))
+            constraints.append(sendButton.bottomAnchor.constraint(equalTo: bottomView.bottomAnchor))
+            constraints.append(mediaPickerButton.trailingAnchor.constraint(equalTo: bottomView.trailingAnchor, constant: -14))
+            constraints.append(mediaPickerButton.centerYAnchor.constraint(equalTo: sendButton.centerYAnchor))
+
+            textComposerPlaceholder.text = Localizations.writePost
         }
 
         NSLayoutConstraint.activate(constraints)
@@ -840,6 +930,7 @@ class ComposerViewController: UIViewController {
                 navigationItem.rightBarButtonItems = []
             }
         } else if initialType == .voiceNote || voiceNote != nil {
+            // update audio only ui
             if audioRecorder.isRecording {
                 audioComposerTimeLabel.isHidden = false
                 audioComposerTitle.alpha = 0
@@ -872,6 +963,11 @@ class ComposerViewController: UIViewController {
             sendButton.isEnabled = !audioRecorder.isRecording && voiceNote != nil
         } else {
             // update text only ui
+            updateTextViewFontAndHeight()
+            updateLinkPreviewViewIfNecessary()
+            textComposerPlaceholder.isHidden = !input.text.isEmpty
+            mediaPickerButton.isHidden = input.text.isEmpty
+            sendButton.isEnabled = !input.text.isEmpty
         }
     }
 
@@ -886,11 +982,15 @@ class ComposerViewController: UIViewController {
 
     private func updateTextViewFontAndHeight() {
         let font = Constants.getFontSize(textSize: input.text.count, isPostWithMedia: media.count > 0)
-        textView.font = font
 
-        let size = textView.sizeThatFits(CGSize(width: textView.frame.size.width, height: CGFloat.greatestFiniteMagnitude))
+        if media.count > 0 {
+            textView.font = font
 
-        textViewHeightConstraint.constant = min(size.height, 86)
+            let size = textView.sizeThatFits(CGSize(width: textView.frame.size.width, height: CGFloat.greatestFiniteMagnitude))
+            textViewHeightConstraint.constant = min(size.height, 86)
+        } else {
+            textComposerView.font = font
+        }
     }
 
     private func listenForMediaErrors() {
@@ -1216,7 +1316,7 @@ extension ComposerViewController: ContentTextViewDelegate {
         updateUI()
 
         updateMentionPicker()
-        // TODO: updateLinkPreviewViewIfNecessary()
+        updateLinkPreviewViewIfNecessary()
         updateWithMarkdown(textView)
         updateWithMention(textView)
     }
@@ -1246,6 +1346,33 @@ extension ComposerViewController: ContentTextViewDelegate {
                 textView.selectedTextRange = selectedRange
             }
         }
+    }
+
+    // MARK: Link Preview
+
+    private func updateLinkPreviewViewIfNecessary() {
+        if let url = detectLink(text: textComposerView.text) {
+            linkPreviewView.updateLink(url: url)
+            linkPreviewView.isHidden = false
+        } else {
+            linkPreviewView.isHidden = true
+        }
+    }
+
+    private func detectLink(text: String) -> URL? {
+        let linkDetector = try! NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
+        let matches = linkDetector.matches(in: text, options: [], range: NSRange(location: 0, length: text.utf16.count))
+
+        for match in matches {
+            guard let range = Range(match.range, in: text) else { continue }
+            let url = text[range]
+            if let url = URL(string: String(url)) {
+                // We only care about the first link
+                return url
+            }
+        }
+
+        return nil
     }
 }
 
