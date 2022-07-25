@@ -175,7 +175,7 @@ class DestinationCell: UICollectionViewCell {
         ])
     }
 
-    public func configure(title: String, subtitle: String, privacyListType: PrivacyListType, isSelected: Bool, hasNext: Bool) {
+    public func configure(title: String, subtitle: String, privacyListType: PrivacyListType, isSelected: Bool) {
         self.title.text = title
         self.subtitle.text = subtitle
         switch privacyListType {
@@ -192,6 +192,7 @@ class DestinationCell: UICollectionViewCell {
         avatarView.isHidden = true
         self.subtitle.isHidden = false
         seperator.isHidden = true
+        configureSelected(isSelected)
     }
 
     public func configure(_ group: ChatThread, isSelected: Bool) {
@@ -203,8 +204,8 @@ class DestinationCell: UICollectionViewCell {
         favoritesView.isHidden = true
         avatarView.isHidden = false
         self.subtitle.isHidden = true
-        configureSelected(isSelected)
         seperator.isHidden = false
+        configureSelected(isSelected)
     }
 
     public func configure(_ contact: ABContact, isSelected: Bool) {

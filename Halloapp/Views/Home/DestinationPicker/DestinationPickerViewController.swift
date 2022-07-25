@@ -26,12 +26,43 @@ private extension Localizations {
     }
 }
 
+enum ShareDestination: Equatable, Hashable {
+    case feed(PrivacyListType)
+    case group(ChatThread)
+    case contact(ABContact)
+
+    static func == (lhs: ShareDestination, rhs: ShareDestination) -> Bool {
+        switch (lhs, rhs) {
+        case (.feed(let lf), .feed(let rf)):
+            return lf == rf
+        case (.group(let lg), .group(let rg)):
+            return lg.groupID == rg.groupID
+        case (.contact(let lc), .contact(let rc)):
+            return lc == rc
+        default:
+            return false
+        }
+    }
+
+    func hash(into hasher: inout Hasher) {
+        switch(self) {
+        case .feed:
+            hasher.combine("feed")
+        case .group(let group):
+            hasher.combine(group.groupID)
+        case .contact(let contact):
+            hasher.combine(contact)
+        }
+    }
+}
+
 class DestinationPickerViewController: UIViewController, NSFetchedResultsControllerDelegate {
     static let rowHeight = CGFloat(54)
     private var contacts: [ABContact] = []
     private var allGroups: [ChatThread] = []
     private var groups: [ChatThread] = []
     private var hasMoreGroups: Bool = true
+    private var selectedDestinations: [ShareDestination] = []
     let feedPrivacyTypes = [PrivacyListType.all, PrivacyListType.whitelist]
 
     private lazy var fetchedResultsController: NSFetchedResultsController<ChatThread> = {
@@ -95,11 +126,30 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
         collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 16, right: 0)
         collectionView.register(DestinationCell.self, forCellWithReuseIdentifier: DestinationCell.reuseIdentifier)
         collectionView.register(DestinationPickerHeaderView.self, forSupplementaryViewOfKind: DestinationPickerHeaderView.elementKind, withReuseIdentifier: DestinationPickerHeaderView.elementKind)
-        //collectionView.delegate = self
+        collectionView.delegate = self
         collectionView.keyboardDismissMode = .onDrag
 
         return collectionView
     }()
+
+    private lazy var selectionRow: DestinationTrayView = {
+        let rowView = DestinationTrayView() { [weak self] index in
+            guard let self = self else { return }
+
+            self.selectedDestinations.remove(at: index)
+            self.onSelectionChange(destinations: self.selectedDestinations)
+        }
+
+        return rowView
+    } ()
+
+    private lazy var selectionRowHeightConstraint: NSLayoutConstraint = {
+        selectionRow.heightAnchor.constraint(equalToConstant: 0)
+    } ()
+
+    private lazy var bottomConstraint: NSLayoutConstraint = {
+        selectionRow.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+    } ()
 
     private lazy var leftBarButtonItem: UIBarButtonItem = {
         let image = UIImage(systemName: "chevron.down", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))
@@ -114,7 +164,7 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: DestinationCell.reuseIdentifier, for: indexPath)
             
             guard let cell = cell as? DestinationCell, let self = self else { return cell }
-
+            let isSelected = self.selectedDestinations.contains { $0 == shareDestination }
             switch shareDestination {
             case .feed(let privacyListType):
                 switch privacyListType {
@@ -123,22 +173,20 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
                         title: PrivacyList.name(forPrivacyListType: .all),
                         subtitle: Localizations.feedPrivacyShareWithAllContacts,
                         privacyListType: .all,
-                        isSelected: false,
-                        hasNext: true)
+                        isSelected: isSelected)
                 case .whitelist:
                     cell.configure(
                         title: PrivacyList.name(forPrivacyListType: .whitelist),
                         subtitle: Localizations.feedPrivacyShareWithSelected,
                         privacyListType: .whitelist,
-                        isSelected: false,
-                        hasNext: true)
+                        isSelected: isSelected)
                 default:
                     break
                 }
             case .group(let group):
-                cell.configure(group, isSelected: false)
+                cell.configure(group, isSelected: isSelected)
             case .contact(let contact):
-                cell.configure(contact, isSelected: false)
+                cell.configure(contact, isSelected: isSelected)
             }
             return cell
         }
@@ -171,36 +219,6 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
         }
    }
 
-    enum ShareDestination: Equatable, Hashable {
-        case feed(PrivacyListType)
-        case group(ChatThread)
-        case contact(ABContact)
-
-        static func == (lhs: ShareDestination, rhs: ShareDestination) -> Bool {
-            switch (lhs, rhs) {
-            case (.feed(let lf), .feed(let rf)):
-                return lf == rf
-            case (.group(let lg), .group(let rg)):
-                return lg.groupID == rg.groupID
-            case (.contact(let lc), .contact(let rc)):
-                return lc == rc
-            default:
-                return false
-            }
-        }
-
-        func hash(into hasher: inout Hasher) {
-            switch(self) {
-            case .feed:
-                hasher.combine("feed")
-            case .group(let group):
-                hasher.combine(group.groupID)
-            case .contact(let contact):
-                hasher.combine(contact)
-            }
-        }
-    }
-
     enum DestinationSection {
         case main, groups, contacts
     }
@@ -215,12 +233,17 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
         navigationItem.hidesSearchBarWhenScrolling = false
 
         view.addSubview(collectionView)
+        view.addSubview(selectionRow)
 
         NSLayoutConstraint.activate([
             collectionView.topAnchor.constraint(equalTo: view.topAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            selectionRow.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            selectionRow.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            selectionRowHeightConstraint,
+            bottomConstraint,
         ])
 
         try? fetchedResultsController.performFetch()
@@ -261,5 +284,80 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         updateData()
+    }
+}
+
+extension DestinationPickerViewController: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard let shareDestination = dataSource.itemIdentifier(for: indexPath) else { return }
+        //toggle selection
+        toggleDestinationSelection(shareDestination)
+        onSelectionChange(destinations: selectedDestinations)
+    }
+
+    private func toggleDestinationSelection(_ shareDestination: ShareDestination) {
+        if let idx = selectedDestinations.firstIndex(where: { $0 == shareDestination }) {
+            selectedDestinations.remove(at: idx)
+        } else {
+            selectedDestinations.append(shareDestination)
+        }
+        // Home and Favorites need to be mutually exclusive
+        switch shareDestination {
+        case .feed(let privacyListType):
+            switch privacyListType {
+            case .all:
+                selectedDestinations.removeAll(where: {$0 == .feed(.whitelist)})
+            case .whitelist:
+                selectedDestinations.removeAll(where: {$0 == .feed(.all)})
+            default:
+                break
+            }
+        default:
+            break
+        }
+    }
+    private func onSelectionChange(destinations: [ShareDestination]) {
+        selectedDestinations = destinations
+            updateNextBtn()
+            updateSelectionRow()
+            collectionView.reloadData()
+        }
+
+    private func updateSelectionRow() {
+        if selectedDestinations.count > 0 && selectionRowHeightConstraint.constant == 0 {
+            UIView.animate(withDuration: 0.3, animations: {
+                self.selectionRowHeightConstraint.constant = 100
+                let bottomContentInset = 100 - self.view.safeAreaInsets.bottom
+                self.collectionView.contentInset.bottom = bottomContentInset
+                self.collectionView.verticalScrollIndicatorInsets.bottom = bottomContentInset
+                self.selectionRow.layoutIfNeeded()
+            }) { _ in
+                self.selectionRow.update(with: self.selectedDestinations)
+            }
+        } else if selectedDestinations.count == 0 && selectionRowHeightConstraint.constant > 0 {
+            selectionRow.update(with: self.selectedDestinations)
+
+            UIView.animate(withDuration: 0.3) {
+                self.selectionRowHeightConstraint.constant = 0
+                self.collectionView.contentInset.bottom = 0
+                self.collectionView.verticalScrollIndicatorInsets.bottom = 0
+                self.selectionRow.layoutIfNeeded()
+            }
+        } else {
+            selectionRow.update(with: self.selectedDestinations)
+        }
+    }
+
+    private func updateNextBtn() {
+        if selectedDestinations.count > 0 {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonNext, style: .done, target: self, action: #selector(nextAction))
+        } else {
+            navigationItem.rightBarButtonItem = nil
+        }
+    }
+
+    @objc private func nextAction() {
+        guard selectedDestinations.count > 0 else { return }
+        // TODO what's next Dini?
     }
 }
