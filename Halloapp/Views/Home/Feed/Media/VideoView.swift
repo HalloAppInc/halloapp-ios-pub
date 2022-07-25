@@ -53,7 +53,7 @@ class VideoView: UIView {
 
     private var playbackControls: PlaybackControls = .simple
 
-    private lazy var playButton: UIView = {
+    private(set) lazy var playButton: UIView = {
         let size: CGFloat = 100
         let config = UIImage.SymbolConfiguration(pointSize: 36)
         let icon = UIImage(systemName: "play.fill", withConfiguration: config)!.withTintColor(.white, renderingMode: .alwaysOriginal)
@@ -62,13 +62,13 @@ class VideoView: UIView {
         buttonIcon.translatesAutoresizingMaskIntoConstraints = false
 
         let button = UIView()
+        button.isUserInteractionEnabled = false
         button.translatesAutoresizingMaskIntoConstraints = false
         button.layer.cornerRadius = size / 2
         button.clipsToBounds = true
 
         let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
         let blurredEffectView = BlurView(effect: blurEffect, intensity: 0.5)
-        blurredEffectView.isUserInteractionEnabled = false
         blurredEffectView.translatesAutoresizingMaskIntoConstraints = false
 
         button.insertSubview(blurredEffectView, at: 0)
@@ -100,8 +100,6 @@ class VideoView: UIView {
         addSubview(timeSeekView)
 
         NSLayoutConstraint.activate([
-            playButton.centerXAnchor.constraint(equalTo: centerXAnchor),
-            playButton.centerYAnchor.constraint(equalTo: centerYAnchor),
             timeSeekView.heightAnchor.constraint(equalToConstant: 44),
         ])
 
@@ -118,6 +116,8 @@ class VideoView: UIView {
             timeSeekView.alpha = 1
 
             NSLayoutConstraint.activate([
+                playButton.centerXAnchor.constraint(equalTo: centerXAnchor),
+                playButton.centerYAnchor.constraint(equalTo: centerYAnchor),
                 timeSeekView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 24),
                 timeSeekView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -24),
                 timeSeekView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8),

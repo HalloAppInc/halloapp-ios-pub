@@ -439,6 +439,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
             return cell
         case .video:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MediaExplorerVideoCell.reuseIdentifier, for: indexPath) as! MediaExplorerVideoCell
+            cell.scrollView = collectionView
             cell.media = item
             return cell
         case .audio:
