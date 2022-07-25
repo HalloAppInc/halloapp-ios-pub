@@ -1162,6 +1162,9 @@
 /* For indicating that a post has been successfully uploaded and shared. */
 "moment.uploading.success" = "¡Compartido!";
 
+/* Text shown on the moments stack to indicate that the stack is interactive. Only shown the first time. */
+"moments.swipe.for.more" = "desliza para más";
+
 /* Message displayed to say when moments will disappear. */
 "mymoment.disappear.time.label" = "Tu momento fue compartido con tu lista de contactos. Los momentos desaparecen después de 24 horas y solo se pueden ver una vez.";
 
@@ -1380,11 +1383,11 @@
 
 /* Header when selecting a group to share with
    Header when selecting groups to share with */
-"post.privacy.header.groups" = "Compartir solo con un grupo";
+"post.privacy.header.groups" = "Tus grupos";
 
 /* Controller title for changing destination and privacy
    Header when selecting contacts to share with */
-"post.privacy.title" = "Compartir con...";
+"post.privacy.title" = "Contactos recientes";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Bloqueado";
@@ -1566,9 +1569,6 @@
 /* Title that indicates that someone took a screenshot. */
 "screenshot.title" = "Captura de pantalla";
 
-/* Text placed on the blurred overlay of a secret post. */
-"secret.post.entice" = "%@ compartió un momento";
-
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Por favor, selecciona al menos un contacto.";
 
@@ -1727,6 +1727,9 @@
 
 /* Prompt for the user to share a moment. */
 "share.moment.prompt" = "Comparte un momento";
+
+/* Text placed on the blurred overlay of someone else's moment. */
+"shared.moment" = "momento de %@";
 
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "toca para devolver la llamada";

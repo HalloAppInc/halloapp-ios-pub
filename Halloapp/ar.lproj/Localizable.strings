@@ -1566,9 +1566,6 @@
 /* Title that indicates that someone took a screenshot. */
 "screenshot.title" = "لقطة شاشة";
 
-/* Text placed on the blurred overlay of a secret post. */
-"secret.post.entice" = "شارَك %@ إحدى اللحظات";
-
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "يُرجى تحديد جهة اتصال واحدة على الأقل.";
 

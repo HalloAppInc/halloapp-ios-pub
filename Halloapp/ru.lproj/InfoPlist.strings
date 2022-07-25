@@ -7,6 +7,9 @@
 /* Privacy - Contacts Usage Description */
 "NSContactsUsageDescription" = "Загрузите свои контакты на серверы HalloApp, чтобы видеть сообщения ваших друзей и чтобы они видели ваши.";
 
+/* Privacy - Location When In Use Usage Description */
+"NSLocationWhenInUseUsageDescription" = "Это позволяет просматривать и делиться местоположениями рядом с вами.";
+
 /* Privacy - Microphone Usage Description */
 "NSMicrophoneUsageDescription" = "Это позволяет записывать видео со звуком.";
 

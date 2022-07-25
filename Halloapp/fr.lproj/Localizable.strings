@@ -1386,9 +1386,6 @@
 /* Text shown to instruct using a QR code for joining a group */
 "scan.to.join.group.using.qr.code" = "Pour vous joindre, scannez ce code QR avec la caméra de votre téléphone.";
 
-/* Text placed on the blurred overlay of a secret post. */
-"secret.post.entice" = "%@ a partagé un moment";
-
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Tu dois sélectionner au moins un contact.";
 

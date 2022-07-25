@@ -1497,9 +1497,6 @@
 /* Title that indicates that someone took a screenshot. */
 "screenshot.title" = "Ekran görüntüsü";
 
-/* Text placed on the blurred overlay of a secret post. */
-"secret.post.entice" = "%@ anlık paylaştı";
-
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Lütfen en az bir kişi seç";
 

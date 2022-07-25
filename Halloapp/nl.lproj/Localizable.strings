@@ -457,6 +457,9 @@
 /* Title on edit button */
 "composer.button.edit" = "Bewerken";
 
+/* Send button title */
+"composer.button.send.to" = "Verzenden Naar";
+
 /* Title warning that a voice recording will be deleted */
 "composer.delete.recording.title" = "Spraakopname verwijderen?";
 
@@ -1159,6 +1162,9 @@
 /* For indicating that a post has been successfully uploaded and shared. */
 "moment.uploading.success" = "Gedeeld!";
 
+/* Text shown on the moments stack to indicate that the stack is interactive. Only shown the first time. */
+"moments.swipe.for.more" = "veeg voor meer";
+
 /* Message displayed to say when moments will disappear. */
 "mymoment.disappear.time.label" = "Je Moment is gedeeld met je contactenlijst. Momenten verdwijnen na 24 uur en kunnen slechts één keer worden bekeken.";
 
@@ -1377,11 +1383,11 @@
 
 /* Header when selecting a group to share with
    Header when selecting groups to share with */
-"post.privacy.header.groups" = "Alleen delen met een groep";
+"post.privacy.header.groups" = "Jouw Groepen";
 
 /* Controller title for changing destination and privacy
    Header when selecting contacts to share with */
-"post.privacy.title" = "Delen Met...";
+"post.privacy.title" = "Recente Contacten";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Geblokkeerd";
@@ -1563,9 +1569,6 @@
 /* Title that indicates that someone took a screenshot. */
 "screenshot.title" = "Screenshot";
 
-/* Text placed on the blurred overlay of a secret post. */
-"secret.post.entice" = "%@ heeft een moment gedeeld";
-
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Selecteer ten minste één contact.";
 
@@ -1724,6 +1727,9 @@
 
 /* Prompt for the user to share a moment. */
 "share.moment.prompt" = "Deel een moment";
+
+/* Text placed on the blurred overlay of someone else's moment. */
+"shared.moment" = "moment van %@";
 
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "tik om terug te gaan naar oproep";

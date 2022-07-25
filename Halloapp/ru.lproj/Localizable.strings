@@ -433,6 +433,9 @@
 /* Warning text displayed in Comments when post wasn't available. */
 "comments.post.loading.failed" = "При попытке загрузить эту публикацию произошла ошибка. Попробуйте снова позже.";
 
+/* Label for add media button in post composer */
+"composer.addmedia" = "Добавить медию";
+
 /* Accessibility label for add images button */
 "composer.audio.a11y.addImages" = "Добавить изображения";
 
@@ -453,6 +456,9 @@
 
 /* Title on edit button */
 "composer.button.edit" = "Редактировать";
+
+/* Send button title */
+"composer.button.send.to" = "Отправить";
 
 /* Title warning that a voice recording will be deleted */
 "composer.delete.recording.title" = "Удалить запись?";
@@ -877,8 +883,17 @@
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Коснитесь здесь, чтобы прочесть информацию о группе";
 
+/* Error message when a group fails to delete */
+"groupGrid.deletion.error" = "Не удалось удалить группу";
+
+/* Title of button that deletes a group */
+"groupGrid.deletion.title" = "Удалить группу";
+
 /* Tag for new posts in groups grid */
 "groupGrid.newPostIndicator" = "новый";
+
+/* Shown when post fails or is canceled. */
+"groupGrid.post.failed" = "Не удалось опубликовать";
 
 /* More info menu item */
 "groupGridHeader.moreInfo" = "Подробнее";
@@ -979,6 +994,9 @@
 /* Version of an invitation to join HalloApp. The argument is the invitee's name. */
 "invite.text.specific.4" = "Привет %@! Присоединяйтесь ко мне в HalloApp и делитесь реальными моментами с настоящими друзьями. Проверьте это: https://halloapp.com/new";
 
+/* Version of an invitation to join HalloApp. No arguments */
+"invite.text.specific.5" = "Я приглашаю вас присоединиться ко мне на HalloApp. Это частное и безопасное приложение для обмена фотографиями, чата и звонков друзьям. Получите его на https://halloapp.com/get";
+
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Пригласить друзей";
 
@@ -1005,6 +1023,42 @@
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Обнови свое приложение.";
+
+/* General message of the alert for failures in location sharing features. */
+"locationSharing.alert.error" = "Что-то пошло не так. Попробуйте снова позже.";
+
+/* Title of the alert for failures in location searches. */
+"locationSharing.alert.localSearchFailed.title" = "Не удалось найти местоположение";
+
+/* Message of the alert requesting location access for a feature. */
+"locationSharing.alert.locationAccessRequired.message" = "Вы можете включить это разрешение в Настройках.";
+
+/* Title of the alert requesting location access for a feature. */
+"locationSharing.alert.locationAccessRequired.title" = "HalloApp требует доступа к вашему местоположению для этой функции.";
+
+/* Title of the alert for failures resolving a location from the map. */
+"locationSharing.alert.locationResolvingFailed.title" = "Не удалось определить местоположение";
+
+/* Title of the menu to choose map type. */
+"locationSharing.chooseMap" = "Выберите карту";
+
+/* Subtitle of the user location callout. Parameter is the formatted length measurement of accuracy (including unit). */
+"locationSharing.locationAccuracyDescription" = "С точностью до %@";
+
+/* The explore map type (as in Apple Maps). */
+"locationSharing.mapType.explore" = "Изучить";
+
+/* The satellite map type (as in Apple Maps). */
+"locationSharing.mapType.satellite" = "Спутник";
+
+/* The menu action to focus on user location. */
+"locationSharing.myLocation" = "Мое местонахождение";
+
+/* Title of the location sharing main screen. */
+"locationSharing.navTitle" = "Расположение";
+
+/* Title of a location in location list if it does not have a name. */
+"locationSharing.untitledLocation" = "Место без названия";
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Я";
@@ -1081,6 +1135,9 @@
 /* Message action. Verb. */
 "message.delete" = "Удалить";
 
+/* Call to action to forward a message */
+"message.forward" = "Пересылать";
+
 /* Message action. Verb. */
 "message.reply" = "Ответить";
 
@@ -1104,6 +1161,9 @@
 
 /* For indicating that a post has been successfully uploaded and shared. */
 "moment.uploading.success" = "Поделились!";
+
+/* Text shown on the moments stack to indicate that the stack is interactive. Only shown the first time. */
+"moments.swipe.for.more" = "листайте, чтобы узнать больше";
 
 /* Message displayed to say when moments will disappear. */
 "mymoment.disappear.time.label" = "Ваш Момент был передан вашему списку контактов. Моменты исчезают через 24 часа и могут быть просмотрены только один раз.";
@@ -1218,6 +1278,18 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 видео";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.1" = "%@ поделился новым моментом и разблокировал ваш";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.2" = "%1$@ и %2$@ поделились новым моментом и разблокировали ваш";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.3" = "%1$@, %2$@ и %3$@ поделились новым моментом и разблокировали ваш";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ и другие поделились новым моментом и разблокировали ваш";
 
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 Пропущенный видеозвонок";
@@ -1497,9 +1569,6 @@
 /* Title that indicates that someone took a screenshot. */
 "screenshot.title" = "Скриншот";
 
-/* Text placed on the blurred overlay of a secret post. */
-"secret.post.entice" = "%@ поделился моментом";
-
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Выберите хотя бы один контакт.";
 
@@ -1658,6 +1727,9 @@
 
 /* Prompt for the user to share a moment. */
 "share.moment.prompt" = "Поделись моментом";
+
+/* Text placed on the blurred overlay of someone else's moment. */
+"shared.moment" = "момент %@";
 
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "нажмите, чтобы вернуться к звонку";

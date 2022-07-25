@@ -181,6 +181,18 @@
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 видео";
 
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.1" = "%@ поделился новым моментом и разблокировал ваш";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.2" = "%1$@ и %2$@ поделились новым моментом и разблокировали ваш";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.3" = "%1$@, %2$@, %3$@ поделились новым моментом и разблокировали ваш";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ и другие поделились новым моментом и разблокировали ваш";
+
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 Пропущенный видеозвонок";
 

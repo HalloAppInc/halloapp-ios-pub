@@ -623,16 +623,16 @@
 "feed.notification.deleted.post" = "<$author$> mengomentari. Postingan ini telah dihapus.";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.comment.no.text" = "<$author$> menyebut Anda di komentar";
+"feed.notification.mention.comment.no.text" = "<$author$> menyebut Anda dalam sebuah komentar";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.comment.w.text" = "<$author$> menyebut Anda di komentar: <$text$>";
+"feed.notification.mention.comment.w.text" = "<$author$> menyebut Anda dalam sebuah komentar: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.post.no.text" = "<$author$> menyebut Anda di postingan";
+"feed.notification.mention.post.no.text" = "<$author$> menyebut Anda dalam sebuah postingan";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.post.w.text" = "<$author$> menyebut Anda di postingan: <$text$>";
+"feed.notification.mention.post.w.text" = "<$author$> menyebut Anda dalam sebuah postingan: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification.other.comment.w.text" = "<$author$> juga mengomentari: <$text$>";
@@ -821,7 +821,7 @@
 "group.feed.welcome.post.title" = "Undang teman ke grup Anda";
 
 /* Action label for inviting others to join the group via link */
-"group.info.invite.to.group.via.link" = "Undang ke Grup melalui Tautan";
+"group.info.invite.to.group.via.link" = "Undang ke Grup lewat Tautan";
 
 /* Label for copying link */
 "group.invite.copy.link" = "Salin Tautan";
@@ -1161,6 +1161,9 @@
 
 /* For indicating that a post has been successfully uploaded and shared. */
 "moment.uploading.success" = "Dibagikan!";
+
+/* Text shown on the moments stack to indicate that the stack is interactive. Only shown the first time. */
+"moments.swipe.for.more" = "gesek untuk lainnya";
 
 /* Message displayed to say when moments will disappear. */
 "mymoment.disappear.time.label" = "Momen Anda telah dibagikan dengan daftar kontak Anda. Momen akan hilang setelah 24 jam dan hanya dapat dilihat sekali.";
@@ -1566,9 +1569,6 @@
 /* Title that indicates that someone took a screenshot. */
 "screenshot.title" = "Jepretan Layar";
 
-/* Text placed on the blurred overlay of a secret post. */
-"secret.post.entice" = "%@ berbagi momen";
-
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Silakan pilih setidaknya satu kontak.";
 
@@ -1727,6 +1727,9 @@
 
 /* Prompt for the user to share a moment. */
 "share.moment.prompt" = "Bagikan momen";
+
+/* Text placed on the blurred overlay of someone else's moment. */
+"shared.moment" = "Momen %@";
 
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "ketuk untuk kembali ke panggilan";

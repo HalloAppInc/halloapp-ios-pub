@@ -1386,9 +1386,6 @@
 /* Text shown to instruct using a QR code for joining a group */
 "scan.to.join.group.using.qr.code" = "Chceš-li se připojit, naskenuj tento QR kód pomocí fotoaparátu v telefonu.";
 
-/* Text placed on the blurred overlay of a secret post. */
-"secret.post.entice" = "%@ sdílel/a moment";
-
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Vyberte alespoň jeden kontakt.";
 

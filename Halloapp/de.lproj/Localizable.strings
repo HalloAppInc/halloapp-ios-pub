@@ -830,7 +830,7 @@
 "group.invite.link.copied" = "In die Zwischenablage kopiert";
 
 /* Text to describe what the group invite link is */
-"group.invite.link.description" = "Jeder HalloApp-Nutzer kann diesem Link folgen, um dieser Gruppe beizutreten. Sie erhalten jedoch nicht automatisch Inhalte, die vor dem Beitritt zur Gruppe veröffentlicht wurden.";
+"group.invite.link.description" = "Über diesen Link können HalloApp-Nutzer dieser Gruppe beitreten. Sie erhalten jedoch nicht automatisch alle Inhalte, die vor dem Beitritt zur Gruppe gepostet wurden.";
 
 /* Text label above the group link section in group invite screen */
 "group.invite.link.label" = "GRUPPENLINK";
@@ -977,10 +977,10 @@
 "invite.please.wait" = "Bitte warten...";
 
 /* Text of invitation to join HalloApp. */
-"invite.text" = "Mach mit bei HalloApp - ganz einfach, privat und sicher den Kontakt zu Freunden und zur Familie halten. Hol dir die App unter: https://halloapp.com/dl";
+"invite.text" = "Mach mit bei HalloApp - ganz einfach, privat und sicher den Kontakt zu Freunden und zur Familie halten. Hol dir die App auf https://halloapp.com/dl";
 
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
-"invite.text.specific" = "Hey %1$@, ich lade dich ein, dich auch bei HalloApp anzumelden. Ein Netzwerk für echte Beziehungen und diejenigen, die einem am nächsten stehen. Verwende %2$@ zur Registrierung und hol dir die App unter https://halloapp.com/dl";
+"invite.text.specific" = "Hey %1$@, ich lade dich ein, dich auch bei HalloApp anzumelden. Ein Netzwerk für echte Beziehungen und diejenigen, die einem am nächsten stehen. Verwende %2$@ zur Registrierung und hol dir die App auf https://halloapp.com/dl";
 
 /* Version of an invitation to join HalloApp. The argument is the invitee's name. */
 "invite.text.specific.1" = "Hey %@, ich bin auf HalloApp. Mach mit und lade die App hier herunter: https://halloapp.com/install";
@@ -992,10 +992,10 @@
 "invite.text.specific.3" = "Ich lade dich ein, HalloApp zu installieren. Hier kostenlos herunterladen:\nhttps://halloapp.com/free";
 
 /* Version of an invitation to join HalloApp. The argument is the invitee's name. */
-"invite.text.specific.4" = "Hey %@! Mach mit bei HalloApp und teile echte Momente mit echten Freunden. Schau es dir an: https://halloapp.com/new";
+"invite.text.specific.4" = "Hey %@! Mach mit bei HalloApp und teile echte Momente mit echten Freunden. Schau mal rein: https://halloapp.com/new";
 
 /* Version of an invitation to join HalloApp. No arguments */
-"invite.text.specific.5" = "Ich lade dich ein, dich auch bei HalloApp anzumelden. Eine private und sichere App, um Bilder zu teilen, zu chatten und deine Freunde anzurufen. Hol dir die App unter: https://halloapp.com/get";
+"invite.text.specific.5" = "Ich lade dich ein, dich auch bei HalloApp anzumelden. Eine private und sichere App, um Bilder zu teilen, zu chatten und deine Freunde anzurufen. Hol dir die App auf https://halloapp.com/get";
 
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Freunde einladen";
@@ -1091,25 +1091,25 @@
 "media.prepare.failed.n.count" = "media.prepare.failed.n.count";
 
 /* Button that, when pressed, saves all the post's media to the user's camera roll */
-"media.save.all" = "Alle in der Kamerarolle speichern";
+"media.save.all" = "Alle speichern";
 
 /* Button that, when pressed, saves the post's media to the user's camera roll. Singular version for media.save.all */
-"media.save.all.singular" = "Medien in der Kamerarolle speichern";
+"media.save.all.singular" = "Medien speichern";
 
 /* Button that lets the user save the current media displayed to their camera roll */
-"media.save.camera.roll" = "In der Kamerarolle speichern";
+"media.save.camera.roll" = "Speichern";
 
 /* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
 "media.save.needs.permissions" = "Erlaube Zugriff auf Fotos";
 
 /* Description telling the user why the photos couldn't be saved */
-"media.save.no.access" = "Fotos können nicht ohne Zugriffsberechtigung auf die Kamerarolle gespeichert werden.";
+"media.save.no.access" = "Zugriffsberechtigung wird benötigt um Fotos zu speichern.";
 
 /* Alert displayed explaining to the user that the media save operation failed */
 "media.save.not.saved" = "Das Foto kann nicht gespeichert werden";
 
 /* Label indicating that media was successfully saved to the camera roll */
-"media.save.saved" = "In der Kamerarolle gespeichert";
+"media.save.saved" = "Gespeichert";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.annotate" = "Text hinzufügen";
@@ -1161,6 +1161,9 @@
 
 /* For indicating that a post has been successfully uploaded and shared. */
 "moment.uploading.success" = "Geteilt!";
+
+/* Text shown on the moments stack to indicate that the stack is interactive. Only shown the first time. */
+"moments.swipe.for.more" = "für mehr wischen";
 
 /* Message displayed to say when moments will disappear. */
 "mymoment.disappear.time.label" = "Dein Moment wurde mit deinen Kontakten geteilt. Momente sind 24 Stunden sichtbar und können nur einmal angesehen werden.";
@@ -1566,9 +1569,6 @@
 /* Title that indicates that someone took a screenshot. */
 "screenshot.title" = "Screenshot";
 
-/* Text placed on the blurred overlay of a secret post. */
-"secret.post.entice" = "%@ hat einen Moment geteilt";
-
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Bitte wähle mindestens einen Kontakt aus.";
 
@@ -1727,6 +1727,9 @@
 
 /* Prompt for the user to share a moment. */
 "share.moment.prompt" = "Teile einen Moment";
+
+/* Text placed on the blurred overlay of someone else's moment. */
+"shared.moment" = "%@’s Moment";
 
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "Tippen, um zum Anruf zurückzukehren";

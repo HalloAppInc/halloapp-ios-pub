@@ -1135,6 +1135,9 @@
 /* Message action. Verb. */
 "message.delete" = "حذف";
 
+/* Call to action to forward a message */
+"message.forward" = "هدایت";
+
 /* Message action. Verb. */
 "message.reply" = "پاسخ";
 
@@ -1158,6 +1161,9 @@
 
 /* For indicating that a post has been successfully uploaded and shared. */
 "moment.uploading.success" = "به اشتراک گذاشته شد!";
+
+/* Text shown on the moments stack to indicate that the stack is interactive. Only shown the first time. */
+"moments.swipe.for.more" = "برای اطلاعات بیشتر بکشید";
 
 /* Message displayed to say when moments will disappear. */
 "mymoment.disappear.time.label" = "لحظه شما با لیست مخاطبینتان به اشتراک گذاشته شد. لحظه‌ها بعد از ۲۴ ساعت ناپدید میشوند و فقط یک بار قابل مشاهده هستند.";
@@ -1563,9 +1569,6 @@
 /* Title that indicates that someone took a screenshot. */
 "screenshot.title" = "عکس از صفحه";
 
-/* Text placed on the blurred overlay of a secret post. */
-"secret.post.entice" = "@% لحظه‌ای را به اشراک گذاشت";
-
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "لطفاً حداقل یک مخاطب انتخاب کنید.";
 
@@ -1724,6 +1727,9 @@
 
 /* Prompt for the user to share a moment. */
 "share.moment.prompt" = "به اشتراک گذاشتن لحظه";
+
+/* Text placed on the blurred overlay of someone else's moment. */
+"shared.moment" = "لحظه @%";
 
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "برای بازگشت به تماس کلیک کنید";
