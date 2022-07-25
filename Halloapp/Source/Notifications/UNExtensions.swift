@@ -344,25 +344,25 @@ extension Localizations {
 
     static var oneUnlockedMomentNotificationTitle: String {
         NSLocalizedString("notification.unlocked.moment.1",
-                   value: "%@ shared a new moment and unlocked yours",
+                   value: "%@ shared a new moment to unlock yours",
                  comment: "New moment unlock notification text to be shown to the user.")
     }
 
     static var twoUnlockedMomentNotificationTitle: String {
         NSLocalizedString("notification.unlocked.moment.2",
-                   value: "%1@ and %2@ shared a new moment and unlocked yours",
+                   value: "%1@ and %2@ shared a new moment to unlock yours",
                  comment: "New moment unlock notification text to be shown to the user.")
     }
 
     static var threeUnlockedMomentNotificationTitle: String {
         NSLocalizedString("notification.unlocked.moment.3",
-                   value: "%1@, %2@, and %3@ shared a new moment and unlocked yours",
+                   value: "%1@, %2@, and %3@ shared a new moment to unlock yours",
                  comment: "New moment unlock notification text to be shown to the user.")
     }
 
     static var tooManyUnlockedMomentNotificationTitle: String {
         NSLocalizedString("notification.unlocked.moment.4",
-                   value: "%1@, %2@, %3@, and others shared a new moment and unlocked yours",
+                   value: "%1@, %2@, %3@, and others shared a new moment to unlock yours",
                  comment: "New moment unlock notification text to be shown to the user.")
     }
 
