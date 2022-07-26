@@ -48,7 +48,7 @@ public enum DiscreteEvent {
     case homeDecryptionReport(id: String, audienceType: HomeDecryptionReportAudienceType, contentType: HomeDecryptionReportContentType, error: String, clientVersion: String, sender: UserAgent?, rerequestCount: Int, timeTaken: TimeInterval)
     case groupDecryptionReport(id: String, gid: String, contentType: GroupDecryptionReportContentType, error: String, clientVersion: String, sender: UserAgent?, rerequestCount: Int, timeTaken: TimeInterval)
     case groupHistoryReport(gid: String, numExpected: Int32, numDecrypted: Int32, clientVersion: String, rerequestCount: Int32, timeTaken: TimeInterval)
-    case callReport(id: String, peerUserID: UserID, type: String, direction: String, networkType: String, answered: Bool, connected: Bool, duration_ms: Int, endCallReason: String, localEndCall: Bool, webrtcStats: String)
+    case callReport(id: String, peerUserID: UserID, type: String, direction: String, networkType: String, answered: Bool, connected: Bool, duration_ms: Int, endCallReason: String, localEndCall: Bool, iceTimeTakenMs: Int, webrtcStats: String)
     case fabAction(type: FabActionType)
 }
 
@@ -132,8 +132,9 @@ extension DiscreteEvent: Codable {
             let duration_ms = try container.decode(Int.self, forKey: .duration)
             let endCallReason = try container.decode(String.self, forKey: .endCallReason)
             let localEndCall = try container.decode(Bool.self, forKey: .localEndCall)
+            let iceTimeTakenMs = try container.decode(Int.self, forKey: .iceTimeTakenMs)
             let webrtcStats = try container.decode(String.self, forKey: .webrtcStats)
-            self = .callReport(id: id, peerUserID: peerUserID, type: type, direction: direction, networkType: networkType, answered: answered, connected: connected, duration_ms: duration_ms, endCallReason: endCallReason, localEndCall: localEndCall, webrtcStats: webrtcStats)
+            self = .callReport(id: id, peerUserID: peerUserID, type: type, direction: direction, networkType: networkType, answered: answered, connected: connected, duration_ms: duration_ms, endCallReason: endCallReason, localEndCall: localEndCall, iceTimeTakenMs: iceTimeTakenMs, webrtcStats: webrtcStats)
         case .fabAction:
             let contentType = try container.decode(String.self, forKey: .contentType)
             if let fabActionType = FabActionType(rawValue: contentType) {
@@ -205,7 +206,7 @@ extension DiscreteEvent: Codable {
             try container.encode(clientVersion, forKey: .version)
             try container.encode(rerequestCount, forKey: .count)
             try container.encode(timeTaken, forKey: .duration)
-        case .callReport(let id, let peerUserID, let type, let direction, let networkType, let answered, let connected, let duration_ms, let endCallReason, let localEndCall, let webrtcStats):
+        case .callReport(let id, let peerUserID, let type, let direction, let networkType, let answered, let connected, let duration_ms, let endCallReason, let localEndCall, let iceTimeTakenMs, let webrtcStats):
             try container.encode(EventType.callReport, forKey: .eventType)
             try container.encode(id, forKey: .id)
             try container.encode(peerUserID, forKey: .peerUserID)
@@ -217,6 +218,7 @@ extension DiscreteEvent: Codable {
             try container.encode(duration_ms, forKey: .duration)
             try container.encode(endCallReason, forKey: .endCallReason)
             try container.encode(localEndCall, forKey: .localEndCall)
+            try container.encode(iceTimeTakenMs, forKey: .iceTimeTakenMs)
             try container.encode(webrtcStats, forKey: .webrtcStats)
         case .fabAction(let type):
             try container.encode(EventType.fabAction, forKey: .eventType)
@@ -253,6 +255,7 @@ extension DiscreteEvent: Codable {
         case numDecrypted
         case status
         case audienceType
+        case iceTimeTakenMs
     }
 
     private enum EventType: String, Codable {

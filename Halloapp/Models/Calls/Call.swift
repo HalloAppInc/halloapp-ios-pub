@@ -61,6 +61,18 @@ public class Call {
     var isConnected: Bool = false
     var isCallEndedLocally: Bool = false
     var iceIdx: Int32 = 0
+    var iceAnsweredDate: Date? = nil
+    var iceConnectedDate: Date? = nil
+    var iceTimeTakenMs: Int {
+        get {
+            if let answeredDate = iceAnsweredDate,
+               let connectedDate = iceConnectedDate {
+                return Int(connectedDate.timeIntervalSince(answeredDate) * 1000)
+            } else {
+                return 0
+            }
+        }
+    }
     private var rtcIceState: RTCIceConnectionState = .new
     private var iceRestartTimer: DispatchSourceTimer?
     private var callFailTImer: DispatchSourceTimer?
@@ -73,6 +85,7 @@ public class Call {
                 // state is set to connected only when client answers or received an answer for the call.
                 if state == .connected {
                     isAnswered = true
+                    iceAnsweredDate = Date()
                 } else if state == .inactive {
                     callFailTImer?.cancel()
                     callFailTImer = nil
@@ -81,6 +94,7 @@ public class Call {
                 } else if state == .active {
                     // once active - we should never ring irrespective of call state.
                     canPlayRingtone = false
+                    iceConnectedDate = Date()
                 }
             }
         }
@@ -275,6 +289,7 @@ public class Call {
                                                                        duration_ms: Int(durationMs),
                                                                        endCallReason: reasonStr,
                                                                        localEndCall: isCallEndedLocally,
+                                                                       iceTimeTakenMs: iceTimeTakenMs,
                                                                        webrtcStats: webrtcStatsString))
                 } else {
                     DDLogError("Call/\(callID)/end/failed getting callReport data")
