@@ -915,6 +915,12 @@ public struct Server_GroupFeedItem {
     set {_uniqueStorage()._isResentHistory = newValue}
   }
 
+  /// Set only for post items. `-1` if item should never expire.
+  public var expiryTimestamp: Int64 {
+    get {return _storage._expiryTimestamp}
+    set {_uniqueStorage()._expiryTimestamp = newValue}
+  }
+
   /// Use >=16 for temporary elements since 1-15 encode smaller
   public var senderLogInfo: String {
     get {return _storage._senderLogInfo}
@@ -1234,6 +1240,16 @@ public struct Server_GroupStanza {
   /// Clears the value of `historyResend`. Subsequent reads from it will return its default value.
   public mutating func clearHistoryResend() {_uniqueStorage()._historyResend = nil}
 
+  /// Expiry timer information
+  public var expiryInfo: Server_ExpiryInfo {
+    get {return _storage._expiryInfo ?? Server_ExpiryInfo()}
+    set {_uniqueStorage()._expiryInfo = newValue}
+  }
+  /// Returns true if `expiryInfo` has been explicitly set.
+  public var hasExpiryInfo: Bool {return _storage._expiryInfo != nil}
+  /// Clears the value of `expiryInfo`. Subsequent reads from it will return its default value.
+  public mutating func clearExpiryInfo() {_uniqueStorage()._expiryInfo = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum Action: SwiftProtobuf.Enum {
@@ -1255,6 +1271,7 @@ public struct Server_GroupStanza {
     case getMemberIdentityKeys // = 14
     case changeDescription // = 15
     case shareHistory // = 16
+    case changeExpiry // = 17
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -1280,6 +1297,7 @@ public struct Server_GroupStanza {
       case 14: self = .getMemberIdentityKeys
       case 15: self = .changeDescription
       case 16: self = .shareHistory
+      case 17: self = .changeExpiry
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -1303,6 +1321,7 @@ public struct Server_GroupStanza {
       case .getMemberIdentityKeys: return 14
       case .changeDescription: return 15
       case .shareHistory: return 16
+      case .changeExpiry: return 17
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -1336,6 +1355,69 @@ extension Server_GroupStanza.Action: CaseIterable {
     .getMemberIdentityKeys,
     .changeDescription,
     .shareHistory,
+    .changeExpiry,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+public struct Server_ExpiryInfo {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var expiryType: Server_ExpiryInfo.ExpiryType = .expiresInSeconds
+
+  /// This is set when expiry_type is expires_in_sec.
+  public var expiresInSeconds: Int64 = 0
+
+  /// This is set when expiry_type is custom_date.
+  public var expiryTimestamp: Int64 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum ExpiryType: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case expiresInSeconds // = 0
+    case never // = 1
+    case customDate // = 2
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .expiresInSeconds
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .expiresInSeconds
+      case 1: self = .never
+      case 2: self = .customDate
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .expiresInSeconds: return 0
+      case .never: return 1
+      case .customDate: return 2
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Server_ExpiryInfo.ExpiryType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_ExpiryInfo.ExpiryType] = [
+    .expiresInSeconds,
+    .never,
+    .customDate,
   ]
 }
 
@@ -2481,6 +2563,8 @@ public struct Server_CallSdp {
     }
     set {sdp = .webrtcAnswer(newValue)}
   }
+
+  public var timestampMs: Int64 = 0
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -6874,6 +6958,8 @@ extension Server_GroupMember.Action: @unchecked Sendable {}
 extension Server_GroupMember.TypeEnum: @unchecked Sendable {}
 extension Server_GroupStanza: @unchecked Sendable {}
 extension Server_GroupStanza.Action: @unchecked Sendable {}
+extension Server_ExpiryInfo: @unchecked Sendable {}
+extension Server_ExpiryInfo.ExpiryType: @unchecked Sendable {}
 extension Server_GroupChat: @unchecked Sendable {}
 extension Server_GroupsStanza: @unchecked Sendable {}
 extension Server_GroupsStanza.Action: @unchecked Sendable {}
@@ -8289,6 +8375,7 @@ extension Server_GroupFeedItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
     8: .standard(proto: "sender_state"),
     9: .standard(proto: "audience_hash"),
     10: .standard(proto: "is_resent_history"),
+    11: .standard(proto: "expiry_timestamp"),
     16: .standard(proto: "sender_log_info"),
     17: .standard(proto: "sender_client_version"),
   ]
@@ -8303,6 +8390,7 @@ extension Server_GroupFeedItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
     var _senderState: Server_SenderStateWithKeyInfo? = nil
     var _audienceHash: Data = Data()
     var _isResentHistory: Bool = false
+    var _expiryTimestamp: Int64 = 0
     var _senderLogInfo: String = String()
     var _senderClientVersion: String = String()
 
@@ -8320,6 +8408,7 @@ extension Server_GroupFeedItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
       _senderState = source._senderState
       _audienceHash = source._audienceHash
       _isResentHistory = source._isResentHistory
+      _expiryTimestamp = source._expiryTimestamp
       _senderLogInfo = source._senderLogInfo
       _senderClientVersion = source._senderClientVersion
     }
@@ -8374,6 +8463,7 @@ extension Server_GroupFeedItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
         case 8: try { try decoder.decodeSingularMessageField(value: &_storage._senderState) }()
         case 9: try { try decoder.decodeSingularBytesField(value: &_storage._audienceHash) }()
         case 10: try { try decoder.decodeSingularBoolField(value: &_storage._isResentHistory) }()
+        case 11: try { try decoder.decodeSingularInt64Field(value: &_storage._expiryTimestamp) }()
         case 16: try { try decoder.decodeSingularStringField(value: &_storage._senderLogInfo) }()
         case 17: try { try decoder.decodeSingularStringField(value: &_storage._senderClientVersion) }()
         default: break
@@ -8423,6 +8513,9 @@ extension Server_GroupFeedItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
       if _storage._isResentHistory != false {
         try visitor.visitSingularBoolField(value: _storage._isResentHistory, fieldNumber: 10)
       }
+      if _storage._expiryTimestamp != 0 {
+        try visitor.visitSingularInt64Field(value: _storage._expiryTimestamp, fieldNumber: 11)
+      }
       if !_storage._senderLogInfo.isEmpty {
         try visitor.visitSingularStringField(value: _storage._senderLogInfo, fieldNumber: 16)
       }
@@ -8447,6 +8540,7 @@ extension Server_GroupFeedItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
         if _storage._senderState != rhs_storage._senderState {return false}
         if _storage._audienceHash != rhs_storage._audienceHash {return false}
         if _storage._isResentHistory != rhs_storage._isResentHistory {return false}
+        if _storage._expiryTimestamp != rhs_storage._expiryTimestamp {return false}
         if _storage._senderLogInfo != rhs_storage._senderLogInfo {return false}
         if _storage._senderClientVersion != rhs_storage._senderClientVersion {return false}
         return true
@@ -8696,6 +8790,7 @@ extension Server_GroupStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     9: .standard(proto: "audience_hash"),
     10: .same(proto: "description"),
     11: .standard(proto: "history_resend"),
+    12: .standard(proto: "expiry_info"),
   ]
 
   fileprivate class _StorageClass {
@@ -8710,6 +8805,7 @@ extension Server_GroupStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     var _audienceHash: Data = Data()
     var _description_p: String = String()
     var _historyResend: Server_HistoryResend? = nil
+    var _expiryInfo: Server_ExpiryInfo? = nil
 
     static let defaultInstance = _StorageClass()
 
@@ -8727,6 +8823,7 @@ extension Server_GroupStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       _audienceHash = source._audienceHash
       _description_p = source._description_p
       _historyResend = source._historyResend
+      _expiryInfo = source._expiryInfo
     }
   }
 
@@ -8756,6 +8853,7 @@ extension Server_GroupStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
         case 9: try { try decoder.decodeSingularBytesField(value: &_storage._audienceHash) }()
         case 10: try { try decoder.decodeSingularStringField(value: &_storage._description_p) }()
         case 11: try { try decoder.decodeSingularMessageField(value: &_storage._historyResend) }()
+        case 12: try { try decoder.decodeSingularMessageField(value: &_storage._expiryInfo) }()
         default: break
         }
       }
@@ -8801,6 +8899,9 @@ extension Server_GroupStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       try { if let v = _storage._historyResend {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 11)
       } }()
+      try { if let v = _storage._expiryInfo {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -8821,6 +8922,7 @@ extension Server_GroupStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
         if _storage._audienceHash != rhs_storage._audienceHash {return false}
         if _storage._description_p != rhs_storage._description_p {return false}
         if _storage._historyResend != rhs_storage._historyResend {return false}
+        if _storage._expiryInfo != rhs_storage._expiryInfo {return false}
         return true
       }
       if !storagesAreEqual {return false}
@@ -8849,6 +8951,59 @@ extension Server_GroupStanza.Action: SwiftProtobuf._ProtoNameProviding {
     14: .same(proto: "GET_MEMBER_IDENTITY_KEYS"),
     15: .same(proto: "CHANGE_DESCRIPTION"),
     16: .same(proto: "SHARE_HISTORY"),
+    17: .same(proto: "CHANGE_EXPIRY"),
+  ]
+}
+
+extension Server_ExpiryInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ExpiryInfo"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    12: .standard(proto: "expiry_type"),
+    13: .standard(proto: "expires_in_seconds"),
+    14: .standard(proto: "expiry_timestamp"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 12: try { try decoder.decodeSingularEnumField(value: &self.expiryType) }()
+      case 13: try { try decoder.decodeSingularInt64Field(value: &self.expiresInSeconds) }()
+      case 14: try { try decoder.decodeSingularInt64Field(value: &self.expiryTimestamp) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.expiryType != .expiresInSeconds {
+      try visitor.visitSingularEnumField(value: self.expiryType, fieldNumber: 12)
+    }
+    if self.expiresInSeconds != 0 {
+      try visitor.visitSingularInt64Field(value: self.expiresInSeconds, fieldNumber: 13)
+    }
+    if self.expiryTimestamp != 0 {
+      try visitor.visitSingularInt64Field(value: self.expiryTimestamp, fieldNumber: 14)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_ExpiryInfo, rhs: Server_ExpiryInfo) -> Bool {
+    if lhs.expiryType != rhs.expiryType {return false}
+    if lhs.expiresInSeconds != rhs.expiresInSeconds {return false}
+    if lhs.expiryTimestamp != rhs.expiryTimestamp {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_ExpiryInfo.ExpiryType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "EXPIRES_IN_SECONDS"),
+    1: .same(proto: "NEVER"),
+    2: .same(proto: "CUSTOM_DATE"),
   ]
 }
 
@@ -10645,6 +10800,7 @@ extension Server_CallSdp: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
     1: .standard(proto: "call_id"),
     2: .standard(proto: "webrtc_offer"),
     3: .standard(proto: "webrtc_answer"),
+    4: .standard(proto: "timestamp_ms"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -10680,6 +10836,7 @@ extension Server_CallSdp: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
           self.sdp = .webrtcAnswer(v)
         }
       }()
+      case 4: try { try decoder.decodeSingularInt64Field(value: &self.timestampMs) }()
       default: break
       }
     }
@@ -10704,12 +10861,16 @@ extension Server_CallSdp: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
     }()
     case nil: break
     }
+    if self.timestampMs != 0 {
+      try visitor.visitSingularInt64Field(value: self.timestampMs, fieldNumber: 4)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Server_CallSdp, rhs: Server_CallSdp) -> Bool {
     if lhs.callID != rhs.callID {return false}
     if lhs.sdp != rhs.sdp {return false}
+    if lhs.timestampMs != rhs.timestampMs {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

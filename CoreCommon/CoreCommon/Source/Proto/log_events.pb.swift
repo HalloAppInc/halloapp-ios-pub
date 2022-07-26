@@ -1443,6 +1443,9 @@ public struct Server_Call {
 
   public var isKrispActive: Bool = false
 
+  /// time taken for ice connection state to be connected in ms.
+  public var iceTimeTakenMs: UInt64 = 0
+
   /// json serialized version of the result of peer_connection.get_stats at the end of
   public var webrtcStats: String = String()
 
@@ -2906,6 +2909,7 @@ extension Server_Call: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     10: .standard(proto: "local_end_call"),
     11: .standard(proto: "network_type"),
     12: .standard(proto: "is_krisp_active"),
+    13: .standard(proto: "ice_time_taken_ms"),
     20: .standard(proto: "webrtc_stats"),
   ]
 
@@ -2926,6 +2930,7 @@ extension Server_Call: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
       case 10: try { try decoder.decodeSingularBoolField(value: &self.localEndCall) }()
       case 11: try { try decoder.decodeSingularEnumField(value: &self.networkType) }()
       case 12: try { try decoder.decodeSingularBoolField(value: &self.isKrispActive) }()
+      case 13: try { try decoder.decodeSingularUInt64Field(value: &self.iceTimeTakenMs) }()
       case 20: try { try decoder.decodeSingularStringField(value: &self.webrtcStats) }()
       default: break
       }
@@ -2966,6 +2971,9 @@ extension Server_Call: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     if self.isKrispActive != false {
       try visitor.visitSingularBoolField(value: self.isKrispActive, fieldNumber: 12)
     }
+    if self.iceTimeTakenMs != 0 {
+      try visitor.visitSingularUInt64Field(value: self.iceTimeTakenMs, fieldNumber: 13)
+    }
     if !self.webrtcStats.isEmpty {
       try visitor.visitSingularStringField(value: self.webrtcStats, fieldNumber: 20)
     }
@@ -2984,6 +2992,7 @@ extension Server_Call: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     if lhs.localEndCall != rhs.localEndCall {return false}
     if lhs.networkType != rhs.networkType {return false}
     if lhs.isKrispActive != rhs.isKrispActive {return false}
+    if lhs.iceTimeTakenMs != rhs.iceTimeTakenMs {return false}
     if lhs.webrtcStats != rhs.webrtcStats {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
