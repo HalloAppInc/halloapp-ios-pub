@@ -216,7 +216,7 @@ final class WebRTCClient: NSObject {
         startVideoCapture()
     }
 
-    func initialize(iceServers: [RTCIceServer], config: Server_CallConfig) {
+    func initialize(iceServers: [RTCIceServer], config: Server_CallConfig, addTracks: Bool) {
         self.callConfig = config
         let rtcConfig = RTCConfiguration()
         rtcConfig.iceServers = iceServers
@@ -243,6 +243,12 @@ final class WebRTCClient: NSObject {
         }
         self.peerConnection = peerConnection
         self.peerConnection?.delegate = self
+        if addTracks {
+            addTracksToPeerConnection()
+        }
+    }
+
+    func addTracks() {
         addTracksToPeerConnection()
     }
 

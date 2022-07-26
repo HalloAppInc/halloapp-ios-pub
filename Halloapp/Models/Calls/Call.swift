@@ -56,6 +56,7 @@ public class Call {
     let isOutgoing: Bool
     let peerUserID: UserID
     let type: CallType
+    let callCapabilities: Server_CallCapabilities
     var isAnswered: Bool = false
     var isConnected: Bool = false
     var isCallEndedLocally: Bool = false
@@ -160,7 +161,7 @@ public class Call {
     private var cancellableSet: Set<AnyCancellable> = []
 
     // MARK: Initialization
-    init(id: CallID, peerUserID: UserID, type: CallType, direction: CallDirection = .incoming) {
+    init(id: CallID, peerUserID: UserID, type: CallType, callCapabilities: Server_CallCapabilities, direction: CallDirection = .incoming) {
         DDLogInfo("Call/init/id: \(id)/peerUserID: \(peerUserID)/direction: \(direction)")
         self.callID = id
         self.peerUserID = peerUserID
@@ -168,6 +169,7 @@ public class Call {
         self.isOutgoing = direction == .outgoing
         self.isWaitingForWebRtcOffer = direction == .incoming
         self.answerCompletion = nil
+        self.callCapabilities = callCapabilities
         self.webRTCClient = WebRTCClient(callType: type)
         webRTCClient?.delegate = self
         canPlayRingtone = true
@@ -189,9 +191,10 @@ public class Call {
     }
 
     func initializeWebRtcClient(iceServers: [RTCIceServer], config: Server_CallConfig) {
+        let addTracks = true
         callQueue.async { [self] in
-            DDLogInfo("Call/initializeWebRtcClient/id: \(callID)/iceServers: \(iceServers)/call_config: \(config)")
-            self.webRTCClient?.initialize(iceServers: iceServers, config: config)
+            DDLogInfo("Call/initializeWebRtcClient/id: \(callID)/iceServers: \(iceServers)/call_config: \(config)/addTracks: \(addTracks)")
+            self.webRTCClient?.initialize(iceServers: iceServers, config: config, addTracks: addTracks)
         }
     }
 
@@ -305,7 +308,7 @@ public class Call {
                     }
                     return
                 }
-                service.startCall(id: callID, to: peerUserID, callType: type, payload: payload) { [self] result in
+                service.startCall(id: callID, to: peerUserID, callType: type, payload: payload, callCapabilities: callCapabilities) { [self] result in
                     switch result {
                     case .success(_):
                         state = .connecting

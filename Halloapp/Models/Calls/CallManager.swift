@@ -520,7 +520,10 @@ final class CallManager: NSObject, CXProviderDelegate {
                                                          type: details.type,
                                                          direction: .outgoing,
                                                          timestamp: Date())
-            activeCall = Call(id: details.callID, peerUserID: details.peerUserID, type: details.type, direction: .outgoing)
+            var callCapabilities = Server_CallCapabilities()
+            callCapabilities.sdpRestart = false;
+            callCapabilities.preAnswer = false;
+            activeCall = Call(id: details.callID, peerUserID: details.peerUserID, type: details.type, callCapabilities: callCapabilities, direction: .outgoing)
             activeCall?.stateDelegate = self
             // Show call UI to the user
             if let displayCall = activeCall {
@@ -970,7 +973,7 @@ extension CallManager: HalloCallDelegate {
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCallPush: \(callID)/callUUID: \(callID.callUUID)")
                 callDetailsMap[callID.callUUID] = CallDetails(callID: callID, peerUserID: peerUserID, type: callType)
                 let iceServers = WebRTCClient.getIceServers(stunServers: incomingCallPush.stunServers, turnServers: incomingCallPush.turnServers)
-                activeCall = Call(id: callID, peerUserID: peerUserID, type: callType)
+                activeCall = Call(id: callID, peerUserID: peerUserID, type: callType, callCapabilities: incomingCallPush.callCapabilities)
                 activeCall?.stateDelegate = self
                 activeCall?.initializeWebRtcClient(iceServers: iceServers, config: incomingCallPush.callConfig)
                 activeCallWaitingForOffer = true
@@ -1084,7 +1087,7 @@ extension CallManager: HalloCallDelegate {
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID)/callUUID: \(callID.callUUID)")
                 callDetailsMap[callID.callUUID] = CallDetails(callID: callID, peerUserID: peerUserID, type: callType)
                 let iceServers = WebRTCClient.getIceServers(stunServers: incomingCall.stunServers, turnServers: incomingCall.turnServers)
-                activeCall = Call(id: callID, peerUserID: peerUserID, type: callType)
+                activeCall = Call(id: callID, peerUserID: peerUserID, type: callType, callCapabilities: incomingCall.callCapabilities)
                 activeCall?.stateDelegate = self
                 activeCall?.initializeWebRtcClient(iceServers: iceServers, config: incomingCall.callConfig)
                 activeCallWaitingForOffer = false

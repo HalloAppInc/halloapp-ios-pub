@@ -2018,7 +2018,8 @@ extension ProtoService: HalloService {
         enqueue(request: ProtoGetCallServersRequest(id: callID, for: toUID, callType: callType.serverCallType, completion: completion))
     }
 
-    func startCall(id callID: CallID, to peerUserID: UserID, callType: CallType, payload: Data, completion: @escaping ServiceRequestCompletion<Server_StartCallResult>) {
+    func startCall(id callID: CallID, to peerUserID: UserID, callType: CallType, payload: Data,
+                   callCapabilities: Server_CallCapabilities, completion: @escaping ServiceRequestCompletion<Server_StartCallResult>) {
         AppContext.shared.messageCrypter.encrypt(payload, for: peerUserID) { [weak self] result in
             guard let self = self else { return }
             switch result {
@@ -2036,7 +2037,8 @@ extension ProtoService: HalloService {
                     return
                 }
                 DDLogInfo("ProtoService/startCall/\(callID) sending")
-                self.enqueue(request: ProtoStartCallRequest(id: callID, to: toUID, callType: callType.serverCallType, webRtcOffer: webRtcOffer, completion: completion))
+                self.enqueue(request: ProtoStartCallRequest(id: callID, to: toUID, callType: callType.serverCallType,
+                                                            webRtcOffer: webRtcOffer, callCapabilities: callCapabilities, completion: completion))
             }
         }
     }

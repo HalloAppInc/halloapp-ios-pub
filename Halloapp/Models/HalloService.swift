@@ -74,7 +74,7 @@ protocol HalloService: CoreService {
 
     // MARK: Calls
     func getCallServers(id callID: CallID, for peerUserID: UserID, callType: CallType, completion: @escaping ServiceRequestCompletion<Server_GetCallServersResult>)
-    func startCall(id callID: CallID, to peerUserID: UserID, callType: CallType, payload: Data, completion: @escaping ServiceRequestCompletion<Server_StartCallResult>)
+    func startCall(id callID: CallID, to peerUserID: UserID, callType: CallType, payload: Data, callCapabilities: Server_CallCapabilities, completion: @escaping ServiceRequestCompletion<Server_StartCallResult>)
     func iceRestartOfferCall(id callID: CallID, to peerUserID: UserID, payload: Data, iceIdx: Int32, completion: @escaping (Result<Void, RequestError>) -> Void)
     func answerCall(id callID: CallID, to peerUserID: UserID, payload: Data, completion: @escaping (Result<Void, RequestError>) -> Void)
     func holdCall(id callID: CallID, to peerUserID: UserID, hold: Bool, completion: @escaping (Result<Void, RequestError>) -> Void)

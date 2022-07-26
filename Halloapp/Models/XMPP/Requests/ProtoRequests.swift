@@ -452,12 +452,14 @@ final class ProtoGetCallServersRequest: ProtoRequest<Server_GetCallServersResult
 }
 
 final class ProtoStartCallRequest: ProtoRequest<Server_StartCallResult> {
-    init(id callID: CallID, to peerUid: Int64, callType: Server_CallType, webRtcOffer: Server_WebRtcSessionDescription, completion: @escaping Completion) {
+    init(id callID: CallID, to peerUid: Int64, callType: Server_CallType,
+         webRtcOffer: Server_WebRtcSessionDescription, callCapabilities: Server_CallCapabilities, completion: @escaping Completion) {
         var startCallRequest = Server_StartCall()
         startCallRequest.callType = callType
         startCallRequest.callID = callID
         startCallRequest.webrtcOffer = webRtcOffer
         startCallRequest.peerUid = peerUid
+        startCallRequest.callCapabilities = callCapabilities
         let iqPacket: Server_Packet = .iqPacket(type: .set, payload: .startCall(startCallRequest))
         super.init(iqPacket: iqPacket, transform: { response in return .success(response.startCallResult) }, completion: completion)
     }
