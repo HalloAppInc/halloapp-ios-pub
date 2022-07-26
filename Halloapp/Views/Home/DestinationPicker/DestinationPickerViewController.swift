@@ -22,7 +22,13 @@ private extension Localizations {
     static var groupsHeader: String {
         return NSLocalizedString("post.privacy.header.groups",
                                  value: "Your Groups",
-                                 comment: "Header when selecting groups to share with")
+                                 comment: "Header when selecting destinations to forward a message, this header appears above the groups section")
+    }
+
+    static var feedsHeader: String {
+        return NSLocalizedString("post.privacy.header.feeds",
+                                 value: "Feeds",
+                                 comment: "Header when selecting destinations to forward a message, this header appears above the feeds section")
     }
 }
 
@@ -58,10 +64,9 @@ enum ShareDestination: Equatable, Hashable {
 
 class DestinationPickerViewController: UIViewController, NSFetchedResultsControllerDelegate {
     static let rowHeight = CGFloat(54)
-    private var contacts: [ABContact] = []
-    private var allGroups: [ChatThread] = []
-    private var groups: [ChatThread] = []
-    private var hasMoreGroups: Bool = true
+    static let maxGroupsToShowOnLaunch = 6
+    private var showAllGroups: Bool = false
+    private var hasMoreGroups: Bool = false
     private var selectedDestinations: [ShareDestination] = []
     let feedPrivacyTypes = [PrivacyListType.all, PrivacyListType.whitelist]
 
@@ -95,23 +100,34 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewCompositionalLayout { [weak self] (sectionIndex: Int, layoutEnvironment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection? in
 
-            let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
+            let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(53))
             let item = NSCollectionLayoutItem(layoutSize: itemSize)
 
             var groupHeight: NSCollectionLayoutDimension = .absolute(ContactSelectionViewController.rowHeight)
 
-            let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
+            let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(53))
             let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
 
             let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(44))
             let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: headerSize, elementKind: DestinationPickerHeaderView.elementKind, alignment: .top)
 
+            let footerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
+            let sectionFooter = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: footerSize, elementKind: DestinationPickerMoreView.elementKind, alignment: .bottom)
+
             let section = NSCollectionLayoutSection(group: group)
+
+            // For the groups section, if there are > maxGroupsToShowOnLaunch groups, show the "Show More.." footer
             section.boundarySupplementaryItems = [sectionHeader]
-            section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16)
+            if let self = self {
+                let sections = self.dataSource.snapshot().sectionIdentifiers
+                if sectionIndex < sections.count, sections[sectionIndex] == DestinationSection.groups, !self.showAllGroups, self.hasMoreGroups {
+                    section.boundarySupplementaryItems = [sectionHeader, sectionFooter]
+                }
+            }
+            section.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16)
 
             let backgroundDecoration = NSCollectionLayoutDecorationItem.background(elementKind: DestinationBackgroundDecorationView.elementKind)
-            backgroundDecoration.contentInsets = NSDirectionalEdgeInsets(top: 40, leading: 16, bottom: -8, trailing: 16)
+            backgroundDecoration.contentInsets = NSDirectionalEdgeInsets(top: 50, leading: 16, bottom: 0, trailing: 16)
 
             section.decorationItems = [backgroundDecoration]
 
@@ -126,6 +142,7 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
         collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 16, right: 0)
         collectionView.register(DestinationCell.self, forCellWithReuseIdentifier: DestinationCell.reuseIdentifier)
         collectionView.register(DestinationPickerHeaderView.self, forSupplementaryViewOfKind: DestinationPickerHeaderView.elementKind, withReuseIdentifier: DestinationPickerHeaderView.elementKind)
+        collectionView.register(DestinationPickerMoreView.self, forSupplementaryViewOfKind: DestinationPickerMoreView.elementKind, withReuseIdentifier: DestinationPickerMoreView.elementKind)
         collectionView.delegate = self
         collectionView.keyboardDismissMode = .onDrag
 
@@ -192,32 +209,54 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
         }
 
         source.supplementaryViewProvider = { [weak self] (collectionView, kind, indexPath) in
-            let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: DestinationPickerHeaderView.elementKind, for: indexPath)
+            switch kind {
+            case DestinationPickerMoreView.elementKind:
+                let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: DestinationPickerMoreView.elementKind, for: indexPath)
 
-            if let self = self, let headerView = view as? DestinationPickerHeaderView {
-                let sections = self.dataSource.snapshot().sectionIdentifiers
-                if indexPath.section < sections.count {
-                    let section = sections[indexPath.section]
-                    headerView.text = self.sectionHeader(destinationSection: section)
+                if let view = view as? DestinationPickerMoreView {
+                    view.delegate = self
                 }
+                return view
+            default:
+                let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: DestinationPickerHeaderView.elementKind, for: indexPath)
+
+                if let self = self, let headerView = view as? DestinationPickerHeaderView {
+                    let sections = self.dataSource.snapshot().sectionIdentifiers
+                    if indexPath.section < sections.count {
+                        let section = sections[indexPath.section]
+                        headerView.text = self.sectionHeader(destinationSection: section)
+                    }
+                }
+                return view
             }
-
-            return view
         }
-
         return source
     }()
 
     private func sectionHeader(destinationSection : DestinationSection) -> String {
         switch destinationSection {
         case .main:
-            return ""
+            return Localizations.feedsHeader
         case .groups:
             return Localizations.groupsHeader
         case .contacts:
             return Localizations.contactsHeader
         }
-   }
+    }
+
+    private lazy var searchController: UISearchController = {
+        let searchController = UISearchController()
+        searchController.searchResultsUpdater = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.definesPresentationContext = true
+        searchController.hidesNavigationBarDuringPresentation = false
+        searchController.searchBar.autocapitalizationType = .none
+        return searchController
+    }()
+
+    private var isFiltering: Bool {
+        return searchController.isActive && !(searchController.searchBar.text?.isEmpty ?? true)
+    }
 
     enum DestinationSection {
         case main, groups, contacts
@@ -231,6 +270,7 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
         navigationItem.title = Localizations.titlePrivacy
         navigationItem.leftBarButtonItem = leftBarButtonItem
         navigationItem.hidesSearchBarWhenScrolling = false
+        navigationItem.searchController = searchController
 
         view.addSubview(collectionView)
         view.addSubview(selectionRow)
@@ -252,14 +292,49 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
         updateData()
     }
 
-    @objc func backAction() {
-    }
-
     private func updateData(searchString: String? = nil) {
         var snapshot = NSDiffableDataSourceSnapshot<DestinationSection, ShareDestination>()
-        allGroups = fetchedResultsController.fetchedObjects ?? []
-        contacts = contactsFetchedResultsController.fetchedObjects ?? []
+        var allGroups = fetchedResultsController.fetchedObjects ?? []
+        hasMoreGroups = allGroups.count > DestinationPickerViewController.maxGroupsToShowOnLaunch
+        if hasMoreGroups, !showAllGroups {
+            allGroups = [ChatThread](allGroups[..<DestinationPickerViewController.maxGroupsToShowOnLaunch])
+        }
+        var contacts = contactsFetchedResultsController.fetchedObjects ?? []
         contacts = ABContact.contactsWithUniquePhoneNumbers(allContacts: contacts)
+        
+        if let searchString = searchString?.trimmingCharacters(in: CharacterSet.whitespaces).lowercased(), !searchString.isEmpty {
+            let searchItems = searchString.components(separatedBy: " ")
+            // Add filtered groups
+            allGroups.forEach {
+                guard $0.groupID != nil, let groupTitle = $0.title?.lowercased() else { return }
+                for searchItem in searchItems {
+                    if groupTitle.contains(searchItem) {
+                        if !snapshot.sectionIdentifiers.contains(DestinationSection.groups) {
+                            snapshot.appendSections([DestinationSection.groups])
+                        }
+                        snapshot.appendItems([ShareDestination.group($0)], toSection: DestinationSection.groups)
+                    }
+                }
+            }
+            // Add filtered contacts
+            contacts.forEach {
+                // We support search on firtname and phone number
+                let fullName = $0.fullName?.lowercased() ?? ""
+                let phoneNumber = $0.phoneNumber ?? ""
+                let searchItems = searchString.components(separatedBy: " ")
+                for searchItem in searchItems {
+                    if fullName.contains(searchItem) || phoneNumber.contains(searchItem) {
+                        if !snapshot.sectionIdentifiers.contains(DestinationSection.contacts) {
+                            snapshot.appendSections([DestinationSection.contacts])
+                        }
+                        snapshot.appendItems([ShareDestination.contact($0)], toSection: DestinationSection.contacts)
+                    }
+                }
+            }
+            dataSource.apply(snapshot)
+            return
+        }
+        // No Search in progress
         snapshot.appendSections([DestinationSection.main])
         snapshot.appendItems([
             ShareDestination.feed(.all),
@@ -358,6 +433,34 @@ extension DestinationPickerViewController: UICollectionViewDelegate {
 
     @objc private func nextAction() {
         guard selectedDestinations.count > 0 else { return }
+        if searchController.isActive {
+            dismiss(animated: true)
+        }
         // TODO what's next Dini?
+    }
+
+    @objc func backAction() {
+        if searchController.isActive {
+            dismiss(animated: true)
+        }
+    }
+
+    @objc func moreAction() {
+        showAllGroups = true
+        updateData(searchString: nil)
+    }
+}
+
+// MARK: UISearchResultsUpdating
+extension DestinationPickerViewController: UISearchResultsUpdating {
+    func updateSearchResults(for searchController: UISearchController) {
+        updateData(searchString: searchController.searchBar.text)
+    }
+}
+
+// MARK: DestinationPickerMoreViewDelegate
+extension DestinationPickerViewController: DestinationPickerMoreViewDelegate {
+    func moreAction(_ view: DestinationPickerMoreView) {
+        moreAction()
     }
 }

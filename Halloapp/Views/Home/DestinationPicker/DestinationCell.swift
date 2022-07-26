@@ -110,10 +110,9 @@ class DestinationCell: UICollectionViewCell {
         return imageView
     }()
 
-    fileprivate let seperator: UIView = {
+    fileprivate let separator: UIView = {
         let view = UIView()
         view.backgroundColor = .separator
-        view.isHidden = true
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
@@ -134,7 +133,7 @@ class DestinationCell: UICollectionViewCell {
         favoritesView.isHidden = true
         avatarView.isHidden = true
         subtitle.isHidden = true
-        seperator.isHidden = true
+        separator.isHidden = false
     }
 
     private func setup() {
@@ -163,15 +162,15 @@ class DestinationCell: UICollectionViewCell {
         hStack.spacing = 10
 
         contentView.addSubview(hStack)
-        contentView.addSubview(seperator)
+        contentView.addSubview(separator)
         NSLayoutConstraint.activate([
             hStack.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 16),
             hStack.rightAnchor.constraint(equalTo: contentView.rightAnchor, constant: -16),
             hStack.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            seperator.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            seperator.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
-            seperator.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            seperator.heightAnchor.constraint(equalToConstant: 1.0 / UIScreen.main.scale),
+            separator.trailingAnchor.constraint(equalTo: selectedView.trailingAnchor),
+            separator.leadingAnchor.constraint(equalTo: labels.leadingAnchor),
+            separator.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            separator.heightAnchor.constraint(equalToConstant: 1.0 / UIScreen.main.scale),
         ])
     }
 
@@ -183,6 +182,7 @@ class DestinationCell: UICollectionViewCell {
             homeView.isHidden = false
         case .whitelist:
             favoritesView.isHidden = false
+            separator.isHidden = true
         default:
             break
         }
@@ -191,7 +191,6 @@ class DestinationCell: UICollectionViewCell {
         }
         avatarView.isHidden = true
         self.subtitle.isHidden = false
-        seperator.isHidden = true
         configureSelected(isSelected)
     }
 
@@ -204,7 +203,6 @@ class DestinationCell: UICollectionViewCell {
         favoritesView.isHidden = true
         avatarView.isHidden = false
         self.subtitle.isHidden = true
-        seperator.isHidden = false
         configureSelected(isSelected)
     }
 
@@ -221,7 +219,6 @@ class DestinationCell: UICollectionViewCell {
             avatarView.configure(with: id, using: MainAppContext.shared.avatarStore)
         }
         configureSelected(isSelected)
-        seperator.isHidden = false
     }
 
     private func configureSelected(_ isSelected: Bool) {
@@ -279,10 +276,12 @@ class DestinationPickerHeaderView: UICollectionReusableView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-
         addSubview(titleView)
-        titleView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
-        titleView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 4).isActive = true
+        NSLayoutConstraint.activate([
+            titleView.topAnchor.constraint(equalTo: topAnchor),
+            titleView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 25),
+            titleView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 4),
+        ])
     }
 
     required init?(coder: NSCoder) {

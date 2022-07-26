@@ -313,4 +313,8 @@ extension Localizations {
     static var videoCallMissed: String {
         NSLocalizedString("call.history.video.call.missed", value: "Missed video call", comment: "Title for call history event. Appears next to details of a missed call.")
     }
+
+    static var showMore: String {
+        NSLocalizedString("share.destination.more", value: "Show more...", comment: "Show more groups in the share group selection")
+    }
 }
