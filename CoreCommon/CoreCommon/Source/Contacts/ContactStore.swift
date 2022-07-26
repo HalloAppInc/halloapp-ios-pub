@@ -490,6 +490,22 @@ open class ContactStore {
         }
     }
 
+    open func deleteAllContacts() {
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
+
+            let allContactsFetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
+            do {
+                let results = try managedObjectContext.fetch(allContactsFetchRequest)
+                results.forEach { managedObjectContext.delete($0) }
+            }
+            catch { fatalError("contactStore/deleteAllContacts/error  [\(error)]") }
+            do {
+                try managedObjectContext.save()
+            }
+            catch { fatalError("Failed to delete all contacts [\(error)]") }
+        }
+    }
+
     // MARK: UI Support
 
     public func contact(withUserId userId: UserID, in managedObjectContext: NSManagedObjectContext) -> ABContact? {

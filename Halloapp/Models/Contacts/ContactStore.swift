@@ -185,15 +185,6 @@ class ContactStoreMain: ContactStore {
             }
         })
     }
-    
-    func deleteContactStoreData() {
-        do {
-            try FileManager.default.removeItem(at: ContactStore.persistentStoreURL)
-            DDLogInfo("ContactStore/deleteContactStoredata: Deleted contact store data")
-        } catch {
-            DDLogError("ContactStore/deleteContactStoredata: Error deleting contact store data: \(error)")
-        }
-    }
 
     // MARK: Database Metadata
     /**
@@ -269,7 +260,7 @@ class ContactStoreMain: ContactStore {
         
         guard ContactStore.contactsAccessAuthorized else {
             // TODO: delete local contact cache
-            self.deleteContactStoreData()
+            self.deleteAllContacts()
             
             if !syncManager.isSyncEnabled {
                 if userData.isLoggedIn {
