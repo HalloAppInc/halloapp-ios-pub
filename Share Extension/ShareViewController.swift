@@ -22,7 +22,7 @@ enum ShareError: Error {
 enum ShareDestination: Equatable, Hashable {
     case feed(PrivacyListType)
     case group(GroupListSyncItem)
-    case contact(ABContact)
+    case chat(ChatListSyncItem)
 
     static func == (lhs: ShareDestination, rhs: ShareDestination) -> Bool {
         switch (lhs, rhs) {
@@ -30,8 +30,8 @@ enum ShareDestination: Equatable, Hashable {
             return lf == rf
         case (.group(let lg), .group(let rg)):
             return lg.id == rg.id
-        case (.contact(let lc), .contact(let rc)):
-            return lc == rc
+        case (.chat(let lc), .chat(let rc)):
+            return lc.userId == rc.userId
         default:
             return false
         }
@@ -43,8 +43,8 @@ enum ShareDestination: Equatable, Hashable {
             hasher.combine("feed")
         case .group(let group):
             hasher.combine(group.id)
-        case .contact(let contact):
-            hasher.combine(contact)
+        case .chat(let chat):
+            hasher.combine(chat.userId)
         }
     }
 }

@@ -36,8 +36,8 @@ class ShareDestinationRowView: UICollectionView {
                 cell.configureHome(privacyType: privacyType)
             case .group(let group):
                 cell.configure(group)
-            case .contact(let contact):
-                cell.configure(contact)
+            case .chat(let chat):
+                cell.configure(chat)
             }
 
             cell.removeAction = { [weak self] in
@@ -219,14 +219,12 @@ fileprivate class DestinationViewCell: UICollectionViewCell {
         loadAvatar(group: group.id)
     }
 
-    public func configure(_ contact: ABContact) {
-        title.text = contact.fullName
+    public func configure(_ chat: ChatListSyncItem) {
+        title.text = chat.displayName
         avatar.isHidden = false
         avatar.layer.cornerRadius = 17
 
-        if let id = contact.userId {
-            loadAvatar(user: id)
-        }
+        loadAvatar(user: chat.userId)
     }
 
     private func loadAvatar(group id: GroupID) {

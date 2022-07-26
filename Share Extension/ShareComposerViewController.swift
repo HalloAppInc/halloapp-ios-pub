@@ -170,15 +170,15 @@ class ShareComposerViewController: UIViewController {
     private func setupNavigationBar() {
         shareButton.tintColor = .systemBlue
 
-        let contactsOnly = destinations.filter {
-            if case .contact(_) = $0 {
+        let chatsOnly = destinations.filter {
+            if case .chat(_) = $0 {
                 return false
             } else {
                 return true
             }
         }.count == 0
 
-        if contactsOnly {
+        if chatsOnly {
             shareButton.title = Localizations.buttonSend
         }
 
@@ -404,15 +404,15 @@ class ShareComposerViewController: UIViewController {
         textView.backgroundColor = .clear
         textView.delegate = self
 
-        let contacts = destinations.filter {
-            if case .contact(_) = $0 {
+        let chats = destinations.filter {
+            if case .chat(_) = $0 {
                 return true
             } else {
                 return false
             }
         }
 
-        if contacts.count == 0 {
+        if chats.count == 0 {
             mentionPicker = makeMentionPicker()
             textView.inputAccessoryView = mentionPicker
         }
@@ -745,13 +745,9 @@ class ShareComposerViewController: UIViewController {
                     uploadDispatchGroup.leave()
                 }
                 addIntent(chatGroup: group)
-            case .contact(let contact):
+            case .chat(let chat):
                 DDLogInfo("ShareComposerViewController/upload contact")
-                var userID: UserID?
-                contact.managedObjectContext?.performAndWait {
-                    userID = contact.userId
-                }
-                guard let userID = userID else { return }
+                let userID = chat.userId
                 ShareExtensionContext.shared.dataStore.send(to: userID, text: text, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia) {
                     results.append($0)
                     uploadDispatchGroup.leave()

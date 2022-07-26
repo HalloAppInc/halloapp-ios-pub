@@ -50,15 +50,15 @@ private extension Localizations {
 }
 
 fileprivate enum DestinationSection {
-    case main, groups, contacts
+    case main, groups, chats
 }
 
 class ShareDestinationViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-    private let contacts: [ABContact]
+    private let chats: [ChatListSyncItem]
     private let allGroups: [GroupListSyncItem]
     private var groups: [GroupListSyncItem]
     private var feedPrivacyTypes: [PrivacyListType]
-    private var filteredContacts: [ABContact] = []
+    private var filteredChats: [ChatListSyncItem] = []
     private var filteredGroups: [GroupListSyncItem] = []
     private var searchController: UISearchController!
     private var selected: [ShareDestination] = []
@@ -104,32 +104,12 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
     } ()
     
     init() {
-        var chatTimestamps: [UserID : Date] = [:]
-        ChatListSyncItem.load().forEach {
-            chatTimestamps[$0.userId] = $0.timestamp ?? Date.distantPast
-        }
-
-        let viewContext = ShareExtensionContext.shared.contactStore.viewContext
-        contacts = ShareExtensionContext.shared.contactStore.allRegisteredContacts(sorted: false, in: viewContext).sorted {
-            var timestamp0 = Date.distantPast
-            var timestamp1 = Date.distantPast
-
-            if let userId = $0.userId, let time = chatTimestamps[userId] {
-                timestamp0 = time
-            }
-
-            if let userId = $1.userId, let time = chatTimestamps[userId] {
-                timestamp1 = time
-            }
-
-            if timestamp0 == timestamp1 {
-                return $0.sort > $1.sort
-            }
-
-            return timestamp0 > timestamp1
-        }
         allGroups = GroupListSyncItem.load().sorted {
             ($0.lastActivityTimestamp ?? Date.distantPast) > ($1.lastActivityTimestamp ?? Date.distantPast)
+        }
+
+        chats = ChatListSyncItem.load().sorted {
+            ($0.timestamp ?? Date.distantPast) > ($1.timestamp ?? Date.distantPast)
         }
 
         hasMoreGroups = allGroups.count > 6
@@ -138,7 +118,7 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
         feedPrivacyTypes = [PrivacyListType.all, PrivacyListType.whitelist]
         super.init(nibName: nil, bundle: nil)
 
-        DDLogInfo("ShareDestinationViewController/init loaded \(groups.count) groups and \(contacts.count) contacts")
+        DDLogInfo("ShareDestinationViewController/init loaded \(groups.count) groups and \(chats.count) chats")
     }
     
     required init?(coder: NSCoder) {
@@ -173,9 +153,8 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
             guard let conversationID = ConversationID(rawConversationID) else { return }
             
             if conversationID.conversationType == .chat {
-                let viewContext = ShareExtensionContext.shared.contactStore.viewContext
-                guard let contact = ShareExtensionContext.shared.contactStore.allRegisteredContacts(sorted: false, in: viewContext).first(where: { contact in
-                    contact.userId == conversationID.id
+                guard let chat = chats.first(where: { chat in
+                    chat.userId == conversationID.id
                 }) else {
                     DDLogError("ShareDestinationViewController/intent/error missing contact userId=[\(conversationID.id)]")
 
@@ -187,7 +166,7 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
                     return
                 }
 
-                let destination = ShareDestination.contact(contact)
+                let destination = ShareDestination.chat(chat)
                 navigationController?.pushViewController(ShareComposerViewController(destinations: [destination]) { [weak self] destinations in
                     self?.onSelectionChange(destinations: destinations)
                 }, animated: false)
@@ -313,8 +292,8 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
             return .feed(feedPrivacyTypes[indexPath.row])
         case .groups:
             return .group(isFiltering ? filteredGroups[indexPath.row] : groups[indexPath.row])
-        case .contacts:
-            return .contact(isFiltering ? filteredContacts[indexPath.row] : contacts[indexPath.row])
+        case .chats:
+            return .chat(isFiltering ? filteredChats[indexPath.row] : chats[indexPath.row])
         case .none:
             return nil
         }
@@ -341,12 +320,12 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
                 return .groups
             }
 
-            if index == 0 && filteredContacts.count >  0 {
-                return .contacts
+            if index == 0 && filteredChats.count >  0 {
+                return .chats
             }
 
-            if index == 1 && filteredContacts.count >  0 {
-                return .contacts
+            if index == 1 && filteredChats.count >  0 {
+                return .chats
             }
         } else {
             if index == 0 {
@@ -357,12 +336,12 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
                 return .groups
             }
 
-            if index == 1 && contacts.count >  0 {
-                return .contacts
+            if index == 1 && chats.count >  0 {
+                return .chats
             }
 
-            if index == 2 && contacts.count >  0 {
-                return .contacts
+            if index == 2 && chats.count >  0 {
+                return .chats
             }
         }
 
@@ -382,9 +361,9 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
             count += 1
         }
 
-        if isFiltering, filteredContacts.count > 0 {
+        if isFiltering, filteredChats.count > 0 {
             count += 1
-        } else if !isFiltering, contacts.count > 0 {
+        } else if !isFiltering, chats.count > 0 {
             count += 1
         }
 
@@ -397,8 +376,8 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
             return 2
         case .groups:
             return isFiltering ? filteredGroups.count : groups.count
-        case .contacts:
-            return isFiltering ? filteredContacts.count : contacts.count
+        case .chats:
+            return isFiltering ? filteredChats.count : chats.count
         case .none:
             return 0
         }
@@ -408,7 +387,7 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
         switch sectionAt(index: section) {
         case .groups:
             return Localizations.groups
-        case .contacts:
+        case .chats:
             return Localizations.contacts
         case .none, .main:
             return nil
@@ -437,8 +416,8 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
             
         case .group(let group):
             cell.configure(group, isSelected: isSelected)
-        case .contact(let contact):
-            cell.configure(contact, isSelected: isSelected)
+        case .chat(let chat):
+            cell.configure(chat, isSelected: isSelected)
         }
 
         return cell
@@ -541,8 +520,8 @@ extension ShareDestinationViewController: UISearchResultsUpdating {
             return false
         }
 
-        filteredContacts = contacts.filter {
-            let name = $0.fullName?.lowercased() ?? ""
+        filteredChats = chats.filter {
+            let name = $0.displayName.lowercased()
             let number = $0.phoneNumber ?? ""
 
             for item in searchItems {
@@ -765,18 +744,14 @@ fileprivate class DestinationCell: UITableViewCell {
         configureSelected(isSelected)
     }
 
-    public func configure(_ contact: ABContact, isSelected: Bool) {
-        title.text = contact.fullName
+    public func configure(_ chat: ChatListSyncItem, isSelected: Bool) {
+        title.text = chat.displayName
         subtitle.isHidden = false
-        subtitle.text = contact.phoneNumber
+        subtitle.text = chat.phoneNumber ?? ""
         avatar.isHidden = false
         avatar.layer.cornerRadius = 17
 
-        if let id = contact.userId {
-            loadAvatar(user: id)
-        } else {
-            avatar.image = AvatarView.defaultImage
-        }
+        loadAvatar(user: chat.userId)
 
         configureSelected(isSelected)
     }
