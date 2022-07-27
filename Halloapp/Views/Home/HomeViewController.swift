@@ -259,7 +259,7 @@ class HomeViewController: UITabBarController {
 
     private func groupsNavigationController() -> UINavigationController {
         let groupsViewController: UIViewController
-        if AppContext.shared.userDefaults.bool(forKey: "enableNewGroupsTab") {
+        if ServerProperties.enableGroupsGrid {
             groupsViewController = GroupGridViewController()
             groupsViewController.title = Localizations.titleGroups
         } else {

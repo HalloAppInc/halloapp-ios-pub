@@ -41,6 +41,7 @@ public struct ServerProperties {
         case sendClearTextHomeFeedContent = "cleartext_home_feed"
         case useClearTextHomeFeedContent = "use_cleartext_home_feed"
         case enableSentryPerfTracking = "enable_sentry_perf_tracking"
+        case enableGroupsGrid = "enable_groups_grid"
     }
 
     private struct UserDefaultsKey {
@@ -80,6 +81,7 @@ public struct ServerProperties {
         static let sendClearTextHomeFeedContent = true
         static let useClearTextHomeFeedContent = true
         static let enableSentryPerfTracking = false
+        static let enableGroupsGrid = false
     }
 
     // MARK: Storage
@@ -332,5 +334,9 @@ public struct ServerProperties {
 
     public static var enableSentryPerfTracking: Bool {
         ServerProperties.bool(forKey: .enableSentryPerfTracking) ?? Defaults.enableSentryPerfTracking
+    }
+
+    public static var enableGroupsGrid: Bool {
+        ServerProperties.bool(forKey: .enableGroupsGrid) ?? Defaults.enableGroupsGrid
     }
 }
