@@ -103,7 +103,7 @@ class MessageMediaView: UIView {
 
         if media.count > imageViews.count {
             moreImagesView.isHidden = false
-            moreImagesLabel.text = "+\(media.count - imageViews.count)"
+            moreImagesLabel.text = "+\(media.count - imageViews.count + 1)"
         } else {
             moreImagesView.isHidden = true
         }
@@ -119,7 +119,7 @@ class MessageMediaView: UIView {
 
         if media.count > imageViews.count {
             moreImagesView.isHidden = false
-            moreImagesLabel.text = "+\(media.count - imageViews.count)"
+            moreImagesLabel.text = "+\(media.count - imageViews.count + 1)"
         } else {
             moreImagesView.isHidden = true
         }
