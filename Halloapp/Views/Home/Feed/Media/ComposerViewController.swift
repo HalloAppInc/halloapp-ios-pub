@@ -52,7 +52,7 @@ struct ComposerConfig {
 
 typealias ComposerViewControllerCallback = (ComposerViewController, ComposerResult, Bool) -> Void
 
-fileprivate struct Constants {
+struct ComposerConstants {
     static let horizontalPadding = MediaCarouselViewConfiguration.default.cellSpacing * 0.5
     static let verticalPadding = MediaCarouselViewConfiguration.default.cellSpacing * 0.5
     static let controlSpacing: CGFloat = 9
@@ -158,7 +158,7 @@ class ComposerViewController: UIViewController {
         let contentView = UIStackView()
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.axis = .vertical
-        contentView.spacing = Constants.verticalPadding
+        contentView.spacing = ComposerConstants.verticalPadding
 
         return contentView
     }()
@@ -212,7 +212,7 @@ class ComposerViewController: UIViewController {
 
     private lazy var mediaCarouselView: MediaCarouselView = {
         var configuration = MediaCarouselViewConfiguration.composer
-        configuration.gutterWidth = Constants.horizontalPadding
+        configuration.gutterWidth = ComposerConstants.horizontalPadding
         configuration.supplementaryViewsProvider = { [weak self] index in
             guard let self = self else { return [] }
 
@@ -226,7 +226,7 @@ class ComposerViewController: UIViewController {
             let deleteButton = UIButton(type: .custom)
             deleteButton.translatesAutoresizingMaskIntoConstraints = false
             deleteButton.setImage(deleteImage, for: .normal)
-            deleteButton.layer.cornerRadius = Constants.controlRadius
+            deleteButton.layer.cornerRadius = ComposerConstants.controlRadius
             deleteButton.clipsToBounds = true
             deleteButton.addTarget(self, action: #selector(self.deleteMediaAction), for: .touchUpInside)
             deleteButton.insertSubview(deleteBackground, at: 0)
@@ -236,8 +236,8 @@ class ComposerViewController: UIViewController {
 
             deleteBackground.constrain(to: deleteButton)
             NSLayoutConstraint.activate([
-                deleteButton.widthAnchor.constraint(equalToConstant: Constants.controlSize),
-                deleteButton.heightAnchor.constraint(equalToConstant: Constants.controlSize)
+                deleteButton.widthAnchor.constraint(equalToConstant: ComposerConstants.controlSize),
+                deleteButton.heightAnchor.constraint(equalToConstant: ComposerConstants.controlSize)
             ])
 
 
@@ -245,7 +245,7 @@ class ComposerViewController: UIViewController {
             topTrailingActions.translatesAutoresizingMaskIntoConstraints = false
             topTrailingActions.axis = .horizontal
             topTrailingActions.isLayoutMarginsRelativeArrangement = true
-            topTrailingActions.layoutMargins = UIEdgeInsets(top: Constants.controlSpacing, left: 0, bottom: 0, right: Constants.controlSpacing)
+            topTrailingActions.layoutMargins = UIEdgeInsets(top: ComposerConstants.controlSpacing, left: 0, bottom: 0, right: ComposerConstants.controlSpacing)
 
             return [
                 MediaCarouselSupplementaryItem(anchors: [.top, .trailing], view: topTrailingActions),
@@ -303,304 +303,28 @@ class ComposerViewController: UIViewController {
         return label
     }()
 
-    private lazy var textViewPlaceholder: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = .systemFont(ofSize: 16)
-        label.textColor = .label.withAlphaComponent(0.4)
+    private lazy var mediaComposerTextView: MediaComposerTextView = {
+        let mediaComposerTextView = MediaComposerTextView()
+        mediaComposerTextView.translatesAutoresizingMaskIntoConstraints = false
+        mediaComposerTextView.delegate = self
 
-        return label
+        return mediaComposerTextView
     }()
 
-    private lazy var textViewHeightConstraint: NSLayoutConstraint = {
-        textView.heightAnchor.constraint(equalToConstant: 0)
+    private lazy var audioComposerView: AudioComposerView = {
+        let audioComposerView = AudioComposerView()
+        audioComposerView.translatesAutoresizingMaskIntoConstraints = false
+        audioComposerView.delegate = self
+
+        return audioComposerView
     }()
 
-    private lazy var textView: ContentTextView = {
-        let textView = ContentTextView()
-        textView.translatesAutoresizingMaskIntoConstraints = false
-        textView.delegate = self
-        textView.isEditable = true
-        textView.isUserInteractionEnabled = true
-        textView.backgroundColor = .clear
-        textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        textView.font = Constants.getFontSize(textSize: input.text.count, isPostWithMedia: media.count > 0)
-        textView.tintColor = .systemBlue
-        textView.textColor = Constants.textViewTextColor
-        textView.text = input.text
-        textView.mentions = input.mentions
+    private lazy var textComposerView: TextComposerView = {
+        let textComposerView = TextComposerView()
+        textComposerView.translatesAutoresizingMaskIntoConstraints = false
+        textComposerView.delegate = self
 
-        textView.addSubview(textViewPlaceholder)
-
-        NSLayoutConstraint.activate([
-            textViewPlaceholder.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: 5),
-            textViewPlaceholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: 9)
-        ])
-
-        return textView
-    }()
-
-    private lazy var textComposerPlaceholder: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = .systemFont(ofSize: 20)
-        label.textColor = .label.withAlphaComponent(0.4)
-
-        return label
-    }()
-
-    private lazy var textComposerView: ContentTextView = {
-        let textView = ContentTextView()
-        textView.translatesAutoresizingMaskIntoConstraints = false
-        textView.delegate = self
-        textView.isScrollEnabled = true
-        textView.isEditable = true
-        textView.isUserInteractionEnabled = true
-        textView.backgroundColor = .clear
-        textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        textView.font = Constants.getFontSize(textSize: input.text.count, isPostWithMedia: media.count > 0)
-        textView.tintColor = .systemBlue
-        textView.textColor = Constants.textViewTextColor
-        textView.text = input.text
-        textView.mentions = input.mentions
-
-        textView.addSubview(textComposerPlaceholder)
-
-        NSLayoutConstraint.activate([
-            textComposerPlaceholder.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: 5),
-            textComposerPlaceholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: 9),
-            textView.heightAnchor.constraint(greaterThanOrEqualToConstant: 86),
-        ])
-
-        return textView
-    }()
-
-    private lazy var mentionPickerView: HorizontalMentionPickerView = {
-        let picker = HorizontalMentionPickerView(config: .composer, avatarStore: MainAppContext.shared.avatarStore)
-        picker.translatesAutoresizingMaskIntoConstraints = false
-        picker.setContentHuggingPriority(.defaultHigh, for: .vertical)
-        picker.clipsToBounds = true
-        picker.isHidden = true
-        picker.didSelectItem = { [weak self] item in
-            guard let self = self else { return }
-
-            if self.media.count > 0 {
-                self.textView.accept(mention: item)
-            } else {
-                self.textComposerView.accept(mention: item)
-            }
-
-            self.updateMentionPicker()
-        }
-
-        return picker
-    }()
-
-    private lazy var audioRecorderControlView: AudioRecorderControlView = {
-        let controlView = AudioRecorderControlView(configuration: .post)
-        controlView.translatesAutoresizingMaskIntoConstraints = false
-        controlView.delegate = self
-
-        NSLayoutConstraint.activate([
-            controlView.widthAnchor.constraint(equalToConstant: 24),
-            controlView.heightAnchor.constraint(equalToConstant: 24),
-        ])
-
-        return controlView
-    }()
-
-    private lazy var audioPlayerView: PostAudioView = {
-        let view = PostAudioView(configuration: .composerWithMedia)
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.delegate = self
-        view.isSeen = true
-        view.isHidden = true
-
-        return view
-    }()
-
-    private lazy var textFieldView: UIView = {
-        let backgroundView = ShadowView()
-        backgroundView.translatesAutoresizingMaskIntoConstraints = false
-        backgroundView.backgroundColor = .secondarySystemGroupedBackground
-        backgroundView.layer.cornerRadius = 20
-        backgroundView.layer.masksToBounds = true
-        backgroundView.layer.borderWidth = 0.5
-        backgroundView.layer.borderColor = UIColor.black.withAlphaComponent(0.12).cgColor
-        backgroundView.layer.shadowOpacity = 1
-        backgroundView.layer.shadowRadius = 1
-        backgroundView.layer.shadowOffset = CGSize(width: 0, height: 1)
-        backgroundView.layer.shadowPath = UIBezierPath(roundedRect: backgroundView.bounds, cornerRadius: 20).cgPath
-        backgroundView.layer.shadowColor = UIColor.black.withAlphaComponent(0.04).cgColor
-
-        let field = UIStackView(arrangedSubviews: [])
-        field.translatesAutoresizingMaskIntoConstraints = false
-        field.spacing = 0
-        field.axis = .horizontal
-        field.alignment = .center
-        field.isLayoutMarginsRelativeArrangement = true
-        field.layoutMargins = UIEdgeInsets(top: 7, left: 18, bottom: 7, right: 18)
-        field.addSubview(backgroundView)
-        field.addArrangedSubview(textView)
-        field.addArrangedSubview(audioRecorderControlView)
-        field.addSubview(voiceNoteTimeLabel)
-        field.addSubview(stopVoiceRecordingButton)
-        field.addSubview(audioPlayerView)
-
-        NSLayoutConstraint.activate([
-            backgroundView.leadingAnchor.constraint(equalTo: field.leadingAnchor),
-            backgroundView.trailingAnchor.constraint(equalTo: field.trailingAnchor),
-            backgroundView.topAnchor.constraint(equalTo: field.topAnchor),
-            backgroundView.bottomAnchor.constraint(equalTo: field.bottomAnchor),
-            voiceNoteTimeLabel.leadingAnchor.constraint(equalTo: field.leadingAnchor, constant: 28),
-            voiceNoteTimeLabel.centerYAnchor.constraint(equalTo: field.centerYAnchor),
-            stopVoiceRecordingButton.centerXAnchor.constraint(equalTo: field.centerXAnchor),
-            stopVoiceRecordingButton.centerYAnchor.constraint(equalTo: field.centerYAnchor),
-            audioPlayerView.leadingAnchor.constraint(equalTo: field.leadingAnchor),
-            audioPlayerView.trailingAnchor.constraint(equalTo: field.trailingAnchor),
-            audioPlayerView.centerYAnchor.constraint(equalTo: field.centerYAnchor),
-        ])
-
-        return field
-    }()
-
-    private lazy var voiceNoteTimeLabel: AudioRecorderTimeView = {
-        let label = AudioRecorderTimeView()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.backgroundColor = .clear
-        label.isHidden = true
-
-        return label
-    }()
-
-    // note: Displays when the audio recorder is in the locked state.
-    private lazy var stopVoiceRecordingButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.tintColor = .primaryBlue
-        button.setTitle(Localizations.buttonStop, for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 19)
-        button.addTarget(self, action: #selector(stopVoiceRecordingAction), for: .touchUpInside)
-        button.isHidden = true
-
-        return button
-    }()
-
-    private lazy var cardView: UIView = {
-        let cardView = UIView()
-        cardView.translatesAutoresizingMaskIntoConstraints = false
-        cardView.backgroundColor = .secondarySystemGroupedBackground
-        cardView.layer.cornerRadius = Constants.backgroundRadius
-        cardView.layer.shadowOpacity = 1
-        cardView.layer.shadowColor = UIColor.black.withAlphaComponent(0.08).cgColor
-        cardView.layer.shadowRadius = 8
-        cardView.layer.shadowOffset = CGSize(width: 0, height: 5)
-
-        return cardView
-    }()
-
-    private lazy var audioComposerTitle: UILabel = {
-        let audioComposerTitle = UILabel()
-        audioComposerTitle.translatesAutoresizingMaskIntoConstraints = false
-        audioComposerTitle.font = .systemFont(ofSize: 16)
-        audioComposerTitle.textColor = .audioComposerTitleText
-        audioComposerTitle.text = Localizations.newAudioPost
-
-        return audioComposerTitle
-    }()
-
-    private lazy var audioComposerHelper: UILabel = {
-        let audioComposerHelper = UILabel()
-        audioComposerHelper.translatesAutoresizingMaskIntoConstraints = false
-        audioComposerHelper.font = .preferredFont(forTextStyle: .footnote)
-        audioComposerHelper.textColor = .audioComposerHelperText
-        audioComposerHelper.text = Localizations.tapToRecord
-
-        return audioComposerHelper
-    }()
-
-    private lazy var audioComposerRecordImage: UIImage? = {
-        UIImage(named: "icon_mic")?.withTintColor(.audioComposerRecordButtonBackground, renderingMode: .alwaysOriginal)
-    }()
-
-    private lazy var audioComposerStopImage: UIImage? = {
-        UIImage(named: "icon_stop")?.withTintColor(.audioComposerRecordButtonForeground, renderingMode: .alwaysOriginal)
-    }()
-
-    private lazy var audioComposerRecordButton: UIButton = {
-        let button = UIButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(audioComposerRecordImage, for: .normal)
-        button.backgroundColor = .audioComposerRecordButtonForeground
-        button.layer.borderWidth = 2
-        button.layer.borderColor = UIColor.audioComposerRecordButtonForeground.cgColor
-        button.layer.cornerRadius = 38
-        button.layer.shadowOpacity = 1
-        button.layer.shadowColor = UIColor.black.withAlphaComponent(0.15).cgColor
-        button.layer.shadowRadius = 4
-        button.layer.shadowOffset = CGSize(width: 0, height: 4)
-        button.layer.masksToBounds = false
-        button.addTarget(self, action: #selector(toggleRecordingAction), for: .touchUpInside)
-
-        NSLayoutConstraint.activate([
-            button.widthAnchor.constraint(equalToConstant: 76),
-            button.heightAnchor.constraint(equalToConstant: 76),
-        ])
-
-        return button
-    }()
-
-    private lazy var audioComposerTimeLabel: UILabel = {
-        let label = AudioRecorderTimeView()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.backgroundColor = .clear
-        label.isHidden = true
-
-        return label
-    }()
-
-    private lazy var audioComposerPlayerView: PostAudioView = {
-        let view = PostAudioView(configuration: .composer)
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.delegate = self
-        view.isSeen = true
-        view.isHidden = true
-
-        return view
-    }()
-
-    private lazy var audioComposerMeterLarge: UIImageView = {
-        let view = UIImageView(image: UIImage(named: "AudioRecorderLevelsLarge"))
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.contentMode = .scaleAspectFit
-
-        return view
-    }()
-
-    private lazy var audioComposerMeterSmall: UIImageView = {
-        let view = UIImageView(image: UIImage(named: "AudioRecorderLevelsSmall"))
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.contentMode = .scaleAspectFit
-
-        return view
-    }()
-
-    private lazy var audioComposerMeterView: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-
-        view.addSubview(audioComposerMeterLarge)
-        view.addSubview(audioComposerMeterSmall)
-
-        audioComposerMeterLarge.constrain(to: view)
-        audioComposerMeterSmall.constrain(to: view)
-
-        NSLayoutConstraint.activate([
-            view.widthAnchor.constraint(equalToConstant: 76),
-            view.heightAnchor.constraint(equalToConstant: 76),
-        ])
-
-        return view
+        return textComposerView
     }()
 
     private lazy var mediaPickerButton: UIButton = {
@@ -613,22 +337,6 @@ class ComposerViewController: UIViewController {
         button.addTarget(self, action: #selector(openPickerAction), for: .touchUpInside)
 
         return button
-    }()
-
-    private lazy var linkPreviewView: PostComposerLinkPreviewView = {
-        let linkPreviewView = PostComposerLinkPreviewView() { [weak self] resetLink, linkPreviewData, linkPreviewImage in
-            guard let self = self else { return }
-
-            self.linkPreviewView.isHidden = resetLink
-            self.linkPreviewData = linkPreviewData
-            self.linkPreviewImage = linkPreviewImage
-        }
-
-        linkPreviewView.translatesAutoresizingMaskIntoConstraints = false
-        linkPreviewView.isHidden = true
-        linkPreviewView.setContentHuggingPriority(.defaultHigh, for: .vertical)
-
-        return linkPreviewView
     }()
 
     private lazy var sendButton: UIButton = {
@@ -745,22 +453,6 @@ class ComposerViewController: UIViewController {
         }
 
         handleKeyboardUpdates()
-
-        audioRecorder.meter.receive(on: RunLoop.main) .sink { [weak self] (averagePower: Float, _) in
-            guard let self = self else { return }
-            let scale = self.convertMeterToScale(dbm: CGFloat(averagePower))
-            self.audioComposerMeterLarge.transform = CGAffineTransform(scaleX: scale, y: scale)
-        }.store(in: &cancellables)
-
-        audioRecorder.meter.delay(for: .seconds(0.2), scheduler: RunLoop.main).sink { [weak self] (averagePower: Float, _) in
-            guard let self = self else { return }
-            let scale = self.convertMeterToScale(dbm: CGFloat(averagePower))
-            self.audioComposerMeterSmall.transform = CGAffineTransform(scaleX: scale, y: scale)
-        }.store(in: &cancellables)
-    }
-
-    private func convertMeterToScale(dbm: CGFloat) -> CGFloat {
-        return 1.0 + 0.4 * min(1.0, max(0.0, 8 * CGFloat(pow(10.0, (0.05 * dbm)))))
     }
 
     private func configureUI() {
@@ -776,7 +468,7 @@ class ComposerViewController: UIViewController {
         }
 
         contentView.isLayoutMarginsRelativeArrangement = true
-        contentView.layoutMargins = UIEdgeInsets(top: Constants.verticalPadding, left: Constants.horizontalPadding, bottom: Constants.verticalPadding, right: Constants.horizontalPadding)
+        contentView.layoutMargins = UIEdgeInsets(top: ComposerConstants.verticalPadding, left: ComposerConstants.horizontalPadding, bottom: ComposerConstants.verticalPadding, right: ComposerConstants.horizontalPadding)
 
         if media.count > 0 {
             title = ""
@@ -785,23 +477,16 @@ class ComposerViewController: UIViewController {
             contentView.addArrangedSubview(mediaCarouselView)
             contentView.addArrangedSubview(mediaErrorLabel)
 
-            bottomView.addSubview(mentionPickerView)
-            bottomView.addSubview(textFieldView)
+            bottomView.addSubview(mediaComposerTextView)
             bottomView.addSubview(sendButton)
 
             constraints.append(mediaCarouselHeightConstraint)
-            constraints.append(mentionPickerView.leadingAnchor.constraint(equalTo: bottomView.leadingAnchor))
-            constraints.append(mentionPickerView.trailingAnchor.constraint(equalTo: bottomView.trailingAnchor))
-            constraints.append(mentionPickerView.topAnchor.constraint(equalTo: bottomView.topAnchor))
-            constraints.append(textFieldView.leadingAnchor.constraint(equalTo: bottomView.leadingAnchor, constant: 12))
-            constraints.append(textFieldView.trailingAnchor.constraint(equalTo: bottomView.trailingAnchor, constant: -12))
-            constraints.append(textFieldView.topAnchor.constraint(equalTo: mentionPickerView.bottomAnchor, constant: 8))
-            constraints.append(textViewHeightConstraint)
+            constraints.append(mediaComposerTextView.leadingAnchor.constraint(equalTo: bottomView.leadingAnchor))
+            constraints.append(mediaComposerTextView.trailingAnchor.constraint(equalTo: bottomView.trailingAnchor))
+            constraints.append(mediaComposerTextView.topAnchor.constraint(equalTo: bottomView.topAnchor, constant: 8))
             constraints.append(sendButton.centerXAnchor.constraint(equalTo: bottomView.centerXAnchor))
-            constraints.append(sendButton.topAnchor.constraint(equalTo: textFieldView.bottomAnchor, constant: 11))
+            constraints.append(sendButton.topAnchor.constraint(equalTo: mediaComposerTextView.bottomAnchor, constant: 11))
             constraints.append(sendButton.bottomAnchor.constraint(equalTo: bottomView.bottomAnchor))
-
-            textViewPlaceholder.text = Localizations.writeDescription
 
             listenForMediaErrors()
         } else if initialType == .voiceNote || voiceNote != nil {
@@ -809,32 +494,11 @@ class ComposerViewController: UIViewController {
             navigationItem.leftBarButtonItem = closeButtonItem
             navigationItem.rightBarButtonItems = []
 
-            cardView.addSubview(audioComposerTitle)
-            cardView.addSubview(audioComposerMeterView)
-            cardView.addSubview(audioComposerRecordButton)
-            cardView.addSubview(audioComposerHelper)
-            cardView.addSubview(audioComposerTimeLabel)
-            cardView.addSubview(audioComposerPlayerView)
-
-            contentView.addArrangedSubview(cardView)
+            contentView.addArrangedSubview(audioComposerView)
 
             bottomView.addSubview(sendButton)
             bottomView.addSubview(mediaPickerButton)
 
-            constraints.append(audioComposerTitle.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 26))
-            constraints.append(audioComposerTitle.centerXAnchor.constraint(equalTo: cardView.centerXAnchor))
-            constraints.append(audioComposerRecordButton.topAnchor.constraint(equalTo: audioComposerTitle.bottomAnchor, constant: 75))
-            constraints.append(audioComposerRecordButton.centerXAnchor.constraint(equalTo: cardView.centerXAnchor))
-            constraints.append(audioComposerHelper.topAnchor.constraint(equalTo: audioComposerRecordButton.bottomAnchor, constant: 11))
-            constraints.append(audioComposerHelper.centerXAnchor.constraint(equalTo: cardView.centerXAnchor))
-            constraints.append(audioComposerHelper.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -67))
-            constraints.append(audioComposerTimeLabel.centerXAnchor.constraint(equalTo: audioComposerTitle.centerXAnchor))
-            constraints.append(audioComposerTimeLabel.centerYAnchor.constraint(equalTo: audioComposerTitle.centerYAnchor))
-            constraints.append(audioComposerPlayerView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 16))
-            constraints.append(audioComposerPlayerView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -16))
-            constraints.append(audioComposerPlayerView.centerYAnchor.constraint(equalTo: cardView.centerYAnchor))
-            constraints.append(audioComposerMeterView.centerXAnchor.constraint(equalTo: audioComposerRecordButton.centerXAnchor))
-            constraints.append(audioComposerMeterView.centerYAnchor.constraint(equalTo: audioComposerRecordButton.centerYAnchor))
             constraints.append(sendButton.centerXAnchor.constraint(equalTo: bottomView.centerXAnchor))
             constraints.append(sendButton.topAnchor.constraint(equalTo: bottomView.topAnchor, constant: 8))
             constraints.append(sendButton.bottomAnchor.constraint(equalTo: bottomView.bottomAnchor))
@@ -845,40 +509,18 @@ class ComposerViewController: UIViewController {
             navigationItem.leftBarButtonItem = closeButtonItem
             navigationItem.rightBarButtonItems = []
 
-            let stack = UIStackView(arrangedSubviews: [textComposerView, linkPreviewView])
-            stack.translatesAutoresizingMaskIntoConstraints = false
-            stack.axis = .vertical
-            stack.spacing = 8
-
-            cardView.addSubview(stack)
-
-            let cardWrapperView = UIView()
-            cardWrapperView.translatesAutoresizingMaskIntoConstraints = false
-            cardWrapperView.addSubview(cardView)
-
             contentView.layoutMargins = .zero
-            contentView.addArrangedSubview(mentionPickerView)
-            contentView.addArrangedSubview(cardWrapperView)
+            contentView.addArrangedSubview(textComposerView)
 
             bottomView.addSubview(sendButton)
             bottomView.addSubview(mediaPickerButton)
 
             constraints.append(contentView.heightAnchor.constraint(greaterThanOrEqualTo: scrollView.frameLayoutGuide.heightAnchor, constant: -16))
-            constraints.append(cardWrapperView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: -12))
-            constraints.append(cardWrapperView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: 12))
-            constraints.append(cardWrapperView.topAnchor.constraint(equalTo: cardView.topAnchor))
-            constraints.append(cardWrapperView.bottomAnchor.constraint(equalTo: cardView.bottomAnchor))
-            constraints.append(stack.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 12))
-            constraints.append(stack.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -12))
-            constraints.append(stack.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 12))
-            constraints.append(stack.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -12))
             constraints.append(sendButton.centerXAnchor.constraint(equalTo: bottomView.centerXAnchor))
             constraints.append(sendButton.topAnchor.constraint(equalTo: bottomView.topAnchor, constant: 8))
             constraints.append(sendButton.bottomAnchor.constraint(equalTo: bottomView.bottomAnchor))
             constraints.append(mediaPickerButton.trailingAnchor.constraint(equalTo: bottomView.trailingAnchor, constant: -14))
             constraints.append(mediaPickerButton.centerYAnchor.constraint(equalTo: sendButton.centerYAnchor))
-
-            textComposerPlaceholder.text = Localizations.writePost
         }
 
         NSLayoutConstraint.activate(constraints)
@@ -890,21 +532,13 @@ class ComposerViewController: UIViewController {
         if media.count > 0 {
             // update complex media, text and audio ui
             updateMediaCarouselHeight()
-            updateTextViewFontAndHeight()
 
-            textView.alpha = audioRecorder.isRecording || voiceNote != nil ? 0 : 1
-
-            audioRecorderControlView.isHidden = !input.text.isEmpty || voiceNote != nil
-            textViewPlaceholder.isHidden = !input.text.isEmpty
-
-            voiceNoteTimeLabel.isHidden = !audioRecorder.isRecording
-            stopVoiceRecordingButton.isHidden = !audioRecorder.isRecording || !audioRecorderControlsLocked
-
-            audioPlayerView.isHidden = voiceNote == nil
-
-            if let voiceNote = voiceNote, audioPlayerView.url != voiceNote.fileURL {
-                audioPlayerView.url = voiceNote.fileURL
-            }
+            mediaComposerTextView.update(
+                with: input,
+                mentionables: mentionableUsers(),
+                recorder: audioRecorder,
+                voiceNote: voiceNote,
+                locked: audioRecorderControlsLocked)
 
             sendButton.isEnabled = media.allSatisfy({ $0.ready.value })
 
@@ -930,42 +564,13 @@ class ComposerViewController: UIViewController {
                 navigationItem.rightBarButtonItems = []
             }
         } else if initialType == .voiceNote || voiceNote != nil {
-            // update audio only ui
-            if audioRecorder.isRecording {
-                audioComposerTimeLabel.isHidden = false
-                audioComposerTitle.alpha = 0
-                audioComposerRecordButton.backgroundColor = .audioComposerRecordButtonBackground
-                audioComposerRecordButton.setImage(audioComposerStopImage, for: .normal)
-                audioComposerHelper.text = Localizations.buttonStop
-                audioComposerHelper.textColor = .audioComposerRecordButtonForeground
-                audioComposerPlayerView.isHidden = true
-                mediaPickerButton.isHidden = true
-                audioComposerMeterView.isHidden = false
-            } else {
-                audioComposerTimeLabel.isHidden = true
-                audioComposerTitle.alpha = 1
-                audioComposerRecordButton.backgroundColor = .audioComposerRecordButtonForeground
-                audioComposerRecordButton.setImage(audioComposerRecordImage, for: .normal)
-                audioComposerRecordButton.isHidden = voiceNote != nil
-                audioComposerHelper.text = Localizations.tapToRecord
-                audioComposerHelper.textColor = .audioComposerHelperText
-                audioComposerHelper.isHidden = voiceNote != nil
-                mediaPickerButton.isHidden = voiceNote == nil
-                audioComposerMeterView.isHidden = true
+            audioComposerView.update(with: audioRecorder, voiceNote: voiceNote)
 
-                audioComposerPlayerView.isHidden = voiceNote == nil
-
-                if let voiceNote = voiceNote, audioComposerPlayerView.url != voiceNote.fileURL {
-                    audioComposerPlayerView.url = voiceNote.fileURL
-                }
-            }
-
+            mediaPickerButton.isHidden = audioRecorder.isRecording || voiceNote == nil
             sendButton.isEnabled = !audioRecorder.isRecording && voiceNote != nil
         } else {
-            // update text only ui
-            updateTextViewFontAndHeight()
-            updateLinkPreviewViewIfNecessary()
-            textComposerPlaceholder.isHidden = !input.text.isEmpty
+            textComposerView.update(with: input, mentionables: mentionableUsers())
+
             mediaPickerButton.isHidden = input.text.isEmpty
             sendButton.isEnabled = !input.text.isEmpty
         }
@@ -974,23 +579,10 @@ class ComposerViewController: UIViewController {
     private func updateMediaCarouselHeight() {
         guard self.media.allSatisfy({ $0.ready.value }) else { return }
 
-        let width = UIScreen.main.bounds.width - 4 * Constants.horizontalPadding
+        let width = UIScreen.main.bounds.width - 4 * ComposerConstants.horizontalPadding
         let items = media.map { FeedMedia($0, feedPostId: "") }
 
         mediaCarouselHeightConstraint.constant = MediaCarouselView.preferredHeight(for: items, width: width)
-    }
-
-    private func updateTextViewFontAndHeight() {
-        let font = Constants.getFontSize(textSize: input.text.count, isPostWithMedia: media.count > 0)
-
-        if media.count > 0 {
-            textView.font = font
-
-            let size = textView.sizeThatFits(CGSize(width: textView.frame.size.width, height: CGFloat.greatestFiniteMagnitude))
-            textViewHeightConstraint.constant = min(size.height, 86)
-        } else {
-            textComposerView.font = font
-        }
     }
 
     private func listenForMediaErrors() {
@@ -1027,12 +619,6 @@ class ComposerViewController: UIViewController {
 
         let result = ComposerResult(config: config, input: input, voiceNote: voiceNote, media: media)
         completion(self, result, false)
-    }
-
-    @objc private func previewTapped() {
-        if let url = linkPreviewData?.url {
-            URLRouter.shared.handleOrOpen(url: url)
-        }
     }
 
     @objc private func share() {
@@ -1314,16 +900,12 @@ extension ComposerViewController: ContentTextViewDelegate {
         }
 
         updateUI()
-
-        updateMentionPicker()
-        updateLinkPreviewViewIfNecessary()
         updateWithMarkdown(textView)
         updateWithMention(textView)
     }
 
     func textViewDidChangeSelection(_ textView: UITextView) {
         input.selectedRange = textView.selectedRange
-        updateMentionPicker()
     }
 
     // MARK: ContentTextViewDelegate
@@ -1337,7 +919,7 @@ extension ComposerViewController: ContentTextViewDelegate {
     private func updateWithMarkdown(_ textView: UITextView) {
         guard textView.markedTextRange == nil else { return } // account for IME
         let font = textView.font ?? UIFont.preferredFont(forTextStyle: .body)
-        let color = Constants.textViewTextColor
+        let color = ComposerConstants.textViewTextColor
 
         let ham = HAMarkdown(font: font, color: color)
         if let text = textView.text {
@@ -1347,32 +929,23 @@ extension ComposerViewController: ContentTextViewDelegate {
             }
         }
     }
+}
 
-    // MARK: Link Preview
-
-    private func updateLinkPreviewViewIfNecessary() {
-        if let url = detectLink(text: textComposerView.text) {
-            linkPreviewView.updateLink(url: url)
-            linkPreviewView.isHidden = false
-        } else {
-            linkPreviewView.isHidden = true
-        }
+// MARK: TextComposerDelegate
+extension ComposerViewController: TextComposerDelegate {
+    func textComposer(_ textComposerView: TextComposerView, didUpdate data: LinkPreviewData?, andImage image: UIImage?) {
+        linkPreviewData = data
+        linkPreviewImage = image
     }
 
-    private func detectLink(text: String) -> URL? {
-        let linkDetector = try! NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
-        let matches = linkDetector.matches(in: text, options: [], range: NSRange(location: 0, length: text.utf16.count))
+    func textComposer(_ textComposerView: TextComposerView, didSelect mention: MentionableUser) {
+        updateUI()
+    }
 
-        for match in matches {
-            guard let range = Range(match.range, in: text) else { continue }
-            let url = text[range]
-            if let url = URL(string: String(url)) {
-                // We only care about the first link
-                return url
-            }
+    func textComposerDidTapPreviewLink(_ textComposerView: TextComposerView) {
+        if let url = linkPreviewData?.url {
+            URLRouter.shared.handleOrOpen(url: url)
         }
-
-        return nil
     }
 }
 
@@ -1397,17 +970,6 @@ extension ComposerViewController {
         }
         textView.attributedText = attributedString
         textView.selectedTextRange = selected
-    }
-
-    private func updateMentionPicker() {
-        let mentionables = mentionableUsers()
-
-        // don't animate the initial load
-        let shouldShow = !mentionables.isEmpty
-        let shouldAnimate = mentionPickerView.isHidden != shouldShow
-        mentionPickerView.updateItems(mentionables, animated: shouldAnimate)
-
-        mentionPickerView.isHidden = !shouldShow
     }
 
     private func mentionableUsers() -> [MentionableUser] {
@@ -1471,14 +1033,6 @@ extension ComposerViewController: AudioRecorderControlViewDelegate {
 
 // MARK: AudioRecorderDelegate
 extension ComposerViewController: AudioRecorderDelegate {
-    @objc func toggleRecordingAction() {
-        if audioRecorder.isRecording {
-            audioRecorder.stop(cancel: false)
-        } else {
-            audioRecorder.start()
-        }
-    }
-
     func audioRecorderMicrophoneAccessDenied(_ recorder: AudioRecorder) {
         DispatchQueue.main.async { [weak self] in
             self?.alertMicrophoneAccessDenied()
@@ -1487,8 +1041,6 @@ extension ComposerViewController: AudioRecorderDelegate {
 
     func audioRecorderStarted(_ recorder: AudioRecorder) {
         DispatchQueue.main.async { [weak self] in
-            self?.voiceNoteTimeLabel.text = 0.formatted
-            self?.audioComposerTimeLabel.text = 0.formatted
             self?.updateUI()
         }
     }
@@ -1511,8 +1063,7 @@ extension ComposerViewController: AudioRecorderDelegate {
 
     func audioRecorder(_ recorder: AudioRecorder, at time: String) {
         DispatchQueue.main.async { [weak self] in
-            self?.voiceNoteTimeLabel.text = time
-            self?.audioComposerTimeLabel.text = time
+            self?.updateUI()
         }
     }
 
@@ -1542,8 +1093,15 @@ extension ComposerViewController: AudioRecorderDelegate {
         pendingMedia.order = 0
         voiceNote = pendingMedia
     }
+}
 
-    @objc private func stopVoiceRecordingAction() {
+// MARK: MediaComposerTextDelegate
+extension ComposerViewController: MediaComposerTextDelegate {
+    func mediaComposerText(_ textView: MediaComposerTextView, didSelect mention: MentionableUser) {
+        updateUI()
+    }
+
+    func mediaComposerTextStopRecording(_ textView: MediaComposerTextView) {
         if audioRecorder.isRecording {
             audioRecorder.stop(cancel: false)
         }
@@ -1564,18 +1122,21 @@ extension ComposerViewController: PostAudioViewDelegate {
     }
 }
 
+// MARK: AudioComposerDelegate
+extension ComposerViewController: AudioComposerDelegate {
+    func audioComposerDidToggleRecording(_ audioComposerView: AudioComposerView) {
+        if audioRecorder.isRecording {
+            audioRecorder.stop(cancel: false)
+        } else {
+            audioRecorder.start()
+        }
+    }
+}
+
 private extension Localizations {
 
     static var sendTo: String {
         NSLocalizedString("composer.button.send.to", value: "Send To", comment: "Send button title")
-    }
-
-    static var writeDescription: String {
-        NSLocalizedString("composer.placeholder.media.description", value: "Write a description", comment: "Placeholder text for media caption field in post composer.")
-    }
-
-    static var writePost: String {
-        NSLocalizedString("composer.placeholder.text.post", value: "Write a post", comment: "Placeholder text in text post composer screen.")
     }
 
     static func mediaPrepareFailed(_ mediaCount: Int) -> String {
@@ -1616,12 +1177,4 @@ private extension Localizations {
     static var deleteVoiceRecordingTitle: String {
         NSLocalizedString("composer.delete.recording.title", value: "Delete voice recording?", comment: "Title warning that a voice recording will be deleted")
     }
-
-    static let newAudioPost = NSLocalizedString("composer.audio.title",
-                                                value: "New Audio",
-                                                comment: "Title for audio post composer")
-
-    static let tapToRecord = NSLocalizedString("composer.audio.instructions",
-                                               value: "Tap to record",
-                                               comment: "Instructions for audio post composer")
 }
