@@ -381,9 +381,11 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
             let vc = MomentViewController(post: post, unlockingPost: unlocker)
             //vc.delegate = self
             vc.transitionStartView = momentView
+            vc.delegate = self
             present(vc, animated: true)
         } else {
             let newMomentVC = NewMomentViewController(context: .unlock(post))
+            newMomentVC.delegate = self
             present(newMomentVC, animated: true)
         }
     }
@@ -1098,6 +1100,22 @@ extension FeedCollectionViewController: FeedPostCollectionViewCellDelegate {
             let context = UICollectionViewLayoutInvalidationContext()
             context.invalidateItems(at: [indexPath])
             self.collectionView.collectionViewLayout.invalidateLayout(with: context)
+        }
+    }
+}
+
+// MARK: - MomentViewControllerDelegate methods
+
+extension FeedCollectionViewController: MomentViewControllerDelegate {
+
+    func momentView(_ momentView: MomentView, didSelect action: MomentView.Action) {
+        switch action {
+        case .view(profile: let id):
+            dismiss(animated: true) { [weak self] in
+                self?.showUserFeed(for: id)
+            }
+        default:
+            break
         }
     }
 }

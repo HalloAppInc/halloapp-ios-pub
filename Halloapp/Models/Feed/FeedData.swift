@@ -4368,7 +4368,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return UIImage(named: "ExternalShareTextPostThumb")!
     }
     
-    // MARK: - Secret posts
+    // MARK: - Moments
 
     func refreshValidMoment() {
         if let validMoment = validMoment.value, validMoment.status != .retracted, !validMoment.isDeleted, validMoment.timestamp > Self.momentCutoffDate {
@@ -4417,6 +4417,23 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             DDLogInfo("FeedData/momentWasViewed/finished update: \(moment.id) status: \(moment.status)")
         }
+    }
+
+    /// - Returns: All of the valid, unexpired moments from other users (sorted).
+    func fetchAllIncomingMoments() -> [FeedPost] {
+        let request = FeedPost.fetchRequest()
+
+        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            NSPredicate(format: "userID != %@", userData.userId),
+            NSPredicate(format: "isMoment == YES"),
+            NSPredicate(format: "statusValue != %d", FeedPost.Status.retracted.rawValue),
+            NSPredicate(format: "statusValue != %d", FeedPost.Status.expired.rawValue),
+            NSPredicate(format: "timestamp > %@", Self.momentCutoffDate as NSDate),
+        ])
+
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false)]
+
+        return (try? viewContext.fetch(request)) ?? []
     }
 
     // MARK: - Notifications

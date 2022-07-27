@@ -139,6 +139,12 @@ class ContentInputView: UIView {
             if oldValue != mediaState { refreshButtons() }
         }
     }
+
+    var isEnabled: Bool = true {
+        didSet {
+            if oldValue != isEnabled { refreshButtons() }
+        }
+    }
     
     weak var delegate: ContentInputDelegate?
     private var cancellables: Set<AnyCancellable> = []
@@ -333,19 +339,17 @@ class ContentInputView: UIView {
     }()
     
     private lazy var photoButton: UIButton = {
-        let button = LargeHitButton(type: .system)
-        button.targetIncrease = 12
-        let config = UIImage.SymbolConfiguration(pointSize: 16)
-        button.translatesAutoresizingMaskIntoConstraints = false
+        let button = LargeHitButton()
+        let config = UIImage.SymbolConfiguration(pointSize: 20)
         let image = UIImage(systemName: "camera.fill")?.withConfiguration(config)
-        button.contentMode = .scaleAspectFit
+        button.targetIncrease = 12
+        button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(image, for: .normal)
         button.imageView?.contentMode = .scaleAspectFit
         button.addTarget(self, action: #selector(tappedLibrary), for: .touchUpInside)
-        
         button.setContentHuggingPriority(.required, for: .horizontal)
         button.setContentCompressionResistancePriority(.required, for: .horizontal)
-        
+
         return button
     }()
     
@@ -698,8 +702,14 @@ class ContentInputView: UIView {
         deleteAudioRecordingButton.isHidden = hideDeleteRecordingButton
 
         postButton.isHidden = hidePostButton
-        postButton.isEnabled = enablePostButton
+        postButton.isEnabled = enablePostButton && isEnabled
         textViewPostButtonConstraint?.isActive = textState == .valid || mediaState != .none
+
+        plusButton.isEnabled = isEnabled
+        photoButton.isEnabled = isEnabled
+        voiceNoteControl.isEnabled = isEnabled
+        textView.isEditable = isEnabled
+        textView.isSelectable = isEnabled
     }
     
     /**
@@ -1021,14 +1031,14 @@ extension ContentInputView: AudioRecorderControlViewDelegate {
         guard let duration = voiceNoteRecorder.duration, duration >= 1 else {
             voiceNoteRecorder.stop(cancel: true)
             saveVoiceRecording(nil)
-            resetAfterPosting()
+            reset()
             return
         }
         
         voiceNoteRecorder.stop(cancel: cancel)
         guard !cancel else {
             saveVoiceRecording(nil)
-            resetAfterPosting()
+            reset()
             return
         }
         
@@ -1058,12 +1068,12 @@ extension ContentInputView: AudioRecorderControlViewDelegate {
             return linkMedia.ready.sink { [weak self] ready in
                 guard let self = self, ready else { return }
                 self.delegate?.inputView(self, didPost: .init(mentionText: text, media: [], linkPreview: linkPreview))
-                self.resetAfterPosting()
+                self.reset()
             }.store(in: &cancellables)
         }
 
         delegate?.inputView(self, didPost: .init(mentionText: text, media: media, linkPreview: linkPreview))
-        resetAfterPosting()
+        reset()
     }
 
     private func assembleLinkPreview() -> (data: LinkPreviewData, media: PendingMedia?)? {
@@ -1079,8 +1089,8 @@ extension ContentInputView: AudioRecorderControlViewDelegate {
 
         return (data, linkPreviewMedia)
     }
-    
-    public func resetAfterPosting() {
+
+    public func reset() {
         textView.resetMentions()
         textView.resetLinkDetection()
         textView.text = ""

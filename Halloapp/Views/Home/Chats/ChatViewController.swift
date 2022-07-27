@@ -1190,12 +1190,12 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         guard let message = fetchedResultsController?.object(at: indexPath) else { return }
 
         if let feedPostId = message.feedPostId {
-            guard let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: MainAppContext.shared.feedData.viewContext) else {
+            guard let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: MainAppContext.shared.feedData.viewContext, archived: true) else {
                 DDLogWarn("ChatViewController/Quoted feed post \(feedPostId) not found")
                 return
             }
 
-            let vc = feedPost.isMoment ? MomentViewController(post: feedPost) : PostViewController.viewController(for: feedPost)
+            let vc = feedPost.isMoment ? MomentViewController(post: feedPost, shouldFetchOtherMoments: false) : PostViewController.viewController(for: feedPost)
             present(vc, animated: true)
         } else  if let chatReplyMessageID = message.chatReplyMessageID {
             guard let allMessages = fetchedResultsController?.fetchedObjects else { return }
@@ -1273,7 +1273,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         chatReplyMessageSenderID = nil
         chatReplyMessageMediaIndex = 0
 
-        contentInputView.resetAfterPosting()
+        contentInputView.reset()
         removeChatDraft()
 
         if !firstActionHappened {

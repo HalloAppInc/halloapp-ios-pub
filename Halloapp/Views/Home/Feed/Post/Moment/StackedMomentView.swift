@@ -400,7 +400,7 @@ fileprivate extension UISpringTimingParameters {
 
 // MARK: - localization
 
-fileprivate extension Localizations {
+extension Localizations {
 
     static var swipeForMore: String {
         NSLocalizedString("moments.swipe.for.more",

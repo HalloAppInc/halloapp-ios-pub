@@ -71,6 +71,8 @@ final class NewMomentViewController: UIViewController {
     /// The overlay that is above the camera when the user first attempts to unlock a moment.
     private var unlockingExplainerOverlay: UIView?
 
+    weak var delegate: MomentViewControllerDelegate?
+
     init(context: MomentContext = .normal) {
         self.context = context
         super.init(nibName: nil, bundle: nil)
@@ -267,6 +269,7 @@ final class NewMomentViewController: UIViewController {
 
             self.transitioningDelegate = momentViewController
             momentViewController.becomeFirstResponder()
+            momentViewController.delegate = self.delegate
             DDLogInfo("NewMomentViewController/performUnlockTransition/completed transition")
         }
 

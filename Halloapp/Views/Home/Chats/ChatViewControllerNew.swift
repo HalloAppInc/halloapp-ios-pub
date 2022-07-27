@@ -932,7 +932,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         chatReplyMessageSenderID = nil
         chatReplyMessageMediaIndex = 0
 
-        contentInputView.resetAfterPosting()
+        contentInputView.reset()
         removeChatDraft()
         if !firstActionHappened {
             didAction()
@@ -1523,7 +1523,7 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
             return
         }
 
-        let vc = feedPost.isMoment ? MomentViewController(post: feedPost) : PostViewController.viewController(for: feedPost)
+        let vc = feedPost.isMoment ? MomentViewController(post: feedPost, shouldFetchOtherMoments: false) : PostViewController.viewController(for: feedPost)
         present(vc, animated: true)
     }
 
