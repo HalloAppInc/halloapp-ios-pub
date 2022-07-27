@@ -392,6 +392,15 @@ public enum MediaURLInfo {
     case getPut(URL, URL)
     case patch(URL)
     case download(URL)
+
+    var hasUploadURL: Bool {
+        switch self {
+        case .getPut, .patch:
+            return true
+        case .download:
+            return false
+        }
+    }
 }
 
 // MARK: FeedElement

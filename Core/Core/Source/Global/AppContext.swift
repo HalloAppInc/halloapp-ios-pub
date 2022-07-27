@@ -196,6 +196,14 @@ open class AppContext: AppContextCommon {
         URL(fileURLWithPath: NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true).first!)
     }()
 
+    public static let mediaDirectoryURL = {
+        AppContext.libraryDirectoryURL.appendingPathComponent("Media", isDirectory: false)
+    }()
+
+    public static let chatMediaDirectoryURL = {
+        AppContext.libraryDirectoryURL.appendingPathComponent("ChatMedia", isDirectory: false)
+    }()
+
     static let mainStoreURL = {
         sharedDirectoryURL.appendingPathComponent(AppContext.mainStoreDatabaseFilename)
     }()

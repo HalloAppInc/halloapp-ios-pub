@@ -24,6 +24,34 @@ public enum MediaDirectory: Int16 {
     case shareExtensionMedia = 2
     case notificationExtensionMedia = 3
     case commonMedia = 4
+
+    var url: URL {
+        switch self {
+        case .chatMedia:
+            return AppContext.chatMediaDirectoryURL
+        case .media:
+            return AppContext.mediaDirectoryURL
+        case .shareExtensionMedia:
+            return ShareExtensionDataStore.dataDirectoryURL
+        case .notificationExtensionMedia:
+            return NotificationServiceExtensionDataStore.dataDirectoryURL
+        case .commonMedia:
+            return AppContext.commonMediaStoreURL
+        }
+    }
+
+    func fileURL(forRelativePath relativePath: String) -> URL {
+        return url.appendingPathComponent(relativePath, isDirectory: false)
+    }
+
+    func relativePath(forFileURL fileURL: URL) -> String? {
+        let fullPath = fileURL.path
+        let mediaDirectoryPath = url.path
+        if let range = fullPath.range(of: mediaDirectoryPath, options: [.anchored]) {
+            return String(fullPath.suffix(from: range.upperBound))
+        }
+        return nil
+    }
 }
 
 public extension CommonMedia {
@@ -111,6 +139,69 @@ public extension CommonMedia {
     @NSManaged var chunkSize: Int32
     @NSManaged var blobSize: Int64
     @NSManaged var chunkSet: Data?
+}
+
+extension CommonMedia {
+
+    public var mediaURL: URL? {
+        guard let relativeFilePath = relativeFilePath else { return nil }
+        return mediaDirectory.fileURL(forRelativePath: relativeFilePath)
+    }
+
+    public var mediaDirectoryURL: URL {
+        return mediaDirectory.url
+    }
+
+    public var encryptedFileURL: URL? {
+        guard let filePath = relativeFilePath else {
+            return nil
+        }
+        // All media will now be written only to the common media directory.
+        // This file can be accessed by the extensions as well - so they wont have access to other directories.
+        let mediaDirectoryURL: URL? = {
+            switch mediaDirectory {
+            case .commonMedia:
+                return AppContext.commonMediaStoreURL
+            default:
+                return nil
+            }
+        }()
+        return mediaDirectoryURL?.appendingPathComponent(filePath.appending(".enc"), isDirectory: false)
+    }
+
+    public var urlInfo: MediaURLInfo? {
+        get {
+            if let uploadURL = uploadURL {
+                if let downloadURL = url {
+                    return .getPut(downloadURL, uploadURL)
+                } else {
+                    return .patch(uploadURL)
+                }
+            } else {
+                if let downloadURL = url {
+                    return .download(downloadURL)
+                } else {
+                    return nil
+                }
+            }
+        }
+        set {
+            switch newValue {
+            case .getPut(let getURL, let putURL):
+                url = getURL
+                uploadURL = putURL
+            case .patch(let patchURL):
+                url = nil
+                uploadURL = patchURL
+            case .download(let downloadURL):
+                url = downloadURL
+                uploadURL = nil
+            case .none:
+                url = nil
+                uploadURL = nil
+            }
+        }
+    }
 }
 
 public extension CommonMedia {

@@ -85,14 +85,6 @@ class MainAppContext: AppContext {
 
     // MARK: Paths
 
-    static let mediaDirectoryURL = {
-        AppContext.libraryDirectoryURL.appendingPathComponent("Media", isDirectory: false)
-    }()
-
-    static let chatMediaDirectoryURL = {
-        AppContext.libraryDirectoryURL.appendingPathComponent("ChatMedia", isDirectory: false)
-    }()
-
     static let feedStoreURLLegacy = {
         AppContext.documentsDirectoryURL.appendingPathComponent(feedDatabaseFilename)
     }()

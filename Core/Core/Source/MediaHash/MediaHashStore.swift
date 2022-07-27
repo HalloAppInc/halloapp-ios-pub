@@ -92,6 +92,14 @@ public class MediaHashStore {
 
     // MARK: Fetching
 
+    public func fetch(url: URL, blobVersion: BlobVersion) async -> (url: URL?, key: String?, sha256: String?)? {
+        return await withCheckedContinuation { continuation in
+            fetch(url: url, blobVersion: blobVersion) { upload in
+                continuation.resume(returning: upload)
+            }
+        }
+    }
+
     public func fetch(url: URL, blobVersion: BlobVersion, completion: @escaping ((url: URL?, key: String?, sha256: String?)?) -> Void) {
         guard let hash = try? MediaCrypter.hash(url: url).base64EncodedString() else {
             DDLogError("MediaHashStore/get/error unable to hash file=[\(url)]")

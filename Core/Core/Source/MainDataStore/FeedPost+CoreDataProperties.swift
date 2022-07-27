@@ -182,12 +182,25 @@ public extension FeedPost {
         return mentions.sorted(by: { $0.index < $1.index })
      }
 
-    public var orderedMedia: [FeedMediaProtocol] {
-        get {
-            guard let media = self.media else { return [] }
-            return media.sorted { $0.order < $1.order }
-        }
-    }
+     public var orderedMedia: [FeedMediaProtocol] {
+         return media?.sorted { $0.order < $1.order } ?? []
+     }
+
+     // Includes all media, even including link previews
+     public var allAssociatedMedia: [CommonMedia] {
+         var allMedia: [CommonMedia] = []
+
+         if let media = media {
+             allMedia += media.sorted { $0.order < $1.order }
+         }
+
+         linkPreviews?.forEach { linkPreview in
+             if let linkPreviewMedia = linkPreview.media {
+                 allMedia += linkPreviewMedia
+             }
+         }
+         return allMedia
+     }
 }
 
 public extension FeedPost {
