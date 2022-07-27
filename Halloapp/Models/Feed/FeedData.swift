@@ -973,6 +973,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     // Always update any existing externally shared posts
                     DDLogInfo("FeedData/process-posts/existing [\(existingPost.id)]/updating existing external share post")
                     existingPost.fromExternalShare = false
+                    existingPost.groupId = groupID
+                    existingPost.lastUpdated = xmppPost.timestamp
                     newPosts.append(existingPost)
                     continue
                 } else if existingPost.status == .none {
@@ -4262,7 +4264,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     }
 
                     self.process(posts: [postData],
-                                 receivedIn: nil,
+                                 receivedIn: postContainerBlob.groupID,
                                  using: context,
                                  presentLocalNotifications: false,
                                  fromExternalShare: true)
