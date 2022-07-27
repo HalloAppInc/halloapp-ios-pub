@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="21223.11" systemVersion="21F79" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="20086" systemVersion="21F79" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="Call" representedClassName="Call" syncable="YES">
         <attribute name="answered" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="callID" attributeType="String"/>
@@ -44,6 +44,7 @@
         <relationship name="linkPreviews" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CommonLinkPreview" inverseName="message" inverseEntity="CommonLinkPreview"/>
         <relationship name="media" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CommonMedia" inverseName="message" inverseEntity="CommonMedia"/>
         <relationship name="quoted" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatQuoted" inverseName="message" inverseEntity="ChatQuoted"/>
+        <relationship name="reactions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CommonReaction" inverseName="message" inverseEntity="CommonReaction"/>
         <uniquenessConstraints>
             <uniquenessConstraint>
                 <constraint value="id"/>
@@ -96,6 +97,22 @@
         <relationship name="linkPreview" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CommonLinkPreview" inverseName="media" inverseEntity="CommonLinkPreview"/>
         <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatMessage" inverseName="media" inverseEntity="ChatMessage"/>
         <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="media" inverseEntity="FeedPost"/>
+    </entity>
+    <entity name="CommonReaction" representedClassName="CommonReaction" syncable="YES">
+        <attribute name="emoji" optional="YES" attributeType="String"/>
+        <attribute name="fromUserID" optional="YES" attributeType="String"/>
+        <attribute name="id" attributeType="String"/>
+        <attribute name="incomingStatusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="outgoingStatusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="resendAttempts" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="retractID" optional="YES" attributeType="String"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatMessage" inverseName="reactions" inverseEntity="ChatMessage"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
     </entity>
     <entity name="CommonThread" representedClassName="CommonThread" syncable="YES">
         <attribute name="groupID" optional="YES" attributeType="String"/>
@@ -238,10 +255,11 @@
     <elements>
         <element name="Call" positionX="-63" positionY="-18" width="128" height="149"/>
         <element name="ChatEvent" positionX="36" positionY="189" width="128" height="74"/>
-        <element name="ChatMessage" positionX="-9" positionY="144" width="128" height="374"/>
+        <element name="ChatMessage" positionX="-9" positionY="144" width="128" height="389"/>
         <element name="ChatQuoted" positionX="0" positionY="153" width="128" height="119"/>
         <element name="CommonLinkPreview" positionX="-45" positionY="63" width="128" height="149"/>
         <element name="CommonMedia" positionX="-36" positionY="72" width="128" height="359"/>
+        <element name="CommonReaction" positionX="36" positionY="189" width="128" height="164"/>
         <element name="CommonThread" positionX="27" positionY="180" width="128" height="209"/>
         <element name="ContentPublishInfo" positionX="36" positionY="108" width="128" height="74"/>
         <element name="ContentResendInfo" positionX="-63" positionY="45" width="128" height="119"/>

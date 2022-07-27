@@ -75,6 +75,8 @@ public extension ChatMessage {
 
     @NSManaged var linkPreviews: Set<CommonLinkPreview>?
 
+    @NSManaged var reactions: Set<CommonReaction>?
+    
     @NSManaged var hasBeenProcessed: Bool
 
     var incomingStatus: IncomingStatus {
@@ -120,6 +122,13 @@ public extension ChatMessage {
                 }
             }
             return linkPreviewData
+        }
+    }
+    
+    var sortedReactionsList: [CommonReaction] {
+        get {
+            guard let reactions = self.reactions else { return [] }
+            return reactions.sorted { $0.timestamp < $1.timestamp }
         }
     }
 }
