@@ -36,8 +36,10 @@ struct LocationSharingEnvironment {
             return placemark(from: mapFeatureAnnotation)
         }
 #endif
-        if let userLocation = annotation as? MKUserLocation {
-            return placemark(from: userLocation)
+        if let userLocation = annotation as? MKUserLocation, let location = userLocation.location {
+            return placemark(from: location)
+        } else if let longPressAnnotation = annotation as? LongPressAnnotation {
+            return placemark(from: CLLocation(latitude: longPressAnnotation.coordinate.latitude, longitude: longPressAnnotation.coordinate.longitude))
         } else {
             return Future { promise in
                 promise(.success(nil))
@@ -59,10 +61,9 @@ struct LocationSharingEnvironment {
     }
 #endif
     
-    private func placemark(from userLocation: MKUserLocation) -> Future<CLPlacemark?, Error> {
+    private func placemark(from location: CLLocation) -> Future<CLPlacemark?, Error> {
         Future {
-            guard let location = userLocation.location else { return nil }
-            return try await CLGeocoder().reverseGeocodeLocation(location).first
+            try await CLGeocoder().reverseGeocodeLocation(location).first
         }
     }
     
@@ -94,6 +95,18 @@ extension LocationSharingEnvironment {
         case locationAccessRequired
         case localSearchFailed
         case locationResolvingFailed
+    }
+}
+
+extension LocationSharingEnvironment {
+    final class LongPressAnnotation: NSObject, MKAnnotation {
+        let coordinate: CLLocationCoordinate2D
+        var title: String? = Localizations.locationSharingSelectedLocation
+        
+        init(coordinate: CLLocationCoordinate2D) {
+            self.coordinate = coordinate
+            super.init()
+        }
     }
 }
 
@@ -262,6 +275,8 @@ extension Localizations {
     static func locationSharingLocationAccuracy(_ accuracy: CLLocationAccuracy) -> String {
         let measurement = Measurement(value: accuracy, unit: UnitLength.meters)
         let formatter = MeasurementFormatter()
+        formatter.numberFormatter.maximumFractionDigits = 0
+        formatter.numberFormatter.roundingMode = .ceiling
         formatter.unitStyle = .medium
         formatter.unitOptions = .naturalScale
         let format = NSLocalizedString("locationSharing.locationAccuracyDescription", value: "Accurate to %@", comment: "Subtitle of the user location callout. Parameter is the formatted length measurement of accuracy (including unit).")
@@ -270,5 +285,22 @@ extension Localizations {
     
     static var locationSharingUntitledLocation: String {
         NSLocalizedString("locationSharing.untitledLocation", value: "Untitled Location", comment: "Title of a location in location list if it does not have a name.")
+    }
+    
+    static var locationSharingSelectedLocation: String {
+        NSLocalizedString("locationSharing.selectedLocation", value: "Selected Location", comment: "Initial title of the callout bubble for locations selected by long pressing on the map.")
+    }
+    
+    static func locationSharingDetailedAddress(for address: CNPostalAddress) -> String? {
+        let arguments: [String] = [!address.street.isEmpty ? address.street : nil, !address.city.isEmpty ? address.city : nil]
+            .compactMap { $0 }
+        if arguments.count == 2 {
+            let format = NSLocalizedString("locationSharing.detailedAddress", value: "%@, %@", comment: "Addresses displayed as subtitles in location list. Parameters are non-empty street address and city.")
+            return String(format: format, arguments: arguments)
+        } else if arguments.count == 1 {
+            return arguments[0]
+        } else {
+            return nil
+        }
     }
 }

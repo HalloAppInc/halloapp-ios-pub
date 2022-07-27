@@ -28,7 +28,6 @@ private enum MenuTitles {
     static var enableNewGroupsTab: String { "Enable new groups tab (restart app to take effect)" }
     static var enableGroupChat: String { "Enable Group Chat" }
     static var enableUIKitComposer: String { "Enable UIKit Composer" }
-    static var enableLocationSharing: String { "Enable Location Sharing" }
     static var resetMomentsFTUX: String { "Reset Moments FTUX" }
     static var logOut: String { "Log Out" }
 }
@@ -39,7 +38,6 @@ struct DeveloperMenuView: View {
     @State var enableGroupChat = AppContext.shared.userDefaults.bool(forKey: "enableGroupChat")
     @State var enableNewGroupsTab = AppContext.shared.userDefaults.bool(forKey: "enableNewGroupsTab")
     @State var enableUIKitComposer = AppContext.shared.userDefaults.bool(forKey: "enableUIKitComposer")
-    @State var enableLocationSharing = AppContext.shared.userDefaults.bool(forKey: "enableLocationSharing")
 
     // TODO: Temporarily turn off and potentially remove
 //    @ObservedObject var videoSettings = VideoSettings.shared
@@ -209,11 +207,6 @@ struct DeveloperMenuView: View {
                     Toggle(MenuTitles.enableUIKitComposer, isOn: $enableUIKitComposer)
                         .onReceive(Just(self.enableUIKitComposer)) { value in
                             AppContext.shared.userDefaults.set(value, forKey: "enableUIKitComposer")
-                        }
-                    
-                    Toggle(MenuTitles.enableLocationSharing, isOn: $enableLocationSharing)
-                        .onReceive(Just(self.enableLocationSharing)) { value in
-                            AppContext.shared.userDefaults.set(value, forKey: "enableLocationSharing")
                         }
                 }
                 Button {

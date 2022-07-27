@@ -11,9 +11,10 @@ import Combine
 import MapKit
 import CoreCommon
 
-class LocationSharingViewController: UIViewController, UISearchControllerDelegate {
+class LocationSharingViewController: UIViewController {
     typealias MapConfiguration = LocationSharingEnvironment.MapConfiguration
     typealias Alert = LocationSharingEnvironment.Alert
+    typealias LongPressAnnotation = LocationSharingEnvironment.LongPressAnnotation
     
     init(viewModel: LocationSharingViewModel? = nil) {
         self.viewModel = viewModel ?? .init()  // to avoid "Call to main actor-isolated initializer 'init()' in a synchronous nonisolated context" warning
@@ -31,7 +32,7 @@ class LocationSharingViewController: UIViewController, UISearchControllerDelegat
         let mapView = MKMapView()
         mapView.delegate = self
         mapView.translatesAutoresizingMaskIntoConstraints = false
-        mapView.register(MKMarkerAnnotationView.self, forAnnotationViewWithReuseIdentifier: AnnotationReuseIdentifier.featureAnnotation.rawValue)
+        mapView.register(AnnotationView.self, forAnnotationViewWithReuseIdentifier: AnnotationReuseIdentifier.featureAnnotation.rawValue)
         mapView.showsUserLocation = true
         
 #if swift(>=5.7)
@@ -40,22 +41,33 @@ class LocationSharingViewController: UIViewController, UISearchControllerDelegat
         }
 #endif
         
+        let longPressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(self.handleLongPress))
+        longPressGestureRecognizer.minimumPressDuration = 0.5
+        mapView.addGestureRecognizer(longPressGestureRecognizer)
+        
         return mapView
     }()
     
-    private lazy var searchController: UISearchController = {
-        let locationListViewController = LocationListViewController(viewModel: viewModel.locationList)
-        let searchController = UISearchController(searchResultsController: locationListViewController)
-        searchController.delegate = self
-        searchController.hidesNavigationBarDuringPresentation = false
-        searchController.searchBar.autocapitalizationType = .none
-        searchController.searchBar.backgroundImage = UIImage()
-        searchController.searchBar.tintColor = .primaryBlue
-        searchController.searchBar.searchTextField.backgroundColor = .searchBarBg
-        searchController.searchResultsUpdater = self
-        searchController.obscuresBackgroundDuringPresentation = false
-        return searchController
+    private lazy var bottomBar: BottomBar = {
+        let bar = BottomBar(viewModel: viewModel.bottomBar)
+        bar.translatesAutoresizingMaskIntoConstraints = false
+        return bar
     }()
+    
+    private lazy var userTrackingButton: RoundButton = {
+        let button = RoundButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.backgroundColor = .secondarySystemGroupedBackground
+        button.setPreferredSymbolConfiguration(.init(pointSize: 22), forImageIn: .normal)
+        button.contentEdgeInsets = UIEdgeInsets(top: 13, left: 12, bottom: 11, right: 12)
+        button.addTarget(self, action: #selector(userTrackingButtonTapped), for: .touchUpInside)
+        return button
+    }()
+    
+    // Safe area will be insetted to include bottom bar's height, so we constrain top of the bar to bottom of safe area.
+    private lazy var bottomBarTopConstraint: NSLayoutConstraint = bottomBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: 8)
+    
+    private lazy var locationListViewController = LocationListViewController(viewModel: viewModel.locationList)
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -65,25 +77,56 @@ class LocationSharingViewController: UIViewController, UISearchControllerDelegat
 
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "chevron.down"), style: .plain, target: self, action: #selector(dismissPushed))
         
-        navigationItem.searchController = searchController
-        navigationItem.hidesSearchBarWhenScrolling = false
-        
-        // Search is presenting a view controller, and needs a controller in the presented view controller hierarchy to define the presentation context.
-        definesPresentationContext = true
-        
-        mapView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(mapView)
+        view.addSubview(userTrackingButton)
+        
+        locationListViewController.view.translatesAutoresizingMaskIntoConstraints = false
+        addChild(locationListViewController)
+        view.addSubview(locationListViewController.view)
+        
+        view.addSubview(bottomBar)
         
         NSLayoutConstraint.activate([
             mapView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             mapView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             mapView.topAnchor.constraint(equalTo: view.topAnchor),
             mapView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            
+            locationListViewController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            locationListViewController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            locationListViewController.view.topAnchor.constraint(equalTo: view.topAnchor),
+            locationListViewController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            
+            bottomBar.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 12),
+            bottomBar.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
+            bottomBarTopConstraint,
+            bottomBar.heightAnchor.constraint(equalToConstant: 48),
+            
+            userTrackingButton.bottomAnchor.constraint(equalTo: bottomBar.topAnchor, constant: -10),
+            userTrackingButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
         ])
+        
+        locationListViewController.didMove(toParent: self)
+        
+        setupKeyboardAvoidance()
+        preventSheetAutoResizingAfterKeyboardDidShow()
         
         viewModel.$userTrackingMode
             .sink { [mapView] mode in
                 mapView.setUserTrackingMode(mode, animated: false)
+            }
+            .store(in: &cancelBag)
+        
+        Publishers.CombineLatest(viewModel.$isAuthorizedToAccessLocation, viewModel.$userTrackingMode)
+            .removeDuplicates { $0 == $1 }
+            .sink { [userTrackingButton] (isAuthorizedToAccessLocation: Bool, mode: MKUserTrackingMode) in
+                if !isAuthorizedToAccessLocation {
+                    userTrackingButton.setImage(UIImage(systemName: "location.slash"), for: .normal)
+                } else if mode != .none {
+                    userTrackingButton.setImage(UIImage(systemName: "location.fill"), for: .normal)
+                } else {
+                    userTrackingButton.setImage(UIImage(systemName: "location"), for: .normal)
+                }
             }
             .store(in: &cancelBag)
         
@@ -95,6 +138,21 @@ class LocationSharingViewController: UIViewController, UISearchControllerDelegat
                 UIViewPropertyAnimator.runningPropertyAnimator(withDuration: 0.3, delay: 0) {
                     mapView.alpha = newValue ? 1 : 0
                 }
+            }
+            .store(in: &cancelBag)
+        
+        locationListViewController.view.alpha = 0
+        
+        viewModel.$showsLocationListView
+            .removeDuplicates()
+            .sink { [locationListView = locationListViewController.view!] newValue in
+                let timing = UISpringTimingParameters(dampingFraction: 1, response: 0.25)
+                let animator = UIViewPropertyAnimator(duration: -1, timingParameters: timing)
+                animator.addAnimations {
+                    locationListView.alpha = newValue ? 1 : 0
+                    locationListView.transform = newValue ? .identity : .init(scaleX: 0.8, y: 0.8)
+                }
+                animator.startAnimation()
             }
             .store(in: &cancelBag)
         
@@ -123,18 +181,12 @@ class LocationSharingViewController: UIViewController, UISearchControllerDelegat
             }
             .store(in: &cancelBag)
         
-        // Right navigation bar item is dependent on location auth status and map configuration.
-        Publishers.CombineLatest(viewModel.$isAuthorizedToAccessLocation, viewModel.$mapConfiguration)
-            .removeDuplicates { $0 == $1 }  // Tuples can't conform to Equatable but there are == overloads for them.
-            .map {
-                [changeUserTrackingMode = viewModel.changeUserTrackingMode, changeMapConfiguration = viewModel.changeMapConfiguration]
-                (isAuthorizedToAccessLocation: Bool, config: MapConfiguration) -> HAMenu in
+        // Right navigation bar item is dependent on map configuration.
+        viewModel.$mapConfiguration
+            .removeDuplicates()
+            .map { [changeMapConfiguration = viewModel.changeMapConfiguration] (config: MapConfiguration) -> HAMenu in
                 // Since our menu gets updated whenever its dependency changes, we don't need `.lazy` here :).
                 HAMenu {
-                    HAMenuButton(title: Localizations.locationSharingMyLocation, image: UIImage(systemName: isAuthorizedToAccessLocation ? "location.fill" : "location.slash.fill")) {
-                        changeUserTrackingMode.send(.followWithHeading)
-                    }
-                    
                     HAMenu(title: Localizations.locationSharingChooseMap) {
                         HAMenuButton(title: Localizations.locationSharingMapTypeExplore, image: UIImage(systemName: "map.fill")) {
                             changeMapConfiguration.send(.explore)
@@ -166,6 +218,19 @@ class LocationSharingViewController: UIViewController, UISearchControllerDelegat
             }
             .store(in: &cancelBag)
         
+        viewModel.$longPressAnnotation
+            .removeDuplicates()
+            .sink { [mapView, viewModel] newValue in
+                // This is called on `willSet` so we are guaranteed to get the old value.
+                if let oldValue = viewModel.longPressAnnotation {
+                    mapView.removeAnnotation(oldValue)
+                }
+                if let newValue = newValue {
+                    mapView.addAnnotation(newValue)
+                }
+            }
+            .store(in: &cancelBag)
+        
         viewModel.$alert
             .sink { [weak self] alert in
                 guard let self = self else { return }
@@ -176,6 +241,49 @@ class LocationSharingViewController: UIViewController, UISearchControllerDelegat
                 }
             }
             .store(in: &cancelBag)
+    }
+    
+    private func setupKeyboardAvoidance() {
+        NotificationCenter.default
+            .publisher(for: UIResponder.keyboardWillShowNotification)
+            .sink { [weak self] notification in
+                guard let self = self, let info = notification.userInfo else { return }
+                UIViewPropertyAnimator(keyboardNotificationInfo: info) { keyboardEndFrame in
+                    let additionalInset = keyboardEndFrame.height - self.view.safeAreaInsets.bottom
+                    self.bottomBarTopConstraint.constant = -additionalInset - 8 - self.bottomBar.frame.height
+                    self.locationListViewController.collectionView.contentInset.bottom = additionalInset
+                    self.locationListViewController.collectionView.verticalScrollIndicatorInsets.bottom = additionalInset
+                    self.view.layoutIfNeeded()
+                }?.startAnimation()
+            }
+            .store(in: &cancelBag)
+
+        NotificationCenter.default
+            .publisher(for: UIResponder.keyboardWillHideNotification)
+            .sink { [weak self] notification in
+                guard let self = self, let info = notification.userInfo else { return }
+                UIViewPropertyAnimator(keyboardNotificationInfo: info) { _ in
+                    self.bottomBarTopConstraint.constant = 8
+                    self.locationListViewController.collectionView.contentInset.bottom = 0
+                    self.locationListViewController.collectionView.verticalScrollIndicatorInsets.bottom = 0
+                    self.view.layoutIfNeeded()
+                }?.startAnimation()
+            }
+            .store(in: &cancelBag)
+    }
+    
+    private func preventSheetAutoResizingAfterKeyboardDidShow() {
+        if #available(iOS 15.0, *), let sheet = navigationController?.sheetPresentationController ?? sheetPresentationController {
+            NotificationCenter.default
+                .publisher(for: UIResponder.keyboardDidShowNotification)
+                .first()
+                .sink { notification in
+                    if sheet.detents.contains(.large()) {
+                        sheet.selectedDetentIdentifier = .large
+                    }
+                }
+                .store(in: &cancelBag)
+        }
     }
     
     private func alertController(for alert: Alert) -> UIAlertController {
@@ -214,23 +322,33 @@ class LocationSharingViewController: UIViewController, UISearchControllerDelegat
         viewModel.onAppear.send()
     }
     
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        self.additionalSafeAreaInsets.bottom = bottomBar.frame.height + 16
+    }
+    
+    @objc
+    private func userTrackingButtonTapped() {
+        viewModel.userTrackingButtonTapped.send()
+    }
+    
     @objc
     private func dismissPushed(_ sender: UIButton) {
         dismiss(animated: true)
+    }
+    
+    @objc
+    private func handleLongPress(_ gestureRecognizer: UILongPressGestureRecognizer) {
+        if gestureRecognizer.state == .began {
+            let coordinate = mapView.convert(gestureRecognizer.location(in: mapView), toCoordinateFrom: mapView)
+            viewModel.longPressedAtCoordinate.send(coordinate)
+        }
     }
 }
 
 extension LocationSharingViewController {
     private enum AnnotationReuseIdentifier: String {
         case featureAnnotation
-    }
-}
-
-extension LocationSharingViewController: UISearchResultsUpdating {
-    func updateSearchResults(for searchController: UISearchController) {
-        if let searchText = searchController.searchBar.text, !searchText.isEmpty {
-            viewModel.searchTextChanged.send(searchText)
-        }
     }
 }
 
@@ -243,6 +361,10 @@ extension LocationSharingViewController: MKMapViewDelegate {
         viewModel.mapRegionChanged.send(mapView.region)
     }
     
+    func mapView(_ mapView: MKMapView, didChange mode: MKUserTrackingMode, animated: Bool) {
+        viewModel.userTrackingModeChanged.send(mapView.userTrackingMode)
+    }
+    
     func mapViewDidFinishLoadingMap(_ mapView: MKMapView) {
         viewModel.mapViewLoaded.send()
     }
@@ -253,16 +375,19 @@ extension LocationSharingViewController: MKMapViewDelegate {
             return mapFeatureAnnotationView(for: annotation)
         }
 #endif
-        return nil
+        if let longPressAnnotation = annotation as? LongPressAnnotation {
+            return annotationView(for: longPressAnnotation)
+        } else {
+            return nil
+        }
     }
     
     func mapView(_ mapView: MKMapView, didAdd views: [MKAnnotationView]) {
         if let userLocationView = views.first(where: { $0.annotation is MKUserLocation }) {
             userLocationView.canShowCallout = true
             
-            let shareButton = UIButton(type: .system)
-            shareButton.setImage(UIImage(systemName: "arrow.up"), for: .normal)
-            shareButton.bounds = CGRect(x: 0, y: 0, width: 44, height: 44)
+            let shareButton = makeShareButton()
+            shareButton.tintColor = .primaryBlue
             userLocationView.rightCalloutAccessoryView = shareButton
             
             if let horizontalAccuracy = mapView.userLocation.location?.horizontalAccuracy {
@@ -291,31 +416,169 @@ extension LocationSharingViewController: MKMapViewDelegate {
         viewModel.annotationSelectionChanged.send(nil)
     }
     
+    private func makeShareButton() -> UIButton {
+        let button = UIButton(type: .system)
+        let font = UIFont.systemFont(forTextStyle: .subheadline, weight: .semibold)
+        let attachment = NSTextAttachment()  // NSTextAttachment.init(image:) won't work here.
+        attachment.image = UIImage(systemName: "arrow.up", withConfiguration: UIImage.SymbolConfiguration(font: font))?.withRenderingMode(.alwaysTemplate)
+        let shareButtonTitle = NSMutableAttributedString(attachment: attachment)
+        shareButtonTitle.append(.init(string: " " + Localizations.buttonShare, attributes: [.font: font]))
+        button.setAttributedTitle(shareButtonTitle, for: .normal)
+        button.setBackgroundColor(.tertiarySystemGroupedBackground, for: .normal)
+        button.bounds = CGRect(x: 0, y: 0, width: 88, height: 44)
+        button.layer.cornerRadius = 4
+        button.layer.masksToBounds = true
+        return button
+    }
+    
 #if swift(>=5.7)
     @available(iOS 16.0, *)
     private func mapFeatureAnnotationView(for annotation: MKMapFeatureAnnotation) -> MKMarkerAnnotationView? {
-        guard let markerAnnotationView = mapView.dequeueReusableAnnotationView(withIdentifier: AnnotationReuseIdentifier.featureAnnotation.rawValue, for: annotation) as? MKMarkerAnnotationView else {
+        guard let annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: AnnotationReuseIdentifier.featureAnnotation.rawValue, for: annotation) as? AnnotationView else {
             return nil
         }
         
-        markerAnnotationView.animatesWhenAdded = true
-        markerAnnotationView.canShowCallout = true
+        annotationView.bind(to: LocationSharingViewModel.AnnotationViewModel(mapFeatureAnnotation: annotation))
         
-        let shareButton = UIButton(type: .system)
-        shareButton.setImage(UIImage(systemName: "arrow.up"), for: .normal)
-        shareButton.bounds = CGRect(x: 0, y: 0, width: 44, height: 44)
-        markerAnnotationView.rightCalloutAccessoryView = shareButton
-        
-        if let iconStyle = annotation.iconStyle {
-            let imageView = UIImageView(image: iconStyle.image.withTintColor(iconStyle.backgroundColor, renderingMode: .alwaysOriginal))
-            imageView.bounds = CGRect(origin: .zero, size: CGSize(width: 44, height: 44))
-            markerAnnotationView.leftCalloutAccessoryView = imageView
-            
-            shareButton.tintColor = iconStyle.backgroundColor
-            markerAnnotationView.markerTintColor = iconStyle.backgroundColor
-        }
-        
-        return markerAnnotationView
+        return annotationView
     }
 #endif
+    
+    private func annotationView(for longPressAnnotation: LongPressAnnotation) -> MKMarkerAnnotationView? {
+        guard let annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: AnnotationReuseIdentifier.featureAnnotation.rawValue, for: longPressAnnotation) as? AnnotationView else {
+            return nil
+        }
+        
+        annotationView.bind(to: LocationSharingViewModel.AnnotationViewModel(longPressAnnotation: longPressAnnotation))
+        
+        return annotationView
+    }
+}
+
+extension LocationSharingViewController {
+    private class BottomBar: UIView, UITextFieldDelegate, UISearchTextFieldDelegate {
+        typealias ViewModel = LocationSharingViewModel.BottomBarViewModel
+        
+        private(set) var viewModel: ViewModel
+        private var cancelBag: Set<AnyCancellable> = []
+        
+        private lazy var searchTextField: UISearchTextField = {
+            let textField = UISearchTextField()
+            textField.translatesAutoresizingMaskIntoConstraints = false
+            textField.delegate = self
+            textField.borderStyle = .none
+            textField.attributedPlaceholder = NSAttributedString(string: Localizations.labelSearch, attributes: [.foregroundColor: UIColor.placeholder])
+            textField.font = .preferredFont(forTextStyle: .callout)
+            textField.textContentType = .location
+            textField.returnKeyType = .search
+            textField.clearButtonMode = .always
+            
+            textField.addTarget(self, action: #selector(textFieldEditingChanged), for: .editingChanged)
+            
+            return textField
+        }()
+        
+        init(viewModel: ViewModel? = nil) {
+            self.viewModel = viewModel ?? .init()
+            super.init(frame: .zero)
+            commonInit()
+        }
+        
+        required init?(coder: NSCoder) {
+            self.viewModel = .init()
+            super.init(coder: coder)
+            commonInit()
+        }
+        
+        private func commonInit() {
+            directionalLayoutMargins = .init(top: 10, leading: 10, bottom: 10, trailing: 10)
+            addSubview(searchTextField)
+            NSLayoutConstraint.activate([
+                searchTextField.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor),
+                searchTextField.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor),
+                searchTextField.centerYAnchor.constraint(equalTo: centerYAnchor),
+            ])
+            
+            backgroundColor = .secondarySystemGroupedBackground
+            layer.cornerRadius = 16
+            layer.cornerCurve = .continuous
+            layer.borderColor = UIColor.lightGray.withAlphaComponent(0.5).cgColor
+            layer.borderWidth = 1.0 / UIScreen.main.scale
+            layer.shadowColor = UIColor.black.withAlphaComponent(0.05).cgColor
+            layer.shadowRadius = 3
+            layer.shadowOffset = CGSize(width: 0, height: 2)
+            layer.shadowOpacity = 1
+        }
+        
+        override func layoutSubviews() {
+            super.layoutSubviews()
+            layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: layer.cornerRadius).cgPath
+        }
+        
+        @objc
+        private func textFieldEditingChanged(_ textField: UITextField) {
+            viewModel.searchTextChanged.send(searchTextField.text ?? "")
+        }
+        
+        func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+            textField.resignFirstResponder()
+            return true
+        }
+        
+        func textFieldShouldClear(_ textField: UITextField) -> Bool {
+            // Clear text manually to avoid automatically starting editing.
+            searchTextField.text = ""
+            searchTextField.sendActions(for: .editingChanged)
+            return false
+        }
+    }
+}
+
+fileprivate class RoundButton: UIButton {
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        layer.borderColor = UIColor.lightGray.withAlphaComponent(0.5).cgColor
+        layer.borderWidth = 1.0 / UIScreen.main.scale
+        layer.shadowColor = UIColor.black.withAlphaComponent(0.2).cgColor
+        layer.shadowRadius = 20
+        layer.shadowOffset = CGSize(width: 0, height: 10)
+        layer.shadowOpacity = 1
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("Circle button coder init not implemented...")
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        layer.cornerRadius = bounds.height / 2
+        layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: layer.cornerRadius).cgPath
+    }
+}
+
+fileprivate extension UIViewPropertyAnimator {
+    convenience init?(keyboardNotificationInfo notificationInfo: [AnyHashable: Any], animations: (@MainActor (_ keyboardEndFrame: CGRect) -> Void)? = nil) {
+        guard let duration = notificationInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else { return nil }
+        guard let keyboardFrameValue = notificationInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue else { return nil }
+        guard let curveValue = notificationInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? Int else { return nil }
+        guard let curve = UIView.AnimationCurve(rawValue: curveValue) else { return nil }
+
+        self.init(duration: duration, curve: curve) {
+            animations?(keyboardFrameValue.cgRectValue)
+        }
+    }
+}
+
+fileprivate extension UISpringTimingParameters {
+    // Adapted from https://medium.com/ios-os-x-development/demystifying-uikit-spring-animations-2bb868446773
+    convenience init(dampingFraction: CGFloat = 0.825, response: CGFloat = 0.55) {
+        precondition(dampingFraction >= 0)
+        precondition(response > 0)
+
+        let mass = 1 as CGFloat
+        let stiffness = pow(2 * .pi / response, 2) * mass
+        let damping = 4 * .pi * dampingFraction * mass / response
+
+        self.init(mass: mass, stiffness: stiffness, damping: damping, initialVelocity: .zero)
+    }
 }

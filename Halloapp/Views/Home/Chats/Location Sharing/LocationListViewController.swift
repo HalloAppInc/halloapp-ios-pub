@@ -38,7 +38,7 @@ class LocationListViewController: UIViewController {
         collectionView.collectionViewLayout = layout
 
         collectionView.backgroundColor = .primaryBg
-        collectionView.keyboardDismissMode = .interactive
+        collectionView.keyboardDismissMode = .onDrag
         return collectionView
     }()
     
@@ -63,11 +63,24 @@ class LocationListViewController: UIViewController {
             .store(in: &cancelBag)
     }
 
+    private lazy var collectionItemIcon: UIImage? = {
+        let image = UIImage(systemName: "magnifyingglass.circle.fill")
+        var configuration = UIImage.SymbolConfiguration(scale: .large)
+        if #available(iOS 15.0, *) {
+            configuration = configuration.applying(UIImage.SymbolConfiguration(hierarchicalColor: .systemGray))
+            return image?.withConfiguration(configuration)
+        } else {
+            return image?.withConfiguration(configuration).withTintColor(.systemGray, renderingMode: .alwaysOriginal)
+        }
+    }()
+    
     private func collection(fromLocations locations: [MKMapItem]) -> InsetCollectionView.Collection {
         InsetCollectionView.Collection {
             Section {
                 for location in locations {
-                    Item(title: location.name ?? Localizations.locationSharingUntitledLocation, subtitle: location.placemark.thoroughfare, icon: UIImage(systemName: "location.magnifyingglass")) { [locationSelected = viewModel.locationSelected] in
+                    let subtitle = location.placemark.postalAddress
+                        .flatMap(Localizations.locationSharingDetailedAddress(for:))
+                    Item(title: location.name ?? Localizations.locationSharingUntitledLocation, subtitle: subtitle, icon: collectionItemIcon) { [locationSelected = viewModel.locationSelected] in
                         locationSelected.send(location)
                     }
                 }
@@ -98,9 +111,9 @@ class LocationListViewModel: ObservableObject {
         setupReducer()
     }
     
-    func setupReducer() {
+    private func setupReducer() {
         updateLocations
-            .assign(to: \.locations, on: self)
+            .assign(to: \.locations, onWeak: self)
             .store(in: &cancelBag)
     }
 }

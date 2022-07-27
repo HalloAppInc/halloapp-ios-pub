@@ -408,6 +408,7 @@
 		EE83E4452877A3BB0010E144 /* LocationSharingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE83E4442877A3BB0010E144 /* LocationSharingViewModel.swift */; };
 		EE83E4472877A4350010E144 /* LocationSharingEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE83E4462877A4350010E144 /* LocationSharingEnvironment.swift */; };
 		EE969F642847EE49006F491A /* HAMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE969F632847EE49006F491A /* HAMenu.swift */; };
+		EEB3393428860FE0001760F6 /* AnnotationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEB3393328860FDF001760F6 /* AnnotationView.swift */; };
 		EECB00B0286E2396003996B3 /* LocationSharingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EECB00AF286E2396003996B3 /* LocationSharingViewController.swift */; };
 		EECB00B4286E454F003996B3 /* LocationListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EECB00B3286E454F003996B3 /* LocationListViewController.swift */; };
 		EECC0A9128791CF700F5AFFF /* Combine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EECC0A9028791CF700F5AFFF /* Combine.swift */; };
@@ -1183,6 +1184,7 @@
 		EE83E4442877A3BB0010E144 /* LocationSharingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSharingViewModel.swift; sourceTree = "<group>"; };
 		EE83E4462877A4350010E144 /* LocationSharingEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSharingEnvironment.swift; sourceTree = "<group>"; };
 		EE969F632847EE49006F491A /* HAMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HAMenu.swift; sourceTree = "<group>"; };
+		EEB3393328860FDF001760F6 /* AnnotationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationView.swift; sourceTree = "<group>"; };
 		EECB00AF286E2396003996B3 /* LocationSharingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSharingViewController.swift; sourceTree = "<group>"; };
 		EECB00B3286E454F003996B3 /* LocationListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationListViewController.swift; sourceTree = "<group>"; };
 		EECC0A9028791CF700F5AFFF /* Combine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Combine.swift; sourceTree = "<group>"; };
@@ -2366,6 +2368,7 @@
 				EE83E4442877A3BB0010E144 /* LocationSharingViewModel.swift */,
 				EECB00B3286E454F003996B3 /* LocationListViewController.swift */,
 				EE83E4462877A4350010E144 /* LocationSharingEnvironment.swift */,
+				EEB3393328860FDF001760F6 /* AnnotationView.swift */,
 			);
 			path = "Location Sharing";
 			sourceTree = "<group>";
@@ -3052,6 +3055,7 @@
 				7653F2FA255DB4E7001CC946 /* FeedCollectionViewController.swift in Sources */,
 				F408E27B281B0BDE00A49B29 /* MigrationViewController.swift in Sources */,
 				3295A55B28808EC1007642B5 /* DestinationPickerViewController.swift in Sources */,
+				EEB3393428860FE0001760F6 /* AnnotationView.swift in Sources */,
 				EA8D4721233C25B8006E2BA5 /* VerificationViewController.swift in Sources */,
 				68C8264B251A77A000BB8F3A /* NUX.swift in Sources */,
 				3283059727D2A88E00AD661A /* MessageCellViewText.swift in Sources */,

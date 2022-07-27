@@ -1116,6 +1116,40 @@ extension FlatCommentsViewController: ContentInputDelegate {
         HAMenuButton(title: Localizations.fabAccessibilityCamera, image: UIImage(systemName: "camera.fill")) { [weak self] in
             self?.presentCameraViewController()
         }
+        HAMenuButton(title: Localizations.locationSharingNavTitle, image: UIImage(systemName: "location.fill")) { [weak self] in
+            self?.presentLocationSharingViewController()
+        }
+    }
+
+    private func presentLocationSharingViewController() {
+        let locationSharingViewController = LocationSharingViewController()
+        
+        locationSharingViewController.viewModel.sharePlacemark
+            .first()
+            .flatMap(LocationMessage.from(placemark:))
+            .flatMap { (message: LocationMessage) -> AnyPublisher<(text: String, media: PendingMedia), Never> in
+                let media = PendingMedia(type: .image)
+                return media.ready
+                    .filter { $0 }
+                    .map { _ in (message.text, media) }
+                    .handleEvents(receiveSubscription: { _ in
+                        media.image = message.image
+                    })
+                    .eraseToAnyPublisher()
+            }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] (text, media) in
+                self?.dismiss(animated: true)
+                self?.postComment(text: MentionText(collapsedText: text, mentions: [:]), media: media, linkPreviewData: nil, linkPreviewMedia: nil)
+            }
+            .store(in: &cancellableSet)
+
+        let navigationController = UINavigationController(rootViewController: locationSharingViewController)
+        if #available(iOS 15.0, *), let sheet = navigationController.sheetPresentationController {
+            sheet.detents = [.medium(), .large()]
+        }
+
+        present(navigationController, animated: true)
     }
 
     private func presentCameraViewController() {

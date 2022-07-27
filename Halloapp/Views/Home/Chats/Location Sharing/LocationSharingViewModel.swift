@@ -15,31 +15,35 @@ import CocoaLumberjackSwift
 class LocationSharingViewModel: ObservableObject {
     typealias MapConfiguration = LocationSharingEnvironment.MapConfiguration
     typealias Alert = LocationSharingEnvironment.Alert
+    typealias LongPressAnnotation = LocationSharingEnvironment.LongPressAnnotation
     
     var environment: LocationSharingEnvironment = .default
     
     var cancelBag: Set<AnyCancellable> = []
     
     var locationList: LocationListViewModel = .init()
+    var bottomBar: BottomBarViewModel = .init()
     
     // MARK: States
     @Published var isAuthorizedToAccessLocation: Bool = false
     @Published var userLocation: MKUserLocation = .init()
     @Published var userTrackingMode: MKUserTrackingMode = .none
     @Published var showsMapView: Bool = false
+    @Published var showsLocationListView: Bool = false
     @Published var mapConfiguration: MapConfiguration = .explore
     @Published var mapRegion: MKCoordinateRegion = .init()
     @Published var selectedAnnotation: (any MKAnnotation)? = nil
+    @Published var longPressAnnotation: LongPressAnnotation? = nil  // No more than one long press annotations on the map.
     @Published var alert: Alert? = nil
     
     // MARK: Actions
     var onAppear: PassthroughSubject<Void, Never> = .init()
-    var searchTextChanged: PassthroughSubject<String?, Never> = .init()
     var userLocationUpdated: PassthroughSubject<MKUserLocation, Never> = .init()
+    var userTrackingModeChanged: PassthroughSubject<MKUserTrackingMode, Never> = .init()
+    var userTrackingButtonTapped: PassthroughSubject<Void, Never> = .init()
     var mapViewLoaded: PassthroughSubject<Void, Never> = .init()
     var mapRegionChanged: PassthroughSubject<MKCoordinateRegion, Never> = .init()
     var changeMapConfiguration: PassthroughSubject<MapConfiguration, Never> = .init()
-    var changeUserTrackingMode: PassthroughSubject<MKUserTrackingMode, Never> = .init()
     var shareLocationWithAnnotation: PassthroughSubject<any MKAnnotation, Never> = .init()
     var sharePlacemark: PassthroughSubject<CLPlacemark, Never> = .init()
     var annotationSelectionChanged: PassthroughSubject<(any MKAnnotation)?, Never> = .init()
@@ -47,6 +51,7 @@ class LocationSharingViewModel: ObservableObject {
     var openAppSettings: PassthroughSubject<Void, Never> = .init()
     var showAlert: PassthroughSubject<Alert, Never> = .init()
     var alertDismissed: PassthroughSubject<Void, Never> = .init()
+    var longPressedAtCoordinate: PassthroughSubject<CLLocationCoordinate2D, Never> = .init()
     
     init() {
         setupReducer()
@@ -73,30 +78,6 @@ class LocationSharingViewModel: ObservableObject {
             }
             .store(in: &cancelBag)
         
-        searchTextChanged
-            .debounce(for: 0.3, scheduler: RunLoop.main)
-            .compactMap { [weak self, environment] (searchText: String?) -> AnyPublisher<Result<[MKMapItem], Error>, Never>? in
-                if let region = self?.mapRegion {
-                    return environment.performLocalSearch(for: searchText, around: region)
-                        .mapToResult()
-                        .eraseToAnyPublisher()
-                } else {
-                    return nil
-                }
-            }
-            .switchToLatest()
-            .receive(on: DispatchQueue.main)
-            .sink { [updateLocations = locationList.updateLocations, showAlert] (result: Result<[MKMapItem], any Error>) in
-                switch result {
-                case let .success(locations):
-                    updateLocations.send(locations)
-                case let .failure(error):
-                    DDLogError("LocationSharingViewModel/performLocalSearchFromSearchText/error: \(error)")
-                    showAlert.send(.localSearchFailed)
-                }
-            }
-            .store(in: &cancelBag)
-        
         userLocationUpdated
             .assign(to: \.userLocation, onWeak: self)
             .store(in: &cancelBag)
@@ -105,6 +86,31 @@ class LocationSharingViewModel: ObservableObject {
             .first()
             .map { _ in MKUserTrackingMode.followWithHeading }
             .assign(to: \.userTrackingMode, onWeak: self)
+            .store(in: &cancelBag)
+        
+        userTrackingModeChanged
+            .assign(to: \.userTrackingMode, onWeak: self)
+            .store(in: &cancelBag)
+        
+        userTrackingButtonTapped
+            .compactMap { [weak self] in self?.userTrackingMode }
+            .map { ($0 != .none) ? MKUserTrackingMode.none : .followWithHeading }
+            .sink { [weak self] newMode in
+                guard let self = self else { return }
+                guard self.isAuthorizedToAccessLocation else {
+                    self.alert = .locationAccessRequired
+                    return
+                }
+                
+                self.userTrackingMode = newMode
+                
+                // Select/Deselect user location based on new tracking mode.
+                if newMode != .none {
+                    self.selectedAnnotation = self.userLocation
+                } else if self.selectedAnnotation === self.userLocation {
+                    self.selectedAnnotation = nil
+                }
+            }
             .store(in: &cancelBag)
         
         // Show the map view when it finishes loading for the first time after the user location has been determined,
@@ -128,17 +134,6 @@ class LocationSharingViewModel: ObservableObject {
         
         changeMapConfiguration
             .assign(to: \.mapConfiguration, onWeak: self)
-            .store(in: &cancelBag)
-        
-        changeUserTrackingMode
-            .sink { [weak self] newValue in
-                guard let self = self else { return }
-                if newValue != .none, !self.isAuthorizedToAccessLocation {
-                    self.alert = .locationAccessRequired
-                } else {
-                    self.userTrackingMode = newValue
-                }
-            }
             .store(in: &cancelBag)
         
         shareLocationWithAnnotation
@@ -198,5 +193,53 @@ class LocationSharingViewModel: ObservableObject {
             .map { nil }
             .assign(to: \.alert, onWeak: self)
             .store(in: &cancelBag)
+        
+        longPressedAtCoordinate
+            .map(LongPressAnnotation.init(coordinate:))
+            .sink { [weak self] annotation in
+                self?.longPressAnnotation = annotation
+                self?.selectedAnnotation = annotation
+            }
+            .store(in: &cancelBag)
+        
+        // MARK: Search
+        bottomBar.searchTextChanged
+            .map { !$0.isEmpty }
+            .assign(to: \.showsLocationListView, onWeak: self)
+            .store(in: &cancelBag)
+        
+        bottomBar.searchTextChanged
+            .debounce(for: 0.3, scheduler: RunLoop.main)
+            .map { [weak self, environment] (searchText: String) -> AnyPublisher<Result<[MKMapItem], Error>, Never> in
+                if let region = self?.mapRegion, !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    return environment.performLocalSearch(for: searchText, around: region)
+                        .mapToResult()
+                        .eraseToAnyPublisher()
+                } else {
+                    return Just(.success([])).eraseToAnyPublisher()
+                }
+            }
+            .switchToLatest()
+            .receive(on: DispatchQueue.main)
+            .sink { [updateLocations = locationList.updateLocations, showAlert] (result: Result<[MKMapItem], any Error>) in
+                switch result {
+                case let .success(locations):
+                    updateLocations.send(locations)
+                case let .failure(error):
+                    DDLogError("LocationSharingViewModel/performLocalSearchFromSearchText/error: \(error)")
+                    showAlert.send(.localSearchFailed)
+                }
+            }
+            .store(in: &cancelBag)
+    }
+}
+
+extension LocationSharingViewModel {
+    @MainActor
+    class BottomBarViewModel: ObservableObject {
+        var cancelBag: Set<AnyCancellable> = []
+        
+        // MARK: Actions
+        var searchTextChanged: PassthroughSubject<String, Never> = .init()
     }
 }

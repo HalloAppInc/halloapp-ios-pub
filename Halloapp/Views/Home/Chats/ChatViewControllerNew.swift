@@ -1321,15 +1321,14 @@ extension ChatViewControllerNew: ContentInputDelegate {
         HAMenuButton(title: Localizations.fabAccessibilityCamera, image: UIImage(systemName: "camera.fill")) { [weak self] in
             self?.presentCameraViewController()
         }
-        if AppContext.shared.userDefaults.bool(forKey: "enableLocationSharing") {
-            HAMenuButton(title: "Location", image: UIImage(systemName: "location.fill")) { [weak self] in
-                self?.presentLocationSharingViewController()
-            }
+        HAMenuButton(title: Localizations.locationSharingNavTitle, image: UIImage(systemName: "location.fill")) { [weak self] in
+            self?.presentLocationSharingViewController()
         }
     }
     
     private func presentLocationSharingViewController() {
         let locationSharingViewController = LocationSharingViewController()
+        
         locationSharingViewController.viewModel.sharePlacemark
             .first()
             .flatMap(LocationMessage.from(placemark:))
@@ -1349,7 +1348,13 @@ extension ChatViewControllerNew: ContentInputDelegate {
                 self?.sendMessage(text: text, media: [media], linkPreviewData: nil, linkPreviewMedia: nil)
             }
             .store(in: &cancellableSet)
-        present(UINavigationController(rootViewController: locationSharingViewController), animated: true)
+
+        let navigationController = UINavigationController(rootViewController: locationSharingViewController)
+        if #available(iOS 15.0, *), let sheet = navigationController.sheetPresentationController {
+            sheet.detents = [.medium(), .large()]
+        }
+
+        present(navigationController, animated: true)
     }
     
     private func presentCameraViewController() {
