@@ -680,7 +680,7 @@ class MediaPickerViewController: UIViewController {
         nextInProgress = true
         
         var result = [PendingMedia]()
-        let manager = PHImageManager.default()
+
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
 
@@ -701,96 +701,18 @@ class MediaPickerViewController: UIViewController {
                     let media = PendingMedia(type: .image)
                     media.asset = asset
                     media.order = i
-                    
-                    let options = PHImageRequestOptions()
-                    options.isSynchronous = false
-                    options.isNetworkAccessAllowed = true
-                    options.deliveryMode = .highQualityFormat
-                    options.progressHandler = { progress, error, stop, _ in
-                        DDLogInfo("MediaPickerViewController/next/image/progress [\(progress)] asset=[\(asset)]")
-                        media.progress.send(Float(progress))
 
-                        if let error = error {
-                            DDLogError("MediaPickerViewController/next/image error=[\(error)] asset=[\(asset)]")
-                            media.error.send(PendingMediaError.loadingError)
-                        }
-                    }
-
-                    manager.requestImage(for: asset, targetSize: PHImageManagerMaximumSize, contentMode: .default, options: options) { image, _ in
-                        guard let image = image else {
-                            DDLogWarn("MediaPickerViewController/next/image Unable to fetch image")
-                            return media.error.send(PendingMediaError.loadingError)
-                        }
-
-                        media.image = image
-                    }
-                    
                     result.append(media)
+
+                    self.request(image: media)
                 case .video:
                     let media = PendingMedia(type: .video)
                     media.asset = asset
                     media.order = i
-
-                    let options = PHVideoRequestOptions()
-                    options.isNetworkAccessAllowed = true
-                    options.deliveryMode = .highQualityFormat
-                    options.progressHandler = { progress, error, stop, _ in
-                        DDLogInfo("MediaPickerViewController/next/video/progress [\(progress)] asset=[\(asset)]")
-                        if progress < 1.0 {
-                            media.progress.send(Float(progress))
-                        }
-
-                        if let error = error {
-                            DDLogError("MediaPickerViewController/next/video error=[\(error)] asset=[\(asset)]")
-                            media.error.send(PendingMediaError.loadingError)
-                        }
-                    }
-
-                    manager.requestAVAsset(forVideo: asset, options: options) { avasset, _, _ in
-                        // Sometimes NextLevelSessionExporterError/AVAssetReader is unable to process videos if they are not copied first
-                        let url = URL(fileURLWithPath: NSTemporaryDirectory())
-                            .appendingPathComponent(UUID().uuidString, isDirectory: false)
-                            .appendingPathExtension("mp4")
-
-                        if let video = avasset as? AVURLAsset {
-                            do {
-                                try FileManager.default.copyItem(at: video.url, to: url)
-                            } catch {
-                                DDLogError("MediaPickerViewController/next/video/copy/error Failed to copy [\(error)] url=[\(video.url.description)] tmp=[\(url.description)]")
-                                return media.error.send(PendingMediaError.loadingError)
-                            }
-                            DDLogInfo("MediaPickerViewController/next/video/copy/ready  Temporary url: [\(url.description)] url=[\(video.url.description)] original order=[\(media.order)]")
-
-                            media.originalVideoURL = url
-                            media.fileURL = url
-                        } else if let composition = avasset as? AVComposition {
-                            let slowMotion = (asset.mediaSubtypes.rawValue & PHAssetMediaSubtype.videoHighFrameRate.rawValue) != 0
-
-                            VideoUtils.save(composition: composition, to: url, slowMotion: slowMotion) { result in
-                                DispatchQueue.main.async {
-                                    switch(result) {
-                                    case .success(let url):
-                                        DDLogInfo("MediaPickerViewController/next/video/copy/ready  Temporary url: [\(url.description)] order=[\(media.order)]")
-                                        media.originalVideoURL = url
-                                        media.fileURL = url
-                                    case .failure(let error):
-                                        DDLogError("MediaPickerViewController/next/video/copy/error Failed to save [\(error)] tmp=[\(url.description)]")
-                                        media.error.send(PendingMediaError.loadingError)
-                                    }
-                                }
-                            }
-                        } else {
-                            if let avasset = avasset {
-                                DDLogWarn("MediaPickerViewController/next/video Unknown video type \(String(describing: type(of: avasset)))")
-                            } else {
-                                DDLogWarn("MediaPickerViewController/next/video Missing video")
-                            }
-
-                            media.error.send(PendingMediaError.loadingError)
-                        }
-                    }
                     
                     result.append(media)
+
+                    self.request(video: media)
                 default:
                     continue
                 }
@@ -805,6 +727,116 @@ class MediaPickerViewController: UIViewController {
 
                 self.nextInProgress = false
                 self.didFinish(self, self.config.destination, self.config.privacyListType, result, false)
+            }
+        }
+    }
+
+    private func request(image media: PendingMedia, retriesLeft: Int = 3) {
+        guard let asset = media.asset else { return }
+
+        let options = PHImageRequestOptions()
+        options.isSynchronous = false
+        options.isNetworkAccessAllowed = true
+        options.deliveryMode = .highQualityFormat
+        options.progressHandler = { progress, error, stop, _ in
+            DDLogInfo("MediaPickerViewController/request/image/progress [\(progress)] asset=[\(asset)]")
+            media.progress.send(Float(progress))
+
+            if let error = error {
+                DDLogError("MediaPickerViewController/request/image error=[\(error)] asset=[\(asset)]")
+            }
+        }
+
+        PHImageManager.default().requestImage(for: asset, targetSize: PHImageManagerMaximumSize, contentMode: .default, options: options) { image, _ in
+            guard let image = image else {
+                if retriesLeft > 0 {
+                    DDLogWarn("MediaPickerViewController/request/image retry \(retriesLeft) asset=[\(asset)]")
+
+                    let delay = Double((4 - retriesLeft) * 2)
+                    DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + delay) { [weak self] in
+                        self?.request(image: media, retriesLeft: retriesLeft - 1)
+                    }
+                } else {
+                    DDLogWarn("MediaPickerViewController/request/image Unable to fetch image asset=[\(asset)]")
+                    media.error.send(PendingMediaError.loadingError)
+                }
+
+                return
+            }
+
+            media.image = image
+        }
+    }
+
+    private func request(video media: PendingMedia, retriesLeft: Int = 3) {
+        guard let asset = media.asset else { return }
+
+        let options = PHVideoRequestOptions()
+        options.isNetworkAccessAllowed = true
+        options.deliveryMode = .highQualityFormat
+        options.progressHandler = { progress, error, stop, _ in
+            DDLogInfo("MediaPickerViewController/request/video/progress [\(progress)] asset=[\(asset)]")
+
+            if progress < 1.0 {
+                media.progress.send(Float(progress))
+            }
+
+            if let error = error {
+                DDLogError("MediaPickerViewController/request/video error=[\(error)] asset=[\(asset)]")
+            }
+        }
+
+        PHImageManager.default().requestAVAsset(forVideo: asset, options: options) { avasset, _, _ in
+            // Sometimes NextLevelSessionExporterError/AVAssetReader is unable to process videos if they are not copied first
+            let url = URL(fileURLWithPath: NSTemporaryDirectory())
+                .appendingPathComponent(UUID().uuidString, isDirectory: false)
+                .appendingPathExtension("mp4")
+
+            if let video = avasset as? AVURLAsset {
+                do {
+                    try FileManager.default.copyItem(at: video.url, to: url)
+                } catch {
+                    DDLogError("MediaPickerViewController/request/video/copy/error [\(error)] url=[\(video.url.description)] tmp=[\(url.description)]")
+                    return media.error.send(PendingMediaError.loadingError)
+                }
+
+                DDLogInfo("MediaPickerViewController/request/video/copy/ready  Temporary url: [\(url.description)] url=[\(video.url.description)] original order=[\(media.order)]")
+
+                media.originalVideoURL = url
+                media.fileURL = url
+            } else if let composition = avasset as? AVComposition {
+                let slowMotion = (asset.mediaSubtypes.rawValue & PHAssetMediaSubtype.videoHighFrameRate.rawValue) != 0
+
+                VideoUtils.save(composition: composition, to: url, slowMotion: slowMotion) { result in
+                    DispatchQueue.main.async {
+                        switch(result) {
+                        case .success(let url):
+                            DDLogInfo("MediaPickerViewController/request/video/copy/ready  Temporary url: [\(url.description)] order=[\(media.order)]")
+                            media.originalVideoURL = url
+                            media.fileURL = url
+                        case .failure(let error):
+                            DDLogError("MediaPickerViewController/request/video/copy/error Failed to save [\(error)] tmp=[\(url.description)]")
+                            media.error.send(PendingMediaError.loadingError)
+                        }
+                    }
+                }
+            } else {
+                if retriesLeft > 0 {
+                    DDLogWarn("MediaPickerViewController/request/video retry \(retriesLeft) asset=[\(asset)]")
+
+                    let delay = Double((4 - retriesLeft) * 2)
+                    DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + delay) { [weak self] in
+                        self?.request(video: media, retriesLeft: retriesLeft - 1)
+                    }
+                } else {
+                    if let avasset = avasset {
+                        DDLogWarn("MediaPickerViewController/request/video Unknown video type \(String(describing: type(of: avasset)))")
+                    } else {
+                        DDLogWarn("MediaPickerViewController/request/video Missing video")
+                    }
+
+                    media.error.send(PendingMediaError.loadingError)
+                }
             }
         }
     }
