@@ -390,17 +390,7 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
                     progressView.setState(.uploading, animated: animateStatusChange)
                     if mediaCount > 0 {
                         var animateProgressChange = false
-                        // Send PostID to handle initial progress population
-                        Publishers.Merge3(ImageServer.shared.progress, MainAppContext.shared.feedData.mediaUploader.uploadProgressDidChange, Just(postID))
-                            .filter { $0 == postID }
-                            .map { _ -> Float in
-                                var (processingCount, processingProgress) = ImageServer.shared.progress(for: postID)
-                                var (uploadCount, uploadProgress) = MainAppContext.shared.feedData.mediaUploader.uploadProgress(forGroupId: postID)
-
-                                processingProgress = processingProgress * Float(processingCount) / Float(mediaCount)
-                                uploadProgress = uploadProgress * Float(uploadCount) / Float(mediaCount)
-                                return (processingProgress + uploadProgress) / 2.0
-                            }
+                        MainAppContext.shared.feedData.uploadProgressPublisher(for: post)
                             .receive(on: DispatchQueue.main)
                             .sink { progress in
                                 progressView.setProgress(progress, animated: animateProgressChange)

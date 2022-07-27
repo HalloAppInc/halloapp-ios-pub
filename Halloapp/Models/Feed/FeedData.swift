@@ -3477,6 +3477,27 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     // MARK: Media Upload
+
+    public func uploadProgressPublisher(for post: FeedPost) -> AnyPublisher<Float, Never> {
+        let postID = post.id
+        let mediaCount = post.mediaCount
+        guard mediaCount > 0 else {
+            return Just(Float(1)).eraseToAnyPublisher()
+        }
+        // Send PostID to handle initial progress population
+        return Publishers.Merge3(ImageServer.shared.progress, MainAppContext.shared.feedData.mediaUploader.uploadProgressDidChange, Just(postID))
+            .filter { $0 == postID }
+            .map { _ -> Float in
+                var (processingCount, processingProgress) = ImageServer.shared.progress(for: postID)
+                var (uploadCount, uploadProgress) = MainAppContext.shared.feedData.mediaUploader.uploadProgress(forGroupId: postID)
+
+                processingProgress = processingProgress * Float(processingCount) / Float(mediaCount)
+                uploadProgress = uploadProgress * Float(uploadCount) / Float(mediaCount)
+                return (processingProgress + uploadProgress) / 2.0
+            }
+            .eraseToAnyPublisher()
+    }
+
     private func uploadMediaAndSend(feedPost: FeedPost) {
         let postId = feedPost.id
 

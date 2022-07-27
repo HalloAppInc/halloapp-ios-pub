@@ -21,7 +21,6 @@ class UploadProgressControl: UIControl {
 
     private(set) var feedPost: FeedPost?
     private var processingCancellable: AnyCancellable?
-    private var uploadingCancellable: AnyCancellable?
     private var postStatusCancellable: AnyCancellable?
 
     private lazy var progressIndicator: ProgressViewContainer = {
@@ -129,10 +128,6 @@ class UploadProgressControl: UIControl {
         }
 
         feedPost = post
-        let postID = post.id
-        let mediaCount = post.mediaCount
-        let uploader = MainAppContext.shared.feedData.mediaUploader
-        let imageServer = ImageServer.shared
 
         if case .sent = post.status {
             updateState(to: .success)
@@ -140,25 +135,11 @@ class UploadProgressControl: UIControl {
         }
 
         updateState(to: .uploading)
-        let initialProgress = totalProgress(for: post.id, count: post.mediaCount)
-        progress = initialProgress > 0 ? initialProgress : 0.05
 
-        processingCancellable = imageServer.progress
-            .compactMap { [weak self] (id: FeedPostID) -> Float? in
-                return id != postID ? nil : self?.totalProgress(for: id, count: mediaCount)
-            }
+        processingCancellable = MainAppContext.shared.feedData.uploadProgressPublisher(for: post)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] progress in
-                self?.progress = progress
-            }
-
-        uploadingCancellable = uploader.uploadProgressDidChange
-            .compactMap { [weak self] (id: FeedPostID) -> Float? in
-                return id != postID ? nil : self?.totalProgress(for: id, count: mediaCount)
-            }
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] progress in
-                self?.progress = progress
+                self?.progress = progress > 0 ? progress : 0.05
             }
 
         postStatusCancellable = post.publisher(for: \.statusValue)
@@ -174,24 +155,6 @@ class UploadProgressControl: UIControl {
                     break
                 }
             }
-    }
-
-    private func totalProgress(for postID: FeedPostID, count: Int) -> Float {
-        guard count > 0 else {
-            return 0
-        }
-
-        let count = Float(count)
-        let uploader = MainAppContext.shared.feedData.mediaUploader
-        let imageServer = ImageServer.shared
-
-        var (processCount, processProgress) = imageServer.progress(for: postID)
-        var (uploadCount, uploadProgress) = uploader.uploadProgress(forGroupId: postID)
-
-        processProgress = processProgress * Float(processCount) / count
-        uploadProgress = uploadProgress * Float(uploadCount) / count
-
-        return (processProgress + uploadProgress) / 2
     }
 
     private func updateState(to newState: State, animate: Bool = false) {

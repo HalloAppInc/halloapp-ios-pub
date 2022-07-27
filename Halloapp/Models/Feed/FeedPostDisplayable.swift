@@ -40,6 +40,8 @@ protocol FeedPostDisplayable {
     var posterFullName: String { get }
     var expiration: Date? { get }
 
+    var uploadProgressPublisher: AnyPublisher<Float, Never> { get }
+
     func userAvatar(using avatarStore: AvatarStore) -> UserAvatar
 }
 
@@ -127,6 +129,10 @@ extension FeedPost: FeedPostDisplayable {
     var posterFullName: String {
         return MainAppContext.shared.contactStore.fullName(for: userID,
                                                            in: MainAppContext.shared.contactStore.viewContext)
+    }
+
+    var uploadProgressPublisher: AnyPublisher<Float, Never> {
+        return MainAppContext.shared.feedData.uploadProgressPublisher(for: self)
     }
 
     func userAvatar(using avatarStore: AvatarStore) -> UserAvatar {

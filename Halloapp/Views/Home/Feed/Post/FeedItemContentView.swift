@@ -973,24 +973,13 @@ final class FeedItemFooterView: UIView {
             hideErrorView()
 
             if post.mediaCount > 0 {
-                let postId = post.id
-                let mediaUploader = MainAppContext.shared.feedData.mediaUploader
-
                 progressView.isIndeterminate = false
 
-                processingProgressCancellable = ImageServer.shared.progress.receive(on: DispatchQueue.main).sink { [weak self] id in
-                    guard let self = self else { return }
-                    guard postId == id else { return }
-                    self.updateSendingProgress(for: post)
-                }
-
-                uploadProgressCancellable = mediaUploader.uploadProgressDidChange.receive(on: DispatchQueue.main).sink { [weak self] groupId in
-                    guard let self = self else { return }
-                    guard postId == groupId else { return }
-                    self.updateSendingProgress(for: post)
-                }
-
-                updateSendingProgress(for: post)
+                uploadProgressCancellable = post.uploadProgressPublisher
+                    .receive(on: DispatchQueue.main)
+                    .sink { [weak progressView] progress in
+                        progressView?.progress = progress
+                    }
             } else {
                 progressView.progress = 0.5
             }
@@ -998,19 +987,6 @@ final class FeedItemFooterView: UIView {
             showSendErrorView()
             hideProgressView()
         }
-    }
-
-    private func updateSendingProgress(for post: FeedPostDisplayable) {
-        let count = post.mediaCount
-        guard count > 0 else { return }
-
-        var (processingCount, processingProgress) = ImageServer.shared.progress(for: post.id)
-        var (uploadCount, uploadProgress) = MainAppContext.shared.feedData.mediaUploader.uploadProgress(forGroupId: post.id)
-
-        processingProgress = processingProgress * Float(processingCount) / Float(count)
-        uploadProgress = uploadProgress * Float(uploadCount) / Float(count)
-
-        progressView.progress = (processingProgress + uploadProgress) / 2
     }
 
     func prepareForReuse() {
@@ -1024,7 +1000,6 @@ final class FeedItemFooterView: UIView {
 
     static private let progressViewTag = 1
 
-    private var processingProgressCancellable: AnyCancellable?
     private var uploadProgressCancellable: AnyCancellable?
 
     private lazy var progressView: PostingProgressView = {
