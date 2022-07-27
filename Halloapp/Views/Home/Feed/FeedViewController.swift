@@ -530,6 +530,7 @@ extension FeedViewController: UIViewControllerHandleTapNotification {
             DDLogDebug("FeedViewController/processNotification/screenshot for post \(feedPost.id)")
             scrollTo(postId: feedPost.id)
             let dashboard = PostDashboardViewController(feedPost: feedPost)
+            dashboard.delegate = self
             present(UINavigationController(rootViewController: dashboard), animated: true)
         default:
             break
