@@ -27,6 +27,8 @@ public extension GroupEvent {
         case setBackground = 10
 
         case changeDescription = 11
+
+        case changeExpiry = 12
     }
 
     enum MemberAction: Int16 {
@@ -49,6 +51,8 @@ public extension GroupEvent {
     @NSManaged var groupName: String?
     @NSManaged var groupID: GroupID
     @NSManaged var timestamp: Date
+    @NSManaged private var groupExpirationTypeValue: Int16
+    @NSManaged var groupExpirationTime: Int64
 
     var action: GroupEvent.Action {
         get {
@@ -65,6 +69,15 @@ public extension GroupEvent {
         }
         set {
             self.memberActionValue = newValue.rawValue
+        }
+    }
+
+    var groupExpirationType: Group.ExpirationType {
+        get {
+            return Group.ExpirationType(rawValue: groupExpirationTypeValue) ?? .expiresInSeconds
+        }
+        set {
+            groupExpirationTypeValue = newValue.rawValue
         }
     }
 }

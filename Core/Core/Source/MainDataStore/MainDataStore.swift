@@ -396,6 +396,10 @@ open class MainDataStore {
         }
     }
 
+    public func group(id: GroupID, in managedObjectContext: NSManagedObjectContext) -> Group? {
+        return groups(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext).first
+    }
+
     public func chatThread(id: String, in managedObjectContext: NSManagedObjectContext) -> CommonThread? {
         return commonThreads(predicate: NSPredicate(format: "userID == %@", id), in: managedObjectContext).first
     }

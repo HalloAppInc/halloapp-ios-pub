@@ -43,7 +43,7 @@ class GroupGridDataSource: NSObject {
         let fetchRequest = FeedPost.fetchRequest()
         fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
             NSPredicate(format: "groupID != nil"),
-            NSPredicate(format: "timestamp >= %@", FeedData.postCutoffDate as NSDate),
+            NSPredicate(format: "expiration >= now() || expiration == nil"),
             NSPredicate(format: "fromExternalShare == NO"),
             NSPredicate(format: "NOT statusValue IN %@", [FeedPost.Status.retracting, FeedPost.Status.retracted].map(\.rawValue)),
         ])

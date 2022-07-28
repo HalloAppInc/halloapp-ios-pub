@@ -41,6 +41,7 @@ public struct PostData {
     public var timestamp: Date = Date()
     public var status: FeedItemStatus
     public let isShared: Bool
+    public let expiration: Date?
 
     // MARK: FeedPost
     public var content: PostContent
@@ -146,18 +147,19 @@ public struct PostData {
         return counters
     }
 
-    public init(id: FeedPostID, userId: UserID, content: PostContent, timestamp: Date = Date(), status: FeedItemStatus, isShared: Bool = false, audience: FeedAudience?, commentKey: Data?) {
+    public init(id: FeedPostID, userId: UserID, content: PostContent, timestamp: Date = Date(), expiration: Date?, status: FeedItemStatus, isShared: Bool = false, audience: FeedAudience?, commentKey: Data?) {
         self.id = id
         self.userId = userId
         self.content = content
         self.timestamp = timestamp
+        self.expiration = expiration
         self.status = status
         self.isShared = isShared
         self.audience = audience
         self.commentKey = commentKey
     }
 
-    public init(id: FeedPostID, userId: UserID, content: PostContent, timestamp: Date = Date(), status: FeedItemStatus, isShared: Bool = false, audience: Server_Audience?, commentKey: Data?) {
+    public init(id: FeedPostID, userId: UserID, content: PostContent, timestamp: Date = Date(), expiration: Date?, status: FeedItemStatus, isShared: Bool = false, audience: Server_Audience?, commentKey: Data?) {
         var feedAudience: FeedAudience?
         // Setup audience
         if let audience = audience {
@@ -178,11 +180,11 @@ public struct PostData {
                 feedAudience = FeedAudience(audienceType: audienceType, userIds: Set(audienceUserIDs))
             }
         }
-        self.init(id: id, userId: userId, content: content, timestamp: timestamp, status: status,
+        self.init(id: id, userId: userId, content: content, timestamp: timestamp, expiration: expiration, status: status,
                   isShared: isShared, audience: feedAudience, commentKey: commentKey)
     }
 
-    public init?(_ serverPost: Server_Post, status: FeedItemStatus, itemAction: ItemAction, usePlainTextPayload: Bool = true,
+    public init?(_ serverPost: Server_Post, expiration: Date?, status: FeedItemStatus, itemAction: ItemAction, usePlainTextPayload: Bool = true,
                  isShared: Bool = false) {
 
         let postId = serverPost.id
@@ -195,15 +197,15 @@ public struct PostData {
             if isShared {
                 switch itemAction {
                 case .none, .publish, .share:
-                    self.init(id: postId, userId: userId, timestamp: timestamp, payload: serverPost.payload, status: status, isShared: isShared, audience: serverPost.audience)
+                    self.init(id: postId, userId: userId, timestamp: timestamp, expiration: expiration, payload: serverPost.payload, status: status, isShared: isShared, audience: serverPost.audience)
                 case .retract:
-                    self.init(id: postId, userId: userId, content: .retracted, timestamp: timestamp, status: status, isShared: isShared, audience: serverPost.audience, commentKey: nil)
+                    self.init(id: postId, userId: userId, content: .retracted, timestamp: timestamp, expiration: expiration, status: status, isShared: isShared, audience: serverPost.audience, commentKey: nil)
                 }
             } else {
-                self.init(id: postId, userId: userId, timestamp: timestamp, payload: serverPost.payload, status: status, isShared: isShared, audience: serverPost.audience)
+                self.init(id: postId, userId: userId, timestamp: timestamp, expiration: expiration, payload: serverPost.payload, status: status, isShared: isShared, audience: serverPost.audience)
             }
         } else {
-            self.init(id: postId, userId: userId, content: .waiting, timestamp: timestamp, status: status, isShared: isShared, audience: serverPost.audience, commentKey: nil)
+            self.init(id: postId, userId: userId, content: .waiting, timestamp: timestamp, expiration: expiration, status: status, isShared: isShared, audience: serverPost.audience, commentKey: nil)
         }
 
         if case let .moment(media, _) = content, serverPost.momentUnlockUid == Int64(AppContextCommon.shared.userData.userId) {
@@ -211,25 +213,25 @@ public struct PostData {
         }
     }
 
-    public init?(id: String, userId: UserID, timestamp: Date, payload: Data, status: FeedItemStatus, isShared: Bool = false, audience: FeedAudience?) {
+    public init?(id: String, userId: UserID, timestamp: Date, expiration: Date?, payload: Data, status: FeedItemStatus, isShared: Bool = false, audience: FeedAudience?) {
         guard let processedContent = PostData.extractContent(postId: id, payload: payload) else {
             return nil
         }
         let commentKey = PostData.extractCommentKey(postId: id, payload: payload)
-        self.init(id: id, userId: userId, content: processedContent, timestamp: timestamp, status: status,
+        self.init(id: id, userId: userId, content: processedContent, timestamp: timestamp, expiration: expiration, status: status,
                   isShared: isShared, audience: audience, commentKey: commentKey)
     }
 
-    public init?(id: String, userId: UserID, timestamp: Date, payload: Data, status: FeedItemStatus, isShared: Bool = false, audience: Server_Audience?) {
+    public init?(id: String, userId: UserID, timestamp: Date, expiration: Date?, payload: Data, status: FeedItemStatus, isShared: Bool = false, audience: Server_Audience?) {
         guard let processedContent = PostData.extractContent(postId: id, payload: payload) else {
             return nil
         }
         let commentKey = PostData.extractCommentKey(postId: id, payload: payload)
-        self.init(id: id, userId: userId, content: processedContent, timestamp: timestamp, status: status,
+        self.init(id: id, userId: userId, content: processedContent, timestamp: timestamp, expiration: expiration, status: status,
                   isShared: isShared, audience: audience, commentKey: commentKey)
     }
 
-    public init?(blob: Clients_PostContainerBlob) {
+    public init?(blob: Clients_PostContainerBlob, expiration: Date?) {
         // Re-convert the postContainer to data so that we can save it for unsupported posts
         guard let payload = try? blob.postContainer.serializedData(),
               let content = Self.extractContent(postId: blob.postID, postContainer: blob.postContainer, payload: payload)  else {
@@ -241,6 +243,7 @@ public struct PostData {
                   userId: String(blob.uid),
                   content: content,
                   timestamp: Date(timeIntervalSince1970: TimeInterval(blob.timestamp)),
+                  expiration: expiration,
                   status: .received,
                   isShared: false,
                   audience: nil as FeedAudience?,

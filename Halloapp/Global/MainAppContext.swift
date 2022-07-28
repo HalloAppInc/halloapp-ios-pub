@@ -198,11 +198,13 @@ class MainAppContext: AppContext {
                 self.performAppUpdateMigrationIfNecessary()
                 self.migrateUploadDataIfNecessary()
                 self.migrateFeedPostLastUpdatedIfNecessary()
+                self.migrateFeedPostExpiryIfNecessary()
             }
         } else {
             performAppUpdateMigrationIfNecessary()
             migrateUploadDataIfNecessary()
             migrateFeedPostLastUpdatedIfNecessary()
+            migrateFeedPostExpiryIfNecessary()
         }
     }
 
@@ -246,6 +248,14 @@ class MainAppContext: AppContext {
         let key = "migration.feedpostlastupdated.complete.2"
         if !userDefaults.bool(forKey: key) {
             feedData.migrateFeedPostLastUpdated()
+            userDefaults.set(true, forKey: key)
+        }
+    }
+
+    private func migrateFeedPostExpiryIfNecessary() {
+        let key = "migration.feeedpostexpiry.complete"
+        if !userDefaults.bool(forKey: key) {
+            feedData.migrateFeedPostExpiration()
             userDefaults.set(true, forKey: key)
         }
     }

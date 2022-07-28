@@ -20,6 +20,7 @@ public enum GroupAction: String {
     case modifyMembers = "modify_members"
     case modifyAdmins = "modify_admins"
     case get = "get"
+    case changeExpiry = "change_expiry"
 }
 
 public enum GroupMemberType: Int {

@@ -46,6 +46,8 @@ struct XMPPGroup {
     private(set) var action: ChatGroupAction? = nil
     private(set) var members: [XMPPGroupMember]? = nil
     private(set) var audienceHash: Data? = nil
+    private(set) var expirationType: Group.ExpirationType? = nil
+    private(set) var expirationTime: Int64? = nil
 
     init(id: GroupID, name: String, avatarID: String? = nil) {
         self.groupId = id
@@ -66,6 +68,23 @@ struct XMPPGroup {
         self.description = protoGroup.description_p
         self.avatarID = protoGroup.avatarID
         self.members = protoGroup.members.compactMap { XMPPGroupMember(protoMember: $0) }
+
+        if protoGroup.hasExpiryInfo {
+            switch protoGroup.expiryInfo.expiryType {
+            case .expiresInSeconds:
+                expirationType = .expiresInSeconds
+                expirationTime = protoGroup.expiryInfo.expiresInSeconds
+            case .never:
+                expirationType = .never
+                expirationTime = 0
+            case .customDate:
+                expirationType = .customDate
+                expirationTime = protoGroup.expiryInfo.expiryTimestamp
+            case .UNRECOGNIZED(_):
+                expirationType = .expiresInSeconds
+                expirationTime = .thirtyDays
+            }
+        }
 
         if let protoBackgroundData = protoGroup.background.data(using: .utf8) {
             if let protoBackground = try? Clients_Background(serializedData: protoBackgroundData) {

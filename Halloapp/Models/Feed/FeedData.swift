@@ -73,7 +73,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     self.getArchivedPosts { [weak self] posts in
                         self?.deleteAssociatedData(for: posts, in: managedObjectContext)
                     }
-                    self.deleteNotifications(olderThan: Self.postCutoffDate, in: managedObjectContext)
+                    self.deleteNotifications(olderThan: Date(timeIntervalSinceNow: -FeedPost.defaultExpiration), in: managedObjectContext)
                 }
                 self.resendStuckItems()
                 self.resendPendingReadReceipts()
@@ -208,6 +208,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         post.rawData = legacy.rawData
         post.statusValue = Int16(legacy.statusValue)
         post.lastUpdated = legacy.timestamp
+        post.expiration = post.timestamp.addingTimeInterval(FeedPost.defaultExpiration)
         DDLogInfo("FeedData/migrateLegacyPost/finished/\(legacy.id)")
     }
 
@@ -311,6 +312,18 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
+    func migrateFeedPostExpiration() {
+        do {
+            try mainDataStore.saveSeriallyOnBackgroundContextAndWait { context in
+                self.feedPosts(predicate: NSPredicate(format: "expiration == nil"), in: context).forEach { feedPost in
+                    feedPost.expiration = feedPost.timestamp.addingTimeInterval(FeedPost.defaultExpiration)
+                }
+            }
+        } catch {
+            DDLogError("Failed to migrate FeedPostExpiration")
+        }
+    }
+
     // MARK: Fetched Results Controller
 
     private func processUnsupportedItems() {
@@ -330,7 +343,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         continue
                     }
                     // NB: Set isShared to true to avoid "New Post" banner
-                    guard let postData = PostData(id: post.id, userId: post.userId, timestamp: post.timestamp, payload: rawData, status: post.feedItemStatus, isShared: true, audience: post.audience) else {
+                    guard let postData = PostData(id: post.id,
+                                                  userId: post.userId,
+                                                  timestamp: post.timestamp,
+                                                  expiration: post.expiration,
+                                                  payload: rawData,
+                                                  status: post.feedItemStatus,
+                                                  isShared: true,
+                                                  audience: post.audience) else {
                         DDLogError("FeedData/processUnsupportedItems/posts/error [deserialization] [\(post.id)]")
                         continue
                     }
@@ -549,7 +569,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         // Fetch all feedposts in the group that have not expired yet.
         fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
             NSPredicate(format: "groupID == %@", groupID),
-            NSPredicate(format: "timestamp >= %@", Self.postCutoffDate as NSDate)
+            NSPredicate(format: "expiration >= now() || expiration == nil")
         ])
         // Fetch feedposts in reverse timestamp order.
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false)]
@@ -606,13 +626,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             if !archived {
                 fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
                     predicate,
-                    NSPredicate(format: "timestamp >= %@", Self.postCutoffDate as NSDate)
+                    NSPredicate(format: "expiration >= now() || expiration == nil")
                 ])
             } else {
                 fetchRequest.predicate = predicate
             }
         } else {
-            fetchRequest.predicate = NSPredicate(format: "timestamp >= %@", Self.postCutoffDate as NSDate)
+            fetchRequest.predicate = NSPredicate(format: "expiration >= now() || expiration == nil")
         }
         
         fetchRequest.sortDescriptors = sortDescriptors
@@ -829,6 +849,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     feedPost.userId = UserID(postIdContext.senderUid)
                     feedPost.timestamp = Date(timeIntervalSince1970: TimeInterval(postIdContext.timestamp))
                     feedPost.groupId = groupID
+                    if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: managedObjectContext) {
+                        feedPost.expiration = group.postExpirationDate(from: feedPost.timestamp)
+                    } else {
+                        DDLogError("FeedData/createTombstones/groupID: \(groupID) not found, setting default expiration...")
+                        feedPost.expiration = feedPost.timestamp.addingTimeInterval(FeedPost.defaultExpiration)
+                    }
                     posts[postId] = feedPost
                 } else {
                     DDLogInfo("FeedData/createTombstones/groupID: \(groupID)/post: \(postId)/post already present - skip")
@@ -1033,6 +1059,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.rawText = xmppPost.text
             feedPost.timestamp = xmppPost.timestamp
             feedPost.lastUpdated = xmppPost.timestamp
+            feedPost.expiration = xmppPost.expiration
              // This is safe to always update as we skip processing any existing posts if fromExternalShare
             feedPost.fromExternalShare = fromExternalShare
 
@@ -1785,10 +1812,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         let metadata = NotificationMetadata(contentId: receipt.itemId,
-                                          contentType: .screenshot,
-                                               fromId: receipt.userId,
+                                            contentType: .screenshot,
+                                            fromId: receipt.userId,
                                             timestamp: receipt.timestamp,
-                                                 data: nil,
+                                            data: nil,
                                             messageId: nil)
 
         DispatchQueue.main.async {
@@ -2647,16 +2674,26 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         // Create and save new FeedPost object.
         DDLogDebug("FeedData/new-post/create [\(postId)]")
 
+        let timestamp = Date()
+
         let feedPost = FeedPost(context: managedObjectContext)
         feedPost.id = postId
         feedPost.userId = AppContext.shared.userData.userId
-        if case .groupFeed(let groupId) = destination {
-            feedPost.groupId = groupId
+        if case .groupFeed(let groupID) = destination {
+            feedPost.groupId = groupID
+            if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: managedObjectContext) {
+                feedPost.expiration = group.postExpirationDate(from: timestamp)
+            } else {
+                DDLogError("FeedData/createTombstones/groupID: \(groupID) not found, setting default expiration...")
+                feedPost.expiration = timestamp.addingTimeInterval(ServerProperties.enableGroupExpiry ? TimeInterval(Int64.thirtyDays) : FeedPost.defaultExpiration)
+            }
+        } else {
+            feedPost.expiration = timestamp.addingTimeInterval(FeedPost.defaultExpiration)
         }
         feedPost.rawText = text.collapsedText
         feedPost.status = .sending
-        feedPost.timestamp = Date()
-        feedPost.lastUpdated = Date()
+        feedPost.timestamp = timestamp
+        feedPost.lastUpdated = timestamp
 
         switch momentContext {
         case .unlock(let unlockedPost):
@@ -3889,17 +3926,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         // Delete media files.
         AppContext.shared.coreFeedData.deleteMedia(mediaItem: mediaItem)
     }
-    
-    private func getPosts(olderThan date: Date, in managedObjectContext: NSManagedObjectContext) -> [FeedPost] {
-        let fetchRequest = NSFetchRequest<FeedPost>(entityName: FeedPost.entity().name!)
-        fetchRequest.predicate = NSPredicate(format: "timestamp < %@", date as NSDate)
-        do {
-            return try managedObjectContext.fetch(fetchRequest)
-        } catch {
-            DDLogError("FeedData/posts/get-expired/error  [\(error)]")
-            return []
-        }
-    }
 
     public func deletePosts(with postIDs: [FeedPostID]) {
         performSeriallyOnBackgroundContext { context in
@@ -3971,9 +3997,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
     
-    /// Cutoff date at which posts expire and are sent to the archive.
-    static let postExpiryTimeInterval = -Date.days(31)
-    static let postCutoffDate = Date(timeIntervalSinceNow: postExpiryTimeInterval)
     static var momentCutoffDate: Date {
         let momentExpiryTimeInterval = -Date.days(1)
         return Date(timeIntervalSinceNow: momentExpiryTimeInterval)
@@ -3982,8 +4005,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private func deleteExpiredPosts() {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
-            DDLogInfo("FeedData/delete-expired  date=[\(Self.postCutoffDate)]")
-            let expiredPosts = self.getPosts(olderThan: Self.postCutoffDate, in: managedObjectContext)
+            DDLogInfo("FeedData/delete-expired")
+            let expiredPosts = self.feedPosts(predicate: NSPredicate(format: "expiration < now()"), in: managedObjectContext)
 
             let postsToDeleteIncludingUser = expiredPosts.map({ $0.id }) // extract ids before objs get deleted
 
@@ -4037,14 +4060,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     /// - Parameter completion: Callback function that returns the array of feed post ids
     func getArchivedPosts(completion: @escaping ([FeedPostID]) -> ()) {
         performSeriallyOnBackgroundContext { (managedObjectContext) in
-            DDLogInfo("FeedData/get-archived  date=[\(Self.postCutoffDate)]")
-            let expiredPosts = self.getPosts(olderThan: Self.postCutoffDate, in: managedObjectContext)
-            
-            let archivedPostIDs = expiredPosts
-                .filter({ $0.userId == MainAppContext.shared.userData.userId })
-                .map({ $0.id })
-            
-            completion(archivedPostIDs)
+            DDLogInfo("FeedData/get-archived")
+            let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+                NSPredicate(format: "expiration < now()"),
+                NSPredicate(format: "userID == %@", MainAppContext.shared.userData.userId),
+            ])
+            completion(self.feedPosts(predicate: predicate, in: managedObjectContext).map(\.id))
         }
     }
     
@@ -4109,7 +4130,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
 
             let postData = post.postData
-            let expiry = postData.timestamp.addingTimeInterval(-FeedData.postExpiryTimeInterval)
+            let expiry = post.expiration ?? post.timestamp.addingTimeInterval(FeedPost.defaultExpiration)
             var blob = postData.clientPostContainerBlob
             // Populate groupID, which is not available on PostData
             if let groupID = post.groupId {
@@ -4249,7 +4270,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
                 do {
                     let postContainerBlob = try ExternalSharePost.decrypt(encryptedBlob: externalSharePostContainer.blob, key: key)
-                    guard let postData = PostData(blob: postContainerBlob) else {
+                    let expiration = Date(timeIntervalSince1970: TimeInterval(postContainerBlob.timestamp)).addingTimeInterval(FeedPost.defaultExpiration)
+                    guard let postData = PostData(blob: postContainerBlob, expiration: expiration) else {
                         mainQueueCompletion(.failure(RequestError.malformedResponse))
                         return
                     }
@@ -4450,7 +4472,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             let notifications = AppContext.shared.coreFeedData.notifications(for: "favorites", in: managedObjectContext)
             if notifications.count > 0 {
                 notifications.forEach {
-                    if $0.timestamp < FeedData.postCutoffDate {
+                    if $0.timestamp < Date(timeIntervalSinceNow: -FeedPost.defaultExpiration) {
                         managedObjectContext.delete($0)
                     }
                 }

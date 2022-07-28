@@ -42,6 +42,7 @@ public struct ServerProperties {
         case useClearTextHomeFeedContent = "use_cleartext_home_feed"
         case enableSentryPerfTracking = "enable_sentry_perf_tracking"
         case enableGroupsGrid = "enable_groups_grid"
+        case enableGroupExpiry = "group_expiry"
     }
 
     private struct UserDefaultsKey {
@@ -82,6 +83,7 @@ public struct ServerProperties {
         static let useClearTextHomeFeedContent = true
         static let enableSentryPerfTracking = false
         static let enableGroupsGrid = false
+        static let enableGroupExpiry = false
     }
 
     // MARK: Storage
@@ -338,5 +340,9 @@ public struct ServerProperties {
 
     public static var enableGroupsGrid: Bool {
         ServerProperties.bool(forKey: .enableGroupsGrid) ?? Defaults.enableGroupsGrid
+    }
+
+    public static var enableGroupExpiry: Bool {
+        ServerProperties.bool(forKey: .enableGroupExpiry) ?? Defaults.enableGroupExpiry
     }
 }

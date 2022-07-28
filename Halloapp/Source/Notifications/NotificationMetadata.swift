@@ -129,6 +129,7 @@ class NotificationMetadata: Codable {
     var rerequestCount: Int32 = 0
     var retryCount: Int32 = 0
     var messageTypeRawValue: Int = Server_Msg.TypeEnum.normal.rawValue
+    var postExpiration: Date?
 
     // Chat specific fields
     var pushNumber: String?
@@ -323,6 +324,7 @@ class NotificationMetadata: Codable {
                 }
                 fromId = UserID(post.publisherUid)
                 timestamp = Date(timeIntervalSince1970: TimeInterval(post.timestamp))
+                postExpiration = timestamp?.addingTimeInterval(FeedPost.defaultExpiration)
                 data = post.payload
                 pushName = post.publisherName
                 switch post.tag {
@@ -375,6 +377,17 @@ class NotificationMetadata: Codable {
                 }
                 fromId = UserID(post.publisherUid)
                 timestamp = Date(timeIntervalSince1970: TimeInterval(post.timestamp))
+                postExpiration = {
+                    let timeInterval: TimeInterval?
+                    if groupFeedItem.expiryTimestamp == 0 {
+                        timeInterval = ServerProperties.enableGroupExpiry ? TimeInterval(Int64.thirtyDays) : FeedPost.defaultExpiration
+                    } else if groupFeedItem.expiryTimestamp > 0 {
+                        timeInterval = TimeInterval(groupFeedItem.expiryTimestamp)
+                    } else {
+                        timeInterval = nil
+                    }
+                    return timeInterval.flatMap { Date(timeIntervalSince1970: $0) }
+                }()
                 data = post.payload.isEmpty ? nil : post.payload
                 pushName = post.publisherName
             case .comment(let comment):
@@ -905,6 +918,7 @@ extension NotificationMetadata {
                       let postData = PostData(id: contentId,
                                               userId: fromId,
                                               timestamp: timestamp,
+                                              expiration: postExpiration,
                                               payload: data ?? Data(),
                                               status: status,
                                               audience: audience) else
@@ -914,7 +928,7 @@ extension NotificationMetadata {
                 }
                 return postData
             } else {
-                return PostData(id: contentId, userId: fromId, content: .waiting, status: status, audience: audience, commentKey: nil)
+                return PostData(id: contentId, userId: fromId, content: .waiting, expiration: postExpiration, status: status, audience: audience, commentKey: nil)
             }
         } else {
             return nil

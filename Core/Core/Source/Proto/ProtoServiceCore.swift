@@ -500,7 +500,7 @@ extension ProtoServiceCore: CoreService {
             if !ServerProperties.sendClearTextGroupFeedContent {
                 serverPost.payload = Data()
             }
-            makeGroupEncryptedPayload(payloadData: payloadData, groupID: groupID, oneOfItem: .post(serverPost)) { result in
+            makeGroupEncryptedPayload(payloadData: payloadData, groupID: groupID, oneOfItem: .post(serverPost), expiryTimestamp: post.expiration.flatMap { Int64($0.timeIntervalSince1970) } ?? -1) { result in
                 switch result {
                 case .failure(let failure):
                     AppContext.shared.eventMonitor.count(.groupEncryption(error: failure, itemType: .post))
@@ -560,11 +560,14 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
-    private func makeGroupEncryptedPayload(payloadData: Data, groupID: GroupID, oneOfItem: Server_GroupFeedItem.OneOf_Item, completion: @escaping (Result<Server_GroupFeedItem, EncryptionError>) -> Void) {
+    private func makeGroupEncryptedPayload(payloadData: Data, groupID: GroupID, oneOfItem: Server_GroupFeedItem.OneOf_Item, expiryTimestamp: Int64? = nil, completion: @escaping (Result<Server_GroupFeedItem, EncryptionError>) -> Void) {
         var item = Server_GroupFeedItem()
         item.action = .publish
         item.gid = groupID
         item.senderClientVersion = AppContext.userAgent
+        if let expiryTimestamp = expiryTimestamp {
+            item.expiryTimestamp = expiryTimestamp
+        }
 
         // encrypt the containerPayload
         AppContext.shared.messageCrypter.encrypt(payloadData, in: groupID) { result in
@@ -1028,6 +1031,7 @@ extension ProtoServiceCore: CoreService {
             item.action = .publish
             item.gid = groupID
             item.senderClientVersion = AppContext.userAgent
+            item.expiryTimestamp = post.expiration.flatMap { Int64($0.timeIntervalSince1970) } ?? -1
             makeGroupRerequestEncryptedPayload(payloadData: payloadData, groupID: groupID, for: toUserID) { result in
                 switch result {
                 case .failure(let failure):
@@ -1496,9 +1500,18 @@ extension ProtoServiceCore: CoreService {
 
         switch item.item {
         case .post(let serverPost):
+            let timestamp = Date(timeIntervalSince1970: TimeInterval(serverPost.timestamp))
+            let expiration: Date?
+
+            if item.expiryTimestamp != 0 {
+                expiration = item.expiryTimestamp > 0 ? Date(timeIntervalSince1970: TimeInterval(item.expiryTimestamp)) : nil
+            } else {
+                expiration = timestamp.addingTimeInterval(FeedPost.defaultExpiration)
+            }
             guard let post = PostData(id: serverPost.id,
                                       userId: publisherUid,
-                                      timestamp: Date(timeIntervalSince1970: TimeInterval(serverPost.timestamp)),
+                                      timestamp: timestamp,
+                                      expiration: expiration,
                                       payload: payload,
                                       status: .received,
                                       isShared: false,
@@ -1692,9 +1705,12 @@ extension ProtoServiceCore: CoreService {
 
         switch item.item {
         case .post(let serverPost):
+            let timestamp = Date(timeIntervalSince1970: TimeInterval(serverPost.timestamp))
+            let expiration = timestamp.addingTimeInterval(FeedPost.defaultExpiration)
             guard var post = PostData(id: serverPost.id,
                                       userId: publisherUid,
-                                      timestamp: Date(timeIntervalSince1970: TimeInterval(serverPost.timestamp)),
+                                      timestamp: timestamp,
+                                      expiration: expiration,
                                       payload: payload,
                                       status: .received,
                                       isShared: false,

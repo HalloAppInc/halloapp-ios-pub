@@ -271,13 +271,15 @@ class DataStore: ShareExtensionDataStore {
 
         // 1. Save post to the db and copy media to permanent storage directory.
         mainDataStore.saveSeriallyOnBackgroundContext { managedObjectContext in
+            let timestamp = Date()
+
             let feedPost = FeedPost(context: managedObjectContext)
             feedPost.id = postId
             feedPost.userId = AppContext.shared.userData.userId
             feedPost.rawText = text.collapsedText
-            feedPost.timestamp = Date()
+            feedPost.timestamp = timestamp
             feedPost.status = .sending
-            feedPost.lastUpdated = Date()
+            feedPost.lastUpdated = timestamp
             feedPost.hasBeenProcessed = false
 
             // Add mentions
@@ -318,6 +320,13 @@ class DataStore: ShareExtensionDataStore {
                 feedPost.info = feedPostInfo
                 feedPost.groupID = group.id
 
+                if let chatGroup = self.mainDataStore.group(id: group.id, in: managedObjectContext) {
+                    feedPost.expiration = chatGroup.postExpirationDate(from: timestamp)
+                } else {
+                    DDLogError("DataStore/Post/Unable to find group \(group.id) to set expiration - reverting to default")
+                    feedPost.expiration = timestamp.addingTimeInterval(ServerProperties.enableGroupExpiry ? TimeInterval(Int64.thirtyDays) : FeedPost.defaultExpiration)
+                }
+
                 // Code for streaming upload/download.
                 let shouldStreamFeedVideo = ServerProperties.streamingSendingEnabled && ChunkedMediaTestConstants.STREAMING_FEED_GROUP_IDS.contains(group.id)
                 if shouldStreamFeedVideo {
@@ -332,6 +341,7 @@ class DataStore: ShareExtensionDataStore {
                 feedPostInfo.receipts = receipts
                 feedPostInfo.audienceType = postAudience.audienceType
                 feedPost.info = feedPostInfo
+                feedPost.expiration = timestamp.addingTimeInterval(FeedPost.defaultExpiration)
             }
 
             //Process LinkPreviews

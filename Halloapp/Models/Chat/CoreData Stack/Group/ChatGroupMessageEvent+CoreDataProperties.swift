@@ -115,6 +115,8 @@ extension GroupEvent {
                 default:
                     return nil
                 }
+            case .changeExpiry:
+                return Localizations.groupEventChangeExpiry(subject: subject, expirationType: groupExpirationType, expirationTime: groupExpirationTime)
             default:
                 return nil
             }
@@ -239,6 +241,39 @@ extension Localizations {
         case .other(let senderName):
             let format = NSLocalizedString("chat.group.event.member.left", value: "%@ left", comment: "Message text shown with the user who left the group")
             return String(format: format, senderName)
+        }
+    }
+
+    private static let expiryTimeFormatter: DateComponentsFormatter = {
+        let expiryTimeFormatter = DateComponentsFormatter()
+        expiryTimeFormatter.allowedUnits = [.day, .hour]
+        expiryTimeFormatter.collapsesLargestUnit = true
+        expiryTimeFormatter.maximumUnitCount = 1
+        expiryTimeFormatter.unitsStyle = .full
+        return expiryTimeFormatter
+    }()
+
+    private static let expiryDateFormatter: DateFormatter = {
+        let expiryDateFormatter = DateFormatter()
+        expiryDateFormatter.dateStyle = .short
+        expiryDateFormatter.timeStyle = .none
+        return expiryDateFormatter
+    }()
+
+    static func groupEventChangeExpiry(subject: GroupEvent.Subject, expirationType: Group.ExpirationType, expirationTime: Int64) -> String {
+        let expirationTimeString = Group.formattedExpirationTime(type: expirationType, time: expirationTime)
+
+        switch subject {
+        case .you:
+            let format = NSLocalizedString("chat.group.event.expiry.changed.you",
+                                     value: "You changed the group’s content expiration to %1@",
+                                     comment: "Message text shown when you change a groups content expiry settings")
+            return String(format: format, expirationTimeString)
+        case .other(let senderName):
+            let format = NSLocalizedString("chat.group.event.expiry.changed",
+                                           value: "%1@ changed the group’s content expiration to %2@",
+                                           comment: "Message text shown with the user who changed a groups content expiry settings")
+            return String(format: format, senderName, expirationTimeString)
         }
     }
 }

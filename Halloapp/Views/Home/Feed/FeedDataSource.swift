@@ -303,18 +303,15 @@ extension FeedDataSource: NSFetchedResultsControllerDelegate {
 extension FeedDataSource {
     static func groupFeedRequest(groupID: GroupID) -> NSFetchRequest<FeedPost> {
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "groupID == %@ && timestamp >= %@ && fromExternalShare == NO",
-                                             groupID,
-                                             FeedData.postCutoffDate as NSDate)
+        fetchRequest.predicate = NSPredicate(format: "groupID == %@ && (expiration >= now() || expiration == nil) && fromExternalShare == NO", groupID)
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
         return fetchRequest
     }
 
     static func homeFeedRequest() -> NSFetchRequest<FeedPost> {
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "(groupID == nil || statusValue != %d) && timestamp >= %@ && fromExternalShare == NO",
-                                             FeedPost.Status.retracted.rawValue,
-                                             FeedData.postCutoffDate as NSDate)
+        fetchRequest.predicate = NSPredicate(format: "(groupID == nil || statusValue != %d) && (expiration >= now() || expiration == nil) && fromExternalShare == NO",
+                                             FeedPost.Status.retracted.rawValue)
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
         fetchRequest.relationshipKeyPathsForPrefetching = ["mentions", "media", "linkPreviews"]
         return fetchRequest
@@ -322,10 +319,9 @@ extension FeedDataSource {
 
     static func userFeedRequest(userID: UserID) -> NSFetchRequest<FeedPost> {
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "userID == %@ && (groupID == nil || statusValue != %d) && timestamp >= %@ && fromExternalShare == NO",
+        fetchRequest.predicate = NSPredicate(format: "userID == %@ && (groupID == nil || statusValue != %d) && (expiration >= now() || expiration == nil) && fromExternalShare == NO",
                                              userID,
-                                             FeedPost.Status.retracted.rawValue,
-                                             FeedData.postCutoffDate as NSDate)
+                                             FeedPost.Status.retracted.rawValue)
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
         return fetchRequest
     }
@@ -334,7 +330,7 @@ extension FeedDataSource {
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
         fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
             NSPredicate(format: "userID == %@", MainAppContext.shared.userData.userId),
-            NSPredicate(format: "timestamp < %@", FeedData.postCutoffDate as NSDate),
+            NSPredicate(format: "expiration >= now() || expiration == nil"),
             NSPredicate(format: "fromExternalShare == NO"),
         ])
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]

@@ -129,6 +129,7 @@ extension SharedFeedPost {
             userId: userId,
             content: postContent,
             timestamp: timestamp,
+            expiration: timestamp.addingTimeInterval(FeedPost.defaultExpiration),
             status: feedItemStatus,
             audience: audience,
             commentKey: nil)

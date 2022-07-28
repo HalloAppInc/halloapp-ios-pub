@@ -651,6 +651,8 @@ class ChatData: ObservableObject {
         group.maxSize = legacy.maxSize
         group.lastSync = legacy.lastSync
         group.inviteLink = legacy.inviteLink
+        group.expirationType = .expiresInSeconds
+        group.expirationTime = Int64(FeedPost.defaultExpiration)
 
         // Remove and recreate members
         group.members?.forEach { managedObjectContext.delete($0) }
@@ -5127,7 +5129,14 @@ extension ChatData {
         let chatGroup = Group(context: managedObjectContext)
         chatGroup.id = xmppGroup.groupId
         chatGroup.name = xmppGroup.name
-        
+        if let expirationTime = xmppGroup.expirationTime, let expirationType = xmppGroup.expirationType {
+            chatGroup.expirationTime = expirationTime
+            chatGroup.expirationType = expirationType
+        } else {
+            chatGroup.expirationTime = ServerProperties.enableGroupExpiry ? .thirtyDays : Int64(FeedPost.defaultExpiration)
+            chatGroup.expirationType = .expiresInSeconds
+        }
+
         // Add Chat Thread
         if chatThread(type: .group, id: chatGroup.id, in: managedObjectContext) == nil {
             let chatThread = ChatThread(context: managedObjectContext)
@@ -5168,6 +5177,11 @@ extension ChatData {
         event.groupID = xmppGroup.groupId
         event.timestamp = Date()
 
+        if let expirationType = xmppGroup.expirationType {
+            event.groupExpirationType = expirationType
+            event.groupExpirationTime = xmppGroup.expirationTime ?? 0
+        }
+
         event.action = {
             switch xmppGroup.action {
             case .create: return .create
@@ -5180,6 +5194,7 @@ extension ChatData {
             case .setBackground: return .setBackground
             case .modifyAdmins: return .modifyAdmins
             case .modifyMembers: return .modifyMembers
+            case .changeExpiry: return .changeExpiry
             default: return .none
             }
         }()
@@ -5525,6 +5540,7 @@ extension ChatData: HalloChatDelegate {
                 case .album, .text, .voiceNote:
                     serverGroupFeedItem.action = .publish
                 }
+                serverGroupFeedItem.expiryTimestamp = post.expiration.flatMap { Int64($0.timeIntervalSince1970) } ?? -1
                 serverGroupFeedItem.post = serverPost
                 serverGroupFeedItem.isResentHistory = true
                 groupFeedItemsToShare.append(serverGroupFeedItem)

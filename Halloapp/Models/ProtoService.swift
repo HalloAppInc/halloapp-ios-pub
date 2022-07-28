@@ -343,7 +343,11 @@ final class ProtoService: ProtoServiceCore {
             case .post(let serverPost):
                 switch pbFeedItem.action {
                 case .publish, .share:
-                    if let post = PostData(serverPost, status: .received, itemAction: pbFeedItem.itemAction, isShared: pbFeedItem.action == .share) {
+                    if let post = PostData(serverPost,
+                                           expiration: Date(timeIntervalSince1970: TimeInterval(serverPost.timestamp)).addingTimeInterval(FeedPost.defaultExpiration),
+                                           status: .received,
+                                           itemAction: pbFeedItem.itemAction,
+                                           isShared: pbFeedItem.action == .share) {
                         elements.append(.post(post))
                     }
                 case .retract:
@@ -398,8 +402,8 @@ final class ProtoService: ProtoServiceCore {
                 if !isShared && item.action == .retract {
                     retracts.append(.post(serverPost.id))
                 } else {
-                    guard let post = PostData(serverPost, status: status, itemAction: item.itemAction,
-                                              usePlainTextPayload: fallback, isShared: isShared) else {
+                    guard let post = PostData(serverPost, expiration: item.expiryTimestamp > 0 ? Date(timeIntervalSince1970: TimeInterval(item.expiryTimestamp)) : nil,
+                                              status: status, itemAction: item.itemAction, usePlainTextPayload: fallback, isShared: isShared) else {
                         DDLogError("proto/payloadContents/\(serverPost.id)/error could not make post object")
                         continue
                     }
@@ -444,8 +448,12 @@ final class ProtoService: ProtoServiceCore {
                 if !isShared && item.action == .retract {
                     retracts.append(.post(serverPost.id))
                 } else {
-                    guard let post = PostData(serverPost, status: status, itemAction: item.itemAction,
-                                              usePlainTextPayload: fallback, isShared: isShared) else {
+                    guard let post = PostData(serverPost,
+                                              expiration: Date(timeIntervalSince1970: TimeInterval(serverPost.timestamp)).addingTimeInterval(FeedPost.defaultExpiration),
+                                              status: status,
+                                              itemAction: item.itemAction,
+                                              usePlainTextPayload: fallback,
+                                              isShared: isShared) else {
                         DDLogError("proto/payloadContents/\(serverPost.id)/error could not make post object")
                         continue
                     }

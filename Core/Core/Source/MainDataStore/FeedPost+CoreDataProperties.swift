@@ -11,6 +11,8 @@ import CoreData
 
 public extension FeedPost {
 
+    static let defaultExpiration = TimeInterval(31 * 24 * 60 * 60)
+
     enum Status: Int16 {
         case none = 0
         case sending = 1
@@ -53,6 +55,9 @@ public extension FeedPost {
     @NSManaged var fromExternalShare: Bool
     @NSManaged var lastUpdated: Date?
     @NSManaged var hasBeenProcessed: Bool
+
+    // a nil expiration indicates that the post will not expire
+    @NSManaged var expiration: Date?
 
     /// The user ID of the moment that was unlocked by this post.
     ///
@@ -167,6 +172,7 @@ public extension FeedPost {
             userId: userID,
             content: postContent,
             timestamp: timestamp,
+            expiration: expiration,
             status: feedItemStatus,
             audience: audience,
             commentKey: nil)

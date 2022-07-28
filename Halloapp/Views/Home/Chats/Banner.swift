@@ -221,10 +221,10 @@ fileprivate class BannerView: UIView, UIGestureRecognizerDelegate {
         
         guard let contentId = id else { return }
         let metadata = NotificationMetadata(contentId: contentId,
-                                          contentType: notificationType,
-                                               fromId: contentId,
+                                            contentType: notificationType,
+                                            fromId: contentId,
                                             timestamp: nil,
-                                                 data: nil,
+                                            data: nil,
                                             messageId: nil)
         metadata.groupId = groupID
         metadata.saveToUserDefaults()

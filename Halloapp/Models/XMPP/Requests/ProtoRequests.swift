@@ -523,6 +523,7 @@ extension Server_GroupStanza.Action {
         case .setBackground: self = .setBackground
         case .modifyAdmins: self = .modifyAdmins
         case .modifyMembers: self = .modifyMembers
+        case .changeExpiry: self = .changeExpiry
         }
     }
 }
