@@ -10,29 +10,57 @@ import UIKit
 
 class GroupGridSearchBar: UICollectionReusableView {
 
+    /*
+     When a search controller is presented, the search bar will be inserted into a new view hierarchy, and placeholder view will be inserted in its place.
+     When it is dismissed, the placeholder will be replaced by the searchbar, no matter where the searchbar has moved.
+     This provides a convenince wrapper view that can act as the search bar host and be shared between GroupGridSearchBarCells to provide a fixed restore point.
+     */
+    class SearchBarContainer: UIView {
+
+        let searchBar: UISearchBar
+
+        init(searchBar: UISearchBar) {
+            self.searchBar = searchBar
+            super.init(frame: searchBar.frame)
+            addSubview(searchBar)
+        }
+
+        required init?(coder: NSCoder) {
+            fatalError()
+        }
+
+        override func layoutSubviews() {
+            super.layoutSubviews()
+
+            searchBar.frame = bounds
+        }
+
+        override var intrinsicContentSize: CGSize {
+            return searchBar.intrinsicContentSize
+        }
+    }
+
     static let elementKind = "searchBar"
     static let reuseIdentifier = String(describing: GroupGridSearchBar.self)
 
     private lazy var heightConstraint = heightAnchor.constraint(equalToConstant: 0)
 
-    var searchBar: UISearchBar? {
+    var searchBarContainer: SearchBarContainer? {
         didSet {
-            guard oldValue !== searchBar else {
+            if oldValue !== searchBarContainer, oldValue?.superview === self {
+                oldValue?.removeFromSuperview()
+            }
+
+            guard let searchBarContainer = searchBarContainer else {
                 return
             }
 
-            oldValue?.removeFromSuperview()
-
-            guard let searchBar = searchBar else {
-                return
-            }
-
-            searchBar.layoutMargins = UIEdgeInsets(top: 0, left: 21, bottom: 0, right: 21)
-            addSubview(searchBar)
+            addSubview(searchBarContainer)
 
             // Using auto-layout with the search bar breaks the active appearance where the search bar is extracted from our view hierarchy and added to
             // the search controller
-            heightConstraint.constant = searchBar.intrinsicContentSize.height
+            heightConstraint.priority = .defaultHigh
+            heightConstraint.constant = searchBarContainer.intrinsicContentSize.height
             heightConstraint.isActive = true
 
             setNeedsLayout()
@@ -42,6 +70,6 @@ class GroupGridSearchBar: UICollectionReusableView {
     override func layoutSubviews() {
         super.layoutSubviews()
 
-        searchBar?.frame = bounds
+        searchBarContainer?.frame = bounds
     }
 }

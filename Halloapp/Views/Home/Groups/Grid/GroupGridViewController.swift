@@ -88,8 +88,11 @@ class GroupGridViewController: UIViewController {
         searchController.searchResultsUpdater = dataSource
         searchController.automaticallyShowsSearchResultsController = false
         searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.layoutMargins = UIEdgeInsets(top: 0, left: 21, bottom: 0, right: 21)
         return searchController
     }()
+
+    private lazy var searchBarContainer = GroupGridSearchBar.SearchBarContainer(searchBar: searchController.searchBar)
 
     private var isEmptyCancellable: AnyCancellable?
     private var requestScrollToTopAnimatedCancellable: AnyCancellable?
@@ -225,7 +228,7 @@ class GroupGridViewController: UIViewController {
                                                                    withReuseIdentifier: GroupGridSearchBar.reuseIdentifier,
                                                                    for: indexPath)
             if let groupGridSearchBar = groupGridSearchBar as? GroupGridSearchBar {
-                groupGridSearchBar.searchBar = searchController.searchBar
+                groupGridSearchBar.searchBarContainer = searchBarContainer
             }
             return groupGridSearchBar
         default:
