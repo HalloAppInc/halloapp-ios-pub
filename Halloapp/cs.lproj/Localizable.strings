@@ -1220,7 +1220,7 @@
 "post.privacy.header.contacts" = "Kdo uvidí tento příspěvek";
 
 /* Header when selecting a group to share with
-   Header when selecting groups to share with */
+   Header when selecting destinations to forward a message, this header appears above the groups section */
 "post.privacy.header.groups" = "Sdílet pouze se skupinou";
 
 /* Controller title for changing destination and privacy

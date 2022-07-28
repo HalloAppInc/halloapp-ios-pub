@@ -1379,7 +1379,7 @@
 "post.privacy.header.contacts" = "لمن سيظهر المنشور";
 
 /* Header when selecting a group to share with
-   Header when selecting groups to share with */
+   Header when selecting destinations to forward a message, this header appears above the groups section */
 "post.privacy.header.groups" = "مجموعاتك";
 
 /* Controller title for changing destination and privacy
@@ -1724,6 +1724,9 @@
 
 /* Prompt for the user to share a moment. */
 "share.moment.prompt" = "مشاركة إحدى اللحظات";
+
+/* Text placed on the blurred overlay of someone else's moment. */
+"shared.moment" = "لحظة %@";
 
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "انقر للعودة إلى المكالمة";

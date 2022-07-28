@@ -1042,6 +1042,9 @@
 /* Title of the menu to choose map type. */
 "locationSharing.chooseMap" = "Pilih Peta";
 
+/* Addresses displayed as subtitles in location list. Parameters are non-empty street address and city. */
+"locationSharing.detailedAddress" = "%1$@, %2$@";
+
 /* Subtitle of the user location callout. Parameter is the formatted length measurement of accuracy (including unit). */
 "locationSharing.locationAccuracyDescription" = "Akurat hingga %@";
 
@@ -1056,6 +1059,9 @@
 
 /* Title of the location sharing main screen. */
 "locationSharing.navTitle" = "Lokasi";
+
+/* Initial title of the callout bubble for locations selected by long pressing on the map. */
+"locationSharing.selectedLocation" = "Lokasi Dipilih";
 
 /* Title of a location in location list if it does not have a name. */
 "locationSharing.untitledLocation" = "Lokasi Tanpa Judul";
@@ -1280,16 +1286,16 @@
 "notification.one.video" = "📹 video";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.1" = "%@ membagikan pesan baru dan membuka momen Anda";
+"notification.unlocked.moment.1" = "%@ membagikan momen baru untuk membuka momen Anda";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.2" = "%1$@ dan %2$@ membagikan pesan baru dan membuka momen Anda";
+"notification.unlocked.moment.2" = "%1$@ dan %2$@ membagikan momen baru untuk membuka momen Anda";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.3" = "%1$@, %2$@, dan %3$@ membagikan momen baru serta membuka momen Anda";
+"notification.unlocked.moment.3" = "%1$@, %2$@, dan %3$@ membagikan momen baru untuk membuka momen Anda";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@, dan lainnya membagikan momen baru serta membuka momen Anda";
+"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@, dan lainnya membagikan momen baru untuk membuka momen Anda";
 
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 Panggilan video tak terjawab";
@@ -1381,8 +1387,11 @@
 /* Header when selecting all or some contacts to share with */
 "post.privacy.header.contacts" = "Yang akan melihat postingan ini";
 
+/* Header when selecting destinations to forward a message, this header appears above the feeds section */
+"post.privacy.header.feeds" = "Umpan";
+
 /* Header when selecting a group to share with
-   Header when selecting groups to share with */
+   Header when selecting destinations to forward a message, this header appears above the groups section */
 "post.privacy.header.groups" = "Grup Anda";
 
 /* Controller title for changing destination and privacy
@@ -1724,6 +1733,9 @@
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Bergabunglah dengan jaringan hubungan nyata saya di HalloApp. Unduh gratis di halloapp.com/dl";
+
+/* Show more groups in the share group selection */
+"share.destination.more" = "Tampilkan lainnya...";
 
 /* Prompt for the user to share a moment. */
 "share.moment.prompt" = "Bagikan momen";
