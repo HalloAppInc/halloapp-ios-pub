@@ -58,8 +58,6 @@ class MomentView: UIView {
         view.layer.cornerRadius = Layout.innerRadius
         view.layer.cornerCurve = .continuous
 
-        view.isUserInteractionEnabled = false
-
         return view
     }()
     
