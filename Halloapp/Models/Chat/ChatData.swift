@@ -1821,6 +1821,7 @@ extension ChatData {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
             guard let message = self.chatMessage(with: id, in: managedObjectContext) else { return }
+            guard message.fromUserID != self.userData.userId else { return }
             guard ![.played, .sentPlayedReceipt].contains(message.incomingStatus) else { return }
 
             self.sendPlayedReceipt(for: message)
