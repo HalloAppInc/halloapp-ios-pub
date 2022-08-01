@@ -2266,6 +2266,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
+    func downloadMediaInMoments() {
+        let moments = fetchAllIncomingMoments()
+        downloadMedia(in: moments)
+    }
+
     func downloadMedia(in feedPosts: [FeedPost]) {
         guard !feedPosts.isEmpty else { return }
 

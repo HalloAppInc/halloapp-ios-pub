@@ -648,7 +648,13 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
     }
 
     private func willShowCell(atIndexPath indexPath: IndexPath) {
-        guard let feedPost = feedDataSource.item(at: indexPath.item)?.post else { return }
+        guard let feedPost = feedDataSource.item(at: indexPath.item)?.post else {
+            // This is the stacked moments cell.
+            if indexPath.item == 0 {
+                MainAppContext.shared.feedData.downloadMediaInMoments()
+            }
+            return
+        }
         // Load downloaded images into memory.
         MainAppContext.shared.feedData.loadImages(postID: feedPost.id)
 
