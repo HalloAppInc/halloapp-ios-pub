@@ -205,11 +205,17 @@ class PostComposerViewController: UIViewController {
     private lazy var backButton: UIButton = {
         let imageColor = UIColor.label.withAlphaComponent(0.9)
         let imageConfig = UIImage.SymbolConfiguration(weight: .bold)
-        let image = UIImage(systemName: "chevron.left", withConfiguration: imageConfig)?.withTintColor(imageColor)
+
+        let image: UIImage?
+        if let nc = navigationController, nc.viewControllers.first === self, nc.modalPresentationStyle == .pageSheet {
+            image = UIImage(systemName: "chevron.down")
+        } else {
+            image = UIImage(systemName: "chevron.left")
+        }
 
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(image, for: .normal)
+        button.setImage(image?.withConfiguration(imageConfig).withTintColor(imageColor), for: .normal)
         button.addTarget(self, action: #selector(backAction), for: .touchUpInside)
 
         NSLayoutConstraint.activate([

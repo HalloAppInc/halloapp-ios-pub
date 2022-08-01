@@ -294,7 +294,7 @@ class GroupGridViewController: UIViewController {
             viewControllerToDismiss.dismiss(animated: true)
         }
         viewControllerToDismiss = newPostViewController
-        newPostViewController.modalPresentationStyle = .fullScreen
+        newPostViewController.modalPresentationStyle = .pageSheet
         present(newPostViewController, animated: true)
     }
 
