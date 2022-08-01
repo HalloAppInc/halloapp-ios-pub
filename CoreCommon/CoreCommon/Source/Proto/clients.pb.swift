@@ -230,20 +230,6 @@ public struct Clients_Phone {
   public init() {}
 }
 
-public struct Clients_Contact {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  public var name: String = String()
-
-  public var phones: [Clients_Phone] = []
-
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  public init() {}
-}
-
 public struct Clients_SignedPreKey {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -350,6 +336,14 @@ public struct Clients_ChatContainer {
     set {message = .reaction(newValue)}
   }
 
+  public var location: Clients_Location {
+    get {
+      if case .location(let v)? = message {return v}
+      return Clients_Location()
+    }
+    set {message = .location(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Message: Equatable {
@@ -359,6 +353,7 @@ public struct Clients_ChatContainer {
     case voiceNote(Clients_VoiceNote)
     case files(Clients_Files)
     case reaction(Clients_Reaction)
+    case location(Clients_Location)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Clients_ChatContainer.OneOf_Message, rhs: Clients_ChatContainer.OneOf_Message) -> Bool {
@@ -388,6 +383,10 @@ public struct Clients_ChatContainer {
       }()
       case (.reaction, .reaction): return {
         guard case .reaction(let l) = lhs, case .reaction(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.location, .location): return {
+        guard case .location(let l) = lhs, case .location(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -691,20 +690,71 @@ public struct Clients_ContactCard {
 
   public var contacts: [Clients_Contact] = []
 
-  public var text: Clients_Text {
-    get {return _text ?? Clients_Text()}
-    set {_text = newValue}
-  }
-  /// Returns true if `text` has been explicitly set.
-  public var hasText: Bool {return self._text != nil}
-  /// Clears the value of `text`. Subsequent reads from it will return its default value.
-  public mutating func clearText() {self._text = nil}
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Clients_Contact {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var name: String = String()
+
+  public var photo: Data = Data()
+
+  public var numbers: [Clients_ContactPhone] = []
+
+  public var emails: [Clients_ContactEmail] = []
+
+  public var addresses: [Clients_ContactAddress] = []
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
+}
 
-  fileprivate var _text: Clients_Text? = nil
+public struct Clients_ContactAddress {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var label: String = String()
+
+  public var address: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Clients_ContactEmail {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var label: String = String()
+
+  public var address: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Clients_ContactPhone {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var label: String = String()
+
+  public var number: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
 }
 
 public struct Clients_Image {
@@ -835,6 +885,45 @@ public struct Clients_Reaction {
   // methods supported on all messages.
 
   public var emoji: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Clients_Location {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var latitude: Double = 0
+
+  public var longitude: Double = 0
+
+  public var name: String = String()
+
+  public var address: Clients_Address {
+    get {return _address ?? Clients_Address()}
+    set {_address = newValue}
+  }
+  /// Returns true if `address` has been explicitly set.
+  public var hasAddress: Bool {return self._address != nil}
+  /// Clears the value of `address`. Subsequent reads from it will return its default value.
+  public mutating func clearAddress() {self._address = nil}
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _address: Clients_Address? = nil
+}
+
+public struct Clients_Address {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var formattedAddressLines: [String] = []
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -1214,7 +1303,6 @@ extension Clients_Media: @unchecked Sendable {}
 extension Clients_EncryptedResource: @unchecked Sendable {}
 extension Clients_Mention: @unchecked Sendable {}
 extension Clients_Phone: @unchecked Sendable {}
-extension Clients_Contact: @unchecked Sendable {}
 extension Clients_SignedPreKey: @unchecked Sendable {}
 extension Clients_OneTimePreKey: @unchecked Sendable {}
 extension Clients_Background: @unchecked Sendable {}
@@ -1230,12 +1318,18 @@ extension Clients_CommentContext: @unchecked Sendable {}
 extension Clients_Container: @unchecked Sendable {}
 extension Clients_Text: @unchecked Sendable {}
 extension Clients_ContactCard: @unchecked Sendable {}
+extension Clients_Contact: @unchecked Sendable {}
+extension Clients_ContactAddress: @unchecked Sendable {}
+extension Clients_ContactEmail: @unchecked Sendable {}
+extension Clients_ContactPhone: @unchecked Sendable {}
 extension Clients_Image: @unchecked Sendable {}
 extension Clients_StreamingInfo: @unchecked Sendable {}
 extension Clients_Video: @unchecked Sendable {}
 extension Clients_Files: @unchecked Sendable {}
 extension Clients_File: @unchecked Sendable {}
 extension Clients_Reaction: @unchecked Sendable {}
+extension Clients_Location: @unchecked Sendable {}
+extension Clients_Address: @unchecked Sendable {}
 extension Clients_AlbumMedia: @unchecked Sendable {}
 extension Clients_AlbumMedia.OneOf_Media: @unchecked Sendable {}
 extension Clients_Album: @unchecked Sendable {}
@@ -1489,44 +1583,6 @@ extension Clients_Phone: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
   }
 }
 
-extension Clients_Contact: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".Contact"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "name"),
-    2: .same(proto: "phones"),
-  ]
-
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
-      case 2: try { try decoder.decodeRepeatedMessageField(value: &self.phones) }()
-      default: break
-      }
-    }
-  }
-
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.name.isEmpty {
-      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
-    }
-    if !self.phones.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.phones, fieldNumber: 2)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  public static func ==(lhs: Clients_Contact, rhs: Clients_Contact) -> Bool {
-    if lhs.name != rhs.name {return false}
-    if lhs.phones != rhs.phones {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
 extension Clients_SignedPreKey: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".SignedPreKey"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -1651,6 +1707,7 @@ extension Clients_ChatContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
     5: .standard(proto: "voice_note"),
     6: .same(proto: "files"),
     7: .same(proto: "reaction"),
+    8: .same(proto: "location"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1738,6 +1795,19 @@ extension Clients_ChatContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
           self.message = .reaction(v)
         }
       }()
+      case 8: try {
+        var v: Clients_Location?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .location(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .location(v)
+        }
+      }()
       default: break
       }
     }
@@ -1775,6 +1845,10 @@ extension Clients_ChatContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
     case .reaction?: try {
       guard case .reaction(let v)? = self.message else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
+    }()
+    case .location?: try {
+      guard case .location(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
     }()
     case nil: break
     }
@@ -2285,7 +2359,6 @@ extension Clients_ContactCard: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
   public static let protoMessageName: String = _protobuf_package + ".ContactCard"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "contacts"),
-    2: .same(proto: "text"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2295,29 +2368,190 @@ extension Clients_ContactCard: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeRepeatedMessageField(value: &self.contacts) }()
-      case 2: try { try decoder.decodeSingularMessageField(value: &self._text) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
     if !self.contacts.isEmpty {
       try visitor.visitRepeatedMessageField(value: self.contacts, fieldNumber: 1)
     }
-    try { if let v = self._text {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Clients_ContactCard, rhs: Clients_ContactCard) -> Bool {
     if lhs.contacts != rhs.contacts {return false}
-    if lhs._text != rhs._text {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Clients_Contact: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".Contact"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "name"),
+    2: .same(proto: "photo"),
+    3: .same(proto: "numbers"),
+    4: .same(proto: "emails"),
+    5: .same(proto: "addresses"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeSingularBytesField(value: &self.photo) }()
+      case 3: try { try decoder.decodeRepeatedMessageField(value: &self.numbers) }()
+      case 4: try { try decoder.decodeRepeatedMessageField(value: &self.emails) }()
+      case 5: try { try decoder.decodeRepeatedMessageField(value: &self.addresses) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    if !self.photo.isEmpty {
+      try visitor.visitSingularBytesField(value: self.photo, fieldNumber: 2)
+    }
+    if !self.numbers.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.numbers, fieldNumber: 3)
+    }
+    if !self.emails.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.emails, fieldNumber: 4)
+    }
+    if !self.addresses.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.addresses, fieldNumber: 5)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Clients_Contact, rhs: Clients_Contact) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs.photo != rhs.photo {return false}
+    if lhs.numbers != rhs.numbers {return false}
+    if lhs.emails != rhs.emails {return false}
+    if lhs.addresses != rhs.addresses {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Clients_ContactAddress: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ContactAddress"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "label"),
+    2: .same(proto: "address"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.label) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.address) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.label.isEmpty {
+      try visitor.visitSingularStringField(value: self.label, fieldNumber: 1)
+    }
+    if !self.address.isEmpty {
+      try visitor.visitSingularStringField(value: self.address, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Clients_ContactAddress, rhs: Clients_ContactAddress) -> Bool {
+    if lhs.label != rhs.label {return false}
+    if lhs.address != rhs.address {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Clients_ContactEmail: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ContactEmail"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "label"),
+    2: .same(proto: "address"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.label) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.address) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.label.isEmpty {
+      try visitor.visitSingularStringField(value: self.label, fieldNumber: 1)
+    }
+    if !self.address.isEmpty {
+      try visitor.visitSingularStringField(value: self.address, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Clients_ContactEmail, rhs: Clients_ContactEmail) -> Bool {
+    if lhs.label != rhs.label {return false}
+    if lhs.address != rhs.address {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Clients_ContactPhone: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ContactPhone"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "label"),
+    2: .same(proto: "number"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.label) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.number) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.label.isEmpty {
+      try visitor.visitSingularStringField(value: self.label, fieldNumber: 1)
+    }
+    if !self.number.isEmpty {
+      try visitor.visitSingularStringField(value: self.number, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Clients_ContactPhone, rhs: Clients_ContactPhone) -> Bool {
+    if lhs.label != rhs.label {return false}
+    if lhs.number != rhs.number {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -2580,6 +2814,92 @@ extension Clients_Reaction: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
 
   public static func ==(lhs: Clients_Reaction, rhs: Clients_Reaction) -> Bool {
     if lhs.emoji != rhs.emoji {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Clients_Location: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".Location"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "latitude"),
+    2: .same(proto: "longitude"),
+    3: .same(proto: "name"),
+    4: .same(proto: "address"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularDoubleField(value: &self.latitude) }()
+      case 2: try { try decoder.decodeSingularDoubleField(value: &self.longitude) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 4: try { try decoder.decodeSingularMessageField(value: &self._address) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if self.latitude != 0 {
+      try visitor.visitSingularDoubleField(value: self.latitude, fieldNumber: 1)
+    }
+    if self.longitude != 0 {
+      try visitor.visitSingularDoubleField(value: self.longitude, fieldNumber: 2)
+    }
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 3)
+    }
+    try { if let v = self._address {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Clients_Location, rhs: Clients_Location) -> Bool {
+    if lhs.latitude != rhs.latitude {return false}
+    if lhs.longitude != rhs.longitude {return false}
+    if lhs.name != rhs.name {return false}
+    if lhs._address != rhs._address {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Clients_Address: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".Address"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "formatted_address_lines"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeRepeatedStringField(value: &self.formattedAddressLines) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.formattedAddressLines.isEmpty {
+      try visitor.visitRepeatedStringField(value: self.formattedAddressLines, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Clients_Address, rhs: Clients_Address) -> Bool {
+    if lhs.formattedAddressLines != rhs.formattedAddressLines {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

@@ -2546,54 +2546,69 @@ public struct Server_CallSdp {
 
   public var callID: String = String()
 
-  public var sdp: Server_CallSdp.OneOf_Sdp? = nil
+  public var sdpType: Server_CallSdp.SdpType = .unknown
 
-  public var webrtcOffer: Server_WebRtcSessionDescription {
-    get {
-      if case .webrtcOffer(let v)? = sdp {return v}
-      return Server_WebRtcSessionDescription()
-    }
-    set {sdp = .webrtcOffer(newValue)}
+  public var info: Server_WebRtcSessionDescription {
+    get {return _info ?? Server_WebRtcSessionDescription()}
+    set {_info = newValue}
   }
-
-  public var webrtcAnswer: Server_WebRtcSessionDescription {
-    get {
-      if case .webrtcAnswer(let v)? = sdp {return v}
-      return Server_WebRtcSessionDescription()
-    }
-    set {sdp = .webrtcAnswer(newValue)}
-  }
+  /// Returns true if `info` has been explicitly set.
+  public var hasInfo: Bool {return self._info != nil}
+  /// Clears the value of `info`. Subsequent reads from it will return its default value.
+  public mutating func clearInfo() {self._info = nil}
 
   public var timestampMs: Int64 = 0
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  public enum OneOf_Sdp: Equatable {
-    case webrtcOffer(Server_WebRtcSessionDescription)
-    case webrtcAnswer(Server_WebRtcSessionDescription)
+  public enum SdpType: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknown // = 0
+    case offer // = 1
+    case answer // = 2
+    case UNRECOGNIZED(Int)
 
-  #if !swift(>=4.1)
-    public static func ==(lhs: Server_CallSdp.OneOf_Sdp, rhs: Server_CallSdp.OneOf_Sdp) -> Bool {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch (lhs, rhs) {
-      case (.webrtcOffer, .webrtcOffer): return {
-        guard case .webrtcOffer(let l) = lhs, case .webrtcOffer(let r) = rhs else { preconditionFailure() }
-        return l == r
-      }()
-      case (.webrtcAnswer, .webrtcAnswer): return {
-        guard case .webrtcAnswer(let l) = lhs, case .webrtcAnswer(let r) = rhs else { preconditionFailure() }
-        return l == r
-      }()
-      default: return false
+    public init() {
+      self = .unknown
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknown
+      case 1: self = .offer
+      case 2: self = .answer
+      default: self = .UNRECOGNIZED(rawValue)
       }
     }
-  #endif
+
+    public var rawValue: Int {
+      switch self {
+      case .unknown: return 0
+      case .offer: return 1
+      case .answer: return 2
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
   }
 
   public init() {}
+
+  fileprivate var _info: Server_WebRtcSessionDescription? = nil
 }
+
+#if swift(>=4.2)
+
+extension Server_CallSdp.SdpType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_CallSdp.SdpType] = [
+    .unknown,
+    .offer,
+    .answer,
+  ]
+}
+
+#endif  // swift(>=4.2)
 
 public struct Server_EndCall {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -7028,7 +7043,7 @@ extension Server_CallRinging: @unchecked Sendable {}
 extension Server_PreAnswerCall: @unchecked Sendable {}
 extension Server_AnswerCall: @unchecked Sendable {}
 extension Server_CallSdp: @unchecked Sendable {}
-extension Server_CallSdp.OneOf_Sdp: @unchecked Sendable {}
+extension Server_CallSdp.SdpType: @unchecked Sendable {}
 extension Server_EndCall: @unchecked Sendable {}
 extension Server_EndCall.Reason: @unchecked Sendable {}
 extension Server_IceRestartOffer: @unchecked Sendable {}
@@ -10828,8 +10843,8 @@ extension Server_CallSdp: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
   public static let protoMessageName: String = _protobuf_package + ".CallSdp"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "call_id"),
-    2: .standard(proto: "webrtc_offer"),
-    3: .standard(proto: "webrtc_answer"),
+    2: .standard(proto: "sdp_type"),
+    3: .same(proto: "info"),
     4: .standard(proto: "timestamp_ms"),
   ]
 
@@ -10840,32 +10855,8 @@ extension Server_CallSdp: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.callID) }()
-      case 2: try {
-        var v: Server_WebRtcSessionDescription?
-        var hadOneofValue = false
-        if let current = self.sdp {
-          hadOneofValue = true
-          if case .webrtcOffer(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.sdp = .webrtcOffer(v)
-        }
-      }()
-      case 3: try {
-        var v: Server_WebRtcSessionDescription?
-        var hadOneofValue = false
-        if let current = self.sdp {
-          hadOneofValue = true
-          if case .webrtcAnswer(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.sdp = .webrtcAnswer(v)
-        }
-      }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.sdpType) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._info) }()
       case 4: try { try decoder.decodeSingularInt64Field(value: &self.timestampMs) }()
       default: break
       }
@@ -10880,17 +10871,12 @@ extension Server_CallSdp: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
     if !self.callID.isEmpty {
       try visitor.visitSingularStringField(value: self.callID, fieldNumber: 1)
     }
-    switch self.sdp {
-    case .webrtcOffer?: try {
-      guard case .webrtcOffer(let v)? = self.sdp else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    }()
-    case .webrtcAnswer?: try {
-      guard case .webrtcAnswer(let v)? = self.sdp else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-    }()
-    case nil: break
+    if self.sdpType != .unknown {
+      try visitor.visitSingularEnumField(value: self.sdpType, fieldNumber: 2)
     }
+    try { if let v = self._info {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    } }()
     if self.timestampMs != 0 {
       try visitor.visitSingularInt64Field(value: self.timestampMs, fieldNumber: 4)
     }
@@ -10899,11 +10885,20 @@ extension Server_CallSdp: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
 
   public static func ==(lhs: Server_CallSdp, rhs: Server_CallSdp) -> Bool {
     if lhs.callID != rhs.callID {return false}
-    if lhs.sdp != rhs.sdp {return false}
+    if lhs.sdpType != rhs.sdpType {return false}
+    if lhs._info != rhs._info {return false}
     if lhs.timestampMs != rhs.timestampMs {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
+}
+
+extension Server_CallSdp.SdpType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN"),
+    1: .same(proto: "OFFER"),
+    2: .same(proto: "ANSWER"),
+  ]
 }
 
 extension Server_EndCall: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
