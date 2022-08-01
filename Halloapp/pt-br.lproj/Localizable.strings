@@ -1042,6 +1042,9 @@
 /* Title of the menu to choose map type. */
 "locationSharing.chooseMap" = "Escolha o mapa";
 
+/* Addresses displayed as subtitles in location list. Parameters are non-empty street address and city. */
+"locationSharing.detailedAddress" = "%1$@, %2$@";
+
 /* Subtitle of the user location callout. Parameter is the formatted length measurement of accuracy (including unit). */
 "locationSharing.locationAccuracyDescription" = "Preciso de %@";
 
@@ -1056,6 +1059,9 @@
 
 /* Title of the location sharing main screen. */
 "locationSharing.navTitle" = "Localização";
+
+/* Initial title of the callout bubble for locations selected by long pressing on the map. */
+"locationSharing.selectedLocation" = "Local selecionado";
 
 /* Title of a location in location list if it does not have a name. */
 "locationSharing.untitledLocation" = "Localização sem título";
@@ -1380,6 +1386,9 @@
 
 /* Header when selecting all or some contacts to share with */
 "post.privacy.header.contacts" = "Quem verá esta postagem";
+
+/* Header when selecting destinations to forward a message, this header appears above the feeds section */
+"post.privacy.header.feeds" = "Feeds";
 
 /* Header when selecting a group to share with
    Header when selecting destinations to forward a message, this header appears above the groups section */
@@ -1724,6 +1733,9 @@
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Junte-se à minha rede de relacionamentos reais no HalloApp. Baixe gratuitamente em halloapp.com/dl";
+
+/* Show more groups in the share group selection */
+"share.destination.more" = "Mostrar mais...";
 
 /* Prompt for the user to share a moment. */
 "share.moment.prompt" = "Compartilhe um momento";
