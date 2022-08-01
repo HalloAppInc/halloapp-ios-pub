@@ -251,8 +251,20 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
      */
     @discardableResult
     func scrollTo(postId: FeedPostID, animated: Bool = false) -> Bool {
-        guard let post = feedDataSource.posts.first(where: { $0.id == postId }),
-              let indexPath = collectionViewDataSource?.indexPath(for: post.isMoment ? .moment(post) : .post(post)) else {
+        guard let post = feedDataSource.posts.first(where: { $0.id == postId }) else {
+            return false
+        }
+
+        var isMomentStackItem = false
+        let indexPath: IndexPath?
+        if post.isMoment, post.userId != MainAppContext.shared.userData.userId {
+            isMomentStackItem = true
+            indexPath = collectionViewDataSource?.indexPath(for: .momentStack(feedDataSource.momentItems))
+        } else {
+            indexPath = collectionViewDataSource?.indexPath(for: post.isMoment ? .moment(post) : .post(post))
+        }
+
+        guard let indexPath = indexPath else {
             return false
         }
 
@@ -261,6 +273,10 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         if !animated {
             collectionView.layoutIfNeeded()
             collectionView.scrollToItem(at: indexPath, at: .top, animated: false)
+        }
+
+        if isMomentStackItem, let stackCell = collectionView.cellForItem(at: indexPath) as? StackedMomentCollectionViewCell {
+            stackCell.stackedView.scroll(to: postId)
         }
 
         return true

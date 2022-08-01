@@ -265,6 +265,31 @@ class StackedMomentView: UIView {
         insertItemAtBottom(item)
         removeFTUXIfNecessary(previousTopMoment)
     }
+
+    /// Arranges the stack so that the moment with `postID` is at the top.
+    @discardableResult
+    func scroll(to postID: FeedPostID) -> Bool {
+        if topView?.feedPost?.id == postID {
+            return true
+        }
+
+        guard let target = items.firstIndex(where: { $0.moment?.id == postID }) else {
+            return false
+        }
+
+        // rotate the array so that the target item as at the start
+        var items = items
+        let startIndex = items.startIndex
+        let endIndex = items.endIndex
+        let index = items.index(startIndex, offsetBy: target, limitedBy: endIndex) ?? endIndex
+        let slice = items[..<index]
+
+        items.removeSubrange(..<index)
+        items.insert(contentsOf: slice, at: items.endIndex)
+
+        configure(with: items)
+        return true
+    }
 }
 
 // MARK: - FTUX methods

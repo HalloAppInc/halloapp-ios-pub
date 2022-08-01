@@ -86,9 +86,12 @@ final class FeedDataSource: NSObject {
         return posts.contains(where: { [.incoming].contains($0.status) })
     }
 
+    /// All posts, including moments.
     var posts: [FeedPost] {
         return fetchedResultsController?.fetchedObjects ?? []
     }
+    /// Items that are in the moments stack.
+    private(set) var momentItems: [MomentStackItem] = []
 
     func clear() {
         fetchedResultsController = nil
@@ -209,6 +212,8 @@ final class FeedDataSource: NSObject {
         if !validMoments.isEmpty {
             originalItems.insert(.momentStack(validMoments), at: 0)
         }
+
+        self.momentItems = validMoments
 
         //merge consecutive deletion posts when the count of consecutive deletion posts >=3
         let displayItems = mergeDeletionPosts(originalItems: originalItems)
