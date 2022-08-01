@@ -4249,6 +4249,14 @@ public struct Server_Msg {
     set {_uniqueStorage()._payload = .screenshotReceipt(newValue)}
   }
 
+  public var savedReceipt: Server_SavedReceipt {
+    get {
+      if case .savedReceipt(let v)? = _storage._payload {return v}
+      return Server_SavedReceipt()
+    }
+    set {_uniqueStorage()._payload = .savedReceipt(newValue)}
+  }
+
   public var retryCount: Int32 {
     get {return _storage._retryCount}
     set {_uniqueStorage()._retryCount = newValue}
@@ -4311,6 +4319,7 @@ public struct Server_Msg {
     case webStanza(Server_WebStanza)
     case contentMissing(Server_ContentMissing)
     case screenshotReceipt(Server_ScreenshotReceipt)
+    case savedReceipt(Server_SavedReceipt)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Msg.OneOf_Payload, rhs: Server_Msg.OneOf_Payload) -> Bool {
@@ -4492,6 +4501,10 @@ public struct Server_Msg {
       }()
       case (.screenshotReceipt, .screenshotReceipt): return {
         guard case .screenshotReceipt(let l) = lhs, case .screenshotReceipt(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.savedReceipt, .savedReceipt): return {
+        guard case .savedReceipt(let l) = lhs, case .savedReceipt(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -5586,6 +5599,22 @@ public struct Server_PlayedReceipt {
 }
 
 public struct Server_ScreenshotReceipt {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var id: String = String()
+
+  public var threadID: String = String()
+
+  public var timestamp: Int64 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Server_SavedReceipt {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -7060,6 +7089,7 @@ extension Server_SeenReceipt: @unchecked Sendable {}
 extension Server_DeliveryReceipt: @unchecked Sendable {}
 extension Server_PlayedReceipt: @unchecked Sendable {}
 extension Server_ScreenshotReceipt: @unchecked Sendable {}
+extension Server_SavedReceipt: @unchecked Sendable {}
 extension Server_GroupChatRetract: @unchecked Sendable {}
 extension Server_ChatRetract: @unchecked Sendable {}
 extension Server_Prop: @unchecked Sendable {}
@@ -12425,6 +12455,7 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     48: .standard(proto: "web_stanza"),
     49: .standard(proto: "content_missing"),
     50: .standard(proto: "screenshot_receipt"),
+    51: .standard(proto: "saved_receipt"),
     21: .standard(proto: "retry_count"),
     25: .standard(proto: "rerequest_count"),
   ]
@@ -13046,6 +13077,19 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
             _storage._payload = .screenshotReceipt(v)
           }
         }()
+        case 51: try {
+          var v: Server_SavedReceipt?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .savedReceipt(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .savedReceipt(v)
+          }
+        }()
         default: break
         }
       }
@@ -13258,6 +13302,10 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
       case .screenshotReceipt?: try {
         guard case .screenshotReceipt(let v)? = _storage._payload else { preconditionFailure() }
         try visitor.visitSingularMessageField(value: v, fieldNumber: 50)
+      }()
+      case .savedReceipt?: try {
+        guard case .savedReceipt(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 51)
       }()
       default: break
       }
@@ -14384,6 +14432,50 @@ extension Server_ScreenshotReceipt: SwiftProtobuf.Message, SwiftProtobuf._Messag
   }
 
   public static func ==(lhs: Server_ScreenshotReceipt, rhs: Server_ScreenshotReceipt) -> Bool {
+    if lhs.id != rhs.id {return false}
+    if lhs.threadID != rhs.threadID {return false}
+    if lhs.timestamp != rhs.timestamp {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_SavedReceipt: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".SavedReceipt"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "id"),
+    2: .standard(proto: "thread_id"),
+    3: .same(proto: "timestamp"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.threadID) }()
+      case 3: try { try decoder.decodeSingularInt64Field(value: &self.timestamp) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.id.isEmpty {
+      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
+    }
+    if !self.threadID.isEmpty {
+      try visitor.visitSingularStringField(value: self.threadID, fieldNumber: 2)
+    }
+    if self.timestamp != 0 {
+      try visitor.visitSingularInt64Field(value: self.timestamp, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_SavedReceipt, rhs: Server_SavedReceipt) -> Bool {
     if lhs.id != rhs.id {return false}
     if lhs.threadID != rhs.threadID {return false}
     if lhs.timestamp != rhs.timestamp {return false}
