@@ -60,6 +60,7 @@ public protocol ChatMessageProtocol {
 public enum ChatContent {
     case text(String, [LinkPreviewProtocol])
     case album(String?, [ChatMediaProtocol])
+    case reaction(String)
     case voiceNote(ChatMediaProtocol)
     case unsupported(Data)
 }
@@ -145,6 +146,10 @@ public extension ChatMessageProtocol {
                 }
             }
             container.message = .text(clientsText)
+        case .reaction(let emoji):
+            var reaction = Clients_Reaction()
+            reaction.emoji = emoji
+            container.reaction = reaction
         case .voiceNote(let media):
             guard let protoResource = media.protoResource else { return nil }
             var vn = Clients_VoiceNote()
@@ -173,7 +178,7 @@ public extension ChatMessageProtocol {
             return counters
         case .voiceNote(_):
             return MediaCounters(numImages: 0, numVideos: 0, numAudio: 1)
-        case .text, .unsupported:
+        case .text, .reaction, .unsupported:
             return MediaCounters()
         }
     }
@@ -344,10 +349,12 @@ extension Clients_ChatContainer {
             return .album(
                 album.text.text.isEmpty ? nil : album.text.text,
                 album.media.compactMap {  XMPPChatMedia(albumMedia: $0) })
+        case .reaction(let reaction):
+            return .reaction(reaction.emoji)
         case .voiceNote(let voiceNote):
             guard let media = XMPPChatMedia(audio: voiceNote.audio) else { fallthrough }
             return .voiceNote(media)
-        case .contactCard, .files, .reaction, .location, .none:
+        case .contactCard, .files, .location, .none:
             let data = try? serializedData()
             return .unsupported(data ?? Data())
         }

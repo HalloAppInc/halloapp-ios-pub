@@ -18,6 +18,7 @@ public extension CommonReaction {
         case retracted = 2
         case rerequesting = 3
         case unsupported = 4
+        case incoming = 5
     }
 
     enum OutgoingStatus: Int16 {
@@ -40,6 +41,7 @@ public extension CommonReaction {
     @NSManaged var toUserID: String
     @NSManaged var fromUserID: String
     @NSManaged var timestamp: Date
+    @NSManaged var serverTimestamp: Date
     @NSManaged var incomingStatusValue: Int16
     @NSManaged var outgoingStatusValue: Int16
     @NSManaged var resendAttempts: Int16

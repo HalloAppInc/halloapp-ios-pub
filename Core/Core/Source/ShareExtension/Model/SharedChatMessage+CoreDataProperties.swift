@@ -96,7 +96,7 @@ extension SharedChatMessage: ChatMessageProtocol {
     
     public var linkPreviewData: [LinkPreviewProtocol] {
         switch content {
-        case .album, .voiceNote, .unsupported:
+        case .album, .reaction, .voiceNote, .unsupported:
             return []
         case .text(_, let linkPreviewData):
             return linkPreviewData

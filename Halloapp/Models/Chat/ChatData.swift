@@ -838,6 +838,21 @@ class ChatData: ObservableObject {
                             rerequestCount: Int32(message.resendAttempts))
                         messagesMigrated += 1
                         self.processIncomingChatMessage(.decrypted(reinterpretedMessage))
+                    case .reaction:
+                        DDLogInfo("ChatData/processUnsupportedItems/messages/reaction [deleting tombstone] [\(message.id)]")
+                        let timestamp = message.timestamp ?? Date()
+                        let reinterpretedMessage = XMPPReaction(
+                            content: chatContainer.chatContent,
+                            context: chatContainer.chatContext,
+                            timestamp: Int64(timestamp.timeIntervalSince1970),
+                            from: message.fromUserId,
+                            to: message.toUserId,
+                            id: message.id,
+                            retryCount: 0, //TODO
+                            rerequestCount: Int32(message.resendAttempts))
+                            messagesMigrated += 1
+                            self.processIncomingChatMessage(.decrypted(reinterpretedMessage))
+                        self.deleteChatMessage(with: message.id)
                     case .unsupported:
                         DDLogInfo("ChatData/processUnsupportedItems/messages/skipping [still-unsupported] [\(message.id)]")
                     }
@@ -1146,6 +1161,22 @@ class ChatData: ObservableObject {
 
             self.processPendingChatMsgs()
         }
+        
+        // search for pending 1-1 reaction
+        updateReactionByStatus(for: messageID, status: .pending) { [weak self] (reaction) in
+            guard let self = self else { return }
+            DDLogDebug("ChatData/processInboundChatAck/updatePendingReaction/ [\(messageID)]")
+
+            reaction.outgoingStatus = .sentOut
+
+            // only change timestamp the first time message is ack'ed,
+            // rerequests should not, with the assumption resendAttempts are only used for rerequests
+            guard reaction.resendAttempts == 0 else { return }
+            guard let serverTimestamp = chatAck.timestamp else { return }
+            reaction.serverTimestamp = serverTimestamp
+
+            self.processPendingReactions()
+        }
 
         // search for retracting 1-1 message
         updateRetractingChatMessage(for: messageID) { (chatMessage) in
@@ -1155,6 +1186,12 @@ class ChatData: ObservableObject {
             self.updateChatThreadStatus(type: .oneToOne, for: chatMessage.toUserId, messageId: messageID) { (chatThread) in
                 chatThread.lastMsgStatus = .retracted
             }
+        }
+        
+        // search for retracting 1-1 reactions
+        updateRetractingReaction(for: messageID) { (reaction) in
+            DDLogDebug("ChatData/processInboundChatAck/updateRetractingReaction/ [\(messageID)]")
+            reaction.outgoingStatus = .retracted
         }
 
     }
@@ -1420,6 +1457,8 @@ class ChatData: ObservableObject {
                 chatMessage.rawText = text
             case .voiceNote(_):
                 chatMessage.rawText = ""
+            case .reaction(let emoji):
+                chatMessage.rawText = emoji
             case .unsupported(let data):
                 chatMessage.rawData = data
                 // Overwrite incoming status for unsupported messages
@@ -1619,6 +1658,7 @@ class ChatData: ObservableObject {
         sharedDataStore.delete(messages: messages) {
         }
     }
+    
 
     // TODO: duplicate code from ProtoService.swift
     private func reportDecryptionResult(error: DecryptionError?, messageID: String, timestamp: Date, sender: UserAgent?, rerequestCount: Int, contentType: DecryptionReportContentType) {
@@ -2099,7 +2139,15 @@ extension ChatData {
  
         switch chatRetractInfo.threadType {
         case .oneToOne:
-            processInboundChatMessageRetract(from: chatRetractInfo.from, messageID: chatRetractInfo.messageID)
+            performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+                guard let self = self else { return }
+
+                if self.commonReaction(with: chatRetractInfo.messageID, in: managedObjectContext) != nil {
+                    self.processInboundReactionRetract(from: chatRetractInfo.from, reactionID: chatRetractInfo.messageID)
+                } else {
+                    self.processInboundChatMessageRetract(from: chatRetractInfo.from, messageID: chatRetractInfo.messageID)
+                }
+            }
         default:
             return
         }
@@ -2773,6 +2821,76 @@ extension ChatData {
         }
     }
     
+    // MARK: 1-1 Reaction
+    func sendReaction(toUserId: String,
+                      reaction: String,
+                      chatMessageID: ChatMessageID) {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            DDLogInfo("ChatData/sendMessage/createChatMsg/toUserId: \(toUserId)")
+            self.createReaction(toUserId: toUserId,
+                                reaction: reaction,
+                                chatMessageID: chatMessageID,
+                                using: managedObjectContext)
+        }
+
+        addIntent(toUserId: toUserId)
+    }
+
+    @discardableResult
+    func createReaction(toUserId: String,
+                        reaction: String,
+                        chatMessageID: ChatMessageID,
+                        using context: NSManagedObjectContext) -> CommonReactionID {
+        let reactionId = PacketID.generate()
+        let isMsgToYourself: Bool = toUserId == userData.userId
+
+        // Create and save new ChatMessage object.
+        DDLogDebug("ChatData/createReaction/\(reactionId)/toUserId: \(toUserId)")
+        let commonReaction = CommonReaction(context: context)
+        commonReaction.id = reactionId
+        commonReaction.toUserID = toUserId
+        commonReaction.fromUserID = userData.userId
+        commonReaction.emoji = reaction
+        if let message = MainAppContext.shared.chatData.chatMessage(with: chatMessageID, in: context) {
+            commonReaction.message = message
+        }
+        commonReaction.incomingStatus = .none
+        commonReaction.outgoingStatus = isMsgToYourself ? .seen : .pending
+        commonReaction.timestamp = Date()
+
+        save(context)
+
+        if !isMsgToYourself {
+            processPendingReactions()
+        }
+
+        return reactionId
+    }
+
+    func retractReaction(toUserID: UserID, reactionToRetractID: String) {
+        let retractID = PacketID.generate()
+
+        updateReaction(with: reactionToRetractID) { [weak self] (commonReaction) in
+            guard let self = self else { return }
+
+            commonReaction.retractID = retractID
+            commonReaction.outgoingStatus = .retracting
+
+            self.deleteReaction(commonReaction: commonReaction)
+        }
+
+        self.service.retractChatMessage(messageID: retractID, toUserID: toUserID, messageToRetractID: reactionToRetractID) { result in
+            switch result {
+            case .failure(let error):
+                DDLogError("ChatData/retractReaction: \(reactionToRetractID)/failed: \(error)")
+            case .success:
+                DDLogInfo("ChatData/retractReaction: \(reactionToRetractID)/success")
+            }
+        }
+
+    }
+    
     // MARK: 1-1 Core Data Fetching
     
     private func chatMessages(  predicate: NSPredicate? = nil,
@@ -2792,6 +2910,26 @@ extension ChatData {
         catch {
             DDLogError("ChatData/fetch-messages/error  [\(error)]")
             fatalError("Failed to fetch chat messages")
+        }
+    }
+    
+    private func commonReactions(predicate: NSPredicate? = nil,
+                                sortDescriptors: [NSSortDescriptor]? = nil,
+                                limit: Int? = nil,
+                                in managedObjectContext: NSManagedObjectContext) -> [CommonReaction] {
+        let fetchRequest: NSFetchRequest<CommonReaction> = CommonReaction.fetchRequest()
+        fetchRequest.predicate = predicate
+        fetchRequest.sortDescriptors = sortDescriptors
+        if let fetchLimit = limit { fetchRequest.fetchLimit = fetchLimit }
+        fetchRequest.returnsObjectsAsFaults = false
+
+        do {
+            let reactions = try managedObjectContext.fetch(fetchRequest)
+            return reactions
+        }
+        catch {
+            DDLogError("ChatData/fetch-reactions/error  [\(error)]")
+            fatalError("Failed to fetch reactions")
         }
     }
     
@@ -2825,6 +2963,10 @@ extension ChatData {
         return self.chatMessages(predicate: NSPredicate(format: "hasBeenProcessed == NO"), in: managedObjectContext)
     }
     
+    func commonReaction(with id: String, in managedObjectContext: NSManagedObjectContext) -> CommonReaction? {
+        return self.commonReactions(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext).first
+    }
+    
     func chatLinkPreview(with id: String, in managedObjectContext: NSManagedObjectContext) -> CommonLinkPreview? {
         return self.linkPreviews(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext).first
     }
@@ -2850,6 +2992,13 @@ extension ChatData {
             NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
         ]
         return chatMessages(predicate: NSPredicate(format: "outgoingStatusValue = %d", ChatMessage.OutgoingStatus.retracting.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
+    }
+    
+    func pendingOutgoingReactions(in managedObjectContext: NSManagedObjectContext) -> [CommonReaction] {
+        let sortDescriptors = [
+            NSSortDescriptor(keyPath: \CommonReaction.timestamp, ascending: true)
+        ]
+        return commonReactions(predicate: NSPredicate(format: "fromUserID = %@ && outgoingStatusValue = %d", userData.userId, CommonReaction.OutgoingStatus.pending.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
     
     func pendingOutgoingSeenReceipts(in managedObjectContext: NSManagedObjectContext) -> [ChatMessage] {
@@ -2951,6 +3100,26 @@ extension ChatData {
         }
     }
     
+    private func updateReaction(with reactionId: String, block: @escaping (CommonReaction) -> (), performAfterSave: (() -> ())? = nil) {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            defer {
+                if let performAfterSave = performAfterSave {
+                    performAfterSave()
+                }
+            }
+            guard let self = self else { return }
+            guard let commonReaction = self.commonReaction(with: reactionId, in: managedObjectContext) else {
+                DDLogError("ChatData/update-reaction/missing [\(reactionId)]")
+                return
+            }
+            DDLogVerbose("ChatData/update-existing-reaction [\(reactionId)]")
+            block(commonReaction)
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+        }
+    }
+    
     private func updateLinkPreview(with linkPreviewId: String, block: @escaping (CommonLinkPreview) -> (), performAfterSave: (() -> ())? = nil) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             defer {
@@ -2989,6 +3158,24 @@ extension ChatData {
         }
     }
     
+    private func updateReactionByStatus(for id: String, status: CommonReaction.OutgoingStatus, block: @escaping (CommonReaction) -> ()) {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            let sortDescriptors = [
+                NSSortDescriptor(keyPath: \CommonReaction.timestamp, ascending: true)
+            ]
+            guard let reaction = self.commonReactions(predicate: NSPredicate(format: "outgoingStatusValue = %d && id == %@", status.rawValue, id), sortDescriptors: sortDescriptors, in: managedObjectContext).first else {
+                return
+            }
+            
+            DDLogVerbose("ChatData/updateReactionByStatus [\(id)]")
+            block(reaction)
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+        }
+    }
+    
     private func updateRetractingChatMessage(for id: String, block: @escaping (ChatMessage) -> ()) {
 
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
@@ -3002,6 +3189,25 @@ extension ChatData {
             
             DDLogVerbose("ChatData/updateRetractingChatMessage [\(id)]")
             block(chatMessage)
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+        }
+    }
+    
+    private func updateRetractingReaction(for id: String, block: @escaping (CommonReaction) -> ()) {
+
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            let sortDescriptors = [
+                NSSortDescriptor(keyPath: \CommonReaction.timestamp, ascending: true)
+            ]
+            guard let reaction = self.commonReactions(predicate: NSPredicate(format: "outgoingStatusValue = %d && retractID == %@", CommonReaction.OutgoingStatus.retracting.rawValue, id), sortDescriptors: sortDescriptors, in: managedObjectContext).first else {
+                return
+            }
+            
+            DDLogVerbose("ChatData/updateRetractingCommonReaction [\(id)]")
+            block(reaction)
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
             }
@@ -3188,6 +3394,14 @@ extension ChatData {
         chatMessage.quoted = nil
     }
     
+    private func deleteReaction(commonReaction: CommonReaction) {
+        DDLogDebug("ChatData/deleteReaction/message \(commonReaction.id) ")
+        let parentMessage = commonReaction.message
+        if let reactionToDelete = parentMessage.sortedReactionsList.filter({ $0.fromUserID == commonReaction.fromUserID }).last {
+                parentMessage.managedObjectContext?.delete(reactionToDelete)
+        }
+    }
+    
     private func deleteMedia(in chatMessage: ChatMessage) {
         DDLogDebug("ChatData/deleteMedia/message \(chatMessage.id) ")
         chatMessage.media?.forEach { (media) in
@@ -3262,8 +3476,13 @@ extension ChatData {
                 switch incomingMessage {
                 case .decrypted(let chatMessage):
                     DDLogInfo("ChatData/processIncomingChatMessage \(chatMessage.id)")
-                    self.processInboundChatMessage(xmppChatMessage: chatMessage, using: managedObjectContext, isAppActive: isAppActive)
-                    self.didGetAChatMsg.send(chatMessage.fromUserId)
+                    switch chatMessage.content {
+                    case .reaction(_):
+                        self.processInboundReaction(xmppReaction: chatMessage, using: managedObjectContext, isAppActive: isAppActive)
+                    case .album, .text, .voiceNote, .unsupported:
+                        self.processInboundChatMessage(xmppChatMessage: chatMessage, using: managedObjectContext, isAppActive: isAppActive)
+                        self.didGetAChatMsg.send(chatMessage.fromUserId)
+                    }
                 case .notDecrypted(let tombstone):
                     DDLogInfo("ChatData/processIncomingChatMessage/tombstone \(tombstone.id)")
                     self.processInboundTombstone(tombstone, using: managedObjectContext)
@@ -3407,6 +3626,9 @@ extension ChatData {
         case .text(let text, let linkPreviewData):
             chatMessage.rawText = text
             addLinkPreview( chatMessage: chatMessage, linkPreviewData: linkPreviewData, using: managedObjectContext)
+        case .reaction(let emoji):
+            DDLogDebug("ChatData/processInboundChatMessage/processing reaction as message")
+            chatMessage.rawText = emoji
         case .unsupported(let data):
             chatMessage.rawData = data
             chatMessage.incomingStatus = .unsupported
@@ -3480,6 +3702,68 @@ extension ChatData {
         removeFromChatStateList(from: xmppChatMessage.fromUserId, threadType: .oneToOne, threadID: xmppChatMessage.fromUserId, type: .available)
     }
 
+    // MARK: 1-1 Process Inbound Reactions
+    private func processInboundReaction(xmppReaction: ChatMessageProtocol, using managedObjectContext: NSManagedObjectContext, isAppActive: Bool) {
+        let existingReaction = commonReaction(with: xmppReaction.id, in: managedObjectContext)
+        if let existingReaction = existingReaction {
+            switch existingReaction.incomingStatus {
+            case .unsupported, .none, .rerequesting:
+                DDLogInfo("ChatData/process/already-exists/updating [\(existingReaction.incomingStatus)] [\(xmppReaction.id)]")
+                break
+            case .error, .incoming, .retracted:
+                DDLogError("ChatData/process/already-exists/error [\(existingReaction.incomingStatus)] [\(xmppReaction.id)]")
+                return
+            }
+        }
+        DDLogDebug("ChatData/processInboundReaction [\(xmppReaction.id)]")
+        let commonReaction: CommonReaction = {
+            guard let existingReaction = existingReaction else {
+                let existingTombstone = self.chatMessage(with: xmppReaction.id, in: managedObjectContext)
+                if let existingTombstone = existingTombstone, existingTombstone.incomingStatus == .rerequesting {
+                    //Delete tombstone
+                    DDLogInfo("ChatData/processInboundReaction/deleteTombstone [\(existingTombstone.id)]")
+                    managedObjectContext.delete(existingTombstone)
+                }
+                DDLogDebug("ChatData/process/new [\(xmppReaction.id)]")
+                return CommonReaction(context: managedObjectContext)
+            }
+            DDLogDebug("ChatData/process/updating rerequested reaction [\(xmppReaction.id)]")
+            return existingReaction
+        }()
+
+        commonReaction.id = xmppReaction.id
+        commonReaction.toUserID = xmppReaction.toUserId
+        commonReaction.fromUserID = xmppReaction.fromUserId
+        switch xmppReaction.content {
+        case .reaction(let emoji):
+            commonReaction.emoji = emoji
+        case .album, .text, .voiceNote, .unsupported:
+            DDLogError("ChatData/processInboundReaction content not reaction type")
+        }
+        if let chatReplyMsgId = xmppReaction.context.chatReplyMessageID {
+            // Process Quoted Message
+            if let message = MainAppContext.shared.chatData.chatMessage(with: chatReplyMsgId, in: managedObjectContext) {
+                commonReaction.message = message
+            }
+        }
+
+        commonReaction.incomingStatus = .incoming
+        commonReaction.outgoingStatus = .none
+
+        if let ts = xmppReaction.timeIntervalSince1970 {
+            commonReaction.timestamp = Date(timeIntervalSince1970: ts)
+        } else {
+            commonReaction.timestamp = Date()
+        }
+
+        save(managedObjectContext)
+
+        showOneToOneNotification(for: xmppReaction)
+
+        // remove user from typing state
+        removeFromChatStateList(from: xmppReaction.fromUserId, threadType: .oneToOne, threadID: xmppReaction.fromUserId, type: .available)
+    }
+    
     // MARK: 1-1 Process Inbound Receipts
 
     private func processInboundOneToOneMessageReceipt(with receipt: XMPPReceipt) {
@@ -3518,6 +3802,27 @@ extension ChatData {
         }
     }
     
+    private func processInboundOneToOneReactionReceipt(with receipt: XMPPReceipt) {
+        DDLogInfo("ChatData/processInboundOneToOneReactionReceipt")
+        let messageId = receipt.itemId
+        let receiptType = receipt.type
+        
+        updateReaction(with: messageId) { [weak self] (reaction) in
+            guard self != nil else { return }
+            guard ![.seen, .retracting, .retracted].contains(reaction.outgoingStatus) else { return }
+
+            switch receiptType {
+            case .delivery:
+                reaction.outgoingStatus = .delivered
+            case .read:
+                reaction.outgoingStatus = .seen
+            case .played, .screenshot:
+                DDLogError("ChatData/processInboundOneToOneReactionReceipt/processing screenshot receipt")
+                break
+            }
+        }
+    }
+    
     // MARK: 1-1 Process Inbound Retract Message
     
     private func processInboundChatMessageRetract(from: UserID, messageID: String) {
@@ -3540,6 +3845,19 @@ extension ChatData {
                 chatThread.lastMsgMediaType = .none
             }
 
+        }
+    }
+    
+    private func processInboundReactionRetract(from: UserID, reactionID: String) {
+        DDLogInfo("ChatData/processInboundReactionRetract")
+
+        updateReaction(with: reactionID) { [weak self] (commonReaction) in
+            guard let self = self else { return }
+
+            commonReaction.incomingStatus = .retracted
+
+            self.deleteReaction(commonReaction: commonReaction)
+            return
         }
     }
 }
@@ -3622,6 +3940,19 @@ extension ChatData {
         }
     }
 
+    private func processPendingReactions() {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            let pendingOutgoingReactions = self.pendingOutgoingReactions(in: managedObjectContext)
+            DDLogInfo("ChatData/processPendingChatMsgs/num: \(pendingOutgoingReactions.count)")
+
+            pendingOutgoingReactions.forEach { pendingReaction in
+                let xmppReaction = XMPPReaction(reaction: pendingReaction)
+                self.send(message: xmppReaction)
+            }
+        }
+    }
+    
     private func processRetractingChatMsgs() {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
@@ -3729,7 +4060,7 @@ extension ChatData {
             body = [mediaStr, text].compactMap { $0 }.joined(separator: " ")
         case .voiceNote(_):
             body =  "🎤"
-        case .unsupported(_):
+        case .reaction(_), .unsupported(_):
             body = ""
         }
         AppContext.shared.notificationStore.runIfNotificationWasNotPresented(for: messageID) {
@@ -4983,7 +5314,14 @@ extension ChatData: HalloChatDelegate {
             ack?()
             return
         }
-        processInboundOneToOneMessageReceipt(with: receipt)
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            if self.commonReaction(with: receipt.itemId, in: managedObjectContext) != nil {
+                self.processInboundOneToOneReactionReceipt(with: receipt)
+            } else {
+                self.processInboundOneToOneMessageReceipt(with: receipt)
+            }
+        }
         ack?()
     }
 

@@ -115,7 +115,12 @@ public class CoreChatData {
         case .notDecrypted(let tombstone):
             saveTombstone(tombstone, hasBeenProcessed: hasBeenProcessed, completion: completion)
         case .decrypted(let chatMessageProtocol):
-            saveChatMessage(chatMessageProtocol, hasBeenProcessed: hasBeenProcessed, completion: completion)
+            switch  chatMessageProtocol.content {
+            case .reaction(_):
+                saveReaction(chatMessageProtocol, hasBeenProcessed: hasBeenProcessed, completion: completion)
+            case .album, .text, .voiceNote, .unsupported:
+                saveChatMessage(chatMessageProtocol, hasBeenProcessed: hasBeenProcessed, completion: completion)
+            }
         }
     }
 
@@ -211,6 +216,9 @@ public class CoreChatData {
                 lastMsgMediaType = .audio
             case .text(let text, _):
                 chatMessage.rawText = text
+            case .reaction(let emoji):
+                DDLogDebug("CoreChatData/saveChatMessage/processing reaction as message")
+                chatMessage.rawText = emoji
             case .unsupported(let data):
                 chatMessage.rawData = data
                 chatMessage.incomingStatus = .unsupported
@@ -286,6 +294,63 @@ public class CoreChatData {
             }
         }, completion: completion)
     }
+    
+    private func saveReaction(_ chatMessageProtocol: ChatMessageProtocol, hasBeenProcessed: Bool, completion: @escaping ((Result<Void, Error>) -> Void)) {
+        mainDataStore.saveSeriallyOnBackgroundContext ({ context in
+            let existingReaction = self.commonReaction(with: chatMessageProtocol.id, in: context)
+            if let existingReaction = existingReaction {
+                switch existingReaction.incomingStatus {
+                case .unsupported, .none, .rerequesting:
+                    DDLogInfo("CoreChatData/saveReaction/already-exists/updating [\(existingReaction.incomingStatus)] [\(chatMessageProtocol.id)]")
+                    break
+                case .error, .incoming, .retracted:
+                    DDLogError("CoreChatData/saveReaction/already-exists/error [\(existingReaction.incomingStatus)] [\(chatMessageProtocol.id)]")
+                    return
+                }
+            }
+
+            DDLogDebug("CoreChatData/saveReaction [\(chatMessageProtocol.id)]")
+            let commonReaction: CommonReaction = {
+                guard let existingReaction = existingReaction else {
+                    let existingTombstone = self.chatMessage(with: chatMessageProtocol.id, in: context)
+                    if let existingTombstone = existingTombstone, existingTombstone.incomingStatus == .rerequesting {
+                        //Delete tombstone
+                        DDLogInfo("CoreChatData/saveReaction/deleteTombstone [\(existingTombstone.id)]")
+                        context.delete(existingTombstone)
+                    }
+                    DDLogDebug("CoreChatData/saveReaction/new [\(chatMessageProtocol.id)]")
+                    return CommonReaction(context: context)
+                }
+                DDLogDebug("CoreChatData/saveReaction/updating rerequested reaction [\(chatMessageProtocol.id)]")
+                return existingReaction
+            }()
+
+            commonReaction.id = chatMessageProtocol.id
+            commonReaction.toUserID = chatMessageProtocol.toUserId
+            commonReaction.fromUserID = chatMessageProtocol.fromUserId
+            switch chatMessageProtocol.content {
+            case .reaction(let emoji):
+                commonReaction.emoji = emoji
+            case .album, .text, .voiceNote, .unsupported:
+                DDLogError("CoreChatData/saveReaction content not reaction type")
+            }
+            if let chatReplyMsgId = chatMessageProtocol.context.chatReplyMessageID {
+                // Set up parent chat message
+                if let message = self.chatMessage(with: chatReplyMsgId, in: context) {
+                    commonReaction.message = message
+                }
+            }
+
+            commonReaction.incomingStatus = .incoming
+            commonReaction.outgoingStatus = .none
+
+            if let ts = chatMessageProtocol.timeIntervalSince1970 {
+                commonReaction.timestamp = Date(timeIntervalSince1970: ts)
+            } else {
+                commonReaction.timestamp = Date()
+            }
+        }, completion: completion)
+    }
 
     // This function can nicely copy references to quoted feed post or quoted message to the new chatMessage.
     private func copyQuoted(to chatMessage: ChatMessage, from chatQuoted: ChatQuotedProtocol, using managedObjectContext: NSManagedObjectContext) {
@@ -338,7 +403,25 @@ public class CoreChatData {
         }
         catch {
             DDLogError("NotificationProtoService/fetch-posts/error  [\(error)]")
-            fatalError("Failed to fetch feed posts.")
+            fatalError("Failed to fetch chat messages.")
+        }
+    }
+
+    public func commonReaction(with commonReactionID: CommonReactionID, in managedObjectContext: NSManagedObjectContext) -> CommonReaction? {
+        let fetchRequest: NSFetchRequest<CommonReaction> = CommonReaction.fetchRequest()
+
+        fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            NSPredicate(format: "id == %@", commonReactionID)
+        ])
+
+        fetchRequest.returnsObjectsAsFaults = false
+        do {
+            let messages = try managedObjectContext.fetch(fetchRequest)
+            return messages.first
+        }
+        catch {
+            DDLogError("NotificationProtoService/fetch-posts/error  [\(error)]")
+            fatalError("Failed to fetch reactions.")
         }
     }
 

@@ -99,13 +99,14 @@
         <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="media" inverseEntity="FeedPost"/>
     </entity>
     <entity name="CommonReaction" representedClassName="CommonReaction" syncable="YES">
-        <attribute name="emoji" optional="YES" attributeType="String"/>
+        <attribute name="emoji" attributeType="String"/>
         <attribute name="fromUserID" optional="YES" attributeType="String"/>
         <attribute name="id" attributeType="String"/>
         <attribute name="incomingStatusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="outgoingStatusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="resendAttempts" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="retractID" optional="YES" attributeType="String"/>
+        <attribute name="serverTimestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatMessage" inverseName="reactions" inverseEntity="ChatMessage"/>
         <uniquenessConstraints>
@@ -259,7 +260,7 @@
         <element name="ChatQuoted" positionX="0" positionY="153" width="128" height="119"/>
         <element name="CommonLinkPreview" positionX="-45" positionY="63" width="128" height="149"/>
         <element name="CommonMedia" positionX="-36" positionY="72" width="128" height="359"/>
-        <element name="CommonReaction" positionX="36" positionY="189" width="128" height="164"/>
+        <element name="CommonReaction" positionX="36" positionY="189" width="128" height="179"/>
         <element name="CommonThread" positionX="27" positionY="180" width="128" height="209"/>
         <element name="ContentPublishInfo" positionX="36" positionY="108" width="128" height="74"/>
         <element name="ContentResendInfo" positionX="-63" positionY="45" width="128" height="119"/>

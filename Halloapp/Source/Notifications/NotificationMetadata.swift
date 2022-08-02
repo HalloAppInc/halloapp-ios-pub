@@ -764,6 +764,8 @@ class NotificationMetadata: Codable {
             return [mediaIcon, text].compactMap { $0 }.joined(separator: " ")
         case .voiceNote(_):
             return Localizations.newAudioNoteNotificationBody
+        case .reaction(let emoji):
+            return String(format: Localizations.messageReactionNotificationTitle, emoji)
         case .unsupported:
             DDLogInfo("NotificationMetadata/bodyText/unsupported")
             return nil

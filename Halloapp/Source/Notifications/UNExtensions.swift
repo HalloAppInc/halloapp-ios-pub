@@ -277,6 +277,12 @@ extension Localizations {
             comment: "Fallback text for new message notification.")
     }
 
+    static var messageReactionNotificationTitle: String {
+        NSLocalizedString("notification.message.reaction",
+                          value: "Reacted %@ to a message",
+                          comment: "Push notification for a reaction to message")
+    }
+    
     static var newAudioNoteNotificationBody: String {
         NSLocalizedString(
             "notification.voicenote",

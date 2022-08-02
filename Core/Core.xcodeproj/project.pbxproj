@@ -136,6 +136,7 @@
 		EAF47E0B251D80930056196F /* GroupAvatar+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF47E09251D80930056196F /* GroupAvatar+CoreDataProperties.swift */; };
 		EB3CB4A82888746800249238 /* CommonReaction+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB3CB4A72888746800249238 /* CommonReaction+CoreDataClass.swift */; };
 		EB3CB4AA288874B300249238 /* CommonReaction+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB3CB4A9288874B300249238 /* CommonReaction+CoreDataProperties.swift */; };
+		EB9EBED92891EE830064688B /* XMPPReaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB9EBED82891EE830064688B /* XMPPReaction.swift */; };
 		F404FC412810B3EE008313FF /* CoreCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F404FC402810B3EE008313FF /* CoreCommon.framework */; };
 		F41FAA4F27E530D400FC5090 /* ExternalShareInfo+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41FAA4D27E530D400FC5090 /* ExternalShareInfo+CoreDataProperties.swift */; };
 		F41FAA5027E530D400FC5090 /* ExternalShareInfo+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41FAA4E27E530D400FC5090 /* ExternalShareInfo+CoreDataClass.swift */; };
@@ -284,6 +285,7 @@
 		EAF47E09251D80930056196F /* GroupAvatar+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GroupAvatar+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		EB3CB4A72888746800249238 /* CommonReaction+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CommonReaction+CoreDataClass.swift"; sourceTree = "<group>"; };
 		EB3CB4A9288874B300249238 /* CommonReaction+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CommonReaction+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		EB9EBED82891EE830064688B /* XMPPReaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPReaction.swift; sourceTree = "<group>"; };
 		F404FC402810B3EE008313FF /* CoreCommon.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CoreCommon.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F41FAA4D27E530D400FC5090 /* ExternalShareInfo+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ExternalShareInfo+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		F41FAA4E27E530D400FC5090 /* ExternalShareInfo+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ExternalShareInfo+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -542,6 +544,7 @@
 				F8BE61A927A0640C0061FFC2 /* ChatListSyncItem.swift */,
 				6A3E533D2824777500E98640 /* XMPPChatMessage.swift */,
 				6A32A12028248A020083DE85 /* CoreChatData.swift */,
+				EB9EBED82891EE830064688B /* XMPPReaction.swift */,
 			);
 			path = Chat;
 			sourceTree = "<group>";
@@ -795,6 +798,7 @@
 				32F2E5882810D09D00A43415 /* PostLinkPreviewView.swift in Sources */,
 				6AB4BBBA26EFD7CF006D66AD /* MediaHash.xcdatamodeld in Sources */,
 				321A7019270505A9005603B8 /* SharedFeedLinkPreview+CoreDataProperties.swift in Sources */,
+				EB9EBED92891EE830064688B /* XMPPReaction.swift in Sources */,
 				68EAABE727F78CCA00619B1A /* CommonThread+CoreDataClass.swift in Sources */,
 				6A16C6D7285F7E33005269C7 /* HomeSessionKeyBundle+CoreDataClass.swift in Sources */,
 				6A32A1282825ECE10083DE85 /* receipts.pb.swift in Sources */,

@@ -28,7 +28,7 @@ extension XMPPChatMessage: ChatMessageProtocol {
             return media
         case .voiceNote(let media):
             return [media]
-        case .text, .unsupported:
+        case .text, .reaction, .unsupported:
             return []
         }
     }
@@ -39,7 +39,7 @@ extension XMPPChatMessage: ChatMessageProtocol {
 
     public var linkPreviewData: [LinkPreviewProtocol] {
         switch content {
-        case .album, .voiceNote, .unsupported:
+        case .album, .reaction, .voiceNote, .unsupported:
             return []
         case .text(_, let linkPreviewData):
             return linkPreviewData
