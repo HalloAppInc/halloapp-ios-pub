@@ -1523,6 +1523,10 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
             return
         }
 
+        if feedPost.status == .retracted || feedPost.status == .expired {
+            return
+        }
+        
         let vc = feedPost.isMoment ? MomentViewController(post: feedPost, shouldFetchOtherMoments: false) : PostViewController.viewController(for: feedPost)
         present(vc, animated: true)
     }
