@@ -23,6 +23,7 @@ public class AvatarView: UIView {
     private var avatar = UIImageView()
     private let avatarContainerView = UIView()
     private var avatarUpdatingCancellable: AnyCancellable?
+    private var userCacheCancellable: AnyCancellable?
     private var borderLayer: CAShapeLayer?
 
     /**
@@ -131,15 +132,23 @@ public class AvatarView: UIView {
                 self.avatar.image = AvatarView.defaultImage
             }
         }
+
+        userCacheCancellable = avatarStore.userCacheUpdates
+            .filter { $0.userId == userAvatar.userId }
+            .sink { [weak self] in
+                self?.configure(with: $0, using: avatarStore)
+            }
     }
 
     public func configure(image: UIImage?) {
         avatar.image = image
         avatarUpdatingCancellable?.cancel()
+        userCacheCancellable?.cancel()
     }
 
     public func prepareForReuse() {
         avatarUpdatingCancellable?.cancel()
+        userCacheCancellable?.cancel()
         avatar.image = AvatarView.defaultImage
         hasImage = false
     }

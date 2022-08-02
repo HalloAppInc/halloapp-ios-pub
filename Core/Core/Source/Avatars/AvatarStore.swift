@@ -37,6 +37,12 @@ public class AvatarStore: ServiceAvatarDelegate {
     private let userAvatars = NSCache<NSString, UserAvatar>()
     private let groupAvatarsData = NSCache<NSString, GroupAvatarData>()
     private let addressBookAvatars = NSCache<NSString, AddressBookAvatar>()
+
+    /// Sends new values when the internal cache of `UserAvatar` objects is updated.
+    ///
+    /// Because cache evictions occur often when foregrounding the app, objects that depend on live updates of
+    /// the avatar data should subscribe to this publisher to ensure that updates don't get lost.
+    let userCacheUpdates = PassthroughSubject<UserAvatar, Never>()
     
     private class var persistentStoreURL: URL {
         get {
@@ -148,6 +154,7 @@ public class AvatarStore: ServiceAvatarDelegate {
         }
         
         userAvatars.setObject(userAvatar, forKey: userId as NSString)
+        userCacheUpdates.send(userAvatar)
         
         return userAvatar
     }
@@ -624,7 +631,7 @@ public class UserAvatar {
     fileprivate var avatarId: AvatarID?
     fileprivate var fileURL: URL?
     
-    private let userId: UserID
+    let userId: UserID
     private var imageIsLoading = false
     
     public let imageDidChange = PassthroughSubject<UIImage?, Never>()
