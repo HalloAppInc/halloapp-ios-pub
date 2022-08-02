@@ -253,6 +253,7 @@ final class FeedDataSource: NSObject {
             return false
         }
 
+        DDLogInfo("FeedDataSource/filterOutMoments/ posts \(nonStackedPosts.count); moments: \(stackedMoments.count)")
         return (nonStackedPosts, stackedMoments)
     }
 
