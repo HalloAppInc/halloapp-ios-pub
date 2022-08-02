@@ -17,7 +17,7 @@ struct LocationSharingEnvironment {
     
     static var `default`: Self = .init(locationManager: .shared)
     
-    func performLocalSearch(for queryString: String?, around region: MKCoordinateRegion) -> Future<[MKMapItem], Error> {
+    func performLocalSearch(for queryString: String?, around region: MKCoordinateRegion) -> AnyPublisher<[MKMapItem], Error> {
         Future {
             let searchRequest = MKLocalSearch.Request()
             searchRequest.pointOfInterestFilter = MKPointOfInterestFilter.includingAll
@@ -28,6 +28,14 @@ struct LocationSharingEnvironment {
             let localSearch = MKLocalSearch(request: searchRequest)
             return try await localSearch.start().mapItems
         }
+        .tryCatch { (error: any Error) throws -> Just<[MKMapItem]> in
+            if let error = error as? MKError, error.code == .placemarkNotFound {
+                return Just([])
+            } else {
+                throw error
+            }
+        }
+        .eraseToAnyPublisher()
     }
     
     func placemark(from annotation: any MKAnnotation) -> Future<CLPlacemark?, Error> {
