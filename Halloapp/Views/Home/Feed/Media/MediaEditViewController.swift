@@ -350,7 +350,6 @@ class MediaEditViewController: UIViewController {
                         button.setBackgroundColor($0, for: .normal)
                     }
                 } else {
-                    drawingColorCancellable = nil
                     button.setBackgroundColor(.clear, for: .normal)
                 }
 
@@ -365,11 +364,14 @@ class MediaEditViewController: UIViewController {
                         button.setBackgroundColor($0, for: .normal)
                     }
                 } else {
-                    drawingColorCancellable = nil
                     button.setBackgroundColor(.clear, for: .normal)
                 }
 
                 navigationItem.rightBarButtonItems?.append(annotateButtonItem)
+            }
+
+            if !media[selected].isDrawing && !media[selected].isAnnotating {
+                drawingColorCancellable = nil
             }
 
             if config.canCrop {
