@@ -781,22 +781,39 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
-    private func makeHomeRerequestEncryptedPayload(post: PostData, type: HomeSessionType, for userID: UserID, completion: @escaping (Result<(Clients_EncryptedPayload, Server_SenderStateWithKeyInfo?), EncryptionError>) -> Void) {
+    private func makeHomeRerequestEncryptedPayload(post: PostData, type: HomeSessionType, for userID: UserID, completion: @escaping (Result<Server_FeedItem, EncryptionError>) -> Void) {
 
         // Block to encrypt item payload using 1-1 channel.
-        let itemPayloadEncryptionCompletion: ((Data, Server_SenderStateWithKeyInfo?) -> Void) = { (payloadData,
-                                                                                                   senderStateWithKeyInfo) in
-            AppContext.shared.messageCrypter.encrypt(payloadData, for: userID) { result in
+        let itemPayloadEncryptionCompletion: ((PostData, Server_SenderStateWithKeyInfo?) -> Void) = { (newPost, senderStateWithKeyInfo) in
+            guard var serverPostData = newPost.serverPost else {
+                completion(.failure(.serialization))
+                return
+            }
+            AppContext.shared.messageCrypter.encrypt(serverPostData.payload, for: userID) { result in
                 switch result {
                 case .failure(let error):
                     DDLogError("ProtoServiceCore/makeHomeRerequestEncryptedPayload/\(type)/failed to encrypt for userID: \(userID)")
                     completion(.failure(error))
                     return
                 case .success((let oneToOneEncryptedData, _)):
-                    DDLogError("ProtoServiceCore/makeHomeRerequestEncryptedPayload/\(type)/success for userID: \(userID)")
-                    var clientEncryptedPayload = Clients_EncryptedPayload()
-                    clientEncryptedPayload.oneToOneEncryptedPayload = oneToOneEncryptedData.data
-                    completion(.success((clientEncryptedPayload, senderStateWithKeyInfo)))
+                    do {
+                        DDLogInfo("ProtoServiceCore/makeHomeRerequestEncryptedPayload/\(type)/success for userID: \(userID)")
+                        var clientEncryptedPayload = Clients_EncryptedPayload()
+                        clientEncryptedPayload.oneToOneEncryptedPayload = oneToOneEncryptedData.data
+                        var item = Server_FeedItem()
+                        item.action = .publish
+                        item.senderClientVersion = AppContext.userAgent
+                        serverPostData.encPayload = try clientEncryptedPayload.serializedData()
+                        item.item = .post(serverPostData)
+                        if let senderStateWithKeyInfo = senderStateWithKeyInfo {
+                            item.senderState = senderStateWithKeyInfo
+                        }
+                        completion(.success(item))
+                    } catch {
+                        DDLogError("ProtoServiceCore/makeHomeRerequestEncryptedPayload/\(type)/payload-serialization/error \(error)")
+                        completion(.failure(.serialization))
+                        return
+                    }
                 }
             }
         }
@@ -809,11 +826,7 @@ extension ProtoServiceCore: CoreService {
                 case .success(let data):
                     var newPost = post
                     newPost.commentKey = data
-                    if let serverPostData = newPost.serverPost {
-                        itemPayloadEncryptionCompletion(serverPostData.payload, senderStateWithKeyInfo)
-                    } else {
-                        completion(.failure(.serialization))
-                    }
+                    itemPayloadEncryptionCompletion(newPost, senderStateWithKeyInfo)
                 }
             }
         }
@@ -1049,20 +1062,9 @@ extension ProtoServiceCore: CoreService {
                 case .failure(let failure):
                     AppContext.shared.eventMonitor.count(.homeEncryption(error: failure, itemType: .post))
                     completion(.failure(failure))
-                case .success((let clientEncryptedPayload, let senderStateWithKeyInfo)):
+                case .success(let item):
                     AppContext.shared.eventMonitor.count(.homeEncryption(error: nil, itemType: .post))
-                    do {
-                        serverPost.encPayload = try clientEncryptedPayload.serializedData()
-                        item.item = .post(serverPost)
-                        if let senderStateWithKeyInfo = senderStateWithKeyInfo {
-                            item.senderState = senderStateWithKeyInfo
-                        }
-                        completion(.success(.feedItem(item)))
-                    } catch {
-                        DDLogError("ProtoServiceCore/makePostRerequestFeedItem/personal/payload-serialization/error \(error)")
-                        completion(.failure(.serialization))
-                        return
-                    }
+                    completion(.success(.feedItem(item)))
                 }
             }
         }

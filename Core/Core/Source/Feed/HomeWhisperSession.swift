@@ -428,12 +428,13 @@ final class HomeWhisperSession {
                     DDLogInfo("HomeWhisperSession/\(type)/execute/updateSenderState")
                     updateIncomingSession(from: userID, with: senderState)
                 case .fetchCommentKey(let feedPostID, let completion):
-                    DDLogInfo("HomeWhisperSession/\(type)/execute/fetchCommentKey")
+                    DDLogInfo("HomeWhisperSession/\(type)/execute/fetchCommentKey: \(feedPostID)")
                     guard let commentKey = commentKey(for: feedPostID, createIfNecessary: true) else {
                         DDLogError("HomeWhisperSession/\(type)/execute/fetchCommentKey/missing commentKey for postID: \(feedPostID)")
                         completion(.failure(.missingCommentKey))
                         return
                     }
+                    DDLogInfo("HomeWhisperSession/\(type)/execute/fetchCommentKey: \(feedPostID)/success: \(commentKey.rawData.count)")
                     completion(.success(commentKey.rawData))
                 case .saveCommentKey(let feedPostID, let data):
                     DDLogInfo("HomeWhisperSession/\(type)/execute/saveCommentKey")
