@@ -488,6 +488,70 @@ extension ProtoServiceCoreCommon: CoreServiceCommon {
     public func joinGroupWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>) {
         enqueue(request: ProtoJoinGroupWithLinkRequest(inviteLink: inviteLink, completion: completion))
     }
+
+    // MARK: Web client
+
+    public func authenticateWebClient(staticKey: Data, completion: @escaping ServiceRequestCompletion<Void>) {
+        var webClientInfo = Server_WebClientInfo()
+        webClientInfo.staticKey = staticKey
+        webClientInfo.action = .authenticateKey
+
+        let packet = Server_Packet.iqPacket(
+            type: .set,
+            payload: .webClientInfo(webClientInfo))
+
+        let request = ProtoRequest(
+            iqPacket: packet,
+            transform: { _ in return .success(()) },
+            completion: completion)
+
+        enqueue(request: request)
+    }
+
+    public func removeWebClient(staticKey: Data, completion: @escaping ServiceRequestCompletion<Void>) {
+        var webClientInfo = Server_WebClientInfo()
+        webClientInfo.staticKey = staticKey
+        webClientInfo.action = .removeKey
+
+        let packet = Server_Packet.iqPacket(
+            type: .set,
+            payload: .webClientInfo(webClientInfo))
+
+        let request = ProtoRequest(
+            iqPacket: packet,
+            transform: { _ in return .success(()) },
+            completion: completion)
+
+        enqueue(request: request)
+    }
+
+    public func sendToWebClient(staticKey: Data, data: Data, completion: @escaping ServiceRequestCompletion<Void>) {
+        guard let fromUserID = self.credentials?.userID else {
+            DDLogError("ProtoServiceCore/sendToWebClient/error no-user-id")
+            completion(.failure(.aborted))
+            return
+        }
+
+        var webStanza = Server_WebStanza()
+        webStanza.staticKey = staticKey
+        webStanza.content = data
+
+        let packet = Server_Packet.msgPacket(
+            from: fromUserID,
+            to: fromUserID, // web client has same user ID
+            payload: .webStanza(webStanza))
+
+        guard let packetData = try? packet.serializedData() else {
+            DDLogError("ProtoServiceCore/sendToWebClient/error [serialization]")
+            completion(.failure(RequestError.malformedRequest))
+            return
+        }
+
+        DDLogInfo("ProtoServiceCore/sendToWebClient/sending")
+        self.send(packetData)
+        DDLogInfo("ProtoServiceCore/sendToWebClient/sent")
+        completion(.success(()))
+    }
 }
 
 public extension Server_Packet {

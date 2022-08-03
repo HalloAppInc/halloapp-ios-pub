@@ -33,6 +33,11 @@ class MainAppContext: AppContext {
     private(set) var privacySettingsImpl: PrivacySettings!
     private(set) var shareExtensionDataStore: ShareExtensionDataStore!
     private(set) var notificationServiceExtensionDataStore: NotificationServiceExtensionDataStore!
+    lazy var webClientManager: WebClientManager? = {
+        // TODO: Support logout
+        guard let keys = userData.credentials?.noiseKeys else { return nil }
+        return WebClientManager(service: service, noiseKeys: keys)
+    }()
     lazy var nux: NUX = { NUX(userDefaults: userDefaults) }()
     private lazy var mergeSharedDataQueue = { DispatchQueue(label: "com.halloapp.mergeSharedData", qos: .default) }()
 

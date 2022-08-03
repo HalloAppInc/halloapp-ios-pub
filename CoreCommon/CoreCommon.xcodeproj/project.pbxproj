@@ -73,6 +73,7 @@
 		32CE965E27CFEE4400B4A2C1 /* OneTimePreKey+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32CE965327CFEE4400B4A2C1 /* OneTimePreKey+CoreDataClass.swift */; };
 		32CE966027CFF6DB00B4A2C1 /* ProtoServiceCoreCommon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32CE965F27CFF6DB00B4A2C1 /* ProtoServiceCoreCommon.swift */; };
 		32CE966227CFF74900B4A2C1 /* CoreServiceCommon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32CE966127CFF74800B4A2C1 /* CoreServiceCommon.swift */; };
+		68C04BED2891BB1900DA5AD9 /* web.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68C04BEC2891BB1900DA5AD9 /* web.pb.swift */; };
 		F404FC292810AD11008313FF /* SwiftNoise in Frameworks */ = {isa = PBXBuildFile; productRef = F404FC282810AD11008313FF /* SwiftNoise */; };
 		F4585C7627E152F700BF6ED6 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = F4585C7527E152F700BF6ED6 /* Sentry */; };
 		F4585C7C27E156B600BF6ED6 /* SentryLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4585C7B27E156B600BF6ED6 /* SentryLogger.swift */; };
@@ -139,6 +140,7 @@
 		32CE965327CFEE4400B4A2C1 /* OneTimePreKey+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "OneTimePreKey+CoreDataClass.swift"; path = "CoreCommon/Source/Keys/CoreData Stack/OneTimePreKey+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		32CE965F27CFF6DB00B4A2C1 /* ProtoServiceCoreCommon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtoServiceCoreCommon.swift; sourceTree = "<group>"; };
 		32CE966127CFF74800B4A2C1 /* CoreServiceCommon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreServiceCommon.swift; sourceTree = "<group>"; };
+		68C04BEC2891BB1900DA5AD9 /* web.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = web.pb.swift; sourceTree = "<group>"; };
 		F404FC262810AC74008313FF /* swift-noise-protocol */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = "swift-noise-protocol"; path = "../swift-noise-protocol"; sourceTree = "<group>"; };
 		F4585C7B27E156B600BF6ED6 /* SentryLogger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SentryLogger.swift; sourceTree = "<group>"; };
 		F4B361602862821200764454 /* NSManagedObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSManagedObject.swift; sourceTree = "<group>"; };
@@ -196,6 +198,7 @@
 		321C83E427CFE26000DDD03A /* Proto */ = {
 			isa = PBXGroup;
 			children = (
+				68C04BEC2891BB1900DA5AD9 /* web.pb.swift */,
 				32CE962627CFED0600B4A2C1 /* clients.pb.swift */,
 				32CE962C27CFED0600B4A2C1 /* log_events.pb.swift */,
 				32CE962527CFED0600B4A2C1 /* NoiseStream.swift */,
@@ -508,6 +511,7 @@
 				32CE963627CFED1500B4A2C1 /* XMPPWhisperRequests.swift in Sources */,
 				32CE965E27CFEE4400B4A2C1 /* OneTimePreKey+CoreDataClass.swift in Sources */,
 				32CE960B27CFECCB00B4A2C1 /* Localizations.swift in Sources */,
+				68C04BED2891BB1900DA5AD9 /* web.pb.swift in Sources */,
 				321C83F327CFEC0B00DDD03A /* NoiseRegistrationService.swift in Sources */,
 				32CE960A27CFECCB00B4A2C1 /* UserData.xcdatamodeld in Sources */,
 				F4585C7C27E156B600BF6ED6 /* SentryLogger.swift in Sources */,

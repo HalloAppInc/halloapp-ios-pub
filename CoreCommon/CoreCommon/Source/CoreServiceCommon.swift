@@ -63,6 +63,11 @@ public protocol CoreServiceCommon {
     func getGroupPreviewWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>)
     func joinGroupWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>)
 
+    // MARK: Web Client
+    func authenticateWebClient(staticKey: Data, completion: @escaping ServiceRequestCompletion<Void>)
+    func removeWebClient(staticKey: Data, completion: @escaping ServiceRequestCompletion<Void>)
+    func sendToWebClient(staticKey: Data, data: Data, completion: @escaping ServiceRequestCompletion<Void>)
+
     // MARK: Delegates
     var keyDelegate: ServiceKeyDelegate? { get set }
 }

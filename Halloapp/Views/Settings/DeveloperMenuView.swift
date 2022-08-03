@@ -25,6 +25,7 @@ private enum MenuTitles {
     static var clearHiddenSuggestedContacts: String { "Clear hidden suggested contacts" }
     static var resetFavoritesZeroState: String { "Reset Favorites Zero State" }
     static var addFavoritesNotification: String { "Add Favorites Notification" }
+    static var manageWebClient: String { "Manage web client" }
     static var enableGroupChat: String { "Enable Group Chat" }
     static var enableUIKitComposer: String { "Enable UIKit Composer" }
     static var resetMomentsFTUX: String { "Reset Moments FTUX" }
@@ -36,6 +37,7 @@ struct DeveloperMenuView: View {
     @State var useTestServer = MainAppContext.shared.coreService.useTestServer
     @State var enableGroupChat = AppContext.shared.userDefaults.bool(forKey: "enableGroupChat")
     @State var enableUIKitComposer = AppContext.shared.userDefaults.bool(forKey: "enableUIKitComposer")
+    @State var isShowingWebClientManager = false
 
     // TODO: Temporarily turn off and potentially remove
 //    @ObservedObject var videoSettings = VideoSettings.shared
@@ -192,6 +194,12 @@ struct DeveloperMenuView: View {
                 }
                 // SwuiftUI supports a maximum of 10 subvies, add any new items to this group.
                 Group {
+                    Button {
+                        self.isShowingWebClientManager = true
+                    } label: {
+                        Text(MenuTitles.manageWebClient)
+                    }
+
                     Toggle(MenuTitles.enableGroupChat, isOn: $enableGroupChat)
                         .onReceive(Just(self.enableGroupChat)) { value in
                             AppContext.shared.userDefaults.set(value, forKey: "enableGroupChat")
@@ -221,5 +229,20 @@ struct DeveloperMenuView: View {
             }
             .foregroundColor(.blue)
         }
+        .sheet(isPresented: self.$isShowingWebClientManager) {
+            WebClientView()
+        }
+    }
+}
+
+struct WebClientView: UIViewControllerRepresentable {
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
+        // no-op
+    }
+
+    typealias UIViewControllerType = UIViewController
+
+    func makeUIViewController(context: Context) -> UIViewControllerType {
+        return WebClientConnectionViewController(manager: MainAppContext.shared.webClientManager)
     }
 }

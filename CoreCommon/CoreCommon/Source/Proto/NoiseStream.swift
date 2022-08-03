@@ -649,7 +649,7 @@ public struct NoiseKeys: Codable {
     }
 }
 
-private extension NoiseKeys {
+public extension NoiseKeys {
     func makeX25519KeyPair() -> KeyPair? {
         let edKeys = Sign.KeyPair(publicKey: publicEdKey.bytes, secretKey: privateEdKey.bytes)
         guard let x25519Keys = Sodium().sign.convertToX25519KeyPair(keyPair: edKeys) else {
