@@ -90,14 +90,14 @@ class MediaExplorerImageCell: UICollectionViewCell, UIGestureRecognizerDelegate 
             } else {
                 show(progress: media.progress.value)
 
-                readyCancellable = media.ready.sink { [weak self] ready in
+                readyCancellable = media.ready.receive(on: DispatchQueue.main).sink { [weak self] ready in
                     guard let self = self else { return }
                     guard ready else { return }
                     guard let image = self.media?.image else { return }
                     self.show(image: image)
                 }
 
-                progressCancellable = media.progress.sink { [weak self] value in
+                progressCancellable = media.progress.receive(on: DispatchQueue.main).sink { [weak self] value in
                     guard let self = self else { return }
                     self.progressView.setProgress(value, animated: true)
                 }

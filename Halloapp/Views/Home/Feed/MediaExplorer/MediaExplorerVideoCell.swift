@@ -112,14 +112,14 @@ class MediaExplorerVideoCell: UICollectionViewCell, UIGestureRecognizerDelegate 
             } else {
                 show(progress: media.progress.value)
 
-                readyCancellable = media.ready.sink { [weak self] ready in
+                readyCancellable = media.ready.receive(on: DispatchQueue.main).sink { [weak self] ready in
                     guard let self = self else { return }
                     guard ready else { return }
                     guard let url = self.media?.url else { return }
                     self.show(url: url)
                 }
 
-                progressCancellable = media.progress.sink { [weak self] value in
+                progressCancellable = media.progress.receive(on: DispatchQueue.main).sink { [weak self] value in
                     guard let self = self else { return }
                     self.progressView.setProgress(value, animated: true)
                 }
@@ -150,7 +150,7 @@ class MediaExplorerVideoCell: UICollectionViewCell, UIGestureRecognizerDelegate 
             video.playButton.centerYAnchor.constraint(equalTo: centerYAnchor),
         ])
 
-        mediaPlaybackCancellable = MainAppContext.shared.mediaDidStartPlaying.sink { [weak self] url in
+        mediaPlaybackCancellable = MainAppContext.shared.mediaDidStartPlaying.receive(on: DispatchQueue.main).sink { [weak self] url in
             guard let self = self else { return }
             guard self.media?.url != url else { return }
             self.pause()
