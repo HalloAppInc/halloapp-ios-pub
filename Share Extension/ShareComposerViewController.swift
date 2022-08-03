@@ -639,6 +639,7 @@ class ShareComposerViewController: UIViewController {
     @objc func shareAction() {
         guard media.count > 0 || !textView.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         shareButton.isEnabled = false
+
         if let linkViewImage = linkViewImage {
             linkPreviewMedia = PendingMedia(type: .image)
             linkPreviewMedia?.image = linkViewImage
@@ -692,7 +693,9 @@ class ShareComposerViewController: UIViewController {
             .compactMap { try? $0.fileURL?.resourceValues(forKeys: [.fileSizeKey]).fileSize }
             .reduce(0) { $0 + $1 })
 
-        progressUploadMonitor = ProgressUploadMonitor(mediaCount: media.count, bytesCount: bytesCount)
+        progressUploadMonitor = ProgressUploadMonitor(mediaCount: media.count, bytesCount: bytesCount) { [weak self] in
+            self?.shareButton.isEnabled = true
+        }
 
         DispatchQueue.main.async {
             guard let alert = self.progressUploadMonitor?.alert else { return }
@@ -778,6 +781,7 @@ class ShareComposerViewController: UIViewController {
             if fail {
                 self.dismiss(animated: false)
                 self.showUploadingFailedAlert()
+                self.shareButton.isEnabled = true
             } else {
                 ImageServer.shared.clearAllTasks(keepFiles: false)
                 ShareDataLoader.shared.reset()
@@ -789,6 +793,7 @@ class ShareComposerViewController: UIViewController {
 
                 // let the user observe the full progress
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+                    self.shareButton.isEnabled = true
                     self.extensionContext?.completeRequest(returningItems: nil)
                 }
             }
@@ -1268,7 +1273,7 @@ fileprivate class ProgressUploadMonitor {
         return progressView
     }()
 
-    init(mediaCount: Int, bytesCount: Int64) {
+    init(mediaCount: Int, bytesCount: Int64, cancel: @escaping () -> ()) {
         self.mediaCount = mediaCount
         totalBytesCount = bytesCount
         totalBytesString = ByteCountFormatter.string(fromByteCount: bytesCount, countStyle: .file)
@@ -1276,6 +1281,7 @@ fileprivate class ProgressUploadMonitor {
         alert = UIAlertController(title: Localizations.uploadingItems(mediaCount), message: nil, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .default) { _ in
             ShareExtensionContext.shared.dataStore.cancelSending()
+            cancel()
         })
 
         if mediaCount > 0 {
