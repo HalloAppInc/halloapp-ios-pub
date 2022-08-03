@@ -111,7 +111,7 @@ struct XMPPGroup {
             case .setBackground: return .setBackground
             case .getMemberIdentityKeys: return nil // TODO: Does this need to be handled?
             case .shareHistory: return nil
-            case .changeExpiry: return nil
+            case .changeExpiry: return .changeExpiry
             case .UNRECOGNIZED(_): return nil
             }
         }()

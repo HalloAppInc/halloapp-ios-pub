@@ -57,7 +57,11 @@ protocol HalloService: CoreService {
     // MARK: Groups
     func sendGroupChatMessage(_ message: HalloGroupChatMessage)
     func retractGroupChatMessage(messageID: String, groupID: GroupID, messageToRetractID: String)
-    func createGroup(name: String, members: [UserID], completion: @escaping ServiceRequestCompletion<String>)
+    func createGroup(name: String,
+                     expiryType: Server_ExpiryInfo.ExpiryType,
+                     expiryTime: Int64,
+                     members: [UserID],
+                     completion: @escaping ServiceRequestCompletion<String>)
     func leaveGroup(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Void>)
     func getGroupInfo(groupID: GroupID, completion: @escaping ServiceRequestCompletion<HalloGroup>)
     func getGroupInviteLink(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>)
@@ -69,6 +73,10 @@ protocol HalloService: CoreService {
     func changeGroupAvatar(groupID: GroupID, data: Data?, completion: @escaping ServiceRequestCompletion<String>)
     func changeGroupDescription(groupID: GroupID, description: String, completion: @escaping ServiceRequestCompletion<String>)
     func setGroupBackground(groupID: GroupID, background: Int32, completion: @escaping ServiceRequestCompletion<Void>)
+    func changeGroupExpiry(groupID: GroupID,
+                           expiryType: Server_ExpiryInfo.ExpiryType,
+                           expirationTime: Int64,
+                           completion: @escaping ServiceRequestCompletion<Void>)
     func exportDataStatus(isSetRequest: Bool, completion: @escaping ServiceRequestCompletion<Server_ExportData>)
     func requestAccountDeletion(phoneNumber: String, feedback: String?, completion: @escaping ServiceRequestCompletion<Void>)
 

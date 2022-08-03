@@ -1001,6 +1001,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     existingPost.fromExternalShare = false
                     existingPost.groupId = groupID
                     existingPost.lastUpdated = xmppPost.timestamp
+                    existingPost.expiration = xmppPost.expiration
                     newPosts.append(existingPost)
                     continue
                 } else if existingPost.status == .none {

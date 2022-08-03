@@ -4103,10 +4103,15 @@ extension ChatData {
     public typealias GroupActionCompletion = (Error?) -> Void
 
     // MARK: Group Actions
-    
-    public func createGroup(name: String, description: String, members: [UserID], data: Data?, completion: @escaping ServiceRequestCompletion<String>) {
-        
-        MainAppContext.shared.service.createGroup(name: name, members: members) { [weak self] result in
+
+    public func createGroup(name: String,
+                            description: String,
+                            members: [UserID],
+                            avatarData: Data?,
+                            expirationType: Group.ExpirationType,
+                            expirationTime: Int64,
+                            completion: @escaping ServiceRequestCompletion<String>) {
+        MainAppContext.shared.service.createGroup(name: name, expiryType: expirationType.serverExpiryType, expiryTime: expirationTime, members: members) { [weak self] result in
             guard let self = self else { return }
 
             switch result {
@@ -4120,9 +4125,9 @@ extension ChatData {
                     }
                 }
 
-                if let data = data {
+                if let avatarData = avatarData {
                     dispatchGroup.enter()
-                    self.changeGroupAvatar(groupID: groupID, data: data) { result in
+                    self.changeGroupAvatar(groupID: groupID, data: avatarData) { result in
                         dispatchGroup.leave() // the group can be created regardless if avatar update succeeds or not
                     }
                 }
@@ -4323,6 +4328,14 @@ extension ChatData {
             }
             if chatGroup.background != xmppGroup.background {
                 chatGroup.background = xmppGroup.background
+            }
+
+            if let expirationType = xmppGroup.expirationType, chatGroup.expirationType != expirationType {
+                chatGroup.expirationType = expirationType
+            }
+
+            if let expirationTime = xmppGroup.expirationTime, chatGroup.expirationTime != expirationTime {
+                chatGroup.expirationTime = expirationTime
             }
 
             // look for users that are not members anymore
@@ -4898,6 +4911,8 @@ extension ChatData {
         case .get:
             // Sync group if we get a message from the server.
             syncGroup(xmppGroup)
+        case .changeExpiry:
+            processGroupChangeExpiryAction(xmppGroup: xmppGroup, in: managedObjectContext)
         default: break
         }
 
@@ -5120,6 +5135,20 @@ extension ChatData {
         } else {
             return addGroup(xmppGroup: xmppGroup, in: managedObjectContext)
         }
+    }
+
+    private func processGroupChangeExpiryAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
+        DDLogInfo("ChatData/group/processGroupChangeExpiry")
+        guard let expirationType = xmppGroup.expirationType, let expirationTime = xmppGroup.expirationTime else {
+            DDLogInfo("ChatData/group/processGroupChangeExpiry/Did not get a valid expirationType")
+            return
+        }
+        let group = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+        group.expirationType = expirationType
+        group.expirationTime = expirationTime
+        save(managedObjectContext)
+        recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: nil, in: managedObjectContext)
+        getAndSyncGroup(groupId: xmppGroup.groupId)
     }
     
     private func addGroup(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) -> Group {

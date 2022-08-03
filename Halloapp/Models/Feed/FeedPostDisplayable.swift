@@ -38,6 +38,7 @@ protocol FeedPostDisplayable {
     var canComment: Bool { get }
     var canReplyPrivately: Bool { get }
     var posterFullName: String { get }
+    var expiration: Date? { get }
 
     func userAvatar(using avatarStore: AvatarStore) -> UserAvatar
 }

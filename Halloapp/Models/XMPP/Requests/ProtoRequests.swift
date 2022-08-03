@@ -190,11 +190,26 @@ final class ProtoContactSyncRequest: ProtoRequest<[HalloContact]> {
 
 final class ProtoGroupCreateRequest: ProtoRequest<String> {
 
-    init(name: String, members: [UserID], completion: @escaping Completion) {
+    init(name: String, expiryType: Server_ExpiryInfo.ExpiryType, expiryTime: Int64, members: [UserID], completion: @escaping Completion) {
         var group = Server_GroupStanza()
         group.action = .create
         group.name = name
         group.members = members.compactMap { Server_GroupMember(userID: $0) }
+
+        var expiryInfo = Server_ExpiryInfo()
+        expiryInfo.expiryType = expiryType
+        switch expiryType {
+        case .expiresInSeconds:
+            expiryInfo.expiresInSeconds = expiryTime
+        case .never:
+            // No additional fields to update
+            break
+        case .customDate:
+            expiryInfo.expiryTimestamp = expiryTime
+        case .UNRECOGNIZED(_):
+            break
+        }
+        group.expiryInfo = expiryInfo
 
         super.init(
             iqPacket: .iqPacket(type: .set, payload: .groupStanza(group)),
@@ -398,6 +413,34 @@ final class ProtoSetGroupBackgroundRequest: ProtoRequest<Void> {
             iqPacket: .iqPacket(type: .set, payload: .groupStanza(group)),
             transform: { _ in .success(()) },
             completion: completion)
+    }
+}
+
+final class ProtoChangeGroupExpiryRequest: ProtoRequest<Void> {
+
+    init(groupID: GroupID, expiryType: Server_ExpiryInfo.ExpiryType, expirationTime: Int64, completion: @escaping Completion) {
+        var groupStanza = Server_GroupStanza()
+        groupStanza.gid = groupID
+        groupStanza.action = .changeExpiry
+
+        var expiryInfo = Server_ExpiryInfo()
+        switch expiryType {
+        case .never:
+            expiryInfo.expiryType = .never
+            // no need to set other fields
+            break
+        case .expiresInSeconds:
+            expiryInfo.expiryType = .expiresInSeconds
+            expiryInfo.expiresInSeconds = expirationTime
+        case .customDate:
+            expiryInfo.expiryType = .customDate
+            expiryInfo.expiryTimestamp = expirationTime
+        case .UNRECOGNIZED(_):
+            break
+        }
+        groupStanza.expiryInfo = expiryInfo
+
+        super.init(iqPacket: .iqPacket(type: .set, payload: .groupStanza(groupStanza)), transform: { _ in .success(()) }, completion: completion)
     }
 }
 

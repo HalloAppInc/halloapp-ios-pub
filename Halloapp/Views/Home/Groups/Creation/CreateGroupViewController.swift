@@ -27,6 +27,9 @@ class CreateGroupViewController: UIViewController {
 
     private var selectedMembers: [UserID] = []
 
+    private var expirationType: Group.ExpirationType = .expiresInSeconds
+    private var expirationTime: Int64 = ServerProperties.enableGroupExpiry ? .thirtyDays : Int64(FeedPost.defaultExpiration)
+
     private var completion: (GroupID) -> Void
 
     init(completion: @escaping (GroupID) -> Void) {
@@ -250,7 +253,12 @@ class CreateGroupViewController: UIViewController {
 
         let name = groupNameTextField.text?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) ?? ""
 
-        MainAppContext.shared.chatData.createGroup(name: name, description: "", members: userIds, data: avatarData) { [weak self] result in
+        MainAppContext.shared.chatData.createGroup(name: name,
+                                                   description: "",
+                                                   members: userIds,
+                                                   avatarData: avatarData,
+                                                   expirationType: expirationType,
+                                                   expirationTime: expirationTime) { [weak self] result in
             guard let self = self else { return }
 
             switch result {

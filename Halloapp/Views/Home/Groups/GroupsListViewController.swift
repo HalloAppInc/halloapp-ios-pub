@@ -267,7 +267,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
 
         // create sample group
         DDLogInfo("GroupsListViewController/viewWillAppear/NUX/creating sample group for user")
-        MainAppContext.shared.chatData.createGroup(name: sampleGroupName, description: "", members: [], data: nil) { result in
+        MainAppContext.shared.chatData.createGroup(name: sampleGroupName, description: "", members: [], avatarData: nil, expirationType: .expiresInSeconds, expirationTime: ServerProperties.enableGroupExpiry ? .thirtyDays : Int64(FeedPost.defaultExpiration)) { result in
             switch result {
             case .success(let groupID):
                 sharedNUX.recordWelcomePost(id: groupID, type: .sampleGroup)

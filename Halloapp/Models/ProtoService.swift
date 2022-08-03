@@ -1809,8 +1809,8 @@ extension ProtoService: HalloService {
         send(packetData)
     }
     
-    func createGroup(name: String, members: [UserID], completion: @escaping ServiceRequestCompletion<String>) {
-        enqueue(request: ProtoGroupCreateRequest(name: name, members: members, completion: completion))
+    func createGroup(name: String, expiryType: Server_ExpiryInfo.ExpiryType, expiryTime: Int64, members: [UserID], completion: @escaping ServiceRequestCompletion<String>) {
+        enqueue(request: ProtoGroupCreateRequest(name: name, expiryType: expiryType, expiryTime: expiryTime, members: members, completion: completion))
     }
 
     func leaveGroup(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Void>) {
@@ -2010,6 +2010,16 @@ extension ProtoService: HalloService {
             groupID: groupID,
             background: background,
             completion: completion))
+    }
+
+    func changeGroupExpiry(groupID: GroupID,
+                           expiryType: Server_ExpiryInfo.ExpiryType,
+                           expirationTime: Int64,
+                           completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: ProtoChangeGroupExpiryRequest(groupID: groupID,
+                                                       expiryType: expiryType,
+                                                       expirationTime: expirationTime,
+                                                       completion: completion))
     }
 
     func mergeData(from sharedDataStore: SharedDataStore, completion: @escaping () -> ()) {
