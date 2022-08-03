@@ -872,6 +872,15 @@ final class ProtoService: ProtoServiceCore {
                             delegate.halloService(self, didReceiveFeedPayload: payload, ack: ack)
                         }
                     }
+                    // Update crypto result for this item.
+                    self.updateHomeDecryptionResult(
+                        error: nil,
+                        contentID: contentID,
+                        contentType: contentType,
+                        type: item.sessionType,
+                        timestamp: Date(),
+                        sender: UserAgent(string: item.senderClientVersion),
+                        rerequestCount: Int(msg.rerequestCount))
                 }
 
             default:
@@ -1002,6 +1011,15 @@ final class ProtoService: ProtoServiceCore {
                             delegate.halloService(self, didReceiveFeedPayload: payload, ack: ack)
                         }
                     }
+                    // Update crypto result for this item.
+                    self.updateGroupDecryptionResult(
+                        error: nil,
+                        contentID: contentID,
+                        contentType: contentType,
+                        groupID: item.gid,
+                        timestamp: Date(),
+                        sender: UserAgent(string: item.senderClientVersion),
+                        rerequestCount: Int(msg.rerequestCount))
                 }
 
             default:

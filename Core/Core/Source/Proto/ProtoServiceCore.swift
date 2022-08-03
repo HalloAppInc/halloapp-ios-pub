@@ -1751,6 +1751,22 @@ extension ProtoServiceCore: CoreService {
                                             rerequestCount: rerequestCount)
     }
 
+    public func updateGroupDecryptionResult(error: DecryptionError?, contentID: String, contentType: GroupDecryptionReportContentType, groupID: GroupID, timestamp: Date, sender: UserAgent?, rerequestCount: Int) {
+        if (error == .missingPayload) {
+            DDLogInfo("proto/reportGroupDecryptionResult/\(contentID)/\(contentType)/\(groupID)/payload is missing - not error.")
+            return
+        }
+        let errorString = error?.rawValue ?? ""
+        DDLogInfo("proto/reportGroupDecryptionResult/\(contentID)/\(contentType)/\(groupID)/error value: \(errorString)")
+        AppContext.shared.cryptoData.update(contentID: contentID,
+                                            contentType: contentType,
+                                            groupID: groupID,
+                                            timestamp: timestamp,
+                                            error: errorString,
+                                            sender: sender,
+                                            rerequestCount: rerequestCount)
+    }
+
     public func reportHomeDecryptionResult(error: DecryptionError?, contentID: String, contentType: HomeDecryptionReportContentType, type: HomeSessionType, timestamp: Date, sender: UserAgent?, rerequestCount: Int) {
 
         let audienceType: HomeDecryptionReportAudienceType
@@ -1768,6 +1784,31 @@ extension ProtoServiceCore: CoreService {
         let errorString = error?.rawValue ?? ""
         DDLogInfo("proto/reportHomeDecryptionResult/\(contentID)/\(contentType)/\(audienceType)/error value: \(errorString)")
         AppContext.shared.eventMonitor.count(.homeDecryption(error: error, itemTypeString: contentType.rawValue, sender: sender))
+        AppContext.shared.cryptoData.update(contentID: contentID,
+                                            contentType: contentType,
+                                            audienceType: audienceType,
+                                            timestamp: timestamp,
+                                            error: errorString,
+                                            sender: sender,
+                                            rerequestCount: rerequestCount)
+    }
+
+    public func updateHomeDecryptionResult(error: DecryptionError?, contentID: String, contentType: HomeDecryptionReportContentType, type: HomeSessionType, timestamp: Date, sender: UserAgent?, rerequestCount: Int) {
+
+        let audienceType: HomeDecryptionReportAudienceType
+        switch type {
+        case .all:
+            audienceType = .all
+        case .favorites:
+            audienceType = .only
+        }
+
+        if (error == .missingPayload) {
+            DDLogInfo("proto/reportHomeDecryptionResult/\(contentID)/\(contentType)/\(audienceType)/payload is missing - not error.")
+            return
+        }
+        let errorString = error?.rawValue ?? ""
+        DDLogInfo("proto/reportHomeDecryptionResult/\(contentID)/\(contentType)/\(audienceType)/error value: \(errorString)")
         AppContext.shared.cryptoData.update(contentID: contentID,
                                             contentType: contentType,
                                             audienceType: audienceType,
