@@ -65,16 +65,23 @@ class MessageCellViewBase: UICollectionViewCell {
         return view
     }()
 
-    lazy var textLabel: TextLabel = {
-        let textLabel = TextLabel()
-        textLabel.isUserInteractionEnabled = true
-        textLabel.backgroundColor = .clear
-        textLabel.font = UIFont.scaledSystemFont(ofSize: 15)
-        textLabel.translatesAutoresizingMaskIntoConstraints = false
-        textLabel.numberOfLines = 0
-        textLabel.textColor = UIColor.primaryBlackWhite.withAlphaComponent(0.8)
-        textLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-        return textLabel
+    lazy var textLabel: UITextView = {
+        let textView = UITextView()
+        textView.isScrollEnabled = false
+        textView.isEditable = false
+        textView.isSelectable = true
+        textView.isUserInteractionEnabled = true
+        textView.dataDetectorTypes = .link
+        textView.textContainerInset = UIEdgeInsets.zero
+        textView.backgroundColor = .clear
+        textView.font = UIFont.scaledSystemFont(ofSize: 15)
+        textView.textColor = UIColor.primaryBlackWhite.withAlphaComponent(0.8)
+        textView.linkTextAttributes = [.foregroundColor: UIColor.systemBlue , .underlineStyle: 1]
+
+        textView.delegate = self
+
+        textView.translatesAutoresizingMaskIntoConstraints = false
+        return textView
     }()
 
     // Adding this class to be able to set the shadowPath after the bubble
@@ -489,5 +496,11 @@ extension MessageCellViewBase: UIGestureRecognizerDelegate {
             UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
             chatDelegate?.messageView(self, didLongPressOn: chatMessage)
         }
+    }
+}
+
+extension MessageCellViewBase: UITextViewDelegate {
+    func textView(_ textView: UITextView, shouldInteractWith URL: URL, in characterRange: NSRange) -> Bool {
+        return !URLRouter.shared.handle(url: URL)
     }
 }

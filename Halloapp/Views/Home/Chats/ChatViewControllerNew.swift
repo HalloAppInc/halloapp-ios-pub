@@ -788,7 +788,6 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     private func configureCell(itemCell: MessageCellViewBase, for chatMessage: ChatMessage) {
         let isPreviousMessageFromSameSender = previousChatSenderInfo[chatMessage.id]
         itemCell.configureWith(message: chatMessage, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender ?? false)
-        itemCell.textLabel.delegate = self
         itemCell.chatDelegate = self
     }
 
@@ -1084,38 +1083,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
         return sheet
     }()
-}
 
-// MARK: ChatTitle Delegates
-extension ChatViewControllerNew: ChatTitleViewDelegate {
-    func chatTitleView(_ chatTitleView: ChatTitleView) {
-        guard let userId = fromUserId else { return }
-        let userViewController = UserFeedViewController(userId: userId)
-        navigationController?.pushViewController(userViewController, animated: true)
-    }
-}
-
-extension ChatViewControllerNew: TextLabelDelegate {
-    func textLabel(_ label: TextLabel, didRequestHandle link: AttributedTextLink) {
-        switch link.linkType {
-        case .link, .phoneNumber:
-            if let url = link.result?.url {
-                URLRouter.shared.handleOrOpen(url: url)
-            }
-        case .userMention:
-            if let userID = link.userID {
-                showUserFeed(for: userID)
-            }
-        default:
-            break
-        }
-    }
-
-    func textLabelDidRequestToExpand(_ label: TextLabel) {
-        label.numberOfLines = 0
-        collectionView.collectionViewLayout.invalidateLayout()
-    }
-    
     private func pauseVoiceNotes() {
         for cell in collectionView.visibleCells {
             if let cell = cell as? MessageCellViewAudio {
@@ -1243,6 +1211,37 @@ extension ChatViewControllerNew: TextLabelDelegate {
         }
 
         try? AppContext.shared.userDefaults.setCodable(draftsArray, forKey: "chats.drafts")
+    }
+}
+
+// MARK: ChatTitle Delegates
+extension ChatViewControllerNew: ChatTitleViewDelegate {
+    func chatTitleView(_ chatTitleView: ChatTitleView) {
+        guard let userId = fromUserId else { return }
+        let userViewController = UserFeedViewController(userId: userId)
+        navigationController?.pushViewController(userViewController, animated: true)
+    }
+}
+
+extension ChatViewControllerNew: TextLabelDelegate {
+    func textLabel(_ label: TextLabel, didRequestHandle link: AttributedTextLink) {
+        switch link.linkType {
+        case .link, .phoneNumber:
+            if let url = link.result?.url {
+                URLRouter.shared.handleOrOpen(url: url)
+            }
+        case .userMention:
+            if let userID = link.userID {
+                showUserFeed(for: userID)
+            }
+        default:
+            break
+        }
+    }
+
+    func textLabelDidRequestToExpand(_ label: TextLabel) {
+        label.numberOfLines = 0
+        collectionView.collectionViewLayout.invalidateLayout()
     }
 }
 
