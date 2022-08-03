@@ -15,6 +15,7 @@ import UIKit
 
 class GroupGridViewController: UIViewController {
 
+    private var cancellableSet: Set<AnyCancellable> = []
     private lazy var collectionView: UICollectionView = {
         let configuration = UICollectionViewCompositionalLayoutConfiguration()
         configuration.boundarySupplementaryItems = [
@@ -138,6 +139,15 @@ class GroupGridViewController: UIViewController {
                                                selector: #selector(keyboardWillChangeFrame(_:)),
                                                name: UIResponder.keyboardWillChangeFrameNotification,
                                                object: nil)
+        cancellableSet.insert(
+            MainAppContext.shared.groupFeedFromGroupTabPresentRequest.sink { [weak self] (groupID) in
+                guard let self = self else { return }
+                guard let groupID = groupID else { return }
+                self.navigationController?.popToRootViewController(animated: false)
+                let vc = GroupFeedViewController(groupId: groupID)
+                self.navigationController?.pushViewController(vc, animated: false)
+            }
+        )
     }
 
     override func viewWillAppear(_ animated: Bool) {
