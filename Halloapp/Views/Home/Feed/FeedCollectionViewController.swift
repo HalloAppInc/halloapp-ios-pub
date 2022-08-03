@@ -987,6 +987,24 @@ extension FeedCollectionViewController {
         cell.shareAction = { [weak self] in
             self?.presentShareMenu(for: feedPost)
         }
+
+        let postExpiration = feedPost.expiration
+        let groupID = feedPost.groupID
+        cell.showExpiryMismatchAction = { [weak self] in
+            guard let self = self, let groupID = groupID else {
+                return
+            }
+            guard let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext) else {
+                DDLogError("FeedCollectionViewController/showExpiryMismatchAction/Could not find chat group \(groupID)")
+                return
+            }
+            let messgage = Localizations.postExpirationMismatchMessage(postExpiration: postExpiration,
+                                                                       groupExpirationType: group.expirationType,
+                                                                       groupExpirationTime: group.expirationTime)
+            let alert = UIAlertController(title: nil, message: messgage, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default))
+            self.present(alert, animated: true)
+        }
         
         cell.delegate = self
     }
@@ -1304,5 +1322,23 @@ extension Localizations {
         NSLocalizedString("your.moment.delete.confirmation",
                    value: "Delete this moment? This action cannot be undone.",
                  comment: "Moment deletion confirmation. Displays as action sheet title.")
+    }
+
+    private static let postExpirationFormatter: DateFormatter = {
+        let postExpirationFormatter = DateFormatter()
+        postExpirationFormatter.dateStyle = .short
+        postExpirationFormatter.timeStyle = .short
+        return postExpirationFormatter
+    }()
+
+    static func postExpirationMismatchMessage(postExpiration: Date?,
+                                              groupExpirationType: Core.Group.ExpirationType,
+                                              groupExpirationTime: Int64) -> String {
+        let postExpiryString = postExpiration.flatMap { postExpirationFormatter.string(from: $0) } ?? Localizations.chatGroupExpiryOptionNever
+        let groupExpiryString = Group.formattedExpirationTime(type: groupExpirationType, time: groupExpirationTime)
+        let format = NSLocalizedString("post.expiration.mismatch",
+                                       value: "This post will expire on %@, while the group settings indicate %@.",
+                                       comment: "Body of alert indicating that a post's expiration does not match that set on a group")
+        return String(format: format, postExpiryString, groupExpiryString)
     }
 }

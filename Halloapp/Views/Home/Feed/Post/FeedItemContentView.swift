@@ -387,6 +387,7 @@ final class FeedItemHeaderView: UIView {
     var showUserAction: (() -> ())? = nil
     var showGroupFeedAction: (() -> ())? = nil
     var showPrivacyAction: (() -> ())? = nil
+    var showExpiryMismatchAction: (() -> ())? = nil
     
     var moreMenuContent: () -> HAMenu.Content = { [] } {
         didSet {
@@ -506,6 +507,7 @@ final class FeedItemHeaderView: UIView {
         label.textAlignment = .natural
         label.setContentCompressionResistancePriority(.defaultHigh + 10, for: .horizontal) // higher than contact name
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(showExpiryMismatch)))
         return label
     }()
 
@@ -603,14 +605,33 @@ final class FeedItemHeaderView: UIView {
     }
 
     func refreshTimestamp(with post: FeedPostDisplayable) {
-        timestampLabel.text = post.timestamp.feedTimestamp()
+        timestampLabel.isUserInteractionEnabled = false
+
+        let timestamp = NSMutableAttributedString()
+        timestamp.append(NSAttributedString(string: post.timestamp.feedTimestamp()))
+
+        let chatData = MainAppContext.shared.chatData!
+        if let groupID = post.groupId, let group = chatData.chatGroup(groupId: groupID, in: chatData.viewContext) {
+            let expiration = post.expiration?.timeIntervalSince1970 ?? 0
+            let expectedExpiration = group.postExpirationDate(from: post.timestamp)?.timeIntervalSince1970 ?? 0
+
+            // Treat times within 5sec as the same to account for rounding
+            if abs(expiration - expectedExpiration) > 5 {
+                timestamp.append(NSAttributedString(string: " "))
+                timestamp.append(NSAttributedString(attachment: NSTextAttachment(image: UIImage(systemName: "exclamationmark.triangle") ?? UIImage())))
+                timestampLabel.isUserInteractionEnabled = true
+            }
+        }
+
+        timestampLabel.attributedText = timestamp
     }
 
     func configure(with post: FeedPostDisplayable, contentWidth: CGFloat, showGroupName: Bool, showArchivedDate: Bool = false) {
         nameLabel.text = post.posterFullName
         if showArchivedDate {
             let archivedDate = post.timestamp.addingTimeInterval(Date.days(30))
-            timestampLabel.text = (timestampLabel.text ?? "") + " • " + Localizations.feedPostArchivedTimestamp(time: archivedDate.shortDateFormat())
+            timestampLabel.isUserInteractionEnabled = false
+            timestampLabel.attributedText = NSAttributedString(string: (timestampLabel.text ?? "") + " • " + Localizations.feedPostArchivedTimestamp(time: archivedDate.shortDateFormat()))
         }
 
         let userAvatar = post.userAvatar(using: MainAppContext.shared.avatarStore)
@@ -669,6 +690,10 @@ final class FeedItemHeaderView: UIView {
     
     @objc func showGroupFeed() {
         showGroupFeedAction?()
+    }
+
+    @objc private func showExpiryMismatch() {
+        showExpiryMismatchAction?()
     }
 
     private func isRowTruncated(contentWidth: CGFloat) -> Bool {

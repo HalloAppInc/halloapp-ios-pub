@@ -216,4 +216,18 @@ extension Localizations {
     static var dismissEditFavorites: String {
         NSLocalizedString("feed.privacy.list.dismiss.edit.favorites", value: "Not Now", comment: "Button to dismiss edit favorites modal")
     }
+
+    // MARK: - Group Expiry
+
+    static var chatGroupExpiryOption24Hours: String {
+        NSLocalizedString("chat.group.expiry.option.24hours", value: "24 Hours", comment: "Group content expiry time limit option")
+    }
+
+    static var chatGroupExpiryOption30Days: String {
+        NSLocalizedString("chat.group.expiry.option.30days", value: "30 Days", comment: "Group content expiry time limit option")
+    }
+
+    static var chatGroupExpiryOptionNever: String {
+        NSLocalizedString("chat.group.expiry.option.never", value: "Never", comment: "Group content expiry time limit option")
+    }
 }

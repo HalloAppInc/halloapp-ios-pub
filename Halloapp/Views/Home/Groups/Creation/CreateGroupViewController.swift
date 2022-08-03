@@ -59,6 +59,18 @@ class CreateGroupViewController: UIViewController {
         groupNameStackView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(groupNameStackView)
 
+
+        let formStackField = UIStackView(arrangedSubviews: [groupNameStackView])
+        formStackField.axis = .vertical
+        formStackField.spacing = 20
+        formStackField.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(formStackField)
+
+
+        if ServerProperties.enableGroupExpiry {
+            formStackField.addArrangedSubview(groupExpirationField)
+        }
+
         NSLayoutConstraint.activate([
             avatarImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 100),
             avatarImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -66,9 +78,9 @@ class CreateGroupViewController: UIViewController {
             cameraIconView.centerXAnchor.constraint(equalTo: avatarImageView.trailingAnchor, constant: -6),
             cameraIconView.centerYAnchor.constraint(equalTo: avatarImageView.bottomAnchor, constant: -6),
 
-            groupNameStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 12),
-            groupNameStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -12),
-            groupNameStackView.topAnchor.constraint(equalTo: avatarImageView.bottomAnchor, constant: 32),
+            formStackField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 12),
+            formStackField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -12),
+            formStackField.topAnchor.constraint(equalTo: avatarImageView.bottomAnchor, constant: 32),
         ])
 
         if MainAppContext.shared.nux.state == .zeroZone {
@@ -161,9 +173,7 @@ class CreateGroupViewController: UIViewController {
 
             override func layoutSubviews() {
                 super.layoutSubviews()
-                let cornerRadius = min(bounds.height, bounds.width) / 2.0
-                layer.cornerRadius = cornerRadius
-                layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: cornerRadius).cgPath
+                layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: layer.cornerRadius).cgPath
             }
 
             override func textRect(forBounds bounds: CGRect) -> CGRect {
@@ -198,6 +208,7 @@ class CreateGroupViewController: UIViewController {
         groupNameTextField.font = UIFont.preferredFont(forTextStyle: .body)
         groupNameTextField.borderColor = UIColor.label.withAlphaComponent(0.24)
         groupNameTextField.layer.borderWidth = 0.5
+        groupNameTextField.layer.cornerRadius = 13
         groupNameTextField.layer.shadowColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.04).cgColor
         groupNameTextField.layer.shadowOpacity = 1
         groupNameTextField.layer.shadowRadius = 1
@@ -215,6 +226,94 @@ class CreateGroupViewController: UIViewController {
         groupNameLengthLabel.font = UIFont.preferredFont(forTextStyle: .footnote)
         groupNameLengthLabel.translatesAutoresizingMaskIntoConstraints = false
         return groupNameLengthLabel
+    }()
+
+    private lazy var groupExpirationField: UIView = {
+        let groupExpirationBackground = ShadowView()
+        groupExpirationBackground.backgroundColor = .systemGray6
+        groupExpirationBackground.layer.cornerRadius = 13
+        groupExpirationBackground.layer.shadowColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.15).cgColor
+        groupExpirationBackground.layer.shadowOpacity = 1
+        groupExpirationBackground.layer.shadowRadius = 0
+        groupExpirationBackground.layer.shadowOffset = CGSize(width: 0, height: 1)
+
+        let groupExpirationLabel = UILabel()
+        groupExpirationLabel.font = .preferredFont(forTextStyle: .body)
+        groupExpirationLabel.text = Localizations.createGroupExpireContent
+        groupExpirationLabel.textColor = .label
+        groupExpirationLabel.translatesAutoresizingMaskIntoConstraints = false
+        groupExpirationBackground.addSubview(groupExpirationLabel)
+
+        groupExpiryButton.translatesAutoresizingMaskIntoConstraints = false
+        groupExpirationBackground.addSubview(groupExpiryButton)
+
+        NSLayoutConstraint.activate([
+            groupExpirationLabel.leadingAnchor.constraint(equalTo: groupExpirationBackground.leadingAnchor, constant: 20),
+            groupExpirationLabel.centerYAnchor.constraint(equalTo: groupExpirationBackground.centerYAnchor),
+
+            groupExpiryButton.leadingAnchor.constraint(greaterThanOrEqualTo: groupExpirationLabel.trailingAnchor, constant: 10),
+            groupExpiryButton.topAnchor.constraint(equalTo: groupExpirationBackground.topAnchor),
+            groupExpiryButton.trailingAnchor.constraint(equalTo: groupExpirationBackground.trailingAnchor),
+            groupExpiryButton.bottomAnchor.constraint(equalTo: groupExpirationBackground.bottomAnchor),
+        ])
+
+        return groupExpirationBackground
+    }()
+
+    private lazy var groupExpiryButton: UIButton = {
+        let button = UIButton()
+        button.contentEdgeInsets = UIEdgeInsets(top: 12, left: 20, bottom: 12, right: 20)
+        button.setTitleColor(.label.withAlphaComponent(0.5), for: .normal)
+        button.titleLabel?.font = .scaledSystemFont(ofSize: 17)
+
+        let attributedTitlePrefix = NSMutableAttributedString()
+        attributedTitlePrefix.append(NSAttributedString(attachment: NSTextAttachment(image: UIImage(systemName: "timer")!)))
+        attributedTitlePrefix.append(NSAttributedString(string: " "))
+
+        let initialAttributedTitle = NSMutableAttributedString()
+        initialAttributedTitle.append(attributedTitlePrefix)
+        initialAttributedTitle.append(NSAttributedString(string: Localizations.chatGroupExpiryOption30Days))
+        button.setAttributedTitle(initialAttributedTitle, for: .normal)
+
+        button.configureWithMenu {
+            HAMenu {
+                HAMenuButton(title: Localizations.chatGroupExpiryOption24Hours, image: UIImage(systemName: "timer")) { [weak self, weak button] in
+                    let attributedTitle = NSMutableAttributedString()
+                    attributedTitle.append(attributedTitlePrefix)
+                    attributedTitle.append(NSAttributedString(string: Localizations.chatGroupExpiryOption24Hours))
+                    button?.setAttributedTitle(attributedTitle, for: .normal)
+
+                    guard let self = self else {
+                        return
+                    }
+                    self.expirationType = .expiresInSeconds
+                    self.expirationTime = .oneDay
+                }
+                HAMenuButton(title: Localizations.chatGroupExpiryOption30Days, image: UIImage(systemName: "timer")) { [weak self, weak button] in
+                    let attributedTitle = NSMutableAttributedString()
+                    attributedTitle.append(attributedTitlePrefix)
+                    attributedTitle.append(NSAttributedString(string: Localizations.chatGroupExpiryOption30Days))
+                    button?.setAttributedTitle(attributedTitle, for: .normal)
+
+                    guard let self = self else {
+                        return
+                    }
+                    self.expirationType = .expiresInSeconds
+                    self.expirationTime = .thirtyDays
+                }
+                HAMenuButton(title: Localizations.chatGroupExpiryOptionNever) { [weak self, weak button] in
+                    button?.setAttributedTitle(NSAttributedString(string: Localizations.chatGroupExpiryOptionNever), for: .normal)
+
+                    guard let self = self else {
+                        return
+                    }
+                    self.expirationType = .never
+                    self.expirationTime = 0
+                }
+            }
+        }
+
+        return button
     }()
 
     // MARK: Actions
@@ -368,5 +467,9 @@ private extension Localizations {
     
     static var createGroupError: String {
         NSLocalizedString("create.group.error", value: "There was an error creating the group, please try again", comment: "Alert message telling the user to try creating the group again after an error")
+    }
+
+    static var createGroupExpireContent: String {
+        NSLocalizedString("create.group.expire.content", value: "Expire Content", comment: "Title for form field selecting group content expiry time")
     }
 }

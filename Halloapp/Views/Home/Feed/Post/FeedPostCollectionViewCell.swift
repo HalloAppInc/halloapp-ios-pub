@@ -34,6 +34,7 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
     var deleteAction: (() -> ())?
     var contextAction: ((UserMenuAction) -> ())?
     var shareAction: (() -> ())?
+    var showExpiryMismatchAction: (() -> ())?
 
     weak var delegate: FeedPostCollectionViewCellDelegate?
 
@@ -221,6 +222,9 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         }
         headerView.showPrivacyAction = { [weak self] in
             self?.showPrivacyAction?()
+        }
+        headerView.showExpiryMismatchAction = { [weak self] in
+            self?.showExpiryMismatchAction?()
         }
         itemContentView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, displayData: displayData)
         itemContentView.didChangeMediaIndex = { [weak self] index in

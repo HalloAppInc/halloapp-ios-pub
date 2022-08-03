@@ -37,6 +37,7 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
     private let cellReuseIdentifier = "ContactViewCell"
     private let statCellReuseIdentifier = "StatViewCell"
     private let descriptionCellReuseIdentifier = "DescriptionViewCell"
+    private let expiryCellReuseIdentifier = "ExpiryCell"
 
     private var fetchedResultsController: NSFetchedResultsController<GroupMember>?
     private var dataSource: GroupInfoDataSource?
@@ -71,6 +72,7 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
         tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: statCellReuseIdentifier)
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: descriptionCellReuseIdentifier)
+        tableView.register(MenuCell.self, forCellReuseIdentifier: expiryCellReuseIdentifier)
 
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 50
@@ -82,81 +84,94 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
         tableView.delegate = self
 
         dataSource = GroupInfoDataSource(tableView: tableView) { [weak self] (tableView, indexPath, row) in
-            guard let self = self else { return UITableViewCell() }
-            if indexPath.section == 0 {
-                switch row {
-                case .descriptionRow:
-                    guard let chatGroup = self.chatGroup else { break }
-                    let cell = tableView.dequeueReusableCell(withIdentifier: self.descriptionCellReuseIdentifier, for: indexPath)
-                    cell.textLabel?.numberOfLines = 0
-                    cell.textLabel?.font = UIFont.systemFont(forTextStyle: .body, maximumPointSize: Constants.MaxFontPointSize)
-                    if let desc = chatGroup.desc, !desc.isEmpty {
-                        if let font = cell.textLabel?.font, let color = cell.textLabel?.textColor {
-                            let ham = HAMarkdown(font: font, color: color)
-                            cell.textLabel?.attributedText = ham.parse(desc)
+            guard let self = self, let chatGroup = self.chatGroup else { return UITableViewCell() }
+
+            switch row {
+            case .descriptionRow:
+                let cell = tableView.dequeueReusableCell(withIdentifier: self.descriptionCellReuseIdentifier, for: indexPath)
+                cell.textLabel?.numberOfLines = 0
+                cell.textLabel?.font = UIFont.systemFont(forTextStyle: .body, maximumPointSize: Constants.MaxFontPointSize)
+                if let desc = chatGroup.desc, !desc.isEmpty {
+                    if let font = cell.textLabel?.font, let color = cell.textLabel?.textColor {
+                        let ham = HAMarkdown(font: font, color: color)
+                        cell.textLabel?.attributedText = ham.parse(desc)
+                    }
+                } else {
+                    cell.textLabel?.textColor = .secondaryLabel
+                    cell.textLabel?.text = Localizations.groupAddDescription
+                }
+                cell.heightAnchor.constraint(equalToConstant: Constants.ActionRowHeight).isActive = true
+                return cell
+            case .expiryRow:
+                let cell = tableView.dequeueReusableCell(withIdentifier: self.expiryCellReuseIdentifier, for: indexPath)
+
+                let attributedText = NSMutableAttributedString()
+                attributedText.append(NSAttributedString(attachment: NSTextAttachment(image: UIImage(systemName: "timer")!)))
+                attributedText.append(NSAttributedString(string: " "))
+                attributedText.append(NSAttributedString(string: Group.formattedExpirationTime(type: chatGroup.expirationType, time: chatGroup.expirationTime)))
+
+                cell.textLabel?.attributedText = attributedText
+
+                if let cell = cell as? MenuCell {
+                    if self.isAdmin {
+                        cell.menu = HAMenu() {
+                            HAMenuButton(title: Localizations.chatGroupExpiryOption24Hours, image: UIImage(systemName: "timer")) { [weak self] in
+                                self?.changeGroupExpiry(type: .expiresInSeconds, time: .oneDay)
+                            }
+                            HAMenuButton(title: Localizations.chatGroupExpiryOption30Days, image: UIImage(systemName: "timer")) { [weak self] in
+                                self?.changeGroupExpiry(type: .expiresInSeconds, time: .thirtyDays)
+                            }
+                            HAMenuButton(title: Localizations.chatGroupExpiryOptionNever) { [weak self] in
+                                self?.changeGroupExpiry(type: .never, time: 0)
+                            }
                         }
                     } else {
-                        cell.textLabel?.textColor = .secondaryLabel
-                        cell.textLabel?.text = Localizations.groupAddDescription
+                        cell.menu = nil
                     }
-                    cell.heightAnchor.constraint(equalToConstant: Constants.ActionRowHeight).isActive = true
+                }
+
+                return cell
+            case .backgroundRow:
+                guard let cell = tableView.dequeueReusableCell(withIdentifier: self.backgroundCellReuseIdentifier, for: indexPath) as? BackgroundTableViewCell else { break }
+                let isDefaultBackground = chatGroup.background == 0
+                let text = isDefaultBackground ? Localizations.chatGroupInfoBgDefaultLabel : Localizations.chatGroupInfoBgColorLabel
+                let backgroundColor = ChatData.getThemeBackgroundColor(for: chatGroup.background)
+                cell.configure(label: text, color: backgroundColor)
+                return cell
+            case .contactRow(let contactRow):
+                switch contactRow {
+                case .addMembers:
+                    guard let cell = tableView.dequeueReusableCell(withIdentifier: self.actionCellReuseIdentifier, for: indexPath) as? ActionTableViewCell else { break }
+                    guard let image = UIImage(named: "GroupsAddMembers")?.withRenderingMode(.alwaysTemplate) else { break }
+                    cell.color = .primaryBlue
+                    cell.configure(icon: image, label: Localizations.chatGroupInfoAddMembers)
                     return cell
-                default: break
-                }
-            } else if indexPath.section == 1 {
-                switch row {
-                case .backgroundRow:
-                    guard let cell = tableView.dequeueReusableCell(withIdentifier: self.backgroundCellReuseIdentifier, for: indexPath) as? BackgroundTableViewCell else { break }
-                    guard let chatGroup = self.chatGroup else { break }
-                    let isDefaultBackground = chatGroup.background == 0
-                    let text = isDefaultBackground ? Localizations.chatGroupInfoBgDefaultLabel : Localizations.chatGroupInfoBgColorLabel
-                    let backgroundColor = ChatData.getThemeBackgroundColor(for: chatGroup.background)
-                    cell.configure(label: text, color: backgroundColor)
+                case .inviteToGroup:
+                    guard let cell = tableView.dequeueReusableCell(withIdentifier: self.actionCellReuseIdentifier, for: indexPath) as? ActionTableViewCell else { break }
+                    guard let image = UIImage(named: "ShareLink")?.withRenderingMode(.alwaysTemplate) else { break }
+                    cell.color = .primaryBlue
+                    cell.configure(icon: image, label: Localizations.groupInfoInviteToGroupViaLink)
                     return cell
-                default: break
-                }
-            } else if indexPath.section == 2 {
-                switch row {
-                case .contactRow(let contactRow):
-                    switch contactRow {
-                    case .addMembers:
-                        guard let cell = tableView.dequeueReusableCell(withIdentifier: self.actionCellReuseIdentifier, for: indexPath) as? ActionTableViewCell else { break }
-                        guard let image = UIImage(named: "GroupsAddMembers")?.withRenderingMode(.alwaysTemplate) else { break }
-                        cell.color = .primaryBlue
-                        cell.configure(icon: image, label: Localizations.chatGroupInfoAddMembers)
-                        return cell
-                    case .inviteToGroup:
-                        guard let cell = tableView.dequeueReusableCell(withIdentifier: self.actionCellReuseIdentifier, for: indexPath) as? ActionTableViewCell else { break }
-                        guard let image = UIImage(named: "ShareLink")?.withRenderingMode(.alwaysTemplate) else { break }
-                        cell.color = .primaryBlue
-                        cell.configure(icon: image, label: Localizations.groupInfoInviteToGroupViaLink)
-                        return cell
-                    case .contact(let memberUserID):
-                        guard let cell = tableView.dequeueReusableCell(withIdentifier: self.cellReuseIdentifier, for: indexPath) as? ContactTableViewCell else { break }
-                        cell.configure(groupID: self.groupID, memberUserID: memberUserID)
-                        return cell
-                    case .more:
-                        guard let cell = tableView.dequeueReusableCell(withIdentifier: self.actionCellReuseIdentifier, for: indexPath) as? ActionTableViewCell else { break }
-                        guard let image = UIImage(systemName: "chevron.down")?.withRenderingMode(.alwaysTemplate) else { break }
-                        cell.configure(icon: image, label: Localizations.buttonMore)
-                        cell.imageBgColor = .clear
-                        return cell
-                    }
-                default:
-                    break
-                }
-            } else if indexPath.section == 3 {
-                switch row {
-                case .historyStatsRow:
-                    let cell = tableView.dequeueReusableCell(withIdentifier: self.statCellReuseIdentifier, for: indexPath)
-                    cell.textLabel?.numberOfLines = 0
-                    cell.textLabel?.font = UIFont.systemFont(forTextStyle: .body, maximumPointSize: Constants.MaxFontPointSize)
-                    cell.textLabel?.text = self.generateHistoryStatsString()
-                    cell.heightAnchor.constraint(equalToConstant: Constants.ActionRowHeight).isActive = true
+                case .contact(let memberUserID):
+                    guard let cell = tableView.dequeueReusableCell(withIdentifier: self.cellReuseIdentifier, for: indexPath) as? ContactTableViewCell else { break }
+                    cell.configure(groupID: self.groupID, memberUserID: memberUserID)
                     return cell
-                default: break
+                case .more:
+                    guard let cell = tableView.dequeueReusableCell(withIdentifier: self.actionCellReuseIdentifier, for: indexPath) as? ActionTableViewCell else { break }
+                    guard let image = UIImage(systemName: "chevron.down")?.withRenderingMode(.alwaysTemplate) else { break }
+                    cell.configure(icon: image, label: Localizations.buttonMore)
+                    cell.imageBgColor = .clear
+                    return cell
                 }
+            case .historyStatsRow:
+                let cell = tableView.dequeueReusableCell(withIdentifier: self.statCellReuseIdentifier, for: indexPath)
+                cell.textLabel?.numberOfLines = 0
+                cell.textLabel?.font = UIFont.systemFont(forTextStyle: .body, maximumPointSize: Constants.MaxFontPointSize)
+                cell.textLabel?.text = self.generateHistoryStatsString()
+                cell.heightAnchor.constraint(equalToConstant: Constants.ActionRowHeight).isActive = true
+                return cell
             }
+
             return UITableViewCell()
         }
 
@@ -328,6 +343,10 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
         let numContacts = allContactRows.count
         snapshot.appendSections([ .description, .background, .contacts(numContacts: numContacts) ])
         snapshot.appendItems(descriptionRows, toSection: .description)
+        if ServerProperties.enableGroupExpiry {
+            snapshot.insertSections([.expiry], afterSection: .description)
+            snapshot.appendItems([.expiryRow], toSection: .expiry)
+        }
         snapshot.appendItems(backgroundRows, toSection: .background)
         snapshot.appendItems(contactRows, toSection: .contacts(numContacts: numContacts))
         if ServerProperties.isInternalUser {
@@ -453,6 +472,24 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
     private func showAllContactsTapped() {
         showAllContacts = true
         reloadData(animated: false) // animation causes jumpiness for long lists for some reason
+    }
+
+    func changeGroupExpiry(type: Group.ExpirationType, time: Int64) {
+        guard let chatGroup = chatGroup, (chatGroup.expirationType != type || chatGroup.expirationTime != time) else {
+            return
+        }
+        MainAppContext.shared.service.changeGroupExpiry(groupID: groupID, expiryType: type.serverExpiryType, expirationTime: time) { [weak self] result in
+            switch result {
+            case .success:
+                DDLogInfo("GroupInfoViewController/changeGroupExpiry/success")
+                self?.reloadData(animated: true)
+            case .failure(let error):
+                DDLogError("GroupInfoViewController/changeGroupExpiry/failure - \(error)")
+                let alert = UIAlertController(title: nil, message: Localizations.chatGroupInfoUpdateExpiryError, preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default))
+                self?.present(alert, animated: true)
+            }
+        }
     }
 
     // MARK: Helpers
@@ -605,19 +642,29 @@ extension GroupInfoViewController: UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        guard let section = dataSource?.snapshot().sectionIdentifiers[section] else {
+            return nil
+        }
+
         let view = UIView(frame: CGRect(x: 0, y: 0, width: tableView.frame.size.width, height: 40))
         let label = UILabel(frame: CGRect(x: 0, y: 7, width: tableView.frame.size.width, height: 40))
         label.font = UIFont.systemFont(ofSize: 13)
         label.textColor = UIColor.secondaryLabel
-        if section == 0 {
-            label.text = Localizations.groupDescriptionLabel.uppercased()
-        } else if section == 1 {
-            label.text = Localizations.groupBackgroundLabel.uppercased()
-        } else if section == 2 {
-            label.text = Localizations.groupMembersLabel.uppercased() + " (\(String(self.chatGroup?.members?.count ?? 0)))"
-        } else if section == 3 {
-            label.text = "History Decryption Stats"
+
+        let text: String
+        switch section {
+        case .description:
+            text = Localizations.groupDescriptionLabel
+        case .expiry:
+            text = Localizations.chatGroupInfoExpirySectionTitle
+        case .background:
+            text = Localizations.groupBackgroundLabel
+        case .contacts:
+            text = Localizations.groupMembersLabel + " (\(String(self.chatGroup?.members?.count ?? 0)))"
+        case .historyStats:
+            text = "History Decryption Stats" // dev only, no need to be localized
         }
+        label.text = text.uppercased()
         view.addSubview(label)
         return view
     }
@@ -632,106 +679,106 @@ extension GroupInfoViewController: UITableViewDelegate {
             tableView.deselectRow(at: indexPath, animated: true)
         }
 
-        if indexPath.section == 0 {
+        switch row {
+        case .descriptionRow:
             openEditDesc()
             deselectRow()
-        } else if indexPath.section == 1 {
+        case .expiryRow:
+            break
+        case .backgroundRow:
             openBackground()
             deselectRow()
-        } else if indexPath.section == 2 {
-            switch row {
-            case .contactRow(let contactRow):
-                switch contactRow {
-                case .addMembers:
-                    if isAdmin {
-                        openAddMembers()
-                    }
-                    deselectRow()
-                case .inviteToGroup:
-                    if isAdmin {
-                        shareAction()
-                    }
-                    deselectRow()
-                case .contact(let memberUserID):
-                    let viewContext = MainAppContext.shared.chatData.viewContext
-                    guard let member = MainAppContext.shared.chatData.chatGroupMember(groupId: groupID, memberUserId: memberUserID, in: viewContext) else {
-                        return deselectRow()
-                    }
-                    guard memberUserID != MainAppContext.shared.userData.userId else {
-                        return deselectRow()
-                    }
-      
-                    let userName = MainAppContext.shared.contactStore.fullName(for: memberUserID, in: MainAppContext.shared.contactStore.viewContext)
-                    let contactsViewContext = MainAppContext.shared.contactStore.viewContext
-                    let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: memberUserID, in: contactsViewContext)
-                    let selectedMembers = [memberUserID]
+        case .contactRow(let contactRow):
+            switch contactRow {
+            case .addMembers:
+                if isAdmin {
+                    openAddMembers()
+                }
+                deselectRow()
+            case .inviteToGroup:
+                if isAdmin {
+                    shareAction()
+                }
+                deselectRow()
+            case .contact(let memberUserID):
+                let viewContext = MainAppContext.shared.chatData.viewContext
+                guard let member = MainAppContext.shared.chatData.chatGroupMember(groupId: groupID, memberUserId: memberUserID, in: viewContext) else {
+                    return deselectRow()
+                }
+                guard memberUserID != MainAppContext.shared.userData.userId else {
+                    return deselectRow()
+                }
 
-                    let actionSheet = UIAlertController(title: "\(userName)", message: nil, preferredStyle: .actionSheet)
-                    actionSheet.view.tintColor = UIColor.systemBlue
+                let userName = MainAppContext.shared.contactStore.fullName(for: memberUserID, in: MainAppContext.shared.contactStore.viewContext)
+                let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+                let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: memberUserID, in: contactsViewContext)
+                let selectedMembers = [memberUserID]
 
-                    actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoViewProfile, style: .default) { [weak self] _ in
+                let actionSheet = UIAlertController(title: "\(userName)", message: nil, preferredStyle: .actionSheet)
+                actionSheet.view.tintColor = UIColor.systemBlue
+
+                actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoViewProfile, style: .default) { [weak self] _ in
+                    guard let self = self else { return }
+
+                    let userViewController = UserFeedViewController(userId: memberUserID)
+                    self.navigationController?.pushViewController(userViewController, animated: true)
+                })
+
+                if isContactInAddressBook {
+                    actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoMessageUser, style: .default) { [weak self] _ in
+                        guard let self = self else { return }
+                        if ServerProperties.newChatUI {
+                            let vc = ChatViewControllerNew(for: memberUserID)
+                            self.navigationController?.pushViewController(vc, animated: true)
+                        } else {
+                            let vc = ChatViewController(for: memberUserID)
+                            self.navigationController?.pushViewController(vc, animated: true)
+                        }
+                    })
+                }
+
+                if isAdmin {
+                    if member.type == .admin {
+                        actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoDismissAsAdmin, style: .destructive) { [weak self] _ in
+                            guard let self = self else { return }
+
+                            MainAppContext.shared.service.modifyGroup(groupID: self.groupID, with: selectedMembers, groupAction: ChatGroupAction.modifyAdmins, action: ChatGroupMemberAction.demote) { result in }
+                        })
+                    } else {
+                        actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoMakeGroupAdmin, style: .default) { [weak self] _ in
+                            guard let self = self else { return }
+
+                            MainAppContext.shared.service.modifyGroup(groupID: self.groupID, with: selectedMembers, groupAction: ChatGroupAction.modifyAdmins, action: ChatGroupMemberAction.promote) { result in }
+                        })
+                    }
+                    actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoRemoveFromGroup, style: .destructive) { [weak self] _ in
                         guard let self = self else { return }
 
-                        let userViewController = UserFeedViewController(userId: memberUserID)
-                        self.navigationController?.pushViewController(userViewController, animated: true)
-                    })
-                    
-                    if isContactInAddressBook {
-                        actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoMessageUser, style: .default) { [weak self] _ in
+                        MainAppContext.shared.service.modifyGroup(groupID: self.groupID, with: selectedMembers, groupAction: ChatGroupAction.modifyMembers, action: ChatGroupMemberAction.remove) { [weak self] result in
                             guard let self = self else { return }
-                            if ServerProperties.newChatUI {
-                                let vc = ChatViewControllerNew(for: memberUserID)
-                                self.navigationController?.pushViewController(vc, animated: true)
-                            } else {
-                                let vc = ChatViewController(for: memberUserID)
-                                self.navigationController?.pushViewController(vc, animated: true)
-                            }
-                        })
-                    }
-
-                    if isAdmin {
-                        if member.type == .admin {
-                            actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoDismissAsAdmin, style: .destructive) { [weak self] _ in
-                                guard let self = self else { return }
-
-                                MainAppContext.shared.service.modifyGroup(groupID: self.groupID, with: selectedMembers, groupAction: ChatGroupAction.modifyAdmins, action: ChatGroupMemberAction.demote) { result in }
-                            })
-                        } else {
-                            actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoMakeGroupAdmin, style: .default) { [weak self] _ in
-                                guard let self = self else { return }
-
-                                MainAppContext.shared.service.modifyGroup(groupID: self.groupID, with: selectedMembers, groupAction: ChatGroupAction.modifyAdmins, action: ChatGroupMemberAction.promote) { result in }
-                            })
+                            self.refreshGroupInfo()
                         }
-                        actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoRemoveFromGroup, style: .destructive) { [weak self] _ in
-                            guard let self = self else { return }
 
-                            MainAppContext.shared.service.modifyGroup(groupID: self.groupID, with: selectedMembers, groupAction: ChatGroupAction.modifyMembers, action: ChatGroupMemberAction.remove) { [weak self] result in
-                                guard let self = self else { return }
-                                self.refreshGroupInfo()
-                            }
-
-                        })
-                    }
-
-                    actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
-                    present(actionSheet, animated: true) {
-                        deselectRow()
-                    }
-                case .more:
-                    tableView.deselectRow(at: indexPath, animated: false)
-                    showAllContactsTapped()
+                    })
                 }
-            default:
-                break
+
+                actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+                present(actionSheet, animated: true) {
+                    deselectRow()
+                }
+            case .more:
+                tableView.deselectRow(at: indexPath, animated: false)
+                showAllContactsTapped()
             }
+        case .historyStatsRow:
+            break
         }
     }
-
 }
 
 fileprivate enum Section: Hashable {
     case description
+    case expiry
     case background
     case historyStats
     case contacts(numContacts: Int) // numContacts needed for snapshot to notice changes and update section header title
@@ -742,6 +789,7 @@ fileprivate enum Row: Hashable, Equatable {
     case backgroundRow(BackgroundRow)
     case contactRow(ContactRow)
     case historyStatsRow(HistoryStatsRow)
+    case expiryRow
 
     var descriptionRow: DescriptionRow? {
         switch self {
@@ -1229,6 +1277,49 @@ private extension ContactTableViewCell {
 
 }
 
+private class MenuCell: UITableViewCell {
+
+    var menu: HAMenu? {
+        didSet {
+            if #available(iOS 14.0, *) {
+                menuButton.menu = menu.flatMap { UIMenu(menu: $0) }
+            }
+        }
+    }
+
+    private let menuButton = UIButton()
+
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+
+        if #available(iOS 14.0, *) {
+            menuButton.showsMenuAsPrimaryAction = true
+        } else {
+            menuButton.addTarget(self, action: #selector(showMenu), for: .touchUpInside)
+        }
+        menuButton.setContentHuggingPriority(UILayoutPriority(1), for: .vertical)
+        contentView.addSubview(menuButton)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        menuButton.frame = contentView.bounds
+    }
+
+    // iOS 13 alternate method
+    @objc private func showMenu() {
+        guard let menu = menu, let viewController = sequence(first: self, next: \.next).lazy.compactMap({ $0 as? UIViewController }).first else {
+            return
+        }
+        viewController.present(UIAlertController(preferredStyle: .actionSheet, buildMenu: { menu }), animated: true)
+    }
+}
+
 fileprivate extension UIImage {
     func imageResized(to size: CGSize) -> UIImage {
         return UIGraphicsImageRenderer(size: size).image { _ in
@@ -1287,5 +1378,13 @@ private extension Localizations {
 
     static var chatGroupInfoRemoveFromGroup: String {
         NSLocalizedString("chat.group.info.remove.from.group", value: "Remove From Group", comment: "Text for menu option of removing a group member")
+    }
+
+    static var chatGroupInfoExpirySectionTitle: String {
+        NSLocalizedString("chat.group.info.expiry.title", value: "Content Expiration", comment: "Title of groups info section that controls when group content expires")
+    }
+
+    static var chatGroupInfoUpdateExpiryError: String {
+        NSLocalizedString("chat.group.info.expiry.set.error", value: "Failed to update content expiration", comment: "Error message when changing group expiry fails")
     }
 }

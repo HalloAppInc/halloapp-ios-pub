@@ -217,7 +217,7 @@ struct HAMenuButton {
 extension UIAlertController {
     convenience init(preferredStyle: UIAlertController.Style, buildMenu: () -> HAMenu) {
         let menu = buildMenu()
-        self.init(title: menu.title, message: menu.subtitle, preferredStyle: preferredStyle)
+        self.init(title: menu.title.isEmpty ? nil : menu.title, message: menu.subtitle, preferredStyle: preferredStyle)
         for item in menu.flattenedContent() {
             switch item {
             case let .button(button):

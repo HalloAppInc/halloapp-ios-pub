@@ -33,6 +33,7 @@ class FeedPostView: UIView {
     var deleteAction: (() -> ())?
     var contextAction: ((UserMenuAction) -> ())?
     var shareAction: (() -> ())?
+    var showExpiryMismatchAction: (() -> ())?
     
     weak var delegate: FeedPostViewDelegate?
 
@@ -236,6 +237,9 @@ class FeedPostView: UIView {
         }
         headerView.moreMenuContent = { [weak self] in
             return self?.moreMenuContent() ?? []
+        }
+        headerView.showExpiryMismatchAction = { [weak self] in
+            self?.showExpiryMismatchAction?()
         }
         itemContentView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, displayData: displayData)
         itemContentView.didChangeMediaIndex = { [weak self] index in
