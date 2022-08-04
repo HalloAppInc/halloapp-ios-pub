@@ -126,6 +126,7 @@ extension UNUserNotificationCenter {
                 guard let metadata = NotificationMetadata.load(from: notification.request),
                       metadata.momentContext == context else { continue }
                 completion(metadata)
+                return
             }
             completion(nil)
         }
