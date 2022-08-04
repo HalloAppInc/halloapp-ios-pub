@@ -730,6 +730,11 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     // MARK: Chat Message FetchedResults
     private func setupChatMessageFetchedResultsController() {
         let fetchChatMessageRequest: NSFetchRequest<ChatMessage> = ChatMessage.fetchRequest()
+        fetchChatMessageRequest.relationshipKeyPathsForPrefetching = [
+            "media",
+            "linkPreviews",
+            "reactions",
+        ]
         guard let fromUserId = fromUserId else {
             return
         }
