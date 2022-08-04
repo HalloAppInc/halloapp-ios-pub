@@ -33,6 +33,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     let didGetRemoveHomeTabIndicator = PassthroughSubject<Void, Never>()
     
     let validMoment = CurrentValueSubject<FeedPost?, Never>(nil)
+    private(set) var expiredMoments = Set<FeedPostID>()
 
     private struct UserDefaultsKey {
         static let persistentStoreUserID = "feed.store.userID"
@@ -4432,7 +4433,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         guard moment.userId != userData.userId else {
             return
         }
-        DDLogInfo("FeedData/momentWasViewed/starting update block")
+
+        DDLogInfo("FeedData/momentWasViewed/starting update block id: [\(moment.id)]")
+        expiredMoments.insert(moment.id)
 
         updateFeedPost(with: moment.id) { [weak self] moment in
             self?.internalSendSeenReceipt(for: moment)
