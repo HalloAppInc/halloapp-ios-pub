@@ -686,6 +686,20 @@ class ChatData: ObservableObject {
         DDLogInfo("ChatData/migrateLegacyChatEvent/finished")
     }
 
+    public func migrateGroupExpiry() {
+        do {
+            try mainDataStore.saveSeriallyOnBackgroundContextAndWait { context in
+                chatGroups(in: context).forEach { group in
+                    group.expirationTime = Int64(FeedPost.defaultExpiration)
+                    group.expirationType = .expiresInSeconds
+
+                }
+            }
+        } catch {
+            DDLogError("Failed to migrate chat group expirations")
+        }
+    }
+
     public func recordNewChatEvent(userID: UserID, type: ChatEventType) {
         mainDataStore.saveSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }

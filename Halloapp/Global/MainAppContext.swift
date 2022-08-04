@@ -253,9 +253,10 @@ class MainAppContext: AppContext {
     }
 
     private func migrateFeedPostExpiryIfNecessary() {
-        let key = "migration.feeedpostexpiry.complete"
+        let key = "migration.feeedpostexpiry.complete.2"
         if !userDefaults.bool(forKey: key) {
             feedData.migrateFeedPostExpiration()
+            chatData.migrateGroupExpiry()
             userDefaults.set(true, forKey: key)
         }
     }
