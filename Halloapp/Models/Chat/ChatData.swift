@@ -2808,7 +2808,7 @@ extension ChatData {
     private func addIntent(toUserId: UserID) {
         if #available(iOS 14.0, *) {
             var name = ""
-            MainAppContext.shared.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
+            MainAppContext.shared.contactStore.performSeriallyOnBackgroundContext { managedObjectContext in
                 name = MainAppContext.shared.contactStore.fullName(for: toUserId, in: managedObjectContext)
             }
 
