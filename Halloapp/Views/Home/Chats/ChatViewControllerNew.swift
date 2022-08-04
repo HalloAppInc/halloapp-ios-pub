@@ -365,6 +365,10 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
         // Add messages
         if let chatMessages = chatMessageFetchedResultsController?.fetchedObjects {
+            if let fromUserId = fromUserId {
+                DDLogInfo("ChatViewControllerNew/updateCollectionViewData/ number of chat messages: \(chatMessages.count) fromUser: \(fromUserId)")
+            }
+            
             chatMessages.forEach { chatMessage in
                 messageRows.append(messagerow(for: chatMessage))
             }
