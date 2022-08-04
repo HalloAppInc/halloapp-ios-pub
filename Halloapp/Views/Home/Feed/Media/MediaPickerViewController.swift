@@ -161,39 +161,13 @@ class MediaPickerViewController: UIViewController {
         let disabledAttributedTitle = NSAttributedString(string: Localizations.buttonNext,
                                                          attributes: [.kern: 0.5, .foregroundColor: UIColor.white])
 
-        class MediaPickerButton: UIButton {
-
-            override init(frame: CGRect) {
-                super.init(frame: frame)
-                updateBackgrounds()
-            }
-
-            required init?(coder: NSCoder) {
-                fatalError("init(coder:) has not been implemented")
-            }
-
-            private func updateBackgrounds() {
-                setBackgroundColor(.lavaOrange, for: .normal)
-                setBackgroundColor(.label.withAlphaComponent(0.19), for: .disabled)
-            }
-
-            override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-                super.traitCollectionDidChange(previousTraitCollection)
-                if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
-                    updateBackgrounds()
-                }
-            }
-        }
-
-        let button = MediaPickerButton(type: .custom)
+        let button = RoundedRectButton()
         button.translatesAutoresizingMaskIntoConstraints = false
         // Attributed strings do not respect button title colors
         button.setAttributedTitle(attributedTitle, for: .normal)
         button.setAttributedTitle(disabledAttributedTitle, for: .disabled)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
         button.setImage(icon, for: .normal)
-        button.layer.cornerRadius = 22
-        button.layer.masksToBounds = true
         button.contentEdgeInsets = UIEdgeInsets(top: -1.5, left: 32, bottom: 0, right: 38)
 
         // keep image on the right & tappable

@@ -471,6 +471,7 @@
 		F86919DF26395E8D00B01306 /* BlurView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAF43982603F7720037F83D /* BlurView.swift */; };
 		F86919E026395EB300B01306 /* UIFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 762EDBDA244E344300986617 /* UIFont.swift */; };
 		F878427C24F6C0FB0040B723 /* MediaAlbumsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F878427B24F6C0FB0040B723 /* MediaAlbumsViewController.swift */; };
+		F87CA3DF2891707F001B3B1F /* ComposerDestinationRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F87CA3DE2891707F001B3B1F /* ComposerDestinationRowView.swift */; };
 		F881ED69261780360013599F /* UploadData.swift in Sources */ = {isa = PBXBuildFile; fileRef = F881ED68261780360013599F /* UploadData.swift */; };
 		F881ED70261B0FDE0013599F /* Upload.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F881ED6E261B0FDE0013599F /* Upload.xcdatamodeld */; };
 		F881ED76261B1F6F0013599F /* Upload+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = F881ED74261B1F6F0013599F /* Upload+CoreDataClass.swift */; };
@@ -1242,6 +1243,7 @@
 		F8606DD0257E7340006CD1A6 /* MediaExplorerVideoCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaExplorerVideoCell.swift; sourceTree = "<group>"; };
 		F8606DD5257E7402006CD1A6 /* MediaExplorerImageCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaExplorerImageCell.swift; sourceTree = "<group>"; };
 		F878427B24F6C0FB0040B723 /* MediaAlbumsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaAlbumsViewController.swift; sourceTree = "<group>"; };
+		F87CA3DE2891707F001B3B1F /* ComposerDestinationRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerDestinationRowView.swift; sourceTree = "<group>"; };
 		F881ED68261780360013599F /* UploadData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadData.swift; sourceTree = "<group>"; };
 		F881ED6F261B0FDE0013599F /* Uploads.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Uploads.xcdatamodel; sourceTree = "<group>"; };
 		F881ED74261B1F6F0013599F /* Upload+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Upload+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -2093,6 +2095,7 @@
 				F80A0088288FF3DB00EAE39C /* MediaComposerTextView.swift */,
 				F80A0084288EB50700EAE39C /* TextComposerView.swift */,
 				F80A0086288EF18800EAE39C /* AudioComposerView.swift */,
+				F87CA3DE2891707F001B3B1F /* ComposerDestinationRowView.swift */,
 			);
 			path = Media;
 			sourceTree = "<group>";
@@ -3019,6 +3022,7 @@
 				E5959700268E3F3800AA3BB9 /* DeleteAccountView.swift in Sources */,
 				76B5B52F2501EEBE0055E712 /* UNExtensions.swift in Sources */,
 				76538091243D4B33000AD9A1 /* FeedNotification+CoreDataClass.swift in Sources */,
+				F87CA3DF2891707F001B3B1F /* ComposerDestinationRowView.swift in Sources */,
 				A1AFA979286B6460005B0DEA /* UploadProgressControl.swift in Sources */,
 				761442C9245D4DE500DD9D1A /* UIButton.swift in Sources */,
 				768123A42485C56E008C5216 /* MainAppContext.swift in Sources */,

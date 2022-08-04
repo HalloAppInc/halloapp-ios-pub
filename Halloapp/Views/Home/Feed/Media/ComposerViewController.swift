@@ -98,6 +98,18 @@ class ComposerViewController: UIViewController {
     private var mediaErrorsCount = 0
     private var videoTooLong = false
 
+    private lazy var groups: [Group] = {
+        AppContext.shared.mainDataStore.groups(in: AppContext.shared.mainDataStore.viewContext)
+    }()
+
+    private lazy var contacts: [ABContact] = {
+        AppContext.shared.contactStore.allRegisteredContacts(sorted: false, in: AppContext.shared.contactStore.viewContext)
+    }()
+
+    private var isCompactShareFlow: Bool {
+        groups.count + contacts.count <= 6
+    }
+
     private var cancellables: Set<AnyCancellable> = []
     private var mediaReadyCancellable: AnyCancellable?
 
@@ -327,6 +339,57 @@ class ComposerViewController: UIViewController {
         return textComposerView
     }()
 
+    private lazy var destinationsView: ComposerDestinationRowView = {
+        let destinationsView = ComposerDestinationRowView(groups: groups, contacts: contacts)
+        destinationsView.translatesAutoresizingMaskIntoConstraints = false
+        destinationsView.destinationDelegate = self
+
+        return destinationsView
+    }()
+
+    private lazy var compactShareRow: UIView = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = .systemFont(ofSize: 11, weight: .medium)
+        label.textColor = .primaryBlackWhite.withAlphaComponent(0.4)
+        label.text = Localizations.shareWith.uppercased()
+
+        let separator = UIView()
+        separator.translatesAutoresizingMaskIntoConstraints = false
+        separator.backgroundColor = .primaryBlackWhite.withAlphaComponent(0.25)
+        separator.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+
+        let buttonWrapper = UIView()
+        buttonWrapper.translatesAutoresizingMaskIntoConstraints = false
+        buttonWrapper.addSubview(compactSendButton)
+
+        let stack = UIStackView(arrangedSubviews: [destinationsView, separator, buttonWrapper])
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .horizontal
+        stack.spacing = 0
+
+        let container = UIView()
+        container.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(label)
+        container.addSubview(stack)
+
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12),
+            label.topAnchor.constraint(equalTo: container.topAnchor),
+            stack.topAnchor.constraint(equalTo: label.bottomAnchor, constant: 12),
+            stack.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            stack.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+            separator.widthAnchor.constraint(equalToConstant: 1),
+            stack.heightAnchor.constraint(equalToConstant: 80),
+            compactSendButton.centerXAnchor.constraint(equalTo: buttonWrapper.centerXAnchor),
+            compactSendButton.centerYAnchor.constraint(equalTo: buttonWrapper.centerYAnchor),
+            buttonWrapper.widthAnchor.constraint(equalTo: compactSendButton.widthAnchor, constant: 20),
+        ])
+
+        return container
+    }()
+
     private lazy var mediaPickerButton: UIButton = {
         let imageConfig = UIImage.SymbolConfiguration(pointSize: 40, weight: .bold)
 
@@ -339,7 +402,29 @@ class ComposerViewController: UIViewController {
         return button
     }()
 
-    private lazy var sendButton: UIButton = {
+    private var sendButton: UIButton {
+        isCompactShareFlow ? compactSendButton : largeSendButton
+    }
+
+    private lazy var compactSendButton: UIButton = {
+        let icon = UIImage(named: "icon_share")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+
+        let button = RoundedRectButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(icon, for: .normal)
+        button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+
+        NSLayoutConstraint.activate([
+            button.heightAnchor.constraint(equalToConstant: 52),
+            button.widthAnchor.constraint(greaterThanOrEqualToConstant: 52),
+        ])
+
+        button.addTarget(self, action: #selector(share), for: .touchUpInside)
+
+        return button
+    }()
+
+    private lazy var largeSendButton: UIButton = {
         let iconConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .bold)
         let icon = UIImage(systemName: "chevron.right", withConfiguration: iconConfig)?
                     .withTintColor(.white, renderingMode: .alwaysOriginal)
@@ -349,39 +434,13 @@ class ComposerViewController: UIViewController {
         let disabledAttributedTitle = NSAttributedString(string: Localizations.sendTo,
                                                          attributes: [.kern: 0.5, .foregroundColor: UIColor.white])
 
-        class LavaButton: UIButton {
-
-            override init(frame: CGRect) {
-                super.init(frame: frame)
-                updateBackgrounds()
-            }
-
-            required init?(coder: NSCoder) {
-                fatalError("init(coder:) has not been implemented")
-            }
-
-            private func updateBackgrounds() {
-                setBackgroundColor(.lavaOrange, for: .normal)
-                setBackgroundColor(.label.withAlphaComponent(0.19), for: .disabled)
-            }
-
-            override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-                super.traitCollectionDidChange(previousTraitCollection)
-                if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
-                    updateBackgrounds()
-                }
-            }
-        }
-
-        let button = LavaButton(type: .custom)
+        let button = RoundedRectButton()
         button.translatesAutoresizingMaskIntoConstraints = false
         // Attributed strings do not respect button title colors
         button.setAttributedTitle(attributedTitle, for: .normal)
         button.setAttributedTitle(disabledAttributedTitle, for: .disabled)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
         button.setImage(icon, for: .normal)
-        button.layer.cornerRadius = 22
-        button.layer.masksToBounds = true
         button.contentEdgeInsets = UIEdgeInsets(top: -1.5, left: 32, bottom: 0, right: 38)
 
         // keep image on the right & tappable
@@ -478,15 +537,26 @@ class ComposerViewController: UIViewController {
             contentView.addArrangedSubview(mediaErrorLabel)
 
             bottomView.addSubview(mediaComposerTextView)
-            bottomView.addSubview(sendButton)
 
             constraints.append(mediaCarouselHeightConstraint)
             constraints.append(mediaComposerTextView.leadingAnchor.constraint(equalTo: bottomView.leadingAnchor))
             constraints.append(mediaComposerTextView.trailingAnchor.constraint(equalTo: bottomView.trailingAnchor))
             constraints.append(mediaComposerTextView.topAnchor.constraint(equalTo: bottomView.topAnchor, constant: 8))
-            constraints.append(sendButton.centerXAnchor.constraint(equalTo: bottomView.centerXAnchor))
-            constraints.append(sendButton.topAnchor.constraint(equalTo: mediaComposerTextView.bottomAnchor, constant: 11))
-            constraints.append(sendButton.bottomAnchor.constraint(equalTo: bottomView.bottomAnchor))
+
+            if isCompactShareFlow {
+                bottomView.addSubview(compactShareRow)
+
+                constraints.append(compactShareRow.leadingAnchor.constraint(equalTo: bottomView.leadingAnchor))
+                constraints.append(compactShareRow.trailingAnchor.constraint(equalTo: bottomView.trailingAnchor))
+                constraints.append(compactShareRow.bottomAnchor.constraint(equalTo: bottomView.bottomAnchor))
+                constraints.append(compactShareRow.topAnchor.constraint(equalTo: mediaComposerTextView.bottomAnchor, constant: 11))
+            } else {
+                bottomView.addSubview(sendButton)
+
+                constraints.append(sendButton.centerXAnchor.constraint(equalTo: bottomView.centerXAnchor))
+                constraints.append(sendButton.topAnchor.constraint(equalTo: mediaComposerTextView.bottomAnchor, constant: 11))
+                constraints.append(sendButton.bottomAnchor.constraint(equalTo: bottomView.bottomAnchor))
+            }
 
             listenForMediaErrors()
         } else if initialType == .voiceNote || voiceNote != nil {
@@ -496,14 +566,23 @@ class ComposerViewController: UIViewController {
 
             contentView.addArrangedSubview(audioComposerView)
 
-            bottomView.addSubview(sendButton)
-            bottomView.addSubview(mediaPickerButton)
+            if isCompactShareFlow {
+                bottomView.addSubview(compactShareRow)
 
-            constraints.append(sendButton.centerXAnchor.constraint(equalTo: bottomView.centerXAnchor))
-            constraints.append(sendButton.topAnchor.constraint(equalTo: bottomView.topAnchor, constant: 8))
-            constraints.append(sendButton.bottomAnchor.constraint(equalTo: bottomView.bottomAnchor))
-            constraints.append(mediaPickerButton.trailingAnchor.constraint(equalTo: bottomView.trailingAnchor, constant: -14))
-            constraints.append(mediaPickerButton.centerYAnchor.constraint(equalTo: sendButton.centerYAnchor))
+                constraints.append(compactShareRow.leadingAnchor.constraint(equalTo: bottomView.leadingAnchor))
+                constraints.append(compactShareRow.trailingAnchor.constraint(equalTo: bottomView.trailingAnchor))
+                constraints.append(compactShareRow.topAnchor.constraint(equalTo: bottomView.topAnchor))
+                constraints.append(compactShareRow.bottomAnchor.constraint(equalTo: bottomView.bottomAnchor))
+            } else {
+                bottomView.addSubview(mediaPickerButton)
+                bottomView.addSubview(sendButton)
+
+                constraints.append(sendButton.centerXAnchor.constraint(equalTo: bottomView.centerXAnchor))
+                constraints.append(sendButton.topAnchor.constraint(equalTo: bottomView.topAnchor, constant: 8))
+                constraints.append(sendButton.bottomAnchor.constraint(equalTo: bottomView.bottomAnchor))
+                constraints.append(mediaPickerButton.trailingAnchor.constraint(equalTo: bottomView.trailingAnchor, constant: -14))
+                constraints.append(mediaPickerButton.centerYAnchor.constraint(equalTo: sendButton.centerYAnchor))
+            }
         } else {
             title = Localizations.fabAccessibilityTextPost
             navigationItem.leftBarButtonItem = closeButtonItem
@@ -512,15 +591,25 @@ class ComposerViewController: UIViewController {
             contentView.layoutMargins = .zero
             contentView.addArrangedSubview(textComposerView)
 
-            bottomView.addSubview(sendButton)
-            bottomView.addSubview(mediaPickerButton)
-
             constraints.append(contentView.heightAnchor.constraint(greaterThanOrEqualTo: scrollView.frameLayoutGuide.heightAnchor, constant: -16))
-            constraints.append(sendButton.centerXAnchor.constraint(equalTo: bottomView.centerXAnchor))
-            constraints.append(sendButton.topAnchor.constraint(equalTo: bottomView.topAnchor, constant: 8))
-            constraints.append(sendButton.bottomAnchor.constraint(equalTo: bottomView.bottomAnchor))
-            constraints.append(mediaPickerButton.trailingAnchor.constraint(equalTo: bottomView.trailingAnchor, constant: -14))
-            constraints.append(mediaPickerButton.centerYAnchor.constraint(equalTo: sendButton.centerYAnchor))
+
+            if isCompactShareFlow {
+                bottomView.addSubview(compactShareRow)
+
+                constraints.append(compactShareRow.leadingAnchor.constraint(equalTo: bottomView.leadingAnchor))
+                constraints.append(compactShareRow.trailingAnchor.constraint(equalTo: bottomView.trailingAnchor))
+                constraints.append(compactShareRow.topAnchor.constraint(equalTo: bottomView.topAnchor))
+                constraints.append(compactShareRow.bottomAnchor.constraint(equalTo: bottomView.bottomAnchor))
+            } else {
+                bottomView.addSubview(sendButton)
+                bottomView.addSubview(mediaPickerButton)
+
+                constraints.append(sendButton.centerXAnchor.constraint(equalTo: bottomView.centerXAnchor))
+                constraints.append(sendButton.topAnchor.constraint(equalTo: bottomView.topAnchor, constant: 8))
+                constraints.append(sendButton.bottomAnchor.constraint(equalTo: bottomView.bottomAnchor))
+                constraints.append(mediaPickerButton.trailingAnchor.constraint(equalTo: bottomView.trailingAnchor, constant: -14))
+                constraints.append(mediaPickerButton.centerYAnchor.constraint(equalTo: sendButton.centerYAnchor))
+            }
         }
 
         NSLayoutConstraint.activate(constraints)
@@ -540,14 +629,23 @@ class ComposerViewController: UIViewController {
                 voiceNote: voiceNote,
                 locked: audioRecorderControlsLocked)
 
-            sendButton.isEnabled = media.allSatisfy({ $0.ready.value })
+            if isCompactShareFlow {
+                sendButton.isEnabled = media.allSatisfy({ $0.ready.value }) && destinationsView.destinations.count > 0
+            } else {
+                sendButton.isEnabled = media.allSatisfy({ $0.ready.value })
+            }
 
             mediaReadyCancellable = Publishers.MergeMany(media.map { $0.ready }).sink { [weak self] _ in
                 guard let self = self else { return }
                 guard self.media.allSatisfy({ $0.ready.value }) else { return }
 
                 self.updateMediaCarouselHeight()
-                self.sendButton.isEnabled = true
+
+                if self.isCompactShareFlow {
+                    self.sendButton.isEnabled = self.destinationsView.destinations.count > 0
+                } else {
+                    self.sendButton.isEnabled = true
+                }
             }
 
             guard 0 <= index, index < media.count else {
@@ -567,12 +665,22 @@ class ComposerViewController: UIViewController {
             audioComposerView.update(with: audioRecorder, voiceNote: voiceNote)
 
             mediaPickerButton.isHidden = audioRecorder.isRecording || voiceNote == nil
-            sendButton.isEnabled = !audioRecorder.isRecording && voiceNote != nil
+
+            if isCompactShareFlow {
+                sendButton.isEnabled = !audioRecorder.isRecording && voiceNote != nil && destinationsView.destinations.count > 0
+            } else {
+                sendButton.isEnabled = !audioRecorder.isRecording && voiceNote != nil
+            }
         } else {
             textComposerView.update(with: input, mentionables: mentionableUsers())
 
             mediaPickerButton.isHidden = input.text.isEmpty
-            sendButton.isEnabled = !input.text.isEmpty
+
+            if isCompactShareFlow {
+                sendButton.isEnabled = !input.text.isEmpty && destinationsView.destinations.count > 0
+            } else {
+                sendButton.isEnabled = !input.text.isEmpty
+            }
         }
     }
 
@@ -1133,6 +1241,36 @@ extension ComposerViewController: AudioComposerDelegate {
     }
 }
 
+// MARK: ComposerDestinationRowDelegate
+extension ComposerViewController: ComposerDestinationRowDelegate {
+    func destinationRowOpenContacts(_ destinationRowView: ComposerDestinationRowView) {
+    }
+
+    func destinationRowOpenInvites(_ destinationRowView: ComposerDestinationRowView) {
+        guard ContactStore.contactsAccessAuthorized else {
+            let controller = InvitePermissionDeniedViewController()
+            present(UINavigationController(rootViewController: controller), animated: true)
+
+            return
+        }
+
+        InviteManager.shared.requestInvitesIfNecessary()
+
+        let controller = InviteViewController(manager: InviteManager.shared, dismissAction: { [weak self] in
+            self?.dismiss(animated: true, completion: nil)
+        })
+        present(UINavigationController(rootViewController: controller), animated: true)
+    }
+
+    func destinationRow(_ destinationRowView: ComposerDestinationRowView, selected destination: PostComposerDestination) {
+        updateUI()
+    }
+
+    func destinationRow(_ destinationRowView: ComposerDestinationRowView, deselected destination: PostComposerDestination) {
+        updateUI()
+    }
+}
+
 private extension Localizations {
 
     static var sendTo: String {
@@ -1176,5 +1314,9 @@ private extension Localizations {
 
     static var deleteVoiceRecordingTitle: String {
         NSLocalizedString("composer.delete.recording.title", value: "Delete voice recording?", comment: "Title warning that a voice recording will be deleted")
+    }
+
+    static var shareWith: String {
+        NSLocalizedString("composer.destinations.label", value: "Share with", comment: "Label above the list with whom you share")
     }
 }
