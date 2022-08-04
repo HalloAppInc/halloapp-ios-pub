@@ -661,7 +661,8 @@ public struct CommentData {
                     return .unsupported(payload)
                 }
                 return .voiceNote(media)
-            case .none:
+            case .reaction, .none:
+                // TODO: handle reaction case
                 return .unsupported(payload)
             }
 

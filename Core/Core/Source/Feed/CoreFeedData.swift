@@ -576,7 +576,8 @@ public class CoreFeedData {
                         completion(result)
                     }
                 }
-            case .unknown, .UNRECOGNIZED:
+            case .postReaction, .commentReaction, .unknown, .UNRECOGNIZED:
+                //TODO: handle postReaction and commentReaction cases
                 completion(.failure(.aborted))
             }
         }
@@ -686,7 +687,8 @@ public class CoreFeedData {
                         completion(result)
                     }
                 }
-            case .unknown, .UNRECOGNIZED:
+            case .postReaction, .commentReaction, .unknown, .UNRECOGNIZED:
+                //TODO: handle postReaction and commentReaction cases
                 completion(.failure(.aborted))
             }
         }

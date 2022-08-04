@@ -569,12 +569,21 @@ public struct Clients_CommentContainer {
     set {comment = .voiceNote(newValue)}
   }
 
+  public var reaction: Clients_Reaction {
+    get {
+      if case .reaction(let v)? = comment {return v}
+      return Clients_Reaction()
+    }
+    set {comment = .reaction(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Comment: Equatable {
     case text(Clients_Text)
     case album(Clients_Album)
     case voiceNote(Clients_VoiceNote)
+    case reaction(Clients_Reaction)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Clients_CommentContainer.OneOf_Comment, rhs: Clients_CommentContainer.OneOf_Comment) -> Bool {
@@ -592,6 +601,10 @@ public struct Clients_CommentContainer {
       }()
       case (.voiceNote, .voiceNote): return {
         guard case .voiceNote(let l) = lhs, case .voiceNote(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.reaction, .reaction): return {
+        guard case .reaction(let l) = lhs, case .reaction(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -2098,6 +2111,7 @@ extension Clients_CommentContainer: SwiftProtobuf.Message, SwiftProtobuf._Messag
     2: .same(proto: "text"),
     3: .same(proto: "album"),
     4: .standard(proto: "voice_note"),
+    5: .same(proto: "reaction"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2146,6 +2160,19 @@ extension Clients_CommentContainer: SwiftProtobuf.Message, SwiftProtobuf._Messag
           self.comment = .voiceNote(v)
         }
       }()
+      case 5: try {
+        var v: Clients_Reaction?
+        var hadOneofValue = false
+        if let current = self.comment {
+          hadOneofValue = true
+          if case .reaction(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.comment = .reaction(v)
+        }
+      }()
       default: break
       }
     }
@@ -2171,6 +2198,10 @@ extension Clients_CommentContainer: SwiftProtobuf.Message, SwiftProtobuf._Messag
     case .voiceNote?: try {
       guard case .voiceNote(let v)? = self.comment else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    }()
+    case .reaction?: try {
+      guard case .reaction(let v)? = self.comment else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
     }()
     case nil: break
     }

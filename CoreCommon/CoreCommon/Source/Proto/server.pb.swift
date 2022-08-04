@@ -348,6 +348,8 @@ public struct Server_ContactList {
 
   public var contacts: [Server_Contact] = []
 
+  public var hasPermissions_p: Bool = false
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum TypeEnum: SwiftProtobuf.Enum {
@@ -632,12 +634,58 @@ public struct Server_Comment {
   /// Clears the value of `mediaCounters`. Subsequent reads from it will return its default value.
   public mutating func clearMediaCounters() {self._mediaCounters = nil}
 
+  public var commentType: Server_Comment.CommentType = .comment
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum CommentType: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case comment // = 0
+    case commentReaction // = 1
+    case postReaction // = 2
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .comment
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .comment
+      case 1: self = .commentReaction
+      case 2: self = .postReaction
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .comment: return 0
+      case .commentReaction: return 1
+      case .postReaction: return 2
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
 
   public init() {}
 
   fileprivate var _mediaCounters: Server_MediaCounters? = nil
 }
+
+#if swift(>=4.2)
+
+extension Server_Comment.CommentType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_Comment.CommentType] = [
+    .comment,
+    .commentReaction,
+    .postReaction,
+  ]
+}
+
+#endif  // swift(>=4.2)
 
 public struct Server_ShareStanza {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -1912,6 +1960,8 @@ public struct Server_ChatStanza {
   /// Clears the value of `mediaCounters`. Subsequent reads from it will return its default value.
   public mutating func clearMediaCounters() {self._mediaCounters = nil}
 
+  public var chatType: Server_ChatStanza.ChatType = .chat
+
   /// Use >=16 for temporary elements since 1-15 encode smaller
   public var senderLogInfo: String = String()
 
@@ -1919,10 +1969,50 @@ public struct Server_ChatStanza {
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
+  public enum ChatType: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case chat // = 0
+    case chatReaction // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .chat
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .chat
+      case 1: self = .chatReaction
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .chat: return 0
+      case .chatReaction: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
   public init() {}
 
   fileprivate var _mediaCounters: Server_MediaCounters? = nil
 }
+
+#if swift(>=4.2)
+
+extension Server_ChatStanza.ChatType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_ChatStanza.ChatType] = [
+    .chat,
+    .chatReaction,
+  ]
+}
+
+#endif  // swift(>=4.2)
 
 /// clients should decrypt, report stats, and then drop this message
 public struct Server_SilentChatStanza {
@@ -5309,6 +5399,7 @@ public struct Server_Rerequest {
     case chat // = 0
     case call // = 1
     case groupHistory // = 2
+    case chatReaction // = 3
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -5320,6 +5411,7 @@ public struct Server_Rerequest {
       case 0: self = .chat
       case 1: self = .call
       case 2: self = .groupHistory
+      case 3: self = .chatReaction
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -5329,6 +5421,7 @@ public struct Server_Rerequest {
       case .chat: return 0
       case .call: return 1
       case .groupHistory: return 2
+      case .chatReaction: return 3
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -5346,6 +5439,7 @@ extension Server_Rerequest.ContentType: CaseIterable {
     .chat,
     .call,
     .groupHistory,
+    .chatReaction,
   ]
 }
 
@@ -5406,6 +5500,8 @@ public struct Server_GroupFeedRerequest {
     case post // = 1
     case comment // = 2
     case historyResend // = 3
+    case postReaction // = 4
+    case commentReaction // = 5
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -5418,6 +5514,8 @@ public struct Server_GroupFeedRerequest {
       case 1: self = .post
       case 2: self = .comment
       case 3: self = .historyResend
+      case 4: self = .postReaction
+      case 5: self = .commentReaction
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -5428,6 +5526,8 @@ public struct Server_GroupFeedRerequest {
       case .post: return 1
       case .comment: return 2
       case .historyResend: return 3
+      case .postReaction: return 4
+      case .commentReaction: return 5
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -5454,6 +5554,8 @@ extension Server_GroupFeedRerequest.ContentType: CaseIterable {
     .post,
     .comment,
     .historyResend,
+    .postReaction,
+    .commentReaction,
   ]
 }
 
@@ -5514,6 +5616,8 @@ public struct Server_HomeFeedRerequest {
     case unknown // = 0
     case post // = 1
     case comment // = 2
+    case postReaction // = 3
+    case commentReaction // = 4
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -5525,6 +5629,8 @@ public struct Server_HomeFeedRerequest {
       case 0: self = .unknown
       case 1: self = .post
       case 2: self = .comment
+      case 3: self = .postReaction
+      case 4: self = .commentReaction
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -5534,6 +5640,8 @@ public struct Server_HomeFeedRerequest {
       case .unknown: return 0
       case .post: return 1
       case .comment: return 2
+      case .postReaction: return 3
+      case .commentReaction: return 4
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -5560,6 +5668,8 @@ extension Server_HomeFeedRerequest.ContentType: CaseIterable {
     .unknown,
     .post,
     .comment,
+    .postReaction,
+    .commentReaction,
   ]
 }
 
@@ -6985,6 +7095,7 @@ extension Server_Audience.TypeEnum: @unchecked Sendable {}
 extension Server_Post: @unchecked Sendable {}
 extension Server_Post.Tag: @unchecked Sendable {}
 extension Server_Comment: @unchecked Sendable {}
+extension Server_Comment.CommentType: @unchecked Sendable {}
 extension Server_ShareStanza: @unchecked Sendable {}
 extension Server_FeedItem: @unchecked Sendable {}
 extension Server_FeedItem.OneOf_Item: @unchecked Sendable {}
@@ -7020,6 +7131,7 @@ extension Server_MediaUrl: @unchecked Sendable {}
 extension Server_UploadMedia: @unchecked Sendable {}
 extension Server_UploadMedia.TypeEnum: @unchecked Sendable {}
 extension Server_ChatStanza: @unchecked Sendable {}
+extension Server_ChatStanza.ChatType: @unchecked Sendable {}
 extension Server_SilentChatStanza: @unchecked Sendable {}
 extension Server_Ping: @unchecked Sendable {}
 extension Server_ErrorStanza: @unchecked Sendable {}
@@ -7682,6 +7794,7 @@ extension Server_ContactList: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     3: .standard(proto: "batch_index"),
     4: .standard(proto: "is_last"),
     5: .same(proto: "contacts"),
+    6: .standard(proto: "has_permissions"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -7695,6 +7808,7 @@ extension Server_ContactList: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       case 3: try { try decoder.decodeSingularInt32Field(value: &self.batchIndex) }()
       case 4: try { try decoder.decodeSingularBoolField(value: &self.isLast) }()
       case 5: try { try decoder.decodeRepeatedMessageField(value: &self.contacts) }()
+      case 6: try { try decoder.decodeSingularBoolField(value: &self.hasPermissions_p) }()
       default: break
       }
     }
@@ -7716,6 +7830,9 @@ extension Server_ContactList: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     if !self.contacts.isEmpty {
       try visitor.visitRepeatedMessageField(value: self.contacts, fieldNumber: 5)
     }
+    if self.hasPermissions_p != false {
+      try visitor.visitSingularBoolField(value: self.hasPermissions_p, fieldNumber: 6)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -7725,6 +7842,7 @@ extension Server_ContactList: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     if lhs.batchIndex != rhs.batchIndex {return false}
     if lhs.isLast != rhs.isLast {return false}
     if lhs.contacts != rhs.contacts {return false}
+    if lhs.hasPermissions_p != rhs.hasPermissions_p {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -8011,6 +8129,7 @@ extension Server_Comment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
     7: .same(proto: "timestamp"),
     8: .standard(proto: "enc_payload"),
     9: .standard(proto: "media_counters"),
+    10: .standard(proto: "comment_type"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -8028,6 +8147,7 @@ extension Server_Comment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
       case 7: try { try decoder.decodeSingularInt64Field(value: &self.timestamp) }()
       case 8: try { try decoder.decodeSingularBytesField(value: &self.encPayload) }()
       case 9: try { try decoder.decodeSingularMessageField(value: &self._mediaCounters) }()
+      case 10: try { try decoder.decodeSingularEnumField(value: &self.commentType) }()
       default: break
       }
     }
@@ -8065,6 +8185,9 @@ extension Server_Comment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
     try { if let v = self._mediaCounters {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 9)
     } }()
+    if self.commentType != .comment {
+      try visitor.visitSingularEnumField(value: self.commentType, fieldNumber: 10)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -8078,9 +8201,18 @@ extension Server_Comment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
     if lhs.timestamp != rhs.timestamp {return false}
     if lhs.encPayload != rhs.encPayload {return false}
     if lhs._mediaCounters != rhs._mediaCounters {return false}
+    if lhs.commentType != rhs.commentType {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
+}
+
+extension Server_Comment.CommentType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "COMMENT"),
+    1: .same(proto: "COMMENT_REACTION"),
+    2: .same(proto: "POST_REACTION"),
+  ]
 }
 
 extension Server_ShareStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
@@ -9625,6 +9757,7 @@ extension Server_ChatStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     6: .standard(proto: "sender_name"),
     7: .standard(proto: "sender_phone"),
     8: .standard(proto: "media_counters"),
+    9: .standard(proto: "chat_type"),
     16: .standard(proto: "sender_log_info"),
     17: .standard(proto: "sender_client_version"),
   ]
@@ -9643,6 +9776,7 @@ extension Server_ChatStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
       case 6: try { try decoder.decodeSingularStringField(value: &self.senderName) }()
       case 7: try { try decoder.decodeSingularStringField(value: &self.senderPhone) }()
       case 8: try { try decoder.decodeSingularMessageField(value: &self._mediaCounters) }()
+      case 9: try { try decoder.decodeSingularEnumField(value: &self.chatType) }()
       case 16: try { try decoder.decodeSingularStringField(value: &self.senderLogInfo) }()
       case 17: try { try decoder.decodeSingularStringField(value: &self.senderClientVersion) }()
       default: break
@@ -9679,6 +9813,9 @@ extension Server_ChatStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     try { if let v = self._mediaCounters {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
     } }()
+    if self.chatType != .chat {
+      try visitor.visitSingularEnumField(value: self.chatType, fieldNumber: 9)
+    }
     if !self.senderLogInfo.isEmpty {
       try visitor.visitSingularStringField(value: self.senderLogInfo, fieldNumber: 16)
     }
@@ -9697,11 +9834,19 @@ extension Server_ChatStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     if lhs.senderName != rhs.senderName {return false}
     if lhs.senderPhone != rhs.senderPhone {return false}
     if lhs._mediaCounters != rhs._mediaCounters {return false}
+    if lhs.chatType != rhs.chatType {return false}
     if lhs.senderLogInfo != rhs.senderLogInfo {return false}
     if lhs.senderClientVersion != rhs.senderClientVersion {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
+}
+
+extension Server_ChatStanza.ChatType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "CHAT"),
+    1: .same(proto: "CHAT_REACTION"),
+  ]
 }
 
 extension Server_SilentChatStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
@@ -14130,6 +14275,7 @@ extension Server_Rerequest.ContentType: SwiftProtobuf._ProtoNameProviding {
     0: .same(proto: "CHAT"),
     1: .same(proto: "CALL"),
     2: .same(proto: "GROUP_HISTORY"),
+    3: .same(proto: "CHAT_REACTION"),
   ]
 }
 
@@ -14196,6 +14342,8 @@ extension Server_GroupFeedRerequest.ContentType: SwiftProtobuf._ProtoNameProvidi
     1: .same(proto: "POST"),
     2: .same(proto: "COMMENT"),
     3: .same(proto: "HISTORY_RESEND"),
+    4: .same(proto: "POST_REACTION"),
+    5: .same(proto: "COMMENT_REACTION"),
   ]
 }
 
@@ -14256,6 +14404,8 @@ extension Server_HomeFeedRerequest.ContentType: SwiftProtobuf._ProtoNameProvidin
     0: .same(proto: "UNKNOWN"),
     1: .same(proto: "POST"),
     2: .same(proto: "COMMENT"),
+    3: .same(proto: "POST_REACTION"),
+    4: .same(proto: "COMMENT_REACTION"),
   ]
 }
 
