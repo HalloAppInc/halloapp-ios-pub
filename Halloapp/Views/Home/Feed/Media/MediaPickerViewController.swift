@@ -60,6 +60,12 @@ private extension Localizations {
     static var mediaFailMessage: String {
         NSLocalizedString("picker.media.fail.message", value: "Please try again or select different photo or video.", comment: "Alert message in media picker when unable to load media file.")
     }
+
+    static var last24Hours: String {
+        NSLocalizedString("picker.last.24.hours.title",
+                   value: "Last 24 Hours",
+                 comment: "Title for a screen that displays items from the last 24 hours.")
+    }
 }
 
 enum MediaPickerFilter {
@@ -80,6 +86,7 @@ struct MediaPickerConfig {
     var filter: MediaPickerFilter = .all
     var allowsMultipleSelection = true
     var isCameraEnabled = false
+    var onlyRecentItems = false
     var maxNumberOfItems = ServerProperties.maxPostMediaItems
 
     static var feed: MediaPickerConfig {
@@ -99,7 +106,7 @@ struct MediaPickerConfig {
     }
 
     static var moment: MediaPickerConfig {
-        MediaPickerConfig(destination: nil, privacyListType: nil, filter: .all, allowsMultipleSelection: false, isCameraEnabled: false)
+        MediaPickerConfig(destination: nil, privacyListType: nil, filter: .image, allowsMultipleSelection: false, isCameraEnabled: false, onlyRecentItems: true)
     }
 
     static var image: MediaPickerConfig {
@@ -393,7 +400,7 @@ class MediaPickerViewController: UIViewController {
             navigationItem.rightBarButtonItem = cameraButtonItem
         }
 
-        title = Localizations.fabAccessibilityPhotoLibrary
+        title = config.onlyRecentItems ? Localizations.last24Hours : Localizations.fabAccessibilityPhotoLibrary
 
         updateNavigation()
         albumsButton.setTitle("", for: .normal)
@@ -482,28 +489,28 @@ class MediaPickerViewController: UIViewController {
             let recent = PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumUserLibrary, options: nil).firstObject
 
             let assets: PHFetchResult<PHAsset>
+            let options = PHFetchOptions()
+
             if let album = album ?? recent {
-                let options: PHFetchOptions?
                 switch self.config.filter {
                 case .all:
-                    options = nil
+                    options.predicate = self.makeFetchPredicates(for: nil)
                 case .image:
-                    options = PHFetchOptions()
-                    options?.predicate = NSPredicate(format: "mediaType == %i", PHAssetMediaType.image.rawValue)
+                    options.predicate = self.makeFetchPredicates(for: .image)
                 case .video:
-                    options = PHFetchOptions()
-                    options?.predicate = NSPredicate(format: "mediaType == %i", PHAssetMediaType.video.rawValue)
+                    options.predicate = self.makeFetchPredicates(for: .video)
                 }
 
                 assets = PHAsset.fetchAssets(in: album, options: options)
             } else {
+                options.predicate = self.makeFetchPredicates(for: nil)
                 switch self.config.filter {
                 case .all:
-                    assets = PHAsset.fetchAssets(with: nil)
+                    assets = PHAsset.fetchAssets(with: options)
                 case .image:
-                    assets = PHAsset.fetchAssets(with: .image, options: nil)
+                    assets = PHAsset.fetchAssets(with: .image, options: options)
                 case .video:
-                    assets = PHAsset.fetchAssets(with: .video, options: nil)
+                    assets = PHAsset.fetchAssets(with: .video, options: options)
                 }
             }
             
@@ -516,6 +523,19 @@ class MediaPickerViewController: UIViewController {
                 self.showLimitedAccessBubbleIfNecessary()
             }
         }
+    }
+
+    private func makeFetchPredicates(for mediaType: PHAssetMediaType?) -> NSPredicate {
+        var predicates = [NSPredicate]()
+        if let mediaType = mediaType {
+            predicates.append(NSPredicate(format: "mediaType == %i", mediaType.rawValue))
+        }
+
+        if config.onlyRecentItems, let date = Calendar.current.date(byAdding: .day, value: -1, to: Date()) {
+            predicates.append(NSPredicate(format: "creationDate >= %@ ", date as NSDate))
+        }
+
+        return NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
     }
 
     func showLimitedAccessBubbleIfNecessary() {

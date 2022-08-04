@@ -747,22 +747,7 @@ extension MomentViewController: ContentInputDelegate {
 
     private func presentCameraViewController() {
         let vc = NewCameraViewController()
-        vc.onPhotoCapture = { [weak self] image in
-            vc.dismiss(animated: true)
-            let media = PendingMedia(type: .image)
-            media.image = image
-
-            self?.addMediaWhenAvailable(media)
-        }
-
-        vc.onVideoCapture = { [weak self] url in
-            vc.dismiss(animated: true)
-            let media = PendingMedia(type: .video)
-            media.originalVideoURL = url
-            media.fileURL = url
-
-            self?.addMediaWhenAvailable(media)
-        }
+        vc.delegate = self
 
         present(UINavigationController(rootViewController: vc), animated: true)
     }
@@ -779,6 +764,36 @@ extension MomentViewController: ContentInputDelegate {
                 self?.contentInputView.add(media: media)
             }
         }
+    }
+}
+
+// MARK: - CameraViewControllerDelegate methods
+
+extension MomentViewController: CameraViewControllerDelegate {
+
+    func cameraViewControllerDidReleaseShutter(_ viewController: NewCameraViewController) {
+
+    }
+
+    func cameraViewController(_ viewController: NewCameraViewController, didTake photo: UIImage) {
+        viewController.dismiss(animated: true)
+
+        let media = PendingMedia(type: .image)
+        media.image = photo
+        addMediaWhenAvailable(media)
+    }
+
+    func cameraViewController(_ viewController: NewCameraViewController, didRecordVideoTo url: URL) {
+        viewController.dismiss(animated: true)
+
+        let media = PendingMedia(type: .video)
+        media.originalVideoURL = url
+        media.fileURL = url
+        addMediaWhenAvailable(media)
+    }
+
+    func cameraViewController(_ viewController: NewCameraViewController, didSelect media: PendingMedia) {
+
     }
 }
 

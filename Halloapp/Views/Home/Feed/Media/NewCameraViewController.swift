@@ -12,6 +12,15 @@ import AVFoundation
 import CoreCommon
 import Core
 
+protocol CameraViewControllerDelegate: AnyObject {
+
+    func cameraViewControllerDidReleaseShutter(_ viewController: NewCameraViewController)
+    func cameraViewController(_ viewController: NewCameraViewController, didTake photo: UIImage)
+    func cameraViewController(_ viewController: NewCameraViewController, didRecordVideoTo url: URL)
+
+    func cameraViewController(_ viewController: NewCameraViewController, didSelect media: PendingMedia)
+}
+
 extension NewCameraViewController {
     struct Layout {
         static func cornerRadius(for style: Configuration = .normal) -> CGFloat {
@@ -129,16 +138,13 @@ class NewCameraViewController: UIViewController {
         label.numberOfLines = 0
         label.textAlignment = .center
         label.textColor = .secondaryLabel
-        label.font = .systemFont(ofSize: 15)
+        label.font = .systemFont(ofSize: 16)
         return label
     }()
 
     private var hideFocusIndicator: DispatchWorkItem?
     private var cancellables: Set<AnyCancellable> = []
 
-    var onShutterRelease: (() -> Void)?
-    var onPhotoCapture: ((UIImage) -> Void)?
-    var onVideoCapture: ((URL) -> Void)?
     var onDismiss: (() -> Void)?
 
     var subtitle: String? {
@@ -154,6 +160,8 @@ class NewCameraViewController: UIViewController {
             if oldValue != isEnabled { refreshEnabledState() }
         }
     }
+
+    weak var delegate: CameraViewControllerDelegate?
 
     init(style: Configuration = .normal) {
         self.configuration = style
@@ -189,10 +197,7 @@ class NewCameraViewController: UIViewController {
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
 
-        if !model.isTakingPhoto {
-            // if the view is removed while a photo is being taken and the session stops, we don't get a photo
-            model.stop(teardown: false)
-        }
+        model.stop(teardown: false)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -268,8 +273,8 @@ class NewCameraViewController: UIViewController {
             videoDurationLabel.centerXAnchor.constraint(equalTo: background.centerXAnchor),
 
             subtitleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
-            subtitleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 25),
-            subtitleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -25),
+            subtitleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 40),
+            subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -40),
             subtitleLabel.bottomAnchor.constraint(lessThanOrEqualTo: videoDurationLabel.topAnchor, constant: -30),
             subtitleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
         ])
@@ -288,10 +293,16 @@ class NewCameraViewController: UIViewController {
 
     private func installBarButtons() {
         let configuration = UIImage.SymbolConfiguration(weight: .bold)
-        let image = UIImage(systemName: "chevron.down", withConfiguration: configuration)?.withRenderingMode(.alwaysTemplate)
-        let barButton = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(dismissTapped))
-        barButton.tintColor = .white
-        navigationItem.leftBarButtonItem = barButton
+        let chevronImage = UIImage(systemName: "chevron.down", withConfiguration: configuration)?.withRenderingMode(.alwaysTemplate)
+        let libraryImage = UIImage(systemName: "photo")?.withRenderingMode(.alwaysTemplate)
+
+        let downButton = UIBarButtonItem(image: chevronImage, style: .plain, target: self, action: #selector(dismissTapped))
+        let libraryButton = UIBarButtonItem(image: libraryImage, style: .plain, target: self, action: #selector(libraryTapped))
+
+        downButton.tintColor = .white
+        libraryButton.tintColor = .white
+        navigationItem.leftBarButtonItem = downButton
+        navigationItem.rightBarButtonItem = libraryButton
 
         let appearance = UINavigationBarAppearance()
         appearance.backgroundColor = .black
@@ -309,40 +320,63 @@ class NewCameraViewController: UIViewController {
         dismiss(animated: true)
     }
 
+    @objc
+    private func libraryTapped(_ sender: UIBarButtonItem) {
+        let picker = MediaPickerViewController(config: .moment) { [weak self] picker, _, _, media,_ in
+            self?.dismiss(animated: true)
+
+            if let self = self, let media = media.first {
+                self.delegate?.cameraViewController(self, didSelect: media)
+            }
+        }
+
+        let nc = UINavigationController(rootViewController: picker)
+        present(nc, animated: true)
+    }
+
     private func subscribeToModelUpdates() {
-        model.$orientation.receive(on: DispatchQueue.main).sink { [weak self] orientation in
-            self?.refresh(orientation: orientation)
-        }.store(in: &cancellables)
-
-        model.$activeCamera.receive(on: DispatchQueue.main).sink { [weak self] active in
-            let enabled = active != .unspecified && (self?.isEnabled ?? false) && (self?.model.session.isRunning ?? false)
-            self?.flipCameraButton.isEnabled = enabled
-        }.store(in: &cancellables)
-
-        model.$isFlashEnabled.receive(on: DispatchQueue.main).sink { [weak self] enabled in
-            let name = enabled ? "CameraFlashOn" : "CameraFlashOff"
-            let image = UIImage(named: name)?.withRenderingMode(.alwaysTemplate)
-            self?.flashButton.setImage(image, for: .normal)
-        }.store(in: &cancellables)
-
-        model.$videoDuration.receive(on: DispatchQueue.main).sink { [weak self] seconds in
-            self?.videoDurationLabel.isHidden = seconds == nil
-            if let seconds = seconds {
-                self?.videoDurationLabel.text = self?.durationFormatter.string(from: TimeInterval(seconds))
+        model.$orientation
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in
+                self?.refresh(orientation: $0)
             }
-        }.store(in: &cancellables)
+            .store(in: &cancellables)
 
-        model.$isTakingPhoto.receive(on: DispatchQueue.main).sink { [weak self] isTakingPhoto in
-            if !isTakingPhoto, self?.view.window == nil {
-                // finished taking a photo while the view controller is not visible
-                self?.model.stop(teardown: false)
+        model.$activeCamera
+            .receive(on: DispatchQueue.main)
+            .map { [weak self] in $0 != .unspecified && (self?.isEnabled ?? false) && (self?.model.session.isRunning ?? false) }
+            .assign(to: \.isEnabled, onWeak: flipCameraButton)
+            .store(in: &cancellables)
+
+        model.$isFlashEnabled
+            .receive(on: DispatchQueue.main)
+            .map { UIImage(named: $0 ? "CameraFlashOn" : "CameraFlashOff")?.withRenderingMode(.alwaysTemplate) }
+            .sink { [weak self] in
+                self?.flashButton.setImage($0, for: .normal)
             }
-        }.store(in: &cancellables)
+            .store(in: &cancellables)
 
-        model.$isRecordingVideo.receive(on: DispatchQueue.main).sink { [weak self] isRecording in
-            self?.flipCameraButton.isEnabled = !isRecording
-            self?.flashButton.isEnabled = !isRecording
-        }.store(in: &cancellables)
+        model.$videoDuration
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] seconds in
+                self?.videoDurationLabel.isHidden = seconds == nil
+                if let seconds = seconds {
+                    self?.videoDurationLabel.text = self?.durationFormatter.string(from: TimeInterval(seconds))
+                }
+            }
+            .store(in: &cancellables)
+
+        model.$isRecordingVideo
+            .receive(on: DispatchQueue.main)
+            .map { !$0 }
+            .assign(to: \.isEnabled, onWeak: flipCameraButton)
+            .store(in: &cancellables)
+
+        model.$isRecordingVideo
+            .receive(on: DispatchQueue.main)
+            .map { !$0 }
+            .assign(to: \.isEnabled, onWeak: flashButton)
+            .store(in: &cancellables)
     }
 
     private func refreshEnabledState() {
@@ -353,9 +387,21 @@ class NewCameraViewController: UIViewController {
         flipCameraButton.isEnabled = enabled && model.activeCamera != .unspecified
     }
 
+    func pause() {
+        if model.session.isRunning {
+            model.stop(teardown: false)
+        }
+    }
+
+    func resume() {
+        if !model.session.isRunning {
+            model.start()
+        }
+    }
+
     private func handleShutterTap() {
         model.takePhoto()
-        onShutterRelease?()
+        delegate?.cameraViewControllerDidReleaseShutter(self)
     }
 
     private func handleShutterLongPress(_ ended: Bool) {
@@ -514,7 +560,7 @@ extension NewCameraViewController: CameraModelDelegate {
     }
 
     func model(_ model: CameraModel, didTake photo: UIImage) {
-        onPhotoCapture?(photo)
+        delegate?.cameraViewController(self, didTake: photo)
     }
 
     private func cropImageForMoment(_ image: UIImage) -> UIImage {
@@ -542,7 +588,7 @@ extension NewCameraViewController: CameraModelDelegate {
             return showInitializationAlert(for: error)
         }
 
-        onVideoCapture?(url)
+        delegate?.cameraViewController(self, didRecordVideoTo: url)
     }
 }
 

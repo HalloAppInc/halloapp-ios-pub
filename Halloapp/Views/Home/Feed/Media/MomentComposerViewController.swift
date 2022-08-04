@@ -12,16 +12,12 @@ import Core
 import CoreCommon
 import CocoaLumberjackSwift
 
-class MomentComposerViewController: UIViewController {
+class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
 
     let context: MomentContext
-
-    private var media: PendingMedia?
-    var image: UIImage? {
-        didSet { updateImage() }
-    }
-
-    private var mediaProcessor: AnyCancellable?
+    private var image: UIImage?
+    /// Used at the time of sending to wait for the creation of the media's file path.
+    private var mediaLoader: AnyCancellable?
 
     private lazy var audienceIndicator: UIView = {
         let pill = PillView()
@@ -65,11 +61,24 @@ class MomentComposerViewController: UIViewController {
 
     private lazy var imageView: UIImageView = {
         let view = UIImageView()
-        view.translatesAutoresizingMaskIntoConstraints = false
         view.layer.masksToBounds = true
+        view.backgroundColor = .black
+        view.contentMode = .scaleAspectFill
+        return view
+    }()
+
+    private lazy var imageContainer: UIScrollView = {
+        let view = UIScrollView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.clipsToBounds = true
+        view.delegate = self
+        view.showsHorizontalScrollIndicator = false
+        view.showsVerticalScrollIndicator = false
         view.layer.cornerRadius = NewCameraViewController.Layout.innerRadius(for: .moment)
         view.layer.cornerCurve = .continuous
-        view.backgroundColor = .black
+        view.maximumZoomScale = 1.75
+        view.bounces = false
+        view.bouncesZoom = false
         return view
     }()
 
@@ -98,10 +107,6 @@ class MomentComposerViewController: UIViewController {
         button.isEnabled = false
         return button
     }()
-
-    /// Used to align the card with the camera on the previous screen.
-    private(set) lazy var momentCardTopConstraint = container.topAnchor.constraint(equalTo: view.topAnchor)
-    private(set) lazy var momentCardHeightConstraint = container.heightAnchor.constraint(equalToConstant: 200)
 
     @UserDefault(key: "shown.replace.moment.disclaimer", defaultValue: false)
     private static var hasShownReplacementDisclaimer: Bool
@@ -134,28 +139,25 @@ class MomentComposerViewController: UIViewController {
 
         view.addSubview(audienceIndicator)
         view.addSubview(container)
-        container.addSubview(imageView)
+        container.addSubview(imageContainer)
+        imageContainer.addSubview(imageView)
         container.addSubview(sendButtonContainer)
         sendButtonContainer.addSubview(sendButton)
 
         let padding = NewCameraViewController.Layout.padding(for: .moment)
-        let imageViewHeight = imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor)
-        momentCardHeightConstraint.priority = .defaultHigh
 
         NSLayoutConstraint.activate([
             container.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             container.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            momentCardTopConstraint,
-            momentCardHeightConstraint,
 
-            imageView.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: padding),
-            imageView.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -padding),
-            imageView.topAnchor.constraint(equalTo: container.topAnchor, constant: padding),
-            imageViewHeight,
+            imageContainer.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: padding),
+            imageContainer.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -padding),
+            imageContainer.topAnchor.constraint(equalTo: container.topAnchor, constant: padding),
+            imageContainer.heightAnchor.constraint(equalTo: imageContainer.widthAnchor),
 
             sendButtonContainer.leadingAnchor.constraint(equalTo: container.leadingAnchor),
             sendButtonContainer.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-            sendButtonContainer.topAnchor.constraint(equalTo: imageView.bottomAnchor),
+            sendButtonContainer.topAnchor.constraint(equalTo: imageContainer.bottomAnchor),
             sendButtonContainer.bottomAnchor.constraint(equalTo: container.bottomAnchor),
 
             sendButton.centerXAnchor.constraint(equalTo: sendButtonContainer.centerXAnchor),
@@ -183,48 +185,109 @@ class MomentComposerViewController: UIViewController {
         hideTap.cancelsTouchesInView = false
     }
 
-    private func updateImage() {
-        guard let image = image?.correctlyOrientedImage() else {
+    func configure(with image: UIImage) {
+        DDLogInfo("MomentComposerViewController/configure/image of size \(image.size)")
+        self.image = image.correctlyOrientedImage()
+
+        sizeImageView()
+        sendButton.isEnabled = true
+    }
+
+    private func sizeImageView() {
+        guard let image = image else {
             return
         }
 
-        let media = PendingMedia(type: .image)
-        media.image = image
-        self.media = media
-
-        mediaProcessor = media.ready.sink { [weak self] ready in
-            guard ready, let url = media.fileURL else {
-                return
-            }
-
-            ImageServer.shared.prepare(media.type, url: url, shouldStreamVideo: false)
-            self?.mediaProcessor = nil
-        }
-
         imageView.image = image
-        sendButton.isEnabled = true
+        let factor = max(imageContainer.bounds.size.width / image.size.width, imageContainer.bounds.size.height / image.size.height)
+        let height = image.size.height * factor
+        let width = image.size.width * factor
+
+        imageView.bounds.size.width = width
+        imageView.bounds.size.height = height
+        imageView.frame.origin = .zero
+
+        imageContainer.contentSize = imageView.bounds.size
+        imageContainer.setZoomScale(1, animated: false)
     }
 
     @objc
     private func dismissTapped(_ button: UIBarButtonItem) {
-        mediaProcessor?.cancel()
+        mediaLoader = nil
+        image = nil
+        imageView.image = nil
+        sendButton.isEnabled = false
+
         onCancel?()
+    }
+
+    var cropRect: CGRect? {
+        guard let image = image else {
+            return nil
+        }
+
+        let containerSize = CGSize(width: floor(imageContainer.bounds.width), height: floor(imageContainer.bounds.height))
+        let imageViewSize = CGSize(width: floor(imageView.bounds.width), height: floor(imageView.bounds.height))
+
+        if containerSize.width == imageViewSize.width, containerSize.height == imageViewSize.height, imageContainer.zoomScale == 1 {
+            return nil
+        }
+
+        let scaleFactor = max(image.size.width / imageView.bounds.size.width, image.size.height / imageView.bounds.size.height)
+        let zoomFactor = 1 / imageContainer.zoomScale
+        let x = imageContainer.contentOffset.x * scaleFactor * zoomFactor
+        let y = imageContainer.contentOffset.y * scaleFactor * zoomFactor
+
+        let width = imageContainer.bounds.size.width * scaleFactor * zoomFactor
+        let height = imageContainer.bounds.size.height * scaleFactor * zoomFactor
+        var rect = CGRect(x: x, y: y, width: width, height: height).integral
+        let min = min(rect.width, rect.height)
+
+        rect.size.width = min
+        rect.size.height = min
+        return rect
     }
 
     @objc
     private func sendButtonPushed(_ button: UIButton) {
-        guard let media = media else {
+        guard var image = image else {
             return
         }
 
         sendButton.isEnabled = false
+        DDLogInfo("MomentComposerViewController/send/start")
 
+        if let cropRect = cropRect {
+            if let cropped = image.cgImage?.cropping(to: cropRect) {
+                DDLogInfo("MomentComposerViewController/send/successfully cropped image")
+
+                image = UIImage(cgImage: cropped)
+                self.image = image
+                sizeImageView()
+            } else {
+                DDLogError("MomentComposerViewController/send/failed to crop image [size: \(image.size)] [rect: \(cropRect)")
+                return
+            }
+        }
+
+        let media = PendingMedia(type: .image)
+        media.image = image
+        // becuase we're creating the media object at the time of posting, we have to wait for its file url
+        // to be ready. otherwise we'd crash as FeedData assumes there is a valid path.
+        mediaLoader = media.ready
+            .first { $0 }
+            .sink { [weak self] _ in
+                self?.post(media: media)
+            }
+    }
+
+    private func post(media: PendingMedia) {
         if MainAppContext.shared.feedData.validMoment.value != nil {
             // user has already posted a moment for the day
             if !Self.hasShownReplacementDisclaimer {
-                presentReplacementDisclaimer()
+                presentReplacementDisclaimer(mediaToPost: media)
             } else {
-                replaceMoment()
+                replaceMoment(with: media)
             }
         } else {
             MainAppContext.shared.feedData.postMoment(context: context, media: media)
@@ -246,6 +309,15 @@ class MomentComposerViewController: UIViewController {
         if audienceDisclaimerView != nil {
             hideAudienceDisclaimer()
         }
+    }
+
+    func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+        let currentOffset = scrollView.contentOffset
+        targetContentOffset.pointee = currentOffset
+    }
+
+    func viewForZooming(in scrollView: UIScrollView) -> UIView? {
+        return imageView
     }
 
     private func showAudienceDisclaimer() {
@@ -319,14 +391,14 @@ class MomentComposerViewController: UIViewController {
         }
     }
 
-    private func presentReplacementDisclaimer() {
+    private func presentReplacementDisclaimer(mediaToPost: PendingMedia) {
         let alert = UIAlertController(title: Localizations.momentReplacementDisclaimerTitle,
                                     message: Localizations.momentReplacementDisclaimerBody,
                              preferredStyle: .alert)
 
         alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default) { [weak self] _ in
-            self?.replaceMoment()
+            self?.replaceMoment(with: mediaToPost)
         })
 
         present(alert, animated: true) {
@@ -334,8 +406,7 @@ class MomentComposerViewController: UIViewController {
         }
     }
 
-    private func replaceMoment() {
-        guard let media = media else { return }
+    private func replaceMoment(with media: PendingMedia) {
         Task {
             do {
                 try await MainAppContext.shared.feedData.replaceMoment(media: media)
