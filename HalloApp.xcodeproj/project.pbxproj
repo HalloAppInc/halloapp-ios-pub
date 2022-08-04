@@ -407,6 +407,7 @@
 		EAF3A1E52334192000805FF9 /* HalloappUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1E42334192000805FF9 /* HalloappUITests.swift */; };
 		EB9E73D2285D12C5009F1B45 /* ReactionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB9E73D1285D12C5009F1B45 /* ReactionViewController.swift */; };
 		EBA8265D28418BAF00590507 /* VerificationCodeTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBA8265C28418BAF00590507 /* VerificationCodeTextField.swift */; };
+		EBC15AF82899E60F00FEF89C /* ReactionListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBC15AF72899E60F00FEF89C /* ReactionListViewController.swift */; };
 		EE83E4452877A3BB0010E144 /* LocationSharingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE83E4442877A3BB0010E144 /* LocationSharingViewModel.swift */; };
 		EE83E4472877A4350010E144 /* LocationSharingEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE83E4462877A4350010E144 /* LocationSharingEnvironment.swift */; };
 		EE969F642847EE49006F491A /* HAMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE969F632847EE49006F491A /* HAMenu.swift */; };
@@ -1188,6 +1189,7 @@
 		EAF3A1E62334192000805FF9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		EB9E73D1285D12C5009F1B45 /* ReactionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReactionViewController.swift; sourceTree = "<group>"; };
 		EBA8265C28418BAF00590507 /* VerificationCodeTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationCodeTextField.swift; sourceTree = "<group>"; };
+		EBC15AF72899E60F00FEF89C /* ReactionListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReactionListViewController.swift; sourceTree = "<group>"; };
 		EE83E4442877A3BB0010E144 /* LocationSharingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSharingViewModel.swift; sourceTree = "<group>"; };
 		EE83E4462877A4350010E144 /* LocationSharingEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSharingEnvironment.swift; sourceTree = "<group>"; };
 		EE969F632847EE49006F491A /* HAMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HAMenu.swift; sourceTree = "<group>"; };
@@ -2036,6 +2038,7 @@
 				EA27793225BA4682009CA884 /* Message */,
 				EA52EB17245A012700FB03F6 /* NewChatViewController.swift */,
 				32C83FB8268FC8FE00BEB4F5 /* NewChatPermissionDeniedController.swift */,
+				EBC15AF72899E60F00FEF89C /* ReactionListViewController.swift */,
 				EAD476CC245513EF00EF8591 /* ChatListViewController.swift */,
 				EAA0799625AFC71600B384AB /* ThreadListCell.swift */,
 				EB9E73D1285D12C5009F1B45 /* ReactionViewController.swift */,
@@ -3239,6 +3242,7 @@
 				6A91069D262D02170081E337 /* NotificationRequest.swift in Sources */,
 				328B64102756D53900899525 /* FlatCommentsViewController.swift in Sources */,
 				EAD476F42458F03700EF8591 /* ChatThread+CoreDataClass.swift in Sources */,
+				EBC15AF82899E60F00FEF89C /* ReactionListViewController.swift in Sources */,
 				6ABBB20D272DA251007A595D /* CallViewController.swift in Sources */,
 				326823802886245700AB459A /* DestinationTrayView.swift in Sources */,
 				F4C29B142838704C00A4FE08 /* UICollectionView.swift in Sources */,

@@ -14,6 +14,7 @@ import UIKit
 class MessageCellViewBase: UICollectionViewCell {
 
     private var outgoingMessageStatusCancellable: AnyCancellable?
+    private var reactionCancellable: AnyCancellable?
 
     lazy var rightAlignedConstraint = messageRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
     lazy var leftAlignedConstraint = messageRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor)
@@ -93,17 +94,57 @@ class MessageCellViewBase: UICollectionViewCell {
         }
     }
     
+    public class ReactionViewBase: UIStackView {
+        override public func layoutSubviews() {
+            super.layoutSubviews()
+            layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: layer.cornerRadius).cgPath
+        }
+    }
+    
+    public lazy var bubbleBorder: BubbleViewBase = {
+        let bubbleBorder = BubbleViewBase()
+        bubbleBorder.translatesAutoresizingMaskIntoConstraints = false
+        bubbleBorder.backgroundColor = UIColor.black.withAlphaComponent(0.18)
+        bubbleBorder.layer.cornerRadius = 14
+        bubbleBorder.layer.shadowColor = UIColor.black.cgColor
+        bubbleBorder.layer.shadowOpacity = 0.08
+        bubbleBorder.layer.shadowOffset = CGSize(width: 0, height: 2)
+        bubbleBorder.layer.shadowRadius = 1.5
+        return bubbleBorder
+    }()
+    
     public lazy var bubbleView: BubbleViewBase = {
         let bubbleView = BubbleViewBase()
         bubbleView.translatesAutoresizingMaskIntoConstraints = false
-        bubbleView.layer.borderWidth = 0.5
-        bubbleView.layer.borderColor = UIColor.black.withAlphaComponent(0.18).cgColor
         bubbleView.layer.cornerRadius = 14
-        bubbleView.layer.shadowColor = UIColor.black.cgColor
-        bubbleView.layer.shadowOpacity = 0.08
-        bubbleView.layer.shadowOffset = CGSize(width: 0, height: 2)
-        bubbleView.layer.shadowRadius = 1.5
+        bubbleBorder.addSubview(bubbleView)
+        let width = 1.0 / UIScreen.main.scale
+        NSLayoutConstraint.activate([
+            bubbleView.topAnchor.constraint(equalTo: bubbleBorder.topAnchor, constant: width),
+            bubbleView.bottomAnchor.constraint(equalTo: bubbleBorder.bottomAnchor, constant: -width),
+            bubbleView.leadingAnchor.constraint(equalTo: bubbleBorder.leadingAnchor, constant: width),
+            bubbleView.trailingAnchor.constraint(equalTo: bubbleBorder.trailingAnchor, constant: -width),
+        ])
         return bubbleView
+    }()
+    
+    public lazy var reactionBubble: UIStackView = {
+        let reactionBubble = ReactionViewBase()
+        reactionBubble.axis = .horizontal
+        reactionBubble.spacing = -7
+        reactionBubble.translatesAutoresizingMaskIntoConstraints = false
+        reactionBubble.layer.borderWidth = 0.5
+        reactionBubble.layer.borderColor = UIColor.black.withAlphaComponent(0.18).cgColor
+        reactionBubble.layer.cornerRadius = 15
+        reactionBubble.layer.shadowColor = UIColor.black.cgColor
+        reactionBubble.layer.shadowOpacity = 0.08
+        reactionBubble.layer.shadowOffset = CGSize(width: 0, height: 2)
+        reactionBubble.layer.shadowRadius = 1.5
+        reactionBubble.layoutMargins = UIEdgeInsets(top: 4, left: 4, bottom: 4, right: 4)
+        reactionBubble.isLayoutMarginsRelativeArrangement = true
+        reactionBubble.isHidden = true
+        reactionBubble.isUserInteractionEnabled = true
+        return reactionBubble
     }()
 
     public lazy var timeRow: UIStackView = {
@@ -185,13 +226,13 @@ class MessageCellViewBase: UICollectionViewCell {
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.spacing = 5
         // Set bubble background
-        vStack.insertSubview(bubbleView, at: 0)
+        vStack.insertSubview(bubbleBorder, at: 0)
         
         NSLayoutConstraint.activate([
-            bubbleView.leadingAnchor.constraint(equalTo: vStack.leadingAnchor),
-            bubbleView.topAnchor.constraint(equalTo: vStack.topAnchor),
-            bubbleView.bottomAnchor.constraint(equalTo: vStack.bottomAnchor),
-            bubbleView.trailingAnchor.constraint(equalTo: vStack.trailingAnchor),
+            bubbleBorder.leadingAnchor.constraint(equalTo: vStack.leadingAnchor),
+            bubbleBorder.topAnchor.constraint(equalTo: vStack.topAnchor),
+            bubbleBorder.bottomAnchor.constraint(equalTo: vStack.bottomAnchor),
+            bubbleBorder.trailingAnchor.constraint(equalTo: vStack.trailingAnchor),
         ])
         return vStack
     }()
@@ -224,8 +265,10 @@ class MessageCellViewBase: UICollectionViewCell {
     func configureCellBackgroundColor() {
         if isOwnMessage {
             bubbleView.backgroundColor = UIColor.messageOwnBackground
+            reactionBubble.backgroundColor = UIColor.messageOwnBackground
         } else {
             bubbleView.backgroundColor = UIColor.messageNotOwnBackground
+            reactionBubble.backgroundColor = UIColor.messageNotOwnBackground
         }
     }
 
@@ -263,6 +306,33 @@ class MessageCellViewBase: UICollectionViewCell {
         }
     }
 
+    public func addReactionLabel(reaction: String) {
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.font = UIFont.scaledSystemFont(ofSize: 18)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = reaction
+        reactionBubble.addArrangedSubview(label)
+        reactionBubble.isHidden = false
+    }
+
+    public func updateReactionLabel() {
+        guard let chatMessage = chatMessage else {
+            return
+        }
+        for reaction in reactionBubble.arrangedSubviews {
+            reaction.removeFromSuperview()
+        }
+        guard !chatMessage.sortedReactionsList.isEmpty else {
+            reactionBubble.isHidden = true
+            return
+        }
+        for reaction in chatMessage.sortedReactionsList {
+            addReactionLabel(reaction: reaction.emoji)
+        }
+        reactionBubble.isHidden = false
+    }
+    
     override func layoutSubviews() {
         super.layoutSubviews()
     }
@@ -271,9 +341,18 @@ class MessageCellViewBase: UICollectionViewCell {
         super.prepareForReuse()
         chatMessage = nil
         feedPostComment = nil
+        for reaction in reactionBubble.arrangedSubviews {
+            reaction.removeFromSuperview()
+        }
+        gestureRecognizers?.removeAll()
+        reactionBubble.removeFromSuperview()
         if outgoingMessageStatusCancellable != nil {
             outgoingMessageStatusCancellable?.cancel()
             outgoingMessageStatusCancellable = nil
+        }
+        if reactionCancellable != nil {
+            reactionCancellable?.cancel()
+            reactionCancellable = nil
         }
     }
 
@@ -297,15 +376,22 @@ class MessageCellViewBase: UICollectionViewCell {
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(showMessageOptions(_:)))
             self.isUserInteractionEnabled = true
             self.addGestureRecognizer(longPressGesture)
+        let listReactions = UITapGestureRecognizer(target: self, action: #selector(showReactionList(_:)))
+            self.addGestureRecognizer(listReactions)
         if let chatMessage = chatMessage, chatMessage.fromUserId == MainAppContext.shared.userData.userId {
-             // outgoing message cell, track outgoing status
-             outgoingMessageStatusCancellable = chatMessage.publisher(for: \.outgoingStatusValue).sink { [weak self] outgoingStatusValue in
-                 guard let self = self else { return }
-                 DispatchQueue.main.async {
-                     self.setMessageOutgoingStatus()
-                 }
-             }
-         }
+            // outgoing message cell, track outgoing status
+            outgoingMessageStatusCancellable = chatMessage.publisher(for: \.outgoingStatusValue).receive(on: DispatchQueue.main).sink { [weak self] outgoingStatusValue in
+                guard let self = self else { return }
+                self.setMessageOutgoingStatus()
+            }
+        }
+        if let chatMessage = chatMessage {
+            // track changes to reactions for chatMessage
+            reactionCancellable = chatMessage.publisher(for: \.reactions).receive(on: DispatchQueue.main).sink { [weak self] reaction in
+                guard let self = self else { return }
+                self.updateReactionLabel()
+            }
+        }
      }
 
     private func setMessageOutgoingStatus() {
@@ -361,11 +447,23 @@ class MessageCellViewBase: UICollectionViewCell {
         cancelHighlightAnimation()
         if isOwnMessage {
             bubbleView.backgroundColor = UIColor.messageOwnBackground
+            reactionBubble.backgroundColor = UIColor.messageOwnBackground
+            bubbleView.addSubview(reactionBubble)
+            NSLayoutConstraint.activate([
+                reactionBubble.bottomAnchor.constraint(equalTo: bubbleView.bottomAnchor),
+                reactionBubble.trailingAnchor.constraint(equalTo: bubbleView.leadingAnchor, constant: 5)
+            ])
             nameRow.isHidden = true
             rightAlignedConstraint.priority = UILayoutPriority(800)
             leftAlignedConstraint.priority = UILayoutPriority(1)
         } else {
             bubbleView.backgroundColor = UIColor.messageNotOwnBackground
+            reactionBubble.backgroundColor = UIColor.messageNotOwnBackground
+            bubbleView.addSubview(reactionBubble)
+            NSLayoutConstraint.activate([
+                reactionBubble.bottomAnchor.constraint(equalTo: bubbleView.bottomAnchor),
+                reactionBubble.leadingAnchor.constraint(equalTo: bubbleView.trailingAnchor, constant: -5)
+            ])
             nameRow.isHidden = false
             rightAlignedConstraint.priority = UILayoutPriority(1)
             leftAlignedConstraint.priority = UILayoutPriority(800)
@@ -495,6 +593,16 @@ extension MessageCellViewBase: UIGestureRecognizerDelegate {
         if(recognizer.state == .began) {
             UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
             chatDelegate?.messageView(self, didLongPressOn: chatMessage)
+        }
+    }
+    
+    @objc public func showReactionList(_ recognizer: UITapGestureRecognizer) {
+        guard let chatMessage = chatMessage else {
+            return
+        }
+        let location = recognizer.location(in: bubbleView)
+        if (reactionBubble.frame.contains(location)) {
+            chatDelegate?.messageView(self, showReactionsFor: chatMessage)
         }
     }
 }

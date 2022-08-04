@@ -395,4 +395,16 @@ extension UIColor {
     class var groupFeedCommentIndicatorRead: UIColor {
         UIColor(named: "GroupFeedCommentIndicatorRead")!
     }
+    
+    class var reactionGradientBgTop: UIColor {
+        UIColor(named: "ReactionGradientBgTop")!
+    }
+
+    class var reactionGradientBgBottom: UIColor {
+        UIColor(named: "ReactionGradientBgBottom")!
+    }
+
+    class var reactionSelected: UIColor {
+        UIColor(named: "ReactionSelected")!
+    }
 }

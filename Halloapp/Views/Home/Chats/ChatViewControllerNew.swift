@@ -1471,7 +1471,7 @@ extension ChatViewControllerNew: PostComposerViewDelegate {
     }
 }
 
-extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewControllerDelegate {
+extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewControllerDelegate, ReactionListViewControllerDelegate {
     func messageView(_ messageViewCell: MessageCellViewBase, didTapUserId userId: UserID) {
 
     }
@@ -1511,7 +1511,13 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
         reactionView.modalTransitionStyle = .crossDissolve
         self.present(reactionView, animated: false)
     }
-
+    
+    func messageView(_ messageViewCell: MessageCellViewBase, showReactionsFor chatMessage: ChatMessage) {
+        let reactionList = ReactionListViewController(chatMessage: chatMessage)
+        reactionList.delegate = self
+        self.present(UINavigationController(rootViewController: reactionList), animated: true)
+    }
+    
     func messageView(_ messageViewCell: MessageCellViewBase, jumpTo chatMessageID: ChatMessageID) {
         scrollToMessage(id: chatMessageID, animated: true, highlightAfterScroll: true)
     }
@@ -1636,6 +1642,24 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
 
         alertController.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         present(alertController, animated: true)
+    }
+    
+    func sendReactionMessage(chatMessage: ChatMessage, reaction: String) {
+        guard let sendToUserId = self.fromUserId else { return }
+
+        MainAppContext.shared.chatData.sendReaction(toUserId: sendToUserId,
+                                                    reaction: reaction,
+                                                    chatMessageID: chatMessage.id)
+    }
+
+    func removeReactionMessage(chatMessage: ChatMessage, reaction: CommonReaction) {
+        deleteReactionMessage(reaction: reaction)
+    }
+
+    func deleteReactionMessage(reaction: CommonReaction) {
+        if reaction.fromUserID == AppContext.shared.userData.userId, let toUserID = fromUserId {
+           MainAppContext.shared.chatData.retractReaction(toUserID: toUserID, reactionToRetractID: reaction.id)
+        }
     }
 
     // MARK : Scrolling
