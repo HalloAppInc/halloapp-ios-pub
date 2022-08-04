@@ -998,7 +998,12 @@ extension ProtoServiceCore: CoreService {
                 chat.senderLogInfo = logInfo.map { "\($0.key): \($0.value)" }.sorted().joined(separator: "; ")
                 chat.encPayload = encryptedData.data
                 chat.oneTimePreKeyID = Int64(encryptedData.oneTimeKeyId)
-
+                switch message.content {
+                case .reaction:
+                    chat.chatType = .chatReaction
+                case .text, .album, .voiceNote, .unsupported:
+                    chat.chatType = .chat
+                }
                 // Add media counters.
                 chat.mediaCounters = message.serverMediaCounters
 
