@@ -1337,7 +1337,7 @@ extension Localizations {
         let postExpiryString = postExpiration.flatMap { postExpirationFormatter.string(from: $0) } ?? Localizations.chatGroupExpiryOptionNever
         let groupExpiryString = Group.formattedExpirationTime(type: groupExpirationType, time: groupExpirationTime)
         let format = NSLocalizedString("post.expiration.mismatch",
-                                       value: "This post will expire on %@, while the group settings indicate %@.",
+                                       value: "This post will expire on %1$@, while the group's content expiration is set to %2$@.",
                                        comment: "Body of alert indicating that a post's expiration does not match that set on a group")
         return String(format: format, postExpiryString, groupExpiryString)
     }
