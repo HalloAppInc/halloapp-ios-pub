@@ -70,7 +70,7 @@ class MessageCellViewBase: UICollectionViewCell {
         let textView = UITextView()
         textView.isScrollEnabled = false
         textView.isEditable = false
-        textView.isSelectable = true
+        textView.isSelectable = false
         textView.isUserInteractionEnabled = true
         textView.dataDetectorTypes = .link
         textView.textContainerInset = UIEdgeInsets.zero
