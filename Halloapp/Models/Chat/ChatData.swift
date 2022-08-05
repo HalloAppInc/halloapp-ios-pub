@@ -841,7 +841,7 @@ class ChatData: ObservableObject {
                     }
                     let content = chatContainer.chatContent
                     switch content {
-                    case .album, .text, .voiceNote:
+                    case .album, .text, .voiceNote, .location:
                         let timestamp = message.timestamp ?? Date()
                         let reinterpretedMessage = XMPPChatMessage(
                             content: chatContainer.chatContent,
@@ -1475,6 +1475,8 @@ class ChatData: ObservableObject {
                 chatMessage.rawText = ""
             case .reaction(let emoji):
                 chatMessage.rawText = emoji
+            case .location(let chatLocation):
+                chatMessage.location = CommonLocation(chatLocation: chatLocation, context: managedObjectContext)
             case .unsupported(let data):
                 chatMessage.rawData = data
                 // Overwrite incoming status for unsupported messages
@@ -3495,7 +3497,7 @@ extension ChatData {
                     switch chatMessage.content {
                     case .reaction(_):
                         self.processInboundReaction(xmppReaction: chatMessage, using: managedObjectContext, isAppActive: isAppActive)
-                    case .album, .text, .voiceNote, .unsupported:
+                    case .album, .text, .voiceNote, .location, .unsupported:
                         self.processInboundChatMessage(xmppChatMessage: chatMessage, using: managedObjectContext, isAppActive: isAppActive)
                         self.didGetAChatMsg.send(chatMessage.fromUserId)
                     }
@@ -3645,6 +3647,8 @@ extension ChatData {
         case .reaction(let emoji):
             DDLogDebug("ChatData/processInboundChatMessage/processing reaction as message")
             chatMessage.rawText = emoji
+        case .location(let chatLocation):
+            chatMessage.location = CommonLocation(chatLocation: chatLocation, context: managedObjectContext)
         case .unsupported(let data):
             chatMessage.rawData = data
             chatMessage.incomingStatus = .unsupported
@@ -3753,7 +3757,7 @@ extension ChatData {
         switch xmppReaction.content {
         case .reaction(let emoji):
             commonReaction.emoji = emoji
-        case .album, .text, .voiceNote, .unsupported:
+        case .album, .text, .voiceNote, .location, .unsupported:
             DDLogError("ChatData/processInboundReaction content not reaction type")
         }
         if let chatReplyMsgId = xmppReaction.context.chatReplyMessageID {
@@ -4076,6 +4080,8 @@ extension ChatData {
             body = [mediaStr, text].compactMap { $0 }.joined(separator: " ")
         case .voiceNote(_):
             body =  "🎤"
+        case .location(_):
+            body = "📍"
         case .reaction(_), .unsupported(_):
             body = ""
         }

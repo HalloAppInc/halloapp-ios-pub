@@ -42,6 +42,7 @@
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="toUserID" attributeType="String"/>
         <relationship name="linkPreviews" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CommonLinkPreview" inverseName="message" inverseEntity="CommonLinkPreview"/>
+        <relationship name="location" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CommonLocation"/>
         <relationship name="media" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CommonMedia" inverseName="message" inverseEntity="CommonMedia"/>
         <relationship name="quoted" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatQuoted" inverseName="message" inverseEntity="ChatQuoted"/>
         <relationship name="reactions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CommonReaction" inverseName="message" inverseEntity="CommonReaction"/>
@@ -73,6 +74,12 @@
                 <constraint value="id"/>
             </uniquenessConstraint>
         </uniquenessConstraints>
+    </entity>
+    <entity name="CommonLocation" representedClassName="CommonLocation" syncable="YES">
+        <attribute name="addressString" attributeType="String"/>
+        <attribute name="latitude" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="longitude" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="name" attributeType="String"/>
     </entity>
     <entity name="CommonMedia" representedClassName="CommonMedia" syncable="YES">
         <attribute name="blobSize" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
@@ -265,6 +272,7 @@
         <element name="ChatMessage" positionX="-9" positionY="144" width="128" height="389"/>
         <element name="ChatQuoted" positionX="0" positionY="153" width="128" height="119"/>
         <element name="CommonLinkPreview" positionX="-45" positionY="63" width="128" height="149"/>
+        <element name="CommonLocation" positionX="0" positionY="0" width="128" height="89"/>
         <element name="CommonMedia" positionX="-36" positionY="72" width="128" height="359"/>
         <element name="CommonReaction" positionX="36" positionY="189" width="128" height="194"/>
         <element name="CommonThread" positionX="27" positionY="180" width="128" height="209"/>

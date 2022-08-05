@@ -1001,7 +1001,7 @@ extension ProtoServiceCore: CoreService {
                 switch message.content {
                 case .reaction:
                     chat.chatType = .chatReaction
-                case .text, .album, .voiceNote, .unsupported:
+                case .text, .album, .voiceNote, .location, .unsupported:
                     chat.chatType = .chat
                 }
                 // Add media counters.

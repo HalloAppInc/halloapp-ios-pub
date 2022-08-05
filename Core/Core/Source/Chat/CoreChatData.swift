@@ -118,7 +118,7 @@ public class CoreChatData {
             switch  chatMessageProtocol.content {
             case .reaction(_):
                 saveReaction(chatMessageProtocol, hasBeenProcessed: hasBeenProcessed, completion: completion)
-            case .album, .text, .voiceNote, .unsupported:
+            case .album, .text, .voiceNote, .location, .unsupported:
                 saveChatMessage(chatMessageProtocol, hasBeenProcessed: hasBeenProcessed, completion: completion)
             }
         }
@@ -219,6 +219,8 @@ public class CoreChatData {
             case .reaction(let emoji):
                 DDLogDebug("CoreChatData/saveChatMessage/processing reaction as message")
                 chatMessage.rawText = emoji
+            case .location(let chatLocation):
+                chatMessage.location = CommonLocation(chatLocation: chatLocation, context: context)
             case .unsupported(let data):
                 chatMessage.rawData = data
                 chatMessage.incomingStatus = .unsupported
@@ -331,7 +333,7 @@ public class CoreChatData {
             switch chatMessageProtocol.content {
             case .reaction(let emoji):
                 commonReaction.emoji = emoji
-            case .album, .text, .voiceNote, .unsupported:
+            case .album, .text, .voiceNote, .location, .unsupported:
                 DDLogError("CoreChatData/saveReaction content not reaction type")
             }
             if let chatReplyMsgId = chatMessageProtocol.context.chatReplyMessageID {

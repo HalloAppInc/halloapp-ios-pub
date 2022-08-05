@@ -284,6 +284,12 @@ extension Localizations {
                           comment: "Push notification for a reaction to message")
     }
     
+    static var newLocationNotificationBody: String {
+        NSLocalizedString("notification.location",
+                          value: "📍 Location",
+                          comment: "New message notification text when message is a location.")
+    }
+    
     static var newAudioNoteNotificationBody: String {
         NSLocalizedString(
             "notification.voicenote",

@@ -77,6 +77,8 @@ public extension ChatMessage {
 
     @NSManaged var reactions: Set<CommonReaction>?
     
+    @NSManaged var location: CommonLocation?
+    
     @NSManaged var hasBeenProcessed: Bool
 
     var incomingStatus: IncomingStatus {

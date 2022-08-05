@@ -62,6 +62,7 @@ public enum ChatContent {
     case album(String?, [ChatMediaProtocol])
     case reaction(String)
     case voiceNote(ChatMediaProtocol)
+    case location(any ChatLocationProtocol)
     case unsupported(Data)
 }
 
@@ -155,6 +156,8 @@ public extension ChatMessageProtocol {
             var vn = Clients_VoiceNote()
             vn.audio = protoResource
             container.message = .voiceNote(vn)
+        case .location(let location):
+            container.message = .location(location.protoMessage)
         case .unsupported(_):
             return nil
         }
@@ -178,7 +181,7 @@ public extension ChatMessageProtocol {
             return counters
         case .voiceNote(_):
             return MediaCounters(numImages: 0, numVideos: 0, numAudio: 1)
-        case .text, .reaction, .unsupported:
+        case .text, .reaction, .location, .unsupported:
             return MediaCounters()
         }
     }
@@ -351,10 +354,12 @@ extension Clients_ChatContainer {
                 album.media.compactMap {  XMPPChatMedia(albumMedia: $0) })
         case .reaction(let reaction):
             return .reaction(reaction.emoji)
+        case .location(let location):
+            return .location(ChatLocation(location))
         case .voiceNote(let voiceNote):
             guard let media = XMPPChatMedia(audio: voiceNote.audio) else { fallthrough }
             return .voiceNote(media)
-        case .contactCard, .files, .location, .none:
+        case .contactCard, .files, .none:
             let data = try? serializedData()
             return .unsupported(data ?? Data())
         }
@@ -463,6 +468,38 @@ public extension CommonMediaType {
             self = .audio
         case .unspecified, .UNRECOGNIZED:
             return nil
+        }
+    }
+}
+
+public protocol ChatLocationProtocol {
+    var latitude: Double { get }
+    var longitude: Double { get }
+    var name: String { get }
+    var formattedAddressLines: [String] { get }
+}
+
+public struct ChatLocation: ChatLocationProtocol {
+    public let latitude: Double
+    public let longitude: Double
+    public let name: String
+    public let formattedAddressLines: [String]
+    
+    public init(_ protoMessage: Clients_Location) {
+        latitude = protoMessage.latitude
+        longitude = protoMessage.longitude
+        name = protoMessage.name
+        formattedAddressLines = protoMessage.address.formattedAddressLines
+    }
+}
+
+extension ChatLocationProtocol {
+    var protoMessage: Clients_Location {
+        .with {
+            $0.latitude = latitude
+            $0.longitude = longitude
+            $0.name = name
+            $0.address.formattedAddressLines = formattedAddressLines
         }
     }
 }

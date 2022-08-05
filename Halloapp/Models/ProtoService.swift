@@ -704,6 +704,8 @@ final class ProtoService: ProtoServiceCore {
                         DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId)/voiceNote")
                     case .reaction(_):
                         DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId)/reaction")
+                    case .location(_):
+                        DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId)/location")
                     case .unsupported(let data):
                         DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId)/unsupported [length=\(data.count)] [data=\(data.bytes.prefix(4))...]")
                     }
