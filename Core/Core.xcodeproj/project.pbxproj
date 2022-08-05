@@ -136,9 +136,9 @@
 		EAF47E0B251D80930056196F /* GroupAvatar+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF47E09251D80930056196F /* GroupAvatar+CoreDataProperties.swift */; };
 		EB3CB4A82888746800249238 /* CommonReaction+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB3CB4A72888746800249238 /* CommonReaction+CoreDataClass.swift */; };
 		EB3CB4AA288874B300249238 /* CommonReaction+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB3CB4A9288874B300249238 /* CommonReaction+CoreDataProperties.swift */; };
+		EB9EBED92891EE830064688B /* XMPPReaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB9EBED82891EE830064688B /* XMPPReaction.swift */; };
 		EEEBE34A2899C6D9005E918F /* CommonLocation+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEEBE3492899C6D9005E918F /* CommonLocation+CoreDataClass.swift */; };
 		EEEBE34B2899C6D9005E918F /* CommonLocation+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEEBE3482899C6D9005E918F /* CommonLocation+CoreDataProperties.swift */; };
-		EB9EBED92891EE830064688B /* XMPPReaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB9EBED82891EE830064688B /* XMPPReaction.swift */; };
 		F404FC412810B3EE008313FF /* CoreCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F404FC402810B3EE008313FF /* CoreCommon.framework */; };
 		F41FAA4F27E530D400FC5090 /* ExternalShareInfo+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41FAA4D27E530D400FC5090 /* ExternalShareInfo+CoreDataProperties.swift */; };
 		F41FAA5027E530D400FC5090 /* ExternalShareInfo+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41FAA4E27E530D400FC5090 /* ExternalShareInfo+CoreDataClass.swift */; };
@@ -287,9 +287,9 @@
 		EAF47E09251D80930056196F /* GroupAvatar+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GroupAvatar+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		EB3CB4A72888746800249238 /* CommonReaction+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CommonReaction+CoreDataClass.swift"; sourceTree = "<group>"; };
 		EB3CB4A9288874B300249238 /* CommonReaction+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CommonReaction+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		EEEBE3482899C6D9005E918F /* CommonLocation+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CommonLocation+CoreDataProperties.swift"; path = "/Users/cayz/Developer/halloapp-ios/Core/Core/Source/MainDataStore/CommonLocation+CoreDataProperties.swift"; sourceTree = "<absolute>"; };
-		EEEBE3492899C6D9005E918F /* CommonLocation+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CommonLocation+CoreDataClass.swift"; path = "/Users/cayz/Developer/halloapp-ios/Core/Core/Source/MainDataStore/CommonLocation+CoreDataClass.swift"; sourceTree = "<absolute>"; };
 		EB9EBED82891EE830064688B /* XMPPReaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPReaction.swift; sourceTree = "<group>"; };
+		EEEBE3482899C6D9005E918F /* CommonLocation+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CommonLocation+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		EEEBE3492899C6D9005E918F /* CommonLocation+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CommonLocation+CoreDataClass.swift"; sourceTree = "<group>"; };
 		F404FC402810B3EE008313FF /* CoreCommon.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CoreCommon.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F41FAA4D27E530D400FC5090 /* ExternalShareInfo+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ExternalShareInfo+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		F41FAA4E27E530D400FC5090 /* ExternalShareInfo+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ExternalShareInfo+CoreDataClass.swift"; sourceTree = "<group>"; };
