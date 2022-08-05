@@ -136,6 +136,9 @@
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ acabou de aceitar seu convite para se juntar ao HalloApp 🎉";
 
+/* Push notification for a reaction to message */
+"notification.message.reaction" = "Reagiu %@ a uma mensagem";
+
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Novo momento";
 
@@ -182,16 +185,16 @@
 "notification.one.video" = "📹 vídeo";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.1" = "%@ shared a new moment and unlocked yours";
+"notification.unlocked.moment.1" = "%@ compartilhou um novo momento para desbloquear o seu";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.2" = "%1$@ e %2$@ compartilharam um novo momento e desbloquearam o seu";
+"notification.unlocked.moment.2" = "%1$@ e %2$@ compartilharam um novo momento para desbloquear o seu";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.3" = "%1$@, %2$@ e %3$@ compartilharam um novo momento e desbloquearam o seu";
+"notification.unlocked.moment.3" = "%1$@, %2$@ e %3$@ compartilharam um novo momento para desbloquear o seu";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ e outros compartilharam um novo momento e desbloquearam o seu";
+"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ e outros compartilharam um novo momento para desbloquear o seu";
 
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 Chamada de vídeo perdida";

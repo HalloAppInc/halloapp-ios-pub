@@ -1240,6 +1240,9 @@
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ acabou de aceitar o seu convite para se juntar ao HalloApp 🎉";
 
+/* Push notification for a reaction to message */
+"notification.message.reaction" = "Reagiu %@ a uma mensagem";
+
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Novo Momento";
 
@@ -1286,16 +1289,16 @@
 "notification.one.video" = "📹 vídeo";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.1" = "%@ compartilhou um novo momento e desbloqueou o seu";
+"notification.unlocked.moment.1" = "%@ compartilhou um novo momento para desbloquear o seu";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.2" = "%1$@ e %2$@ compartilharam um novo momento e desbloquearam o seu";
+"notification.unlocked.moment.2" = "%1$@ e %2$@ compartilharam um novo momento para desbloquear o seu";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.3" = "%1$@, %2$@ e %3$@ compartilharam um novo momento e desbloquearam o seu";
+"notification.unlocked.moment.3" = "%1$@, %2$@ e %3$@ compartilharam um novo momento para desbloquear o seu";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ e outros compartilharam um novo momento e desbloquearam o seu";
+"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ e outros compartilharam um novo momento para desbloquear o seu";
 
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 Chamada de vídeo perdida";
@@ -1851,7 +1854,8 @@
 /* Row in Settings screen */
 "title.storage" = "Armazenamento";
 
-/* Title for the screen with information about who saw your post. */
+/* Title for the screen with information about who reacted to your post.
+   Title for the screen with information about who saw your post. */
 "title.your.post" = "Visto por";
 
 /* Text on the bottom sheet's button that dismisses the sheet. */

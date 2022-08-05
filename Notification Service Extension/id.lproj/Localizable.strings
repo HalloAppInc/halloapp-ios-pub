@@ -136,6 +136,9 @@
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ baru saja menerima undangan Anda untuk bergabung dengan HalloApp 🎉";
 
+/* Push notification for a reaction to message */
+"notification.message.reaction" = "Menanggapi %@ ke pesan";
+
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Momen baru";
 

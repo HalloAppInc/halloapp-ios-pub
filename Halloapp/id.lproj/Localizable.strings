@@ -286,6 +286,12 @@
 /* Chat entry that can be tapped to add the contact to address book */
 "chat.event.tap.to.add.contact" = "Ketuk untuk menambahkan %@ ke buku alamat Anda";
 
+/* Message text shown with the user who changed a groups content expiry settings */
+"chat.group.event.expiry.changed" = "%1$@ mengubah masa kedaluwarsa konten grup ke %2$@";
+
+/* Message text shown when you change a groups content expiry settings */
+"chat.group.event.expiry.changed.you" = "Anda mengubah masa kedaluwarsa konten grup ke %1@";
+
 /* Message text shown with the user who joined the group via invite link */
 "chat.group.event.join" = "%@ telah bergabung dengan grup melalui Tautan Undangan Grup";
 
@@ -1240,6 +1246,9 @@
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ baru saja menerima undangan Anda untuk bergabung dengan HalloApp 🎉";
 
+/* Push notification for a reaction to message */
+"notification.message.reaction" = "Menanggapi %@ ke pesan";
+
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Momen baru";
 
@@ -1851,7 +1860,8 @@
 /* Row in Settings screen */
 "title.storage" = "Penyimpanan";
 
-/* Title for the screen with information about who saw your post. */
+/* Title for the screen with information about who reacted to your post.
+   Title for the screen with information about who saw your post. */
 "title.your.post" = "Dilihat oleh";
 
 /* Text on the bottom sheet's button that dismisses the sheet. */

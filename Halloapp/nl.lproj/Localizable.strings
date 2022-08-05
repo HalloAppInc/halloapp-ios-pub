@@ -286,6 +286,12 @@
 /* Chat entry that can be tapped to add the contact to address book */
 "chat.event.tap.to.add.contact" = "Tik om %@ toe te voegen aan je adresboek";
 
+/* Message text shown with the user who changed a groups content expiry settings */
+"chat.group.event.expiry.changed" = "%1$@ heeft de verlooptijd van de groepsinhoud gewijzigd in %2$@";
+
+/* Message text shown when you change a groups content expiry settings */
+"chat.group.event.expiry.changed.you" = "Je hebt de verlooptijd van de groepsinhoud gewijzigd in %1@";
+
 /* Message text shown with the user who joined the group via invite link */
 "chat.group.event.join" = "%@ neemt deel aan de groep via een uitnodigingslink";
 
@@ -297,6 +303,15 @@
 
 /* Message text shown when you leave a group */
 "chat.group.event.member.left.you" = "Je hebt de groep verlaten";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.24hours" = "24 Uur";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.30days" = "30 Dagen";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.never" = "Nooit";
 
 /* Action label for adding members to a group */
 "chat.group.info.add.members" = "Deelnemers Toevoegen";
@@ -312,6 +327,12 @@
 
 /* Text for menu option of demoting a group member */
 "chat.group.info.demote" = "Verwijderen Als Beheerder";
+
+/* Error message when changing group expiry fails */
+"chat.group.info.expiry.set.error" = "Bijwerken van verlooptijd inhoud mislukt";
+
+/* Title of groups info section that controls when group content expires */
+"chat.group.info.expiry.title" = "Verlooptijd Inhoud";
 
 /* Action label for leaving group */
 "chat.group.info.leave.group" = "Groep verlaten";
@@ -469,6 +490,12 @@
 /* Title for alert when closing the post composer with a voice note */
 "composer.deletevoicenote.title" = "Post Weggooien?";
 
+/* Share to all contacts */
+"composer.destination.contactsShare" = "Mijn Contacten";
+
+/* Label above the list with whom you share */
+"composer.destinations.label" = "Delen met";
+
 /* Label shown when only single media item selected */
 "composer.label.more" = "Meer toevoegen";
 
@@ -531,6 +558,9 @@
 
 /* Alert message telling the user to try creating the group again after an error */
 "create.group.error" = "Er is een fout opgetreden bij het aanmaken van de groep, probeer het opnieuw";
+
+/* Title for form field selecting group content expiry time */
+"create.group.expire.content" = "Inhoud laten verlopen";
 
 /* Placeholder text shown inside the group name input box when it's empty */
 "create.group.name.placeholder" = "Groepsnaam invoeren";
@@ -1240,6 +1270,9 @@
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ heeft je uitnodiging voor HalloApp geaccepteerd 🎉";
 
+/* Push notification for a reaction to message */
+"notification.message.reaction" = "Reageerde met %@ op een bericht";
+
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Nieuw moment";
 
@@ -1351,6 +1384,9 @@
 /* Message shown only limited access to media. */
 "picker.access.limited.message" = "Je hebt HalloApp toegang gegeven tot een beperkt aantal foto's en video's.";
 
+/* Title for a screen that displays items from the last 24 hours. */
+"picker.last.24.hours.title" = "Afgelopen 24 Uur";
+
 /* Alert message in media picker when unable to load media file. */
 "picker.media.fail.message" = "Probeer het opnieuw of selecteer een andere foto of video.";
 
@@ -1374,6 +1410,9 @@
 
 /* Title for the picker screen. */
 "post.controller.picker.title" = "Nieuwe Post";
+
+/* Body of alert indicating that a post's expiration does not match that set on a group */
+"post.expiration.mismatch" = "Deze post zal verlopen op %1$@, terwijl de groepsinstelling %2$@ aangeeft.";
 
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted" = "Deze post is verwijderd";
@@ -1741,7 +1780,7 @@
 "share.moment.prompt" = "Deel een moment";
 
 /* Text placed on the blurred overlay of someone else's moment. */
-"shared.moment" = "moment van %@";
+"shared.moment" = "Moment van %@";
 
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "tik om terug te gaan naar oproep";
@@ -1851,7 +1890,8 @@
 /* Row in Settings screen */
 "title.storage" = "Opslag";
 
-/* Title for the screen with information about who saw your post. */
+/* Title for the screen with information about who reacted to your post.
+   Title for the screen with information about who saw your post. */
 "title.your.post" = "Gezien Door";
 
 /* Text on the bottom sheet's button that dismisses the sheet. */

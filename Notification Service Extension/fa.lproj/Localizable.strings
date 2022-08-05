@@ -136,6 +136,9 @@
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ دعوت شما را به هالواپ قبول کرد 🎉";
 
+/* Push notification for a reaction to message */
+"notification.message.reaction" = "%@ به پیام عکس‌العمل نشان داد";
+
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "لحظه جدید";
 

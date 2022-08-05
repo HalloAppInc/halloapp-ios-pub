@@ -1240,6 +1240,9 @@
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ دعوت شما را به هالواپ پذیرفت";
 
+/* Push notification for a reaction to message */
+"notification.message.reaction" = "%@ به پیام عکس‌العمل نشان داد";
+
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "لحظه جدید";
 
@@ -1851,7 +1854,8 @@
 /* Row in Settings screen */
 "title.storage" = "حافظه";
 
-/* Title for the screen with information about who saw your post. */
+/* Title for the screen with information about who reacted to your post.
+   Title for the screen with information about who saw your post. */
 "title.your.post" = "دیده شد توسط";
 
 /* Text on the bottom sheet's button that dismisses the sheet. */

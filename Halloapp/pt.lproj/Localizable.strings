@@ -1042,6 +1042,9 @@
 /* Title of the menu to choose map type. */
 "locationSharing.chooseMap" = "Escolha o mapa";
 
+/* Addresses displayed as subtitles in location list. Parameters are non-empty street address and city. */
+"locationSharing.detailedAddress" = "%1$@, %2$@";
+
 /* Subtitle of the user location callout. Parameter is the formatted length measurement of accuracy (including unit). */
 "locationSharing.locationAccuracyDescription" = "Preciso de %@";
 
@@ -1056,6 +1059,9 @@
 
 /* Title of the location sharing main screen. */
 "locationSharing.navTitle" = "Localização";
+
+/* Initial title of the callout bubble for locations selected by long pressing on the map. */
+"locationSharing.selectedLocation" = "Local selecionado";
 
 /* Title of a location in location list if it does not have a name. */
 "locationSharing.untitledLocation" = "Local sem título";
@@ -1234,6 +1240,9 @@
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ acabou de aceitar o seu convite para se juntar ao HalloApp 🎉";
 
+/* Push notification for a reaction to message */
+"notification.message.reaction" = "Reagiu %@ a uma mensagem";
+
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Novo momento";
 
@@ -1280,16 +1289,16 @@
 "notification.one.video" = "📹 vídeo";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.1" = "%@ compartilhou um novo momento e desbloqueou o seu";
+"notification.unlocked.moment.1" = "%@ compartilhou um novo momento para desbloquear o seu";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.2" = "%1$@ e %2$@ compartilharam um novo momento e desbloquearam o seu";
+"notification.unlocked.moment.2" = "%1$@ e %2$@ compartilharam um novo momento para desbloquear o seu";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.3" = "%1$@, %2$@, and %3$@ shared a new moment and unlocked yours";
+"notification.unlocked.moment.3" = "%1$@, %2$@ e %3$@ compartilharam um novo momento para desbloquear o seu";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ e outros compartilharam um novo momento e desbloquearam o seu";
+"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ e outros compartilharam um novo momento para desbloquear o seu";
 
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 Chamada de vídeo perdida";
@@ -1380,6 +1389,9 @@
 
 /* Header when selecting all or some contacts to share with */
 "post.privacy.header.contacts" = "Quem verá esta postagem";
+
+/* Header when selecting destinations to forward a message, this header appears above the feeds section */
+"post.privacy.header.feeds" = "Feeds";
 
 /* Header when selecting a group to share with
    Header when selecting destinations to forward a message, this header appears above the groups section */
@@ -1725,6 +1737,9 @@
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Junte-se à minha rede de relacionamento real no HalloApp. Baixe gratuitamente em halloapp.com/dl";
 
+/* Show more groups in the share group selection */
+"share.destination.more" = "Mostre mais...";
+
 /* Prompt for the user to share a moment. */
 "share.moment.prompt" = "Compartilhe um momento";
 
@@ -1839,7 +1854,8 @@
 /* Row in Settings screen */
 "title.storage" = "Armazenamento";
 
-/* Title for the screen with information about who saw your post. */
+/* Title for the screen with information about who reacted to your post.
+   Title for the screen with information about who saw your post. */
 "title.your.post" = "Visto por";
 
 /* Text on the bottom sheet's button that dismisses the sheet. */

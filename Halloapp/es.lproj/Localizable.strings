@@ -1839,7 +1839,8 @@
 /* Row in Settings screen */
 "title.storage" = "Almacenamiento";
 
-/* Title for the screen with information about who saw your post. */
+/* Title for the screen with information about who reacted to your post.
+   Title for the screen with information about who saw your post. */
 "title.your.post" = "Visto por";
 
 /* Text on the bottom sheet's button that dismisses the sheet. */
