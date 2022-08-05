@@ -206,6 +206,11 @@ final class ProtoService: ProtoServiceCore {
                     screenshotReceipt.id = receipt.itemId
                     screenshotReceipt.threadID = threadID
                     return .screenshotReceipt(screenshotReceipt)
+                case .saved:
+                    var savedReceipt = Server_SavedReceipt()
+                    savedReceipt.id = receipt.itemId
+                    savedReceipt.threadID = threadID
+                    return .savedReceipt(savedReceipt)
                 }
             }()
 
@@ -666,6 +671,9 @@ final class ProtoService: ProtoServiceCore {
             handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id, ack: ack)
             hasAckBeenDelegated = true
         case .screenshotReceipt(let pbReceipt):
+            handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id, ack: ack)
+            hasAckBeenDelegated = true
+        case .savedReceipt(let pbReceipt):
             handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id, ack: ack)
             hasAckBeenDelegated = true
         case .chatStanza(let serverChat):
@@ -2421,6 +2429,10 @@ extension Server_PlayedReceipt: ReceivedReceipt {
 
 extension Server_ScreenshotReceipt: ReceivedReceipt {
     var receiptType: HalloReceipt.`Type` { .screenshot }
+}
+
+extension Server_SavedReceipt: ReceivedReceipt {
+    var receiptType: HalloReceipt.`Type`{ .saved }
 }
 
 extension PresenceType {

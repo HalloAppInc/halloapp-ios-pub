@@ -812,19 +812,15 @@ extension MomentViewController {
             return
         }
 
-        let imageString = NSMutableAttributedString(attachment: NSTextAttachment(image: image))
-        let textString = NSMutableAttributedString(string: "  " + Localizations.swipeForMore)
-        imageString.addAttributes([.font: UIFont.systemFont(ofSize: 19, weight: .semibold)], range: NSMakeRange(0, imageString.length))
-        textString.addAttributes([.font: UIFont.gothamFont(ofFixedSize: 18, weight: .medium)], range: NSMakeRange(0, textString.length))
-
-        imageString.append(textString)
-        imageString.insert(NSAttributedString(string: "\u{2068}"), at: 0) // first strong isolate
-        imageString.insert(NSAttributedString(string: "\u{2069}"), at: imageString.length - 1) // pop directional isolate
-        imageString.addAttributes([.foregroundColor: UIColor.lavaOrange], range: NSMakeRange(0, imageString.length))
+        let string = NSMutableAttributedString.string(Localizations.swipeForMore,
+                                                with: image,
+                                             spacing: 2,
+                                     imageAttributes: [.font: UIFont.systemFont(ofSize: 19, weight: .semibold), .foregroundColor: UIColor.lavaOrange],
+                                      textAttributes: [.font: UIFont.gothamFont(ofFixedSize: 18, weight: .medium), .foregroundColor: UIColor.lavaOrange])
 
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.attributedText = imageString
+        label.attributedText = string
         label.textAlignment = .center
 
         label.alpha = 0

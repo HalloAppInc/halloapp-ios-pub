@@ -63,6 +63,15 @@ struct Proto_Receipts {
     /// Clears the value of `timestampScreenshot`. Subsequent reads from it will return its default value.
     mutating func clearTimestampScreenshot() {self._timestampScreenshot = nil}
 
+    var timestampSaved: SwiftProtobuf.Google_Protobuf_Timestamp {
+      get {return _timestampSaved ?? SwiftProtobuf.Google_Protobuf_Timestamp()}
+      set {_timestampSaved = newValue}
+    }
+    /// Returns true if `timestampSaved` has been explicitly set.
+    var hasTimestampSaved: Bool {return self._timestampSaved != nil}
+    /// Clears the value of `timestampSaved`. Subsequent reads from it will return its default value.
+    mutating func clearTimestampSaved() {self._timestampSaved = nil}
+
     var unknownFields = SwiftProtobuf.UnknownStorage()
 
     init() {}
@@ -70,6 +79,7 @@ struct Proto_Receipts {
     fileprivate var _timestampDelivered: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
     fileprivate var _timestampSeen: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
     fileprivate var _timestampScreenshot: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
+    fileprivate var _timestampSaved: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
   }
 
   init() {}
@@ -123,6 +133,7 @@ extension Proto_Receipts.Receipt: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     2: .standard(proto: "timestamp_delivered"),
     3: .standard(proto: "timestamp_seen"),
     4: .standard(proto: "timestamp_screenshot"),
+    5: .standard(proto: "timestamp_saved"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -135,6 +146,7 @@ extension Proto_Receipts.Receipt: SwiftProtobuf.Message, SwiftProtobuf._MessageI
       case 2: try { try decoder.decodeSingularMessageField(value: &self._timestampDelivered) }()
       case 3: try { try decoder.decodeSingularMessageField(value: &self._timestampSeen) }()
       case 4: try { try decoder.decodeSingularMessageField(value: &self._timestampScreenshot) }()
+      case 5: try { try decoder.decodeSingularMessageField(value: &self._timestampSaved) }()
       default: break
       }
     }
@@ -157,6 +169,9 @@ extension Proto_Receipts.Receipt: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     try { if let v = self._timestampScreenshot {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
     } }()
+    try { if let v = self._timestampSaved {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -165,6 +180,7 @@ extension Proto_Receipts.Receipt: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     if lhs._timestampDelivered != rhs._timestampDelivered {return false}
     if lhs._timestampSeen != rhs._timestampSeen {return false}
     if lhs._timestampScreenshot != rhs._timestampScreenshot {return false}
+    if lhs._timestampSaved != rhs._timestampSaved {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

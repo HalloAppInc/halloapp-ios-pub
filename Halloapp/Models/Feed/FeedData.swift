@@ -2079,15 +2079,28 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     func sendScreenshotReceipt(for feedPost: FeedPost) {
-        guard feedPost.isMoment else {
+        guard feedPost.isMoment, feedPost.userId != userData.userId else {
             DDLogError("FeedData/sendScreenshotReceipt/tried to send a screenshot receipt for a normal feed post")
             return
         }
 
-        DDLogInfo("FeedData/sendScreenshotReceipt")
+        DDLogInfo("FeedData/sendScreenshotReceipt postID: [\(feedPost.id)]")
         service.sendReceipt(itemID: feedPost.id,
                             thread: .feed,
                               type: .screenshot,
+                        fromUserID: userData.userId,
+                          toUserID: feedPost.userId)
+    }
+
+    func sendSavedReceipt(for feedPost: FeedPost) {
+        guard feedPost.userId != userData.userId else {
+            return
+        }
+
+        DDLogInfo("FeedData/sendSavedReceipt postID: [\(feedPost.id)]")
+        service.sendReceipt(itemID: feedPost.id,
+                            thread: .feed,
+                              type: .saved,
                         fromUserID: userData.userId,
                           toUserID: feedPost.userId)
     }
@@ -2124,6 +2137,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                                            contactName: contactName!,
                                            phoneNumber: phoneNumber,
                                              timestamp: seenDate,
+                                        savedTimestamp: receipt.savedDate,
                                    screenshotTimestamp: receipt.screenshotDate))
             }
             receipts.sort(by: { $0.timestamp > $1.timestamp })
@@ -4989,11 +5003,17 @@ extension FeedData: HalloFeedDelegate {
             }
 
             var postReceipt = receipts[receipt.userId]!
-            if case .screenshot = receipt.type {
+            switch receipt.type {
+            case .screenshot:
                 postReceipt.screenshotDate = receipt.timestamp
                 Task { await self.presentLocalNotificationsForScreenshot(receipt: receipt) }
                 DDLogInfo("FeedData/screenshot-receipt/update  userId=[\(receipt.userId)]  ts=[\(receipt.timestamp!)]  itemId=[\(receipt.itemId)]")
-            } else {
+
+            case .saved:
+                postReceipt.savedDate = receipt.timestamp
+                DDLogInfo("FeedData/saved-receipt/update  userId=[\(receipt.userId)]  ts=[\(receipt.timestamp!)]  itemId=[\(receipt.itemId)]")
+
+            default:
                 postReceipt.seenDate = receipt.timestamp
                 DDLogInfo("FeedData/seen-receipt/update  userId=[\(receipt.userId)]  ts=[\(receipt.timestamp!)]  itemId=[\(receipt.itemId)]")
             }

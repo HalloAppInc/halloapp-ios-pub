@@ -1028,7 +1028,7 @@ extension FeedCollectionViewController {
 
     private func savePostMedia(feedPost: FeedPost) {
         Task {
-            await self.saveMedia(source: .post) {
+            await self.saveMedia(source: .post(feedPost.id)) {
                 guard let expectedMedia = feedPost.media else { return [] } // Get the media data to determine how many should be downloaded
                 let media = self.getMedia(feedPost: feedPost) // Get the media from memory
                 guard expectedMedia.count == media.count else {
@@ -1293,11 +1293,11 @@ private class FeedLayout: UICollectionViewCompositionalLayout {
 
 extension Localizations {
     static var saveAllButton: String = {
-        return NSLocalizedString("media.save.all", value: "Save All To Camera Roll", comment: "Button that, when pressed, saves all the post's media to the user's camera roll")
+        return NSLocalizedString("media.download.all", value: "Download All", comment: "Button that, when pressed, saves all the post's media to the user's camera roll")
     }()
     
     static var saveAllButtonSingular: String = {
-        return NSLocalizedString("media.save.all.singular", value: "Save Media To Camera Roll", comment: "Button that, when pressed, saves the post's media to the user's camera roll. Singular version for media.save.all")
+        return NSLocalizedString("media.download.singular", value: "Download", comment: "Button that, when pressed, saves the post's media to the user's camera roll. Singular version for media.save.all")
     }()
     
     static var deletePostConfirmationPrompt: String = {

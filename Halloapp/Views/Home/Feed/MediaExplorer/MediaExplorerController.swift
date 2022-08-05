@@ -199,7 +199,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
         super.init(nibName: nil, bundle: nil)
 
-        if source == .chat, media.count > index, media[index].message != nil {
+        if case .chat = source, media.count > index, media[index].message != nil {
             self.currentIndex = computePosition(for: media[index])
 
             fetchedResultsController = makeFetchedResultsController(media[index])
@@ -720,9 +720,6 @@ class MediaExplorerMedia {
 }
 
 extension Localizations {
-    static var alertSaveToCameraRollOption: String {
-        return NSLocalizedString("media.save.camera.roll", value: "Save To Camera Roll", comment: "Button that lets the user save the current media displayed to their camera roll")
-    }
     
     static var saveSuccessfulLabel: String {
         return NSLocalizedString("media.save.saved", value: "Saved to Camera Roll", comment: "Label indicating that media was successfully saved to the camera roll")

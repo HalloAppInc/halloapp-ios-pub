@@ -282,6 +282,7 @@
 		A15E6C782809FA1B008CAEA0 /* ProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15E6C772809FA1B008CAEA0 /* ProfileViewController.swift */; };
 		A15E6C80280DD778008CAEA0 /* FeedArchiveViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15E6C7F280DD778008CAEA0 /* FeedArchiveViewController.swift */; };
 		A15E6C84280F1AA6008CAEA0 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15E6C83280F1AA6008CAEA0 /* SettingsViewController.swift */; };
+		A16297F2289C6F000081C0AA /* NSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = A16297F1289C6EFF0081C0AA /* NSAttributedString.swift */; };
 		A17B5129284FD48600B75405 /* CameraModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17B5128284FD48600B75405 /* CameraModel.swift */; };
 		A17DCD7027C0885F00E00073 /* ExpandableTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17DCD6F27C0885F00E00073 /* ExpandableTextView.swift */; };
 		A193F57128107A9B00B13D4B /* InsetCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A193F57028107A9B00B13D4B /* InsetCollectionView.swift */; };
@@ -1063,6 +1064,7 @@
 		A15E6C772809FA1B008CAEA0 /* ProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewController.swift; sourceTree = "<group>"; };
 		A15E6C7F280DD778008CAEA0 /* FeedArchiveViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedArchiveViewController.swift; sourceTree = "<group>"; };
 		A15E6C83280F1AA6008CAEA0 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
+		A16297F1289C6EFF0081C0AA /* NSAttributedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSAttributedString.swift; sourceTree = "<group>"; };
 		A17B5128284FD48600B75405 /* CameraModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraModel.swift; sourceTree = "<group>"; };
 		A17DCD6F27C0885F00E00073 /* ExpandableTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpandableTextView.swift; sourceTree = "<group>"; };
 		A193F57028107A9B00B13D4B /* InsetCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsetCollectionView.swift; sourceTree = "<group>"; };
@@ -2271,6 +2273,7 @@
 				EABB650226D989B900367F44 /* UISearchBar.swift */,
 				F4B91DF7278FCEEB00DF70C1 /* CADisplayLink.swift */,
 				F4C29B132838704C00A4FE08 /* UICollectionView.swift */,
+				A16297F1289C6EFF0081C0AA /* NSAttributedString.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -3139,6 +3142,7 @@
 				76407DF8245CA3F00031F96A /* UIViewController.swift in Sources */,
 				EA7B36442783C87100C82D2F /* ChatEventViewCell.swift in Sources */,
 				F89589562732A58300874054 /* ChangeDestinationViewController.swift in Sources */,
+				A16297F2289C6F000081C0AA /* NSAttributedString.swift in Sources */,
 				F80A0087288EF18800EAE39C /* AudioComposerView.swift in Sources */,
 				76451C3A254795F500B9E268 /* MainAppStrings.swift in Sources */,
 				EA5975DE252D3CF600810F48 /* GroupMemberAvatars.swift in Sources */,

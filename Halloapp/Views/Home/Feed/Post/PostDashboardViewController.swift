@@ -23,6 +23,7 @@ struct FeedPostReceipt {
     let contactName: String?
     let phoneNumber: String?
     let timestamp: Date
+    let savedTimestamp: Date?
     /// - note: Moments only.
     let screenshotTimestamp: Date?
 }
@@ -47,7 +48,12 @@ fileprivate extension ContactTableViewCell {
 
         nameLabel.text = receipt.contactName
         subtitleLabel.text = receipt.phoneNumber
-        accessoryLabel.attributedText = receipt.screenshotTimestamp != nil ? screenshotString : nil
+
+        if receipt.savedTimestamp != nil {
+            accessoryLabel.attributedText = savedString
+        } else if receipt.screenshotTimestamp != nil {
+            accessoryLabel.attributedText = screenshotString
+        }
 
         contentView.heightAnchor.constraint(greaterThanOrEqualToConstant: 62).isActive = true
     }
@@ -57,18 +63,23 @@ fileprivate extension ContactTableViewCell {
             return nil
         }
 
-        let imageString = NSMutableAttributedString(attachment: NSTextAttachment(image: image))
         let string = NSLocalizedString("screenshot.title",
                                 value: "Screenshot",
                               comment: "Title that indicates that someone took a screenshot.")
 
-        let textString = NSMutableAttributedString(string: " " + string)
-        imageString.append(textString)
-        // for handling bidirectional text
-        imageString.insert(NSAttributedString(string: "\u{2068}"), at: 0) // first strong isolate
-        imageString.insert(NSAttributedString(string: "\u{2069}"), at: imageString.length - 1) // pop directional isolate
+        return NSMutableAttributedString.string(string, with: image)
+    }
 
-        return imageString
+    private var savedString: NSAttributedString? {
+        guard let image = UIImage(systemName: "arrow.down.circle") else {
+            return nil
+        }
+
+        let string = NSLocalizedString("downloaded.title",
+                                value: "Downloaded",
+                              comment: "Title that indicates that someone downloaded media from a post.")
+
+        return NSMutableAttributedString.string(string, with: image)
     }
 }
 
@@ -219,7 +230,7 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
     private func reloadData(from feedPost: FeedPost) {
         var seenReceipts = MainAppContext.shared.feedData.seenReceipts(for: feedPost)
         if seenReceipts.isEmpty {
-            seenReceipts.append(FeedPostReceipt(userId: "", type: .placeholder, contactName: nil, phoneNumber: nil, timestamp: Date(), screenshotTimestamp: nil))
+            seenReceipts.append(FeedPostReceipt(userId: "", type: .placeholder, contactName: nil, phoneNumber: nil, timestamp: Date(), savedTimestamp: nil, screenshotTimestamp: nil))
         }
 
         var allContactRowContacts = [ContactRow]()

@@ -146,8 +146,12 @@ extension UIViewControllerMediaSaving {
                     }
                 }
             }
+
+            if case let .post(id) = source, let fd = MainAppContext.shared.feedData, let post = fd.feedPost(with: id, in: fd.viewContext) {
+                fd.sendSavedReceipt(for: post)
+            }
             
-            let toast = Toast(type: .icon(UIImage(named: "CheckmarkLong")?.withTintColor(.white)), text: Localizations.saveSuccessfulLabel)
+            let toast = Toast(type: .icon(UIImage(named: "CheckmarkLong")?.withTintColor(.white)), text: Localizations.buttonDone)
             toast.show(viewController: self, shouldAutodismiss: true)
             
             return true

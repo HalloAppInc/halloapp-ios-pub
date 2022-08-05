@@ -958,7 +958,7 @@ extension FlatCommentsViewController: MessageCommentHeaderViewDelegate {
             canSavePost = post.canSaveMedia
         }
 
-        let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost, source: .post)
+        let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost, source: .post(feedPostId))
         controller.animatorDelegate = view
         present(controller, animated: true)
     }

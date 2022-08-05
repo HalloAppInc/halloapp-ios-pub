@@ -15,7 +15,7 @@ extension FeedPost {
     private static let maxExternalShareDescriptionLength = 100
 
     var canSaveMedia: Bool {
-        return groupID != nil || userId == MainAppContext.shared.userData.userId
+        return !fromExternalShare
     }
 
     var externalShareDescription: String {

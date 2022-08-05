@@ -10,6 +10,7 @@ message Receipts {
         google.protobuf.Timestamp timestamp_delivered = 2;
         google.protobuf.Timestamp timestamp_seen = 3;
         google.protobuf.Timestamp timestamp_screenshot = 4;
+        google.protobuf.Timestamp timestamp_saved = 5;
     }
 
     repeated Receipt receipts = 1;

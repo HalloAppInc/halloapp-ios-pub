@@ -11,7 +11,7 @@ import Foundation
 
 public enum MediaItemSource {
     case unknown
-    case post
+    case post(FeedPostID)
     case comment
     case chat
 }

@@ -3798,8 +3798,8 @@ extension ChatData {
                 chatMessage.outgoingStatus = .seen
             case .played:
                 chatMessage.outgoingStatus = .played
-            case .screenshot:
-                DDLogError("ChatData/processInboundOneToOneMessageReceipt/processing screenshot receipt")
+            case .screenshot, .saved:
+                DDLogError("ChatData/processInboundOneToOneMessageReceipt/processing invalid \(receiptType) receipt")
                 break
             }
 
@@ -3811,7 +3811,7 @@ extension ChatData {
                     chatThread.lastMsgStatus = .seen
                 case .played:
                     chatThread.lastMsgStatus = .played
-                case .screenshot:
+                case .screenshot, .saved:
                     break
                 }
             }
@@ -3832,8 +3832,8 @@ extension ChatData {
                 reaction.outgoingStatus = .delivered
             case .read:
                 reaction.outgoingStatus = .seen
-            case .played, .screenshot:
-                DDLogError("ChatData/processInboundOneToOneReactionReceipt/processing screenshot receipt")
+            case .played, .screenshot, .saved:
+                DDLogError("ChatData/processInboundOneToOneReactionReceipt/processing incompatible \(receiptType) receipt")
                 break
             }
         }
@@ -5401,7 +5401,7 @@ extension ChatData: HalloChatDelegate {
             case .played:
                 guard chatMessage.incomingStatus == .played else { return }
                 chatMessage.incomingStatus = .sentPlayedReceipt
-            case .delivery, .screenshot:
+            case .delivery, .screenshot, .saved:
                 break
             }
         }

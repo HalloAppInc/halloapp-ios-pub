@@ -178,7 +178,7 @@ extension PostViewController {
             let saveMediaTitle = post.mediaCount > 1 ? Localizations.saveAllButton : Localizations.saveAllButtonSingular
             HAMenuButton(title: saveMediaTitle) { [weak self] in
                 guard let self = self else { return }
-                await self.saveMedia(source: .post) {
+                await self.saveMedia(source: .post(self.post.id)) {
                     // Get media from cache if available
                     let media = self.post.feedMedia
 
