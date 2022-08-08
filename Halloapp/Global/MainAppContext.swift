@@ -199,12 +199,14 @@ class MainAppContext: AppContext {
                 self.migrateUploadDataIfNecessary()
                 self.migrateFeedPostLastUpdatedIfNecessary()
                 self.migrateFeedPostExpiryIfNecessary()
+                self.migrateCommonMediaIDsIfNecessary()
             }
         } else {
             performAppUpdateMigrationIfNecessary()
             migrateUploadDataIfNecessary()
             migrateFeedPostLastUpdatedIfNecessary()
             migrateFeedPostExpiryIfNecessary()
+            migrateCommonMediaIDsIfNecessary()
         }
     }
 
@@ -257,6 +259,14 @@ class MainAppContext: AppContext {
         if !userDefaults.bool(forKey: key) {
             feedData.migrateFeedPostExpiration()
             chatData.migrateGroupExpiry()
+            userDefaults.set(true, forKey: key)
+        }
+    }
+
+    private func migrateCommonMediaIDsIfNecessary() {
+        let key = "migration.commonmedia.id.complete"
+        if !userDefaults.bool(forKey: key) {
+            mainDataStore.migrateCommonMediaIDs()
             userDefaults.set(true, forKey: key)
         }
     }

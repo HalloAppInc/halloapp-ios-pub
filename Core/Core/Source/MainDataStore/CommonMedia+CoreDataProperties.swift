@@ -10,6 +10,8 @@ import CocoaLumberjackSwift
 import CoreData
 import CoreGraphics
 
+public typealias CommonMediaID = String
+
 public enum CommonMediaType: Int16, Codable {
     case image = 0
     case video = 1
@@ -49,6 +51,7 @@ public extension CommonMedia {
             self.typeValue = newValue.rawValue
         }
     }
+    @NSManaged var id: CommonMediaID
     @NSManaged var typeValue: Int16
     @NSManaged var relativeFilePath: String?
     @NSManaged var url: URL?
@@ -110,33 +113,16 @@ public extension CommonMedia {
     @NSManaged var chunkSet: Data?
 }
 
-extension CommonMedia: FeedMediaProtocol {
-    public var id: String {
-        get {
-            if let feedPost = post {
-                return "\(feedPost.id)-\(order)"
-            } else if let feedComment = comment {
-                return "\(feedComment.id)-\(order)"
-            } else if let feeLinkPreview = linkPreview {
-                return "\(feeLinkPreview.id)-\(order)"
-            } else if let message = message {
-                return "\(message.id)-\(order)"
-            } else if let quoted = chatQuoted {
-                return "\(quoted.message?.id ?? UUID().uuidString)-quoted-\(order)"
-            } else {
-                DDLogError("CommonMedia/id not associated with known entity")
-                return ""
-            }
-        }
-    }
-}
-
 public extension CommonMedia {
     // TODO: Remove and use `uploadURL` everywhere
     var uploadUrl: URL? {
         get { return uploadURL }
         set { uploadURL = newValue }
     }
+}
+
+extension CommonMedia: FeedMediaProtocol {
+
 }
 
 public extension CommonMedia {

@@ -758,6 +758,7 @@ class ChatData: ObservableObject {
         DDLogInfo("ChatData/migrateLegacyMedia/new [order: \(legacy.order)")
 
         let media = CommonMedia(context: managedObjectContext)
+        media.id = "\(message?.id ?? linkPreview?.id ?? UUID().uuidString)-\(legacy.order)"
         media.typeValue = legacy.typeValue
         media.relativeFilePath = legacy.relativeFilePath
         media.url = legacy.url
@@ -785,6 +786,7 @@ class ChatData: ObservableObject {
         DDLogInfo("ChatData/migrateLegacyQuotedMedia/new [order: \(legacy.order)")
 
         let media = CommonMedia(context: managedObjectContext)
+        media.id = "\(quoted.message?.id ?? UUID().uuidString)-quoted-\(legacy.order)"
         media.typeValue = legacy.typeValue
         media.relativeFilePath = legacy.relativeFilePath
         media.width = legacy.width
@@ -1499,6 +1501,7 @@ class ChatData: ObservableObject {
             chatLinkPreview.media?.forEach { sharedPreviewMedia in
                 DDLogInfo("ChatData/mergeSharedData/message/\(messageId)/add-link-preview-media [\(sharedPreviewMedia)], status: \(sharedPreviewMedia.status)")
                 let chatMedia = CommonMedia(context: managedObjectContext)
+                chatMedia.id = "\(linkPreview.id)-\(sharedPreviewMedia.order)"
                     // set incoming and outgoing status.
                     switch sharedPreviewMedia.status {
                     case .none:
@@ -1541,6 +1544,7 @@ class ChatData: ObservableObject {
             message.media?.forEach { media in
                 DDLogInfo("ChatData/mergeSharedData/message/\(messageId)/add-media [\(media)], status: \(media.status)")
                 let chatMedia = CommonMedia(context: managedObjectContext)
+                chatMedia.id = "\(chatMessage.id)-\(media.order)"
                 switch media.type {
                 case .image:
                     chatMedia.type = .image
@@ -1740,6 +1744,7 @@ class ChatData: ObservableObject {
         if let chatQuotedMediaItem = chatQuoted.mediaList.first(where: { $0.order == mediaIndex }) {
             DDLogInfo("ChatData/copyQuoted/message/\(chatMessage.id), chatQuotedMediaIndex: \(chatQuotedMediaItem.order)")
             let quotedMedia = CommonMedia(context: managedObjectContext)
+            quotedMedia.id = "\(quoted.message?.id ?? UUID().uuidString)-quoted-\(chatQuotedMediaItem.order)"
             quotedMedia.type = chatQuotedMediaItem.quotedMediaType
             quotedMedia.order = chatQuotedMediaItem.order
             quotedMedia.width = Float(chatQuotedMediaItem.width)
@@ -2283,6 +2288,7 @@ extension ChatData {
             }
                   
             let chatMedia = CommonMedia(context: context)
+            chatMedia.id = "\(chatMessage.id)-\(index)"
             switch mediaItem.type {
             case .image:
                 chatMedia.type = .image
@@ -2334,6 +2340,7 @@ extension ChatData {
 
             if let feedPostMedia = feedPost.media?.first(where: { $0.order == feedPostMediaIndex }) {
                 let quotedMedia = CommonMedia(context: context)
+                quotedMedia.id = "\(quoted.message?.id ?? UUID().uuidString)-quoted-\(feedPostMedia.order)"
                 quotedMedia.type = feedPostMedia.type
                 quotedMedia.order = feedPostMedia.order
                 quotedMedia.width = Float(feedPostMedia.size.width)
@@ -2372,6 +2379,7 @@ extension ChatData {
 
             if let quotedChatMessageMedia = quotedChatMessage.media?.first(where: { $0.order == chatReplyMessageMediaIndex }) {
                 let quotedMedia = CommonMedia(context: context)
+                quotedMedia.id = "\(quotedChatMessage.id)-quoted-\(quotedChatMessageMedia.order)"
                 quotedMedia.type = quotedChatMessageMedia.type
                 quotedMedia.order = quotedChatMessageMedia.order
                 quotedMedia.width = Float(quotedChatMessageMedia.size.width)
@@ -2431,6 +2439,7 @@ extension ChatData {
         // Set preview image if present
         if let linkPreviewMedia = linkPreviewMedia {
             let linkPreviewChatMedia = CommonMedia(context: context)
+            linkPreviewChatMedia.id = "\(linkPreview.id)-0"
             if let mediaItemSize = linkPreviewMedia.size, let mediaItemfileURL = linkPreviewMedia.fileURL {
                 linkPreviewChatMedia.type = {
                     switch linkPreviewMedia.type {
@@ -2471,8 +2480,9 @@ extension ChatData {
             linkPreview.title = linkPreviewData.title
             linkPreview.desc = linkPreviewData.description
             // Set preview image if present
-            linkPreviewData.previewImages.forEach { previewMedia in
+            linkPreviewData.previewImages.enumerated().forEach { (index, previewMedia) in
                 let media = CommonMedia(context: context)
+                media.id = "\(linkPreview.id)-\(index)"
                 media.type = {
                     switch previewMedia.type {
                     case .image:
@@ -2490,6 +2500,7 @@ extension ChatData {
                 media.key = previewMedia.key
                 media.sha256 = previewMedia.sha256
                 media.linkPreview = linkPreview
+                media.order = Int16(index)
             }
             linkPreview.message = chatMessage
         }
@@ -3596,6 +3607,7 @@ extension ChatData {
 
                 DDLogDebug("ChatData/process/new/add-media [\(downloadUrl)]")
                 let chatMedia = CommonMedia(context: managedObjectContext)
+                chatMedia.id = "\(chatMessage.id)-\(index)"
 
                 switch xmppMedia.mediaType {
                 case .image:
@@ -3632,6 +3644,7 @@ extension ChatData {
             lastMsgMediaType = .audio
 
             let chatMedia = CommonMedia(context: managedObjectContext)
+            chatMedia.id = "\(chatMessage.id)-0"
             chatMedia.type = .audio
             chatMedia.incomingStatus = .pending
             chatMedia.outgoingStatus = .none

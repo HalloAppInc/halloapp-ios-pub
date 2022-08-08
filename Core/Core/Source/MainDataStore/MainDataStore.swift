@@ -367,6 +367,10 @@ open class MainDataStore {
         return try persistentContainer.viewContext.existingObject(with: objectId) as? CommonMedia
     }
 
+    public func commonMediaItem(id: CommonMediaID, in context: NSManagedObjectContext) -> CommonMedia? {
+        return commonMediaItems(predicate: NSPredicate(format: "id = %@", id), in: context).first
+    }
+
     public func commonMediaItems(predicate: NSPredicate? = nil, in managedObjectContext: NSManagedObjectContext) -> [CommonMedia] {
         let fetchRequest: NSFetchRequest<CommonMedia> = CommonMedia.fetchRequest()
         fetchRequest.predicate = predicate
@@ -377,6 +381,35 @@ open class MainDataStore {
         } catch {
             DDLogError("MainDataStore/fetch-commonMediaItems/error  [\(error)]")
             fatalError("Failed to fetch commonMediaItems.")
+        }
+    }
+
+    public func migrateCommonMediaIDs() {
+        do {
+            try saveSeriallyOnBackgroundContextAndWait({ context in
+                commonMediaItems(in: context).forEach { media in
+                    let order = media.order
+                    let id: String
+                    if let feedPost = media.post {
+                         id = "\(feedPost.id)-\(order)"
+                    } else if let feedComment = media.comment {
+                        id = "\(feedComment.id)-\(order)"
+                    } else if let feeLinkPreview = media.linkPreview {
+                        id = "\(feeLinkPreview.id)-\(order)"
+                    } else if let message = media.message {
+                        id = "\(message.id)-\(order)"
+                    } else if let quoted = media.chatQuoted {
+                        id = "\(quoted.message?.id ?? UUID().uuidString)-quoted-\(order)"
+                    } else {
+                        DDLogError("CommonMedia/id not associated with known entity")
+                        id = UUID().uuidString
+                    }
+                    media.id = id
+                    DDLogInfo("MainDataStore/migrateCommonMediaID/migrated \(id)")
+                }
+            })
+        } catch {
+            DDLogError("MainDataStore/migrateCommonMediaID/failed to migrate: \(error)")
         }
     }
 

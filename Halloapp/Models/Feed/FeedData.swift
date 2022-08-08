@@ -266,6 +266,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         DDLogInfo("FeedData/migrateLegacyMedia/new/\(legacy.id)")
 
         let media = CommonMedia(context: managedObjectContext)
+        media.id = "\(post?.id ?? comment?.id ?? linkPreview?.id ?? UUID().uuidString)-\(legacy.order)"
         media.typeValue = legacy.typeValue
         media.relativeFilePath = legacy.relativeFilePath
         media.url = legacy.url
@@ -1121,8 +1122,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 linkPreview.title = linkPreviewData.title
                 linkPreview.desc = linkPreviewData.description
                 // Set preview image if present
-                linkPreviewData.previewImages.forEach { previewMedia in
+                linkPreviewData.previewImages.enumerated().forEach { (index, previewMedia) in
                     let media = CommonMedia(context: managedObjectContext)
+                    media.id = "\(linkPreview.id)-\(index)"
                     media.type = previewMedia.type
                     media.status = .none
                     media.url = previewMedia.url
@@ -1130,6 +1132,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     media.key = previewMedia.key
                     media.sha256 = previewMedia.sha256
                     media.linkPreview = linkPreview
+                    media.order = Int16(index)
                 }
                 linkPreview.post = feedPost
             }
@@ -1137,6 +1140,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             for (index, xmppMedia) in xmppPost.orderedMedia.enumerated() {
                 DDLogDebug("FeedData/process-posts/new/add-media [\(xmppMedia.url!)]")
                 let feedMedia = CommonMedia(context: managedObjectContext)
+                feedMedia.id = "\(feedPost.id)-\(index)"
                 switch xmppMedia.type {
                 case .image:
                     feedMedia.type = .image
@@ -1321,8 +1325,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         linkPreview.title = linkPreviewData.title
                         linkPreview.desc = linkPreviewData.description
                         // Set preview image if present
-                        linkPreviewData.previewImages.forEach { previewMedia in
+                        linkPreviewData.previewImages.enumerated().forEach { (index, previewMedia) in
                             let media = CommonMedia(context: managedObjectContext)
+                            media.id = "\(linkPreview.id)-\(index)"
                             media.type = previewMedia.type
                             media.status = .none
                             media.url = previewMedia.url
@@ -1330,6 +1335,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                             media.key = previewMedia.key
                             media.sha256 = previewMedia.sha256
                             media.linkPreview = linkPreview
+                            media.order = Int16(index)
                         }
                         linkPreview.comment = comment
                     }
@@ -1340,6 +1346,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     for (index, xmppMedia) in media.enumerated() {
                         DDLogDebug("FeedData/process-comments/new/add-comment-media [\(xmppMedia.url!)]")
                         let feedCommentMedia = CommonMedia(context: managedObjectContext)
+                        feedCommentMedia.id = "\(comment.id)-\(index)"
                         switch xmppMedia.type {
                         case .image:
                             feedCommentMedia.type = .image
@@ -1364,6 +1371,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     comment.mentions = []
 
                     let feedCommentMedia = CommonMedia(context: managedObjectContext)
+                    feedCommentMedia.id = "\(comment.id)-0"
                     feedCommentMedia.type = .audio
                     feedCommentMedia.status = .none
                     feedCommentMedia.url = media.url
@@ -2738,6 +2746,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         for (index, mediaItem) in media.enumerated() {
             DDLogDebug("FeedData/new-post/add-media [\(mediaItem.fileURL!)]")
             let feedMedia = CommonMedia(context: managedObjectContext)
+            feedMedia.id = "\(feedPost.id)-\(index)"
             feedMedia.type = mediaItem.type
             feedMedia.status = .uploading
             feedMedia.url = mediaItem.url
@@ -2773,6 +2782,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             // Set preview image if present
             if let linkPreviewMedia = linkPreviewMedia {
                 let previewMedia = CommonMedia(context: managedObjectContext)
+                previewMedia.id = "\(linkPreview?.id ?? UUID().uuidString)-0"
                 previewMedia.type = linkPreviewMedia.type
                 previewMedia.status = .uploading
                 previewMedia.url = linkPreviewMedia.url
@@ -2875,6 +2885,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogDebug("FeedData/new-comment/add-media [\(mediaItem.fileURL!)]")
 
                 let feedMedia = CommonMedia(context: managedObjectContext)
+                feedMedia.id = "\(feedComment.id)-\(index)"
                 feedMedia.type = mediaItem.type
                 feedMedia.status = .uploading
                 feedMedia.url = mediaItem.url
@@ -2905,6 +2916,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 // Set preview image if present
                 if let linkPreviewMedia = linkPreviewMedia {
                     let previewMedia = CommonMedia(context: managedObjectContext)
+                    previewMedia.id = "\(linkPreview?.id ?? UUID().uuidString)-0"
                     previewMedia.type = linkPreviewMedia.type
                     previewMedia.status = .uploading
                     previewMedia.url = linkPreviewMedia.url
@@ -4681,8 +4693,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 linkPreview.title = linkPreviewData.title
                 linkPreview.desc = linkPreviewData.desc
                 // Set preview image if present
-                linkPreviewData.media?.forEach { previewMedia in
+                linkPreviewData.media?.enumerated().forEach { (index, previewMedia) in
                     let media = CommonMedia(context: managedObjectContext)
+                    media.id = "\(linkPreview.id)-\(index)"
                     media.type = previewMedia.type
                     media.status = .none
                     media.url = previewMedia.url
@@ -4691,6 +4704,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     media.sha256 = previewMedia.sha256
                     media.linkPreview = linkPreview
                     media.mediaDirectory = .commonMedia
+                    media.order = Int16(index)
 
                     // Copy media if there'a a local copy (outgoing posts or incoming posts with downloaded media).
                     if let relativeFilePath = previewMedia.relativeFilePath {
@@ -4720,6 +4734,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogDebug("FeedData/merge-data/post/\(postId)/add-media [\(media)] - [\(media.status)]")
 
                 let feedMedia = CommonMedia(context: managedObjectContext)
+                feedMedia.id = "\(feedPost.id)-\(media.order)"
                 feedMedia.type = media.type
                 feedMedia.status = {
                     switch media.status {
@@ -4829,8 +4844,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             linkPreview.title = sharedLinkPreviewData.title
             linkPreview.desc = sharedLinkPreviewData.desc
             // Set preview image if present
-            sharedLinkPreviewData.media?.forEach { sharedPreviewMedia in
+            sharedLinkPreviewData.media?.enumerated().forEach { (index, sharedPreviewMedia) in
                 let media = CommonMedia(context: managedObjectContext)
+                media.id = "\(linkPreview.id)-\(index)"
                 media.type = sharedPreviewMedia.type
                 media.status = .none
                 media.url = sharedPreviewMedia.url
@@ -4838,6 +4854,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 media.key = sharedPreviewMedia.key
                 media.sha256 = sharedPreviewMedia.sha256
                 media.linkPreview = linkPreview
+                media.order = Int16(index)
             }
             linkPreviews.insert(linkPreview)
         }
@@ -4846,6 +4863,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         var mediaItems = Set<CommonMedia>()
         sharedComment.media?.forEach({ mediaItem in
             let feedCommentMedia = CommonMedia(context: managedObjectContext)
+            feedCommentMedia.id = "\(commentId)-\(mediaItem.order)"
             feedCommentMedia.type = mediaItem.type
             feedCommentMedia.status = {
                 switch mediaItem.status {

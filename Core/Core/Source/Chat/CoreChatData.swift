@@ -234,8 +234,9 @@ public class CoreChatData {
                 linkPreview.title = linkPreviewData.title
                 linkPreview.desc = linkPreviewData.description
                 // Set preview image if present
-                linkPreviewData.previewImages.forEach { previewMedia in
+                linkPreviewData.previewImages.enumerated().forEach { (index, previewMedia) in
                     let media = CommonMedia(context: context)
+                    media.id = "\(linkPreview.id)-\(index)"
                     media.type = previewMedia.type
                     media.status = .downloading
                     media.url = previewMedia.url
@@ -243,6 +244,7 @@ public class CoreChatData {
                     media.key = previewMedia.key
                     media.sha256 = previewMedia.sha256
                     media.linkPreview = linkPreview
+                    media.order = Int16(index)
                 }
                 linkPreview.message = chatMessage
             }
@@ -250,6 +252,7 @@ public class CoreChatData {
             for (index, media) in chatMessageProtocol.orderedMedia.enumerated() {
                 DDLogDebug("CoreChatData/saveChatMessage/new/add-media/index; \(index)/url: [\(String(describing: media.url))]")
                 let chatMedia = CommonMedia(context: context)
+                chatMedia.id = "\(chatMessage.id)-\(index)"
                 chatMedia.type = media.mediaType
                 chatMedia.status = .downloading
                 chatMedia.url = media.url
@@ -375,6 +378,7 @@ public class CoreChatData {
         if let chatQuotedMediaItem = chatQuoted.mediaList.first(where: { $0.order == mediaIndex }) {
             DDLogInfo("CoreChatData/copyQuoted/message/\(chatMessage.id), chatQuotedMediaIndex: \(chatQuotedMediaItem.order)")
             let quotedMedia = CommonMedia(context: managedObjectContext)
+            quotedMedia.id = "\(quoted.message?.id ?? UUID().uuidString)-\(chatQuotedMediaItem.order)"
             quotedMedia.type = chatQuotedMediaItem.quotedMediaType
             quotedMedia.order = chatQuotedMediaItem.order
             quotedMedia.width = Float(chatQuotedMediaItem.width)

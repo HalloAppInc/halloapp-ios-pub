@@ -216,14 +216,6 @@ class DataStore: ShareExtensionDataStore {
         DDLogInfo("SharedDataStore/attach-media [\(media.fileURL!)]")
 
         let feedMedia = CommonMedia(context: managedObjectContext)
-        feedMedia.type = media.type
-        feedMedia.url = media.url
-        feedMedia.uploadUrl = media.uploadUrl
-        feedMedia.size = media.size!
-        feedMedia.key = ""
-        feedMedia.sha256 = ""
-        feedMedia.order = Int16(media.order)
-        feedMedia.status = .uploading
 
         let mediaContentId: String
         switch target {
@@ -237,6 +229,16 @@ class DataStore: ShareExtensionDataStore {
             feedMedia.linkPreview = linkPreview
             mediaContentId = "\(linkPreview.id)-\(feedMedia.order)"
         }
+
+        feedMedia.id = mediaContentId
+        feedMedia.type = media.type
+        feedMedia.url = media.url
+        feedMedia.uploadUrl = media.uploadUrl
+        feedMedia.size = media.size!
+        feedMedia.key = ""
+        feedMedia.sha256 = ""
+        feedMedia.order = Int16(media.order)
+        feedMedia.status = .uploading
 
         let relativeFilePath = Self.relativeFilePath(forFilename: mediaContentId, mediaType: media.type)
 

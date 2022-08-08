@@ -87,6 +87,7 @@
         <attribute name="chunkSet" optional="YES" attributeType="Binary"/>
         <attribute name="chunkSize" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="height" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="id" attributeType="String" defaultValueString=""/>
         <attribute name="key" optional="YES" attributeType="String"/>
         <attribute name="mediaDirectoryValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="numTries" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>

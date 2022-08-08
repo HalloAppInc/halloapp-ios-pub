@@ -150,8 +150,9 @@ public class CoreFeedData {
                 linkPreview.title = linkPreviewData.title
                 linkPreview.desc = linkPreviewData.description
                 // Set preview image if present
-                linkPreviewData.previewImages.forEach { previewMedia in
+                linkPreviewData.previewImages.enumerated().forEach { (index, previewMedia) in
                     let media = CommonMedia(context: context)
+                    media.id = "\(linkPreview.id)-\(index)"
                     media.type = previewMedia.type
                     media.status = .none
                     media.url = previewMedia.url
@@ -159,6 +160,7 @@ public class CoreFeedData {
                     media.key = previewMedia.key
                     media.sha256 = previewMedia.sha256
                     media.linkPreview = linkPreview
+                    media.order = Int16(index)
                 }
                 linkPreview.post = feedPost
             }
@@ -167,6 +169,7 @@ public class CoreFeedData {
             for (index, media) in postData.orderedMedia.enumerated() {
                 DDLogDebug("CoreFeedData/savePostData/new/add-media [\(media.url!)]")
                 let feedMedia = CommonMedia(context: context)
+                feedMedia.id = "\(feedPost.id)-\(index)"
                 switch media.type {
                 case .image:
                     feedMedia.type = .image
@@ -317,8 +320,9 @@ public class CoreFeedData {
                 linkPreview.title = linkPreviewData.title
                 linkPreview.desc = linkPreviewData.description
                 // Set preview image if present
-                linkPreviewData.previewImages.forEach { previewMedia in
+                linkPreviewData.previewImages.enumerated().forEach { (index, previewMedia) in
                     let media = CommonMedia(context: context)
+                    media.id = "\(linkPreview.id)-\(index)"
                     media.type = previewMedia.type
                     media.status = .none
                     media.url = previewMedia.url
@@ -326,6 +330,7 @@ public class CoreFeedData {
                     media.key = previewMedia.key
                     media.sha256 = previewMedia.sha256
                     media.linkPreview = linkPreview
+                    media.order = Int16(index)
                 }
                 linkPreview.comment = feedComment
             }
@@ -334,6 +339,7 @@ public class CoreFeedData {
             for (index, media) in commentData.orderedMedia.enumerated() {
                 DDLogDebug("CoreFeedData/saveCommentData/new/add-media [\(media.url!)]")
                 let feedMedia = CommonMedia(context: context)
+                feedMedia.id = "\(feedComment.id)-\(index)"
                 switch media.type {
                 case .image:
                     feedMedia.type = .image
