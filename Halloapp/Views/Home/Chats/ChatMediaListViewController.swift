@@ -210,6 +210,10 @@ extension ChatMediaListViewController: UIViewControllerTransitioningDelegate {
 // MARK: MediaListAnimatorDelegate
 extension ChatMediaListViewController: MediaListAnimatorDelegate {
 
+    var transitionViewRadius: CGFloat {
+        10
+    }
+
     func transitionDidBegin(presenting: Bool, with index: MediaIndex) {
         if !presenting {
             view.alpha = message.id == index.chatMessageID ? 1 : 0

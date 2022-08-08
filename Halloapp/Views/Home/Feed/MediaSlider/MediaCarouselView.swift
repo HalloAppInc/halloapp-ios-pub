@@ -569,6 +569,10 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         .scaleAspectFit
     }
 
+    var transitionViewRadius: CGFloat {
+        configuration.cornerRadius
+    }
+
     func getTransitionView(at index: MediaIndex) -> UIView? {
         let indexPath = IndexPath(row: index.index, section: MediaSliderSection.main.rawValue)
         if let imageCell = collectionView.cellForItem(at: indexPath) as? MediaCarouselImageCollectionViewCell {

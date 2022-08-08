@@ -504,6 +504,7 @@
 		F8BD92532819BFCE00F35E7A /* Quicksand-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6878E0102798E962008BB351 /* Quicksand-Light.ttf */; };
 		F8BD92542819BFCE00F35E7A /* Quicksand-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6878E00D2798E962008BB351 /* Quicksand-Medium.ttf */; };
 		F8BD92552819BFCE00F35E7A /* Quicksand-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6878E0112798E962008BB351 /* Quicksand-Bold.ttf */; };
+		F8C5471A289BDB73009D942B /* MediaReorderViewContoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8C54719289BDB73009D942B /* MediaReorderViewContoller.swift */; };
 		F8C92C9A24CF17BC00B1D4E6 /* MediaEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */; };
 		F8D876332746603700E69F41 /* AudioSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8D876322746603700E69F41 /* AudioSessionManager.swift */; };
 		F8DA6F38252370BE007833A7 /* MediaExplorerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DA6F37252370BE007833A7 /* MediaExplorerController.swift */; };
@@ -1255,6 +1256,7 @@
 		F893C86E25E5213000068F00 /* VideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoView.swift; sourceTree = "<group>"; };
 		F89589552732A58300874054 /* ChangeDestinationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangeDestinationViewController.swift; sourceTree = "<group>"; };
 		F8B0F7602745785400235CCF /* ShareDataLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareDataLoader.swift; sourceTree = "<group>"; };
+		F8C54719289BDB73009D942B /* MediaReorderViewContoller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaReorderViewContoller.swift; sourceTree = "<group>"; };
 		F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaEditViewController.swift; sourceTree = "<group>"; };
 		F8D876322746603700E69F41 /* AudioSessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionManager.swift; sourceTree = "<group>"; };
 		F8DA6F37252370BE007833A7 /* MediaExplorerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaExplorerController.swift; sourceTree = "<group>"; };
@@ -2094,6 +2096,7 @@
 				F40F7C8627570707008144DE /* AudioPostComposer.swift */,
 				F4063F2E276836F50068B9ED /* ShareButton.swift */,
 				F825BC912863867B00BB85A0 /* ComposerViewController.swift */,
+				F8C54719289BDB73009D942B /* MediaReorderViewContoller.swift */,
 				F80A0088288FF3DB00EAE39C /* MediaComposerTextView.swift */,
 				F80A0084288EB50700EAE39C /* TextComposerView.swift */,
 				F80A0086288EF18800EAE39C /* AudioComposerView.swift */,
@@ -3210,6 +3213,7 @@
 				EAA85A0B25E5D510006D0BC9 /* NotInGroupBannerView.swift in Sources */,
 				EA0D20152368B04B008B8289 /* FeedData.swift in Sources */,
 				F41F82972798D2AC0021BF40 /* GroupInviteSheetViewController.swift in Sources */,
+				F8C5471A289BDB73009D942B /* MediaReorderViewContoller.swift in Sources */,
 				E598D4C0265F0188001A436A /* ConversationID.swift in Sources */,
 				F82EFC2828657987007B45CF /* SwipeToExitGestureRecognizer.swift in Sources */,
 				EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */,

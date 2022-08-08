@@ -302,8 +302,13 @@ class ComposerViewController: UIViewController {
         carouselView.translatesAutoresizingMaskIntoConstraints = false
         carouselView.delegate = self
 
+        let reorderGesture = UILongPressGestureRecognizer(target: self, action: #selector(reorderAction(gesture:)))
+        carouselView.addGestureRecognizer(reorderGesture)
+
         return carouselView
     }()
+
+    private var mediaReorderViewContoller: MediaReorderViewContoller?
 
     private lazy var mediaErrorLabel: UILabel = {
         let label = UILabel()
@@ -749,6 +754,37 @@ class ComposerViewController: UIViewController {
         } else {
             // if link preview has an image, load the image before sending.
             loadLinkPreviewImageAndShare(mentionText: mentionText, mediaItems: media, feedAudience: feedAudience)
+        }
+    }
+
+    @objc private func reorderAction(gesture: UILongPressGestureRecognizer) {
+        guard media.count > 1 else { return }
+        guard media.allSatisfy({ $0.ready.value }) else { return }
+
+        switch(gesture.state) {
+        case .began:
+            let controller = MediaReorderViewContoller(media: media, index: index)
+            controller.animatorDelegate = mediaCarouselView
+            present(controller.withNavigationController(), animated: true)
+
+            mediaReorderViewContoller = controller
+        case .changed:
+            mediaReorderViewContoller?.move(using: gesture)
+        case .ended:
+            mediaReorderViewContoller?.end()
+
+            if let controller = mediaReorderViewContoller {
+                media = controller.media
+                index = controller.index
+
+                updateMediaState(animated: false)
+            }
+
+            dismiss(animated: true)
+            mediaReorderViewContoller = nil
+        default:
+            dismiss(animated: true)
+            mediaReorderViewContoller = nil
         }
     }
 

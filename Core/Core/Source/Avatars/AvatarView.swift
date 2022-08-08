@@ -174,7 +174,7 @@ public class AvatarView: UIView {
             border.fillColor = UIColor.clear.cgColor
             border.strokeColor = borderColor.cgColor
             border.lineWidth = borderWidth * 2 // Make sure the stroke can reach the border
-            border.path = UIBezierPath(ovalIn: avatarContainerView.bounds).cgPath
+            border.path = UIBezierPath(roundedRect: avatarContainerView.bounds, cornerRadius: avatarContainerView.layer.cornerRadius).cgPath
             if let oldBorderLayer = borderLayer {
                 avatarContainerView.layer.replaceSublayer(oldBorderLayer, with: border)
             } else {

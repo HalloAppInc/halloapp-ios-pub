@@ -1779,6 +1779,10 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
 
 // MARK: MediaListAnimatorDelegate
 extension ChatViewControllerNew: MediaListAnimatorDelegate {
+    var transitionViewRadius: CGFloat {
+        10
+    }
+
     func scrollToTransitionView(at index: MediaIndex) {
         guard let chatMessageID = index.chatMessageID else { return }
         scrollToMessage(id: chatMessageID)

@@ -13,6 +13,7 @@ import UIKit
 
 protocol MediaListAnimatorDelegate: AnyObject {
     var transitionViewContentMode: UIView.ContentMode { get }
+    var transitionViewRadius: CGFloat { get }
 
     func getTransitionView(at index: MediaIndex) -> UIView?
     func scrollToTransitionView(at index: MediaIndex)
@@ -24,6 +25,10 @@ protocol MediaListAnimatorDelegate: AnyObject {
 extension MediaListAnimatorDelegate {
     var transitionViewContentMode: UIView.ContentMode {
         .scaleAspectFill
+    }
+
+    var transitionViewRadius: CGFloat {
+        0
     }
 
     func timeForVideo(at index: MediaIndex) -> CMTime? {
@@ -191,13 +196,13 @@ class MediaListAnimator: NSObject, UIViewControllerAnimatedTransitioning, UIView
         }
 
         if let interactiveTransitionView = interactiveTransitionView {
-            transitionView.frame = interactiveTransitionView.frame
+            setTransitionView(transitionView, frame: interactiveTransitionView.frame)
             interactiveTransitionView.removeFromSuperview()
         } else {
-            transitionView.frame = fromViewFrame
+            setTransitionView(transitionView, frame: fromViewFrame)
         }
 
-        transitionView.layer.cornerRadius = presenting ? fromView.layer.cornerRadius : toView.layer.cornerRadius
+        transitionView.layer.cornerRadius = toDelegate?.transitionViewRadius ?? 0
         transitionContext.containerView.addSubview(transitionView)
 
         fromView.alpha = 0
@@ -207,7 +212,7 @@ class MediaListAnimator: NSObject, UIViewControllerAnimatedTransitioning, UIView
         let fromRootView = transitionContext.view(forKey: .from)
 
         UIView.animate(withDuration: transitionDuration(using: transitionContext), delay: 0, usingSpringWithDamping: 0.85, initialSpringVelocity: 0, options: .curveEaseInOut, animations: {
-            transitionView.frame = toViewFrame
+            self.setTransitionView(transitionView, frame: toViewFrame)
 
             if self.presenting {
                 toRootView?.alpha = 1.0
@@ -232,7 +237,7 @@ class MediaListAnimator: NSObject, UIViewControllerAnimatedTransitioning, UIView
         }
     }
 
-    private func getTransitionView() -> UIView? {
+    private func getTransitionView() -> UIImageView? {
         let imageView = UIImageView()
         imageView.clipsToBounds = true
 
@@ -256,6 +261,18 @@ class MediaListAnimator: NSObject, UIViewControllerAnimatedTransitioning, UIView
         }
 
         return imageView
+    }
+
+    private func setTransitionView(_ transitionView: UIImageView, frame: CGRect) {
+        if transitionView.contentMode == .scaleAspectFit {
+            let scale = min(frame.width / media.size.width, frame.height / media.size.height)
+            let width = scale * media.size.width
+            let height = scale * media.size.height
+
+            transitionView.frame = CGRect(x: frame.midX - width / 2, y: frame.midY - height / 2, width: width, height: height)
+        } else {
+            transitionView.frame = frame
+        }
     }
 }
 

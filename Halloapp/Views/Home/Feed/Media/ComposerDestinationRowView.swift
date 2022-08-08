@@ -197,7 +197,7 @@ fileprivate class ContactsViewCell: UICollectionViewCell {
         return String(describing: ContactsViewCell.self)
     }
 
-    private let defaultImage = UIImage(named: "PrivacySettingMyContacts")?.withTintColor(.black.withAlphaComponent(0.6), renderingMode: .alwaysOriginal)
+    private let defaultImage = UIImage(named: "PrivacySettingMyContacts")?.withTintColor(.primaryBlackWhite.withAlphaComponent(0.6), renderingMode: .alwaysOriginal)
     private let selectedImage = UIImage(named: "PrivacySettingMyContacts")?.withTintColor(.white, renderingMode: .alwaysOriginal)
 
     override var isSelected: Bool {
@@ -207,24 +207,26 @@ fileprivate class ContactsViewCell: UICollectionViewCell {
                 titleView.textColor = .primaryBlue
                 selectedView.isHidden = false
                 imageView.image = selectedImage
-                imageBackgroundView.backgroundColor = .primaryBlue
-                imageBackgroundView.layer.borderWidth = 0
+                imageBackgroundView.fillColor = .primaryBlue
+                imageBackgroundView.strokeColor = .clear
             } else {
                 titleView.font = Constants.defaultFont
-                titleView.textColor = .black.withAlphaComponent(0.6)
+                titleView.textColor = .primaryBlackWhite.withAlphaComponent(0.6)
                 selectedView.isHidden = true
                 imageView.image = defaultImage
-                imageBackgroundView.backgroundColor = .clear
-                imageBackgroundView.layer.borderWidth = 2
-                imageBackgroundView.layer.borderColor = UIColor.black.withAlphaComponent(0.6).cgColor
+                imageBackgroundView.fillColor = .clear
+                imageBackgroundView.strokeColor = .primaryBlackWhite.withAlphaComponent(0.6)
             }
         }
     }
 
-    private lazy var imageBackgroundView: UIView = {
-        let backgroundView = UIView()
+    private lazy var imageBackgroundView: RoundedRectView = {
+        let backgroundView = RoundedRectView()
         backgroundView.translatesAutoresizingMaskIntoConstraints = false
-        backgroundView.layer.cornerRadius = 10
+        backgroundView.fillColor = .clear
+        backgroundView.strokeColor = .primaryBlackWhite.withAlphaComponent(0.6)
+        backgroundView.lineWidth = 2
+        backgroundView.cornerRadius = 10
 
         NSLayoutConstraint.activate([
             backgroundView.widthAnchor.constraint(equalToConstant: 44),
@@ -251,7 +253,7 @@ fileprivate class ContactsViewCell: UICollectionViewCell {
         let title = UILabel()
         title.translatesAutoresizingMaskIntoConstraints = false
         title.font = Constants.defaultFont
-        title.textColor = .black.withAlphaComponent(0.6)
+        title.textColor = .primaryBlackWhite.withAlphaComponent(0.6)
         title.textAlignment = .center
         title.numberOfLines = 2
 
@@ -262,14 +264,25 @@ fileprivate class ContactsViewCell: UICollectionViewCell {
         let image = UIImage(systemName: "checkmark.circle.fill")?.withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
         let selectedView = UIImageView(image: image)
         selectedView.translatesAutoresizingMaskIntoConstraints = false
-        selectedView.layer.borderWidth = 2
-        selectedView.layer.borderColor = UIColor.feedBackground.cgColor
         selectedView.layer.cornerRadius = 11
         selectedView.isHidden = true
+
+        let borderView = RoundedRectView()
+        borderView.translatesAutoresizingMaskIntoConstraints = false
+        borderView.fillColor = .clear
+        borderView.strokeColor = .feedBackground
+        borderView.lineWidth = 2
+        borderView.cornerRadius = 11
+
+        selectedView.addSubview(borderView)
 
         NSLayoutConstraint.activate([
             selectedView.widthAnchor.constraint(equalToConstant: 22),
             selectedView.heightAnchor.constraint(equalToConstant: 22),
+            borderView.topAnchor.constraint(equalTo: selectedView.topAnchor, constant: 1),
+            borderView.bottomAnchor.constraint(equalTo: selectedView.bottomAnchor, constant: -1),
+            borderView.leadingAnchor.constraint(equalTo: selectedView.leadingAnchor, constant: 1),
+            borderView.trailingAnchor.constraint(equalTo: selectedView.trailingAnchor, constant: -1),
         ])
 
         return selectedView
@@ -329,7 +342,7 @@ fileprivate class ItemViewCell: UICollectionViewCell {
         let title = UILabel()
         title.translatesAutoresizingMaskIntoConstraints = false
         title.font = Constants.defaultFont
-        title.textColor = .black.withAlphaComponent(0.6)
+        title.textColor = .primaryBlackWhite.withAlphaComponent(0.6)
         title.textAlignment = .center
         title.numberOfLines = 2
 
@@ -340,14 +353,25 @@ fileprivate class ItemViewCell: UICollectionViewCell {
         let image = UIImage(systemName: "checkmark.circle.fill")?.withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
         let selectedView = UIImageView(image: image)
         selectedView.translatesAutoresizingMaskIntoConstraints = false
-        selectedView.layer.borderWidth = 2
-        selectedView.layer.borderColor = UIColor.feedBackground.cgColor
         selectedView.layer.cornerRadius = 11
         selectedView.isHidden = true
+
+        let borderView = RoundedRectView()
+        borderView.translatesAutoresizingMaskIntoConstraints = false
+        borderView.fillColor = .clear
+        borderView.strokeColor = .feedBackground
+        borderView.lineWidth = 2
+        borderView.cornerRadius = 11
+
+        selectedView.addSubview(borderView)
 
         NSLayoutConstraint.activate([
             selectedView.widthAnchor.constraint(equalToConstant: 22),
             selectedView.heightAnchor.constraint(equalToConstant: 22),
+            borderView.topAnchor.constraint(equalTo: selectedView.topAnchor, constant: 1),
+            borderView.bottomAnchor.constraint(equalTo: selectedView.bottomAnchor, constant: -1),
+            borderView.leadingAnchor.constraint(equalTo: selectedView.leadingAnchor, constant: 1),
+            borderView.trailingAnchor.constraint(equalTo: selectedView.trailingAnchor, constant: -1),
         ])
 
         return selectedView
@@ -374,16 +398,16 @@ fileprivate class ItemViewCell: UICollectionViewCell {
     override var isSelected: Bool {
         didSet {
             if isSelected {
-                avatarView.layer.borderColor =  UIColor.primaryBlue.cgColor
-                avatarView.layer.borderWidth = 2
+                avatarView.borderColor =  UIColor.primaryBlue
+                avatarView.borderWidth = 2
                 avatarView.layer.cornerRadius = cornerRadius
                 titleView.font = Constants.selectedFont
                 titleView.textColor = .primaryBlue
                 selectedView.isHidden = false
             } else {
-                avatarView.layer.borderWidth = 0
+                avatarView.borderColor = nil
                 titleView.font = Constants.defaultFont
-                titleView.textColor = .black.withAlphaComponent(0.6)
+                titleView.textColor = .primaryBlackWhite.withAlphaComponent(0.6)
                 selectedView.isHidden = true
             }
         }
@@ -416,7 +440,7 @@ fileprivate class InvitesView: UICollectionReusableView {
         backgroundView.translatesAutoresizingMaskIntoConstraints = false
         backgroundView.backgroundColor = .white
         backgroundView.layer.cornerRadius = 22
-        backgroundView.layer.borderColor = UIColor.black.withAlphaComponent(0.6).cgColor
+        backgroundView.layer.borderColor = UIColor.primaryBlackWhite.withAlphaComponent(0.6).cgColor
         backgroundView.layer.borderWidth = 1
 
         NSLayoutConstraint.activate([
@@ -445,7 +469,7 @@ fileprivate class InvitesView: UICollectionReusableView {
         let title = UILabel()
         title.translatesAutoresizingMaskIntoConstraints = false
         title.font = Constants.defaultFont
-        title.textColor = .black.withAlphaComponent(0.6)
+        title.textColor = .primaryBlackWhite.withAlphaComponent(0.6)
         title.textAlignment = .center
         title.text = Localizations.inviteTitle
         title.numberOfLines = 2
