@@ -21,6 +21,15 @@ public struct AvatarData {
 
 public typealias AvatarID = String
 
+extension AvatarStore {
+    /// Posted when a new `UserAvatar` object has been created and is about to be cached.
+    ///
+    /// Because cache evictions occur often when foregrounding the app, objects that depend on live
+    /// updates of the avatar data should subscribe to this notification and use the new `UserAvatar`
+    /// instance (in `userInfo` with key `userAvatar`) to renew their subscriptions.
+    static let userCacheWillUpdate = Notification.Name("user-avatar-cache-update")
+}
+
 public class AvatarStore: ServiceAvatarDelegate {
     public static let thumbnailSize = CGSize(width: 256, height: 256)
     public static let fullSize = CGSize(width: 1024, height: 1024)
@@ -37,12 +46,6 @@ public class AvatarStore: ServiceAvatarDelegate {
     private let userAvatars = NSCache<NSString, UserAvatar>()
     private let groupAvatarsData = NSCache<NSString, GroupAvatarData>()
     private let addressBookAvatars = NSCache<NSString, AddressBookAvatar>()
-
-    /// Sends new values when the internal cache of `UserAvatar` objects is updated.
-    ///
-    /// Because cache evictions occur often when foregrounding the app, objects that depend on live updates of
-    /// the avatar data should subscribe to this publisher to ensure that updates don't get lost.
-    let userCacheUpdates = PassthroughSubject<UserAvatar, Never>()
     
     private class var persistentStoreURL: URL {
         get {
@@ -152,9 +155,9 @@ public class AvatarStore: ServiceAvatarDelegate {
         } else {
             userAvatar = UserAvatar(userId: userId)
         }
-        
+
+        NotificationCenter.default.post(name: Self.userCacheWillUpdate, object: nil, userInfo: ["userAvatar": userAvatar])
         userAvatars.setObject(userAvatar, forKey: userId as NSString)
-        userCacheUpdates.send(userAvatar)
         
         return userAvatar
     }

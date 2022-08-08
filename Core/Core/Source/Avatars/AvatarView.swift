@@ -122,21 +122,26 @@ public class AvatarView: UIView {
             }
         }
         
-        avatarUpdatingCancellable?.cancel()
-        avatarUpdatingCancellable = userAvatar.imageDidChange.sink { [weak self] image in
-            guard let self = self else { return }
-            self.hasImage = image != nil
-            if let image = image {
-                self.avatar.image = image
-            } else {
-                self.avatar.image = AvatarView.defaultImage
+        subscribeToUpdates(from: userAvatar)
+        userCacheCancellable = NotificationCenter.default.publisher(for: AvatarStore.userCacheWillUpdate)
+            .compactMap { [id = userAvatar.userId] notification in
+                let avatar = notification.userInfo?["userAvatar"] as? UserAvatar
+                return id == avatar?.userId ? avatar : nil
             }
-        }
+            .sink { [weak self] avatar in
+                self?.subscribeToUpdates(from: avatar)
+            }
+    }
 
-        userCacheCancellable = avatarStore.userCacheUpdates
-            .filter { $0.userId == userAvatar.userId }
-            .sink { [weak self] in
-                self?.configure(with: $0, using: avatarStore)
+    private func subscribeToUpdates(from avatar: UserAvatar) {
+        avatarUpdatingCancellable = avatar.imageDidChange
+            .sink { [weak self] image in
+                guard let self = self else {
+                    return
+                }
+
+                self.hasImage = image != nil
+                self.avatar.image = image == nil ? Self.defaultImage : image
             }
     }
 
