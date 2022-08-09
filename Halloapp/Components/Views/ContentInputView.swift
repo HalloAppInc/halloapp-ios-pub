@@ -866,6 +866,10 @@ extension ContentInputView {
 // MARK: - text view delegate methods
 
 extension ContentInputView: ContentTextViewDelegate {
+    func textViewDidBeginEditing(_ textView: UITextView) {
+        textView.invalidateIntrinsicContentSize()
+    }
+    
     func textViewDidChange(_ textView: UITextView) {
         if textView.intrinsicContentSize.height >= self.textView.maxHeight {
             if !textView.isScrollEnabled {
