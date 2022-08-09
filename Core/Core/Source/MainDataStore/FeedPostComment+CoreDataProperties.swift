@@ -43,6 +43,7 @@ public extension FeedPostComment {
     @NSManaged var media: Set<CommonMedia>?
     @NSManaged var replies: Set<FeedPostComment>?
     @NSManaged var linkPreviews: Set<CommonLinkPreview>?
+    @NSManaged var reactions: Set<CommonReaction>?
     @NSManaged var rawData: Data?
     @NSManaged var contentResendInfo: Set<ContentResendInfo>?
     @NSManaged var hasBeenProcessed: Bool
@@ -94,7 +95,14 @@ public extension FeedPostComment {
 
     var orderedMentions: [MentionData] {
         return mentions.sorted(by: { $0.index < $1.index })
-     }
+    }
+    
+    var sortedReactionsList: [CommonReaction] {
+        get {
+            guard let reactions = self.reactions else { return [] }
+            return reactions.sorted { $0.timestamp < $1.timestamp }
+        }
+    }
 }
 
 extension FeedPostComment {

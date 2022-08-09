@@ -47,8 +47,9 @@ public extension CommonReaction {
     @NSManaged var resendAttempts: Int16
     @NSManaged var retractID: String
 
-    @NSManaged var message: ChatMessage
-    
+    @NSManaged var message: ChatMessage?
+    @NSManaged var comment: FeedPostComment?
+
     var incomingStatus: IncomingStatus {
         get {
             return IncomingStatus(rawValue: self.incomingStatusValue)!

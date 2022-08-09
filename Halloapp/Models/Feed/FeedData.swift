@@ -394,19 +394,30 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     switch commentData.content {
                     case .album, .retracted, .voiceNote, .text:
                         DDLogInfo("FeedData/processUnsupportedItems/comments/migrating [\(comment.id)]")
+                        if let groupID = comment.post.groupId {
+                            var elements = groupFeedElements[groupID] ?? []
+                            elements.append(.comment(commentData, publisherName: nil))
+                            groupFeedElements[groupID] = elements
+                        } else {
+                            homeFeedElements.append(.comment(commentData, publisherName: nil))
+                        }
+                    case .commentReaction:
+                        DDLogInfo("FeedData/processUnsupportedItems/comments/reaction/migrating [\(comment.id)]")
+                        if let groupID = comment.post.groupId {
+                            var elements = groupFeedElements[groupID] ?? []
+                            elements.append(.comment(commentData, publisherName: nil))
+                            groupFeedElements[groupID] = elements
+                        } else {
+                            homeFeedElements.append(.comment(commentData, publisherName: nil))
+                        }
+                        DDLogInfo("FeedData/processUnsupportedItems/comments/reaction/deleting tombstone [\(comment.id)]")
+                        self.deleteComment(with: comment.id)
                     case .unsupported:
                         DDLogInfo("FeedData/processUnsupportedItems/comments/skipping [still unsupported] [\(comment.id)]")
                         continue
                     case .waiting:
                         DDLogInfo("FeedData/processUnsupportedItems/comments/skipping [still empty] [\(comment.id)]")
                         continue
-                    }
-                    if let groupID = comment.post.groupId {
-                        var elements = groupFeedElements[groupID] ?? []
-                        elements.append(.comment(commentData, publisherName: nil))
-                        groupFeedElements[groupID] = elements
-                    } else {
-                        homeFeedElements.append(.comment(commentData, publisherName: nil))
                     }
                 }
             } catch {
@@ -742,6 +753,46 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             fatalError("Failed to fetch feed post comments.")
         }
     }
+    
+    private func commonReaction(with id: String, in managedObjectContext: NSManagedObjectContext) -> CommonReaction? {
+        return self.commonReactions(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext).first
+    }
+    
+    private func commonReactions(predicate: NSPredicate? = nil,
+                                 sortDescriptors: [NSSortDescriptor]? = nil,
+                                 limit: Int? = nil,
+                                 in managedObjectContext: NSManagedObjectContext) -> [CommonReaction] {
+        let fetchRequest: NSFetchRequest<CommonReaction> = CommonReaction.fetchRequest()
+        fetchRequest.predicate = predicate
+        fetchRequest.sortDescriptors = sortDescriptors
+        if let fetchLimit = limit { fetchRequest.fetchLimit = fetchLimit }
+        fetchRequest.returnsObjectsAsFaults = false
+
+        do {
+            let reactions = try managedObjectContext.fetch(fetchRequest)
+            return reactions
+        }
+        catch {
+            DDLogError("FeedData/fetch-reactions/error  [\(error)]")
+            fatalError("Failed to fetch reactions")
+        }
+    }
+    
+    private func commonReactions(with ids: Set<CommonReactionID>,
+                              sortDescriptors: [NSSortDescriptor] = [NSSortDescriptor(keyPath: \CommonReaction.timestamp, ascending: true)],
+                              in managedObjectContext: NSManagedObjectContext) -> [CommonReaction] {
+        let fetchRequest: NSFetchRequest<CommonReaction> = CommonReaction.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "id in %@", ids)
+        fetchRequest.returnsObjectsAsFaults = false
+        do {
+            let reactions = try managedObjectContext.fetch(fetchRequest)
+            return reactions
+        }
+        catch {
+            DDLogError("FeedData/fetch-reactions/error  [\(error)]")
+            fatalError("Failed to fetch feed post comment reactions.")
+        }
+    }
 
     // MARK: Group Feed
 
@@ -930,6 +981,25 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
             DDLogVerbose("FeedData/update-comment [\(id)]")
             block(comment)
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+        }
+    }
+    
+    private func updateReaction(with id: CommonReactionID, block: @escaping (CommonReaction) -> (), performAfterSave: (() -> ())? = nil) {
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
+            defer {
+                if let performAfterSave = performAfterSave {
+                    performAfterSave()
+                }
+            }
+            guard let reaction = self.commonReaction(with: id, in: managedObjectContext) else {
+                DDLogError("FeedData/update-reaction/missing-reaction [\(id)]")
+                return
+            }
+            DDLogVerbose("FeedData/update-reaction [\(id)]")
+            block(reaction)
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
             }
@@ -1380,6 +1450,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     feedCommentMedia.order = 0
                     feedCommentMedia.sha256 = media.sha256
                     feedCommentMedia.comment = comment
+                case .commentReaction(let emoji):
+                    comment.rawText = emoji
                 case .retracted:
                     comment.rawText = ""
                 case .unsupported(let data):
@@ -1391,7 +1463,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
                 // Set status for each comment appropriately.
                 switch xmppComment.content {
-                case .album, .text, .voiceNote:
+                case .album, .text, .commentReaction, .voiceNote:
                     // Mark our own comments as seen in case server sends us old comments following re-registration
                     if comment.userId == userData.userId {
                         comment.status = .sent
@@ -1451,9 +1523,138 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return newComments
     }
 
+    @discardableResult private func process(reactions xmppReactions: [CommentData],
+                                            receivedIn groupID: GroupID?,
+                                            using managedObjectContext: NSManagedObjectContext,
+                                            presentLocalNotifications: Bool) -> [CommonReaction] {
+        guard !xmppReactions.isEmpty else { return [] }
+
+        let feedPostIds = Set(xmppReactions.map{ $0.feedPostId })
+        let posts = feedPosts(with: feedPostIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
+        let reactionIds = Set(xmppReactions.map{ $0.id })
+        var reactions = commonReactions(with: reactionIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
+        let commentIds = Set(xmppReactions.compactMap{ $0.parentId })
+        let comments = feedComments(with: commentIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
+        var ignoredReactionIds: Set<String> = []
+        var newReactions: [CommonReaction] = []
+        
+        for xmppReaction in xmppReactions {
+
+            if let existingReaction = reactions[xmppReaction.id] {
+                switch existingReaction.incomingStatus {
+                case .unsupported, .none, .rerequesting:
+                    DDLogInfo("FeedData/process/already-exists/updating [\(existingReaction.incomingStatus)] [\(xmppReaction.id)]")
+                    break
+                case .error, .incoming, .retracted:
+                    DDLogError("FeedData/process/already-exists/error [\(existingReaction.incomingStatus)] [\(xmppReaction.id)]")
+                    continue
+                }
+            }
+
+            // Find reaction's post.
+            let feedPost: FeedPost
+            if let post = posts[xmppReaction.feedPostId] {
+                DDLogInfo("FeedData/process-reactions/existing-post [\(xmppReaction.feedPostId)]")
+                feedPost = post
+            } else {
+                DDLogError("FeedData/process-reactions/missing-post [\(xmppReaction.feedPostId)]/skip comment")
+                AppContext.shared.errorLogger?.logError(NSError(domain: "MissingPostForReaction", code: 1011))
+                ignoredReactionIds.insert(xmppReaction.id)
+                continue
+            }
+
+            // Additional check: post's groupId must match groupId of the comment.
+            guard feedPost.groupId == groupID else {
+                DDLogError("FeedData/process-reactions/incorrect-group-id post:[\(feedPost.groupId ?? "")] comment:[\(groupID ?? "")]")
+                ignoredReactionIds.insert(xmppReaction.id)
+                continue
+            }
+
+            // Check if post has been retracted.
+            guard !feedPost.isPostRetracted else {
+                DDLogError("FeedData/process-reactions/retracted-post [\(xmppReaction.feedPostId)]")
+                ignoredReactionIds.insert(xmppReaction.id)
+                continue
+            }
+
+            // Check if parent comment exists
+            guard let parentId = xmppReaction.parentId, let parentComment = comments[parentId] else {
+                DDLogError("FeedData/process-reactions/no-parent-comment for reaction [\(xmppReaction.id)]")
+                ignoredReactionIds.insert(xmppReaction.id)
+                // TODO: handle reactions that arrive before corresponding comment
+                continue
+            }
+
+            DDLogDebug("FeedData/process-reactions [\(xmppReaction.id)]")
+            let commonReaction: CommonReaction = {
+                guard let existingReaction = reactions[xmppReaction.id] else {
+                    let existingTombstone = self.feedComment(with: xmppReaction.id, in: managedObjectContext)
+                    if let existingTombstone = existingTombstone, existingTombstone.status == .rerequesting {
+                        //Delete tombstone
+                        DDLogInfo("FeedData/process-reactions/deleteTombstone [\(existingTombstone.id)]")
+                        managedObjectContext.delete(existingTombstone)
+                    }
+                    DDLogDebug("FeedData/process-reactions/new [\(xmppReaction.id)]")
+                    return CommonReaction(context: managedObjectContext)
+                }
+                DDLogDebug("FeedData/process-reactions/updating rerequested reaction [\(xmppReaction.id)]")
+                return existingReaction
+            }()
+
+            commonReaction.id = xmppReaction.id
+            commonReaction.fromUserID = xmppReaction.userId
+            switch xmppReaction.content {
+            case .commentReaction(let emoji):
+                commonReaction.emoji = emoji
+            case .album, .text, .voiceNote, .unsupported, .retracted, .waiting:
+                DDLogError("FeedData/process-reaction content not reaction type")
+            }
+            commonReaction.comment = parentComment
+            commonReaction.timestamp = xmppReaction.timestamp
+            feedPost.lastUpdated = feedPost.lastUpdated.flatMap { max($0, commonReaction.timestamp) } ?? commonReaction.timestamp
+
+            // Set status for each comment appropriately.
+            switch xmppReaction.content {
+            case .commentReaction:
+                if commonReaction.fromUserID == userData.userId {
+                    commonReaction.outgoingStatus = .sentOut
+                } else {
+                    // Set status to be rerequesting if necessary.
+                    if xmppReaction.status == .rerequesting {
+                        commonReaction.incomingStatus = .rerequesting
+                    } else {
+                        commonReaction.incomingStatus = .incoming
+                    }
+                }
+            case .retracted:
+                DDLogError("FeedData/process-reactions/incoming-retracted-comment [\(xmppReaction.id)]")
+                commonReaction.incomingStatus = .retracted
+            case .unsupported(let data):
+                commonReaction.incomingStatus = .unsupported
+                feedPost.rawData = data
+            case .waiting:
+                commonReaction.incomingStatus = .rerequesting
+                if xmppReaction.status != .rerequesting {
+                    DDLogError("FeedData/process-reactions/invalid content [\(xmppReaction.id)] with status: \(xmppReaction.status)")
+                }
+            case .text, .voiceNote, .album:
+                DDLogError("FeedData/process-reactions/processing comment as reaction [\(xmppReaction.id)] with status: \(xmppReaction.status)")
+            }
+
+            reactions[commonReaction.id] = commonReaction
+            newReactions.append(commonReaction)
+        }
+
+        DDLogInfo("FeedData/process-reactions/finished  \(newReactions.count) new items. \(ignoredReactionIds.count) ignored.")
+        save(managedObjectContext)
+
+        return newReactions
+    }
+
     private func processIncomingFeedItems(_ items: [FeedElement], groupID: GroupID?, presentLocalNotifications: Bool, ack: (() -> Void)?) {
         var feedPosts = [PostData]()
         var comments = [CommentData]()
+        var reactions = [CommentData]()
         var contactNames = [UserID:String]()
 
         for item in items {
@@ -1465,14 +1666,20 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     contactNames[$0.userID] = $0.name
                 }
             case .comment(let comment, let name):
-                comments.append(comment)
-                comment.orderedMentions.forEach {
-                    guard !$0.name.isEmpty else { return }
-                    contactNames[$0.userID] = $0.name
+                switch comment.content {
+                case .commentReaction:
+                    reactions.append(comment)
+                case .voiceNote, .text, .unsupported, .album, .retracted, .waiting:
+                    comments.append(comment)
+                    comment.orderedMentions.forEach {
+                        guard !$0.name.isEmpty else { return }
+                        contactNames[$0.userID] = $0.name
+                    }
+                    if let name = name, !name.isEmpty {
+                        contactNames[comment.userId] = name
+                    }
                 }
-                if let name = name, !name.isEmpty {
-                    contactNames[comment.userId] = name
-                }
+                
             }
         }
 
@@ -1490,6 +1697,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             let comments = self.process(comments: comments, receivedIn: groupID, using: managedObjectContext, presentLocalNotifications: presentLocalNotifications)
             self.generateNotifications(for: comments, using: managedObjectContext, markAsRead: !presentLocalNotifications)
+            
+            let reactions = self.process(reactions: reactions, receivedIn: groupID, using: managedObjectContext, presentLocalNotifications: presentLocalNotifications)
 
             if let ack = ack {
                 DispatchQueue.main.async {
@@ -2949,6 +3158,34 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
         }
     }
+    
+    func sendReaction(reaction: String, replyingTo parentCommentId: FeedPostCommentID) {
+        performSeriallyOnBackgroundContext { managedObjectContext in
+            let reactionId: CommonReactionID = PacketID.generate()
+
+            // Create and save CommonReaction
+            var parentComment: FeedPostComment?
+            parentComment = self.feedComment(with: parentCommentId, in: managedObjectContext)
+            guard let parentComment = parentComment else {
+                DDLogError("FeedData/new-reaction/error  Missing parent comment with id=[\(parentCommentId)]")
+                return
+            }
+
+            DDLogDebug("FeedData/new-reaction/create id=[\(reactionId)]")
+            let commonReaction = CommonReaction(context: managedObjectContext)
+            commonReaction.id = reactionId
+            commonReaction.fromUserID = self.userData.userId
+            commonReaction.emoji = reaction
+            commonReaction.comment = parentComment
+            commonReaction.incomingStatus = .none
+            commonReaction.outgoingStatus = .pending
+            commonReaction.timestamp = Date()
+
+            self.save(managedObjectContext)
+
+            self.send(reaction: commonReaction)
+        }
+    }
 
     func retryPosting(postId: FeedPostID) {
         performSeriallyOnBackgroundContext { managedObjectContext in
@@ -3022,7 +3259,59 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
         }
     }
+    
+    private func send(reaction: CommonReaction) {
+        DDLogInfo("FeedData/send-reaction/reactionID: \(reaction.id)")
+        guard let parentComment = reaction.comment else {
+            DDLogError("FeedData/send-reaction/no parent comment")
+            return
+        }
+        let reactionId = reaction.id
+        let groupId = parentComment.post.groupId
+        let postId = parentComment.post.id
 
+        guard !contentInFlight.contains(reactionId) else {
+            DDLogInfo("FeedData/send-reaction/reactionID: \(parentComment.id) already-in-flight")
+            return
+        }
+        DDLogInfo("FeedData/send-reaction/reactionID: \(parentComment.id) begin")
+        contentInFlight.insert(reactionId)
+        
+        var content: CommentContent
+        content = .commentReaction(reaction.emoji)
+        let commentData = CommentData(id: reaction.id, userId: reaction.fromUserID, timestamp: reaction.timestamp, feedPostId: parentComment.post.id, parentId: parentComment.id, content: content, status: FeedItemStatus.sent)
+        
+        service.publishComment(commentData, groupId: groupId) { result in
+            switch result {
+            case .success(let timestamp):
+                DDLogInfo("FeedData/send-reaction/reactionID: \(reactionId) success")
+                self.contentInFlight.remove(reactionId)
+                self.updateReaction(with: reactionId) { (reaction) in
+                    reaction.timestamp = timestamp
+                    reaction.outgoingStatus = .sentOut
+
+                    MainAppContext.shared.endBackgroundTask(reaction.id)
+                }
+                if groupId != nil {
+                    var interestedPosts = AppContext.shared.userDefaults.value(forKey: AppContext.commentedGroupPostsKey) as? [FeedPostID] ?? []
+                    interestedPosts.append(postId)
+                    AppContext.shared.userDefaults.set(Array(Set(interestedPosts)), forKey: AppContext.commentedGroupPostsKey)
+                }
+
+            case .failure(let error):
+                DDLogError("FeedData/send-reaction/reactionID: \(reactionId) error \(error)")
+                self.contentInFlight.remove(reactionId)
+                // TODO: Track this state more precisely. Even if this attempt was a definite failure, a previous attempt may have succeeded.
+                if error.isKnownFailure {
+                    self.updateReaction(with: reactionId) { (reaction) in
+                        reaction.outgoingStatus = .error
+                        MainAppContext.shared.endBackgroundTask(reaction.id)
+                    }
+                }
+            }
+        }
+    }
+    
     private func send(post: FeedPost) {
         let feed: Feed
         if let groupId = post.groupId {
@@ -4129,6 +4418,21 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }.forEach({ comment in
             managedObjectContext.delete(comment)
         })
+    }
+    
+    public func deleteComment(with id: FeedPostCommentID) {
+        DDLogDebug("FeedData/deleteComment/message \(id)")
+
+        performSeriallyOnBackgroundContext { [weak self] context in
+            guard let self = self, let comment = self.feedComment(with: id, in: context) else {
+                return
+            }
+            context.delete(comment)
+
+            if context.hasChanges {
+                self.save(context)
+            }
+        }
     }
     
     /// Deletes drafts of comments in `userDefaults` that meet the condition argument.

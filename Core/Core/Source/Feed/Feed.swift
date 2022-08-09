@@ -547,6 +547,10 @@ public extension CommentData {
             var voiceNote = Clients_VoiceNote()
             voiceNote.audio = protoResource
             commentContainer.voiceNote = voiceNote
+        case .commentReaction(let emoji):
+            var reaction = Clients_Reaction()
+            reaction.emoji = emoji
+            commentContainer.reaction = reaction
         case .retracted, .unsupported, .waiting:
             break
         }
@@ -566,6 +570,12 @@ public extension CommentData {
         comment.postID = feedPostId
         comment.publisherUid = Int64(userId) ?? 0
         comment.timestamp = Int64(timestamp.timeIntervalSince1970)
+        switch content {
+        case .commentReaction:
+            comment.commentType = .commentReaction
+        case .text, .voiceNote, .album, .unsupported, .retracted, .waiting:
+            comment.commentType = .comment
+        }
         if let payload = try? clientContainer.serializedData() {
             comment.payload = payload
         } else {

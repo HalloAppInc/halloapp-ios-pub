@@ -733,6 +733,8 @@ class NotificationMetadata: Codable {
             body = String(format: Localizations.newCommentWithTextNotificationBody, commentText)
         case .voiceNote(_):
             body = String(format: Localizations.newCommentWithTextNotificationBody, Localizations.newAudioCommentNotificationBody)
+        case .commentReaction(let emoji):
+            body = String(format: Localizations.newCommentWithReactionNotificationBody, emoji)
         case .none, .retracted, .unsupported, .waiting:
             body = newCommentString
         }

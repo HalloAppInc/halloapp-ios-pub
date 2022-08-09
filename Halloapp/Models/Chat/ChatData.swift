@@ -3424,8 +3424,11 @@ extension ChatData {
     }
     
     private func deleteReaction(commonReaction: CommonReaction) {
-        DDLogDebug("ChatData/deleteReaction/message \(commonReaction.id) ")
-        let parentMessage = commonReaction.message
+        DDLogDebug("ChatData/deleteReaction/reaction \(commonReaction.id) ")
+        guard let parentMessage = commonReaction.message else {
+            DDLogError("ChatData/deleteReaction/no parent message")
+            return
+        }
         if let reactionToDelete = parentMessage.sortedReactionsList.filter({ $0.fromUserID == commonReaction.fromUserID }).last {
                 parentMessage.managedObjectContext?.delete(reactionToDelete)
         }
@@ -5621,7 +5624,7 @@ extension ChatData: HalloChatDelegate {
                    continue
                case .retracted:
                    serverGroupFeedItem.action = .retract
-               case .album, .text, .voiceNote:
+               case .album, .text, .commentReaction, .voiceNote:
                    serverGroupFeedItem.action = .publish
                }
                 serverGroupFeedItem.comment = serverComment

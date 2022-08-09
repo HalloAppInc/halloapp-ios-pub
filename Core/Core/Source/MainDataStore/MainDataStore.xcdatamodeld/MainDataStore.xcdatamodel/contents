@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="21271" systemVersion="21F79" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="20086" systemVersion="21G72" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="Call" representedClassName="Call" syncable="YES">
         <attribute name="answered" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="callID" attributeType="String"/>
@@ -117,6 +117,7 @@
         <attribute name="serverTimestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="toUserID" optional="YES" attributeType="String"/>
+        <relationship name="comment" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPostComment" inverseName="reactions" inverseEntity="FeedPostComment"/>
         <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatMessage" inverseName="reactions" inverseEntity="ChatMessage"/>
         <uniquenessConstraints>
             <uniquenessConstraint>
@@ -214,6 +215,7 @@
         <relationship name="media" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CommonMedia" inverseName="comment" inverseEntity="CommonMedia"/>
         <relationship name="parent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPostComment" inverseName="replies" inverseEntity="FeedPostComment"/>
         <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="comments" inverseEntity="FeedPost"/>
+        <relationship name="reactions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CommonReaction" inverseName="comment" inverseEntity="CommonReaction"/>
         <relationship name="replies" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FeedPostComment" inverseName="parent" inverseEntity="FeedPostComment"/>
         <uniquenessConstraints>
             <uniquenessConstraint>
@@ -275,14 +277,14 @@
         <element name="CommonLinkPreview" positionX="-45" positionY="63" width="128" height="149"/>
         <element name="CommonLocation" positionX="0" positionY="0" width="128" height="89"/>
         <element name="CommonMedia" positionX="-36" positionY="72" width="128" height="359"/>
-        <element name="CommonReaction" positionX="36" positionY="189" width="128" height="194"/>
+        <element name="CommonReaction" positionX="27" positionY="180" width="128" height="194"/>
         <element name="CommonThread" positionX="27" positionY="180" width="128" height="209"/>
         <element name="ContentPublishInfo" positionX="36" positionY="108" width="128" height="74"/>
         <element name="ContentResendInfo" positionX="-63" positionY="45" width="128" height="119"/>
         <element name="ExternalShareInfo" positionX="-54" positionY="54" width="128" height="74"/>
         <element name="FeedActivity" positionX="18" positionY="99" width="128" height="179"/>
         <element name="FeedPost" positionX="-18" positionY="81" width="128" height="314"/>
-        <element name="FeedPostComment" positionX="0" positionY="90" width="128" height="239"/>
+        <element name="FeedPostComment" positionX="0" positionY="90" width="128" height="254"/>
         <element name="Group" positionX="9" positionY="162" width="128" height="164"/>
         <element name="GroupEvent" positionX="45" positionY="198" width="128" height="134"/>
         <element name="GroupHistoryInfo" positionX="-63" positionY="45" width="128" height="89"/>

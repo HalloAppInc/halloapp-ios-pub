@@ -230,6 +230,8 @@ class DataStore: NotificationServiceExtensionDataStore {
                 feedCommentMedia.sha256 = media.sha256
                 feedCommentMedia.comment = feedComment
                 feedComment.rawData = nil
+            case .commentReaction:
+                feedComment.rawData = nil
             case .retracted:
                 DDLogError("NotificationExtension/DataStore/incoming-retracted-comment [\(commentId)]")
                 feedComment.rawData = nil

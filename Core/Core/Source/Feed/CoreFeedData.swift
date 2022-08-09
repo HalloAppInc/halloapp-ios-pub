@@ -274,7 +274,7 @@ public class CoreFeedData {
 
             // Status
             switch commentData.content {
-            case .album, .text, .voiceNote:
+            case .album, .text, .voiceNote, .commentReaction:
                 if commentData.status == .rerequesting {
                     feedComment.status = .rerequesting
                 } else {

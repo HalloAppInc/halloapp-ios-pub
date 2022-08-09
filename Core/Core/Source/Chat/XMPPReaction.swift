@@ -45,9 +45,9 @@ extension XMPPReaction {
         self.context = ChatContext(
             feedPostID: nil,
             feedPostMediaIndex: 0,
-            chatReplyMessageID: reaction.message.id,
+            chatReplyMessageID: reaction.message?.id,
             chatReplyMessageMediaIndex: 0,
-            chatReplyMessageSenderID: reaction.message.fromUserID)
+            chatReplyMessageSenderID: reaction.message?.fromUserID)
         self.rerequestCount = Int32(reaction.resendAttempts)
 
         self.content = .reaction(reaction.emoji)
