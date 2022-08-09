@@ -1094,6 +1094,9 @@ final class ProtoService: ProtoServiceCore {
                 MainAppContext.shared.syncManager.processNotification(contactHashes: [pbContactHash.hash], completion: ack)
                 hasAckBeenDelegated = true
             }
+        case .groupChatStanza(_):
+            // TODO : Handle group chat!
+            break
         case .groupStanza(let pbGroup):
             if let group = HalloGroup(protoGroup: pbGroup, msgId: msg.id, retryCount: msg.retryCount) {
                 hasAckBeenDelegated = true
