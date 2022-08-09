@@ -66,11 +66,11 @@ class MessageCellViewBase: UICollectionViewCell {
         return view
     }()
 
-    lazy var textLabel: UITextView = {
-        let textView = UITextView()
+    lazy var textLabel: UnselectableUITextView = {
+        let textView = UnselectableUITextView()
         textView.isScrollEnabled = false
         textView.isEditable = false
-        textView.isSelectable = false
+        textView.isSelectable = true
         textView.isUserInteractionEnabled = true
         textView.dataDetectorTypes = .link
         textView.textContainerInset = UIEdgeInsets.zero
@@ -344,7 +344,10 @@ class MessageCellViewBase: UICollectionViewCell {
         for reaction in reactionBubble.arrangedSubviews {
             reaction.removeFromSuperview()
         }
-        gestureRecognizers?.removeAll()
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(showMessageOptions(_:)))
+        let listReactions = UITapGestureRecognizer(target: self, action: #selector(showReactionList(_:)))
+        self.removeGestureRecognizer(longPressGesture)
+        self.removeGestureRecognizer(listReactions)
         reactionBubble.removeFromSuperview()
         if outgoingMessageStatusCancellable != nil {
             outgoingMessageStatusCancellable?.cancel()
