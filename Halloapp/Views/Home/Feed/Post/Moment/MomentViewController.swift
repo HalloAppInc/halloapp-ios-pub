@@ -350,6 +350,7 @@ class MomentViewController: UIViewController {
 
         DDLogInfo("MomentViewController/expireMomentIfReady/passed guard")
         MainAppContext.shared.feedData.momentWasViewed(post)
+        UNUserNotificationCenter.current().removeDeliveredMomentNotifications()
     }
 
     private func screenshotWasTaken() {

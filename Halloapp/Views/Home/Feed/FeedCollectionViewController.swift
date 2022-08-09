@@ -674,8 +674,11 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
     private func willShowCell(atIndexPath indexPath: IndexPath) {
         guard let feedPost = feedDataSource.item(at: indexPath.item)?.post else {
             // This is the stacked moments cell.
-            if indexPath.item == 0 {
+            switch collectionViewDataSource?.itemIdentifier(for: indexPath) {
+            case .momentStack, .moment:
                 MainAppContext.shared.feedData.downloadMediaInMoments()
+            default:
+                break
             }
             return
         }
@@ -692,6 +695,13 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
             let cell = self.collectionView.cellForItem(at: indexPath),
             isOnscreen(cell: cell)
         else {
+            // This is the stacked moments cell.
+            switch collectionViewDataSource?.itemIdentifier(for: indexPath) {
+            case .momentStack, .moment:
+                UNUserNotificationCenter.current().removeDeliveredMomentNotifications()
+            default:
+                break
+            }
             return
         }
 
