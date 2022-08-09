@@ -231,19 +231,6 @@ public class CoreFeedData {
             if let post = self.feedPost(with: commentData.feedPostId, in: context) {
                 DDLogInfo("CoreFeedData/saveCommentData/existing-post [\(commentData.feedPostId)]")
                 feedPost = post
-            } else if let groupID = groupID {
-                // Create a post only for missing group posts.
-                DDLogInfo("CoreFeedData/saveCommentData/missing-post [\(commentData.feedPostId)]/creating one")
-                let timestamp = Date()
-
-                feedPost = FeedPost(context: context)
-                feedPost.id = commentData.feedPostId
-                feedPost.status = .rerequesting
-                feedPost.userId = ""
-                feedPost.timestamp = timestamp
-                feedPost.groupId = groupID
-                feedPost.lastUpdated = timestamp
-                feedPost.expiration = timestamp.addingTimeInterval(FeedPost.defaultExpiration) // Just set a default expiration here
             } else {
                 DDLogError("CoreFeedData/saveCommentData/missing-post [\(commentData.feedPostId)]/skip comment")
                 return
