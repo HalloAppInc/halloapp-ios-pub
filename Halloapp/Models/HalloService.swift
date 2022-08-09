@@ -84,11 +84,14 @@ protocol HalloService: CoreService {
     func getCallServers(id callID: CallID, for peerUserID: UserID, callType: CallType, completion: @escaping ServiceRequestCompletion<Server_GetCallServersResult>)
     func startCall(id callID: CallID, to peerUserID: UserID, callType: CallType, payload: Data, callCapabilities: Server_CallCapabilities, completion: @escaping ServiceRequestCompletion<Server_StartCallResult>)
     func iceRestartOfferCall(id callID: CallID, to peerUserID: UserID, payload: Data, iceIdx: Int32, completion: @escaping (Result<Void, RequestError>) -> Void)
-    func answerCall(id callID: CallID, to peerUserID: UserID, payload: Data, completion: @escaping (Result<Void, RequestError>) -> Void)
+    func answerCall(id callID: CallID, to peerUserID: UserID, answerPayload: Data, completion: @escaping (Result<Void, RequestError>) -> Void)
+    func answerCall(id callID: CallID, to peerUserID: UserID, offerPayload: Data, completion: @escaping (Result<Void, RequestError>) -> Void)
     func holdCall(id callID: CallID, to peerUserID: UserID, hold: Bool, completion: @escaping (Result<Void, RequestError>) -> Void)
     func muteCall(id callID: CallID, to peerUserID: UserID, muted: Bool, mediaType: Server_MuteCall.MediaType, completion: @escaping (Result<Void, RequestError>) -> Void)
     func iceRestartAnswerCall(id callID: CallID, to peerUserID: UserID, payload: Data, iceIdx: Int32, completion: @escaping (Result<Void, RequestError>) -> Void)
     func sendCallRinging(id callID: CallID, to peerUserID: UserID)
+    func sendCallRinging(id callID: CallID, to peerUserID: UserID, payload: Data, completion: @escaping (Result<Void, RequestError>) -> Void)
+    func sendCallSdp(id callID: CallID, to peerUserID: UserID, payload: Data, completion: @escaping (Result<Void, RequestError>) -> Void)
     func endCall(id callID: CallID, to peerUserID: UserID, reason: EndCallReason)
     func sendIceCandidate(id callID: CallID, to peerUserID: UserID, iceCandidateInfo: IceCandidateInfo)
     
@@ -148,4 +151,5 @@ protocol HalloCallDelegate: AnyObject {
     func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveEndCall endCall: Server_EndCall)
     func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveHoldCall holdCall: Server_HoldCall)
     func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveMuteCall muteCall: Server_MuteCall)
+    func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveCallSdp callSdp: Server_CallSdp)
 }

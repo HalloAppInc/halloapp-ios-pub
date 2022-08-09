@@ -1317,8 +1317,16 @@ final class ProtoService: ProtoServiceCore {
                 callDelegate?.halloService(self, from: UserID(msg.fromUid), didReceiveMuteCall: muteCall)
             }
 
-        case .callSdp(_):
-            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
+        case .callSdp(let callSdp):
+            if !readyToHandleCallMessages {
+                DDLogInfo("proto/didReceive/\(msg.id)/callSdp/\(callSdp.callID)/addedToPending")
+                var pendingMsgs = pendingCallMessages[callSdp.callID] ?? []
+                pendingMsgs.append(msg)
+                pendingCallMessages[callSdp.callID] = pendingMsgs
+            } else {
+                DDLogInfo("proto/didReceive/\(msg.id)/muteCall/\(callSdp.callID)")
+                callDelegate?.halloService(self, from: UserID(msg.fromUid), didReceiveCallSdp: callSdp)
+            }
 
         // We get this message when client rerequested content from another user and they dont have the content.
         case .contentMissing(let contentMissing):
@@ -1376,6 +1384,8 @@ final class ProtoService: ProtoServiceCore {
                     callDelegate?.halloService(self, from: UserID(pendingMsg.fromUid), didReceiveHoldCall: holdCall)
                 case .muteCall(let muteCall):
                     callDelegate?.halloService(self, from: UserID(pendingMsg.fromUid), didReceiveMuteCall: muteCall)
+                case .callSdp(let callSdp):
+                    callDelegate?.halloService(self, from: UserID(pendingMsg.fromUid), didReceiveCallSdp: callSdp)
                 default:
                     DDLogError("proto/didReceive/unexpected call message: \(String(describing: pendingMsg.payload))")
                     break
@@ -2149,13 +2159,13 @@ extension ProtoService: HalloService {
         }
     }
 
-    func answerCall(id callID: CallID, to peerUserID: UserID, payload: Data, completion: @escaping (Result<Void, RequestError>) -> Void) {
+    func answerCall(id callID: CallID, to peerUserID: UserID, answerPayload: Data, completion: @escaping (Result<Void, RequestError>) -> Void) {
         execute(whenConnectionStateIs: .connected, onQueue: .main) {
-            AppContext.shared.messageCrypter.encrypt(payload, for: peerUserID) { [weak self] result in
+            AppContext.shared.messageCrypter.encrypt(answerPayload, for: peerUserID) { [weak self] result in
                 guard let self = self else { return }
                 switch result {
                 case .failure(let error):
-                    DDLogError("ProtoService/startCall/\(callID)/failed encryption: \(peerUserID)/error: \(error)")
+                    DDLogError("ProtoService/answerCall/\(callID)/failed encryption: \(peerUserID)/error: \(error)")
                     completion(.failure(.aborted))
                 case .success((let encryptedData, _)):
                     guard let fromUID = Int64(AppContext.shared.userData.userId) else {
@@ -2178,6 +2188,53 @@ extension ProtoService: HalloService {
                     var answerCall = Server_AnswerCall()
                     answerCall.callID = callID
                     answerCall.webrtcAnswer = webrtcAnswer
+                    var packet = Server_Packet()
+                    packet.msg.fromUid = fromUID
+                    packet.msg.id = msgID
+                    packet.msg.toUid = toUID
+                    packet.msg.payload = .answerCall(answerCall)
+
+                    guard let packetData = try? packet.serializedData() else {
+                        DDLogError("ProtoService/answerCall/\(callID)/error could not serialize packet")
+                        return
+                    }
+                    DDLogInfo("ProtoService/answerCall/\(callID) sending")
+                    self.send(packetData)
+                    completion(.success(()))
+                }
+            }
+        }
+    }
+
+    func answerCall(id callID: CallID, to peerUserID: UserID, offerPayload: Data, completion: @escaping (Result<Void, RequestError>) -> Void) {
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            AppContext.shared.messageCrypter.encrypt(offerPayload, for: peerUserID) { [weak self] result in
+                guard let self = self else { return }
+                switch result {
+                case .failure(let error):
+                    DDLogError("ProtoService/answerCall/\(callID)/failed encryption: \(peerUserID)/error: \(error)")
+                    completion(.failure(.aborted))
+                case .success((let encryptedData, _)):
+                    guard let fromUID = Int64(AppContext.shared.userData.userId) else {
+                        DDLogError("ProtoService/answerCall/\(callID)/error invalid sender uid")
+                        completion(.failure(.aborted))
+                        return
+                    }
+                    guard let toUID = Int64(peerUserID) else {
+                        DDLogError("ProtoService/answerCall/\(callID)/error invalid to uid")
+                        completion(.failure(.aborted))
+                        return
+                    }
+
+                    let msgID = PacketID.generate()
+                    var webrtcOffer = Server_WebRtcSessionDescription()
+                    webrtcOffer.encPayload = encryptedData.data
+                    webrtcOffer.publicKey = encryptedData.identityKey ?? Data()
+                    webrtcOffer.oneTimePreKeyID = Int32(encryptedData.oneTimeKeyId)
+
+                    var answerCall = Server_AnswerCall()
+                    answerCall.callID = callID
+                    answerCall.webrtcOffer = webrtcOffer
                     var packet = Server_Packet()
                     packet.msg.fromUid = fromUID
                     packet.msg.id = msgID
@@ -2235,6 +2292,7 @@ extension ProtoService: HalloService {
 
                     guard let packetData = try? packet.serializedData() else {
                         DDLogError("ProtoService/iceRestartAnswerCall/\(callID)/error could not serialize packet")
+                        completion(.failure(.aborted))
                         return
                     }
                     DDLogInfo("ProtoService/iceRestartAnswerCall/\(callID) sending")
@@ -2341,6 +2399,107 @@ extension ProtoService: HalloService {
 
             DDLogInfo("ProtoService/sendCallRinging/\(callID) sending")
             self.send(packetData)
+        }
+    }
+
+    func sendCallRinging(id callID: CallID, to peerUserID: UserID, payload: Data, completion: @escaping (Result<Void, RequestError>) -> Void) {
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            AppContext.shared.messageCrypter.encrypt(payload, for: peerUserID) { [weak self] result in
+                guard let self = self else { return }
+                switch result {
+                case .failure(let error):
+                    DDLogError("ProtoService/sendCallRinging/\(callID)/failed encryption: \(peerUserID)/error: \(error)")
+                    completion(.failure(.aborted))
+                case .success((let encryptedData, _)):
+                    guard let fromUID = Int64(AppContext.shared.userData.userId) else {
+                        DDLogError("ProtoService/sendCallRinging/\(callID)/error invalid sender uid")
+                        completion(.failure(.aborted))
+                        return
+                    }
+                    guard let toUID = Int64(peerUserID) else {
+                        DDLogError("ProtoService/sendCallRinging/\(callID)/error invalid to uid")
+                        completion(.failure(.aborted))
+                        return
+                    }
+
+                    let msgID = PacketID.generate()
+                    var webrtcAnswer = Server_WebRtcSessionDescription()
+                    webrtcAnswer.encPayload = encryptedData.data
+                    webrtcAnswer.publicKey = encryptedData.identityKey ?? Data()
+                    webrtcAnswer.oneTimePreKeyID = Int32(encryptedData.oneTimeKeyId)
+
+                    var callRinging = Server_CallRinging()
+                    callRinging.callID = callID
+                    callRinging.webrtcAnswer = webrtcAnswer
+
+                    var packet = Server_Packet()
+                    packet.msg.fromUid = fromUID
+                    packet.msg.id = msgID
+                    packet.msg.toUid = toUID
+                    packet.msg.payload = .callRinging(callRinging)
+
+                    guard let packetData = try? packet.serializedData() else {
+                        DDLogError("ProtoService/sendCallRinging/\(callID)/error could not serialize packet")
+                        completion(.failure(.aborted))
+                        return
+                    }
+
+                    DDLogInfo("ProtoService/sendCallRinging/\(callID) sending")
+                    self.send(packetData)
+                    completion(.success(()))
+                }
+            }
+        }
+    }
+
+    func sendCallSdp(id callID: CallID, to peerUserID: UserID, payload: Data, completion: @escaping (Result<Void, RequestError>) -> Void) {
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            AppContext.shared.messageCrypter.encrypt(payload, for: peerUserID) { [weak self] result in
+                guard let self = self else { return }
+                switch result {
+                case .failure(let error):
+                    DDLogError("ProtoService/sendCallSdp/\(callID)/failed encryption: \(peerUserID)/error: \(error)")
+                    completion(.failure(.aborted))
+                case .success((let encryptedData, _)):
+                    guard let fromUID = Int64(AppContext.shared.userData.userId) else {
+                        DDLogError("ProtoService/sendCallSdp/\(callID)/error invalid sender uid")
+                        completion(.failure(.aborted))
+                        return
+                    }
+                    guard let toUID = Int64(peerUserID) else {
+                        DDLogError("ProtoService/sendCallSdp/\(callID)/error invalid to uid")
+                        completion(.failure(.aborted))
+                        return
+                    }
+
+                    let msgID = PacketID.generate()
+                    var webrtcOffer = Server_WebRtcSessionDescription()
+                    webrtcOffer.encPayload = encryptedData.data
+                    webrtcOffer.publicKey = encryptedData.identityKey ?? Data()
+                    webrtcOffer.oneTimePreKeyID = Int32(encryptedData.oneTimeKeyId)
+
+                    var callSdp = Server_CallSdp()
+                    callSdp.callID = callID
+                    callSdp.sdpType = .offer
+                    callSdp.info = webrtcOffer
+
+                    var packet = Server_Packet()
+                    packet.msg.fromUid = fromUID
+                    packet.msg.id = msgID
+                    packet.msg.toUid = toUID
+                    packet.msg.payload = .callSdp(callSdp)
+
+                    guard let packetData = try? packet.serializedData() else {
+                        DDLogError("ProtoService/sendCallSdp/\(callID)/error could not serialize packet")
+                        completion(.failure(.aborted))
+                        return
+                    }
+
+                    DDLogInfo("ProtoService/sendCallSdp/\(callID) sending")
+                    self.send(packetData)
+                    completion(.success(()))
+                }
+            }
         }
     }
 

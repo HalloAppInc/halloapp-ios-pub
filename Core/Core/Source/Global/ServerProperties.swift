@@ -43,6 +43,7 @@ public struct ServerProperties {
         case enableSentryPerfTracking = "enable_sentry_perf_tracking"
         case enableGroupsGrid = "enable_groups_grid"
         case enableGroupExpiry = "group_expiry"
+        case preAnswerCalls = "pre_answer_calls"
     }
 
     private struct UserDefaultsKey {
@@ -84,6 +85,7 @@ public struct ServerProperties {
         static let enableSentryPerfTracking = false
         static let enableGroupsGrid = false
         static let enableGroupExpiry = false
+        static let preAnswerCalls = false
     }
 
     // MARK: Storage
@@ -344,5 +346,9 @@ public struct ServerProperties {
 
     public static var enableGroupExpiry: Bool {
         ServerProperties.bool(forKey: .enableGroupExpiry) ?? Defaults.enableGroupExpiry
+    }
+
+    public static var preAnswerCalls: Bool {
+        ServerProperties.bool(forKey: .preAnswerCalls) ?? Defaults.preAnswerCalls
     }
 }

@@ -406,7 +406,11 @@ final class CallManager: NSObject, CXProviderDelegate {
 
     public func peerName(for peerUserID: UserID) -> String {
         let contactsViewContext = MainAppContext.shared.contactStore.viewContext
-        return MainAppContext.shared.contactStore.fullNameIfAvailable(for: peerUserID, ownName: nil, showPushNumber: true, in: contactsViewContext) ?? Localizations.unknownContact
+        var peerName: String = Localizations.unknownContact
+        contactsViewContext.performAndWait {
+            peerName = MainAppContext.shared.contactStore.fullNameIfAvailable(for: peerUserID, ownName: nil, showPushNumber: true, in: contactsViewContext) ?? Localizations.unknownContact
+        }
+        return peerName
     }
 
     private func handleSystemError() {
@@ -520,10 +524,7 @@ final class CallManager: NSObject, CXProviderDelegate {
                                                          type: details.type,
                                                          direction: .outgoing,
                                                          timestamp: Date())
-            var callCapabilities = Server_CallCapabilities()
-            callCapabilities.sdpRestart = false;
-            callCapabilities.preAnswer = false;
-            activeCall = Call(id: details.callID, peerUserID: details.peerUserID, type: details.type, callCapabilities: callCapabilities, direction: .outgoing)
+            activeCall = Call(id: details.callID, peerUserID: details.peerUserID, type: details.type, direction: .outgoing)
             activeCall?.stateDelegate = self
             // Show call UI to the user
             if let displayCall = activeCall {
@@ -938,7 +939,7 @@ final class CallManager: NSObject, CXProviderDelegate {
 extension CallManager: HalloCallDelegate {
     func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveIncomingCallPush incomingCallPush: Server_IncomingCallPush) {
         let callID = incomingCallPush.callID
-        DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCallPush/begin/callID: \(callID)")
+        DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCallPush/begin/callID: \(callID)/peerUserID: \(peerUserID)")
 
         // Lets run this synchronously on a queue as explained in the incomingCall function below.
         delegateQueue.sync {
@@ -970,10 +971,11 @@ extension CallManager: HalloCallDelegate {
                 didCallComplete.send(callID)
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCallPush: \(callID) from: \(peerUserID)/end with reason busy")
             } else {
-                DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCallPush: \(callID)/callUUID: \(callID.callUUID)")
+                DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCallPush: \(callID)/callUUID: \(callID.callUUID)/peerUserID: \(peerUserID)")
                 callDetailsMap[callID.callUUID] = CallDetails(callID: callID, peerUserID: peerUserID, type: callType)
                 let iceServers = WebRTCClient.getIceServers(stunServers: incomingCallPush.stunServers, turnServers: incomingCallPush.turnServers)
-                activeCall = Call(id: callID, peerUserID: peerUserID, type: callType, callCapabilities: incomingCallPush.callCapabilities)
+                activeCall = Call(id: callID, peerUserID: peerUserID, type: callType)
+                activeCall?.initializeCallCapabilities(callCapabilities: incomingCallPush.callCapabilities)
                 activeCall?.stateDelegate = self
                 activeCall?.initializeWebRtcClient(iceServers: iceServers, config: incomingCallPush.callConfig)
                 activeCallWaitingForOffer = true
@@ -1087,7 +1089,8 @@ extension CallManager: HalloCallDelegate {
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID)/callUUID: \(callID.callUUID)")
                 callDetailsMap[callID.callUUID] = CallDetails(callID: callID, peerUserID: peerUserID, type: callType)
                 let iceServers = WebRTCClient.getIceServers(stunServers: incomingCall.stunServers, turnServers: incomingCall.turnServers)
-                activeCall = Call(id: callID, peerUserID: peerUserID, type: callType, callCapabilities: incomingCall.callCapabilities)
+                activeCall = Call(id: callID, peerUserID: peerUserID, type: callType)
+                activeCall?.initializeCallCapabilities(callCapabilities: incomingCall.callCapabilities)
                 activeCall?.stateDelegate = self
                 activeCall?.initializeWebRtcClient(iceServers: iceServers, config: incomingCall.callConfig)
                 activeCallWaitingForOffer = false
@@ -1109,23 +1112,29 @@ extension CallManager: HalloCallDelegate {
     func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveAnswerCall answerCall: Server_AnswerCall) {
         DDLogInfo("CallManager/HalloCallDelegate/didReceiveAnswerCall/begin")
         let callID = answerCall.callID
-        let webrtcAnswer = answerCall.webrtcAnswer
+        let isWebrtcAnswer = !answerCall.webrtcAnswer.encPayload.isEmpty
+        let webrtcInfo = isWebrtcAnswer ? answerCall.webrtcAnswer : answerCall.webrtcOffer
 
         // Try and decrypt answer and then report to callkit provider.
         if activeCallID == callID {
-            let encryptedData = EncryptedData(data: webrtcAnswer.encPayload,
-                                              identityKey: webrtcAnswer.publicKey.isEmpty ? nil : webrtcAnswer.publicKey,
-                                              oneTimeKeyId: Int(webrtcAnswer.oneTimePreKeyID))
+            let encryptedData = EncryptedData(data: webrtcInfo.encPayload,
+                                              identityKey: webrtcInfo.publicKey.isEmpty ? nil : webrtcInfo.publicKey,
+                                              oneTimeKeyId: Int(webrtcInfo.oneTimePreKeyID))
             AppContext.shared.messageCrypter.decrypt(encryptedData, from: peerUserID) { [weak self] result in
                 guard let self = self else { return }
                 switch result {
                 case .success(let decryptedData):
                     DDLogInfo("CallManager/HalloCallDelegate/didReceiveAnswerCall/decrypt/success")
                     self.reportCallConnected(id: callID)
-                    self.activeCall?.didReceiveAnswer(sdpInfo: String(data: decryptedData, encoding: .utf8)!)
+                    let sdpInfo = String(data: decryptedData, encoding: .utf8)!
+                    if isWebrtcAnswer {
+                        self.activeCall?.didReceiveAnswer(answerSdpInfo: sdpInfo)
+                    } else {
+                        self.activeCall?.didReceiveAnswer(offerSdpInfo: sdpInfo)
+                    }
                 case .failure(let failure):
                     DDLogInfo("CallManager/HalloCallDelegate/didReceiveAnswerCall/decrypt/failure: \(failure)")
-                    // TODO: murali@: Implement rerequest flow for calls.
+                    // TODO: murali@: check rerequest flow for calls.
 //                    self.service.rerequestMessage(answerCall.callID,
 //                                                  senderID: peerUserID,
 //                                                  failedEphemeralKey: failure.ephemeralKey,
@@ -1154,9 +1163,87 @@ extension CallManager: HalloCallDelegate {
     func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveCallRinging callRinging: Server_CallRinging) {
         DDLogInfo("CallManager/HalloCallDelegate/didReceiveCallRinging/begin")
         let callID = callRinging.callID
+        let webrtcAnswer = callRinging.webrtcAnswer
+
         if activeCallID == callID {
             reportCallConnecting(id: callID)
-            activeCall?.didReceiveCallRinging()
+
+            if webrtcAnswer.encPayload.isEmpty {
+                activeCall?.didReceiveCallRinging()
+            } else {
+                let encryptedData = EncryptedData(data: webrtcAnswer.encPayload,
+                                                  identityKey: webrtcAnswer.publicKey.isEmpty ? nil : webrtcAnswer.publicKey,
+                                                  oneTimeKeyId: Int(webrtcAnswer.oneTimePreKeyID))
+                AppContext.shared.messageCrypter.decrypt(encryptedData, from: peerUserID) { [weak self] result in
+                    guard let self = self else { return }
+                    switch result {
+                    case .success(let decryptedData):
+                        DDLogInfo("CallManager/HalloCallDelegate/didReceiveAnswerCall/decrypt/success")
+                        self.reportCallConnected(id: callID)
+                        self.activeCall?.didReceiveCallRinging(sdpInfo: String(data: decryptedData, encoding: .utf8)!)
+                    case .failure(let failure):
+                        DDLogInfo("CallManager/HalloCallDelegate/didReceiveAnswerCall/decrypt/failure: \(failure)")
+                        // TODO: murali@: Check rerequest flow for calls.
+                        self.checkAndReportCallEnded(id: callID, reason: .failed)
+                        self.endActiveCall(reason: .decryptionError)
+                    }
+                }
+            }
+        }
+    }
+
+    func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveCallSdp callSdp: Server_CallSdp) {
+        DDLogInfo("CallManager/HalloCallDelegate/didReceiveCallSdp/begin")
+        guard callSdp.sdpType == .offer || callSdp.sdpType == .answer else {
+            return
+        }
+        let callID = callSdp.callID
+        let isWebrtcAnswer = callSdp.sdpType == .answer
+        let webrtcInfo = callSdp.info
+
+        // Try and decrypt answer and then report to callkit provider.
+        if activeCallID == callID {
+            let encryptedData = EncryptedData(data: webrtcInfo.encPayload,
+                                              identityKey: webrtcInfo.publicKey.isEmpty ? nil : webrtcInfo.publicKey,
+                                              oneTimeKeyId: Int(webrtcInfo.oneTimePreKeyID))
+            AppContext.shared.messageCrypter.decrypt(encryptedData, from: peerUserID) { [weak self] result in
+                guard let self = self else { return }
+                switch result {
+                case .success(let decryptedData):
+                    DDLogInfo("CallManager/HalloCallDelegate/didReceiveCallSdp/decrypt/success")
+                    self.reportCallConnected(id: callID)
+                    let sdpInfo = String(data: decryptedData, encoding: .utf8)!
+                    // Reuse apis to set webrtc info.
+                    if isWebrtcAnswer {
+                        self.activeCall?.didReceiveAnswer(answerSdpInfo: sdpInfo)
+                    } else {
+                        self.activeCall?.didReceiveAnswer(offerSdpInfo: sdpInfo)
+                    }
+                case .failure(let failure):
+                    DDLogInfo("CallManager/HalloCallDelegate/didReceiveCallSdp/decrypt/failure: \(failure)")
+                    // TODO: murali@: check rerequest flow for calls.
+//                    self.service.rerequestMessage(answerCall.callID,
+//                                                  senderID: peerUserID,
+//                                                  failedEphemeralKey: failure.ephemeralKey,
+//                                                  contentType: .call) { result in
+//                        switch result {
+//                        case .failure(let error):
+//                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveAnswerCall/rerequestMessage/failure: \(error)")
+//                        case .success(_):
+//                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveAnswerCall/rerequestMessage/success")
+//                        }
+//                    }
+                    self.checkAndReportCallEnded(id: callID, reason: .failed)
+                    self.endActiveCall(reason: .decryptionError)
+                }
+            }
+        } else {
+            DDLogError("CallManager/HalloCallDelegate/didReceiveAnswerCall: \(callID) from: \(peerUserID)/end with reason busy")
+            MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .busy)
+            MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
+                call.endReason = .busy
+            }
+            didCallComplete.send(callID)
         }
     }
 
