@@ -1298,6 +1298,11 @@ public struct Server_GroupStanza {
   /// Clears the value of `expiryInfo`. Subsequent reads from it will return its default value.
   public mutating func clearExpiryInfo() {_uniqueStorage()._expiryInfo = nil}
 
+  public var groupType: Server_GroupStanza.GroupType {
+    get {return _storage._groupType}
+    set {_uniqueStorage()._groupType = newValue}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum Action: SwiftProtobuf.Enum {
@@ -1376,6 +1381,34 @@ public struct Server_GroupStanza {
 
   }
 
+  public enum GroupType: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case feed // = 0
+    case chat // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .feed
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .feed
+      case 1: self = .chat
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .feed: return 0
+      case .chat: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
   public init() {}
 
   fileprivate var _storage = _StorageClass.defaultInstance
@@ -1404,6 +1437,14 @@ extension Server_GroupStanza.Action: CaseIterable {
     .changeDescription,
     .shareHistory,
     .changeExpiry,
+  ]
+}
+
+extension Server_GroupStanza.GroupType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_GroupStanza.GroupType] = [
+    .feed,
+    .chat,
   ]
 }
 
@@ -1494,6 +1535,142 @@ public struct Server_GroupChat {
 
   public init() {}
 }
+
+public struct Server_GroupChatStanza {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var gid: String {
+    get {return _storage._gid}
+    set {_uniqueStorage()._gid = newValue}
+  }
+
+  public var name: String {
+    get {return _storage._name}
+    set {_uniqueStorage()._name = newValue}
+  }
+
+  public var avatarID: String {
+    get {return _storage._avatarID}
+    set {_uniqueStorage()._avatarID = newValue}
+  }
+
+  public var senderPhone: String {
+    get {return _storage._senderPhone}
+    set {_uniqueStorage()._senderPhone = newValue}
+  }
+
+  public var senderName: String {
+    get {return _storage._senderName}
+    set {_uniqueStorage()._senderName = newValue}
+  }
+
+  public var timestamp: Int64 {
+    get {return _storage._timestamp}
+    set {_uniqueStorage()._timestamp = newValue}
+  }
+
+  public var payload: Data {
+    get {return _storage._payload}
+    set {_uniqueStorage()._payload = newValue}
+  }
+
+  public var encPayload: Data {
+    get {return _storage._encPayload}
+    set {_uniqueStorage()._encPayload = newValue}
+  }
+
+  public var senderStateBundles: [Server_SenderStateBundle] {
+    get {return _storage._senderStateBundles}
+    set {_uniqueStorage()._senderStateBundles = newValue}
+  }
+
+  public var senderState: Server_SenderStateWithKeyInfo {
+    get {return _storage._senderState ?? Server_SenderStateWithKeyInfo()}
+    set {_uniqueStorage()._senderState = newValue}
+  }
+  /// Returns true if `senderState` has been explicitly set.
+  public var hasSenderState: Bool {return _storage._senderState != nil}
+  /// Clears the value of `senderState`. Subsequent reads from it will return its default value.
+  public mutating func clearSenderState() {_uniqueStorage()._senderState = nil}
+
+  public var audienceHash: Data {
+    get {return _storage._audienceHash}
+    set {_uniqueStorage()._audienceHash = newValue}
+  }
+
+  public var mediaCounters: Server_MediaCounters {
+    get {return _storage._mediaCounters ?? Server_MediaCounters()}
+    set {_uniqueStorage()._mediaCounters = newValue}
+  }
+  /// Returns true if `mediaCounters` has been explicitly set.
+  public var hasMediaCounters: Bool {return _storage._mediaCounters != nil}
+  /// Clears the value of `mediaCounters`. Subsequent reads from it will return its default value.
+  public mutating func clearMediaCounters() {_uniqueStorage()._mediaCounters = nil}
+
+  public var chatType: Server_GroupChatStanza.ChatType {
+    get {return _storage._chatType}
+    set {_uniqueStorage()._chatType = newValue}
+  }
+
+  /// Use >=16 for temporary elements since 1-15 encode smaller
+  public var senderLogInfo: String {
+    get {return _storage._senderLogInfo}
+    set {_uniqueStorage()._senderLogInfo = newValue}
+  }
+
+  public var senderClientVersion: String {
+    get {return _storage._senderClientVersion}
+    set {_uniqueStorage()._senderClientVersion = newValue}
+  }
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum ChatType: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case chat // = 0
+    case chatReaction // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .chat
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .chat
+      case 1: self = .chatReaction
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .chat: return 0
+      case .chatReaction: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+
+  fileprivate var _storage = _StorageClass.defaultInstance
+}
+
+#if swift(>=4.2)
+
+extension Server_GroupChatStanza.ChatType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_GroupChatStanza.ChatType] = [
+    .chat,
+    .chatReaction,
+  ]
+}
+
+#endif  // swift(>=4.2)
 
 public struct Server_GroupsStanza {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -4077,6 +4254,7 @@ public struct Server_Msg {
     set {_uniqueStorage()._payload = .groupStanza(newValue)}
   }
 
+  /// deprecated, use group_chat_stanza
   public var groupChat: Server_GroupChat {
     get {
       if case .groupChat(let v)? = _storage._payload {return v}
@@ -4362,6 +4540,14 @@ public struct Server_Msg {
     set {_uniqueStorage()._payload = .savedReceipt(newValue)}
   }
 
+  public var groupChatStanza: Server_GroupChatStanza {
+    get {
+      if case .groupChatStanza(let v)? = _storage._payload {return v}
+      return Server_GroupChatStanza()
+    }
+    set {_uniqueStorage()._payload = .groupChatStanza(newValue)}
+  }
+
   public var retryCount: Int32 {
     get {return _storage._retryCount}
     set {_uniqueStorage()._retryCount = newValue}
@@ -4385,6 +4571,7 @@ public struct Server_Msg {
     case feedItems(Server_FeedItems)
     case contactHash(Server_ContactHash)
     case groupStanza(Server_GroupStanza)
+    /// deprecated, use group_chat_stanza
     case groupChat(Server_GroupChat)
     case name(Server_Name)
     case errorStanza(Server_ErrorStanza)
@@ -4425,6 +4612,7 @@ public struct Server_Msg {
     case contentMissing(Server_ContentMissing)
     case screenshotReceipt(Server_ScreenshotReceipt)
     case savedReceipt(Server_SavedReceipt)
+    case groupChatStanza(Server_GroupChatStanza)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Msg.OneOf_Payload, rhs: Server_Msg.OneOf_Payload) -> Bool {
@@ -4610,6 +4798,10 @@ public struct Server_Msg {
       }()
       case (.savedReceipt, .savedReceipt): return {
         guard case .savedReceipt(let l) = lhs, case .savedReceipt(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.groupChatStanza, .groupChatStanza): return {
+        guard case .groupChatStanza(let l) = lhs, case .groupChatStanza(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -5236,6 +5428,7 @@ public struct Server_PushToken {
     case iosDev // = 2
     case iosAppclip // = 3
     case iosVoip // = 4
+    case androidHuawei // = 5
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -5249,6 +5442,7 @@ public struct Server_PushToken {
       case 2: self = .iosDev
       case 3: self = .iosAppclip
       case 4: self = .iosVoip
+      case 5: self = .androidHuawei
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -5260,6 +5454,7 @@ public struct Server_PushToken {
       case .iosDev: return 2
       case .iosAppclip: return 3
       case .iosVoip: return 4
+      case .androidHuawei: return 5
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -5279,6 +5474,7 @@ extension Server_PushToken.TokenType: CaseIterable {
     .iosDev,
     .iosAppclip,
     .iosVoip,
+    .androidHuawei,
   ]
 }
 
@@ -7113,9 +7309,12 @@ extension Server_GroupMember.Action: @unchecked Sendable {}
 extension Server_GroupMember.TypeEnum: @unchecked Sendable {}
 extension Server_GroupStanza: @unchecked Sendable {}
 extension Server_GroupStanza.Action: @unchecked Sendable {}
+extension Server_GroupStanza.GroupType: @unchecked Sendable {}
 extension Server_ExpiryInfo: @unchecked Sendable {}
 extension Server_ExpiryInfo.ExpiryType: @unchecked Sendable {}
 extension Server_GroupChat: @unchecked Sendable {}
+extension Server_GroupChatStanza: @unchecked Sendable {}
+extension Server_GroupChatStanza.ChatType: @unchecked Sendable {}
 extension Server_GroupsStanza: @unchecked Sendable {}
 extension Server_GroupsStanza.Action: @unchecked Sendable {}
 extension Server_GroupInviteLink: @unchecked Sendable {}
@@ -8968,6 +9167,7 @@ extension Server_GroupStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     10: .same(proto: "description"),
     11: .standard(proto: "history_resend"),
     12: .standard(proto: "expiry_info"),
+    13: .standard(proto: "group_type"),
   ]
 
   fileprivate class _StorageClass {
@@ -8983,6 +9183,7 @@ extension Server_GroupStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     var _description_p: String = String()
     var _historyResend: Server_HistoryResend? = nil
     var _expiryInfo: Server_ExpiryInfo? = nil
+    var _groupType: Server_GroupStanza.GroupType = .feed
 
     static let defaultInstance = _StorageClass()
 
@@ -9001,6 +9202,7 @@ extension Server_GroupStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       _description_p = source._description_p
       _historyResend = source._historyResend
       _expiryInfo = source._expiryInfo
+      _groupType = source._groupType
     }
   }
 
@@ -9031,6 +9233,7 @@ extension Server_GroupStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
         case 10: try { try decoder.decodeSingularStringField(value: &_storage._description_p) }()
         case 11: try { try decoder.decodeSingularMessageField(value: &_storage._historyResend) }()
         case 12: try { try decoder.decodeSingularMessageField(value: &_storage._expiryInfo) }()
+        case 13: try { try decoder.decodeSingularEnumField(value: &_storage._groupType) }()
         default: break
         }
       }
@@ -9079,6 +9282,9 @@ extension Server_GroupStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       try { if let v = _storage._expiryInfo {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
       } }()
+      if _storage._groupType != .feed {
+        try visitor.visitSingularEnumField(value: _storage._groupType, fieldNumber: 13)
+      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -9100,6 +9306,7 @@ extension Server_GroupStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
         if _storage._description_p != rhs_storage._description_p {return false}
         if _storage._historyResend != rhs_storage._historyResend {return false}
         if _storage._expiryInfo != rhs_storage._expiryInfo {return false}
+        if _storage._groupType != rhs_storage._groupType {return false}
         return true
       }
       if !storagesAreEqual {return false}
@@ -9129,6 +9336,13 @@ extension Server_GroupStanza.Action: SwiftProtobuf._ProtoNameProviding {
     15: .same(proto: "CHANGE_DESCRIPTION"),
     16: .same(proto: "SHARE_HISTORY"),
     17: .same(proto: "CHANGE_EXPIRY"),
+  ]
+}
+
+extension Server_GroupStanza.GroupType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "FEED"),
+    1: .same(proto: "CHAT"),
   ]
 }
 
@@ -9250,6 +9464,193 @@ extension Server_GroupChat: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
+}
+
+extension Server_GroupChatStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".GroupChatStanza"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "gid"),
+    2: .same(proto: "name"),
+    3: .standard(proto: "avatar_id"),
+    4: .standard(proto: "sender_phone"),
+    5: .standard(proto: "sender_name"),
+    6: .same(proto: "timestamp"),
+    7: .same(proto: "payload"),
+    8: .standard(proto: "enc_payload"),
+    9: .standard(proto: "sender_state_bundles"),
+    10: .standard(proto: "sender_state"),
+    11: .standard(proto: "audience_hash"),
+    12: .standard(proto: "media_counters"),
+    13: .standard(proto: "chat_type"),
+    16: .standard(proto: "sender_log_info"),
+    17: .standard(proto: "sender_client_version"),
+  ]
+
+  fileprivate class _StorageClass {
+    var _gid: String = String()
+    var _name: String = String()
+    var _avatarID: String = String()
+    var _senderPhone: String = String()
+    var _senderName: String = String()
+    var _timestamp: Int64 = 0
+    var _payload: Data = Data()
+    var _encPayload: Data = Data()
+    var _senderStateBundles: [Server_SenderStateBundle] = []
+    var _senderState: Server_SenderStateWithKeyInfo? = nil
+    var _audienceHash: Data = Data()
+    var _mediaCounters: Server_MediaCounters? = nil
+    var _chatType: Server_GroupChatStanza.ChatType = .chat
+    var _senderLogInfo: String = String()
+    var _senderClientVersion: String = String()
+
+    static let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _gid = source._gid
+      _name = source._name
+      _avatarID = source._avatarID
+      _senderPhone = source._senderPhone
+      _senderName = source._senderName
+      _timestamp = source._timestamp
+      _payload = source._payload
+      _encPayload = source._encPayload
+      _senderStateBundles = source._senderStateBundles
+      _senderState = source._senderState
+      _audienceHash = source._audienceHash
+      _mediaCounters = source._mediaCounters
+      _chatType = source._chatType
+      _senderLogInfo = source._senderLogInfo
+      _senderClientVersion = source._senderClientVersion
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularStringField(value: &_storage._gid) }()
+        case 2: try { try decoder.decodeSingularStringField(value: &_storage._name) }()
+        case 3: try { try decoder.decodeSingularStringField(value: &_storage._avatarID) }()
+        case 4: try { try decoder.decodeSingularStringField(value: &_storage._senderPhone) }()
+        case 5: try { try decoder.decodeSingularStringField(value: &_storage._senderName) }()
+        case 6: try { try decoder.decodeSingularInt64Field(value: &_storage._timestamp) }()
+        case 7: try { try decoder.decodeSingularBytesField(value: &_storage._payload) }()
+        case 8: try { try decoder.decodeSingularBytesField(value: &_storage._encPayload) }()
+        case 9: try { try decoder.decodeRepeatedMessageField(value: &_storage._senderStateBundles) }()
+        case 10: try { try decoder.decodeSingularMessageField(value: &_storage._senderState) }()
+        case 11: try { try decoder.decodeSingularBytesField(value: &_storage._audienceHash) }()
+        case 12: try { try decoder.decodeSingularMessageField(value: &_storage._mediaCounters) }()
+        case 13: try { try decoder.decodeSingularEnumField(value: &_storage._chatType) }()
+        case 16: try { try decoder.decodeSingularStringField(value: &_storage._senderLogInfo) }()
+        case 17: try { try decoder.decodeSingularStringField(value: &_storage._senderClientVersion) }()
+        default: break
+        }
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      if !_storage._gid.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._gid, fieldNumber: 1)
+      }
+      if !_storage._name.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._name, fieldNumber: 2)
+      }
+      if !_storage._avatarID.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._avatarID, fieldNumber: 3)
+      }
+      if !_storage._senderPhone.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._senderPhone, fieldNumber: 4)
+      }
+      if !_storage._senderName.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._senderName, fieldNumber: 5)
+      }
+      if _storage._timestamp != 0 {
+        try visitor.visitSingularInt64Field(value: _storage._timestamp, fieldNumber: 6)
+      }
+      if !_storage._payload.isEmpty {
+        try visitor.visitSingularBytesField(value: _storage._payload, fieldNumber: 7)
+      }
+      if !_storage._encPayload.isEmpty {
+        try visitor.visitSingularBytesField(value: _storage._encPayload, fieldNumber: 8)
+      }
+      if !_storage._senderStateBundles.isEmpty {
+        try visitor.visitRepeatedMessageField(value: _storage._senderStateBundles, fieldNumber: 9)
+      }
+      try { if let v = _storage._senderState {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 10)
+      } }()
+      if !_storage._audienceHash.isEmpty {
+        try visitor.visitSingularBytesField(value: _storage._audienceHash, fieldNumber: 11)
+      }
+      try { if let v = _storage._mediaCounters {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
+      } }()
+      if _storage._chatType != .chat {
+        try visitor.visitSingularEnumField(value: _storage._chatType, fieldNumber: 13)
+      }
+      if !_storage._senderLogInfo.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._senderLogInfo, fieldNumber: 16)
+      }
+      if !_storage._senderClientVersion.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._senderClientVersion, fieldNumber: 17)
+      }
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_GroupChatStanza, rhs: Server_GroupChatStanza) -> Bool {
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._gid != rhs_storage._gid {return false}
+        if _storage._name != rhs_storage._name {return false}
+        if _storage._avatarID != rhs_storage._avatarID {return false}
+        if _storage._senderPhone != rhs_storage._senderPhone {return false}
+        if _storage._senderName != rhs_storage._senderName {return false}
+        if _storage._timestamp != rhs_storage._timestamp {return false}
+        if _storage._payload != rhs_storage._payload {return false}
+        if _storage._encPayload != rhs_storage._encPayload {return false}
+        if _storage._senderStateBundles != rhs_storage._senderStateBundles {return false}
+        if _storage._senderState != rhs_storage._senderState {return false}
+        if _storage._audienceHash != rhs_storage._audienceHash {return false}
+        if _storage._mediaCounters != rhs_storage._mediaCounters {return false}
+        if _storage._chatType != rhs_storage._chatType {return false}
+        if _storage._senderLogInfo != rhs_storage._senderLogInfo {return false}
+        if _storage._senderClientVersion != rhs_storage._senderClientVersion {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_GroupChatStanza.ChatType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "CHAT"),
+    1: .same(proto: "CHAT_REACTION"),
+  ]
 }
 
 extension Server_GroupsStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
@@ -12596,6 +12997,7 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     49: .standard(proto: "content_missing"),
     50: .standard(proto: "screenshot_receipt"),
     51: .standard(proto: "saved_receipt"),
+    52: .standard(proto: "group_chat_stanza"),
     21: .standard(proto: "retry_count"),
     25: .standard(proto: "rerequest_count"),
   ]
@@ -13230,6 +13632,19 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
             _storage._payload = .savedReceipt(v)
           }
         }()
+        case 52: try {
+          var v: Server_GroupChatStanza?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .groupChatStanza(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .groupChatStanza(v)
+          }
+        }()
         default: break
         }
       }
@@ -13446,6 +13861,10 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
       case .savedReceipt?: try {
         guard case .savedReceipt(let v)? = _storage._payload else { preconditionFailure() }
         try visitor.visitSingularMessageField(value: v, fieldNumber: 51)
+      }()
+      case .groupChatStanza?: try {
+        guard case .groupChatStanza(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 52)
       }()
       default: break
       }
@@ -14080,6 +14499,7 @@ extension Server_PushToken.TokenType: SwiftProtobuf._ProtoNameProviding {
     2: .same(proto: "IOS_DEV"),
     3: .same(proto: "IOS_APPCLIP"),
     4: .same(proto: "IOS_VOIP"),
+    5: .same(proto: "ANDROID_HUAWEI"),
   ]
 }
 
