@@ -111,6 +111,10 @@ class VideoView: UIView {
         switch playbackControls {
         case .simple:
             timeSeekView.isHidden = true
+            NSLayoutConstraint.activate([
+                playButton.centerXAnchor.constraint(equalTo: centerXAnchor),
+                playButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+            ])
         case .advanced:
             timeSeekView.isHidden = false
             timeSeekView.alpha = 1
