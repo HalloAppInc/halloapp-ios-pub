@@ -642,10 +642,18 @@ extension ChatListViewController: UISearchBarDelegate {
 extension ChatListViewController: NewChatViewControllerDelegate {
     func newChatViewController(_ controller: NewChatViewController, didSelect userId: UserID) {
         controller.dismiss(animated: true) {
-            let vc = ChatViewController(for: userId)
-            self.navigationController?.pushViewController(vc, animated: true)
-            DispatchQueue.main.async {
-                vc.showKeyboard()
+            if ServerProperties.newChatUI {
+                let vc = ChatViewControllerNew(for: userId)
+                self.navigationController?.pushViewController(vc, animated: true)
+                DispatchQueue.main.async {
+                    vc.showKeyboard()
+                }
+            } else {
+                let vc = ChatViewController(for: userId)
+                self.navigationController?.pushViewController(vc, animated: true)
+                DispatchQueue.main.async {
+                    vc.showKeyboard()
+                }
             }
         }
     }
