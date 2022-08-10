@@ -52,8 +52,9 @@ public final class ProtoPublishCommentRequest: ProtoRequest<Date> {
 
 public final class ProtoMediaUploadURLRequest: ProtoRequest<(MediaURLInfo?)> {
 
-    public init(size: Int, downloadURL: URL?, completion: @escaping Completion) {
+    public init(type: Server_UploadMedia.TypeEnum, size: Int, downloadURL: URL?, completion: @escaping Completion) {
         var uploadMedia = Server_UploadMedia()
+        uploadMedia.type = type
         uploadMedia.size = Int64(size)
         uploadMedia.downloadURL = downloadURL?.absoluteString ?? ""
         let packet = Server_Packet.iqPacket(type: .get, payload: .uploadMedia(uploadMedia))

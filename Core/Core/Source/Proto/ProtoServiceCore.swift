@@ -115,10 +115,10 @@ extension ProtoServiceCore: CoreService {
         enqueue(request: request)
     }
 
-    public func requestMediaUploadURL(size: Int, downloadURL: URL?, completion: @escaping ServiceRequestCompletion<MediaURLInfo?>) {
+    public func requestMediaUploadURL(type: Server_UploadMedia.TypeEnum, size: Int, downloadURL: URL?, completion: @escaping ServiceRequestCompletion<MediaURLInfo?>) {
         // Wait until connected to request URLs. User meanwhile can cancel posting.
         execute(whenConnectionStateIs: .connected, onQueue: .main) {
-            self.enqueue(request: ProtoMediaUploadURLRequest(size: size, downloadURL: downloadURL, completion: completion))
+            self.enqueue(request: ProtoMediaUploadURLRequest(type: type, size: size, downloadURL: downloadURL, completion: completion))
         }
     }
 

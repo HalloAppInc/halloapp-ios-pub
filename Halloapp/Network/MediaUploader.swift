@@ -353,17 +353,20 @@ final class MediaUploader {
     private func requestUrlsAndStartTask(uploadType: MediaUploadType, task: Task) {
         // Request URLs first.
         let fileSize: Int
+        let type: Server_UploadMedia.TypeEnum
         // When sending out an iq - try our preference of urls.
         // we'll update the task-type again depending on what the server responds with.
         switch uploadType {
         case .resumableUpload:
+            type = .resumable
             fileSize = (try? task.fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
         case .directUpload:
+            type = .direct
             fileSize = 0
         }
         DDLogInfo("MediaUploader/requestUrlsAndStartTask/fileSize: \(fileSize), fileURL: \(task.fileURL)")
 
-        service.requestMediaUploadURL(size: fileSize, downloadURL: task.downloadURL) { result in
+        service.requestMediaUploadURL(type: type, size: fileSize, downloadURL: task.downloadURL) { result in
             guard !task.isCanceled else { return }
             switch result {
             case .success(let mediaURLs):
