@@ -9,9 +9,7 @@
 import AVFoundation
 import CocoaLumberjackSwift
 import Combine
-import Core
 import CoreCommon
-import SwiftUI
 
 enum MediaProcessingError: Error {
     case failedToReadSize
@@ -31,16 +29,16 @@ enum VideoProcessingError: Error {
     case failedToCopyLocally
 }
 
-struct ImageServerResult {
-    var url: URL
-    var size: CGSize
-    var key: String
-    var sha256: String
-    var chunkSize: Int32
-    var blobSize: Int64
+public struct ImageServerResult {
+    public var url: URL
+    public var size: CGSize
+    public var key: String
+    public var sha256: String
+    public var chunkSize: Int32
+    public var blobSize: Int64
 
     @discardableResult
-    func copy(to destination: URL) -> Bool {
+    public func copy(to destination: URL) -> Bool {
         let manager = FileManager.default
         let encrypted = url.appendingPathExtension("enc")
         let encryptedDestination = destination.appendingPathExtension("enc")
@@ -69,7 +67,7 @@ struct ImageServerResult {
         }
     }
 
-    func clear() {
+    public func clear() {
         let manager = FileManager.default
         let encrypted = url.appendingPathExtension("enc")
 
@@ -85,13 +83,13 @@ struct ImageServerResult {
     }
 }
 
-class ImageServer {
+public class ImageServer {
     private struct Constants {
         static let jpegCompressionQuality = CGFloat(UserData.compressionQuality)
         static let maxImageSize: CGFloat = 1600
     }
 
-    typealias Completion = (Result<ImageServerResult, Error>) -> ()
+    public typealias Completion = (Result<ImageServerResult, Error>) -> ()
 
     private class Task {
         var id: String?
@@ -134,7 +132,7 @@ class ImageServer {
         }
     }
 
-    static let shared = ImageServer()
+    public static let shared = ImageServer()
 
     private let taskQueue = DispatchQueue(label: "ImageServer.Tasks", qos: .userInitiated)
     private let processingQueue = DispatchQueue(label: "ImageServer.MediaProcessing", qos: .userInitiated)
@@ -236,7 +234,7 @@ class ImageServer {
         }
     }
 
-    func attach(for url: URL, id: String? = nil, index: Int? = nil, completion: Completion? = nil) {
+    public func attach(for url: URL, id: String? = nil, index: Int? = nil, completion: Completion? = nil) {
         if let task = self.find(url: url, id: id, index: index) {
             task.id = id
             task.index = index
@@ -247,7 +245,7 @@ class ImageServer {
         }
     }
 
-    func prepare(_ type: CommonMediaType, url: URL, for id: String? = nil, index: Int? = nil, shouldStreamVideo: Bool, completion: Completion? = nil) {
+    public func prepare(_ type: CommonMediaType, url: URL, for id: String? = nil, index: Int? = nil, shouldStreamVideo: Bool, completion: Completion? = nil) {
         processingQueue.async { [weak self] in
             guard let self = self else { return }
 

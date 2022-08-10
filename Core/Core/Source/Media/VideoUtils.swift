@@ -9,7 +9,6 @@
 import AVFoundation
 import AVKit
 import CocoaLumberjackSwift
-import Core
 import CoreCommon
 import Foundation
 import SwiftUI
@@ -95,9 +94,9 @@ public enum VideoUtilsError: Error, CustomStringConvertible {
     }
 }
 
-final class VideoUtils {
+public final class VideoUtils {
 
-    static func maxVideoResolution(for targetResolution: CGFloat) -> CGFloat {
+    public static func maxVideoResolution(for targetResolution: CGFloat) -> CGFloat {
         switch(targetResolution) {
         case 480, 640:
             return 640
@@ -114,7 +113,7 @@ final class VideoUtils {
         }
     }
 
-    static func resizeVideo(inputUrl: URL, progress: ((Float) -> Void)? = nil, completion: @escaping (Swift.Result<(URL, CGSize), Error>) -> Void) -> CancelableExporter {
+    public static func resizeVideo(inputUrl: URL, progress: ((Float) -> Void)? = nil, completion: @escaping (Swift.Result<(URL, CGSize), Error>) -> Void) -> CancelableExporter {
 
         let avAsset = AVURLAsset(url: inputUrl, options: nil)
         
@@ -243,7 +242,7 @@ final class VideoUtils {
         return exporter
     }
     
-    static func resolutionForLocalVideo(url: URL) -> CGSize? {
+    public static func resolutionForLocalVideo(url: URL) -> CGSize? {
         guard let track = AVURLAsset(url: url).tracks(withMediaType: AVMediaType.video).first else { return nil }
         let size = track.naturalSize.applying(track.preferredTransform)
         return CGSize(width: abs(size.width), height: abs(size.height))
@@ -261,7 +260,7 @@ final class VideoUtils {
         return cacheKey as NSString
     }
 
-    static func videoPreviewImage(url: URL, size: CGSize? = nil) -> UIImage? {
+    public static func videoPreviewImage(url: URL, size: CGSize? = nil) -> UIImage? {
         let cacheKey = videoPreviewCacheKey(for: url, size: size, animated: false)
         if let image = videoPreviewCache.object(forKey: cacheKey) {
             DDLogDebug("VideoUtils/videoPreviewImage/returning from cache for \(cacheKey)")
@@ -287,7 +286,7 @@ final class VideoUtils {
         }
     }
 
-    static func animatedPreviewImage(for videoURL: URL, size: CGSize? = nil, completion: @escaping (UIImage?) -> Void) {
+    public static func animatedPreviewImage(for videoURL: URL, size: CGSize? = nil, completion: @escaping (UIImage?) -> Void) {
         let cacheKey = videoPreviewCacheKey(for: videoURL, size: nil, animated: true)
         if let image = videoPreviewCache.object(forKey: cacheKey) {
             DDLogDebug("VideoUtils/animatedPreviewImage/returning from cache for \(cacheKey)")
@@ -338,7 +337,7 @@ final class VideoUtils {
         }
     }
 
-    static func getThumbnailTime(duration: CMTime) -> CMTime {
+    public static func getThumbnailTime(duration: CMTime) -> CMTime {
         if duration.seconds < 1 {
             return CMTimeMultiplyByRatio(duration, multiplier: 1, divisor: 2)
         } else {
@@ -346,7 +345,7 @@ final class VideoUtils {
         }
     }
 
-    static func previewImageData(image: UIImage, size: CGSize? = nil) -> Data? {
+    public static func previewImageData(image: UIImage, size: CGSize? = nil) -> Data? {
         guard let preview = image.resized(to: CGSize(width: 128, height: 128), contentMode: .scaleAspectFill, downscaleOnly: false) else {
             DDLogError("VideoUtils/previewImage/error  Failed to generate preview")
             return nil
@@ -358,7 +357,7 @@ final class VideoUtils {
         return imageData
     }
 
-    static func trim(start: CMTime, end: CMTime, url: URL, mute: Bool, completion: @escaping (Swift.Result<URL, Error>) -> Void) {
+    public static func trim(start: CMTime, end: CMTime, url: URL, mute: Bool, completion: @escaping (Swift.Result<URL, Error>) -> Void) {
         var asset: AVAsset = AVURLAsset(url: url, options: nil)
 
         if mute {
@@ -418,7 +417,7 @@ final class VideoUtils {
          }
     }
 
-    static func save(composition: AVComposition, to outputURL: URL, slowMotion: Bool = false, completion: @escaping (Swift.Result<URL, Error>) -> Void) {
+    public static func save(composition: AVComposition, to outputURL: URL, slowMotion: Bool = false, completion: @escaping (Swift.Result<URL, Error>) -> Void) {
         guard let exporter = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetHighestQuality) else {
             completion(.failure(VideoUtilsError.setupFailure))
             return
@@ -450,7 +449,7 @@ final class VideoUtils {
         }
     }
 
-    static func optimizeForStreaming(url: URL, completion: @escaping (Swift.Result<URL, Error>) -> Void) {
+    public static func optimizeForStreaming(url: URL, completion: @escaping (Swift.Result<URL, Error>) -> Void) {
         let asset: AVAsset = AVURLAsset(url: url, options: nil)
 
         guard let exporter = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetPassthrough) else {
@@ -484,7 +483,7 @@ final class VideoUtils {
     }
 }
 
-class CancelableExporter : NextLevelSessionExporter {
+public class CancelableExporter : NextLevelSessionExporter {
     private var canceledByUser = false
 
     func cancel() {
