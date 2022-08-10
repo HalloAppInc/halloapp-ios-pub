@@ -391,8 +391,7 @@ final class FeedItemHeaderView: UIView {
     var showUserAction: (() -> ())? = nil
     var showGroupFeedAction: (() -> ())? = nil
     var showPrivacyAction: (() -> ())? = nil
-    var showExpiryMismatchAction: (() -> ())? = nil
-    
+
     var moreMenuContent: () -> HAMenu.Content = { [] } {
         didSet {
             moreButton.configureWithMenu {
@@ -422,7 +421,10 @@ final class FeedItemHeaderView: UIView {
     }()
 
     private lazy var nameColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ userAndGroupNameRow, secondLineGroupNameLabel, timestampLabel ])
+        let timeRow = UIStackView(arrangedSubviews: [timestampLabel, expiryOrArchivedLabel])
+        timeRow.axis = .horizontal
+
+        let view = UIStackView(arrangedSubviews: [ userAndGroupNameRow, secondLineGroupNameLabel, timeRow ])
         view.axis = .vertical
         view.spacing = 3
         view.alignment = .leading
@@ -511,7 +513,17 @@ final class FeedItemHeaderView: UIView {
         label.textAlignment = .natural
         label.setContentCompressionResistancePriority(.defaultHigh + 10, for: .horizontal) // higher than contact name
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(showExpiryMismatch)))
+        return label
+    }()
+
+    // Same font / color as timestampLabel
+    private lazy var expiryOrArchivedLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(forTextStyle: .footnote, weight: .medium)
+        label.adjustsFontForContentSizeCategory = true
+        label.textColor = UIColor(named: "TimestampLabel")
+        label.textAlignment = .natural
+        label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
 
@@ -609,33 +621,39 @@ final class FeedItemHeaderView: UIView {
     }
 
     func refreshTimestamp(with post: FeedPostDisplayable) {
-        timestampLabel.isUserInteractionEnabled = false
-
-        let timestamp = NSMutableAttributedString()
-        timestamp.append(NSAttributedString(string: post.timestamp.feedTimestamp()))
-
-        let chatData = MainAppContext.shared.chatData!
-        if let groupID = post.groupId, let group = chatData.chatGroup(groupId: groupID, in: chatData.viewContext) {
-            let expiration = post.expiration?.timeIntervalSince1970 ?? 0
-            let expectedExpiration = group.postExpirationDate(from: post.timestamp)?.timeIntervalSince1970 ?? 0
-
-            // Treat times within 5sec as the same to account for rounding
-            if abs(expiration - expectedExpiration) > 5 {
-                timestamp.append(NSAttributedString(string: " "))
-                timestamp.append(NSAttributedString(attachment: NSTextAttachment(image: UIImage(systemName: "exclamationmark.triangle") ?? UIImage())))
-                timestampLabel.isUserInteractionEnabled = true
-            }
-        }
-
-        timestampLabel.attributedText = timestamp
+        timestampLabel.text = post.timestamp.feedTimestamp()
     }
 
     func configure(with post: FeedPostDisplayable, contentWidth: CGFloat, showGroupName: Bool, showArchivedDate: Bool = false) {
         nameLabel.text = post.posterFullName
-        if showArchivedDate {
-            let archivedDate = post.timestamp.addingTimeInterval(Date.days(30))
-            timestampLabel.isUserInteractionEnabled = false
-            timestampLabel.attributedText = NSAttributedString(string: (timestampLabel.text ?? "") + " • " + Localizations.feedPostArchivedTimestamp(time: archivedDate.shortDateFormat()))
+
+        let isPostExpired = post.expiration.flatMap { $0 < Date() } ?? false
+
+        var showExpiry = false
+        if !isPostExpired, let groupID = post.groupId, let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext) {
+            switch (post.expiration, group.postExpirationDate(from: post.timestamp)) {
+            case (.some(let date1), .some(let date2)):
+                // Treat times within 5sec as the same to account for rounding
+                showExpiry = abs(date1.timeIntervalSince1970 - date2.timeIntervalSince1970) < 5
+            case (.some, .none), (.none, .some):
+                showExpiry = true
+            default:
+                break
+            }
+            let expiration = post.expiration?.timeIntervalSince1970 ?? 0
+            let expectedExpiration = group.postExpirationDate(from: post.timestamp)?.timeIntervalSince1970 ?? 0
+            showExpiry = abs(expiration - expectedExpiration) > 5
+        }
+
+        if showExpiry {
+            expiryOrArchivedLabel.text = " • " + Localizations.feedPostExpiredTimestamp(date: post.expiration)
+            expiryOrArchivedLabel.isHidden = false
+        } else if showArchivedDate, let expiration = post.expiration {
+            expiryOrArchivedLabel.text = " • " + Localizations.feedPostArchivedTimestamp(time: expiration.shortDateFormat())
+            expiryOrArchivedLabel.isHidden = false
+        } else {
+            expiryOrArchivedLabel.text = nil
+            expiryOrArchivedLabel.isHidden = true
         }
 
         let userAvatar = post.userAvatar(using: MainAppContext.shared.avatarStore)
@@ -694,10 +712,6 @@ final class FeedItemHeaderView: UIView {
     
     @objc func showGroupFeed() {
         showGroupFeedAction?()
-    }
-
-    @objc private func showExpiryMismatch() {
-        showExpiryMismatchAction?()
     }
 
     private func isRowTruncated(contentWidth: CGFloat) -> Bool {
@@ -1225,6 +1239,14 @@ extension Localizations {
     static func feedPostArchivedTimestamp(time: String) -> String {
         let formatString = NSLocalizedString("feed.post.archived.timestamp", value: "Archived %@", comment: "Archived date timestamp")
         return String(format: formatString, time)
+    }
+    static func feedPostExpiredTimestamp(date: Date?) -> String {
+        if let date = date {
+            let formatString = NSLocalizedString("feed.post.expired.timestamp", value: "Expires %@", comment: "Indication of when a post expired")
+            return String(format: formatString, date.shortDateFormat())
+        } else {
+            return NSLocalizedString("feed.post.expired.timestamp.never", value: "Never expires", comment: "Indication of when a post never expires")
+        }
     }
     static var feedComment: String {
         NSLocalizedString("feedpost.button.comment", value: "Comment", comment: "Button under someone's post. Verb.")

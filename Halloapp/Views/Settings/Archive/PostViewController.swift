@@ -276,22 +276,6 @@ extension PostViewController {
         postView.deleteAction = {
             MainAppContext.shared.feedData.deleteUnsentPost(postID: postID)
         }
-
-        postView.showExpiryMismatchAction = { [weak self] in
-            guard let self = self, let post = self.post as? FeedPost, let groupID = post.groupID else {
-                return
-            }
-            guard let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext) else {
-                DDLogError("FeedCollectionViewController/showExpiryMismatchAction/Could not find chat group \(groupID)")
-                return
-            }
-            let messgage = Localizations.postExpirationMismatchMessage(postExpiration: post.expiration,
-                                                                       groupExpirationType: group.expirationType,
-                                                                       groupExpirationTime: group.expirationTime)
-            let alert = UIAlertController(title: nil, message: messgage, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default))
-            self.present(alert, animated: true)
-        }
     }
 
     private func deletePost() {

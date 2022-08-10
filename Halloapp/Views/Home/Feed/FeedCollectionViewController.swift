@@ -997,25 +997,6 @@ extension FeedCollectionViewController {
         cell.shareAction = { [weak self] in
             self?.presentShareMenu(for: feedPost)
         }
-
-        let postExpiration = feedPost.expiration
-        let groupID = feedPost.groupID
-        cell.showExpiryMismatchAction = { [weak self] in
-            guard let self = self, let groupID = groupID else {
-                return
-            }
-            guard let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext) else {
-                DDLogError("FeedCollectionViewController/showExpiryMismatchAction/Could not find chat group \(groupID)")
-                return
-            }
-            let messgage = Localizations.postExpirationMismatchMessage(postExpiration: postExpiration,
-                                                                       groupExpirationType: group.expirationType,
-                                                                       groupExpirationTime: group.expirationTime)
-            let alert = UIAlertController(title: nil, message: messgage, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default))
-            self.present(alert, animated: true)
-        }
-        
         cell.delegate = self
     }
 
