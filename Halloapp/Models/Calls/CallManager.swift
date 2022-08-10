@@ -484,6 +484,7 @@ final class CallManager: NSObject, CXProviderDelegate {
                 let callDurationSec = Int(self.callDurationMs / 1000)
                 self.callViewDelegate?.callDurationChanged(seconds: callDurationSec)
                 if callDurationSec % 5 == 0 {
+                    DDLogInfo("CallManager/counting callDurationSec until now: \(callDurationSec)")
                     self.activeCall?.logPeerConnectionStats()
                 }
             }

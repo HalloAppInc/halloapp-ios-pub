@@ -886,6 +886,7 @@ public class Call {
 
     func logPeerConnectionStats() {
         callQueue.async { [self] in
+            DDLogInfo("Call/logPeerConnectionStats/begin")
             webRTCClient?.fetchPeerConnectionStats() { [self] report in
                 var currentReport: [String: RTCStatistics] = [:]
                 for (key, stats) in report.statistics {
@@ -938,6 +939,7 @@ public class Call {
                 }
                 // Hold latest report
                 lastReport = currentReport
+                DDLogInfo("Call/logPeerConnectionStats/end")
             }
         }
     }
