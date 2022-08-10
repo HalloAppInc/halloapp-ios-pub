@@ -44,6 +44,8 @@ public struct ServerProperties {
         case enableGroupsGrid = "enable_groups_grid"
         case enableGroupExpiry = "group_expiry"
         case preAnswerCalls = "pre_answer_calls"
+        case chatReactions = "chat_reactions"
+        case commentReactions = "comment_reactions"
     }
 
     private struct UserDefaultsKey {
@@ -86,6 +88,8 @@ public struct ServerProperties {
         static let enableGroupsGrid = false
         static let enableGroupExpiry = false
         static let preAnswerCalls = false
+        static let chatReactions = false
+        static let commentReactions = false
     }
 
     // MARK: Storage
@@ -350,5 +354,13 @@ public struct ServerProperties {
 
     public static var preAnswerCalls: Bool {
         ServerProperties.bool(forKey: .preAnswerCalls) ?? Defaults.preAnswerCalls
+    }
+    
+    public static var chatReactions: Bool {
+        ServerProperties.bool(forKey: .chatReactions) ?? Defaults.chatReactions
+    }
+    
+    public static var commentReactions: Bool {
+        ServerProperties.bool(forKey: .commentReactions) ?? Defaults.commentReactions
     }
 }

@@ -117,19 +117,20 @@ public class ReactionViewController: UIViewController {
         messageViewCell.alpha = 0
         messageViewCell.transform = CGAffineTransform(scaleX: 0.98, y: 0.98)
         
-        view.addSubview(emojiStack)
-        emojiStack.translatesAutoresizingMaskIntoConstraints = false
-        if(isOwnMessage) {
-            emojiStack.trailingAnchor.constraint(equalTo: messageViewCell.trailingAnchor).isActive = true
-        } else {
-            emojiStack.leadingAnchor.constraint(equalTo: messageViewCell.leadingAnchor).isActive = true
+        if ServerProperties.chatReactions {
+            view.addSubview(emojiStack)
+            emojiStack.translatesAutoresizingMaskIntoConstraints = false
+            if(isOwnMessage) {
+                emojiStack.trailingAnchor.constraint(equalTo: messageViewCell.trailingAnchor).isActive = true
+            } else {
+                emojiStack.leadingAnchor.constraint(equalTo: messageViewCell.leadingAnchor).isActive = true
+            }
+            if(messageViewCell.frame.maxY < messageViewCell.frame.height + 80) {
+                emojiStack.topAnchor.constraint(equalTo: view.layoutMarginsGuide.topAnchor, constant: 20).isActive = true
+            } else {
+                emojiStack.bottomAnchor.constraint(equalTo: messageViewCell.topAnchor, constant: -8).isActive = true
+            }
         }
-        if(messageViewCell.frame.maxY < messageViewCell.frame.height + 80) {
-            emojiStack.topAnchor.constraint(equalTo: view.layoutMarginsGuide.topAnchor, constant: 20).isActive = true
-        } else {
-            emojiStack.bottomAnchor.constraint(equalTo: messageViewCell.topAnchor, constant: -8).isActive = true
-        }
-        
         var items = [UIBarButtonItem]()
         let space = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         if chatMessage.incomingStatus != .retracted {

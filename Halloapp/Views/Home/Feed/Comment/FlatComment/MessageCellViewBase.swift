@@ -330,7 +330,9 @@ class MessageCellViewBase: UICollectionViewCell {
         for reaction in chatMessage.sortedReactionsList {
             addReactionLabel(reaction: reaction.emoji)
         }
-        reactionBubble.isHidden = false
+        if ServerProperties.chatReactions {
+            reactionBubble.isHidden = false
+        }
     }
     
     override func layoutSubviews() {

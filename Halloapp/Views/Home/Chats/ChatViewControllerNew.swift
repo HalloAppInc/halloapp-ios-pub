@@ -1522,9 +1522,11 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
     }
     
     func messageView(_ messageViewCell: MessageCellViewBase, showReactionsFor chatMessage: ChatMessage) {
-        let reactionList = ReactionListViewController(chatMessage: chatMessage)
-        reactionList.delegate = self
-        self.present(UINavigationController(rootViewController: reactionList), animated: true)
+        if ServerProperties.chatReactions {
+            let reactionList = ReactionListViewController(chatMessage: chatMessage)
+            reactionList.delegate = self
+            self.present(UINavigationController(rootViewController: reactionList), animated: true)
+        }
     }
     
     func messageView(_ messageViewCell: MessageCellViewBase, jumpTo chatMessageID: ChatMessageID) {
