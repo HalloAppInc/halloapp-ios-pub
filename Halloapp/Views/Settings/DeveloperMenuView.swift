@@ -28,6 +28,7 @@ private enum MenuTitles {
     static var manageWebClient: String { "Manage web client" }
     static var enableGroupChat: String { "Enable Group Chat" }
     static var enableUIKitComposer: String { "Enable UIKit Composer" }
+    static var forceCompactShare: String { "Force Compact Share UI" }
     static var resetMomentsFTUX: String { "Reset Moments FTUX" }
     static var logOut: String { "Log Out" }
 }
@@ -37,6 +38,7 @@ struct DeveloperMenuView: View {
     @State var useTestServer = MainAppContext.shared.coreService.useTestServer
     @State var enableGroupChat = AppContext.shared.userDefaults.bool(forKey: "enableGroupChat")
     @State var enableUIKitComposer = AppContext.shared.userDefaults.bool(forKey: "enableUIKitComposer")
+    @State var forceCompactShare = AppContext.shared.userDefaults.bool(forKey: "forceCompactShare")
     @State var isShowingWebClientManager = false
 
     // TODO: Temporarily turn off and potentially remove
@@ -209,6 +211,13 @@ struct DeveloperMenuView: View {
                         .onReceive(Just(self.enableUIKitComposer)) { value in
                             AppContext.shared.userDefaults.set(value, forKey: "enableUIKitComposer")
                         }
+
+                    if enableUIKitComposer {
+                        Toggle(MenuTitles.forceCompactShare, isOn: $forceCompactShare)
+                            .onReceive(Just(self.forceCompactShare)) { value in
+                                AppContext.shared.userDefaults.set(value, forKey: "forceCompactShare")
+                            }
+                    }
                 }
                 Button {
                     AppContext.shared.userDefaults.set(false, forKey: "shown.moment.explainer")

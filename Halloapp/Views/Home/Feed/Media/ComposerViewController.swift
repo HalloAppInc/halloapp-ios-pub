@@ -107,7 +107,7 @@ class ComposerViewController: UIViewController {
     }()
 
     private var isCompactShareFlow: Bool {
-        groups.count + contacts.count <= 6
+        AppContext.shared.userDefaults.bool(forKey: "forceCompactShare") || (groups.count + contacts.count <= 6)
     }
 
     private var cancellables: Set<AnyCancellable> = []
