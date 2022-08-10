@@ -337,7 +337,7 @@ extension FeedDataSource {
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
         fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
             NSPredicate(format: "userID == %@", MainAppContext.shared.userData.userId),
-            NSPredicate(format: "expiration >= now() || expiration == nil"),
+            NSPredicate(format: "expiration < now()"),
             NSPredicate(format: "fromExternalShare == NO"),
         ])
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
