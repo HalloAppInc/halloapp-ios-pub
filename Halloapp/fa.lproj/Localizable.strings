@@ -286,6 +286,12 @@
 /* Chat entry that can be tapped to add the contact to address book */
 "chat.event.tap.to.add.contact" = "برای اضافه کردن @% به لیست مخاطبین کلیک کنید";
 
+/* Message text shown with the user who changed a groups content expiry settings */
+"chat.group.event.expiry.changed" = "@$1% انقضای محتوای گروه را به @$2% تغییر داد";
+
+/* Message text shown when you change a groups content expiry settings */
+"chat.group.event.expiry.changed.you" = "شما انقضای محتوای گروه را به %1@ تغییر دادید";
+
 /* Message text shown with the user who joined the group via invite link */
 "chat.group.event.join" = "%@ از طریق لینک به گروه پیوست";
 
@@ -297,6 +303,15 @@
 
 /* Message text shown when you leave a group */
 "chat.group.event.member.left.you" = "شما گروه را ترک کردید";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.24hours" = "۲۴ ساعت";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.30days" = "۳۰ روز";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.never" = "هیچوقت";
 
 /* Action label for adding members to a group */
 "chat.group.info.add.members" = "افزودن اعضا";
@@ -312,6 +327,12 @@
 
 /* Text for menu option of demoting a group member */
 "chat.group.info.demote" = "برکناری مدیر";
+
+/* Error message when changing group expiry fails */
+"chat.group.info.expiry.set.error" = "خطا در به روز رسانی انقضای محتوا";
+
+/* Title of groups info section that controls when group content expires */
+"chat.group.info.expiry.title" = "انقضای محتوا";
 
 /* Action label for leaving group */
 "chat.group.info.leave.group" = "ترک گروه";
@@ -469,6 +490,12 @@
 /* Title for alert when closing the post composer with a voice note */
 "composer.deletevoicenote.title" = "لغو پست؟";
 
+/* Share to all contacts */
+"composer.destination.contactsShare" = "مخاطبین";
+
+/* Label above the list with whom you share */
+"composer.destinations.label" = "به اشتراک گذاشتن با";
+
 /* Label shown when only single media item selected */
 "composer.label.more" = "پیوست بیشتر";
 
@@ -532,6 +559,9 @@
 /* Alert message telling the user to try creating the group again after an error */
 "create.group.error" = "خطا در ایجاد گروه، لطفاً دوباره امتحان کنید";
 
+/* Title for form field selecting group content expiry time */
+"create.group.expire.content" = "محتوا منقضی شد";
+
 /* Placeholder text shown inside the group name input box when it's empty */
 "create.group.name.placeholder" = "نامگذاری گروه";
 
@@ -543,6 +573,9 @@
 
 /* Body of the bottom sheet that is presented only once to explain the moments feature. */
 "describing.moments" = "لحظه‌های دوستان خود را با به اشتراک گذاشتن لحظه‌های خود باز کنید. لحظه‌ها سرگرمی هستند، بعد از یک بار دیدن از بین میروند.";
+
+/* Title that indicates that someone downloaded media from a post. */
+"downloaded.title" = "دانلود شد";
 
 /* link, tapping on which launched the flow to edit blocked contacts */
 "edit.blocked" = "ویرایش";
@@ -1087,6 +1120,12 @@
 /* Confirmation prompt in media composer. */
 "media.discard.confirmation" = "میخواهید ویرایش را لغو کنید؟";
 
+/* Button that, when pressed, saves all the post's media to the user's camera roll */
+"media.download.all" = "دانلود همه";
+
+/* Button that, when pressed, saves the post's media to the user's camera roll. Singular version for media.save.all */
+"media.download.singular" = "دانلود";
+
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.mic.access.request.body" = "برای فیلمبرداری با صدا، هالواپ نیاز دسترسی به میکروفون دارد. برای راه‌اندازی آن به تنظیمات بروید و آن را فعال کنید.";
 
@@ -1095,15 +1134,6 @@
 
 /* Error text displayed in post composer when some of the media selected couldn't be sent. */
 "media.prepare.failed.n.count" = "media.prepare.failed.n.count";
-
-/* Button that, when pressed, saves all the post's media to the user's camera roll */
-"media.save.all" = "ذخیره کردن همه در آلبوم دوربین";
-
-/* Button that, when pressed, saves the post's media to the user's camera roll. Singular version for media.save.all */
-"media.save.all.singular" = "ذخیره عکس یا فیلم به آلبوم دوربین";
-
-/* Button that lets the user save the current media displayed to their camera roll */
-"media.save.camera.roll" = "ذخیره کردن در آلبوم دوربین";
 
 /* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
 "media.save.needs.permissions" = "نیاز به دسترسی به عکس‌ها";
@@ -1240,6 +1270,9 @@
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ دعوت شما را به هالواپ پذیرفت";
 
+/* New message notification text when message is a location. */
+"notification.location" = "📍مکان";
+
 /* Push notification for a reaction to message */
 "notification.message.reaction" = "%@ به پیام عکس‌العمل نشان داد";
 
@@ -1354,6 +1387,9 @@
 /* Message shown only limited access to media. */
 "picker.access.limited.message" = "شما به هالواپ اجازه دسترسی به عکس‌ها و ویدیوهای انتخاب شده داده‌اید.";
 
+/* Title for a screen that displays items from the last 24 hours. */
+"picker.last.24.hours.title" = "۲۴ ساعت گذشته";
+
 /* Alert message in media picker when unable to load media file. */
 "picker.media.fail.message" = "لطفاً‌ دوباره امتحان کنید یا عکس یا ویدیوی دیگری انتخاب کنید.";
 
@@ -1377,6 +1413,9 @@
 
 /* Title for the picker screen. */
 "post.controller.picker.title" = "پست جدید";
+
+/* Body of alert indicating that a post's expiration does not match that set on a group */
+"post.expiration.mismatch" = "این پست @$1% منقضی میشود، در حالی که تنظیمات گروه @$2% را نشان میدهد.";
 
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted" = "این عکس حذف شده است";

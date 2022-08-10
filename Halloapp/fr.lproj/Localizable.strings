@@ -982,15 +982,6 @@
 /* Error text displayed in post composer when some of the media selected couldn't be sent. */
 "media.prepare.failed.n.count" = "médias.préparer.échec.n.décompte";
 
-/* Button that, when pressed, saves all the post's media to the user's camera roll */
-"media.save.all" = "Tout enregistrer dans la galerie d'images";
-
-/* Button that, when pressed, saves the post's media to the user's camera roll. Singular version for media.save.all */
-"media.save.all.singular" = "Enregistrer les médias dans la galerie d'images";
-
-/* Button that lets the user save the current media displayed to their camera roll */
-"media.save.camera.roll" = "Enregistrer dans la galerie d'images";
-
 /* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
 "media.save.needs.permissions" = "Droits d'accès aux photos requis";
 

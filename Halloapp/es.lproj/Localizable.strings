@@ -286,6 +286,12 @@
 /* Chat entry that can be tapped to add the contact to address book */
 "chat.event.tap.to.add.contact" = "Toca para agregar a %@ a tu libreta de contactos";
 
+/* Message text shown with the user who changed a groups content expiry settings */
+"chat.group.event.expiry.changed" = "%1$@ cambió la caducidad del contenido del grupo a %2$@";
+
+/* Message text shown when you change a groups content expiry settings */
+"chat.group.event.expiry.changed.you" = "Cambiaste la caducidad del contenido del grupo a %1@";
+
 /* Message text shown with the user who joined the group via invite link */
 "chat.group.event.join" = "%@ se unió al grupo con el enlace de invitación";
 
@@ -297,6 +303,15 @@
 
 /* Message text shown when you leave a group */
 "chat.group.event.member.left.you" = "Te saliste";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.24hours" = "24 horas";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.30days" = "30 días";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.never" = "Nunca";
 
 /* Action label for adding members to a group */
 "chat.group.info.add.members" = "Agregar miembros";
@@ -312,6 +327,12 @@
 
 /* Text for menu option of demoting a group member */
 "chat.group.info.demote" = "Descartar como administrador";
+
+/* Error message when changing group expiry fails */
+"chat.group.info.expiry.set.error" = "Error al actualizar la caducidad del contenido";
+
+/* Title of groups info section that controls when group content expires */
+"chat.group.info.expiry.title" = "Caducidad del contenido";
 
 /* Action label for leaving group */
 "chat.group.info.leave.group" = "Salir del grupo";
@@ -469,6 +490,12 @@
 /* Title for alert when closing the post composer with a voice note */
 "composer.deletevoicenote.title" = "¿Eliminar publicación?";
 
+/* Share to all contacts */
+"composer.destination.contactsShare" = "Mis contactos";
+
+/* Label above the list with whom you share */
+"composer.destinations.label" = "Compartir con";
+
 /* Label shown when only single media item selected */
 "composer.label.more" = "Agregar más";
 
@@ -532,6 +559,9 @@
 /* Alert message telling the user to try creating the group again after an error */
 "create.group.error" = "Hubo un error al crear el grupo, inténtalo de nuevo";
 
+/* Title for form field selecting group content expiry time */
+"create.group.expire.content" = "Caducar contenido";
+
 /* Placeholder text shown inside the group name input box when it's empty */
 "create.group.name.placeholder" = "Dale un nombre a tu grupo";
 
@@ -543,6 +573,9 @@
 
 /* Body of the bottom sheet that is presented only once to explain the moments feature. */
 "describing.moments" = "Desbloquea los momentos de tus amigos compartiendo los tuyos. Los momentos son casuales, desaparecen después de verlos una vez.";
+
+/* Title that indicates that someone downloaded media from a post. */
+"downloaded.title" = "Descargado";
 
 /* link, tapping on which launched the flow to edit blocked contacts */
 "edit.blocked" = "Editar";
@@ -1042,6 +1075,9 @@
 /* Title of the menu to choose map type. */
 "locationSharing.chooseMap" = "Elegir mapa";
 
+/* Addresses displayed as subtitles in location list. Parameters are non-empty street address and city. */
+"locationSharing.detailedAddress" = "%1$@, %2$@";
+
 /* Subtitle of the user location callout. Parameter is the formatted length measurement of accuracy (including unit). */
 "locationSharing.locationAccuracyDescription" = "Exactitud de %@";
 
@@ -1056,6 +1092,9 @@
 
 /* Title of the location sharing main screen. */
 "locationSharing.navTitle" = "Ubicación";
+
+/* Initial title of the callout bubble for locations selected by long pressing on the map. */
+"locationSharing.selectedLocation" = "Ubicación seleccionada";
 
 /* Title of a location in location list if it does not have a name. */
 "locationSharing.untitledLocation" = "Ubicación desconocida";
@@ -1081,6 +1120,12 @@
 /* Confirmation prompt in media composer. */
 "media.discard.confirmation" = "¿Te gustaría descartar lo que has editado?";
 
+/* Button that, when pressed, saves all the post's media to the user's camera roll */
+"media.download.all" = "Descargar todo";
+
+/* Button that, when pressed, saves the post's media to the user's camera roll. Singular version for media.save.all */
+"media.download.singular" = "Descargar";
+
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.mic.access.request.body" = "Para grabar videos con sonido, HalloApp necesita acceso al micrófono. Para permitir este acceso, ve a Configuración y enciende el micrófono.";
 
@@ -1090,14 +1135,8 @@
 /* Error text displayed in post composer when some of the media selected couldn't be sent. */
 "media.prepare.failed.n.count" = "media.prepare.failed.n.count";
 
-/* Button that, when pressed, saves all the post's media to the user's camera roll */
-"media.save.all" = "Guardar todo en mi rollo de cámara";
-
-/* Button that, when pressed, saves the post's media to the user's camera roll. Singular version for media.save.all */
-"media.save.all.singular" = "Guardar foto o video en mi rollo de cámara";
-
-/* Button that lets the user save the current media displayed to their camera roll */
-"media.save.camera.roll" = "Guardar en mi rollo de cámara";
+/* Title when changing media order */
+"media.reorder.title" = "Cambiar orden";
 
 /* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
 "media.save.needs.permissions" = "Necesitamos permiso para guardar fotos";
@@ -1234,6 +1273,12 @@
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ acaba de aceptar tu invitación a HalloApp 🎉";
 
+/* New message notification text when message is a location. */
+"notification.location" = "📍Ubicación";
+
+/* Push notification for a reaction to message */
+"notification.message.reaction" = "Reaccionó %@ a un mensaje";
+
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Nuevo momento";
 
@@ -1345,6 +1390,9 @@
 /* Message shown only limited access to media. */
 "picker.access.limited.message" = "Diste a HalloApp acceso a una selección de fotos y videos.";
 
+/* Title for a screen that displays items from the last 24 hours. */
+"picker.last.24.hours.title" = "Últimas 24 horas";
+
 /* Alert message in media picker when unable to load media file. */
 "picker.media.fail.message" = "Inténtalo de nuevo o selecciona un video o una foto diferente.";
 
@@ -1369,6 +1417,9 @@
 /* Title for the picker screen. */
 "post.controller.picker.title" = "Nueva Publicación";
 
+/* Body of alert indicating that a post's expiration does not match that set on a group */
+"post.expiration.mismatch" = "Esta publicación caducará el %1$@, mientras que la caducidad del contenido del grupo se estableció en %2$@.";
+
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted" = "Esta publicación se eliminó";
 
@@ -1380,6 +1431,9 @@
 
 /* Header when selecting all or some contacts to share with */
 "post.privacy.header.contacts" = "Quién verá esta publicación";
+
+/* Header when selecting destinations to forward a message, this header appears above the feeds section */
+"post.privacy.header.feeds" = "Muro";
 
 /* Header when selecting a group to share with
    Header when selecting destinations to forward a message, this header appears above the groups section */
@@ -1724,6 +1778,9 @@
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Únete a mi red social de relaciones reales, HalloApp. Descarga la aplicación gratis en halloapp.com/dl";
+
+/* Show more groups in the share group selection */
+"share.destination.more" = "Mostrar más...";
 
 /* Prompt for the user to share a moment. */
 "share.moment.prompt" = "Comparte un momento";

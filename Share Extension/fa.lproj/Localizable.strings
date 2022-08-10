@@ -70,6 +70,15 @@
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "به روز رسانی";
 
+/* Group content expiry time limit option */
+"chat.group.expiry.option.24hours" = "۲۴ ساعت";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.30days" = "۳۰ روز";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.never" = "هیچوقت";
+
 /* Alert message when missing microphone access */
 "chat.mic.access.denied.message" = "برای فعال‌سازی ضبط صدا روی تنظیمات کلیک کنید و میکروفون را فعال کنید";
 

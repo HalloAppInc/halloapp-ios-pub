@@ -1036,15 +1036,6 @@
 /* Error text displayed in post composer when some of the media selected couldn't be sent. */
 "media.prepare.failed.n.count" = "media.prepare.failed.n.count";
 
-/* Button that, when pressed, saves all the post's media to the user's camera roll */
-"media.save.all" = "Hepsini galeriye kaydet";
-
-/* Button that, when pressed, saves the post's media to the user's camera roll. Singular version for media.save.all */
-"media.save.all.singular" = "Görseli film rulosuna kaydet";
-
-/* Button that lets the user save the current media displayed to their camera roll */
-"media.save.camera.roll" = "Galeriye kaydet";
-
 /* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
 "media.save.needs.permissions" = "Fotoğraf izni gerekiyor";
 

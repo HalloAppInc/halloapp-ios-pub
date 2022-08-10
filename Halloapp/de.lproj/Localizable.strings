@@ -286,6 +286,12 @@
 /* Chat entry that can be tapped to add the contact to address book */
 "chat.event.tap.to.add.contact" = "Tippen, um %@ zu deinen Kontakten hinzuzufügen";
 
+/* Message text shown with the user who changed a groups content expiry settings */
+"chat.group.event.expiry.changed" = "%1$@ hat die Ablaufzeit der Inhalte in der Gruppe auf %2$@ geändert";
+
+/* Message text shown when you change a groups content expiry settings */
+"chat.group.event.expiry.changed.you" = "Du hast die Ablaufzeit der Inhalte in der Gruppe auf %1@ geändert";
+
 /* Message text shown with the user who joined the group via invite link */
 "chat.group.event.join" = "%@ ist der Gruppe über einen Einladungslink beigetreten";
 
@@ -297,6 +303,15 @@
 
 /* Message text shown when you leave a group */
 "chat.group.event.member.left.you" = "Du hast die Gruppe verlassen";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.24hours" = "24 Stunden";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.30days" = "30 Tage";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.never" = "Niemals";
 
 /* Action label for adding members to a group */
 "chat.group.info.add.members" = "Mitglieder hinzufügen";
@@ -312,6 +327,12 @@
 
 /* Text for menu option of demoting a group member */
 "chat.group.info.demote" = "Als Admin entfernen";
+
+/* Error message when changing group expiry fails */
+"chat.group.info.expiry.set.error" = "Ablaufzeit der Inhalte kann nicht aktualisiert werden";
+
+/* Title of groups info section that controls when group content expires */
+"chat.group.info.expiry.title" = "Ablauf der Inhalte";
 
 /* Action label for leaving group */
 "chat.group.info.leave.group" = "Gruppe verlassen";
@@ -469,6 +490,12 @@
 /* Title for alert when closing the post composer with a voice note */
 "composer.deletevoicenote.title" = "Beitrag verwerfen?";
 
+/* Share to all contacts */
+"composer.destination.contactsShare" = "Meine Kontakte";
+
+/* Label above the list with whom you share */
+"composer.destinations.label" = "Teilen mit";
+
 /* Label shown when only single media item selected */
 "composer.label.more" = "Mehr hinzufügen";
 
@@ -532,6 +559,9 @@
 /* Alert message telling the user to try creating the group again after an error */
 "create.group.error" = "Bei der Erstellung der Gruppe ist ein Fehler aufgetreten. Bitte versuche es noch einmal";
 
+/* Title for form field selecting group content expiry time */
+"create.group.expire.content" = "Inhalt ablaufen lassen";
+
 /* Placeholder text shown inside the group name input box when it's empty */
 "create.group.name.placeholder" = "Gruppenname hinzufügen";
 
@@ -543,6 +573,9 @@
 
 /* Body of the bottom sheet that is presented only once to explain the moments feature. */
 "describing.moments" = "Schalte die Momente deiner Freunde frei, indem du deine eigenen teilst. Momente sind temporär und du kannst sie nur einmal anschauen";
+
+/* Title that indicates that someone downloaded media from a post. */
+"downloaded.title" = "Heruntergeladen";
 
 /* link, tapping on which launched the flow to edit blocked contacts */
 "edit.blocked" = "Bearbeiten";
@@ -1087,6 +1120,12 @@
 /* Confirmation prompt in media composer. */
 "media.discard.confirmation" = "Möchtest du deine Änderungen verwerfen?";
 
+/* Button that, when pressed, saves all the post's media to the user's camera roll */
+"media.download.all" = "Alle herunterladen";
+
+/* Button that, when pressed, saves the post's media to the user's camera roll. Singular version for media.save.all */
+"media.download.singular" = "Herunterladen";
+
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.mic.access.request.body" = "Um Videos mit Ton aufzunehmen, benötigt HalloApp den Zugriff auf das Mikrofon. Um den Zugriff zu erlauben, tippe auf Einstellungen und aktiviere das Mikrofon.";
 
@@ -1096,14 +1135,8 @@
 /* Error text displayed in post composer when some of the media selected couldn't be sent. */
 "media.prepare.failed.n.count" = "media.prepare.failed.n.count";
 
-/* Button that, when pressed, saves all the post's media to the user's camera roll */
-"media.save.all" = "Alle speichern";
-
-/* Button that, when pressed, saves the post's media to the user's camera roll. Singular version for media.save.all */
-"media.save.all.singular" = "Medien speichern";
-
-/* Button that lets the user save the current media displayed to their camera roll */
-"media.save.camera.roll" = "Speichern";
+/* Title when changing media order */
+"media.reorder.title" = "Reihenfolge ändern";
 
 /* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
 "media.save.needs.permissions" = "Erlaube Zugriff auf Fotos";
@@ -1240,6 +1273,9 @@
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ hat deine HalloApp-Einladung angenommen 🎉";
 
+/* New message notification text when message is a location. */
+"notification.location" = "📍 Standort";
+
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Neuer Moment";
 
@@ -1351,6 +1387,9 @@
 /* Message shown only limited access to media. */
 "picker.access.limited.message" = "Du hast HalloApp den Zugriff auf eine bestimmte Anzahl von Fotos und Videos gewährt.";
 
+/* Title for a screen that displays items from the last 24 hours. */
+"picker.last.24.hours.title" = "Die letzten 24 Stunden";
+
 /* Alert message in media picker when unable to load media file. */
 "picker.media.fail.message" = "Versuch es bitte noch einmal oder wähle ein anderes Foto oder Video aus.";
 
@@ -1374,6 +1413,9 @@
 
 /* Title for the picker screen. */
 "post.controller.picker.title" = "Neuer Beitrag";
+
+/* Body of alert indicating that a post's expiration does not match that set on a group */
+"post.expiration.mismatch" = "Dieser Beitrag läuft am %1$@ ab, während der Inhaltsablauf der Gruppe festgelegt ist auf: %2$@";
 
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted" = "Dieser Beitrag wurde gelöscht";
@@ -1585,7 +1627,7 @@
 "sending.title" = "Senden";
 
 /* Indicates that an item has successfully been sent. */
-"sent.title" = "Geschickt";
+"sent.title" = "Gesendet";
 
 /* body of the marketing alert sent to users */
 "server.marketing.body" = "Lade deine Freunde zu HalloApp ein!";

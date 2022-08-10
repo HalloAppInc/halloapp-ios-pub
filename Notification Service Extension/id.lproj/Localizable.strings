@@ -70,6 +70,15 @@
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Perbarui";
 
+/* Group content expiry time limit option */
+"chat.group.expiry.option.24hours" = "24 Jam";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.30days" = "30 Hari";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.never" = "Jangan Pernah";
+
 /* Alert message when missing microphone access */
 "chat.mic.access.denied.message" = "Untuk mengaktifkan rekaman audio, silakan ketuk Pengaturan lalu nyalakan Mikrofon";
 
@@ -127,6 +136,9 @@
 /* Button title. Refers to discarding photo/video edits in media composer. */
 "media.button.discard" = "Buang";
 
+/* Push notification for a comment to message */
+"notification.comment.reaction" = "Menanggapi %@ di komentar";
+
 /* Push notification for a new comment. Parameter is the text of the comment */
 "notification.commented.with.text" = "Mengomentari: %@";
 
@@ -136,8 +148,11 @@
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ baru saja menerima undangan Anda untuk bergabung dengan HalloApp 🎉";
 
+/* New message notification text when message is a location. */
+"notification.location" = "📍 Lokasi";
+
 /* Push notification for a reaction to message */
-"notification.message.reaction" = "Menanggapi %@ ke pesan";
+"notification.message.reaction" = "Menanggapi %@ di pesan";
 
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Momen baru";

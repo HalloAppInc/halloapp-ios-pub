@@ -70,6 +70,15 @@
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Aktualisieren";
 
+/* Group content expiry time limit option */
+"chat.group.expiry.option.24hours" = "24 Stunden";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.30days" = "30 Tage";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.never" = "niemals";
+
 /* Alert message when missing microphone access */
 "chat.mic.access.denied.message" = "Für Audioaufnahmen bitte in den Einstellungen das Mikrofon aktivieren";
 

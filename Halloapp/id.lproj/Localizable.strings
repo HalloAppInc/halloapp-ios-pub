@@ -304,6 +304,15 @@
 /* Message text shown when you leave a group */
 "chat.group.event.member.left.you" = "Anda keluar";
 
+/* Group content expiry time limit option */
+"chat.group.expiry.option.24hours" = "24 Jam";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.30days" = "39 Hari";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.never" = "Jangan Pernah";
+
 /* Action label for adding members to a group */
 "chat.group.info.add.members" = "Tambahkan Anggota";
 
@@ -318,6 +327,12 @@
 
 /* Text for menu option of demoting a group member */
 "chat.group.info.demote" = "Memberhentikan sebagai Admin";
+
+/* Error message when changing group expiry fails */
+"chat.group.info.expiry.set.error" = "Gagal memperbarui waktu kedaluwarsa konten";
+
+/* Title of groups info section that controls when group content expires */
+"chat.group.info.expiry.title" = "Waktu Kedaluwarsa Konten";
 
 /* Action label for leaving group */
 "chat.group.info.leave.group" = "Keluar dari grup";
@@ -475,6 +490,12 @@
 /* Title for alert when closing the post composer with a voice note */
 "composer.deletevoicenote.title" = "Buang Postingan?";
 
+/* Share to all contacts */
+"composer.destination.contactsShare" = "Kontak Saya";
+
+/* Label above the list with whom you share */
+"composer.destinations.label" = "Bagikan dengan";
+
 /* Label shown when only single media item selected */
 "composer.label.more" = "Tambahkan lainnya";
 
@@ -538,6 +559,9 @@
 /* Alert message telling the user to try creating the group again after an error */
 "create.group.error" = "Terdapat kesalahan saat membuat grup, silakan coba lagi";
 
+/* Title for form field selecting group content expiry time */
+"create.group.expire.content" = "Konten yang Akan Berakhir";
+
 /* Placeholder text shown inside the group name input box when it's empty */
 "create.group.name.placeholder" = "Beri nama grup Anda";
 
@@ -549,6 +573,9 @@
 
 /* Body of the bottom sheet that is presented only once to explain the moments feature. */
 "describing.moments" = "Buka momen teman dengan membagikan momen Anda. Momen adalah fitur kasual, dan akan hilang setelah Anda melihatnya sekali.";
+
+/* Title that indicates that someone downloaded media from a post. */
+"downloaded.title" = "Diunduh";
 
 /* link, tapping on which launched the flow to edit blocked contacts */
 "edit.blocked" = "Edit";
@@ -1093,6 +1120,12 @@
 /* Confirmation prompt in media composer. */
 "media.discard.confirmation" = "Apakah Anda ingin menghapus perubahan Anda?";
 
+/* Button that, when pressed, saves all the post's media to the user's camera roll */
+"media.download.all" = "Unduh Semua";
+
+/* Button that, when pressed, saves the post's media to the user's camera roll. Singular version for media.save.all */
+"media.download.singular" = "Unduh";
+
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.mic.access.request.body" = "Untuk merekam video dengan suara, HalloApp memerlukan akses mikrofon. Untuk mengizinkan akses, ketuk Pengaturan dan nyalakan Mikrofon.";
 
@@ -1102,14 +1135,8 @@
 /* Error text displayed in post composer when some of the media selected couldn't be sent. */
 "media.prepare.failed.n.count" = "media.prepare.failed.n.count";
 
-/* Button that, when pressed, saves all the post's media to the user's camera roll */
-"media.save.all" = "Simpan Semua ke Rol Kamera";
-
-/* Button that, when pressed, saves the post's media to the user's camera roll. Singular version for media.save.all */
-"media.save.all.singular" = "Simpan Media ke Rol Kamera";
-
-/* Button that lets the user save the current media displayed to their camera roll */
-"media.save.camera.roll" = "Simpan ke Rol Kamera";
+/* Title when changing media order */
+"media.reorder.title" = "Ubah Urutan";
 
 /* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
 "media.save.needs.permissions" = "Diperlukan izin foto";
@@ -1237,6 +1264,9 @@
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Anda tidak lagi di grup ini";
 
+/* Push notification for a comment to message */
+"notification.comment.reaction" = "Menanggapi %@ di komentar";
+
 /* Push notification for a new comment. Parameter is the text of the comment */
 "notification.commented.with.text" = "Mengomentari: %@";
 
@@ -1246,8 +1276,11 @@
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ baru saja menerima undangan Anda untuk bergabung dengan HalloApp 🎉";
 
+/* New message notification text when message is a location. */
+"notification.location" = "📍 Lokasi";
+
 /* Push notification for a reaction to message */
-"notification.message.reaction" = "Menanggapi %@ ke pesan";
+"notification.message.reaction" = "Menanggapi %@ di pesan";
 
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Momen baru";
@@ -1360,6 +1393,9 @@
 /* Message shown only limited access to media. */
 "picker.access.limited.message" = "Anda telah memberi HalloApp akses ke sejumlah foto dan video yang dipilih.";
 
+/* Title for a screen that displays items from the last 24 hours. */
+"picker.last.24.hours.title" = "24 Jam Terakhir";
+
 /* Alert message in media picker when unable to load media file. */
 "picker.media.fail.message" = "Silakan coba lagi atau pilih foto atau video lain.";
 
@@ -1383,6 +1419,9 @@
 
 /* Title for the picker screen. */
 "post.controller.picker.title" = "Postingan Baru";
+
+/* Body of alert indicating that a post's expiration does not match that set on a group */
+"post.expiration.mismatch" = "Postingan ini akan berakhir dalam waktu, saat masa kedaluwarsa konten grup diatur ke %2$@.";
 
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted" = "Postingan ini telah dihapus";

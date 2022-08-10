@@ -70,6 +70,15 @@
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Atualizar";
 
+/* Group content expiry time limit option */
+"chat.group.expiry.option.24hours" = "24 horas";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.30days" = "30 dias";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.never" = "Nunca";
+
 /* Alert message when missing microphone access */
 "chat.mic.access.denied.message" = "Para habilitar a gravação de áudio, toque em Configurações e ligue o Microfone";
 
@@ -127,6 +136,9 @@
 /* Button title. Refers to discarding photo/video edits in media composer. */
 "media.button.discard" = "Descartar";
 
+/* Push notification for a comment to message */
+"notification.comment.reaction" = "Reagiu %@ a um comentário";
+
 /* Push notification for a new comment. Parameter is the text of the comment */
 "notification.commented.with.text" = "Comentado: %@";
 
@@ -135,6 +147,9 @@
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ acabou de aceitar seu convite para se juntar ao HalloApp 🎉";
+
+/* New message notification text when message is a location. */
+"notification.location" = "📍 Localização";
 
 /* Push notification for a reaction to message */
 "notification.message.reaction" = "Reagiu %@ a uma mensagem";

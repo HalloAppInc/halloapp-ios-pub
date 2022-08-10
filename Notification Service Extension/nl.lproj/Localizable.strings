@@ -136,6 +136,9 @@
 /* Button title. Refers to discarding photo/video edits in media composer. */
 "media.button.discard" = "Weggooien";
 
+/* Push notification for a comment to message */
+"notification.comment.reaction" = "Reageerde met %@ op een reactie";
+
 /* Push notification for a new comment. Parameter is the text of the comment */
 "notification.commented.with.text" = "Heeft gereageerd: %@";
 
@@ -144,6 +147,9 @@
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ heeft je uitnodiging voor HalloApp geaccepteerd 🎉";
+
+/* New message notification text when message is a location. */
+"notification.location" = "📍 Locatie";
 
 /* Push notification for a reaction to message */
 "notification.message.reaction" = "Reageerde met %@ op een bericht";

@@ -70,6 +70,15 @@
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Actualizar";
 
+/* Group content expiry time limit option */
+"chat.group.expiry.option.24hours" = "24 horas";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.30days" = "30 días";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.never" = "Nunca";
+
 /* Alert message when missing microphone access */
 "chat.mic.access.denied.message" = "Para poder grabar audio, por favor ve a Configuración y enciende el micrófono";
 
@@ -135,6 +144,12 @@
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ acaba de aceptar tu invitación a HalloApp 🎉";
+
+/* New message notification text when message is a location. */
+"notification.location" = "📍Ubicación";
+
+/* Push notification for a reaction to message */
+"notification.message.reaction" = "Reaccionó %@ a un mensaje";
 
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Nuevo momento";
