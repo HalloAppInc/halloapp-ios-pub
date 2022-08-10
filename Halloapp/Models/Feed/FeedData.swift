@@ -3017,7 +3017,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             DDLogError("FeedData/new-post/mention/\($0.userID) missing push name")
         }
 
-        let shouldStreamFeedVideo = ServerProperties.streamingSendingEnabled && ChunkedMediaTestConstants.STREAMING_FEED_GROUP_IDS.contains(feedPost.groupId ?? "")
+        let shouldStreamFeedVideo = ServerProperties.streamingSendingEnabled || ChunkedMediaTestConstants.STREAMING_FEED_GROUP_IDS.contains(feedPost.groupId ?? "")
 
         // Add post media.
         for (index, mediaItem) in media.enumerated() {
