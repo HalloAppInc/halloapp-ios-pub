@@ -2131,6 +2131,35 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             completion()
         }
     }
+    
+    private func processReactionRetract(_ reactionId: CommonReactionID, completion: @escaping () -> Void) {
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
+            guard let reaction = self.commonReaction(with: reactionId, in: managedObjectContext) else {
+                DDLogError("FeedData/retract-reaction/error Missing reaction. [\(reactionId)]")
+                completion()
+                return
+            }
+            guard reaction.incomingStatus != .retracted else {
+                DDLogError("FeedData/retract-reaction/error Already retracted. [\(reactionId)]")
+                completion()
+                return
+            }
+            DDLogInfo("FeedData/retract-reaction [\(reactionId)]")
+            guard let parentComment = reaction.comment else {
+                DDLogError("FeedData/retract-reaction/no parent comment")
+                return
+            }
+            if let reactionToDelete = parentComment.sortedReactionsList.filter({ $0.id == reaction.id }).last {
+                managedObjectContext.delete(reactionToDelete)
+            }
+
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+
+            completion()
+        }
+    }
 
     private func processIncomingFeedRetracts(_ retracts: [FeedRetract], groupID: GroupID?, ack: (() -> Void)?) {
         let processingGroup = DispatchGroup()
@@ -2143,8 +2172,17 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             case .comment(let commentID):
                 processingGroup.enter()
-                processCommentRetract(commentID) {
-                    processingGroup.leave()
+                performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+                    guard let self = self else { return }
+                    if self.commonReaction(with: commentID, in: managedObjectContext) != nil {
+                        self.processReactionRetract(commentID) {
+                            processingGroup.leave()
+                        }
+                    } else {
+                        self.processCommentRetract(commentID) {
+                            processingGroup.leave()
+                        }
+                    }
                 }
             }
         }
@@ -2239,8 +2277,38 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 self.processCommentRetract(commentId) {}
 
             case .failure(_):
+                // TODO: Retry retractions on next connection
                 self.updateFeedPostComment(with: commentId) { (comment) in
                     comment.status = .sent
+                }
+            }
+        }
+    }
+    
+    func retract(reaction: CommonReaction) {
+        DDLogInfo("FeedData/retract-reaction/reactionID: [\(reaction.id)]")
+        guard let parentComment = reaction.comment else {
+            DDLogError("FeedData/retract-reaction/no parent comment")
+            return
+        }
+        let reactionId = reaction.id
+
+        // Mark reaction as "being retracted".
+        reaction.outgoingStatus = .retracting
+        if let context = reaction.managedObjectContext {
+            save(context)
+        }
+
+        // Request to retract.
+        service.retractComment(id: reaction.id, postID: parentComment.post.id, in: parentComment.post.groupId) { result in
+            switch result {
+            case .success:
+                self.processReactionRetract(reactionId) {}
+            case .failure(_):
+                // TODO: Retry retractions on next connection
+                DDLogError("FeedData/retract-reaction/failed to retract reaction [\(reactionId)]")
+                self.updateReaction(with: reactionId) { (reaction) in
+                    reaction.outgoingStatus = .sentOut
                 }
             }
         }

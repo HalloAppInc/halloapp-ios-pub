@@ -3429,7 +3429,7 @@ extension ChatData {
             DDLogError("ChatData/deleteReaction/no parent message")
             return
         }
-        if let reactionToDelete = parentMessage.sortedReactionsList.filter({ $0.fromUserID == commonReaction.fromUserID }).last {
+        if let reactionToDelete = parentMessage.sortedReactionsList.filter({ $0.id == commonReaction.id }).last {
                 parentMessage.managedObjectContext?.delete(reactionToDelete)
         }
     }
