@@ -128,6 +128,13 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
     private var transitionSnapshot: UIView?
 
+    private lazy var fromUserDestination: ShareDestination? = {
+        guard let fromUserId = fromUserId else { return nil }
+        guard let contact = MainAppContext.shared.contactStore.contact(withUserId: fromUserId, in: MainAppContext.shared.contactStore.viewContext) else { return nil }
+
+        return ShareDestination.destination(from: contact)
+    }()
+
     private var cancellableSet: Set<AnyCancellable> = []
 
     // MARK: Jump Button
@@ -967,7 +974,9 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     }
 
     private func presentMediaPicker() {
-        let vc = MediaPickerViewController(config: .chat(id: fromUserId)) { [weak self] controller, _, _, media, cancel in
+        guard let fromUserDestination = fromUserDestination else { return }
+
+        let vc = MediaPickerViewController(config: .config(with: fromUserDestination)) { [weak self] controller, _, media, cancel in
             guard let self = self else { return }
             if cancel {
                 self.dismiss(animated: true)
@@ -989,10 +998,12 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     }
 
     private func presentMediaComposer(media: [PendingMedia]) {
+        guard let fromUserDestination = fromUserDestination else { return }
+
         let composerController = PostComposerViewController(
             mediaToPost: media,
             initialInput: MentionInput(text: contentInputView.textView.text, mentions: MentionRangeMap(), selectedRange: NSRange()),
-            configuration: .message(id: fromUserId),
+            configuration: .config(with: fromUserDestination),
             initialPostType: .library,
             voiceNote: nil,
             delegate: self)
@@ -1398,10 +1409,12 @@ extension ChatViewControllerNew: ContentInputDelegate {
     }
 
     private func presentComposerViewController(media: [PendingMedia]) {
+        guard let fromUserDestination = fromUserDestination else { return }
+
         let composerController = PostComposerViewController(
             mediaToPost: media,
            initialInput: MentionInput(text: contentInputView.textView.text, mentions: MentionRangeMap(), selectedRange: NSRange()),
-          configuration: .message(id: fromUserId),
+          configuration: .config(with: fromUserDestination),
         initialPostType: .library,
               voiceNote: nil,
                delegate: self)
@@ -1459,7 +1472,7 @@ extension ChatViewControllerNew: PostComposerViewDelegate {
     }
 
     func composerDidTapShare(controller: PostComposerViewController,
-                            destination: PostComposerDestination,
+                            destination: ShareDestination,
                              feedAudience: FeedAudience,
                                isMoment: Bool,
                             mentionText: MentionText,
@@ -1471,14 +1484,14 @@ extension ChatViewControllerNew: PostComposerViewDelegate {
         view.window?.rootViewController?.dismiss(animated: true, completion: nil)
     }
 
-    func composerDidTapBack(controller: PostComposerViewController, destination: PostComposerDestination, privacyListType: PrivacyListType, media: [PendingMedia], voiceNote: PendingMedia?) {
+    func composerDidTapBack(controller: PostComposerViewController, destination: ShareDestination, media: [PendingMedia], voiceNote: PendingMedia?) {
         controller.dismiss(animated: false)
 
         let presentedVC = self.presentedViewController
 
         if let viewControllers = (presentedVC as? UINavigationController)?.viewControllers {
             if let mediaPickerController = viewControllers.last as? MediaPickerViewController {
-                mediaPickerController.reset(destination: nil, privacyListType: nil, selected: media)
+                mediaPickerController.reset(destination: nil, selected: media)
             }
         }
     }

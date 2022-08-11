@@ -19,19 +19,19 @@ fileprivate struct Constants {
 protocol ComposerDestinationRowDelegate: AnyObject {
     func destinationRowOpenContacts(_ destinationRowView: ComposerDestinationRowView)
     func destinationRowOpenInvites(_ destinationRowView: ComposerDestinationRowView)
-    func destinationRow(_ destinationRowView: ComposerDestinationRowView, selected destination: PostComposerDestination)
-    func destinationRow(_ destinationRowView: ComposerDestinationRowView, deselected destination: PostComposerDestination)
+    func destinationRow(_ destinationRowView: ComposerDestinationRowView, selected destination: ShareDestination)
+    func destinationRow(_ destinationRowView: ComposerDestinationRowView, deselected destination: ShareDestination)
 }
 
 class ComposerDestinationRowView: UICollectionView {
 
     weak var destinationDelegate: ComposerDestinationRowDelegate?
 
-    public var destinations: [PostComposerDestination] {
-        (indexPathsForSelectedItems ?? [])
-            .compactMap { destinationDataSource.itemIdentifier(for: $0) }
-            .map { $0.postComposerDestination }
+    public var destinations: [ShareDestination] {
+        (indexPathsForSelectedItems ?? []).compactMap { destinationDataSource.itemIdentifier(for: $0) }
     }
+
+    private let contactsCount: Int
 
     private lazy var openInvitesGestureRecognizer: UITapGestureRecognizer = {
         UITapGestureRecognizer(target: self, action: #selector(openInvitesAction))
@@ -41,17 +41,17 @@ class ComposerDestinationRowView: UICollectionView {
         destinationDelegate?.destinationRowOpenInvites(self)
     }
 
-    private lazy var destinationDataSource: UICollectionViewDiffableDataSource<Int, DestinationItem> = {
-        let source = UICollectionViewDiffableDataSource<Int, DestinationItem>(collectionView: self) { [weak self] collectionView, indexPath, item in
+    private lazy var destinationDataSource: UICollectionViewDiffableDataSource<Int, ShareDestination> = {
+        let source = UICollectionViewDiffableDataSource<Int, ShareDestination>(collectionView: self) { [weak self] collectionView, indexPath, item in
             guard let self = self else { return nil }
 
             switch item {
-            case .userFeed(let count):
+            case .feed:
                 guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ContactsViewCell.reuseIdentifier, for: indexPath) as? ContactsViewCell else {
                     return nil
                 }
 
-                cell.configure(count: count)
+                cell.configure(count: self.contactsCount)
 
                 return cell
             case .group(let groupId, let title):
@@ -62,10 +62,11 @@ class ComposerDestinationRowView: UICollectionView {
                 cell.configure(groupId: groupId, title: title)
 
                 return cell
-            case .contact(let userId, let title):
+            case .contact(let userId, let title, _):
                 guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ItemViewCell.reuseIdentifier, for: indexPath) as? ItemViewCell else {
                     return nil
                 }
+                guard let title = title else { return nil }
 
                 cell.configure(userId: userId, title: title)
 
@@ -93,6 +94,8 @@ class ComposerDestinationRowView: UICollectionView {
     } ()
 
     init(groups: [Group], contacts: [ABContact]) {
+        contactsCount = contacts.count
+
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
         layout.sectionInset = UIEdgeInsets(top: 0, left: 12, bottom: 0, right: 12)
@@ -124,44 +127,39 @@ class ComposerDestinationRowView: UICollectionView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    private func makeSnapshot(groups: [Group], contacts: [ABContact]) -> NSDiffableDataSourceSnapshot<Int, DestinationItem> {
-        var items: [DestinationItem] = [.userFeed(contacts.count)]
+    private func makeSnapshot(groups: [Group], contacts: [ABContact]) -> NSDiffableDataSourceSnapshot<Int, ShareDestination> {
+        var items: [ShareDestination] = [.feed(.all)]
 
-        for group in groups {
-            items.append(.group(group.id, group.name))
-        }
+        items.append(contentsOf: groups.map { ShareDestination.destination(from: $0) })
+        items.append(contentsOf: contacts.compactMap { ShareDestination.destination(from: $0) })
 
-        for contact in contacts {
-            guard let userId = contact.userId, let name = contact.fullName else { continue }
-            items.append(.contact(userId, name))
-        }
 
         items.sort {
             let title0: String
             let title1: String
 
             switch $0 {
-            case .userFeed(_):
+            case .feed:
                 return true
             case .group(_, let title):
                 title0 = title
-            case .contact(_, let title):
-                title0 = title
+            case .contact(_, let title, _):
+                title0 = title ?? ""
             }
 
             switch $1 {
-            case .userFeed(_):
+            case .feed:
                 return false
             case .group(_, let title):
                 title1 = title
-            case .contact(_, let title):
-                title1 = title
+            case .contact(_, let title, _):
+                title1 = title ?? ""
             }
 
             return title0 < title1
         }
 
-        var snapshot = NSDiffableDataSourceSnapshot<Int, DestinationItem>()
+        var snapshot = NSDiffableDataSourceSnapshot<Int, ShareDestination>()
         snapshot.appendSections([0])
         snapshot.appendItems(items)
 
@@ -172,18 +170,18 @@ class ComposerDestinationRowView: UICollectionView {
 extension ComposerDestinationRowView: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         guard let item = destinationDataSource.itemIdentifier(for: indexPath) else  { return }
-        destinationDelegate?.destinationRow(self, selected: item.postComposerDestination)
+        destinationDelegate?.destinationRow(self, selected: item)
     }
 
     func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
         guard let item = destinationDataSource.itemIdentifier(for: indexPath) else  { return }
-        destinationDelegate?.destinationRow(self, deselected: item.postComposerDestination)
+        destinationDelegate?.destinationRow(self, deselected: item)
     }
 
     func collectionView(_ collectionView: UICollectionView, shouldDeselectItemAt indexPath: IndexPath) -> Bool {
         guard let item = destinationDataSource.itemIdentifier(for: indexPath) else  { return true }
 
-        if case .userFeed(let count) = item, count == 0 {
+        if case .feed = item, contactsCount == 0 {
             destinationDelegate?.destinationRowOpenContacts(self)
             return false
         }
@@ -497,23 +495,6 @@ fileprivate class InvitesView: UICollectionReusableView {
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-}
-
-fileprivate enum DestinationItem: Hashable, Equatable {
-    case userFeed(Int)
-    case group(GroupID, String)
-    case contact(UserID, String)
-
-    var postComposerDestination: PostComposerDestination {
-        switch self {
-        case .userFeed(_):
-            return .userFeed
-        case .group(let groupId, _):
-            return .groupFeed(groupId)
-        case .contact(let userId, _):
-            return .chat(userId)
-        }
     }
 }
 

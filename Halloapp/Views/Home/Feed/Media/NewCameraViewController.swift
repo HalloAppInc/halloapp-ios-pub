@@ -322,7 +322,7 @@ class NewCameraViewController: UIViewController {
 
     @objc
     private func libraryTapped(_ sender: UIBarButtonItem) {
-        let picker = MediaPickerViewController(config: .moment) { [weak self] picker, _, _, media,_ in
+        let picker = MediaPickerViewController(config: .moment) { [weak self] picker, _, media, _ in
             self?.dismiss(animated: true)
 
             if let self = self, let media = media.first {

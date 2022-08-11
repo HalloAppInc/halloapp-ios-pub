@@ -474,7 +474,7 @@ extension FeedData {
                                            media: [media],
                                  linkPreviewData: nil,
                                 linkPreviewMedia: nil,
-                                              to: .userFeed,
+                                            to: .feed(.all),
                                     feedAudience: audience,
                                    momentContext: context)
     }

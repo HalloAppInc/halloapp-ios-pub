@@ -9,49 +9,22 @@ import UIKit
 
 protocol PostComposerViewDelegate: AnyObject {
     // TODO: maybe have the configuration encapsulate all the details and pass that in?
-    func composerDidTapShare(controller: PostComposerViewController, destination: PostComposerDestination, feedAudience: FeedAudience, isMoment: Bool, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?)
-    func composerDidTapBack(controller: PostComposerViewController, destination: PostComposerDestination, privacyListType: PrivacyListType, media: [PendingMedia], voiceNote: PendingMedia?)
+    func composerDidTapShare(controller: PostComposerViewController, destination: ShareDestination, feedAudience: FeedAudience, isMoment: Bool, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?)
+    func composerDidTapBack(controller: PostComposerViewController, destination: ShareDestination, media: [PendingMedia], voiceNote: PendingMedia?)
     func willDismissWithInput(mentionInput: MentionInput)
     func composerDidTapLinkPreview(controller: PostComposerViewController, url: URL)
 }
 
-enum PostComposerDestination: Equatable {
-    case userFeed
-    case groupFeed(GroupID)
-    case chat(UserID?)
-
-    init(_ destination: FeedPostDestination) {
-        switch destination {
-        case .userFeed:
-            self = .userFeed
-        case .groupFeed(let groupID):
-            self = .groupFeed(groupID)
-        }
-    }
-
-    func feedPostDestination() -> FeedPostDestination? {
-        switch self {
-        case .userFeed:
-            return .userFeed
-        case .groupFeed(let groupID):
-            return .groupFeed(groupID)
-        case .chat:
-            return nil
-        }
-    }
-}
-
 class PostComposerViewConfiguration: ObservableObject {
-    @Published var destination: PostComposerDestination = .userFeed
+    @Published var destination: ShareDestination = .feed(.all)
     var mediaCarouselMaxAspectRatio: CGFloat
     var mediaEditMaxAspectRatio: CGFloat?
     var imageServerMaxAspectRatio: CGFloat?
     var maxVideoLength: TimeInterval
     let isMoment: Bool
-    var privacyListType: PrivacyListType
     
     init(
-        destination: PostComposerDestination,
+        destination: ShareDestination = .feed(.all),
         mediaCarouselMaxAspectRatio: CGFloat = 1.25,
         mediaEditMaxAspectRatio: CGFloat? = nil,
         imageServerMaxAspectRatio: CGFloat? = 1.25,
@@ -66,34 +39,43 @@ class PostComposerViewConfiguration: ObservableObject {
         self.isMoment = isMoment
         // Always set active type to .all
         MainAppContext.shared.privacySettings.activeType = .all
-        self.privacyListType = .all
+    }
+
+    static func config(with destination: ShareDestination) -> PostComposerViewConfiguration {
+        switch destination {
+        case .feed(_):
+            return .userPost(destination)
+        case .group(_, _):
+            return .groupPost(destination)
+        case .contact(_, _, _):
+            return .message(destination)
+        }
     }
     
-    static var userPost: PostComposerViewConfiguration {
+    private static func userPost(_ destination: ShareDestination) -> PostComposerViewConfiguration {
         PostComposerViewConfiguration(
-            destination: .userFeed,
+            destination: destination,
             maxVideoLength: ServerProperties.maxFeedVideoDuration
         )
     }
     
     static var moment: PostComposerViewConfiguration {
         PostComposerViewConfiguration(
-            destination: .userFeed,
             maxVideoLength: ServerProperties.maxFeedVideoDuration,
             isMoment: true
         )
     }
 
-    static func groupPost(id groupID: GroupID) -> PostComposerViewConfiguration {
+    private static func groupPost(_ destination: ShareDestination) -> PostComposerViewConfiguration {
         PostComposerViewConfiguration(
-            destination: .groupFeed(groupID),
+            destination: destination,
             maxVideoLength: ServerProperties.maxFeedVideoDuration
         )
     }
 
-    static func message(id userId: UserID?) -> PostComposerViewConfiguration {
+    private static func message(_ destination: ShareDestination) -> PostComposerViewConfiguration {
         PostComposerViewConfiguration(
-            destination: .chat(userId),
+            destination: destination,
             mediaCarouselMaxAspectRatio: 1.0,
             imageServerMaxAspectRatio: nil,
             maxVideoLength: ServerProperties.maxChatVideoDuration
@@ -474,7 +456,7 @@ class PostComposerViewController: UIViewController {
         customNavigationContentTopConstraint?.isActive = true
 
         switch configuration.destination {
-        case .chat(_):
+        case .contact:
             titleLabel.text = Localizations.newMessageTitle
         default:
             titleLabel.text = configuration.isMoment ? Localizations.newMomentTitle : Localizations.newPostTitle
@@ -493,8 +475,7 @@ class PostComposerViewController: UIViewController {
         if !AppContext.shared.userDefaults.bool(forKey: "hasFavoritesModalBeenShown") {
             AppContext.shared.userDefaults.set(true, forKey: "hasFavoritesModalBeenShown")
             let vc = FavoritesInformationViewController() { privacyListType in
-                self.configuration.privacyListType = privacyListType
-                self.configuration.destination = .userFeed
+                self.configuration.destination = .feed(privacyListType)
                 self.updateChangeDestinationBtn()
             }
             self.present(vc, animated: true)
@@ -518,7 +499,6 @@ class PostComposerViewController: UIViewController {
         ImageServer.shared.clearUnattachedTasks(keepFiles: false)
         delegate?.composerDidTapBack(controller: self,
                                      destination: configuration.destination,
-                                     privacyListType: configuration.privacyListType,
                                      media: mediaItems.invalidated ? [] : mediaItems.value,
                                      voiceNote: audioComposerRecorder.voiceNote)
     }
@@ -530,14 +510,12 @@ class PostComposerViewController: UIViewController {
     }
 
     @objc private func changeDestinationAction() {
-        if case .chat = configuration.destination {
+        if case .contact = configuration.destination {
             return
         }
 
-        let controller = ChangeDestinationViewController(destination: configuration.destination, privacyListType: configuration.privacyListType) { controller, destination, privacyListType in
+        let controller = ChangeDestinationViewController(destination: configuration.destination) { controller, destination in
             controller.dismiss(animated: true)
-            // ALWAYS change privacyListType before destination
-            self.configuration.privacyListType = privacyListType
             self.configuration.destination = destination
             self.updateChangeDestinationBtn()
         }
@@ -552,10 +530,8 @@ class PostComposerViewController: UIViewController {
         changeDestinationAvatarCancellable?.cancel()
 
         switch configuration.destination {
-        case .userFeed:
-            let privacy = configuration.privacyListType
-
-            switch privacy {
+        case .feed(let privacyListType):
+            switch privacyListType {
             case .all:
                 changeDestinationIcon.image = UIImage(named: "PrivacySettingMyContacts")?.withTintColor(.white, renderingMode: .alwaysOriginal)
                 changeDestinationButton.setBackgroundColor(.primaryBlue, for: .normal)
@@ -569,10 +545,10 @@ class PostComposerViewController: UIViewController {
 
             changeDestinationIconConstraint?.constant = 13
 
-            changeDestinationLabel.text = PrivacyList.name(forPrivacyListType: privacy)
-        case .groupFeed(let groupId):
+            changeDestinationLabel.text = PrivacyList.name(forPrivacyListType: privacyListType)
+        case .group(let groupID, let name):
             changeDestinationButton.setBackgroundColor(.primaryBlue, for: .normal)
-            let avatarData = MainAppContext.shared.avatarStore.groupAvatarData(for: groupId)
+            let avatarData = MainAppContext.shared.avatarStore.groupAvatarData(for: groupID)
             if let image = avatarData.image {
                 changeDestinationIcon.image = image
                 changeDestinationIcon.layer.cornerRadius = 6
@@ -592,15 +568,10 @@ class PostComposerViewController: UIViewController {
             }
 
             changeDestinationIconConstraint?.constant = 19
-
-            if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) {
-                changeDestinationLabel.text = group.name
-            }
-        case .chat(let userId):
+            changeDestinationLabel.text = name
+        case .contact(_, let name, _):
             changeDestinationIcon.isHidden = true
-
-            if let userId = userId {
-                let name = MainAppContext.shared.contactStore.fullName(for: userId, in: MainAppContext.shared.contactStore.viewContext)
+            if let name = name {
                 changeDestinationLabel.text = Localizations.newMessageSubtitle(recipient: name)
             }
         }
@@ -615,7 +586,12 @@ class PostComposerViewController: UIViewController {
             allMediaItems.append(voiceNote)
         }
 
-        let feedAudience = try! MainAppContext.shared.privacySettings.feedAudience(for: configuration.privacyListType)
+        var feedAudience: FeedAudience
+        if case .feed(let privacyListType) = configuration.destination {
+            feedAudience = try! MainAppContext.shared.privacySettings.feedAudience(for: privacyListType)
+        } else {
+            feedAudience = try! MainAppContext.shared.privacySettings.feedAudience(for: .all)
+        }
 
         // if no link preview or link preview not yet loaded, send without link preview.
         // if the link preview does not have an image... send immediately
@@ -912,9 +888,9 @@ fileprivate struct PostComposerView: View {
 
     private func allowChangingDestination() -> Bool {
         switch configuration.destination {
-        case .userFeed, .groupFeed:
+        case .feed, .group:
             return true
-        case .chat:
+        case .contact:
             return false
         }
     }
@@ -1019,9 +995,9 @@ fileprivate struct PostComposerView: View {
 
     var voiceNotesEnabled: Bool {
         switch configuration.destination {
-        case .userFeed, .groupFeed:
+        case .feed, .group:
             return true
-        case .chat:
+        case .contact:
             return false
         }
     }
@@ -1456,13 +1432,13 @@ fileprivate struct TextView: UIViewRepresentable {
             return picker
         }()
         
-        private func mentionableUsers(for destination: PostComposerDestination) -> [MentionableUser] {
+        private func mentionableUsers(for destination: ShareDestination) -> [MentionableUser] {
             switch destination {
-            case .userFeed:
-                return Mentions.mentionableUsersForNewPost(privacyListType: parent.configuration.privacyListType)
-            case .groupFeed(let id):
-                return Mentions.mentionableUsers(forGroupID: id, in: MainAppContext.shared.feedData.viewContext)
-            case .chat(_):
+            case .feed(let privacyListType):
+                return Mentions.mentionableUsersForNewPost(privacyListType: privacyListType)
+            case .group(let groupID, _):
+                return Mentions.mentionableUsers(forGroupID: groupID, in: MainAppContext.shared.feedData.viewContext)
+            case .contact:
                 return []
             }
         }
@@ -1893,7 +1869,7 @@ fileprivate struct Picker: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UINavigationController {
         DDLogInfo("Picker/makeUIViewController")
         MediaCarouselView.stopAllPlayback()
-        let controller = MediaPickerViewController(config: .more, selected: mediaItems) { controller, _, _, media, cancel in
+        let controller = MediaPickerViewController(config: .more, selected: mediaItems) { controller, _, media, cancel in
             self.complete(media, cancel)
         }
 

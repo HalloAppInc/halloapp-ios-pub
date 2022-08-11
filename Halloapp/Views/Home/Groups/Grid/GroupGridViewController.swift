@@ -295,8 +295,14 @@ class GroupGridViewController: UIViewController {
     }
 
     private func createPost(in groupID: GroupID) {
+        guard let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext) else {
+            DDLogError("GroupGridViewController/Cannot find chat group to create tpost")
+            return
+        }
+
+        let destination = ShareDestination.destination(from: group)
         var viewControllerToDismiss: UIViewController?
-        let newPostViewController = NewPostViewController(source: .unified, destination: .groupFeed(groupID)) { didPost in
+        let newPostViewController = NewPostViewController(source: .unified, destination: destination) { didPost in
             guard let viewControllerToDismiss = viewControllerToDismiss else {
                 DDLogError("GroupGridViewController/Missing NewPostViewController to dismiss")
                 return

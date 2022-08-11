@@ -32,36 +32,6 @@ private extension Localizations {
     }
 }
 
-enum ShareDestination: Equatable, Hashable {
-    case feed(PrivacyListType)
-    case group(ChatThread)
-    case contact(ABContact)
-
-    static func == (lhs: ShareDestination, rhs: ShareDestination) -> Bool {
-        switch (lhs, rhs) {
-        case (.feed(let lf), .feed(let rf)):
-            return lf == rf
-        case (.group(let lg), .group(let rg)):
-            return lg.groupID == rg.groupID
-        case (.contact(let lc), .contact(let rc)):
-            return lc == rc
-        default:
-            return false
-        }
-    }
-
-    func hash(into hasher: inout Hasher) {
-        switch(self) {
-        case .feed:
-            hasher.combine("feed")
-        case .group(let group):
-            hasher.combine(group.groupID)
-        case .contact(let contact):
-            hasher.combine(contact)
-        }
-    }
-}
-
 class DestinationPickerViewController: UIViewController, NSFetchedResultsControllerDelegate {
     static let rowHeight = CGFloat(54)
     static let maxGroupsToShowOnLaunch = 6
@@ -200,10 +170,10 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
                 default:
                     break
                 }
-            case .group(let group):
-                cell.configure(group, isSelected: isSelected)
-            case .contact(let contact):
-                cell.configure(contact, isSelected: isSelected)
+            case .group(let groupID, let name):
+                cell.configureGroup(groupID, name: name, isSelected: isSelected)
+            case .contact(let userID, let name, let phone):
+                cell.configureUser(userID, name: name, phone: phone, isSelected: isSelected)
             }
             return cell
         }
@@ -306,13 +276,14 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
             let searchItems = searchString.components(separatedBy: " ")
             // Add filtered groups
             allGroups.forEach {
-                guard $0.groupID != nil, let groupTitle = $0.title?.lowercased() else { return }
+                guard let groupID = $0.groupID, let groupTitle = $0.title else { return }
+                let groupTitleLowercased = groupTitle.lowercased()
                 for searchItem in searchItems {
-                    if groupTitle.contains(searchItem) {
+                    if groupTitleLowercased.contains(searchItem) {
                         if !snapshot.sectionIdentifiers.contains(DestinationSection.groups) {
                             snapshot.appendSections([DestinationSection.groups])
                         }
-                        snapshot.appendItems([ShareDestination.group($0)], toSection: DestinationSection.groups)
+                        snapshot.appendItems([.group(id: groupID, name: groupTitle)], toSection: DestinationSection.groups)
                     }
                 }
             }
@@ -323,11 +294,13 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
                 let phoneNumber = $0.phoneNumber ?? ""
                 let searchItems = searchString.components(separatedBy: " ")
                 for searchItem in searchItems {
+                    guard let destination = ShareDestination.destination(from: $0) else { continue }
+
                     if fullName.contains(searchItem) || phoneNumber.contains(searchItem) {
                         if !snapshot.sectionIdentifiers.contains(DestinationSection.contacts) {
                             snapshot.appendSections([DestinationSection.contacts])
                         }
-                        snapshot.appendItems([ShareDestination.contact($0)], toSection: DestinationSection.contacts)
+                        snapshot.appendItems([destination], toSection: DestinationSection.contacts)
                     }
                 }
             }
@@ -345,13 +318,14 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
         if allGroups.count > 0 {
             snapshot.appendSections([DestinationSection.groups])
             snapshot.appendItems(allGroups.compactMap {
-                return ShareDestination.group($0)
+                guard let groupID = $0.groupID, let title = $0.title else { return nil }
+                return .group(id: groupID, name: title)
             }, toSection: DestinationSection.groups)
         }
         if contacts.count > 0 {
             snapshot.appendSections([DestinationSection.contacts])
             snapshot.appendItems(contacts.compactMap {
-                return ShareDestination.contact($0)
+                return ShareDestination.destination(from: $0)
             }, toSection: DestinationSection.contacts)
         }
         dataSource.apply(snapshot)

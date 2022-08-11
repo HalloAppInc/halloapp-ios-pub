@@ -71,11 +71,10 @@ final class NewPostViewController: UIViewController {
         return .portrait
     }
 
-    init(source: NewPostMediaSource, destination: FeedPostDestination, privacyListType: PrivacyListType? = nil, momentContext: NewMomentContext? = nil, didFinish: @escaping ((Bool) -> Void)) {
+    init(source: NewPostMediaSource, destination: ShareDestination, momentContext: NewMomentContext? = nil, didFinish: @escaping ((Bool) -> Void)) {
         self.didFinish = didFinish
         self.state = NewPostState(mediaSource: source)
         self.destination = destination
-        self.privacyListType = privacyListType
         self.momentContext = momentContext
         super.init(nibName: nil, bundle: nil)
     }
@@ -99,8 +98,7 @@ final class NewPostViewController: UIViewController {
     private let didFinish: ((Bool) -> Void)
     private var state: NewPostState
     private let momentContext: NewMomentContext?
-    private var destination: FeedPostDestination
-    private var privacyListType: PrivacyListType?
+    private var destination: ShareDestination
 
     private(set) lazy var containedNavigationController = {
         return makeNavigationController()
@@ -156,20 +154,13 @@ final class NewPostViewController: UIViewController {
     }
 
     private func makeComposerViewController() -> UIViewController {
-        var configuration: PostComposerViewConfiguration = .userPost
-        if let privacyListType = privacyListType {
-            configuration.privacyListType = privacyListType
-        }
-        if case .groupFeed(let groupId) = destination {
-            configuration = .groupPost(id: groupId)
-        }
-        
+        var config = PostComposerViewConfiguration.config(with: destination)
         if let _ = momentContext {
-            configuration = .moment
+            config = .moment
         }
 
         if AppContext.shared.userDefaults.bool(forKey: "enableUIKitComposer") {
-            return ComposerViewController(config: .userPost, type: state.mediaSource, input: state.pendingInput, media: state.pendingMedia, voiceNote: state.pendingVoiceNote) { [weak self] controller, result , success in
+            return ComposerViewController(config: .userPost(destination: .feed(.all)), type: state.mediaSource, input: state.pendingInput, media: state.pendingMedia, voiceNote: state.pendingVoiceNote) { [weak self] controller, result , success in
                 guard let self = self else { return }
 
                 self.containedNavigationController.popViewController(animated: true)
@@ -181,7 +172,6 @@ final class NewPostViewController: UIViewController {
                     case .library:
                         (self.containedNavigationController.topViewController as? MediaPickerViewController)?.reset(
                             destination: result.config.destination,
-                            privacyListType: result.config.privacyListType,
                             selected: result.media
                         )
                     case .camera:
@@ -190,21 +180,14 @@ final class NewPostViewController: UIViewController {
                         self.cleanupAndFinish()
                     }
 
-                    switch result.config.destination {
-                    case .userFeed:
-                        self.destination = .userFeed
-                    case .groupFeed(let groupID):
-                        self.destination = .groupFeed(groupID)
-                    case .chat:
-                        break
-                    }
+                    self.destination = result.config.destination
                 }
             }
         } else {
             return PostComposerViewController(
                 mediaToPost: state.pendingMedia,
                 initialInput: state.pendingInput,
-                configuration: configuration,
+                configuration: config,
                 initialPostType: state.mediaSource,
                 voiceNote: state.pendingVoiceNote,
                 delegate: self)
@@ -246,29 +229,15 @@ final class NewPostViewController: UIViewController {
     }
     
     private func makeMediaPickerViewControllerNew() -> UINavigationController {
-        let config: MediaPickerConfig
-
-        switch destination {
-        case .userFeed:
-            config = .feed
-        case .groupFeed(let groupID):
-            config = .group(id: groupID)
-        }
-
-        let pickerController = MediaPickerViewController(config: config) { [weak self] controller, destination, privacyListType, media, cancel in
+        let config = MediaPickerConfig.config(with: destination)
+        let pickerController = MediaPickerViewController(config: config) { [weak self] controller, destination, media, cancel in
             guard let self = self else { return }
             
             if cancel {
                 self.cleanupAndFinish()
             } else {
-                switch destination {
-                case .userFeed:
-                    self.privacyListType = privacyListType
-                    self.destination = .userFeed
-                case .groupFeed(let groupID):
-                    self.destination = .groupFeed(groupID)
-                default:
-                    break
+                if let destination = destination {
+                    self.destination = destination
                 }
 
                 self.state.pendingMedia = media
@@ -330,51 +299,38 @@ extension NewPostViewController: UINavigationControllerDelegate {}
 
 extension NewPostViewController: PostComposerViewDelegate {
     func composerDidTapShare(controller: PostComposerViewController,
-                            destination: PostComposerDestination,
+                            destination: ShareDestination,
                              feedAudience: FeedAudience,
                                isMoment: Bool = false,
                             mentionText: MentionText,
                                   media: [PendingMedia],
                         linkPreviewData: LinkPreviewData? = nil,
                        linkPreviewMedia: PendingMedia? = nil) {
-
-        switch destination {
-        case .userFeed:
-            self.destination = .userFeed
-        case .groupFeed(let groupId):
-            self.destination = .groupFeed(groupId)
-        case .chat:
-            break
-        }
+        self.destination = destination
 
         MainAppContext.shared.feedData.post(text: mentionText,
                                            media: media,
                                  linkPreviewData: linkPreviewData,
                                 linkPreviewMedia: linkPreviewMedia,
-                                              to: self.destination,
+                                              to: destination,
                                     feedAudience: feedAudience)
         cleanupAndFinish(didPost: true)
     }
 
-    func composerDidTapBack(controller: PostComposerViewController, destination: PostComposerDestination, privacyListType: PrivacyListType, media: [PendingMedia], voiceNote: PendingMedia?) {
+    func composerDidTapBack(controller: PostComposerViewController, destination: ShareDestination, media: [PendingMedia], voiceNote: PendingMedia?) {
+        self.destination = destination
+
         state.pendingVoiceNote = voiceNote
         containedNavigationController.popViewController(animated: true)
+
         switch state.mediaSource {
         case .library:
-            (containedNavigationController.topViewController as? MediaPickerViewController)?.reset(destination: destination, privacyListType: privacyListType, selected: media)
+            let picker = containedNavigationController.topViewController as? MediaPickerViewController
+            picker?.reset(destination: destination, selected: media)
         case .camera:
             break
         default:
             cleanupAndFinish()
-        }
-
-        switch destination {
-        case .userFeed:
-            self.destination = .userFeed
-        case .groupFeed(let groupID):
-            self.destination = .groupFeed(groupID)
-        case .chat:
-            break
         }
     }
 

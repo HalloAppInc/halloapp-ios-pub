@@ -2968,7 +2968,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     
     let didSendGroupFeedPost = PassthroughSubject<FeedPost, Never>()
 
-    func post(text: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?, to destination: FeedPostDestination, feedAudience: FeedAudience, momentContext: MomentContext? = nil) {
+    func post(text: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?, to destination: ShareDestination, feedAudience: FeedAudience, momentContext: MomentContext? = nil) {
         let managedObjectContext = viewContext
         let postId: FeedPostID = PacketID.generate()
 
@@ -2980,7 +2980,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         let feedPost = FeedPost(context: managedObjectContext)
         feedPost.id = postId
         feedPost.userId = AppContext.shared.userData.userId
-        if case .groupFeed(let groupID) = destination {
+        if case .group(let groupID, _) = destination {
             feedPost.groupId = groupID
             if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: managedObjectContext) {
                 feedPost.expiration = group.postExpirationDate(from: timestamp)
@@ -3082,7 +3082,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         switch destination {
-        case .userFeed:
+        case .feed:
             let feedPostInfo = ContentPublishInfo(context: managedObjectContext)
             let postAudience = feedAudience
             let receipts = postAudience.userIds.reduce(into: [UserID : Receipt]()) { (receipts, userId) in
@@ -3091,7 +3091,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPostInfo.receipts = receipts
             feedPostInfo.audienceType = postAudience.audienceType
             feedPost.info = feedPostInfo
-        case .groupFeed(let groupId):
+        case .group(let groupId, _):
             guard let chatGroup = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: managedObjectContext) else {
                 return
             }
@@ -3103,6 +3103,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPostInfo.receipts = receipts
             feedPostInfo.audienceType = .group
             feedPost.info = feedPostInfo
+        case .contact:
+            // ChatData is responsible for this case
+            break
         }
 
         self.save(managedObjectContext)

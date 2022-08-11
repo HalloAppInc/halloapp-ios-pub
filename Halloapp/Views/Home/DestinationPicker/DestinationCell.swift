@@ -194,30 +194,27 @@ class DestinationCell: UICollectionViewCell {
         configureSelected(isSelected)
     }
 
-    public func configure(_ group: ChatThread, isSelected: Bool) {
-        title.text = group.title
-        if let groupID = group.groupID {
-            avatarView.configure(groupId: groupID, squareSize: 32, using: MainAppContext.shared.avatarStore)
-        }
+    public func configureGroup(_ groupID: GroupID, name: String, isSelected: Bool) {
         homeView.isHidden = true
         favoritesView.isHidden = true
         avatarView.isHidden = false
-        self.subtitle.isHidden = true
+        subtitle.isHidden = true
+
+        title.text = name
+        avatarView.configure(groupId: groupID, squareSize: 32, using: MainAppContext.shared.avatarStore)
         configureSelected(isSelected)
     }
 
-    public func configure(_ contact: ABContact, isSelected: Bool) {
-        title.text = contact.fullName
+    public func configureUser(_ userID: UserID, name: String?, phone: String?, isSelected: Bool) {
         subtitle.isHidden = false
-        subtitle.text = contact.phoneNumber
         homeView.isHidden = true
         favoritesView.isHidden = true
         avatarView.isHidden = false
-        self.subtitle.isHidden = true
 
-        if let id = contact.userId {
-            avatarView.configure(with: id, using: MainAppContext.shared.avatarStore)
-        }
+        title.text = name
+        subtitle.text = phone
+        avatarView.configure(with: userID, using: MainAppContext.shared.avatarStore)
+
         configureSelected(isSelected)
     }
 

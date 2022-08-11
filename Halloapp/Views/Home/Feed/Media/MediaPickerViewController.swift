@@ -81,44 +81,54 @@ fileprivate enum TransitionState {
 }
 
 struct MediaPickerConfig {
-    var destination: PostComposerDestination?
-    var privacyListType: PrivacyListType?
+    var destination: ShareDestination?
     var filter: MediaPickerFilter = .all
     var allowsMultipleSelection = true
     var isCameraEnabled = false
     var onlyRecentItems = false
     var maxNumberOfItems = ServerProperties.maxPostMediaItems
 
+    static func config(with destination: ShareDestination) -> MediaPickerConfig {
+        switch destination {
+        case .feed:
+            return .feed
+        case .group:
+            return .group(destination: destination)
+        case .contact:
+            return .chat(destination: destination)
+        }
+    }
+
     static var feed: MediaPickerConfig {
-        MediaPickerConfig(destination: .userFeed, privacyListType: .all, filter: .all, allowsMultipleSelection: true, isCameraEnabled: true)
+        MediaPickerConfig(destination: .feed(.all), filter: .all, allowsMultipleSelection: true, isCameraEnabled: true)
     }
 
-    static func group(id: GroupID) -> MediaPickerConfig {
-        MediaPickerConfig(destination: .groupFeed(id), privacyListType: nil, filter: .all, allowsMultipleSelection: true, isCameraEnabled: true)
+    static func group(destination: ShareDestination) -> MediaPickerConfig {
+        MediaPickerConfig(destination: destination, filter: .all, allowsMultipleSelection: true, isCameraEnabled: true)
     }
 
-    static func chat(id: UserID?) -> MediaPickerConfig {
-        MediaPickerConfig(destination: .chat(id), privacyListType: nil, filter: .all, allowsMultipleSelection: true, isCameraEnabled: true, maxNumberOfItems: ServerProperties.maxChatMediaItems)
+    static func chat(destination: ShareDestination) -> MediaPickerConfig {
+        MediaPickerConfig(destination: destination, filter: .all, allowsMultipleSelection: true, isCameraEnabled: true, maxNumberOfItems: ServerProperties.maxChatMediaItems)
     }
 
     static var comments: MediaPickerConfig {
-        MediaPickerConfig(destination: nil, privacyListType: nil, filter: .all, allowsMultipleSelection: false, isCameraEnabled: true)
+        MediaPickerConfig(destination: nil, filter: .all, allowsMultipleSelection: false, isCameraEnabled: true)
     }
 
     static var moment: MediaPickerConfig {
-        MediaPickerConfig(destination: nil, privacyListType: nil, filter: .image, allowsMultipleSelection: false, isCameraEnabled: false, onlyRecentItems: true)
+        MediaPickerConfig(destination: nil, filter: .image, allowsMultipleSelection: false, isCameraEnabled: false, onlyRecentItems: true)
     }
 
     static var image: MediaPickerConfig {
-        MediaPickerConfig(destination: nil, privacyListType: nil, filter: .image, allowsMultipleSelection: false, isCameraEnabled: true)
+        MediaPickerConfig(destination: nil, filter: .image, allowsMultipleSelection: false, isCameraEnabled: true)
     }
 
     static var more: MediaPickerConfig {
-        MediaPickerConfig(destination: nil, privacyListType: nil,filter: .all, allowsMultipleSelection: true, isCameraEnabled: true)
+        MediaPickerConfig(destination: nil,filter: .all, allowsMultipleSelection: true, isCameraEnabled: true)
     }
 }
 
-typealias MediaPickerViewControllerCallback = (MediaPickerViewController, PostComposerDestination?, PrivacyListType?, [PendingMedia], Bool) -> Void
+typealias MediaPickerViewControllerCallback = (MediaPickerViewController, ShareDestination?, [PendingMedia], Bool) -> Void
 
 class MediaPickerViewController: UIViewController {
 
@@ -392,8 +402,7 @@ class MediaPickerViewController: UIViewController {
         if !AppContext.shared.userDefaults.bool(forKey: "hasFavoritesModalBeenShown") {
             AppContext.shared.userDefaults.set(true, forKey: "hasFavoritesModalBeenShown")
             let favoritesVC = FavoritesInformationViewController() { privacyListType in
-                self.config.privacyListType = privacyListType
-                self.config.destination = .userFeed
+                self.config.destination = .feed(privacyListType)
             }
 
             self.present(favoritesVC, animated: true)
@@ -518,7 +527,8 @@ class MediaPickerViewController: UIViewController {
         }
     }
     
-    public func reset(destination: PostComposerDestination?, privacyListType: PrivacyListType?, selected: [PendingMedia]) {
+
+    public func reset(destination: ShareDestination?, selected: [PendingMedia]) {
         self.selected.removeAll()
         self.selected.append(contentsOf: selected)
         
@@ -527,7 +537,6 @@ class MediaPickerViewController: UIViewController {
             cell.prepare(config: self.config, mode: self.mode, selection: self.selected)
         }
 
-        config.privacyListType = privacyListType
         config.destination = destination
 
         updateNavigation()
@@ -690,7 +699,7 @@ class MediaPickerViewController: UIViewController {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
 
-                self.didFinish(self, self.config.destination, self.config.privacyListType, self.selected, false)
+                self.didFinish(self, self.config.destination, self.selected, false)
                 self.nextInProgress = false
             }
         }
@@ -807,7 +816,7 @@ class MediaPickerViewController: UIViewController {
     }
 
     @objc private func cancelAction() {
-        didFinish(self, config.destination, self.config.privacyListType, [], true)
+        didFinish(self, config.destination, [], true)
     }
 
     @objc private func openAlbumsAction() {

@@ -730,7 +730,7 @@ extension MomentViewController: ContentInputDelegate {
     }
 
     func presentMediaPicker() {
-        let vc = MediaPickerViewController(config: .moment) { [weak self] controller, _, _, media, cancel in
+        let vc = MediaPickerViewController(config: .moment) { [weak self] controller, _, media, cancel in
             controller.dismiss(animated: true)
             guard let media = media.first, !cancel else {
                 return

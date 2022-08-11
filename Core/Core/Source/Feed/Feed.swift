@@ -18,9 +18,19 @@ import UIKit
 
 public typealias FeedPostID = String
 
-public enum FeedPostDestination {
-    case userFeed
-    case groupFeed(GroupID)
+public enum ShareDestination: Hashable, Equatable {
+    case feed(PrivacyListType)
+    case group(id: GroupID, name: String)
+    case contact(id: UserID, name: String?, phone: String?)
+
+    public static func destination(from group: Group) -> ShareDestination {
+        return .group(id: group.id, name: group.name)
+    }
+
+    public static func destination(from contact: ABContact) -> ShareDestination? {
+        guard let userId = contact.userId else { return nil }
+        return .contact(id: userId, name: contact.fullName, phone: contact.phoneNumber)
+    }
 }
 
 public typealias FeedPostCommentID = String

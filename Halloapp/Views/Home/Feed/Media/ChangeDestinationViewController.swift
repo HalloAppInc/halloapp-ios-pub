@@ -137,55 +137,44 @@ class ChangeDestinationViewController: UIViewController {
         !(searchController.searchBar.text?.trimmingCharacters(in: CharacterSet.whitespaces).isEmpty ?? true)
     }
 
-    private lazy var dataSource: UICollectionViewDiffableDataSource<Int, SelectableDestination> = {
-        let source = UICollectionViewDiffableDataSource<Int, SelectableDestination>(collectionView: collectionView) { [weak self] collectionView, indexPath, selectableDestination in
-            guard let self = self else {
-                return collectionView.dequeueReusableCell(withReuseIdentifier: ContactsCell.reuseIdentifier, for: indexPath)
-            }
+    private lazy var dataSource: UICollectionViewDiffableDataSource<Int, ShareDestination> = {
+        let source = UICollectionViewDiffableDataSource<Int, ShareDestination>(collectionView: collectionView) { [weak self] collectionView, indexPath, item in
+            guard let self = self else { return nil }
 
-            if indexPath.section == 0 && !self.isSearching {
-                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ContactsCell.reuseIdentifier, for: indexPath)
+            let isSelected = self.destination == item
 
-                if let cell = cell as? ContactsCell {
-                    let privacySettings = MainAppContext.shared.privacySettings
+            switch item {
+            case .feed(let privacyListType):
+                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ContactsCell.reuseIdentifier, for: indexPath) as? ContactsCell else { return nil }
+                let privacySettings = MainAppContext.shared.privacySettings
 
-                    let isDestinationUserFeed = self.destination == .userFeed
-                    let activePrivacyListType = self.privacyListType
-                    switch indexPath.row {
-                    case 0:
-                        cell.configure(
-                            title: PrivacyList.name(forPrivacyListType: .all),
-                            subtitle: Localizations.feedPrivacyShareWithAllContacts,
-                            privacyListType: .all,
-                            isSelected: isDestinationUserFeed && activePrivacyListType == .all,
-                            hasNext: true)
-                    case 1:
-                        cell.configure(
-                            title: PrivacyList.name(forPrivacyListType: .whitelist),
-                            subtitle: activePrivacyListType == .whitelist ? privacySettings.longFeedSetting : Localizations.feedPrivacyShareWithSelected,
-                            privacyListType: .whitelist,
-                            isSelected: isDestinationUserFeed && activePrivacyListType == .whitelist,
-                            hasNext: true)
-                    default:
-                        break
-                    }
-                    cell.delegate = self
+                switch privacyListType {
+                case .all:
+                    cell.configure(
+                        title: PrivacyList.name(forPrivacyListType: .all),
+                        subtitle: Localizations.feedPrivacyShareWithAllContacts,
+                        privacyListType: .all,
+                        isSelected: isSelected,
+                        hasNext: true)
+                case .whitelist:
+                    cell.configure(
+                        title: PrivacyList.name(forPrivacyListType: .whitelist),
+                        subtitle: isSelected ? privacySettings.longFeedSetting : Localizations.feedPrivacyShareWithSelected,
+                        privacyListType: .whitelist,
+                        isSelected: isSelected,
+                        hasNext: true)
+                default:
+                    return nil
                 }
 
                 return cell
-            } else {
-                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: GroupCell.reuseIdentifier, for: indexPath)
-
-                if let cell = cell as? GroupCell {
-                    var isSelected = false
-                    if case .groupFeed(let groupId) = self.destination, groupId == selectableDestination.id {
-                        isSelected = true
-                    }
-
-                    cell.configure(groupId: selectableDestination.id, title: selectableDestination.title, isSelected: isSelected)
-                }
+            case .group(let groupID, let name):
+                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: GroupCell.reuseIdentifier, for: indexPath) as? GroupCell else { return nil }
+                cell.configure(groupId: groupID, title: name, isSelected: isSelected)
 
                 return cell
+            default:
+                return nil
             }
         }
 
@@ -203,13 +192,11 @@ class ChangeDestinationViewController: UIViewController {
     }()
 
     private var cancellableSet: Set<AnyCancellable> = []
-    private var destination: PostComposerDestination
-    private var privacyListType: PrivacyListType
-    private var completion: (ChangeDestinationViewController, PostComposerDestination, PrivacyListType) -> Void
+    private var destination: ShareDestination
+    private var completion: (ChangeDestinationViewController, ShareDestination) -> Void
 
-    init(destination: PostComposerDestination, privacyListType: PrivacyListType, completion: @escaping (ChangeDestinationViewController, PostComposerDestination, PrivacyListType) -> Void) {
+    init(destination: ShareDestination, completion: @escaping (ChangeDestinationViewController, ShareDestination) -> Void) {
         self.destination = destination
-        self.privacyListType = privacyListType
         self.completion = completion
 
         super.init(nibName: nil, bundle: nil)
@@ -277,11 +264,11 @@ class ChangeDestinationViewController: UIViewController {
             dismiss(animated: true)
         }
 
-        completion(self, destination, privacyListType)
+        completion(self, destination)
     }
 
-    private func makeSnapshot(searchString: String? = nil) -> NSDiffableDataSourceSnapshot<Int, SelectableDestination> {
-        var snapshot = NSDiffableDataSourceSnapshot<Int, SelectableDestination>()
+    private func makeSnapshot(searchString: String? = nil) -> NSDiffableDataSourceSnapshot<Int, ShareDestination> {
+        var snapshot = NSDiffableDataSourceSnapshot<Int, ShareDestination>()
         let threads = fetchedResultsController.fetchedObjects
 
         if let searchString = searchString?.trimmingCharacters(in: CharacterSet.whitespaces).lowercased(), !searchString.isEmpty {
@@ -294,22 +281,19 @@ class ChangeDestinationViewController: UIViewController {
                 let titleLowercased = title.lowercased()
                 for item in searchItems {
                     if titleLowercased.contains(item) {
-                        snapshot.appendItems([SelectableDestination(id: groupId, title: title)], toSection: 1)
+                        snapshot.appendItems([.group(id: groupId, name: title)], toSection: 1)
                     }
                 }
             }
         } else {
             snapshot.appendSections([0])
-            snapshot.appendItems([
-                SelectableDestination.allContacts,
-                SelectableDestination.whitelistContacts,
-            ], toSection: 0)
+            snapshot.appendItems([.feed(.all), .feed(.whitelist)], toSection: 0)
 
             if let threads = threads, threads.count > 0 {
                 snapshot.appendSections([1])
                 snapshot.appendItems(threads.compactMap {
                     guard let groupId = $0.groupId, let title = $0.title else { return nil }
-                    return SelectableDestination(id: groupId, title: title)
+                    return .group(id: groupId, name: title)
                 }, toSection: 1)
             }
         }
@@ -321,22 +305,23 @@ class ChangeDestinationViewController: UIViewController {
 // MARK: UICollectionViewDelegate
 extension ChangeDestinationViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        if indexPath.section == 0 && !isSearching {
+        guard let selected = dataSource.itemIdentifier(for: indexPath) else { return }
+        self.destination = selected
+
+        if searchController.isActive {
+            dismiss(animated: true)
+        }
+
+        if case .feed(let privacyListType) = selected {
             let privacySettings = MainAppContext.shared.privacySettings
 
-            switch indexPath.row {
-            case 0:
+            if privacyListType == .all {
                 privacySettings.setFeedSettingToAllContacts()
-                dismiss(animated: true)
                 setConfigToAllContacts()
                 backAction()
-            case 1:
+            } else if privacyListType == .whitelist {
                 // if favorites list is empty.. open up edit flow with edit mode on
-                if MainAppContext.shared.privacySettings.whitelist.userIds.isEmpty {
-                    if searchController.isActive {
-                        dismiss(animated: true)
-                    }
-
+                if privacySettings.whitelist.userIds.isEmpty {
                     let controller = ContactSelectionViewController.forPrivacyList(privacySettings.whitelist, in: privacySettings, setActiveType: true, doneAction: { [weak self] in
                         self?.dismiss(animated: false)
                         self?.setConfigToFavorites()
@@ -345,17 +330,11 @@ extension ChangeDestinationViewController: UICollectionViewDelegate {
 
                     present(UINavigationController(rootViewController: controller), animated: true)
                 } else {
-                    MainAppContext.shared.privacySettings.activeType = .whitelist
-                    dismiss(animated: true)
                     setConfigToFavorites()
                     backAction()
                 }
-            default:
-                return
             }
         } else {
-            guard let selectableDestination = dataSource.itemIdentifier(for: indexPath) else { return }
-            destination = .groupFeed(selectableDestination.id)
             backAction()
         }
     }
@@ -414,14 +393,12 @@ extension ChangeDestinationViewController: ContactsCellDelegate {
     }
 
     private func setConfigToAllContacts() {
-        privacyListType = .all
-        destination = .userFeed
+        destination = .feed(.all)
         MainAppContext.shared.privacySettings.activeType = .all
     }
 
     private func setConfigToFavorites() {
-        privacyListType = .whitelist
-        destination = .userFeed
+        destination = .feed(.whitelist)
         MainAppContext.shared.privacySettings.activeType = .whitelist
     }
 }
@@ -762,22 +739,5 @@ fileprivate class GroupCell: UICollectionViewCell {
         titleView.text = title
         avatarView.configure(groupId: groupId, squareSize: 32, using: MainAppContext.shared.avatarStore)
         selectedView.tintColor = isSelected ? .primaryBlue : .clear
-    }
-}
-
-fileprivate struct SelectableDestination: Hashable, Equatable {
-    var id: String
-    var title: String
-
-    static var allContacts: SelectableDestination {
-        SelectableDestination(id: "all-contacts-identifier", title: "")
-    }
-
-    static var blacklistContacts: SelectableDestination {
-        SelectableDestination(id: "blacklist-contacts-identifier", title: "")
-    }
-
-    static var whitelistContacts: SelectableDestination {
-        SelectableDestination(id: "whitelist-contacts-identifier", title: "")
     }
 }

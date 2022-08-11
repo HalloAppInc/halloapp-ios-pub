@@ -23,10 +23,10 @@ class DestinationTrayView: UICollectionView {
             switch destination {
             case .feed(let privacyType):
                 cell.configureHome(privacyType: privacyType)
-            case .group(let group):
-                cell.configure(group)
-            case .contact(let contact):
-                cell.configure(contact)
+            case .group(let groupID, let name):
+                cell.configureGroup(with: groupID, name: name)
+            case .contact(let userID, let name, _):
+                cell.configureUser(with: userID, name: name)
             }
 
             cell.removeAction = { [weak self] in

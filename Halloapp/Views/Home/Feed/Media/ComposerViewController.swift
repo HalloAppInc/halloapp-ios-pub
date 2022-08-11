@@ -29,22 +29,21 @@ struct ComposerResult {
 }
 
 struct ComposerConfig {
-    var destination: PostComposerDestination
+    var destination: ShareDestination
     var mediaEditMaxAspectRatio: CGFloat?
     var maxVideoLength: TimeInterval = ServerProperties.maxFeedVideoDuration
-    var privacyListType: PrivacyListType = .all
 
-    static var userPost: ComposerConfig {
-        ComposerConfig(destination: .userFeed)
+    static func userPost(destination: ShareDestination) -> ComposerConfig {
+        ComposerConfig(destination: destination)
     }
 
-    static func groupPost(id groupID: GroupID) -> ComposerConfig {
-        ComposerConfig(destination: .groupFeed(groupID))
+    static func groupPost(destination: ShareDestination) -> ComposerConfig {
+        ComposerConfig(destination: destination)
     }
 
-    static func message(id userId: UserID?) -> ComposerConfig {
+    static func message(destination: ShareDestination) -> ComposerConfig {
         ComposerConfig(
-            destination: .chat(userId),
+            destination: destination,
             maxVideoLength: ServerProperties.maxChatVideoDuration
         )
     }
@@ -509,8 +508,7 @@ class ComposerViewController: UIViewController {
             AppContext.shared.userDefaults.set(true, forKey: "hasFavoritesModalBeenShown")
 
             let vc = FavoritesInformationViewController() { privacyListType in
-                self.config.privacyListType = privacyListType
-                self.config.destination = .userFeed
+                self.config.destination = .feed(privacyListType)
             }
 
             present(vc, animated: true)
@@ -744,7 +742,12 @@ class ComposerViewController: UIViewController {
             media.append(voiceNote)
         }
 
-        let feedAudience = try! MainAppContext.shared.privacySettings.feedAudience(for: config.privacyListType)
+        var feedAudience: FeedAudience
+        if case .feed(let privacyListType) = config.destination {
+            feedAudience = try! MainAppContext.shared.privacySettings.feedAudience(for: privacyListType)
+        } else {
+            feedAudience = try! MainAppContext.shared.privacySettings.feedAudience(for: .all)
+        }
 
         // if no link preview or link preview not yet loaded, send without link preview.
         // if the link preview does not have an image... send immediately
@@ -907,7 +910,7 @@ extension ComposerViewController: MediaCarouselViewDelegate {
     @objc func openPickerAction() {
         MediaCarouselView.stopAllPlayback()
 
-        let controller = MediaPickerViewController(config: .more, selected: media) { controller, _, _, media, cancel in
+        let controller = MediaPickerViewController(config: .more, selected: media) { controller, _, media, cancel in
             controller.dismiss(animated: true)
 
             guard !cancel else { return }
@@ -1127,11 +1130,11 @@ extension ComposerViewController {
 
         let mentionableUsers: [MentionableUser]
         switch config.destination {
-        case .userFeed:
-            mentionableUsers = Mentions.mentionableUsersForNewPost(privacyListType: config.privacyListType)
-        case .groupFeed(let id):
+        case .feed(let privacyListType):
+            mentionableUsers = Mentions.mentionableUsersForNewPost(privacyListType: privacyListType)
+        case .group(let id, _):
             mentionableUsers = Mentions.mentionableUsers(forGroupID: id, in: MainAppContext.shared.feedData.viewContext)
-        case .chat(_):
+        case .contact:
             mentionableUsers = []
         }
 
@@ -1298,11 +1301,11 @@ extension ComposerViewController: ComposerDestinationRowDelegate {
         present(UINavigationController(rootViewController: controller), animated: true)
     }
 
-    func destinationRow(_ destinationRowView: ComposerDestinationRowView, selected destination: PostComposerDestination) {
+    func destinationRow(_ destinationRowView: ComposerDestinationRowView, selected destination: ShareDestination) {
         updateUI()
     }
 
-    func destinationRow(_ destinationRowView: ComposerDestinationRowView, deselected destination: PostComposerDestination) {
+    func destinationRow(_ destinationRowView: ComposerDestinationRowView, deselected destination: ShareDestination) {
         updateUI()
     }
 }

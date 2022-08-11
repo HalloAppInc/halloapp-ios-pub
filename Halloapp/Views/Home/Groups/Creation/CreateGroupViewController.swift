@@ -391,7 +391,7 @@ class CreateGroupViewController: UIViewController {
     // MARK: Helpers
 
     private func presentPhotoLibraryPicker() {
-        let pickerController = MediaPickerViewController(config: .image) { [weak self] controller, _, _, media, cancel in
+        let pickerController = MediaPickerViewController(config: .image) { [weak self] controller, _, media, cancel in
             guard let self = self else { return }
 
             if cancel || media.count == 0 {

@@ -456,7 +456,7 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
             }))
             present(alert, animated: true)
         } else {
-            let newPostViewController = NewPostViewController(source: source, destination: .userFeed, privacyListType: .all) { didPost in
+            let newPostViewController = NewPostViewController(source: source, destination: .feed(.all)) { didPost in
                 // Reset back to all
                 MainAppContext.shared.privacySettings.activeType = .all
                 self.dismiss(animated: true)

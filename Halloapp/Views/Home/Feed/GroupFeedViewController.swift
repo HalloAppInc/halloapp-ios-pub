@@ -498,7 +498,10 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
             }))
             present(alert, animated: true)
         } else {
-            let newPostViewController = NewPostViewController(source: source, destination: .groupFeed(groupId)) { didPost in
+            guard let group = group else { return }
+
+
+            let newPostViewController = NewPostViewController(source: source, destination: ShareDestination.destination(from: group)) { didPost in
                 MainAppContext.shared.privacySettings.activeType = .all
                 self.dismiss(animated: true)
                 if didPost { self.scrollToTop(animated: true) }

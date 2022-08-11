@@ -134,22 +134,16 @@ class DestinationTrayViewCell: UICollectionViewCell {
         avatarView.isHidden = true
     }
 
-    public func configure(_ group: ChatThread) {
-        title.text = group.title
+    public func configureGroup(with groupID: GroupID, name: String?) {
+        title.text = name
         avatarView.isHidden = false
-
-        if let groupID = group.groupID {
-            avatarView.configure(groupId: groupID, squareSize: 32, using: MainAppContext.shared.avatarStore)
-        }
+        avatarView.configure(groupId: groupID, squareSize: 32, using: MainAppContext.shared.avatarStore)
     }
 
-    public func configure(_ contact: ABContact) {
-        title.text = contact.fullName
+    public func configureUser(with userID: UserID, name: String?) {
+        title.text = name
         avatarView.isHidden = false
-
-        if let id = contact.userId {
-            avatarView.configure(with: id, using: MainAppContext.shared.avatarStore)
-        }
+        avatarView.configure(with: userID, using: MainAppContext.shared.avatarStore)
     }
 
     static var homeIcon: UIImage {
