@@ -393,11 +393,6 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
             loadingTimer = Timer.scheduledTimer(timeInterval: 5, target: self, selector: #selector(updateAfterTimerEnds), userInfo: nil, repeats: false)
         }
 
-        // Long press message options
-        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(getMessageOptions))
-        longPressGesture.delaysTouchesBegan = true
-        collectionView.addGestureRecognizer(longPressGesture)
-
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard(_:)))
         tapGesture.cancelsTouchesInView = false
         collectionView.addGestureRecognizer(tapGesture)
@@ -670,42 +665,6 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         }
     }
 
-    @objc func getMessageOptions(_ gestureRecognizer: UILongPressGestureRecognizer) {
-        guard let indexPath = collectionView.indexPathForItem(at: gestureRecognizer.location(in: collectionView)),
-              let cell = collectionView.cellForItem(at: indexPath) as? MessageCellViewBase,
-              let comment = comment(at: indexPath),
-              comment.status != .retracted,
-              // Only the author can delete a comment
-              comment.userId == MainAppContext.shared.userData.userId else {
-            return
-        }
-
-        cell.markViewSelected()
-        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
-
-        // Setup action sheet
-        let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        actionSheet.addAction(UIAlertAction(title: Localizations.messageDelete, style: .destructive) { [weak self] _ in
-            self?.presentDeleteConfirmationActionSheet(indexPath: indexPath, cell: cell, comment: comment)
-        })
-        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel) { _ in
-            cell.markViewUnselected()
-        })
-        present(actionSheet, animated: true)
-    }
-
-    private func presentDeleteConfirmationActionSheet(indexPath: IndexPath, cell: MessageCellViewBase, comment: FeedPostComment) {
-        let confirmationActionSheet = UIAlertController(title: nil, message: Localizations.deleteCommentConfirmation, preferredStyle: .actionSheet)
-        confirmationActionSheet.addAction(UIAlertAction(title: Localizations.deleteCommentAction, style: .destructive) { _ in
-            guard let comment = MainAppContext.shared.feedData.feedComment(with: comment.id, in: MainAppContext.shared.feedData.viewContext) else { return }
-            MainAppContext.shared.feedData.retract(comment: comment)
-        })
-        confirmationActionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel) { _ in
-            cell.markViewUnselected()
-        })
-        self.present(confirmationActionSheet, animated: true)
-    }
-
     // MARK: UI Actions
 
     @objc private func showUserFeedForPostAuthor() {
@@ -975,7 +934,7 @@ extension FlatCommentsViewController: MessageCommentViewHeaderPreviewDelegate {
     }
 }
 
-extension FlatCommentsViewController: MessageViewCommentDelegate {
+extension FlatCommentsViewController: MessageViewCommentDelegate, ReactionViewControllerCommentDelegate, ReactionListViewControllerDelegate {
     func messageView(_ view: MediaListAnimatorDelegate, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int) {
         messageInputView.textView.resignFirstResponder()
         var canSavePost = false
@@ -991,18 +950,11 @@ extension FlatCommentsViewController: MessageViewCommentDelegate {
     func messageView(_ messageViewCell: MessageCellViewBase, replyTo feedPostCommentID: FeedPostCommentID) {
         guard
             let feedPostComment = messageViewCell.feedPostComment,
-            let comment = fetchedResultsController?.fetchedObjects?.first(where: {$0.id == feedPostComment.id }),
-            !comment.isRetracted
+            let comment = fetchedResultsController?.fetchedObjects?.first(where: {$0.id == feedPostComment.id })
         else {
             return
         }
-
-        let userColorAssignment = self.getUserColorAssignment(userId: comment.userId)
-        let panel = QuotedCommentPanel(comment: comment, color: userColorAssignment)
-        parentCommentID = comment.id
-        messageInputView.display(context: panel)
-
-        messageInputView.textView.becomeFirstResponder()
+        handleQuotedReply(comment: comment)
     }
 
     func messageView(_ messageViewCell: MessageCellViewBase, didTapUserId userId: UserID) {
@@ -1011,6 +963,72 @@ extension FlatCommentsViewController: MessageViewCommentDelegate {
     
     func messageView(_ messageViewCell: MessageCellViewBase, jumpTo feedPostCommentID: FeedPostCommentID) {
         scrollToComment(id: feedPostCommentID, animated: true, highlightAfterScroll: true)
+    }
+    
+    func messageView(_ messageViewCell: MessageCellViewBase, didLongPressOn feedPostComment: FeedPostComment) {
+        messageInputView.textView.resignFirstResponder()
+        guard let messageViewCellSuperview = messageViewCell.messageRow.superview else {
+            return
+        }
+        guard let snapshotView = messageViewCell.messageRow.snapshotView(afterScreenUpdates: true) else {
+            return
+        }
+        let convertedFrame = view.convert(messageViewCell.messageRow.frame, from: messageViewCellSuperview)
+        snapshotView.frame = convertedFrame
+        let reactionView = ReactionViewController(messageViewCell: snapshotView, feedPostComment: feedPostComment)
+        reactionView.commentDelegate = self
+        reactionView.modalPresentationStyle = .overCurrentContext
+        reactionView.modalTransitionStyle = .crossDissolve
+        self.present(reactionView, animated: false)
+    }
+
+    func messageView(_ messageViewCell: MessageCellViewBase, showReactionsFor feedPostComment: FeedPostComment) {
+        if ServerProperties.commentReactions {
+            let reactionList = ReactionListViewController(feedPostComment: feedPostComment)
+            reactionList.delegate = self
+            let navigationController = UINavigationController(rootViewController: reactionList)
+            if #available(iOS 15.0, *), let sheet = navigationController.sheetPresentationController {
+                sheet.detents = [.medium(), .large()]
+            }
+            self.present(navigationController, animated: true)
+        }
+    }
+
+    func handleQuotedReply(comment: FeedPostComment) {
+        guard !comment.isRetracted else {
+            return
+        }
+        let userColorAssignment = self.getUserColorAssignment(userId: comment.userId)
+        let panel = QuotedCommentPanel(comment: comment, color: userColorAssignment)
+        parentCommentID = comment.id
+        messageInputView.display(context: panel)
+
+        messageInputView.textView.becomeFirstResponder()
+    }
+    
+    func showDeletionConfirmationMenu(for feedPostComment: FeedPostComment) {
+        let confirmationActionSheet = UIAlertController(title: nil, message: Localizations.deleteCommentConfirmation, preferredStyle: .actionSheet)
+        confirmationActionSheet.addAction(UIAlertAction(title: Localizations.deleteCommentAction, style: .destructive) { _ in
+            guard let comment = MainAppContext.shared.feedData.feedComment(with: feedPostComment.id, in: MainAppContext.shared.feedData.viewContext) else { return }
+            MainAppContext.shared.feedData.retract(comment: comment)
+        })
+        confirmationActionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel) { _ in
+            return
+        })
+        self.present(confirmationActionSheet, animated: true)
+    }
+
+    func sendReaction(feedPostComment: FeedPostComment, reaction: String) {
+        MainAppContext.shared.feedData.sendReaction(reaction: reaction,
+                                            replyingTo: feedPostComment.id)
+    }
+
+    func removeReaction(feedPostComment: FeedPostComment, reaction: CommonReaction) {
+        MainAppContext.shared.feedData.retract(reaction: reaction)
+    }
+    
+    func removeReaction(reaction: CommonReaction) {
+        MainAppContext.shared.feedData.retract(reaction: reaction)
     }
 }
 

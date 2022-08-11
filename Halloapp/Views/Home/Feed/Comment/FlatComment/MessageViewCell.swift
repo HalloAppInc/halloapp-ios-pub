@@ -16,6 +16,8 @@ protocol MessageViewCommentDelegate: AnyObject {
     func messageView(_ messageViewCell: MessageCellViewBase, replyTo feedPostCommentID: FeedPostCommentID)
     func messageView(_ messageViewCell: MessageCellViewBase, didTapUserId userId: UserID)
     func messageView(_ messageViewCell: MessageCellViewBase, jumpTo feedPostCommentID: FeedPostCommentID)
+    func messageView(_ messageViewCell: MessageCellViewBase, didLongPressOn feedPostComment: FeedPostComment)
+    func messageView(_ messageViewCell: MessageCellViewBase, showReactionsFor feedPostComment: FeedPostComment)
 }
 
 protocol MessageViewChatDelegate: AnyObject {

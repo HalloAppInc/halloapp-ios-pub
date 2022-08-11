@@ -214,6 +214,9 @@ class MessageCellViewBase: UICollectionViewCell {
         hStack.isUserInteractionEnabled = true
         hStack.isLayoutMarginsRelativeArrangement = true
         hStack.layoutMargins = UIEdgeInsets(top: 3, left: 10, bottom: 3, right: 10)
+        hStack.spacing = -5
+        hStack.distribution = .fill
+        hStack.alignment = .bottom
         return hStack
     }()
 
@@ -317,20 +320,29 @@ class MessageCellViewBase: UICollectionViewCell {
     }
 
     public func updateReactionLabel() {
-        guard let chatMessage = chatMessage else {
-            return
-        }
-        for reaction in reactionBubble.arrangedSubviews {
-            reaction.removeFromSuperview()
-        }
-        guard !chatMessage.sortedReactionsList.isEmpty else {
-            reactionBubble.isHidden = true
-            return
-        }
-        for reaction in chatMessage.sortedReactionsList {
-            addReactionLabel(reaction: reaction.emoji)
-        }
-        if ServerProperties.chatReactions {
+        if ServerProperties.chatReactions, let chatMessage = chatMessage {
+            for reaction in reactionBubble.arrangedSubviews {
+                reaction.removeFromSuperview()
+            }
+            guard !chatMessage.sortedReactionsList.isEmpty else {
+                reactionBubble.isHidden = true
+                return
+            }
+            for reaction in chatMessage.sortedReactionsList {
+                addReactionLabel(reaction: reaction.emoji)
+            }
+            reactionBubble.isHidden = false
+        } else if ServerProperties.commentReactions, let feedPostComment = feedPostComment {
+            for reaction in reactionBubble.arrangedSubviews {
+                reaction.removeFromSuperview()
+            }
+            guard !feedPostComment.sortedReactionsList.isEmpty else {
+                reactionBubble.isHidden = true
+                return
+            }
+            for reaction in feedPostComment.sortedReactionsList.prefix(3) {
+                addReactionLabel(reaction: reaction.emoji)
+            }
             reactionBubble.isHidden = false
         }
     }
@@ -368,8 +380,20 @@ class MessageCellViewBase: UICollectionViewCell {
         userNameColorAssignment = userColorAssignment
         nameLabel.textColor = userNameColorAssignment
         timeLabel.text = comment.timestamp.chatDisplayTimestamp()
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(showCommentOptions(_:)))
+        contentView.isUserInteractionEnabled = true
+        contentView.addGestureRecognizer(longPressGesture)
+        let listReactions = UITapGestureRecognizer(target: self, action: #selector(showReactionList(_:)))
+        reactionBubble.addGestureRecognizer(listReactions)
         if let userId = feedPostComment?.userId, !isOwnMessage {
             nameLabel.text =  MainAppContext.shared.contactStore.fullName(for: userId, in: MainAppContext.shared.contactStore.viewContext)
+        }
+        if let feedPostComment = feedPostComment {
+            // track changes to reactions for feedPostComment
+            reactionCancellable = feedPostComment.publisher(for: \.reactions).receive(on: DispatchQueue.main).sink { [weak self] reaction in
+                guard let self = self else { return }
+                self.updateReactionLabel()
+            }
         }
     }
 
@@ -379,10 +403,10 @@ class MessageCellViewBase: UICollectionViewCell {
         self.isPreviousMessageFromSameSender = isPreviousMessageFromSameSender
         timeLabel.text = message.timestamp?.chatDisplayTimestamp()
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(showMessageOptions(_:)))
-            self.isUserInteractionEnabled = true
-            self.addGestureRecognizer(longPressGesture)
+        contentView.isUserInteractionEnabled = true
+        contentView.addGestureRecognizer(longPressGesture)
         let listReactions = UITapGestureRecognizer(target: self, action: #selector(showReactionList(_:)))
-            self.addGestureRecognizer(listReactions)
+        reactionBubble.addGestureRecognizer(listReactions)
         if let chatMessage = chatMessage, chatMessage.fromUserId == MainAppContext.shared.userData.userId {
             // outgoing message cell, track outgoing status
             outgoingMessageStatusCancellable = chatMessage.publisher(for: \.outgoingStatusValue).receive(on: DispatchQueue.main).sink { [weak self] outgoingStatusValue in
@@ -453,22 +477,14 @@ class MessageCellViewBase: UICollectionViewCell {
         if isOwnMessage {
             bubbleView.backgroundColor = UIColor.messageOwnBackground
             reactionBubble.backgroundColor = UIColor.messageOwnBackground
-            bubbleView.addSubview(reactionBubble)
-            NSLayoutConstraint.activate([
-                reactionBubble.bottomAnchor.constraint(equalTo: bubbleView.bottomAnchor),
-                reactionBubble.trailingAnchor.constraint(equalTo: bubbleView.leadingAnchor, constant: 5)
-            ])
+            messageRow.insertArrangedSubview(reactionBubble, at: 0)
             nameRow.isHidden = true
             rightAlignedConstraint.priority = UILayoutPriority(800)
             leftAlignedConstraint.priority = UILayoutPriority(1)
         } else {
             bubbleView.backgroundColor = UIColor.messageNotOwnBackground
             reactionBubble.backgroundColor = UIColor.messageNotOwnBackground
-            bubbleView.addSubview(reactionBubble)
-            NSLayoutConstraint.activate([
-                reactionBubble.bottomAnchor.constraint(equalTo: bubbleView.bottomAnchor),
-                reactionBubble.leadingAnchor.constraint(equalTo: bubbleView.trailingAnchor, constant: -5)
-            ])
+            messageRow.insertArrangedSubview(reactionBubble, at: 1)
             nameRow.isHidden = false
             rightAlignedConstraint.priority = UILayoutPriority(1)
             leftAlignedConstraint.priority = UILayoutPriority(800)
@@ -601,13 +617,19 @@ extension MessageCellViewBase: UIGestureRecognizerDelegate {
         }
     }
     
-    @objc public func showReactionList(_ recognizer: UITapGestureRecognizer) {
-        guard let chatMessage = chatMessage else {
-            return
+    @objc public func showCommentOptions(_ recognizer: UILongPressGestureRecognizer) {
+        guard let feedPostComment = feedPostComment else { return }
+        if(recognizer.state == .began) {
+            UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+            commentDelegate?.messageView(self, didLongPressOn: feedPostComment)
         }
-        let location = recognizer.location(in: bubbleView)
-        if (reactionBubble.frame.contains(location)) {
-            chatDelegate?.messageView(self, showReactionsFor: chatMessage)
+    }
+
+    @objc public func showReactionList(_ recognizer: UITapGestureRecognizer) {
+        if let chatMessage = chatMessage, let chatDelegate = chatDelegate {
+            chatDelegate.messageView(self, showReactionsFor: chatMessage)
+        } else if let feedPostComment = feedPostComment, let commentDelegate = commentDelegate {
+            commentDelegate.messageView(self, showReactionsFor: feedPostComment)
         }
     }
 }

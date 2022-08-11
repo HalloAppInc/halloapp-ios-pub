@@ -1480,7 +1480,7 @@ extension ChatViewControllerNew: PostComposerViewDelegate {
     }
 }
 
-extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewControllerDelegate, ReactionListViewControllerDelegate {
+extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewControllerChatDelegate, ReactionListViewControllerDelegate {
     func messageView(_ messageViewCell: MessageCellViewBase, didTapUserId userId: UserID) {
 
     }
@@ -1506,16 +1506,16 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
 
     func messageView(_ messageViewCell: MessageCellViewBase, didLongPressOn chatMessage: ChatMessage) {
         contentInputView.textView.resignFirstResponder()
-        guard let messageViewCellSuperview = messageViewCell.nameContentTimeRow.superview else {
+        guard let messageViewCellSuperview = messageViewCell.messageRow.superview else {
             return
         }
-        guard let snapshotView = messageViewCell.nameContentTimeRow.snapshotView(afterScreenUpdates: true) else {
+        guard let snapshotView = messageViewCell.messageRow.snapshotView(afterScreenUpdates: true) else {
             return
         }
-        let convertedFrame = view.convert(messageViewCell.nameContentTimeRow.frame, from: messageViewCellSuperview)
+        let convertedFrame = view.convert(messageViewCell.messageRow.frame, from: messageViewCellSuperview)
         snapshotView.frame = convertedFrame
         let reactionView = ReactionViewController(messageViewCell: snapshotView, chatMessage: chatMessage)
-        reactionView.delegate = self
+        reactionView.chatDelegate = self
         reactionView.modalPresentationStyle = .overFullScreen
         reactionView.modalTransitionStyle = .crossDissolve
         self.present(reactionView, animated: false)
@@ -1525,7 +1525,11 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
         if ServerProperties.chatReactions {
             let reactionList = ReactionListViewController(chatMessage: chatMessage)
             reactionList.delegate = self
-            self.present(UINavigationController(rootViewController: reactionList), animated: true)
+            let navigationController = UINavigationController(rootViewController: reactionList)
+            if #available(iOS 15.0, *), let sheet = navigationController.sheetPresentationController {
+                sheet.detents = [.medium(), .large()]
+            }
+            self.present(navigationController, animated: true)
         }
     }
     
@@ -1655,7 +1659,7 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
         present(alertController, animated: true)
     }
     
-    func sendReactionMessage(chatMessage: ChatMessage, reaction: String) {
+    func sendReaction(chatMessage: ChatMessage, reaction: String) {
         guard let sendToUserId = self.fromUserId else { return }
 
         MainAppContext.shared.chatData.sendReaction(toUserId: sendToUserId,
@@ -1663,11 +1667,13 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
                                                     chatMessageID: chatMessage.id)
     }
 
-    func removeReactionMessage(chatMessage: ChatMessage, reaction: CommonReaction) {
-        deleteReactionMessage(reaction: reaction)
+    func removeReaction(chatMessage: ChatMessage, reaction: CommonReaction) {
+        if reaction.fromUserID == AppContext.shared.userData.userId, let toUserID = fromUserId {
+           MainAppContext.shared.chatData.retractReaction(toUserID: toUserID, reactionToRetractID: reaction.id)
+        }
     }
-
-    func deleteReactionMessage(reaction: CommonReaction) {
+    
+    func removeReaction(reaction: CommonReaction) {
         if reaction.fromUserID == AppContext.shared.userData.userId, let toUserID = fromUserId {
            MainAppContext.shared.chatData.retractReaction(toUserID: toUserID, reactionToRetractID: reaction.id)
         }

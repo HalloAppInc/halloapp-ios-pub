@@ -11,12 +11,15 @@ import UIKit
 import Core
 
 protocol ReactionListViewControllerDelegate: AnyObject {
-    func deleteReactionMessage(reaction: CommonReaction)
+    func removeReaction(reaction: CommonReaction)
 }
 
 class ReactionListViewController: UITableViewController {
 
-    let chatMessage: ChatMessage
+    var chatMessage: ChatMessage?
+    var feedPostComment: FeedPostComment?
+    
+    var sortedReactionsList: [CommonReaction]
     
     let contactImage: AvatarView = {
         return AvatarView()
@@ -28,6 +31,13 @@ class ReactionListViewController: UITableViewController {
 
     required init(chatMessage: ChatMessage) {
         self.chatMessage = chatMessage
+        self.sortedReactionsList = chatMessage.sortedReactionsList
+        super.init(style: .insetGrouped)
+    }
+    
+    required init(feedPostComment: FeedPostComment) {
+        self.feedPostComment = feedPostComment
+        self.sortedReactionsList = feedPostComment.sortedReactionsList
         super.init(style: .insetGrouped)
     }
     
@@ -44,15 +54,14 @@ class ReactionListViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return chatMessage.sortedReactionsList.count
+        return sortedReactionsList.count
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath) as! ReactionTableViewCell
         cell.selectionStyle = .default
-        let reaction = chatMessage.sortedReactionsList[indexPath.row]
+        let reaction = sortedReactionsList[indexPath.row]
         cell.configureWithReaction(reaction, using: MainAppContext.shared.avatarStore)
-
         return cell
     }
     
@@ -60,9 +69,9 @@ class ReactionListViewController: UITableViewController {
         guard let delegate = delegate else {
             return
         }
-        let reaction = chatMessage.sortedReactionsList[indexPath.row]
+        let reaction = sortedReactionsList[indexPath.row]
         if reaction.fromUserID == AppContext.shared.userData.userId {
-            delegate.deleteReactionMessage(reaction: reaction)
+            delegate.removeReaction(reaction: reaction)
             dismiss(animated: true)
         }
     }

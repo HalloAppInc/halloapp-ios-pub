@@ -130,7 +130,7 @@ public extension ChatMessage {
     var sortedReactionsList: [CommonReaction] {
         get {
             guard let reactions = self.reactions else { return [] }
-            return reactions.sorted { $0.timestamp < $1.timestamp }
+            return reactions.sorted { $0.timestamp > $1.timestamp }
         }
     }
 }

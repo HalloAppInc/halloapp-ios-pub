@@ -12,23 +12,33 @@ import Core
 import CoreCommon
 import CocoaLumberjackSwift
 
-protocol ReactionViewControllerDelegate: AnyObject {
+protocol ReactionViewControllerChatDelegate: AnyObject {
     func handleMessageSave(_ reactionViewController: ReactionViewController, chatMessage: ChatMessage)
     func handleQuotedReply(msg chatMessage: ChatMessage)
     func handleForwarding(msg chatMessage: ChatMessage)
     func showDeletionConfirmationMenu(for chatMessage: ChatMessage)
-    func sendReactionMessage(chatMessage: ChatMessage, reaction: String)
-    func removeReactionMessage(chatMessage: ChatMessage, reaction: CommonReaction)
+    func sendReaction(chatMessage: ChatMessage, reaction: String)
+    func removeReaction(chatMessage: ChatMessage, reaction: CommonReaction)
+}
+
+protocol ReactionViewControllerCommentDelegate: AnyObject {
+    func handleQuotedReply(comment: FeedPostComment)
+    func showDeletionConfirmationMenu(for feedPostComment: FeedPostComment)
+    func sendReaction(feedPostComment: FeedPostComment, reaction: String)
+    func removeReaction(feedPostComment: FeedPostComment, reaction: CommonReaction)
 }
 
 public class ReactionViewController: UIViewController {
     
+    var chatMessage: ChatMessage?
+    var feedPostComment: FeedPostComment?
+    
     var messageViewCell: UIView
-    var chatMessage: ChatMessage
     var isOwnMessage: Bool
     var currentReaction: CommonReaction?
     
-    weak var delegate: ReactionViewControllerDelegate?
+    weak var chatDelegate: ReactionViewControllerChatDelegate?
+    weak var commentDelegate: ReactionViewControllerCommentDelegate?
     
     let iconConfig = UIImage.SymbolConfiguration(pointSize: 25, weight: .light)
     
@@ -90,6 +100,20 @@ public class ReactionViewController: UIViewController {
         self.currentReaction = chatMessage.sortedReactionsList.filter { $0.fromUserID == MainAppContext.shared.userData.userId }.last
         
         super.init(nibName: nil, bundle: nil)
+        
+        configureMessageToolbar(chatMessage: chatMessage)
+    }
+    
+    init(messageViewCell: UIView, feedPostComment: FeedPostComment) {
+        self.messageViewCell = messageViewCell
+        self.feedPostComment = feedPostComment
+        self.isOwnMessage = feedPostComment.userID == MainAppContext.shared.userData.userId
+        self.currentReaction = feedPostComment.sortedReactionsList.filter { $0.fromUserID == MainAppContext.shared.userData.userId }.last
+        
+        super.init(nibName: nil, bundle: nil)
+
+        configureCommentToolbar(feedPostComment: feedPostComment)
+
     }
     
     required init?(coder: NSCoder) {
@@ -117,7 +141,9 @@ public class ReactionViewController: UIViewController {
         messageViewCell.alpha = 0
         messageViewCell.transform = CGAffineTransform(scaleX: 0.98, y: 0.98)
         
-        if ServerProperties.chatReactions {
+        let isChatReaction = chatMessage != nil && ServerProperties.chatReactions
+        let isCommentReaction = feedPostComment != nil && ServerProperties.commentReactions
+        if (isChatReaction || isCommentReaction) {
             view.addSubview(emojiStack)
             emojiStack.translatesAutoresizingMaskIntoConstraints = false
             if(isOwnMessage) {
@@ -131,6 +157,36 @@ public class ReactionViewController: UIViewController {
                 emojiStack.bottomAnchor.constraint(equalTo: messageViewCell.topAnchor, constant: -8).isActive = true
             }
         }
+        view.addSubview(toolbar)
+        NSLayoutConstraint.activate([
+            toolbar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            toolbar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            toolbar.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor),
+            toolbar.heightAnchor.constraint(greaterThanOrEqualToConstant: 75)
+        ])
+
+    }
+    
+    public override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        UIView.animate(withDuration: 0.4, delay: 0, options: .curveEaseOut, animations: {
+            self.backgroundView.alpha = 1
+            self.messageViewCell.alpha = 1
+            self.messageViewCell.transform = .identity
+            self.emojiStack.alpha = 1
+            for i in 0...6 {
+                self.emojiStack.arrangedSubviews[i].alpha = 1
+                self.emojiStack.arrangedSubviews[i].transform = .identity
+            }
+        }, completion: nil)
+    }
+    
+    public override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        gradientLayer.frame = emojiStack.bounds
+    }
+    
+    private func configureMessageToolbar(chatMessage: ChatMessage) {
         var items = [UIBarButtonItem]()
         let space = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         if chatMessage.incomingStatus != .retracted {
@@ -166,36 +222,29 @@ public class ReactionViewController: UIViewController {
             items.append(space)
         }
         guard items.count > 0 else { return }
-        
         toolbar.setItems(items, animated: false)
-        
-        view.addSubview(toolbar)
-        NSLayoutConstraint.activate([
-            toolbar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            toolbar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            toolbar.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor),
-            toolbar.heightAnchor.constraint(greaterThanOrEqualToConstant: 75)
-        ])
-
     }
     
-    public override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        UIView.animate(withDuration: 0.4, delay: 0, options: .curveEaseOut, animations: {
-            self.backgroundView.alpha = 1
-            self.messageViewCell.alpha = 1
-            self.messageViewCell.transform = .identity
-            self.emojiStack.alpha = 1
-            for i in 0...6 {
-                self.emojiStack.arrangedSubviews[i].alpha = 1
-                self.emojiStack.arrangedSubviews[i].transform = .identity
+    private func configureCommentToolbar(feedPostComment: FeedPostComment) {
+        var items = [UIBarButtonItem]()
+        let space = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        if feedPostComment.status != .retracted {
+            items.append(space)
+            
+            let replyButton = createMenuButton(imageName: "arrowshape.turn.up.left", labelName: Localizations.commentReply)
+            replyButton.addTarget(self, action: #selector(handleReply), for: .touchUpInside)
+            items.append(UIBarButtonItem(customView: replyButton))
+            items.append(space)
+            
+            if isOwnMessage {
+                let deleteButton = createMenuButton(imageName: "trash", labelName: Localizations.messageDelete)
+                deleteButton.addTarget(self, action: #selector(handleDelete), for: .touchUpInside)
+                items.append(UIBarButtonItem(customView: deleteButton))
+                items.append(space)
             }
-        }, completion: nil)
-    }
-    
-    public override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        gradientLayer.frame = emojiStack.bounds
+        }
+        guard items.count > 0 else { return }
+        toolbar.setItems(items, animated: false)
     }
     
     @objc
@@ -205,31 +254,54 @@ public class ReactionViewController: UIViewController {
     
     @objc
     private func emojiTap(_ gesture: UITapGestureRecognizer) {
-        guard let emojiView = gesture.view as? EmojiView, let delegate = delegate else {
+        guard let emojiView = gesture.view as? EmojiView else {
             return
         }
-        guard let currentReaction = currentReaction else {
-            emojiView.selectEmoji()
-            dismiss(animated:true)
-            delegate.sendReactionMessage(chatMessage: chatMessage, reaction: emojiView.reaction)
-            return
-        }
-        if emojiView.reaction == currentReaction.emoji {
-            emojiView.deselectEmoji()
-            dismiss(animated:true)
-            delegate.removeReactionMessage(chatMessage: chatMessage, reaction: currentReaction)
+        if let delegate = chatDelegate, let chatMessage = chatMessage {
+            guard let currentReaction = currentReaction else {
+                emojiView.selectEmoji()
+                dismiss(animated:true)
+                delegate.sendReaction(chatMessage: chatMessage, reaction: emojiView.reaction)
+                return
+            }
+            if emojiView.reaction == currentReaction.emoji {
+                emojiView.deselectEmoji()
+                dismiss(animated:true)
+                delegate.removeReaction(chatMessage: chatMessage, reaction: currentReaction)
+            } else {
+                emojiView.selectEmoji()
+                dismiss(animated:true)
+                delegate.removeReaction(chatMessage: chatMessage, reaction: currentReaction)
+                delegate.sendReaction(chatMessage: chatMessage, reaction: emojiView.reaction)
+            }
+        } else if let delegate = commentDelegate, let feedPostComment = feedPostComment {
+            guard let currentReaction = currentReaction else {
+                emojiView.selectEmoji()
+                dismiss(animated:true)
+                delegate.sendReaction(feedPostComment: feedPostComment, reaction: emojiView.reaction)
+                return
+            }
+            if emojiView.reaction == currentReaction.emoji {
+                emojiView.deselectEmoji()
+                dismiss(animated:true)
+                delegate.removeReaction(feedPostComment: feedPostComment, reaction: currentReaction)
+            } else {
+                emojiView.selectEmoji()
+                dismiss(animated:true)
+                delegate.removeReaction(feedPostComment: feedPostComment, reaction: currentReaction)
+                delegate.sendReaction(feedPostComment: feedPostComment, reaction: emojiView.reaction)
+            }
         } else {
-            emojiView.selectEmoji()
-            dismiss(animated:true)
-            delegate.removeReactionMessage(chatMessage: chatMessage, reaction: currentReaction)
-            delegate.sendReactionMessage(chatMessage: chatMessage, reaction: emojiView.reaction)
+            DDLogError("ReactionViewController/emojiTap/ no comment or chat messsage")
+            return
         }
+    
         
     }
 
     @objc
     private func handleSaveAll() {
-        guard let delegate = delegate else {
+        guard let delegate = chatDelegate, let chatMessage = chatMessage else {
             return
         }
         dismiss(animated: true)
@@ -238,16 +310,28 @@ public class ReactionViewController: UIViewController {
     
     @objc
     private func handleReply() {
-        guard let delegate = delegate else {
+
+        if let chatMessage = chatMessage {
+            guard let delegate = chatDelegate else {
+                return
+            }
+            dismiss(animated: true)
+            delegate.handleQuotedReply(msg: chatMessage)
+        } else if let feedPostComment = feedPostComment {
+            guard let delegate = commentDelegate else {
+                return
+            }
+            dismiss(animated: true)
+            delegate.handleQuotedReply(comment: feedPostComment)
+        } else {
+            DDLogError("ReactionViewController/handleReply/ no comment or chat messsage")
             return
         }
-        dismiss(animated: true)
-        delegate.handleQuotedReply(msg: chatMessage)
     }
 
     @objc
     private func handleForwarding() {
-        guard let delegate = delegate else {
+        guard let chatMessage = chatMessage, let delegate = chatDelegate else {
             return
         }
         dismiss(animated: true)
@@ -256,6 +340,9 @@ public class ReactionViewController: UIViewController {
     
     @objc
     private func handleCopy() {
+        guard let chatMessage = chatMessage else {
+            return
+        }
         if let messageText = chatMessage.rawText, !messageText.isEmpty {
             let pasteboard = UIPasteboard.general
             pasteboard.string = messageText
@@ -265,11 +352,22 @@ public class ReactionViewController: UIViewController {
     
     @objc
     private func handleDelete() {
-        guard let delegate = delegate else {
+        if let chatMessage = chatMessage {
+            guard let delegate = chatDelegate else {
+                return
+            }
+            dismiss(animated: true)
+            delegate.showDeletionConfirmationMenu(for: chatMessage)
+        } else if let feedPostComment = feedPostComment {
+            guard let delegate = commentDelegate else {
+                return
+            }
+            dismiss(animated: true)
+            delegate.showDeletionConfirmationMenu(for: feedPostComment)
+        } else {
+            DDLogError("ReactionViewController/handleDelete/ no comment or chat messsage")
             return
         }
-        dismiss(animated: true)
-        delegate.showDeletionConfirmationMenu(for: chatMessage)
     }
 }
 
