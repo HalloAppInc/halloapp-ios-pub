@@ -1149,9 +1149,10 @@ extension FlatCommentsViewController: ContentInputDelegate {
                 let media = PendingMedia(type: .image)
                 return media.ready
                     .filter { $0 }
-                    .map { _ in (message.text, media) }
+                    .map { _ in (message.description, media) }
                     .handleEvents(receiveSubscription: { _ in
-                        media.image = message.image
+                        // An adaptive image can't be saved because their `cgImage` is nil.
+                        media.image = message.mapSnapshot?.imageAsset?.image(with: .current)
                     })
                     .eraseToAnyPublisher()
             }

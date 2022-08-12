@@ -39,6 +39,7 @@ public extension CommonThread {
         case missedVideoCall = 7
         case incomingVideoCall = 8
         case outgoingVideoCall = 9
+        case location = 10
     }
 
     enum LastFeedStatus: Int16 {

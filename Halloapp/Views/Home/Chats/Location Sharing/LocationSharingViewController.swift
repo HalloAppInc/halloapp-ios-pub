@@ -384,9 +384,10 @@ extension LocationSharingViewController: MKMapViewDelegate {
     
     func mapView(_ mapView: MKMapView, didAdd views: [MKAnnotationView]) {
         if let userLocationView = views.first(where: { $0.annotation is MKUserLocation }) {
+            userLocationView.tintColor = .systemBlue
             userLocationView.canShowCallout = true
             
-            let shareButton = makeShareButton()
+            let shareButton = AnnotationView.shareButton()
             shareButton.tintColor = .primaryBlue
             userLocationView.rightCalloutAccessoryView = shareButton
             
@@ -414,21 +415,6 @@ extension LocationSharingViewController: MKMapViewDelegate {
     
     func mapView(_ mapView: MKMapView, didDeselect view: MKAnnotationView) {
         viewModel.annotationSelectionChanged.send(nil)
-    }
-    
-    private func makeShareButton() -> UIButton {
-        let button = UIButton(type: .system)
-        let font = UIFont.systemFont(forTextStyle: .subheadline, weight: .semibold)
-        let attachment = NSTextAttachment()  // NSTextAttachment.init(image:) won't work here.
-        attachment.image = UIImage(systemName: "arrow.up", withConfiguration: UIImage.SymbolConfiguration(font: font))?.withRenderingMode(.alwaysTemplate)
-        let shareButtonTitle = NSMutableAttributedString(attachment: attachment)
-        shareButtonTitle.append(.init(string: " " + Localizations.buttonShare, attributes: [.font: font]))
-        button.setAttributedTitle(shareButtonTitle, for: .normal)
-        button.setBackgroundColor(.tertiarySystemGroupedBackground, for: .normal)
-        button.bounds = CGRect(x: 0, y: 0, width: 88, height: 44)
-        button.layer.cornerRadius = 4
-        button.layer.masksToBounds = true
-        return button
     }
     
 #if swift(>=5.7)

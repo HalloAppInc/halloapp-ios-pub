@@ -31,6 +31,7 @@ fileprivate enum MessageRow: Hashable, Equatable {
     case media(ChatMessage)
     case audio(ChatMessage)
     case text(ChatMessage)
+    case location(ChatMessage)
     case linkPreview(ChatMessage)
     case quoted(ChatMessage)
     case unreadCountHeader(Int32)
@@ -42,7 +43,7 @@ fileprivate enum MessageRow: Hashable, Equatable {
         switch self {
         case .chatEvent(let data):
             return data.timestamp
-        case .chatMessage(let data), .retracted(let data), .media(let data), .audio(let data), .text(let data), .linkPreview(let data), .quoted(let data):
+        case .chatMessage(let data), .retracted(let data), .media(let data), .audio(let data), .text(let data), .location(let data), .linkPreview(let data), .quoted(let data):
             return data.timestamp
         case .chatCall(let data):
             return data.timestamp
@@ -57,7 +58,7 @@ fileprivate enum MessageRow: Hashable, Equatable {
         switch self {
         case .chatEvent(let data):
             return data.timestamp.chatMsgGroupingTimestamp(Date())
-        case .chatMessage(let data), .retracted(let data), .media(let data), .audio(let data), .text(let data), .linkPreview(let data), .quoted(let data):
+        case .chatMessage(let data), .retracted(let data), .media(let data), .audio(let data), .text(let data), .location(let data), .linkPreview(let data), .quoted(let data):
             return data.timestamp?.chatMsgGroupingTimestamp(Date()) ?? ""
         case .chatCall(let data):
             return data.timestamp?.chatMsgGroupingTimestamp(Date()) ?? ""
@@ -73,7 +74,7 @@ fileprivate enum MessageRow: Hashable, Equatable {
     // in order to insert the unread bannber at the right location, we need this property
     var isCountedInUnreadCounts: Bool {
         switch self {
-        case .chatMessage(_), .retracted(_), .media(_), .audio(_), .text(_), .linkPreview(_), .quoted(_), .unreadCountHeader(_), .chatCall(_):
+        case .chatMessage(_), .retracted(_), .media(_), .audio(_), .text(_), .location(_), .linkPreview(_), .quoted(_), .unreadCountHeader(_), .chatCall(_):
             return true
         case .chatEvent(_), .addToContactBook:
             return false
@@ -115,6 +116,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     static private let messageCellViewTextReuseIdentifier = "MessageCellViewText"
     static private let messageCellViewMediaReuseIdentifier = "MessageCellViewMedia"
     static private let messageCellViewAudioReuseIdentifier = "MessageCellViewAudio"
+    static private let messageCellViewLocationReuseIdentifier = "MessageCellViewLocation"
     static private let messageCellViewLinkPreviewReuseIdentifier = "MessageCellViewLinkPreview"
     static private let messageCellViewQuotedReuseIdentifier = "MessageCellViewQuoted"
     static private let messageCellViewEventReuseIdentifier = "MessageCellViewEvent"
@@ -202,6 +204,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         collectionView.register(MessageCellViewText.self, forCellWithReuseIdentifier: ChatViewControllerNew.messageCellViewTextReuseIdentifier)
         collectionView.register(MessageCellViewMedia.self, forCellWithReuseIdentifier: ChatViewControllerNew.messageCellViewMediaReuseIdentifier)
         collectionView.register(MessageCellViewAudio.self, forCellWithReuseIdentifier: ChatViewControllerNew.messageCellViewAudioReuseIdentifier)
+        collectionView.register(MessageCellViewLocation.self, forCellWithReuseIdentifier: ChatViewControllerNew.messageCellViewLocationReuseIdentifier)
         collectionView.register(MessageCellViewLinkPreview.self, forCellWithReuseIdentifier: ChatViewControllerNew.messageCellViewLinkPreviewReuseIdentifier)
         collectionView.register(MessageCellViewQuoted.self, forCellWithReuseIdentifier: ChatViewControllerNew.messageCellViewQuotedReuseIdentifier)
         collectionView.register(MessageUnreadHeaderView.self, forCellWithReuseIdentifier: MessageUnreadHeaderView.elementKind)
@@ -263,6 +266,14 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                         withReuseIdentifier: ChatViewControllerNew.messageCellViewTextReuseIdentifier,
                         for: indexPath)
                     if let itemCell = cell as? MessageCellViewText, let self = self {
+                        self.configureCell(itemCell: itemCell, for: chatMessage)
+                    }
+                    return cell
+                case .location(let chatMessage):
+                    let cell = collectionView.dequeueReusableCell(
+                        withReuseIdentifier: ChatViewControllerNew.messageCellViewLocationReuseIdentifier,
+                        for: indexPath)
+                    if let itemCell = cell as? MessageCellViewLocation, let self = self {
                         self.configureCell(itemCell: itemCell, for: chatMessage)
                     }
                     return cell
@@ -493,6 +504,10 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         // Link Preview
         if let feedLinkPreviews = chatMessage.linkPreviews, feedLinkPreviews.first != nil {
             return MessageRow.linkPreview(chatMessage)
+        }
+        // Location
+        if chatMessage.location != nil {
+            return MessageRow.location(chatMessage)
         }
         return MessageRow.text(chatMessage)
     }
@@ -919,7 +934,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         }
     }
 
-    func sendMessage(text: String, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?) {
+    func sendMessage(text: String, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?, location: ChatLocationProtocol? = nil) {
         guard let sendToUserId = self.fromUserId else { return }
 
         MainAppContext.shared.chatData.sendMessage(toUserId: sendToUserId,
@@ -927,6 +942,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                                                       media: media,
                                             linkPreviewData: linkPreviewData,
                                            linkPreviewMedia: linkPreviewMedia,
+                                                   location: location,
                                                  feedPostId: feedPostId,
                                          feedPostMediaIndex: feedPostMediaIndex,
                                          chatReplyMessageID: chatReplyMessageID,
@@ -1339,21 +1355,10 @@ extension ChatViewControllerNew: ContentInputDelegate {
         
         locationSharingViewController.viewModel.sharePlacemark
             .first()
-            .flatMap(LocationMessage.from(placemark:))
-            .flatMap { (message: LocationMessage) -> AnyPublisher<(text: String, media: PendingMedia), Never> in
-                let media = PendingMedia(type: .image)
-                return media.ready
-                    .filter { $0 }
-                    .map { _ in (message.text, media) }
-                    .handleEvents(receiveSubscription: { _ in
-                        media.image = message.image
-                    })
-                    .eraseToAnyPublisher()
-            }
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] (text, media) in
+            .sink { [weak self] placemark in
                 self?.dismiss(animated: true)
-                self?.sendMessage(text: text, media: [media], linkPreviewData: nil, linkPreviewMedia: nil)
+                self?.sendMessage(text: "", media: [], linkPreviewData: nil, linkPreviewMedia: nil, location: ChatLocation(placemark: placemark))
             }
             .store(in: &cancellableSet)
 

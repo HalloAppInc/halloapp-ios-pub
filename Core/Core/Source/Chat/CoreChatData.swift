@@ -221,6 +221,7 @@ public class CoreChatData {
                 chatMessage.rawText = emoji
             case .location(let chatLocation):
                 chatMessage.location = CommonLocation(chatLocation: chatLocation, context: context)
+                lastMsgMediaType = .location
             case .unsupported(let data):
                 chatMessage.rawData = data
                 chatMessage.incomingStatus = .unsupported

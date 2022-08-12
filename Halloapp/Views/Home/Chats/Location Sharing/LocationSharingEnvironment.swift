@@ -11,6 +11,7 @@ import CoreLocation
 import Combine
 import MapKit
 import Contacts
+import Core
 
 struct LocationSharingEnvironment {
     var locationManager: LocationManager
@@ -161,81 +162,6 @@ extension LocationManager: CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         errorSubject.send(error)
-    }
-}
-
-struct LocationMessage {
-    let text: String
-    let image: UIImage?
-    
-    static func from(placemark: CLPlacemark) -> Future<LocationMessage, Never> {
-        Future { promise in
-            Task(priority: .userInitiated) {
-                let text = text(from: placemark)
-                let image = try? await image(from: placemark)
-                promise(.success(LocationMessage(text: text, image: image)))
-            }
-        }
-    }
-    
-    private static func text(from placemark: CLPlacemark) -> String {
-        let address = placemark.postalAddress.map { CNPostalAddressFormatter.string(from: $0, style: .mailingAddress) }
-        
-        // Don't repeat address in place name.
-        let name: String? = {
-            guard let name = placemark.name else { return nil }
-            guard let address = address else { return name }
-            return address.contains(name) ? nil : name
-        }()
-        
-        let googleMapsLink = placemark.location
-            .map(\.coordinate)
-            .flatMap { (coordinate: CLLocationCoordinate2D) -> String? in
-                var url = URLComponents(string: "https://www.google.com/maps/search/")!
-                url.queryItems = [URLQueryItem(name: "api", value: "1"), URLQueryItem(name: "query", value: "\(coordinate.latitude),\(coordinate.longitude)")]
-                return url.string
-            }
-        
-        return [name, address, googleMapsLink]
-            .compactMap { $0 }
-            .joined(separator: "\n\n")
-    }
-    
-    @MainActor
-    private static func image(from placemark: CLPlacemark) async throws -> UIImage? {
-        guard let coordinate = placemark.location?.coordinate else { return nil }
-        
-        let options = MKMapSnapshotter.Options()
-        options.mapType = .standard
-        options.pointOfInterestFilter = .includingAll
-        options.size = CGSize(width: 390, height: 390)
-        options.camera = MKMapCamera(lookingAtCenter: coordinate, fromDistance: 200, pitch: 45, heading: 0)
-        options.traitCollection = UIScreen.main.traitCollection
-
-        let snapshot = try await MKMapSnapshotter(options: options).start()
-        
-        let renderer = UIGraphicsImageRenderer(size: snapshot.image.size)
-        return renderer.image { context in
-            snapshot.image.draw(at: CGPoint.zero)
-
-            let annotation = MKPlacemark(coordinate: coordinate)
-            let point = snapshot.point(for: annotation.coordinate)
-            let annotationView = MKMarkerAnnotationView(annotation: annotation, reuseIdentifier: nil)
-            annotationView.setSelected(true, animated: false)
-            annotationView.markerTintColor = .lavaOrange
-            
-            // the annotation view is aligned at the bottom in its bounds
-            annotationView.bounds = CGRect(x: 0, y: 0, width: 80, height: 80)
-            annotationView.drawHierarchy(
-                in: CGRect(
-                    x: point.x - annotationView.bounds.size.width / 2.0,
-                    y: point.y - annotationView.bounds.size.height,
-                    width: annotationView.bounds.width,
-                    height: annotationView.bounds.height
-                ),
-                afterScreenUpdates: true
-            )
-        }
     }
 }
 

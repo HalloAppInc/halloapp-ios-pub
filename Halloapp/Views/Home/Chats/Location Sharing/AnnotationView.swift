@@ -55,20 +55,7 @@ extension LocationSharingViewController {
             return label
         }()
         
-        private let shareButton: UIButton = {
-            let button = UIButton(type: .system)
-            let font = UIFont.systemFont(forTextStyle: .subheadline, weight: .semibold)
-            let attachment = NSTextAttachment()  // NSTextAttachment.init(image:) won't work here.
-            attachment.image = UIImage(systemName: "arrow.up", withConfiguration: UIImage.SymbolConfiguration(font: font))?.withRenderingMode(.alwaysTemplate)
-            let title = NSMutableAttributedString(attachment: attachment)
-            title.append(.init(string: " " + Localizations.buttonShare, attributes: [.font: font]))
-            button.setAttributedTitle(title, for: .normal)
-            button.setBackgroundColor(.tertiarySystemGroupedBackground, for: .normal)
-            button.bounds = CGRect(x: 0, y: 0, width: 88, height: 44)
-            button.layer.cornerRadius = 4
-            button.layer.masksToBounds = true
-            return button
-        }()
+        private let shareButton: UIButton = AnnotationView.shareButton()
         
         override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
             super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
@@ -126,6 +113,22 @@ extension LocationSharingViewController {
                 .store(in: &cancelBag)
             
             self.viewModel = viewModel
+        }
+        
+        static func shareButton() -> UIButton {
+            let button = UIButton(type: .system)
+            let font = UIFont.systemFont(forTextStyle: .subheadline, weight: .semibold)
+            let attachment = NSTextAttachment()  // NSTextAttachment.init(image:) won't work here.
+            attachment.image = UIImage(systemName: "arrow.up", withConfiguration: UIImage.SymbolConfiguration(font: font))?.withRenderingMode(.alwaysTemplate)
+            let title = NSMutableAttributedString(attachment: attachment)
+            title.append(.init(string: " " + Localizations.buttonShare, attributes: [.font: font]))
+            button.setAttributedTitle(title, for: .normal)
+            button.setTitleColor(.white, for: .normal)
+            button.setBackgroundColor(.systemBlue, for: .normal)
+            button.bounds = CGRect(x: 0, y: 0, width: 88, height: 44)
+            button.layer.cornerRadius = 4
+            button.layer.masksToBounds = true
+            return button
         }
     }
 }

@@ -1596,6 +1596,10 @@ class ChatData: ObservableObject {
                 }
             }
 
+            if chatMessage.location != nil {
+                lastMsgMediaType = .location
+            }
+            
             // Process quoted content.
             if let feedPostId = chatMessage.feedPostId, !feedPostId.isEmpty {
                 // Process Quoted Feedpost
@@ -2192,6 +2196,7 @@ extension ChatData {
                      media: [PendingMedia],
                      linkPreviewData: LinkPreviewData? = nil,
                      linkPreviewMedia : PendingMedia? = nil,
+                     location: ChatLocationProtocol? = nil,
                      feedPostId: String?,
                      feedPostMediaIndex: Int32,
                      chatReplyMessageID: String? = nil,
@@ -2205,6 +2210,7 @@ extension ChatData {
                                 media: media,
                                 linkPreviewData: linkPreviewData,
                                 linkPreviewMedia : linkPreviewMedia,
+                                location: location,
                                 feedPostId: feedPostId,
                                 feedPostMediaIndex: feedPostMediaIndex,
                                 chatReplyMessageID: chatReplyMessageID,
@@ -2227,6 +2233,7 @@ extension ChatData {
                                                media: media,
                                      linkPreviewData: nil,
                                     linkPreviewMedia: nil,
+                                            location: nil,
                                           feedPostId: postID,
                                   feedPostMediaIndex: 0,
                                        isMomentReply: true,
@@ -2247,6 +2254,7 @@ extension ChatData {
                         media: [PendingMedia],
                         linkPreviewData: LinkPreviewData?,
                         linkPreviewMedia : PendingMedia?,
+                        location: ChatLocationProtocol?,
                         feedPostId: String?,
                         feedPostMediaIndex: Int32,
                         isMomentReply: Bool = false,
@@ -2321,6 +2329,11 @@ extension ChatData {
             catch {
                 DDLogError("ChatData/createChatMsg/\(messageId)/copy-media/error [\(error)]")
             }
+        }
+        
+        if let location = location {
+            chatMessage.location = CommonLocation(chatLocation: location, context: context)
+            lastMsgMediaType = .location
         }
 
         if isMomentReply, let _ = feedPostId {
@@ -3665,6 +3678,7 @@ extension ChatData {
             chatMessage.rawText = emoji
         case .location(let chatLocation):
             chatMessage.location = CommonLocation(chatLocation: chatLocation, context: managedObjectContext)
+            lastMsgMediaType = .location
         case .unsupported(let data):
             chatMessage.rawData = data
             chatMessage.incomingStatus = .unsupported

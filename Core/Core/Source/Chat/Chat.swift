@@ -9,6 +9,8 @@
 import CoreCommon
 import CocoaLumberjackSwift
 import UIKit
+import CoreLocation
+import Contacts
 
 public typealias GroupID = String
 public typealias ChatType = ThreadType
@@ -490,6 +492,29 @@ public struct ChatLocation: ChatLocationProtocol {
         longitude = protoMessage.longitude
         name = protoMessage.name
         formattedAddressLines = protoMessage.address.formattedAddressLines
+    }
+    
+    public init(_ commonLocation: CommonLocation) {
+        latitude = commonLocation.latitude
+        longitude = commonLocation.longitude
+        name = commonLocation.name ?? ""
+        formattedAddressLines = commonLocation.addressString?.split(separator: "\n").map(String.init) ?? []
+    }
+    
+    public init(placemark: CLPlacemark) {
+        latitude = placemark.location?.coordinate.latitude ?? 0
+        longitude = placemark.location?.coordinate.longitude ?? 0
+        name = placemark.name ?? ""
+        formattedAddressLines = placemark.postalAddress
+            .map { CNPostalAddressFormatter.string(from: $0, style: .mailingAddress) }
+            .map { $0.split(separator: "\n").map(String.init) } ?? []
+    }
+    
+    public init(latitude: Double, longitude: Double, name: String, formattedAddressLines: [String]) {
+        self.latitude = latitude
+        self.longitude = longitude
+        self.name = name
+        self.formattedAddressLines = formattedAddressLines
     }
 }
 

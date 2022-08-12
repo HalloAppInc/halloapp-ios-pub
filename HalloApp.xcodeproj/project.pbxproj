@@ -403,6 +403,8 @@
 		EB9E73D2285D12C5009F1B45 /* ReactionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB9E73D1285D12C5009F1B45 /* ReactionViewController.swift */; };
 		EBA8265D28418BAF00590507 /* VerificationCodeTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBA8265C28418BAF00590507 /* VerificationCodeTextField.swift */; };
 		EBC15AF82899E60F00FEF89C /* ReactionListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBC15AF72899E60F00FEF89C /* ReactionListViewController.swift */; };
+		EE3A915B28A1BCE4002B66B6 /* MessageCellViewLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE3A915A28A1BCE4002B66B6 /* MessageCellViewLocation.swift */; };
+		EE3A915D28A48B52002B66B6 /* LocationMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE3A915C28A48B52002B66B6 /* LocationMessage.swift */; };
 		EE83E4452877A3BB0010E144 /* LocationSharingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE83E4442877A3BB0010E144 /* LocationSharingViewModel.swift */; };
 		EE83E4472877A4350010E144 /* LocationSharingEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE83E4462877A4350010E144 /* LocationSharingEnvironment.swift */; };
 		EE969F642847EE49006F491A /* HAMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE969F632847EE49006F491A /* HAMenu.swift */; };
@@ -1185,6 +1187,8 @@
 		EB9E73D1285D12C5009F1B45 /* ReactionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReactionViewController.swift; sourceTree = "<group>"; };
 		EBA8265C28418BAF00590507 /* VerificationCodeTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationCodeTextField.swift; sourceTree = "<group>"; };
 		EBC15AF72899E60F00FEF89C /* ReactionListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReactionListViewController.swift; sourceTree = "<group>"; };
+		EE3A915A28A1BCE4002B66B6 /* MessageCellViewLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageCellViewLocation.swift; sourceTree = "<group>"; };
+		EE3A915C28A48B52002B66B6 /* LocationMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationMessage.swift; sourceTree = "<group>"; };
 		EE83E4442877A3BB0010E144 /* LocationSharingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSharingViewModel.swift; sourceTree = "<group>"; };
 		EE83E4462877A4350010E144 /* LocationSharingEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSharingEnvironment.swift; sourceTree = "<group>"; };
 		EE969F632847EE49006F491A /* HAMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HAMenu.swift; sourceTree = "<group>"; };
@@ -1439,6 +1443,7 @@
 				328447BF282D8B6300F76AB5 /* MessageCellViewEvent.swift */,
 				32F7C4FB283C48C600AA2ECB /* MessageChatHeaderView.swift */,
 				3245AF15284F23B30036CB8E /* MessageMediaView.swift */,
+				EE3A915A28A1BCE4002B66B6 /* MessageCellViewLocation.swift */,
 			);
 			path = FlatComment;
 			sourceTree = "<group>";
@@ -2384,6 +2389,7 @@
 				EECB00B3286E454F003996B3 /* LocationListViewController.swift */,
 				EE83E4462877A4350010E144 /* LocationSharingEnvironment.swift */,
 				EEB3393328860FDF001760F6 /* AnnotationView.swift */,
+				EE3A915C28A48B52002B66B6 /* LocationMessage.swift */,
 			);
 			path = "Location Sharing";
 			sourceTree = "<group>";
@@ -3141,6 +3147,7 @@
 				761C6161242D2AE50028AE19 /* DeveloperMenuView.swift in Sources */,
 				EAA424FF24ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift in Sources */,
 				323D787927D7D71300C29FA1 /* MessageCellViewAudio.swift in Sources */,
+				EE3A915D28A48B52002B66B6 /* LocationMessage.swift in Sources */,
 				EAD476F32458F03700EF8591 /* ChatMedia+CoreDataProperties.swift in Sources */,
 				76FE37ED2523EC9600372FB1 /* ContactPickerViewController.swift in Sources */,
 				EAEE49DA276A76ED0042E654 /* ChatTitleView.swift in Sources */,
@@ -3214,6 +3221,7 @@
 				EAA0798625AEAC9200B384AB /* GroupsListViewController.swift in Sources */,
 				329DFD56270CF70200B85CFF /* Feed4ToFeed5.xcmappingmodel in Sources */,
 				6A911F3C270EAF2E003DCB7A /* Feed5ToFeed6.xcmappingmodel in Sources */,
+				EE3A915B28A1BCE4002B66B6 /* MessageCellViewLocation.swift in Sources */,
 				E5CE660226B354EC0093944A /* ArchiveViewController.swift in Sources */,
 				76B5B52C2501EE790055E712 /* NotificationMetadata.swift in Sources */,
 				F88E5C95275A14D500290A89 /* MediaPickerPreview.swift in Sources */,

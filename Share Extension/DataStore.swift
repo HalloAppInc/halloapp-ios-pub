@@ -491,6 +491,8 @@ class DataStore: ShareExtensionDataStore {
             }
             chatMessage.media?.forEach({ $0.status = .uploading })
 
+            // TODO: Set lastMsgMediaType to .location when sending location message
+
             //Process LinkPreviews
             if let linkPreviewData = linkPreviewData {
                 var linkPreviews: Set<CommonLinkPreview> = []

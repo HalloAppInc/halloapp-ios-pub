@@ -1264,6 +1264,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                                                       media: media,
                                             linkPreviewData: linkPreviewData,
                                            linkPreviewMedia: linkPreviewMedia,
+                                                   location: nil,
                                                  feedPostId: feedPostId,
                                          feedPostMediaIndex: feedPostMediaIndex,
                                          chatReplyMessageID: chatReplyMessageID,

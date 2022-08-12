@@ -132,6 +132,10 @@ class ThreadListCell: UITableViewCell {
             mediaIcon = UIImage(systemName: "arrow.up.right.video.fill")
             messageText = Localizations.videoCall + " " + messageText
 
+        case .location:
+            mediaIcon = UIImage(systemName: "mappin.and.ellipse")
+            messageText = Localizations.locationSharingNavTitle + " " + messageText
+            
         default:
             break
         }
