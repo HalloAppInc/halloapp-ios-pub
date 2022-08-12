@@ -2869,7 +2869,7 @@ extension ChatData {
                       chatMessageID: ChatMessageID) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
-            DDLogInfo("ChatData/sendMessage/createChatMsg/toUserId: \(toUserId)")
+            DDLogInfo("ChatData/sendReaction/createReaction/toUserId: \(toUserId)")
             self.createReaction(toUserId: toUserId,
                                 reaction: reaction,
                                 chatMessageID: chatMessageID,
@@ -2894,13 +2894,41 @@ extension ChatData {
         commonReaction.toUserID = toUserId
         commonReaction.fromUserID = userData.userId
         commonReaction.emoji = reaction
-        if let message = MainAppContext.shared.chatData.chatMessage(with: chatMessageID, in: context) {
-            commonReaction.message = message
-        }
         commonReaction.incomingStatus = .none
         commonReaction.outgoingStatus = isMsgToYourself ? .seen : .pending
         commonReaction.timestamp = Date()
+        
+        var reactionText = String(format: Localizations.chatListYouReactedMessage, commonReaction.emoji)
+        if let message = MainAppContext.shared.chatData.chatMessage(with: chatMessageID, in: context) {
+            commonReaction.message = message
+            if let media = message.media, media.count == 1 {
+                let mediaType = media.first?.type
+                switch mediaType {
+                case .video:
+                    reactionText = String(format: Localizations.chatListYouReactedVideo, commonReaction.emoji)
+                case .audio:
+                    reactionText = String(format: Localizations.chatListYouReactedAudio, commonReaction.emoji)
+                case .image:
+                    reactionText = String(format: Localizations.chatListYouReactedImage, commonReaction.emoji)
+                case .none:
+                    break
+                }
+            } else if let text = message.rawText, !text.isEmpty {
+                reactionText = String(format: Localizations.chatListYouReactedText, commonReaction.emoji, "\"\(text)\"")
+            }
+        }
+        save(context)
 
+        // Update Chat Thread
+        let lastMsgStatus = isMsgToYourself ? ChatThread.LastMsgStatus.seen : ChatThread.LastMsgStatus.pending
+        updateChatThread(with: commonReaction,
+                         toUserID: commonReaction.toUserID,
+                         reactionText: reactionText,
+                         in: context,
+                         lastMsgStatus: lastMsgStatus,
+                         updateUnreadCount: false)
+
+        
         save(context)
 
         if !isMsgToYourself {
@@ -2915,11 +2943,37 @@ extension ChatData {
 
         updateReaction(with: reactionToRetractID) { [weak self] (commonReaction) in
             guard let self = self else { return }
+            let reactionID = commonReaction.id
+            let toUserID = commonReaction.toUserID
 
             commonReaction.retractID = retractID
             commonReaction.outgoingStatus = .retracting
-
+            
+            var reactionText = String(format: Localizations.chatListYouDeletedReactionMessage, commonReaction.emoji)
+            if let message = commonReaction.message {
+                if let media = message.media, media.count == 1 {
+                    let mediaType = media.first?.type
+                    switch mediaType {
+                    case .video:
+                        reactionText = String(format: Localizations.chatListYouDeletedReactionVideo, commonReaction.emoji)
+                    case .audio:
+                        reactionText = String(format: Localizations.chatListYouDeletedReactionAudio, commonReaction.emoji)
+                    case .image:
+                        reactionText = String(format: Localizations.chatListYouDeletedReactionImage, commonReaction.emoji)
+                    case .none:
+                        break
+                    }
+                } else if let text = message.rawText, !text.isEmpty {
+                    reactionText = String(format: Localizations.chatListYouDeletedReactionText, commonReaction.emoji, "\"\(text)\"")
+                }
+            }
+            
             self.deleteReaction(commonReaction: commonReaction)
+            self.updateChatThreadStatus(type: .oneToOne, for: toUserID, messageId: reactionID) { (chatThread) in
+                chatThread.lastMsgStatus = .retracting
+                chatThread.lastMsgText = reactionText
+                chatThread.lastMsgMediaType = .none
+            }
         }
 
         self.service.retractChatMessage(messageID: retractID, toUserID: toUserID, messageToRetractID: reactionToRetractID) { result in
@@ -2930,7 +2984,6 @@ extension ChatData {
                 DDLogInfo("ChatData/retractReaction: \(reactionToRetractID)/success")
             }
         }
-
     }
     
     // MARK: 1-1 Core Data Fetching
@@ -3120,6 +3173,40 @@ extension ChatData {
                 self.save(managedObjectContext)
             }
         }
+    }
+    
+    private func updateChatThread(with commonReaction: CommonReaction,
+                                  toUserID: String,
+                                  reactionText: String,
+                                  in context: NSManagedObjectContext,
+                                  lastMsgStatus: CommonThread.LastMsgStatus,
+                                  updateUnreadCount: Bool) {
+        let isCurrentlyChattingWithUser = isCurrentlyChatting(with: commonReaction.fromUserID)
+        if let chatThread = self.chatThread(type: ChatType.oneToOne, id: toUserID, in: context) {
+            DDLogDebug("ChatData/updateChatThread/with-reaction/update-thread")
+            chatThread.lastMsgId = commonReaction.id
+            chatThread.lastMsgUserId = commonReaction.fromUserID
+            chatThread.lastMsgText = reactionText
+            chatThread.lastMsgMediaType = .none
+            chatThread.lastMsgStatus = lastMsgStatus
+            chatThread.lastMsgTimestamp = commonReaction.timestamp
+            if updateUnreadCount {
+                chatThread.unreadCount = chatThread.unreadCount + 1
+            }
+        } else {
+            DDLogDebug("ChatData/updateChatThread/with-reaction/new-thread")
+            let chatThread = ChatThread(context: context)
+            chatThread.lastMsgId = commonReaction.id
+            chatThread.lastMsgUserId = commonReaction.fromUserID
+            chatThread.lastMsgText = reactionText
+            chatThread.lastMsgMediaType = .none
+            chatThread.lastMsgStatus = lastMsgStatus
+            chatThread.lastMsgTimestamp = commonReaction.timestamp
+            if updateUnreadCount {
+                chatThread.unreadCount = isCurrentlyChattingWithUser ? 0 : chatThread.unreadCount + 1
+            }
+        }
+        save(context)
     }
     
     private func updateChatMessage(with chatMessageId: String, block: @escaping (ChatMessage) -> (), performAfterSave: (() -> ())? = nil) {
@@ -3805,6 +3892,36 @@ extension ChatData {
         } else {
             commonReaction.timestamp = Date()
         }
+        
+        var fromUserName = ""
+        MainAppContext.shared.contactStore.performOnBackgroundContextAndWait { contactsManagedObjectContext in
+            fromUserName = MainAppContext.shared.contactStore.fullName(for: commonReaction.fromUserID, in: contactsManagedObjectContext)
+        }
+        var reactionText = String(format: Localizations.chatListUserReactedMessage, fromUserName, commonReaction.emoji)
+        if let message = commonReaction.message {
+            if let media = message.media, media.count == 1 {
+                let mediaType = media.first?.type
+                switch mediaType {
+                case .video:
+                    reactionText = String(format: Localizations.chatListUserReactedVideo, fromUserName, commonReaction.emoji)
+                case .audio:
+                    reactionText = String(format: Localizations.chatListUserReactedAudio, fromUserName, commonReaction.emoji)
+                case .image:
+                    reactionText = String(format: Localizations.chatListUserReactedImage, fromUserName, commonReaction.emoji)
+                case .none:
+                    break
+                }
+            } else if let text = message.rawText, !text.isEmpty {
+                reactionText = String(format: Localizations.chatListUserReactedText, fromUserName, commonReaction.emoji, "\"\(text)\"")
+            }
+        }
+        // Update Chat Thread
+        updateChatThread(with: commonReaction,
+                         toUserID: commonReaction.fromUserID,
+                         reactionText: reactionText,
+                         in: managedObjectContext,
+                         lastMsgStatus: .none,
+                         updateUnreadCount: true)
 
         save(managedObjectContext)
 
@@ -3907,7 +4024,35 @@ extension ChatData {
             commonReaction.incomingStatus = .retracted
 
             self.deleteReaction(commonReaction: commonReaction)
-            return
+            
+            var fromUserName = ""
+            MainAppContext.shared.contactStore.performOnBackgroundContextAndWait { contactsManagedObjectContext in
+                fromUserName = MainAppContext.shared.contactStore.fullName(for: commonReaction.fromUserID, in: contactsManagedObjectContext)
+            }
+            var reactionText = String(format: Localizations.chatListUserDeletedReactionMessage, fromUserName, commonReaction.emoji)
+            if let message = commonReaction.message {
+                if let media = message.media, media.count == 1 {
+                    let mediaType = media.first?.type
+                    switch mediaType {
+                    case .video:
+                        reactionText = String(format: Localizations.chatListUserDeletedReactionVideo, fromUserName, commonReaction.emoji)
+                    case .audio:
+                        reactionText = String(format: Localizations.chatListUserDeletedReactionAudio, fromUserName, commonReaction.emoji)
+                    case .image:
+                        reactionText = String(format: Localizations.chatListUserDeletedReactionImage, fromUserName, commonReaction.emoji)
+                    case .none:
+                        break
+                    }
+                } else if let text = message.rawText, !text.isEmpty {
+                    reactionText = String(format: Localizations.chatListUserDeletedReactionText, fromUserName, commonReaction.emoji, "\"\(text)\"")
+                }
+            }
+            self.createNewChatThreadIfMissing(from: from, messageID: reactionID, status: .retracted)
+            self.updateChatThreadStatus(type: .oneToOne, for: from, messageId: reactionID) { (chatThread) in
+                chatThread.lastMsgStatus = .retracted
+                chatThread.lastMsgText = reactionText
+                chatThread.lastMsgMediaType = .none
+            }
         }
     }
 }
@@ -5663,5 +5808,127 @@ extension ChatData: HalloChatDelegate {
                 }
             }
         }
+    }
+}
+
+extension Localizations {
+    static var chatListYouReactedMessage: String {
+        NSLocalizedString("chat.list.you.reacted.message",
+                          value: "You reacted %@ to a message",
+                          comment: "Text shown when you reacted to a message")
+    }
+    
+    static var chatListYouReactedAudio: String {
+        NSLocalizedString("chat.list.you.reacted.audio",
+                          value: "You reacted %1@ to an audio",
+                          comment: "Text shown when you reacted to an audio")
+    }
+    
+    static var chatListYouReactedVideo: String {
+        NSLocalizedString("chat.list.you.reacted.video",
+                          value: "You reacted %1@ to a video",
+                          comment: "Text shown when you reacted to a video")
+    }
+    
+    static var chatListYouReactedImage: String {
+        NSLocalizedString("chat.list.you.reacted.image",
+                          value: "You reacted %1@ to an image",
+                          comment: "Text shown when you reacted to an image")
+    }
+    
+    static var chatListYouReactedText: String {
+        NSLocalizedString("chat.list.you.reacted.text",
+                          value: "You reacted %1@ to %2@",
+                          comment: "Text shown when you reacted to a text message")
+    }
+    
+    static var chatListUserReactedMessage: String {
+        NSLocalizedString("chat.list.user.reacted.message",
+                          value: "%1@ reacted %2@ to a message",
+                          comment: "Text shown when user reacted to a message")
+    }
+    
+    static var chatListUserReactedAudio: String {
+        NSLocalizedString("chat.list.user.reacted.audio",
+                          value: "%1@ reacted %2@ to an audio",
+                          comment: "Text shown when user reacted to an audio")
+    }
+    
+    static var chatListUserReactedVideo: String {
+        NSLocalizedString("chat.list.user.reacted.video",
+                          value: "%1@ reacted %2@ to a video",
+                          comment: "Text shown when user reacted to a video")
+    }
+    
+    static var chatListUserReactedImage: String {
+        NSLocalizedString("chat.list.user.reacted.image",
+                          value: "%1@ reacted %2@ to an image",
+                          comment: "Text shown when user reacted to an image")
+    }
+    
+    static var chatListUserReactedText: String {
+        NSLocalizedString("chat.list.user.reacted.text",
+                          value: "%1@ reacted %2@ to %3@",
+                          comment: "Text shown when user reacted to a text message")
+    }
+    
+    static var chatListYouDeletedReactionMessage: String {
+        NSLocalizedString("chat.list.you.deleted.reaction.message",
+                          value: "You removed a %@ from a message",
+                          comment: "Text shown when you removed a reaction from a message")
+    }
+    
+    static var chatListYouDeletedReactionAudio: String {
+        NSLocalizedString("chat.list.you.deleted.reaction.audio",
+                          value: "You removed a %1@ from an audio",
+                          comment: "Text shown when you removed a reaction from an audio")
+    }
+
+    static var chatListYouDeletedReactionVideo: String {
+        NSLocalizedString("chat.list.you.deleted.reaction.video",
+                          value: "You removed a %1@ from a video",
+                          comment: "Text shown when you removed a reaction from a video")
+    }
+    
+    static var chatListYouDeletedReactionImage: String {
+        NSLocalizedString("chat.list.you.deleted.reaction.image",
+                          value: "You removed a %1@ from an image",
+                          comment: "Text shown when you removed a reaction from an image")
+    }
+
+    static var chatListYouDeletedReactionText: String {
+        NSLocalizedString("chat.list.you.deleted.reaction.text",
+                          value: "You removed a %1@ from %2@",
+                          comment: "Text shown when you removed a reaction from a text message")
+    }
+    
+    static var chatListUserDeletedReactionMessage: String {
+        NSLocalizedString("chat.list.user.deleted.reaction.message",
+                          value: "%1@ removed a %2@ from a message",
+                          comment: "Text shown when user removed a reaction from a message")
+    }
+    
+    static var chatListUserDeletedReactionAudio: String {
+        NSLocalizedString("chat.list.user.deleted.reaction.audio",
+                          value: "%1@ removed a %2@ from an audio",
+                          comment: "Text shown when user removed a reaction from an audio")
+    }
+
+    static var chatListUserDeletedReactionVideo: String {
+        NSLocalizedString("chat.list.user.deleted.reaction.video",
+                          value: "%1@ removed a %2@ from a video",
+                          comment: "Text shown when user removed a reaction from a video")
+    }
+    
+    static var chatListUserDeletedReactionImage: String {
+        NSLocalizedString("chat.list.user.deleted.reaction.image",
+                          value: "%1@ removed a %2@ from an image",
+                          comment: "Text shown when user removed a reaction from an image")
+    }
+
+    static var chatListUserDeletedReactionText: String {
+        NSLocalizedString("chat.list.user.deleted.reaction.text",
+                          value: "%1@ removed a %2@ from %3@",
+                          comment: "Text shown when user removed a reaction from a text message")
     }
 }

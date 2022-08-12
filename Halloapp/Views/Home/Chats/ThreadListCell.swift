@@ -70,7 +70,7 @@ class ThreadListCell: UITableViewCell {
 
         var messageText = chatThread.lastMsgText ?? defaultText
 
-        if [.retracting, .retracted].contains(chatThread.lastMsgStatus) {
+        if [.retracting, .retracted].contains(chatThread.lastMsgStatus) && chatThread.lastMsgText == nil {
             messageText = Localizations.chatMessageDeleted
         }
 
