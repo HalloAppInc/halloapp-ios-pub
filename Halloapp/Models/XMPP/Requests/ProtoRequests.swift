@@ -177,6 +177,7 @@ final class ProtoContactSyncRequest: ProtoRequest<[HalloContact]> {
             if let userID = contact.userid, let numericID = Int64(userID) { serverContact.uid = numericID }
             return serverContact
         }
+        contactList.hasPermissions_p = ContactStore.contactsAccessAuthorized
 
         super.init(
             iqPacket: .iqPacket(type: .set, payload: .contactList(contactList)),
