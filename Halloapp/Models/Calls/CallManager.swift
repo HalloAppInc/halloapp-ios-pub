@@ -66,6 +66,7 @@ final class CallManager: NSObject, CXProviderDelegate {
     }
 
     private var delegateQueue = DispatchQueue(label: "com.halloapp.callManager.delegate", qos: .userInitiated)
+    private var callKitProviderQueue = DispatchQueue(label: "com.halloapp.callManager.callkitProviderQueue", qos: .userInitiated)
     let callController = CXCallController()
     public let provider: CXProvider
     public var service: HalloService
@@ -170,7 +171,8 @@ final class CallManager: NSObject, CXProviderDelegate {
         self.provider = CXProvider(configuration: CallManager.providerConfiguration)
         self.callToneToPlay = .none
         super.init()
-        self.provider.setDelegate(self, queue: .main)
+        // Moving to a separate queue to avoid deadlocks if any.
+        self.provider.setDelegate(self, queue: callKitProviderQueue)
         self.service.callDelegate = self
 
         cancellables.insert(

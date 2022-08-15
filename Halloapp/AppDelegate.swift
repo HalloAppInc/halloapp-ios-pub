@@ -17,6 +17,7 @@ import Reachability
 import Sentry
 import UIKit
 import PushKit
+import CallKit
 
 // App in the background can run upto 30 seconds in most cases and 10 seconds should usually be good enough.
 fileprivate let backgroundProcessingTimeSec = 25.0
@@ -461,7 +462,19 @@ extension AppDelegate: PKPushRegistryDelegate {
 
         if type == .voIP {
             DDLogInfo("appdelegate/voip-notifications/didReceiveIncomingPushWith/payload: \(payload.dictionaryPayload)")
+
             MainAppContext.shared.service.startConnectingIfNecessary()
+
+            // If no call is active - continue processing push.
+            // Else - abort here and report new incoming call with the active callID.
+            // This is a trick that apple engineers pointed out in one of their sessions.
+            if MainAppContext.shared.callManager.isAnyCallActive, let activeCallID = MainAppContext.shared.callManager.activeCallID {
+                MainAppContext.shared.callManager.provider.reportNewIncomingCall(with: activeCallID.callUUID, update: CXCallUpdate()) { result in
+                    DDLogInfo("appdelegate/voip-notifications/reportNewIncomingCall/result: \(String(describing: result))")
+                }
+                completion()
+                return
+            }
 
             guard let noiseKeys = AppContext.shared.userData.noiseKeys,
                   let metadata = payload.dictionaryPayload[NotificationMetadata.userInfoKeyMetadata] as? [String: String],
