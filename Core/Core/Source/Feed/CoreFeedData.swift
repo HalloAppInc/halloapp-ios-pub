@@ -629,23 +629,15 @@ public class CoreFeedData {
                     DDLogInfo("FeedData/handleRerequest/postID: \(post.id)/userID: \(userID)/sending retract")
                     self.service.retractPost(post.id, in: nil, to: userID, completion: completion)
                 default:
-                    if post.isMoment {
-                        DDLogInfo("FeedData/handleRerequest/postID: \(post.id)/userID: \(userID)/dont resend moments for now.")
-                        self.service.sendContentMissing(id: post.id, type: .homeFeedPost, to: userID) { result in
-                            completion(result)
+                    self.service.resendPost(post.postData, feed: feed, rerequestCount: rerequestCount, to: userID) { result in
+                        switch result {
+                        case .success():
+                            DDLogInfo("FeedData/handleRerequest/postID: \(post.id) success/userID: \(userID)/rerequestCount: \(rerequestCount)")
+                            // TODO: murali@: update rerequestCount only on success.
+                        case .failure(let error):
+                            DDLogError("FeedData/handleRerequest/postID: \(post.id) error \(error)")
                         }
-                        // TODO: we should fix this once we have an expired status for all content.
-                    } else {
-                        self.service.resendPost(post.postData, feed: feed, rerequestCount: rerequestCount, to: userID) { result in
-                            switch result {
-                            case .success():
-                                DDLogInfo("FeedData/handleRerequest/postID: \(post.id) success/userID: \(userID)/rerequestCount: \(rerequestCount)")
-                                // TODO: murali@: update rerequestCount only on success.
-                            case .failure(let error):
-                                DDLogError("FeedData/handleRerequest/postID: \(post.id) error \(error)")
-                            }
-                            completion(result)
-                        }
+                        completion(result)
                     }
                 }
 
