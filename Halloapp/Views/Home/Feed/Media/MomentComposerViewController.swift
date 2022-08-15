@@ -15,8 +15,12 @@ import CocoaLumberjackSwift
 class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
 
     let context: MomentContext
-    private var image: UIImage?
-    /// Used at the time of sending to wait for the creation of the media's file path.
+
+    private var media: PendingMedia?
+    private var image: UIImage? {
+        didSet { sizeImageView() }
+    }
+    /// Used to wait for the creation of the media's file path.
     private var mediaLoader: AnyCancellable?
 
     private lazy var audienceIndicator: UIView = {
@@ -185,12 +189,21 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
         hideTap.cancelsTouchesInView = false
     }
 
-    func configure(with image: UIImage) {
-        DDLogInfo("MomentComposerViewController/configure/image of size \(image.size)")
-        self.image = image.correctlyOrientedImage()
+    func configure(with media: PendingMedia) {
+        DDLogInfo("MomentComposerViewController/configure/start")
+        self.media = media
 
-        sizeImageView()
-        sendButton.isEnabled = true
+        mediaLoader = media.ready
+            .first { $0 }
+            .sink { [weak self] _ in
+                guard let self = self else {
+                    return
+                }
+
+                self.image = media.image?.correctlyOrientedImage()
+                self.sendButton.isEnabled = true
+                self.mediaLoader = nil
+            }
     }
 
     private func sizeImageView() {
@@ -221,7 +234,7 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
         onCancel?()
     }
 
-    var cropRect: CGRect? {
+    private var cropRect: CGRect? {
         guard let image = image else {
             return nil
         }
@@ -263,7 +276,6 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
 
                 image = UIImage(cgImage: cropped)
                 self.image = image
-                sizeImageView()
             } else {
                 DDLogError("MomentComposerViewController/send/failed to crop image [size: \(image.size)] [rect: \(cropRect)")
                 return

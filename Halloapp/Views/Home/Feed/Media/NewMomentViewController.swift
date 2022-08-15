@@ -76,7 +76,7 @@ final class NewMomentViewController: UIViewController {
     private var sendButtonSnapshot: UIView?
 
     /// Used to wait for `PendingMedia`s `ready` property before showing the composer.
-    private var libraryMediaLoader: AnyCancellable?
+    private var mediaLoader: AnyCancellable?
     private var startUnlockTransitionCancellable: AnyCancellable?
 
     /// The overlay that is above the camera when the user first attempts to unlock a moment.
@@ -136,9 +136,9 @@ final class NewMomentViewController: UIViewController {
     }
 
     /// After the photo has been delivered by the camera. Displays the composer with the enabled send button.
-    private func displayComposer(with photo: UIImage) {
-        libraryMediaLoader = nil
-        composerController.configure(with: photo)
+    private func displayComposer(with media: PendingMedia) {
+        mediaLoader = nil
+        composerController.configure(with: media)
 
         UIView.transition(with: view, duration: 0.3, options: [.transitionCrossDissolve]) {
             self.cameraNavigationController.view.alpha = 0
@@ -310,19 +310,22 @@ extension NewMomentViewController: CameraViewControllerDelegate {
         let media = PendingMedia(type: .image)
         media.image = photo
 
-        displayComposer(with: photo)
+        mediaLoader = media.ready
+            .first { $0 }
+            .sink { [weak self] _ in
+                self?.displayComposer(with: media)
+                self?.mediaLoader = nil
+            }
     }
 
     func cameraViewController(_ viewController: NewCameraViewController, didSelect media: PendingMedia) {
         displayIntermediateState()
 
-        libraryMediaLoader = media.ready
-            .filter { $0 }
-            .compactMap { _ in media.image }
-            .first()
+        mediaLoader = media.ready
+            .first { $0 }
             .sink { [weak self] image in
-                self?.displayComposer(with: image)
-                self?.libraryMediaLoader = nil
+                self?.displayComposer(with: media)
+                self?.mediaLoader = nil
             }
     }
 
