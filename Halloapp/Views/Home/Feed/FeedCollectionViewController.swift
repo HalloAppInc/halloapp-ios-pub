@@ -71,6 +71,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
     }()
 
     var feedPostIdToScrollTo: FeedPostID?
+    var momentIDToScrollTo: FeedPostID?
     
     var firstActionHappened: Bool = false
 
@@ -232,6 +233,10 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
 
         if let postID = feedPostIdToScrollTo, scrollTo(postId: postID) {
             feedPostIdToScrollTo = nil
+        }
+
+        if let momentID = momentIDToScrollTo, scrollTo(postId: momentID) {
+            momentIDToScrollTo = nil
         }
     }
 
@@ -408,22 +413,18 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
             vc.delegate = self
             present(vc, animated: true)
         } else {
-            let newMomentVC = NewMomentViewController(context: .unlock(post))
-            newMomentVC.delegate = self
-            present(newMomentVC, animated: true)
+            presentNewMomentViewController(context: .unlock(post))
         }
     }
 
     @objc
     func createNewMoment() {
-        let source: NewPostMediaSource
-        #if targetEnvironment(simulator)
-        source = .library
-        #else
-        source = .camera
-        #endif
+        presentNewMomentViewController(context: .normal)
+    }
 
-        let vc = NewMomentViewController(context: .normal)
+    func presentNewMomentViewController(context: MomentContext) {
+        let vc = NewMomentViewController(context: context)
+        vc.delegate = self
         present(vc, animated: true)
     }
 
@@ -1143,9 +1144,9 @@ extension FeedCollectionViewController: FeedPostCollectionViewCellDelegate {
     }
 }
 
-// MARK: - MomentViewControllerDelegate methods
+// MARK: - NewMomentViewControllerDelegate methods
 
-extension FeedCollectionViewController: MomentViewControllerDelegate {
+extension FeedCollectionViewController: NewMomentViewControllerDelegate {
 
     func momentView(_ momentView: MomentView, didSelect action: MomentView.Action) {
         switch action {
@@ -1156,6 +1157,15 @@ extension FeedCollectionViewController: MomentViewControllerDelegate {
         default:
             break
         }
+    }
+
+    func newMomentViewControllerDidPost(_ viewController: NewMomentViewController) {
+        guard let moment = MainAppContext.shared.feedData.validMoment.value else {
+            DDLogError("FeedCollectionViewController/MomentViewControllerDidPost/no valid moment")
+            return
+        }
+
+        momentIDToScrollTo = moment.id
     }
 }
 

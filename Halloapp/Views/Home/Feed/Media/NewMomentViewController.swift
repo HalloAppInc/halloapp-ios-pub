@@ -17,10 +17,15 @@ enum MomentContext {
     case unlock(FeedPost)
 }
 
+protocol NewMomentViewControllerDelegate: MomentViewControllerDelegate {
+    func newMomentViewControllerDidPost(_ viewController: NewMomentViewController)
+}
+
 /// Handles the creation and posting of a moment, regardless of context.
 final class NewMomentViewController: UIViewController {
 
     let context: MomentContext
+    var onPost: (() -> Void)?
 
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         .portrait
@@ -82,7 +87,7 @@ final class NewMomentViewController: UIViewController {
     /// The overlay that is above the camera when the user first attempts to unlock a moment.
     private var unlockingExplainerOverlay: UIView?
 
-    weak var delegate: MomentViewControllerDelegate?
+    weak var delegate: NewMomentViewControllerDelegate?
 
     init(context: MomentContext = .normal) {
         self.context = context
@@ -196,6 +201,7 @@ final class NewMomentViewController: UIViewController {
             let feedData = MainAppContext.shared.feedData,
             let latest = feedData.fetchLatestMoment(using: feedData.viewContext)
         else {
+            delegate?.newMomentViewControllerDidPost(self)
             return dismiss(animated: true)
         }
 
@@ -217,6 +223,8 @@ final class NewMomentViewController: UIViewController {
                     self?.performUnlockTransition(for: vc)
                 }
         }
+
+        delegate?.newMomentViewControllerDidPost(self)
     }
 
     private func performUnlockTransition(for momentViewController: MomentViewController) {
