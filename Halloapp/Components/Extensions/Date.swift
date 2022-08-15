@@ -30,6 +30,7 @@ fileprivate extension Localizations {
 }
 
 extension Date {
+    static var currentCalendar = Calendar.autoupdatingCurrent
     static func seconds(_ seconds: Int) -> TimeInterval { return TimeInterval(seconds) }
     static func minutes(_ minutes: Int) -> TimeInterval { return TimeInterval(minutes * 60) }
     static func hours(_ hours: Int) -> TimeInterval { return TimeInterval(hours * 60 * 60) }
@@ -125,9 +126,9 @@ extension Date {
     func chatMsgGroupingTimestamp(_ currentTime: Date? = nil) -> String {
         let seconds = -timeIntervalSince(currentTime ?? Date())
         
-        if Calendar.current.isDateInToday(self) {
+        if Date.currentCalendar.isDateInToday(self) {
             return Localizations.today
-        } else if Calendar.current.isDateInYesterday(self) {
+        } else if Date.currentCalendar.isDateInYesterday(self) {
             return Localizations.yesterday
         } else if seconds < Date.days(5) {
             return DateFormatter.dateTimeFormatterDayOfWeekLong.string(from: self)

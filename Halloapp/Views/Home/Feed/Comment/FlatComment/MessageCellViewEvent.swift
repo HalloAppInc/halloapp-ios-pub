@@ -44,16 +44,21 @@ class MessageCellViewEvent: UICollectionViewCell {
         view.layoutMargins = UIEdgeInsets(top: 6, left: 18, bottom: 6, right: 18)
         view.isLayoutMarginsRelativeArrangement = true
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = UIColor.messageEventHeaderBackground
-        view.layer.cornerRadius = 7
-        view.layer.masksToBounds = false
+
+        let subView = ShadowView(frame: view.bounds)
+        subView.backgroundColor = UIColor.messageEventHeaderBackground
+        subView.layer.cornerRadius = 7
+        subView.layer.masksToBounds = false
+        subView.translatesAutoresizingMaskIntoConstraints = false
+        subView.layer.borderWidth = 0.5
+        subView.layer.borderColor = UIColor.messageEventHeaderBorder.cgColor
+        subView.layer.shadowColor = UIColor.black.cgColor
+        subView.layer.shadowOpacity = 0.1
+        subView.layer.shadowOffset = CGSize(width: 0, height: 1)
+        subView.layer.shadowRadius = 0
+
+        view.insertSubview(subView, at: 0)
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.layer.borderWidth = 0.5
-        view.layer.borderColor = UIColor.messageEventHeaderBorder.cgColor
-        view.layer.shadowColor = UIColor.black.cgColor
-        view.layer.shadowOpacity = 0.1
-        view.layer.shadowOffset = CGSize(width: 0, height: 1)
-        view.layer.shadowRadius = 0
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onTapEvent)))
         return view
     }()

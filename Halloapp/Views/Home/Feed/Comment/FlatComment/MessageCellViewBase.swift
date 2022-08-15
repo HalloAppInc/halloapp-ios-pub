@@ -85,24 +85,15 @@ class MessageCellViewBase: UICollectionViewCell {
         return textView
     }()
 
-    // Adding this class to be able to set the shadowPath after the bubble
-    // view size is determined.
-    public class BubbleViewBase: UIView {
-        override func layoutSubviews() {
-            super.layoutSubviews()
-            layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: layer.cornerRadius).cgPath
-        }
-    }
-    
     public class ReactionViewBase: UIStackView {
         override public func layoutSubviews() {
             super.layoutSubviews()
             layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: layer.cornerRadius).cgPath
         }
     }
-    
-    public lazy var bubbleBorder: BubbleViewBase = {
-        let bubbleBorder = BubbleViewBase()
+
+    public lazy var bubbleBorder: ShadowView = {
+        let bubbleBorder = ShadowView()
         bubbleBorder.translatesAutoresizingMaskIntoConstraints = false
         bubbleBorder.backgroundColor = UIColor.black.withAlphaComponent(0.18)
         bubbleBorder.layer.cornerRadius = 14
@@ -113,8 +104,8 @@ class MessageCellViewBase: UICollectionViewCell {
         return bubbleBorder
     }()
     
-    public lazy var bubbleView: BubbleViewBase = {
-        let bubbleView = BubbleViewBase()
+    public lazy var bubbleView: ShadowView = {
+        let bubbleView = ShadowView()
         bubbleView.translatesAutoresizingMaskIntoConstraints = false
         bubbleView.layer.cornerRadius = 14
         bubbleBorder.addSubview(bubbleView)

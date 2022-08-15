@@ -30,7 +30,7 @@ class MessageHeaderView: UIView {
         view.isLayoutMarginsRelativeArrangement = true
         view.translatesAutoresizingMaskIntoConstraints = false
 
-        let subView = UIView(frame: view.bounds)
+        let subView = ShadowView(frame: view.bounds)
         subView.backgroundColor = UIColor.timeHeaderBackground
         subView.layer.cornerRadius = 10
         subView.layer.masksToBounds = false

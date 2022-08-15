@@ -373,6 +373,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     func updateCollectionViewData() {
         var messageRows: [MessageRow] = []
         var snapshot = ChatMessageSnapshot()
+        var lastMessageHeaderTime: String?
 
         // Add messages
         if let chatMessages = chatMessageFetchedResultsController?.fetchedObjects {
@@ -411,8 +412,10 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
         // Insert all messages into snapshot sorted by timestamp and grouped into sections by headerTime
         for messageRow in messageRows {
-            if !snapshot.sectionIdentifiers.contains(messageRow.headerTime) {
-                snapshot.appendSections([messageRow.headerTime])
+            let currentTime = messageRow.headerTime
+            if lastMessageHeaderTime != currentTime {
+                snapshot.appendSections([currentTime])
+                lastMessageHeaderTime = currentTime
             }
             snapshot.appendItems([messageRow], toSection: messageRow.headerTime)
         }
