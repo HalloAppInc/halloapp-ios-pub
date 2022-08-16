@@ -300,7 +300,6 @@ extension NewPostViewController: UINavigationControllerDelegate {}
 extension NewPostViewController: PostComposerViewDelegate {
     func composerDidTapShare(controller: PostComposerViewController,
                             destination: ShareDestination,
-                             feedAudience: FeedAudience,
                                isMoment: Bool = false,
                             mentionText: MentionText,
                                   media: [PendingMedia],
@@ -312,8 +311,7 @@ extension NewPostViewController: PostComposerViewDelegate {
                                            media: media,
                                  linkPreviewData: linkPreviewData,
                                 linkPreviewMedia: linkPreviewMedia,
-                                              to: destination,
-                                    feedAudience: feedAudience)
+                                              to: destination)
         cleanupAndFinish(didPost: true)
     }
 

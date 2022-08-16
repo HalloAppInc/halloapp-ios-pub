@@ -9,7 +9,7 @@ import UIKit
 
 protocol PostComposerViewDelegate: AnyObject {
     // TODO: maybe have the configuration encapsulate all the details and pass that in?
-    func composerDidTapShare(controller: PostComposerViewController, destination: ShareDestination, feedAudience: FeedAudience, isMoment: Bool, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?)
+    func composerDidTapShare(controller: PostComposerViewController, destination: ShareDestination, isMoment: Bool, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?)
     func composerDidTapBack(controller: PostComposerViewController, destination: ShareDestination, media: [PendingMedia], voiceNote: PendingMedia?)
     func willDismissWithInput(mentionInput: MentionInput)
     func composerDidTapLinkPreview(controller: PostComposerViewController, url: URL)
@@ -586,19 +586,11 @@ class PostComposerViewController: UIViewController {
             allMediaItems.append(voiceNote)
         }
 
-        var feedAudience: FeedAudience
-        if case .feed(let privacyListType) = configuration.destination {
-            feedAudience = try! MainAppContext.shared.privacySettings.feedAudience(for: privacyListType)
-        } else {
-            feedAudience = try! MainAppContext.shared.privacySettings.feedAudience(for: .all)
-        }
-
         // if no link preview or link preview not yet loaded, send without link preview.
         // if the link preview does not have an image... send immediately
         if link.value == "" || linkPreviewData.value == nil ||  linkPreviewImage.value == nil {
             delegate?.composerDidTapShare(controller: self,
                                          destination: configuration.destination,
-                                          feedAudience: feedAudience,
                                             isMoment: configuration.isMoment,
                                          mentionText: mentionText,
                                                media: allMediaItems,
@@ -606,18 +598,17 @@ class PostComposerViewController: UIViewController {
                                     linkPreviewMedia: nil)
         } else {
             // if link preview has an image, load the image before sending.
-            loadLinkPreviewImageAndShare(mentionText: mentionText, mediaItems: allMediaItems, feedAudience: feedAudience)
+            loadLinkPreviewImageAndShare(mentionText: mentionText, mediaItems: allMediaItems)
         }
     }
     
-    private func loadLinkPreviewImageAndShare(mentionText: MentionText, mediaItems: [PendingMedia], feedAudience: FeedAudience) {
+    private func loadLinkPreviewImageAndShare(mentionText: MentionText, mediaItems: [PendingMedia]) {
         // Send link preview with image in it
         let linkPreviewMedia = PendingMedia(type: .image)
         linkPreviewMedia.image = linkPreviewImage.value
         if linkPreviewMedia.ready.value {
             self.delegate?.composerDidTapShare(controller: self,
                                               destination: configuration.destination,
-                                               feedAudience: feedAudience,
                                                  isMoment: false,
                                               mentionText: mentionText,
                                                     media: mediaItems,
@@ -630,7 +621,6 @@ class PostComposerViewController: UIViewController {
                     guard ready else { return }
                     self.delegate?.composerDidTapShare(controller: self,
                                                       destination: self.configuration.destination,
-                                                       feedAudience: feedAudience,
                                                          isMoment: false,
                                                       mentionText: mentionText,
                                                             media: mediaItems,

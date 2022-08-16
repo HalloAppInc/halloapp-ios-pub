@@ -464,18 +464,12 @@ extension FeedData {
     }
 
     func postMoment(context: MomentContext, media: PendingMedia) {
-        guard let audience = try? MainAppContext.shared.privacySettings.feedAudience(for: .all) else {
-            DDLogError("FeedData/postMoment/unable to get feed audience")
-            return
-        }
-
         DDLogInfo("FeedData/postMoment/start")
         MainAppContext.shared.feedData.post(text: MentionText(collapsedText: "", mentionArray: []),
                                            media: [media],
                                  linkPreviewData: nil,
                                 linkPreviewMedia: nil,
                                             to: .feed(.all),
-                                    feedAudience: audience,
                                    momentContext: context)
     }
 }

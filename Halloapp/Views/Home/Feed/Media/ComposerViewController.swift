@@ -17,7 +17,6 @@ import UIKit
 
 struct ComposerResult {
     var config: ComposerConfig
-    var audience: FeedAudience?
 
     var input: MentionInput
     var voiceNote: PendingMedia?
@@ -742,21 +741,14 @@ class ComposerViewController: UIViewController {
             media.append(voiceNote)
         }
 
-        var feedAudience: FeedAudience
-        if case .feed(let privacyListType) = config.destination {
-            feedAudience = try! MainAppContext.shared.privacySettings.feedAudience(for: privacyListType)
-        } else {
-            feedAudience = try! MainAppContext.shared.privacySettings.feedAudience(for: .all)
-        }
-
         // if no link preview or link preview not yet loaded, send without link preview.
         // if the link preview does not have an image... send immediately
         if link == "" || linkPreviewData == nil ||  linkPreviewImage == nil {
-            let result = ComposerResult(config: config, audience: feedAudience, input: input, text: mentionText, media: media, linkPreviewData: linkPreviewData)
+            let result = ComposerResult(config: config, input: input, text: mentionText, media: media, linkPreviewData: linkPreviewData)
             completion(self, result, true)
         } else {
             // if link preview has an image, load the image before sending.
-            loadLinkPreviewImageAndShare(mentionText: mentionText, mediaItems: media, feedAudience: feedAudience)
+            loadLinkPreviewImageAndShare(mentionText: mentionText, mediaItems: media)
         }
     }
 
@@ -791,7 +783,7 @@ class ComposerViewController: UIViewController {
         }
     }
 
-    private func loadLinkPreviewImageAndShare(mentionText: MentionText, mediaItems: [PendingMedia], feedAudience: FeedAudience) {
+    private func loadLinkPreviewImageAndShare(mentionText: MentionText, mediaItems: [PendingMedia]) {
         // Send link preview with image in it
         let linkPreviewMedia = PendingMedia(type: .image)
         linkPreviewMedia.image = linkPreviewImage
@@ -799,7 +791,6 @@ class ComposerViewController: UIViewController {
         if linkPreviewMedia.ready.value {
             let result = ComposerResult(
                 config: config,
-                audience: feedAudience,
                 input: input,
                 text: mentionText,
                 media: media,
@@ -814,7 +805,6 @@ class ComposerViewController: UIViewController {
 
                 let result = ComposerResult(
                     config: self.config,
-                    audience: feedAudience,
                     input: self.input,
                     text: mentionText,
                     media: self.media,

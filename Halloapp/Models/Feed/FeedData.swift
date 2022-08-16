@@ -2968,7 +2968,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     
     let didSendGroupFeedPost = PassthroughSubject<FeedPost, Never>()
 
-    func post(text: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?, to destination: ShareDestination, feedAudience: FeedAudience, momentContext: MomentContext? = nil) {
+    func post(text: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?, to destination: ShareDestination, momentContext: MomentContext? = nil) {
         let managedObjectContext = viewContext
         let postId: FeedPostID = PacketID.generate()
 
@@ -3082,9 +3082,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         switch destination {
-        case .feed:
+        case .feed(let privacyListType):
+            guard let postAudience = try? MainAppContext.shared.privacySettings.feedAudience(for: privacyListType) else { return }
+
             let feedPostInfo = ContentPublishInfo(context: managedObjectContext)
-            let postAudience = feedAudience
             let receipts = postAudience.userIds.reduce(into: [UserID : Receipt]()) { (receipts, userId) in
                 receipts[userId] = Receipt()
             }
