@@ -1446,8 +1446,17 @@ public struct Server_Call {
   /// time taken for ice connection state to be connected in ms.
   public var iceTimeTakenMs: UInt64 = 0
 
-  /// json serialized version of the result of peer_connection.get_stats at the end of
   public var webrtcStats: String = String()
+
+  /// summary of the result of peer_connection.get_stats at the end of the call
+  public var webrtcSummary: Server_WebrtcSummary {
+    get {return _webrtcSummary ?? Server_WebrtcSummary()}
+    set {_webrtcSummary = newValue}
+  }
+  /// Returns true if `webrtcSummary` has been explicitly set.
+  public var hasWebrtcSummary: Bool {return self._webrtcSummary != nil}
+  /// Clears the value of `webrtcSummary`. Subsequent reads from it will return its default value.
+  public mutating func clearWebrtcSummary() {self._webrtcSummary = nil}
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -1545,6 +1554,8 @@ public struct Server_Call {
   }
 
   public init() {}
+
+  fileprivate var _webrtcSummary: Server_WebrtcSummary? = nil
 }
 
 #if swift(>=4.2)
@@ -1573,6 +1584,268 @@ extension Server_Call.NetworkType: CaseIterable {
     .unknownNetwork,
     .wifi,
     .cellular,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+public struct Server_WebrtcSummary {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  /// everything here refers to local incoming / outgoing - no remote streams are considered
+  public var audioStream: Server_StreamStats {
+    get {return _storage._audioStream ?? Server_StreamStats()}
+    set {_uniqueStorage()._audioStream = newValue}
+  }
+  /// Returns true if `audioStream` has been explicitly set.
+  public var hasAudioStream: Bool {return _storage._audioStream != nil}
+  /// Clears the value of `audioStream`. Subsequent reads from it will return its default value.
+  public mutating func clearAudioStream() {_uniqueStorage()._audioStream = nil}
+
+  public var videoStream: Server_StreamStats {
+    get {return _storage._videoStream ?? Server_StreamStats()}
+    set {_uniqueStorage()._videoStream = newValue}
+  }
+  /// Returns true if `videoStream` has been explicitly set.
+  public var hasVideoStream: Bool {return _storage._videoStream != nil}
+  /// Clears the value of `videoStream`. Subsequent reads from it will return its default value.
+  public mutating func clearVideoStream() {_uniqueStorage()._videoStream = nil}
+
+  public var audio: Server_AudioStats {
+    get {return _storage._audio ?? Server_AudioStats()}
+    set {_uniqueStorage()._audio = newValue}
+  }
+  /// Returns true if `audio` has been explicitly set.
+  public var hasAudio: Bool {return _storage._audio != nil}
+  /// Clears the value of `audio`. Subsequent reads from it will return its default value.
+  public mutating func clearAudio() {_uniqueStorage()._audio = nil}
+
+  public var video: Server_VideoStats {
+    get {return _storage._video ?? Server_VideoStats()}
+    set {_uniqueStorage()._video = newValue}
+  }
+  /// Returns true if `video` has been explicitly set.
+  public var hasVideo: Bool {return _storage._video != nil}
+  /// Clears the value of `video`. Subsequent reads from it will return its default value.
+  public mutating func clearVideo() {_uniqueStorage()._video = nil}
+
+  public var candidatePairs: [Server_CandidatePairStats] {
+    get {return _storage._candidatePairs}
+    set {_uniqueStorage()._candidatePairs = newValue}
+  }
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _storage = _StorageClass.defaultInstance
+}
+
+public struct Server_StreamStats {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  ///outgoing
+  public var packetsSent: UInt64 = 0
+
+  /// incoming
+  public var packetsLost: UInt64 = 0
+
+  public var packetsReceived: UInt64 = 0
+
+  public var bytesReceived: UInt64 = 0
+
+  ///jitter stats - incoming quality
+  public var jitter: Double = 0
+
+  public var jitterBufferDelay: Double = 0
+
+  public var jitterBufferEmittedCount: UInt64 = 0
+
+  public var jitterBufferMinimumDelay: Double = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Server_AudioStats {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  /// tracks quality of incoming audio
+  public var insertedSamplesForDeceleration: UInt64 = 0
+
+  public var removedSamplesForAcceleration: UInt64 = 0
+
+  public var packetsDiscarded: UInt64 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Server_VideoStats {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  /// tracks performance of incoming video
+  public var framesReceived: UInt64 = 0
+
+  public var framesDropped: UInt64 = 0
+
+  /// these track performance of our outgoing video
+  public var qualityLimitationDurationBandwidth: Double = 0
+
+  public var qualityLimitationDurationCpu: Double = 0
+
+  public var qualityLimitationDurationNone: Double = 0
+
+  public var qualityLimitationDurationOther: Double = 0
+
+  /// tracks compression in incoming video
+  public var averageQp: Double = 0
+
+  /// tracks how long in total encoding video took
+  public var totalProcessingDelay: Double = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Server_CandidatePairStats {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var local: Server_CandidatePairStats.CandidateType = .prflx
+
+  public var localIp: String = String()
+
+  public var remote: Server_CandidatePairStats.CandidateType = .prflx
+
+  public var remoteIp: String = String()
+
+  public var packetsSent: UInt64 = 0
+
+  public var packetsReceived: UInt64 = 0
+
+  public var bytesSent: UInt64 = 0
+
+  public var bytesReceived: UInt64 = 0
+
+  public var averageRoundTripTime: Double = 0
+
+  public var currentRoundTripTime: Double = 0
+
+  public var availableOutgoingBitrate: Double = 0
+
+  public var availableIncomingBitrate: Double = 0
+
+  public var state: Server_CandidatePairStats.CandidatePairState = .frozen
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum CandidateType: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case prflx // = 0
+    case srflx // = 1
+    case relay // = 2
+    case host // = 3
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .prflx
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .prflx
+      case 1: self = .srflx
+      case 2: self = .relay
+      case 3: self = .host
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .prflx: return 0
+      case .srflx: return 1
+      case .relay: return 2
+      case .host: return 3
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public enum CandidatePairState: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case frozen // = 0
+    case waiting // = 1
+    case inProgress // = 2
+    case failed // = 3
+    case succeeded // = 4
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .frozen
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .frozen
+      case 1: self = .waiting
+      case 2: self = .inProgress
+      case 3: self = .failed
+      case 4: self = .succeeded
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .frozen: return 0
+      case .waiting: return 1
+      case .inProgress: return 2
+      case .failed: return 3
+      case .succeeded: return 4
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Server_CandidatePairStats.CandidateType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_CandidatePairStats.CandidateType] = [
+    .prflx,
+    .srflx,
+    .relay,
+    .host,
+  ]
+}
+
+extension Server_CandidatePairStats.CandidatePairState: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_CandidatePairStats.CandidatePairState] = [
+    .frozen,
+    .waiting,
+    .inProgress,
+    .failed,
+    .succeeded,
   ]
 }
 
@@ -1681,6 +1954,13 @@ extension Server_Call: @unchecked Sendable {}
 extension Server_Call.CallType: @unchecked Sendable {}
 extension Server_Call.CallDirection: @unchecked Sendable {}
 extension Server_Call.NetworkType: @unchecked Sendable {}
+extension Server_WebrtcSummary: @unchecked Sendable {}
+extension Server_StreamStats: @unchecked Sendable {}
+extension Server_AudioStats: @unchecked Sendable {}
+extension Server_VideoStats: @unchecked Sendable {}
+extension Server_CandidatePairStats: @unchecked Sendable {}
+extension Server_CandidatePairStats.CandidateType: @unchecked Sendable {}
+extension Server_CandidatePairStats.CandidatePairState: @unchecked Sendable {}
 extension Server_FabAction: @unchecked Sendable {}
 extension Server_FabAction.FabActionType: @unchecked Sendable {}
 #endif  // swift(>=5.5) && canImport(_Concurrency)
@@ -2911,6 +3191,7 @@ extension Server_Call: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     12: .standard(proto: "is_krisp_active"),
     13: .standard(proto: "ice_time_taken_ms"),
     20: .standard(proto: "webrtc_stats"),
+    21: .standard(proto: "webrtc_summary"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2932,12 +3213,17 @@ extension Server_Call: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
       case 12: try { try decoder.decodeSingularBoolField(value: &self.isKrispActive) }()
       case 13: try { try decoder.decodeSingularUInt64Field(value: &self.iceTimeTakenMs) }()
       case 20: try { try decoder.decodeSingularStringField(value: &self.webrtcStats) }()
+      case 21: try { try decoder.decodeSingularMessageField(value: &self._webrtcSummary) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if !self.callID.isEmpty {
       try visitor.visitSingularStringField(value: self.callID, fieldNumber: 1)
     }
@@ -2977,6 +3263,9 @@ extension Server_Call: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     if !self.webrtcStats.isEmpty {
       try visitor.visitSingularStringField(value: self.webrtcStats, fieldNumber: 20)
     }
+    try { if let v = self._webrtcSummary {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 21)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -2994,6 +3283,7 @@ extension Server_Call: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     if lhs.isKrispActive != rhs.isKrispActive {return false}
     if lhs.iceTimeTakenMs != rhs.iceTimeTakenMs {return false}
     if lhs.webrtcStats != rhs.webrtcStats {return false}
+    if lhs._webrtcSummary != rhs._webrtcSummary {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -3020,6 +3310,421 @@ extension Server_Call.NetworkType: SwiftProtobuf._ProtoNameProviding {
     0: .same(proto: "UNKNOWN_NETWORK"),
     1: .same(proto: "WIFI"),
     2: .same(proto: "CELLULAR"),
+  ]
+}
+
+extension Server_WebrtcSummary: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".WebrtcSummary"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "audio_stream"),
+    2: .standard(proto: "video_stream"),
+    3: .same(proto: "audio"),
+    4: .same(proto: "video"),
+    5: .same(proto: "candidatePairs"),
+  ]
+
+  fileprivate class _StorageClass {
+    var _audioStream: Server_StreamStats? = nil
+    var _videoStream: Server_StreamStats? = nil
+    var _audio: Server_AudioStats? = nil
+    var _video: Server_VideoStats? = nil
+    var _candidatePairs: [Server_CandidatePairStats] = []
+
+    static let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _audioStream = source._audioStream
+      _videoStream = source._videoStream
+      _audio = source._audio
+      _video = source._video
+      _candidatePairs = source._candidatePairs
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularMessageField(value: &_storage._audioStream) }()
+        case 2: try { try decoder.decodeSingularMessageField(value: &_storage._videoStream) }()
+        case 3: try { try decoder.decodeSingularMessageField(value: &_storage._audio) }()
+        case 4: try { try decoder.decodeSingularMessageField(value: &_storage._video) }()
+        case 5: try { try decoder.decodeRepeatedMessageField(value: &_storage._candidatePairs) }()
+        default: break
+        }
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      try { if let v = _storage._audioStream {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+      } }()
+      try { if let v = _storage._videoStream {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+      } }()
+      try { if let v = _storage._audio {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+      } }()
+      try { if let v = _storage._video {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+      } }()
+      if !_storage._candidatePairs.isEmpty {
+        try visitor.visitRepeatedMessageField(value: _storage._candidatePairs, fieldNumber: 5)
+      }
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_WebrtcSummary, rhs: Server_WebrtcSummary) -> Bool {
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._audioStream != rhs_storage._audioStream {return false}
+        if _storage._videoStream != rhs_storage._videoStream {return false}
+        if _storage._audio != rhs_storage._audio {return false}
+        if _storage._video != rhs_storage._video {return false}
+        if _storage._candidatePairs != rhs_storage._candidatePairs {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_StreamStats: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".StreamStats"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "packetsSent"),
+    2: .same(proto: "packetsLost"),
+    3: .same(proto: "packetsReceived"),
+    4: .same(proto: "bytesReceived"),
+    5: .same(proto: "jitter"),
+    6: .same(proto: "jitterBufferDelay"),
+    7: .same(proto: "jitterBufferEmittedCount"),
+    8: .same(proto: "jitterBufferMinimumDelay"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt64Field(value: &self.packetsSent) }()
+      case 2: try { try decoder.decodeSingularUInt64Field(value: &self.packetsLost) }()
+      case 3: try { try decoder.decodeSingularUInt64Field(value: &self.packetsReceived) }()
+      case 4: try { try decoder.decodeSingularUInt64Field(value: &self.bytesReceived) }()
+      case 5: try { try decoder.decodeSingularDoubleField(value: &self.jitter) }()
+      case 6: try { try decoder.decodeSingularDoubleField(value: &self.jitterBufferDelay) }()
+      case 7: try { try decoder.decodeSingularUInt64Field(value: &self.jitterBufferEmittedCount) }()
+      case 8: try { try decoder.decodeSingularDoubleField(value: &self.jitterBufferMinimumDelay) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.packetsSent != 0 {
+      try visitor.visitSingularUInt64Field(value: self.packetsSent, fieldNumber: 1)
+    }
+    if self.packetsLost != 0 {
+      try visitor.visitSingularUInt64Field(value: self.packetsLost, fieldNumber: 2)
+    }
+    if self.packetsReceived != 0 {
+      try visitor.visitSingularUInt64Field(value: self.packetsReceived, fieldNumber: 3)
+    }
+    if self.bytesReceived != 0 {
+      try visitor.visitSingularUInt64Field(value: self.bytesReceived, fieldNumber: 4)
+    }
+    if self.jitter != 0 {
+      try visitor.visitSingularDoubleField(value: self.jitter, fieldNumber: 5)
+    }
+    if self.jitterBufferDelay != 0 {
+      try visitor.visitSingularDoubleField(value: self.jitterBufferDelay, fieldNumber: 6)
+    }
+    if self.jitterBufferEmittedCount != 0 {
+      try visitor.visitSingularUInt64Field(value: self.jitterBufferEmittedCount, fieldNumber: 7)
+    }
+    if self.jitterBufferMinimumDelay != 0 {
+      try visitor.visitSingularDoubleField(value: self.jitterBufferMinimumDelay, fieldNumber: 8)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_StreamStats, rhs: Server_StreamStats) -> Bool {
+    if lhs.packetsSent != rhs.packetsSent {return false}
+    if lhs.packetsLost != rhs.packetsLost {return false}
+    if lhs.packetsReceived != rhs.packetsReceived {return false}
+    if lhs.bytesReceived != rhs.bytesReceived {return false}
+    if lhs.jitter != rhs.jitter {return false}
+    if lhs.jitterBufferDelay != rhs.jitterBufferDelay {return false}
+    if lhs.jitterBufferEmittedCount != rhs.jitterBufferEmittedCount {return false}
+    if lhs.jitterBufferMinimumDelay != rhs.jitterBufferMinimumDelay {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_AudioStats: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".AudioStats"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "insertedSamplesForDeceleration"),
+    2: .same(proto: "removedSamplesForAcceleration"),
+    3: .same(proto: "packetsDiscarded"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt64Field(value: &self.insertedSamplesForDeceleration) }()
+      case 2: try { try decoder.decodeSingularUInt64Field(value: &self.removedSamplesForAcceleration) }()
+      case 3: try { try decoder.decodeSingularUInt64Field(value: &self.packetsDiscarded) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.insertedSamplesForDeceleration != 0 {
+      try visitor.visitSingularUInt64Field(value: self.insertedSamplesForDeceleration, fieldNumber: 1)
+    }
+    if self.removedSamplesForAcceleration != 0 {
+      try visitor.visitSingularUInt64Field(value: self.removedSamplesForAcceleration, fieldNumber: 2)
+    }
+    if self.packetsDiscarded != 0 {
+      try visitor.visitSingularUInt64Field(value: self.packetsDiscarded, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_AudioStats, rhs: Server_AudioStats) -> Bool {
+    if lhs.insertedSamplesForDeceleration != rhs.insertedSamplesForDeceleration {return false}
+    if lhs.removedSamplesForAcceleration != rhs.removedSamplesForAcceleration {return false}
+    if lhs.packetsDiscarded != rhs.packetsDiscarded {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_VideoStats: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".VideoStats"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "framesReceived"),
+    2: .same(proto: "framesDropped"),
+    3: .standard(proto: "qualityLimitationDuration_bandwidth"),
+    4: .standard(proto: "qualityLimitationDuration_cpu"),
+    5: .standard(proto: "qualityLimitationDuration_none"),
+    6: .standard(proto: "qualityLimitationDuration_other"),
+    7: .same(proto: "averageQp"),
+    8: .same(proto: "totalProcessingDelay"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt64Field(value: &self.framesReceived) }()
+      case 2: try { try decoder.decodeSingularUInt64Field(value: &self.framesDropped) }()
+      case 3: try { try decoder.decodeSingularDoubleField(value: &self.qualityLimitationDurationBandwidth) }()
+      case 4: try { try decoder.decodeSingularDoubleField(value: &self.qualityLimitationDurationCpu) }()
+      case 5: try { try decoder.decodeSingularDoubleField(value: &self.qualityLimitationDurationNone) }()
+      case 6: try { try decoder.decodeSingularDoubleField(value: &self.qualityLimitationDurationOther) }()
+      case 7: try { try decoder.decodeSingularDoubleField(value: &self.averageQp) }()
+      case 8: try { try decoder.decodeSingularDoubleField(value: &self.totalProcessingDelay) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.framesReceived != 0 {
+      try visitor.visitSingularUInt64Field(value: self.framesReceived, fieldNumber: 1)
+    }
+    if self.framesDropped != 0 {
+      try visitor.visitSingularUInt64Field(value: self.framesDropped, fieldNumber: 2)
+    }
+    if self.qualityLimitationDurationBandwidth != 0 {
+      try visitor.visitSingularDoubleField(value: self.qualityLimitationDurationBandwidth, fieldNumber: 3)
+    }
+    if self.qualityLimitationDurationCpu != 0 {
+      try visitor.visitSingularDoubleField(value: self.qualityLimitationDurationCpu, fieldNumber: 4)
+    }
+    if self.qualityLimitationDurationNone != 0 {
+      try visitor.visitSingularDoubleField(value: self.qualityLimitationDurationNone, fieldNumber: 5)
+    }
+    if self.qualityLimitationDurationOther != 0 {
+      try visitor.visitSingularDoubleField(value: self.qualityLimitationDurationOther, fieldNumber: 6)
+    }
+    if self.averageQp != 0 {
+      try visitor.visitSingularDoubleField(value: self.averageQp, fieldNumber: 7)
+    }
+    if self.totalProcessingDelay != 0 {
+      try visitor.visitSingularDoubleField(value: self.totalProcessingDelay, fieldNumber: 8)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_VideoStats, rhs: Server_VideoStats) -> Bool {
+    if lhs.framesReceived != rhs.framesReceived {return false}
+    if lhs.framesDropped != rhs.framesDropped {return false}
+    if lhs.qualityLimitationDurationBandwidth != rhs.qualityLimitationDurationBandwidth {return false}
+    if lhs.qualityLimitationDurationCpu != rhs.qualityLimitationDurationCpu {return false}
+    if lhs.qualityLimitationDurationNone != rhs.qualityLimitationDurationNone {return false}
+    if lhs.qualityLimitationDurationOther != rhs.qualityLimitationDurationOther {return false}
+    if lhs.averageQp != rhs.averageQp {return false}
+    if lhs.totalProcessingDelay != rhs.totalProcessingDelay {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_CandidatePairStats: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".CandidatePairStats"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "local"),
+    2: .same(proto: "localIP"),
+    3: .same(proto: "remote"),
+    4: .same(proto: "remoteIP"),
+    5: .same(proto: "packetsSent"),
+    6: .same(proto: "packetsReceived"),
+    7: .same(proto: "bytesSent"),
+    8: .same(proto: "bytesReceived"),
+    9: .same(proto: "averageRoundTripTime"),
+    10: .same(proto: "currentRoundTripTime"),
+    11: .same(proto: "availableOutgoingBitrate"),
+    12: .same(proto: "availableIncomingBitrate"),
+    13: .same(proto: "state"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.local) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.localIp) }()
+      case 3: try { try decoder.decodeSingularEnumField(value: &self.remote) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.remoteIp) }()
+      case 5: try { try decoder.decodeSingularUInt64Field(value: &self.packetsSent) }()
+      case 6: try { try decoder.decodeSingularUInt64Field(value: &self.packetsReceived) }()
+      case 7: try { try decoder.decodeSingularUInt64Field(value: &self.bytesSent) }()
+      case 8: try { try decoder.decodeSingularUInt64Field(value: &self.bytesReceived) }()
+      case 9: try { try decoder.decodeSingularDoubleField(value: &self.averageRoundTripTime) }()
+      case 10: try { try decoder.decodeSingularDoubleField(value: &self.currentRoundTripTime) }()
+      case 11: try { try decoder.decodeSingularDoubleField(value: &self.availableOutgoingBitrate) }()
+      case 12: try { try decoder.decodeSingularDoubleField(value: &self.availableIncomingBitrate) }()
+      case 13: try { try decoder.decodeSingularEnumField(value: &self.state) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.local != .prflx {
+      try visitor.visitSingularEnumField(value: self.local, fieldNumber: 1)
+    }
+    if !self.localIp.isEmpty {
+      try visitor.visitSingularStringField(value: self.localIp, fieldNumber: 2)
+    }
+    if self.remote != .prflx {
+      try visitor.visitSingularEnumField(value: self.remote, fieldNumber: 3)
+    }
+    if !self.remoteIp.isEmpty {
+      try visitor.visitSingularStringField(value: self.remoteIp, fieldNumber: 4)
+    }
+    if self.packetsSent != 0 {
+      try visitor.visitSingularUInt64Field(value: self.packetsSent, fieldNumber: 5)
+    }
+    if self.packetsReceived != 0 {
+      try visitor.visitSingularUInt64Field(value: self.packetsReceived, fieldNumber: 6)
+    }
+    if self.bytesSent != 0 {
+      try visitor.visitSingularUInt64Field(value: self.bytesSent, fieldNumber: 7)
+    }
+    if self.bytesReceived != 0 {
+      try visitor.visitSingularUInt64Field(value: self.bytesReceived, fieldNumber: 8)
+    }
+    if self.averageRoundTripTime != 0 {
+      try visitor.visitSingularDoubleField(value: self.averageRoundTripTime, fieldNumber: 9)
+    }
+    if self.currentRoundTripTime != 0 {
+      try visitor.visitSingularDoubleField(value: self.currentRoundTripTime, fieldNumber: 10)
+    }
+    if self.availableOutgoingBitrate != 0 {
+      try visitor.visitSingularDoubleField(value: self.availableOutgoingBitrate, fieldNumber: 11)
+    }
+    if self.availableIncomingBitrate != 0 {
+      try visitor.visitSingularDoubleField(value: self.availableIncomingBitrate, fieldNumber: 12)
+    }
+    if self.state != .frozen {
+      try visitor.visitSingularEnumField(value: self.state, fieldNumber: 13)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_CandidatePairStats, rhs: Server_CandidatePairStats) -> Bool {
+    if lhs.local != rhs.local {return false}
+    if lhs.localIp != rhs.localIp {return false}
+    if lhs.remote != rhs.remote {return false}
+    if lhs.remoteIp != rhs.remoteIp {return false}
+    if lhs.packetsSent != rhs.packetsSent {return false}
+    if lhs.packetsReceived != rhs.packetsReceived {return false}
+    if lhs.bytesSent != rhs.bytesSent {return false}
+    if lhs.bytesReceived != rhs.bytesReceived {return false}
+    if lhs.averageRoundTripTime != rhs.averageRoundTripTime {return false}
+    if lhs.currentRoundTripTime != rhs.currentRoundTripTime {return false}
+    if lhs.availableOutgoingBitrate != rhs.availableOutgoingBitrate {return false}
+    if lhs.availableIncomingBitrate != rhs.availableIncomingBitrate {return false}
+    if lhs.state != rhs.state {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_CandidatePairStats.CandidateType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "PRFLX"),
+    1: .same(proto: "SRFLX"),
+    2: .same(proto: "RELAY"),
+    3: .same(proto: "HOST"),
+  ]
+}
+
+extension Server_CandidatePairStats.CandidatePairState: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "FROZEN"),
+    1: .same(proto: "WAITING"),
+    2: .same(proto: "IN_PROGRESS"),
+    3: .same(proto: "FAILED"),
+    4: .same(proto: "SUCCEEDED"),
   ]
 }
 

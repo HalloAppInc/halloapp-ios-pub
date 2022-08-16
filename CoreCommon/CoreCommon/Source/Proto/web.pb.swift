@@ -20,6 +20,42 @@ fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAP
   typealias Version = _2
 }
 
+public enum Web_FeedType: SwiftProtobuf.Enum {
+  public typealias RawValue = Int
+  case home // = 0
+  case UNRECOGNIZED(Int)
+
+  public init() {
+    self = .home
+  }
+
+  public init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .home
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  public var rawValue: Int {
+    switch self {
+    case .home: return 0
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+}
+
+#if swift(>=4.2)
+
+extension Web_FeedType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Web_FeedType] = [
+    .home,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 public struct Web_WebContainer {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -27,18 +63,27 @@ public struct Web_WebContainer {
 
   public var payload: Web_WebContainer.OneOf_Payload? = nil
 
-  public var noiseMessage: Web_NoiseMessage {
+  public var feedRequest: Web_FeedRequest {
     get {
-      if case .noiseMessage(let v)? = payload {return v}
-      return Web_NoiseMessage()
+      if case .feedRequest(let v)? = payload {return v}
+      return Web_FeedRequest()
     }
-    set {payload = .noiseMessage(newValue)}
+    set {payload = .feedRequest(newValue)}
+  }
+
+  public var feedResponse: Web_FeedResponse {
+    get {
+      if case .feedResponse(let v)? = payload {return v}
+      return Web_FeedResponse()
+    }
+    set {payload = .feedResponse(newValue)}
   }
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Payload: Equatable {
-    case noiseMessage(Web_NoiseMessage)
+    case feedRequest(Web_FeedRequest)
+    case feedResponse(Web_FeedResponse)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Web_WebContainer.OneOf_Payload, rhs: Web_WebContainer.OneOf_Payload) -> Bool {
@@ -46,10 +91,15 @@ public struct Web_WebContainer {
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch (lhs, rhs) {
-      case (.noiseMessage, .noiseMessage): return {
-        guard case .noiseMessage(let l) = lhs, case .noiseMessage(let r) = rhs else { preconditionFailure() }
+      case (.feedRequest, .feedRequest): return {
+        guard case .feedRequest(let l) = lhs, case .feedRequest(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
+      case (.feedResponse, .feedResponse): return {
+        guard case .feedResponse(let l) = lhs, case .feedResponse(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      default: return false
       }
     }
   #endif
@@ -58,45 +108,44 @@ public struct Web_WebContainer {
   public init() {}
 }
 
-public struct Web_NoiseMessage {
+public struct Web_ReceiptInfo {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var messageType: Web_NoiseMessage.MessageType = .ikA
+  public var uid: Int64 = 0
 
-  public var content: Data = Data()
+  public var status: Web_ReceiptInfo.Status = .delivered
+
+  public var timestamp: Int64 = 0
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  public enum MessageType: SwiftProtobuf.Enum {
+  public enum Status: SwiftProtobuf.Enum {
     public typealias RawValue = Int
-    case ikA // = 0
-    case ikB // = 1
-    case kkA // = 2
-    case kkB // = 3
+    case delivered // = 0
+    case seen // = 1
+    case played // = 2
     case UNRECOGNIZED(Int)
 
     public init() {
-      self = .ikA
+      self = .delivered
     }
 
     public init?(rawValue: Int) {
       switch rawValue {
-      case 0: self = .ikA
-      case 1: self = .ikB
-      case 2: self = .kkA
-      case 3: self = .kkB
+      case 0: self = .delivered
+      case 1: self = .seen
+      case 2: self = .played
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
 
     public var rawValue: Int {
       switch self {
-      case .ikA: return 0
-      case .ikB: return 1
-      case .kkA: return 2
-      case .kkB: return 3
+      case .delivered: return 0
+      case .seen: return 1
+      case .played: return 2
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -108,33 +157,347 @@ public struct Web_NoiseMessage {
 
 #if swift(>=4.2)
 
-extension Web_NoiseMessage.MessageType: CaseIterable {
+extension Web_ReceiptInfo.Status: CaseIterable {
   // The compiler won't synthesize support with the UNRECOGNIZED case.
-  public static var allCases: [Web_NoiseMessage.MessageType] = [
-    .ikA,
-    .ikB,
-    .kkA,
-    .kkB,
+  public static var allCases: [Web_ReceiptInfo.Status] = [
+    .delivered,
+    .seen,
+    .played,
   ]
 }
 
 #endif  // swift(>=4.2)
 
+public struct Web_UserDisplayInfo {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var uid: Int64 = 0
+
+  public var contactName: String = String()
+
+  public var avatarID: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Web_PostDisplayInfo {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var id: String = String()
+
+  public var transferState: Web_PostDisplayInfo.TransferState = .unknown
+
+  public var seenState: Web_PostDisplayInfo.SeenState = .unseen
+
+  public var retractState: Web_PostDisplayInfo.RetractState = .unretracted
+
+  public var isUnsupported: Bool = false
+
+  public var unreadComments: Int32 = 0
+
+  public var userReceipts: [Web_ReceiptInfo] = []
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum SeenState: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unseen // = 0
+    case seen // = 1
+    case seenSending // = 2
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unseen
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unseen
+      case 1: self = .seen
+      case 2: self = .seenSending
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unseen: return 0
+      case .seen: return 1
+      case .seenSending: return 2
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public enum TransferState: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknown // = 0
+    case received // = 1
+    case sent // = 2
+    case sending // = 3
+    case sendError // = 4
+    case decryptionError // = 5
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknown
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknown
+      case 1: self = .received
+      case 2: self = .sent
+      case 3: self = .sending
+      case 4: self = .sendError
+      case 5: self = .decryptionError
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknown: return 0
+      case .received: return 1
+      case .sent: return 2
+      case .sending: return 3
+      case .sendError: return 4
+      case .decryptionError: return 5
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public enum RetractState: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unretracted // = 0
+    case retracting // = 1
+    case retracted // = 2
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unretracted
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unretracted
+      case 1: self = .retracting
+      case 2: self = .retracted
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unretracted: return 0
+      case .retracting: return 1
+      case .retracted: return 2
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Web_PostDisplayInfo.SeenState: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Web_PostDisplayInfo.SeenState] = [
+    .unseen,
+    .seen,
+    .seenSending,
+  ]
+}
+
+extension Web_PostDisplayInfo.TransferState: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Web_PostDisplayInfo.TransferState] = [
+    .unknown,
+    .received,
+    .sent,
+    .sending,
+    .sendError,
+    .decryptionError,
+  ]
+}
+
+extension Web_PostDisplayInfo.RetractState: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Web_PostDisplayInfo.RetractState] = [
+    .unretracted,
+    .retracting,
+    .retracted,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+public struct Web_FeedRequest {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var id: String = String()
+
+  public var type: Web_FeedType = .home
+
+  /// opaque to web client
+  public var cursor: String = String()
+
+  public var limit: Int32 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Web_FeedResponse {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var id: String = String()
+
+  public var type: Web_FeedType = .home
+
+  public var items: [Web_FeedItem] = []
+
+  public var userDisplayInfo: [Web_UserDisplayInfo] = []
+
+  public var postDisplayInfo: [Web_PostDisplayInfo] = []
+
+  public var nextCursor: String = String()
+
+  public var error: Web_FeedResponse.Error = .none
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum Error: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case none // = 0
+    case invalidCursor // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .none
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .none
+      case 1: self = .invalidCursor
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .none: return 0
+      case .invalidCursor: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Web_FeedResponse.Error: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Web_FeedResponse.Error] = [
+    .none,
+    .invalidCursor,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+public struct Web_FeedItem {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var content: Web_FeedItem.OneOf_Content? = nil
+
+  public var post: Server_Post {
+    get {
+      if case .post(let v)? = content {return v}
+      return Server_Post()
+    }
+    set {content = .post(newValue)}
+  }
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum OneOf_Content: Equatable {
+    case post(Server_Post)
+
+  #if !swift(>=4.1)
+    public static func ==(lhs: Web_FeedItem.OneOf_Content, rhs: Web_FeedItem.OneOf_Content) -> Bool {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch (lhs, rhs) {
+      case (.post, .post): return {
+        guard case .post(let l) = lhs, case .post(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      }
+    }
+  #endif
+  }
+
+  public init() {}
+}
+
 #if swift(>=5.5) && canImport(_Concurrency)
+extension Web_FeedType: @unchecked Sendable {}
 extension Web_WebContainer: @unchecked Sendable {}
 extension Web_WebContainer.OneOf_Payload: @unchecked Sendable {}
-extension Web_NoiseMessage: @unchecked Sendable {}
-extension Web_NoiseMessage.MessageType: @unchecked Sendable {}
+extension Web_ReceiptInfo: @unchecked Sendable {}
+extension Web_ReceiptInfo.Status: @unchecked Sendable {}
+extension Web_UserDisplayInfo: @unchecked Sendable {}
+extension Web_PostDisplayInfo: @unchecked Sendable {}
+extension Web_PostDisplayInfo.SeenState: @unchecked Sendable {}
+extension Web_PostDisplayInfo.TransferState: @unchecked Sendable {}
+extension Web_PostDisplayInfo.RetractState: @unchecked Sendable {}
+extension Web_FeedRequest: @unchecked Sendable {}
+extension Web_FeedResponse: @unchecked Sendable {}
+extension Web_FeedResponse.Error: @unchecked Sendable {}
+extension Web_FeedItem: @unchecked Sendable {}
+extension Web_FeedItem.OneOf_Content: @unchecked Sendable {}
 #endif  // swift(>=5.5) && canImport(_Concurrency)
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
 fileprivate let _protobuf_package = "web"
 
+extension Web_FeedType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "HOME"),
+  ]
+}
+
 extension Web_WebContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".WebContainer"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "noise_message"),
+    1: .standard(proto: "feed_request"),
+    2: .standard(proto: "feed_response"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -144,16 +507,29 @@ extension Web_WebContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try {
-        var v: Web_NoiseMessage?
+        var v: Web_FeedRequest?
         var hadOneofValue = false
         if let current = self.payload {
           hadOneofValue = true
-          if case .noiseMessage(let m) = current {v = m}
+          if case .feedRequest(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .noiseMessage(v)
+          self.payload = .feedRequest(v)
+        }
+      }()
+      case 2: try {
+        var v: Web_FeedResponse?
+        var hadOneofValue = false
+        if let current = self.payload {
+          hadOneofValue = true
+          if case .feedResponse(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.payload = .feedResponse(v)
         }
       }()
       default: break
@@ -166,9 +542,17 @@ extension Web_WebContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     // allocates stack space for every if/case branch local when no optimizations
     // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
     // https://github.com/apple/swift-protobuf/issues/1182
-    try { if case .noiseMessage(let v)? = self.payload {
+    switch self.payload {
+    case .feedRequest?: try {
+      guard case .feedRequest(let v)? = self.payload else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    } }()
+    }()
+    case .feedResponse?: try {
+      guard case .feedResponse(let v)? = self.payload else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    }()
+    case nil: break
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -179,11 +563,12 @@ extension Web_WebContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
   }
 }
 
-extension Web_NoiseMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".NoiseMessage"
+extension Web_ReceiptInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ReceiptInfo"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "message_type"),
-    2: .same(proto: "content"),
+    1: .same(proto: "uid"),
+    2: .same(proto: "status"),
+    3: .same(proto: "timestamp"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -192,36 +577,352 @@ extension Web_NoiseMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularEnumField(value: &self.messageType) }()
-      case 2: try { try decoder.decodeSingularBytesField(value: &self.content) }()
+      case 1: try { try decoder.decodeSingularInt64Field(value: &self.uid) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.status) }()
+      case 3: try { try decoder.decodeSingularInt64Field(value: &self.timestamp) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if self.messageType != .ikA {
-      try visitor.visitSingularEnumField(value: self.messageType, fieldNumber: 1)
+    if self.uid != 0 {
+      try visitor.visitSingularInt64Field(value: self.uid, fieldNumber: 1)
     }
-    if !self.content.isEmpty {
-      try visitor.visitSingularBytesField(value: self.content, fieldNumber: 2)
+    if self.status != .delivered {
+      try visitor.visitSingularEnumField(value: self.status, fieldNumber: 2)
+    }
+    if self.timestamp != 0 {
+      try visitor.visitSingularInt64Field(value: self.timestamp, fieldNumber: 3)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Web_NoiseMessage, rhs: Web_NoiseMessage) -> Bool {
-    if lhs.messageType != rhs.messageType {return false}
-    if lhs.content != rhs.content {return false}
+  public static func ==(lhs: Web_ReceiptInfo, rhs: Web_ReceiptInfo) -> Bool {
+    if lhs.uid != rhs.uid {return false}
+    if lhs.status != rhs.status {return false}
+    if lhs.timestamp != rhs.timestamp {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
 }
 
-extension Web_NoiseMessage.MessageType: SwiftProtobuf._ProtoNameProviding {
+extension Web_ReceiptInfo.Status: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "IK_A"),
-    1: .same(proto: "IK_B"),
-    2: .same(proto: "KK_A"),
-    3: .same(proto: "KK_B"),
+    0: .same(proto: "DELIVERED"),
+    1: .same(proto: "SEEN"),
+    2: .same(proto: "PLAYED"),
   ]
+}
+
+extension Web_UserDisplayInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".UserDisplayInfo"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "uid"),
+    2: .standard(proto: "contact_name"),
+    3: .standard(proto: "avatar_id"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularInt64Field(value: &self.uid) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.contactName) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.avatarID) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.uid != 0 {
+      try visitor.visitSingularInt64Field(value: self.uid, fieldNumber: 1)
+    }
+    if !self.contactName.isEmpty {
+      try visitor.visitSingularStringField(value: self.contactName, fieldNumber: 2)
+    }
+    if !self.avatarID.isEmpty {
+      try visitor.visitSingularStringField(value: self.avatarID, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Web_UserDisplayInfo, rhs: Web_UserDisplayInfo) -> Bool {
+    if lhs.uid != rhs.uid {return false}
+    if lhs.contactName != rhs.contactName {return false}
+    if lhs.avatarID != rhs.avatarID {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Web_PostDisplayInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".PostDisplayInfo"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "id"),
+    2: .same(proto: "transferState"),
+    3: .same(proto: "seenState"),
+    4: .same(proto: "retractState"),
+    5: .standard(proto: "is_unsupported"),
+    6: .standard(proto: "unread_comments"),
+    7: .standard(proto: "user_receipts"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.transferState) }()
+      case 3: try { try decoder.decodeSingularEnumField(value: &self.seenState) }()
+      case 4: try { try decoder.decodeSingularEnumField(value: &self.retractState) }()
+      case 5: try { try decoder.decodeSingularBoolField(value: &self.isUnsupported) }()
+      case 6: try { try decoder.decodeSingularInt32Field(value: &self.unreadComments) }()
+      case 7: try { try decoder.decodeRepeatedMessageField(value: &self.userReceipts) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.id.isEmpty {
+      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
+    }
+    if self.transferState != .unknown {
+      try visitor.visitSingularEnumField(value: self.transferState, fieldNumber: 2)
+    }
+    if self.seenState != .unseen {
+      try visitor.visitSingularEnumField(value: self.seenState, fieldNumber: 3)
+    }
+    if self.retractState != .unretracted {
+      try visitor.visitSingularEnumField(value: self.retractState, fieldNumber: 4)
+    }
+    if self.isUnsupported != false {
+      try visitor.visitSingularBoolField(value: self.isUnsupported, fieldNumber: 5)
+    }
+    if self.unreadComments != 0 {
+      try visitor.visitSingularInt32Field(value: self.unreadComments, fieldNumber: 6)
+    }
+    if !self.userReceipts.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.userReceipts, fieldNumber: 7)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Web_PostDisplayInfo, rhs: Web_PostDisplayInfo) -> Bool {
+    if lhs.id != rhs.id {return false}
+    if lhs.transferState != rhs.transferState {return false}
+    if lhs.seenState != rhs.seenState {return false}
+    if lhs.retractState != rhs.retractState {return false}
+    if lhs.isUnsupported != rhs.isUnsupported {return false}
+    if lhs.unreadComments != rhs.unreadComments {return false}
+    if lhs.userReceipts != rhs.userReceipts {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Web_PostDisplayInfo.SeenState: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNSEEN"),
+    1: .same(proto: "SEEN"),
+    2: .same(proto: "SEEN_SENDING"),
+  ]
+}
+
+extension Web_PostDisplayInfo.TransferState: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN"),
+    1: .same(proto: "RECEIVED"),
+    2: .same(proto: "SENT"),
+    3: .same(proto: "SENDING"),
+    4: .same(proto: "SEND_ERROR"),
+    5: .same(proto: "DECRYPTION_ERROR"),
+  ]
+}
+
+extension Web_PostDisplayInfo.RetractState: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNRETRACTED"),
+    1: .same(proto: "RETRACTING"),
+    2: .same(proto: "RETRACTED"),
+  ]
+}
+
+extension Web_FeedRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".FeedRequest"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "id"),
+    2: .same(proto: "type"),
+    3: .same(proto: "cursor"),
+    4: .same(proto: "limit"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.type) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.cursor) }()
+      case 4: try { try decoder.decodeSingularInt32Field(value: &self.limit) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.id.isEmpty {
+      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
+    }
+    if self.type != .home {
+      try visitor.visitSingularEnumField(value: self.type, fieldNumber: 2)
+    }
+    if !self.cursor.isEmpty {
+      try visitor.visitSingularStringField(value: self.cursor, fieldNumber: 3)
+    }
+    if self.limit != 0 {
+      try visitor.visitSingularInt32Field(value: self.limit, fieldNumber: 4)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Web_FeedRequest, rhs: Web_FeedRequest) -> Bool {
+    if lhs.id != rhs.id {return false}
+    if lhs.type != rhs.type {return false}
+    if lhs.cursor != rhs.cursor {return false}
+    if lhs.limit != rhs.limit {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Web_FeedResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".FeedResponse"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "id"),
+    2: .same(proto: "type"),
+    3: .same(proto: "items"),
+    4: .standard(proto: "user_display_info"),
+    5: .standard(proto: "post_display_info"),
+    6: .standard(proto: "next_cursor"),
+    7: .same(proto: "error"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.type) }()
+      case 3: try { try decoder.decodeRepeatedMessageField(value: &self.items) }()
+      case 4: try { try decoder.decodeRepeatedMessageField(value: &self.userDisplayInfo) }()
+      case 5: try { try decoder.decodeRepeatedMessageField(value: &self.postDisplayInfo) }()
+      case 6: try { try decoder.decodeSingularStringField(value: &self.nextCursor) }()
+      case 7: try { try decoder.decodeSingularEnumField(value: &self.error) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.id.isEmpty {
+      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
+    }
+    if self.type != .home {
+      try visitor.visitSingularEnumField(value: self.type, fieldNumber: 2)
+    }
+    if !self.items.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.items, fieldNumber: 3)
+    }
+    if !self.userDisplayInfo.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.userDisplayInfo, fieldNumber: 4)
+    }
+    if !self.postDisplayInfo.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.postDisplayInfo, fieldNumber: 5)
+    }
+    if !self.nextCursor.isEmpty {
+      try visitor.visitSingularStringField(value: self.nextCursor, fieldNumber: 6)
+    }
+    if self.error != .none {
+      try visitor.visitSingularEnumField(value: self.error, fieldNumber: 7)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Web_FeedResponse, rhs: Web_FeedResponse) -> Bool {
+    if lhs.id != rhs.id {return false}
+    if lhs.type != rhs.type {return false}
+    if lhs.items != rhs.items {return false}
+    if lhs.userDisplayInfo != rhs.userDisplayInfo {return false}
+    if lhs.postDisplayInfo != rhs.postDisplayInfo {return false}
+    if lhs.nextCursor != rhs.nextCursor {return false}
+    if lhs.error != rhs.error {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Web_FeedResponse.Error: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "NONE"),
+    1: .same(proto: "INVALID_CURSOR"),
+  ]
+}
+
+extension Web_FeedItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".FeedItem"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "post"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try {
+        var v: Server_Post?
+        var hadOneofValue = false
+        if let current = self.content {
+          hadOneofValue = true
+          if case .post(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.content = .post(v)
+        }
+      }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if case .post(let v)? = self.content {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Web_FeedItem, rhs: Web_FeedItem) -> Bool {
+    if lhs.content != rhs.content {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
 }

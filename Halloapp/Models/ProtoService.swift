@@ -1353,9 +1353,14 @@ final class ProtoService: ProtoServiceCore {
                 DDLogError("proto/didReceive/\(msg.id)/webStanza/error [no-web-client-manager]")
                 return
             }
-            webClientManager.handleIncomingData(webStanza.content, from: webStanza.staticKey)
-        case .savedReceipt(_):
-            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
+            switch webStanza.payload {
+            case .content(let data):
+                webClientManager.handleIncomingData(data, from: webStanza.staticKey)
+            case .noiseMessage(let noiseMessage):
+                webClientManager.handleIncomingNoiseMessage(noiseMessage, from: webStanza.staticKey)
+            case .none:
+                DDLogError("proto/didReceive/\(msg.id)/webStanza/error [invalid-payload]")
+            }
         }
     }
 

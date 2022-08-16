@@ -142,6 +142,26 @@ public class AvatarStore: ServiceAvatarDelegate {
             return nil
         }
     }
+
+    public func avatarIDs(forUserIDs userIDs: Set<UserID>) -> [UserID: String] {
+        var output = [UserID: String]()
+        performOnBackgroundContextAndWait { context in
+            let fetchRequest: NSFetchRequest<Avatar> = Avatar.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "userId in %@", userIDs)
+
+            do {
+                let results = try context.fetch(fetchRequest)
+                output = results.reduce(into: [:], { output, avatar in
+                    if let storedAvatarID = avatar.avatarId, !storedAvatarID.isEmpty {
+                        output[avatar.userId] = storedAvatarID
+                    }
+                })
+            } catch  {
+                DDLogError("AvatarStore/fetch/error [\(error)]")
+            }
+        }
+        return output
+    }
     
     public func userAvatar(forUserId userId: UserID) -> UserAvatar {
         if let userAvatar = userAvatars.object(forKey: userId as NSString) {

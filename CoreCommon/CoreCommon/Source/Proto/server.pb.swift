@@ -288,6 +288,10 @@ public struct Server_Contact {
 
   public var numPotentialFriends: Int64 = 0
 
+  public var numPotentialCloseFriends: Int64 = 0
+
+  public var invitationRank: Int64 = 0
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum Action: SwiftProtobuf.Enum {
@@ -3447,9 +3451,52 @@ public struct Server_WebStanza {
   public var staticKey: Data = Data()
 
   /// between mobile and web client.
-  public var content: Data = Data()
+  public var payload: Server_WebStanza.OneOf_Payload? = nil
+
+  /// Noise encrypted content
+  public var content: Data {
+    get {
+      if case .content(let v)? = payload {return v}
+      return Data()
+    }
+    set {payload = .content(newValue)}
+  }
+
+  public var noiseMessage: Server_NoiseMessage {
+    get {
+      if case .noiseMessage(let v)? = payload {return v}
+      return Server_NoiseMessage()
+    }
+    set {payload = .noiseMessage(newValue)}
+  }
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  /// between mobile and web client.
+  public enum OneOf_Payload: Equatable {
+    /// Noise encrypted content
+    case content(Data)
+    case noiseMessage(Server_NoiseMessage)
+
+  #if !swift(>=4.1)
+    public static func ==(lhs: Server_WebStanza.OneOf_Payload, rhs: Server_WebStanza.OneOf_Payload) -> Bool {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch (lhs, rhs) {
+      case (.content, .content): return {
+        guard case .content(let l) = lhs, case .content(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.noiseMessage, .noiseMessage): return {
+        guard case .noiseMessage(let l) = lhs, case .noiseMessage(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      default: return false
+      }
+    }
+  #endif
+  }
 
   public init() {}
 }
@@ -7204,10 +7251,52 @@ public struct Server_WakeUp {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
+  public var alertType: Server_WakeUp.AlertType = .alert
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum AlertType: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case alert // = 0
+    case silent // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .alert
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .alert
+      case 1: self = .silent
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .alert: return 0
+      case .silent: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
 
   public init() {}
 }
+
+#if swift(>=4.2)
+
+extension Server_WakeUp.AlertType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_WakeUp.AlertType] = [
+    .alert,
+    .silent,
+  ]
+}
+
+#endif  // swift(>=4.2)
 
 public struct Server_MarketingAlert {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -7372,6 +7461,7 @@ extension Server_WebClientInfo: @unchecked Sendable {}
 extension Server_WebClientInfo.Action: @unchecked Sendable {}
 extension Server_WebClientInfo.Result: @unchecked Sendable {}
 extension Server_WebStanza: @unchecked Sendable {}
+extension Server_WebStanza.OneOf_Payload: @unchecked Sendable {}
 extension Server_ContentMissing: @unchecked Sendable {}
 extension Server_ContentMissing.ContentType: @unchecked Sendable {}
 extension Server_Iq: @unchecked Sendable {}
@@ -7457,6 +7547,7 @@ extension Server_ClientOtpResponse: @unchecked Sendable {}
 extension Server_ClientOtpResponse.Result: @unchecked Sendable {}
 extension Server_ClientOtpResponse.Reason: @unchecked Sendable {}
 extension Server_WakeUp: @unchecked Sendable {}
+extension Server_WakeUp.AlertType: @unchecked Sendable {}
 extension Server_MarketingAlert: @unchecked Sendable {}
 extension Server_MarketingAlert.TypeEnum: @unchecked Sendable {}
 #endif  // swift(>=5.5) && canImport(_Concurrency)
@@ -7920,6 +8011,8 @@ extension Server_Contact: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
     5: .standard(proto: "avatar_id"),
     7: .same(proto: "name"),
     8: .standard(proto: "num_potential_friends"),
+    9: .standard(proto: "num_potential_close_friends"),
+    10: .standard(proto: "invitation_rank"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -7935,6 +8028,8 @@ extension Server_Contact: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
       case 5: try { try decoder.decodeSingularStringField(value: &self.avatarID) }()
       case 7: try { try decoder.decodeSingularStringField(value: &self.name) }()
       case 8: try { try decoder.decodeSingularInt64Field(value: &self.numPotentialFriends) }()
+      case 9: try { try decoder.decodeSingularInt64Field(value: &self.numPotentialCloseFriends) }()
+      case 10: try { try decoder.decodeSingularInt64Field(value: &self.invitationRank) }()
       default: break
       }
     }
@@ -7962,6 +8057,12 @@ extension Server_Contact: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
     if self.numPotentialFriends != 0 {
       try visitor.visitSingularInt64Field(value: self.numPotentialFriends, fieldNumber: 8)
     }
+    if self.numPotentialCloseFriends != 0 {
+      try visitor.visitSingularInt64Field(value: self.numPotentialCloseFriends, fieldNumber: 9)
+    }
+    if self.invitationRank != 0 {
+      try visitor.visitSingularInt64Field(value: self.invitationRank, fieldNumber: 10)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -7973,6 +8074,8 @@ extension Server_Contact: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
     if lhs.avatarID != rhs.avatarID {return false}
     if lhs.name != rhs.name {return false}
     if lhs.numPotentialFriends != rhs.numPotentialFriends {return false}
+    if lhs.numPotentialCloseFriends != rhs.numPotentialCloseFriends {return false}
+    if lhs.invitationRank != rhs.invitationRank {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -12079,6 +12182,7 @@ extension Server_WebStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "static_key"),
     2: .same(proto: "content"),
+    3: .standard(proto: "noise_message"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -12088,25 +12192,57 @@ extension Server_WebStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularBytesField(value: &self.staticKey) }()
-      case 2: try { try decoder.decodeSingularBytesField(value: &self.content) }()
+      case 2: try {
+        var v: Data?
+        try decoder.decodeSingularBytesField(value: &v)
+        if let v = v {
+          if self.payload != nil {try decoder.handleConflictingOneOf()}
+          self.payload = .content(v)
+        }
+      }()
+      case 3: try {
+        var v: Server_NoiseMessage?
+        var hadOneofValue = false
+        if let current = self.payload {
+          hadOneofValue = true
+          if case .noiseMessage(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.payload = .noiseMessage(v)
+        }
+      }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if !self.staticKey.isEmpty {
       try visitor.visitSingularBytesField(value: self.staticKey, fieldNumber: 1)
     }
-    if !self.content.isEmpty {
-      try visitor.visitSingularBytesField(value: self.content, fieldNumber: 2)
+    switch self.payload {
+    case .content?: try {
+      guard case .content(let v)? = self.payload else { preconditionFailure() }
+      try visitor.visitSingularBytesField(value: v, fieldNumber: 2)
+    }()
+    case .noiseMessage?: try {
+      guard case .noiseMessage(let v)? = self.payload else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    }()
+    case nil: break
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Server_WebStanza, rhs: Server_WebStanza) -> Bool {
     if lhs.staticKey != rhs.staticKey {return false}
-    if lhs.content != rhs.content {return false}
+    if lhs.payload != rhs.payload {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -16428,21 +16564,41 @@ extension Server_ClientOtpResponse.Reason: SwiftProtobuf._ProtoNameProviding {
 
 extension Server_WakeUp: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".WakeUp"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "alert_type"),
+  ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.alertType) }()
+      default: break
+      }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.alertType != .alert {
+      try visitor.visitSingularEnumField(value: self.alertType, fieldNumber: 1)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Server_WakeUp, rhs: Server_WakeUp) -> Bool {
+    if lhs.alertType != rhs.alertType {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
+}
+
+extension Server_WakeUp.AlertType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "ALERT"),
+    1: .same(proto: "SILENT"),
+  ]
 }
 
 extension Server_MarketingAlert: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {

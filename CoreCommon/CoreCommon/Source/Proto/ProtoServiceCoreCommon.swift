@@ -526,6 +526,14 @@ extension ProtoServiceCoreCommon: CoreServiceCommon {
     }
 
     public func sendToWebClient(staticKey: Data, data: Data, completion: @escaping ServiceRequestCompletion<Void>) {
+        sendToWebClient(staticKey: staticKey, payload: .content(data), completion: completion)
+    }
+
+    public func sendToWebClient(staticKey: Data, noiseMessage: Server_NoiseMessage, completion: @escaping ServiceRequestCompletion<Void>) {
+        sendToWebClient(staticKey: staticKey, payload: .noiseMessage(noiseMessage), completion: completion)
+    }
+
+    private func sendToWebClient(staticKey: Data, payload: Server_WebStanza.OneOf_Payload, completion: @escaping ServiceRequestCompletion<Void>) {
         guard let fromUserID = self.credentials?.userID else {
             DDLogError("ProtoServiceCore/sendToWebClient/error no-user-id")
             completion(.failure(.aborted))
@@ -534,7 +542,7 @@ extension ProtoServiceCoreCommon: CoreServiceCommon {
 
         var webStanza = Server_WebStanza()
         webStanza.staticKey = staticKey
-        webStanza.content = data
+        webStanza.payload = payload
 
         let packet = Server_Packet.msgPacket(
             from: fromUserID,
@@ -552,6 +560,7 @@ extension ProtoServiceCoreCommon: CoreServiceCommon {
         DDLogInfo("ProtoServiceCore/sendToWebClient/sent")
         completion(.success(()))
     }
+
 }
 
 public extension Server_Packet {

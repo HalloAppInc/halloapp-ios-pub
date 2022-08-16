@@ -67,6 +67,7 @@ public protocol CoreServiceCommon {
     func authenticateWebClient(staticKey: Data, completion: @escaping ServiceRequestCompletion<Void>)
     func removeWebClient(staticKey: Data, completion: @escaping ServiceRequestCompletion<Void>)
     func sendToWebClient(staticKey: Data, data: Data, completion: @escaping ServiceRequestCompletion<Void>)
+    func sendToWebClient(staticKey: Data, noiseMessage: Server_NoiseMessage, completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Delegates
     var keyDelegate: ServiceKeyDelegate? { get set }

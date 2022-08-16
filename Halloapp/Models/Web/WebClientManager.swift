@@ -8,6 +8,7 @@
 
 import CocoaLumberjackSwift
 import Combine
+import Core
 import CoreCommon
 import Foundation
 import SwiftNoise
@@ -85,12 +86,33 @@ final class WebClientManager {
                 return
             }
             switch container.payload {
-            case .noiseMessage(let noiseMessage):
-                self.continueHandshake(noiseMessage)
+            case .feedResponse:
+                DDLogError("WebClientManager/handleIncoming/feedResponse/error [invalid-payload]")
+            case .feedRequest(let request):
+                DDLogInfo("WebClientManager/handleIncoming/feedRequest")
+                let cursor = request.cursor.isEmpty ? nil : request.cursor
+                var webContainer = Web_WebContainer()
+                let feed = self.homeFeed(cursor: cursor, limit: Int(request.limit))
+                webContainer.payload = .feedResponse(feed)
+                do {
+                    DDLogInfo("WebClientManager/handleIncoming/feedRequest/sending [\(feed.items.count)]")
+                    let responseData = try webContainer.serializedData()
+                    self.send(responseData)
+                } catch {
+                    DDLogError("WebClientManager/handleIncoming/feedRequest/error [serialization]")
+                }
             case .none:
                 DDLogError("WebClientManager/handleIncoming/error [missing-payload]")
             }
         }
+    }
+
+    func handleIncomingNoiseMessage(_ noiseMessage: Server_NoiseMessage, from staticKey: Data) {
+        guard staticKey == self.webStaticKey else {
+            DDLogError("WebClientManager/handleIncoming/error [unrecognized-static-key: \(staticKey.base64EncodedString())] [expected: \(self.webStaticKey?.base64EncodedString() ?? "nil")]")
+            return
+        }
+        continueHandshake(noiseMessage)
     }
 
     func send(_ data: Data) {
@@ -142,7 +164,7 @@ final class WebClientManager {
         }
     }
 
-    private func continueHandshake(_ noiseMessage: Web_NoiseMessage) {
+    private func continueHandshake(_ noiseMessage: Server_NoiseMessage) {
         guard case .handshaking(let handshake) = state.value else {
             DDLogError("WebClientManager/handshake/error [state: \(state.value)]")
             return
@@ -155,7 +177,7 @@ final class WebClientManager {
             return
         }
         switch noiseMessage.messageType {
-        case .kkA, .kkB, .ikA, .UNRECOGNIZED:
+        case .ikA, .xxA, .xxB, .xxC, .xxFallbackA, .xxFallbackB, .UNRECOGNIZED:
             DDLogError("WebClientManager/handshake/error [message-type: \(noiseMessage.messageType)]")
         case .ikB:
             do {
@@ -167,27 +189,19 @@ final class WebClientManager {
         }
     }
 
-    private func sendNoiseMessage(_ content: Data, type: Web_NoiseMessage.MessageType) {
+    private func sendNoiseMessage(_ content: Data, type: Server_NoiseMessage.MessageType) {
         guard let webStaticKey = webStaticKey else {
             DDLogError("WebClientManager/sendNoiseMessage/error [no-key]")
             return
         }
 
-        do {
-            var msg = Web_NoiseMessage()
-            msg.messageType = type
-            msg.content = content
+        var msg = Server_NoiseMessage()
+        msg.messageType = type
+        msg.content = content
 
-            var container = Web_WebContainer()
-            container.payload = .noiseMessage(msg)
+        DDLogInfo("WebClientManager/sendNoiseMessage/\(type) [\(content.count)]")
 
-            let data = try container.serializedData()
-            DDLogInfo("WebClientManager/sendNoiseMessage/\(type) [\(data.count)]")
-
-            service.sendToWebClient(staticKey: webStaticKey, data: data) { _ in }
-        } catch {
-            DDLogError("WebClientManager/sendNoiseMessage/error \(error)")
-        }
+        service.sendToWebClient(staticKey: webStaticKey, noiseMessage: msg) { _ in }
     }
 
     // TODO: Schedule this on timer
@@ -224,6 +238,161 @@ final class WebClientManager {
                 }
             }
         }
+    }
+
+    // MARK: Feed
+
+    private lazy var homeFeedDataSource: FeedDataSource = {
+        return FeedDataSource(fetchRequest: FeedDataSource.homeFeedRequest())
+    }()
+
+    private func homeFeed(cursor: String? = nil, limit: Int) -> Web_FeedResponse {
+
+        let cappedLimit: Int = {
+            if limit <= 0 { return 20 }
+            return limit > 50 ? 50 : limit
+        }()
+
+        homeFeedDataSource.setup()
+        let allPosts: [FeedPost] = homeFeedDataSource.displayItems.compactMap {
+            guard case .post(let post) = $0 else {
+                return nil
+            }
+            return post
+        }
+        let startIndex: Int
+        if let cursor = cursor, !cursor.isEmpty {
+            guard let cursorIndex = allPosts.firstIndex(where: { $0.id == cursor }) else {
+                var response = Web_FeedResponse()
+                response.error = .invalidCursor
+                response.type = .home
+                return response
+            }
+            startIndex = cursorIndex
+        } else {
+            startIndex = 0
+        }
+        let nextIndex = startIndex + cappedLimit
+
+        let postsForRequest: [FeedPost]
+        let nextCursor: String?
+        if allPosts.count > nextIndex {
+            postsForRequest = Array(allPosts[startIndex..<nextIndex])
+            nextCursor = allPosts[nextIndex].id
+        } else {
+            postsForRequest = Array(allPosts[startIndex...])
+            nextCursor = nil
+        }
+
+        let currentUserID = MainAppContext.shared.userData.userId
+        let postDisplayInfo: [Web_PostDisplayInfo] = postsForRequest.map { post in
+            var info = Web_PostDisplayInfo()
+            info.id = post.id
+            info.isUnsupported = post.isUnsupported
+            info.retractState = {
+                switch post.status {
+                case .retracting:
+                    return .retracting
+                case .retracted:
+                    return .retracted
+                default:
+                    return .unretracted
+                }
+            }()
+            info.transferState = {
+                switch post.status {
+                case .sent, .retracting:
+                    return .sent
+                case .sending:
+                    return .sending
+                case .incoming, .seenSending, .seen:
+                    return .received
+                case .sendError:
+                    return .sendError
+                case .rerequesting:
+                    return .decryptionError
+                case .none:
+                    return .unknown
+                case .retracted, .unsupported, .expired:
+                    return post.userID == currentUserID ? .sent : .received
+                }
+            }()
+            info.seenState = {
+                switch post.status {
+                case .incoming:
+                    return .unseen
+                case .seenSending:
+                    return .seenSending
+                default:
+                    return .seen
+                }
+            }()
+            info.unreadComments = post.unreadCount
+            info.userReceipts = post.seenReceipts.compactMap {
+                guard let userID = Int64($0.userId) else { return nil }
+                var receipt = Web_ReceiptInfo()
+                receipt.timestamp = Int64($0.timestamp.timeIntervalSince1970)
+                receipt.status = .seen
+                receipt.uid = userID
+                return receipt
+            }
+            return info
+        }
+
+        var usersToInclude = Set<UserID>()
+        // Include info for all users who have posted.
+        usersToInclude.formUnion(postsForRequest.map { $0.userID })
+        // Include info for all users who are mentioned in posts.
+        usersToInclude.formUnion(postsForRequest.flatMap { $0.mentions }.map { $0.userID })
+        // Include info for all users who have seen your posts.
+        usersToInclude.formUnion(postsForRequest.flatMap { $0.seenReceipts }.map { $0.userId })
+
+        let contactNames = MainAppContext.shared.contactStore.fullNames(forUserIds: usersToInclude)
+        let avatarIDs = MainAppContext.shared.avatarStore.avatarIDs(forUserIDs: usersToInclude)
+
+        let userDisplayInfo: [Web_UserDisplayInfo] = usersToInclude.compactMap {
+            guard let userID = Int64($0) else { return nil }
+            var info = Web_UserDisplayInfo()
+            info.uid = userID
+            if let avatarID = avatarIDs[$0] {
+                info.avatarID = avatarID
+            }
+            if let contactName = contactNames[$0] {
+                info.contactName = contactName
+            }
+            return info
+        }
+
+        var response = Web_FeedResponse()
+        response.type = .home
+        response.userDisplayInfo = userDisplayInfo
+        response.postDisplayInfo = postDisplayInfo
+        if let nextCursor = nextCursor {
+            response.nextCursor = nextCursor
+        }
+        response.items = postsForRequest.compactMap { post in
+            let postContainerData: Data
+            do {
+                postContainerData = try post.postData.clientContainer.serializedData()
+            } catch {
+                DDLogError("WebClientManager/homeFeed/post/\(post.id)/error [\(error)]")
+                return nil
+            }
+            var serverPost = Server_Post()
+            // TODO: audience, media counters, tag, psa tag, moment unlock uid?
+            serverPost.payload = postContainerData
+            serverPost.id = post.id
+            serverPost.timestamp = Int64(post.timestamp.timeIntervalSince1970)
+            if let publisherUserID = Int64(post.userID) {
+                serverPost.publisherUid = publisherUserID
+            }
+
+            var feedItem = Web_FeedItem()
+            feedItem.content = .post(serverPost)
+            return feedItem
+        }
+
+        return response
     }
 }
 
