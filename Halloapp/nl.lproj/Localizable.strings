@@ -370,6 +370,66 @@
 /* Label for inviting friends */
 "chat.invite.friends" = "Vrienden Uitnodigen";
 
+/* Text shown when user removed a reaction from an audio */
+"chat.list.user.deleted.reaction.audio" = "%1$@ heeft een %2$@ verwijderd van een audio";
+
+/* Text shown when user removed a reaction from an image */
+"chat.list.user.deleted.reaction.image" = "%1$@ heeft een %2$@ verwijderd van een afbeelding";
+
+/* Text shown when user removed a reaction from a message */
+"chat.list.user.deleted.reaction.message" = "%1$@ heeft een %2$@ verwijderd van een bericht";
+
+/* Text shown when user removed a reaction from a text message */
+"chat.list.user.deleted.reaction.text" = "%1$@ heeft een %2$@ verwijderd van %3$@";
+
+/* Text shown when user removed a reaction from a video */
+"chat.list.user.deleted.reaction.video" = "%1$@ heeft een %2$@ verwijderd van een video";
+
+/* Text shown when user reacted to an audio */
+"chat.list.user.reacted.audio" = "%1$@ reageerde met %2$@ op een audio";
+
+/* Text shown when user reacted to an image */
+"chat.list.user.reacted.image" = "%1$@ reageerde met %2$@ op een afbeelding";
+
+/* Text shown when user reacted to a message */
+"chat.list.user.reacted.message" = "%1$@ reageerde met %2$@ op een bericht";
+
+/* Text shown when user reacted to a text message */
+"chat.list.user.reacted.text" = "%1$@ reageerde met %2$@ op %3$@";
+
+/* Text shown when user reacted to a video */
+"chat.list.user.reacted.video" = "%1$@ reageerde met %2$@ op een video";
+
+/* Text shown when you removed a reaction from an audio */
+"chat.list.you.deleted.reaction.audio" = "Je hebt een %1@ verwijderd van een audio";
+
+/* Text shown when you removed a reaction from an image */
+"chat.list.you.deleted.reaction.image" = "Je hebt een %1@ verwijderd van een afbeelding";
+
+/* Text shown when you removed a reaction from a message */
+"chat.list.you.deleted.reaction.message" = "Je hebt een %@ verwijderd van een bericht";
+
+/* Text shown when you removed a reaction from a text message */
+"chat.list.you.deleted.reaction.text" = "Je hebt een %1$@ verwijderd van %2$@";
+
+/* Text shown when you removed a reaction from a video */
+"chat.list.you.deleted.reaction.video" = "Je hebt een %1@ verwijderd van een video";
+
+/* Text shown when you reacted to an audio */
+"chat.list.you.reacted.audio" = "Je reageerde met %1@ op een audio";
+
+/* Text shown when you reacted to an image */
+"chat.list.you.reacted.image" = "Je reageerde met %1@ op een afbeelding";
+
+/* Text shown when you reacted to a message */
+"chat.list.you.reacted.message" = "Je reageerde met %@ op een bericht";
+
+/* Text shown when you reacted to a text message */
+"chat.list.you.reacted.text" = "Je reageerde met %1$@ op %2$@";
+
+/* Text shown when you reacted to a video */
+"chat.list.you.reacted.video" = "Je reageerde met %1@ op een video";
+
 /* Message text shown in a message that have audio media but no text */
 "chat.message.audio" = "Audiobericht";
 
@@ -572,7 +632,7 @@
 "Delete" = "Verwijderen";
 
 /* Body of the bottom sheet that is presented only once to explain the moments feature. */
-"describing.moments" = "Ontgrendel momenten van je vrienden door je eigen moment te delen. Momenten zijn tijdelijk en verdwijnen nadat je ze één keer hebt bekeken";
+"describing.moments" = "Ontgrendel momenten van je vrienden door je eigen moment te delen. Momenten zijn tijdelijk en verdwijnen nadat je ze één keer hebt bekeken.";
 
 /* Title that indicates that someone downloaded media from a post. */
 "downloaded.title" = "Gedownload";
@@ -678,6 +738,9 @@
 
 /* Archived date timestamp */
 "feed.post.archived.timestamp" = "Gearchiveerd op %@";
+
+/* Indication of when a post never expires */
+"feed.post.expired.timestamp.never" = "Verloopt nooit";
 
 /* Shown when post fails or is canceled. */
 "feed.post.failed" = "Plaatsen is mislukt.";
@@ -1378,6 +1441,12 @@
 /* Title of the button that opens the camera. */
 "open.camera" = "Open Camera";
 
+/* Menu option to open a location in Google Maps. */
+"openInMapsApp.googleMaps" = "Openen in Google Maps";
+
+/* Menu option to open a location in (Apple) Maps. */
+"openInMapsApp.maps" = "Openen in Kaarten";
+
 /* button to launch photo and video library */
 "photo.and.video.library" = "Foto- & Videobibliotheek";
 
@@ -1421,7 +1490,7 @@
 "post.controller.picker.title" = "Nieuwe Post";
 
 /* Body of alert indicating that a post's expiration does not match that set on a group */
-"post.expiration.mismatch" = "Deze post zal verlopen in %1$@, terwijl de verlooptijd van de groepsinhoud staat ingesteld op %2$@.";
+"post.expiration.mismatch" = "Deze post zal verlopen op %1$@, terwijl de verlooptijd van de groepsinhoud staat ingesteld op %2$@.";
 
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted" = "Deze post is verwijderd";

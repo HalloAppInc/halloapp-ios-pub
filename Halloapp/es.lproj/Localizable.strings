@@ -679,6 +679,12 @@
 /* Archived date timestamp */
 "feed.post.archived.timestamp" = "Archivado el %@";
 
+/* Indication of when a post expired */
+"feed.post.expired.timestamp" = "Caduca el %@";
+
+/* Indication of when a post never expires */
+"feed.post.expired.timestamp.never" = "Nunca caduca";
+
 /* Shown when post fails or is canceled. */
 "feed.post.failed" = "Error al publicar.";
 
@@ -1374,6 +1380,12 @@
 
 /* Title of the button that opens the camera. */
 "open.camera" = "Abrir cámara";
+
+/* Menu option to open a location in Google Maps. */
+"openInMapsApp.googleMaps" = "Abrir en Google Maps";
+
+/* Menu option to open a location in (Apple) Maps. */
+"openInMapsApp.maps" = "Abrir en mapas";
 
 /* button to launch photo and video library */
 "photo.and.video.library" = "Galería de fotos y videos";

@@ -370,6 +370,66 @@
 /* Label for inviting friends */
 "chat.invite.friends" = "Convide amigos";
 
+/* Text shown when user removed a reaction from an audio */
+"chat.list.user.deleted.reaction.audio" = "%1$@ removeu %2$@ de um áudio";
+
+/* Text shown when user removed a reaction from an image */
+"chat.list.user.deleted.reaction.image" = "%1$@ removeu %2$@ de uma imagem";
+
+/* Text shown when user removed a reaction from a message */
+"chat.list.user.deleted.reaction.message" = "%1$@ removeu %2$@ de uma mensagem";
+
+/* Text shown when user removed a reaction from a text message */
+"chat.list.user.deleted.reaction.text" = "%1$@ removeu um %2$@ de %3$@";
+
+/* Text shown when user removed a reaction from a video */
+"chat.list.user.deleted.reaction.video" = "%1$@ removeu %2$@ de um vídeo";
+
+/* Text shown when user reacted to an audio */
+"chat.list.user.reacted.audio" = "%1$@ reagiu %2$@ a um áudio";
+
+/* Text shown when user reacted to an image */
+"chat.list.user.reacted.image" = "%1$@ reagiu %2$@ a uma imagem";
+
+/* Text shown when user reacted to a message */
+"chat.list.user.reacted.message" = "%1$@ reacted %2$@ to a message";
+
+/* Text shown when user reacted to a text message */
+"chat.list.user.reacted.text" = "%1$@ reagiu %2$@ a %3$@";
+
+/* Text shown when user reacted to a video */
+"chat.list.user.reacted.video" = "%1$@ reagiu %2$@ a um vídeo";
+
+/* Text shown when you removed a reaction from an audio */
+"chat.list.you.deleted.reaction.audio" = "Você removeu um %1@ de um áudio";
+
+/* Text shown when you removed a reaction from an image */
+"chat.list.you.deleted.reaction.image" = "Você removeu um %1@ de uma imagem";
+
+/* Text shown when you removed a reaction from a message */
+"chat.list.you.deleted.reaction.message" = "Você removeu um %@ de uma mensagem";
+
+/* Text shown when you removed a reaction from a text message */
+"chat.list.you.deleted.reaction.text" = "Você removeu um %1$@ de %2$@";
+
+/* Text shown when you removed a reaction from a video */
+"chat.list.you.deleted.reaction.video" = "Você removeu um %1@ de um vídeo";
+
+/* Text shown when you reacted to an audio */
+"chat.list.you.reacted.audio" = "Você reagiu %1@ a um áudio";
+
+/* Text shown when you reacted to an image */
+"chat.list.you.reacted.image" = "Você reagiu %1@ a uma imagem";
+
+/* Text shown when you reacted to a message */
+"chat.list.you.reacted.message" = "Você reagiu %@ a uma mensagem";
+
+/* Text shown when you reacted to a text message */
+"chat.list.you.reacted.text" = "Você reagiu %1$@ a %2$@";
+
+/* Text shown when you reacted to a video */
+"chat.list.you.reacted.video" = "Você reagiu %1@ a um vídeo";
+
 /* Message text shown in a message that have audio media but no text */
 "chat.message.audio" = "Nota de voz";
 
@@ -678,6 +738,12 @@
 
 /* Archived date timestamp */
 "feed.post.archived.timestamp" = "Arquivado em %@";
+
+/* Indication of when a post expired */
+"feed.post.expired.timestamp" = "Expira %@";
+
+/* Indication of when a post never expires */
+"feed.post.expired.timestamp.never" = "Nunca expira";
 
 /* Shown when post fails or is canceled. */
 "feed.post.failed" = "Falha ao postar.";
@@ -1377,6 +1443,12 @@
 
 /* Title of the button that opens the camera. */
 "open.camera" = "Abrir Câmera";
+
+/* Menu option to open a location in Google Maps. */
+"openInMapsApp.googleMaps" = "Abrir no Google Maps";
+
+/* Menu option to open a location in (Apple) Maps. */
+"openInMapsApp.maps" = "Abrir em Mapas";
 
 /* button to launch photo and video library */
 "photo.and.video.library" = "Biblioteca de Fotos e Vídeos";

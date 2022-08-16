@@ -370,6 +370,66 @@
 /* Label for inviting friends */
 "chat.invite.friends" = "دعوت دوستان";
 
+/* Text shown when user removed a reaction from an audio */
+"chat.list.user.deleted.reaction.audio" = "@$1% @$2% را از صدا حذف کرد";
+
+/* Text shown when user removed a reaction from an image */
+"chat.list.user.deleted.reaction.image" = "@$1% @$2% را از تصویر حذف کرد";
+
+/* Text shown when user removed a reaction from a message */
+"chat.list.user.deleted.reaction.message" = "@$1% @$2% را از پیام حذف کرد";
+
+/* Text shown when user removed a reaction from a text message */
+"chat.list.user.deleted.reaction.text" = "@$1% @$2% را از @$3% حذف کرد";
+
+/* Text shown when user removed a reaction from a video */
+"chat.list.user.deleted.reaction.video" = "@$1% @$2% را از ویدیو حذف کرد";
+
+/* Text shown when user reacted to an audio */
+"chat.list.user.reacted.audio" = "@$1% به یک صدا عکس‌العمل @$2% نشان داد";
+
+/* Text shown when user reacted to an image */
+"chat.list.user.reacted.image" = "@$1% به یک تصویر عکس‌العمل @$2% نشان داد";
+
+/* Text shown when user reacted to a message */
+"chat.list.user.reacted.message" = "@$1% به یک پیام عکس‌العمل @$2% نشان داد";
+
+/* Text shown when user reacted to a text message */
+"chat.list.user.reacted.text" = "@$1% به @$3% عکس‌العمل @$2% نشان داد";
+
+/* Text shown when user reacted to a video */
+"chat.list.user.reacted.video" = "@$1% به یک ویدیو عکس‌العمل @$2% نشان داد";
+
+/* Text shown when you removed a reaction from an audio */
+"chat.list.you.deleted.reaction.audio" = "شما یک @1% از صدا حذف کردید";
+
+/* Text shown when you removed a reaction from an image */
+"chat.list.you.deleted.reaction.image" = "شما یک @1% از تصویر حذف کردید";
+
+/* Text shown when you removed a reaction from a message */
+"chat.list.you.deleted.reaction.message" = "شما یک @1% از پیام حذف کردید";
+
+/* Text shown when you removed a reaction from a text message */
+"chat.list.you.deleted.reaction.text" = "شما یک @1% از @$2% حذف کردید";
+
+/* Text shown when you removed a reaction from a video */
+"chat.list.you.deleted.reaction.video" = "شما یک @1% از ویدیو حذف کردید";
+
+/* Text shown when you reacted to an audio */
+"chat.list.you.reacted.audio" = "شما با @1% عکس‌العمل به صدا نشان دادید";
+
+/* Text shown when you reacted to an image */
+"chat.list.you.reacted.image" = "شما با @1% عکس‌العمل به تصویر نشان دادید";
+
+/* Text shown when you reacted to a message */
+"chat.list.you.reacted.message" = "شما با @1% عکس‌العمل به پیام نشان دادید";
+
+/* Text shown when you reacted to a text message */
+"chat.list.you.reacted.text" = "شما با @1% عکس‌العمل به @$2% نشان دادید";
+
+/* Text shown when you reacted to a video */
+"chat.list.you.reacted.video" = "شما با @1% عکس‌العمل به ویدیو نشان دادید";
+
 /* Message text shown in a message that have audio media but no text */
 "chat.message.audio" = "پیام صوتی";
 
@@ -678,6 +738,12 @@
 
 /* Archived date timestamp */
 "feed.post.archived.timestamp" = "در %@ بایگانی شد";
+
+/* Indication of when a post expired */
+"feed.post.expired.timestamp" = "@% منقضی میشود";
+
+/* Indication of when a post never expires */
+"feed.post.expired.timestamp.never" = "هیچوقت منقضی نمیشود";
 
 /* Shown when post fails or is canceled. */
 "feed.post.failed" = "خطا در ارسال پست.";
@@ -1135,6 +1201,9 @@
 /* Error text displayed in post composer when some of the media selected couldn't be sent. */
 "media.prepare.failed.n.count" = "media.prepare.failed.n.count";
 
+/* Title when changing media order */
+"media.reorder.title" = "تغییر ترتیب";
+
 /* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
 "media.save.needs.permissions" = "نیاز به دسترسی به عکس‌ها";
 
@@ -1261,6 +1330,9 @@
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "شما دیگر در این گروه نیستید";
 
+/* Push notification for a comment to message */
+"notification.comment.reaction" = "@% به یک نظر عکس‌العمل نشان داد";
+
 /* Push notification for a new comment. Parameter is the text of the comment */
 "notification.commented.with.text" = "نظر: %@";
 
@@ -1371,6 +1443,12 @@
 
 /* Title of the button that opens the camera. */
 "open.camera" = "باز کردن دوربین";
+
+/* Menu option to open a location in Google Maps. */
+"openInMapsApp.googleMaps" = "باز کردن در نقشه گوگل";
+
+/* Menu option to open a location in (Apple) Maps. */
+"openInMapsApp.maps" = "باز کردن در نقشه اپل";
 
 /* button to launch photo and video library */
 "photo.and.video.library" = "آلبوم عکس و ویدیو";
