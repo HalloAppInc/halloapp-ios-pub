@@ -1497,6 +1497,8 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
         let viewContext = MainAppContext.shared.chatData.viewContext
         guard let message = MainAppContext.shared.chatData.chatMessage(with: chatMessageID, in: viewContext) else { return }
 
+        contentInputView.textView.resignFirstResponder()
+
         if message.orderedMedia.count == 1 {
             let controller = MediaExplorerController(media: message.orderedMedia, index: index, canSaveMedia: true, source: .chat)
             controller.animatorDelegate = self
