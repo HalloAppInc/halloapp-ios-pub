@@ -367,6 +367,19 @@ public class PendingMedia {
         self.type = type
     }
 
+    public init?(asset: PHAsset) {
+        switch asset.mediaType {
+        case .image:
+            self.type = .image
+        case .video:
+            self.type = .video
+        default:
+            return nil
+        }
+
+        self.asset = asset
+    }
+
     public func resetProgress() {
         progress = CurrentValueSubject<Float, Never>(0)
         ready = CurrentValueSubject<Bool, Never>(false)

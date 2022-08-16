@@ -127,7 +127,7 @@ class MediaPickerViewController: UIViewController {
     }
 
     private var mode: MediaPickerMode
-    private var selected = [PHAsset]()
+    private var selected = [PendingMedia]()
     private var config: MediaPickerConfig
     private let didFinish: MediaPickerViewControllerCallback
     private var assets: PHFetchResult<PHAsset>?
@@ -137,7 +137,6 @@ class MediaPickerViewController: UIViewController {
     private var preview: MediaPickerPreview?
     private var updatingSnapshot = false
     private var nextInProgress = false
-    private var originalMedia: [PendingMedia] = []
 
     private lazy var collectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: view.frame, collectionViewLayout: makeLayout())
@@ -327,8 +326,7 @@ class MediaPickerViewController: UIViewController {
     
     init(config: MediaPickerConfig, selected: [PendingMedia] = [] , didFinish: @escaping MediaPickerViewControllerCallback) {
         self.config = config
-        self.originalMedia.append(contentsOf: selected)
-        self.selected.append(contentsOf: selected.filter { $0.asset != nil }.map { $0.asset! })
+        self.selected.append(contentsOf: selected)
         self.didFinish = didFinish
 
         let modeRawValue = MainAppContext.shared.userDefaults.integer(forKey: UserDefaultsKey.MediaPickerMode)
@@ -521,11 +519,8 @@ class MediaPickerViewController: UIViewController {
     }
     
     public func reset(destination: PostComposerDestination?, privacyListType: PrivacyListType?, selected: [PendingMedia]) {
-        originalMedia.removeAll()
-        originalMedia.append(contentsOf: selected)
-
         self.selected.removeAll()
-        self.selected.append(contentsOf: selected.filter { $0.asset != nil }.map { $0.asset! })
+        self.selected.append(contentsOf: selected)
         
         for cell in collectionView.visibleCells {
             guard let cell = cell as? AssetViewCell else { continue }
@@ -647,21 +642,21 @@ class MediaPickerViewController: UIViewController {
                 self.dismiss(animated: true)
 
                 let media = PendingMedia(type: .image)
-                media.order = 1
                 media.image = image.correctlyOrientedImage()
 
-                self.didFinish(self, self.config.destination, self.config.privacyListType, [media], false)
+                self.selected.append(media)
+                self.nextAction()
             },
             didPickVideo: { [weak self] url in
                 guard let self = self else { return }
                 self.dismiss(animated: true)
 
                 let media = PendingMedia(type: .video)
-                media.order = 1
                 media.originalVideoURL = url
                 media.fileURL = url
 
-                self.didFinish(self, self.config.destination, self.config.privacyListType, [media], false)
+                self.selected.append(media)
+                self.nextAction()
             }
         )
 
@@ -672,42 +667,22 @@ class MediaPickerViewController: UIViewController {
         guard selected.count > 0 else { return }
         guard !nextInProgress else { return }
         nextInProgress = true
-        
-        var result = [PendingMedia]()
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
-
-            // keep in-app camera media
-            result.append(contentsOf: self.originalMedia.filter { $0.asset == nil })
             
             for i in 0..<self.selected.count {
-                let asset = self.selected[i]
+                let media = self.selected[i]
+                media.order = i
 
-                if let media = self.originalMedia.first(where: { $0.asset == asset }) {
-                    media.order = i
-                    result.append(media)
-                    continue
-                }
+                guard media.asset != nil && !media.ready.value else { continue }
                 
-                switch asset.mediaType {
+                switch media.type {
                 case .image:
-                    let media = PendingMedia(type: .image)
-                    media.asset = asset
-                    media.order = i
-
-                    result.append(media)
-
                     self.request(image: media)
                 case .video:
-                    let media = PendingMedia(type: .video)
-                    media.asset = asset
-                    media.order = i
-                    
-                    result.append(media)
-
                     self.request(video: media)
-                default:
+                case .audio:
                     continue
                 }
             }
@@ -715,12 +690,8 @@ class MediaPickerViewController: UIViewController {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
 
-                if !self.config.allowsMultipleSelection {
-                    self.selected.removeAll()
-                }
-
+                self.didFinish(self, self.config.destination, self.config.privacyListType, self.selected, false)
                 self.nextInProgress = false
-                self.didFinish(self, self.config.destination, self.config.privacyListType, result, false)
             }
         }
     }
@@ -887,7 +858,7 @@ extension MediaPickerViewController: UICollectionViewDelegate {
         guard let cell = collectionView.cellForItem(at: indexPath) as? AssetViewCell else { return false }
         guard let asset = cell.asset else { return false }
 
-        if selected.contains(asset) {
+        if selected.contains(where: { $0.asset == asset }) {
             deselect(collectionView, cell: cell, asset: asset)
         } else if selected.count >= config.maxNumberOfItems {
             let alert = UIAlertController(title: Localizations.mediaLimitTitle,
@@ -903,13 +874,15 @@ extension MediaPickerViewController: UICollectionViewDelegate {
     }
 
     private func select(_ collectionView: UICollectionView, cell: AssetViewCell, asset: PHAsset) {
+        guard let media = PendingMedia(asset: asset) else { return }
+
         if !config.allowsMultipleSelection {
-            selected.append(asset)
+            selected.append(media)
             nextAction()
             return
         }
 
-        selected.append(asset)
+        selected.append(media)
         updateNavigation()
 
         UIView.animateKeyframes(withDuration: 0.3, delay: 0, options: [], animations: {
@@ -928,7 +901,7 @@ extension MediaPickerViewController: UICollectionViewDelegate {
     }
 
     private func deselect(_ collectionView: UICollectionView, cell: AssetViewCell, asset: PHAsset) {
-        guard let idx = self.selected.firstIndex(of: asset) else { return }
+        guard let idx = self.selected.firstIndex(where: { $0.asset == asset }) else { return }
         selected.remove(at: idx)
         updateNavigation()
 
@@ -1145,7 +1118,7 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         return (spacing, column * spacing / columnCount, spacing - ((column + 1) * spacing / columnCount))
     }
     
-    func prepare(config: MediaPickerConfig, mode: MediaPickerMode, selection: [PHAsset]) {
+    func prepare(config: MediaPickerConfig, mode: MediaPickerMode, selection: [PendingMedia]) {
         let (spacingBottom, spacingLead, spacingTrail) = calculateSpacing(mode: mode)
         
         NSLayoutConstraint.deactivate(activeConstraints)
@@ -1167,7 +1140,8 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         
         NSLayoutConstraint.activate(activeConstraints)
 
-        if let asset = asset, selection.contains(asset) {
+
+        if let asset = asset, selection.contains(where: { $0.asset == asset }) {
             image.layer.cornerRadius = 20
         } else {
             image.layer.cornerRadius = 0
@@ -1186,8 +1160,8 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         setNeedsLayout()
     }
 
-    func prepareIndicator(config: MediaPickerConfig, selection: [PHAsset]) {
-        if let asset = asset, let idx = selection.firstIndex(of: asset) {
+    func prepareIndicator(config: MediaPickerConfig, selection: [PendingMedia]) {
+        if let asset = asset, let idx = selection.filter({ $0.asset != nil }).firstIndex(where: { $0.asset == asset }) {
             indicator.layer.borderColor = UIColor.lavaOrange.cgColor
             indicator.backgroundColor = .lavaOrange
 
