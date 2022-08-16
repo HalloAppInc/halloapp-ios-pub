@@ -129,7 +129,7 @@ class MainAppContext: AppContext {
     required init(serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type, appTarget: AppTarget) {
         super.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass, appTarget: appTarget)
         
-        feedData = FeedData(service: service, contactStore: contactStore, mainDataStore: mainDataStore, userData: userData)
+        feedData = FeedData(service: service, contactStore: contactStore, mainDataStore: mainDataStore, userData: userData, mediaUploader: mediaUploader)
         chatData = ChatData(service: service, contactStore: contactStore, mainDataStore: mainDataStore, userData: userData)
         syncManager = SyncManager(contactStore: contactStore, service: service, userData: userData)
         

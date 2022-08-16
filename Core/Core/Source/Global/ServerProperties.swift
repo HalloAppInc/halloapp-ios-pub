@@ -46,6 +46,7 @@ public struct ServerProperties {
         case preAnswerCalls = "pre_answer_calls"
         case chatReactions = "chat_reactions"
         case commentReactions = "comment_reactions"
+        case enableNewMediaUploader = "background_upload"
     }
 
     private struct UserDefaultsKey {
@@ -90,6 +91,7 @@ public struct ServerProperties {
         static let preAnswerCalls = false
         static let chatReactions = false
         static let commentReactions = false
+        static let enableNewMediaUploader = false
     }
 
     // MARK: Storage
@@ -362,5 +364,9 @@ public struct ServerProperties {
     
     public static var commentReactions: Bool {
         ServerProperties.bool(forKey: .commentReactions) ?? Defaults.commentReactions
+    }
+
+    public static var enableNewMediaUploader: Bool {
+        ServerProperties.bool(forKey: .enableNewMediaUploader) ?? Defaults.enableNewMediaUploader
     }
 }

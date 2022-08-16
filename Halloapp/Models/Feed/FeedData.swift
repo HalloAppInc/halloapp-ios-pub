@@ -49,14 +49,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }()
 
     let mediaUploader: MediaUploader
+    let commonMediaUploader: CommonMediaUploader
 
     private var contentInFlight: Set<String> = []
 
-    init(service: HalloService, contactStore: ContactStoreMain, mainDataStore: MainDataStore, userData: UserData) {
+    init(service: HalloService, contactStore: ContactStoreMain, mainDataStore: MainDataStore, userData: UserData, mediaUploader: CommonMediaUploader) {
         self.service = service
         self.contactStore = contactStore
         self.mainDataStore = mainDataStore
         self.userData = userData
+        self.commonMediaUploader = mediaUploader
         self.mediaUploader = MediaUploader(service: service)
 
         super.init()
@@ -101,6 +103,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification, object: nil).sink { [weak self] _ in
             // on the app's enter, we check the status of the user's moment
             self?.refreshValidMoment()
+        }.store(in: &cancellableSet)
+
+        mediaUploader.postMediaStatusChangedPublisher.sink { [weak self] postID in
+            self?.uploadPostIfMediaReady(postID: postID)
         }.store(in: &cancellableSet)
 
         fetchFeedPosts()
@@ -469,7 +475,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         }
                     } else {
                         DDLogInfo("FeedData/stuck-posts/\(post.id)/resending")
-                        self.uploadMediaAndSend(feedPost: post)
+                        self.beginMediaUploadAndSend(feedPost: post)
                     }
                 }
             } catch {
@@ -3111,13 +3117,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         self.save(managedObjectContext)
 
-        if let linkPreview = linkPreview {
-            // upload link preview media followed by comment media and send over the wire
-            self.uploadMediaAndSend(feedLinkPreview: linkPreview)
-        } else {
-            // upload comment media if any and send data over the wire.
-            self.uploadMediaAndSend(feedPost: feedPost)
-        }
+        self.beginMediaUploadAndSend(feedPost: feedPost)
+
         if feedPost.groupId != nil {
             self.didSendGroupFeedPost.send(feedPost)
         }
@@ -3269,7 +3270,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             // Change status to "sending" and start sending / uploading.
             feedPost.status = .sending
             self.save(managedObjectContext)
-            self.uploadMediaAndSend(feedPost: feedPost)
+            self.beginMediaUploadAndSend(feedPost: feedPost)
         }
     }
 
@@ -3483,23 +3484,125 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     // MARK: Media Upload
 
     public func uploadProgressPublisher(for post: FeedPost) -> AnyPublisher<Float, Never> {
-        let postID = post.id
-        let mediaCount = post.mediaCount
-        guard mediaCount > 0 else {
-            return Just(Float(1)).eraseToAnyPublisher()
-        }
-        // Send PostID to handle initial progress population
-        return Publishers.Merge3(ImageServer.shared.progress, MainAppContext.shared.feedData.mediaUploader.uploadProgressDidChange, Just(postID))
-            .filter { $0 == postID }
-            .map { _ -> Float in
-                var (processingCount, processingProgress) = ImageServer.shared.progress(for: postID)
-                var (uploadCount, uploadProgress) = MainAppContext.shared.feedData.mediaUploader.uploadProgress(forGroupId: postID)
+        if ServerProperties.enableNewMediaUploader {
+            let mediaIDs = Set(post.allAssociatedMedia.map(\.id))
+            let mediaCount = mediaIDs.count
 
-                processingProgress = processingProgress * Float(processingCount) / Float(mediaCount)
-                uploadProgress = uploadProgress * Float(uploadCount) / Float(mediaCount)
-                return (processingProgress + uploadProgress) / 2.0
+            guard mediaCount > 0 else {
+                return Just(Float(1)).eraseToAnyPublisher()
             }
-            .eraseToAnyPublisher()
+
+            let progressPublisher = ImageServer.shared.progress
+                .prepend(mediaIDs)
+                .filter { mediaIDs.contains($0) }
+                .map { mediaID in
+                    let (processingCount, processingProgress) = ImageServer.shared.progress(for: mediaID)
+                    return processingProgress * Float(processingCount) / Float(mediaCount)
+                }
+
+            // Combine each separate media progress publisher
+            var uploadPublisher: AnyPublisher<Float, Never> = Just(Float(0)).eraseToAnyPublisher()
+            mediaIDs.forEach { mediaID in
+                let mediaUploadProgressPublisher = commonMediaUploader.progress(for: mediaID)
+                    .eraseToAnyPublisher()
+                uploadPublisher = uploadPublisher
+                    .combineLatest(mediaUploadProgressPublisher) { totalProgress, uploadProgress in
+                        return totalProgress + uploadProgress / Float(mediaCount)
+                    }
+                    .eraseToAnyPublisher()
+            }
+
+            return Publishers.CombineLatest(progressPublisher, uploadPublisher)
+                .map { ($0 + $1) / 2.0 }
+                .eraseToAnyPublisher()
+        } else {
+            let postID = post.id
+            let mediaCount = post.mediaCount
+            guard mediaCount > 0 else {
+                return Just(Float(1)).eraseToAnyPublisher()
+            }
+            // Send PostID to handle initial progress population
+            return Publishers.Merge3(ImageServer.shared.progress, MainAppContext.shared.feedData.mediaUploader.uploadProgressDidChange, Just(postID))
+                .filter { $0 == postID }
+                .map { _ -> Float in
+                    var (processingCount, processingProgress) = ImageServer.shared.progress(for: postID)
+                    var (uploadCount, uploadProgress) = MainAppContext.shared.feedData.mediaUploader.uploadProgress(forGroupId: postID)
+
+                    processingProgress = processingProgress * Float(processingCount) / Float(mediaCount)
+                    uploadProgress = uploadProgress * Float(uploadCount) / Float(mediaCount)
+                    return (processingProgress + uploadProgress) / 2.0
+                }
+                .eraseToAnyPublisher()
+        }
+    }
+
+    private func beginMediaUploadAndSend(feedPost: FeedPost) {
+        if ServerProperties.enableNewMediaUploader {
+            let mediaToUpload = feedPost.allAssociatedMedia.filter { [.none, .uploading, .uploadError].contains($0.status) }
+            if mediaToUpload.isEmpty {
+                uploadPostIfMediaReady(postID: feedPost.id)
+            } else {
+                mediaToUpload.forEach { media in
+                    commonMediaUploader.upload(mediaID: media.id)
+                }
+            }
+        } else {
+            if let linkPreview = feedPost.linkPreviews?.first {
+                // upload link preview media followed by comment media and send over the wire
+                uploadMediaAndSend(feedLinkPreview: linkPreview)
+            } else {
+                // upload comment media if any and send data over the wire.
+                uploadMediaAndSend(feedPost: feedPost)
+            }
+        }
+    }
+
+    private func uploadPostIfMediaReady(postID: FeedPostID) {
+        performSeriallyOnBackgroundContext { [weak self] context in
+            guard let self = self, let post = self.feedPost(with: postID, in: context) else {
+                DDLogError("FeedData/UploadPostIfNeeded/Post not found with id \(postID)")
+                return
+            }
+
+            let media = post.allAssociatedMedia
+
+            let uploadedMedia = media.filter { $0.status == .uploaded }
+            let failedMedia = media.filter { $0.status == .uploadError }
+
+            // Check if all media is uploaded
+            guard media.count == uploadedMedia.count + failedMedia.count else {
+                return
+            }
+
+            if !failedMedia.isEmpty {
+                post.status = .sendError
+                self.save(context)
+
+            } else {
+                // Upload post
+                MainAppContext.shared.beginBackgroundTask(postID)
+                self.send(post: post)
+            }
+
+            let numPhotos = media.filter { $0.type == .image }.count
+            let numVideos = media.filter { $0.type == .video }.count
+            let totalUploadSize = media.reduce(0) { totalUploadSize, media in
+                guard let encryptedFileURL = media.encryptedFileURL, let fileSize = try? encryptedFileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize else {
+                    DDLogError("FeedData/uploadPostIfMediaReady/could not retreive fileSize for reporting for \(media.id)")
+                    return totalUploadSize
+                }
+                return totalUploadSize + fileSize
+            }
+
+            AppContext.shared.eventMonitor.observe(
+                .mediaUpload(
+                    postID: post.id,
+                    duration: Date().timeIntervalSince(post.timestamp),
+                    numPhotos: numPhotos,
+                    numVideos: numVideos,
+                    totalSize: totalUploadSize,
+                    status: failedMedia.count == 0 ? .ok : .fail))
+        }
     }
 
     private func uploadMediaAndSend(feedPost: FeedPost) {
@@ -3636,7 +3739,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
                 // Post link preview
                 if let postID = postID, let feedPost = self.feedPost(with: postID, in: managedObjectContext) {
-                    self.uploadMediaAndSend(feedPost: feedPost)
+                    self.beginMediaUploadAndSend(feedPost: feedPost)
                     return
                 }
                 DDLogError("FeedData/missing-feedLinkPreview/feedLinkPreviewId [\(feedLinkPreview.id)]")
@@ -3744,7 +3847,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     }
                     // Post link preview
                     if let postID = postID, let feedPost = self.feedPost(with: postID, in: managedObjectContext) {
-                        self.uploadMediaAndSend(feedPost: feedPost)
+                        self.beginMediaUploadAndSend(feedPost: feedPost)
                         return
                     }
                     DDLogError("FeedData/missing-feedLinkPreview/feedLinkPreviewId [\(feedLinkPreview.id)]")
@@ -4138,6 +4241,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     func cancelMediaUpload(postId: FeedPostID) {
         DDLogInfo("FeedData/upload-media/cancel/\(postId)")
         mediaUploader.cancelUpload(groupId: postId)
+
+        performSeriallyOnBackgroundContext { [weak self] context in
+            guard let self = self else {
+                return
+            }
+            self.feedPost(with: postId, in: context)?.media?.forEach { media in
+                self.commonMediaUploader.cancelUpload(mediaID: media.id)
+            }
+        }
     }
 
     // MARK: Clean Up Media Upload Data

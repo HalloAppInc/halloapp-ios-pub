@@ -119,6 +119,8 @@ open class AppContext: AppContextCommon {
         coreChatDataImpl
     }
 
+    open private(set) lazy var mediaUploader = CommonMediaUploader(service: coreService, mainDataStore: mainDataStore, mediaHashStore: mediaHashStore)
+
     // MARK: Event monitoring
     /// Loads any saved events from user defaults and starts reporting at interval
     public func startReportingEvents(atInterval interval: TimeInterval = 30) {
