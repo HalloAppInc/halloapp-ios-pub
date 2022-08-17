@@ -302,7 +302,10 @@ class NewCameraViewController: UIViewController {
         downButton.tintColor = .white
         libraryButton.tintColor = .white
         navigationItem.leftBarButtonItem = downButton
-        navigationItem.rightBarButtonItem = libraryButton
+
+        if ServerProperties.isInternalUser {
+            navigationItem.rightBarButtonItem = libraryButton
+        }
 
         let appearance = UINavigationBarAppearance()
         appearance.backgroundColor = .black
