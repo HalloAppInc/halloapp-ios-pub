@@ -38,6 +38,7 @@ fileprivate enum MessageRow: Hashable, Equatable {
     case chatCall(ChatCallData)
     case chatEvent(ChatEvent)
     case addToContactBook
+    case timeHeader(String)
 
     var timestamp: Date? {
         switch self {
@@ -49,7 +50,7 @@ fileprivate enum MessageRow: Hashable, Equatable {
             return data.timestamp
         case .addToContactBook:
             return Calendar.current.startOfDay(for: Date())
-        case .unreadCountHeader(_):
+        case .unreadCountHeader(_), .timeHeader(_):
             return nil
         }
     }
@@ -67,6 +68,8 @@ fileprivate enum MessageRow: Hashable, Equatable {
             return  time.chatMsgGroupingTimestamp(Date())
         case .unreadCountHeader(_):
             return ""
+        case .timeHeader(let timestamp):
+            return timestamp
         }
     }
 
@@ -76,12 +79,15 @@ fileprivate enum MessageRow: Hashable, Equatable {
         switch self {
         case .chatMessage(_), .retracted(_), .media(_), .audio(_), .text(_), .location(_), .linkPreview(_), .quoted(_), .unreadCountHeader(_), .chatCall(_):
             return true
-        case .chatEvent(_), .addToContactBook:
+        case .chatEvent(_), .addToContactBook, .timeHeader(_):
             return false
         }
     }
 }
 
+fileprivate enum Section: Hashable {
+    case chats
+}
 
 class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegate, UICollectionViewDelegate, UIViewControllerMediaSaving {
 
@@ -109,8 +115,8 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     private var didReceiveIncoming = false
     private var scrollToUnreadBanner = false
 
-    fileprivate typealias ChatDataSource = UICollectionViewDiffableDataSource<String, MessageRow>
-    fileprivate typealias ChatMessageSnapshot = NSDiffableDataSourceSnapshot<String, MessageRow>
+    fileprivate typealias ChatDataSource = UICollectionViewDiffableDataSource<Section, MessageRow>
+    fileprivate typealias ChatMessageSnapshot = NSDiffableDataSourceSnapshot<Section, MessageRow>
 
     static private let messageViewCellReuseIdentifier = "MessageViewCell"
     static private let messageCellViewTextReuseIdentifier = "MessageCellViewText"
@@ -217,8 +223,8 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         collectionView.register(MessageUnreadHeaderView.self, forCellWithReuseIdentifier: MessageUnreadHeaderView.elementKind)
         collectionView.register(MessageCellViewEvent.self, forCellWithReuseIdentifier: ChatViewControllerNew.messageCellViewEventReuseIdentifier)
         collectionView.register(MessageCellViewCall.self, forCellWithReuseIdentifier: ChatViewControllerNew.messageCellViewCallReuseIdentifier)
+        collectionView.register(MessageTimeHeaderView.self, forCellWithReuseIdentifier: MessageTimeHeaderView.elementKind)
         collectionView.register(MessageChatHeaderView.self, forSupplementaryViewOfKind: MessageChatHeaderView.elementKind, withReuseIdentifier: MessageChatHeaderView.elementKind)
-        collectionView.register(MessageTimeHeaderView.self, forSupplementaryViewOfKind: MessageTimeHeaderView.elementKind, withReuseIdentifier: MessageTimeHeaderView.elementKind)
         collectionView.delegate = self
         return collectionView
     }()
@@ -324,28 +330,18 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                         itemCell.configure(headerText: Localizations.unreadMessagesHeader(unreadCount: Int(unreadCount)))
                     }
                     return cell
+                case .timeHeader(let timestamp):
+                    let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MessageTimeHeaderView.elementKind,
+                        for: indexPath)
+                    if let itemCell = cell as? MessageTimeHeaderView {
+                        itemCell.configure(headerText: timestamp)
+                    }
+                    return cell
                 }
                 return UICollectionViewCell()
             })
         dataSource.supplementaryViewProvider = { [weak self] ( view, kind, index) in
-            if kind == MessageTimeHeaderView.elementKind {
-                let headerView = view.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: MessageTimeHeaderView.elementKind, for: index)
-                if let messageTimeHeaderView = headerView as? MessageTimeHeaderView, let self = self {
-                    let sections = self.dataSource.snapshot().sectionIdentifiers
-                    if index.section < sections.count {
-                        let section = sections[index.section ]
-                        messageTimeHeaderView.configure(headerText: section)
-                        return messageTimeHeaderView
-                    } else {
-                        DDLogInfo("ChatViewControllerNew/configureHeader/time header info not available")
-                        return headerView
-                    }
-                    
-                } else {
-                    DDLogInfo("ChatViewControllerNew/configureHeader/time header info not available")
-                    return headerView
-                }
-            } else if kind == MessageChatHeaderView.elementKind {
+            if kind == MessageChatHeaderView.elementKind {
                 let headerView = view.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: MessageChatHeaderView.elementKind, for: index)
                 if let messageChatHeaderView = headerView as? MessageChatHeaderView, let self = self, let fromUserId = self.fromUserId {
                     messageChatHeaderView.delegate = self
@@ -418,14 +414,18 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         computePreviousChatSenderInfo(messageRows: messageRows)
 
         // Insert all messages into snapshot sorted by timestamp and grouped into sections by headerTime
+        snapshot.appendSections([ .chats ])
+        var tempMessageRows: [MessageRow] = []
         for messageRow in messageRows {
             let currentTime = messageRow.headerTime
             if lastMessageHeaderTime != currentTime {
-                snapshot.appendSections([currentTime])
                 lastMessageHeaderTime = currentTime
+                tempMessageRows.append(MessageRow.timeHeader(currentTime))
             }
-            snapshot.appendItems([messageRow], toSection: messageRow.headerTime)
+            tempMessageRows.append(messageRow)
         }
+        // batch add of message Rows
+        snapshot.appendItems(tempMessageRows, toSection: .chats)
 
         if let fromUserId = fromUserId {
             let chatThread = MainAppContext.shared.chatData.chatThread(type: ChatType.oneToOne, id: fromUserId, in: MainAppContext.shared.chatData.viewContext)
@@ -832,12 +832,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
         let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
 
-
-        let sectionHeaderSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
-        let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: sectionHeaderSize, elementKind: MessageTimeHeaderView.elementKind, alignment: .top)
-        sectionHeader.pinToVisibleBounds = true
         let section = NSCollectionLayoutSection(group: group)
-        section.boundarySupplementaryItems = [sectionHeader]
 
         // Setup the chat view header as the global header of the collection view.
         let layoutHeaderSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(55))

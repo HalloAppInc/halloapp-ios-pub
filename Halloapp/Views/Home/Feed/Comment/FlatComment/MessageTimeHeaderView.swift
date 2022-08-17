@@ -10,7 +10,7 @@ import UIKit
 import Core
 import CoreCommon
 
-class MessageTimeHeaderView: UICollectionReusableView {
+class MessageTimeHeaderView: UICollectionViewCell {
 
     static var elementKind: String {
         return String(describing: MessageTimeHeaderView.self)
@@ -32,13 +32,13 @@ class MessageTimeHeaderView: UICollectionReusableView {
 
     private func commonInit() {
         self.preservesSuperviewLayoutMargins = true
-        self.addSubview(headerView)
+        contentView.addSubview(headerView)
         headerView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            headerView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            headerView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            headerView.topAnchor.constraint(equalTo: topAnchor),
-            headerView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            headerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            headerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            headerView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            headerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
         ])
     }
 

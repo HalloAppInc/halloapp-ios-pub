@@ -55,6 +55,11 @@ fileprivate enum MessageRow: Hashable, Equatable {
     case linkPreview(FeedPostComment)
     case quoted(FeedPostComment)
     case unreadCountHeader(Int32)
+    case timeHeader(String)
+}
+
+fileprivate enum Section: Hashable {
+    case comments
 }
 
 class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NSFetchedResultsControllerDelegate {
@@ -63,8 +68,8 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
 
     private var loadingTimer = Timer()
 
-    fileprivate typealias CommentDataSource = UICollectionViewDiffableDataSource<String, MessageRow>
-    fileprivate typealias CommentSnapshot = NSDiffableDataSourceSnapshot<String, MessageRow>
+    fileprivate typealias CommentDataSource = UICollectionViewDiffableDataSource<Section, MessageRow>
+    fileprivate typealias CommentSnapshot = NSDiffableDataSourceSnapshot<Section, MessageRow>
     static private let messageViewCellReuseIdentifier = "MessageViewCell"
     static private let messageCellViewTextReuseIdentifier = "MessageCellViewText"
     static private let messageCellViewMediaReuseIdentifier = "MessageCellViewMedia"
@@ -267,33 +272,27 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                         itemCell.configure(headerText: Localizations.unreadCommentsHeader(unreadCount: Int(unreadCount)))
                     }
                     return cell
+                case .timeHeader(let timestamp):
+                    let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MessageTimeHeaderView.elementKind,
+                        for: indexPath)
+                    if let itemCell = cell as? MessageTimeHeaderView {
+                        itemCell.configure(headerText: timestamp)
+                    }
+                    return cell
                 }
             })
         // Setup comment header view
         dataSource.supplementaryViewProvider = { [weak self] ( view, kind, index) in
-            if kind == MessageTimeHeaderView.elementKind {
-                let headerView = view.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: MessageTimeHeaderView.elementKind, for: index)
-                if let messageTimeHeaderView = headerView as? MessageTimeHeaderView, let self = self, let feedPost = self.feedPost, let sections = self.fetchedResultsController?.sections{
-                    let section = sections[index.section ]
-                    messageTimeHeaderView.configure(headerText: section.name)
-                    return messageTimeHeaderView
-                } else {
-                    // TODO(@dini) add post loading here
-                    DDLogInfo("FlatCommentsViewController/configureHeader/time header info not available")
-                    return headerView
-                }
+            let headerView = view.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: MessageCommentHeaderView.elementKind, for: index)
+            if let messageCommentHeaderView = headerView as? MessageCommentHeaderView, let self = self, let feedPost = self.feedPost {
+                messageCommentHeaderView.configure(withPost: feedPost)
+                messageCommentHeaderView.delegate = self
+                messageCommentHeaderView.textView.delegate = self
+                return messageCommentHeaderView
             } else {
-                let headerView = view.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: MessageCommentHeaderView.elementKind, for: index)
-                if let messageCommentHeaderView = headerView as? MessageCommentHeaderView, let self = self, let feedPost = self.feedPost {
-                    messageCommentHeaderView.configure(withPost: feedPost)
-                    messageCommentHeaderView.delegate = self
-                    messageCommentHeaderView.textView.delegate = self
-                    return messageCommentHeaderView
-                } else {
-                    // TODO(@dini) add post loading here
-                    DDLogInfo("FlatCommentsViewController/configureHeader/header info not available")
-                    return headerView
-                }
+                // TODO(@dini) add post loading here
+                DDLogInfo("FlatCommentsViewController/configureHeader/header info not available")
+                return headerView
             }
         }
         return dataSource
@@ -340,7 +339,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         collectionView.register(MessageCellViewQuoted.self, forCellWithReuseIdentifier: FlatCommentsViewController.messageCellViewQuotedReuseIdentifier)
         collectionView.register(MessageUnreadHeaderView.self, forCellWithReuseIdentifier: MessageUnreadHeaderView.elementKind)
         collectionView.register(MessageCommentHeaderView.self, forSupplementaryViewOfKind: MessageCommentHeaderView.elementKind, withReuseIdentifier: MessageCommentHeaderView.elementKind)
-        collectionView.register(MessageTimeHeaderView.self, forSupplementaryViewOfKind: MessageTimeHeaderView.elementKind, withReuseIdentifier: MessageTimeHeaderView.elementKind)
+        collectionView.register(MessageTimeHeaderView.self, forCellWithReuseIdentifier: MessageTimeHeaderView.elementKind)
         collectionView.delegate = self
         return collectionView
     }()
@@ -492,7 +491,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         fetchedResultsController = NSFetchedResultsController<FeedPostComment>(
             fetchRequest: fetchRequest,
             managedObjectContext: MainAppContext.shared.feedData.viewContext,
-            sectionNameKeyPath: "headerTime",
+            sectionNameKeyPath: nil,
             cacheName: nil
         )
         fetchedResultsController?.delegate = self
@@ -539,26 +538,35 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
 
     func updateComments() {
         var snapshot = CommentSnapshot()
-        if let sections = fetchedResultsController?.sections {
-            snapshot.appendSections(sections.map { $0.name } )
-            for section in sections {
-                if let comments = section.objects as? [FeedPostComment] {
-                    comments.forEach { comment in
-                        let messageRow = messagerow(for: comment)
-                        snapshot.appendItems([messageRow], toSection: section.name)
-                    }
-                }
-            }
-            // Insert the unread messages header. We insert this header only on first launch to avoid
-            // the header jumping around as new comments come in while the user is viewing the comments - @Dini
-            if let unreadCount = self.feedPost?.unreadCount, unreadCount > 0, isFirstLaunch {
-                let unreadHeaderIndex = snapshot.numberOfItems - Int(unreadCount)
-                if unreadHeaderIndex > 0 && unreadHeaderIndex < (snapshot.numberOfItems) {
-                    let item = snapshot.itemIdentifiers[unreadHeaderIndex]
-                    snapshot.insertItems([MessageRow.unreadCountHeader(Int32(unreadCount))], beforeItem: item)
-                }
-            }
+        var messageRows:[MessageRow] = []
+        var lastMessageHeaderTime: String?
+
+        snapshot.appendSections([ .comments ] )
+
+        // Insert the unread messages header. We insert this header only on first launch to avoid the header jumping around as new comments come in while the user is viewing the comments - @Dini
+        var commentCount = 0
+        var indexOfUnreadCommentsHeader = -1
+        if isFirstLaunch, let totalComments = fetchedResultsController?.fetchedObjects?.count, let unreadCount = self.feedPost?.unreadCount, unreadCount > 0 {
+            indexOfUnreadCommentsHeader = totalComments - Int(unreadCount)
         }
+
+        if let comments = fetchedResultsController?.fetchedObjects {
+            comments.forEach { comment in
+                let currentTime = comment.headerTime
+                if lastMessageHeaderTime != currentTime {
+                    lastMessageHeaderTime = currentTime
+                    messageRows.append(MessageRow.timeHeader(currentTime))
+                }
+                if indexOfUnreadCommentsHeader != -1, commentCount == indexOfUnreadCommentsHeader, let unreadCount = self.feedPost?.unreadCount {
+                    messageRows.append(MessageRow.unreadCountHeader(Int32(unreadCount)))
+                }
+                let messageRow = messagerow(for: comment)
+                commentCount += 1
+                messageRows.append(messageRow)
+            }
+            snapshot.appendItems(messageRows, toSection: .comments)
+        }
+
         dataSource.apply(snapshot, animatingDifferences: false) { [weak self] in
             guard let self = self else { return }
             DispatchQueue.main.async {
@@ -628,12 +636,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
         let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
 
-
-        let sectionHeaderSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
-        let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: sectionHeaderSize, elementKind: MessageTimeHeaderView.elementKind, alignment: .top)
-        sectionHeader.pinToVisibleBounds = true
         let section = NSCollectionLayoutSection(group: group)
-        section.boundarySupplementaryItems = [sectionHeader]
 
         // Setup the comment view header with post information as the global header of the collection view.
         let layoutHeaderSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(55))
@@ -660,7 +663,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                 .audio(let feedPostComment), .text(let feedPostComment), .linkPreview(let feedPostComment),
                 .quoted(let feedPostComment):
             return feedPostComment
-        case .unreadCountHeader(_):
+        case .unreadCountHeader(_), .timeHeader(_):
             return nil
         }
     }
