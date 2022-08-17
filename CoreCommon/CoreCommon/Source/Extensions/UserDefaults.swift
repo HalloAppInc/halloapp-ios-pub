@@ -24,4 +24,11 @@ extension UserDefaults {
         let data = try PropertyListEncoder().encode(value)
         return setValue(data, forKey: key)
     }
+
+    public func bool(forKey defaultName: String, defaultValue: Bool) -> Bool {
+        guard value(forKey: defaultName) != nil else {
+            return defaultValue
+        }
+        return bool(forKey: defaultName)
+    }
 }

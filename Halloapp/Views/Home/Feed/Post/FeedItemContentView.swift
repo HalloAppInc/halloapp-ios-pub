@@ -295,7 +295,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
     public static func obtainCryptoResultString(for contentID: String) -> String {
         let cryptoResultString: String
-        if ServerProperties.isInternalUser {
+        if ServerProperties.isInternalUser && DeveloperSetting.showDecryptionResults {
             switch AppContext.shared.cryptoData.cryptoResult(for: contentID, in: AppContext.shared.cryptoData.viewContext) {
             case .success:
                 cryptoResultString = " ✅"
