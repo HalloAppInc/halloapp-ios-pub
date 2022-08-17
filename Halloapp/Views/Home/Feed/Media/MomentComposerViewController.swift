@@ -469,7 +469,7 @@ extension FeedData {
                                            media: [media],
                                  linkPreviewData: nil,
                                 linkPreviewMedia: nil,
-                                            to: .feed(.all),
+                                              to: .feed(.all),
                                    momentContext: context)
     }
 }

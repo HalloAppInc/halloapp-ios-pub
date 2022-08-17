@@ -93,12 +93,23 @@ class MomentView: UIView {
         button.setTitle(Localizations.view, for: .normal)
         button.overrideUserInterfaceStyle = .dark
         button.backgroundTintColor = .systemBlue
-        button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 17, bottom: 10, right: 17)
+        button.tintColor = .white
+
         button.titleLabel?.font = .gothamFont(forTextStyle: .title3, pointSizeChange: -2, weight: .medium, maximumPointSize: 30)
+
+        button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 17, bottom: 10, right: 17)
+        let imageEdgeInset: CGFloat = effectiveUserInterfaceLayoutDirection == .leftToRight ? -4 : 4
+        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: imageEdgeInset, bottom: 0, right: -imageEdgeInset)
         button.layer.allowsEdgeAntialiasing = true
         button.layer.cornerCurve = .circular
+
         button.addTarget(self, action: #selector(actionButtonPushed), for: .touchUpInside)
         return button
+    }()
+
+    private lazy var lockedButtonImage: UIImage? = {
+        let config = UIImage.SymbolConfiguration(pointSize: actionButton.titleLabel?.font.pointSize ?? 16, weight: .medium)
+        return UIImage(systemName: "eye.slash", withConfiguration: config)
     }()
     
     private lazy var promptLabel: UILabel = {
@@ -110,19 +121,34 @@ class MomentView: UIView {
         label.layer.shadowRadius = 2
         label.textAlignment = .center
         label.numberOfLines = 0
+        label.adjustsFontSizeToFitWidth = true
+        return label
+    }()
+
+    private lazy var disclaimerLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = .systemFont(forTextStyle: .footnote)
+        label.adjustsFontSizeToFitWidth = true
+        label.textAlignment = .center
+        label.textColor = .white
+        label.text = Localizations.momentUnlockDisclaimer
         return label
     }()
     
     private lazy var overlayStack: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [avatarView, promptLabel, actionButton])
+        let stack = UIStackView(arrangedSubviews: [avatarView, promptLabel, actionButton, disclaimerLabel])
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.axis = .vertical
         stack.isLayoutMarginsRelativeArrangement = true
         stack.layoutMargins = UIEdgeInsets(top: 3, left: 20, bottom: 0, right: 20)
         stack.distribution = .fill
         stack.alignment = .center
+
         stack.setCustomSpacing(10, after: avatarView)
         stack.setCustomSpacing(10, after: promptLabel)
+        stack.setCustomSpacing(10, after: actionButton)
+
         return stack
     }()
     
@@ -191,9 +217,9 @@ class MomentView: UIView {
             blurView.bottomAnchor.constraint(equalTo: mediaView.bottomAnchor),
 
             overlayStack.leadingAnchor.constraint(equalTo: blurView.leadingAnchor),
-            overlayStack.topAnchor.constraint(greaterThanOrEqualTo: blurView.topAnchor),
+            overlayStack.topAnchor.constraint(greaterThanOrEqualTo: blurView.topAnchor, constant: 10),
             overlayStack.trailingAnchor.constraint(equalTo: blurView.trailingAnchor),
-            overlayStack.bottomAnchor.constraint(lessThanOrEqualTo: blurView.bottomAnchor),
+            overlayStack.bottomAnchor.constraint(lessThanOrEqualTo: blurView.bottomAnchor, constant: -10),
             overlayStack.centerYAnchor.constraint(equalTo: blurView.centerYAnchor),
 
             avatarView.widthAnchor.constraint(equalToConstant: avatarDiameter),
@@ -226,7 +252,7 @@ class MomentView: UIView {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 if let state = self?.state, state != .prompt {
-                    self?.setState(state)
+                    self?.setState(state, animated: true)
                 }
             }
             .store(in: &cancellables)
@@ -274,15 +300,19 @@ class MomentView: UIView {
 
     func setState(_ newState: State, animated: Bool = false) {
         if animated {
-            return UIView.animate(withDuration: 0.3) { self.setState(newState) }
+            return UIView.transition(with: self, duration: 0.3, options: [.transitionCrossDissolve]) { self.setState(newState) }
         }
+
+        let hasValidMoment = MainAppContext.shared.feedData.validMoment.value != nil
 
         var blurAlpha: CGFloat = 1
         var overlayAlpha: CGFloat = 1
         var mediaHidden = false
         var dayHidden = false
         var promptText = ""
-        var buttonText = MainAppContext.shared.feedData.validMoment.value == nil ? Localizations.unlock : Localizations.view
+        var buttonText = Localizations.view
+        let buttonImage = hasValidMoment ? nil : lockedButtonImage
+        let hideDisclaimer = hasValidMoment
 
         if let post = feedPost {
             let name = MainAppContext.shared.contactStore.firstName(for: post.userID,
@@ -308,11 +338,18 @@ class MomentView: UIView {
 
         blurView.effect = blurAlpha == .zero ? nil : UIBlurEffect(style: .regular)
         blurView.isUserInteractionEnabled = newState != .unlocked
+
         overlayStack.alpha = overlayAlpha
         mediaView.isHidden = mediaHidden
         dayOfWeekLabel.isHidden = dayHidden
         promptLabel.text = promptText
+
         actionButton.setTitle(buttonText, for: .normal)
+        actionButton.setImage(buttonImage?.withRenderingMode(.alwaysTemplate), for: .normal)
+
+        if disclaimerLabel.isHidden != hideDisclaimer {
+            disclaimerLabel.isHidden = hideDisclaimer
+        }
 
         state = newState
         setNeedsLayout()
@@ -420,5 +457,11 @@ extension Localizations {
         NSLocalizedString("open.camera",
                    value: "Open Camera",
                  comment: "Title of the button that opens the camera.")
+    }
+
+    static var momentUnlockDisclaimer: String {
+        NSLocalizedString("moment.unlock.disclaimer",
+                   value: "To see their moment, share your own",
+                 comment: "Text on a locked moment that explains the need to post your own in order to view it.")
     }
 }

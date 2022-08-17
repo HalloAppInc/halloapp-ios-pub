@@ -381,14 +381,6 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
         deletedPostIDs.formUnion(newlyDeletedPosts.compactMap { $0.post?.id })
         waitingPostIds = waitingPostIds.subtracting(newlyDecryptedPosts.compactMap { $0.post?.id })
 
-        if case let .momentStack(items) = snapshot.itemIdentifiers.first {
-            if #available(iOS 15, *) {
-                snapshot.reconfigureItems([.momentStack(items)])
-            } else {
-                snapshot.reloadItems([.momentStack(items)])
-            }
-        }
-
         collectionViewDataSource?.apply(snapshot, animatingDifferences: animated) { [weak self] in
             guard let self = self else { return }
 
