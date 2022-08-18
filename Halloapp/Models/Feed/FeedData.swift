@@ -3542,6 +3542,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             if mediaToUpload.isEmpty {
                 uploadPostIfMediaReady(postID: feedPost.id)
             } else {
+                // postMediaStatusChangedPublisher should trigger post upload once all media has been uploaded
                 mediaToUpload.forEach { media in
                     commonMediaUploader.upload(mediaID: media.id)
                 }
