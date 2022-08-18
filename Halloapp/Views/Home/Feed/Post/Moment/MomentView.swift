@@ -141,7 +141,7 @@ class MomentView: UIView {
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.axis = .vertical
         stack.isLayoutMarginsRelativeArrangement = true
-        stack.layoutMargins = UIEdgeInsets(top: 3, left: 20, bottom: 0, right: 20)
+        stack.layoutMargins = UIEdgeInsets(top: 5, left: 20, bottom: 5, right: 20)
         stack.distribution = .fill
         stack.alignment = .center
 
@@ -311,8 +311,8 @@ class MomentView: UIView {
         var dayHidden = false
         var promptText = ""
         var buttonText = Localizations.view
-        let buttonImage = hasValidMoment ? nil : lockedButtonImage
-        let hideDisclaimer = hasValidMoment
+        var buttonImage = hasValidMoment ? nil : lockedButtonImage
+        var hideDisclaimer = hasValidMoment
 
         if let post = feedPost {
             let name = MainAppContext.shared.contactStore.firstName(for: post.userID,
@@ -334,6 +334,8 @@ class MomentView: UIView {
             dayHidden = true
             promptText = Localizations.shareMoment
             buttonText = Localizations.openCamera
+            buttonImage = nil
+            hideDisclaimer = true
         }
 
         blurView.effect = blurAlpha == .zero ? nil : UIBlurEffect(style: .regular)
