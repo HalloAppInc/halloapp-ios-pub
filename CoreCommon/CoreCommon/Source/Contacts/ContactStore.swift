@@ -15,10 +15,6 @@ import Combine
 import Contacts
 import CoreData
 
-// MARK: Types
-
-public typealias UserID = String
-
 private struct PushNumberData {
     public var normalizedPhoneNumber: String
     public var isMessagingAccepted: Bool

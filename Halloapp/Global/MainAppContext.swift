@@ -25,7 +25,6 @@ class MainAppContext: AppContext {
     private static let userDefaultsAppVersion = "com.halloapp.app.version"
 
     // MARK: Global objects
-    private(set) var avatarStore: AvatarStore!
     private(set) var feedData: FeedData!
     private(set) var chatData: ChatData!
     private(set) var syncManager: SyncManager!
@@ -133,8 +132,7 @@ class MainAppContext: AppContext {
         feedData = FeedData(service: service, contactStore: contactStore, mainDataStore: mainDataStore, userData: userData)
         chatData = ChatData(service: service, contactStore: contactStore, mainDataStore: mainDataStore, userData: userData)
         syncManager = SyncManager(contactStore: contactStore, service: service, userData: userData)
-        avatarStore = AvatarStore()
-        coreService.avatarDelegate = avatarStore
+        
         privacySettingsImpl = PrivacySettings(contactStore: contactStore, service: service)
         shareExtensionDataStore = ShareExtensionDataStore()
         notificationServiceExtensionDataStore = NotificationServiceExtensionDataStore()

@@ -174,12 +174,13 @@ final class ProfileHeaderViewController: UIViewController, UserMenuHandler {
     }
     
     private func presentAvatar() {
-        guard let avatarStore = MainAppContext.shared.avatarStore, let userID = headerView.userID, headerView.avatarViewButton.avatarView.hasImage else {
+        guard let userID = headerView.userID, headerView.avatarViewButton.avatarView.hasImage else {
             // TODO: Support opening avatar view while avatar is being downloaded
             return
         }
-        
+        let avatarStore = MainAppContext.shared.avatarStore
         let avatar = avatarStore.userAvatar(forUserId: userID)
+
         guard !avatar.isEmpty else {
             DDLogError("ProfileHeaderViewController/avatarViewTapped/error [unknown-avatar-id]")
             return

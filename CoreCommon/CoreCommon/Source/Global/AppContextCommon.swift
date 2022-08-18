@@ -52,6 +52,7 @@ open class AppContextCommon {
 
     // MARK: Global objects
     public let userData: UserData
+    public let avatarStore: AvatarStore
     public static let userDefaultsForAppGroup: UserDefaults! = UserDefaults(suiteName: appGroupName)
     public let userDefaults: UserDefaults! = AppContextCommon.userDefaultsForAppGroup
     public let keyStore: KeyStore
@@ -127,6 +128,7 @@ open class AppContextCommon {
         DDLogInfo("HalloApp \(Self.appVersionForService)")
 
         userData = UserData(storeDirectoryURL: Self.sharedDirectoryURL, isAppClip: Self.isAppClip)
+        avatarStore = AvatarStore()
 
         #if !DEBUG
         SentrySDK.setUser(Sentry.User(userId: userData.userId))
@@ -135,6 +137,8 @@ open class AppContextCommon {
         coreServiceCommon = serviceBuilder(userData.credentials)
         keyStore = KeyStore(userData: userData, appTarget: appTarget, userDefaults: userDefaults)
         keyData = KeyData(service: coreServiceCommon, userData: userData, keyStore: keyStore)
+
+        coreServiceCommon.avatarDelegate = avatarStore
 
         cancellableSet.insert(
             userData.didLogIn.sink { [weak self] in

@@ -7,7 +7,6 @@
 //
 
 import Alamofire
-import CoreCommon
 import CocoaLumberjackSwift
 import Combine
 import Contacts
@@ -49,13 +48,13 @@ public class AvatarStore: ServiceAvatarDelegate {
     
     private class var persistentStoreURL: URL {
         get {
-            return AppContext.sharedDirectoryURL.appendingPathComponent("avatars.sqlite")
+            return AppContextCommon.sharedDirectoryURL.appendingPathComponent("avatars.sqlite")
         }
     }
     
     fileprivate class var avatarDirectoryURL: URL {
         get {
-            return AppContext.sharedDirectoryURL.appendingPathComponent("Avatars")
+            return AppContextCommon.sharedDirectoryURL.appendingPathComponent("Avatars")
         }
     }
     
@@ -209,7 +208,7 @@ public class AvatarStore: ServiceAvatarDelegate {
         return currentAvatar
     }
 
-    public func removeAvatar(for userID: UserID, using service: CoreService) {
+    public func removeAvatar(for userID: UserID, using service: CoreServiceCommon) {
         uploadAvatarData(nil, for: userID, using: service)
 
         // TODO: Indicate that this is still pending instead of optimistically updating
@@ -228,7 +227,7 @@ public class AvatarStore: ServiceAvatarDelegate {
         }
     }
 
-    public func uploadAvatar(image: UIImage, for userID: UserID, using service: CoreService) {
+    public func uploadAvatar(image: UIImage, for userID: UserID, using service: CoreServiceCommon) {
         performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
             guard let self = self else { return }
             guard let thumbnailImage = image.fastResized(to: Self.thumbnailSize),
@@ -280,7 +279,7 @@ public class AvatarStore: ServiceAvatarDelegate {
         }
     }
 
-    public func sendPendingAvatarIfNecessary(for userID: UserID, using service: CoreService) {
+    public func sendPendingAvatarIfNecessary(for userID: UserID, using service: CoreServiceCommon) {
         guard let pendingUserID = UserDefaults.standard.string(forKey: AvatarStore.Keys.userDefaultsUpload), pendingUserID == userID else
         {
             DDLogInfo("AvatarStore/sendPendingAvatarIfNecessary/skipping [not necessary]")
@@ -319,7 +318,7 @@ public class AvatarStore: ServiceAvatarDelegate {
         task.resume()
     }
 
-    private func uploadAvatarData(_ avatarData: AvatarData?, for userID: UserID, using service: CoreService) {
+    private func uploadAvatarData(_ avatarData: AvatarData?, for userID: UserID, using service: CoreServiceCommon) {
         // NB: We currently only support uploading avatar for one user ID at a time
         UserDefaults.standard.set(userID, forKey: AvatarStore.Keys.userDefaultsUpload)
         let logAction = avatarData == nil ? "remove" : "upload"
@@ -470,7 +469,7 @@ public class AvatarStore: ServiceAvatarDelegate {
         }
     }
     
-    public func service(_ service: CoreService, didReceiveAvatarInfo avatarInfo: AvatarInfo) {
+    public func service(_ service: CoreServiceCommon, didReceiveAvatarInfo avatarInfo: AvatarInfo) {
         DDLogInfo("AvatarStore/didReceiveAvatar \(avatarInfo)")
 
         performSeriallyOnBackgroundContext { [weak self] managedObjectContext in

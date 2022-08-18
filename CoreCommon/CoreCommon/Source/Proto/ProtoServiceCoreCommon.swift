@@ -19,8 +19,8 @@ fileprivate let userDefaultsKeyForRequestLogs = "serverRequestedLogs"
 
 open class ProtoServiceCoreCommon: NSObject, ObservableObject {
 
-    // MARK: Avatar
     public weak var keyDelegate: ServiceKeyDelegate?
+    public weak var avatarDelegate: ServiceAvatarDelegate?
 
     private class ConnectionStateCallback {
         let state: ConnectionState
@@ -487,6 +487,26 @@ extension ProtoServiceCoreCommon: CoreServiceCommon {
 
     public func joinGroupWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>) {
         enqueue(request: ProtoJoinGroupWithLinkRequest(inviteLink: inviteLink, completion: completion))
+    }
+
+    // MARK: Avatar
+
+    public func updateAvatar(_ avatarData: AvatarData?, for userID: UserID, completion: @escaping ServiceRequestCompletion<AvatarID?>) {
+        var uploadAvatar = Server_UploadAvatar()
+        uploadAvatar.id = userID
+        if let thumbnailData = avatarData?.thumbnail {
+            uploadAvatar.data = thumbnailData
+        }
+        if let fullData = avatarData?.full {
+            uploadAvatar.fullData = fullData
+        }
+
+        let request = ProtoRequest<String?>(
+            iqPacket: .iqPacket(type: .set, payload: .uploadAvatar(uploadAvatar)),
+            transform: { (iq) in .success(iq.avatar.id) },
+            completion: completion)
+
+        enqueue(request: request)
     }
 
     // MARK: Web client

@@ -74,6 +74,13 @@
 		32CE966027CFF6DB00B4A2C1 /* ProtoServiceCoreCommon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32CE965F27CFF6DB00B4A2C1 /* ProtoServiceCoreCommon.swift */; };
 		32CE966227CFF74900B4A2C1 /* CoreServiceCommon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32CE966127CFF74800B4A2C1 /* CoreServiceCommon.swift */; };
 		68C04BED2891BB1900DA5AD9 /* web.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68C04BEC2891BB1900DA5AD9 /* web.pb.swift */; };
+		A199CBFE28AEB32D00E74089 /* AvatarStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A199CBFA28AEB2A300E74089 /* AvatarStore.swift */; };
+		A199CBFF28AEB33000E74089 /* GroupAvatar+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = A199CBF928AEB2A300E74089 /* GroupAvatar+CoreDataProperties.swift */; };
+		A199CC0028AEB33400E74089 /* AvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A199CBFB28AEB2A300E74089 /* AvatarView.swift */; };
+		A199CC0128AEB33B00E74089 /* GroupAvatar+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = A199CBF828AEB2A300E74089 /* GroupAvatar+CoreDataClass.swift */; };
+		A199CC0228AEB33D00E74089 /* Avatar+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = A199CBF728AEB2A300E74089 /* Avatar+CoreDataProperties.swift */; };
+		A199CC0328AEB34000E74089 /* Avatar+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = A199CBF628AEB2A300E74089 /* Avatar+CoreDataClass.swift */; };
+		A199CC0428AEBA9A00E74089 /* Avatars.xcdatamodeld in Resources */ = {isa = PBXBuildFile; fileRef = A199CBF528AEB2A300E74089 /* Avatars.xcdatamodeld */; };
 		F404FC292810AD11008313FF /* SwiftNoise in Frameworks */ = {isa = PBXBuildFile; productRef = F404FC282810AD11008313FF /* SwiftNoise */; };
 		F4585C7627E152F700BF6ED6 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = F4585C7527E152F700BF6ED6 /* Sentry */; };
 		F4585C7C27E156B600BF6ED6 /* SentryLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4585C7B27E156B600BF6ED6 /* SentryLogger.swift */; };
@@ -141,6 +148,13 @@
 		32CE965F27CFF6DB00B4A2C1 /* ProtoServiceCoreCommon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtoServiceCoreCommon.swift; sourceTree = "<group>"; };
 		32CE966127CFF74800B4A2C1 /* CoreServiceCommon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreServiceCommon.swift; sourceTree = "<group>"; };
 		68C04BEC2891BB1900DA5AD9 /* web.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = web.pb.swift; sourceTree = "<group>"; };
+		A199CBF428AEB2A300E74089 /* Avatars.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Avatars.xcdatamodel; sourceTree = "<group>"; };
+		A199CBF628AEB2A300E74089 /* Avatar+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Avatar+CoreDataClass.swift"; sourceTree = "<group>"; };
+		A199CBF728AEB2A300E74089 /* Avatar+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Avatar+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		A199CBF828AEB2A300E74089 /* GroupAvatar+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GroupAvatar+CoreDataClass.swift"; sourceTree = "<group>"; };
+		A199CBF928AEB2A300E74089 /* GroupAvatar+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GroupAvatar+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		A199CBFA28AEB2A300E74089 /* AvatarStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarStore.swift; sourceTree = "<group>"; };
+		A199CBFB28AEB2A300E74089 /* AvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarView.swift; sourceTree = "<group>"; };
 		F404FC262810AC74008313FF /* swift-noise-protocol */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = "swift-noise-protocol"; path = "../swift-noise-protocol"; sourceTree = "<group>"; };
 		F4585C7B27E156B600BF6ED6 /* SentryLogger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SentryLogger.swift; sourceTree = "<group>"; };
 		F4B361602862821200764454 /* NSManagedObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSManagedObject.swift; sourceTree = "<group>"; };
@@ -313,6 +327,7 @@
 			children = (
 				32CE963A27CFED2A00B4A2C1 /* PersistentHistoryTracker.swift */,
 				32CE963927CFED2A00B4A2C1 /* PacketID.swift */,
+				A199CBFC28AEB2A300E74089 /* Avatars */,
 				321C83E027CFE20200DDD03A /* Chat */,
 				32CE963D27CFED2F00B4A2C1 /* Contacts */,
 				321C83E927CFE2A700DDD03A /* Extensions */,
@@ -355,6 +370,20 @@
 				32CE964F27CFEE4400B4A2C1 /* UserKeyBundle+CoreDataProperties.swift */,
 			);
 			path = "CoreData Stack";
+			sourceTree = "<group>";
+		};
+		A199CBFC28AEB2A300E74089 /* Avatars */ = {
+			isa = PBXGroup;
+			children = (
+				A199CBF528AEB2A300E74089 /* Avatars.xcdatamodeld */,
+				A199CBF628AEB2A300E74089 /* Avatar+CoreDataClass.swift */,
+				A199CBF728AEB2A300E74089 /* Avatar+CoreDataProperties.swift */,
+				A199CBF828AEB2A300E74089 /* GroupAvatar+CoreDataClass.swift */,
+				A199CBF928AEB2A300E74089 /* GroupAvatar+CoreDataProperties.swift */,
+				A199CBFA28AEB2A300E74089 /* AvatarStore.swift */,
+				A199CBFB28AEB2A300E74089 /* AvatarView.swift */,
+			);
+			path = Avatars;
 			sourceTree = "<group>";
 		};
 		F404FC252810AC74008313FF /* Packages */ = {
@@ -464,6 +493,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A199CC0428AEBA9A00E74089 /* Avatars.xcdatamodeld in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -479,17 +509,20 @@
 				32CE963427CFED0600B4A2C1 /* log_events.pb.swift in Sources */,
 				32CE966027CFF6DB00B4A2C1 /* ProtoServiceCoreCommon.swift in Sources */,
 				32CE965C27CFEE4400B4A2C1 /* UserKeyBundle+CoreDataClass.swift in Sources */,
+				A199CC0228AEB33D00E74089 /* Avatar+CoreDataProperties.swift in Sources */,
 				32CE965A27CFEE4400B4A2C1 /* UserKeyBundle+CoreDataProperties.swift in Sources */,
 				32CE962127CFED0000B4A2C1 /* CommonEvents.swift in Sources */,
 				32CE961427CFECD000B4A2C1 /* KeyData.swift in Sources */,
 				32CE965427CFEE4400B4A2C1 /* OneTimePreKey+CoreDataProperties.swift in Sources */,
 				32CE962D27CFED0600B4A2C1 /* NoiseStream.swift in Sources */,
+				A199CC0128AEB33B00E74089 /* GroupAvatar+CoreDataClass.swift in Sources */,
 				32CE961927CFECFA00B4A2C1 /* LogFormatter.swift in Sources */,
 				32CE960D27CFECCB00B4A2C1 /* UserAgent.swift in Sources */,
 				32CE965627CFEE4400B4A2C1 /* Keys.xcdatamodeld in Sources */,
 				32CE966227CFF74900B4A2C1 /* CoreServiceCommon.swift in Sources */,
 				32CE963227CFED0600B4A2C1 /* server.pb.swift in Sources */,
 				32CE962227CFED0000B4A2C1 /* ErrorLogger.swift in Sources */,
+				A199CC0028AEB33400E74089 /* AvatarView.swift in Sources */,
 				32CE965727CFEE4400B4A2C1 /* MessageKey+CoreDataClass.swift in Sources */,
 				321C83F427CFEC0B00DDD03A /* Hashcash.swift in Sources */,
 				F4B361612862821200764454 /* NSManagedObject.swift in Sources */,
@@ -506,11 +539,13 @@
 				32CE964527CFED6F00B4A2C1 /* ABContact+CoreDataClass.swift in Sources */,
 				32CE960327CFECC400B4A2C1 /* UserDefaults.swift in Sources */,
 				32CE963827CFED1E00B4A2C1 /* XMPPError.swift in Sources */,
+				A199CBFF28AEB33000E74089 /* GroupAvatar+CoreDataProperties.swift in Sources */,
 				32CE961527CFECD000B4A2C1 /* Keys.swift in Sources */,
 				32CE965527CFEE4400B4A2C1 /* MessageKeyBundle+CoreDataClass.swift in Sources */,
 				32CE963627CFED1500B4A2C1 /* XMPPWhisperRequests.swift in Sources */,
 				32CE965E27CFEE4400B4A2C1 /* OneTimePreKey+CoreDataClass.swift in Sources */,
 				32CE960B27CFECCB00B4A2C1 /* Localizations.swift in Sources */,
+				A199CBFE28AEB32D00E74089 /* AvatarStore.swift in Sources */,
 				68C04BED2891BB1900DA5AD9 /* web.pb.swift in Sources */,
 				321C83F327CFEC0B00DDD03A /* NoiseRegistrationService.swift in Sources */,
 				32CE960A27CFECCB00B4A2C1 /* UserData.xcdatamodeld in Sources */,
@@ -525,6 +560,7 @@
 				32CE95FD27CFECC400B4A2C1 /* UIImage.swift in Sources */,
 				32CE961A27CFECFA00B4A2C1 /* LogFileManager.swift in Sources */,
 				32CE963127CFED0600B4A2C1 /* ProtoWhisperRequests.swift in Sources */,
+				A199CC0328AEB34000E74089 /* Avatar+CoreDataClass.swift in Sources */,
 				32CE95FF27CFECC400B4A2C1 /* Sodium.swift in Sources */,
 				32CE95FE27CFECC400B4A2C1 /* Data.swift in Sources */,
 				32CE961627CFECD000B4A2C1 /* KeyStore.swift in Sources */,
@@ -999,6 +1035,15 @@
 			path = "../CoreData Stack/Keys.xcdatamodeld";
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
+		};
+		A199CBF528AEB2A300E74089 /* Avatars.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				A199CBF428AEB2A300E74089 /* Avatars.xcdatamodel */,
+			);
+			currentVersion = A199CBF428AEB2A300E74089 /* Avatars.xcdatamodel */;
+			path = Avatars.xcdatamodeld;
+			sourceTree = "<group>";
 		};
 /* End XCVersionGroup section */
 	};

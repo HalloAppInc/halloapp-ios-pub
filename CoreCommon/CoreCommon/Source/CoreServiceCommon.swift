@@ -29,6 +29,11 @@ public typealias ServiceRequestCompletion<T> = (Result<T, RequestError>) -> Void
 
 public typealias ServerPropertiesResponse = (version: String, properties: [String: String])
 
+public typealias UserID = String
+public typealias GroupID = String
+
+public typealias AvatarInfo = (userID: UserID, avatarID: AvatarID)
+
 /// Core aspects of the service available in extensions
 public protocol CoreServiceCommon {
 
@@ -59,6 +64,9 @@ public protocol CoreServiceCommon {
     func requestCountOfOneTimeKeys(completion: @escaping ServiceRequestCompletion<Int32>)
     func requestAddOneTimeKeys(_ keys: [PreKey], completion: @escaping ServiceRequestCompletion<Void>)
 
+    // MARK: Avatar
+    func updateAvatar(_ avatarData: AvatarData?, for userID: UserID, completion: @escaping ServiceRequestCompletion<AvatarID?>)
+
     // MARK: Groups
     func getGroupPreviewWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>)
     func joinGroupWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>)
@@ -71,11 +79,16 @@ public protocol CoreServiceCommon {
 
     // MARK: Delegates
     var keyDelegate: ServiceKeyDelegate? { get set }
+    var avatarDelegate: ServiceAvatarDelegate? { get set }
 }
 
 public protocol ServiceKeyDelegate: AnyObject {
     func service(_ service: CoreServiceCommon, didReceiveWhisperMessage message: WhisperMessage)
     func service(_ service: CoreServiceCommon, didReceiveRerequestWithRerequestCount retryCount: Int)
+}
+
+public protocol ServiceAvatarDelegate: AnyObject {
+    func service(_ service: CoreServiceCommon, didReceiveAvatarInfo avatarInfo: AvatarInfo)
 }
 
 public struct RerequestData {

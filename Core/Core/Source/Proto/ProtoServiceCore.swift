@@ -21,9 +21,6 @@ open class ProtoServiceCore: ProtoServiceCoreCommon {
 
     public let didGetNewWhisperMessage = PassthroughSubject<WhisperMessage, Never>()
 
-    // MARK: Avatar
-    public weak var avatarDelegate: ServiceAvatarDelegate?
-
     private var pendingWorkItems = [GroupID: [DispatchWorkItem]]()
     private var groupStates = [GroupID: ProcessingState]()
 
@@ -97,23 +94,6 @@ open class ProtoServiceCore: ProtoServiceCoreCommon {
 }
 
 extension ProtoServiceCore: CoreService {
-    public func updateAvatar(_ avatarData: AvatarData?, for userID: UserID, completion: @escaping ServiceRequestCompletion<AvatarID?>) {
-        var uploadAvatar = Server_UploadAvatar()
-        uploadAvatar.id = userID
-        if let thumbnailData = avatarData?.thumbnail {
-            uploadAvatar.data = thumbnailData
-        }
-        if let fullData = avatarData?.full {
-            uploadAvatar.fullData = fullData
-        }
-
-        let request = ProtoRequest<String?>(
-            iqPacket: .iqPacket(type: .set, payload: .uploadAvatar(uploadAvatar)),
-            transform: { (iq) in .success(iq.avatar.id) },
-            completion: completion)
-
-        enqueue(request: request)
-    }
 
     public func requestMediaUploadURL(type: Server_UploadMedia.TypeEnum, size: Int, downloadURL: URL?, completion: @escaping ServiceRequestCompletion<MediaURLInfo?>) {
         // Wait until connected to request URLs. User meanwhile can cancel posting.

@@ -565,10 +565,7 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
     }
 
     private func presentAvatar() {
-        guard let avatarStore = MainAppContext.shared.avatarStore else {
-            return
-        }
-        
+        let avatarStore = MainAppContext.shared.avatarStore
         let avatarData = avatarStore.groupAvatarData(for: groupID)
         
         let imagePublisher = avatarData.imageDidChange

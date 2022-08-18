@@ -15,16 +15,11 @@ public enum Feed {
     case group(GroupID)
 }
 
-public typealias AvatarInfo = (userID: UserID, avatarID: AvatarID)
-
 /// Core aspects of the service available in extensions
 public protocol CoreService: CoreServiceCommon {
 
     // WhisperKeys
     var didGetNewWhisperMessage: PassthroughSubject<WhisperMessage, Never> { get }
-
-    // MARK: Avatar
-    func updateAvatar(_ avatarData: AvatarData?, for userID: UserID, completion: @escaping ServiceRequestCompletion<AvatarID?>)
 
     // MARK: Feed
     func requestMediaUploadURL(type: Server_UploadMedia.TypeEnum, size: Int, downloadURL: URL?, completion: @escaping ServiceRequestCompletion<MediaURLInfo?>)
@@ -57,11 +52,4 @@ public protocol CoreService: CoreServiceCommon {
 
     // MARK: Event Logging
     func log(countableEvents: [CountableEvent], discreteEvents: [DiscreteEvent], completion: @escaping ServiceRequestCompletion<Void>)
-
-    // MARK: Delegates
-    var avatarDelegate: ServiceAvatarDelegate? { get set }
-}
-
-public protocol ServiceAvatarDelegate: AnyObject {
-    func service(_ service: CoreService, didReceiveAvatarInfo avatarInfo: AvatarInfo)
 }

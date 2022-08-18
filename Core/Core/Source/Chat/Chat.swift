@@ -12,7 +12,6 @@ import UIKit
 import CoreLocation
 import Contacts
 
-public typealias GroupID = String
 public typealias ChatType = ThreadType
 
 public enum ChatState: String {
