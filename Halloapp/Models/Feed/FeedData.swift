@@ -3495,7 +3495,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             let progressPublisher = ImageServer.shared.progress
                 .prepend(mediaIDs)
                 .filter { mediaIDs.contains($0) }
-                .map { mediaID in
+                .map { (mediaID: CommonMediaID)-> Float in
                     let (processingCount, processingProgress) = ImageServer.shared.progress(for: mediaID)
                     return processingProgress * Float(processingCount) / Float(mediaCount)
                 }

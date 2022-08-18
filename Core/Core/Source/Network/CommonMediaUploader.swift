@@ -27,6 +27,7 @@ enum MediaUploadError: Error {
     case serverError
     case tooLarge
     case cancelled
+    case unknown
 }
 
 /*
@@ -519,7 +520,20 @@ extension CommonMediaUploader {
             request.httpMethod = "HEAD"
             request.setValue("1.0.0", forHTTPHeaderField: "Tus-Resumable")
 
-            let (_, response) = try await URLSession.shared.data(for: request)
+            let response: URLResponse
+            if #available(iOSApplicationExtension 15.0, *) {
+                (_, response) = try await URLSession.shared.data(for: request)
+            } else {
+                response = try await withCheckedThrowingContinuation { continuation in
+                    URLSession.shared.dataTask(with: request) { data, response, error in
+                        if let response = response, error == nil {
+                            continuation.resume(returning: response)
+                        } else {
+                            continuation.resume(throwing: error ?? MediaUploadError.unknown)
+                        }
+                    }.resume()
+                }
+            }
 
             guard let response = response as? HTTPURLResponse, let uploadOffset = response.value(forHTTPHeaderField: "Upload-Offset").flatMap({ Int($0) }) else {
                 throw MediaUploadError.uploadOffsetFetchFailed
