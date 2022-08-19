@@ -132,6 +132,9 @@ class MomentView: UIView {
         label.adjustsFontSizeToFitWidth = true
         label.textAlignment = .center
         label.textColor = .white
+        label.shadowColor = .black.withAlphaComponent(0.15)
+        label.shadowOffset = .init(width: 0, height: 0.5)
+        label.layer.shadowRadius = 2
         label.text = Localizations.momentUnlockDisclaimer
         return label
     }()
@@ -265,6 +268,9 @@ class MomentView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: Layout.cornerRadius).cgPath
+        
+        promptLabel.layer.shadowPath = UIBezierPath(rect: promptLabel.bounds).cgPath
+        disclaimerLabel.layer.shadowPath = UIBezierPath(rect: disclaimerLabel.bounds).cgPath
     }
 
     func configure(with post: FeedPost?) {

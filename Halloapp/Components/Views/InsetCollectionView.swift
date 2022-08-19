@@ -190,7 +190,7 @@ fileprivate class StandardCollectionViewCell: InsetCollectionViewCell {
         label.numberOfLines = 1
         label.font = .preferredFont(forTextStyle: .caption1)
         label.textColor = .secondaryLabel
-        
+            
         return label
     }()
     
