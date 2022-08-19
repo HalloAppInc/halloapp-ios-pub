@@ -16,27 +16,38 @@ import CoreData
 import Photos
 import SafariServices
 
-fileprivate struct ChatMsgData {
+fileprivate struct ChatMessageData: Equatable, Hashable {
     let id: String
-    let cellHeight: Int16
-    let outgoingStatus: ChatMessage.OutgoingStatus
-    let incomingStatus: ChatMessage.IncomingStatus
+    let fromUserId: String
+    let timestamp: Date?
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        return lhs.id == rhs.id
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+}
+
+fileprivate struct ChatEventData: Equatable, Hashable {
     let timestamp: Date?
     let indexPath: IndexPath
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        return lhs.indexPath == rhs.indexPath
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(indexPath)
+    }
 }
 
 fileprivate enum MessageRow: Hashable, Equatable {
-    case chatMessage(ChatMessage)
-    case retracted(ChatMessage)
-    case media(ChatMessage)
-    case audio(ChatMessage)
-    case text(ChatMessage)
-    case location(ChatMessage)
-    case linkPreview(ChatMessage)
-    case quoted(ChatMessage)
-    case unreadCountHeader(Int32)
+    case chatMessage(ChatMessageData)
+    case chatEvent(ChatEventData)
     case chatCall(ChatCallData)
-    case chatEvent(ChatEvent)
+    case unreadCountHeader(Int32)
     case addToContactBook
     case timeHeader(String)
 
@@ -44,7 +55,7 @@ fileprivate enum MessageRow: Hashable, Equatable {
         switch self {
         case .chatEvent(let data):
             return data.timestamp
-        case .chatMessage(let data), .retracted(let data), .media(let data), .audio(let data), .text(let data), .location(let data), .linkPreview(let data), .quoted(let data):
+        case .chatMessage(let data):
             return data.timestamp
         case .chatCall(let data):
             return data.timestamp
@@ -58,8 +69,8 @@ fileprivate enum MessageRow: Hashable, Equatable {
     var headerTime: String {
         switch self {
         case .chatEvent(let data):
-            return data.timestamp.chatMsgGroupingTimestamp(Date())
-        case .chatMessage(let data), .retracted(let data), .media(let data), .audio(let data), .text(let data), .location(let data), .linkPreview(let data), .quoted(let data):
+            return data.timestamp?.chatMsgGroupingTimestamp(Date()) ?? ""
+        case .chatMessage(let data):
             return data.timestamp?.chatMsgGroupingTimestamp(Date()) ?? ""
         case .chatCall(let data):
             return data.timestamp?.chatMsgGroupingTimestamp(Date()) ?? ""
@@ -77,9 +88,9 @@ fileprivate enum MessageRow: Hashable, Equatable {
     // in order to insert the unread bannber at the right location, we need this property
     var isCountedInUnreadCounts: Bool {
         switch self {
-        case .chatMessage(_), .retracted(_), .media(_), .audio(_), .text(_), .location(_), .linkPreview(_), .quoted(_), .unreadCountHeader(_), .chatCall(_):
+        case .chatMessage(_), .chatCall(_):
             return true
-        case .chatEvent(_), .addToContactBook, .timeHeader(_):
+        case .chatEvent(_), .addToContactBook, .timeHeader(_), .unreadCountHeader(_):
             return false
         }
     }
@@ -229,71 +240,84 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         return collectionView
     }()
 
+    func chatMessage(id chatMessageId: ChatMessageID) -> ChatMessage? {
+        return chatMessageFetchedResultsController?.fetchedObjects?.first { $0.id == chatMessageId}
+    }
+
+    func chatMessageCell(chatMessage: ChatMessage, indexPath: IndexPath) ->  UICollectionViewCell {
+        if [.retracted, .retracting].contains(chatMessage.outgoingStatus) || [.retracted, .rerequesting, .unsupported].contains(chatMessage.incomingStatus) {
+            let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: ChatViewControllerNew.messageViewCellReuseIdentifier,
+                for: indexPath)
+            if let itemCell = cell as? MessageViewCell {
+                self.configureCell(itemCell: itemCell, for: chatMessage)
+            }
+            return cell
+        }
+        if chatMessage.media?.first?.type == .audio {
+            let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: ChatViewControllerNew.messageCellViewAudioReuseIdentifier,
+                for: indexPath)
+            if let itemCell = cell as? MessageCellViewAudio {
+                self.configureCell(itemCell: itemCell, for: chatMessage)
+            }
+            return cell
+        } else if chatMessage.media?.first?.type == .video || chatMessage.media?.first?.type == .image {
+            let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: ChatViewControllerNew.messageCellViewMediaReuseIdentifier,
+                for: indexPath)
+            if let itemCell = cell as? MessageCellViewMedia {
+                self.configureCell(itemCell: itemCell, for: chatMessage)
+            }
+            return cell
+        }
+        if let feedLinkPreviews = chatMessage.linkPreviews, feedLinkPreviews.first != nil {
+            let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: ChatViewControllerNew.messageCellViewLinkPreviewReuseIdentifier,
+                for: indexPath)
+            if let itemCell = cell as? MessageCellViewLinkPreview {
+                self.configureCell(itemCell: itemCell, for: chatMessage)
+            }
+            return cell
+        }
+        if chatMessage.chatReplyMessageID != nil || chatMessage.feedPostId != nil {
+            let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: ChatViewControllerNew.messageCellViewQuotedReuseIdentifier,
+                for: indexPath)
+            if let itemCell = cell as? MessageCellViewQuoted {
+                self.configureCell(itemCell: itemCell, for: chatMessage)
+            }
+            return cell
+        }
+        if chatMessage.location != nil {
+            let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: ChatViewControllerNew.messageCellViewLocationReuseIdentifier,
+                for: indexPath)
+            if let itemCell = cell as? MessageCellViewLocation {
+                self.configureCell(itemCell: itemCell, for: chatMessage)
+            }
+            return cell
+        }
+        let cell = collectionView.dequeueReusableCell(
+            withReuseIdentifier: ChatViewControllerNew.messageCellViewTextReuseIdentifier,
+            for: indexPath)
+        if let itemCell = cell as? MessageCellViewText {
+            self.configureCell(itemCell: itemCell, for: chatMessage)
+        }
+        return cell
+    }
+
     private lazy var dataSource: ChatDataSource = {
         let dataSource = ChatDataSource(
             collectionView: collectionView,
             cellProvider: { [weak self] (collectionView, indexPath, messageRow) -> UICollectionViewCell? in
                 switch messageRow {
-                case .chatMessage(let chatMessage), .retracted(let chatMessage):
-                    let cell = collectionView.dequeueReusableCell(
-                        withReuseIdentifier: ChatViewControllerNew.messageViewCellReuseIdentifier,
-                        for: indexPath)
-                    if let itemCell = cell as? MessageViewCell, let self = self {
-                        self.configureCell(itemCell: itemCell, for: chatMessage)
+                case .chatMessage(let chatMessageData):
+                    if let self = self, let chatMessage = self.chatMessage(id: chatMessageData.id) {
+                        return self.chatMessageCell(chatMessage: chatMessage, indexPath: indexPath)
                     }
-                    return cell
-                case .media(let chatMessage):
-                    let cell = collectionView.dequeueReusableCell(
-                        withReuseIdentifier: ChatViewControllerNew.messageCellViewMediaReuseIdentifier,
-                        for: indexPath)
-                    if let itemCell = cell as? MessageCellViewMedia, let self = self {
-                        self.configureCell(itemCell: itemCell, for: chatMessage)
-                    }
-                    return cell
-                case .audio(let chatMessage):
-                    let cell = collectionView.dequeueReusableCell(
-                        withReuseIdentifier: ChatViewControllerNew.messageCellViewAudioReuseIdentifier,
-                        for: indexPath)
-                    if let itemCell = cell as? MessageCellViewAudio, let self = self {
-                        self.configureCell(itemCell: itemCell, for: chatMessage)
-                    }
-                    return cell
-                case .linkPreview(let chatMessage):
-                    let cell = collectionView.dequeueReusableCell(
-                        withReuseIdentifier: ChatViewControllerNew.messageCellViewLinkPreviewReuseIdentifier,
-                        for: indexPath)
-                    if let itemCell = cell as? MessageCellViewLinkPreview, let self = self {
-                        self.configureCell(itemCell: itemCell, for: chatMessage)
-                    }
-                    return cell
-                case .quoted(let chatMessage):
-                    let cell = collectionView.dequeueReusableCell(
-                        withReuseIdentifier: ChatViewControllerNew.messageCellViewQuotedReuseIdentifier,
-                        for: indexPath)
-                    if let itemCell = cell as? MessageCellViewQuoted, let self = self {
-                        self.configureCell(itemCell: itemCell, for: chatMessage)
-                    }
-                    return cell
-                case .text(let chatMessage):
-                    let cell = collectionView.dequeueReusableCell(
-                        withReuseIdentifier: ChatViewControllerNew.messageCellViewTextReuseIdentifier,
-                        for: indexPath)
-                    if let itemCell = cell as? MessageCellViewText, let self = self {
-                        self.configureCell(itemCell: itemCell, for: chatMessage)
-                    }
-                    return cell
-                case .location(let chatMessage):
-                    let cell = collectionView.dequeueReusableCell(
-                        withReuseIdentifier: ChatViewControllerNew.messageCellViewLocationReuseIdentifier,
-                        for: indexPath)
-                    if let itemCell = cell as? MessageCellViewLocation, let self = self {
-                        self.configureCell(itemCell: itemCell, for: chatMessage)
-                    }
-                    return cell
-                case .chatEvent(let chatEvent):
-                    // Check why this is needed
-//                    guard let chatEvent = chatEventFetchedResultsController?.optionalObject(at: chatEvent.indexPath) as? ChatEvent else { break }
-
+                case .chatEvent(let chatEventData):
+                    guard let self = self, let chatEvent = self.chatEventFetchedResultsController?.optionalObjectfor(at: chatEventData.indexPath) as? ChatEvent else { break }
                     if (chatEvent.type == .whisperKeysChange || chatEvent.type == .blocked || chatEvent.type == .unblocked), let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ChatViewControllerNew.messageCellViewEventReuseIdentifier, for: indexPath) as? MessageCellViewEvent {
                         let fullname = MainAppContext.shared.contactStore.fullName(for: chatEvent.userID, in: MainAppContext.shared.contactStore.viewContext)
                         switch chatEvent.type {
@@ -367,13 +391,30 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                 didReceiveIncoming = false
                 scrollToLastMessageOnNextUpdate = true
             }
+            updateCollectionViewData()
+        case .update:
+            DDLogInfo("ChatViewControllerNew/didChange type update")
+            if let chatMessage = anObject as? ChatMessage {
+                var snapshot = dataSource.snapshot()
+                for item in snapshot.itemIdentifiers {
+                    switch item {
+                    case .chatMessage(let data):
+                        if data.id == chatMessage.id {
+                            snapshot.reloadItems([item])
+                            dataSource.apply(snapshot, animatingDifferences: false)
+                        }
+                    default:
+                        break
+                    }
+                }
+            }
         default:
             break
         }
-        updateCollectionViewData()
     }
 
     func updateCollectionViewData() {
+        DDLogInfo("ChatViewControllerNew/updateCollectionViewData/called")
         var messageRows: [MessageRow] = []
         var snapshot = ChatMessageSnapshot()
         var lastMessageHeaderTime: String?
@@ -383,9 +424,9 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             if let fromUserId = fromUserId {
                 DDLogInfo("ChatViewControllerNew/updateCollectionViewData/ number of chat messages: \(chatMessages.count) fromUser: \(fromUserId)")
             }
-            
+
             chatMessages.forEach { chatMessage in
-                messageRows.append(messagerow(for: chatMessage))
+                messageRows.append(MessageRow.chatMessage(ChatMessageData(id: chatMessage.id, fromUserId: chatMessage.fromUserId, timestamp: chatMessage.timestamp)))
             }
         }
         // Add call events
@@ -398,7 +439,10 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         // Add events eg user security key changed
         if let chatEvents = chatEventFetchedResultsController?.fetchedObjects {
             chatEvents.forEach { chatEvent in
-                messageRows.append(MessageRow.chatEvent(chatEvent))
+                if let indexPath = chatEventFetchedResultsController?.indexPath(forObject: chatEvent) {
+                    let chatEventData = ChatEventData(timestamp: chatEvent.timestamp, indexPath: indexPath)
+                    messageRows.append(MessageRow.chatEvent(chatEventData))
+                }
             }
         }
         // Add event - tap to add to contact book
@@ -410,12 +454,10 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             ($0.timestamp ?? .distantFuture) < ($1.timestamp ?? .distantFuture)
         }
 
-        // populate a dictionary: wach chatMessage isPreviousMessageSameSender
-        computePreviousChatSenderInfo(messageRows: messageRows)
-
         // Insert all messages into snapshot sorted by timestamp and grouped into sections by headerTime
         snapshot.appendSections([ .chats ])
         var tempMessageRows: [MessageRow] = []
+        var previousChatMessageData: ChatMessageData? = nil
         for messageRow in messageRows {
             let currentTime = messageRow.headerTime
             if lastMessageHeaderTime != currentTime {
@@ -423,6 +465,9 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                 tempMessageRows.append(MessageRow.timeHeader(currentTime))
             }
             tempMessageRows.append(messageRow)
+
+            // populate dictionary with previous chat info. We need to know if previous message was from same sender, to be able to group consecutive messages from same sender closer together.
+            previousChatMessageData = computePreviousChatSenderInfo(previousChatMessageData: previousChatMessageData, messageRow: messageRow)
         }
         // batch add of message Rows
         snapshot.appendItems(tempMessageRows, toSection: .chats)
@@ -480,46 +525,18 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
     }
 
-    private func computePreviousChatSenderInfo(messageRows: [MessageRow]) {
-        var previousChatMessage: ChatMessage? = nil
-        for messageRow in messageRows {
-            switch messageRow {
-            case .chatMessage(let currentChatMessage), .retracted(let currentChatMessage), .media(let currentChatMessage), .audio(let currentChatMessage), .text(let currentChatMessage), .linkPreview(let currentChatMessage), .quoted(let currentChatMessage):
-                if let previousChatMessage = previousChatMessage {
-                    previousChatSenderInfo[currentChatMessage.id] = previousChatMessage.fromUserID == currentChatMessage.fromUserID ? true : false
-                } else {
-                    previousChatSenderInfo[currentChatMessage.id] = false
-                }
-                previousChatMessage = currentChatMessage
-            default:
-                previousChatMessage = nil
+    private func computePreviousChatSenderInfo(previousChatMessageData: ChatMessageData?, messageRow: MessageRow) -> ChatMessageData? {
+        switch messageRow {
+        case .chatMessage(let currentChatMessage):
+            if let previousChatMessageData = previousChatMessageData {
+                previousChatSenderInfo[currentChatMessage.id] = previousChatMessageData.fromUserId == currentChatMessage.fromUserId  ? true : false
+            } else {
+                previousChatSenderInfo[currentChatMessage.id] = false
             }
+            return currentChatMessage
+        default:
+            return nil
         }
-    }
-
-    private func messagerow(for chatMessage: ChatMessage) -> MessageRow {
-        if [.retracted, .retracting].contains(chatMessage.outgoingStatus) || [.retracted, .rerequesting, .unsupported].contains(chatMessage.incomingStatus) {
-            return MessageRow.chatMessage(chatMessage)
-       }
-        // Quoted Message
-        if chatMessage.chatReplyMessageID != nil || chatMessage.feedPostId != nil {
-            return MessageRow.quoted(chatMessage)
-        }
-        // Media
-        if chatMessage.media?.first?.type == .audio {
-            return MessageRow.audio(chatMessage)
-        } else if chatMessage.media?.first?.type == .video || chatMessage.media?.first?.type == .image {
-            return MessageRow.media(chatMessage)
-        }
-        // Link Preview
-        if let feedLinkPreviews = chatMessage.linkPreviews, feedLinkPreviews.first != nil {
-            return MessageRow.linkPreview(chatMessage)
-        }
-        // Location
-        if chatMessage.location != nil {
-            return MessageRow.location(chatMessage)
-        }
-        return MessageRow.text(chatMessage)
     }
 
     init(for fromUserId: String, with feedPostId: FeedPostID? = nil, at feedPostMediaIndex: Int32 = 0) {
@@ -822,6 +839,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     private func configureCell(itemCell: MessageCellViewBase, for chatMessage: ChatMessage) {
         let isPreviousMessageFromSameSender = previousChatSenderInfo[chatMessage.id]
         itemCell.configureWith(message: chatMessage, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender ?? false)
+        itemCell.textLabel.delegate = self
         itemCell.chatDelegate = self
     }
 
@@ -1257,28 +1275,6 @@ extension ChatViewControllerNew: ChatTitleViewDelegate {
     }
 }
 
-extension ChatViewControllerNew: TextLabelDelegate {
-    func textLabel(_ label: TextLabel, didRequestHandle link: AttributedTextLink) {
-        switch link.linkType {
-        case .link, .phoneNumber:
-            if let url = link.result?.url {
-                URLRouter.shared.handleOrOpen(url: url)
-            }
-        case .userMention:
-            if let userID = link.userID {
-                showUserFeed(for: userID)
-            }
-        default:
-            break
-        }
-    }
-
-    func textLabelDidRequestToExpand(_ label: TextLabel) {
-        label.numberOfLines = 0
-        collectionView.collectionViewLayout.invalidateLayout()
-    }
-}
-
 // MARK: ChatCallView Delegates
 extension ChatViewControllerNew: ChatCallViewDelegate {
     func chatCallView(_ callView: ChatCallView, didTapCallButtonWithData callData: ChatCallData) {
@@ -1587,7 +1583,7 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
     }
 
     private func playVoiceNote(after chatMessage: ChatMessage) {
-        guard var nextIndexPath = dataSource.indexPath(for: messagerow(for: chatMessage)) else { return }
+        guard var nextIndexPath = dataSource.indexPath(for: MessageRow.chatMessage(ChatMessageData(id: chatMessage.id, fromUserId: chatMessage.fromUserId, timestamp: chatMessage.timestamp))) else { return }
         nextIndexPath.row += 1
 
         DispatchQueue.main.asyncAfter(deadline: .now() + waitForCellDelay) {
@@ -1735,7 +1731,7 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
         guard let chatMessage = chatMessageFetchedResultsController?.fetchedObjects?.first(where: { $0.id == id }) else {
             return nil
         }
-        return dataSource.indexPath(for: messagerow(for: chatMessage))
+        return dataSource.indexPath(for: MessageRow.chatMessage(ChatMessageData(id: chatMessage.id, fromUserId: chatMessage.fromUserId, timestamp: chatMessage.timestamp)))
     }
 
     private func updateScrollingWhenDataChanges() {
@@ -2021,5 +2017,36 @@ extension ChatViewControllerNew: CNContactViewControllerDelegate {
 extension ChatViewControllerNew: MessageCellViewCallDelegate {
     func chatCallView(_ callView: MessageCellViewCall, didTapCallButtonWithData callData: ChatCallData) {
         startCallIfPossible(with: callData.userID, type: callData.type)
+    }
+}
+
+fileprivate extension NSFetchedResultsController {
+    @objc func optionalObjectfor(at indexPath: IndexPath) -> AnyObject? {
+        guard let sections = sections, sections.count > indexPath.section else { return nil }
+        let sectionInfo = sections[indexPath.section]
+        guard sectionInfo.numberOfObjects > indexPath.row else { return nil }
+        return object(at: indexPath)
+    }
+}
+
+extension ChatViewControllerNew: TextLabelDelegate {
+    func textLabel(_ label: TextLabel, didRequestHandle link: AttributedTextLink) {
+        switch link.linkType {
+        case .link, .phoneNumber:
+            if let url = link.result?.url {
+                URLRouter.shared.handleOrOpen(url: url)
+            }
+        case .userMention:
+            if let userID = link.userID {
+                showUserFeed(for: userID)
+            }
+        default:
+            break
+        }
+    }
+
+    func textLabelDidRequestToExpand(_ label: TextLabel) {
+        label.numberOfLines = 0
+        collectionView.collectionViewLayout.invalidateLayout()
     }
 }

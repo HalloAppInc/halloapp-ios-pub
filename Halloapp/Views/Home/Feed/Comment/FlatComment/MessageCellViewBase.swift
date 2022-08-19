@@ -66,23 +66,16 @@ class MessageCellViewBase: UICollectionViewCell {
         return view
     }()
 
-    lazy var textLabel: UnselectableUITextView = {
-        let textView = UnselectableUITextView()
-        textView.isScrollEnabled = false
-        textView.isEditable = false
-        textView.isSelectable = true
-        textView.isUserInteractionEnabled = true
-        textView.dataDetectorTypes = .link
-        textView.textContainerInset = UIEdgeInsets.zero
-        textView.backgroundColor = .clear
-        textView.font = UIFont.scaledSystemFont(ofSize: 15)
-        textView.textColor = UIColor.primaryBlackWhite.withAlphaComponent(0.8)
-        textView.linkTextAttributes = [.foregroundColor: UIColor.systemBlue , .underlineStyle: 1]
-
-        textView.delegate = self
-
-        textView.translatesAutoresizingMaskIntoConstraints = false
-        return textView
+    lazy var textLabel: TextLabel = {
+            let textLabel = TextLabel()
+            textLabel.isUserInteractionEnabled = true
+            textLabel.backgroundColor = .clear
+            textLabel.font = UIFont.scaledSystemFont(ofSize: 15)
+            textLabel.translatesAutoresizingMaskIntoConstraints = false
+            textLabel.numberOfLines = 0
+            textLabel.textColor = UIColor.primaryBlackWhite.withAlphaComponent(0.8)
+            textLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+            return textLabel
     }()
 
     public class ReactionViewBase: UIStackView {
@@ -296,6 +289,7 @@ class MessageCellViewBase: UICollectionViewCell {
                 textLabel.attributedText = ham.parse(attrText).applyingFontForMentions(boldFont)
             }
         } else {
+            textLabel.attributedText = nil
             textLabel.isHidden = true
         }
     }
@@ -400,10 +394,7 @@ class MessageCellViewBase: UICollectionViewCell {
         reactionBubble.addGestureRecognizer(listReactions)
         if let chatMessage = chatMessage, chatMessage.fromUserId == MainAppContext.shared.userData.userId {
             // outgoing message cell, track outgoing status
-            outgoingMessageStatusCancellable = chatMessage.publisher(for: \.outgoingStatusValue).receive(on: DispatchQueue.main).sink { [weak self] outgoingStatusValue in
-                guard let self = self else { return }
-                self.setMessageOutgoingStatus()
-            }
+            setMessageOutgoingStatus()
         }
         if let chatMessage = chatMessage {
             // track changes to reactions for chatMessage
@@ -481,7 +472,7 @@ class MessageCellViewBase: UICollectionViewCell {
             leftAlignedConstraint.priority = UILayoutPriority(800)
         }
         if isPreviousMessageFromSameSender {
-            messageRow.layoutMargins = UIEdgeInsets(top: 2, left: 10, bottom: 2, right: 10)
+            messageRow.layoutMargins = UIEdgeInsets(top: 1, left: 10, bottom: 2, right: 10)
         } else {
             messageRow.layoutMargins = UIEdgeInsets(top: 3, left: 10, bottom: 3, right: 10)
         }
@@ -622,11 +613,5 @@ extension MessageCellViewBase: UIGestureRecognizerDelegate {
         } else if let feedPostComment = feedPostComment, let commentDelegate = commentDelegate {
             commentDelegate.messageView(self, showReactionsFor: feedPostComment)
         }
-    }
-}
-
-extension MessageCellViewBase: UITextViewDelegate {
-    func textView(_ textView: UITextView, shouldInteractWith URL: URL, in characterRange: NSRange) -> Bool {
-        return !URLRouter.shared.handle(url: URL)
     }
 }

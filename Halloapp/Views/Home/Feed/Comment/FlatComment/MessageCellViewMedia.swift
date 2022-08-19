@@ -16,7 +16,6 @@ class MessageCellViewMedia: MessageCellViewBase {
 
     override func prepareForReuse() {
         super.prepareForReuse()
-        textLabel.attributedText = nil
     }
 
     override init(frame: CGRect) {

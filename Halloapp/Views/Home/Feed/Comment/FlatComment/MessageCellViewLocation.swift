@@ -44,7 +44,6 @@ final class MessageCellViewLocation: MessageCellViewBase {
     
     override func prepareForReuse() {
         super.prepareForReuse()
-        textLabel.attributedText = nil
         snapshotButton.setBackgroundImage(nil, for: .normal)
     }
 

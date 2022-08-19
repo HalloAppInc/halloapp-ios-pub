@@ -20,7 +20,6 @@ class MessageCellViewText: MessageCellViewBase {
     override func prepareForReuse() {
         super.prepareForReuse()
         nameLabel.text = nil
-        textLabel.attributedText = nil
     }
 
     override init(frame: CGRect) {
