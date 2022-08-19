@@ -406,11 +406,30 @@ class MessageCellViewBase: UICollectionViewCell {
      }
 
     private func setMessageOutgoingStatus() {
-         guard let chatMessage = chatMessage, let timestamp =  chatMessage.timestamp?.chatDisplayTimestamp() else {
+        guard let chatMessage = chatMessage, let timestamp =  chatMessage.timestamp?.chatDisplayTimestamp() else {
              return
-         }
+        }
 
-         let result = NSMutableAttributedString(string: timestamp)
+        let result = NSMutableAttributedString(string: timestamp)
+
+        if chatMessage.media?.count == 1 && chatMessage.media?.first?.type == .audio {
+            let isPlayed = chatMessage.outgoingStatus == .played
+            let playedIcon: UIImage? = {
+                if isPlayed {
+                    return UIImage(named: "Microphone")?.withTintColor(UIColor.primaryBlue)
+                } else {
+                    return UIImage(named: "Microphone")?.withTintColor(.systemGray)
+                }
+            } ()
+            if let icon = playedIcon {
+                let iconAttachment = NSTextAttachment(image: icon)
+                iconAttachment.bounds = CGRect(x: 0, y: -2, width: 12, height: 12)
+
+                result.append(NSAttributedString(string: "  "))
+                result.append(NSAttributedString(attachment: iconAttachment))
+            }
+        }
+
          if let icon = statusIcon(chatMessage.outgoingStatus) {
              let imageSize = icon.size
              let font = UIFont.scaledSystemFont(ofSize: timeLabel.font.pointSize - 1)
@@ -449,7 +468,7 @@ class MessageCellViewBase: UICollectionViewCell {
          case .delivered:
               return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemGray)
          case .seen, .played:
-              return UIImage(named: "CheckmarkDouble")?.withTintColor(traitCollection.userInterfaceStyle == .light ? UIColor.chatOwnMsg : UIColor.primaryBlue)
+              return UIImage(named: "CheckmarkDouble")?.withTintColor(UIColor.primaryBlue)
          default: return nil
          }
     }
