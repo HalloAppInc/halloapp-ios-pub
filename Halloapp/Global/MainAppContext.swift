@@ -129,8 +129,8 @@ class MainAppContext: AppContext {
     required init(serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type, appTarget: AppTarget) {
         super.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass, appTarget: appTarget)
         
-        feedData = FeedData(service: service, contactStore: contactStore, mainDataStore: mainDataStore, userData: userData, mediaUploader: mediaUploader)
-        chatData = ChatData(service: service, contactStore: contactStore, mainDataStore: mainDataStore, userData: userData)
+        feedData = FeedData(service: service, contactStore: contactStore, mainDataStore: mainDataStore, userData: userData, coreFeedData: coreFeedData, mediaUploader: mediaUploader)
+        chatData = ChatData(service: service, contactStore: contactStore, mainDataStore: mainDataStore, userData: userData, coreChatData: coreChatData)
         syncManager = SyncManager(contactStore: contactStore, service: service, userData: userData)
         
         privacySettingsImpl = PrivacySettings(contactStore: contactStore, service: service)
@@ -410,6 +410,19 @@ class MainAppContext: AppContext {
 
             UIApplication.shared.endBackgroundTask(taskId)
             backgroundTaskIds.removeValue(forKey: itemId)
+        }
+    }
+
+    // Overrides extension safe version defined in AppContext
+    override func startBackgroundTask(withName name: String, expirationHandler handler: (() -> Void)? = nil) -> () -> Void {
+        DDLogInfo("MainAppContext/startBackgroundTask/starting: \(name)")
+        let identifier = UIApplication.shared.beginBackgroundTask(withName: name) {
+            DDLogInfo("MainAppContext/startBackgroundTask/expiration called for \(name)")
+            handler?()
+        }
+        return {
+            DDLogInfo("AppContext/startBackgroundTask/ending: \(name)")
+            UIApplication.shared.endBackgroundTask(identifier)
         }
     }
 }

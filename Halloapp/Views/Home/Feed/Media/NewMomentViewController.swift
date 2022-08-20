@@ -12,11 +12,6 @@ import CoreCommon
 import CocoaLumberjackSwift
 import Combine
 
-enum MomentContext {
-    case normal
-    case unlock(FeedPost)
-}
-
 protocol NewMomentViewControllerDelegate: MomentViewControllerDelegate {
     func newMomentViewControllerDidPost(_ viewController: NewMomentViewController)
 }

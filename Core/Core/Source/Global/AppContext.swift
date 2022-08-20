@@ -27,7 +27,7 @@ public func initAppContext(_ appContextClass: AppContext.Type, serviceBuilder: S
 
 open class AppContext: AppContextCommon {
     // MARK: Constants
-    private static let appGroupName = "group.com.halloapp.shared"
+    public static let appGroupName = "group.com.halloapp.shared"
     private static let mainStoreDatabaseFilename = "mainStore.sqlite"
     private static let contactsDatabaseFilename = "contacts.sqlite"
     private static let keysDatabaseFilename = "keys.sqlite"
@@ -274,8 +274,17 @@ open class AppContext: AppContextCommon {
         keyStore.delegate = messageCrypter
         mediaHashStoreImpl = MediaHashStore(persistentStoreURL: AppContext.mediaHashStoreURL)
         notificationStoreImpl = NotificationStore(appTarget: appTarget, userDefaults: userDefaults)
-        coreFeedDataImpl = CoreFeedData(service: coreService, mainDataStore: mainDataStore)
-        coreChatDataImpl = CoreChatData(service: coreService, mainDataStore: mainDataStore)
+        coreChatDataImpl = CoreChatData(service: coreService,
+                                        mainDataStore: mainDataStore,
+                                        userData: userData,
+                                        contactStore: contactStore,
+                                        commonMediaUploader: mediaUploader)
+        coreFeedDataImpl = CoreFeedData(service: coreService,
+                                        mainDataStore: mainDataStore,
+                                        chatData: coreChatData,
+                                        contactStore: contactStore,
+                                        privacySettings: privacySettingsImpl, // This is overriden in MainAppContext, so the getter is not yet available
+                                        commonMediaUploader: mediaUploader)
 
         DispatchQueue.global(qos: .background).async {
             self.migrateLogFilesIfNeeded()
@@ -353,6 +362,23 @@ open class AppContext: AppContextCommon {
         }
         catch {
             DDLogError("Failed to delete legacy log directory")
+        }
+    }
+
+    open func startBackgroundTask(withName name: String, expirationHandler handler: (() -> Void)? = nil) -> () -> Void {
+        DDLogInfo("AppContext/startBackgroundTask/starting: \(name)")
+        let lock = NSLock()
+        ProcessInfo.processInfo.performExpiringActivity(withReason: name) { expired in
+            if expired {
+                DDLogInfo("AppContext/startBackgroundTask/expiration called for \(name)")
+                handler?()
+            } else {
+                lock.lock()
+            }
+        }
+        return {
+            DDLogInfo("AppContext/startBackgroundTask/ending: \(name)")
+            lock.unlock()
         }
     }
 }

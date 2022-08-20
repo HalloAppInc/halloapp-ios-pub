@@ -11,6 +11,7 @@ import CoreCommon
 import CoreData
 import Combine
 import CocoaLumberjackSwift
+import Intents
 
 
 // TODO: (murali@): reuse this logic in ChatData
@@ -18,16 +19,416 @@ import CocoaLumberjackSwift
 public class CoreChatData {
     private let service: CoreService
     private let mainDataStore: MainDataStore
+    private let userData: UserData
+    private let contactStore: ContactStore
+    private let commonMediaUploader: CommonMediaUploader
     private var cancellableSet: Set<AnyCancellable> = []
 
-    public init(service: CoreService, mainDataStore: MainDataStore) {
+    public init(service: CoreService, mainDataStore: MainDataStore, userData: UserData, contactStore: ContactStore, commonMediaUploader: CommonMediaUploader) {
         self.mainDataStore = mainDataStore
         self.service = service
+        self.userData = userData
+        self.contactStore = contactStore
+        self.commonMediaUploader = commonMediaUploader
         cancellableSet.insert(
             service.didGetNewWhisperMessage.sink { [weak self] whisperMessage in
                 self?.handleIncomingWhisperMessage(whisperMessage)
             }
         )
+    }
+
+    // MARK: - Getters
+
+    private func chatGroups(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext) -> [Group] {
+        let fetchRequest: NSFetchRequest<Group> = Group.fetchRequest()
+        fetchRequest.predicate = predicate
+        fetchRequest.sortDescriptors = sortDescriptors
+        fetchRequest.returnsObjectsAsFaults = false
+
+        do {
+            let chatGroups = try managedObjectContext.fetch(fetchRequest)
+            return chatGroups
+        }
+        catch {
+            DDLogError("CoreChatData/group/fetch/error  [\(error)]")
+            return []
+        }
+    }
+
+    func chatGroup(groupId id: String, in managedObjectContext: NSManagedObjectContext) -> Group? {
+        return chatGroups(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext).first
+    }
+
+    // MARK: Chat messgage upload and posting
+
+    public func sendMessage(toUserId: String,
+                            text: String,
+                            media: [PendingMedia],
+                            linkPreviewData: LinkPreviewData? = nil,
+                            linkPreviewMedia : PendingMedia? = nil,
+                            location: ChatLocationProtocol? = nil,
+                            feedPostId: String? = nil,
+                            feedPostMediaIndex: Int32 = 0,
+                            chatReplyMessageID: String? = nil,
+                            chatReplyMessageSenderID: UserID? = nil,
+                            chatReplyMessageMediaIndex: Int32 = 0,
+                            didBeginUpload: ((Result<ChatMessageID, Error>) -> Void)? = nil) {
+        mainDataStore.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            DDLogInfo("CoreChatData/sendMessage/createChatMsg/toUserId: \(toUserId)")
+            self.createChatMsg(toUserId: toUserId,
+                               text: text,
+                               media: media,
+                               linkPreviewData: linkPreviewData,
+                               linkPreviewMedia: linkPreviewMedia,
+                               location: location,
+                               feedPostId: feedPostId,
+                               feedPostMediaIndex: feedPostMediaIndex,
+                               chatReplyMessageID: chatReplyMessageID,
+                               chatReplyMessageSenderID: chatReplyMessageSenderID,
+                               chatReplyMessageMediaIndex: chatReplyMessageMediaIndex,
+                               using: managedObjectContext,
+                               didBeginUpload: didBeginUpload)
+        }
+        addIntent(toUserId: toUserId)
+    }
+
+    @discardableResult
+    func createChatMsg( toUserId: String,
+                        text: String,
+                        media: [PendingMedia],
+                        linkPreviewData: LinkPreviewData?,
+                        linkPreviewMedia : PendingMedia?,
+                        location: ChatLocationProtocol?,
+                        feedPostId: String?,
+                        feedPostMediaIndex: Int32,
+                        isMomentReply: Bool = false,
+                        chatReplyMessageID: String? = nil,
+                        chatReplyMessageSenderID: UserID? = nil,
+                        chatReplyMessageMediaIndex: Int32,
+                        using context: NSManagedObjectContext,
+                        didBeginUpload: ((Result<ChatMessageID, Error>) -> Void)? = nil) -> ChatMessageID {
+
+        let messageId = PacketID.generate()
+        let isMsgToYourself: Bool = toUserId == userData.userId
+
+        // Create and save new ChatMessage object.
+        DDLogDebug("CoreChatData/createChatMsg/\(messageId)/toUserId: \(toUserId)")
+        let chatMessage = ChatMessage(context: context)
+        chatMessage.id = messageId
+        chatMessage.toUserId = toUserId
+        chatMessage.fromUserId = userData.userId
+        chatMessage.rawText = text
+        chatMessage.feedPostId = feedPostId
+        chatMessage.feedPostMediaIndex = feedPostMediaIndex
+        chatMessage.chatReplyMessageID = chatReplyMessageID
+        chatMessage.chatReplyMessageSenderID = chatReplyMessageSenderID
+        chatMessage.chatReplyMessageMediaIndex = chatReplyMessageMediaIndex
+        chatMessage.incomingStatus = .none
+        chatMessage.outgoingStatus = isMsgToYourself ? .seen : .pending
+        chatMessage.timestamp = Date()
+        let serialID = AppContext.shared.getchatMsgSerialId()
+        DDLogDebug("CoreChatData/createChatMsg/\(messageId)/serialId [\(serialID)]")
+        chatMessage.serialID = serialID
+
+        var lastMsgMediaType: CommonThread.LastMediaType = .none // going with the first media
+
+        for (index, mediaItem) in media.enumerated() {
+            DDLogDebug("CoreChatData/createChatMsg/\(messageId)/add-media [\(mediaItem)]")
+            guard let mediaItemSize = mediaItem.size, mediaItem.fileURL != nil else {
+                DDLogDebug("CoreChatData/createChatMsg/\(messageId)/add-media/skip/missing info")
+                continue
+            }
+
+            let chatMedia = CommonMedia(context: context)
+            chatMedia.id = "\(chatMessage.id)-\(index)"
+            switch mediaItem.type {
+            case .image:
+                chatMedia.type = .image
+                if lastMsgMediaType == .none {
+                    lastMsgMediaType = .image
+                }
+            case .video:
+                chatMedia.type = .video
+                if lastMsgMediaType == .none {
+                    lastMsgMediaType = .video
+                }
+            case .audio:
+                chatMedia.type = .audio
+                if lastMsgMediaType == .none {
+                    lastMsgMediaType = .audio
+                }
+            }
+            chatMedia.outgoingStatus = isMsgToYourself ? .uploaded : .pending
+            chatMedia.url = mediaItem.url
+            chatMedia.uploadUrl = mediaItem.uploadUrl
+            chatMedia.size = mediaItemSize
+            chatMedia.key = ""
+            chatMedia.sha256 = ""
+            chatMedia.order = Int16(index)
+            chatMedia.message = chatMessage
+
+            do {
+                try CommonMedia.copyMedia(from: mediaItem, to: chatMedia)
+            }
+            catch {
+                DDLogError("CoreChatData/createChatMsg/\(messageId)/copy-media/error [\(error)]")
+            }
+        }
+
+        if let location = location {
+            chatMessage.location = CommonLocation(chatLocation: location, context: context)
+            lastMsgMediaType = .location
+        }
+
+        if isMomentReply, let _ = feedPostId {
+            // quoted moment; feed post has already been deleted at this point
+            let quoted = ChatQuoted(context: context)
+            quoted.type = .moment
+            quoted.userID = toUserId
+            quoted.message = chatMessage
+        } else if let feedPostId = feedPostId, let feedPost = AppContext.shared.coreFeedData.feedPost(with: feedPostId, in: context) {
+            // Create and save Quoted FeedPost
+            let quoted = ChatQuoted(context: context)
+            quoted.type = .feedpost
+            quoted.userID = feedPost.userId
+            quoted.rawText = feedPost.rawText
+            quoted.message = chatMessage
+            quoted.mentions = feedPost.mentions
+
+            if let feedPostMedia = feedPost.media?.first(where: { $0.order == feedPostMediaIndex }) {
+                let quotedMedia = CommonMedia(context: context)
+                quotedMedia.id = "\(quoted.message?.id ?? UUID().uuidString)-quoted-\(feedPostMedia.order)"
+                quotedMedia.type = feedPostMedia.type
+                quotedMedia.order = feedPostMedia.order
+                quotedMedia.width = Float(feedPostMedia.size.width)
+                quotedMedia.height = Float(feedPostMedia.size.height)
+                quotedMedia.chatQuoted = quoted
+                quotedMedia.relativeFilePath = feedPostMedia.relativeFilePath
+                quotedMedia.mediaDirectory = feedPostMedia.mediaDirectory
+                quotedMedia.previewData = Self.quotedMediaPreviewData(mediaDirectory: feedPostMedia.mediaDirectory,
+                                                                      path: feedPostMedia.relativeFilePath,
+                                                                      type: feedPostMedia.type)
+            }
+        }
+        // Process link preview if present
+        if let linkPreviewData = linkPreviewData {
+            DDLogDebug("CoreChatData/process-chats/new/generate-link-preview [\(linkPreviewData.url)]")
+            let linkPreview = CommonLinkPreview(context: context)
+            linkPreview.id = PacketID.generate()
+            linkPreview.url = linkPreviewData.url
+            linkPreview.title = linkPreviewData.title
+            linkPreview.desc = linkPreviewData.description
+            linkPreview.message = chatMessage
+            // Set preview image if present
+            if let linkPreviewMedia = linkPreviewMedia {
+                let linkPreviewChatMedia = CommonMedia(context: context)
+                linkPreviewChatMedia.id = "\(linkPreview.id)-0"
+                if let mediaItemSize = linkPreviewMedia.size, linkPreviewMedia.fileURL != nil {
+                    linkPreviewChatMedia.type = {
+                        switch linkPreviewMedia.type {
+                        case .image:
+                            return .image
+                        case .video:
+                            return .video
+                        case .audio:
+                            return .audio
+                        }
+                    }()
+                    linkPreviewChatMedia.outgoingStatus = isMsgToYourself ? .uploaded : .pending
+                    linkPreviewChatMedia.url = linkPreviewMedia.url
+                    linkPreviewChatMedia.uploadUrl = linkPreviewMedia.uploadUrl
+                    linkPreviewChatMedia.size = mediaItemSize
+                    linkPreviewChatMedia.key = ""
+                    linkPreviewChatMedia.sha256 = ""
+                    linkPreviewChatMedia.order = 0
+                    linkPreviewChatMedia.linkPreview = linkPreview
+                    do {
+                        try CommonMedia.copyMedia(from: linkPreviewMedia, to: linkPreviewChatMedia)
+                    }
+                    catch {
+                        DDLogError("CoreChatData/createChatMsg/\(messageId)/copy-media-linkPreview/error [\(error)]")
+                    }
+                } else {
+                    DDLogDebug("CoreChatData/createChatMsg/\(messageId)/add-media-linkPreview/skip/missing info")
+                }
+            }
+        }
+
+        if let chatReplyMessageID = chatReplyMessageID,
+           let chatReplyMessageSenderID = chatReplyMessageSenderID,
+           let quotedChatMessage = self.chatMessage(with: chatReplyMessageID, in: context) {
+
+            let quoted = ChatQuoted(context: context)
+            quoted.type = .message
+            quoted.userID = chatReplyMessageSenderID
+            quoted.rawText = quotedChatMessage.rawText
+            quoted.message = chatMessage
+
+            if let quotedChatMessageMedia = quotedChatMessage.media?.first(where: { $0.order == chatReplyMessageMediaIndex }) {
+                let quotedMedia = CommonMedia(context: context)
+                quotedMedia.id = "\(quotedChatMessage.id)-quoted-\(quotedChatMessageMedia.order)"
+                quotedMedia.type = quotedChatMessageMedia.type
+                quotedMedia.order = quotedChatMessageMedia.order
+                quotedMedia.width = Float(quotedChatMessageMedia.size.width)
+                quotedMedia.height = Float(quotedChatMessageMedia.size.height)
+                quotedMedia.chatQuoted = quoted
+                quotedMedia.relativeFilePath = quotedChatMessageMedia.relativeFilePath
+                quotedMedia.mediaDirectory = quotedChatMessageMedia.mediaDirectory
+                quotedMedia.previewData = Self.quotedMediaPreviewData(mediaDirectory: quotedChatMessageMedia.mediaDirectory,
+                                                                      path: quotedChatMessageMedia.relativeFilePath,
+                                                                      type: quotedChatMessageMedia.type)
+            }
+        }
+
+        // Update Chat Thread
+        if let chatThread = self.chatThread(type: ChatType.oneToOne, id: chatMessage.toUserId, in: context) {
+            DDLogDebug("CoreChatData/createChatMsg/ update-thread")
+            chatThread.lastMsgId = chatMessage.id
+            chatThread.lastMsgUserId = chatMessage.fromUserId
+            chatThread.lastMsgText = chatMessage.rawText
+            chatThread.lastMsgMediaType = lastMsgMediaType
+            chatThread.lastMsgStatus = isMsgToYourself ? .seen : .pending
+            chatThread.lastMsgTimestamp = chatMessage.timestamp
+            // Sending a message always clears out the unread count
+            chatThread.unreadCount = 0
+        } else {
+            DDLogDebug("CoreChatData/createChatMsg/\(messageId)/new-thread")
+            let chatThread = CommonThread(context: context)
+            chatThread.userID = chatMessage.toUserId
+            chatThread.lastMsgId = chatMessage.id
+            chatThread.lastMsgUserId = chatMessage.fromUserId
+            chatThread.lastMsgText = chatMessage.rawText
+            chatThread.lastMsgMediaType = lastMsgMediaType
+            chatThread.lastMsgStatus = isMsgToYourself ? .seen : .pending
+            chatThread.lastMsgTimestamp = chatMessage.timestamp
+            chatThread.unreadCount = 0
+        }
+
+        mainDataStore.save(context)
+
+        if !isMsgToYourself {
+            beginMediaUploadAndSend(chatMessage: chatMessage, didBeginUpload: didBeginUpload)
+        } else {
+            didBeginUpload?(.success(messageId))
+        }
+
+        return messageId
+    }
+
+    public func beginMediaUploadAndSend(chatMessage: ChatMessage, didBeginUpload: ((Result<ChatMessageID, Error>) -> Void)? = nil) {
+        let mediaToUpload = chatMessage.allAssociatedMedia.filter { [.none, .uploading, .uploadError].contains($0.status) }
+        if mediaToUpload.isEmpty {
+            send(message: chatMessage, completion: didBeginUpload)
+        } else {
+            var uploadedMediaCount = 0
+            var failedMediaCount = 0
+            let totalMediaCount = mediaToUpload.count
+            let postID = chatMessage.id
+            // chatMessageMediaStatusChangedPublisher should trigger post upload once all media has been uploaded
+            mediaToUpload.forEach { media in
+                commonMediaUploader.upload(mediaID: media.id) { result in
+                    switch result {
+                    case .success:
+                        uploadedMediaCount += 1
+                    case .failure:
+                        failedMediaCount += 1
+                    }
+
+                    if uploadedMediaCount + failedMediaCount == totalMediaCount {
+                        if failedMediaCount == 0 {
+                            didBeginUpload?(.success(postID))
+                        } else {
+                            didBeginUpload?(.failure(PostError.mediaUploadFailed))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func uploadChatMessageIfMediaReady(chatMessageID: ChatMessageID) {
+        DDLogInfo("CoreChatData/uploadChatMessageIfMediaReady/begin \(chatMessageID)")
+        mainDataStore.performSeriallyOnBackgroundContext { [weak self] context in
+            guard let self = self, let chatMessage = self.chatMessage(with: chatMessageID, in: context) else {
+                DDLogError("CoreChatData/uploadChatMessageIfMediaReady/Chat message not found with id \(chatMessageID)")
+                return
+            }
+
+            let media = chatMessage.allAssociatedMedia
+
+            let uploadedMedia = media.filter { $0.status == .uploaded }
+            let failedMedia = media.filter { $0.status == .uploadError }
+
+            // Check if all media is uploaded
+            guard media.count == uploadedMedia.count + failedMedia.count else {
+                return
+            }
+
+            if failedMedia.isEmpty {
+                // Upload post
+                DDLogInfo("CoreChatData/uploadChatMessageIfMediaReady/sending \(chatMessageID)")
+                let endBackgroundTask = AppContext.shared.startBackgroundTask(withName: "send-chat-\(chatMessageID)")
+                self.send(message: chatMessage) { _ in
+                    endBackgroundTask()
+                }
+            } else {
+                // Mark message as failed
+                DDLogInfo("CoreChatData/uploadChatMessageIfMediaReady/faild to send \(chatMessageID)")
+                chatMessage.outgoingStatus = .error
+                self.mainDataStore.save(context)
+            }
+        }
+    }
+
+    private func send(message: ChatMessage, completion: ((Result<ChatMessageID, Error>) -> Void)? = nil) {
+        let chatMessageID = message.id
+        service.sendChatMessage(XMPPChatMessage(chatMessage: message)) { result in
+            switch result {
+            case .success:
+                completion?(.success(chatMessageID))
+            case .failure(let error):
+                completion?(.failure(error))
+            }
+        }
+    }
+
+    /// Donates an intent to Siri for improved suggestions when sharing content.
+    ///
+    /// Intents are used by iOS to provide contextual suggestions to the user for certain interactions. In this case, we are suggesting the user send another message to the user they just shared with.
+    /// For more information, see [this documentation](https://developer.apple.com/documentation/sirikit/insendmessageintent)\.
+    /// - Parameter toUserId: The user ID for the person the user just shared with
+    /// - Remark: This is different from the implementation in `ShareComposerViewController.swift` because `MainAppContext` isn't available in the share extension.
+    private func addIntent(toUserId: UserID) {
+        if #available(iOS 14.0, *) {
+            var name = ""
+            contactStore.performOnBackgroundContextAndWait { managedObjectContext in
+                name = self.contactStore.fullNameIfAvailable(for: toUserId, ownName: nil, in: managedObjectContext) ?? ""
+            }
+
+            let recipient = INSpeakableString(spokenPhrase: name)
+            let sendMessageIntent = INSendMessageIntent(recipients: nil,
+                                                        content: nil,
+                                                        speakableGroupName: recipient,
+                                                        conversationIdentifier: ConversationID(id: toUserId, type: .chat).description,
+                                                        serviceName: nil, sender: nil)
+
+            let potentialUserAvatar = AppContext.shared.avatarStore.userAvatar(forUserId: toUserId).image
+            guard let defaultAvatar = UIImage(named: "AvatarUser") else { return }
+
+            // Have to convert UIImage to data and then NIImage because NIImage(uiimage: UIImage) initializer was throwing exception
+            guard let userAvaterUIImage = (potentialUserAvatar ?? defaultAvatar).pngData() else { return }
+            let userAvatar = INImage(imageData: userAvaterUIImage)
+
+            sendMessageIntent.setImage(userAvatar, forParameterNamed: \.speakableGroupName)
+
+            let interaction = INInteraction(intent: sendMessageIntent, response: nil)
+            interaction.donate(completion: { error in
+                if let error = error {
+                    DDLogDebug("ChatViewController/sendMessage/\(error.localizedDescription)")
+                }
+            })
+        }
     }
 
     // MARK: Handle rerequests
@@ -88,22 +489,22 @@ public class CoreChatData {
     // This part is not great and should be in CoreModule - but since the groups list is stored in ChatData.
     // This code is ending up here for now - should fix this soon.
     private func handleIncomingWhisperMessage(_ whisperMessage: WhisperMessage) {
-        DDLogInfo("ChatData/handleIncomingWhisperMessage/begin")
+        DDLogInfo("CoreChatData/handleIncomingWhisperMessage/begin")
         switch whisperMessage {
         case .update(let userID, _):
-            DDLogInfo("ChatData/handleIncomingWhisperMessage/execute update for \(userID)")
+            DDLogInfo("CoreChatData/handleIncomingWhisperMessage/execute update for \(userID)")
             mainDataStore.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
                 guard let self = self else { return }
                 let groupIds = self.chatGroupIds(for: userID, in: managedObjectContext)
                 groupIds.forEach { groupId in
-                    DDLogInfo("ChatData/handleIncomingWhisperMessage/updateWhisperSession/addToPending \(userID) in \(groupId)")
+                    DDLogInfo("CoreChatData/handleIncomingWhisperMessage/updateWhisperSession/addToPending \(userID) in \(groupId)")
                     AppContext.shared.messageCrypter.addMembers(userIds: [userID], in: groupId)
                 }
 
                 self.recordNewChatEvent(userID: userID, type: .whisperKeysChange)
             }
         default:
-            DDLogInfo("ChatData/handleIncomingWhisperMessage/ignore")
+            DDLogInfo("CoreChatData/handleIncomingWhisperMessage/ignore")
             break
         }
     }
@@ -470,7 +871,7 @@ public class CoreChatData {
             return chatMessages
         }
         catch {
-            DDLogError("ChatData/fetch-messages/error  [\(error)]")
+            DDLogError("CoreChatData/fetch-messages/error  [\(error)]")
             fatalError("Failed to fetch chat messages")
         }
     }
@@ -496,9 +897,31 @@ public class CoreChatData {
             return chatGroupMembers
         }
         catch {
-            DDLogError("ChatData/group/fetchGroupMembers/error  [\(error)]")
+            DDLogError("CoreChatData/group/fetchGroupMembers/error  [\(error)]")
             fatalError("Failed to fetch chat group members")
         }
+    }
+
+    // MARK: - Util
+
+    private static func quotedMediaPreviewData(mediaDirectory: MediaDirectory, path: String?, type: CommonMediaType) -> Data? {
+        guard let path = path else {
+            return nil
+        }
+
+        let mediaURL = mediaDirectory.fileURL(forRelativePath: path)
+
+        let previewImage: UIImage?
+        switch type {
+        case .image:
+            previewImage = UIImage(contentsOfFile: mediaURL.path)
+        case .video:
+            previewImage = VideoUtils.videoPreviewImage(url: mediaURL)
+        case .audio:
+            previewImage = nil // No image to preview
+        }
+
+        return previewImage.flatMap { VideoUtils.previewImageData(image: $0) }
     }
 }
 
@@ -509,12 +932,12 @@ extension CoreChatData {
     public func recordNewChatEvent(userID: UserID, type: ChatEventType) {
         mainDataStore.saveSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
-            DDLogInfo("ChatData/recordNewChatEvent/for: \(userID)")
+            DDLogInfo("CoreChatData/recordNewChatEvent/for: \(userID)")
 
             let appUserID = AppContext.shared.userData.userId
             let predicate = NSPredicate(format: "(fromUserID = %@ AND toUserID = %@) || (toUserID = %@ AND fromUserID = %@)", userID, appUserID, userID, appUserID)
             guard self.chatMessages(predicate: predicate, limit: 1, in: managedObjectContext).count > 0 else {
-                DDLogInfo("ChatData/recordNewChatEvent/\(userID)/no messages yet, skip recording keys change event")
+                DDLogInfo("CoreChatData/recordNewChatEvent/\(userID)/no messages yet, skip recording keys change event")
                 return
             }
 
@@ -526,20 +949,20 @@ extension CoreChatData {
     }
 
     public func deleteChatEvents(userID: UserID) {
-        DDLogInfo("ChatData/deleteChatEvents")
+        DDLogInfo("CoreChatData/deleteChatEvents")
         mainDataStore.saveSeriallyOnBackgroundContext { (managedObjectContext) in
             let fetchRequest = NSFetchRequest<ChatEvent>(entityName: ChatEvent.entity().name!)
             fetchRequest.predicate = NSPredicate(format: "userID = %@", userID)
 
             do {
                 let events = try managedObjectContext.fetch(fetchRequest)
-                DDLogInfo("ChatData/events/deleteChatEvents/count=[\(events.count)]")
+                DDLogInfo("CoreChatData/events/deleteChatEvents/count=[\(events.count)]")
                 events.forEach {
                     managedObjectContext.delete($0)
                 }
             }
             catch {
-                DDLogError("ChatData/events/deleteChatEvents/error  [\(error)]")
+                DDLogError("CoreChatData/events/deleteChatEvents/error  [\(error)]")
                 return
             }
         }

@@ -312,8 +312,6 @@
 		E5959700268E3F3800AA3BB9 /* DeleteAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E59596FF268E3F3800AA3BB9 /* DeleteAccountView.swift */; };
 		E5959702268E3F6500AA3BB9 /* DeleteAccountModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5959701268E3F6500AA3BB9 /* DeleteAccountModel.swift */; };
 		E5981A4A266032260014FFC9 /* FeedPermissionExplanationAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5981A48266032250014FFC9 /* FeedPermissionExplanationAlert.swift */; };
-		E598D4C0265F0188001A436A /* ConversationID.swift in Sources */ = {isa = PBXBuildFile; fileRef = E598D4BF265F0188001A436A /* ConversationID.swift */; };
-		E598D4C2265F0558001A436A /* ConversationID.swift in Sources */ = {isa = PBXBuildFile; fileRef = E598D4BF265F0188001A436A /* ConversationID.swift */; };
 		E5AFB4C726BC5C74002CE127 /* FeedPostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5AFB4C626BC5C74002CE127 /* FeedPostView.swift */; };
 		E5B9EAB8265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5B9EAB7265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift */; };
 		E5CB831B26A0F17100C18ACA /* ActivityCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5CB831A26A0F17100C18ACA /* ActivityCenter.swift */; };
@@ -1092,7 +1090,6 @@
 		E59596FF268E3F3800AA3BB9 /* DeleteAccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountView.swift; sourceTree = "<group>"; };
 		E5959701268E3F6500AA3BB9 /* DeleteAccountModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountModel.swift; sourceTree = "<group>"; };
 		E5981A48266032250014FFC9 /* FeedPermissionExplanationAlert.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedPermissionExplanationAlert.swift; sourceTree = "<group>"; };
-		E598D4BF265F0188001A436A /* ConversationID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationID.swift; sourceTree = "<group>"; };
 		E5AFB4C626BC5C74002CE127 /* FeedPostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostView.swift; sourceTree = "<group>"; };
 		E5B9EAB7265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPermissionTutorialAlert.swift; sourceTree = "<group>"; };
 		E5CB831A26A0F17100C18ACA /* ActivityCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityCenter.swift; sourceTree = "<group>"; };
@@ -1964,7 +1961,6 @@
 				EA796B8E2469B99A00BC795E /* CoreData Stack */,
 				EA35856F2450BE2900E6E8AB /* ChatData.swift */,
 				EAA424F024EC71450025CBBE /* XMPPGroup.swift */,
-				E598D4BF265F0188001A436A /* ConversationID.swift */,
 				E537A1B626792AEF0008B286 /* ChatDraft.swift */,
 				68C0B9D327FA737E00F3A092 /* ChatDataLegacy.swift */,
 			);
@@ -2871,7 +2867,6 @@
 				2446D68624CB6DA9005BAD3C /* ContactTableViewCell.swift in Sources */,
 				F86919E026395EB300B01306 /* UIFont.swift in Sources */,
 				F8B0F7612745785400235CCF /* ShareDataLoader.swift in Sources */,
-				E598D4C2265F0558001A436A /* ConversationID.swift in Sources */,
 				76B5B524250086330055E712 /* UIColor.swift in Sources */,
 				2446D68B24CF732B005BAD3C /* DataStore.swift in Sources */,
 				F8EC3A81281821810041D8E3 /* TimeInterval.swift in Sources */,
@@ -3195,7 +3190,6 @@
 				EA0D20152368B04B008B8289 /* FeedData.swift in Sources */,
 				F41F82972798D2AC0021BF40 /* GroupInviteSheetViewController.swift in Sources */,
 				F8C5471A289BDB73009D942B /* MediaReorderViewContoller.swift in Sources */,
-				E598D4C0265F0188001A436A /* ConversationID.swift in Sources */,
 				F82EFC2828657987007B45CF /* SwipeToExitGestureRecognizer.swift in Sources */,
 				EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */,
 				F878427C24F6C0FB0040B723 /* MediaAlbumsViewController.swift in Sources */,

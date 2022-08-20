@@ -49,17 +49,19 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }()
 
     let mediaUploader: MediaUploader
-    let commonMediaUploader: CommonMediaUploader
+    private let commonMediaUploader: CommonMediaUploader
+    private let coreFeedData: CoreFeedData
 
     private var contentInFlight: Set<String> = []
 
-    init(service: HalloService, contactStore: ContactStoreMain, mainDataStore: MainDataStore, userData: UserData, mediaUploader: CommonMediaUploader) {
+    init(service: HalloService, contactStore: ContactStoreMain, mainDataStore: MainDataStore, userData: UserData, coreFeedData: CoreFeedData, mediaUploader: CommonMediaUploader) {
         self.service = service
         self.contactStore = contactStore
         self.mainDataStore = mainDataStore
         self.userData = userData
         self.commonMediaUploader = mediaUploader
         self.mediaUploader = MediaUploader(service: service)
+        self.coreFeedData = coreFeedData
 
         super.init()
 
@@ -1869,9 +1871,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             let isNotReadPredicate = NSPredicate(format: "read = %@", NSExpression(forConstantValue: false))
             if postId != nil {
                 let postIdPredicate = NSPredicate(format: "postID = %@", postId!)
-                notifications = AppContext.shared.coreFeedData.notifications(with: NSCompoundPredicate(andPredicateWithSubpredicates: [ isNotReadPredicate, postIdPredicate ]), in: managedObjectContext)
+                notifications = self.coreFeedData.notifications(with: NSCompoundPredicate(andPredicateWithSubpredicates: [ isNotReadPredicate, postIdPredicate ]), in: managedObjectContext)
             } else {
-                notifications = AppContext.shared.coreFeedData.notifications(with: isNotReadPredicate, in: managedObjectContext)
+                notifications = self.coreFeedData.notifications(with: isNotReadPredicate, in: managedObjectContext)
             }
             DDLogInfo("FeedData/notifications/mark-read-all Count: \(notifications.count)")
             guard !notifications.isEmpty else { return }
@@ -2080,7 +2082,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
 
             // 3. Delete all notifications for this post.
-            let notifications = AppContext.shared.coreFeedData.notifications(for: postId, in: managedObjectContext)
+            let notifications = self.coreFeedData.notifications(for: postId, in: managedObjectContext)
             notifications.forEach { managedObjectContext.delete($0)}
 
             // 4. Reset post data and mark post as deleted.
@@ -2124,7 +2126,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             self.deleteMedia(feedPostComment: feedComment)
 
             // 3. Reset comment text copied over to notifications.
-            let notifications = AppContext.shared.coreFeedData.notifications(for: feedComment.post.id, commentId: feedComment.id, in: managedObjectContext)
+            let notifications = self.coreFeedData.notifications(for: feedComment.post.id, commentId: feedComment.id, in: managedObjectContext)
             notifications.forEach { (notification) in
                 notification.event = .retractedComment
                 notification.rawText = nil
@@ -4446,8 +4448,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             DDLogInfo("FeedData/deleteMedia/cancelTask/task: \(currentTask.id)")
             currentTask.downloadRequest?.cancel(producingResumeData : false)
         }
+        commonMediaUploader.cancelUpload(mediaID: mediaItem.id)
         // Delete media files.
-        AppContext.shared.coreFeedData.deleteMedia(mediaItem: mediaItem)
+        coreFeedData.deleteMedia(mediaItem: mediaItem)
     }
 
     public func deletePosts(with postIDs: [FeedPostID]) {

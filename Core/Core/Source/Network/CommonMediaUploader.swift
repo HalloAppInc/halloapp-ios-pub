@@ -131,7 +131,7 @@ public class CommonMediaUploader: NSObject {
         _ = backgroundURLSession // ensure this is created at init so the system can find it on reconnect
     }
 
-    public func upload(mediaID: CommonMediaID) {
+    public func upload(mediaID: CommonMediaID, didBeginUpload: ((Result<CommonMediaID, Error>) -> Void)? = nil) {
         Task {
             guard let uploadTask = await uploadTaskManager.addTaskIfNotExist(for: mediaID) else {
                 DDLogInfo("CommonMediaUploader/upload/existing upload task in progress for \(mediaID), aborting")
@@ -153,12 +153,14 @@ public class CommonMediaUploader: NSObject {
                 } else {
                     await uploadTaskManager.cancelAndRemoveTask(for: mediaID)
                 }
-            case .failure:
+                didBeginUpload?(.success(mediaID))
+            case .failure(let error):
                 try? await self.updateMedia(with: mediaID) { media in
                     media.status = .uploadError
                 }
                 dispatchMediaStatusChanged(with: mediaID)
                 await uploadTaskManager.cancelAndRemoveTask(for: mediaID)
+                didBeginUpload?(.failure(error))
             }
         }
     }

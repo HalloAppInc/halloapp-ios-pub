@@ -57,6 +57,7 @@ class ChatData: ObservableObject {
     private let mainDataStore: MainDataStore
     private let contactStore: ContactStoreMain
     private var service: HalloService
+    private let coreChatData: CoreChatData
     private let mediaUploader: MediaUploader
     
     private var currentlyChattingWithUserId: String? = nil
@@ -100,12 +101,12 @@ class ChatData: ObservableObject {
     
     private var cancellableSet: Set<AnyCancellable> = []
     
-    init(service: HalloService, contactStore: ContactStoreMain, mainDataStore: MainDataStore, userData: UserData) {
+    init(service: HalloService, contactStore: ContactStoreMain, mainDataStore: MainDataStore, userData: UserData, coreChatData: CoreChatData) {
         self.service = service
         self.contactStore = contactStore
         self.userData = userData
         self.mainDataStore = mainDataStore
-        
+        self.coreChatData = coreChatData
         self.mediaUploader = MediaUploader(service: service)
 
         self.service.chatDelegate = self
@@ -3449,7 +3450,7 @@ extension ChatData {
             // delete all chat events and chat thread
             if let chatThread = self.chatThread(type: ChatType.oneToOne, id: chatThreadId, in: managedObjectContext) {
                 if let chatWithUserId = chatThread.userID {
-                    AppContext.shared.coreChatData.deleteChatEvents(userID: chatWithUserId)
+                    self.coreChatData.deleteChatEvents(userID: chatWithUserId)
                 }
 
                 managedObjectContext.delete(chatThread)
@@ -5566,7 +5567,7 @@ extension ChatData: HalloChatDelegate {
 
     func halloService(_ halloService: HalloService, didRerequestMessage messageID: String, from userID: UserID, ack: (() -> Void)?) {
         DDLogDebug("ChatData/didRerequestMessage [\(messageID)]")
-        AppContext.shared.coreChatData.handleRerequest(for: messageID, from: userID, ack: ack)
+        coreChatData.handleRerequest(for: messageID, from: userID, ack: ack)
     }
 
     func halloService(_ halloService: HalloService, didSendMessageReceipt receipt: HalloReceipt) {

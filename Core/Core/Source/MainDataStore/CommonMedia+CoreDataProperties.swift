@@ -314,3 +314,80 @@ public extension CommonMedia {
         return nil
     }
 }
+
+// MARK: - Copy URLs
+
+extension CommonMedia {
+
+    public static func copyMedia(from pendingMedia: PendingMedia, to feedPostMedia: CommonMedia) throws {
+        guard let sourceURL = pendingMedia.fileURL else {
+            DDLogError("CommonMedia/copyMedia/sourceURL is nil/pendingMedia: \(pendingMedia)")
+            return
+        }
+
+        // Set destination string based on the content id.
+        let mediaFilename: String
+        if let postID = feedPostMedia.post?.id {
+            mediaFilename = "\(postID)-\(feedPostMedia.order)"
+        } else if let commentID = feedPostMedia.comment?.id {
+            mediaFilename = "\(commentID)-\(feedPostMedia.order)"
+        } else if let linkPreviewID = feedPostMedia.linkPreview?.id {
+            mediaFilename = "\(linkPreviewID)-\(feedPostMedia.order)"
+        } else {
+            mediaFilename = UUID().uuidString
+        }
+
+        // Copy unencrypted file.
+        let destinationFileURL = fileURL(forMediaFilename: mediaFilename).appendingPathExtension(fileExtension(forMediaType: pendingMedia.type))
+        try FileManager.default.createDirectory(at: destinationFileURL.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
+        try FileManager.default.copyItem(at: sourceURL, to: destinationFileURL)
+
+        // Copy encrypted file if any - same path and file name, with added "enc" file extension.
+        if let encryptedFileUrl = pendingMedia.encryptedFileUrl {
+            let encryptedDestinationUrl = destinationFileURL.appendingPathExtension("enc")
+            try FileManager.default.copyItem(at: encryptedFileUrl, to: encryptedDestinationUrl)
+        }
+        feedPostMedia.mediaDirectory = .commonMedia
+        feedPostMedia.relativeFilePath = relativePath(from: destinationFileURL)
+        DDLogInfo("FeedDownloadManager/copyMedia/from: \(sourceURL)/to: \(destinationFileURL)")
+    }
+
+    public static func fileURL(forMediaFilename mediaFilename: String) -> URL {
+        var first: String?, second: String?
+        for ch in mediaFilename.unicodeScalars {
+            guard CharacterSet.alphanumerics.contains(ch) else { continue }
+            if first == nil {
+                first = String(ch).uppercased()
+                continue
+            }
+            if second == nil {
+                second = String(ch).uppercased()
+                break
+            }
+        }
+        return AppContext.commonMediaStoreURL
+                .appendingPathComponent(first!, isDirectory: true)
+                .appendingPathComponent(second!, isDirectory: true)
+                .appendingPathComponent(mediaFilename, isDirectory: false)
+    }
+
+    public static func fileExtension(forMediaType mediaType: CommonMediaType) -> String {
+        switch mediaType {
+        case .image:
+            return "jpg"
+        case .video:
+            return "mp4"
+        case .audio:
+            return "aac"
+        }
+    }
+
+    public static func relativePath(from fileURL: URL) -> String? {
+        let fullPath = fileURL.path
+        let mediaDirectoryPath = AppContext.commonMediaStoreURL.path
+        if let range = fullPath.range(of: mediaDirectoryPath, options: [.anchored]) {
+            return String(fullPath.suffix(from: range.upperBound))
+        }
+        return nil
+    }
+}

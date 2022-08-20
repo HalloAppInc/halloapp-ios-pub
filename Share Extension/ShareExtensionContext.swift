@@ -26,7 +26,7 @@ class ShareExtensionContext: AppExtensionContext {
 
     required init(serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type, appTarget: AppTarget) {
         super.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass, appTarget: appTarget)
-        dataStore = DataStore(service: coreService, mainDataStore: mainDataStore)
+        dataStore = DataStore(service: coreService, mainDataStore: mainDataStore, chatData: coreChatData, feedData: coreFeedData)
     }
 
 }

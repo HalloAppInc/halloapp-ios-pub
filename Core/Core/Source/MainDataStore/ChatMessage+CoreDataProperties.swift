@@ -133,6 +133,26 @@ public extension ChatMessage {
             return reactions.sorted { $0.timestamp > $1.timestamp }
         }
     }
+
+    var allAssociatedMedia: [CommonMedia] {
+        var allMedia: [CommonMedia] = []
+
+        if let media = media {
+            allMedia += media.sorted { $0.order < $1.order }
+        }
+
+        if let quotedMedia = quoted?.media {
+            allMedia += quotedMedia.sorted { $0.order < $1.order }
+        }
+
+        linkPreviews?.forEach { linkPreview in
+            if let linkPreviewMedia = linkPreview.media {
+                allMedia += linkPreviewMedia
+            }
+        }
+
+        return allMedia
+    }
 }
 
 public extension ChatMessage {

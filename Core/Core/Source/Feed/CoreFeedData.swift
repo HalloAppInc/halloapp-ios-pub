@@ -6,40 +6,522 @@
 //  Copyright © 2022 Hallo App, Inc. All rights reserved.
 //
 
-import Foundation
-import CoreCommon
-import SwiftProtobuf
-import CoreData
 import CocoaLumberjackSwift
-
+import Combine
+import CoreCommon
+import CoreData
+import SwiftProtobuf
 
 // TODO: (murali@): reuse this logic in FeedData
 
-public class CoreFeedData {
+public enum PostError: Error {
+    case missingGroup
+    case missingFeedAudience
+    case inFlight
+    case mediaUploadFailed
+}
+
+public enum MomentContext {
+    case normal
+    case unlock(FeedPost)
+}
+
+open class CoreFeedData: NSObject {
     private let service: CoreService
     private let mainDataStore: MainDataStore
+    private let chatData: CoreChatData
+    private let contactStore: ContactStore
+    private let privacySettings: PrivacySettings
+    public let commonMediaUploader: CommonMediaUploader
 
-    public init(service: CoreService, mainDataStore: MainDataStore) {
+    private var cancellables: Set<AnyCancellable> = []
+    private var contentInFlight: Set<String> = []
+
+    public init(service: CoreService,
+                mainDataStore: MainDataStore,
+                chatData: CoreChatData,
+                contactStore: ContactStore,
+                privacySettings: PrivacySettings,
+                commonMediaUploader: CommonMediaUploader) {
         self.mainDataStore = mainDataStore
         self.service = service
+        self.chatData = chatData
+        self.contactStore = contactStore
+        self.privacySettings = privacySettings
+        self.commonMediaUploader = commonMediaUploader
+        super.init()
+
     }
 
-    public func feedPost(with feedPostId: FeedPostID, in managedObjectContext: NSManagedObjectContext) -> FeedPost? {
-        return feedPosts(predicate: NSPredicate(format: "id == %@", feedPostId), in: managedObjectContext).first
+    // MARK: - Post Creation
+
+    public func post(text: MentionText,
+                     media: [PendingMedia],
+                     linkPreviewData: LinkPreviewData?,
+                     linkPreviewMedia : PendingMedia?,
+                     to destination: ShareDestination,
+                     momentContext: MomentContext? = nil,
+                     didBeginUpload: ((Result<FeedPostID, Error>) -> Void)? = nil) {
+        mainDataStore.performSeriallyOnBackgroundContext { managedObjectContext in
+
+            let postId: FeedPostID = PacketID.generate()
+
+            // Create and save new FeedPost object.
+            DDLogDebug("FeedData/new-post/create [\(postId)]")
+
+            let timestamp = Date()
+
+            let feedPost = FeedPost(context: managedObjectContext)
+            feedPost.id = postId
+            feedPost.userId = AppContext.shared.userData.userId
+            if case .group(let groupID, _) = destination {
+                feedPost.groupId = groupID
+                if let group = self.chatData.chatGroup(groupId: groupID, in: managedObjectContext) {
+                    feedPost.expiration = group.postExpirationDate(from: timestamp)
+                } else {
+                    DDLogError("FeedData/createTombstones/groupID: \(groupID) not found, setting default expiration...")
+                    feedPost.expiration = timestamp.addingTimeInterval(ServerProperties.enableGroupExpiry ? TimeInterval(Int64.thirtyDays) : FeedPost.defaultExpiration)
+                }
+            } else {
+                feedPost.expiration = timestamp.addingTimeInterval(FeedPost.defaultExpiration)
+            }
+            feedPost.rawText = text.collapsedText
+            feedPost.status = .sending
+            feedPost.timestamp = timestamp
+            feedPost.lastUpdated = timestamp
+
+            switch momentContext {
+            case .unlock(let unlockedPost):
+                feedPost.unlockedMomentUserID = unlockedPost.userId
+                fallthrough
+            case .normal:
+                feedPost.isMoment = true
+            case .none:
+                feedPost.isMoment = false
+            }
+
+            // Add mentions
+            feedPost.mentions = text.mentionsArray.map {
+                return MentionData(
+                    index: $0.index,
+                    userID: $0.userID,
+                    name: self.contactStore.pushNames[$0.userID] ?? $0.name)
+            }
+            feedPost.mentions.filter { $0.name == "" }.forEach {
+                DDLogError("FeedData/new-post/mention/\($0.userID) missing push name")
+            }
+
+            let shouldStreamFeedVideo = ServerProperties.streamingSendingEnabled || ChunkedMediaTestConstants.STREAMING_FEED_GROUP_IDS.contains(feedPost.groupId ?? "")
+
+            // Add post media.
+            for (index, mediaItem) in media.enumerated() {
+                DDLogDebug("FeedData/new-post/add-media [\(mediaItem.fileURL!)]")
+                let feedMedia = CommonMedia(context: managedObjectContext)
+                feedMedia.id = "\(feedPost.id)-\(index)"
+                feedMedia.type = mediaItem.type
+                feedMedia.status = .uploading
+                feedMedia.url = mediaItem.url
+                feedMedia.size = mediaItem.size!
+                feedMedia.key = ""
+                feedMedia.sha256 = ""
+                feedMedia.order = Int16(index)
+                feedMedia.blobVersion = (mediaItem.type == .video && shouldStreamFeedVideo) ? .chunked : .default
+                feedMedia.post = feedPost
+                feedMedia.mediaDirectory = .commonMedia
+
+                if let url = mediaItem.fileURL {
+                    ImageServer.shared.attach(for: url, id: postId, index: index)
+                }
+
+                // Copying depends on all data fields being set, so do this last.
+                do {
+                    try CommonMedia.copyMedia(from: mediaItem, to: feedMedia)
+                }
+                catch {
+                    DDLogError("FeedData/new-post/copy-media/error [\(error)]")
+                }
+            }
+
+            // Add feed link preview if any
+            var linkPreview: CommonLinkPreview?
+            if let linkPreviewData = linkPreviewData {
+                linkPreview = CommonLinkPreview(context: managedObjectContext)
+                linkPreview?.id = PacketID.generate()
+                linkPreview?.url = linkPreviewData.url
+                linkPreview?.title = linkPreviewData.title
+                linkPreview?.desc = linkPreviewData.description
+                // Set preview image if present
+                if let linkPreviewMedia = linkPreviewMedia {
+                    let previewMedia = CommonMedia(context: managedObjectContext)
+                    previewMedia.id = "\(linkPreview?.id ?? UUID().uuidString)-0"
+                    previewMedia.type = linkPreviewMedia.type
+                    previewMedia.status = .uploading
+                    previewMedia.url = linkPreviewMedia.url
+                    previewMedia.size = linkPreviewMedia.size!
+                    previewMedia.key = ""
+                    previewMedia.sha256 = ""
+                    previewMedia.order = 0
+                    previewMedia.linkPreview = linkPreview
+                    previewMedia.mediaDirectory = .commonMedia
+
+                    // Copying depends on all data fields being set, so do this last.
+                    do {
+                        try CommonMedia.copyMedia(from: linkPreviewMedia, to: previewMedia)
+                    }
+                    catch {
+                        DDLogError("FeedData/new-post/copy-likePreviewmedia/error [\(error)]")
+                    }
+                }
+                linkPreview?.post = feedPost
+            }
+
+            switch destination {
+            case .feed(let privacyListType):
+                guard let postAudience = try? self.privacySettings.feedAudience(for: privacyListType) else {
+                    didBeginUpload?(.failure(PostError.missingFeedAudience))
+                    return
+                }
+
+                let feedPostInfo = ContentPublishInfo(context: managedObjectContext)
+                let receipts = postAudience.userIds.reduce(into: [UserID : Receipt]()) { (receipts, userId) in
+                    receipts[userId] = Receipt()
+                }
+                feedPostInfo.receipts = receipts
+                feedPostInfo.audienceType = postAudience.audienceType
+                feedPost.info = feedPostInfo
+            case .group(let groupId, _):
+                guard let chatGroup = self.chatData.chatGroup(groupId: groupId, in: managedObjectContext) else {
+                    didBeginUpload?(.failure(PostError.missingGroup))
+                    return
+                }
+                let feedPostInfo = ContentPublishInfo(context: managedObjectContext)
+                var receipts = [UserID : Receipt]()
+                chatGroup.members?.forEach({ member in
+                    receipts[member.userID] = Receipt()
+                })
+                feedPostInfo.receipts = receipts
+                feedPostInfo.audienceType = .group
+                feedPost.info = feedPostInfo
+            case .contact:
+                // ChatData is responsible for this case
+                break
+            }
+
+            self.mainDataStore.save(managedObjectContext)
+
+            self.beginMediaUploadAndSend(feedPost: feedPost, didBeginUpload: didBeginUpload)
+        }
     }
 
-    public func feedPosts(predicate: NSPredicate, sortDescriptors: [NSSortDescriptor] = [NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: true)],
-                          in managedObjectContext: NSManagedObjectContext) -> [FeedPost] {
-        let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-        fetchRequest.predicate = predicate
+    public func beginMediaUploadAndSend(feedPost: FeedPost, didBeginUpload: ((Result<FeedPostID, Error>) -> Void)? = nil) {
+        let mediaToUpload = feedPost.allAssociatedMedia.filter { [.none, .uploading, .uploadError].contains($0.status) }
+        if mediaToUpload.isEmpty {
+            send(post: feedPost, completion: didBeginUpload)
+        } else {
+            var uploadedMediaCount = 0
+            var failedMediaCount = 0
+            let totalMediaCount = mediaToUpload.count
+            let postID = feedPost.id
+            // postMediaStatusChangedPublisher should trigger post upload once all media has been uploaded
+            mediaToUpload.forEach { media in
+                commonMediaUploader.upload(mediaID: media.id) { result in
+                    switch result {
+                    case .success:
+                        uploadedMediaCount += 1
+                    case .failure:
+                        failedMediaCount += 1
+                    }
+
+                    if uploadedMediaCount + failedMediaCount == totalMediaCount {
+                        if failedMediaCount == 0 {
+                            didBeginUpload?(.success(postID))
+                        } else {
+                            didBeginUpload?(.failure(PostError.mediaUploadFailed))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func uploadPostIfMediaReady(postID: FeedPostID) {
+        mainDataStore.performSeriallyOnBackgroundContext { [weak self] context in
+            guard let self = self, let post = self.feedPost(with: postID, in: context) else {
+                DDLogError("FeedData/UploadPostIfNeeded/Post not found with id \(postID)")
+                return
+            }
+
+            let media = post.allAssociatedMedia
+
+            let uploadedMedia = media.filter { $0.status == .uploaded }
+            let failedMedia = media.filter { $0.status == .uploadError }
+
+            // Check if all media is uploaded
+            guard media.count == uploadedMedia.count + failedMedia.count else {
+                return
+            }
+
+            if !failedMedia.isEmpty {
+                post.status = .sendError
+                self.mainDataStore.save(context)
+
+            } else {
+                // Upload post
+                let endBackgroundTask = AppContext.shared.startBackgroundTask(withName: "send-post-\(postID)")
+                self.send(post: post) { _ in
+                    endBackgroundTask()
+                }
+            }
+
+            let numPhotos = media.filter { $0.type == .image }.count
+            let numVideos = media.filter { $0.type == .video }.count
+            let totalUploadSize = media.reduce(0) { totalUploadSize, media in
+                guard let encryptedFileURL = media.encryptedFileURL, let fileSize = try? encryptedFileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize else {
+                    DDLogError("FeedData/uploadPostIfMediaReady/could not retreive fileSize for reporting for \(media.id)")
+                    return totalUploadSize
+                }
+                return totalUploadSize + fileSize
+            }
+
+            AppContext.shared.eventMonitor.observe(
+                .mediaUpload(
+                    postID: post.id,
+                    duration: Date().timeIntervalSince(post.timestamp),
+                    numPhotos: numPhotos,
+                    numVideos: numVideos,
+                    totalSize: totalUploadSize,
+                    status: failedMedia.isEmpty ? .ok : .fail))
+        }
+    }
+
+    public func send(post: FeedPost, completion: ((Result<FeedPostID, Error>) -> Void)? = nil) {
+        let feed: Feed
+        if let groupId = post.groupId {
+            feed = .group(groupId)
+        } else {
+            guard let postAudience = post.audience else {
+                DDLogError("FeedData/send-post/\(post.id) No audience set")
+                post.status = .sendError
+                self.mainDataStore.save(post.managedObjectContext!)
+                completion?(.failure(PostError.missingFeedAudience))
+                return
+            }
+            feed = .personal(postAudience)
+        }
+
+        let postId = post.id
+
+        guard !contentInFlight.contains(postId) else {
+            DDLogInfo("FeedData/send-post/postID: \(postId) already-in-flight")
+            completion?(.failure(PostError.inFlight))
+            return
+        }
+        DDLogInfo("FeedData/send-post/postID: \(postId) begin")
+        contentInFlight.insert(postId)
+
+        service.publishPost(post.postData, feed: feed) { result in
+            switch result {
+            case .success(let timestamp):
+                DDLogInfo("FeedData/send-post/postID: \(postId) success")
+                self.contentInFlight.remove(postId)
+                self.updateFeedPost(with: postId) { (feedPost) in
+                    feedPost.timestamp = timestamp
+                    feedPost.status = .sent
+                } performAfterSave: {
+                    completion?(.success(postId))
+                }
+            case .failure(let error):
+                DDLogError("FeedData/send-post/postID: \(postId) error \(error)")
+                self.contentInFlight.remove(postId)
+                // TODO: Track this state more precisely. Even if this attempt was a definite failure, a previous attempt may have succeeded.
+                if error.isKnownFailure {
+                    self.updateFeedPost(with: postId) { (feedPost) in
+                        feedPost.status = .sendError
+                    } performAfterSave: {
+                        completion?(.failure(error))
+                    }
+                }
+            }
+        }
+    }
+
+    public func uploadProgressPublisher(for post: FeedPost) -> AnyPublisher<Float, Never> {
+        let mediaIDs = Set(post.allAssociatedMedia.map(\.id))
+        let mediaCount = mediaIDs.count
+
+        guard mediaCount > 0 else {
+            return Just(Float(1)).eraseToAnyPublisher()
+        }
+
+        let progressPublisher = ImageServer.shared.progress
+            .prepend(mediaIDs)
+            .filter { mediaIDs.contains($0) }
+            .map { mediaID in
+                let (processingCount, processingProgress) = ImageServer.shared.progress(for: mediaID)
+                return processingProgress * Float(processingCount) / Float(mediaCount)
+            }
+
+        // Combine each separate media progress publisher
+        var uploadPublisher: AnyPublisher<Float, Never> = Just(Float(0)).eraseToAnyPublisher()
+        mediaIDs.forEach { mediaID in
+            let mediaUploadProgressPublisher = commonMediaUploader.progress(for: mediaID)
+                .eraseToAnyPublisher()
+            uploadPublisher = uploadPublisher
+                .combineLatest(mediaUploadProgressPublisher) { totalProgress, uploadProgress in
+                    return totalProgress + uploadProgress / Float(mediaCount)
+                }
+                .eraseToAnyPublisher()
+        }
+
+        return Publishers.CombineLatest(progressPublisher, uploadPublisher)
+            .map { ($0 + $1) / 2.0 }
+            .eraseToAnyPublisher()
+    }
+
+    // MARK: - Comment Creation
+
+    private func uploadFeedCommentIfMediaReady(commentID: FeedPostCommentID) {
+        mainDataStore.performSeriallyOnBackgroundContext { [weak self] context in
+            guard let self = self, let comment = self.feedComment(with: commentID, in: context) else {
+                DDLogError("FeedData/uploadFeedCommentIfMediaReady/Comment not found with id \(commentID)")
+                return
+            }
+
+            let media = comment.allAssociatedMedia
+
+            let uploadedMedia = media.filter { $0.status == .uploaded }
+            let failedMedia = media.filter { $0.status == .uploadError }
+
+            // Check if all media is uploaded
+            guard media.count == uploadedMedia.count + failedMedia.count else {
+                return
+            }
+
+            if failedMedia.isEmpty {
+                // Upload post
+                self.send(comment: comment)
+            } else {
+                // Mark message as failed
+                comment.status = .sendError
+                self.mainDataStore.save(context)
+            }
+        }
+    }
+
+    public func send(comment: FeedPostComment) {
+        DDLogInfo("FeedData/send-comment/commentID: \(comment.id)")
+        let commentId = comment.id
+        let groupId = comment.post.groupId
+        let postId = comment.post.id
+
+        guard !contentInFlight.contains(commentId) else {
+            DDLogInfo("FeedData/send-comment/commentID: \(comment.id) already-in-flight")
+            return
+        }
+        DDLogInfo("FeedData/send-comment/commentID: \(comment.id) begin")
+        contentInFlight.insert(commentId)
+
+        service.publishComment(comment.commentData, groupId: groupId) { result in
+            switch result {
+            case .success(let timestamp):
+                DDLogInfo("FeedData/send-comment/commentID: \(commentId) success")
+                self.contentInFlight.remove(commentId)
+                self.updateFeedPostComment(with: commentId) { (feedComment) in
+                    feedComment.timestamp = timestamp
+                    feedComment.status = .sent
+
+                    //MainAppContext.shared.endBackgroundTask(feedComment.id)
+                }
+                if groupId != nil {
+                    var interestedPosts = AppContext.shared.userDefaults.value(forKey: AppContext.commentedGroupPostsKey) as? [FeedPostID] ?? []
+                    interestedPosts.append(postId)
+                    AppContext.shared.userDefaults.set(Array(Set(interestedPosts)), forKey: AppContext.commentedGroupPostsKey)
+                }
+
+            case .failure(let error):
+                DDLogError("FeedData/send-comment/commentID: \(commentId) error \(error)")
+                self.contentInFlight.remove(commentId)
+                // TODO: Track this state more precisely. Even if this attempt was a definite failure, a previous attempt may have succeeded.
+                if error.isKnownFailure {
+                    self.updateFeedPostComment(with: commentId) { (feedComment) in
+                        feedComment.status = .sendError
+                        //MainAppContext.shared.endBackgroundTask(feedComment.id)
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - FeedPost lookup and updates
+
+    public func feedPosts(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext, archived: Bool = false) -> [FeedPost] {
+        let fetchRequest = FeedPost.fetchRequest()
+
+        var predicates: [NSPredicate] = []
+        if let predicate = predicate {
+            predicates.append(predicate)
+        }
+        if !archived {
+            predicates.append(NSPredicate(format: "expiration >= now() || expiration == nil"))
+        }
+        if !predicates.isEmpty {
+            fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+        }
+
         fetchRequest.sortDescriptors = sortDescriptors
         fetchRequest.returnsObjectsAsFaults = false
+
         do {
-            let posts = try managedObjectContext.fetch(fetchRequest)
-            return posts
-        } catch {
-            DDLogError("CoreFeedData/fetch-posts/error  [\(error)]")
+            return try managedObjectContext.fetch(fetchRequest)
+        }
+        catch {
+            DDLogError("FeedData/fetch-posts/error  [\(error)]")
             return []
+        }
+    }
+
+    public func feedPost(with id: FeedPostID, in managedObjectContext: NSManagedObjectContext, archived: Bool = false) -> FeedPost? {
+        return self.feedPosts(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext, archived: archived).first
+    }
+
+    public func updateFeedPost(with id: FeedPostID, block: @escaping (FeedPost) -> (), performAfterSave: (() -> ())? = nil) {
+        mainDataStore.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            defer {
+                if let performAfterSave = performAfterSave {
+                    performAfterSave()
+                }
+            }
+            guard let feedPost = self.feedPost(with: id, in: managedObjectContext, archived: true) else {
+                DDLogError("FeedData/update-post/missing-post [\(id)]")
+                return
+            }
+            DDLogVerbose("FeedData/update-post [\(id)] - currentStatus: [\(feedPost.status)]")
+            block(feedPost)
+            DDLogVerbose("FeedData/update-post-afterBlock [\(id)] - currentStatus: [\(feedPost.status)]")
+            if managedObjectContext.hasChanges {
+                self.mainDataStore.save(managedObjectContext)
+            }
+        }
+    }
+
+    // MARK: - FeedPostComment Lookup and updates
+
+    private func updateFeedPostComment(with id: FeedPostCommentID, block: @escaping (FeedPostComment) -> (), performAfterSave: (() -> ())? = nil) {
+        mainDataStore.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            defer {
+                if let performAfterSave = performAfterSave {
+                    performAfterSave()
+                }
+            }
+            guard let comment = self.feedComment(with: id, in: managedObjectContext) else {
+                DDLogError("FeedData/update-comment/missing-comment [\(id)]")
+                return
+            }
+            DDLogVerbose("FeedData/update-comment [\(id)]")
+            block(comment)
+            if managedObjectContext.hasChanges {
+                self.mainDataStore.save(managedObjectContext)
+            }
         }
     }
 

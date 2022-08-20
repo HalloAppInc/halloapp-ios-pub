@@ -1086,7 +1086,7 @@ final class NotificationProtoService: ProtoServiceCore {
         DDLogInfo("ProtoService/updateMomentNotifications")
         mainDataStore.performSeriallyOnBackgroundContext { managedObjectContext in
             let predicate = NSPredicate(format: "isMoment = YES && (statusValue = %d || statusValue = %d)", FeedPost.Status.incoming.rawValue, FeedPost.Status.rerequesting.rawValue)
-            let moments = AppContext.shared.coreFeedData.feedPosts(predicate: predicate, in: managedObjectContext)
+            let moments = AppContext.shared.coreFeedData.feedPosts(predicate: predicate, sortDescriptors: [NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: true)], in: managedObjectContext)
 
             var unlockedMoments = [FeedPost]()
             var normalMoments = [FeedPost]()

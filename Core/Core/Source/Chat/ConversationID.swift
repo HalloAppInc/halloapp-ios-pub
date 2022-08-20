@@ -8,16 +8,16 @@
 
 import Foundation
 
-enum ConversationType: String {
+public enum ConversationType: String {
     case chat = "CHAT"
     case group = "GRUP"
 }
 
-struct ConversationID: CustomStringConvertible {
-    var id: String
-    var conversationType: ConversationType
+public struct ConversationID: CustomStringConvertible {
+    public var id: String
+    public var conversationType: ConversationType
     
-    init?(_ conversationID: String) {
+    public init?(_ conversationID: String) {
         let splitValues = conversationID.split(separator: ":", maxSplits: 1)
         guard splitValues.count == 2 else { return nil }
         
@@ -27,12 +27,12 @@ struct ConversationID: CustomStringConvertible {
         self.conversationType = conversationType
     }
     
-    init(id: String, type: ConversationType) {
+    public init(id: String, type: ConversationType) {
         self.id = id
         self.conversationType = type
     }
     
-    var description: String {
+    public var description: String {
         return conversationType.rawValue + ":" + id
     }
 }
