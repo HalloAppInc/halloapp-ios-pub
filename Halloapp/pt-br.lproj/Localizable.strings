@@ -1258,6 +1258,9 @@
 /* Title of text displayed the first time the user acts to post a second moment in the same day. */
 "moment.replacement.title" = "Atenção";
 
+/* Text on a locked moment that explains the need to post your own in order to view it. */
+"moment.unlock.disclaimer" = "Para ver o momento deles, compartilhe o seu";
+
 /* For indicating that there was an error while uploading the post. */
 "moment.uploading.failure" = "Erro";
 
@@ -1394,16 +1397,16 @@
 "notification.one.video" = "📹 vídeo";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.1" = "%@ compartilhou um novo momento para desbloquear o seu";
+"notification.unlocked.moment.1" = "%@ compartilhou um momento novo para ver o seu";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.2" = "%1$@ e %2$@ compartilharam um novo momento para desbloquear o seu";
+"notification.unlocked.moment.2" = "%1$@ e %2$@ compartilharam um momento novo para ver o seu";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.3" = "%1$@, %2$@ e %3$@ compartilharam um novo momento para desbloquear o seu";
+"notification.unlocked.moment.3" = "%1$@, %2$@ e %3$@ compartilharam um novo momento para ver o seu";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ e outros compartilharam um novo momento para desbloquear o seu";
+"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ e outros compartilharam um novo momento para ver o seu";
 
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 Chamada de vídeo perdida";
@@ -1493,7 +1496,7 @@
 "post.controller.picker.title" = "Nova Publicação";
 
 /* Body of alert indicating that a post's expiration does not match that set on a group */
-"post.expiration.mismatch" = "Esta postagem expira em %1$@, enquanto as configurações do grupo indicam %2$@.";
+"post.expiration.mismatch" = "Esta postagem expira em %1$@, enquanto a expiração do conteúdo do grupo está definida como %2$@.";
 
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted" = "Esta publicação foi excluída";

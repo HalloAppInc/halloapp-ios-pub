@@ -370,6 +370,66 @@
 /* Label for inviting friends */
 "chat.invite.friends" = "دعوة الأصدقاء";
 
+/* Text shown when user removed a reaction from an audio */
+"chat.list.user.deleted.reaction.audio" = "قام %1$@ بإزالة %2$@ من رسالة صوتية";
+
+/* Text shown when user removed a reaction from an image */
+"chat.list.user.deleted.reaction.image" = "قام %1$@ بإزالة %2$@ من صورة";
+
+/* Text shown when user removed a reaction from a message */
+"chat.list.user.deleted.reaction.message" = "قام %1$@ بإزالة %2$@ من رسالة";
+
+/* Text shown when user removed a reaction from a text message */
+"chat.list.user.deleted.reaction.text" = "قام %1$@ بإزالة %2$@ من %3$@";
+
+/* Text shown when user removed a reaction from a video */
+"chat.list.user.deleted.reaction.video" = "قام %1$@ بإزالة %2$@ من فيديو";
+
+/* Text shown when user reacted to an audio */
+"chat.list.user.reacted.audio" = "تفاعل %1$@ بإضافة %2$@ إلى رسالة صوتية";
+
+/* Text shown when user reacted to an image */
+"chat.list.user.reacted.image" = "تفاعل %1$@ بإضافة %2$@ إلى صورة";
+
+/* Text shown when user reacted to a message */
+"chat.list.user.reacted.message" = "تفاعل %1$@ بإضافة %2$@ إلى رسالة";
+
+/* Text shown when user reacted to a text message */
+"chat.list.user.reacted.text" = "تفاعل %1$@ بإضافة %2$@ إلى %3$@";
+
+/* Text shown when user reacted to a video */
+"chat.list.user.reacted.video" = "تفاعل %1$@ بإضافة %2$@ إلى فيديو";
+
+/* Text shown when you removed a reaction from an audio */
+"chat.list.you.deleted.reaction.audio" = "لقد أزلت %1@ من رسالة صوتية";
+
+/* Text shown when you removed a reaction from an image */
+"chat.list.you.deleted.reaction.image" = "لقد أزلت %1@ من صورة";
+
+/* Text shown when you removed a reaction from a message */
+"chat.list.you.deleted.reaction.message" = "لقد أزلت %@ من رسالة";
+
+/* Text shown when you removed a reaction from a text message */
+"chat.list.you.deleted.reaction.text" = "لقد أزلت %1$@ من %2$@";
+
+/* Text shown when you removed a reaction from a video */
+"chat.list.you.deleted.reaction.video" = "لقد أزلت %1@ من فيديو";
+
+/* Text shown when you reacted to an audio */
+"chat.list.you.reacted.audio" = "لقد تفاعلت بإضافة %1@ إلى رسالة صوتية";
+
+/* Text shown when you reacted to an image */
+"chat.list.you.reacted.image" = "لقد تفاعلت بإضافة %1@ إلى صورة";
+
+/* Text shown when you reacted to a message */
+"chat.list.you.reacted.message" = "لقد تفاعلت بإضافة %@ إلى رسالة";
+
+/* Text shown when you reacted to a text message */
+"chat.list.you.reacted.text" = "لقد تفاعلت بإضافة %1@ إلى %2$@";
+
+/* Text shown when you reacted to a video */
+"chat.list.you.reacted.video" = "لقد تفاعلت بإضافة %@ إلى فيديو";
+
 /* Message text shown in a message that have audio media but no text */
 "chat.message.audio" = "رسالة صوتية";
 
@@ -678,6 +738,12 @@
 
 /* Archived date timestamp */
 "feed.post.archived.timestamp" = "تمت أرشفة %@";
+
+/* Indication of when a post expired */
+"feed.post.expired.timestamp" = "تنتهي صلاحيته في %@";
+
+/* Indication of when a post never expires */
+"feed.post.expired.timestamp.never" = "لا تنتهي صلاحيته مطلقًا";
 
 /* Shown when post fails or is canceled. */
 "feed.post.failed" = "تعذّر النشر.";
@@ -1192,6 +1258,9 @@
 /* Title of text displayed the first time the user acts to post a second moment in the same day. */
 "moment.replacement.title" = "تنبيه";
 
+/* Text on a locked moment that explains the need to post your own in order to view it. */
+"moment.unlock.disclaimer" = "لرؤية هذه اللحظة، يجب مشاركة اللحظة الخاصة بك";
+
 /* For indicating that there was an error while uploading the post. */
 "moment.uploading.failure" = "خطأ";
 
@@ -1264,6 +1333,9 @@
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "لم تعد عضوًا في هذه المجموعة";
 
+/* Push notification for a comment to message */
+"notification.comment.reaction" = "تفاعل بإضافة %@ إلى تعليق";
+
 /* Push notification for a new comment. Parameter is the text of the comment */
 "notification.commented.with.text" = "التعليق: %@";
 
@@ -1325,16 +1397,16 @@
 "notification.one.video" = "📹 فيديو";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.1" = "شارك %@ لحظة جديدة وشاهد اللحظة الخاصة بك";
+"notification.unlocked.moment.1" = "شارك %@ لحظة جديدة لمشاهدة اللحظة الخاصة بك";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.2" = "شارك %1$@ و%2$@ لحظة جديدة وشاهدا اللحظة الخاصة بك";
+"notification.unlocked.moment.2" = "شارك %1$@ و%2$@ لحظة جديدة لمشاهدة اللحظة الخاصة بك";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.3" = "شارك %1$@ و%2$@ و%3$@ لحظة جديدة وشاهدوا اللحظة الخاصة بك";
+"notification.unlocked.moment.3" = "شارك %1$@ و%2$@ و%3$@ لحظة جديدة لمشاهدة اللحظة الخاصة بك";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.4" = "شارك %1$@ و%2$@ و%3$@ وآخرون لحظة جديدة وشاهدوا اللحظة الخاصة بك";
+"notification.unlocked.moment.4" = "شارك %1$@ و%2$@ و%3$@ وآخرون لحظة جديدة لمشاهدة اللحظة الخاصة بك";
 
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 مكالمة فيديو فائتة";
@@ -1374,6 +1446,12 @@
 
 /* Title of the button that opens the camera. */
 "open.camera" = "فتح الكاميرا";
+
+/* Menu option to open a location in Google Maps. */
+"openInMapsApp.googleMaps" = "فتح في خرائط Google";
+
+/* Menu option to open a location in (Apple) Maps. */
+"openInMapsApp.maps" = "فتح في الخرائط";
 
 /* button to launch photo and video library */
 "photo.and.video.library" = "مكتبة الصور والفيديو";

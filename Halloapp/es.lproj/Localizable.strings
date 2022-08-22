@@ -370,6 +370,33 @@
 /* Label for inviting friends */
 "chat.invite.friends" = "Invitar amigos";
 
+/* Text shown when user removed a reaction from an audio */
+"chat.list.user.deleted.reaction.audio" = "%1$@ eliminó un %2$@ de un audio";
+
+/* Text shown when user removed a reaction from an image */
+"chat.list.user.deleted.reaction.image" = "%1$@ eliminó un %2$@ de una imagen";
+
+/* Text shown when user removed a reaction from a message */
+"chat.list.user.deleted.reaction.message" = "%1$@ eliminó un %2$@ de un mensaje";
+
+/* Text shown when user removed a reaction from a video */
+"chat.list.user.deleted.reaction.video" = "%1$@ eliminó un %2$@ de un video";
+
+/* Text shown when user reacted to an image */
+"chat.list.user.reacted.image" = "%1$@ reaccionó %2$@ a una imagen";
+
+/* Text shown when user reacted to a message */
+"chat.list.user.reacted.message" = "%1$@ reaccionó %2$@ a un mensaje";
+
+/* Text shown when user reacted to a video */
+"chat.list.user.reacted.video" = "%1$@ reaccionó %2$@ a un video";
+
+/* Text shown when you removed a reaction from an audio */
+"chat.list.you.deleted.reaction.audio" = "Eliminaste un %1@ de un audio";
+
+/* Text shown when you removed a reaction from an image */
+"chat.list.you.deleted.reaction.image" = "Eliminaste un %1@ de una imagen";
+
 /* Message text shown in a message that have audio media but no text */
 "chat.message.audio" = "Nota de voz";
 
@@ -1124,7 +1151,7 @@
 "media.camera.access.request" = "HalloApp no tiene acceso a tu cámara. Para permitir acceso, ve a Configuración y enciende la cámara";
 
 /* Confirmation prompt in media composer. */
-"media.discard.confirmation" = "¿Te gustaría descartar lo que has editado?";
+"media.discard.confirmation" = "¿Te gustaría descartar tus ediciones?";
 
 /* Button that, when pressed, saves all the post's media to the user's camera roll */
 "media.download.all" = "Descargar todo";
@@ -1197,6 +1224,9 @@
 
 /* Title of text displayed the first time the user acts to post a second moment in the same day. */
 "moment.replacement.title" = "Aviso";
+
+/* Text on a locked moment that explains the need to post your own in order to view it. */
+"moment.unlock.disclaimer" = "Para ver su momento, comparte el tuyo";
 
 /* For indicating that there was an error while uploading the post. */
 "moment.uploading.failure" = "Error";

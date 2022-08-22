@@ -41,7 +41,7 @@
 "activityCenter.promo.favorites" = "Schau dir die neue Favoritenfunktion an!";
 
 /* Text label for action button to add the contact to the address book */
-"add.to.contact.book" = "Zu meinen Kontakten hinzufügen";
+"add.to.contact.book" = "Zu Kontakten hinzufügen";
 
 /* Title for alert shown when there's no internet connectivity */
 "alert.no.internet.title" = "Keine Internetverbindung";
@@ -370,6 +370,45 @@
 /* Label for inviting friends */
 "chat.invite.friends" = "Freunde einladen";
 
+/* Text shown when user removed a reaction from an audio */
+"chat.list.user.deleted.reaction.audio" = "%1$@ hat %2$@ vom Audio entfernt";
+
+/* Text shown when user removed a reaction from an image */
+"chat.list.user.deleted.reaction.image" = "%1$@ hat %2$@ vom Bild entfernt";
+
+/* Text shown when user removed a reaction from a message */
+"chat.list.user.deleted.reaction.message" = "%1$@ hat %2$@ von der Nachricht entfernt";
+
+/* Text shown when user removed a reaction from a text message */
+"chat.list.user.deleted.reaction.text" = "%1$@ hat %2$@ von %3$@ entfernt";
+
+/* Text shown when user reacted to an audio */
+"chat.list.user.reacted.audio" = "%1$@ hat mit %2$@ auf ein Audio reagiert";
+
+/* Text shown when user reacted to an image */
+"chat.list.user.reacted.image" = "%1$@ hat mit %2$@ auf ein Bild reagiert";
+
+/* Text shown when user reacted to a message */
+"chat.list.user.reacted.message" = "%1$@ hat mit %2$@ auf eine Nachricht reagiert";
+
+/* Text shown when user reacted to a text message */
+"chat.list.user.reacted.text" = "%1$@ hat mit %2$@ auf %3$@ reagiert";
+
+/* Text shown when user reacted to a video */
+"chat.list.user.reacted.video" = "%1$@ hat mit %2$@ auf ein Video reagiert";
+
+/* Text shown when you reacted to an audio */
+"chat.list.you.reacted.audio" = "Du hast mit %1@ auf ein Audio reagiert";
+
+/* Text shown when you reacted to an image */
+"chat.list.you.reacted.image" = "Du hast mit %1@ auf ein Bild reagiert";
+
+/* Text shown when you reacted to a text message */
+"chat.list.you.reacted.text" = "Du hast mit %1$@ auf %2$@ reagiert";
+
+/* Text shown when you reacted to a video */
+"chat.list.you.reacted.video" = "Du hast mit %1@ auf ein Video reagiert";
+
 /* Message text shown in a message that have audio media but no text */
 "chat.message.audio" = "Sprachnotiz";
 
@@ -678,6 +717,9 @@
 
 /* Archived date timestamp */
 "feed.post.archived.timestamp" = "Archiviert am %@";
+
+/* Indication of when a post never expires */
+"feed.post.expired.timestamp.never" = "Läuft nie ab";
 
 /* Shown when post fails or is canceled. */
 "feed.post.failed" = "Kann nicht gepostet werden.";
@@ -1192,6 +1234,9 @@
 /* Title of text displayed the first time the user acts to post a second moment in the same day. */
 "moment.replacement.title" = "Hinweis";
 
+/* Text on a locked moment that explains the need to post your own in order to view it. */
+"moment.unlock.disclaimer" = "Um Momente zu sehen, teile deinen eigenen";
+
 /* For indicating that there was an error while uploading the post. */
 "moment.uploading.failure" = "Fehler beim Hochladen";
 
@@ -1264,6 +1309,9 @@
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Du bist nicht mehr in dieser Gruppe";
 
+/* Push notification for a comment to message */
+"notification.comment.reaction" = "Reagierte mit %@ auf einen Kommentar";
+
 /* Push notification for a new comment. Parameter is the text of the comment */
 "notification.commented.with.text" = "Kommentierte: %@";
 
@@ -1275,6 +1323,9 @@
 
 /* New message notification text when message is a location. */
 "notification.location" = "📍 Standort";
+
+/* Push notification for a reaction to message */
+"notification.message.reaction" = "Reagierte mit %@ auf eine Nachricht";
 
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Neuer Moment";
@@ -1322,16 +1373,16 @@
 "notification.one.video" = "📹 Video";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.1" = "%@ hat einen neuen Moment geteilt, um deinen freizuschalten";
+"notification.unlocked.moment.1" = "%@ hat einen neuen Moment geteilt, um deinen zu sehen";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.2" = "%1$@ und %2$@ haben einen neuen Moment geteilt, um deinen freizuschalten";
+"notification.unlocked.moment.2" = "%1$@ und %2$@ haben einen neuen Moment geteilt, um deinen zu sehen";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.3" = "%1$@, %2$@ und %3$@ haben einen neuen Moment geteilt, um deinen freizuschalten";
+"notification.unlocked.moment.3" = "%1$@, %2$@ und %3$@ haben einen neuen Moment geteilt, um deinen zu sehen";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ und weitere Kontakte haben einen neuen Moment geteilt, um deinen freizuschalten";
+"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ und weitere Kontakte haben einen neuen Moment geteilt, um deinen zu sehen";
 
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 Verpasster Videoanruf";
@@ -1371,6 +1422,12 @@
 
 /* Title of the button that opens the camera. */
 "open.camera" = "Kamera öffnen";
+
+/* Menu option to open a location in Google Maps. */
+"openInMapsApp.googleMaps" = "In Google Maps öffnen";
+
+/* Menu option to open a location in (Apple) Maps. */
+"openInMapsApp.maps" = "In Karten öffnen";
 
 /* button to launch photo and video library */
 "photo.and.video.library" = "Foto- und Videothek";
@@ -1967,7 +2024,7 @@
 "your.post.deletepost.button" = "Beitrag löschen";
 
 /* Post deletion confirmation. Displayed as action sheet title. */
-"your.post.deletepost.confirmation" = "Diesen Beitrag löschen? Diese Aktion kann nicht widerrufen werden.";
+"your.post.deletepost.confirmation" = "Diesen Beitrag löschen? Diese Aktion kann nicht rückgängig gemacht werden.";
 
 /* Displayed when a post fails to delete */
 "your.post.deletepost.error" = "Fehler beim Löschen des Beitrags";

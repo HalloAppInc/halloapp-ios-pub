@@ -136,6 +136,9 @@
 /* Button title. Refers to discarding photo/video edits in media composer. */
 "media.button.discard" = "تجاهل";
 
+/* Push notification for a comment to message */
+"notification.comment.reaction" = "تفاعل بإضافة %@ إلى تعليق";
+
 /* Push notification for a new comment. Parameter is the text of the comment */
 "notification.commented.with.text" = "التعليق: %@";
 
@@ -197,16 +200,16 @@
 "notification.one.video" = "📹 فيديو";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.1" = "شارك %@ لحظة جديدة وشاهد اللحظة الخاصة بك";
+"notification.unlocked.moment.1" = "شارك %@ لحظة جديدة لمشاهدة اللحظة الخاصة بك";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.2" = "شارك %1$@ و%2$@ لحظة جديدة وشاهدا اللحظة الخاصة بك";
+"notification.unlocked.moment.2" = "شارك %1$@ و%2$@ لحظة جديدة لمشاهدة اللحظة الخاصة بك";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.3" = "شارك %1$@ و%2$@ و%3$@ لحظة جديدة وشاهدوا اللحظة الخاصة بك";
+"notification.unlocked.moment.3" = "شارك %1$@ و%2$@ و%3$@ لحظة جديدة لمشاهدة اللحظة الخاصة بك";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.4" = "شارك %1$@ و%2$@ و%3$@ وآخرون لحظة جديدة وشاهدوا اللحظة الخاصة بك";
+"notification.unlocked.moment.4" = "شارك %1$@ و%2$@ و%3$@ وآخرون لحظة جديدة لمشاهدة اللحظة الخاصة بك";
 
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 مكالمة فيديو فائتة";

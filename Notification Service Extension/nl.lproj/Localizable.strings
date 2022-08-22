@@ -200,16 +200,16 @@
 "notification.one.video" = "📹 video";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.1" = "%@ heeft een nieuw moment gedeeld om die van jou te ontgrendelen";
+"notification.unlocked.moment.1" = "%@ heeft een nieuw moment gedeeld om die van jou te zien";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.2" = "%1$@ en %2$@ hebben een nieuw moment gedeeld om die van jou te ontgrendelen";
+"notification.unlocked.moment.2" = "%1$@ en %2$@ hebben een nieuw moment gedeeld om die van jou te zien";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.3" = "%1$@, %2$@ en %3$@ hebben een nieuw moment gedeeld om die van jou te ontgrendelen";
+"notification.unlocked.moment.3" = "%1$@, %2$@ en %3$@ hebben een nieuw moment gedeeld om die van jou te zien";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ en anderen hebben een nieuw moment gedeeld om die van jou te ontgrendelen";
+"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ en anderen hebben een nieuw moment gedeeld om die van jou te zien";
 
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 Gemiste video-oproep";

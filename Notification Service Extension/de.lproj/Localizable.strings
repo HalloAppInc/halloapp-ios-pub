@@ -136,6 +136,9 @@
 /* Button title. Refers to discarding photo/video edits in media composer. */
 "media.button.discard" = "Verwerfen";
 
+/* Push notification for a comment to message */
+"notification.comment.reaction" = "Reagierte mit %@ auf einen Kommentar";
+
 /* Push notification for a new comment. Parameter is the text of the comment */
 "notification.commented.with.text" = "Kommentierte: %@";
 
@@ -147,6 +150,9 @@
 
 /* New message notification text when message is a location. */
 "notification.location" = "📍Standort";
+
+/* Push notification for a reaction to message */
+"notification.message.reaction" = "Reagierte mit %@ auf eine Nachricht";
 
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Neuer Moment";
@@ -194,16 +200,16 @@
 "notification.one.video" = "📹 Video";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.1" = "%@ hat einen neuen Moment geteilt, um deinen freizuschalten";
+"notification.unlocked.moment.1" = "%@ hat einen neuen Moment geteilt, um deinen zu sehen";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.2" = "%1$@ und %2$@ haben einen neuen Moment geteilt, um deinen freizuschalten";
+"notification.unlocked.moment.2" = "%1$@ und %2$@ haben einen neuen Moment geteilt, um deinen zu sehen";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.3" = "%1$@, %2$@ und %3$@ haben einen neuen Moment geteilt, um deinen freizuschalten";
+"notification.unlocked.moment.3" = "%1$@, %2$@ und %3$@ haben einen neuen Moment geteilt, um deinen zu sehen";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ und weitere Kontakte haben einen neuen Moment geteilt, um deinen freizuschalten";
+"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ und weitere Kontakte haben einen neuen Moment geteilt, um deinen zu sehen";
 
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 Verpasster Videoanruf";

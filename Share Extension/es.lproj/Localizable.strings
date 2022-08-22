@@ -140,7 +140,7 @@
 "media.button.undo" = "Deshacer";
 
 /* Confirmation prompt in media composer. */
-"media.discard.confirmation" = "¿Te gustaría descartar lo que has editado?";
+"media.discard.confirmation" = "¿Te gustaría descartar tus ediciones?";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.annotate" = "Anotar";

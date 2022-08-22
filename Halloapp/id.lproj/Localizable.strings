@@ -370,6 +370,66 @@
 /* Label for inviting friends */
 "chat.invite.friends" = "Undang Teman";
 
+/* Text shown when user removed a reaction from an audio */
+"chat.list.user.deleted.reaction.audio" = "%1$@ menghapus %2$@ dari audio";
+
+/* Text shown when user removed a reaction from an image */
+"chat.list.user.deleted.reaction.image" = "%1$@ menghapus %2$@ dari gambar";
+
+/* Text shown when user removed a reaction from a message */
+"chat.list.user.deleted.reaction.message" = "%1$@  menghapus %2$@ dari pesan";
+
+/* Text shown when user removed a reaction from a text message */
+"chat.list.user.deleted.reaction.text" = "%1$@ menghapus %2$@ dari %3$@";
+
+/* Text shown when user removed a reaction from a video */
+"chat.list.user.deleted.reaction.video" = "%1$@ menghapus %2$@ dari video";
+
+/* Text shown when user reacted to an audio */
+"chat.list.user.reacted.audio" = "%1$@ menanggapi %2$@ di audio";
+
+/* Text shown when user reacted to an image */
+"chat.list.user.reacted.image" = "%1$@ menanggapi %2$@ di gambar";
+
+/* Text shown when user reacted to a message */
+"chat.list.user.reacted.message" = "%1$@ menanggapi %2$@ di pesan";
+
+/* Text shown when user reacted to a text message */
+"chat.list.user.reacted.text" = "%1$@ menanggapi %2$@ di %3$@";
+
+/* Text shown when user reacted to a video */
+"chat.list.user.reacted.video" = "%1$@ menanggapi %2$@ di video";
+
+/* Text shown when you removed a reaction from an audio */
+"chat.list.you.deleted.reaction.audio" = "Anda menghapus %1@ dari audio";
+
+/* Text shown when you removed a reaction from an image */
+"chat.list.you.deleted.reaction.image" = "Anda menghapus %1@ dari gambar";
+
+/* Text shown when you removed a reaction from a message */
+"chat.list.you.deleted.reaction.message" = "Anda menghapus %1@ dari pesan";
+
+/* Text shown when you removed a reaction from a text message */
+"chat.list.you.deleted.reaction.text" = "Anda menghapus %1@ dari %2$@";
+
+/* Text shown when you removed a reaction from a video */
+"chat.list.you.deleted.reaction.video" = "Anda menghapus %1@ dari video";
+
+/* Text shown when you reacted to an audio */
+"chat.list.you.reacted.audio" = "Anda menanggapi %1@ di audio";
+
+/* Text shown when you reacted to an image */
+"chat.list.you.reacted.image" = "Anda menanggapi %1@ di gambar";
+
+/* Text shown when you reacted to a message */
+"chat.list.you.reacted.message" = "Anda menanggapi %1@ di pesan";
+
+/* Text shown when you reacted to a text message */
+"chat.list.you.reacted.text" = "Anda menanggapi %1@ di %2$@";
+
+/* Text shown when you reacted to a video */
+"chat.list.you.reacted.video" = "Anda menanggapi %1@ di video";
+
 /* Message text shown in a message that have audio media but no text */
 "chat.message.audio" = "Catatan suara";
 
@@ -678,6 +738,12 @@
 
 /* Archived date timestamp */
 "feed.post.archived.timestamp" = "Diarsipkan %@";
+
+/* Indication of when a post expired */
+"feed.post.expired.timestamp" = "Kedaluwarsa %@";
+
+/* Indication of when a post never expires */
+"feed.post.expired.timestamp.never" = "Jangan pernah kedaluwarsa";
 
 /* Shown when post fails or is canceled. */
 "feed.post.failed" = "Gagal memposting.";
@@ -1192,6 +1258,9 @@
 /* Title of text displayed the first time the user acts to post a second moment in the same day. */
 "moment.replacement.title" = "Peringatan";
 
+/* Text on a locked moment that explains the need to post your own in order to view it. */
+"moment.unlock.disclaimer" = "Untuk melihat momen mereka, bagikan momen Anda";
+
 /* For indicating that there was an error while uploading the post. */
 "moment.uploading.failure" = "Kesalahan";
 
@@ -1377,6 +1446,12 @@
 
 /* Title of the button that opens the camera. */
 "open.camera" = "Buka Kamera";
+
+/* Menu option to open a location in Google Maps. */
+"openInMapsApp.googleMaps" = "Buka di Peta Google";
+
+/* Menu option to open a location in (Apple) Maps. */
+"openInMapsApp.maps" = "Buka di Peta";
 
 /* button to launch photo and video library */
 "photo.and.video.library" = "Perpustakaan Foto & Video";
