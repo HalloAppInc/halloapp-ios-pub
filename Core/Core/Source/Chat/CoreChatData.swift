@@ -35,6 +35,10 @@ public class CoreChatData {
                 self?.handleIncomingWhisperMessage(whisperMessage)
             }
         )
+
+        commonMediaUploader.chatMessageMediaStatusChangedPublisher
+            .sink { [weak self] chatMessageID in self?.uploadChatMessageIfMediaReady(chatMessageID: chatMessageID) }
+            .store(in: &cancellableSet)
     }
 
     // MARK: - Getters
@@ -72,6 +76,7 @@ public class CoreChatData {
                             chatReplyMessageID: String? = nil,
                             chatReplyMessageSenderID: UserID? = nil,
                             chatReplyMessageMediaIndex: Int32 = 0,
+                            didCreateMessage: ((Result<(ChatMessageID, [CommonMediaID]), Error>) -> Void)? = nil,
                             didBeginUpload: ((Result<ChatMessageID, Error>) -> Void)? = nil) {
         mainDataStore.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
@@ -88,26 +93,28 @@ public class CoreChatData {
                                chatReplyMessageSenderID: chatReplyMessageSenderID,
                                chatReplyMessageMediaIndex: chatReplyMessageMediaIndex,
                                using: managedObjectContext,
+                               didCreateMessage: didCreateMessage,
                                didBeginUpload: didBeginUpload)
         }
         addIntent(toUserId: toUserId)
     }
 
     @discardableResult
-    func createChatMsg( toUserId: String,
-                        text: String,
-                        media: [PendingMedia],
-                        linkPreviewData: LinkPreviewData?,
-                        linkPreviewMedia : PendingMedia?,
-                        location: ChatLocationProtocol?,
-                        feedPostId: String?,
-                        feedPostMediaIndex: Int32,
-                        isMomentReply: Bool = false,
-                        chatReplyMessageID: String? = nil,
-                        chatReplyMessageSenderID: UserID? = nil,
-                        chatReplyMessageMediaIndex: Int32,
-                        using context: NSManagedObjectContext,
-                        didBeginUpload: ((Result<ChatMessageID, Error>) -> Void)? = nil) -> ChatMessageID {
+    func createChatMsg(toUserId: String,
+                       text: String,
+                       media: [PendingMedia],
+                       linkPreviewData: LinkPreviewData?,
+                       linkPreviewMedia : PendingMedia?,
+                       location: ChatLocationProtocol?,
+                       feedPostId: String?,
+                       feedPostMediaIndex: Int32,
+                       isMomentReply: Bool = false,
+                       chatReplyMessageID: String? = nil,
+                       chatReplyMessageSenderID: UserID? = nil,
+                       chatReplyMessageMediaIndex: Int32,
+                       using context: NSManagedObjectContext,
+                       didCreateMessage: ((Result<(ChatMessageID, [CommonMediaID]), Error>) -> Void)? = nil,
+                       didBeginUpload: ((Result<ChatMessageID, Error>) -> Void)? = nil) -> ChatMessageID {
 
         let messageId = PacketID.generate()
         let isMsgToYourself: Bool = toUserId == userData.userId
@@ -133,6 +140,8 @@ public class CoreChatData {
 
         var lastMsgMediaType: CommonThread.LastMediaType = .none // going with the first media
 
+        var mediaIDs: [CommonMediaID] = []
+
         for (index, mediaItem) in media.enumerated() {
             DDLogDebug("CoreChatData/createChatMsg/\(messageId)/add-media [\(mediaItem)]")
             guard let mediaItemSize = mediaItem.size, mediaItem.fileURL != nil else {
@@ -141,7 +150,9 @@ public class CoreChatData {
             }
 
             let chatMedia = CommonMedia(context: context)
-            chatMedia.id = "\(chatMessage.id)-\(index)"
+            let chatMediaID = "\(chatMessage.id)-\(index)"
+            chatMedia.id = chatMediaID
+            mediaIDs.append(chatMediaID)
             switch mediaItem.type {
             case .image:
                 chatMedia.type = .image
@@ -198,7 +209,9 @@ public class CoreChatData {
 
             if let feedPostMedia = feedPost.media?.first(where: { $0.order == feedPostMediaIndex }) {
                 let quotedMedia = CommonMedia(context: context)
-                quotedMedia.id = "\(quoted.message?.id ?? UUID().uuidString)-quoted-\(feedPostMedia.order)"
+                let quotedMediaID = "\(quoted.message?.id ?? UUID().uuidString)-quoted-\(feedPostMedia.order)"
+                quotedMedia.id = quotedMediaID
+                mediaIDs.append(quotedMediaID)
                 quotedMedia.type = feedPostMedia.type
                 quotedMedia.order = feedPostMedia.order
                 quotedMedia.width = Float(feedPostMedia.size.width)
@@ -223,7 +236,9 @@ public class CoreChatData {
             // Set preview image if present
             if let linkPreviewMedia = linkPreviewMedia {
                 let linkPreviewChatMedia = CommonMedia(context: context)
-                linkPreviewChatMedia.id = "\(linkPreview.id)-0"
+                let linkPreviewMediaID = "\(linkPreview.id)-0"
+                linkPreviewChatMedia.id = linkPreviewMediaID
+                mediaIDs.append(linkPreviewMediaID)
                 if let mediaItemSize = linkPreviewMedia.size, linkPreviewMedia.fileURL != nil {
                     linkPreviewChatMedia.type = {
                         switch linkPreviewMedia.type {
@@ -267,7 +282,9 @@ public class CoreChatData {
 
             if let quotedChatMessageMedia = quotedChatMessage.media?.first(where: { $0.order == chatReplyMessageMediaIndex }) {
                 let quotedMedia = CommonMedia(context: context)
-                quotedMedia.id = "\(quotedChatMessage.id)-quoted-\(quotedChatMessageMedia.order)"
+                let quotedMediaID = "\(quotedChatMessage.id)-quoted-\(quotedChatMessageMedia.order)"
+                quotedMedia.id = quotedMediaID
+                mediaIDs.append(quotedMediaID)
                 quotedMedia.type = quotedChatMessageMedia.type
                 quotedMedia.order = quotedChatMessageMedia.order
                 quotedMedia.width = Float(quotedChatMessageMedia.size.width)
@@ -306,6 +323,8 @@ public class CoreChatData {
         }
 
         mainDataStore.save(context)
+
+        didCreateMessage?(.success((messageId, mediaIDs)))
 
         if !isMsgToYourself {
             beginMediaUploadAndSend(chatMessage: chatMessage, didBeginUpload: didBeginUpload)

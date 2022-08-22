@@ -107,10 +107,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             self?.refreshValidMoment()
         }.store(in: &cancellableSet)
 
-        mediaUploader.postMediaStatusChangedPublisher.sink { [weak self] postID in
-            self?.uploadPostIfMediaReady(postID: postID)
-        }.store(in: &cancellableSet)
-
         fetchFeedPosts()
         refreshValidMoment()
     }
@@ -2977,6 +2973,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     let didSendGroupFeedPost = PassthroughSubject<FeedPost, Never>()
 
     func post(text: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?, to destination: ShareDestination, momentContext: MomentContext? = nil) {
+        if ServerProperties.enableNewMediaUploader {
+            coreFeedData.post(text: text, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia, to: destination, momentContext: momentContext)
+            return
+        }
+
         let managedObjectContext = viewContext
         let postId: FeedPostID = PacketID.generate()
 
@@ -3386,7 +3387,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
         }
     }
-    
+
+    // DEPRECATED - Use coreFeedData.send once the new uploader is enabled everywhere
     private func send(post: FeedPost) {
         let feed: Feed
         if let groupId = post.groupId {
@@ -3487,36 +3489,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     public func uploadProgressPublisher(for post: FeedPost) -> AnyPublisher<Float, Never> {
         if ServerProperties.enableNewMediaUploader {
-            let mediaIDs = Set(post.allAssociatedMedia.map(\.id))
-            let mediaCount = mediaIDs.count
-
-            guard mediaCount > 0 else {
-                return Just(Float(1)).eraseToAnyPublisher()
-            }
-
-            let progressPublisher = ImageServer.shared.progress
-                .prepend(mediaIDs)
-                .filter { mediaIDs.contains($0) }
-                .map { (mediaID: CommonMediaID)-> Float in
-                    let (processingCount, processingProgress) = ImageServer.shared.progress(for: mediaID)
-                    return processingProgress * Float(processingCount) / Float(mediaCount)
-                }
-
-            // Combine each separate media progress publisher
-            var uploadPublisher: AnyPublisher<Float, Never> = Just(Float(0)).eraseToAnyPublisher()
-            mediaIDs.forEach { mediaID in
-                let mediaUploadProgressPublisher = commonMediaUploader.progress(for: mediaID)
-                    .eraseToAnyPublisher()
-                uploadPublisher = uploadPublisher
-                    .combineLatest(mediaUploadProgressPublisher) { totalProgress, uploadProgress in
-                        return totalProgress + uploadProgress / Float(mediaCount)
-                    }
-                    .eraseToAnyPublisher()
-            }
-
-            return Publishers.CombineLatest(progressPublisher, uploadPublisher)
-                .map { ($0 + $1) / 2.0 }
-                .eraseToAnyPublisher()
+            return coreFeedData.uploadProgressPublisher(for: post)
         } else {
             let postID = post.id
             let mediaCount = post.mediaCount
@@ -3540,15 +3513,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func beginMediaUploadAndSend(feedPost: FeedPost) {
         if ServerProperties.enableNewMediaUploader {
-            let mediaToUpload = feedPost.allAssociatedMedia.filter { [.none, .uploading, .uploadError].contains($0.status) }
-            if mediaToUpload.isEmpty {
-                uploadPostIfMediaReady(postID: feedPost.id)
-            } else {
-                // postMediaStatusChangedPublisher should trigger post upload once all media has been uploaded
-                mediaToUpload.forEach { media in
-                    commonMediaUploader.upload(mediaID: media.id)
-                }
-            }
+            coreFeedData.beginMediaUploadAndSend(feedPost: feedPost)
         } else {
             if let linkPreview = feedPost.linkPreviews?.first {
                 // upload link preview media followed by comment media and send over the wire
@@ -3557,54 +3522,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 // upload comment media if any and send data over the wire.
                 uploadMediaAndSend(feedPost: feedPost)
             }
-        }
-    }
-
-    private func uploadPostIfMediaReady(postID: FeedPostID) {
-        performSeriallyOnBackgroundContext { [weak self] context in
-            guard let self = self, let post = self.feedPost(with: postID, in: context) else {
-                DDLogError("FeedData/UploadPostIfNeeded/Post not found with id \(postID)")
-                return
-            }
-
-            let media = post.allAssociatedMedia
-
-            let uploadedMedia = media.filter { $0.status == .uploaded }
-            let failedMedia = media.filter { $0.status == .uploadError }
-
-            // Check if all media is uploaded
-            guard media.count == uploadedMedia.count + failedMedia.count else {
-                return
-            }
-
-            if !failedMedia.isEmpty {
-                post.status = .sendError
-                self.save(context)
-
-            } else {
-                // Upload post
-                MainAppContext.shared.beginBackgroundTask(postID)
-                self.send(post: post)
-            }
-
-            let numPhotos = media.filter { $0.type == .image }.count
-            let numVideos = media.filter { $0.type == .video }.count
-            let totalUploadSize = media.reduce(0) { totalUploadSize, media in
-                guard let encryptedFileURL = media.encryptedFileURL, let fileSize = try? encryptedFileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize else {
-                    DDLogError("FeedData/uploadPostIfMediaReady/could not retreive fileSize for reporting for \(media.id)")
-                    return totalUploadSize
-                }
-                return totalUploadSize + fileSize
-            }
-
-            AppContext.shared.eventMonitor.observe(
-                .mediaUpload(
-                    postID: post.id,
-                    duration: Date().timeIntervalSince(post.timestamp),
-                    numPhotos: numPhotos,
-                    numVideos: numVideos,
-                    totalSize: totalUploadSize,
-                    status: failedMedia.count == 0 ? .ok : .fail))
         }
     }
 

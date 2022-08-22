@@ -51,6 +51,13 @@ open class CoreFeedData: NSObject {
         self.commonMediaUploader = commonMediaUploader
         super.init()
 
+        commonMediaUploader.postMediaStatusChangedPublisher
+            .sink { [weak self] postID in self?.uploadPostIfMediaReady(postID: postID) }
+            .store(in: &cancellables)
+
+        commonMediaUploader.commentMediaStatusChangedPublisher
+            .sink { [weak self] commentID in self?.uploadFeedCommentIfMediaReady(commentID: commentID) }
+            .store(in: &cancellables)
     }
 
     // MARK: - Post Creation
@@ -61,6 +68,7 @@ open class CoreFeedData: NSObject {
                      linkPreviewMedia : PendingMedia?,
                      to destination: ShareDestination,
                      momentContext: MomentContext? = nil,
+                     didCreatePost: ((Result<(FeedPostID, [CommonMediaID]), Error>) -> Void)? = nil,
                      didBeginUpload: ((Result<FeedPostID, Error>) -> Void)? = nil) {
         mainDataStore.performSeriallyOnBackgroundContext { managedObjectContext in
 
@@ -113,11 +121,15 @@ open class CoreFeedData: NSObject {
 
             let shouldStreamFeedVideo = ServerProperties.streamingSendingEnabled || ChunkedMediaTestConstants.STREAMING_FEED_GROUP_IDS.contains(feedPost.groupId ?? "")
 
+            var mediaIDs: [CommonMediaID] = []
+
             // Add post media.
             for (index, mediaItem) in media.enumerated() {
                 DDLogDebug("FeedData/new-post/add-media [\(mediaItem.fileURL!)]")
                 let feedMedia = CommonMedia(context: managedObjectContext)
-                feedMedia.id = "\(feedPost.id)-\(index)"
+                let mediaID = "\(feedPost.id)-\(index)"
+                feedMedia.id = mediaID
+                mediaIDs.append(mediaID)
                 feedMedia.type = mediaItem.type
                 feedMedia.status = .uploading
                 feedMedia.url = mediaItem.url
@@ -153,7 +165,9 @@ open class CoreFeedData: NSObject {
                 // Set preview image if present
                 if let linkPreviewMedia = linkPreviewMedia {
                     let previewMedia = CommonMedia(context: managedObjectContext)
-                    previewMedia.id = "\(linkPreview?.id ?? UUID().uuidString)-0"
+                    let linkPreviewMediaID = "\(linkPreview?.id ?? UUID().uuidString)-0"
+                    previewMedia.id = linkPreviewMediaID
+                    mediaIDs.append(linkPreviewMediaID)
                     previewMedia.type = linkPreviewMedia.type
                     previewMedia.status = .uploading
                     previewMedia.url = linkPreviewMedia.url
@@ -178,7 +192,9 @@ open class CoreFeedData: NSObject {
             switch destination {
             case .feed(let privacyListType):
                 guard let postAudience = try? self.privacySettings.feedAudience(for: privacyListType) else {
-                    didBeginUpload?(.failure(PostError.missingFeedAudience))
+                    let error = PostError.missingFeedAudience
+                    didCreatePost?(.failure(error))
+                    didBeginUpload?(.failure(error))
                     return
                 }
 
@@ -191,7 +207,9 @@ open class CoreFeedData: NSObject {
                 feedPost.info = feedPostInfo
             case .group(let groupId, _):
                 guard let chatGroup = self.chatData.chatGroup(groupId: groupId, in: managedObjectContext) else {
-                    didBeginUpload?(.failure(PostError.missingGroup))
+                    let error = PostError.missingGroup
+                    didCreatePost?(.failure(error))
+                    didBeginUpload?(.failure(error))
                     return
                 }
                 let feedPostInfo = ContentPublishInfo(context: managedObjectContext)
@@ -208,6 +226,8 @@ open class CoreFeedData: NSObject {
             }
 
             self.mainDataStore.save(managedObjectContext)
+
+            didCreatePost?(.success((postId, mediaIDs)))
 
             self.beginMediaUploadAndSend(feedPost: feedPost, didBeginUpload: didBeginUpload)
         }

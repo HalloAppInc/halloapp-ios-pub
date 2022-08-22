@@ -43,10 +43,12 @@ enum MediaUploadError: Error {
 public class CommonMediaUploader: NSObject {
 
     public let postMediaStatusChangedPublisher = PassthroughSubject<FeedPostID, Never>()
+    public let commentMediaStatusChangedPublisher = PassthroughSubject<FeedPostCommentID, Never>()
+    public let chatMessageMediaStatusChangedPublisher = PassthroughSubject<ChatMessageID, Never>()
 
     private actor UploadTaskManager {
 
-        nonisolated let taskCreatedSubject = PassthroughSubject<UploadTask?, Never>()
+        nonisolated let taskCreatedSubject = PassthroughSubject<UploadTask, Never>()
 
         private var uploadTasks: [CommonMediaID: UploadTask] = [:]
 
@@ -107,19 +109,20 @@ public class CommonMediaUploader: NSObject {
         }
     }
 
-    private var backgroundURLSessionCompletion: (() -> Void)?
-
     private let service: CoreService
     private let mainDataStore: MainDataStore
     private let mediaHashStore: MediaHashStore
     private let uploadTaskManager = UploadTaskManager()
 
+    private struct BackgroundUploadSessionContinuation {
+        let urlSession: URLSession
+        let completion: () -> Void
+    }
+
+    private var sessionContinuations: [String: BackgroundUploadSessionContinuation] = [:]
+
     private lazy var backgroundURLSession: URLSession = {
-        let config = URLSessionConfiguration.background(withIdentifier: "com.halloapp.media")
-        config.isDiscretionary = false
-        config.sessionSendsLaunchEvents = true
-        config.timeoutIntervalForRequest = TimeInterval(15)
-        return URLSession(configuration: config, delegate: self, delegateQueue: nil)
+        return createBackgroundURLSession(withIdentifier: "\(Bundle.main.bundleIdentifier ?? "unknown").mediauploader.\(UUID().uuidString)")
     }()
 
     init(service: CoreService, mainDataStore: MainDataStore, mediaHashStore: MediaHashStore) {
@@ -127,8 +130,6 @@ public class CommonMediaUploader: NSObject {
         self.mainDataStore = mainDataStore
         self.mediaHashStore = mediaHashStore
         super.init()
-
-        _ = backgroundURLSession // ensure this is created at init so the system can find it on reconnect
     }
 
     public func upload(mediaID: CommonMediaID, didBeginUpload: ((Result<CommonMediaID, Error>) -> Void)? = nil) {
@@ -175,11 +176,14 @@ public class CommonMediaUploader: NSObject {
         }
     }
 
-    public func resumeHandlingEventsForBackgroundURLSession(completion: (() -> Void)?) {
-        backgroundURLSessionCompletion = completion
+    // Called from AppDelegate
+    // See https://developer.apple.com/forums/thread/44900?answerId=131816022#131816022
+    public func resumeHandlingEventsForBackgroundURLSession(withIdentifier identifier: String, completion: @escaping () -> Void) {
+        let urlSession = createBackgroundURLSession(withIdentifier: identifier)
+        sessionContinuations[identifier] = BackgroundUploadSessionContinuation(urlSession: urlSession, completion: completion)
         // Create tasks for any in-progress requests
         Task {
-            let (_, uploadTasks, _) = await backgroundURLSession.tasks
+            let (_, uploadTasks, _) = await urlSession.tasks
             for uploadTask in uploadTasks {
                 guard let mediaID = uploadTask.taskDescription else {
                     DDLogError("CommonMediaUploader/resumeHandlingEventsForBackgroundURLSession/invalid task")
@@ -445,6 +449,15 @@ public class CommonMediaUploader: NSObject {
 
 extension CommonMediaUploader {
 
+    private func createBackgroundURLSession(withIdentifier identifier: String) -> URLSession {
+        let config = URLSessionConfiguration.background(withIdentifier: identifier)
+        config.isDiscretionary = false
+        config.sessionSendsLaunchEvents = true
+        config.timeoutIntervalForRequest = TimeInterval(15)
+        config.sharedContainerIdentifier = AppContext.appGroupName
+        return URLSession(configuration: config, delegate: self, delegateQueue: nil)
+    }
+
     private func startDirectUpload(mediaID: CommonMediaID, encryptedFileURL: URL, patchURL: URL) -> URLSessionUploadTask {
         DDLogInfo("CommonMediaUploader/startDirectUpload")
         var request = URLRequest(url: patchURL)
@@ -598,6 +611,10 @@ extension CommonMediaUploader {
 
             if let post = media.post ?? media.linkPreview?.post {
                 self.postMediaStatusChangedPublisher.send(post.id)
+            } else if let comment = media.comment ?? media.linkPreview?.comment {
+                self.commentMediaStatusChangedPublisher.send(comment.id)
+            } else if let message = media.message ?? media.linkPreview?.message ?? media.chatQuoted?.message {
+                self.chatMessageMediaStatusChangedPublisher.send(message.id)
             } else {
                 DDLogError("CommonMediaUploader/dispatchmediaStatusChanged/Uploaded media with an unsupported associated type")
                 #if DEBUG
@@ -607,17 +624,22 @@ extension CommonMediaUploader {
         }
     }
 
-    public func progress(for mediaID: CommonMediaID) -> AnyPublisher<Float, Never> {
-        // Find any existing or new task for the media ID and return its progressPublisher
+    private func taskPublisher(for mediaID: CommonMediaID) -> AnyPublisher<UploadTask, Never> {
+        // Find any existing or new task for the given media ID
         let existingUploadTaskPublisher = Future<UploadTask?, Never> { completion in
             Task {
                 completion(.success(await self.uploadTaskManager.existingTask(for: mediaID)))
             }
-        }.eraseToAnyPublisher()
-
-        return Publishers.Merge(existingUploadTaskPublisher, uploadTaskManager.taskCreatedSubject)
+        }
             .compactMap { $0 }
+            .eraseToAnyPublisher()
+        return Publishers.Merge(existingUploadTaskPublisher, uploadTaskManager.taskCreatedSubject)
             .filter { $0.mediaID == mediaID }
+            .eraseToAnyPublisher()
+    }
+
+    public func progress(for mediaID: CommonMediaID) -> AnyPublisher<Float, Never> {
+        return taskPublisher(for: mediaID)
             .flatMap { $0.progressPublisher }
             .eraseToAnyPublisher()
     }
@@ -628,9 +650,18 @@ extension CommonMediaUploader {
 extension CommonMediaUploader: URLSessionDelegate {
 
     public func urlSessionDidFinishEvents(forBackgroundURLSession session: URLSession) {
-        DDLogInfo("CommonMediaUploader/urlSessionDidFinishEvents")
-        backgroundURLSessionCompletion?()
-        backgroundURLSessionCompletion = nil
+        guard let sessionIdentifier = session.configuration.identifier else {
+            DDLogError("CommonMediaUploader/urlSessionDidFinishEvents/Received session completion for unkown session")
+            return
+        }
+        DDLogInfo("CommonMediaUploader/urlSessionDidFinishEvents for \(sessionIdentifier)")
+        guard let continuation = sessionContinuations[sessionIdentifier] else {
+            DDLogError("CommonMediaUploader/urlSessionDidFinishEvents/no active session for \(sessionIdentifier)")
+            return
+        }
+
+        sessionContinuations[sessionIdentifier] = nil
+        continuation.completion()
     }
 }
 

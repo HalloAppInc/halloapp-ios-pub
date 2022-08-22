@@ -219,7 +219,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         DDLogDebug("MediaUploader - restarting app for backgroundURLSession: \(identifier)")
 
         MainAppContext.shared.service.startConnectingIfNecessary()
-        MainAppContext.shared.mediaUploader.resumeHandlingEventsForBackgroundURLSession(completion: completionHandler)
+        MainAppContext.shared.mediaUploader.resumeHandlingEventsForBackgroundURLSession(withIdentifier: identifier, completion: completionHandler)
     }
 
     // MARK: Reachability

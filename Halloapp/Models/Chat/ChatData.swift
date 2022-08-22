@@ -4129,9 +4129,13 @@ extension ChatData {
             let pendingOutgoingChatMessages = self.pendingOutgoingChatMessages(in: managedObjectContext)
             DDLogInfo("ChatData/processPendingChatMsgs/num: \(pendingOutgoingChatMessages.count)")
 
-            pendingOutgoingChatMessages.forEach { pendingMsg in
-                let xmppChatMsg = XMPPChatMessage(chatMessage: pendingMsg)
-                self.uploadAllChatMsgMediaAndSend(xmppChatMsg, in: managedObjectContext)
+            if ServerProperties.enableNewMediaUploader {
+                pendingOutgoingChatMessages.forEach { self.coreChatData.beginMediaUploadAndSend(chatMessage: $0) }
+            } else {
+                pendingOutgoingChatMessages.forEach { pendingMsg in
+                    let xmppChatMsg = XMPPChatMessage(chatMessage: pendingMsg)
+                    self.uploadAllChatMsgMediaAndSend(xmppChatMsg, in: managedObjectContext)
+                }
             }
         }
     }

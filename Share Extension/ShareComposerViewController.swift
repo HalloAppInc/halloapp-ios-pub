@@ -45,6 +45,10 @@ private extension Localizations {
         NSLocalizedString("share.composer.destinations.label", value: "Share with", comment: "Label above the list with whom you share")
     }
 
+    static var processingMedia: String {
+        NSLocalizedString("share.composer.processing.media", value: "Processing Media...", comment: "Title of alert displayed while processing media shared by share extension")
+    }
+
     static func uploadingItems(_ numberOfItems: Int) -> String {
         let format = NSLocalizedString("uploading.n.items", comment: "Message how many items are currently being upload")
         return String.localizedStringWithFormat(format, numberOfItems)
@@ -82,7 +86,8 @@ class ShareComposerViewController: UIViewController {
     private var linkPreviewData: LinkPreviewData?
     private var linkViewImage: UIImage?
     private var linkPreviewMedia: PendingMedia?
-    private var progressUploadMonitor: ProgressUploadMonitor?
+    private var progressUploadMonitor: ProgressUploadMonitor? // legacy uploader
+    private var progressMonitor: ProcessingProgressMonitor? // new uploader
 
     private var mentions = MentionRangeMap()
     private lazy var mentionableUsers: [MentionableUser] = {
@@ -661,16 +666,19 @@ class ShareComposerViewController: UIViewController {
     }
 
     private func share() {
-        showUploadingAlert()
-
         let text = mentionInput.text.trimmingCharacters(in: .whitespacesAndNewlines)
         let mentionText = MentionText(
             expandedText: mentionInput.text,
             mentionRanges: mentionInput.mentions).trimmed()
 
-        let queue = DispatchQueue(label: "com.halloapp.share.prepare", qos: .userInitiated)
-        ShareExtensionContext.shared.coreService.execute(whenConnectionStateIs: .connected, onQueue: queue) { [media, linkPreviewData, linkPreviewMedia] in
-            self.prepareAndUpload(text: text, mentionText: mentionText, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
+        if ServerProperties.enableNewMediaUploader {
+            upload(text: text, mentionText: mentionText, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
+        } else {
+            showUploadingAlert()
+            let queue = DispatchQueue(label: "com.halloapp.share.prepare", qos: .userInitiated)
+            ShareExtensionContext.shared.coreService.execute(whenConnectionStateIs: .connected, onQueue: queue) { [media, linkPreviewData, linkPreviewMedia] in
+                self.prepareAndUpload(text: text, mentionText: mentionText, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
+            }
         }
     }
 
@@ -703,6 +711,20 @@ class ShareComposerViewController: UIViewController {
         }
     }
 
+    private func showProcessingAlertIfNeeded(for mediaIDs: [CommonMediaID]) {
+        guard !mediaIDs.isEmpty else {
+            return
+        }
+        progressMonitor = ProcessingProgressMonitor(mediaIDs: mediaIDs) { [weak self] in
+            self?.shareButton.isEnabled = true
+        }
+
+        DispatchQueue.main.async {
+            guard let alert = self.progressMonitor?.alert else { return }
+            self.present(alert, animated: true)
+        }
+    }
+
     private func showUploadingFailedAlert() {
         let alert = UIAlertController(title: Localizations.uploadingFailedTitle, message: Localizations.uploadingFailedMessage, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .default))
@@ -720,6 +742,100 @@ class ShareComposerViewController: UIViewController {
             }
         }
     }
+
+    // MARK: New Upload Flow
+
+    private func upload(text: String, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?) {
+        let expectedCompletionCount = destinations.count
+
+        // post/message creation completions
+        var creationCount = 0
+        var createdMediaIDs: [CommonMediaID] = []
+        let showProcessingAlertIfNeeded: (Result<(String, [String]), Error>) -> Void = { [weak self] result in
+            DispatchQueue.main.async {
+                creationCount += 1
+                if case .success(let (_, mediaIDs)) = result {
+                    createdMediaIDs += mediaIDs
+                }
+                if creationCount == expectedCompletionCount {
+                    self?.showProcessingAlertIfNeeded(for: createdMediaIDs)
+                }
+            }
+        }
+
+        // upload media completions
+        var completionCount = 0
+        var failureCount = 0
+
+        let checkCompletionCountAndCompleteIfNeeded: (Result<String, Error>) -> Void = { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    completionCount += 1
+                case .failure:
+                    failureCount += 1
+                }
+
+                guard let self = self, (completionCount + failureCount) == expectedCompletionCount else {
+                    return
+                }
+
+                if failureCount > 0 {
+                    self.dismiss(animated: false)
+                    self.showUploadingFailedAlert()
+                    self.shareButton.isEnabled = true
+                } else {
+                    ImageServer.shared.clearAllTasks(keepFiles: false)
+                    ShareDataLoader.shared.reset()
+                    self.progressMonitor?.setProgress(1, animated: true)
+
+                    // We need to update presence after successfully posting.
+                    ShareExtensionContext.shared.coreService.sendPresenceIfPossible(.available)
+                    ShareExtensionContext.shared.coreService.sendPresenceIfPossible(.away)
+
+                    // let the user observe the full progress
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+                        self.shareButton.isEnabled = true
+                        self.extensionContext?.completeRequest(returningItems: nil)
+                    }
+                }
+            }
+        }
+
+        destinations.forEach { destination in
+            switch destination {
+            case .feed(let privacyListType):
+                let destination: Core.ShareDestination = .feed(privacyListType)
+                AppContext.shared.coreFeedData.post(text: mentionText,
+                                                    media: media,
+                                                    linkPreviewData: linkPreviewData,
+                                                    linkPreviewMedia: linkPreviewMedia,
+                                                    to: destination,
+                                                    didCreatePost: showProcessingAlertIfNeeded,
+                                                    didBeginUpload: checkCompletionCountAndCompleteIfNeeded)
+
+            case .group(let groupListSyncItem):
+                let destination: Core.ShareDestination = .group(id: groupListSyncItem.id, name: groupListSyncItem.name)
+                AppContext.shared.coreFeedData.post(text: mentionText,
+                                                    media: media,
+                                                    linkPreviewData: linkPreviewData,
+                                                    linkPreviewMedia: linkPreviewMedia,
+                                                    to: destination,
+                                                    didCreatePost: showProcessingAlertIfNeeded,
+                                                    didBeginUpload: checkCompletionCountAndCompleteIfNeeded)
+            case .chat(let chatListSyncItem):
+                AppContext.shared.coreChatData.sendMessage(toUserId: chatListSyncItem.userId,
+                                                           text: text,
+                                                           media: media,
+                                                           linkPreviewData: linkPreviewData,
+                                                           linkPreviewMedia: linkPreviewMedia,
+                                                           didCreateMessage: showProcessingAlertIfNeeded,
+                                                           didBeginUpload: checkCompletionCountAndCompleteIfNeeded)
+            }
+        }
+    }
+
+    // MARK: - Legacy Upload Flow
 
     private func prepareAndUpload(text: String, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?) {
         let uploadDispatchGroup = DispatchGroup()
@@ -1249,6 +1365,43 @@ class VideoCell: UICollectionViewCell {
 
     @objc func editAction() {
         onEdit?()
+    }
+}
+
+fileprivate class ProcessingProgressMonitor {
+    private var processingProgressCancellable: AnyCancellable?
+
+    let alert: UIAlertController
+
+    private lazy var progressView: UIProgressView = {
+        let progressView = UIProgressView(progressViewStyle: .default)
+        progressView.frame = CGRect(x: 27, y: 56, width: alert.view.bounds.width - 54 , height: 10)
+        progressView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        progressView.isUserInteractionEnabled = false
+        return progressView
+    }()
+
+    init(mediaIDs: [CommonMediaID], cancel: @escaping () -> ()) {
+        alert = UIAlertController(title: Localizations.processingMedia, message: "\n\n", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .default) { _ in
+            ShareExtensionContext.shared.dataStore.cancelSending()
+            cancel()
+        })
+        alert.view.addSubview(progressView)
+        processingProgressCancellable = ImageServer.shared.progress.receive(on: DispatchQueue.main).sink { [weak self] _ in
+            let progress = mediaIDs
+                .map {
+                    let (_, progress) = ImageServer.shared.progress(for: $0)
+                    return progress
+                }
+                .reduce(0, +) / Float(mediaIDs.count)
+
+            self?.setProgress(progress, animated: true)
+        }
+    }
+
+    func setProgress(_ progress: Float, animated: Bool) {
+        progressView.setProgress(progress, animated: animated)
     }
 }
 
