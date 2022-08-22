@@ -5820,7 +5820,7 @@ extension Localizations {
     
     static var chatListYouReactedAudio: String {
         NSLocalizedString("chat.list.you.reacted.audio",
-                          value: "You reacted %1@ to an audio",
+                          value: "You reacted %1@ to an audio message",
                           comment: "Text shown when you reacted to an audio")
     }
     
@@ -5850,7 +5850,7 @@ extension Localizations {
     
     static var chatListUserReactedAudio: String {
         NSLocalizedString("chat.list.user.reacted.audio",
-                          value: "%1@ reacted %2@ to an audio",
+                          value: "%1@ reacted %2@ to an audio message",
                           comment: "Text shown when user reacted to an audio")
     }
     
@@ -5874,61 +5874,61 @@ extension Localizations {
     
     static var chatListYouDeletedReactionMessage: String {
         NSLocalizedString("chat.list.you.deleted.reaction.message",
-                          value: "You removed a %@ from a message",
+                          value: "You removed %@ from a message",
                           comment: "Text shown when you removed a reaction from a message")
     }
     
     static var chatListYouDeletedReactionAudio: String {
         NSLocalizedString("chat.list.you.deleted.reaction.audio",
-                          value: "You removed a %1@ from an audio",
+                          value: "You removed %1@ from an audio",
                           comment: "Text shown when you removed a reaction from an audio")
     }
 
     static var chatListYouDeletedReactionVideo: String {
         NSLocalizedString("chat.list.you.deleted.reaction.video",
-                          value: "You removed a %1@ from a video",
+                          value: "You removed %1@ from a video",
                           comment: "Text shown when you removed a reaction from a video")
     }
     
     static var chatListYouDeletedReactionImage: String {
         NSLocalizedString("chat.list.you.deleted.reaction.image",
-                          value: "You removed a %1@ from an image",
+                          value: "You removed %1@ from an image",
                           comment: "Text shown when you removed a reaction from an image")
     }
 
     static var chatListYouDeletedReactionText: String {
         NSLocalizedString("chat.list.you.deleted.reaction.text",
-                          value: "You removed a %1@ from %2@",
+                          value: "You removed %1@ from %2@",
                           comment: "Text shown when you removed a reaction from a text message")
     }
     
     static var chatListUserDeletedReactionMessage: String {
         NSLocalizedString("chat.list.user.deleted.reaction.message",
-                          value: "%1@ removed a %2@ from a message",
+                          value: "%1@ removed %2@ from a message",
                           comment: "Text shown when user removed a reaction from a message")
     }
     
     static var chatListUserDeletedReactionAudio: String {
         NSLocalizedString("chat.list.user.deleted.reaction.audio",
-                          value: "%1@ removed a %2@ from an audio",
+                          value: "%1@ removed %2@ from an audio",
                           comment: "Text shown when user removed a reaction from an audio")
     }
 
     static var chatListUserDeletedReactionVideo: String {
         NSLocalizedString("chat.list.user.deleted.reaction.video",
-                          value: "%1@ removed a %2@ from a video",
+                          value: "%1@ removed %2@ from a video",
                           comment: "Text shown when user removed a reaction from a video")
     }
     
     static var chatListUserDeletedReactionImage: String {
         NSLocalizedString("chat.list.user.deleted.reaction.image",
-                          value: "%1@ removed a %2@ from an image",
+                          value: "%1@ removed %2@ from an image",
                           comment: "Text shown when user removed a reaction from an image")
     }
 
     static var chatListUserDeletedReactionText: String {
         NSLocalizedString("chat.list.user.deleted.reaction.text",
-                          value: "%1@ removed a %2@ from %3@",
+                          value: "%1@ removed %2@ from %3@",
                           comment: "Text shown when user removed a reaction from a text message")
     }
 }
