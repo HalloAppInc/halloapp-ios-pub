@@ -77,12 +77,21 @@ final class WebClientManager {
 
     func handleIncomingData(_ data: Data, from staticKey: Data) {
         webQueue.async {
-            guard let container = try? Web_WebContainer(serializedData: data) else {
-                DDLogError("WebClientManager/handleIncoming/error [deserialization]")
-                return
-            }
             guard staticKey == self.webStaticKey else {
                 DDLogError("WebClientManager/handleIncoming/error [unrecognized-static-key: \(staticKey.base64EncodedString())] [expected: \(self.webStaticKey?.base64EncodedString() ?? "nil")]")
+                return
+            }
+            guard case .connected(_, let recv) = self.state.value else {
+                DDLogError("WebClientManager/handleIncoming/error [not-connected]")
+                return
+            }
+            guard let decryptedData = try? recv.decryptWithAd(ad: Data(), ciphertext: data) else {
+                DDLogError("WebClientManager/handleIncoming/error could not decrypt auth result [\(data.base64EncodedString())]")
+                self.disconnect()
+                return
+            }
+            guard let container = try? Web_WebContainer(serializedData: decryptedData) else {
+                DDLogError("WebClientManager/handleIncoming/error [deserialization]")
                 return
             }
             switch container.payload {
@@ -91,15 +100,17 @@ final class WebClientManager {
             case .feedRequest(let request):
                 DDLogInfo("WebClientManager/handleIncoming/feedRequest")
                 let cursor = request.cursor.isEmpty ? nil : request.cursor
-                var webContainer = Web_WebContainer()
-                let feed = self.homeFeed(cursor: cursor, limit: Int(request.limit))
-                webContainer.payload = .feedResponse(feed)
-                do {
-                    DDLogInfo("WebClientManager/handleIncoming/feedRequest/sending [\(feed.items.count)]")
-                    let responseData = try webContainer.serializedData()
-                    self.send(responseData)
-                } catch {
-                    DDLogError("WebClientManager/handleIncoming/feedRequest/error [serialization]")
+                DispatchQueue.main.async {
+                    var webContainer = Web_WebContainer()
+                    let feed = self.homeFeed(cursor: cursor, limit: Int(request.limit))
+                    webContainer.payload = .feedResponse(feed)
+                    do {
+                        DDLogInfo("WebClientManager/handleIncoming/feedRequest/sending [\(feed.items.count)]")
+                        let responseData = try webContainer.serializedData()
+                        self.send(responseData)
+                    } catch {
+                        DDLogError("WebClientManager/handleIncoming/feedRequest/error [serialization]")
+                    }
                 }
             case .none:
                 DDLogError("WebClientManager/handleIncoming/error [missing-payload]")
