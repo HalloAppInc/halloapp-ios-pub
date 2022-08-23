@@ -77,8 +77,8 @@ public extension ABContact {
     static func contactsRemovingOtherPhoneNumbersFromJoinedContacts(allContacts: [ABContact]) -> [ABContact] {
         let joinedIdentifiers = Set<String?>(
             allContacts.lazy.compactMap { (contact: ABContact) -> String? in
-                if let identifier = contact.identifier, contact.userId != nil {
-                    return identifier
+                if contact.userId != nil {
+                    return contact.identifier
                 } else {
                     return nil
                 }

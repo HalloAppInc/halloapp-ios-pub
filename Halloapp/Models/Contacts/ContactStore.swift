@@ -484,7 +484,7 @@ class ContactStoreMain: ContactStore {
             // derived from a snapshot of all the WAAddressBookContact objects in our db prior to fetching all the
             // address book records.
             for contactToDelete in contactsToDelete {
-                DDLogInfo("contacts/reload/will-delete id=[\(contactToDelete.identifier ?? ""))] phone=[\(contactToDelete.phoneNumber ?? ""))] userid=[\(contactToDelete.userId ?? ""))]")
+                DDLogInfo("contacts/reload/will-delete id=[\(contactToDelete.identifier))] phone=[\(contactToDelete.phoneNumber ?? ""))] userid=[\(contactToDelete.userId ?? ""))]")
                 if let normalizedPhoneNumber = contactToDelete.normalizedPhoneNumber {
                     deletedPhoneNumbers.insert(normalizedPhoneNumber)
                 }
