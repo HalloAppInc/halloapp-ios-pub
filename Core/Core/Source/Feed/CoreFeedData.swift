@@ -353,13 +353,14 @@ open class CoreFeedData: NSObject {
             return Just(Float(1)).eraseToAnyPublisher()
         }
 
-        let progressPublisher = ImageServer.shared.progress
+        let progressPublisher: AnyPublisher<Float, Never> = ImageServer.shared.progress
             .prepend(mediaIDs)
             .filter { mediaIDs.contains($0) }
             .map { mediaID in
                 let (processingCount, processingProgress) = ImageServer.shared.progress(for: mediaID)
                 return processingProgress * Float(processingCount) / Float(mediaCount)
             }
+            .eraseToAnyPublisher()
 
         // Combine each separate media progress publisher
         var uploadPublisher: AnyPublisher<Float, Never> = Just(Float(0)).eraseToAnyPublisher()
