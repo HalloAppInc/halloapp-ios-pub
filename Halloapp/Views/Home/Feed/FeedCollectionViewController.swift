@@ -848,7 +848,7 @@ extension FeedCollectionViewController {
                         self?.showInviteContactActionSheet(for: contact)
                     }
                     cell.hideContact = { contact in
-                        AppContext.shared.contactStore.hideContactFromSuggestedInvites(normalizedPhoneNumber: contact.normalizedPhoneNumber)
+                        AppContext.shared.contactStore.hideContactFromSuggestedInvites(identifier: contact.identifier)
                     }
                 }
                 return cell

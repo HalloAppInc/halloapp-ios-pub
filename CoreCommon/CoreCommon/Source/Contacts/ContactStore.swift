@@ -645,13 +645,16 @@ open class ContactStore {
 
     // MARK: - Suggested Contacts hiding
 
-    public func hideContactFromSuggestedInvites(normalizedPhoneNumber: String) {
+    public func hideContactFromSuggestedInvites(identifier: String) {
         performSeriallyOnBackgroundContext { context in
             let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "normalizedPhoneNumber == %@", normalizedPhoneNumber)
+            fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
             do {
-                let contact = try context.fetch(fetchRequest).first
-                contact?.hideInSuggestedInvites = true
+                guard let contact = try context.fetch(fetchRequest).first else {
+                    DDLogError("ContactStore/hideContactFromSuggestedInvites/Could not find contact to hide")
+                    return
+                }
+                contact.hideInSuggestedInvites = true
                 try context.save()
             }
             catch {

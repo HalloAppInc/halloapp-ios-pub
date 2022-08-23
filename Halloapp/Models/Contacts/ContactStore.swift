@@ -371,8 +371,8 @@ class ContactStoreMain: ContactStore {
         var identifiersToContactsMap: [String: [ABContact]] = [:]
         if contactsAvailable && !allContactIdentifiers.isEmpty {
             let allIdentifiers = Set(allContactIdentifiers)
-            let allContactsWithIdentifiers = contactsToDelete.filter { allIdentifiers.contains($0.identifier!)}
-            identifiersToContactsMap = Dictionary(grouping: allContactsWithIdentifiers) { $0.identifier! }
+            let allContactsWithIdentifiers = contactsToDelete.filter { allIdentifiers.contains($0.identifier)}
+            identifiersToContactsMap = Dictionary(grouping: allContactsWithIdentifiers) { $0.identifier }
         }
 
         DDLogInfo("contacts/reload/all-fetches-done time=[\(Date().timeIntervalSince(startTime))]")

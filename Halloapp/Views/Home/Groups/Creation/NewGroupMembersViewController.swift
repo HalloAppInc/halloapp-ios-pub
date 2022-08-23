@@ -412,10 +412,9 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
     }
 
     func isDuplicate(_ abContact: ABContact) -> Bool {
-        guard let identifier = abContact.identifier else { return false }
         guard let phoneNumber = abContact.phoneNumber else { return false }
         guard let normalizedPhoneNumber = abContact.normalizedPhoneNumber else { return false }
-        let id = "\(identifier)-\(phoneNumber)" // account for contacts that have multiple registered numbers
+        let id = "\(abContact.identifier)-\(phoneNumber)" // account for contacts that have multiple registered numbers
         if trackedContacts[id] == nil {
             var trackedContact = TrackedContact(with: abContact)
             if trackedContacts.keys.first(where: { trackedContacts[$0]?.normalizedPhone == normalizedPhoneNumber }) != nil {

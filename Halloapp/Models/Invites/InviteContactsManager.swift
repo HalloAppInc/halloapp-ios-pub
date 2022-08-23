@@ -135,7 +135,7 @@ struct InviteContact: Hashable, Equatable {
     var friendCount: Int?
     var userID: UserID?
     var formattedPhoneNumber: String
-    var identifier: String?
+    var identifier: String
 }
 
 extension InviteContact {

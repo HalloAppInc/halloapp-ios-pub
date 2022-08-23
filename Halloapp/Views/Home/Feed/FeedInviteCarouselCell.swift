@@ -368,8 +368,8 @@ private class FeedInviteCarouselContactCell: UICollectionViewCell {
     func configure(with contact: InviteContact, invited: Bool) {
         if let userID = contact.userID {
             avatarView.configure(with: userID, using: MainAppContext.shared.avatarStore)
-        } else if let identifier = contact.identifier {
-            avatarView.configure(contactIdentfier: identifier, using: MainAppContext.shared.avatarStore)
+        } else {
+            avatarView.configure(contactIdentfier: contact.identifier, using: MainAppContext.shared.avatarStore)
         }
         avatarView.isHidden = false
         searchIconImageView.isHidden = true

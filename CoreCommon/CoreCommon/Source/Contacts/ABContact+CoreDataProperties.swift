@@ -30,7 +30,7 @@ public extension ABContact {
     @NSManaged var fullName: String?
     @NSManaged var givenName: String?
     @NSManaged var indexName: String?
-    @NSManaged var identifier: String?
+    @NSManaged var identifier: String
     @NSManaged var normalizedPhoneNumber: NormalizedPhoneNumber?
     @NSManaged var phoneNumber: String?
     @NSManaged var searchTokenList: String?
@@ -60,9 +60,7 @@ public extension ABContact {
         var uniqueContacts: [ABContact] = []
         var contactIdentifiers = Set<String>()
         for contact in allContacts {
-            guard let _ = contact.identifier,
-                  let phoneNumber = contact.normalizedPhoneNumber else
-            {
+            guard let phoneNumber = contact.normalizedPhoneNumber else {
                 uniqueContacts.append(contact)
                 continue
             }
