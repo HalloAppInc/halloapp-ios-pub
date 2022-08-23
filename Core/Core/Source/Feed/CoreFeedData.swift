@@ -356,7 +356,7 @@ open class CoreFeedData: NSObject {
         let progressPublisher: AnyPublisher<Float, Never> = ImageServer.shared.progress
             .prepend(mediaIDs)
             .filter { mediaIDs.contains($0) }
-            .map { mediaID in
+            .map { mediaID -> Float in
                 let (processingCount, processingProgress) = ImageServer.shared.progress(for: mediaID)
                 return processingProgress * Float(processingCount) / Float(mediaCount)
             }
