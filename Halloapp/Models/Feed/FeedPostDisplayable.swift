@@ -39,6 +39,7 @@ protocol FeedPostDisplayable {
     var canReplyPrivately: Bool { get }
     var posterFullName: String { get }
     var expiration: Date? { get }
+    var fromExternalShare: Bool { get }
 
     var uploadProgressPublisher: AnyPublisher<Float, Never> { get }
 

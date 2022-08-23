@@ -630,7 +630,10 @@ final class FeedItemHeaderView: UIView {
         let isPostExpired = post.expiration.flatMap { $0 < Date() } ?? false
 
         var showExpiry = false
-        if !isPostExpired, let groupID = post.groupId, let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext) {
+        if !isPostExpired,
+           !post.fromExternalShare,
+           let groupID = post.groupId,
+           let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext) {
             switch (post.expiration, group.postExpirationDate(from: post.timestamp)) {
             case (.some(let date1), .some(let date2)):
                 // Treat times within 5sec as the same to account for rounding
@@ -648,7 +651,7 @@ final class FeedItemHeaderView: UIView {
         if showExpiry {
             expiryOrArchivedLabel.text = " • " + Localizations.feedPostExpiredTimestamp(date: post.expiration)
             expiryOrArchivedLabel.isHidden = false
-        } else if showArchivedDate, let expiration = post.expiration {
+        } else if showArchivedDate, isPostExpired, let expiration = post.expiration {
             expiryOrArchivedLabel.text = " • " + Localizations.feedPostArchivedTimestamp(time: expiration.shortDateFormat())
             expiryOrArchivedLabel.isHidden = false
         } else {
