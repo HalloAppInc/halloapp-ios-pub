@@ -1704,7 +1704,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             let comments = self.process(comments: comments, receivedIn: groupID, using: managedObjectContext, presentLocalNotifications: presentLocalNotifications)
             self.generateNotifications(for: comments, using: managedObjectContext, markAsRead: !presentLocalNotifications)
             
-            let reactions = self.process(reactions: reactions, receivedIn: groupID, using: managedObjectContext, presentLocalNotifications: presentLocalNotifications)
+            self.process(reactions: reactions, receivedIn: groupID, using: managedObjectContext, presentLocalNotifications: presentLocalNotifications)
 
             if let ack = ack {
                 DispatchQueue.main.async {
