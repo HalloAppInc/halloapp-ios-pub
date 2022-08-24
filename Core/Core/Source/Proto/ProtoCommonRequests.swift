@@ -82,6 +82,24 @@ public final class ProtoMediaUploadURLRequest: ProtoRequest<(MediaURLInfo?)> {
     }
 }
 
+final class ProtoGroupInfoRequest: ProtoRequest<XMPPGroup> {
+
+    init(groupID: GroupID, completion: @escaping Completion) {
+        var group = Server_GroupStanza()
+        group.gid = groupID
+        group.action = .get
+
+        super.init(
+            iqPacket: .iqPacket(type: .get, payload: .groupStanza(group)),
+            transform: { (iq) in
+                guard let group = HalloGroup(protoGroup: iq.groupStanza) else {
+                    return .failure(RequestError.malformedResponse)
+                }
+                return .success(group) },
+            completion: completion)
+    }
+}
+
 public final class ProtoGroupFeedRerequest: ProtoRequest<Void> {
 
     public init(groupID: String, contentId: String, fromUserID: UserID, toUserID: UserID, rerequestType: GroupFeedRerequestType, contentType: GroupFeedRerequestContentType, completion: @escaping Completion) {

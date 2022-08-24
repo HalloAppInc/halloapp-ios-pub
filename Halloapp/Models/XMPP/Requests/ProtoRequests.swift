@@ -224,25 +224,6 @@ final class ProtoGroupCreateRequest: ProtoRequest<String> {
 }
 
 
-final class ProtoGroupInfoRequest: ProtoRequest<HalloGroup> {
-
-    init(groupID: GroupID, completion: @escaping Completion) {
-        var group = Server_GroupStanza()
-        group.gid = groupID
-        group.action = .get
-
-        super.init(
-            iqPacket: .iqPacket(type: .get, payload: .groupStanza(group)),
-            transform: { (iq) in
-                guard let group = HalloGroup(protoGroup: iq.groupStanza) else {
-                    return .failure(RequestError.malformedResponse)
-                }
-                return .success(group) },
-            completion: completion)
-    }
-}
-
-
 final class ProtoGroupInviteLinkRequest: ProtoRequest<Server_GroupInviteLink> {
 
     init(groupID: GroupID, completion: @escaping Completion) {

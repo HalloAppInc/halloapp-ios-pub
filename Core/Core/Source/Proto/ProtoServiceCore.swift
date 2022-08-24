@@ -2077,6 +2077,12 @@ extension ProtoServiceCore: CoreService {
         ack?()
     }
 
+    // MARK: Groups
+
+    public func getGroupInfo(groupID: GroupID, completion: @escaping ServiceRequestCompletion<HalloGroup>) {
+        enqueue(request: ProtoGroupInfoRequest(groupID: groupID, completion: completion))
+    }
+
     // MARK: Decryption
     public func decryptGroupFeedHistory(_ groupFeedHistory: Server_GroupFeedHistory, from fromUserID: UserID,
                                         completion: @escaping (Result<Server_GroupFeedItems, DecryptionFailure>) -> Void) {

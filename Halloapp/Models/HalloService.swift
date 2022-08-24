@@ -63,7 +63,6 @@ protocol HalloService: CoreService {
                      members: [UserID],
                      completion: @escaping ServiceRequestCompletion<String>)
     func leaveGroup(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Void>)
-    func getGroupInfo(groupID: GroupID, completion: @escaping ServiceRequestCompletion<HalloGroup>)
     func getGroupInviteLink(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>)
     func resetGroupInviteLink(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>)
     func getGroupsList(completion: @escaping ServiceRequestCompletion<HalloGroups>)

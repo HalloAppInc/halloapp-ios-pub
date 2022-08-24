@@ -8,6 +8,7 @@
 //
 
 import Foundation
+import Core
 import CoreData
 
 extension ChatGroupMember {

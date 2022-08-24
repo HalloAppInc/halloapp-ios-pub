@@ -1850,10 +1850,6 @@ extension ProtoService: HalloService {
     func leaveGroup(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Void>) {
         enqueue(request: ProtoGroupLeaveRequest(groupID: groupID, completion: completion))
     }
-
-    func getGroupInfo(groupID: GroupID, completion: @escaping ServiceRequestCompletion<HalloGroup>) {
-        enqueue(request: ProtoGroupInfoRequest(groupID: groupID, completion: completion))
-    }
     
     func getGroupInviteLink(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>) {
         enqueue(request: ProtoGroupInviteLinkRequest(groupID: groupID, completion: completion))

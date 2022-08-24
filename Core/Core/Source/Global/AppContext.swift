@@ -21,7 +21,7 @@ public var sharedContext: AppContext? {
         sharedContextCommon = newValue
     }
 }
-public func initAppContext(_ appContextClass: AppContext.Type, serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type, appTarget: AppTarget) {
+public func initAppContext(_ appContextClass: AppContext.Type, serviceBuilder: ServiceBuilder, contactStoreClass: ContactStoreCore.Type, appTarget: AppTarget) {
     sharedContext = appContextClass.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass, appTarget: appTarget)
 }
 
@@ -91,8 +91,8 @@ open class AppContext: AppContextCommon {
         }
     }
 
-    private var contactStoreImpl: ContactStore!
-    open var contactStore: ContactStore {
+    private var contactStoreImpl: ContactStoreCore!
+    open var contactStore: ContactStoreCore {
         get {
             contactStoreImpl
         }
@@ -268,7 +268,7 @@ open class AppContext: AppContextCommon {
         ValueTransformer.setValueTransformer(FeedPostReceiptInfoTransformer(), forName: .feedPostReceiptInfoTransformer)
         ValueTransformer.setValueTransformer(MentionValueTransformer(), forName: .mentionValueTransformer)
         mainDataStoreImpl = MainDataStore(userData: userData, appTarget: appTarget, userDefaults: userDefaults)
-        contactStoreImpl = contactStoreClass.init(userData: userData)
+        contactStoreImpl = (contactStoreClass.init(userData: userData) as! ContactStoreCore)
         privacySettingsImpl = PrivacySettings(contactStore: contactStoreImpl)
         messageCrypterImpl = MessageCrypter(userData: userData, service: coreService, keyStore: keyStore)
         keyStore.delegate = messageCrypter

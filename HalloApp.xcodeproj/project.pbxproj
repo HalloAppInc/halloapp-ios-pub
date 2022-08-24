@@ -354,7 +354,6 @@
 		EAA0798625AEAC9200B384AB /* GroupsListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA0798525AEAC9200B384AB /* GroupsListViewController.swift */; };
 		EAA0799725AFC71600B384AB /* ThreadListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA0799625AFC71600B384AB /* ThreadListCell.swift */; };
 		EAA34C09270F9EDF00BCF1BD /* StorageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA34C08270F9EDF00BCF1BD /* StorageViewController.swift */; };
-		EAA424F124EC71450025CBBE /* XMPPGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA424F024EC71450025CBBE /* XMPPGroup.swift */; };
 		EAA424FA24ECF1480025CBBE /* ChatGroupMember+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA424F424ECF1480025CBBE /* ChatGroupMember+CoreDataClass.swift */; };
 		EAA424FB24ECF1480025CBBE /* ChatGroupMember+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA424F524ECF1480025CBBE /* ChatGroupMember+CoreDataProperties.swift */; };
 		EAA424FC24ECF1480025CBBE /* ChatGroupMessage+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA424F624ECF1480025CBBE /* ChatGroupMessage+CoreDataClass.swift */; };
@@ -1132,7 +1131,6 @@
 		EAA0798525AEAC9200B384AB /* GroupsListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupsListViewController.swift; sourceTree = "<group>"; };
 		EAA0799625AFC71600B384AB /* ThreadListCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadListCell.swift; sourceTree = "<group>"; };
 		EAA34C08270F9EDF00BCF1BD /* StorageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageViewController.swift; sourceTree = "<group>"; };
-		EAA424F024EC71450025CBBE /* XMPPGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPGroup.swift; sourceTree = "<group>"; };
 		EAA424F424ECF1480025CBBE /* ChatGroupMember+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroupMember+CoreDataClass.swift"; sourceTree = "<group>"; };
 		EAA424F524ECF1480025CBBE /* ChatGroupMember+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroupMember+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		EAA424F624ECF1480025CBBE /* ChatGroupMessage+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroupMessage+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -1960,7 +1958,6 @@
 			children = (
 				EA796B8E2469B99A00BC795E /* CoreData Stack */,
 				EA35856F2450BE2900E6E8AB /* ChatData.swift */,
-				EAA424F024EC71450025CBBE /* XMPPGroup.swift */,
 				E537A1B626792AEF0008B286 /* ChatDraft.swift */,
 				68C0B9D327FA737E00F3A092 /* ChatDataLegacy.swift */,
 			);
@@ -3136,7 +3133,6 @@
 				EA50FBA426FE82D00097C451 /* HAMarkdown.swift in Sources */,
 				68E4619625C9C93B008B5698 /* ExpiredVersionViewController.swift in Sources */,
 				761B3962241D9C4D00858251 /* SyncSession.swift in Sources */,
-				EAA424F124EC71450025CBBE /* XMPPGroup.swift in Sources */,
 				32E6970727B4442B00599CC7 /* MessageHeaderView.swift in Sources */,
 				6A1BFD30260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift in Sources */,
 				761C6161242D2AE50028AE19 /* DeveloperMenuView.swift in Sources */,

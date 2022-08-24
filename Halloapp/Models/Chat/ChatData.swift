@@ -455,8 +455,6 @@ class ChatData: ObservableObject {
             }
         )
 
-        resetUnreadForDeletedSampleGroup()
-
         DispatchQueue.main.async {
             self.cleanUpOldUploadData()
         }
@@ -1782,20 +1780,6 @@ class ChatData: ObservableObject {
 
         return chatListViewController.isScrolledFromTop(by: 100)
     }
-
-    // temporary, fixes an issue prior to build 187 and can be removed after some time
-    // resets the unread count for sample group welcome posts in which the user deleted the group without clicking into it
-    private func resetUnreadForDeletedSampleGroup() {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            let sharedNUX = MainAppContext.shared.nux
-            if let sampleGroupID = sharedNUX.sampleGroupID(), self.chatGroup(groupId: sampleGroupID, in: self.viewContext) == nil {
-                sharedNUX.markSampleGroupWelcomePostSeen()
-                self.updateUnreadThreadGroupsCount()
-            }
-        }
-    }
-
 }
 
 extension ChatData: FeedDownloadManagerDelegate {
@@ -2023,23 +2007,7 @@ extension ChatData {
     // MARK: Thread Core Data Updating
     
     private func updateChatThread(type: ChatType, for id: String, block: @escaping (ChatThread) -> Void, performAfterSave: (() -> ())? = nil) {
-        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
-            defer {
-                if let performAfterSave = performAfterSave {
-                    performAfterSave()
-                }
-            }
-            guard let self = self else { return }
-            guard let chatThread = self.chatThread(type: type, id: id, in: managedObjectContext) else {
-                DDLogError("ChatData/update-chatThread/missing-thread [\(id)]")
-                return
-            }
-            block(chatThread)
-            if managedObjectContext.hasChanges {
-                DDLogVerbose("ChatData/update-chatThread [\(id)]")
-                self.save(managedObjectContext)
-            }
-        }
+        coreChatData.updateChatThread(type: type, for: id, block: block, performAfterSave: performAfterSave)
     }
     
     private func updateChatThreadStatus(type: ChatType, for id: String, messageId: String, block: @escaping (ChatThread) -> Void) {
@@ -4503,82 +4471,7 @@ extension ChatData {
 
     // Sync group crypto state and remove non-members in sender-states and pendingUids string.
     func syncGroup(_ xmppGroup: XMPPGroup) {
-        let groupID = xmppGroup.groupId
-        DDLogInfo("ChatData/group: \(groupID)/syncGroupInfo")
-
-        let memberUserIDs = xmppGroup.members?.map { $0.userId } ?? []
-        updateChatGroup(with: xmppGroup.groupId, block: { [weak self] (chatGroup) in
-            guard let self = self else { return }
-            chatGroup.lastSync = Date()
-
-            if chatGroup.name != xmppGroup.name {
-                chatGroup.name = xmppGroup.name
-                self.updateChatThread(type: .group, for: xmppGroup.groupId) { (chatThread) in
-                    chatThread.title = xmppGroup.name
-                }
-            }
-            if chatGroup.desc != xmppGroup.description {
-                chatGroup.desc = xmppGroup.description
-            }
-            if chatGroup.avatarID != xmppGroup.avatarID {
-                chatGroup.avatarID = xmppGroup.avatarID
-                if let avatarID = xmppGroup.avatarID {
-                    MainAppContext.shared.avatarStore.updateOrInsertGroupAvatar(for: chatGroup.id, with: avatarID)
-                }
-            }
-            if chatGroup.background != xmppGroup.background {
-                chatGroup.background = xmppGroup.background
-            }
-
-            if let expirationType = xmppGroup.expirationType, chatGroup.expirationType != expirationType {
-                chatGroup.expirationType = expirationType
-            }
-
-            if let expirationTime = xmppGroup.expirationTime, chatGroup.expirationTime != expirationTime {
-                chatGroup.expirationTime = expirationTime
-            }
-
-            // look for users that are not members anymore
-            chatGroup.orderedMembers.forEach { currentMember in
-                let foundMember = xmppGroup.members?.first(where: { $0.userId == currentMember.userID })
-
-                if foundMember == nil {
-                    chatGroup.managedObjectContext!.delete(currentMember)
-                }
-            }
-
-            var contactNames = [UserID:String]()
-
-            // see if there are new members added or needs to be updated
-            xmppGroup.members?.forEach { inboundMember in
-                let foundMember = chatGroup.members?.first(where: { $0.userID == inboundMember.userId })
-
-                // member already exists
-                if let member = foundMember {
-                    if let inboundType = inboundMember.type {
-                        if member.type != inboundType {
-                            member.type = inboundType
-                        }
-                    }
-                } else {
-                    DDLogDebug("ChatData/group: \(groupID)/syncGroupInfo/new/add-member [\(inboundMember.userId)]")
-                    self.processGroupAddMemberAction(chatGroup: chatGroup, xmppGroupMember: inboundMember, in: chatGroup.managedObjectContext!)
-                }
-
-                // add to pushnames
-                if let name = inboundMember.name, !name.isEmpty {
-                    contactNames[inboundMember.userId] = name
-                }
-            }
-
-            if !contactNames.isEmpty {
-                self.contactStore.addPushNames(contactNames)
-            }
-
-        }, performAfterSave: {
-            AppContext.shared.messageCrypter.syncGroupSession(in: groupID, members: memberUserIDs)
-            DDLogInfo("ChatData/group: \(groupID)/syncGroupInfo/done")
-        })
+        coreChatData.syncGroup(xmppGroup)
     }
     
     // MARK: Group Background
@@ -4716,33 +4609,17 @@ extension ChatData {
     func chatGroup(groupId id: String, in managedObjectContext: NSManagedObjectContext) -> Group? {
         return chatGroups(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext).first
     }
-    
-    private func chatGroupMembers(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext) -> [GroupMember] {
-        let fetchRequest: NSFetchRequest<GroupMember> = GroupMember.fetchRequest()
-        fetchRequest.predicate = predicate
-        fetchRequest.sortDescriptors = sortDescriptors
-        fetchRequest.returnsObjectsAsFaults = false
-        
-        do {
-            let chatGroupMembers = try managedObjectContext.fetch(fetchRequest)
-            return chatGroupMembers
-        }
-        catch {
-            DDLogError("ChatData/group/fetchGroupMembers/error  [\(error)]")
-            fatalError("Failed to fetch chat group members")
-        }
-    }
 
     func chatGroupMemberUserIDs(groupID: GroupID, in context: NSManagedObjectContext) -> [UserID] {
-        return chatGroupMembers(predicate: NSPredicate(format: "groupID == %@", groupID), in: context).map(\.userID)
+        return coreChatData.chatGroupMemberUserIDs(groupID: groupID, in: context)
     }
 
     func chatGroupMember(groupId id: GroupID, memberUserId: UserID, in managedObjectContext: NSManagedObjectContext) -> GroupMember? {
-        return chatGroupMembers(predicate: NSPredicate(format: "groupID == %@ && userID == %@", id, memberUserId), in: managedObjectContext).first
+        return coreChatData.chatGroupMember(groupId: id, memberUserId: memberUserId, in: managedObjectContext)
     }
 
     func chatGroupIds(for memberUserId: UserID, in managedObjectContext: NSManagedObjectContext) -> [GroupID] {
-        let chatGroupMemberItems = chatGroupMembers(predicate: NSPredicate(format: "userID == %@", memberUserId), in: managedObjectContext)
+        let chatGroupMemberItems = coreChatData.chatGroupMembers(predicate: NSPredicate(format: "userID == %@", memberUserId), in: managedObjectContext)
         return chatGroupMemberItems.map { $0.groupID }
     }
     
@@ -4814,23 +4691,7 @@ extension ChatData {
     // MARK: Group Core Data Updating
 
     func updateChatGroup(with groupId: GroupID, block: @escaping (Group) -> (), performAfterSave: (() -> ())? = nil) {
-        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
-            defer {
-                if let performAfterSave = performAfterSave {
-                    performAfterSave()
-                }
-            }
-            guard let self = self else { return }
-            guard let chatGroup = self.chatGroup(groupId: groupId, in: managedObjectContext) else {
-                DDLogError("ChatData/group/updateChatGroup/missing [\(groupId)]")
-                return
-            }
-            DDLogVerbose("ChatData/group/updateChatGroup [\(groupId)]")
-            block(chatGroup)
-            if managedObjectContext.hasChanges {
-                self.save(managedObjectContext)
-            }
-        }
+        coreChatData.updateChatGroup(with: groupId, block: block, performAfterSave: performAfterSave)
     }
 
     func updateChatGroupMessage(with chatGroupMessageId: String, block: @escaping (ChatGroupMessage) -> (), performAfterSave: (() -> ())? = nil) {
@@ -4901,20 +4762,7 @@ extension ChatData {
     }
 
     func deleteChatGroupMember(groupId: GroupID, memberUserId: UserID, in managedObjectContext: NSManagedObjectContext) {
-        let fetchRequest = NSFetchRequest<GroupMember>(entityName: GroupMember.entity().name!)
-        fetchRequest.predicate = NSPredicate(format: "groupID = %@ && userID = %@", groupId, memberUserId)
-
-        do {
-            let chatGroupMembers = try managedObjectContext.fetch(fetchRequest)
-            DDLogInfo("ChatData/group/deleteChatGroupMember/begin count=[\(chatGroupMembers.count)]")
-            chatGroupMembers.forEach {
-                managedObjectContext.delete($0)
-            }
-        }
-        catch {
-            DDLogError("ChatData/group/deleteChatGroupMember/error  [\(error)]")
-            return
-        }
+        coreChatData.deleteChatGroupMember(groupId: groupId, memberUserId: memberUserId, in: managedObjectContext)
     }
 
     private func deleteGroupChatMessageContent(in groupChatMessage: ChatGroupMessage) {
@@ -4954,100 +4802,11 @@ extension ChatData {
 
     // Updates group feed thread when post is incoming as well as retracted.
     private func updateThreadWithGroupFeed(_ id: FeedPostID, isInbound: Bool, using managedObjectContext: NSManagedObjectContext) {
-        guard let groupFeedPost = MainAppContext.shared.feedData.feedPost(with: id, in: managedObjectContext) else { return }
-        guard let groupID = groupFeedPost.groupId else { return }
-
-        var groupExist = true
-
-        if isInbound {
-            // if group doesn't exist yet, create
-            if chatGroup(groupId: groupID, in: managedObjectContext) == nil {
-                DDLogDebug("ChatData/group/updateThreadWithGroupFeed/group not exist yet [\(groupID)]")
-                groupExist = false
-                let chatGroup = Group(context: managedObjectContext)
-                chatGroup.id = groupID
-            }
-        }
-
-        var lastFeedMediaType: ChatThread.LastMediaType = .none // going with the first media found
-
-        // Process chat media
-        if groupFeedPost.orderedMedia.count > 0 {
-            if let firstMedia = groupFeedPost.orderedMedia.first {
-                switch firstMedia.type {
-                case .image:
-                    lastFeedMediaType = .image
-                case .video:
-                    lastFeedMediaType = .video
-                case .audio:
-                    lastFeedMediaType = .audio
-                }
-            }
-        }
-
-        save(managedObjectContext) // extra save
-
-        guard groupFeedPost.status != .retracted else {
-            updateThreadWithGroupFeedRetract(id, using: managedObjectContext)
-            return
-        }
-
-        var mentionText: NSAttributedString?
-        contactStore.performOnBackgroundContextAndWait { contactsManagedObjectContext in
-            mentionText = contactStore.textWithMentions(groupFeedPost.rawText, mentions: groupFeedPost.orderedMentions, in: contactsManagedObjectContext)
-        }
-
-        // Update Chat Thread
-        if let chatThread = chatThread(type: .group, id: groupID, in: managedObjectContext) {
-            // extra save for fetchedcontroller to notice re-ordering changes mixed in with other changes
-            chatThread.lastFeedTimestamp = groupFeedPost.timestamp
-            save(managedObjectContext)
-
-            chatThread.lastFeedId = groupFeedPost.id
-            chatThread.lastFeedUserID = groupFeedPost.userId
-            chatThread.lastFeedText = mentionText?.string ?? ""
-            chatThread.lastFeedMediaType = lastFeedMediaType
-            chatThread.lastFeedStatus = .none
-            chatThread.lastFeedTimestamp = groupFeedPost.timestamp
-            if isInbound {
-                chatThread.unreadFeedCount = chatThread.unreadFeedCount + 1
-            }
-        } else {
-            let chatThread = ChatThread(context: managedObjectContext)
-            chatThread.type = ChatType.group
-            chatThread.groupId = groupID
-            chatThread.lastFeedId = groupFeedPost.id
-            chatThread.lastFeedUserID = groupFeedPost.userId
-            chatThread.lastFeedText = mentionText?.string ?? ""
-            chatThread.lastFeedMediaType = lastFeedMediaType
-            chatThread.lastFeedStatus = .none
-            chatThread.lastFeedTimestamp = groupFeedPost.timestamp
-            if isInbound {
-                chatThread.unreadFeedCount = 1
-            }
-        }
-
-        save(managedObjectContext)
-
-        if isInbound {
-            if !groupExist {
-                getAndSyncGroup(groupId: groupID)
-            }
-            updateUnreadThreadGroupsCount()
-        }
+        coreChatData.updateThreadWithGroupFeed(id, isInbound: isInbound, using: managedObjectContext)
     }
 
     private func updateThreadWithGroupFeedRetract(_ id: FeedPostID, using managedObjectContext: NSManagedObjectContext) {
-        guard let groupFeedPost = MainAppContext.shared.feedData.feedPost(with: id, in: managedObjectContext) else { return }
-        guard let groupID = groupFeedPost.groupId else { return }
-        
-        guard let thread = chatThread(type: .group, id: groupID, in: managedObjectContext) else { return }
-        
-        guard thread.lastFeedId == id else { return }
-        
-        thread.lastFeedStatus = .retracted
-        
-        save(managedObjectContext)
+        coreChatData.updateThreadWithGroupFeedRetract(id, using: managedObjectContext)
     }
     
 }
@@ -5469,27 +5228,7 @@ extension ChatData {
     }
 
     private func processGroupAddMemberAction(chatGroup: Group, xmppGroupMember: XMPPGroupMember, in managedObjectContext: NSManagedObjectContext) {
-        DDLogDebug("ChatData/group/processGroupAddMemberAction/member [\(xmppGroupMember.userId)]")
-        guard let xmppGroupMemberType = xmppGroupMember.type else { return }
-        if let existingMember = chatGroupMember(groupId: chatGroup.id, memberUserId: xmppGroupMember.userId, in: managedObjectContext) {
-            switch xmppGroupMemberType {
-            case .member:
-                existingMember.type = .member
-            case .admin:
-                existingMember.type = .admin
-            }
-        } else {
-            let member = GroupMember(context: managedObjectContext)
-            member.groupID = chatGroup.id
-            member.userID = xmppGroupMember.userId
-            switch xmppGroupMemberType {
-            case .member:
-                member.type = .member
-            case .admin:
-                member.type = .admin
-            }
-            member.group = chatGroup
-        }
+        coreChatData.processGroupAddMemberAction(chatGroup: chatGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
     }
 }
 

@@ -230,6 +230,8 @@ open class CoreFeedData: NSObject {
             didCreatePost?(.success((postId, mediaIDs)))
 
             self.beginMediaUploadAndSend(feedPost: feedPost, didBeginUpload: didBeginUpload)
+
+            self.chatData.updateThreadWithGroupFeed(postId, isInbound: false, using: managedObjectContext)
         }
     }
 

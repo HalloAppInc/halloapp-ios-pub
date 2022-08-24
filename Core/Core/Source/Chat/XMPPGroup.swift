@@ -6,17 +6,16 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import Core
-import CoreCommon
+import CoreCommon 
 import Foundation
 
-typealias HalloGroups = XMPPGroups
-typealias HalloGroup = XMPPGroup
-typealias HalloGroupChatMessage = XMPPChatGroupMessage
+public typealias HalloGroups = XMPPGroups
+public typealias HalloGroup = XMPPGroup
+public typealias HalloGroupChatMessage = XMPPChatGroupMessage
 
-typealias ChatGroupAction = GroupAction
-typealias ChatGroupMemberType = GroupMemberType
-typealias ChatGroupMemberAction = GroupMemberAction
+public typealias ChatGroupAction = GroupAction
+public typealias ChatGroupMemberType = GroupMemberType
+public typealias ChatGroupMemberAction = GroupMemberAction
 
 public struct XMPPChatMention: FeedMentionProtocol {
     public let index: Int
@@ -24,39 +23,39 @@ public struct XMPPChatMention: FeedMentionProtocol {
     public let name: String
 }
 
-struct XMPPGroups {
-    private(set) var groups: [XMPPGroup]? = nil
+public struct XMPPGroups {
+    public private(set) var groups: [XMPPGroup]? = nil
     
-    init?(protoGroups: Server_GroupsStanza) {
+    public init?(protoGroups: Server_GroupsStanza) {
         self.groups = protoGroups.groupStanzas.compactMap { XMPPGroup(protoGroup: $0) }
     }
 }
 
-struct XMPPGroup {
-    let groupId: GroupID
-    let name: String
-    var description: String? = nil
-    var avatarID: String? = nil
-    var background: Int32 = 0
-    var retryCount: Int32 = 0
+public struct XMPPGroup {
+    public let groupId: GroupID
+    public let name: String
+    public var description: String? = nil
+    public var avatarID: String? = nil
+    public var background: Int32 = 0
+    public var retryCount: Int32 = 0
 
-    private(set) var messageId: String? = nil
-    private(set) var sender: UserID? = nil
-    private(set) var senderName: String? = nil
-    private(set) var action: ChatGroupAction? = nil
-    private(set) var members: [XMPPGroupMember]? = nil
-    private(set) var audienceHash: Data? = nil
-    private(set) var expirationType: Group.ExpirationType? = nil
-    private(set) var expirationTime: Int64? = nil
+    public private(set) var messageId: String? = nil
+    public private(set) var sender: UserID? = nil
+    public private(set) var senderName: String? = nil
+    public private(set) var action: ChatGroupAction? = nil
+    public private(set) var members: [XMPPGroupMember]? = nil
+    public private(set) var audienceHash: Data? = nil
+    public private(set) var expirationType: Group.ExpirationType? = nil
+    public private(set) var expirationTime: Int64? = nil
 
-    init(id: GroupID, name: String, avatarID: String? = nil) {
+    public init(id: GroupID, name: String, avatarID: String? = nil) {
         self.groupId = id
         self.name = name
         self.avatarID = avatarID
     }
 
     // used for inbound and outbound
-    init?(protoGroup: Server_GroupStanza, msgId: String? = nil, retryCount: Int32 = 0) {
+    public init?(protoGroup: Server_GroupStanza, msgId: String? = nil, retryCount: Int32 = 0) {
         // msgId used only for inbound group events
         if let msgId = msgId {
             self.messageId = msgId
@@ -121,15 +120,15 @@ struct XMPPGroup {
     }
 }
 
-struct XMPPGroupMember {
-    let userId: UserID
-    let name: String? // getGroupInfo is not returning name in response
-    let type: ChatGroupMemberType?
+public struct XMPPGroupMember {
+    public let userId: UserID
+    public let name: String? // getGroupInfo is not returning name in response
+    public let type: ChatGroupMemberType?
     
-    let action: ChatGroupMemberAction? // does not need to be recorded in db
-    let identityKey: Data?
+    public let action: ChatGroupMemberAction? // does not need to be recorded in db
+    public let identityKey: Data?
 
-    init?(protoMember: Server_GroupMember) {
+    public init?(protoMember: Server_GroupMember) {
         self.userId = String(protoMember.uid)
         self.name = protoMember.name
 
@@ -159,26 +158,26 @@ struct XMPPGroupMember {
 
 
 
-struct XMPPChatGroupMessage {
-    let id: String
-    let groupId: GroupID
-    let groupName: String?
-    let userId: UserID?
-    let userName: String?
-    var retryCount: Int32? = nil
-    let text: String?
-    let mentions: [XMPPChatMention]
-    let media: [XMPPChatMedia]
-    let chatReplyMessageID: String?
-    let chatReplyMessageSenderID: String?
-    let chatReplyMessageMediaIndex: Int32
-    var timestamp: Date?
+public struct XMPPChatGroupMessage {
+    public let id: String
+    public let groupId: GroupID
+    public let groupName: String?
+    public let userId: UserID?
+    public let userName: String?
+    public var retryCount: Int32? = nil
+    public let text: String?
+    public let mentions: [XMPPChatMention]
+    public let media: [XMPPChatMedia]
+    public let chatReplyMessageID: String?
+    public let chatReplyMessageSenderID: String?
+    public let chatReplyMessageMediaIndex: Int32
+    public var timestamp: Date?
     
-    var orderedMedia: [ChatMediaProtocol] {
+    public var orderedMedia: [ChatMediaProtocol] {
         media
     }
     
-    var orderedMentions: [XMPPChatMention] {
+    public var orderedMentions: [XMPPChatMention] {
         mentions
     }
 
@@ -212,7 +211,7 @@ struct XMPPChatGroupMessage {
     */
 
     // init inbound message
-    init?(_ pbGroupChat: Server_GroupChat, id: String, retryCount: Int32) {
+    public init?(_ pbGroupChat: Server_GroupChat, id: String, retryCount: Int32) {
         // TODO: Need to fix this to enable group-chat.
         return nil
 
@@ -232,7 +231,7 @@ struct XMPPChatGroupMessage {
 //        self.chatReplyMessageMediaIndex = protoChat.chatReplyMessageMediaIndex
     }
 
-    var protoContainer: Clients_Container? {
+    public var protoContainer: Clients_Container? {
         get {
             // TODO: Fix this for groupChat.
             return nil

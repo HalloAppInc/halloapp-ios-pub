@@ -20,11 +20,11 @@ public class CoreChatData {
     private let service: CoreService
     private let mainDataStore: MainDataStore
     private let userData: UserData
-    private let contactStore: ContactStore
+    private let contactStore: ContactStoreCore
     private let commonMediaUploader: CommonMediaUploader
     private var cancellableSet: Set<AnyCancellable> = []
 
-    public init(service: CoreService, mainDataStore: MainDataStore, userData: UserData, contactStore: ContactStore, commonMediaUploader: CommonMediaUploader) {
+    public init(service: CoreService, mainDataStore: MainDataStore, userData: UserData, contactStore: ContactStoreCore, commonMediaUploader: CommonMediaUploader) {
         self.mainDataStore = mainDataStore
         self.service = service
         self.userData = userData
@@ -448,6 +448,322 @@ public class CoreChatData {
                 }
             })
         }
+    }
+
+    // MARK: - Thread Updates
+
+    open func updateThreadWithGroupFeed(_ id: FeedPostID, isInbound: Bool, using managedObjectContext: NSManagedObjectContext) {
+        guard let groupFeedPost = AppContext.shared.coreFeedData.feedPost(with: id, in: managedObjectContext) else { return }
+        guard let groupID = groupFeedPost.groupId else { return }
+
+        var groupExist = true
+
+        if isInbound {
+            // if group doesn't exist yet, create
+            if chatGroup(groupId: groupID, in: managedObjectContext) == nil {
+                DDLogDebug("CoreChatData/group/updateThreadWithGroupFeed/group not exist yet [\(groupID)]")
+                groupExist = false
+                let chatGroup = Group(context: managedObjectContext)
+                chatGroup.id = groupID
+            }
+        }
+
+        var lastFeedMediaType: CommonThread.LastMediaType = .none // going with the first media found
+
+        // Process chat media
+        if groupFeedPost.orderedMedia.count > 0 {
+            if let firstMedia = groupFeedPost.orderedMedia.first {
+                switch firstMedia.type {
+                case .image:
+                    lastFeedMediaType = .image
+                case .video:
+                    lastFeedMediaType = .video
+                case .audio:
+                    lastFeedMediaType = .audio
+                }
+            }
+        }
+
+        mainDataStore.save(managedObjectContext) // extra save
+
+        guard groupFeedPost.status != .retracted else {
+            updateThreadWithGroupFeedRetract(id, using: managedObjectContext)
+            return
+        }
+
+        var mentionText: NSAttributedString?
+        contactStore.performOnBackgroundContextAndWait { contactsManagedObjectContext in
+            mentionText = contactStore.textWithMentions(groupFeedPost.rawText, mentions: groupFeedPost.orderedMentions, in: contactsManagedObjectContext)
+        }
+
+        // Update Chat Thread
+        if let chatThread = chatThread(type: .group, id: groupID, in: managedObjectContext) {
+            // extra save for fetchedcontroller to notice re-ordering changes mixed in with other changes
+            chatThread.lastFeedTimestamp = groupFeedPost.timestamp
+            mainDataStore.save(managedObjectContext)
+
+            chatThread.lastFeedId = groupFeedPost.id
+            chatThread.lastFeedUserID = groupFeedPost.userId
+            chatThread.lastFeedText = mentionText?.string ?? ""
+            chatThread.lastFeedMediaType = lastFeedMediaType
+            chatThread.lastFeedStatus = .none
+            chatThread.lastFeedTimestamp = groupFeedPost.timestamp
+            if isInbound {
+                chatThread.unreadFeedCount = chatThread.unreadFeedCount + 1
+            }
+        } else {
+            let chatThread = CommonThread(context: managedObjectContext)
+            chatThread.type = ChatType.group
+            chatThread.groupId = groupID
+            chatThread.lastFeedId = groupFeedPost.id
+            chatThread.lastFeedUserID = groupFeedPost.userId
+            chatThread.lastFeedText = mentionText?.string ?? ""
+            chatThread.lastFeedMediaType = lastFeedMediaType
+            chatThread.lastFeedStatus = .none
+            chatThread.lastFeedTimestamp = groupFeedPost.timestamp
+            if isInbound {
+                chatThread.unreadFeedCount = 1
+            }
+        }
+
+        mainDataStore.save(managedObjectContext)
+
+        if isInbound {
+            if !groupExist {
+                getAndSyncGroup(groupId: groupID)
+            }
+        }
+    }
+
+    public func updateThreadWithGroupFeedRetract(_ id: FeedPostID, using managedObjectContext: NSManagedObjectContext) {
+        guard let groupFeedPost = AppContext.shared.coreFeedData.feedPost(with: id, in: managedObjectContext) else { return }
+        guard let groupID = groupFeedPost.groupId else { return }
+
+        guard let thread = chatThread(type: .group, id: groupID, in: managedObjectContext) else { return }
+
+        guard thread.lastFeedId == id else { return }
+
+        thread.lastFeedStatus = .retracted
+
+        mainDataStore.save(managedObjectContext)
+    }
+
+    // MARK: - Group rerequests
+
+    // TODO: murali@: Why are we syncing after every group event.
+    // This is very inefficient: we should not be doing this!
+    // We should just follow our own state of groupEvents and do a weekly sync of all our groups.
+    public func getAndSyncGroup(groupId: GroupID) {
+        DDLogDebug("CoreChatData/group/getAndSyncGroupInfo/group \(groupId)")
+        service.getGroupInfo(groupID: groupId) { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let group):
+                self.syncGroup(group)
+            case .failure(let error):
+                switch error {
+                case .serverError(let reason):
+                    switch reason {
+                    case "not_member":
+                        DDLogInfo("CoreChatData/group/getGroupInfo/error/not_member/removing user")
+                        self.mainDataStore.performSeriallyOnBackgroundContext { context in
+                            self.deleteChatGroupMember(groupId: groupId, memberUserId: self.userData.userId, in: context)
+                        }
+                    default:
+                        DDLogError("CoreChatData/group/getGroupInfo/error \(error)")
+                    }
+                default:
+                    DDLogError("CoreChatData/group/getGroupInfo/error \(error)")
+                }
+            }
+        }
+    }
+
+    // Sync group crypto state and remove non-members in sender-states and pendingUids string.
+    public func syncGroup(_ xmppGroup: XMPPGroup) {
+        let groupID = xmppGroup.groupId
+        DDLogInfo("CoreChatData/group: \(groupID)/syncGroupInfo")
+
+        let memberUserIDs = xmppGroup.members?.map { $0.userId } ?? []
+        updateChatGroup(with: xmppGroup.groupId, block: { [weak self] (chatGroup) in
+            guard let self = self else { return }
+            chatGroup.lastSync = Date()
+
+            if chatGroup.name != xmppGroup.name {
+                chatGroup.name = xmppGroup.name
+                self.updateChatThread(type: .group, for: xmppGroup.groupId) { (chatThread) in
+                    chatThread.title = xmppGroup.name
+                }
+            }
+            if chatGroup.desc != xmppGroup.description {
+                chatGroup.desc = xmppGroup.description
+            }
+            if chatGroup.avatarID != xmppGroup.avatarID {
+                chatGroup.avatarID = xmppGroup.avatarID
+                if let avatarID = xmppGroup.avatarID {
+                    AppContext.shared.avatarStore.updateOrInsertGroupAvatar(for: chatGroup.id, with: avatarID)
+                }
+            }
+            if chatGroup.background != xmppGroup.background {
+                chatGroup.background = xmppGroup.background
+            }
+
+            if let expirationType = xmppGroup.expirationType, chatGroup.expirationType != expirationType {
+                chatGroup.expirationType = expirationType
+            }
+
+            if let expirationTime = xmppGroup.expirationTime, chatGroup.expirationTime != expirationTime {
+                chatGroup.expirationTime = expirationTime
+            }
+
+            // look for users that are not members anymore
+            chatGroup.orderedMembers.forEach { currentMember in
+                let foundMember = xmppGroup.members?.first(where: { $0.userId == currentMember.userID })
+
+                if foundMember == nil {
+                    chatGroup.managedObjectContext!.delete(currentMember)
+                }
+            }
+
+            var contactNames = [UserID:String]()
+
+            // see if there are new members added or needs to be updated
+            xmppGroup.members?.forEach { inboundMember in
+                let foundMember = chatGroup.members?.first(where: { $0.userID == inboundMember.userId })
+
+                // member already exists
+                if let member = foundMember {
+                    if let inboundType = inboundMember.type {
+                        if member.type != inboundType {
+                            member.type = inboundType
+                        }
+                    }
+                } else {
+                    DDLogDebug("CoreChatData/group: \(groupID)/syncGroupInfo/new/add-member [\(inboundMember.userId)]")
+                    self.processGroupAddMemberAction(chatGroup: chatGroup, xmppGroupMember: inboundMember, in: chatGroup.managedObjectContext!)
+                }
+
+                // add to pushnames
+                if let name = inboundMember.name, !name.isEmpty {
+                    contactNames[inboundMember.userId] = name
+                }
+            }
+
+            if !contactNames.isEmpty {
+                self.contactStore.addPushNames(contactNames)
+            }
+
+        }, performAfterSave: {
+            AppContext.shared.messageCrypter.syncGroupSession(in: groupID, members: memberUserIDs)
+            DDLogInfo("CoreChatData/group: \(groupID)/syncGroupInfo/done")
+        })
+    }
+
+    public func processGroupAddMemberAction(chatGroup: Group, xmppGroupMember: XMPPGroupMember, in managedObjectContext: NSManagedObjectContext) {
+        DDLogDebug("CoreChatData/group/processGroupAddMemberAction/member [\(xmppGroupMember.userId)]")
+        guard let xmppGroupMemberType = xmppGroupMember.type else { return }
+        if let existingMember = chatGroupMember(groupId: chatGroup.id, memberUserId: xmppGroupMember.userId, in: managedObjectContext) {
+            switch xmppGroupMemberType {
+            case .member:
+                existingMember.type = .member
+            case .admin:
+                existingMember.type = .admin
+            }
+        } else {
+            let member = GroupMember(context: managedObjectContext)
+            member.groupID = chatGroup.id
+            member.userID = xmppGroupMember.userId
+            switch xmppGroupMemberType {
+            case .member:
+                member.type = .member
+            case .admin:
+                member.type = .admin
+            }
+            member.group = chatGroup
+        }
+    }
+
+    public func deleteChatGroupMember(groupId: GroupID, memberUserId: UserID, in managedObjectContext: NSManagedObjectContext) {
+        let fetchRequest = NSFetchRequest<GroupMember>(entityName: GroupMember.entity().name!)
+        fetchRequest.predicate = NSPredicate(format: "groupID = %@ && userID = %@", groupId, memberUserId)
+
+        do {
+            let chatGroupMembers = try managedObjectContext.fetch(fetchRequest)
+            DDLogInfo("CoreChatData/group/deleteChatGroupMember/begin count=[\(chatGroupMembers.count)]")
+            chatGroupMembers.forEach {
+                managedObjectContext.delete($0)
+            }
+        }
+        catch {
+            DDLogError("CoreChatData/group/deleteChatGroupMember/error  [\(error)]")
+            return
+        }
+    }
+
+    public func updateChatGroup(with groupId: GroupID, block: @escaping (Group) -> (), performAfterSave: (() -> ())? = nil) {
+        mainDataStore.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            defer {
+                if let performAfterSave = performAfterSave {
+                    performAfterSave()
+                }
+            }
+            guard let self = self else { return }
+            guard let chatGroup = self.chatGroup(groupId: groupId, in: managedObjectContext) else {
+                DDLogError("CoreChatData/group/updateChatGroup/missing [\(groupId)]")
+                return
+            }
+            DDLogVerbose("CoreChatData/group/updateChatGroup [\(groupId)]")
+            block(chatGroup)
+            if managedObjectContext.hasChanges {
+                self.mainDataStore.save(managedObjectContext)
+            }
+        }
+    }
+
+    public func updateChatThread(type: ChatType, for id: String, block: @escaping (CommonThread) -> Void, performAfterSave: (() -> ())? = nil) {
+        mainDataStore.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            defer {
+                if let performAfterSave = performAfterSave {
+                    performAfterSave()
+                }
+            }
+            guard let self = self else { return }
+            guard let chatThread = self.chatThread(type: type, id: id, in: managedObjectContext) else {
+                DDLogError("CoreChatData/update-chatThread/missing-thread [\(id)]")
+                return
+            }
+            block(chatThread)
+            if managedObjectContext.hasChanges {
+                DDLogVerbose("CoreChatData/update-chatThread [\(id)]")
+                self.mainDataStore.save(managedObjectContext)
+            }
+        }
+    }
+
+    // MARK: Chat group member
+
+    public func chatGroupMembers(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext) -> [GroupMember] {
+        let fetchRequest: NSFetchRequest<GroupMember> = GroupMember.fetchRequest()
+        fetchRequest.predicate = predicate
+        fetchRequest.sortDescriptors = sortDescriptors
+        fetchRequest.returnsObjectsAsFaults = false
+
+        do {
+            let chatGroupMembers = try managedObjectContext.fetch(fetchRequest)
+            return chatGroupMembers
+        }
+        catch {
+            DDLogError("CoreChatData/group/fetchGroupMembers/error  [\(error)]")
+            fatalError("Failed to fetch chat group members")
+        }
+    }
+
+    public func chatGroupMemberUserIDs(groupID: GroupID, in context: NSManagedObjectContext) -> [UserID] {
+        return chatGroupMembers(predicate: NSPredicate(format: "groupID == %@", groupID), in: context).map(\.userID)
+    }
+
+    public func chatGroupMember(groupId id: GroupID, memberUserId: UserID, in managedObjectContext: NSManagedObjectContext) -> GroupMember? {
+        return chatGroupMembers(predicate: NSPredicate(format: "groupID == %@ && userID == %@", id, memberUserId), in: managedObjectContext).first
     }
 
     // MARK: Handle rerequests
@@ -903,22 +1219,6 @@ public class CoreChatData {
     func chatGroupIds(for memberUserId: UserID, in managedObjectContext: NSManagedObjectContext) -> [GroupID] {
         let chatGroupMemberItems = chatGroupMembers(predicate: NSPredicate(format: "userID == %@", memberUserId), in: managedObjectContext)
         return chatGroupMemberItems.map { $0.groupID }
-    }
-
-    private func chatGroupMembers(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext) -> [GroupMember] {
-        let fetchRequest: NSFetchRequest<GroupMember> = GroupMember.fetchRequest()
-        fetchRequest.predicate = predicate
-        fetchRequest.sortDescriptors = sortDescriptors
-        fetchRequest.returnsObjectsAsFaults = false
-
-        do {
-            let chatGroupMembers = try managedObjectContext.fetch(fetchRequest)
-            return chatGroupMembers
-        }
-        catch {
-            DDLogError("CoreChatData/group/fetchGroupMembers/error  [\(error)]")
-            fatalError("Failed to fetch chat group members")
-        }
     }
 
     // MARK: - Util
