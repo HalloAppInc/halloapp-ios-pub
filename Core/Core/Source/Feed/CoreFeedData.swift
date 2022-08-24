@@ -722,12 +722,6 @@ open class CoreFeedData: NSObject {
             }
 
             DDLogInfo("CoreFeedData/saveCommentData [\(commentData.id)]")
-            let feedComment: FeedPostComment
-            if let existingComment = self.feedComment(with: commentData.id, in: context) {
-                feedComment = existingComment
-            } else {
-                feedComment = FeedPostComment(context: context)
-            }
 
             // Find comment's post.
             let feedPost: FeedPost
@@ -749,6 +743,13 @@ open class CoreFeedData: NSObject {
             guard !feedPost.isPostRetracted else {
                 DDLogError("CoreFeedData/saveCommentData/missing-post [\(commentData.feedPostId)]/skip comment")
                 return
+            }
+
+            let feedComment: FeedPostComment
+            if let existingComment = self.feedComment(with: commentData.id, in: context) {
+                feedComment = existingComment
+            } else {
+                feedComment = FeedPostComment(context: context)
             }
 
             // Find parent if necessary.

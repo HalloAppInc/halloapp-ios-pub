@@ -1374,7 +1374,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 } else {
                     // Add new FeedPostComment to database.
                     DDLogDebug("FeedData/process-comments/new [\(xmppComment.id)]")
-                    comment = NSEntityDescription.insertNewObject(forEntityName: FeedPostComment.entity().name!, into: managedObjectContext) as! FeedPostComment
+                    comment = FeedPostComment(context: managedObjectContext)
                 }
 
                 comment.id = xmppComment.id
