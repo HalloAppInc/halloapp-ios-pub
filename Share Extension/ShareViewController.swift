@@ -72,7 +72,7 @@ class ShareViewController: UINavigationController {
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
 
-        initAppContext(ShareExtensionContext.self, serviceBuilder: serviceBuilder, contactStoreClass: ContactStore.self, appTarget: AppTarget.shareExtension)
+        initAppContext(ShareExtensionContext.self, serviceBuilder: serviceBuilder, contactStoreClass: ContactStoreCore.self, appTarget: AppTarget.shareExtension)
         setUpReachability()
         ShareExtensionContext.shared.coreService.startConnectingIfNecessary()
 

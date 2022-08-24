@@ -110,11 +110,10 @@ class HomeViewController: UITabBarController {
             self?.removeHomeTabIndicator()
         })
 
-        cancellableSet.insert(
-            MainAppContext.shared.chatData.didChangeUnreadThreadGroupsCount.receive(on: DispatchQueue.main).sink { [weak self] (count) in
-                self?.updateGroupsNavigationControllerBadge(count)
-        })
-        MainAppContext.shared.chatData.updateUnreadThreadGroupsCount()
+        MainAppContext.shared.chatData.unreadGroupThreadCountController.count
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] count in self?.updateGroupsNavigationControllerBadge(count) }
+            .store(in: &cancellableSet)
 
         cancellableSet.insert(
             MainAppContext.shared.chatData.didChangeUnreadThreadCount.receive(on: DispatchQueue.main).sink { [weak self] (count) in

@@ -125,6 +125,8 @@ final class NUX {
             welcomePostsDict[sampleGroupID]?.seen = true
         }
         saveToUserDefaults()
+        // trigger count update
+        MainAppContext.shared.chatData.unreadGroupThreadCountController.updateCount()
     }
     
     func stopShowingWelcomePost(id: String) {
@@ -204,7 +206,6 @@ final class NUX {
         if id == sampleGroupID() {
             DDLogInfo("NUX/deleteWelcomePost/sampleGroup/groupID/\(id)")
             markSampleGroupWelcomePostSeen()
-            MainAppContext.shared.chatData.updateUnreadThreadGroupsCount() // refresh bottom nav groups badge
         } else {
             DDLogInfo("NUX/deleteWelcomePost/groupID/\(id)")
             welcomePostsDict.removeValue(forKey: key)

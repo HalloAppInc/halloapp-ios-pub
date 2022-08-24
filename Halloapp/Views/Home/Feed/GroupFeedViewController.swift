@@ -360,8 +360,6 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
         // one time update to mark sample group welcome post as seen if not seen before
         if isSampleGroup, let seen = sharedNUX.sampleGroupWelcomePostSeen(), !seen {
             sharedNUX.markSampleGroupWelcomePostSeen() // user will see welcome post once loaded since it's at the top
-            MainAppContext.shared.chatData.updateUnreadThreadGroupsCount() // refresh bottom nav groups badge
-            MainAppContext.shared.chatData.triggerGroupThreadUpdate(self.groupId) // refresh groups list thread unread count
         }
 
         return result

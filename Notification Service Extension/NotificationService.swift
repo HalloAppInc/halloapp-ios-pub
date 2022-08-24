@@ -24,7 +24,7 @@ class NotificationService: UNNotificationServiceExtension  {
         }
         initAppContext(AppExtensionContext.self,
                        serviceBuilder: serviceBuilder,
-                       contactStoreClass: ContactStore.self,
+                       contactStoreClass: ContactStoreCore.self,
                        appTarget: AppTarget.notificationExtension)
     }()
 

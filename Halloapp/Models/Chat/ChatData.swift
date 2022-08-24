@@ -34,7 +34,6 @@ class ChatData: ObservableObject {
     public var currentPage: Int = 0
 
     let didChangeUnreadThreadCount = PassthroughSubject<Int, Never>()
-    let didChangeUnreadThreadGroupsCount = PassthroughSubject<Int, Never>()
     let didGetCurrentChatPresence = PassthroughSubject<(UserPresenceType, Date?), Never>()
     let didGetChatStateInfo = PassthroughSubject<Void, Never>()
     
@@ -52,7 +51,14 @@ class ChatData: ObservableObject {
         downloadManager.delegate = self
         return downloadManager
     }()
-    
+
+    lazy var unreadGroupThreadCountController: CountController<CommonThread> = {
+        let fetchRequest = CommonThread.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "groupID != nil && unreadCount > 0")
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "groupID", ascending: true)]
+        return CountController(fetchRequest: fetchRequest, managedObjectContext: mainDataStore.viewContext)
+    }()
+
     private let userData: UserData
     private let mainDataStore: MainDataStore
     private let contactStore: ContactStoreMain
@@ -74,12 +80,6 @@ class ChatData: ObservableObject {
 //            DispatchQueue.main.async {
 //                UIApplication.shared.applicationIconBadgeNumber = self.unreadThreadCount
 //            }
-        }
-    }
-    
-    private var unreadThreadGroupsCount: Int = 0 {
-        didSet {
-            didChangeUnreadThreadGroupsCount.send(unreadThreadGroupsCount)
         }
     }
 
@@ -244,7 +244,6 @@ class ChatData: ObservableObject {
                                 self.updateChatThread(type: .group, for: groupID, block: { thread in
                                     guard thread.unreadFeedCount > 0 else { return }
                                     thread.unreadFeedCount = 0
-                                    self.updateUnreadThreadGroupsCount()
                                 })
                             }
 
@@ -257,7 +256,6 @@ class ChatData: ObservableObject {
                             self.updateChatThread(type: .group, for: $0, block: { thread in
                                 guard thread.unreadFeedCount > 0 else { return }
                                 thread.unreadFeedCount = 0
-                                self.updateUnreadThreadGroupsCount()
                             })
                         })
                     }
@@ -1901,19 +1899,6 @@ extension ChatData {
         }
     }
 
-    // trigger update for fetchedcontrollers with a manual (forced) save
-    func triggerGroupThreadUpdate(_ groupID: GroupID) {
-        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
-            guard let self = self else { return }
-
-            guard let chatThread = self.chatThread(type: .group, id: groupID, in: managedObjectContext) else { return }
-            let unreadFeedCount = chatThread.unreadFeedCount
-            chatThread.unreadFeedCount = unreadFeedCount
-
-            self.save(managedObjectContext)
-        }
-    }
-
     func markThreadAsRead(type: ChatType, for id: String) {
         DDLogInfo("ChatData/markThreadAsRead/type: \(type)/id: \(id)")
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
@@ -1939,14 +1924,6 @@ extension ChatData {
             guard let self = self else { return }
             DDLogInfo("ChatData/markSeenMessages/type: \(type)/id: \(id)/without setting unreadCount to zero")
             self.markSeenMessages(type: type, for: id, in: managedObjectContext)
-        }
-    }
-    
-    func updateUnreadThreadGroupsCount() {
-        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
-            guard let self = self else { return }
-            let threads = self.commonThreads(predicate: NSPredicate(format: "groupID != nil && unreadCount > 0"), in: managedObjectContext)
-            self.unreadThreadGroupsCount = Int(threads.count)
         }
     }
 
@@ -5216,7 +5193,7 @@ extension ChatData {
 
         if isSampleGroupCreationEvent {
             DDLogVerbose("ChatData/recordGroupMessageEvent/groupID/\(xmppGroup.groupId)/isSampleGroupCreationEvent")
-            self.updateUnreadThreadGroupsCount() // refresh bottom nav groups badge
+            unreadGroupThreadCountController.updateCount() // refresh bottom nav groups badge
 
             // remove group message and event since this group is created for the user
             managedObjectContext.delete(event)
