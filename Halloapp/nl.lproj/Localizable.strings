@@ -386,7 +386,7 @@
 "chat.list.user.deleted.reaction.video" = "%1$@ heeft een %2$@ verwijderd van een video";
 
 /* Text shown when user reacted to an audio */
-"chat.list.user.reacted.audio" = "%1$@ reageerde met %2$@ op een audio";
+"chat.list.user.reacted.audio" = "%1$@ reageerde met %2$@ op een audiobericht";
 
 /* Text shown when user reacted to an image */
 "chat.list.user.reacted.image" = "%1$@ reageerde met %2$@ op een afbeelding";
@@ -416,7 +416,7 @@
 "chat.list.you.deleted.reaction.video" = "Je hebt een %1@ verwijderd van een video";
 
 /* Text shown when you reacted to an audio */
-"chat.list.you.reacted.audio" = "Je reageerde met %1@ op een audio";
+"chat.list.you.reacted.audio" = "Je reageerde met %1@ op een audiobericht";
 
 /* Text shown when you reacted to an image */
 "chat.list.you.reacted.image" = "Je reageerde met %1@ op een afbeelding";
@@ -738,6 +738,9 @@
 
 /* Archived date timestamp */
 "feed.post.archived.timestamp" = "Gearchiveerd op %@";
+
+/* Indication of when a post expired */
+"feed.post.expired.timestamp" = "Verloopt op %@";
 
 /* Indication of when a post never expires */
 "feed.post.expired.timestamp.never" = "Verloopt nooit";
@@ -1254,6 +1257,9 @@
 
 /* Title of text displayed the first time the user acts to post a second moment in the same day. */
 "moment.replacement.title" = "Opmerking";
+
+/* Text on a locked moment that explains the need to post your own in order to view it. */
+"moment.unlock.disclaimer" = "Om momenten te zien, deel je je eigen moment";
 
 /* For indicating that there was an error while uploading the post. */
 "moment.uploading.failure" = "Fout";

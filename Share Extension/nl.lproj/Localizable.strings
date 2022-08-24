@@ -175,6 +175,9 @@
 /* Placeholder when sharing text only. */
 "share.composer.placeholder.text" = "Schrijf een post";
 
+/* Title of alert displayed while processing media shared by share extension */
+"share.composer.processing.media" = "Media wordt verwerkt...";
+
 /* Alert dialog message shown when uploading fails. */
 "share.composer.uploading.fail.message" = "Probeer het later opnieuw.";
 

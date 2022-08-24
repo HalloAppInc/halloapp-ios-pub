@@ -379,14 +379,23 @@
 /* Text shown when user removed a reaction from a message */
 "chat.list.user.deleted.reaction.message" = "%1$@ eliminó un %2$@ de un mensaje";
 
+/* Text shown when user removed a reaction from a text message */
+"chat.list.user.deleted.reaction.text" = "%1$@ eliminó %2$@ de %3$@";
+
 /* Text shown when user removed a reaction from a video */
 "chat.list.user.deleted.reaction.video" = "%1$@ eliminó un %2$@ de un video";
+
+/* Text shown when user reacted to an audio */
+"chat.list.user.reacted.audio" = "%1$@ reaccionó %2$@ a un audio";
 
 /* Text shown when user reacted to an image */
 "chat.list.user.reacted.image" = "%1$@ reaccionó %2$@ a una imagen";
 
 /* Text shown when user reacted to a message */
 "chat.list.user.reacted.message" = "%1$@ reaccionó %2$@ a un mensaje";
+
+/* Text shown when user reacted to a text message */
+"chat.list.user.reacted.text" = "%1$@ reaccionó %2$@ a %3$@";
 
 /* Text shown when user reacted to a video */
 "chat.list.user.reacted.video" = "%1$@ reaccionó %2$@ a un video";
@@ -396,6 +405,30 @@
 
 /* Text shown when you removed a reaction from an image */
 "chat.list.you.deleted.reaction.image" = "Eliminaste un %1@ de una imagen";
+
+/* Text shown when you removed a reaction from a message */
+"chat.list.you.deleted.reaction.message" = "Eliminaste %@ de un mensaje";
+
+/* Text shown when you removed a reaction from a text message */
+"chat.list.you.deleted.reaction.text" = "Eliminaste %1$@ de %2$@";
+
+/* Text shown when you removed a reaction from a video */
+"chat.list.you.deleted.reaction.video" = "Eliminaste %1@ de un video";
+
+/* Text shown when you reacted to an audio */
+"chat.list.you.reacted.audio" = "Reaccionaste %1@ a un audio";
+
+/* Text shown when you reacted to an image */
+"chat.list.you.reacted.image" = "Reaccionaste %1@ a una imagen";
+
+/* Text shown when you reacted to a message */
+"chat.list.you.reacted.message" = "Reaccionaste %@ a un mensaje";
+
+/* Text shown when you reacted to a text message */
+"chat.list.you.reacted.text" = "Reaccionaste %1$@ a %2$@";
+
+/* Text shown when you reacted to a video */
+"chat.list.you.reacted.video" = "Reaccionaste %1@ a un video";
 
 /* Message text shown in a message that have audio media but no text */
 "chat.message.audio" = "Nota de voz";
@@ -1299,6 +1332,9 @@
 
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Ya no formas parte de este grupo";
+
+/* Push notification for a comment to message */
+"notification.comment.reaction" = "Reaccionó %@ a un comentario";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
 "notification.commented.with.text" = "Comentó: %@";
