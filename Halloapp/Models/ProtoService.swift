@@ -800,11 +800,14 @@ final class ProtoService: ProtoServiceCore {
             }
 
             let contentType: HomeDecryptionReportContentType
+            let postID: FeedPostID
             switch item.item {
-            case .post:
+            case .post(let post):
                 contentType = .post
-            case .comment:
+                postID = post.id
+            case .comment(let comment):
                 contentType = .comment
+                postID = comment.postID
             default:
                 DDLogError("proto/handleFeedItem/invalid item stanza")
                 return
@@ -828,6 +831,9 @@ final class ProtoService: ProtoServiceCore {
                             DDLogError("proto/handleFeedItem/\(msg.id)/\(contentID)/decrypt/error \(failure.error)")
                             if failure.error == .missingCommentKey {
                                 AppContext.shared.errorLogger?.logError(NSError(domain: "missingCommentKey", code: 1010))
+                                self.rerequestHomeFeedPost(id: postID) { result in
+                                    DDLogInfo("proto/handleFeedItem/\(msg.id)/\(postID)/rerequestHomeFeedPost result: \(result)")
+                                }
                             }
                             self.rerequestHomeFeedItemIfNecessary(id: contentID, contentType: contentType, failure: failure) { result in
                                 switch result {

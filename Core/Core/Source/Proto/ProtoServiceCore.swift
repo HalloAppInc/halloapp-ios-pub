@@ -1968,6 +1968,24 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
+    public func rerequestHomeFeedPost(id contentID: String, completion: @escaping ServiceRequestCompletion<Void>) {
+        AppContext.shared.mainDataStore.performOnBackgroundContextAndWait { managedObjectContext in
+            if let post = AppContext.shared.coreFeedData.feedPost(with: contentID, in: managedObjectContext) {
+                // We rerequest post here due to missingCommentKeys.
+                // This basically means we most likely dont have a senderState from the user
+                // Always rerequest content with sender state here to be on the safe side.
+                DDLogInfo("proto/rerequestHomeFeedPost/\(contentID)/sending a rerequest to userID: \(post.userID)")
+                self.rerequestHomeFeedItem(contentId: contentID,
+                                           authorUserID: post.userID,
+                                           rerequestType: .senderState,
+                                           contentType: .post,
+                                           completion: completion)
+            } else {
+                DDLogError("proto/rerequestHomeFeedPost/\(contentID)/missing post info to send a rerequest")
+            }
+        }
+    }
+
     private func rerequestHomeFeedItem(contentId: String, authorUserID: UserID, rerequestType: HomeFeedRerequestType, contentType: HomeFeedRerequestContentType, completion: @escaping ServiceRequestCompletion<Void>) {
         execute(whenConnectionStateIs: .connected, onQueue: .main) {
             guard let fromUserID = self.credentials?.userID else {

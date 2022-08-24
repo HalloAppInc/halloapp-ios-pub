@@ -625,6 +625,18 @@ final class NotificationProtoService: ProtoServiceCore {
     private func decryptAndProcessHomeFeedItem(contentID: String, contentType: FeedElementType,
                                                item: Server_FeedItem, metadata: NotificationMetadata, ack: @escaping () -> ()) {
         decryptHomeFeedPayload(for: item) { content, homeDecryptionFailure in
+
+            let postID: FeedPostID
+            switch item.item {
+            case .post(let post):
+                postID = post.id
+            case .comment(let comment):
+                postID = comment.postID
+            default:
+                DDLogError("proto/decryptAndProcessHomeFeedItem/invalid item stanza")
+                return
+            }
+
             if let content = content, homeDecryptionFailure == nil {
                 DDLogError("NotificationExtension/decryptAndProcessHomeFeedItem/contentID/\(contentID)/success")
                 switch content {
@@ -654,6 +666,9 @@ final class NotificationProtoService: ProtoServiceCore {
                     let fallback = ServerProperties.useClearTextHomeFeedContent
                     if decryptionFailure.error == .missingCommentKey {
                         AppContext.shared.errorLogger?.logError(NSError(domain: "missingCommentKey", code: 1010))
+                        self.rerequestHomeFeedPost(id: postID) { result in
+                            DDLogInfo("proto/decryptAndProcessHomeFeedItem/\(postID)/rerequestHomeFeedPost result: \(result)")
+                        }
                     }
                     self.rerequestHomeFeedItemIfNecessary(id: contentID, contentType: rerequestContentType, failure: decryptionFailure) { result in
                         switch result {
