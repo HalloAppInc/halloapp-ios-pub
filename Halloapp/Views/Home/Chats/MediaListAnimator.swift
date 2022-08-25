@@ -55,6 +55,7 @@ class MediaListAnimator: NSObject, UIViewControllerAnimatedTransitioning, UIView
     private let media: (url: URL, type: CommonMediaType, size: CGSize)
     private let index: MediaIndex
     private let presenting: Bool
+    private var transitionCancelledBeforeStart = false
 
     private weak var interactiveTransitionView: UIView?
     private weak var interactiveTransitionContext: UIViewControllerContextTransitioning?
@@ -90,12 +91,14 @@ class MediaListAnimator: NSObject, UIViewControllerAnimatedTransitioning, UIView
 
     func startInteractiveTransition(_ transitionContext: UIViewControllerContextTransitioning) {
         guard !presenting,
+              !transitionCancelledBeforeStart,
               let fromView = fromDelegate?.getTransitionView(at: index),
               let fromViewFrame = fromView.superview?.convert(fromView.frame, to: transitionContext.containerView),
-
               let transitionView = fromView.snapshotView(afterScreenUpdates: true)
         else {
-            cancelInteractiveTransition()
+            transitionCancelledBeforeStart = false
+            transitionContext.cancelInteractiveTransition()
+            transitionContext.completeTransition(false)
             return
         }
 
@@ -126,7 +129,6 @@ class MediaListAnimator: NSObject, UIViewControllerAnimatedTransitioning, UIView
               let fromViewFrame = fromView.superview?.convert(fromView.frame, to: transitionContext.containerView),
               let fromRootView = transitionContext.view(forKey: .from)
         else {
-            cancelInteractiveTransition()
             return
         }
 
@@ -154,7 +156,10 @@ class MediaListAnimator: NSObject, UIViewControllerAnimatedTransitioning, UIView
               let fromViewFrame = fromView.superview?.convert(fromView.frame, to: transitionContext.containerView),
               let toView = toDelegate?.getTransitionView(at: index),
               let fromRootView = transitionContext.view(forKey: .from)
-        else { return }
+        else {
+            transitionCancelledBeforeStart = true
+            return
+        }
         transitionContext.cancelInteractiveTransition()
 
 
@@ -175,7 +180,10 @@ class MediaListAnimator: NSObject, UIViewControllerAnimatedTransitioning, UIView
     }
 
     func finishInteractiveTransition() {
-        guard let transitionContext = interactiveTransitionContext, interactiveTransitionView != nil else { return }
+        guard let transitionContext = interactiveTransitionContext, interactiveTransitionView != nil else {
+            transitionCancelledBeforeStart = true
+            return
+        }
         transitionContext.finishInteractiveTransition()
         runTransition(using: transitionContext)
     }
