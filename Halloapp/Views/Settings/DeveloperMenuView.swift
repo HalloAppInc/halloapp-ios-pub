@@ -27,6 +27,7 @@ private enum MenuTitles {
     static var addFavoritesNotification: String { "Add Favorites Notification" }
     static var manageWebClient: String { "Manage web client" }
     static var enableGroupChat: String { "Enable Group Chat" }
+    static var enableChatForwarding: String { "Enable Chat Forwarding" }
     static var enableUIKitComposer: String { "Enable UIKit Composer" }
     static var showDecryptionResults: String { "Show decryption results  ✅ ❌" }
     static var forceCompactShare: String { "Force Compact Share UI" }
@@ -46,6 +47,7 @@ struct DeveloperMenuView: View {
 
     @State var useTestServer = MainAppContext.shared.coreService.useTestServer
     @State var enableGroupChat = AppContext.shared.userDefaults.bool(forKey: "enableGroupChat")
+    @State var enableChatForwarding = AppContext.shared.userDefaults.bool(forKey: "enableChatForwarding")
     @State var showDecryptionResults = DeveloperSetting.showDecryptionResults
     @State var enableUIKitComposer = AppContext.shared.userDefaults.bool(forKey: "enableUIKitComposer")
     @State var forceCompactShare = AppContext.shared.userDefaults.bool(forKey: "forceCompactShare")
@@ -205,7 +207,7 @@ struct DeveloperMenuView: View {
                 } label: {
                     Text(MenuTitles.addFavoritesNotification)
                 }
-                // SwuiftUI supports a maximum of 10 subvies, add any new items to this group.
+                // SwuiftUI supports a maximum of 10 subviews, add any new items to this group.
                 Group {
                     Button {
                         self.isShowingWebClientManager = true
@@ -223,6 +225,10 @@ struct DeveloperMenuView: View {
                             AppContext.shared.userDefaults.set(value, forKey: "enableGroupChat")
                         }
 
+                    Toggle(MenuTitles.enableChatForwarding, isOn: $enableChatForwarding)
+                        .onReceive(Just(self.enableChatForwarding)) { value in
+                            AppContext.shared.userDefaults.set(value, forKey: "enableChatForwarding")
+                        }
                     Toggle(MenuTitles.enableUIKitComposer, isOn: $enableUIKitComposer)
                         .onReceive(Just(enableUIKitComposer)) { value in
                             AppContext.shared.userDefaults.set(value, forKey: "enableUIKitComposer")

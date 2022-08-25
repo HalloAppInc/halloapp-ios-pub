@@ -2168,6 +2168,69 @@ extension ChatData {
         addIntent(toUserId: toUserId)
     }
 
+    func forwardChatMessages(toUserIds: [String], chatMessage: ChatMessage) {
+        // Prepare chat message
+        var media: [PendingMedia] = []
+        var linkPreviewData: LinkPreviewData? = nil
+        var linkPreviewMedia: PendingMedia? = nil
+        var chatLocation: ChatLocation? = nil
+        if let chatMedia = chatMessage.media {
+            for mediaItem in chatMedia {
+                if let url = mediaItem.mediaURL {
+                    let pendingMedia = PendingMedia(type: mediaItem.type)
+                    pendingMedia.size = mediaItem.size
+                    pendingMedia.fileURL = url
+                    DDLogInfo("forwardChatMessages \(mediaItem.order) : \(Int(mediaItem.order))")
+                    pendingMedia.order = Int(mediaItem.order)
+                    if mediaItem.type == .video {
+                        pendingMedia.originalVideoURL = url
+                    }
+                    media.append(pendingMedia)
+                }
+            }
+        }
+        if let linkPreviews = chatMessage.linkPreviews {
+            for sourceLinkPreview in linkPreviews {
+                linkPreviewData = LinkPreviewData(id: nil, url: sourceLinkPreview.url, title: sourceLinkPreview.title ?? "", description: sourceLinkPreview.description , previewImages: [])
+                if let mediaItem = sourceLinkPreview.media?.first, let url = mediaItem.mediaURL {
+                    let pendingMedia = PendingMedia(type: mediaItem.type)
+                    pendingMedia.size = mediaItem.size
+                    switch mediaItem.type {
+                    case .image:
+                        pendingMedia.fileURL = url
+                        linkPreviewMedia = pendingMedia
+                    default:
+                        break
+                    }
+                }
+            }
+        }
+
+        if let location = chatMessage.location {
+            chatLocation = ChatLocation(latitude: location.latitude, longitude: location.longitude, name: location.name ?? "", formattedAddressLines: [location.addressString ?? ""])
+        }
+        // Create chat message
+        for toUserId in toUserIds {
+            DDLogInfo("ChatData/forwardChatMessages/createChatMsg/chatMessageId: \(chatMessage.id) toUserId: \(toUserId)")
+            let text = chatMessage.rawText
+            performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+                guard let self = self else { return }
+                self.createChatMsg( toUserId: toUserId,
+                                    text: text ?? "",
+                                    media: media,
+                                    linkPreviewData: linkPreviewData,
+                                    linkPreviewMedia : linkPreviewMedia,
+                                    location: chatLocation,
+                                    feedPostId: nil,
+                                    feedPostMediaIndex: 0,
+                                    chatReplyMessageID: nil,
+                                    chatReplyMessageSenderID: nil,
+                                    chatReplyMessageMediaIndex: 0,
+                                    using: managedObjectContext)
+            }
+        }
+    }
+
     /// - Returns: A chat message object that should be used on the main thread.
     @discardableResult
     func sendMomentReply(to userID: UserID, postID: FeedPostID, text: String, media: [PendingMedia]) async -> ChatMessage? {

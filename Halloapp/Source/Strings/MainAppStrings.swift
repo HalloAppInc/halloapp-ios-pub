@@ -95,6 +95,14 @@ extension Localizations {
         NSLocalizedString("message.forward", value: "Forward", comment: "Call to action to forward a message")
     }
 
+    static var messageForwardTo: String {
+        NSLocalizedString("message.forward", value: "Forward To", comment: "Title of page where user can pick contats to forward a chat messsage")
+    }
+
+    static var messageForwardAll: String {
+        NSLocalizedString("message.forward.all", value: "Forward All", comment: "Call to action to forward a message which contains more than once media item")
+    }
+
     static var messageCopy: String {
         NSLocalizedString("message.copy", value: "Copy", comment: "Message action. Verb.")
     }
