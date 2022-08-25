@@ -154,36 +154,40 @@ final class NewPostViewController: UIViewController {
     }
 
     private func makeComposerViewController() -> UIViewController {
-        var config = PostComposerViewConfiguration.config(with: destination)
-        if let _ = momentContext {
-            config = .moment
-        }
-
         if AppContext.shared.userDefaults.bool(forKey: "enableUIKitComposer") {
-            return ComposerViewController(config: .userPost(destination: .feed(.all)), type: state.mediaSource, input: state.pendingInput, media: state.pendingMedia, voiceNote: state.pendingVoiceNote) { [weak self] controller, result , success in
+            return ComposerViewController(config: .config(with: destination), type: state.mediaSource, input: state.pendingInput, media: state.pendingMedia, voiceNote: state.pendingVoiceNote) { [weak self] controller, result , success in
                 guard let self = self else { return }
 
-                self.containedNavigationController.popViewController(animated: true)
+                self.state.pendingInput = result.input
+                self.state.pendingMedia = result.media
+                self.state.pendingVoiceNote = result.voiceNote
 
                 if success {
-                    // TODO: share
+                    if controller.isCompactShareFlow {
+                        self.share(to: result.destinations, result: result)
+                    } else {
+                        self.containedNavigationController.pushViewController(self.makeDestinationPickerViewController(with: result), animated: true)
+                    }
                 } else {
+                    self.containedNavigationController.popViewController(animated: true)
+
                     switch self.state.mediaSource {
                     case .library:
-                        (self.containedNavigationController.topViewController as? MediaPickerViewController)?.reset(
-                            destination: result.config.destination,
-                            selected: result.media
-                        )
+                        let controller = self.containedNavigationController.topViewController as? MediaPickerViewController
+                        controller?.reset(destination: self.destination, selected: self.state.pendingMedia)
                     case .camera:
                         break
                     default:
                         self.cleanupAndFinish()
                     }
-
-                    self.destination = result.config.destination
                 }
             }
         } else {
+            var config = PostComposerViewConfiguration.config(with: destination)
+            if let _ = momentContext {
+                config = .moment
+            }
+
             return PostComposerViewController(
                 mediaToPost: state.pendingMedia,
                 initialInput: state.pendingInput,
@@ -192,6 +196,45 @@ final class NewPostViewController: UIViewController {
                 voiceNote: state.pendingVoiceNote,
                 delegate: self)
         }
+    }
+
+    private func makeDestinationPickerViewController(with result: ComposerResult) -> UIViewController {
+        return DestinationPickerViewController(config: .composer, destinations: result.destinations) { controller, destinations in
+            if destinations.count > 0 {
+                self.share(to: destinations, result: result)
+            } else {
+                self.containedNavigationController.popViewController(animated: true)
+            }
+        }
+    }
+
+    private func share(to destinations: [ShareDestination], result: ComposerResult) {
+        guard let text = result.text else { return }
+
+        for destination in destinations {
+            if case .contact(let userID, _, _) = destination {
+                MainAppContext.shared.chatData.sendMessage(
+                    toUserId: userID,
+                    text: text.trimmed().collapsedText,
+                    media: result.media,
+                    linkPreviewData: result.linkPreviewData,
+                    linkPreviewMedia: result.linkPreviewMedia,
+                    feedPostId: nil,
+                    feedPostMediaIndex: 0,
+                    chatReplyMessageID: nil,
+                    chatReplyMessageSenderID: nil,
+                    chatReplyMessageMediaIndex: 0)
+            } else {
+                MainAppContext.shared.feedData.post(
+                    text: text,
+                    media: result.media,
+                    linkPreviewData: result.linkPreviewData,
+                    linkPreviewMedia: result.linkPreviewMedia,
+                    to: destination)
+            }
+        }
+
+        cleanupAndFinish(didPost: true)
     }
 
     private func makeNewCameraViewController() -> UIViewController {

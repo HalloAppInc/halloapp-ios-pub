@@ -128,6 +128,11 @@ class TextComposerView: UIStackView {
         setup()
     }
 
+    @discardableResult
+    override func becomeFirstResponder() -> Bool {
+        textView.becomeFirstResponder()
+    }
+
     private func setup() {
         translatesAutoresizingMaskIntoConstraints = false
         axis = .vertical

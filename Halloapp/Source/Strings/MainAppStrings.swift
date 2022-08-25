@@ -317,4 +317,8 @@ extension Localizations {
     static var showMore: String {
         NSLocalizedString("share.destination.more", value: "Show more...", comment: "Show more groups in the share group selection")
     }
+
+    static var sendTo: String {
+        NSLocalizedString("destination.send.to", value: "Send To", comment: "Send to button and screen title")
+    }
 }

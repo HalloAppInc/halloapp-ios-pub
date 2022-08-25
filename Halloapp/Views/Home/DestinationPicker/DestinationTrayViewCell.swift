@@ -61,7 +61,7 @@ class DestinationTrayViewCell: UICollectionViewCell {
 
     private lazy var title: UILabel = {
         let label = UILabel()
-        label.numberOfLines = 1
+        label.numberOfLines = 2
         label.font = .preferredFont(forTextStyle: .caption1)
         label.textColor = .label
         label.textAlignment = .center

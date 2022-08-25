@@ -110,10 +110,11 @@ class DestinationCell: UICollectionViewCell {
         return imageView
     }()
 
-    fileprivate let separator: UIView = {
+    private(set) lazy var separator: UIView = {
         let view = UIView()
-        view.backgroundColor = .separator
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .separator
+
         return view
     }()
 
@@ -133,7 +134,6 @@ class DestinationCell: UICollectionViewCell {
         favoritesView.isHidden = true
         avatarView.isHidden = true
         subtitle.isHidden = true
-        separator.isHidden = false
     }
 
     private func setup() {
@@ -163,11 +163,12 @@ class DestinationCell: UICollectionViewCell {
 
         contentView.addSubview(hStack)
         contentView.addSubview(separator)
+
         NSLayoutConstraint.activate([
             hStack.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 16),
             hStack.rightAnchor.constraint(equalTo: contentView.rightAnchor, constant: -16),
             hStack.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            separator.trailingAnchor.constraint(equalTo: selectedView.trailingAnchor),
+            separator.trailingAnchor.constraint(equalTo: selectedView.trailingAnchor, constant: -8),
             separator.leadingAnchor.constraint(equalTo: labels.leadingAnchor),
             separator.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             separator.heightAnchor.constraint(equalToConstant: 1.0 / UIScreen.main.scale),
@@ -182,7 +183,6 @@ class DestinationCell: UICollectionViewCell {
             homeView.isHidden = false
         case .whitelist:
             favoritesView.isHidden = false
-            separator.isHidden = true
         default:
             break
         }
@@ -274,9 +274,9 @@ class DestinationPickerHeaderView: UICollectionReusableView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         addSubview(titleView)
+
         NSLayoutConstraint.activate([
-            titleView.topAnchor.constraint(equalTo: topAnchor),
-            titleView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 25),
+            titleView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -9),
             titleView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 4),
         ])
     }

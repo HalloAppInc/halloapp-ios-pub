@@ -80,10 +80,6 @@ extension UIColor {
         UIColor(named: "ChatTextFieldStroke")!
     }
 
-    class var composerButton: UIColor {
-        get { UIColor(named: "ComposerButton")! }
-    }
-
     class var composerMore: UIColor {
         get { UIColor(named: "ComposerMore")! }
     }

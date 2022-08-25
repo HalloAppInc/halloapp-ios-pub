@@ -174,7 +174,7 @@ fileprivate class MediaCell: UICollectionViewCell {
         borderView.translatesAutoresizingMaskIntoConstraints = false
         borderView.fillColor = .clear
         borderView.strokeColor = UIColor.lavaOrange
-        borderView.lineWidth = 2
+        borderView.lineWidth = 4
         borderView.cornerRadius = 20
 
         return borderView

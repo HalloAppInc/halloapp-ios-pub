@@ -30,6 +30,7 @@ private enum MenuTitles {
     static var enableUIKitComposer: String { "Enable UIKit Composer" }
     static var showDecryptionResults: String { "Show decryption results  ✅ ❌" }
     static var forceCompactShare: String { "Force Compact Share UI" }
+    static var forcePickerShare: String { "Force Destination Picker Share UI" }
     static var resetMomentsFTUX: String { "Reset Moments FTUX" }
     static var logOut: String { "Log Out" }
 }
@@ -48,6 +49,7 @@ struct DeveloperMenuView: View {
     @State var showDecryptionResults = DeveloperSetting.showDecryptionResults
     @State var enableUIKitComposer = AppContext.shared.userDefaults.bool(forKey: "enableUIKitComposer")
     @State var forceCompactShare = AppContext.shared.userDefaults.bool(forKey: "forceCompactShare")
+    @State var forcePickerShare = AppContext.shared.userDefaults.bool(forKey: "forcePickerShare")
     @State var isShowingWebClientManager = false
 
     // TODO: Temporarily turn off and potentially remove
@@ -222,14 +224,19 @@ struct DeveloperMenuView: View {
                         }
 
                     Toggle(MenuTitles.enableUIKitComposer, isOn: $enableUIKitComposer)
-                        .onReceive(Just(self.enableUIKitComposer)) { value in
+                        .onReceive(Just(enableUIKitComposer)) { value in
                             AppContext.shared.userDefaults.set(value, forKey: "enableUIKitComposer")
                         }
 
                     if enableUIKitComposer {
                         Toggle(MenuTitles.forceCompactShare, isOn: $forceCompactShare)
-                            .onReceive(Just(self.forceCompactShare)) { value in
+                            .onReceive(Just(forceCompactShare)) { value in
                                 AppContext.shared.userDefaults.set(value, forKey: "forceCompactShare")
+                            }
+
+                        Toggle(MenuTitles.forcePickerShare, isOn: $forcePickerShare)
+                            .onReceive(Just(forcePickerShare)) { value in
+                                AppContext.shared.userDefaults.set(value, forKey: "forcePickerShare")
                             }
                     }
                 }

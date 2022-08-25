@@ -237,6 +237,8 @@ extension AvatarView {
                 self.avatarContainerView.layer.cornerRadius = borderRadius
                 self.avatarContainerView.clipsToBounds = true
                 self.avatarContainerView.layoutIfNeeded()
+
+                self.applyBorder()
             }
         }
 

@@ -227,11 +227,11 @@ struct ImageEditView: View {
                         Image(uiImage: image)
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .cornerRadius(10)
                             .allowsHitTesting(false)
                             .scaleEffect(media.scale)
                             .offset(Scaler.scale(offset: media.offset, containerSize: outer.size, imageSize: image.size))
                             .clipped()
+                            .cornerRadius(10)
                             .overlay(GeometryReader { inner in
                                 CropGestureView(outThreshold: outThreshold)
                                     .onZoomChanged { scale, location in
@@ -705,7 +705,7 @@ fileprivate struct CropRegion: View {
     let canCrop: Bool
     let isDragging: Bool
 
-    private let borderThickness: CGFloat = 2
+    private let borderThickness: CGFloat = 3
     private let cornerSize = CGSize(width: 15, height: 15)
     private let shadowColor = Color(red: 0, green: 0, blue: 0, opacity: 0.7)
 

@@ -102,13 +102,11 @@ class MediaComposerTextView: UIStackView {
         backgroundView.translatesAutoresizingMaskIntoConstraints = false
         backgroundView.backgroundColor = .secondarySystemGroupedBackground
         backgroundView.layer.cornerRadius = 20
-        backgroundView.layer.masksToBounds = true
         backgroundView.layer.borderWidth = 0.5
         backgroundView.layer.borderColor = UIColor.black.withAlphaComponent(0.12).cgColor
         backgroundView.layer.shadowOpacity = 1
         backgroundView.layer.shadowRadius = 1
         backgroundView.layer.shadowOffset = CGSize(width: 0, height: 1)
-        backgroundView.layer.shadowPath = UIBezierPath(roundedRect: backgroundView.bounds, cornerRadius: 20).cgPath
         backgroundView.layer.shadowColor = UIColor.black.withAlphaComponent(0.04).cgColor
 
         let field = UIStackView(arrangedSubviews: [])
@@ -136,7 +134,8 @@ class MediaComposerTextView: UIStackView {
             stopVoiceRecordingButton.centerYAnchor.constraint(equalTo: field.centerYAnchor),
             audioPlayerView.leadingAnchor.constraint(equalTo: field.leadingAnchor, constant: 12),
             audioPlayerView.trailingAnchor.constraint(equalTo: field.trailingAnchor, constant: -12),
-            audioPlayerView.centerYAnchor.constraint(equalTo: field.centerYAnchor),
+            audioPlayerView.topAnchor.constraint(equalTo: field.topAnchor, constant: 1),
+            audioPlayerView.bottomAnchor.constraint(equalTo: field.bottomAnchor, constant: -1),
         ])
 
         return field

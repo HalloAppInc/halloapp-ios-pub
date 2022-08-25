@@ -32,13 +32,19 @@ private extension Localizations {
     }
 }
 
+enum DestinationPickerConfig {
+    case composer, forwarding
+}
+
 class DestinationPickerViewController: UIViewController, NSFetchedResultsControllerDelegate {
     static let rowHeight = CGFloat(54)
-    static let maxGroupsToShowOnLaunch = 6
+    static let maxGroupsToShowOnLaunch = 3//6
     private var showAllGroups: Bool = false
     private var hasMoreGroups: Bool = false
     private var selectedDestinations: [ShareDestination] = []
     let feedPrivacyTypes = [PrivacyListType.all, PrivacyListType.whitelist]
+
+    private let config: DestinationPickerConfig
 
     private lazy var fetchedResultsController: NSFetchedResultsController<ChatThread> = {
         let request = ChatThread.fetchRequest()
@@ -52,6 +58,7 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
                                                                               managedObjectContext: MainAppContext.shared.chatData.viewContext,
                                                                               sectionNameKeyPath: nil,
                                                                               cacheName: nil)
+        fetchedResultsController.delegate = self
         return fetchedResultsController
     }()
     
@@ -70,12 +77,12 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewCompositionalLayout { [weak self] (sectionIndex: Int, layoutEnvironment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection? in
 
-            let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(53))
+            var rowHeight: NSCollectionLayoutDimension = .absolute(ContactSelectionViewController.rowHeight)
+
+            let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: rowHeight)
             let item = NSCollectionLayoutItem(layoutSize: itemSize)
 
-            var groupHeight: NSCollectionLayoutDimension = .absolute(ContactSelectionViewController.rowHeight)
-
-            let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(53))
+            let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: rowHeight)
             let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
 
             let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(44))
@@ -85,6 +92,11 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
             let sectionFooter = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: footerSize, elementKind: DestinationPickerMoreView.elementKind, alignment: .bottom)
 
             let section = NSCollectionLayoutSection(group: group)
+            section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16)
+
+            let backgroundDecoration = NSCollectionLayoutDecorationItem.background(elementKind: DestinationBackgroundDecorationView.elementKind)
+            // top inset required avoids header, bottom avoids footer
+            backgroundDecoration.contentInsets = NSDirectionalEdgeInsets(top: 44, leading: 16, bottom: 0, trailing: 16)
 
             // For the groups section, if there are > maxGroupsToShowOnLaunch groups, show the "Show More.." footer
             section.boundarySupplementaryItems = [sectionHeader]
@@ -92,12 +104,9 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
                 let sections = self.dataSource.snapshot().sectionIdentifiers
                 if sectionIndex < sections.count, sections[sectionIndex] == DestinationSection.groups, !self.showAllGroups, self.hasMoreGroups {
                     section.boundarySupplementaryItems = [sectionHeader, sectionFooter]
+                    backgroundDecoration.contentInsets.bottom = 43
                 }
             }
-            section.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16)
-
-            let backgroundDecoration = NSCollectionLayoutDecorationItem.background(elementKind: DestinationBackgroundDecorationView.elementKind)
-            backgroundDecoration.contentInsets = NSDirectionalEdgeInsets(top: 50, leading: 16, bottom: 0, trailing: 16)
 
             section.decorationItems = [backgroundDecoration]
 
@@ -114,7 +123,7 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
         collectionView.register(DestinationPickerHeaderView.self, forSupplementaryViewOfKind: DestinationPickerHeaderView.elementKind, withReuseIdentifier: DestinationPickerHeaderView.elementKind)
         collectionView.register(DestinationPickerMoreView.self, forSupplementaryViewOfKind: DestinationPickerMoreView.elementKind, withReuseIdentifier: DestinationPickerMoreView.elementKind)
         collectionView.delegate = self
-        collectionView.keyboardDismissMode = .onDrag
+        collectionView.keyboardDismissMode = .interactive
 
         return collectionView
     }()
@@ -135,14 +144,35 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
     } ()
 
     private lazy var bottomConstraint: NSLayoutConstraint = {
-        selectionRow.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        bottomView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
     } ()
 
-    private lazy var leftBarButtonItem: UIBarButtonItem = {
-        let image = UIImage(systemName: "chevron.down", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))
-        let item = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(backAction))
+    private lazy var closeImage: UIImage? = {
+        UIImage(systemName: "chevron.down", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))?
+            .withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
+    }()
 
-        return item
+    private lazy var backImage: UIImage? = {
+        UIImage(systemName: "chevron.left", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))?
+            .withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
+    }()
+
+    private lazy var leftBarButtonItem: UIBarButtonItem = {
+        let image: UIImage?
+
+        switch config {
+        case .composer:
+            image = backImage
+        case .forwarding:
+            image = closeImage
+        }
+
+        return UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(backAction))
+    }()
+
+    private lazy var rightBarButtonItem: UIBarButtonItem = {
+        let image = UIImage(named: "NavCreateGroup")?.withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
+        return UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(createGroupAction))
     }()
 
     private lazy var dataSource: UICollectionViewDiffableDataSource<DestinationSection, ShareDestination> = {
@@ -152,6 +182,9 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
             
             guard let cell = cell as? DestinationCell, let self = self else { return cell }
             let isSelected = self.selectedDestinations.contains { $0 == shareDestination }
+
+            cell.separator.isHidden = collectionView.numberOfItems(inSection: indexPath.section) - 1 == indexPath.row
+
             switch shareDestination {
             case .feed(let privacyListType):
                 switch privacyListType {
@@ -203,6 +236,14 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
         return source
     }()
 
+    private func updateSeparators() {
+        for cell in collectionView.visibleCells {
+            guard let indexPath = collectionView.indexPath(for: cell) else { return }
+            guard let cell = cell as? DestinationCell else { return }
+            cell.separator.isHidden = indexPath.row == collectionView.numberOfItems(inSection: indexPath.section) - 1
+        }
+    }
+
     private func sectionHeader(destinationSection : DestinationSection) -> String {
         switch destinationSection {
         case .main:
@@ -224,6 +265,58 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
         return searchController
     }()
 
+    private lazy var shareButton: UIButton = {
+        let icon = UIImage(named: "icon_share")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+
+        let attributedTitle = NSAttributedString(string: Localizations.buttonShare,
+                                                 attributes: [.kern: 0.5, .foregroundColor: UIColor.white])
+        let disabledAttributedTitle = NSAttributedString(string: Localizations.buttonShare,
+                                                         attributes: [.kern: 0.5, .foregroundColor: UIColor.white])
+
+        let button = RoundedRectButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        // Attributed strings do not respect button title colors
+        button.setAttributedTitle(attributedTitle, for: .normal)
+        button.setAttributedTitle(disabledAttributedTitle, for: .disabled)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
+        button.setImage(icon, for: .normal)
+        button.imageEdgeInsets = UIEdgeInsets(top: -4, left: 0, bottom: -4, right: 0)
+
+        // keep image on the right & tappable
+        if case .rightToLeft = view.effectiveUserInterfaceLayoutDirection {
+            button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 16)
+            button.semanticContentAttribute = .forceLeftToRight
+        } else {
+            button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 0)
+            button.semanticContentAttribute = .forceRightToLeft
+        }
+
+        NSLayoutConstraint.activate([
+            button.heightAnchor.constraint(equalToConstant: 44),
+            button.widthAnchor.constraint(greaterThanOrEqualToConstant: 90),
+        ])
+
+        button.addTarget(self, action: #selector(shareAction), for: .touchUpInside)
+
+        return button
+    }()
+
+    private lazy var bottomView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .primaryBg
+
+        view.addSubview(shareButton)
+
+        NSLayoutConstraint.activate([
+            shareButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            shareButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 10),
+            shareButton.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
+
+        return view
+    }()
+
     private var isFiltering: Bool {
         return searchController.isActive && !(searchController.searchBar.text?.isEmpty ?? true)
     }
@@ -234,25 +327,43 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
 
     private var cancellableSet: Set<AnyCancellable> = []
 
+    private var completion: (DestinationPickerViewController, [ShareDestination]) -> ()
+
+    init(config: DestinationPickerConfig, destinations: [ShareDestination], completion: @escaping (DestinationPickerViewController, [ShareDestination]) -> ()) {
+        self.completion = completion
+        self.config = config
+        self.selectedDestinations = destinations
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
     override func viewDidLoad() {
         view.backgroundColor = .primaryBg
 
-        navigationItem.title = Localizations.titlePrivacy
+        navigationItem.title = Localizations.sendTo
         navigationItem.leftBarButtonItem = leftBarButtonItem
+        navigationItem.rightBarButtonItem = rightBarButtonItem
         navigationItem.hidesSearchBarWhenScrolling = false
         navigationItem.searchController = searchController
 
         view.addSubview(collectionView)
         view.addSubview(selectionRow)
+        view.addSubview(bottomView)
 
         NSLayoutConstraint.activate([
             collectionView.topAnchor.constraint(equalTo: view.topAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            selectionRow.topAnchor.constraint(equalTo: collectionView.bottomAnchor),
             selectionRow.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             selectionRow.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             selectionRowHeightConstraint,
+            bottomView.topAnchor.constraint(equalTo: selectionRow.bottomAnchor),
+            bottomView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            bottomView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             bottomConstraint,
         ])
 
@@ -260,6 +371,10 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
         try? contactsFetchedResultsController.performFetch()
 
         updateData()
+        updateSelectionRow()
+        updateNextBtn()
+
+        handleKeyboardUpdates()
     }
 
     private func updateData(searchString: String? = nil) {
@@ -304,35 +419,55 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
                     }
                 }
             }
-            dataSource.apply(snapshot)
-            return
-        }
-        // No Search in progress
-        snapshot.appendSections([DestinationSection.main])
-        snapshot.appendItems([
-            ShareDestination.feed(.all),
-            ShareDestination.feed(.whitelist)
-            
-        ], toSection: DestinationSection.main)
+        } else {
+            // No Search in progress
+            snapshot.appendSections([DestinationSection.main])
+            snapshot.appendItems([.feed(.all), .feed(.whitelist)], toSection: DestinationSection.main)
 
-        if allGroups.count > 0 {
-            snapshot.appendSections([DestinationSection.groups])
-            snapshot.appendItems(allGroups.compactMap {
-                guard let groupID = $0.groupID, let title = $0.title else { return nil }
-                return .group(id: groupID, name: title)
-            }, toSection: DestinationSection.groups)
+            if allGroups.count > 0 {
+                snapshot.appendSections([DestinationSection.groups])
+                snapshot.appendItems(allGroups.compactMap {
+                    guard let groupID = $0.groupID, let title = $0.title else { return nil }
+                    return .group(id: groupID, name: title)
+                }, toSection: DestinationSection.groups)
+            }
+            if contacts.count > 0 {
+                snapshot.appendSections([DestinationSection.contacts])
+                snapshot.appendItems(contacts.compactMap {
+                    return ShareDestination.destination(from: $0)
+                }, toSection: DestinationSection.contacts)
+            }
         }
-        if contacts.count > 0 {
-            snapshot.appendSections([DestinationSection.contacts])
-            snapshot.appendItems(contacts.compactMap {
-                return ShareDestination.destination(from: $0)
-            }, toSection: DestinationSection.contacts)
+
+        dataSource.apply(snapshot, animatingDifferences: true) {
+            self.updateSeparators()
         }
-        dataSource.apply(snapshot)
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         updateData()
+    }
+
+    private func handleKeyboardUpdates() {
+        NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification).sink { [weak self] notification in
+            guard let self = self else { return }
+            guard let info = KeyboardNotificationInfo(userInfo: notification.userInfo) else { return }
+
+            UIView.animate(withKeyboardNotificationInfo: info) {
+                self.bottomConstraint.constant = -info.endFrame.height + 16
+                self.view?.layoutIfNeeded()
+            }
+        }.store(in: &cancellableSet)
+
+        NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification).sink { [weak self] notification in
+            guard let self = self else { return }
+            guard let info = KeyboardNotificationInfo(userInfo: notification.userInfo) else { return }
+
+            UIView.animate(withKeyboardNotificationInfo: info) {
+                self.bottomConstraint.constant = 0
+                self.view?.layoutIfNeeded()
+            }
+        }.store(in: &cancellableSet)
     }
 }
 
@@ -376,9 +511,6 @@ extension DestinationPickerViewController: UICollectionViewDelegate {
         if selectedDestinations.count > 0 && selectionRowHeightConstraint.constant == 0 {
             UIView.animate(withDuration: 0.3, animations: {
                 self.selectionRowHeightConstraint.constant = 100
-                let bottomContentInset = 100 - self.view.safeAreaInsets.bottom
-                self.collectionView.contentInset.bottom = bottomContentInset
-                self.collectionView.verticalScrollIndicatorInsets.bottom = bottomContentInset
                 self.selectionRow.layoutIfNeeded()
             }) { _ in
                 self.selectionRow.update(with: self.selectedDestinations)
@@ -388,8 +520,6 @@ extension DestinationPickerViewController: UICollectionViewDelegate {
 
             UIView.animate(withDuration: 0.3) {
                 self.selectionRowHeightConstraint.constant = 0
-                self.collectionView.contentInset.bottom = 0
-                self.collectionView.verticalScrollIndicatorInsets.bottom = 0
                 self.selectionRow.layoutIfNeeded()
             }
         } else {
@@ -398,25 +528,37 @@ extension DestinationPickerViewController: UICollectionViewDelegate {
     }
 
     private func updateNextBtn() {
-        if selectedDestinations.count > 0 {
-            navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonNext, style: .done, target: self, action: #selector(nextAction))
-        } else {
-            navigationItem.rightBarButtonItem = nil
-        }
+        shareButton.isEnabled = selectedDestinations.count > 0
     }
 
-    @objc private func nextAction() {
+    @objc private func createGroupAction() {
+        guard ContactStore.contactsAccessAuthorized else {
+            present(UINavigationController(rootViewController: NewGroupMembersPermissionDeniedController()), animated: true)
+            return
+        }
+        let controller = CreateGroupViewController { [weak self] groupID in
+            guard let self = self else { return }
+            self.dismiss(animated: true)
+        }
+
+        present(UINavigationController(rootViewController: controller), animated: true)
+    }
+
+    @objc private func shareAction() {
         guard selectedDestinations.count > 0 else { return }
         if searchController.isActive {
             dismiss(animated: true)
         }
-        // TODO what's next Dini?
+
+        completion(self, selectedDestinations)
     }
 
     @objc func backAction() {
         if searchController.isActive {
             dismiss(animated: true)
         }
+
+        completion(self, [])
     }
 
     @objc func moreAction() {

@@ -34,7 +34,7 @@ struct PostAudioViewConfiguration {
                                                      backgroundColor: .feedPostAudioPlayerBackground)
 
     static let composerWithMedia = PostAudioViewConfiguration(showDeleteButton: true,
-                                                              backgroundColor: .secondarySystemGroupedBackground)
+                                                              backgroundColor: .clear)
 
     static let unifiedComposer = PostAudioViewConfiguration(showDeleteButton: true,
                                                             backgroundColor: .feedPostAudioPlayerBackground)
@@ -154,6 +154,7 @@ class PostAudioView: UIView {
         directionalLayoutMargins = .zero
 
         backgroundView.backgroundColor = configuration.backgroundColor
+        backgroundView.layer.shadowOpacity = configuration.backgroundColor == .clear ? 0 : 1
         addSubview(backgroundView)
 
         if configuration.showDeleteButton {

@@ -16,7 +16,7 @@ import PhotosUI
 import UIKit
 
 struct ComposerResult {
-    var config: ComposerConfig
+    var destinations: [ShareDestination]
 
     var input: MentionInput
     var voiceNote: PendingMedia?
@@ -32,15 +32,26 @@ struct ComposerConfig {
     var mediaEditMaxAspectRatio: CGFloat?
     var maxVideoLength: TimeInterval = ServerProperties.maxFeedVideoDuration
 
-    static func userPost(destination: ShareDestination) -> ComposerConfig {
+    static func config(with destination: ShareDestination) -> ComposerConfig {
+        switch destination {
+        case .feed:
+            return .userPost(destination: destination)
+        case .group:
+            return .groupPost(destination: destination)
+        case .contact:
+            return .message(destination: destination)
+        }
+    }
+
+    private static func userPost(destination: ShareDestination) -> ComposerConfig {
         ComposerConfig(destination: destination)
     }
 
-    static func groupPost(destination: ShareDestination) -> ComposerConfig {
+    private static func groupPost(destination: ShareDestination) -> ComposerConfig {
         ComposerConfig(destination: destination)
     }
 
-    static func message(destination: ShareDestination) -> ComposerConfig {
+    private static func message(destination: ShareDestination) -> ComposerConfig {
         ComposerConfig(
             destination: destination,
             maxVideoLength: ServerProperties.maxChatVideoDuration
@@ -104,8 +115,14 @@ class ComposerViewController: UIViewController {
         AppContext.shared.contactStore.allRegisteredContacts(sorted: false, in: AppContext.shared.contactStore.viewContext)
     }()
 
-    private var isCompactShareFlow: Bool {
-        AppContext.shared.userDefaults.bool(forKey: "forceCompactShare") || (groups.count + contacts.count <= 6)
+    public var isCompactShareFlow: Bool {
+        if case .contact(_, _, _) = config.destination {
+            return false
+        } else if AppContext.shared.userDefaults.bool(forKey: "forcePickerShare") {
+            return false
+        } else {
+            return AppContext.shared.userDefaults.bool(forKey: "forceCompactShare") || (groups.count + contacts.count <= 6)
+        }
     }
 
     private var cancellables: Set<AnyCancellable> = []
@@ -121,7 +138,7 @@ class ComposerViewController: UIViewController {
     }()
 
     private lazy var backButtonItem: UIBarButtonItem = {
-        let imageConfig = UIImage.SymbolConfiguration(weight: .bold)
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: 22, weight: .semibold)
         let image = UIImage(systemName: "chevron.left", withConfiguration: imageConfig)?
                     .withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
 
@@ -129,6 +146,7 @@ class ComposerViewController: UIViewController {
         button.setImage(image, for: .normal)
         button.setTitle(Localizations.addMore, for: .normal)
         button.setTitleColor(.primaryBlue, for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 16)
         button.addTarget(self, action: #selector(backAction), for: .touchUpInside)
 
         return UIBarButtonItem(customView: button)
@@ -261,40 +279,6 @@ class ComposerViewController: UIViewController {
                 MediaCarouselSupplementaryItem(anchors: [.top, .trailing], view: topTrailingActions),
             ]
         }
-        configuration.pageControlViewsProvider = { [weak self] numberOfPages in
-            guard let self = self else { return [] }
-
-            var items: [MediaCarouselSupplementaryItem] = []
-
-            if numberOfPages == 1 {
-                let button = UIButton(type: .system)
-                button.translatesAutoresizingMaskIntoConstraints = false
-                button.setTitle(Localizations.addMore, for: .normal)
-                button.setTitleColor(.label.withAlphaComponent(0.4), for: .normal)
-                button.titleLabel?.font = .systemFont(ofSize: 14)
-                button.addTarget(self, action: #selector(self.openPickerAction), for: .touchUpInside)
-
-                items.append(MediaCarouselSupplementaryItem(anchors: [.trailing], view: button))
-            }
-
-            if numberOfPages < 10 {
-                let imageConf = UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)
-                let image = UIImage(systemName: "plus", withConfiguration: imageConf)
-                let moreButton = UIButton(type: .custom)
-                moreButton.translatesAutoresizingMaskIntoConstraints = false
-                moreButton.setImage(image?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
-                moreButton.setBackgroundColor(.composerMore, for: .normal)
-                moreButton.widthAnchor.constraint(equalToConstant: 28).isActive = true
-                moreButton.heightAnchor.constraint(equalToConstant: 28).isActive = true
-                moreButton.layer.cornerRadius = 14
-                moreButton.layer.masksToBounds = true
-                moreButton.addTarget(self, action: #selector(self.openPickerAction), for: .touchUpInside)
-
-                items.append(MediaCarouselSupplementaryItem(anchors: [.trailing], view: moreButton))
-            }
-
-            return items
-        }
 
         let carouselView = MediaCarouselView(media: media.map { FeedMedia($0, feedPostId: "") }, configuration: configuration)
         carouselView.translatesAutoresizingMaskIntoConstraints = false
@@ -343,7 +327,7 @@ class ComposerViewController: UIViewController {
     }()
 
     private lazy var destinationsView: ComposerDestinationRowView = {
-        let destinationsView = ComposerDestinationRowView(groups: groups, contacts: contacts)
+        let destinationsView = ComposerDestinationRowView(destination: config.destination, groups: groups, contacts: contacts)
         destinationsView.translatesAutoresizingMaskIntoConstraints = false
         destinationsView.destinationDelegate = self
 
@@ -422,7 +406,7 @@ class ComposerViewController: UIViewController {
             button.widthAnchor.constraint(greaterThanOrEqualToConstant: 52),
         ])
 
-        button.addTarget(self, action: #selector(share), for: .touchUpInside)
+        button.addTarget(self, action: #selector(shareAction), for: .touchUpInside)
 
         return button
     }()
@@ -444,7 +428,7 @@ class ComposerViewController: UIViewController {
         button.setAttributedTitle(disabledAttributedTitle, for: .disabled)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
         button.setImage(icon, for: .normal)
-        button.contentEdgeInsets = UIEdgeInsets(top: -1.5, left: 32, bottom: 0, right: 38)
+        button.contentEdgeInsets = UIEdgeInsets(top: -1.5, left: 30, bottom: 0, right: 36)
 
         // keep image on the right & tappable
         if case .rightToLeft = view.effectiveUserInterfaceLayoutDirection {
@@ -460,7 +444,7 @@ class ComposerViewController: UIViewController {
             button.widthAnchor.constraint(greaterThanOrEqualToConstant: 90),
         ])
 
-        button.addTarget(self, action: #selector(share), for: .touchUpInside)
+        button.addTarget(self, action: #selector(shareAction), for: .touchUpInside)
 
         return button
     }()
@@ -593,7 +577,7 @@ class ComposerViewController: UIViewController {
             contentView.layoutMargins = .zero
             contentView.addArrangedSubview(textComposerView)
 
-            constraints.append(contentView.heightAnchor.constraint(greaterThanOrEqualTo: scrollView.frameLayoutGuide.heightAnchor, constant: -16))
+            constraints.append(contentView.heightAnchor.constraint(greaterThanOrEqualTo: scrollView.frameLayoutGuide.heightAnchor, constant: -36))
 
             if isCompactShareFlow {
                 bottomView.addSubview(compactShareRow)
@@ -612,6 +596,8 @@ class ComposerViewController: UIViewController {
                 constraints.append(mediaPickerButton.trailingAnchor.constraint(equalTo: bottomView.trailingAnchor, constant: -14))
                 constraints.append(mediaPickerButton.centerYAnchor.constraint(equalTo: sendButton.centerYAnchor))
             }
+
+            textComposerView.becomeFirstResponder()
         }
 
         NSLayoutConstraint.activate(constraints)
@@ -727,13 +713,33 @@ class ComposerViewController: UIViewController {
     @objc private func backAction() {
         ImageServer.shared.clearUnattachedTasks(keepFiles: false)
 
-        let result = ComposerResult(config: config, input: input, voiceNote: voiceNote, media: media)
+        let result = ComposerResult(destinations: [config.destination], input: input, voiceNote: voiceNote, media: media)
         completion(self, result, false)
     }
 
-    @objc private func share() {
+    @objc private func shareAction() {
         guard !isSharing else { return }
         isSharing = true
+
+        isVideoLengthWithinLimit { [weak self] isWithinLimit in
+            guard let self = self else { return }
+
+            if isWithinLimit {
+                self.share()
+            } else {
+                self.isSharing = false
+                self.alertVideoLengthOverLimit()
+            }
+        }
+    }
+
+    private func share() {
+        var destinations: [ShareDestination]
+        if isCompactShareFlow {
+            destinations = destinationsView.destinations
+        } else {
+            destinations  = [config.destination]
+        }
 
         let mentionText = MentionText(expandedText: input.text, mentionRanges: input.mentions).trimmed()
 
@@ -744,11 +750,12 @@ class ComposerViewController: UIViewController {
         // if no link preview or link preview not yet loaded, send without link preview.
         // if the link preview does not have an image... send immediately
         if link == "" || linkPreviewData == nil ||  linkPreviewImage == nil {
-            let result = ComposerResult(config: config, input: input, text: mentionText, media: media, linkPreviewData: linkPreviewData)
+            let result = ComposerResult(destinations: destinations, input: input, text: mentionText, media: media, linkPreviewData: linkPreviewData)
             completion(self, result, true)
+            isSharing = false
         } else {
             // if link preview has an image, load the image before sending.
-            loadLinkPreviewImageAndShare(mentionText: mentionText, mediaItems: media)
+            loadLinkPreviewImageAndShare(destinations: destinations, mentionText: mentionText, mediaItems: media)
         }
     }
 
@@ -783,14 +790,14 @@ class ComposerViewController: UIViewController {
         }
     }
 
-    private func loadLinkPreviewImageAndShare(mentionText: MentionText, mediaItems: [PendingMedia]) {
+    private func loadLinkPreviewImageAndShare(destinations: [ShareDestination], mentionText: MentionText, mediaItems: [PendingMedia]) {
         // Send link preview with image in it
         let linkPreviewMedia = PendingMedia(type: .image)
         linkPreviewMedia.image = linkPreviewImage
 
         if linkPreviewMedia.ready.value {
             let result = ComposerResult(
-                config: config,
+                destinations: destinations,
                 input: input,
                 text: mentionText,
                 media: media,
@@ -798,13 +805,14 @@ class ComposerViewController: UIViewController {
                 linkPreviewMedia: linkPreviewMedia)
 
             completion(self, result, true)
+            isSharing = false
         } else {
             linkPreviewMedia.ready.sink { [weak self] ready in
                 guard let self = self else { return }
                 guard ready else { return }
 
                 let result = ComposerResult(
-                    config: self.config,
+                    destinations: destinations,
                     input: self.input,
                     text: mentionText,
                     media: self.media,
@@ -812,6 +820,7 @@ class ComposerViewController: UIViewController {
                     linkPreviewMedia: linkPreviewMedia)
 
                 self.completion(self, result, true)
+                self.isSharing = false
             }.store(in: &cancellables)
         }
     }
@@ -1037,6 +1046,7 @@ extension ComposerViewController: ContentTextViewDelegate {
         }
 
         updateUI()
+        updateLinkIfNecessary()
         updateWithMarkdown(textView)
         updateWithMention(textView)
     }
@@ -1065,6 +1075,22 @@ extension ComposerViewController: ContentTextViewDelegate {
                 textView.selectedTextRange = selectedRange
             }
         }
+    }
+
+    private func updateLinkIfNecessary() {
+        if let url = detectLink() {
+            link = url.absoluteString
+        } else {
+            link = ""
+        }
+    }
+
+    private func detectLink() -> URL? {
+        let text = input.text
+        let detector = try! NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
+        let matches = detector.matches(in: text, options: [], range: NSRange(location: 0, length: text.utf16.count))
+
+        return matches.first?.url
     }
 }
 
@@ -1301,10 +1327,6 @@ extension ComposerViewController: ComposerDestinationRowDelegate {
 }
 
 private extension Localizations {
-
-    static var sendTo: String {
-        NSLocalizedString("composer.button.send.to", value: "Send To", comment: "Send button title")
-    }
 
     static func mediaPrepareFailed(_ mediaCount: Int) -> String {
         let format = NSLocalizedString("media.prepare.failed.n.count", comment: "Error text displayed in post composer when some of the media selected couldn't be sent.")

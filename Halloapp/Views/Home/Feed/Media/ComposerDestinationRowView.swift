@@ -93,7 +93,7 @@ class ComposerDestinationRowView: UICollectionView {
         return source
     } ()
 
-    init(groups: [Group], contacts: [ABContact]) {
+    init(destination: ShareDestination, groups: [Group], contacts: [ABContact]) {
         contactsCount = contacts.count
 
         let layout = UICollectionViewFlowLayout()
@@ -121,6 +121,10 @@ class ComposerDestinationRowView: UICollectionView {
         if contacts.count == 0 {
             selectItem(at: IndexPath(row: 0, section: 0), animated: false, scrollPosition: .top)
         }
+
+        if let indexPath = destinationDataSource.indexPath(for: destination) {
+            selectItem(at: indexPath, animated: false, scrollPosition: .top)
+        }
     }
 
     required init?(coder: NSCoder) {
@@ -132,7 +136,6 @@ class ComposerDestinationRowView: UICollectionView {
 
         items.append(contentsOf: groups.map { ShareDestination.destination(from: $0) })
         items.append(contentsOf: contacts.compactMap { ShareDestination.destination(from: $0) })
-
 
         items.sort {
             let title0: String
@@ -321,12 +324,11 @@ fileprivate class ItemViewCell: UICollectionViewCell {
         return String(describing: ItemViewCell.self)
     }
 
-    private var cornerRadius: CGFloat = 0
-
     private lazy var avatarView: AvatarView = {
         let avatarView = AvatarView()
         avatarView.translatesAutoresizingMaskIntoConstraints = false
         avatarView.isUserInteractionEnabled = false
+        avatarView.borderWidth = 2
 
         NSLayoutConstraint.activate([
             avatarView.widthAnchor.constraint(equalToConstant: 44),
@@ -397,8 +399,6 @@ fileprivate class ItemViewCell: UICollectionViewCell {
         didSet {
             if isSelected {
                 avatarView.borderColor =  UIColor.primaryBlue
-                avatarView.borderWidth = 2
-                avatarView.layer.cornerRadius = cornerRadius
                 titleView.font = Constants.selectedFont
                 titleView.textColor = .primaryBlue
                 selectedView.isHidden = false
@@ -418,13 +418,11 @@ fileprivate class ItemViewCell: UICollectionViewCell {
     public func configure(groupId: GroupID, title: String) {
         avatarView.configure(groupId: groupId, squareSize: 44, using: MainAppContext.shared.avatarStore)
         titleView.text = title
-        cornerRadius = 11
     }
 
     public func configure(userId: UserID, title: String) {
         avatarView.configure(with: userId, using: MainAppContext.shared.avatarStore)
         titleView.text = title
-        cornerRadius = 22
     }
 }
 

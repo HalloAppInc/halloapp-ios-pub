@@ -257,10 +257,15 @@ class MediaPickerViewController: UIViewController {
         container.translatesAutoresizingMaskIntoConstraints = false
         container.backgroundColor = .feedBackground
         container.addSubview(nextButton)
+        container.addSubview(cameraButton)
+
+        cameraButton.isHidden = !config.isCameraEnabled
 
         NSLayoutConstraint.activate([
             nextButton.centerXAnchor.constraint(equalTo: container.centerXAnchor),
             nextButton.topAnchor.constraint(equalTo: container.topAnchor, constant: 12),
+            cameraButton.centerYAnchor.constraint(equalTo: nextButton.centerYAnchor),
+            cameraButton.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -40),
         ])
 
         return container
@@ -316,12 +321,22 @@ class MediaPickerViewController: UIViewController {
         return bubble
     }()
 
-    private lazy var cameraButtonItem: UIBarButtonItem = {
-        let imageConfig = UIImage.SymbolConfiguration(weight: .bold)
-        let image = UIImage(systemName: "camera.fill", withConfiguration: imageConfig)?
+    private lazy var cameraButton: UIButton = {
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: 44, weight: .bold)
+        let image = UIImage(systemName: "camera.circle.fill", withConfiguration: imageConfig)?
                     .withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
 
-        return UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(cameraAction))
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(image, for: .normal)
+        button.addTarget(self, action: #selector(cameraAction), for: .touchUpInside)
+
+        NSLayoutConstraint.activate([
+            button.widthAnchor.constraint(equalToConstant: 44),
+            button.heightAnchor.constraint(equalToConstant: 44),
+        ])
+
+        return button
     }()
 
     private lazy var backButtonItem: UIBarButtonItem = {
@@ -378,10 +393,6 @@ class MediaPickerViewController: UIViewController {
 
         navigationItem.leftBarButtonItem = backButtonItem
 
-        if config.isCameraEnabled {
-            navigationItem.rightBarButtonItem = cameraButtonItem
-        }
-
         title = config.onlyRecentItems ? Localizations.last24Hours : Localizations.fabAccessibilityPhotoLibrary
 
         updateNavigation()
@@ -395,7 +406,7 @@ class MediaPickerViewController: UIViewController {
 
         isAnyCallOngoingCancellable = MainAppContext.shared.callManager.isAnyCallOngoing.sink { [weak self] activeCall in
             let isVideoCallOngoing = activeCall?.isVideoCall ?? false
-            self?.cameraButtonItem.isEnabled = !isVideoCallOngoing
+            self?.cameraButton.isEnabled = !isVideoCallOngoing
         }
 
         //Show the favorites education modal only once to the user
@@ -548,7 +559,7 @@ class MediaPickerViewController: UIViewController {
 
         if config.isCameraEnabled {
             let isVideoCallOngoing = MainAppContext.shared.callManager.activeCall?.isVideoCall ?? false
-            cameraButtonItem.isEnabled = !isVideoCallOngoing
+            cameraButton.isEnabled = !isVideoCallOngoing
         }
     }
 

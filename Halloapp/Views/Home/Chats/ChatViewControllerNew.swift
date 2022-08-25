@@ -994,7 +994,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             if cancel {
                 self.dismiss(animated: true)
             } else {
-                self.presentMediaComposer(media: media)
+                self.presentComposerViewController(media: media)
             }
         }
 
@@ -1008,21 +1008,6 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     private func didAction() {
         chatViewControllerDelegate?.chatViewController(self, userActioned: true)
         firstActionHappened = true
-    }
-
-    private func presentMediaComposer(media: [PendingMedia]) {
-        guard let fromUserDestination = fromUserDestination else { return }
-
-        let composerController = PostComposerViewController(
-            mediaToPost: media,
-            initialInput: MentionInput(text: contentInputView.textView.text, mentions: MentionRangeMap(), selectedRange: NSRange()),
-            configuration: .config(with: fromUserDestination),
-            initialPostType: .library,
-            voiceNote: nil,
-            delegate: self)
-
-        let presenter = presentedViewController ?? self
-        presenter.present(UINavigationController(rootViewController: composerController), animated: false)
     }
     
     @MainActor
@@ -1402,13 +1387,37 @@ extension ChatViewControllerNew: ContentInputDelegate {
     private func presentComposerViewController(media: [PendingMedia]) {
         guard let fromUserDestination = fromUserDestination else { return }
 
-        let composerController = PostComposerViewController(
-            mediaToPost: media,
-           initialInput: MentionInput(text: contentInputView.textView.text, mentions: MentionRangeMap(), selectedRange: NSRange()),
-          configuration: .config(with: fromUserDestination),
-        initialPostType: .library,
-              voiceNote: nil,
-               delegate: self)
+        let input = MentionInput(text: contentInputView.textView.text, mentions: MentionRangeMap(), selectedRange: NSRange())
+        let composerController: UIViewController
+
+        if AppContext.shared.userDefaults.bool(forKey: "enableUIKitComposer") {
+            composerController = ComposerViewController(config: .config(with: fromUserDestination), type: .library, input: input, media: media, voiceNote: nil) { [weak self] controller, result , success in
+                guard let self = self else { return }
+
+                let text = result.text?.trimmed().collapsedText ?? ""
+
+                if success {
+                    self.sendMessage(text: text, media: media, linkPreviewData: result.linkPreviewData, linkPreviewMedia: result.linkPreviewMedia)
+                    self.view.window?.rootViewController?.dismiss(animated: true, completion: nil)
+                } else {
+                    controller.dismiss(animated: false)
+
+                    if let viewControllers = (self.presentedViewController as? UINavigationController)?.viewControllers {
+                        if let mediaPickerController = viewControllers.last as? MediaPickerViewController {
+                            mediaPickerController.reset(destination: nil, selected: media)
+                        }
+                    }
+                }
+            }
+        } else {
+            composerController = PostComposerViewController(
+                mediaToPost: media,
+               initialInput: input,
+              configuration: .config(with: fromUserDestination),
+            initialPostType: .library,
+                  voiceNote: nil,
+                   delegate: self)
+        }
 
         let presenter = presentedViewController ?? self
         presenter.present(UINavigationController(rootViewController: composerController), animated: false)
@@ -1626,7 +1635,12 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
     }
 
     func handleForwarding(msg chatMessage: ChatMessage) {
-        let vc = DestinationPickerViewController()
+        let vc = DestinationPickerViewController(config: .forwarding, destinations: []) { controller, destinations in
+            controller.dismiss(animated: true)
+
+            guard destinations.count > 0 else { return }
+            // TODO: forward msg to feed, groups or other contacts
+        }
         present(UINavigationController(rootViewController: vc), animated: true)
     }
 

@@ -87,7 +87,8 @@ class RoundedRectButton: UIButton {
         var resolvedBackgroundColor = backgroundTintColor.resolvedColor(with: traitCollection)
         if resolvedBackgroundColor.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha) {
             if !isEnabled {
-                saturation = 0.25
+                saturation = 0.10
+                brightness -= 0.24
             } else if isHighlighted {
                 brightness -= 0.2
             }
