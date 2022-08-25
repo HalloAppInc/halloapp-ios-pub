@@ -16,21 +16,12 @@ class PrivacyViewController: UIViewController, UICollectionViewDelegate {
 
     private lazy var collectionView: InsetCollectionView = {
        let collectionView = InsetCollectionView()
-        let layout = InsetCollectionView.defaultLayout()
-        let config = InsetCollectionView.defaultLayoutConfiguration()
+        let layout = InsetCollectionView.defaultLayout
+        let config = InsetCollectionView.defaultLayoutConfiguration
         
         layout.configuration = config
         collectionView.collectionViewLayout = layout
         return collectionView
-    }()
-    
-    private lazy var blockedAccessoryLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 17)
-        label.textColor = .secondaryLabel
-        label.text = MainAppContext.shared.privacySettings.blockedSetting
-        
-        return label
     }()
     
     private var cancellables: Set<AnyCancellable> = []
@@ -68,7 +59,8 @@ class PrivacyViewController: UIViewController, UICollectionViewDelegate {
         collectionView.apply(InsetCollectionView.Collection {
             InsetCollectionView.Section {
                 InsetCollectionView.Item(title: title,
-                                         style: .label(string: blockedUsers),
+                                 accessoryText: blockedUsers,
+                                         style: .standard,
                                         action: { [weak self] in self?.openBlockedContacts() })
             }
         }

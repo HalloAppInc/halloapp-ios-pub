@@ -8,6 +8,7 @@
 
 import UIKit
 import Combine
+import CoreCommon
 
 protocol InsetCollectionViewDelegate: UICollectionViewDelegate {
     var collectionView: InsetCollectionView { get }
@@ -19,9 +20,9 @@ protocol InsetCollectionViewDelegate: UICollectionViewDelegate {
 extension InsetCollectionViewDelegate {
     /**
      A default implementation for `collectionView(_:didSelectItemAt:)` provided by ``InsetCollectionView``.
-     
+
      > Important: Due to restrictions on protocol extensions, aside from making the delegate conform to ``InsetCollectionViewDelegate``, you have to manually add the following code to adopt the default implementation.
-     
+
      ```swift
      func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
          insetCollectionView(didSelectItemAt: indexPath)
@@ -32,7 +33,7 @@ extension InsetCollectionViewDelegate {
         guard let item = self.collectionView.data.itemIdentifier(for: indexPath) as? InsetCollectionView.Item else {
             return
         }
-        
+
         collectionView.deselectItem(at: indexPath, animated: true)
         item.action?()
     }
@@ -52,26 +53,26 @@ extension InsetCollectionView {
 class InsetCollectionView: UICollectionView {
     typealias Configuration = (showSeparators: Bool, showDisclosureIndicator: Bool)
     private var configuration: Configuration = (true, true)
-    
+
     private(set) lazy var data: UICollectionViewDiffableDataSource<Section, AnyHashable> = {
         let dataSource = UICollectionViewDiffableDataSource<Section, AnyHashable>(collectionView: self, cellProvider: cellProvider)
-        
+
         return dataSource
     }()
-    
+
     init() {
         super.init(frame: .zero, collectionViewLayout: UICollectionViewLayout())
-        
+
         dataSource = data
         register(StandardCollectionViewCell.self, forCellWithReuseIdentifier: StandardCollectionViewCell.reuseIdentifier)
         register(ToggleCollectionViewCell.self, forCellWithReuseIdentifier: ToggleCollectionViewCell.reuseIdentifier)
-        register(LabeledCollectionViewCell.self, forCellWithReuseIdentifier: LabeledCollectionViewCell.reuseIdentifier)
+        register(UserCollectionViewCell.self, forCellWithReuseIdentifier: UserCollectionViewCell.reuseIdentifier)
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("InsetCollectionView coder init not implemented...")
     }
-    
+
     func apply(_ collection: Collection) {
         var snapshot = NSDiffableDataSourceSnapshot<Section, AnyHashable>()
         snapshot.appendSections(collection.sections)
@@ -88,29 +89,34 @@ class InsetCollectionView: UICollectionView {
 // MARK: - static methods
 
 extension InsetCollectionView {
-    static func defaultLayoutConfiguration() -> UICollectionViewCompositionalLayoutConfiguration {
+
+    static var defaultLayoutConfiguration: UICollectionViewCompositionalLayoutConfiguration {
         let config = UICollectionViewCompositionalLayoutConfiguration()
         config.interSectionSpacing = 20
-        
+
         return config
     }
-    
-    static func defaultLayout() -> UICollectionViewCompositionalLayout {
+
+    static var defaultLayoutSection: NSCollectionLayoutSection {
         let size = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
         let item = NSCollectionLayoutItem(layoutSize: size)
-        
+
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: size, subitems: [item])
         let section = NSCollectionLayoutSection(group: group)
         section.contentInsets = Self.insets
-        
-        return UICollectionViewCompositionalLayout(section: section)
+
+        return section
     }
-    
+
+    static var defaultLayout: UICollectionViewCompositionalLayout {
+        return UICollectionViewCompositionalLayout(section: defaultLayoutSection)
+    }
+
     private func cellProvider(_ collectionView: UICollectionView, _ indexPath: IndexPath, _ item: AnyHashable) -> UICollectionViewCell {
         guard let item = item as? Item else {
             return UICollectionViewCell()
         }
-        
+
         let cell: UICollectionViewCell
         switch item.style {
         case .standard:
@@ -119,9 +125,9 @@ extension InsetCollectionView {
         case .toggle(_, _, _):
             cell = collectionView.dequeueReusableCell(withReuseIdentifier: ToggleCollectionViewCell.reuseIdentifier, for: indexPath)
             (cell as? ToggleCollectionViewCell)?.configure(with: item, configuration: configuration)
-        case .label(_):
-            cell = collectionView.dequeueReusableCell(withReuseIdentifier: LabeledCollectionViewCell.reuseIdentifier, for: indexPath)
-            (cell as? LabeledCollectionViewCell)?.configure(with: item, configuration: configuration)
+        case .user(_, _):
+            cell = collectionView.dequeueReusableCell(withReuseIdentifier: UserCollectionViewCell.reuseIdentifier, for: indexPath)
+            (cell as? UserCollectionViewCell)?.configure(with: item, configuration: configuration)
         }
 
         let isFirstItem = indexPath.row == 0
@@ -133,14 +139,14 @@ extension InsetCollectionView {
             section = data.snapshot().sectionIdentifiers[indexPath.section]
         }
 
-        if let cell = cell as? StandardCollectionViewCell, let options = section?.roundedCorners {
+        if let cell = cell as? InsetCollectionViewCell, let options = section?.roundedCorners {
             finalizeStyle(for: cell, isFirstItem: isFirstItem, isLastItem: isLastItem, options: options)
         }
 
         return cell
     }
 
-    private func finalizeStyle(for cell: StandardCollectionViewCell, isFirstItem: Bool, isLastItem: Bool, options: Section.RoundCorners) {
+    private func finalizeStyle(for cell: InsetCollectionViewCell, isFirstItem: Bool, isLastItem: Bool, options: Section.RoundCorners) {
         var maskedCorners = CACornerMask()
         let roundTopCorners = options == .top || options == .all
         let roundBottomCorners = options == .bottom || options == .all
@@ -160,9 +166,6 @@ extension InsetCollectionView {
         cell.backgroundView?.layer.maskedCorners = maskedCorners
         cell.contentView.layer.maskedCorners = maskedCorners
 
-        let disclosure = configuration.showDisclosureIndicator ? UIImage(systemName: "chevron.forward")?.withRenderingMode(.alwaysTemplate) : nil
-        cell.disclosureView.image = disclosure
-
         if configuration.showSeparators {
             cell.separator.isHidden = isLastItem
         }
@@ -175,51 +178,16 @@ fileprivate class StandardCollectionViewCell: InsetCollectionViewCell {
     class var reuseIdentifier: String {
         "standardCell"
     }
-    
-    let titleLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = .systemFont(ofSize: 17, weight: .regular)
-        
-        return label
-    }()
-    
-    let subtitleLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.numberOfLines = 1
-        label.font = .preferredFont(forTextStyle: .caption1)
-        label.textColor = .secondaryLabel
-            
-        return label
-    }()
-    
-    fileprivate lazy var titleVStack: UIStackView = {
-        let stackView = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel])
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        stackView.distribution = .fillProportionally
-        stackView.axis = .vertical
-        
-        return stackView
-    }()
-    
+
     let imageView: UIImageView = {
         let imageView = UIImageView()
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .center
         imageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 20)
-        
         return imageView
     }()
 
-    /// Subclasses can add an accessory view to this view; the constraints should be taken care of.
-    fileprivate let accessoryContainer: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    fileprivate let disclosureView: UIImageView = {
+    fileprivate let disclosureImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 12, weight: .medium, scale: .default)
@@ -227,84 +195,142 @@ fileprivate class StandardCollectionViewCell: InsetCollectionViewCell {
         imageView.contentMode = .center
         return imageView
     }()
-    
-    fileprivate let separator: UIView = {
-        let view = UIView()
-        view.backgroundColor = .separator
-        view.isHidden = true
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    private lazy var titleVStackLeadingConstraint = titleVStack.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor)
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
-        
-        contentView.addSubview(imageView)
-        contentView.addSubview(titleVStack)
-        contentView.addSubview(separator)
-        contentView.addSubview(accessoryContainer)
-        contentView.addSubview(disclosureView)
-        
-        contentView.layoutMargins = UIEdgeInsets(top: 13, left: 15, bottom: 13, right: 15)
-        let minimizeHeight = contentView.heightAnchor.constraint(equalToConstant: 0)
-        minimizeHeight.priority = UILayoutPriority(1)
+
+        leadingViewContainer.addSubview(imageView)
+        trailingViewContainer.addSubview(disclosureImageView)
 
         NSLayoutConstraint.activate([
-            imageView.topAnchor.constraint(greaterThanOrEqualTo: contentView.layoutMarginsGuide.topAnchor),
-            imageView.centerXAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor, constant: 10),
-            imageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            imageView.leadingAnchor.constraint(equalTo: leadingViewContainer.leadingAnchor),
+            imageView.trailingAnchor.constraint(equalTo: leadingViewContainer.trailingAnchor),
+            imageView.topAnchor.constraint(equalTo: leadingViewContainer.topAnchor),
+            imageView.bottomAnchor.constraint(equalTo: leadingViewContainer.bottomAnchor),
 
-            titleVStackLeadingConstraint,
-            titleVStack.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            titleVStack.topAnchor.constraint(greaterThanOrEqualTo: contentView.topAnchor),
-            titleVStack.trailingAnchor.constraint(lessThanOrEqualTo: accessoryContainer.leadingAnchor, constant: 5),
-
-            accessoryContainer.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            accessoryContainer.trailingAnchor.constraint(equalTo: disclosureView.leadingAnchor, constant: 0),
-
-            disclosureView.topAnchor.constraint(greaterThanOrEqualTo: contentView.layoutMarginsGuide.topAnchor),
-            disclosureView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            disclosureView.centerXAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
-
-            separator.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            separator.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
-            separator.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            separator.heightAnchor.constraint(equalToConstant: 1.0 / UIScreen.main.scale),
-
-            minimizeHeight,
+            disclosureImageView.leadingAnchor.constraint(equalTo: trailingViewContainer.leadingAnchor),
+            disclosureImageView.trailingAnchor.constraint(equalTo: trailingViewContainer.trailingAnchor),
+            disclosureImageView.topAnchor.constraint(equalTo: trailingViewContainer.topAnchor),
+            disclosureImageView.bottomAnchor.constraint(equalTo: trailingViewContainer.bottomAnchor),
         ])
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("ProfileCollectionViewCell coder init not implemented...")
     }
-    
+
     override func configure(with item: InsetCollectionView.Item, configuration: InsetCollectionView.Configuration) {
         super.configure(with: item, configuration: configuration)
 
-        titleLabel.text = item.title
-        subtitleLabel.text = item.subtitle
-        subtitleLabel.isHidden = (item.subtitle == nil)
         imageView.image = item.icon
-        titleVStackLeadingConstraint.constant = item.icon == nil ? 0 : 33
+        titleStackLeadingConstraint.constant = item.icon == nil ? 0 : 33
 
         if configuration.showDisclosureIndicator {
-            disclosureView.image = UIImage(systemName: "chevron.forward")?.withRenderingMode(.alwaysTemplate)
-        }
-
-        if configuration.showSeparators {
-            separator.isHidden = false
+            disclosureImageView.image = UIImage(systemName: "chevron.forward")?.withRenderingMode(.alwaysTemplate)
         }
     }
 }
 
+// MARK: - UserCollectionViewCell implementation
+
+///
+fileprivate class UserCollectionViewCell: InsetCollectionViewCell {
+
+    class var reuseIdentifier: String {
+        "userCell"
+    }
+
+    private let avatarView: AvatarView = {
+        let view = AvatarView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
+    private let button: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.tintColor = .systemBlue
+        button.setImage(UIImage(systemName: "ellipsis"), for: .normal)
+        return button
+    }()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+
+        let existingMargins = contentView.layoutMargins
+        contentView.layoutMargins = UIEdgeInsets(top: 8, left: existingMargins.left + 5, bottom: 8, right: existingMargins.right + 5)
+
+        leadingViewContainer.addSubview(avatarView)
+        trailingViewContainer.addSubview(button)
+
+        let diameter: CGFloat = 35
+        let titleDistance: CGFloat = diameter + 3
+
+        titleStackLeadingConstraint.constant = titleDistance
+
+        NSLayoutConstraint.activate([
+            avatarView.leadingAnchor.constraint(equalTo: leadingViewContainer.leadingAnchor),
+            avatarView.trailingAnchor.constraint(equalTo: leadingViewContainer.trailingAnchor),
+            avatarView.topAnchor.constraint(equalTo: leadingViewContainer.topAnchor),
+            avatarView.bottomAnchor.constraint(equalTo: leadingViewContainer.bottomAnchor),
+
+            avatarView.heightAnchor.constraint(equalToConstant: diameter),
+            avatarView.widthAnchor.constraint(equalToConstant: diameter),
+
+            button.leadingAnchor.constraint(equalTo: trailingViewContainer.leadingAnchor),
+            button.trailingAnchor.constraint(equalTo: trailingViewContainer.trailingAnchor),
+            button.topAnchor.constraint(equalTo: trailingViewContainer.topAnchor),
+            button.bottomAnchor.constraint(equalTo: trailingViewContainer.bottomAnchor),
+        ])
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("UserCollectionViewCell coder init not implemented...")
+    }
+
+    override func configure(with item: InsetCollectionView.Item, configuration: InsetCollectionView.Configuration) {
+        guard case let .user(id, menu) = item.style else {
+            return
+        }
+
+        let contactStore = MainAppContext.shared.contactStore
+        let name = contactStore.fullName(for: id, in: contactStore.viewContext)
+        var number = contactStore.normalizedPhoneNumber(for: id, using: contactStore.viewContext)
+        if let normalized = number, let parsed = try? AppContextCommon.shared.phoneNumberFormatter.parse(normalized) {
+           number = AppContextCommon.shared.phoneNumberFormatter.format(parsed, toType: .international)
+        }
+
+        let item = InsetCollectionView.Item(title: name,
+                                         subtitle: number,
+                                    accessoryText: item.accessoryText)
+        super.configure(with: item, configuration: configuration)
+
+        avatarView.configure(with: id, using: MainAppContext.shared.avatarStore)
+        button.configureWithMenu(menu)
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        avatarView.prepareForReuse()
+    }
+}
+
+// MARK: - ToggleCollectionViewCell implementation
+
 /// A cell that has a `UISwitch` instance at its trailing edge.
-fileprivate class ToggleCollectionViewCell: StandardCollectionViewCell {
-    override class var reuseIdentifier: String {
+fileprivate class ToggleCollectionViewCell: InsetCollectionViewCell {
+
+    class var reuseIdentifier: String {
         "toggleCell"
     }
+
+    private let imageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.contentMode = .center
+        imageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 20)
+        return imageView
+    }()
 
     private lazy var toggle: UISwitch = {
         let toggle = UISwitch()
@@ -318,12 +344,16 @@ fileprivate class ToggleCollectionViewCell: StandardCollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        accessoryContainer.addSubview(toggle)
+        let existingMargins = contentView.layoutMargins
+        contentView.layoutMargins = UIEdgeInsets(top: 5, left: existingMargins.left, bottom: 5, right: existingMargins.right)
+
+        trailingViewContainer.addSubview(toggle)
+
         NSLayoutConstraint.activate([
-            toggle.leadingAnchor.constraint(equalTo: accessoryContainer.leadingAnchor),
-            toggle.trailingAnchor.constraint(equalTo: accessoryContainer.trailingAnchor),
-            toggle.topAnchor.constraint(equalTo: accessoryContainer.topAnchor),
-            toggle.bottomAnchor.constraint(equalTo: accessoryContainer.bottomAnchor),
+            toggle.leadingAnchor.constraint(equalTo: trailingViewContainer.leadingAnchor),
+            toggle.trailingAnchor.constraint(equalTo: trailingViewContainer.trailingAnchor),
+            toggle.topAnchor.constraint(equalTo: trailingViewContainer.topAnchor),
+            toggle.bottomAnchor.constraint(equalTo: trailingViewContainer.bottomAnchor),
         ])
     }
 
@@ -341,8 +371,8 @@ fileprivate class ToggleCollectionViewCell: StandardCollectionViewCell {
         toggle.isOn = initial
         self.onChanged = onChanged
 
-        // toggle cell doesn't show the disclosure that may have been configured by super class
-        disclosureView.image = nil
+        imageView.image = item.icon
+        titleStackLeadingConstraint.constant = item.icon == nil ? 0 : 33
     }
 
     @objc
@@ -356,74 +386,87 @@ fileprivate class ToggleCollectionViewCell: StandardCollectionViewCell {
     }
 }
 
-/// A cell that has a second label at its trailing edge.
-fileprivate class LabeledCollectionViewCell: StandardCollectionViewCell {
-    override class var reuseIdentifier: String {
-        "labledCell"
-    }
-
-    private let accessoryLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.numberOfLines = 1
-        label.font = .systemFont(ofSize: 17, weight: .regular)
-        label.textColor = .secondaryLabel
-        return label
-    }()
-
-    private lazy var accessoryLabelTrailing = accessoryLabel.trailingAnchor.constraint(equalTo: accessoryContainer.trailingAnchor)
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-
-        accessoryContainer.addSubview(accessoryLabel)
-        NSLayoutConstraint.activate([
-            accessoryLabel.leadingAnchor.constraint(equalTo: accessoryContainer.leadingAnchor),
-            accessoryLabelTrailing,
-            accessoryLabel.topAnchor.constraint(equalTo: accessoryContainer.topAnchor),
-            accessoryLabel.bottomAnchor.constraint(equalTo: accessoryContainer.bottomAnchor),
-        ])
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("LabeledCollectionViewCell coder init not implemented...")
-    }
-
-    override func configure(with item: InsetCollectionView.Item, configuration: InsetCollectionView.Configuration) {
-        super.configure(with: item, configuration: configuration)
-        guard case let .label(text) = item.style else {
-            return
-        }
-
-        accessoryLabel.text = text
-        let constant: CGFloat = disclosureView.image == nil ? 0 : -10
-        accessoryLabelTrailing.constant = constant
-    }
-
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        accessoryLabel.text = nil
-    }
-}
-
 // MARK: - InsetCollectionViewCell implementation
 
 /// The base cell class. We use this for rounding corners and applying the shadow.
 fileprivate class InsetCollectionViewCell: UICollectionViewCell {
     /// - note: We remove the shadow in dark mode since the cell has some transparency.
-    private lazy var shadowColor: UIColor = {
-        return UIColor() { traits in
+    private static var shadowColor: UIColor {
+        UIColor() { traits in
             if case .dark = traits.userInterfaceStyle {
                 return UIColor.black.withAlphaComponent(0)
             } else {
                 return UIColor.black.withAlphaComponent(0.1)
             }
         }
+    }
+
+    private lazy var titleStack: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel])
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.distribution = .fillProportionally
+        stackView.axis = .vertical
+        stackView.spacing = 4
+        return stackView
+    }()
+
+    private(set) lazy var titleStackLeadingConstraint: NSLayoutConstraint = {
+        let constraint = titleStack.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor)
+        return constraint
+    }()
+
+    let titleLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = .systemFont(forTextStyle: .body)
+        label.numberOfLines = 0
+        label.setContentCompressionResistancePriority(.required, for: .vertical)
+        return label
+    }()
+
+    let subtitleLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.numberOfLines = 0
+        label.font = .preferredFont(forTextStyle: .caption1)
+        label.textColor = .secondaryLabel
+        label.setContentCompressionResistancePriority(.required, for: .vertical)
+        return label
+    }()
+
+    let leadingViewContainer: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
+    let accessoryLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = .secondaryLabel
+        label.font = .systemFont(forTextStyle: .body)
+        return label
+    }()
+
+    let trailingViewContainer: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
+    let separator: UIView = {
+        let view = UIView()
+        view.backgroundColor = .separator
+        view.isHidden = true
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
     }()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        
+
+        contentView.layoutMargins = UIEdgeInsets(top: 12, left: 15, bottom: 12, right: 15)
+
         backgroundView = UIView()
         backgroundView?.backgroundColor = .feedPostBackground
         backgroundView?.layer.masksToBounds = true
@@ -436,34 +479,79 @@ fileprivate class InsetCollectionViewCell: UICollectionViewCell {
         contentView.layer.masksToBounds = true
         contentView.layer.cornerCurve = .continuous
         contentView.layer.cornerRadius = radius
-        
+
         layer.cornerCurve = .continuous
         layer.cornerRadius = radius
         layer.masksToBounds = false
-        
+
         selectedBackgroundView?.layer.cornerRadius = radius
-        
-        layer.shadowColor = shadowColor.cgColor
+
+        layer.shadowColor = Self.shadowColor.cgColor
         layer.shadowRadius = 0.6
         layer.shadowOffset = CGSize(width: 0, height: 1)
+
+        contentView.addSubview(leadingViewContainer)
+        contentView.addSubview(titleStack)
+        contentView.addSubview(accessoryLabel)
+        contentView.addSubview(trailingViewContainer)
+        contentView.addSubview(separator)
+
+        let minimalPriority = UILayoutPriority(1)
+        let minimizeHeight = contentView.heightAnchor.constraint(equalToConstant: 0)
+        minimizeHeight.priority = minimalPriority
+
+        let minimizeContainers = [leadingViewContainer, trailingViewContainer]
+            .flatMap { [$0.widthAnchor.constraint(equalToConstant: 0), $0.heightAnchor.constraint(equalToConstant: 0)] }
+        minimizeContainers.forEach { $0.priority = minimalPriority }
+
+        NSLayoutConstraint.activate([
+            leadingViewContainer.topAnchor.constraint(greaterThanOrEqualTo: contentView.layoutMarginsGuide.topAnchor),
+            leadingViewContainer.centerXAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor, constant: 10),
+            leadingViewContainer.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+
+            titleStackLeadingConstraint,
+            titleStack.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            titleStack.topAnchor.constraint(greaterThanOrEqualTo: contentView.layoutMarginsGuide.topAnchor),
+            titleStack.trailingAnchor.constraint(lessThanOrEqualTo: accessoryLabel.leadingAnchor, constant: -5),
+
+            trailingViewContainer.topAnchor.constraint(greaterThanOrEqualTo: contentView.layoutMarginsGuide.topAnchor),
+            trailingViewContainer.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
+            trailingViewContainer.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+
+            accessoryLabel.topAnchor.constraint(greaterThanOrEqualTo: contentView.layoutMarginsGuide.topAnchor),
+            accessoryLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            accessoryLabel.trailingAnchor.constraint(equalTo: trailingViewContainer.leadingAnchor, constant: -10),
+
+            separator.leadingAnchor.constraint(equalTo: titleStack.leadingAnchor),
+            separator.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            separator.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            separator.heightAnchor.constraint(equalToConstant: 1.0 / UIScreen.main.scale),
+
+            minimizeHeight,
+        ] + minimizeContainers)
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("InsetCollectionViewCell coder init not implemented...")
     }
-    
-    func configure(with item: InsetCollectionView.Item, configuration: InsetCollectionView.Configuration) {
 
+    func configure(with item: InsetCollectionView.Item, configuration: InsetCollectionView.Configuration) {
+        titleLabel.text = item.title
+        subtitleLabel.text = item.subtitle
+        accessoryLabel.text = item.accessoryText
+
+        subtitleLabel.isHidden = item.subtitle == nil
+        separator.isHidden = !configuration.showSeparators
     }
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
 
         if traitCollection != previousTraitCollection {
-            layer.shadowColor = shadowColor.cgColor
+            layer.shadowColor = Self.shadowColor.cgColor
         }
     }
-    
+
     override func layoutSubviews() {
         super.layoutSubviews()
         layer.shadowPath = UIBezierPath(roundedRect: bounds.insetBy(dx: 0.25, dy: 0),
@@ -490,7 +578,7 @@ extension InsetCollectionView {
         private(set) var showDisclosureIndicator = false
         private(set) var showSeparators = false
         let sections: [Section]
-        
+
         init(@CollectionBuilder _ builder: () -> [Section]) {
             sections = builder()
         }
@@ -503,7 +591,7 @@ extension InsetCollectionView {
             modify { $0.showDisclosureIndicator = true }
         }
     }
-    
+
     struct Section: Hashable, Modifier {
         enum RoundCorners { case top, bottom, all}
 
@@ -520,32 +608,43 @@ extension InsetCollectionView {
             modify { $0.roundedCorners = corners }
         }
     }
-    
+
     struct Item: Hashable {
         enum Style {
             case standard
             /// Creates a cell with a `UISwitch`.
             case toggle(initial: Bool, isEnabled: Bool = true, onChanged: (Bool) -> Void)
-            /// Creates a cell with a secondary label at the trailing edge.
-            case label(string: String)
+            /// Creates a cell for a given user with a customizable menu.
+            case user(id: UserID, menu: () -> HAMenu)
         }
-        
+
         let identifier: AnyHashable
+
+        let icon: UIImage?
         let title: String
         let subtitle: String?
-        let icon: UIImage?
+        let accessoryText: String?
+
         let style: Style
         let action: (() -> Void)?
 
-        init(identifier: AnyHashable = UUID(), title: String = "", subtitle: String? = nil, icon: UIImage? = nil, style: Style = .standard, action: (() -> Void)? = nil) {
+        init(identifier: AnyHashable = UUID(),
+             title: String = "",
+             subtitle: String? = nil,
+             accessoryText: String? = nil,
+             icon: UIImage? = nil,
+             style: Style = .standard,
+             action: (() -> Void)? = nil) {
+
             self.identifier = identifier
             self.title = title
             self.subtitle = subtitle
+            self.accessoryText = accessoryText
             self.icon = icon
             self.style = style
             self.action = action
         }
-        
+
         static func == (lhs: Item, rhs: Item) -> Bool {
             return lhs.identifier == rhs.identifier
         }
@@ -554,56 +653,56 @@ extension InsetCollectionView {
             identifier.hash(into: &hasher)
         }
     }
-    
+
     @resultBuilder
     struct CollectionBuilder {
         static func buildExpression(_ expression: Section) -> [Section] {
             return [expression]
         }
-        
+
         static func buildBlock(_ components: [Section]...) -> [Section] {
             return Array(components.joined())
         }
-        
+
         static func buildArray(_ components: [[Section]]) -> [Section] {
             return Array(components.joined())
         }
-        
+
         static func buildEither(first component: [Section]) -> [Section] {
             return component
         }
-        
+
         static func buildEither(second component: [Section]) -> [Section] {
             return component
         }
-        
+
         static func buildOptional(_ component: [Section]?) -> [Section] {
             return component ?? []
         }
     }
-    
+
     @resultBuilder
     struct SectionBuilder {
         static func buildExpression(_ expression: Item) -> [Item] {
             return [expression]
         }
-        
+
         static func buildBlock(_ components: [Item]...) -> [Item] {
             return Array(components.joined())
         }
-        
+
         static func buildArray(_ components: [[Item]]) -> [Item] {
             return Array(components.joined())
         }
-        
+
         static func buildEither(first component: [Item]) -> [Item] {
             return component
         }
-        
+
         static func buildEither(second component: [Item]) -> [Item] {
             return component
         }
-        
+
         static func buildOptional(_ component: [Item]?) -> [Item] {
             return component ?? []
         }

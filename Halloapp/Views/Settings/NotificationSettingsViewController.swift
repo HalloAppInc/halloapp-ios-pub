@@ -17,8 +17,8 @@ class NotificationSettingsViewController: UIViewController, UICollectionViewDele
     
     private lazy var collectionView: InsetCollectionView = {
         let collectionView = InsetCollectionView()
-        let layout = InsetCollectionView.defaultLayout()
-        let config = InsetCollectionView.defaultLayoutConfiguration()
+        let layout = InsetCollectionView.defaultLayout
+        let config = InsetCollectionView.defaultLayoutConfiguration
         
         config.boundarySupplementaryItems = [
             NSCollectionLayoutBoundarySupplementaryItem(layoutSize: .init(widthDimension: .fractionalWidth(1.0),

@@ -32,8 +32,8 @@ class LocationListViewController: UIViewController {
         let collectionView = InsetCollectionView()
         collectionView.delegate = self
         
-        let layout = InsetCollectionView.defaultLayout()
-        let config = InsetCollectionView.defaultLayoutConfiguration()
+        let layout = InsetCollectionView.defaultLayout
+        let config = InsetCollectionView.defaultLayoutConfiguration
         layout.configuration = config
         collectionView.collectionViewLayout = layout
 

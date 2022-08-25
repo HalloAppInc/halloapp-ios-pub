@@ -15,8 +15,8 @@ class SettingsViewController: UIViewController, UICollectionViewDelegate {
 
     private lazy var collectionView: InsetCollectionView = {
         let collectionView = InsetCollectionView()
-        let layout = InsetCollectionView.defaultLayout()
-        let config = InsetCollectionView.defaultLayoutConfiguration()
+        let layout = InsetCollectionView.defaultLayout
+        let config = InsetCollectionView.defaultLayoutConfiguration
         
         layout.configuration = config
         collectionView.collectionViewLayout = layout
