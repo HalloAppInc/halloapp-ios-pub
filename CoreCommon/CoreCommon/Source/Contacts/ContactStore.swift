@@ -650,11 +650,12 @@ open class ContactStore {
             let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
             do {
-                guard let contact = try context.fetch(fetchRequest).first else {
+                let contacts = try context.fetch(fetchRequest)
+                guard !contacts.isEmpty else {
                     DDLogError("ContactStore/hideContactFromSuggestedInvites/Could not find contact to hide")
                     return
                 }
-                contact.hideInSuggestedInvites = true
+                contacts.forEach { $0.hideInSuggestedInvites = true }
                 try context.save()
             }
             catch {
