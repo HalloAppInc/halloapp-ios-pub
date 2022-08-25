@@ -637,15 +637,12 @@ final class FeedItemHeaderView: UIView {
             switch (post.expiration, group.postExpirationDate(from: post.timestamp)) {
             case (.some(let date1), .some(let date2)):
                 // Treat times within 5sec as the same to account for rounding
-                showExpiry = abs(date1.timeIntervalSince1970 - date2.timeIntervalSince1970) < 5
+                showExpiry = abs(date1.timeIntervalSince1970 - date2.timeIntervalSince1970) > Date.days(2)
             case (.some, .none), (.none, .some):
                 showExpiry = true
-            default:
-                break
+            case (.none, .none):
+                showExpiry = false
             }
-            let expiration = post.expiration?.timeIntervalSince1970 ?? 0
-            let expectedExpiration = group.postExpirationDate(from: post.timestamp)?.timeIntervalSince1970 ?? 0
-            showExpiry = abs(expiration - expectedExpiration) > 5
         }
 
         if showExpiry {

@@ -102,7 +102,12 @@ extension Group {
     public class func formattedExpirationTime(type: ExpirationType, time: Int64) -> String {
         switch type {
         case .expiresInSeconds:
-            return expiryTimeFormatter.string(from: DateComponents(second: Int(time))) ?? ""
+            // Special case - display 31 days as 30 days in UI
+            var seconds = Int(time)
+            if seconds == 31 * 24 * 60 * 60 {
+                seconds = 30 * 24 * 60 * 60
+            }
+            return expiryTimeFormatter.string(from: DateComponents(second: seconds)) ?? ""
         case .never:
             return NSLocalizedString("chat.group.event.expiry.never", value: "Never", comment: "String indicating content will never expire")
         case .customDate:

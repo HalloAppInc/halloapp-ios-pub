@@ -649,7 +649,7 @@ class ChatData: ObservableObject {
         group.lastSync = legacy.lastSync
         group.inviteLink = legacy.inviteLink
         group.expirationType = .expiresInSeconds
-        group.expirationTime = Int64(FeedPost.defaultExpiration)
+        group.expirationTime = .thirtyDays
 
         // Remove and recreate members
         group.members?.forEach { managedObjectContext.delete($0) }
@@ -687,7 +687,7 @@ class ChatData: ObservableObject {
         do {
             try mainDataStore.saveSeriallyOnBackgroundContextAndWait { context in
                 chatGroups(in: context).forEach { group in
-                    group.expirationTime = Int64(FeedPost.defaultExpiration)
+                    group.expirationTime = .thirtyDays
                     group.expirationType = .expiresInSeconds
 
                 }
@@ -5113,7 +5113,7 @@ extension ChatData {
             chatGroup.expirationTime = expirationTime
             chatGroup.expirationType = expirationType
         } else {
-            chatGroup.expirationTime = ServerProperties.enableGroupExpiry ? .thirtyDays : Int64(FeedPost.defaultExpiration)
+            chatGroup.expirationTime = .thirtyDays
             chatGroup.expirationType = .expiresInSeconds
         }
 
