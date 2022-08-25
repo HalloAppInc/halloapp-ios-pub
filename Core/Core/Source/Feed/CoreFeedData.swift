@@ -100,7 +100,7 @@ open class CoreFeedData: NSObject {
 
             switch momentContext {
             case .unlock(let unlockedPost):
-                feedPost.unlockedMomentUserID = unlockedPost.userId
+                feedPost.unlockedMomentUserID = (managedObjectContext.object(with: unlockedPost.objectID) as? FeedPost)?.userID
                 fallthrough
             case .normal:
                 feedPost.isMoment = true
@@ -310,7 +310,7 @@ open class CoreFeedData: NSObject {
             AppContext.shared.eventMonitor.observe(
                 .mediaUpload(
                     postID: post.id,
-                    duration: Date().timeIntervalSince(post.timestamp),
+                    duration: max(Date().timeIntervalSince(post.timestamp), 0),
                     numPhotos: numPhotos,
                     numVideos: numVideos,
                     totalSize: totalUploadSize,
