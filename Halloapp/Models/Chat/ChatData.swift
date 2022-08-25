@@ -2208,7 +2208,22 @@ extension ChatData {
                         chatReplyMessageSenderID: UserID? = nil,
                         chatReplyMessageMediaIndex: Int32,
                         using context: NSManagedObjectContext) -> ChatMessageID {
-        
+        if ServerProperties.enableNewMediaUploader {
+            return coreChatData.createChatMsg(toUserId: toUserId,
+                                              text: text,
+                                              media: media,
+                                              linkPreviewData: linkPreviewData,
+                                              linkPreviewMedia: linkPreviewMedia,
+                                              location: location,
+                                              feedPostId: feedPostId,
+                                              feedPostMediaIndex: feedPostMediaIndex,
+                                              isMomentReply: isMomentReply,
+                                              chatReplyMessageID: chatReplyMessageID,
+                                              chatReplyMessageSenderID: chatReplyMessageSenderID,
+                                              chatReplyMessageMediaIndex: chatReplyMessageMediaIndex,
+                                              using: context)
+        }
+
         let messageId = PacketID.generate()
         let isMsgToYourself: Bool = toUserId == userData.userId
         

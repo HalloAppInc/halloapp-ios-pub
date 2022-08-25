@@ -100,21 +100,21 @@ public class CoreChatData {
     }
 
     @discardableResult
-    func createChatMsg(toUserId: String,
-                       text: String,
-                       media: [PendingMedia],
-                       linkPreviewData: LinkPreviewData?,
-                       linkPreviewMedia : PendingMedia?,
-                       location: ChatLocationProtocol?,
-                       feedPostId: String?,
-                       feedPostMediaIndex: Int32,
-                       isMomentReply: Bool = false,
-                       chatReplyMessageID: String? = nil,
-                       chatReplyMessageSenderID: UserID? = nil,
-                       chatReplyMessageMediaIndex: Int32,
-                       using context: NSManagedObjectContext,
-                       didCreateMessage: ((Result<(ChatMessageID, [CommonMediaID]), Error>) -> Void)? = nil,
-                       didBeginUpload: ((Result<ChatMessageID, Error>) -> Void)? = nil) -> ChatMessageID {
+    public func createChatMsg(toUserId: String,
+                              text: String,
+                              media: [PendingMedia],
+                              linkPreviewData: LinkPreviewData?,
+                              linkPreviewMedia : PendingMedia?,
+                              location: ChatLocationProtocol?,
+                              feedPostId: String?,
+                              feedPostMediaIndex: Int32,
+                              isMomentReply: Bool = false,
+                              chatReplyMessageID: String? = nil,
+                              chatReplyMessageSenderID: UserID? = nil,
+                              chatReplyMessageMediaIndex: Int32,
+                              using context: NSManagedObjectContext,
+                              didCreateMessage: ((Result<(ChatMessageID, [CommonMediaID]), Error>) -> Void)? = nil,
+                              didBeginUpload: ((Result<ChatMessageID, Error>) -> Void)? = nil) -> ChatMessageID {
 
         let messageId = PacketID.generate()
         let isMsgToYourself: Bool = toUserId == userData.userId
