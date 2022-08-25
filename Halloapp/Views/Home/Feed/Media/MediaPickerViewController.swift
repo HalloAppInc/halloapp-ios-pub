@@ -116,7 +116,14 @@ struct MediaPickerConfig {
     }
 
     static var moment: MediaPickerConfig {
-        MediaPickerConfig(destination: nil, filter: .image, allowsMultipleSelection: false, isCameraEnabled: false, onlyRecentItems: true)
+        let onlyRecentItems: Bool
+        // Allow simulators to post moments from any picture
+#if targetEnvironment(simulator)
+        onlyRecentItems = false
+#else
+        onlyRecentItems = true
+#endif
+        return MediaPickerConfig(destination: nil, filter: .image, allowsMultipleSelection: false, isCameraEnabled: false, onlyRecentItems: onlyRecentItems)
     }
 
     static var image: MediaPickerConfig {

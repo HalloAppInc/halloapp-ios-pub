@@ -9,6 +9,7 @@
 import UIKit
 import Combine
 import AVFoundation
+import CocoaLumberjackSwift
 import CoreCommon
 import Core
 
@@ -522,7 +523,11 @@ extension NewCameraViewController: CameraModelDelegate {
         case .permissions(let type):
             showPermissionAlert(for: type)
         default:
+#if targetEnvironment(simulator)
+            DDLogInfo("setupAndStartSession/Ignoring invalid session as we are running on a simulator")
+#else
             showInitializationAlert(for: error)
+#endif
         }
     }
 
