@@ -1364,7 +1364,7 @@ private extension Localizations {
     }
 
     static var deleteVoiceRecordingTitle: String {
-        NSLocalizedString("composer.delete.recording.title", value: "Delete voice recording?", comment: "Title warning that a voice recording will be deleted")
+        NSLocalizedString("composer.delete.recording.title", value: "Delete audio recording?", comment: "Title warning that a audio recording will be deleted")
     }
 
     static var shareWith: String {
