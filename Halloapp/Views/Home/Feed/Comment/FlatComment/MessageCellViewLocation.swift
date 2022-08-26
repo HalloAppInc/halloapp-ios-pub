@@ -99,15 +99,21 @@ final class MessageCellViewLocation: MessageCellViewBase {
         )
 
         snapshotFetchingTask?.cancel()
+        let placeholderImage = UIImage(systemName: "map")?
+            .withConfiguration(UIImage.SymbolConfiguration(pointSize: 36))
+            .withTintColor(.systemGray, renderingMode: .alwaysOriginal)
+        snapshotButton.setImage(placeholderImage, for: .normal)
         snapshotFetchingTask = Task.detached(priority: .userInitiated) { [location, self] in
             if let (image, isFromCache) = try? await LocationMessage.adaptiveMapSnapshot(configuration: snapshotConfig), !Task.isCancelled {
                 await { @MainActor in
                     if chatMessage?.location == location {
                         if isFromCache {
                             // Only background images can be adaptive to user interface styles.
+                            snapshotButton.setImage(nil, for: .normal)
                             snapshotButton.setBackgroundImage(image, for: .normal)
                         } else {
-                            UIView.transition(with: snapshotButton, duration: 0.3, options: .transitionCrossDissolve) {
+                            UIView.transition(with: snapshotButton, duration: 0.1, options: .transitionCrossDissolve) {
+                                self.snapshotButton.setImage(nil, for: .normal)
                                 self.snapshotButton.setBackgroundImage(image, for: .normal)
                             }
                         }
