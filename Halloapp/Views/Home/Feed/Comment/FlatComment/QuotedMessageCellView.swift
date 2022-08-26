@@ -400,7 +400,6 @@ class QuotedMessageCellView: UIView {
         case .audio:
             mediaIcon = UIImage(systemName: "mic.fill")?.withTintColor(.systemGray, renderingMode: .alwaysOriginal)
             messageText = Localizations.chatMessageAudio
-            break
         }
         let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
         let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 3)

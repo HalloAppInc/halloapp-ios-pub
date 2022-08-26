@@ -1215,14 +1215,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogDebug("FeedData/process-posts/new/add-media [\(xmppMedia.url!)]")
                 let feedMedia = CommonMedia(context: managedObjectContext)
                 feedMedia.id = "\(feedPost.id)-\(index)"
-                switch xmppMedia.type {
-                case .image:
-                    feedMedia.type = .image
-                case .video:
-                    feedMedia.type = .video
-                case .audio:
-                    feedMedia.type = .audio
-                }
+                feedMedia.type = xmppMedia.type
                 feedMedia.status = .none
                 feedMedia.url = xmppMedia.url
                 feedMedia.size = xmppMedia.size
@@ -1421,14 +1414,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         DDLogDebug("FeedData/process-comments/new/add-comment-media [\(xmppMedia.url!)]")
                         let feedCommentMedia = CommonMedia(context: managedObjectContext)
                         feedCommentMedia.id = "\(comment.id)-\(index)"
-                        switch xmppMedia.type {
-                        case .image:
-                            feedCommentMedia.type = .image
-                        case .video:
-                            feedCommentMedia.type = .video
-                        case .audio:
-                            feedCommentMedia.type = .audio
-                        }
+                        feedCommentMedia.type = xmppMedia.type
                         feedCommentMedia.status = .none
                         feedCommentMedia.url = xmppMedia.url
                         feedCommentMedia.size = xmppMedia.size

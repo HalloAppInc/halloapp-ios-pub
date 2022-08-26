@@ -105,13 +105,7 @@ extension FeedMediaProtocol {
                 return nil
             }
             var media = Clients_Media()
-            media.type = {
-                switch type {
-                case .image: return .image
-                case .video: return .video
-                case .audio: return .audio
-                }
-            }()
+            media.type = Clients_MediaType(commonMediaType: type)
             media.width = Int32(size.width)
             media.height = Int32(size.height)
             media.encryptionKey = Data(base64Encoded: key)!

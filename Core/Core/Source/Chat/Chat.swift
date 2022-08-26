@@ -23,6 +23,14 @@ public struct MediaCounters {
     var numImages: Int32 = 0
     var numVideos: Int32 = 0
     var numAudio: Int32 = 0
+
+    mutating func count(_ mediaType: CommonMediaType) {
+        switch mediaType {
+        case .image: numImages += 1
+        case .video: numVideos += 1
+        case .audio: numAudio += 1
+        }
+    }
 }
 
 extension MediaCounters {
@@ -170,14 +178,7 @@ public extension ChatMessageProtocol {
         case .album(_, let media):
             var counters = MediaCounters()
             media.forEach { mediaItem in
-                switch mediaItem.mediaType {
-                case .image:
-                    counters.numImages += 1
-                case .video:
-                    counters.numVideos += 1
-                case .audio:
-                    counters.numAudio += 1
-                }
+                counters.count(mediaItem.mediaType)
             }
             return counters
         case .voiceNote(_):
@@ -225,13 +226,7 @@ public extension ChatMediaProtocol {
             }
 
             var media = Clients_Media()
-            media.type = {
-                switch mediaType {
-                case .image: return .image
-                case .video: return .video
-                case .audio: return .audio
-                }
-            }()
+            media.type = Clients_MediaType(commonMediaType: mediaType)
             media.width = Int32(size.width)
             media.height = Int32(size.height)
             media.encryptionKey = encryptionKey
@@ -323,6 +318,19 @@ extension Clients_Text {
     init(text: String) {
         self.init()
         self.text = text
+    }
+}
+
+extension Clients_MediaType {
+    init(commonMediaType: CommonMediaType) {
+        switch commonMediaType {
+        case .image:
+            self = .image
+        case .video:
+            self = .video
+        case .audio:
+            self = .audio
+        }
     }
 }
 

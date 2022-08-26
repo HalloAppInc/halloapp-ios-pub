@@ -108,14 +108,8 @@ class DataStore: NotificationServiceExtensionDataStore {
             // Add media
             var postMedia: Set<SharedMedia> = []
             for (index, feedPostMedia) in postData?.orderedMedia.enumerated() ?? [].enumerated() {
-                guard let mediaType: CommonMediaType = {
-                    switch feedPostMedia.type {
-                    case .image: return .image
-                    case .video: return .video
-                    case .audio: return .audio
-                    }}() else { continue }
                 let media = NSEntityDescription.insertNewObject(forEntityName: "SharedMedia", into: managedObjectContext) as! SharedMedia
-                media.type = mediaType
+                media.type = feedPostMedia.type
                 media.status = .none
                 media.url = feedPostMedia.url
                 media.size = feedPostMedia.size
@@ -199,14 +193,7 @@ class DataStore: NotificationServiceExtensionDataStore {
                 for (index, mediaItem) in media.enumerated() {
                     DDLogDebug("NotificationExtension/DataStore/add-comment-media [\(mediaItem.url!)]")
                     let feedCommentMedia = NSEntityDescription.insertNewObject(forEntityName: SharedMedia.entity().name!, into: managedObjectContext) as! SharedMedia
-                    switch mediaItem.type {
-                    case .image:
-                        feedCommentMedia.type = .image
-                    case .video:
-                        feedCommentMedia.type = .video
-                    case .audio:
-                        feedCommentMedia.type = .audio
-                    }
+                    feedCommentMedia.type = mediaItem.type
                     feedCommentMedia.status = .none
                     feedCommentMedia.url = mediaItem.url
                     feedCommentMedia.size = mediaItem.size
@@ -314,13 +301,7 @@ class DataStore: NotificationServiceExtensionDataStore {
 
     func insertSharedMedia(for mediaData: XMPPChatMedia, index: Int, into managedObjectContext: NSManagedObjectContext) -> SharedMedia {
         let chatMedia = NSEntityDescription.insertNewObject(forEntityName: "SharedMedia", into: managedObjectContext) as! SharedMedia
-        chatMedia.type = {
-            switch mediaData.mediaType {
-            case .image: return .image
-            case .video: return .video
-            case .audio: return .audio
-            }
-        }()
+        chatMedia.type = mediaData.mediaType
         chatMedia.status = .none
         chatMedia.url = mediaData.url
         chatMedia.uploadUrl = nil

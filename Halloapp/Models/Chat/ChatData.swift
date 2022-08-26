@@ -1542,23 +1542,11 @@ class ChatData: ObservableObject {
                 DDLogInfo("ChatData/mergeSharedData/message/\(messageId)/add-media [\(media)], status: \(media.status)")
                 let chatMedia = CommonMedia(context: managedObjectContext)
                 chatMedia.id = "\(chatMessage.id)-\(media.order)"
-                switch media.type {
-                case .image:
-                    chatMedia.type = .image
-                    if lastMsgMediaType == .none {
-                        lastMsgMediaType = .image
-                    }
-                case .video:
-                    chatMedia.type = .video
-                    if lastMsgMediaType == .none {
-                        lastMsgMediaType = .video
-                    }
-                case .audio:
-                    chatMedia.type = .audio
-                    if lastMsgMediaType == .none {
-                        lastMsgMediaType = .audio
-                    }
+                chatMedia.type = media.type
+                if lastMsgMediaType == .none {
+                    lastMsgMediaType = CommonThread.lastMediaType(for: media.type)
                 }
+
                 // set incoming and outgoing status.
                 switch media.status {
                 case .none:
@@ -2321,22 +2309,9 @@ extension ChatData {
                   
             let chatMedia = CommonMedia(context: context)
             chatMedia.id = "\(chatMessage.id)-\(index)"
-            switch mediaItem.type {
-            case .image:
-                chatMedia.type = .image
-                if lastMsgMediaType == .none {
-                    lastMsgMediaType = .image
-                }
-            case .video:
-                chatMedia.type = .video
-                if lastMsgMediaType == .none {
-                    lastMsgMediaType = .video
-                }
-            case .audio:
-                chatMedia.type = .audio
-                if lastMsgMediaType == .none {
-                    lastMsgMediaType = .audio
-                }
+            chatMedia.type = mediaItem.type
+            if lastMsgMediaType == .none {
+                lastMsgMediaType = CommonThread.lastMediaType(for: mediaItem.type)
             }
             chatMedia.outgoingStatus = isMsgToYourself ? .uploaded : .pending
             chatMedia.url = mediaItem.url
@@ -2478,16 +2453,7 @@ extension ChatData {
             let linkPreviewChatMedia = CommonMedia(context: context)
             linkPreviewChatMedia.id = "\(linkPreview.id)-0"
             if let mediaItemSize = linkPreviewMedia.size, let mediaItemfileURL = linkPreviewMedia.fileURL {
-                linkPreviewChatMedia.type = {
-                    switch linkPreviewMedia.type {
-                    case .image:
-                        return .image
-                    case .video:
-                        return .video
-                    case .audio:
-                        return .audio
-                    }
-                }()
+                linkPreviewChatMedia.type = linkPreviewMedia.type
                 linkPreviewChatMedia.outgoingStatus = isMsgToYourself ? .uploaded : .pending
                 linkPreviewChatMedia.url = linkPreviewMedia.url
                 linkPreviewChatMedia.uploadUrl = linkPreviewMedia.uploadUrl
@@ -2520,16 +2486,7 @@ extension ChatData {
             linkPreviewData.previewImages.enumerated().forEach { (index, previewMedia) in
                 let media = CommonMedia(context: context)
                 media.id = "\(linkPreview.id)-\(index)"
-                media.type = {
-                    switch previewMedia.type {
-                    case .image:
-                        return .image
-                    case .video:
-                        return .video
-                    case .audio:
-                        return .audio
-                    }
-                }()
+                media.type = previewMedia.type
                 media.outgoingStatus = .none
                 media.incomingStatus = .pending
                 media.url = previewMedia.url
@@ -2598,17 +2555,7 @@ extension ChatData {
             if let url = mediaItem.mediaURL, mediaItem.sha256.isEmpty && mediaItem.key.isEmpty {
                 DDLogDebug("ChatData/process-mediaItem/chatMessage: \(msgID)/\(mediaIndex)/url: \(url)")
                 let output = url.deletingLastPathComponent().appendingPathComponent(outputFileID, isDirectory: false).appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
-
-                let type: CommonMediaType = {
-                    switch mediaItem.type {
-                    case .image:
-                        return .image
-                    case .video:
-                        return .video
-                    case .audio:
-                        return .audio
-                    }
-                } ()
+                let type = mediaItem.type
 
                 ImageServer.shared.prepare(type, url: url, for: msgID, index: Int(mediaIndex), shouldStreamVideo: false) { [weak self] in
                     guard let self = self else { return }
@@ -3735,23 +3682,9 @@ extension ChatData {
                 DDLogDebug("ChatData/process/new/add-media [\(downloadUrl)]")
                 let chatMedia = CommonMedia(context: managedObjectContext)
                 chatMedia.id = "\(chatMessage.id)-\(index)"
-
-                switch xmppMedia.mediaType {
-                case .image:
-                    chatMedia.type = .image
-                    if lastMsgMediaType == .none {
-                        lastMsgMediaType = .image
-                    }
-                case .video:
-                    chatMedia.type = .video
-                    if lastMsgMediaType == .none {
-                        lastMsgMediaType = .video
-                    }
-                case .audio:
-                    chatMedia.type = .audio
-                    if lastMsgMediaType == .none {
-                        lastMsgMediaType = .audio
-                    }
+                chatMedia.type = xmppMedia.mediaType
+                if lastMsgMediaType == .none {
+                    lastMsgMediaType = CommonThread.lastMediaType(for: xmppMedia.mediaType)
                 }
                 chatMedia.incomingStatus = .pending
                 chatMedia.outgoingStatus = .none

@@ -112,6 +112,19 @@ public extension CommonThread {
 }
 
 public extension CommonThread {
+    static func lastMediaType(for commonMediaType: CommonMediaType) -> LastMediaType {
+        switch commonMediaType {
+        case .image:
+            return .image
+        case .video:
+            return .video
+        case .audio:
+            return .audio
+        }
+    }
+}
+
+public extension CommonThread {
 
     // TODO: Remove these shims
 

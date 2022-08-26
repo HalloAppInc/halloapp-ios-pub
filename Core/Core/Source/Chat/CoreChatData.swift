@@ -153,22 +153,9 @@ public class CoreChatData {
             let chatMediaID = "\(chatMessage.id)-\(index)"
             chatMedia.id = chatMediaID
             mediaIDs.append(chatMediaID)
-            switch mediaItem.type {
-            case .image:
-                chatMedia.type = .image
-                if lastMsgMediaType == .none {
-                    lastMsgMediaType = .image
-                }
-            case .video:
-                chatMedia.type = .video
-                if lastMsgMediaType == .none {
-                    lastMsgMediaType = .video
-                }
-            case .audio:
-                chatMedia.type = .audio
-                if lastMsgMediaType == .none {
-                    lastMsgMediaType = .audio
-                }
+            chatMedia.type = mediaItem.type
+            if lastMsgMediaType == .none {
+                lastMsgMediaType = CommonThread.lastMediaType(for: mediaItem.type)
             }
             chatMedia.outgoingStatus = isMsgToYourself ? .uploaded : .pending
             chatMedia.url = mediaItem.url
@@ -240,16 +227,7 @@ public class CoreChatData {
                 linkPreviewChatMedia.id = linkPreviewMediaID
                 mediaIDs.append(linkPreviewMediaID)
                 if let mediaItemSize = linkPreviewMedia.size, linkPreviewMedia.fileURL != nil {
-                    linkPreviewChatMedia.type = {
-                        switch linkPreviewMedia.type {
-                        case .image:
-                            return .image
-                        case .video:
-                            return .video
-                        case .audio:
-                            return .audio
-                        }
-                    }()
+                    linkPreviewChatMedia.type = linkPreviewMedia.type
                     linkPreviewChatMedia.outgoingStatus = isMsgToYourself ? .uploaded : .pending
                     linkPreviewChatMedia.url = linkPreviewMedia.url
                     linkPreviewChatMedia.uploadUrl = linkPreviewMedia.uploadUrl
@@ -473,14 +451,7 @@ public class CoreChatData {
         // Process chat media
         if groupFeedPost.orderedMedia.count > 0 {
             if let firstMedia = groupFeedPost.orderedMedia.first {
-                switch firstMedia.type {
-                case .image:
-                    lastFeedMediaType = .image
-                case .video:
-                    lastFeedMediaType = .video
-                case .audio:
-                    lastFeedMediaType = .audio
-                }
+                lastFeedMediaType = CommonThread.lastMediaType(for: firstMedia.type)
             }
         }
 
@@ -936,14 +907,9 @@ public class CoreChatData {
             switch chatMessageProtocol.content {
             case .album(let text, let media):
                 chatMessage.rawText = text
-                switch media.first?.mediaType {
-                case .image:
-                    lastMsgMediaType = .image
-                case .video:
-                    lastMsgMediaType = .video
-                case .audio:
-                    lastMsgMediaType = .audio
-                case .none:
+                if let mediaType = media.first?.mediaType {
+                    lastMsgMediaType = CommonThread.lastMediaType(for: mediaType)
+                } else {
                     lastMsgMediaType = .none
                 }
             case .voiceNote(let xmppMedia):

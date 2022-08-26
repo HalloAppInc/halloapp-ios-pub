@@ -114,14 +114,7 @@ public struct PostData {
         case .album(_, let media):
             var counters = MediaCounters()
             media.forEach { mediaItem in
-                switch mediaItem.type {
-                case .image:
-                    counters.numImages += 1
-                case .video:
-                    counters.numVideos += 1
-                case .audio:
-                    counters.numAudio += 1
-                }
+                counters.count(mediaItem.type)
             }
             return counters
         case .text(_, _):
@@ -554,14 +547,7 @@ public struct CommentData {
         case .album(_, let media):
             var counters = MediaCounters()
             media.forEach { mediaItem in
-                switch mediaItem.type {
-                case .image:
-                    counters.numImages += 1
-                case .video:
-                    counters.numVideos += 1
-                case .audio:
-                    counters.numAudio += 1
-                }
+                counters.count(mediaItem.type)
             }
             return counters
         case .text(_, _):

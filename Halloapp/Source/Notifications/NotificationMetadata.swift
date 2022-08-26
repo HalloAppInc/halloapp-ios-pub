@@ -34,19 +34,8 @@ public extension NotificationMediaType {
         }
     }
 
-    init(chatMsgMediaType: CommonMediaType) {
-        switch chatMsgMediaType {
-        case .image:
-            self = .image
-        case .video:
-            self = .video
-        case .audio:
-            self = .audio
-        }
-    }
-
-    init(feedMediaType: CommonMediaType) {
-        switch feedMediaType {
+    init(commonMediaType: CommonMediaType) {
+        switch commonMediaType {
         case .image:
             self = .image
         case .video:
@@ -687,7 +676,7 @@ class NotificationMetadata: Codable {
         case .album(let mentionText, let feedMediaData):
             subtitle = newPostString
             body = mentionText.expandedText(nameProvider: mentionNameProvider).string
-            let knownMediaTypes = feedMediaData.compactMap { NotificationMediaType(feedMediaType: $0.type) }
+            let knownMediaTypes = feedMediaData.compactMap { NotificationMediaType(commonMediaType: $0.type) }
             if !knownMediaTypes.isEmpty {
                 // Display how many photos and videos post contains if there's no caption.
                 if body.isEmpty {
@@ -720,7 +709,7 @@ class NotificationMetadata: Codable {
             body = String(format: Localizations.newCommentWithTextNotificationBody, commentText)
         case .album(let mentionText, let feedCommentMediaData):
             var commentText = mentionText.expandedText(nameProvider: mentionNameProvider).string
-            let knownMediaTypes = feedCommentMediaData.compactMap { NotificationMediaType(feedMediaType: $0.type) }
+            let knownMediaTypes = feedCommentMediaData.compactMap { NotificationMediaType(commonMediaType: $0.type) }
             if !knownMediaTypes.isEmpty {
                 // Display how many photos and videos comment contains if there's no caption.
                 if commentText.isEmpty {
@@ -770,11 +759,11 @@ class NotificationMetadata: Codable {
             return text
         case .album(let text, let media):
             guard let text = text, !text.isEmpty else {
-                return Self.notificationBody(forMedia: media.map { NotificationMediaType(chatMsgMediaType: $0.mediaType) } )
+                return Self.notificationBody(forMedia: media.map { NotificationMediaType(commonMediaType: $0.mediaType) } )
             }
             let mediaIcon: String? = {
                 guard let firstMedia = media.first else { return nil }
-                return Self.mediaIcon(NotificationMediaType(chatMsgMediaType: firstMedia.mediaType))
+                return Self.mediaIcon(NotificationMediaType(commonMediaType: firstMedia.mediaType))
             }()
             return [mediaIcon, text].compactMap { $0 }.joined(separator: " ")
         case .voiceNote(_):

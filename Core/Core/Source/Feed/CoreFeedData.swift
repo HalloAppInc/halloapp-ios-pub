@@ -677,14 +677,7 @@ open class CoreFeedData: NSObject {
                 DDLogDebug("CoreFeedData/savePostData/new/add-media [\(media.url!)]")
                 let feedMedia = CommonMedia(context: context)
                 feedMedia.id = "\(feedPost.id)-\(index)"
-                switch media.type {
-                case .image:
-                    feedMedia.type = .image
-                case .video:
-                    feedMedia.type = .video
-                case .audio:
-                    feedMedia.type = .audio
-                }
+                feedMedia.type = media.type
                 feedMedia.status = .none
                 feedMedia.url = media.url
                 feedMedia.size = media.size
@@ -835,14 +828,7 @@ open class CoreFeedData: NSObject {
                 DDLogDebug("CoreFeedData/saveCommentData/new/add-media [\(media.url!)]")
                 let feedMedia = CommonMedia(context: context)
                 feedMedia.id = "\(feedComment.id)-\(index)"
-                switch media.type {
-                case .image:
-                    feedMedia.type = .image
-                case .video:
-                    feedMedia.type = .video
-                case .audio:
-                    feedMedia.type = .audio
-                }
+                feedMedia.type = media.type
                 feedMedia.status = .none
                 feedMedia.url = media.url
                 feedMedia.size = media.size

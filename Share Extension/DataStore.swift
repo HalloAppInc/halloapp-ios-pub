@@ -303,14 +303,7 @@ class DataStore: ShareExtensionDataStore {
             media.forEach { (mediaItem) in
                 self.attach(media: mediaItem, to: .post(feedPost), using: managedObjectContext)
                 if lastMsgMediaType == .none {
-                    switch mediaItem.type {
-                    case .image:
-                        lastMsgMediaType = .image
-                    case .video:
-                        lastMsgMediaType = .video
-                    case .audio:
-                        lastMsgMediaType = .audio
-                    }
+                    lastMsgMediaType = CommonThread.lastMediaType(for: mediaItem.type)
                 }
             }
             feedPost.media?.forEach({ $0.status = .uploading })
@@ -483,14 +476,7 @@ class DataStore: ShareExtensionDataStore {
             media.forEach { (mediaItem) in
                 self.attach(media: mediaItem, to: .message(chatMessage), using: managedObjectContext)
                 if lastMsgMediaType == .none {
-                    switch mediaItem.type {
-                    case .image:
-                        lastMsgMediaType = .image
-                    case .video:
-                        lastMsgMediaType = .video
-                    case .audio:
-                        lastMsgMediaType = .audio
-                    }
+                    lastMsgMediaType = CommonThread.lastMediaType(for: mediaItem.type)
                 }
             }
             chatMessage.media?.forEach({ $0.status = .uploading })

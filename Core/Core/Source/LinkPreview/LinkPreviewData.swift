@@ -55,14 +55,7 @@ public extension LinkPreviewProtocol {
     var mediaCounters: MediaCounters {
         var counters = MediaCounters()
         previewImages.forEach { mediaItem in
-            switch mediaItem.type {
-            case .image:
-                counters.numImages += 1
-            case .video:
-                counters.numVideos += 1
-            case .audio:
-                counters.numAudio += 1
-            }
+            counters.count(mediaItem.type)
         }
         return counters
     }
