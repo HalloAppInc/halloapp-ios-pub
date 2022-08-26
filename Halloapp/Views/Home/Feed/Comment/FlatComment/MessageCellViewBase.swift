@@ -131,6 +131,16 @@ class MessageCellViewBase: UICollectionViewCell {
         return reactionBubble
     }()
 
+    lazy var forwardButton: UIButton = {
+        let forwardButton = UIButton()
+        forwardButton.addTarget(self, action: #selector(forwardAction), for: .touchUpInside)
+        let image = UIImage(named: "ForwardArrow")
+        forwardButton.setBackgroundImage(image, for: .normal)
+        forwardButton.isHidden = true
+        forwardButton.translatesAutoresizingMaskIntoConstraints = false
+        return forwardButton
+    }()
+
     public lazy var timeRow: UIStackView = {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
@@ -338,6 +348,7 @@ class MessageCellViewBase: UICollectionViewCell {
 
     override func prepareForReuse() {
         super.prepareForReuse()
+        forwardButton.isHidden = true
         chatMessage = nil
         feedPostComment = nil
         for reaction in reactionBubble.arrangedSubviews {
@@ -348,6 +359,7 @@ class MessageCellViewBase: UICollectionViewCell {
         self.removeGestureRecognizer(longPressGesture)
         self.removeGestureRecognizer(listReactions)
         reactionBubble.removeFromSuperview()
+        forwardButton.removeFromSuperview()
         if outgoingMessageStatusCancellable != nil {
             outgoingMessageStatusCancellable?.cancel()
             outgoingMessageStatusCancellable = nil
@@ -383,6 +395,7 @@ class MessageCellViewBase: UICollectionViewCell {
     }
 
     func configureWith(message: ChatMessage, isPreviousMessageFromSameSender: Bool) {
+        contentView.addSubview(forwardButton)
         chatMessage = message
         isOwnMessage = message.fromUserId == MainAppContext.shared.userData.userId
         self.isPreviousMessageFromSameSender = isPreviousMessageFromSameSender
@@ -632,5 +645,12 @@ extension MessageCellViewBase: UIGestureRecognizerDelegate {
         } else if let feedPostComment = feedPostComment, let commentDelegate = commentDelegate {
             commentDelegate.messageView(self, showReactionsFor: feedPostComment)
         }
+    }
+
+    @objc func forwardAction(_ recognizer: UITapGestureRecognizer) {
+        guard let chatMessage = chatMessage else {
+            return
+        }
+        chatDelegate?.messageView(self, forwardingMessage: chatMessage)
     }
 }

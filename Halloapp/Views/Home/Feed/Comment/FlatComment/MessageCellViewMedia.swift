@@ -82,6 +82,10 @@ class MessageCellViewMedia: MessageCellViewBase {
         super.configureWith(message: message, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
         configureText(chatMessage: message)
 
+        if AppContext.shared.userDefaults.bool(forKey: "enableChatForwarding") {
+            forwardButton.isHidden = false
+        }
+
         if let media = message.media?.sorted(by: { $0.order < $1.order }), !media.isEmpty {
             MainAppContext.shared.chatData.downloadMedia(in: message)
             mediaView.configure(chatMessage: message, media: media)
@@ -89,6 +93,17 @@ class MessageCellViewMedia: MessageCellViewBase {
             DDLogError("MessageCellViewMedia/configure/error missing media for message " + message.id)
         }
 
+        if isOwnMessage {
+            NSLayoutConstraint.activate([
+                forwardButton.trailingAnchor.constraint(equalTo: messageRow.leadingAnchor, constant: 4),
+                forwardButton.centerYAnchor.constraint(equalTo: messageRow.centerYAnchor),
+            ])
+        } else {
+            NSLayoutConstraint.activate([
+                forwardButton.leadingAnchor.constraint(equalTo: messageRow.trailingAnchor, constant: -4),
+                forwardButton.centerYAnchor.constraint(equalTo: messageRow.centerYAnchor),
+            ])
+        }
         configureCell()
 
         // hide empty space above media on incomming messages

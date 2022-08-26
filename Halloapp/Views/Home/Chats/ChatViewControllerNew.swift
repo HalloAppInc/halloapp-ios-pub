@@ -1554,6 +1554,10 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
             self.present(navigationController, animated: true)
         }
     }
+
+    func messageView(_ messageViewCell: MessageCellViewBase, forwardingMessage chatMessage: ChatMessage) {
+        handleForwarding(msg: chatMessage)
+    }
     
     func messageView(_ messageViewCell: MessageCellViewBase, jumpTo chatMessageID: ChatMessageID) {
         scrollToMessage(id: chatMessageID, animated: true, highlightAfterScroll: true)
