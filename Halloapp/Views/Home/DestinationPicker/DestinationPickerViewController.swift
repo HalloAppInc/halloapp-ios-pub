@@ -367,7 +367,9 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
             bottomConstraint,
         ])
 
-        try? fetchedResultsController.performFetch()
+        if config == .composer {
+            try? fetchedResultsController.performFetch()
+        }
         try? contactsFetchedResultsController.performFetch()
 
         updateData()
@@ -379,7 +381,11 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
 
     private func updateData(searchString: String? = nil) {
         var snapshot = NSDiffableDataSourceSnapshot<DestinationSection, ShareDestination>()
-        var allGroups = fetchedResultsController.fetchedObjects ?? []
+        var allGroups:[ChatThread] = []
+        if config == .composer {
+            allGroups = fetchedResultsController.fetchedObjects ?? []
+        }
+        
         hasMoreGroups = allGroups.count > DestinationPickerViewController.maxGroupsToShowOnLaunch
         if hasMoreGroups, !showAllGroups {
             allGroups = [ChatThread](allGroups[..<DestinationPickerViewController.maxGroupsToShowOnLaunch])
@@ -421,8 +427,10 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
             }
         } else {
             // No Search in progress
-            snapshot.appendSections([DestinationSection.main])
-            snapshot.appendItems([.feed(.all), .feed(.whitelist)], toSection: DestinationSection.main)
+            if config == .composer {
+                snapshot.appendSections([DestinationSection.main])
+                snapshot.appendItems([.feed(.all), .feed(.whitelist)], toSection: DestinationSection.main)
+            }
 
             if allGroups.count > 0 {
                 snapshot.appendSections([DestinationSection.groups])

@@ -202,13 +202,13 @@ public class ReactionViewController: UIViewController {
             replyButton.addTarget(self, action: #selector(handleReply), for: .touchUpInside)
             items.append(UIBarButtonItem(customView: replyButton))
             items.append(space)
-            
+
             let forwardButton = createMenuButton(imageName: "arrowshape.turn.up.right", labelName: Localizations.messageForward)
             forwardButton.addTarget(self, action: #selector(handleForwarding), for: .touchUpInside)
-            //if AppContext.shared.userDefaults.bool(forKey: "enableChatForwarding") {
-                //items.append(UIBarButtonItem(customView: forwardButton))
-                //items.append(space)
-            //}
+            if AppContext.shared.userDefaults.bool(forKey: "enableChatForwarding") {
+                items.append(UIBarButtonItem(customView: forwardButton))
+                items.append(space)
+            }
 
             if let messageText = chatMessage.rawText, !messageText.isEmpty {
                 let copyButton = createMenuButton(imageName: "doc.on.doc", labelName: Localizations.messageCopy)
