@@ -538,9 +538,6 @@
 /* Title on edit button */
 "composer.button.edit" = "تعديل";
 
-/* Send button title */
-"composer.button.send.to" = "إرسال إلى";
-
 /* Title warning that a voice recording will be deleted */
 "composer.delete.recording.title" = "حذف التسجيل الصوتي؟";
 
@@ -1240,7 +1237,8 @@
 /* Message action. Verb. */
 "message.delete" = "حذف";
 
-/* Call to action to forward a message */
+/* Call to action to forward a message
+   Title of page where user can pick contats to forward a chat messsage */
 "message.forward" = "إعادة توجيه";
 
 /* Message action. Verb. */
@@ -1986,9 +1984,6 @@
 
 /* Instructs user to tap a button (e.g., Tap “Go to Settings” below.) */
 "tutorial.tap.below" = "انقر على \"%@\" أدناه.";
-
-/* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "جهة اتصال مجهولة";
 
 /* Text for action label that lets the user accept messages from unknown contacts */
 "unknown.contact.accept.to.message" = "قبول الرسالة";

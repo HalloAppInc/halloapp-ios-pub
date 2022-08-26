@@ -216,9 +216,6 @@
 /* Row in Settings screen */
 "title.privacy" = "الخصوصية";
 
-/* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "جهة اتصال مجهولة";
-
 /* How many bytes from total have been uploaded */
 "uploading.bytes.progress" = "%1$@ من %2$@";
 
