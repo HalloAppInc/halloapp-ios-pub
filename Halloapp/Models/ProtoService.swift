@@ -507,6 +507,9 @@ final class ProtoService: ProtoServiceCore {
             if let message = MainAppContext.shared.chatData.chatMessage(with: msgId, in: managedObjectContext), message.incomingStatus != .rerequesting {
                 DDLogInfo("ProtoService/isMessageDecryptedAndSaved/msgId \(msgId) - message is available in local store.")
                 isMessageAlreadyInLocalStore = true
+            } else if let reaction = AppContext.shared.coreChatData.commonReaction(with: msgId, in: managedObjectContext), reaction.incomingStatus != .rerequesting {
+                DDLogInfo("ProtoService/isMessageDecryptedAndSaved/msgId \(msgId) - reaction is available in local store.")
+                isMessageAlreadyInLocalStore = true
             }
         }
 

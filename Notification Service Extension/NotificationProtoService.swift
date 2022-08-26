@@ -305,6 +305,10 @@ final class NotificationProtoService: ProtoServiceCore {
                     DDLogError("didReceiveRequest/error duplicate feedComment [\(metadata.contentId)]/status: \(feedComment.status)")
                     ack()
                     return
+                } else if let reaction = self.coreChatData.commonReaction(with: metadata.contentId, in: context), reaction.incomingStatus != .rerequesting {
+                    DDLogError("didReceiveRequest/error duplicate commonReaction [\(metadata.contentId)]/status: \(reaction.incomingStatus)")
+                    ack()
+                    return
                 }
 
                 // Decrypt and process the payload now
@@ -341,6 +345,10 @@ final class NotificationProtoService: ProtoServiceCore {
                     DDLogError("didReceiveRequest/error duplicate groupFeedComment [\(metadata.contentId)]/status: \(feedComment.status)")
                     ack()
                     return
+                } else if let reaction = self.coreChatData.commonReaction(with: metadata.contentId, in: context), reaction.incomingStatus != .rerequesting {
+                    DDLogError("didReceiveRequest/error duplicate commonReaction [\(metadata.contentId)]/status: \(reaction.incomingStatus)")
+                    ack()
+                    return
                 }
 
                 // Decrypt and process the payload now
@@ -366,6 +374,10 @@ final class NotificationProtoService: ProtoServiceCore {
             mainDataStore.performSeriallyOnBackgroundContext { context in
                 if let chatMessage = self.coreChatData.chatMessage(with: messageId, in: context), chatMessage.incomingStatus != .rerequesting {
                     DDLogError("didReceiveRequest/error duplicate message ID that was already decrypted[\(messageId)]")
+                    ack()
+                    return
+                } else if let reaction = self.coreChatData.commonReaction(with: metadata.contentId, in: context), reaction.incomingStatus != .rerequesting {
+                    DDLogError("didReceiveRequest/error duplicate commonReaction [\(metadata.contentId)]/status: \(reaction.incomingStatus)")
                     ack()
                     return
                 }

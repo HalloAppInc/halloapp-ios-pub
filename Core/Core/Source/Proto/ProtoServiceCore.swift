@@ -1850,6 +1850,8 @@ extension ProtoServiceCore: CoreService {
                 isGroupFeedItemDecrypted = true
             } else if let comment = AppContext.shared.coreFeedData.feedComment(with: contentID, in: managedObjectContext), comment.status != .rerequesting {
                 isGroupFeedItemDecrypted = true
+            } else if let reaction = AppContext.shared.coreChatData.commonReaction(with: contentID, in: managedObjectContext), reaction.incomingStatus != .rerequesting {
+                isGroupFeedItemDecrypted = true
             }
         }
 
@@ -1935,6 +1937,8 @@ extension ProtoServiceCore: CoreService {
             if let post = AppContext.shared.coreFeedData.feedPost(with: contentID, in: managedObjectContext), post.status != .rerequesting {
                 isHomeFeedItemDecrypted = true
             } else if let comment = AppContext.shared.coreFeedData.feedComment(with: contentID, in: managedObjectContext), comment.status != .rerequesting {
+                isHomeFeedItemDecrypted = true
+            } else if let reaction = AppContext.shared.coreChatData.commonReaction(with: contentID, in: managedObjectContext), reaction.incomingStatus != .rerequesting {
                 isHomeFeedItemDecrypted = true
             }
         }
