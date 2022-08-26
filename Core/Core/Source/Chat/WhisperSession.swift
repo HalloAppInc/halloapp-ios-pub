@@ -499,41 +499,37 @@ public final class WhisperSession {
                 }
 
                 // Initialize key bundle if possible
-                let newKeyBundle: KeyBundle? = {
-                    switch result {
-                    case .failure(let error):
-                        DDLogError("WhisperSession/\(self.userID)/setupOutbound/error [\(error)]")
-                        switch error {
-                        case .serverError("invalid_uid"): self.state = .failed
-                        default: break
-                        }
-                        return nil
-                    case .success(let whisperKeys):
-                        var keyBundel: KeyBundle?
-
-                        self.keyStore.performOnBackgroundContextAndWait { managedObjectContext in
-                            guard let userKeys = self.keyStore.keyBundle(in: managedObjectContext) else {
-                                DDLogError("WhisperSession/\(self.userID)/setupOutbound/error [no user keys!]")
-                                return
-                            }
-
-                            keyBundel = Whisper.initiateSessionSetup(
-                                for: self.userID,
-                                with: whisperKeys,
-                                userKeys: userKeys,
-                                teardownKey: teardownKey)
-                        }
-
-                        return keyBundel
+                switch result {
+                case .failure(let error):
+                    DDLogError("WhisperSession/\(self.userID)/setupOutbound/error [\(error)]")
+                    switch error {
+                    case .serverError("invalid_uid"):
+                        DDLogError("WhisperSession/\(self.userID)/setupOutbound/failed permanently")
+                        self.state = .failed
+                    default:
+                        DDLogError("WhisperSession/\(self.userID)/setupOutbound/failed [\(attemptNumber)]")
+                        self.state = .awaitingSetup(attempts: attemptNumber)
                     }
-                }()
-
-                if let newKeyBundle = newKeyBundle {
-                    DDLogError("WhisperSession/\(self.userID)/setupOutbound/success")
-                    self.state = .ready(newKeyBundle, [:])
-                } else {
-                    DDLogError("WhisperSession/\(self.userID)/setupOutbound/failed [\(attemptNumber)]")
-                    self.state = .awaitingSetup(attempts: attemptNumber)
+                case .success(let whisperKeys):
+                    var keyBundle: KeyBundle?
+                    self.keyStore.performOnBackgroundContextAndWait { managedObjectContext in
+                        guard let userKeys = self.keyStore.keyBundle(in: managedObjectContext) else {
+                            DDLogError("WhisperSession/\(self.userID)/setupOutbound/error [no user keys!]")
+                            return
+                        }
+                        keyBundle = Whisper.initiateSessionSetup(
+                            for: self.userID,
+                            with: whisperKeys,
+                            userKeys: userKeys,
+                            teardownKey: teardownKey)
+                    }
+                    if let keyBundle = keyBundle {
+                        DDLogInfo("WhisperSession/\(self.userID)/setupOutbound/success")
+                        self.state = .ready(keyBundle, [:])
+                    } else {
+                        DDLogError("WhisperSession/\(self.userID)/setupOutbound/failed although we got keys [\(attemptNumber)]")
+                        self.state = .awaitingSetup(attempts: attemptNumber)
+                    }
                 }
                 self.executeTasks()
             }

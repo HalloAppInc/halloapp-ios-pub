@@ -522,6 +522,7 @@ final class GroupWhisperSession {
             let encryptGroup = DispatchGroup()
             let encryptCompletion: (Result<(EncryptedData, EncryptionLogInfo), EncryptionError>) -> Void = { [weak self] result in
                 guard let self = self else { return }
+                DDLogInfo("ProtoServiceCore/makeGroupEncryptedPayload/\(self.groupID)/result: \(result)")
                 switch result {
                 case .failure(.invalidUid):
                     // not really an error - so we dont count it towards failed encryptions.
@@ -553,6 +554,7 @@ final class GroupWhisperSession {
 
             // encrypt senderState using 1-1 channel for all the receivers.
             for receiverUserID in pendingUids {
+                DDLogInfo("ProtoServiceCore/makeGroupEncryptedPayload/\(self.groupID)/receiverUserID: \(receiverUserID)")
                 encryptGroup.enter()
                 AppContext.shared.messageCrypter.encrypt(senderStatePayload, for: receiverUserID) { [weak self] result in
                     guard let self = self else { return }
@@ -576,7 +578,7 @@ final class GroupWhisperSession {
                 }
             }
 
-            encryptGroup.notify(queue: .main) {
+            encryptGroup.notify(queue: sessionQueue) {
                 // After successfully obtaining the senderStateBundles
                 // return groupEncryptedData properly.
                 if numberOfFailedEncrypts > 0 {

@@ -604,6 +604,7 @@ final class HomeWhisperSession {
             let encryptGroup = DispatchGroup()
             let encryptCompletion: (Result<(EncryptedData, EncryptionLogInfo), EncryptionError>) -> Void = { [weak self] result in
                 guard let self = self else { return }
+                DDLogInfo("HomeWhisperSession/\(self.type)/constructHomeEncryptedData/result: \(result)")
                 switch result {
                 case .failure(.invalidUid):
                     // not really an error - so we dont count it towards failed encryptions.
@@ -635,6 +636,7 @@ final class HomeWhisperSession {
 
             // encrypt senderState using 1-1 channel for all the receivers.
             for receiverUserID in pendingUids {
+                DDLogInfo("HomeWhisperSession/\(self.type)/constructHomeEncryptedData/receiverUserID: \(receiverUserID)")
                 encryptGroup.enter()
                 AppContext.shared.messageCrypter.encrypt(senderStatePayload, for: receiverUserID) { [weak self] result in
                     guard let self = self else { return }
@@ -658,7 +660,7 @@ final class HomeWhisperSession {
                 }
             }
 
-            encryptGroup.notify(queue: .main) {
+            encryptGroup.notify(queue: sessionQueue) {
                 // After successfully obtaining the senderStateBundles
                 // return HomeEncryptedData properly.
                 if numberOfFailedEncrypts > 0 {
