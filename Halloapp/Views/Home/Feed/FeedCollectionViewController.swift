@@ -71,7 +71,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
     }()
 
     var feedPostIdToScrollTo: FeedPostID?
-    var momentIDToScrollTo: FeedPostID?
+    var shouldScrollToOwnMoment = false
     
     var firstActionHappened: Bool = false
 
@@ -235,8 +235,8 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Us
             feedPostIdToScrollTo = nil
         }
 
-        if let momentID = momentIDToScrollTo, scrollTo(postId: momentID) {
-            momentIDToScrollTo = nil
+        if shouldScrollToOwnMoment, let id = MainAppContext.shared.feedData.validMoment.value?.id, scrollTo(postId: id) {
+            shouldScrollToOwnMoment = false
         }
     }
 
@@ -1152,12 +1152,7 @@ extension FeedCollectionViewController: NewMomentViewControllerDelegate {
     }
 
     func newMomentViewControllerDidPost(_ viewController: NewMomentViewController) {
-        guard let moment = MainAppContext.shared.feedData.validMoment.value else {
-            DDLogError("FeedCollectionViewController/MomentViewControllerDidPost/no valid moment")
-            return
-        }
-
-        momentIDToScrollTo = moment.id
+        shouldScrollToOwnMoment = true
     }
 }
 

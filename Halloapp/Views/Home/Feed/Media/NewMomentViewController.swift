@@ -77,6 +77,8 @@ final class NewMomentViewController: UIViewController {
 
     /// Used to wait for `PendingMedia`s `ready` property before showing the composer.
     private var mediaLoader: AnyCancellable?
+    /// Used when `context` is `.unlock` since the creation of the eventual `FeedPost` is asynchronous.
+    private var unlockCancellable: AnyCancellable?
     private var startUnlockTransitionCancellable: AnyCancellable?
 
     /// The overlay that is above the camera when the user first attempts to unlock a moment.
@@ -191,16 +193,24 @@ final class NewMomentViewController: UIViewController {
     }
 
     private func completeCompose() {
-        guard
-            case let .unlock(post) = context,
-            let feedData = MainAppContext.shared.feedData,
-            let latest = feedData.fetchLatestMoment(using: feedData.viewContext)
-        else {
+        guard case let .unlock(post) = context, let feedData = MainAppContext.shared.feedData else {
             delegate?.newMomentViewControllerDidPost(self)
             return dismiss(animated: true)
         }
 
-        let vc = MomentViewController(post: post, unlockingPost: latest)
+        DDLogInfo("NewMomentViewController/completeCompose/creating unlock cancellable")
+
+        unlockCancellable = feedData.validMoment
+            .compactMap { $0 }
+            .first()
+            .sink { [weak self] moment in
+                DDLogInfo("NewMomentViewController/completeCompose/received valid moment for unlock")
+                self?.prepareForUnlockTransition(post: post, unlockingPost: moment)
+            }
+    }
+
+    private func prepareForUnlockTransition(post: FeedPost, unlockingPost: FeedPost) {
+        let vc = MomentViewController(post: post, unlockingPost: unlockingPost)
         // force the view to load without adding it to the hierarchy since we don't want
         // viewDidAppear to be called yet
         vc.loadViewIfNeeded()
