@@ -462,6 +462,13 @@ final class ProtoService: ProtoServiceCore {
                         DDLogError("proto/payloadContents/\(serverPost.id)/error could not make post object")
                         continue
                     }
+                    if let commentKey = post.commentKey {
+                        DDLogInfo("proto/payloadContents/post/\(post.id)/try and saveCommentKey")
+                        AppContext.shared.messageCrypter.saveCommentKey(postID: serverPost.id, commentKey: commentKey, for: .all)
+                    } else {
+                        DDLogError("proto/payloadContents/post/\(post.id)/failed to extract commentKey")
+                        // we would have already sent a rerequest on post stanza here - since we failed to decrypt the post.
+                    }
                     elements.append(.post(post))
                 }
             case .comment(let serverComment):
