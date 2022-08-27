@@ -47,13 +47,29 @@ class CreateGroupViewController: UIViewController {
 
         navigationItem.title = Localizations.createGroupTitle
 
-        view.backgroundColor = UIColor.feedBackground
+        navigationItem.compactAppearance = .transparentAppearance
+        navigationItem.standardAppearance = .transparentAppearance
+        navigationItem.scrollEdgeAppearance = .transparentAppearance
+
+        view.backgroundColor = UIColor(named: "CreateGroupBackground")
 
         view.addSubview(avatarImageView)
 
         view.addSubview(cameraIconView)
 
-        let groupNameStackView = UIStackView(arrangedSubviews: [groupNameLabel, groupNameTextField, groupNameLengthLabel])
+        let groupNameContainer = UIView()
+
+        groupNameLabel.translatesAutoresizingMaskIntoConstraints = false
+        groupNameContainer.addSubview(groupNameLabel)
+
+        NSLayoutConstraint.activate([
+            groupNameLabel.leadingAnchor.constraint(equalTo: groupNameContainer.leadingAnchor, constant: 5),
+            groupNameLabel.topAnchor.constraint(equalTo: groupNameContainer.topAnchor),
+            groupNameLabel.trailingAnchor.constraint(equalTo: groupNameContainer.trailingAnchor),
+            groupNameLabel.bottomAnchor.constraint(equalTo: groupNameContainer.bottomAnchor),
+        ])
+
+        let groupNameStackView = UIStackView(arrangedSubviews: [groupNameContainer, groupNameTextField, groupNameLengthLabel])
         groupNameStackView.axis = .vertical
         groupNameStackView.spacing = 8
         groupNameStackView.translatesAutoresizingMaskIntoConstraints = false
@@ -75,8 +91,8 @@ class CreateGroupViewController: UIViewController {
             avatarImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 100),
             avatarImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
 
-            cameraIconView.centerXAnchor.constraint(equalTo: avatarImageView.trailingAnchor, constant: -6),
-            cameraIconView.centerYAnchor.constraint(equalTo: avatarImageView.bottomAnchor, constant: -6),
+            cameraIconView.centerXAnchor.constraint(equalTo: avatarImageView.trailingAnchor),
+            cameraIconView.bottomAnchor.constraint(equalTo: avatarImageView.bottomAnchor),
 
             formStackField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 12),
             formStackField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -12),
@@ -109,12 +125,14 @@ class CreateGroupViewController: UIViewController {
     }()
 
     private lazy var avatarImageView: UIImageView = {
-        let avatarImageView = UIImageView(image: AvatarView.defaultGroupImage)
+        let avatarImageView = UIImageView(image: UIImage(named: "CreateGroupAvatarPlaceholder"))
         avatarImageView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(chooseAvatar)))
+        avatarImageView.backgroundColor = UIColor(named: "CreateGroupAvatarBackgroundColor")
         avatarImageView.clipsToBounds = true
-        avatarImageView.contentMode = .scaleAspectFit
+        avatarImageView.contentMode = .center
         avatarImageView.isUserInteractionEnabled = true
         avatarImageView.layer.cornerRadius = 20
+        avatarImageView.tintColor = UIColor(named: "CreateGroupAvatarForegroundColor")
         avatarImageView.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
@@ -155,9 +173,9 @@ class CreateGroupViewController: UIViewController {
 
     private lazy var groupNameLabel: UILabel = {
         let label = UILabel()
-        label.textColor = .secondaryLabel
-        label.font = UIFont.preferredFont(forTextStyle: .caption1)
-        label.text = Localizations.chatGroupNameLabel.uppercased()
+        label.textColor = .primaryBlackWhite.withAlphaComponent(0.5)
+        label.font = UIFont.scaledSystemFont(ofSize: 12, weight: .medium)
+        label.text = Localizations.createGroupNameTitle.uppercased()
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -203,7 +221,7 @@ class CreateGroupViewController: UIViewController {
 
         let groupNameTextField = GroupNameTextField()
         groupNameTextField.addTarget(self, action: #selector(groupNameChanged), for: .editingChanged)
-        groupNameTextField.backgroundColor = .systemGray6
+        groupNameTextField.backgroundColor = .primaryWhiteBlack
         groupNameTextField.delegate = self
         groupNameTextField.font = UIFont.preferredFont(forTextStyle: .body)
         groupNameTextField.borderColor = UIColor.label.withAlphaComponent(0.24)
@@ -230,7 +248,7 @@ class CreateGroupViewController: UIViewController {
 
     private lazy var groupExpirationField: UIView = {
         let groupExpirationBackground = ShadowView()
-        groupExpirationBackground.backgroundColor = .systemGray6
+        groupExpirationBackground.backgroundColor = .primaryWhiteBlack
         groupExpirationBackground.layer.cornerRadius = 13
         groupExpirationBackground.layer.shadowColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.15).cgColor
         groupExpirationBackground.layer.shadowOpacity = 1
@@ -252,9 +270,9 @@ class CreateGroupViewController: UIViewController {
             groupExpirationLabel.centerYAnchor.constraint(equalTo: groupExpirationBackground.centerYAnchor),
 
             groupExpiryButton.leadingAnchor.constraint(greaterThanOrEqualTo: groupExpirationLabel.trailingAnchor, constant: 10),
-            groupExpiryButton.topAnchor.constraint(equalTo: groupExpirationBackground.topAnchor),
+            groupExpiryButton.topAnchor.constraint(equalTo: groupExpirationBackground.topAnchor, constant: 2),
             groupExpiryButton.trailingAnchor.constraint(equalTo: groupExpirationBackground.trailingAnchor),
-            groupExpiryButton.bottomAnchor.constraint(equalTo: groupExpirationBackground.bottomAnchor),
+            groupExpiryButton.bottomAnchor.constraint(equalTo: groupExpirationBackground.bottomAnchor, constant: -2),
         ])
 
         return groupExpirationBackground
@@ -377,20 +395,6 @@ class CreateGroupViewController: UIViewController {
     }
 
     @objc private func chooseAvatar() {
-        let actionSheet = UIAlertController(title: Localizations.chatGroupPhotoTitle, message: nil, preferredStyle: .actionSheet)
-        actionSheet.view.tintColor = UIColor.systemBlue
-
-        actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupTakeOrChoosePhoto, style: .default) { [weak self] _ in
-            self?.presentPhotoLibraryPicker()
-        })
-
-        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
-        present(actionSheet, animated: true)
-    }
-
-    // MARK: Helpers
-
-    private func presentPhotoLibraryPicker() {
         let pickerController = MediaPickerViewController(config: .image) { [weak self] controller, _, media, cancel in
             guard let self = self else { return }
 
@@ -426,6 +430,8 @@ class CreateGroupViewController: UIViewController {
         self.present(UINavigationController(rootViewController: pickerController), animated: true)
     }
 
+    // MARK: Helpers
+
     private func setAvatar(image: UIImage) {
         guard let resizedImage = image.fastResized(to: AvatarStore.thumbnailSize) else {
             DDLogError("CreateGroupViewController/resizeImage error resize failed")
@@ -434,6 +440,7 @@ class CreateGroupViewController: UIViewController {
 
         let data = resizedImage.jpegData(compressionQuality: CGFloat(UserData.compressionQuality))!
 
+        avatarImageView.contentMode = .scaleAspectFill
         avatarImageView.image =  UIImage(data: data)
         avatarData = data
     }
@@ -450,7 +457,7 @@ extension CreateGroupViewController: UITextFieldDelegate {
 private extension Localizations {
 
     static var createGroupTitle: String {
-        NSLocalizedString("create.group.title", value: "Group Info", comment: "Title of group creation screen")
+        NSLocalizedString("create.group.title", value: "New Group", comment: "Title of group creation screen")
     }
 
     static var createGroupDefaultNameMyNewGroup: String {
@@ -471,5 +478,9 @@ private extension Localizations {
 
     static var createGroupExpireContent: String {
         NSLocalizedString("create.group.expire.content", value: "Expire Content", comment: "Title for form field selecting group content expiry time")
+    }
+
+    static var createGroupNameTitle: String {
+        NSLocalizedString("create.group.name.title", value: "Name", comment: "Title for group name text field in group creation")
     }
 }
