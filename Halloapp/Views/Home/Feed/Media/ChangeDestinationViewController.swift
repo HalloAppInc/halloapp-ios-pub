@@ -146,6 +146,7 @@ class ChangeDestinationViewController: UIViewController {
             switch item {
             case .feed(let privacyListType):
                 guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ContactsCell.reuseIdentifier, for: indexPath) as? ContactsCell else { return nil }
+                cell.delegate = self
                 let privacySettings = MainAppContext.shared.privacySettings
 
                 switch privacyListType {
