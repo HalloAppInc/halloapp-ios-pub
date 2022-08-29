@@ -279,6 +279,9 @@
 		A16297F2289C6F000081C0AA /* NSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = A16297F1289C6EFF0081C0AA /* NSAttributedString.swift */; };
 		A17B5129284FD48600B75405 /* CameraModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17B5128284FD48600B75405 /* CameraModel.swift */; };
 		A17DCD7027C0885F00E00073 /* ExpandableTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17DCD6F27C0885F00E00073 /* ExpandableTextView.swift */; };
+		A188383628BD5D80005BBCC2 /* RoundedRectChevronButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A188383528BD5D80005BBCC2 /* RoundedRectChevronButton.swift */; };
+		A188383928BD5DA6005BBCC2 /* PhoneNumberEntryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A188383828BD5DA6005BBCC2 /* PhoneNumberEntryViewController.swift */; };
+		A188383B28BD5DC2005BBCC2 /* CountryCodeTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A188383A28BD5DC2005BBCC2 /* CountryCodeTableView.swift */; };
 		A193F57128107A9B00B13D4B /* InsetCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A193F57028107A9B00B13D4B /* InsetCollectionView.swift */; };
 		A1AE40CB282DAB3F00C3EF3A /* QuotedMomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AE40CA282DAB3F00C3EF3A /* QuotedMomentView.swift */; };
 		A1AE40CF283DA7DB00C3EF3A /* QuotedMediaPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AE40CE283DA7DB00C3EF3A /* QuotedMediaPanel.swift */; };
@@ -1058,6 +1061,9 @@
 		A16297F1289C6EFF0081C0AA /* NSAttributedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSAttributedString.swift; sourceTree = "<group>"; };
 		A17B5128284FD48600B75405 /* CameraModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraModel.swift; sourceTree = "<group>"; };
 		A17DCD6F27C0885F00E00073 /* ExpandableTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpandableTextView.swift; sourceTree = "<group>"; };
+		A188383528BD5D80005BBCC2 /* RoundedRectChevronButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedRectChevronButton.swift; sourceTree = "<group>"; };
+		A188383828BD5DA6005BBCC2 /* PhoneNumberEntryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneNumberEntryViewController.swift; sourceTree = "<group>"; };
+		A188383A28BD5DC2005BBCC2 /* CountryCodeTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountryCodeTableView.swift; sourceTree = "<group>"; };
 		A193F57028107A9B00B13D4B /* InsetCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsetCollectionView.swift; sourceTree = "<group>"; };
 		A1AE40CA282DAB3F00C3EF3A /* QuotedMomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotedMomentView.swift; sourceTree = "<group>"; };
 		A1AE40CE283DA7DB00C3EF3A /* QuotedMediaPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotedMediaPanel.swift; sourceTree = "<group>"; };
@@ -1628,6 +1634,7 @@
 				F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */,
 				F41FAA4127E52B7E00FC5090 /* BottomSheetViewController.swift */,
 				F49C8E622835A52900E881E3 /* RoundedRectButton.swift */,
+				A188383528BD5D80005BBCC2 /* RoundedRectChevronButton.swift */,
 				F4C29B15283D5A4C00A4FE08 /* MediaImageView.swift */,
 				EE969F632847EE49006F491A /* HAMenu.swift */,
 				A1AFA978286B6460005B0DEA /* UploadProgressControl.swift */,
@@ -1804,6 +1811,15 @@
 				E5230B1D267AABA60046A2EB /* Intents.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		A188383728BD5D91005BBCC2 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				A188383828BD5DA6005BBCC2 /* PhoneNumberEntryViewController.swift */,
+				A188383A28BD5DC2005BBCC2 /* CountryCodeTableView.swift */,
+			);
+			path = Onboarding;
 			sourceTree = "<group>";
 		};
 		A1AFE7792821E144008BBC80 /* Moment */ = {
@@ -2135,6 +2151,7 @@
 		EA5AD43C23342B8C00429643 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				A188383728BD5D91005BBCC2 /* Onboarding */,
 				EA880C3B2368EE53008965CF /* Home */,
 				76B7E2F5243BB0560048A2FC /* Notifications */,
 				EA880C3A2368EE3C008965CF /* Registration */,
@@ -3018,6 +3035,7 @@
 				3250C60327D0101C0032FEC4 /* PhoneInputViewController.swift in Sources */,
 				A1AFE776281FAA6B008BBC80 /* MomentViewController.swift in Sources */,
 				32C83FCB2694DB1D00BEB4F5 /* InvitePermissionDeniedViewController.swift in Sources */,
+				A188383628BD5D80005BBCC2 /* RoundedRectChevronButton.swift in Sources */,
 				32C83FDA2698171700BEB4F5 /* PrivacyPermissionDeniedView.swift in Sources */,
 				686CDFBC2548A6C200DB7266 /* RegistrationDemo.swift in Sources */,
 				6832F4FC24FEE97800A9C202 /* HalloService.swift in Sources */,
@@ -3110,6 +3128,7 @@
 				F8C92C9A24CF17BC00B1D4E6 /* MediaEditViewController.swift in Sources */,
 				A1E6767B28513F5E0086EDD2 /* CameraShutterButton.swift in Sources */,
 				A17DCD7027C0885F00E00073 /* ExpandableTextView.swift in Sources */,
+				A188383928BD5DA6005BBCC2 /* PhoneNumberEntryViewController.swift in Sources */,
 				EAC46556251484FE00783821 /* EditGroupViewController.swift in Sources */,
 				F4C29B16283D5A4C00A4FE08 /* MediaImageView.swift in Sources */,
 				E5B9EAB8265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift in Sources */,
@@ -3180,6 +3199,7 @@
 				F4D88F6B27D9873F00D706DA /* Toast.swift in Sources */,
 				EA7A386626782A4D0028F739 /* ActionTableViewCell.swift in Sources */,
 				EA3585732450BE2900E6E8AB /* ChatData.swift in Sources */,
+				A188383B28BD5DC2005BBCC2 /* CountryCodeTableView.swift in Sources */,
 				EAD476F22458F03700EF8591 /* ChatMedia+CoreDataClass.swift in Sources */,
 				76271389252D250E00389FBC /* FacePileView.swift in Sources */,
 				EAA85A0B25E5D510006D0BC9 /* NotInGroupBannerView.swift in Sources */,
