@@ -397,6 +397,10 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         case .update:
             DDLogInfo("ChatViewControllerNew/didChange type update")
             if let chatMessage = anObject as? ChatMessage {
+                // Is audio message, is status played return
+                if !shouldUpdateAudioCell(chatMessage: chatMessage) {
+                    return
+                }
                 var snapshot = dataSource.snapshot()
                 for item in snapshot.itemIdentifiers {
                     switch item {
@@ -511,6 +515,15 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             guard let self = self else { return }
             self.updateScrollingWhenDataChanges()
         }
+    }
+
+    // We should not update audio cells while it is playing.
+    // This is a bad hack: Ideally we should remove the audio player from the message cell.
+    private func shouldUpdateAudioCell(chatMessage: ChatMessage) -> Bool {
+        if chatMessage.media?.count == 1, chatMessage.media?.first?.type == .audio, (chatMessage.incomingStatus == .played || chatMessage.incomingStatus == .sentPlayedReceipt) {
+            return false
+        }
+        return true
     }
 
     private func shouldShowAddToContactBookCell() -> Bool {
