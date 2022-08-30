@@ -35,7 +35,7 @@ final class DefaultOnboardingManager: OnboardingManager {
 
 
     var contactsSyncProgress: AsyncStream<Double> {
-        AsyncStream { continuation in
+        AsyncStream(bufferingPolicy: .bufferingNewest(1)) { continuation in
             let progress = MainAppContext.shared.syncManager.syncProgress
             let finished = MainAppContext.shared.syncManager.$isSyncInProgress
 
@@ -89,7 +89,7 @@ final class DemoOnboardingManager: OnboardingManager {
     }
 
     var contactsSyncProgress: AsyncStream<Double> {
-        AsyncStream { continuation in
+        AsyncStream(bufferingPolicy: .bufferingNewest(1)) { continuation in
             Task {
                 try? await Task.sleep(nanoseconds: 1 * NSEC_PER_SEC)
                 continuation.yield(0.5)

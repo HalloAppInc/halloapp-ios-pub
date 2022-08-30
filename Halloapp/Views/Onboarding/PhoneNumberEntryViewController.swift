@@ -358,6 +358,16 @@ class PhoneNumberEntryViewController: UIViewController {
         selectedCountry = defaultCountry
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        if codeTextField.text?.isEmpty ?? true {
+            codeTextField.becomeFirstResponder()
+        } else {
+            phoneNumberTextField.becomeFirstResponder()
+        }
+    }
+
     private func formSubscriptions() {
         NotificationCenter.default.publisher(for: UIApplication.keyboardWillShowNotification)
             .compactMap { KeyboardNotificationInfo(userInfo: $0.userInfo) }

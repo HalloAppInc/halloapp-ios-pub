@@ -59,6 +59,9 @@ struct DeveloperMenuView: View {
     @State var showVideoResolutionActionSheet = false
 
     var dismiss: (() -> ())?
+    /// - note: Presenting using a sheet causes some layout bugs with the onboarding screens
+    ///         (plus fullscreen page sheets are iOS 14+).
+    var performOnboardingDemo: ((Int) -> Void)?
 
     private let userData = MainAppContext.shared.userData
     private let service = MainAppContext.shared.service
@@ -244,6 +247,22 @@ struct DeveloperMenuView: View {
                             .onReceive(Just(forcePickerShare)) { value in
                                 AppContext.shared.userDefaults.set(value, forKey: "forcePickerShare")
                             }
+                    }
+
+                    if #available(iOS 14, *) {
+                        Menu("Demo onboarding (code is 111111)") {
+                            Button("Network size of 0") {
+                                performOnboardingDemo?(0)
+                            }
+
+                            Button("Network size is 4 or fewer contacts") {
+                                performOnboardingDemo?(4)
+                            }
+
+                            Button("Network size greater than 4 contacts") {
+                                performOnboardingDemo?(5)
+                            }
+                        }
                     }
                 }
                 Button {

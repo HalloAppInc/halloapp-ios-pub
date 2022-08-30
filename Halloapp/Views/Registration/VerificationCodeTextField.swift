@@ -55,19 +55,43 @@ public class VerificationCodeTextField: UITextField {
         NSLayoutConstraint.activate(constraints)
     }
     
-    private func createStackView(){
-        for _ in 1 ... 6 {
-            let code = UILabel()
-            code.backgroundColor = .textFieldBackground
-            code.layer.cornerRadius = 5
-            code.translatesAutoresizingMaskIntoConstraints = false
-            code.textAlignment = .center
-            code.layer.masksToBounds = true
-            code.text = ""
-            stackView.addArrangedSubview(code)
-            codeLabels.append(code)
+    private func createStackView() {
+        for _ in 1...6 {
+            makeDigitLabel()
         }
+
         beginAnimation(indx: 0)
+    }
+
+    private func makeDigitLabel() {
+        let label = UILabel()
+        label.backgroundColor = .textFieldBackground
+        label.layer.cornerRadius = 5
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textAlignment = .center
+        label.layer.masksToBounds = true
+        label.font = .systemFont(forTextStyle: .body)
+        label.adjustsFontSizeToFitWidth = true
+        label.text = ""
+
+        let shadow = ShadowView()
+        shadow.layer.cornerRadius = label.layer.cornerRadius
+        shadow.layer.shadowColor = UIColor.black.withAlphaComponent(0.15).cgColor
+        shadow.layer.shadowOffset = CGSize(width: 0, height: 1)
+        shadow.layer.shadowRadius = 0.75
+        shadow.layer.shadowOpacity = 1
+
+        shadow.addSubview(label)
+
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: shadow.leadingAnchor),
+            label.trailingAnchor.constraint(equalTo: shadow.trailingAnchor),
+            label.topAnchor.constraint(equalTo: shadow.topAnchor),
+            label.bottomAnchor.constraint(equalTo: shadow.bottomAnchor),
+        ])
+
+        stackView.addArrangedSubview(shadow)
+        codeLabels.append(label)
     }
     
     @objc
@@ -106,10 +130,9 @@ public class VerificationCodeTextField: UITextField {
         let view = self.stackView.arrangedSubviews[indx]
         let animation = UIViewPropertyAnimator(duration: 0.5, dampingRatio: 1, animations: {
             view.layer.transform = CATransform3DMakeScale(1.1, 1.1, 1.1)
-            view.layer.shadowRadius = ceil(view.frame.height / 8)
-            view.layer.shadowOffset = CGSize(width: 0, height: view.layer.shadowRadius / 2)
-            view.layer.shadowColor = UIColor.gray.cgColor
+            view.layer.shadowRadius = 4
         })
+
         animation.startAnimation()
     }
     
@@ -117,9 +140,7 @@ public class VerificationCodeTextField: UITextField {
         let view = self.stackView.arrangedSubviews[indx]
         let animation = UIViewPropertyAnimator(duration: 0.5, dampingRatio: 1, animations: {
             view.layer.transform = CATransform3DMakeScale(1, 1, 1)
-            view.layer.shadowRadius = 0
-            view.layer.shadowOffset = CGSize(width: 0, height: 0)
-            view.layer.shadowColor = UIColor.clear.cgColor
+            view.layer.shadowRadius = 1
         })
         animation.startAnimation()
     }

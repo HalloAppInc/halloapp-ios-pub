@@ -164,6 +164,11 @@ class NameInputViewController: UIViewController {
         formSubscriptions()
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        textField.becomeFirstResponder()
+    }
+
     private func formSubscriptions() {
         NotificationCenter.default.publisher(for: UIApplication.keyboardWillShowNotification)
             .compactMap { KeyboardNotificationInfo(userInfo: $0.userInfo) }
@@ -202,8 +207,8 @@ class NameInputViewController: UIViewController {
         //registrationManager.set(userName: name)
 
         let onboardingManager: OnboardingManager
-        if let _ = registrationManager as? DemoRegistrationManager {
-            onboardingManager = DemoOnboardingManager(networkSize: 0, completion: { })
+        if let demo = registrationManager as? DemoRegistrationManager {
+            onboardingManager = DemoOnboardingManager(networkSize: demo.onboardingNetworkSize, completion: demo.completion)
         } else {
             onboardingManager = DefaultOnboardingManager()
         }

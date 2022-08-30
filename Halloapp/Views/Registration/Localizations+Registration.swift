@@ -77,7 +77,7 @@ extension Localizations {
         String(
             format: NSLocalizedString(
                 "registration.code.instructions",
-                value: "Enter the code we sent to %@",
+                value: "Enter the code we sent to \n%@",
                 comment: "Instructions for filling in SMS verification code. Parameter is formatted phone number"),
             formattedNumber)
     }

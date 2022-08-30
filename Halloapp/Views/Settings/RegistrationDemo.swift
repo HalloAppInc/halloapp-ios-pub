@@ -12,30 +12,15 @@ import CoreCommon
 import Foundation
 import SwiftUI
 
-struct RegistrationDemo: UIViewControllerRepresentable {
-    typealias UIViewControllerType = VerificationViewController
-
-    init(completion: @escaping () -> Void) {
-        self.completion = completion
-    }
-
-    let completion: () -> Void
-
-    func makeUIViewController(context: Context) -> VerificationViewController {
-        return VerificationViewController(registrationManager: DemoRegistrationManager(completion: completion))
-    }
-
-    func updateUIViewController(_ uiViewController: VerificationViewController, context: Context) {
-        // no-op
-    }
-}
 
 final class DemoRegistrationManager: RegistrationManager {
 
-    init(completion: @escaping () -> Void) {
+    init(onboardingNetworkSize: Int, completion: @escaping () -> Void) {
+        self.onboardingNetworkSize = onboardingNetworkSize
         self.completion = completion
     }
 
+    var onboardingNetworkSize: Int
     var correctCode = "111111"
     var completion: () -> Void
     var formattedPhoneNumber: String?
@@ -70,7 +55,7 @@ final class DemoRegistrationManager: RegistrationManager {
     }
 
     func didCompleteRegistrationFlow() {
-        completion()
+        // no-op
     }
     
     public func getGroupName(groupInviteToken: String, completion: @escaping (Result<String?, Error>) -> Void) {

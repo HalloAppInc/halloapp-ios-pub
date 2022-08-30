@@ -191,9 +191,22 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate {
 
     private func openDeveloperMenu() {
         var developerMenuView = DeveloperMenuView()
+
         developerMenuView.dismiss = {
             self.navigationController?.popViewController(animated: true)
         }
+
+        developerMenuView.performOnboardingDemo = { [weak self] networkSize in
+            let manager = DemoRegistrationManager(onboardingNetworkSize: networkSize) {
+                self?.navigationController?.dismiss(animated: true)
+            }
+
+            let vc = PhoneNumberEntryViewController(registrationManager: manager)
+            let nc = UINavigationController(rootViewController: vc)
+            nc.modalPresentationStyle = .fullScreen
+            self?.navigationController?.present(nc, animated: true)
+        }
+
         let viewController = UIHostingController(rootView: developerMenuView)
         viewController.hidesBottomBarWhenPushed = true
         viewController.title = "Developer Menu"
