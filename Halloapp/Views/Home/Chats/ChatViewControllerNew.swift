@@ -1488,7 +1488,6 @@ extension ChatViewControllerNew: PostComposerViewDelegate {
 
     func composerDidTapShare(controller: PostComposerViewController,
                             destination: ShareDestination,
-                               isMoment: Bool,
                             mentionText: MentionText,
                                   media: [PendingMedia],
                         linkPreviewData: LinkPreviewData? = nil,

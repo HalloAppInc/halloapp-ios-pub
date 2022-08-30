@@ -218,18 +218,14 @@ class ExistingNetworkViewController: UIViewController {
 
     @objc
     private func nextButtonPushed(_ button: UIButton) {
-//        let composer = PostComposerViewController(mediaToPost: [],
-//                                                 initialInput: MentionInput(text: "", mentions: [:], selectedRange: NSRange()),
-//                                                configuration: .onboardingPost,
-//                                              initialPostType: .unified,
-//                                                    voiceNote: nil,
-//                                                     delegate: self)
-//
-//        composer.onClose = { [onboardingManager] in
-//            onboardingManager.didCompleteOnboardingFlow()
-//        }
-//
-//        navigationController?.pushViewController(composer, animated: true)
+        let composer = PostComposerViewController(mediaToPost: [],
+                                                 initialInput: MentionInput(text: "", mentions: [:], selectedRange: NSRange()),
+                                                configuration: .onboardingPost,
+                                              initialPostType: .unified,
+                                                    voiceNote: nil,
+                                                     delegate: self)
+
+        navigationController?.pushViewController(composer, animated: true)
     }
 }
 
@@ -252,7 +248,6 @@ extension ExistingNetworkViewController: PostComposerViewDelegate {
 
     func composerDidTapShare(controller: PostComposerViewController,
                              destination: Core.ShareDestination,
-                             isMoment: Bool,
                              mentionText: Core.MentionText,
                              media: [Core.PendingMedia],
                              linkPreviewData: Core.LinkPreviewData?,
@@ -270,6 +265,11 @@ extension ExistingNetworkViewController: PostComposerViewDelegate {
 
     func composerDidTapLinkPreview(controller: PostComposerViewController, url: URL) {
 
+    }
+
+    func composerDidTapClose(controller: PostComposerViewController) {
+        // exited out of making a post; enter the main app
+        onboardingManager.didCompleteOnboardingFlow()
     }
 }
 

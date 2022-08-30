@@ -183,10 +183,7 @@ final class NewPostViewController: UIViewController {
                 }
             }
         } else {
-            var config = PostComposerViewConfiguration.config(with: destination)
-            if let _ = momentContext {
-                config = .moment
-            }
+            let config = PostComposerViewConfiguration.config(with: destination)
 
             return PostComposerViewController(
                 mediaToPost: state.pendingMedia,
@@ -343,7 +340,6 @@ extension NewPostViewController: UINavigationControllerDelegate {}
 extension NewPostViewController: PostComposerViewDelegate {
     func composerDidTapShare(controller: PostComposerViewController,
                             destination: ShareDestination,
-                               isMoment: Bool = false,
                             mentionText: MentionText,
                                   media: [PendingMedia],
                         linkPreviewData: LinkPreviewData? = nil,

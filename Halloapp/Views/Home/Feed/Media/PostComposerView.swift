@@ -9,10 +9,16 @@ import UIKit
 
 protocol PostComposerViewDelegate: AnyObject {
     // TODO: maybe have the configuration encapsulate all the details and pass that in?
-    func composerDidTapShare(controller: PostComposerViewController, destination: ShareDestination, isMoment: Bool, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?)
+    func composerDidTapShare(controller: PostComposerViewController, destination: ShareDestination, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?)
     func composerDidTapBack(controller: PostComposerViewController, destination: ShareDestination, media: [PendingMedia], voiceNote: PendingMedia?)
     func willDismissWithInput(mentionInput: MentionInput)
     func composerDidTapLinkPreview(controller: PostComposerViewController, url: URL)
+    /// - note: Only used during onboarding. Since this view controller has its own custom navigation bar, we can't simply add a new bar button elsewhere.
+    func composerDidTapClose(controller: PostComposerViewController)
+}
+
+extension PostComposerViewDelegate {
+    func composerDidTapClose(controller: PostComposerViewController) { }
 }
 
 class PostComposerViewConfiguration: ObservableObject {
@@ -21,22 +27,22 @@ class PostComposerViewConfiguration: ObservableObject {
     var mediaEditMaxAspectRatio: CGFloat?
     var imageServerMaxAspectRatio: CGFloat?
     var maxVideoLength: TimeInterval
-    let isMoment: Bool
-    
+    let isOnboarding: Bool
+
     init(
         destination: ShareDestination = .feed(.all),
         mediaCarouselMaxAspectRatio: CGFloat = 1.25,
         mediaEditMaxAspectRatio: CGFloat? = nil,
         imageServerMaxAspectRatio: CGFloat? = 1.25,
         maxVideoLength: TimeInterval = 500,
-        isMoment: Bool = false) {
-        
+        isOnboarding: Bool = false) {
+
         self.destination = destination
         self.mediaCarouselMaxAspectRatio = mediaCarouselMaxAspectRatio
         self.mediaEditMaxAspectRatio = mediaEditMaxAspectRatio
         self.imageServerMaxAspectRatio = imageServerMaxAspectRatio
         self.maxVideoLength = maxVideoLength
-        self.isMoment = isMoment
+        self.isOnboarding = isOnboarding
         // Always set active type to .all
         MainAppContext.shared.privacySettings.activeType = .all
     }
@@ -51,18 +57,11 @@ class PostComposerViewConfiguration: ObservableObject {
             return .message(destination)
         }
     }
-    
+
     private static func userPost(_ destination: ShareDestination) -> PostComposerViewConfiguration {
         PostComposerViewConfiguration(
             destination: destination,
             maxVideoLength: ServerProperties.maxFeedVideoDuration
-        )
-    }
-    
-    static var moment: PostComposerViewConfiguration {
-        PostComposerViewConfiguration(
-            maxVideoLength: ServerProperties.maxFeedVideoDuration,
-            isMoment: true
         )
     }
 
@@ -79,6 +78,14 @@ class PostComposerViewConfiguration: ObservableObject {
             mediaCarouselMaxAspectRatio: 1.0,
             imageServerMaxAspectRatio: nil,
             maxVideoLength: ServerProperties.maxChatVideoDuration
+        )
+    }
+
+    static var onboardingPost: PostComposerViewConfiguration {
+        PostComposerViewConfiguration(
+            destination: .feed(.all),
+            maxVideoLength: ServerProperties.maxFeedVideoDuration,
+            isOnboarding: true
         )
     }
 }
@@ -133,6 +140,12 @@ private extension Localizations {
 
     static var newMessageTitle: String {
         NSLocalizedString("composer.message.title", value: "New Message", comment: "Composer New Message title.")
+    }
+
+    static var onboardingFirstPostTitle: String {
+        NSLocalizedString("composer.onboarding.post.title",
+                   value: "My First Post",
+                 comment: "Title of the composer during a user's very first post.")
     }
 
     static func newMessageSubtitle(recipient: String) -> String {
@@ -208,6 +221,26 @@ class PostComposerViewController: UIViewController {
         return button
     }()
 
+    /// - note: Only used during onboarding.
+    private lazy var closeButton: UIButton = {
+        let color = UIColor.label.withAlphaComponent(0.9)
+        let config = UIImage.SymbolConfiguration(weight: .bold)
+        let image = UIImage(systemName: "xmark")
+
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(image?.withConfiguration(config).withTintColor(color), for: .normal)
+        button.addTarget(self, action: #selector(closeAction), for: .touchUpInside)
+        button.isHidden = !configuration.isOnboarding
+
+        NSLayoutConstraint.activate([
+            button.widthAnchor.constraint(equalToConstant: 44),
+            button.heightAnchor.constraint(equalToConstant: 44),
+        ])
+
+        return button
+    }()
+
     private lazy var titleLabel: UILabel = {
         let title = UILabel()
         title.translatesAutoresizingMaskIntoConstraints = false
@@ -263,9 +296,7 @@ class PostComposerViewController: UIViewController {
         button.layer.cornerRadius = 14
         button.layer.masksToBounds = true
         button.addTarget(self, action: #selector(changeDestinationAction), for: .touchUpInside)
-        // moments posts go to all contacts, for now
-        button.isEnabled = !configuration.isMoment
-        
+
         button.addSubview(stack)
 
         NSLayoutConstraint.activate([
@@ -302,6 +333,7 @@ class PostComposerViewController: UIViewController {
         let navigationRow = UIView()
         navigationRow.translatesAutoresizingMaskIntoConstraints = false
         navigationRow.addSubview(backButton)
+        navigationRow.addSubview(closeButton)
         navigationRow.addSubview(titleLabel)
 
         let rowsView = UIStackView(arrangedSubviews: [navigationRow, changeDestinationRow])
@@ -312,10 +344,16 @@ class PostComposerViewController: UIViewController {
 
         container.addSubview(rowsView)
 
+        if configuration.isOnboarding {
+            changeDestinationRow.isHidden = true
+        }
+
         NSLayoutConstraint.activate([
             navigationRow.heightAnchor.constraint(equalToConstant: 44),
             backButton.leadingAnchor.constraint(equalTo: navigationRow.leadingAnchor),
             backButton.centerYAnchor.constraint(equalTo: navigationRow.centerYAnchor),
+            closeButton.trailingAnchor.constraint(equalTo: navigationRow.trailingAnchor),
+            closeButton.centerYAnchor.constraint(equalTo: navigationRow.centerYAnchor),
             titleLabel.centerXAnchor.constraint(equalTo: navigationRow.centerXAnchor),
             titleLabel.centerYAnchor.constraint(equalTo: navigationRow.centerYAnchor),
             rowsView.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 8),
@@ -459,9 +497,9 @@ class PostComposerViewController: UIViewController {
         case .contact:
             titleLabel.text = Localizations.newMessageTitle
         default:
-            titleLabel.text = configuration.isMoment ? Localizations.newMomentTitle : Localizations.newPostTitle
+            titleLabel.text = configuration.isOnboarding ? Localizations.onboardingFirstPostTitle : Localizations.newPostTitle
         }
-        
+
         MainAppContext.shared.privacySettings.feedPrivacySettingDidChange.sink { [weak self] in
             guard let self = self else { return }
             DispatchQueue.main.async {
@@ -501,6 +539,11 @@ class PostComposerViewController: UIViewController {
                                      destination: configuration.destination,
                                      media: mediaItems.invalidated ? [] : mediaItems.value,
                                      voiceNote: audioComposerRecorder.voiceNote)
+    }
+
+    @objc
+    private func closeAction(_ sender: UIButton) {
+        delegate?.composerDidTapClose(controller: self)
     }
 
     @objc private func previewTapped() {
@@ -591,7 +634,6 @@ class PostComposerViewController: UIViewController {
         if link.value == "" || linkPreviewData.value == nil ||  linkPreviewImage.value == nil {
             delegate?.composerDidTapShare(controller: self,
                                          destination: configuration.destination,
-                                            isMoment: configuration.isMoment,
                                          mentionText: mentionText,
                                                media: allMediaItems,
                                      linkPreviewData: linkPreviewData.value,
@@ -601,7 +643,7 @@ class PostComposerViewController: UIViewController {
             loadLinkPreviewImageAndShare(mentionText: mentionText, mediaItems: allMediaItems)
         }
     }
-    
+
     private func loadLinkPreviewImageAndShare(mentionText: MentionText, mediaItems: [PendingMedia]) {
         // Send link preview with image in it
         let linkPreviewMedia = PendingMedia(type: .image)
@@ -609,7 +651,6 @@ class PostComposerViewController: UIViewController {
         if linkPreviewMedia.ready.value {
             self.delegate?.composerDidTapShare(controller: self,
                                               destination: configuration.destination,
-                                                 isMoment: false,
                                               mentionText: mentionText,
                                                     media: mediaItems,
                                           linkPreviewData: linkPreviewData.value,
@@ -621,7 +662,6 @@ class PostComposerViewController: UIViewController {
                     guard ready else { return }
                     self.delegate?.composerDidTapShare(controller: self,
                                                       destination: self.configuration.destination,
-                                                         isMoment: false,
                                                       mentionText: mentionText,
                                                             media: mediaItems,
                                                   linkPreviewData: self.linkPreviewData.value,
@@ -1162,11 +1202,9 @@ fileprivate struct PostComposerView: View {
                     } else {
                         HStack(spacing: 0) {
                             ZStack(alignment: .leading) {
-                                if !configuration.isMoment {
-                                    postTextView
-                                        // hide vs remove to maintain sizing
-                                        .opacity(audioComposerRecorder.recorderControlsExpanded ? 0 : 1)
-                                }
+                                postTextView
+                                    // hide vs remove to maintain sizing
+                                    .opacity(audioComposerRecorder.recorderControlsExpanded ? 0 : 1)
                                 if audioComposerRecorder.recorderControlsExpanded {
                                     HStack {
                                         AudioPostComposerDurationView(time: audioComposerRecorder.duration)
@@ -1190,7 +1228,7 @@ fileprivate struct PostComposerView: View {
                                 }
                             }
                             .zIndex(1)
-                            if voiceNotesEnabled, inputToPost.value.text.isEmpty, !audioComposerRecorder.recorderControlsLocked, !configuration.isMoment {
+                            if voiceNotesEnabled, inputToPost.value.text.isEmpty, !audioComposerRecorder.recorderControlsLocked {
                                 AudioComposerRecorderControl(configuration: .post, recorder: audioComposerRecorder)
                                     .frame(width: 24, height: 24)
                                     .padding(.horizontal, PostComposerLayoutConstants.postTextHorizontalPadding)
@@ -1206,13 +1244,9 @@ fileprivate struct PostComposerView: View {
                     }
 
                     if initialPostType != .unified {
-                        if configuration.isMoment {
-                            // want the share button to be on the right, not centered
-                            Spacer()
-                        }
                         shareButton(showTitle: false)
                             .offset(y: -2)
-                            .offset(x: configuration.isMoment ? -15 : 0)
+                            .offset(x: 0)
                     }
                 }
                 .padding(10)
@@ -1678,8 +1712,6 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
             if let titleLabel = editButton.titleLabel {
                 editButton.bringSubviewToFront(titleLabel)
             }
-            
-            editButton.isHidden = self.configuration.isMoment
 
             editBackground.constrain(to: editButton)
             NSLayoutConstraint.activate([
@@ -1705,11 +1737,7 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
         }
         configuration.pageControlViewsProvider = { numberOfPages in
             var items: [MediaCarouselSupplementaryItem] = []
-            guard !self.configuration.isMoment else {
-                // no paging for moments
-                return items
-            }
-            
+
             if numberOfPages == 1 {
                 let button = UIButton(type: .system)
                 button.translatesAutoresizingMaskIntoConstraints = false
