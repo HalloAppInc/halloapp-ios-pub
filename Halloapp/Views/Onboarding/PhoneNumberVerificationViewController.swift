@@ -321,41 +321,39 @@ class PhoneNumberVerificationViewController: UIViewController {
     }
 
     private func transitionAfterSuccess() {
-        // TODO
-        //let vc = NameInputViewController(registrationManager: registrationManager)
+        let vc = NameInputViewController(registrationManager: registrationManager)
 
         UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.75, initialSpringVelocity: 0) {
             self.registrationSuccessStack.alpha = 1
             self.registrationSuccessStack.transform = .identity
         } completion: { _ in
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                //self.navigationController?.pushViewController(vc, animated: true)
+                self.navigationController?.pushViewController(vc, animated: true)
             }
         }
     }
 
     @MainActor
     private func requestVerificationCode(byVoice: Bool) async {
-        // TODO
-//        state = .requestingCode
-//        DDLogInfo("PhoneNumberVerificationViewController/requestVerificationCode byVoice [\(byVoice)]")
-//        let result = await registrationManager.requestVerificationCode(byVoice: byVoice)
-//
-//        if Task.isCancelled {
-//            DDLogInfo("PhoneNumberVerificationViewController/requestVerificationCode byVoice [\(byVoice)] cancelled")
-//            return
-//        }
-//
-//        switch result {
-//        case .success(let interval):
-//            DDLogInfo("PhoneNumberVerificationViewController/requestVerificationCode byVoice [\(byVoice) success")
-//            handleVerificationCodeRequestSuccess(interval)
-//            state = .enteringCode
-//        case .failure(let errorResponse):
-//            DDLogError("PhoneNumberVerificationViewController/requestVerificationCode byVoice [\(byVoice) failure")
-//            handleVerificationCodeRequestError(errorResponse)
-//            state = .requestError
-//        }
+        state = .requestingCode
+        DDLogInfo("PhoneNumberVerificationViewController/requestVerificationCode byVoice [\(byVoice)]")
+        let result = await registrationManager.requestVerificationCode(byVoice: byVoice)
+
+        if Task.isCancelled {
+            DDLogInfo("PhoneNumberVerificationViewController/requestVerificationCode byVoice [\(byVoice)] cancelled")
+            return
+        }
+
+        switch result {
+        case .success(let interval):
+            DDLogInfo("PhoneNumberVerificationViewController/requestVerificationCode byVoice [\(byVoice) success")
+            handleVerificationCodeRequestSuccess(interval)
+            state = .enteringCode
+        case .failure(let errorResponse):
+            DDLogError("PhoneNumberVerificationViewController/requestVerificationCode byVoice [\(byVoice) failure")
+            handleVerificationCodeRequestError(errorResponse)
+            state = .requestError
+        }
     }
 
     private func handleVerificationCodeRequestSuccess(_ timeInterval: TimeInterval) {
@@ -414,20 +412,19 @@ class PhoneNumberVerificationViewController: UIViewController {
 
     @MainActor
     private func confirmVerificationCode(_ code: String) async {
-        // TODO
-//        state = .confirmingCode
-//        let result = await registrationManager.confirmVerificationCode(code, pushOS: nil)
-//
-//        switch result {
-//        case .success:
-//            DDLogInfo("PhoneNumberVerificationViewController/confirmVerificationCode/valid code [\(code)]")
-//            registrationManager.didCompleteRegistrationFlow()
-//            state = .validCode
-//
-//        case .failure(let error):
-//            DDLogError("PhoneNumberVerificationViewController/confirmVerificationCode/invalid code [\(code)] error: [\(String(describing: error))]")
-//            state = .invalidCode
-//        }
+        state = .confirmingCode
+        let result = await registrationManager.confirmVerificationCode(code, pushOS: nil)
+
+        switch result {
+        case .success:
+            DDLogInfo("PhoneNumberVerificationViewController/confirmVerificationCode/valid code [\(code)]")
+            registrationManager.didCompleteRegistrationFlow()
+            state = .validCode
+
+        case .failure(let error):
+            DDLogError("PhoneNumberVerificationViewController/confirmVerificationCode/invalid code [\(code)] error: [\(String(describing: error))]")
+            state = .invalidCode
+        }
     }
 
     @objc

@@ -13,7 +13,7 @@ import CocoaLumberjackSwift
 
 class ExistingNetworkViewController: UIViewController {
 
-//    let onboardingManager: OnboardingManager
+    let onboardingManager: OnboardingManager
     let fellowUserIDs: [UserID]
 
     private lazy var scrollView: UIScrollView = {
@@ -139,11 +139,11 @@ class ExistingNetworkViewController: UIViewController {
         return button
     }()
 
-//    init(onboardingManager: OnboardingManager, userIDs: [UserID]) {
-//        self.onboardingManager = onboardingManager
-//        self.fellowUserIDs = userIDs
-//        super.init(nibName: nil, bundle: nil)
-//    }
+    init(onboardingManager: OnboardingManager, userIDs: [UserID]) {
+        self.onboardingManager = onboardingManager
+        self.fellowUserIDs = userIDs
+        super.init(nibName: nil, bundle: nil)
+    }
 
     required init?(coder: NSCoder) {
         fatalError("FellowContactsViewController coder init not implemented...")

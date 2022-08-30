@@ -18,6 +18,28 @@ public protocol RegistrationManager: AnyObject {
     func confirmVerificationCode(_ verificationCode: String, pushOS: String?, completion: @escaping (Result<Void, Error>) -> Void)
     func didCompleteRegistrationFlow()
     func getGroupName(groupInviteToken: String, completion: @escaping (Result<String?, Error>) -> Void)
+
+    func requestVerificationCode(byVoice: Bool) async -> Result<TimeInterval, RegistrationErrorResponse>
+    func confirmVerificationCode(_ verificationCode: String, pushOS: String?) async -> Result<Void, Error>
+}
+
+extension RegistrationManager {
+    // TODO: remove callback-based API when the old registration flow is replaced
+    public func requestVerificationCode(byVoice: Bool) async -> Result<TimeInterval, RegistrationErrorResponse> {
+        await withCheckedContinuation { continuation in
+            requestVerificationCode(byVoice: byVoice) { result in
+                continuation.resume(returning: result)
+            }
+        }
+    }
+
+    public func confirmVerificationCode(_ verificationCode: String, pushOS: String?) async -> Result<Void, Error> {
+        await withCheckedContinuation { continuation in
+            confirmVerificationCode(verificationCode, pushOS: pushOS) { result in
+                continuation.resume(returning: result)
+            }
+        }
+    }
 }
 
 enum RegistrationManagerError: Error {

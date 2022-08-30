@@ -24,7 +24,7 @@ extension PermissionsViewController {
 
 class PermissionsViewController: UIViewController {
 
-    //let onboardingManager: OnboardingManager
+    let onboardingManager: OnboardingManager
     private var cancellables: Set<AnyCancellable> = []
 
     private lazy var logoView: UIImageView = {
@@ -215,10 +215,10 @@ class PermissionsViewController: UIViewController {
         return progressView
     }()
 
-//    init(onboardingManager: OnboardingManager) {
-//        self.onboardingManager = onboardingManager
-//        super.init(nibName: nil, bundle: nil)
-//    }
+    init(onboardingManager: OnboardingManager) {
+        self.onboardingManager = onboardingManager
+        super.init(nibName: nil, bundle: nil)
+    }
 
     required init?(coder: NSCoder) {
         fatalError("PermissionsViewController coder init not implemented...")
@@ -282,16 +282,16 @@ class PermissionsViewController: UIViewController {
 
     @MainActor
     private func requestContactAccess() async {
-//        guard await onboardingManager.hasContactsPermission else {
-//            // enter the app without permission
-//            return onboardingManager.didCompleteOnboardingFlow()
-//        }
-//
-//        for await progress in onboardingManager.contactsSyncProgress {
-//            updateSyncProgress(progress)
-//        }
-//
-//        goToNextScreen()
+        guard await onboardingManager.hasContactsPermission else {
+            // enter the app without permission
+            return onboardingManager.didCompleteOnboardingFlow()
+        }
+
+        for await progress in onboardingManager.contactsSyncProgress {
+            updateSyncProgress(progress)
+        }
+
+        goToNextScreen()
     }
 
     private func updateSyncProgress(_ progress: Double) {
@@ -329,15 +329,15 @@ class PermissionsViewController: UIViewController {
     }
 
     private func goToNextScreen() {
-//        let contacts = onboardingManager.fellowContactIDs()
-//
-//        if contacts.count < 5 {
-//            // show more onboarding screens
-//            let vc = FellowContactsViewController(onboardingManager: onboardingManager, userIDs: contacts)
-//            navigationController?.pushViewController(vc, animated: true)
-//        } else {
-//            onboardingManager.didCompleteOnboardingFlow()
-//        }
+        let contacts = onboardingManager.fellowContactIDs()
+
+        if contacts.count < 5 {
+            // show more onboarding screens
+            let vc = ExistingNetworkViewController(onboardingManager: onboardingManager, userIDs: contacts)
+            navigationController?.pushViewController(vc, animated: true)
+        } else {
+            onboardingManager.didCompleteOnboardingFlow()
+        }
     }
 }
 

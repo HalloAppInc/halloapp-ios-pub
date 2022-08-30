@@ -194,22 +194,22 @@ class NameInputViewController: UIViewController {
 
     @objc
     private func nextButtonPushed(_ button: UIButton) {
+        guard let name = textField.text else {
+            return
+        }
+
         // TODO
-//        guard let name = textField.text else {
-//            return
-//        }
-//
-//        registrationManager.set(userName: name)
-//
-//        let onboardingManager: OnboardingManager
-//        if let _ = registrationManager as? DemoRegistrationManager {
-//            onboardingManager = DemoOnboardingManager()
-//        } else {
-//            onboardingManager = DefaultOnboardingManager()
-//        }
-//
-//        let vc = PermissionsViewController(onboardingManager: onboardingManager)
-//        navigationController?.pushViewController(vc, animated: true)
+        //registrationManager.set(userName: name)
+
+        let onboardingManager: OnboardingManager
+        if let _ = registrationManager as? DemoRegistrationManager {
+            onboardingManager = DemoOnboardingManager(networkSize: 0, completion: { })
+        } else {
+            onboardingManager = DefaultOnboardingManager()
+        }
+
+        let vc = PermissionsViewController(onboardingManager: onboardingManager)
+        navigationController?.pushViewController(vc, animated: true)
     }
 
     @objc

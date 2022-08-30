@@ -503,16 +503,15 @@ class PhoneNumberEntryViewController: UIViewController {
 
     @objc
     private func nextButtonPushed(_ button: UIButton) {
-        // TODO
-//        guard let number = phoneNumber else {
-//            return
-//        }
-//
-//        registrationManager.set(countryCode: number.countryCode, nationalNumber: number.nationalNumber)
-//        hideKeyboard()
-//
-//        let vc = PhoneNumberVerificationViewController(registrationManager: registrationManager, registrationNumber: number)
-//        navigationController?.pushViewController(vc, animated: true)
+        guard let number = phoneNumber else {
+            return
+        }
+
+        registrationManager.set(countryCode: number.countryCode, nationalNumber: number.nationalNumber, userName: "")
+        hideKeyboard()
+
+        let vc = PhoneNumberVerificationViewController(registrationManager: registrationManager, registrationNumber: number)
+        navigationController?.pushViewController(vc, animated: true)
     }
 
     private func scrollToTop(animated: Bool = false) {
