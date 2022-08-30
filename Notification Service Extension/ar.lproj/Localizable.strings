@@ -152,7 +152,7 @@
 "notification.location" = "📍 موقع";
 
 /* Push notification for a reaction to message */
-"notification.message.reaction" = "تفاعل %@ مع إحدى الرسائل";
+"notification.message.reaction" = "تفاعل بإضافة %@ إلى رسالة";
 
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "لحظة جديدة";

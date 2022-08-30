@@ -538,10 +538,10 @@
 /* Title on edit button */
 "composer.button.edit" = "تعديل";
 
-/* Title warning that a voice recording will be deleted */
+/* Title warning that a audio recording will be deleted */
 "composer.delete.recording.title" = "حذف التسجيل الصوتي؟";
 
-/* Warning message shown to the user before discarding a voice post */
+/* Warning message shown to the user before discarding a audio post */
 "composer.deletevoicenote.message" = "لن يتم حفظ التسجيل الصوتي إذا ألغيت هذا المنشور.";
 
 /* Title for alert when closing the post composer with a voice note */
@@ -630,6 +630,9 @@
 
 /* Body of the bottom sheet that is presented only once to explain the moments feature. */
 "describing.moments" = "يمكنك إظهار لحظات أصدقائك بمشاركة اللحظة الخاصة بك. تتميز اللحظات بأنها مؤقتة، وتختفي بعد عرضها مرة واحدة.";
+
+/* Send to button and screen title */
+"destination.send.to" = "إرسال إلى";
 
 /* Title that indicates that someone downloaded media from a post. */
 "downloaded.title" = "تم التنزيل";
@@ -1240,6 +1243,9 @@
 /* Call to action to forward a message
    Title of page where user can pick contats to forward a chat messsage */
 "message.forward" = "إعادة توجيه";
+
+/* Call to action to forward a message which contains more than once media item */
+"message.forward.all" = "إعادة توجيه الكل";
 
 /* Message action. Verb. */
 "message.reply" = "ردّ";
