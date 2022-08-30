@@ -1013,7 +1013,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
         // Add calls
         chatRows += calls
-            .map { ChatCallData(userID: $0.peerUserID, timestamp: $0.timestamp, duration: $0.durationMs / 1000, wasSuccessful: $0.answered, wasIncoming: $0.direction == .incoming, type: $0.type) }
+            .map { ChatCallData(userID: $0.peerUserID, timestamp: $0.timestamp, duration: $0.durationMs / 1000, wasSuccessful: $0.answered, wasIncoming: $0.direction == .incoming, type: $0.type, isMissedCall: $0.isMissedCall) }
             .map { Row.chatCall($0) }
 
         // Sort by date
@@ -1504,6 +1504,7 @@ struct ChatCallData: Hashable {
     var wasSuccessful: Bool
     var wasIncoming: Bool
     var type: CallType
+    var isMissedCall: Bool
 }
 
 extension ChatEventData : Hashable {

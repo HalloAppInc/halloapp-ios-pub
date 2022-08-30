@@ -88,8 +88,10 @@ fileprivate enum MessageRow: Hashable, Equatable {
     // in order to insert the unread bannber at the right location, we need this property
     var isCountedInUnreadCounts: Bool {
         switch self {
-        case .chatMessage(_), .chatCall(_):
+        case .chatMessage(_):
             return true
+        case .chatCall(let data):
+            return data.isMissedCall ? true : false
         case .chatEvent(_), .addToContactBook, .timeHeader(_), .unreadCountHeader(_):
             return false
         }
@@ -432,7 +434,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         // Add call events
         if let chatCalls = callHistoryFetchedResultsController?.fetchedObjects {
             chatCalls.forEach { chatCall in
-                let chatCallData = ChatCallData(userID: chatCall.peerUserID, timestamp: chatCall.timestamp, duration: chatCall.durationMs / 1000, wasSuccessful: chatCall.answered, wasIncoming: chatCall.direction == .incoming, type: chatCall.type)
+                let chatCallData = ChatCallData(userID: chatCall.peerUserID, timestamp: chatCall.timestamp, duration: chatCall.durationMs / 1000, wasSuccessful: chatCall.answered, wasIncoming: chatCall.direction == .incoming, type: chatCall.type, isMissedCall: chatCall.isMissedCall)
                 messageRows.append(MessageRow.chatCall(chatCallData))
             }
         }
@@ -487,7 +489,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                 if unreadHeaderIndex > 0, unreadHeaderIndex < (snapshot.numberOfItems) {
                     unreadMessagesHeaderVisible = true
                     // look for the right place to insert the unread counter header
-                    // only count chatMessages and chatEvents for now since only chatMessages and chatEvents
+                    // only count chatMessages and chatCalls for now since only chatMessages and chatCalls
                     // are counted towards unread counts
                     for item in snapshot.itemIdentifiers.reversed() {
                         if item.isCountedInUnreadCounts {
