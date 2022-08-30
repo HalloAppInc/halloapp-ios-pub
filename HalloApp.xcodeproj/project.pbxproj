@@ -306,6 +306,7 @@
 		A1FF1ECE28BD90A30057FC27 /* NameInputViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1FF1ECD28BD90A30057FC27 /* NameInputViewController.swift */; };
 		A1FF1ED328BE76560057FC27 /* OnboardingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1FF1ED228BE76560057FC27 /* OnboardingManager.swift */; };
 		A1FF1ED728BE7DC80057FC27 /* ExistingNetworkViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1FF1ED628BE7DC80057FC27 /* ExistingNetworkViewController.swift */; };
+		A1FF1ED528BE78D40057FC27 /* PermissionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1FF1ED428BE78D40057FC27 /* PermissionsViewController.swift */; };
 		E5230B1E267AABA60046A2EB /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E5230B1D267AABA60046A2EB /* Intents.framework */; };
 		E5230B21267AABA60046A2EB /* IntentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5230B20267AABA60046A2EB /* IntentHandler.swift */; };
 		E5230B25267AABA60046A2EB /* Intents Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E5230B1C267AABA60046A2EB /* Intents Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -1092,6 +1093,7 @@
 		A1FF1ECD28BD90A30057FC27 /* NameInputViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NameInputViewController.swift; sourceTree = "<group>"; };
 		A1FF1ED228BE76560057FC27 /* OnboardingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingManager.swift; sourceTree = "<group>"; };
 		A1FF1ED628BE7DC80057FC27 /* ExistingNetworkViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExistingNetworkViewController.swift; sourceTree = "<group>"; };
+		A1FF1ED428BE78D40057FC27 /* PermissionsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsViewController.swift; sourceTree = "<group>"; };
 		E5230B0F267A61BC0046A2EB /* Intents.intentdefinition */ = {isa = PBXFileReference; lastKnownFileType = file.intentdefinition; path = Intents.intentdefinition; sourceTree = "<group>"; };
 		E5230B1C267AABA60046A2EB /* Intents Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Intents Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E5230B1D267AABA60046A2EB /* Intents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Intents.framework; path = System/Library/Frameworks/Intents.framework; sourceTree = SDKROOT; };
@@ -1830,6 +1832,7 @@
 				A1FF1ECB28BD7BF70057FC27 /* PhoneNumberVerificationViewController.swift */,
 				A1FF1ECD28BD90A30057FC27 /* NameInputViewController.swift */,
 				A1FF1ED628BE7DC80057FC27 /* ExistingNetworkViewController.swift */,
+				A1FF1ED428BE78D40057FC27 /* PermissionsViewController.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -2987,6 +2990,7 @@
 				3245AF16284F23B30036CB8E /* MessageMediaView.swift in Sources */,
 				68E5E9DA25F6FAF100250762 /* FeedDataSource.swift in Sources */,
 				F84DF6852851E4FF00BEC721 /* MediaListAnimator.swift in Sources */,
+				A1FF1ED528BE78D40057FC27 /* PermissionsViewController.swift in Sources */,
 				5B493BCC27FF316500FDEA0D /* ChunkedMediaResourceLoaderDelegate.swift in Sources */,
 				EA45713D23EB7F47008C2E44 /* MediaCarouselView.swift in Sources */,
 				F40F7C8727570707008144DE /* AudioPostComposer.swift in Sources */,
