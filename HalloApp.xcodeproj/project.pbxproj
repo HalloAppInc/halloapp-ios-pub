@@ -302,6 +302,7 @@
 		A1FE82E927DEDB8F00024641 /* ContentInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1FE82E827DEDB8F00024641 /* ContentInputView.swift */; };
 		A1FE830327E1AED200024641 /* LinkPreviewPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1FE830227E1AED200024641 /* LinkPreviewPanel.swift */; };
 		A1FE830727E2913500024641 /* ContentTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1FE830627E2913500024641 /* ContentTextView.swift */; };
+		A1FF1ECC28BD7BF70057FC27 /* PhoneNumberVerificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1FF1ECB28BD7BF70057FC27 /* PhoneNumberVerificationViewController.swift */; };
 		E5230B1E267AABA60046A2EB /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E5230B1D267AABA60046A2EB /* Intents.framework */; };
 		E5230B21267AABA60046A2EB /* IntentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5230B20267AABA60046A2EB /* IntentHandler.swift */; };
 		E5230B25267AABA60046A2EB /* Intents Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E5230B1C267AABA60046A2EB /* Intents Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -1084,6 +1085,7 @@
 		A1FE82E827DEDB8F00024641 /* ContentInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentInputView.swift; sourceTree = "<group>"; };
 		A1FE830227E1AED200024641 /* LinkPreviewPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkPreviewPanel.swift; sourceTree = "<group>"; };
 		A1FE830627E2913500024641 /* ContentTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentTextView.swift; sourceTree = "<group>"; };
+		A1FF1ECB28BD7BF70057FC27 /* PhoneNumberVerificationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneNumberVerificationViewController.swift; sourceTree = "<group>"; };
 		E5230B0F267A61BC0046A2EB /* Intents.intentdefinition */ = {isa = PBXFileReference; lastKnownFileType = file.intentdefinition; path = Intents.intentdefinition; sourceTree = "<group>"; };
 		E5230B1C267AABA60046A2EB /* Intents Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Intents Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E5230B1D267AABA60046A2EB /* Intents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Intents.framework; path = System/Library/Frameworks/Intents.framework; sourceTree = SDKROOT; };
@@ -1818,6 +1820,7 @@
 			children = (
 				A188383828BD5DA6005BBCC2 /* PhoneNumberEntryViewController.swift */,
 				A188383A28BD5DC2005BBCC2 /* CountryCodeTableView.swift */,
+				A1FF1ECB28BD7BF70057FC27 /* PhoneNumberVerificationViewController.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -3228,6 +3231,7 @@
 				76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */,
 				146B93792405F40500768AC6 /* Font.swift in Sources */,
 				76B95CDE24295AB5007435AC /* CommentView.swift in Sources */,
+				A1FF1ECC28BD7BF70057FC27 /* PhoneNumberVerificationViewController.swift in Sources */,
 				EAA0798625AEAC9200B384AB /* GroupsListViewController.swift in Sources */,
 				329DFD56270CF70200B85CFF /* Feed4ToFeed5.xcmappingmodel in Sources */,
 				6A911F3C270EAF2E003DCB7A /* Feed5ToFeed6.xcmappingmodel in Sources */,
