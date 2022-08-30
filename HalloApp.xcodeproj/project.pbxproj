@@ -304,6 +304,7 @@
 		A1FE830727E2913500024641 /* ContentTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1FE830627E2913500024641 /* ContentTextView.swift */; };
 		A1FF1ECC28BD7BF70057FC27 /* PhoneNumberVerificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1FF1ECB28BD7BF70057FC27 /* PhoneNumberVerificationViewController.swift */; };
 		A1FF1ECE28BD90A30057FC27 /* NameInputViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1FF1ECD28BD90A30057FC27 /* NameInputViewController.swift */; };
+		A1FF1ED328BE76560057FC27 /* OnboardingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1FF1ED228BE76560057FC27 /* OnboardingManager.swift */; };
 		E5230B1E267AABA60046A2EB /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E5230B1D267AABA60046A2EB /* Intents.framework */; };
 		E5230B21267AABA60046A2EB /* IntentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5230B20267AABA60046A2EB /* IntentHandler.swift */; };
 		E5230B25267AABA60046A2EB /* Intents Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E5230B1C267AABA60046A2EB /* Intents Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -1088,6 +1089,7 @@
 		A1FE830627E2913500024641 /* ContentTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentTextView.swift; sourceTree = "<group>"; };
 		A1FF1ECB28BD7BF70057FC27 /* PhoneNumberVerificationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneNumberVerificationViewController.swift; sourceTree = "<group>"; };
 		A1FF1ECD28BD90A30057FC27 /* NameInputViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NameInputViewController.swift; sourceTree = "<group>"; };
+		A1FF1ED228BE76560057FC27 /* OnboardingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingManager.swift; sourceTree = "<group>"; };
 		E5230B0F267A61BC0046A2EB /* Intents.intentdefinition */ = {isa = PBXFileReference; lastKnownFileType = file.intentdefinition; path = Intents.intentdefinition; sourceTree = "<group>"; };
 		E5230B1C267AABA60046A2EB /* Intents Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Intents Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E5230B1D267AABA60046A2EB /* Intents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Intents.framework; path = System/Library/Frameworks/Intents.framework; sourceTree = SDKROOT; };
@@ -1732,6 +1734,7 @@
 		76B5B5292501EE110055E712 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				A1FF1ED128BE763D0057FC27 /* Onboarding */,
 				76451C38254795CD00B9E268 /* Strings */,
 				76B5B52A2501EE180055E712 /* Notifications */,
 			);
@@ -1847,6 +1850,14 @@
 				A1FB1BD02889DA0600574822 /* UserDefault.swift */,
 			);
 			path = "Property Wrappers";
+			sourceTree = "<group>";
+		};
+		A1FF1ED128BE763D0057FC27 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				A1FF1ED228BE76560057FC27 /* OnboardingManager.swift */,
+			);
+			path = Onboarding;
 			sourceTree = "<group>";
 		};
 		E5230B1F267AABA60046A2EB /* Intents Extension */ = {
@@ -3281,6 +3292,7 @@
 				68CCE7AD275FDE8200C39B70 /* RootViewController.swift in Sources */,
 				762EDBDD244E5A7800986617 /* HomeViewController.swift in Sources */,
 				764AB41A24A6A48400D4E354 /* PrivacyRequests.swift in Sources */,
+				A1FF1ED328BE76560057FC27 /* OnboardingManager.swift in Sources */,
 				F499FB0D2877A914005D5ADD /* GroupGridProgressView.swift in Sources */,
 				764AB41F24A6C5F300D4E354 /* Color.swift in Sources */,
 				5B64B56224F3FA2E00BCBEA8 /* CameraController.swift in Sources */,
