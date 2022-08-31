@@ -407,7 +407,9 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                     case .chatMessage(let data):
                         if data.id == chatMessage.id {
                             snapshot.reloadItems([item])
-                            dataSource.apply(snapshot, animatingDifferences: false)
+                            DispatchQueue.main.async {
+                                self.dataSource.apply(snapshot, animatingDifferences: false)
+                            }
                         }
                     default:
                         break
@@ -1661,13 +1663,17 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
             var toUserIds: [String] = []
             for selectedDestination in destinations {
                 switch selectedDestination {
-                case .contact(id: let id, name: let name, phone: let phone):
+                case .contact(id: let id, name: _, phone: _):
                     toUserIds.append(id)
                 default:
                     break
                 }
             }
             MainAppContext.shared.chatData.forwardChatMessages(toUserIds: toUserIds, chatMessage: chatMessage)
+            if toUserIds.count == 1, let toUserId = toUserIds.first {
+                let chatVC = ChatViewControllerNew(for: toUserId)
+                self.navigationController?.pushViewController(chatVC, animated: true)
+            }
         }
         present(UINavigationController(rootViewController: vc), animated: true)
     }

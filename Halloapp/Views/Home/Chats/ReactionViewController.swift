@@ -203,9 +203,14 @@ public class ReactionViewController: UIViewController {
             items.append(UIBarButtonItem(customView: replyButton))
             items.append(space)
 
-            let forwardButton = createMenuButton(imageName: "arrowshape.turn.up.right", labelName: Localizations.messageForward)
+            var forwardLabel = Localizations.messageForward
+            if let media = chatMessage.media, media.count > 1 {
+                forwardLabel = Localizations.messageForwardAll
+            }
+            let forwardButton = createMenuButton(imageName: "arrowshape.turn.up.right", labelName: forwardLabel)
             forwardButton.addTarget(self, action: #selector(handleForwarding), for: .touchUpInside)
-            if AppContext.shared.userDefaults.bool(forKey: "enableChatForwarding") {
+            // Disabling forwarding for audio messages
+            if AppContext.shared.userDefaults.bool(forKey: "enableChatForwarding"), chatMessage.media?.first?.type != .audio {
                 items.append(UIBarButtonItem(customView: forwardButton))
                 items.append(space)
             }

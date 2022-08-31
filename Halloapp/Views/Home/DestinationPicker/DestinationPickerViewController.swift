@@ -15,7 +15,7 @@ import UIKit
 private extension Localizations {
     static var contactsHeader: String {
         return NSLocalizedString("post.privacy.title",
-                                 value: "Recent Contacts",
+                                 value: "Contacts",
                                  comment: "Header when selecting contacts to share with")
     }
 
@@ -345,7 +345,9 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
 
         navigationItem.title = Localizations.sendTo
         navigationItem.leftBarButtonItem = leftBarButtonItem
-        navigationItem.rightBarButtonItem = rightBarButtonItem
+        if config != .forwarding {
+            navigationItem.rightBarButtonItem = rightBarButtonItem
+        }
         navigationItem.hidesSearchBarWhenScrolling = false
         navigationItem.searchController = searchController
 
