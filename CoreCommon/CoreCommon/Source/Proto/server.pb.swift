@@ -559,6 +559,10 @@ public struct Server_Post {
 
   public var momentUnlockUid: Int64 = 0
 
+  /// If set to true, the client will try and show ui design to
+  /// share the recently composed post externally.
+  public var showPostShareScreen: Bool = false
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum Tag: SwiftProtobuf.Enum {
@@ -8330,6 +8334,7 @@ extension Server_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     9: .same(proto: "tag"),
     10: .standard(proto: "psa_tag"),
     11: .standard(proto: "moment_unlock_uid"),
+    12: .standard(proto: "show_post_share_screen"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -8349,6 +8354,7 @@ extension Server_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
       case 9: try { try decoder.decodeSingularEnumField(value: &self.tag) }()
       case 10: try { try decoder.decodeSingularStringField(value: &self.psaTag) }()
       case 11: try { try decoder.decodeSingularInt64Field(value: &self.momentUnlockUid) }()
+      case 12: try { try decoder.decodeSingularBoolField(value: &self.showPostShareScreen) }()
       default: break
       }
     }
@@ -8392,6 +8398,9 @@ extension Server_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     if self.momentUnlockUid != 0 {
       try visitor.visitSingularInt64Field(value: self.momentUnlockUid, fieldNumber: 11)
     }
+    if self.showPostShareScreen != false {
+      try visitor.visitSingularBoolField(value: self.showPostShareScreen, fieldNumber: 12)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -8407,6 +8416,7 @@ extension Server_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     if lhs.tag != rhs.tag {return false}
     if lhs.psaTag != rhs.psaTag {return false}
     if lhs.momentUnlockUid != rhs.momentUnlockUid {return false}
+    if lhs.showPostShareScreen != rhs.showPostShareScreen {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

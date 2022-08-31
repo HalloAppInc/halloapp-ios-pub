@@ -859,6 +859,7 @@ public struct Server_DecryptionReport {
     public typealias RawValue = Int
     case chat // = 0
     case groupHistory // = 1
+    case chatReaction // = 2
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -869,6 +870,7 @@ public struct Server_DecryptionReport {
       switch rawValue {
       case 0: self = .chat
       case 1: self = .groupHistory
+      case 2: self = .chatReaction
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -877,6 +879,7 @@ public struct Server_DecryptionReport {
       switch self {
       case .chat: return 0
       case .groupHistory: return 1
+      case .chatReaction: return 2
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -901,6 +904,7 @@ extension Server_DecryptionReport.ContentType: CaseIterable {
   public static var allCases: [Server_DecryptionReport.ContentType] = [
     .chat,
     .groupHistory,
+    .chatReaction,
   ]
 }
 
@@ -973,6 +977,8 @@ public struct Server_GroupDecryptionReport {
     case post // = 1
     case comment // = 2
     case historyResend // = 3
+    case postReaction // = 4
+    case commentReaction // = 5
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -985,6 +991,8 @@ public struct Server_GroupDecryptionReport {
       case 1: self = .post
       case 2: self = .comment
       case 3: self = .historyResend
+      case 4: self = .postReaction
+      case 5: self = .commentReaction
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -995,6 +1003,8 @@ public struct Server_GroupDecryptionReport {
       case .post: return 1
       case .comment: return 2
       case .historyResend: return 3
+      case .postReaction: return 4
+      case .commentReaction: return 5
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -1050,6 +1060,8 @@ extension Server_GroupDecryptionReport.ItemType: CaseIterable {
     .post,
     .comment,
     .historyResend,
+    .postReaction,
+    .commentReaction,
   ]
 }
 
@@ -1160,6 +1172,8 @@ public struct Server_HomeDecryptionReport {
     case unknownType // = 0
     case post // = 1
     case comment // = 2
+    case postReaction // = 4
+    case commentReaction // = 5
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -1171,6 +1185,8 @@ public struct Server_HomeDecryptionReport {
       case 0: self = .unknownType
       case 1: self = .post
       case 2: self = .comment
+      case 4: self = .postReaction
+      case 5: self = .commentReaction
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -1180,6 +1196,8 @@ public struct Server_HomeDecryptionReport {
       case .unknownType: return 0
       case .post: return 1
       case .comment: return 2
+      case .postReaction: return 4
+      case .commentReaction: return 5
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -1243,6 +1261,8 @@ extension Server_HomeDecryptionReport.ItemType: CaseIterable {
     .unknownType,
     .post,
     .comment,
+    .postReaction,
+    .commentReaction,
   ]
 }
 
@@ -2806,6 +2826,7 @@ extension Server_DecryptionReport.ContentType: SwiftProtobuf._ProtoNameProviding
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "CHAT"),
     1: .same(proto: "GROUP_HISTORY"),
+    2: .same(proto: "CHAT_REACTION"),
   ]
 }
 
@@ -2915,6 +2936,8 @@ extension Server_GroupDecryptionReport.ItemType: SwiftProtobuf._ProtoNameProvidi
     1: .same(proto: "POST"),
     2: .same(proto: "COMMENT"),
     3: .same(proto: "HISTORY_RESEND"),
+    4: .same(proto: "POST_REACTION"),
+    5: .same(proto: "COMMENT_REACTION"),
   ]
 }
 
@@ -3038,6 +3061,8 @@ extension Server_HomeDecryptionReport.ItemType: SwiftProtobuf._ProtoNameProvidin
     0: .same(proto: "UNKNOWN_TYPE"),
     1: .same(proto: "POST"),
     2: .same(proto: "COMMENT"),
+    4: .same(proto: "POST_REACTION"),
+    5: .same(proto: "COMMENT_REACTION"),
   ]
 }
 

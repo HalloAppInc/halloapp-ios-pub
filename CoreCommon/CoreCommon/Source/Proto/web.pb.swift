@@ -23,6 +23,8 @@ fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAP
 public enum Web_FeedType: SwiftProtobuf.Enum {
   public typealias RawValue = Int
   case home // = 0
+  case group // = 1
+  case postComments // = 2
   case UNRECOGNIZED(Int)
 
   public init() {
@@ -32,6 +34,8 @@ public enum Web_FeedType: SwiftProtobuf.Enum {
   public init?(rawValue: Int) {
     switch rawValue {
     case 0: self = .home
+    case 1: self = .group
+    case 2: self = .postComments
     default: self = .UNRECOGNIZED(rawValue)
     }
   }
@@ -39,6 +43,8 @@ public enum Web_FeedType: SwiftProtobuf.Enum {
   public var rawValue: Int {
     switch self {
     case .home: return 0
+    case .group: return 1
+    case .postComments: return 2
     case .UNRECOGNIZED(let i): return i
     }
   }
@@ -51,6 +57,8 @@ extension Web_FeedType: CaseIterable {
   // The compiler won't synthesize support with the UNRECOGNIZED case.
   public static var allCases: [Web_FeedType] = [
     .home,
+    .group,
+    .postComments,
   ]
 }
 
@@ -178,6 +186,26 @@ public struct Web_UserDisplayInfo {
   public var contactName: String = String()
 
   public var avatarID: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Web_GroupDisplayInfo {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var id: String = String()
+
+  public var name: String = String()
+
+  public var avatarID: String = String()
+
+  public var description_p: String = String()
+
+  public var background: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -358,6 +386,9 @@ public struct Web_FeedRequest {
 
   public var limit: Int32 = 0
 
+  /// may be group id or post id depending on feed type
+  public var contentID: String = String()
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -381,6 +412,8 @@ public struct Web_FeedResponse {
   public var nextCursor: String = String()
 
   public var error: Web_FeedResponse.Error = .none
+
+  public var groupDisplayInfo: [Web_GroupDisplayInfo] = []
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -442,10 +475,21 @@ public struct Web_FeedItem {
     set {content = .post(newValue)}
   }
 
+  public var comment: Server_Comment {
+    get {
+      if case .comment(let v)? = content {return v}
+      return Server_Comment()
+    }
+    set {content = .comment(newValue)}
+  }
+
+  public var groupID: String = String()
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Content: Equatable {
     case post(Server_Post)
+    case comment(Server_Comment)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Web_FeedItem.OneOf_Content, rhs: Web_FeedItem.OneOf_Content) -> Bool {
@@ -457,6 +501,11 @@ public struct Web_FeedItem {
         guard case .post(let l) = lhs, case .post(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
+      case (.comment, .comment): return {
+        guard case .comment(let l) = lhs, case .comment(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      default: return false
       }
     }
   #endif
@@ -472,6 +521,7 @@ extension Web_WebContainer.OneOf_Payload: @unchecked Sendable {}
 extension Web_ReceiptInfo: @unchecked Sendable {}
 extension Web_ReceiptInfo.Status: @unchecked Sendable {}
 extension Web_UserDisplayInfo: @unchecked Sendable {}
+extension Web_GroupDisplayInfo: @unchecked Sendable {}
 extension Web_PostDisplayInfo: @unchecked Sendable {}
 extension Web_PostDisplayInfo.SeenState: @unchecked Sendable {}
 extension Web_PostDisplayInfo.TransferState: @unchecked Sendable {}
@@ -490,6 +540,8 @@ fileprivate let _protobuf_package = "web"
 extension Web_FeedType: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "HOME"),
+    1: .same(proto: "GROUP"),
+    2: .same(proto: "POST_COMMENTS"),
   ]
 }
 
@@ -659,6 +711,62 @@ extension Web_UserDisplayInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
   }
 }
 
+extension Web_GroupDisplayInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".GroupDisplayInfo"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "id"),
+    2: .same(proto: "name"),
+    3: .standard(proto: "avatar_id"),
+    4: .same(proto: "description"),
+    5: .same(proto: "background"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.avatarID) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.description_p) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self.background) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.id.isEmpty {
+      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
+    }
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 2)
+    }
+    if !self.avatarID.isEmpty {
+      try visitor.visitSingularStringField(value: self.avatarID, fieldNumber: 3)
+    }
+    if !self.description_p.isEmpty {
+      try visitor.visitSingularStringField(value: self.description_p, fieldNumber: 4)
+    }
+    if !self.background.isEmpty {
+      try visitor.visitSingularStringField(value: self.background, fieldNumber: 5)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Web_GroupDisplayInfo, rhs: Web_GroupDisplayInfo) -> Bool {
+    if lhs.id != rhs.id {return false}
+    if lhs.name != rhs.name {return false}
+    if lhs.avatarID != rhs.avatarID {return false}
+    if lhs.description_p != rhs.description_p {return false}
+    if lhs.background != rhs.background {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Web_PostDisplayInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".PostDisplayInfo"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -761,6 +869,7 @@ extension Web_FeedRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     2: .same(proto: "type"),
     3: .same(proto: "cursor"),
     4: .same(proto: "limit"),
+    5: .standard(proto: "content_id"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -773,6 +882,7 @@ extension Web_FeedRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
       case 2: try { try decoder.decodeSingularEnumField(value: &self.type) }()
       case 3: try { try decoder.decodeSingularStringField(value: &self.cursor) }()
       case 4: try { try decoder.decodeSingularInt32Field(value: &self.limit) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self.contentID) }()
       default: break
       }
     }
@@ -791,6 +901,9 @@ extension Web_FeedRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     if self.limit != 0 {
       try visitor.visitSingularInt32Field(value: self.limit, fieldNumber: 4)
     }
+    if !self.contentID.isEmpty {
+      try visitor.visitSingularStringField(value: self.contentID, fieldNumber: 5)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -799,6 +912,7 @@ extension Web_FeedRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     if lhs.type != rhs.type {return false}
     if lhs.cursor != rhs.cursor {return false}
     if lhs.limit != rhs.limit {return false}
+    if lhs.contentID != rhs.contentID {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -814,6 +928,7 @@ extension Web_FeedResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     5: .standard(proto: "post_display_info"),
     6: .standard(proto: "next_cursor"),
     7: .same(proto: "error"),
+    8: .standard(proto: "group_display_info"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -829,6 +944,7 @@ extension Web_FeedResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       case 5: try { try decoder.decodeRepeatedMessageField(value: &self.postDisplayInfo) }()
       case 6: try { try decoder.decodeSingularStringField(value: &self.nextCursor) }()
       case 7: try { try decoder.decodeSingularEnumField(value: &self.error) }()
+      case 8: try { try decoder.decodeRepeatedMessageField(value: &self.groupDisplayInfo) }()
       default: break
       }
     }
@@ -856,6 +972,9 @@ extension Web_FeedResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     if self.error != .none {
       try visitor.visitSingularEnumField(value: self.error, fieldNumber: 7)
     }
+    if !self.groupDisplayInfo.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.groupDisplayInfo, fieldNumber: 8)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -867,6 +986,7 @@ extension Web_FeedResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     if lhs.postDisplayInfo != rhs.postDisplayInfo {return false}
     if lhs.nextCursor != rhs.nextCursor {return false}
     if lhs.error != rhs.error {return false}
+    if lhs.groupDisplayInfo != rhs.groupDisplayInfo {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -883,6 +1003,8 @@ extension Web_FeedItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
   public static let protoMessageName: String = _protobuf_package + ".FeedItem"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "post"),
+    2: .same(proto: "comment"),
+    3: .standard(proto: "group_id"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -904,6 +1026,20 @@ extension Web_FeedItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
           self.content = .post(v)
         }
       }()
+      case 2: try {
+        var v: Server_Comment?
+        var hadOneofValue = false
+        if let current = self.content {
+          hadOneofValue = true
+          if case .comment(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.content = .comment(v)
+        }
+      }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.groupID) }()
       default: break
       }
     }
@@ -914,14 +1050,26 @@ extension Web_FeedItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
     // allocates stack space for every if/case branch local when no optimizations
     // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
     // https://github.com/apple/swift-protobuf/issues/1182
-    try { if case .post(let v)? = self.content {
+    switch self.content {
+    case .post?: try {
+      guard case .post(let v)? = self.content else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    } }()
+    }()
+    case .comment?: try {
+      guard case .comment(let v)? = self.content else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    }()
+    case nil: break
+    }
+    if !self.groupID.isEmpty {
+      try visitor.visitSingularStringField(value: self.groupID, fieldNumber: 3)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Web_FeedItem, rhs: Web_FeedItem) -> Bool {
     if lhs.content != rhs.content {return false}
+    if lhs.groupID != rhs.groupID {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
