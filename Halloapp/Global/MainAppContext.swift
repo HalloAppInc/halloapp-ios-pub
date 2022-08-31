@@ -35,7 +35,7 @@ class MainAppContext: AppContext {
     lazy var webClientManager: WebClientManager? = {
         // TODO: Support logout
         guard let keys = userData.credentials?.noiseKeys else { return nil }
-        return WebClientManager(service: service, noiseKeys: keys)
+        return WebClientManager(service: service, dataStore: mainDataStore, noiseKeys: keys)
     }()
     lazy var nux: NUX = { NUX(userDefaults: userDefaults) }()
     private lazy var mergeSharedDataQueue = { DispatchQueue(label: "com.halloapp.mergeSharedData", qos: .default) }()

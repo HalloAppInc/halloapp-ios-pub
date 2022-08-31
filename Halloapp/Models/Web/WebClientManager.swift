@@ -15,8 +15,9 @@ import SwiftNoise
 
 final class WebClientManager {
 
-    init(service: CoreServiceCommon, noiseKeys: NoiseKeys) {
+    init(service: CoreServiceCommon, dataStore: MainDataStore, noiseKeys: NoiseKeys) {
         self.service = service
+        self.dataStore = dataStore
         self.noiseKeys = noiseKeys
     }
 
@@ -28,6 +29,7 @@ final class WebClientManager {
     }
 
     let service: CoreServiceCommon
+    let dataStore: MainDataStore
     let noiseKeys: NoiseKeys
     var state = CurrentValueSubject<State, Never>(.disconnected)
 
@@ -98,7 +100,13 @@ final class WebClientManager {
             case .feedResponse:
                 DDLogError("WebClientManager/handleIncoming/feedResponse/error [invalid-payload]")
             case .feedRequest(let request):
-                DDLogInfo("WebClientManager/handleIncoming/feedRequest")
+                switch request.type {
+                case .home:
+                    DDLogInfo("WebClientManager/handleIncoming/feedRequest/home")
+                case .group, .postComments, .UNRECOGNIZED:
+                    DDLogInfo("WebClientManager/handleIncoming/feedRequest/unsupported [\(request.type)]")
+                    return
+                }
                 let cursor = request.cursor.isEmpty ? nil : request.cursor
                 DispatchQueue.main.async {
                     var webContainer = Web_WebContainer()
@@ -374,10 +382,35 @@ final class WebClientManager {
             return info
         }
 
+        let groupsToInclude = Set<GroupID>(postsForRequest.compactMap { $0.groupID })
+        let groupDisplayInfo: [Web_GroupDisplayInfo] = groupsToInclude.compactMap { groupID in
+            guard let group = self.dataStore.group(id: groupID, in: self.dataStore.viewContext) else {
+                DDLogError("WebClientManager/homeFeed/group/error [not-found] [id: \(groupID)]")
+                return nil
+            }
+            var info = Web_GroupDisplayInfo()
+            info.id = groupID
+            info.name = group.name
+            if let avatarID = group.avatarID {
+                info.avatarID = avatarID
+            }
+            if let description = group.desc {
+                info.description_p = description
+            }
+            var background = Clients_Background()
+            background.theme = group.background
+            if let backgroundData = try? background.serializedData() {
+                info.background = String(decoding: backgroundData, as: UTF8.self)
+            }
+
+            return info
+        }
+
         var response = Web_FeedResponse()
         response.type = .home
         response.userDisplayInfo = userDisplayInfo
         response.postDisplayInfo = postDisplayInfo
+        response.groupDisplayInfo = groupDisplayInfo
         if let nextCursor = nextCursor {
             response.nextCursor = nextCursor
         }
@@ -400,6 +433,9 @@ final class WebClientManager {
 
             var feedItem = Web_FeedItem()
             feedItem.content = .post(serverPost)
+            if let groupID = post.groupID {
+                feedItem.groupID = groupID
+            }
             return feedItem
         }
 
