@@ -137,15 +137,6 @@ class DestinationCell: UICollectionViewCell {
     }
 
     private func setup() {
-        layer.cornerRadius = 10
-        layer.shadowOpacity = 0.15
-        layer.shadowOffset = CGSize(width: 0, height: 0.5)
-        layer.masksToBounds = false
-
-        contentView.backgroundColor = .clear
-        contentView.layer.cornerRadius = 10
-        contentView.layer.masksToBounds = true
-
         let labels = UIStackView(arrangedSubviews: [ title, subtitle ])
         labels.translatesAutoresizingMaskIntoConstraints = false
         labels.axis = .vertical

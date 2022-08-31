@@ -118,12 +118,10 @@ class ComposerDestinationRowView: UICollectionView {
 
         destinationDataSource.apply(makeSnapshot(groups: groups, contacts: contacts), animatingDifferences: false)
 
-        if contacts.count == 0 {
-            selectItem(at: IndexPath(row: 0, section: 0), animated: false, scrollPosition: .top)
-        }
-
         if let indexPath = destinationDataSource.indexPath(for: destination) {
             selectItem(at: indexPath, animated: false, scrollPosition: .top)
+        } else {
+            selectItem(at: IndexPath(row: 0, section: 0), animated: false, scrollPosition: .top)
         }
     }
 
@@ -132,35 +130,16 @@ class ComposerDestinationRowView: UICollectionView {
     }
 
     private func makeSnapshot(groups: [Group], contacts: [ABContact]) -> NSDiffableDataSourceSnapshot<Int, ShareDestination> {
+        let groupDesinations = groups
+            .sorted { $0.name < $1.name }
+            .map { ShareDestination.destination(from: $0) }
+        let contactDestinations = contacts
+            .sorted { $0.fullName ?? "" < $1.fullName ?? "" }
+            .compactMap { ShareDestination.destination(from: $0) }
+
         var items: [ShareDestination] = [.feed(.all)]
-
-        items.append(contentsOf: groups.map { ShareDestination.destination(from: $0) })
-        items.append(contentsOf: contacts.compactMap { ShareDestination.destination(from: $0) })
-
-        items.sort {
-            let title0: String
-            let title1: String
-
-            switch $0 {
-            case .feed:
-                return true
-            case .group(_, let title):
-                title0 = title
-            case .contact(_, let title, _):
-                title0 = title ?? ""
-            }
-
-            switch $1 {
-            case .feed:
-                return false
-            case .group(_, let title):
-                title1 = title
-            case .contact(_, let title, _):
-                title1 = title ?? ""
-            }
-
-            return title0 < title1
-        }
+        items.append(contentsOf: groupDesinations)
+        items.append(contentsOf: contactDestinations)
 
         var snapshot = NSDiffableDataSourceSnapshot<Int, ShareDestination>()
         snapshot.appendSections([0])

@@ -85,7 +85,7 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
             let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: rowHeight)
             let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
 
-            let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(44))
+            let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
             let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: headerSize, elementKind: DestinationPickerHeaderView.elementKind, alignment: .top)
 
             let footerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
@@ -104,7 +104,7 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
                 let sections = self.dataSource.snapshot().sectionIdentifiers
                 if sectionIndex < sections.count, sections[sectionIndex] == DestinationSection.groups, !self.showAllGroups, self.hasMoreGroups {
                     section.boundarySupplementaryItems = [sectionHeader, sectionFooter]
-                    backgroundDecoration.contentInsets.bottom = 43
+                    backgroundDecoration.contentInsets.bottom = 44
                 }
             }
 
@@ -518,6 +518,8 @@ extension DestinationPickerViewController: UICollectionViewDelegate {
         }
 
     private func updateSelectionRow() {
+        guard config != .composer else { return }
+
         if selectedDestinations.count > 0 && selectionRowHeightConstraint.constant == 0 {
             UIView.animate(withDuration: 0.3, animations: {
                 self.selectionRowHeightConstraint.constant = 100
