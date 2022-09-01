@@ -196,7 +196,7 @@ final class WebClientManager {
             return
         }
         switch noiseMessage.messageType {
-        case .ikA, .xxA, .xxB, .xxC, .xxFallbackA, .xxFallbackB, .UNRECOGNIZED:
+        case .ikA, .xxA, .xxB, .xxC, .kkA, .kkB, .xxFallbackA, .xxFallbackB, .UNRECOGNIZED:
             DDLogError("WebClientManager/handshake/error [message-type: \(noiseMessage.messageType)]")
         case .ikB:
             do {

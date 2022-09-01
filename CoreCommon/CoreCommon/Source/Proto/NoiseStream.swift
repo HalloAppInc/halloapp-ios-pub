@@ -347,8 +347,8 @@ public final class NoiseStream: NSObject {
         DDLogInfo("noise/handshake/received [\(noiseMessage.messageType)] [\(data.count)]")
 
         switch noiseMessage.messageType {
-        case .ikA, .xxA, .xxC, .xxFallbackB:
-            DDLogError("noise/handshake/error received outgoing message type")
+        case .ikA, .xxA, .xxC, .kkA, .kkB, .xxFallbackB:
+            DDLogError("noise/handshake/error received unsupported message type [\(noiseMessage.messageType)]")
             failHandshake()
             return
         case .xxFallbackA:

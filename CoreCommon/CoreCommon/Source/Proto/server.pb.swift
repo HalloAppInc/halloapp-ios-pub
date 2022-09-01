@@ -6213,6 +6213,12 @@ public struct Server_NoiseMessage {
 
     /// -> s, se
     case xxFallbackB // = 6
+
+    /// (-> s, <- s ...) -> e, es, ss
+    case kkA // = 7
+
+    /// <- e, ee, se
+    case kkB // = 8
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -6228,6 +6234,8 @@ public struct Server_NoiseMessage {
       case 4: self = .ikB
       case 5: self = .xxFallbackA
       case 6: self = .xxFallbackB
+      case 7: self = .kkA
+      case 8: self = .kkB
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -6241,6 +6249,8 @@ public struct Server_NoiseMessage {
       case .ikB: return 4
       case .xxFallbackA: return 5
       case .xxFallbackB: return 6
+      case .kkA: return 7
+      case .kkB: return 8
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -6262,6 +6272,8 @@ extension Server_NoiseMessage.MessageType: CaseIterable {
     .ikB,
     .xxFallbackA,
     .xxFallbackB,
+    .kkA,
+    .kkB,
   ]
 }
 
@@ -15563,6 +15575,8 @@ extension Server_NoiseMessage.MessageType: SwiftProtobuf._ProtoNameProviding {
     4: .same(proto: "IK_B"),
     5: .same(proto: "XX_FALLBACK_A"),
     6: .same(proto: "XX_FALLBACK_B"),
+    7: .same(proto: "KK_A"),
+    8: .same(proto: "KK_B"),
   ]
 }
 
