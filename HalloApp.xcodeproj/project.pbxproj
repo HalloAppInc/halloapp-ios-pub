@@ -271,6 +271,7 @@
 		A111BDFC27C96D9100E5DB4E /* UserMenuHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A111BDFB27C96D9100E5DB4E /* UserMenuHandler.swift */; };
 		A11272EA2856C5930009EBD7 /* NewMomentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11272E92856C5930009EBD7 /* NewMomentViewController.swift */; };
 		A11272EC2856E47B0009EBD7 /* MomentComposerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11272EB2856E47B0009EBD7 /* MomentComposerViewController.swift */; };
+		A11BA85428C0236D0077F86A /* RegistrationSplashScreenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11BA85328C0236D0077F86A /* RegistrationSplashScreenViewController.swift */; };
 		A11FA897285BE02900ACDA76 /* MomentsExplainerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11FA896285BE02900ACDA76 /* MomentsExplainerViewController.swift */; };
 		A15B2D96283EA9A0000CE989 /* LargeHitButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15B2D95283EA9A0000CE989 /* LargeHitButton.swift */; };
 		A15E6C782809FA1B008CAEA0 /* ProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15E6C772809FA1B008CAEA0 /* ProfileViewController.swift */; };
@@ -1058,6 +1059,7 @@
 		A111BDFB27C96D9100E5DB4E /* UserMenuHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserMenuHandler.swift; path = Halloapp/Views/Home/UserMenuHandler.swift; sourceTree = SOURCE_ROOT; };
 		A11272E92856C5930009EBD7 /* NewMomentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewMomentViewController.swift; sourceTree = "<group>"; };
 		A11272EB2856E47B0009EBD7 /* MomentComposerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentComposerViewController.swift; sourceTree = "<group>"; };
+		A11BA85328C0236D0077F86A /* RegistrationSplashScreenViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationSplashScreenViewController.swift; sourceTree = "<group>"; };
 		A11FA896285BE02900ACDA76 /* MomentsExplainerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentsExplainerViewController.swift; sourceTree = "<group>"; };
 		A15B2D95283EA9A0000CE989 /* LargeHitButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargeHitButton.swift; sourceTree = "<group>"; };
 		A15E6C772809FA1B008CAEA0 /* ProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewController.swift; sourceTree = "<group>"; };
@@ -1833,6 +1835,7 @@
 				A1FF1ECD28BD90A30057FC27 /* NameInputViewController.swift */,
 				A1FF1ED628BE7DC80057FC27 /* ExistingNetworkViewController.swift */,
 				A1FF1ED428BE78D40057FC27 /* PermissionsViewController.swift */,
+				A11BA85328C0236D0077F86A /* RegistrationSplashScreenViewController.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -3217,6 +3220,7 @@
 				323D787D27D7E25000C29FA1 /* MessageCellViewLinkPreview.swift in Sources */,
 				32ECB6E9277515DD004DABBA /* QuotedMessageCellView.swift in Sources */,
 				EABBF72624E4EDF100FE1F1F /* NewGroupMembersViewController.swift in Sources */,
+				A11BA85428C0236D0077F86A /* RegistrationSplashScreenViewController.swift in Sources */,
 				F893C86F25E5213000068F00 /* VideoView.swift in Sources */,
 				A1FE82E527DEDB5900024641 /* HorizontalMetionPickerView.swift in Sources */,
 				761BD0FA24B3C6B800B567F6 /* InviteRequests.swift in Sources */,

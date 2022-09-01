@@ -201,9 +201,10 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate {
                 self?.navigationController?.dismiss(animated: true)
             }
 
-            let vc = PhoneNumberEntryViewController(registrationManager: manager)
+            let vc = RegistrationSplashScreenViewController(registrationManager: manager)
             let nc = UINavigationController(rootViewController: vc)
             nc.modalPresentationStyle = .fullScreen
+            
             self?.navigationController?.present(nc, animated: true)
         }
 
