@@ -317,14 +317,25 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         
         return FloatingMenu(presenter: self, expandedButtons: expandedButtons)
     }()
-    
+
     func makeTriggerButton() -> FloatingMenuButton {
+        let postLabel = UILabel()
+        postLabel.translatesAutoresizingMaskIntoConstraints = false
+        postLabel.font = .quicksandFont(ofFixedSize: 21, weight: .bold)
+        postLabel.text = Localizations.fabPostButton
+        postLabel.textColor = .white
+
+        let labelContainer = UIView()
+        labelContainer.translatesAutoresizingMaskIntoConstraints = false
+        labelContainer.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 1, right: 0)
+        labelContainer.addSubview(postLabel)
+        postLabel.constrainMargins(to: labelContainer)
+
         let config = UIImage.SymbolConfiguration(pointSize: 20, weight: .bold)
         let plusImage = UIImage(systemName: "plus", withConfiguration: config)?.withRenderingMode(.alwaysTemplate)
-        let accessory = UIImageView(image: UIImage(named: "fab_hallo"))
-        
+
         return .rotatingToggleButton(collapsedIconTemplate: plusImage,
-                                             accessoryView: accessory,
+                                             accessoryView: labelContainer,
                                           expandedRotation: 45)
     }
     
