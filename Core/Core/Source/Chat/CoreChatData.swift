@@ -314,7 +314,7 @@ public class CoreChatData {
     }
 
     public func beginMediaUploadAndSend(chatMessage: ChatMessage, didBeginUpload: ((Result<ChatMessageID, Error>) -> Void)? = nil) {
-        let mediaToUpload = chatMessage.allAssociatedMedia.filter { [.none, .uploading, .uploadError].contains($0.status) }
+        let mediaToUpload = chatMessage.allAssociatedMedia.filter { [.none, .readyToUpload, .processedForUpload, .uploading, .uploadError].contains($0.status) }
         if mediaToUpload.isEmpty {
             send(message: chatMessage, completion: didBeginUpload)
         } else {

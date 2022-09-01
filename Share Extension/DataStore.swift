@@ -242,7 +242,7 @@ class DataStore: ShareExtensionDataStore {
         feedMedia.key = ""
         feedMedia.sha256 = ""
         feedMedia.order = Int16(media.order)
-        feedMedia.status = .uploading
+        feedMedia.status = .readyToUpload
 
         let relativeFilePath = Self.relativeFilePath(forFilename: mediaContentId, mediaType: media.type)
 
@@ -306,7 +306,7 @@ class DataStore: ShareExtensionDataStore {
                     lastMsgMediaType = CommonThread.lastMediaType(for: mediaItem.type)
                 }
             }
-            feedPost.media?.forEach({ $0.status = .uploading })
+            feedPost.media?.forEach({ $0.status = .readyToUpload })
 
             if let group = group {
                 let feedPostInfo = ContentPublishInfo(context: managedObjectContext)
@@ -479,7 +479,7 @@ class DataStore: ShareExtensionDataStore {
                     lastMsgMediaType = CommonThread.lastMediaType(for: mediaItem.type)
                 }
             }
-            chatMessage.media?.forEach({ $0.status = .uploading })
+            chatMessage.media?.forEach({ $0.status = .readyToUpload })
 
             // TODO: Set lastMsgMediaType to .location when sending location message
 
@@ -496,7 +496,7 @@ class DataStore: ShareExtensionDataStore {
                 if let linkPreviewMedia = linkPreviewMedia {
                     self.attach(media: linkPreviewMedia, to: .linkPreview(linkPreview), using: managedObjectContext)
                 }
-                linkPreview.media?.forEach({ $0.status = .uploading })
+                linkPreview.media?.forEach({ $0.status = .readyToUpload })
                 linkPreviews.insert(linkPreview)
                 chatMessage.linkPreviews = linkPreviews
             }

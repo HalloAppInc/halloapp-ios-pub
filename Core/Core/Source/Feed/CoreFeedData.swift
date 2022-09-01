@@ -131,7 +131,7 @@ open class CoreFeedData: NSObject {
                 feedMedia.id = mediaID
                 mediaIDs.append(mediaID)
                 feedMedia.type = mediaItem.type
-                feedMedia.status = .uploading
+                feedMedia.status = .readyToUpload
                 feedMedia.url = mediaItem.url
                 feedMedia.size = mediaItem.size!
                 feedMedia.key = ""
@@ -169,7 +169,7 @@ open class CoreFeedData: NSObject {
                     previewMedia.id = linkPreviewMediaID
                     mediaIDs.append(linkPreviewMediaID)
                     previewMedia.type = linkPreviewMedia.type
-                    previewMedia.status = .uploading
+                    previewMedia.status = .readyToUpload
                     previewMedia.url = linkPreviewMedia.url
                     previewMedia.size = linkPreviewMedia.size!
                     previewMedia.key = ""
@@ -238,7 +238,7 @@ open class CoreFeedData: NSObject {
     }
 
     public func beginMediaUploadAndSend(feedPost: FeedPost, didBeginUpload: ((Result<FeedPostID, Error>) -> Void)? = nil) {
-        let mediaToUpload = feedPost.allAssociatedMedia.filter { [.none, .uploading, .uploadError].contains($0.status) }
+        let mediaToUpload = feedPost.allAssociatedMedia.filter { [.none, .readyToUpload, .processedForUpload, .uploading, .uploadError].contains($0.status) }
         if mediaToUpload.isEmpty {
             send(post: feedPost, completion: didBeginUpload)
         } else {

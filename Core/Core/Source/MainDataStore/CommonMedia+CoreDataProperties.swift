@@ -57,7 +57,7 @@ public enum MediaDirectory: Int16 {
 public extension CommonMedia {
     enum Status: Int16 {
         case none = 0
-        case uploading = 1
+        case readyToUpload = 1
         case uploaded = 2
         case uploadError = 3
         case downloading = 4
@@ -65,6 +65,8 @@ public extension CommonMedia {
         case downloadError = 6
         case downloadFailure = 7
         case downloadedPartial = 8
+        case processedForUpload = 9
+        case uploading = 10
     }
 
     @nonobjc class func fetchRequest() -> NSFetchRequest<CommonMedia> {
@@ -225,7 +227,7 @@ public extension CommonMedia {
             switch status {
             case .none:
                 return .none
-            case .uploadError, .uploaded, .uploading:
+            case .uploadError, .uploaded, .readyToUpload, .processedForUpload, .uploading:
                 return .none
             case .downloaded, .downloadedPartial:
                 return .downloaded
@@ -264,7 +266,7 @@ public extension CommonMedia {
                 return .none
             case .uploaded:
                 return .uploaded
-            case .uploading:
+            case .readyToUpload, .processedForUpload, .uploading:
                 return .pending
             case .uploadError:
                 return .error
@@ -275,12 +277,12 @@ public extension CommonMedia {
             case .uploaded:
                 status = .uploaded
             case .pending:
-                status = .uploading
+                status = .readyToUpload
             case .error:
                 status = .uploadError
             case .none:
                 // Clear status only if it was related to outgoing media (ignore for incoming media)
-                if [.uploaded, .uploading, .uploadError].contains(status) {
+                if [.uploaded, .readyToUpload, .uploadError].contains(status) {
                     status = .none
                 }
             }

@@ -3020,7 +3020,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             let feedMedia = CommonMedia(context: managedObjectContext)
             feedMedia.id = "\(feedPost.id)-\(index)"
             feedMedia.type = mediaItem.type
-            feedMedia.status = .uploading
+            feedMedia.status = .readyToUpload
             feedMedia.url = mediaItem.url
             feedMedia.size = mediaItem.size!
             feedMedia.key = ""
@@ -3056,7 +3056,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 let previewMedia = CommonMedia(context: managedObjectContext)
                 previewMedia.id = "\(linkPreview?.id ?? UUID().uuidString)-0"
                 previewMedia.type = linkPreviewMedia.type
-                previewMedia.status = .uploading
+                previewMedia.status = .readyToUpload
                 previewMedia.url = linkPreviewMedia.url
                 previewMedia.size = linkPreviewMedia.size!
                 previewMedia.key = ""
@@ -3158,7 +3158,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 let feedMedia = CommonMedia(context: managedObjectContext)
                 feedMedia.id = "\(feedComment.id)-\(index)"
                 feedMedia.type = mediaItem.type
-                feedMedia.status = .uploading
+                feedMedia.status = .readyToUpload
                 feedMedia.url = mediaItem.url
                 feedMedia.size = mediaItem.size!
                 feedMedia.key = ""
@@ -3189,7 +3189,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     let previewMedia = CommonMedia(context: managedObjectContext)
                     previewMedia.id = "\(linkPreview?.id ?? UUID().uuidString)-0"
                     previewMedia.type = linkPreviewMedia.type
-                    previewMedia.status = .uploading
+                    previewMedia.status = .readyToUpload
                     previewMedia.url = linkPreviewMedia.url
                     previewMedia.size = linkPreviewMedia.size!
                     previewMedia.key = ""
@@ -3517,7 +3517,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         MainAppContext.shared.beginBackgroundTask(postId)
 
         // Either all media has already been uploaded or post does not contain media.
-        guard let mediaItemsToUpload = feedPost.media?.filter({ [.none, .uploading, .uploadError].contains($0.status) }), !mediaItemsToUpload.isEmpty else {
+        guard let mediaItemsToUpload = feedPost.media?.filter({ [.none, .readyToUpload, .processedForUpload, .uploading, .uploadError].contains($0.status) }), !mediaItemsToUpload.isEmpty else {
             send(post: feedPost)
             return
         }
@@ -3635,7 +3635,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         let commentID = feedLinkPreview.comment?.id
         let postID = feedLinkPreview.post?.id
 
-        guard let mediaItemsToUpload = feedLinkPreview.media?.filter({ $0.status == .none || $0.status == .uploading || $0.status == .uploadError }), !mediaItemsToUpload.isEmpty else {
+        guard let mediaItemsToUpload = feedLinkPreview.media?.filter({ [.none, .readyToUpload, .processedForUpload, .uploading].contains($0.status) }), !mediaItemsToUpload.isEmpty else {
             // no link preview media.. upload
             performSeriallyOnBackgroundContext { managedObjectContext in
                 // Comment link preview
@@ -3767,7 +3767,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             let commentID = feedComment.id
             let postID = feedComment.post.id
 
-            guard let mediaItemsToUpload = feedComment.media?.filter({ [.none, .uploading, .uploadError].contains($0.status) }), !mediaItemsToUpload.isEmpty else {
+            guard let mediaItemsToUpload = feedComment.media?.filter({ [.none, .readyToUpload, .processedForUpload, .uploading, .uploadError].contains($0.status) }), !mediaItemsToUpload.isEmpty else {
                 performSeriallyOnBackgroundContext { managedObjectContext in
                     guard let feedComment = self.feedComment(with: commentID, in: managedObjectContext) else {
                         DDLogError("FeedData/missing-comment [\(commentID)]")
