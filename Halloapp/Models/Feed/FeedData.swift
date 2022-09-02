@@ -3645,7 +3645,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
                 // Post link preview
                 if let postID = postID, let feedPost = self.feedPost(with: postID, in: managedObjectContext) {
-                    self.beginMediaUploadAndSend(feedPost: feedPost)
+                    self.uploadMediaAndSend(feedPost: feedPost)
                     return
                 }
                 DDLogError("FeedData/missing-feedLinkPreview/feedLinkPreviewId [\(feedLinkPreview.id)]")
@@ -3753,7 +3753,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     }
                     // Post link preview
                     if let postID = postID, let feedPost = self.feedPost(with: postID, in: managedObjectContext) {
-                        self.beginMediaUploadAndSend(feedPost: feedPost)
+                        self.uploadMediaAndSend(feedPost: feedPost)
                         return
                     }
                     DDLogError("FeedData/missing-feedLinkPreview/feedLinkPreviewId [\(feedLinkPreview.id)]")
