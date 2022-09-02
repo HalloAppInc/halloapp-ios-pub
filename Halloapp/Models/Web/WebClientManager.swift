@@ -56,7 +56,7 @@ final class WebClientManager {
             self.service.authenticateWebClient(staticKey: staticKey) { [weak self] result in
                 switch result {
                 case .success:
-                    self?.startHandshake()
+                    self?.initiateHandshake()
 
                 case .failure:
                     self?.disconnect(shouldRemoveOldKey: false)
@@ -128,10 +128,15 @@ final class WebClientManager {
 
     func handleIncomingNoiseMessage(_ noiseMessage: Server_NoiseMessage, from staticKey: Data) {
         guard staticKey == self.webStaticKey else {
-            DDLogError("WebClientManager/handleIncoming/error [unrecognized-static-key: \(staticKey.base64EncodedString())] [expected: \(self.webStaticKey?.base64EncodedString() ?? "nil")]")
+            DDLogError("WebClientManager/handleIncomingNoiseMessage/error [unrecognized-static-key: \(staticKey.base64EncodedString())] [expected: \(self.webStaticKey?.base64EncodedString() ?? "nil")]")
             return
         }
-        continueHandshake(noiseMessage)
+        switch state.value {
+        case .handshaking(let handshake):
+            continueHandshake(handshake, with: noiseMessage)
+        case .connected, .disconnected, .registering:
+            receiveHandshake(with: noiseMessage)
+        }
     }
 
     func send(_ data: Data) {
@@ -153,9 +158,42 @@ final class WebClientManager {
         }
     }
 
-    private func startHandshake() {
+    private func receiveHandshake(with noiseMessage: Server_NoiseMessage) {
+        guard case .kkA = noiseMessage.messageType else {
+            DDLogError("WebClientManager/receiveHandshake/error [unexpected-message-type] [\(noiseMessage.messageType)]")
+            disconnect()
+            return
+        }
         guard let ephemeralKeys = NoiseKeys() else {
-            DDLogError("WebClientManager/startHandshake/error [keygen-failure]")
+            DDLogError("WebClientManager/receiveHandshake/error [keygen-failure]")
+            disconnect()
+            return
+        }
+        let handshake: HandshakeState
+        do {
+            handshake = try HandshakeState(
+                pattern: .KK,
+                initiator: false,
+                prologue: Data(),
+                s: noiseKeys.makeX25519KeyPair(),
+                e: ephemeralKeys.makeX25519KeyPair(),
+                rs: webStaticKey)
+            let data = try handshake.readMessage(message: noiseMessage.content)
+            DDLogInfo("WebClientManager/receiveHandshake/read [\(data.count) bytes]")
+            let msgB = try handshake.writeMessage(payload: Data())
+            self.sendNoiseMessage(msgB, type: .kkB)
+            let (send, receive) = try handshake.split()
+            self.state.value = .connected(send, receive)
+        } catch {
+            DDLogError("WebClientManager/receiveHandshake/error [\(error)]")
+            disconnect()
+            return
+        }
+    }
+
+    private func initiateHandshake() {
+        guard let ephemeralKeys = NoiseKeys() else {
+            DDLogError("WebClientManager/initiateHandshake/error [keygen-failure]")
             disconnect()
             return
         }
@@ -169,7 +207,7 @@ final class WebClientManager {
                 e: ephemeralKeys.makeX25519KeyPair(),
                 rs: webStaticKey)
         } catch {
-            DDLogError("WebClientManager/startHandshake/error [\(error)]")
+            DDLogError("WebClientManager/initiateHandshake/error [\(error)]")
             disconnect()
             return
         }
@@ -179,15 +217,11 @@ final class WebClientManager {
             self.sendNoiseMessage(msgA, type: .ikA)
             // TODO: Set timeout
         } catch {
-            DDLogError("WebClientManager/startHandshake/error [\(error)]")
+            DDLogError("WebClientManager/initiateHandshake/error [\(error)]")
         }
     }
 
-    private func continueHandshake(_ noiseMessage: Server_NoiseMessage) {
-        guard case .handshaking(let handshake) = state.value else {
-            DDLogError("WebClientManager/handshake/error [state: \(state.value)]")
-            return
-        }
+    private func continueHandshake(_ handshake: HandshakeState, with noiseMessage: Server_NoiseMessage) {
         do {
             let data = try handshake.readMessage(message: noiseMessage.content)
             DDLogInfo("WebClientManager/handshake/reading data [\(data.count) bytes]")
@@ -196,14 +230,14 @@ final class WebClientManager {
             return
         }
         switch noiseMessage.messageType {
-        case .ikA, .xxA, .xxB, .xxC, .kkA, .kkB, .xxFallbackA, .xxFallbackB, .UNRECOGNIZED:
+        case .ikA, .xxA, .xxB, .xxC, .kkA, .xxFallbackA, .xxFallbackB, .UNRECOGNIZED:
             DDLogError("WebClientManager/handshake/error [message-type: \(noiseMessage.messageType)]")
-        case .ikB:
+        case .kkB, .ikB:
             do {
                 let (send, receive) = try handshake.split()
                 self.state.value = .connected(send, receive)
             } catch {
-                DDLogError("WebClientManager/handshake/ikB/error [\(error)]")
+                DDLogError("WebClientManager/handshake/error [message-type: \(noiseMessage.messageType)] [\(error)]")
             }
         }
     }
