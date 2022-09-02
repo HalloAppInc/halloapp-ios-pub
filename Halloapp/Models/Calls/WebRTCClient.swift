@@ -617,6 +617,24 @@ extension WebRTCClient {
         }
     }
 
+    func bluetoothOff() {
+        self.audioQueue.async { [weak self] in
+            self?.audioSession?.allowBluetooth = false
+        }
+    }
+
+    func bluetoothOn() {
+        self.audioQueue.async { [weak self] in
+            self?.audioSession?.allowBluetooth = true
+        }
+    }
+
+    func setPreferredInput(input: AVAudioSessionPortDescription?) {
+        self.audioQueue.async { [weak self] in
+            self?.audioSession?.preferredInput = input
+        }
+    }
+
     private func setAudioEnabled(_ isEnabled: Bool) {
         setTrackEnabled(RTCAudioTrack.self, isEnabled: isEnabled)
     }

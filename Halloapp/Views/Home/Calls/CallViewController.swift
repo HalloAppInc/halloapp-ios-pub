@@ -13,6 +13,7 @@ import UIKit
 import SwiftUI
 import Combine
 import CocoaLumberjackSwift
+import WebRTC
 
 enum CallStatus {
     case calling
@@ -136,7 +137,8 @@ class AudioCallViewController: CallViewController {
     private lazy var speakerButton: CallViewButton = {
         let button = CallViewButton(image: speakerImage, title: Localizations.callSpeaker)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.addTarget(self, action: #selector(speakerButtonTapped), for: .touchUpInside)
+        // TODO: Clean this up with a better UI.
+        button.addInteraction(UIContextMenuInteraction(delegate: self))
         return button
     }()
 
@@ -412,22 +414,6 @@ class AudioCallViewController: CallViewController {
         }
     }
 
-    @objc func speakerButtonTapped(sender: UIButton) {
-        speakerOn = !speakerOn
-        DDLogInfo("CallViewController/speakerButtonTapped/speakerOn: \(speakerOn)")
-        callManager.setSpeakerCall(speaker: speakerOn) { [weak self] result in
-            guard let self = self else { return }
-            DispatchQueue.main.async {
-                switch result {
-                case .failure(let error):
-                    DDLogError("CallViewController/endCall/failed: \(error)")
-                case .success:
-                    self.speakerButton.isSelected = self.speakerOn
-                }
-            }
-        }
-    }
-
     @objc func endCallButtonTapped(sender: UIButton) {
         DDLogInfo("CallViewController/endCallButtonTapped")
         let endReason: EndCallReason
@@ -527,6 +513,93 @@ class AudioCallViewController: CallViewController {
         useCallStatus = true
         DispatchQueue.main.async {
             self.updateCallStatusLabel()
+        }
+    }
+
+    func selectAudioInput(input: AVAudioSessionPortDescription) {
+        DDLogInfo("CallViewController/selectAudioInput/input: \(input)")
+        switch input.portType {
+        case .builtInMic:
+            speakerOn = false
+        default:
+            speakerOn = true
+        }
+        callManager.setPreferredInput(input: input) { [weak self] result in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                switch result {
+                case .failure(let error):
+                    DDLogError("CallViewController/selectAudioInput/failed: \(error)")
+                case .success:
+                    self.speakerButton.isSelected = self.speakerOn
+                }
+            }
+        }
+    }
+
+    func setSpeakerOn() {
+        DDLogInfo("CallViewController/setSpeakerOn")
+        speakerOn = true
+        setSpeaker(speaker: speakerOn)
+    }
+
+    func setSpeakerOff() {
+        DDLogInfo("CallViewController/setSpeakerOff")
+        speakerOn = false
+        setSpeaker(speaker: speakerOn)
+    }
+
+    func setSpeaker(speaker: Bool) {
+        speakerOn = speaker
+        DDLogInfo("CallViewController/setSpeakerOn/speakerOn: \(speakerOn)")
+        callManager.setSpeakerCall(speaker: speakerOn) { [weak self] result in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                switch result {
+                case .failure(let error):
+                    DDLogError("CallViewController/setSpeakerOn/failed: \(error)")
+                case .success:
+                    self.speakerButton.isSelected = self.speakerOn
+                }
+            }
+        }
+    }
+}
+
+extension AudioCallViewController: UIContextMenuInteractionDelegate {
+
+    func contextMenuInteraction(_ interaction: UIContextMenuInteraction,
+                                configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
+        var items: [UIMenuElement] = []
+        for input in RTCAudioSession.sharedInstance().session.availableInputs ?? [] {
+            switch input.portType {
+            case .builtInMic:
+                items.append(UIAction(title: input.portName, image: UIImage(systemName: "iphone"), handler: { [weak self] _ in
+                    self?.selectAudioInput(input: input)
+                }))
+            case .bluetoothHFP:
+                items.append(UIAction(title: input.portName, image: UIImage(systemName: "earbuds"), handler: { [weak self] _ in
+                    self?.selectAudioInput(input: input)
+                }))
+            case .headsetMic:
+                items.append(UIAction(title: input.portName, image: UIImage(systemName: "headphones"), handler: { [weak self] _ in
+                    self?.selectAudioInput(input: input)
+                }))
+            case .carAudio:
+                items.append(UIAction(title: input.portName, image: UIImage(systemName: "car"), handler: { [weak self] _ in
+                    self?.selectAudioInput(input: input)
+                }))
+            default:
+                items.append(UIAction(title: input.portName, image: UIImage(systemName: "iphone"), handler: { [weak self] _ in
+                    self?.selectAudioInput(input: input)
+                }))
+            }
+        }
+        items.append(UIAction(title: "iPhone Speaker", image: UIImage(systemName: "iphone"), handler: { [weak self] _ in
+            self?.setSpeakerOn()
+        }))
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
+            return UIMenu(title: "", image: nil, identifier: nil, options: [], children: items)
         }
     }
 }

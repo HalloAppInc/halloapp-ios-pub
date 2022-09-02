@@ -330,6 +330,18 @@ final class CallManager: NSObject, CXProviderDelegate {
         }
     }
 
+    func setPreferredInput(input: AVAudioSessionPortDescription, completion: @escaping (Result<Void, CallError>) -> Void) {
+        if let callID = activeCallID {
+            DDLogInfo("CallManager/setPreferredInput/callID: \(callID)/input: \(input.description)")
+            activeCall?.speakerOff()
+            activeCall?.setPreferredInput(input: input)
+            completion(.success(()))
+        } else {
+            DDLogError("CallManager/muteAudio/callID is nil")
+            completion(.failure(.noActiveCall))
+        }
+    }
+
     func muteAudio(muted: Bool, completion: @escaping (Result<Void, CallError>) -> Void) {
         if activeCallID != nil {
             muteCall(muted: muted, completion: completion)

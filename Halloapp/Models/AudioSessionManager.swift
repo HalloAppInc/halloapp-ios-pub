@@ -37,9 +37,22 @@ class AudioSession {
         }
     }
 
-    init(category: Category, portOverride: PortOverride = .none) {
+    var allowBluetooth: Bool {
+        didSet {
+            AudioSessionManager.updateSharedAudioSession()
+        }
+    }
+
+    var preferredInput: AVAudioSessionPortDescription? = nil {
+        didSet {
+            AudioSessionManager.updateSharedAudioSession()
+        }
+    }
+
+    init(category: Category, portOverride: PortOverride = .none, allowBluetooth: Bool = true) {
         self.category = category
         self.portOverride = portOverride
+        self.allowBluetooth = allowBluetooth
     }
 
     deinit {
@@ -138,7 +151,9 @@ class AudioSessionManager {
             switch activeAudioSession.category {
             case .audioCall:
                 category = .playAndRecord
-                options = .allowBluetooth
+                if activeAudioSession.allowBluetooth {
+                    options = .allowBluetooth
+                }
                 // Workaround for issue where CallKit incorrectly terminates speakerphone calls when the power button is pressed.
                 switch activeAudioSession.portOverride {
                 case .speaker:
@@ -148,7 +163,9 @@ class AudioSessionManager {
                 }
             case .videoCall:
                 category = .playAndRecord
-                options = .allowBluetooth
+                if activeAudioSession.allowBluetooth {
+                    options = .allowBluetooth
+                }
                 mode = .videoChat
                 monitorProximity = false
                 disableIdleTimer = true
@@ -179,6 +196,8 @@ class AudioSessionManager {
                 portOverride = .none
             }
         }
+
+        DDLogInfo("AudioSessionManager/sharedAudioSession/category: \(category.rawValue)/mode; \(mode)/options: \(options.rawValue)/portOverride: \(portOverride.rawValue)")
 
         let sharedAudioSession = AVAudioSession.sharedInstance()
         if sharedAudioSession.category != category || sharedAudioSession.mode != mode || sharedAudioSession.categoryOptions != options {
@@ -239,6 +258,15 @@ class AudioSessionManager {
                 DDLogInfo("AudioSessionManager/setActive: \(hasActiveAudioSession)")
             } catch {
                 DDLogError("AudioSessionManager/failedSetActive: \(hasActiveAudioSession) \(error)")
+            }
+        }
+
+        if let preferredInput = activeAudioSession?.preferredInput {
+            do {
+                try AVAudioSession.sharedInstance().setPreferredInput(preferredInput)
+                DDLogInfo("AudioSessionManager/setPreferredInput: \(preferredInput)")
+            } catch {
+                DDLogError("AudioSessionManager/failedSetPreferredInput: \(preferredInput) \(error)")
             }
         }
     }

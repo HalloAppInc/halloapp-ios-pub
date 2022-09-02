@@ -678,6 +678,30 @@ public class Call {
         }
     }
 
+    func bluetoothOn() {
+        DDLogInfo("Call/\(callID)/bluetoothOn/begin")
+        callQueue.async { [self] in
+            webRTCClient?.bluetoothOn()
+            DDLogInfo("Call/\(callID)/bluetoothOn/success")
+        }
+    }
+
+    func bluetoothOff() {
+        DDLogInfo("Call/\(callID)/bluetoothOff/begin")
+        callQueue.async { [self] in
+            webRTCClient?.bluetoothOff()
+            DDLogInfo("Call/\(callID)/bluetoothOff/success")
+        }
+    }
+
+    func setPreferredInput(input: AVAudioSessionPortDescription?) {
+        DDLogInfo("Call/\(callID)/setPreferredInput/begin")
+        callQueue.async { [self] in
+            webRTCClient?.setPreferredInput(input: input)
+            DDLogInfo("Call/\(callID)/setPreferredInput/success")
+        }
+    }
+
 
     // MARK: Remote User actions.
 
