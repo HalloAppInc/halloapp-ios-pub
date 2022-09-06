@@ -4218,7 +4218,9 @@ extension ChatData {
             body =  "🎤"
         case .location(_):
             body = "📍"
-        case .reaction(_), .unsupported(_):
+        case .reaction(let emoji):
+            body = String(format: Localizations.chatUserReactedMessage, emoji)
+        case .unsupported(_):
             body = ""
         }
         AppContext.shared.notificationStore.runIfNotificationWasNotPresented(for: messageID) {
@@ -5662,5 +5664,11 @@ extension Localizations {
         NSLocalizedString("chat.list.user.deleted.reaction.text",
                           value: "%1@ removed %2@ from %3@",
                           comment: "Text shown when user removed a reaction from a text message")
+    }
+
+    static var chatUserReactedMessage: String {
+        NSLocalizedString("chat.user.reacted.message",
+                          value: "reacted %2@ to a message",
+                          comment: "Text shown in a notification when user reacted to a message. The user's name is shown above this message in the notification.")
     }
 }

@@ -563,6 +563,30 @@ open class CoreFeedData: NSObject {
         }
     }
 
+    public func commonReaction(with id: String, in managedObjectContext: NSManagedObjectContext) -> CommonReaction? {
+        return self.commonReactions(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext).first
+    }
+
+    private func commonReactions(predicate: NSPredicate? = nil,
+                                 sortDescriptors: [NSSortDescriptor]? = nil,
+                                 limit: Int? = nil,
+                                 in managedObjectContext: NSManagedObjectContext) -> [CommonReaction] {
+        let fetchRequest: NSFetchRequest<CommonReaction> = CommonReaction.fetchRequest()
+        fetchRequest.predicate = predicate
+        fetchRequest.sortDescriptors = sortDescriptors
+        if let fetchLimit = limit { fetchRequest.fetchLimit = fetchLimit }
+        fetchRequest.returnsObjectsAsFaults = false
+
+        do {
+            let reactions = try managedObjectContext.fetch(fetchRequest)
+            return reactions
+        }
+        catch {
+            DDLogError("CoreFeedData/fetch-reactions/error  [\(error)]")
+            fatalError("Failed to fetch reactions")
+        }
+    }
+
     public func savePostData(postData: PostData, in groupID: GroupID?, hasBeenProcessed: Bool, completion: @escaping ((Result<Void, Error>) -> Void)) {
         mainDataStore.saveSeriallyOnBackgroundContext({ context in
 
@@ -844,6 +868,111 @@ open class CoreFeedData: NSObject {
             feedPost.unreadCount += 1
         }, completion: completion)
     }
+
+    public func saveReactionData(reaction xmppReaction: CommentData, in groupID: GroupID?, currentUserId: UserID,hasBeenProcessed: Bool, completion: @escaping ((Result<Void, Error>) -> Void)) {
+        mainDataStore.saveSeriallyOnBackgroundContext({ managedObjectContext in
+            let existingCommonReaction = self.commonReaction(with: xmppReaction.id, in: managedObjectContext)
+
+            if let existingCommonReaction = existingCommonReaction {
+                switch existingCommonReaction.incomingStatus {
+                case .unsupported, .none, .rerequesting:
+                    DDLogInfo("CoreFeedData/process/already-exists/updating [\(existingCommonReaction.incomingStatus)] [\(xmppReaction.id)]")
+                    break
+                case .error, .incoming, .retracted:
+                    DDLogError("CoreFeedData/process/already-exists/error [\(existingCommonReaction.incomingStatus)] [\(xmppReaction.id)]")
+                    return
+                }
+            }
+
+            // Find reaction's post.
+            let feedPost: FeedPost
+            if let post = self.feedPost(with: xmppReaction.feedPostId, in: managedObjectContext) {
+                DDLogInfo("CoreFeedData/process-reactions/existing-post [\(xmppReaction.feedPostId)]")
+                feedPost = post
+            } else {
+                DDLogError("CoreFeedData/process-reactions/missing-post [\(xmppReaction.feedPostId)]/skip comment, ignored reaction: \(xmppReaction.id)")
+                AppContext.shared.errorLogger?.logError(NSError(domain: "MissingPostForReaction", code: 1011))
+                return
+            }
+
+            // Additional check: post's groupId must match groupId of the comment.
+            guard feedPost.groupId == groupID else {
+                DDLogError("CoreFeedData/process-reactions/incorrect-group-id post:[\(feedPost.groupId ?? "")] comment:[\(groupID ?? "")], ignored reaction: \(xmppReaction.id)")
+                return
+            }
+
+            // Check if post has been retracted.
+            guard !feedPost.isPostRetracted else {
+                DDLogError("CoreFeedData/process-reactions/retracted-post [\(xmppReaction.feedPostId)], ignored reaction: \(xmppReaction.id)")
+                return
+            }
+
+            // Check if parent comment exists
+            guard let parentId = xmppReaction.parentId, let parentComment = self.feedComment(with: parentId, in: managedObjectContext) else {
+                DDLogError("CoreFeedData/process-reactions/no-parent-comment for reaction [\(xmppReaction.id)], ignored reaction: \(xmppReaction.id)")
+                // TODO: handle reactions that arrive before corresponding comment
+                return
+            }
+
+            DDLogDebug("CoreFeedData/process-reactions [\(xmppReaction.id)]")
+            let commonReaction: CommonReaction = {
+                guard let existingCommonReaction = existingCommonReaction else {
+                    // If a tombstone exists for this reaction, delete it
+                    let existingTombstone = self.feedComment(with: xmppReaction.id, in: managedObjectContext)
+                    if let existingTombstone = existingTombstone, existingTombstone.status == .rerequesting {
+                        DDLogInfo("CoreFeedData/process-reactions/deleteTombstone [\(existingTombstone.id)]")
+                        managedObjectContext.delete(existingTombstone)
+                    }
+                    DDLogDebug("CoreFeedData/process-reactions/new [\(xmppReaction.id)]")
+                    return CommonReaction(context: managedObjectContext)
+                }
+                DDLogDebug("CoreFeedData/process-reactions/updating rerequested reaction [\(xmppReaction.id)]")
+                return existingCommonReaction
+            }()
+
+            commonReaction.id = xmppReaction.id
+            commonReaction.fromUserID = xmppReaction.userId
+            switch xmppReaction.content {
+            case .commentReaction(let emoji):
+                commonReaction.emoji = emoji
+            case .album, .text, .voiceNote, .unsupported, .retracted, .waiting:
+                DDLogError("CoreFeedData/process-reaction content not reaction type")
+            }
+            commonReaction.comment = parentComment
+            commonReaction.timestamp = xmppReaction.timestamp
+            feedPost.lastUpdated = feedPost.lastUpdated.flatMap { max($0, commonReaction.timestamp) } ?? commonReaction.timestamp
+
+            // Set status for each comment appropriately.
+            switch xmppReaction.content {
+            case .commentReaction:
+                if commonReaction.fromUserID == currentUserId {
+                    commonReaction.outgoingStatus = .sentOut
+                } else {
+                    // Set status to be rerequesting if necessary.
+                    if xmppReaction.status == .rerequesting {
+                        commonReaction.incomingStatus = .rerequesting
+                    } else {
+                        commonReaction.incomingStatus = .incoming
+                    }
+                }
+            case .retracted:
+                DDLogError("CoreFeedData/process-reactions/incoming-retracted-comment [\(xmppReaction.id)]")
+                commonReaction.incomingStatus = .retracted
+            case .unsupported(let data):
+                commonReaction.incomingStatus = .unsupported
+                feedPost.rawData = data
+            case .waiting:
+                commonReaction.incomingStatus = .rerequesting
+                if xmppReaction.status != .rerequesting {
+                    DDLogError("CoreFeedData/process-reactions/invalid content [\(xmppReaction.id)] with status: \(xmppReaction.status)")
+                }
+            case .text, .voiceNote, .album:
+                DDLogError("CoreFeedData/process-reactions/processing comment as reaction [\(xmppReaction.id)] with status: \(xmppReaction.status)")
+            }
+        }, completion: completion)
+    }
+
+    
 
     public func deleteMedia(mediaItem: CommonMedia) {
         let managedObjectContext = mediaItem.managedObjectContext

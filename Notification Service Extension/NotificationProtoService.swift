@@ -619,6 +619,11 @@ final class NotificationProtoService: ProtoServiceCore {
             DDLogError("NotificationExtension/processCommentData/failed to get commentData, contentId: \(metadata.contentId)")
             return
         }
+        if case .commentReaction(value: _) = commentData.content {
+            self.processReaction(reaction: commentData, metadata: metadata, ack: ack)
+            return
+        }
+
         self.coreFeedData.saveCommentData(commentData: commentData, in: metadata.groupId, hasBeenProcessed: false) { result in
             switch result {
             case .success:
@@ -627,6 +632,23 @@ final class NotificationProtoService: ProtoServiceCore {
                 self.presentCommentNotification(for: metadata, using: commentData)
             case .failure(let error):
                 DDLogError("NotificationExtension/processCommentData/error saving comment [\(commentData.id)]/error: \(error)")
+            }
+        }
+    }
+
+    private func processReaction(reaction: CommentData?, metadata: NotificationMetadata, ack: @escaping () -> ()) {
+        guard let reaction = reaction else {
+            DDLogError("NotificationExtension/processReaction/failed to get commentData, contentId: \(metadata.contentId)")
+            return
+        }
+        self.coreFeedData.saveReactionData(reaction: reaction, in: metadata.groupId, currentUserId: AppContext.shared.userData.userId, hasBeenProcessed: false) { result in
+            switch result {
+            case .success:
+                DDLogInfo("NotificationExtension/processReaction/success saving reaction [\(reaction.id)] for comment: \(reaction.parentId)")
+                ack()
+                self.presentCommentNotification(for: metadata, using: reaction)
+            case .failure(let error):
+                DDLogError("NotificationExtension/processReaction/error saving reaction [\(reaction.id)] for comment: \(reaction.parentId) /error: \(error)")
             }
         }
     }
@@ -897,9 +919,19 @@ final class NotificationProtoService: ProtoServiceCore {
         }
 
         mainDataStore.performSeriallyOnBackgroundContext { context in
+            switch chatContent {
+            case .reaction(_):
+                let notificationContent = self.extractAndHoldNotificationContent(for: metadata, using: chatContent)
+                self.presentNotification(for: metadata.identifier, with: notificationContent)
+                return
+            default:
+                break
+            }
+
             guard let chatMessage = self.coreChatData.chatMessage(with: messageId, in: context) else {
                 return
             }
+
             let notificationContent = self.extractAndHoldNotificationContent(for: metadata, using: chatContent)
             if let firstOrderedMediaItem = chatMessage.orderedMedia.first,
                let firstMediaItem = chatMessage.media?.filter({ $0.id == firstOrderedMediaItem.id }).first {
