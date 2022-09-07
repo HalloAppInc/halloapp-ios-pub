@@ -172,6 +172,8 @@ public class AvatarView: UIView {
     private func applyBorder() {
         avatarContainerView.frame = bounds
         if let borderColor = borderColor, let borderWidth = borderWidth, borderWidth > 0 {
+            avatar.frame = avatarContainerView.bounds.insetBy(dx: borderWidth / 2, dy: borderWidth / 2)
+
             let border = CAShapeLayer()
             border.fillColor = UIColor.clear.cgColor
             border.strokeColor = borderColor.cgColor
