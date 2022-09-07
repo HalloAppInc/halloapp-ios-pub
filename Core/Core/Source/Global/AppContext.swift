@@ -119,7 +119,7 @@ open class AppContext: AppContextCommon {
         coreChatDataImpl
     }
 
-    open private(set) lazy var mediaUploader = CommonMediaUploader(service: coreService, mainDataStore: mainDataStore, mediaHashStore: mediaHashStore)
+    open private(set) lazy var mediaUploader = CommonMediaUploader(service: coreService, mainDataStore: mainDataStore, mediaHashStore: mediaHashStore, userDefaults: userDefaults)
 
     // MARK: Event monitoring
     /// Loads any saved events from user defaults and starts reporting at interval

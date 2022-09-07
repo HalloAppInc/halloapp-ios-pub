@@ -112,23 +112,31 @@ public class CommonMediaUploader: NSObject {
     private let service: CoreService
     private let mainDataStore: MainDataStore
     private let mediaHashStore: MediaHashStore
+    private let userDefaults: UserDefaults
     private let uploadTaskManager = UploadTaskManager()
+
+    private static let backgroundURLSessionIdentifiersUserDefaultsKey = "commonMediaUploader.sessions"
 
     private struct BackgroundUploadSessionContinuation {
         let urlSession: URLSession
-        let completion: () -> Void
+        let completion: (() -> Void)?
     }
 
     private var sessionContinuations: [String: BackgroundUploadSessionContinuation] = [:]
 
+    private let backgroundURLSessionIdentifier = "\(Bundle.main.bundleIdentifier ?? "unknown").mediauploader.\(UUID().uuidString)"
+
     private lazy var backgroundURLSession: URLSession = {
-        return createBackgroundURLSession(withIdentifier: "\(Bundle.main.bundleIdentifier ?? "unknown").mediauploader.\(UUID().uuidString)")
+        // register session once created
+        registerBackgroundURLSessionForResume(sessionIdentifier: backgroundURLSessionIdentifier)
+        return createBackgroundURLSession(withIdentifier: backgroundURLSessionIdentifier)
     }()
 
-    init(service: CoreService, mainDataStore: MainDataStore, mediaHashStore: MediaHashStore) {
+    init(service: CoreService, mainDataStore: MainDataStore, mediaHashStore: MediaHashStore, userDefaults: UserDefaults) {
         self.service = service
         self.mainDataStore = mainDataStore
         self.mediaHashStore = mediaHashStore
+        self.userDefaults = userDefaults
         super.init()
     }
 
@@ -176,14 +184,46 @@ public class CommonMediaUploader: NSObject {
         }
     }
 
-    // Called from AppDelegate
+    // We want to see progress from any background sessions, so we should resume then manually when the app is foregrounded.
+    public func resumeBackgroundURLSessions() {
+        backgroundURLSessionIdentifiersForResume.forEach { identifier in
+            // don't resume our own session
+            guard identifier != backgroundURLSessionIdentifier else {
+                return
+            }
+            DDLogInfo("CommonMediaUploader/resumeBackgroundURLSessions/resuming \(identifier)")
+            resumeHandlingEventsForBackgroundURLSession(withIdentifier: identifier)
+        }
+
+    }
+
+    // Called from AppDelegate or resumeBackgroundURLSessions
     // See https://developer.apple.com/forums/thread/44900?answerId=131816022#131816022
-    public func resumeHandlingEventsForBackgroundURLSession(withIdentifier identifier: String, completion: @escaping () -> Void) {
+    public func resumeHandlingEventsForBackgroundURLSession(withIdentifier identifier: String, completion: (() -> Void)? = nil) {
+        // Skip if session already exists
+        if let continuation = sessionContinuations[identifier] {
+            DDLogInfo("CommonMediaUploader/resumeHandlingEventsForBackgroundURLSession/existing session for identifier \(identifier)")
+            // completions should only come in from the app delegate - replace any existing continuations with the completion
+            if let completion = completion {
+                sessionContinuations[identifier] = BackgroundUploadSessionContinuation(urlSession: continuation.urlSession, completion: completion)
+            }
+        }
+
         let urlSession = createBackgroundURLSession(withIdentifier: identifier)
         sessionContinuations[identifier] = BackgroundUploadSessionContinuation(urlSession: urlSession, completion: completion)
+
         // Create tasks for any in-progress requests
         Task {
             let (_, uploadTasks, _) = await urlSession.tasks
+
+            guard completion != nil || !uploadTasks.isEmpty else {
+                DDLogInfo("CommonMediaUploader/resumeHandlingEventsForBackgroundURLSession/no tasks for session \(identifier), deregistering from resume")
+                deregisterBackgroundURLSessionForResume(sessionIdentifier: identifier)
+                return
+            }
+
+            DDLogInfo("CommonMediaUploader/resumeHandlingEventsForBackgroundURLSession/creating upload tasks for active tasks in session \(identifier)")
+
             for uploadTask in uploadTasks {
                 guard let mediaID = uploadTask.taskDescription else {
                     DDLogError("CommonMediaUploader/resumeHandlingEventsForBackgroundURLSession/invalid task")
@@ -643,11 +683,52 @@ extension CommonMediaUploader {
             .flatMap { $0.progressPublisher }
             .eraseToAnyPublisher()
     }
+
+    // MARK: - Background Task Management
+
+    private var backgroundURLSessionIdentifiersForResume: [String] {
+        return userDefaults.stringArray(forKey: Self.backgroundURLSessionIdentifiersUserDefaultsKey) ?? []
+    }
+
+    private func registerBackgroundURLSessionForResume(sessionIdentifier: String) {
+        var backgroundURLSessionIdentifiers = userDefaults.stringArray(forKey: Self.backgroundURLSessionIdentifiersUserDefaultsKey) ?? []
+        if !backgroundURLSessionIdentifiers.contains(sessionIdentifier) {
+            backgroundURLSessionIdentifiers.append(sessionIdentifier)
+            userDefaults.set(backgroundURLSessionIdentifiers, forKey: Self.backgroundURLSessionIdentifiersUserDefaultsKey)
+        }
+    }
+
+    private func deregisterBackgroundURLSessionForResume(sessionIdentifier: String) {
+        var backgroundURLSessionIdentifiers = userDefaults.stringArray(forKey: Self.backgroundURLSessionIdentifiersUserDefaultsKey) ?? []
+        backgroundURLSessionIdentifiers.removeAll(where: { $0 == sessionIdentifier })
+        userDefaults.set(backgroundURLSessionIdentifiers, forKey: Self.backgroundURLSessionIdentifiersUserDefaultsKey)
+    }
 }
 
 // MARK: - URLSessionDelegate
 
 extension CommonMediaUploader: URLSessionDelegate {
+
+    public func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?) {
+        guard let sessionIdentifier = session.configuration.identifier else {
+            DDLogError("CommonMediaUploader/urlSessionDidBecomeInvalidWithError/unknown session")
+            return
+        }
+
+        if session === self.backgroundURLSession {
+            DDLogError("CommonMediaUploader/urlSessionDidBecomeInvalidWithError/active session became invalid! recreating...")
+            backgroundURLSession = createBackgroundURLSession(withIdentifier: backgroundURLSessionIdentifier)
+            return
+        }
+
+        DDLogInfo("CommonMediaUploader/urlSessionDidBecomeInvalidWithError/\(sessionIdentifier) - \(String(describing: error))")
+
+        if let continuation = sessionContinuations[sessionIdentifier] {
+            deregisterBackgroundURLSessionForResume(sessionIdentifier: sessionIdentifier)
+            sessionContinuations[sessionIdentifier] = nil
+            continuation.completion?()
+        }
+    }
 
     public func urlSessionDidFinishEvents(forBackgroundURLSession session: URLSession) {
         guard let sessionIdentifier = session.configuration.identifier else {
@@ -655,13 +736,15 @@ extension CommonMediaUploader: URLSessionDelegate {
             return
         }
         DDLogInfo("CommonMediaUploader/urlSessionDidFinishEvents for \(sessionIdentifier)")
+
+        deregisterBackgroundURLSessionForResume(sessionIdentifier: sessionIdentifier)
+
         guard let continuation = sessionContinuations[sessionIdentifier] else {
             DDLogError("CommonMediaUploader/urlSessionDidFinishEvents/no active session for \(sessionIdentifier)")
             return
         }
-
         sessionContinuations[sessionIdentifier] = nil
-        continuation.completion()
+        continuation.completion?()
     }
 }
 
@@ -670,7 +753,18 @@ extension CommonMediaUploader: URLSessionDelegate {
 extension CommonMediaUploader: URLSessionTaskDelegate {
 
     public func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
-        DDLogInfo("CommonMediaUploader/Progress/\(task.taskDescription ?? "")/ \(totalBytesSent) / \(totalBytesExpectedToSend)")
+        guard let mediaID = task.taskDescription else {
+            DDLogError("CommonMediaUploader/Progress/media task description does not contain mediaID")
+            return
+        }
+
+        DDLogInfo("CommonMediaUploader/Progress/\(mediaID)/ \(totalBytesSent) / \(totalBytesExpectedToSend)")
+
+        // In certain cases, tasks are unavailable at session resume.  Add them here if needed.
+        Task {
+            let uploadTask = await uploadTaskManager.findOrCreateTask(for: mediaID)
+            uploadTask.currentURLTask = task
+        }
     }
 
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
@@ -682,8 +776,8 @@ extension CommonMediaUploader: URLSessionTaskDelegate {
         DDLogInfo("CommonMediaUploader/didCompleteWithError/received response for \(mediaID)")
 
         // Check if this was just cancelled
-        if let urlError = error as? URLError, urlError.code == .cancelled {
-            DDLogInfo("CommonMediaUploader/didCompleteWithError/cancelled request for \(mediaID)")
+        if let urlError = error as? URLError, urlError.code == .cancelled, urlError.backgroundTaskCancelledReason == nil {
+            DDLogInfo("CommonMediaUploader/didCompleteWithError/cancelled request for \(mediaID) - \(urlError)")
             return
         }
 

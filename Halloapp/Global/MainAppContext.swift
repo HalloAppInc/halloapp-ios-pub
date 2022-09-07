@@ -198,6 +198,12 @@ class MainAppContext: AppContext {
             migrateFeedPostExpiryIfNecessary()
             migrateCommonMediaIDsIfNecessary()
         }
+
+        NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
+            .sink { [weak mediaUploader] _ in
+                mediaUploader?.resumeBackgroundURLSessions()
+            }
+            .store(in: &cancellableSet)
     }
 
     private func performAppUpdateMigrationIfNecessary() {
