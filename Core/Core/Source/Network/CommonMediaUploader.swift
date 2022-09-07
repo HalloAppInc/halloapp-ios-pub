@@ -253,8 +253,11 @@ public class CommonMediaUploader: NSObject {
         var encryptedFileURL: URL?
         var existingURLInfo: MediaURLInfo?
 
-        // not really an update here, just extract the values we need
         try await updateMedia(with: mediaID) { media in
+            // reset on retry in case media is in a failure state
+            media.status = .readyToUpload
+
+            // Extract needed values
             mediaURL = media.mediaURL
             type = media.type
             sha256 = media.sha256
@@ -291,6 +294,7 @@ public class CommonMediaUploader: NSObject {
             }
 
             try await updateMedia(with: mediaID) { media in
+                media.status = .processedForUpload
                 media.size = result.size
                 media.key = result.key
                 media.sha256 = result.sha256
@@ -339,6 +343,8 @@ public class CommonMediaUploader: NSObject {
             }
         }
 
+        let uploadTask: URLSessionUploadTask?
+
         switch urlInfo {
         case .download(let downloadURL):
             try await updateMedia(with: mediaID) { media in
@@ -351,15 +357,24 @@ public class CommonMediaUploader: NSObject {
                 }
             }
             dispatchMediaStatusChanged(with: mediaID)
-            return nil
+            uploadTask = nil
         case .getPut(_, let putURL):
-            return startDirectUpload(mediaID: mediaID, encryptedFileURL: encryptedFileURL, patchURL: putURL)
+            uploadTask = startDirectUpload(mediaID: mediaID, encryptedFileURL: encryptedFileURL, patchURL: putURL)
         case .patch(let patchURL):
-            return startResumableUpload(mediaID: mediaID, offset: try await uploadOffset(forPatchURL: patchURL), encryptedFileURL: encryptedFileURL, patchURL: patchURL)
+            uploadTask = startResumableUpload(mediaID: mediaID, offset: try await uploadOffset(forPatchURL: patchURL), encryptedFileURL: encryptedFileURL, patchURL: patchURL)
         case .none:
             DDLogError("CommonMediaUploader/upload/Could not fetch urlInfo for \(mediaID)")
             throw MediaUploadError.couldNotFetchURLInfo
         }
+
+        // Mark status as uploading so we don't duplicate requests
+        if uploadTask != nil {
+            try? await updateMedia(with: mediaID, update: { media in
+                media.status = .uploading
+            })
+        }
+
+        return uploadTask
     }
 
     private func parseResponseAndRetryIfNeeded(mediaID: CommonMediaID, task: URLSessionTask, error: Error?) async throws -> URLSessionUploadTask? {

@@ -7,6 +7,7 @@
 //
 
 import CocoaLumberjackSwift
+import Combine
 import CoreData
 import CoreGraphics
 
@@ -203,6 +204,12 @@ extension CommonMedia {
                 uploadURL = nil
             }
         }
+    }
+
+    var statusPublisher: AnyPublisher<Status, Never> {
+        return publisher(for: \.statusValue)
+            .compactMap { Status(rawValue: $0) }
+            .eraseToAnyPublisher()
     }
 }
 

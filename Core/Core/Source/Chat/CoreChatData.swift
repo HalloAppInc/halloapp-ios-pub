@@ -324,6 +324,18 @@ public class CoreChatData {
             let postID = chatMessage.id
             // chatMessageMediaStatusChangedPublisher should trigger post upload once all media has been uploaded
             mediaToUpload.forEach { media in
+                guard media.status != .uploading else {
+                    uploadedMediaCount += 1
+                    if uploadedMediaCount + failedMediaCount == totalMediaCount {
+                        if failedMediaCount == 0 {
+                            didBeginUpload?(.success(postID))
+                        } else {
+                            didBeginUpload?(.failure(PostError.mediaUploadFailed))
+                        }
+                    }
+                    return
+                }
+
                 commonMediaUploader.upload(mediaID: media.id) { result in
                     switch result {
                     case .success:

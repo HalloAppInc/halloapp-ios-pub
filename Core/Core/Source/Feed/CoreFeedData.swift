@@ -248,6 +248,18 @@ open class CoreFeedData: NSObject {
             let postID = feedPost.id
             // postMediaStatusChangedPublisher should trigger post upload once all media has been uploaded
             mediaToUpload.forEach { media in
+                // Don't repeat in-progress requests
+                guard media.status != .uploading else {
+                    uploadedMediaCount += 1
+                    if uploadedMediaCount + failedMediaCount == totalMediaCount {
+                        if failedMediaCount == 0 {
+                            didBeginUpload?(.success(postID))
+                        } else {
+                            didBeginUpload?(.failure(PostError.mediaUploadFailed))
+                        }
+                    }
+                    return
+                }
                 commonMediaUploader.upload(mediaID: media.id) { result in
                     switch result {
                     case .success:
@@ -374,37 +386,52 @@ open class CoreFeedData: NSObject {
     }
 
     public func uploadProgressPublisher(for post: FeedPost) -> AnyPublisher<Float, Never> {
-        let mediaIDs = Set(post.allAssociatedMedia.map(\.id))
-        let mediaCount = mediaIDs.count
+        let media = post.allAssociatedMedia
+        let mediaCount = media.count
 
         guard mediaCount > 0 else {
             return Just(Float(1)).eraseToAnyPublisher()
         }
 
-        let progressPublisher: AnyPublisher<Float, Never> = ImageServer.shared.progress
-            .prepend(mediaIDs)
-            .filter { mediaIDs.contains($0) }
-            .map { mediaID -> Float in
-                let (processingCount, processingProgress) = ImageServer.shared.progress(for: mediaID)
-                return processingProgress * Float(processingCount) / Float(mediaCount)
-            }
-            .eraseToAnyPublisher()
+        var overallProgressPublisher: AnyPublisher<Float, Never> = Just(0).eraseToAnyPublisher()
 
-        // Combine each separate media progress publisher
-        var uploadPublisher: AnyPublisher<Float, Never> = Just(Float(0)).eraseToAnyPublisher()
-        mediaIDs.forEach { mediaID in
-            let mediaUploadProgressPublisher = commonMediaUploader.progress(for: mediaID)
-                .eraseToAnyPublisher()
-            uploadPublisher = uploadPublisher
-                .combineLatest(mediaUploadProgressPublisher) { totalProgress, uploadProgress in
-                    return totalProgress + uploadProgress / Float(mediaCount)
+        for mediaItem in media {
+            let mediaID = mediaItem.id
+            let mediaItemProgressPublisher = mediaItem.statusPublisher
+                .flatMap { [weak commonMediaUploader] status in
+                    switch status {
+                    case .uploaded:
+                        return Just(Float(1)).eraseToAnyPublisher()
+                    case .none, .readyToUpload, .uploadError:
+                        let imageServerProgress: AnyPublisher<Float, Never> = ImageServer.shared.progress
+                            .prepend(mediaID)
+                            .filter { $0 == mediaID }
+                            .map { _ -> Float in
+                                let (processingCount, processingProgress) = ImageServer.shared.progress(for: mediaID)
+                                return 0.5 * processingProgress * Float(processingCount) / Float(mediaCount) // Assume half of progress is for uploading
+                            }
+                            .eraseToAnyPublisher()
+                        return imageServerProgress
+                    case .processedForUpload, .uploading:
+                        if let commonMediaUploader = commonMediaUploader {
+                            return commonMediaUploader.progress(for: mediaID)
+                                .prepend(0)
+                                .map { $0 * 0.5 + 0.5 } // Assume half of pregress is for processing, which is already complete
+                                .eraseToAnyPublisher()
+                        } else {
+                            return Just(Float(0)).eraseToAnyPublisher()
+                        }
+                    case .downloaded, .downloadedPartial, .downloadFailure, .downloadError, .downloading:
+                        // Should never get here...
+                        return Just(Float(1)).eraseToAnyPublisher()
+                    }
                 }
+            overallProgressPublisher = overallProgressPublisher
+                .combineLatest(mediaItemProgressPublisher) { $0 + ($1 / Float(mediaCount)) }
                 .eraseToAnyPublisher()
         }
 
-        return Publishers.CombineLatest(progressPublisher, uploadPublisher)
-            .map { ($0 + $1) / 2.0 }
-            .eraseToAnyPublisher()
+        return overallProgressPublisher
     }
 
     // MARK: - Comment Creation
