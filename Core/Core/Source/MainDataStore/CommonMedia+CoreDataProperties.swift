@@ -335,16 +335,7 @@ extension CommonMedia {
         }
 
         // Set destination string based on the content id.
-        let mediaFilename: String
-        if let postID = feedPostMedia.post?.id {
-            mediaFilename = "\(postID)-\(feedPostMedia.order)"
-        } else if let commentID = feedPostMedia.comment?.id {
-            mediaFilename = "\(commentID)-\(feedPostMedia.order)"
-        } else if let linkPreviewID = feedPostMedia.linkPreview?.id {
-            mediaFilename = "\(linkPreviewID)-\(feedPostMedia.order)"
-        } else {
-            mediaFilename = UUID().uuidString
-        }
+        let mediaFilename = feedPostMedia.id
 
         // Copy unencrypted file.
         let destinationFileURL = fileURL(forMediaFilename: mediaFilename).appendingPathExtension(fileExtension(forMediaType: pendingMedia.type))
@@ -356,8 +347,9 @@ extension CommonMedia {
             let encryptedDestinationUrl = destinationFileURL.appendingPathExtension("enc")
             try FileManager.default.copyItem(at: encryptedFileUrl, to: encryptedDestinationUrl)
         }
-        feedPostMedia.mediaDirectory = .commonMedia
-        feedPostMedia.relativeFilePath = relativePath(from: destinationFileURL)
+        let mediaDirectory = MediaDirectory.commonMedia
+        feedPostMedia.mediaDirectory = mediaDirectory
+        feedPostMedia.relativeFilePath = mediaDirectory.relativePath(forFileURL: destinationFileURL)
         DDLogInfo("FeedDownloadManager/copyMedia/from: \(sourceURL)/to: \(destinationFileURL)")
     }
 
@@ -389,14 +381,5 @@ extension CommonMedia {
         case .audio:
             return "aac"
         }
-    }
-
-    public static func relativePath(from fileURL: URL) -> String? {
-        let fullPath = fileURL.path
-        let mediaDirectoryPath = AppContext.commonMediaStoreURL.path
-        if let range = fullPath.range(of: mediaDirectoryPath, options: [.anchored]) {
-            return String(fullPath.suffix(from: range.upperBound))
-        }
-        return nil
     }
 }

@@ -142,7 +142,7 @@ open class CoreFeedData: NSObject {
                 feedMedia.mediaDirectory = .commonMedia
 
                 if let url = mediaItem.fileURL {
-                    ImageServer.shared.attach(for: url, id: postId, index: index)
+                    ImageServer.shared.attach(for: url, id: mediaID, index: index)
                 }
 
                 // Copying depends on all data fields being set, so do this last.

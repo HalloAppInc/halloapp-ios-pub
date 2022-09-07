@@ -823,6 +823,7 @@ extension CommonMediaUploader: URLSessionTaskDelegate {
                     uploadTask.currentURLTask = urlSessionUploadTask
                 } else {
                     await uploadTaskManager.cancelAndRemoveTask(for: mediaID)
+                    ImageServer.shared.clearAllTasks(for: mediaID)
                 }
             case .failure:
                 try? await self.updateMedia(with: mediaID) { media in
@@ -830,6 +831,7 @@ extension CommonMediaUploader: URLSessionTaskDelegate {
                 }
                 dispatchMediaStatusChanged(with: mediaID)
                 await uploadTaskManager.cancelAndRemoveTask(for: mediaID)
+                ImageServer.shared.clearAllTasks(for: mediaID)
             }
             backgroundTaskCompletion()
         }
