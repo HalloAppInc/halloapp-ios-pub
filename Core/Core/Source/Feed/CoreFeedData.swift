@@ -269,9 +269,11 @@ open class CoreFeedData: NSObject {
     }
 
     private func uploadPostIfMediaReady(postID: FeedPostID) {
+        let endBackgroundTask = AppContext.shared.startBackgroundTask(withName: "uploadPostIfmediaReady-\(postID)")
         mainDataStore.performSeriallyOnBackgroundContext { [weak self] context in
             guard let self = self, let post = self.feedPost(with: postID, in: context) else {
-                DDLogError("FeedData/UploadPostIfNeeded/Post not found with id \(postID)")
+                DDLogError("CoreFeedData/uploadPostIfMediaReady/Post not found with id \(postID)")
+                endBackgroundTask()
                 return
             }
 
@@ -282,16 +284,18 @@ open class CoreFeedData: NSObject {
 
             // Check if all media is uploaded
             guard media.count == uploadedMedia.count + failedMedia.count else {
+                endBackgroundTask()
                 return
             }
 
             if !failedMedia.isEmpty {
+                DDLogInfo("CoreFeedData/uploadPostIfMediaReady/failed \(failedMedia.count)/\(media.count) uploads for \(postID), marking send error")
                 post.status = .sendError
                 self.mainDataStore.save(context)
-
+                endBackgroundTask()
             } else {
                 // Upload post
-                let endBackgroundTask = AppContext.shared.startBackgroundTask(withName: "send-post-\(postID)")
+                DDLogInfo("CoreFeedData/uploadPostIfMediaReady/completed \(media.count) media uploads for \(postID)")
                 self.send(post: post) { _ in
                     endBackgroundTask()
                 }

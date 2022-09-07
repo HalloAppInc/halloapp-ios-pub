@@ -746,6 +746,7 @@ class ShareComposerViewController: UIViewController {
     // MARK: New Upload Flow
 
     private func upload(text: String, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?) {
+        let taskCompletion = AppContext.shared.startBackgroundTask(withName: "share-extension-media-processing")
         let expectedCompletionCount = destinations.count
 
         // post/message creation completions
@@ -799,6 +800,8 @@ class ShareComposerViewController: UIViewController {
                         self.extensionContext?.completeRequest(returningItems: nil)
                     }
                 }
+
+                taskCompletion()
             }
         }
 

@@ -345,10 +345,12 @@ public class CoreChatData {
     }
 
     private func uploadChatMessageIfMediaReady(chatMessageID: ChatMessageID) {
+        let endBackgroundTask = AppContext.shared.startBackgroundTask(withName: "uploadChatMessageIfMediaReady-\(chatMessageID)")
         DDLogInfo("CoreChatData/uploadChatMessageIfMediaReady/begin \(chatMessageID)")
         mainDataStore.performSeriallyOnBackgroundContext { [weak self] context in
             guard let self = self, let chatMessage = self.chatMessage(with: chatMessageID, in: context) else {
                 DDLogError("CoreChatData/uploadChatMessageIfMediaReady/Chat message not found with id \(chatMessageID)")
+                endBackgroundTask()
                 return
             }
 
@@ -359,21 +361,22 @@ public class CoreChatData {
 
             // Check if all media is uploaded
             guard media.count == uploadedMedia.count + failedMedia.count else {
+                endBackgroundTask()
                 return
             }
 
             if failedMedia.isEmpty {
                 // Upload post
                 DDLogInfo("CoreChatData/uploadChatMessageIfMediaReady/sending \(chatMessageID)")
-                let endBackgroundTask = AppContext.shared.startBackgroundTask(withName: "send-chat-\(chatMessageID)")
                 self.send(message: chatMessage) { _ in
                     endBackgroundTask()
                 }
             } else {
                 // Mark message as failed
-                DDLogInfo("CoreChatData/uploadChatMessageIfMediaReady/faild to send \(chatMessageID)")
+                DDLogInfo("CoreChatData/uploadChatMessageIfMediaReady/failed to send \(chatMessageID)")
                 chatMessage.outgoingStatus = .error
                 self.mainDataStore.save(context)
+                endBackgroundTask()
             }
         }
     }

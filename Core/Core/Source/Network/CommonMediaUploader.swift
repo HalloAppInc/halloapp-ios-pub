@@ -145,9 +145,11 @@ public class CommonMediaUploader: NSObject {
     }
 
     public func upload(mediaID: CommonMediaID, didBeginUpload: ((Result<CommonMediaID, Error>) -> Void)? = nil) {
+        let backgroundTaskCompletion = AppContext.shared.startBackgroundTask(withName: "media-uploader-upload-\(mediaID)")
         Task {
             guard let uploadTask = await uploadTaskManager.addTaskIfNotExist(for: mediaID) else {
                 DDLogInfo("CommonMediaUploader/upload/existing upload task in progress for \(mediaID), aborting")
+                backgroundTaskCompletion()
                 return
             }
 
@@ -175,6 +177,8 @@ public class CommonMediaUploader: NSObject {
                 await uploadTaskManager.cancelAndRemoveTask(for: mediaID)
                 didBeginUpload?(.failure(error))
             }
+
+            backgroundTaskCompletion()
         }
     }
 
@@ -786,6 +790,7 @@ extension CommonMediaUploader: URLSessionTaskDelegate {
             return
         }
 
+        let backgroundTaskCompletion = AppContext.shared.startBackgroundTask(withName: "media-uploader-handle-response-\(mediaID)")
         Task {
             let uploadTask = await uploadTaskManager.findOrCreateTask(for: mediaID)
             uploadTask.currentURLTask = nil
@@ -811,6 +816,7 @@ extension CommonMediaUploader: URLSessionTaskDelegate {
                 dispatchMediaStatusChanged(with: mediaID)
                 await uploadTaskManager.cancelAndRemoveTask(for: mediaID)
             }
+            backgroundTaskCompletion()
         }
     }
 }
