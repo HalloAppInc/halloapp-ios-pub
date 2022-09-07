@@ -85,6 +85,10 @@ public class CommonMediaUploader: NSObject {
         var currentTask: Task<URLSessionUploadTask?, Error>?
         var currentURLTask: URLSessionTask? {
             didSet {
+                guard currentURLTask !== oldValue else {
+                    return
+                }
+
                 // Keep a single upload progress task per uploadTask that holds the max completed progress percent of any request
                 progressCancellable = currentURLTask?.progress.publisher(for: \.fractionCompleted).sink { [weak self] progress in
                     guard let self = self else {
@@ -519,6 +523,7 @@ extension CommonMediaUploader {
         request.setValue("1.0.0", forHTTPHeaderField: "Tus-Resumable")
         request.setValue("application/offset+octet-stream", forHTTPHeaderField: "content-type")
         request.setValue(String(offset), forHTTPHeaderField: "Upload-offset")
+        request.setValue("Keep-Alive", forHTTPHeaderField: "Connection")
 
         let uploadTask: URLSessionUploadTask
         if offset == 0 {

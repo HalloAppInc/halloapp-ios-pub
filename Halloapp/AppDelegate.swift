@@ -216,7 +216,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ application: UIApplication, handleEventsForBackgroundURLSession identifier: String, completionHandler: @escaping () -> Void) {
-        DDLogDebug("MediaUploader - restarting app for backgroundURLSession: \(identifier)")
+        DDLogDebug("CommonMediaUploader - restarting app for backgroundURLSession: \(identifier)")
 
         MainAppContext.shared.service.startConnectingIfNecessary()
         MainAppContext.shared.mediaUploader.resumeHandlingEventsForBackgroundURLSession(withIdentifier: identifier, completion: completionHandler)

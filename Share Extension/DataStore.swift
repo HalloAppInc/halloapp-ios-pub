@@ -225,13 +225,13 @@ class DataStore: ShareExtensionDataStore {
         switch target {
         case .post(let feedPost):
             feedMedia.post = feedPost
-            mediaContentId = "\(feedPost.id)-\(feedMedia.order)"
+            mediaContentId = "\(feedPost.id)-\(media.order)"
         case .message(let chatMessage):
             feedMedia.message = chatMessage
-            mediaContentId = "\(chatMessage.id)-\(feedMedia.order)"
+            mediaContentId = "\(chatMessage.id)-\(media.order)"
         case .linkPreview(let linkPreview):
             feedMedia.linkPreview = linkPreview
-            mediaContentId = "\(linkPreview.id)-\(feedMedia.order)"
+            mediaContentId = "\(linkPreview.id)-\(media.order)"
         }
 
         feedMedia.id = mediaContentId
