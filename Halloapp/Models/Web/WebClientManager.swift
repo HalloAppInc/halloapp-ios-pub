@@ -182,7 +182,7 @@ final class WebClientManager {
             DDLogInfo("WebClientManager/receiveHandshake/read [\(data.count) bytes]")
             let msgB = try handshake.writeMessage(payload: Data())
             self.sendNoiseMessage(msgB, type: .kkB)
-            let (send, receive) = try handshake.split()
+            let (receive, send) = try handshake.split()
             self.state.value = .connected(send, receive)
         } catch {
             DDLogError("WebClientManager/receiveHandshake/error [\(error)]")
