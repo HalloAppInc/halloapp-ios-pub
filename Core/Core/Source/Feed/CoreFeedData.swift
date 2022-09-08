@@ -416,7 +416,7 @@ open class CoreFeedData: NSObject {
                         if let commonMediaUploader = commonMediaUploader {
                             return commonMediaUploader.progress(for: mediaID)
                                 .prepend(0)
-                                .map { $0 * 0.5 + 0.5 } // Assume half of pregress is for processing, which is already complete
+                                .map { $0 * 0.5 + 0.5 } // Assume half of progress is for processing, which is already complete
                                 .eraseToAnyPublisher()
                         } else {
                             return Just(Float(0)).eraseToAnyPublisher()
