@@ -100,7 +100,10 @@ open class AppContextCommon {
             options.enableAutoPerformanceTracking = true
             options.enableUserInteractionTracing = true
             options.maxBreadcrumbs = 500
-            options.tracesSampler = { _ in return Self.sentryTracesSampleRate } // lazy, so this can be updated between app restarts
+
+            // lazy, so this can be updated between app restarts
+            options.profilesSampler = { _ in return Self.sentryTracesSampleRate }
+            options.tracesSampler = { _ in return Self.sentryTracesSampleRate }
         }
 
         let sentryLogger = SentryLogger(logFormatter: LogFormatter())
