@@ -484,6 +484,9 @@
 /* Text shown in the chat interface informing the user that the contact is unblocked */
 "chat.unblocked.contact.label" = "Desbloqueaste a este contacto";
 
+/* Text shown in a notification when user reacted to a message. The user's name is shown above this message in the notification. */
+"chat.user.reacted.message" = "reaccionó %2@ a mensaje";
+
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "Al eliminar este chat estarás borrando toda la historia del chat y el contenido de tu dispositivo.";
 
@@ -538,13 +541,10 @@
 /* Title on edit button */
 "composer.button.edit" = "Editar";
 
-/* Send button title */
-"composer.button.send.to" = "Enviar a";
-
-/* Title warning that a voice recording will be deleted */
+/* Title warning that a audio recording will be deleted */
 "composer.delete.recording.title" = "¿Eliminar grabación de voz?";
 
-/* Warning message shown to the user before discarding a voice post */
+/* Warning message shown to the user before discarding a audio post */
 "composer.deletevoicenote.message" = "La grabación de voz no se guardará si eliminas esta publicación.";
 
 /* Title for alert when closing the post composer with a voice note */
@@ -573,6 +573,9 @@
 
 /* Composer New Moment Post title. */
 "composer.moment.post.title" = "Nuevo momento";
+
+/* Title of the composer during a user's very first post. */
+"composer.onboarding.post.title" = "Mi primera publicación";
 
 /* Placeholder text for media caption field in post composer. */
 "composer.placeholder.media.description" = "Agrega una descripción";
@@ -625,14 +628,26 @@
 /* Placeholder text shown inside the group name input box when it's empty */
 "create.group.name.placeholder" = "Dale un nombre a tu grupo";
 
+/* Title for group name text field in group creation */
+"create.group.name.title" = "Nombre";
+
 /* Title of group creation screen */
 "create.group.title" = "Información del grupo";
+
+/* Prompt for the user to create their first post. */
+"create.your.first.post.1" = "Crea tu primera publicación";
+
+/* Prompt for the user to create their first post. */
+"create.your.first.post.2" = "Crea tu primera publicación e invita a tus amigos a verla";
 
 /* Title for generic delete button. */
 "Delete" = "Eliminar";
 
 /* Body of the bottom sheet that is presented only once to explain the moments feature. */
 "describing.moments" = "Desbloquea los momentos de tus amigos compartiendo los tuyos. Los momentos son casuales, desaparecen después de verlos una vez.";
+
+/* Send to button and screen title */
+"destination.send.to" = "Enviar a";
 
 /* Title that indicates that someone downloaded media from a post. */
 "downloaded.title" = "Descargado";
@@ -840,6 +855,9 @@
 
 /* Button under someoneelse's post. Verb. */
 "feedpost.button.reply" = "Responder en privado";
+
+/* Explains that as more contacts join the app, they will appear in this list automatically. */
+"fellow.contacts.will.arrive" = "Tus contactos telefónicos que se registren con HalloApp aparecerán aquí automáticamente.";
 
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Agrega la descripción del grupo";
@@ -1240,8 +1258,12 @@
 /* Message action. Verb. */
 "message.delete" = "Eliminar";
 
-/* Call to action to forward a message */
+/* Call to action to forward a message
+   Title of page where user can pick contats to forward a chat messsage */
 "message.forward" = "Reenviar";
+
+/* Call to action to forward a message which contains more than once media item */
+"message.forward.all" = "Reenviar todo";
 
 /* Message action. Verb. */
 "message.reply" = "Responder";
@@ -1620,6 +1642,9 @@
 /* Button label to resend verification code by voice call */
 "registration.code.resend.by.voice" = "Llámame";
 
+/* An explainer during registration for why we need contact permissions. */
+"registration.contact.permissions.mesage" = "HalloApp nunca envía mensajes a nadie en tu nombre y solo usa los contactos de tu teléfono para conectarte con amigos y familiares.";
+
 /* Text explaining why we need contact permissions */
 "registration.contacts.content" = "Para poder conectarte con tus amigos y familiares necesitaremos tu permiso para acceder a tus contactos.";
 
@@ -1628,6 +1653,9 @@
 
 /* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
 "registration.free.app.notice" = "Gratis en el App Store de iPhone";
+
+/* Title of a button. */
+"registration.get.started" = "¡Empecemos!";
 
 /* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
 "registration.group.name" = "Te invitaron a unirte al grupo %@";
@@ -1662,8 +1690,20 @@
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Si seguiste un enlace de invitación de grupo para registrarte, haz clic en el enlace nuevamente para finalizar el registro y unirte al grupo.\n";
 
+/* Text prompting the user for their push name. */
+"registration.name.prompt" = "¿Cómo deberíamos llamarte?";
+
 /* Placeholder text for name entry */
 "registration.nameEntry.placeholder" = "Tu nombre";
+
+/* An explainer during registration for why we'd like notification permissions. */
+"registration.notification.permissions.mesage" = "Recibe mensajes, llamadas y publica actualizaciones. Puedes personalizar tus notificaciones en cualquier momento.";
+
+/* Text that is above the field for the user's phone number during registration. */
+"registration.phone.number.prompt" = "¿Cuál es tu número de teléfono?";
+
+/* Text that explains why HalloApp needs the user's phone number during registration. */
+"registration.phone.number.reasoning" = "¡Tu número de teléfono es cómo encuentras a tus amigos en HalloApp y cómo te encuentran a ti!";
 
 /* Placeholder text for phone entry */
 "registration.phoneEntry.placeholder" = "Tu número de teléfono";
@@ -1677,8 +1717,17 @@
 /* Title for popup that appears when user tries to register uninvited number */
 "registration.shucks" = "¡Caramba!";
 
+/* Message displayed below the progress bar during the app's initial contacts sync. */
+"registration.syncing.contacts" = "Sincronizando contactos";
+
 /* Shown above name and phone inputs */
 "registration.welcome" = "¡Te damos la bienvenida!";
+
+/* Title of the button that allows the user to go back and re-enter their number during registration */
+"registration.wrong.number" = "¿Número equivocado?";
+
+/* Message shown to the user once they have successfully registered. */
+"registration.you.are.in" = "¡Ya estás en la app!";
 
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Para verificar la seguridad de tu conexión con %@, comprueba que los números anteriores coinciden con los que aparecen en su dispositivo, o escanea el código QR de su teléfono.";
@@ -1987,9 +2036,6 @@
 /* Instructs user to tap a button (e.g., Tap “Go to Settings” below.) */
 "tutorial.tap.below" = "Toca \"%@\" a continuación.";
 
-/* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "Contacto desconocido";
-
 /* Text for action label that lets the user accept messages from unknown contacts */
 "unknown.contact.accept.to.message" = "Acepta el mensaje para responder";
 
@@ -2079,4 +2125,7 @@
 
 /* Notification that post is uploading */
 "your.post.externalshare.uploading" = "Creando publicación...";
+
+/* Text that appears on the splash screen prior to registration. */
+"your.private.social.network" = "Te damos la bienvenida a tu red social privada";
 

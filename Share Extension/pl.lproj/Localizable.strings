@@ -207,9 +207,6 @@
 /* Row in Settings screen */
 "title.privacy" = "Prywatność";
 
-/* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "Nieznany kontakt";
-
 /* How many bytes from total have been uploaded */
 "uploading.bytes.progress" = "%1$@ z %2$@";
 

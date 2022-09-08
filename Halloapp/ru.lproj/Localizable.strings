@@ -286,6 +286,12 @@
 /* Chat entry that can be tapped to add the contact to address book */
 "chat.event.tap.to.add.contact" = "Нажмите, чтобы добавить %@ в свою адресную книгу";
 
+/* Message text shown with the user who changed a groups content expiry settings */
+"chat.group.event.expiry.changed" = "%1$@ изменил срок действия контента группы на %2$@";
+
+/* Message text shown when you change a groups content expiry settings */
+"chat.group.event.expiry.changed.you" = "Вы изменили срок действия контента группы на %1@";
+
 /* Message text shown with the user who joined the group via invite link */
 "chat.group.event.join" = "%@ присоединился(-ась) к группе по ссылке-приглашению в группу";
 
@@ -297,6 +303,15 @@
 
 /* Message text shown when you leave a group */
 "chat.group.event.member.left.you" = "Ты ушел(-ла)";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.24hours" = "24 часа";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.30days" = "30 дней";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.never" = "Никогда";
 
 /* Action label for adding members to a group */
 "chat.group.info.add.members" = "Добавить участников";
@@ -312,6 +327,12 @@
 
 /* Text for menu option of demoting a group member */
 "chat.group.info.demote" = "Забрать права администратора";
+
+/* Error message when changing group expiry fails */
+"chat.group.info.expiry.set.error" = "Не удалось обновить срок действия контента";
+
+/* Title of groups info section that controls when group content expires */
+"chat.group.info.expiry.title" = "Срок действия контента";
 
 /* Action label for leaving group */
 "chat.group.info.leave.group" = "Покинуть группу";
@@ -348,6 +369,66 @@
 
 /* Label for inviting friends */
 "chat.invite.friends" = "Пригласить друзей";
+
+/* Text shown when user removed a reaction from an audio */
+"chat.list.user.deleted.reaction.audio" = "%1$@ удалил %2$@ из аудио";
+
+/* Text shown when user removed a reaction from an image */
+"chat.list.user.deleted.reaction.image" = "%1$@ удалил %2$@ с изображения";
+
+/* Text shown when user removed a reaction from a message */
+"chat.list.user.deleted.reaction.message" = "%1$@ удалил %2$@ из сообщения";
+
+/* Text shown when user removed a reaction from a text message */
+"chat.list.user.deleted.reaction.text" = "%1$@ удалил %2$@ из %3$@";
+
+/* Text shown when user removed a reaction from a video */
+"chat.list.user.deleted.reaction.video" = "%1$@ удалил %2$@ из видео";
+
+/* Text shown when user reacted to an audio */
+"chat.list.user.reacted.audio" = "%1$@ отреагировал %2$@ на звуковое сообщение";
+
+/* Text shown when user reacted to an image */
+"chat.list.user.reacted.image" = "%1$@ отреагировал на изображение %2$@";
+
+/* Text shown when user reacted to a message */
+"chat.list.user.reacted.message" = "%1$@ отреагировал на сообщение %2$@";
+
+/* Text shown when user reacted to a text message */
+"chat.list.user.reacted.text" = "%1$@ отреагировали %2$@ на %3$@";
+
+/* Text shown when user reacted to a video */
+"chat.list.user.reacted.video" = "% 1 $ @ отреагировали % 2 $ @ на видео";
+
+/* Text shown when you removed a reaction from an audio */
+"chat.list.you.deleted.reaction.audio" = "Вы удалили %1@ из аудио";
+
+/* Text shown when you removed a reaction from an image */
+"chat.list.you.deleted.reaction.image" = "Вы удалили %1@ с изображения";
+
+/* Text shown when you removed a reaction from a message */
+"chat.list.you.deleted.reaction.message" = "Вы удалили %@ из сообщения";
+
+/* Text shown when you removed a reaction from a text message */
+"chat.list.you.deleted.reaction.text" = "Вы удалили %1$@ из %2$@";
+
+/* Text shown when you removed a reaction from a video */
+"chat.list.you.deleted.reaction.video" = "Вы удалили %1@ из видео";
+
+/* Text shown when you reacted to an audio */
+"chat.list.you.reacted.audio" = "Вы отреагировали %1@ на звуковое сообщение";
+
+/* Text shown when you reacted to an image */
+"chat.list.you.reacted.image" = "Вы отреагировали %1@ на изображение";
+
+/* Text shown when you reacted to a message */
+"chat.list.you.reacted.message" = "Вы отреагировали %@ на сообщение";
+
+/* Text shown when you reacted to a text message */
+"chat.list.you.reacted.text" = "Вы отреагировали %1$@ на %2$@";
+
+/* Text shown when you reacted to a video */
+"chat.list.you.reacted.video" = "Вы отреагировали %1@ на видео";
 
 /* Message text shown in a message that have audio media but no text */
 "chat.message.audio" = "Голосовая заметка";
@@ -457,17 +538,20 @@
 /* Title on edit button */
 "composer.button.edit" = "Редактировать";
 
-/* Send button title */
-"composer.button.send.to" = "Отправить";
-
-/* Title warning that a voice recording will be deleted */
+/* Title warning that a audio recording will be deleted */
 "composer.delete.recording.title" = "Удалить запись?";
 
-/* Warning message shown to the user before discarding a voice post */
+/* Warning message shown to the user before discarding a audio post */
 "composer.deletevoicenote.message" = "Голосовая запись не будет сохранена, если вы откажетесь от этого поста.";
 
 /* Title for alert when closing the post composer with a voice note */
 "composer.deletevoicenote.title" = "Отменить пост?";
+
+/* Share to all contacts */
+"composer.destination.contactsShare" = "Мои контакты";
+
+/* Label above the list with whom you share */
+"composer.destinations.label" = "Поделиться с";
 
 /* Label shown when only single media item selected */
 "composer.label.more" = "Добавить еще";
@@ -486,6 +570,9 @@
 
 /* Composer New Moment Post title. */
 "composer.moment.post.title" = "Новый момент";
+
+/* Title of the composer during a user's very first post. */
+"composer.onboarding.post.title" = "Мой первый пост";
 
 /* Placeholder text for media caption field in post composer. */
 "composer.placeholder.media.description" = "Напишите описание";
@@ -532,17 +619,35 @@
 /* Alert message telling the user to try creating the group again after an error */
 "create.group.error" = "Возникла ошибка при создании группы, попробуй еще раз";
 
+/* Title for form field selecting group content expiry time */
+"create.group.expire.content" = "Контент с истекшим сроком действия";
+
 /* Placeholder text shown inside the group name input box when it's empty */
 "create.group.name.placeholder" = "Дайте своей группе имя";
 
+/* Title for group name text field in group creation */
+"create.group.name.title" = "Имя";
+
 /* Title of group creation screen */
 "create.group.title" = "Информация о группе";
+
+/* Prompt for the user to create their first post. */
+"create.your.first.post.1" = "Создайте свой первый пост";
+
+/* Prompt for the user to create their first post. */
+"create.your.first.post.2" = "Создайте свой первый пост и пригласите друзей посмотреть его";
 
 /* Title for generic delete button. */
 "Delete" = "Удалить";
 
 /* Body of the bottom sheet that is presented only once to explain the moments feature. */
 "describing.moments" = "Разблокируйте моменты ваших друзей, поделившись своими. Моменты случайны, они исчезают после того, как вы их просмотрите один раз.";
+
+/* Send to button and screen title */
+"destination.send.to" = "Отправить";
+
+/* Title that indicates that someone downloaded media from a post. */
+"downloaded.title" = "Скачано";
 
 /* link, tapping on which launched the flow to edit blocked contacts */
 "edit.blocked" = "Редактировать";
@@ -646,6 +751,12 @@
 /* Archived date timestamp */
 "feed.post.archived.timestamp" = "Архивировано %@";
 
+/* Indication of when a post expired */
+"feed.post.expired.timestamp" = "Истекает %@";
+
+/* Indication of when a post never expires */
+"feed.post.expired.timestamp.never" = "Никогда не заканчивается";
+
 /* Shown when post fails or is canceled. */
 "feed.post.failed" = "Не удалось опубликовать.";
 
@@ -741,6 +852,9 @@
 
 /* Button under someoneelse's post. Verb. */
 "feedpost.button.reply" = "Ответить лично";
+
+/* Explains that as more contacts join the app, they will appear in this list automatically. */
+"fellow.contacts.will.arrive" = "Контакты вашего телефона, зарегистрированные в HalloApp, появятся здесь автоматически.";
 
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Добавьте описание группы";
@@ -1087,6 +1201,12 @@
 /* Confirmation prompt in media composer. */
 "media.discard.confirmation" = "Хотите отменить свои изменения?";
 
+/* Button that, when pressed, saves all the post's media to the user's camera roll */
+"media.download.all" = "Скачать все";
+
+/* Button that, when pressed, saves the post's media to the user's camera roll. Singular version for media.save.all */
+"media.download.singular" = "Скачать";
+
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
 "media.mic.access.request.body" = "Для записи видео со звуком HalloApp нужен доступ к микрофону. Чтобы предоставить его, откройте \"Настройки\" и переведите переключатель возле пункта \"Микрофон\" в активное положение.";
 
@@ -1095,6 +1215,9 @@
 
 /* Error text displayed in post composer when some of the media selected couldn't be sent. */
 "media.prepare.failed.n.count" = "media.prepare.failed.n.count";
+
+/* Title when changing media order */
+"media.reorder.title" = "Изменить заказ";
 
 /* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
 "media.save.needs.permissions" = "Требуются разрешение на доступ к фото";
@@ -1132,8 +1255,12 @@
 /* Message action. Verb. */
 "message.delete" = "Удалить";
 
-/* Call to action to forward a message */
+/* Call to action to forward a message
+   Title of page where user can pick contats to forward a chat messsage */
 "message.forward" = "Пересылать";
+
+/* Call to action to forward a message which contains more than once media item */
+"message.forward.all" = "Переслать все";
 
 /* Message action. Verb. */
 "message.reply" = "Ответить";
@@ -1149,6 +1276,9 @@
 
 /* Title of text displayed the first time the user acts to post a second moment in the same day. */
 "moment.replacement.title" = "Осторожно";
+
+/* Text on a locked moment that explains the need to post your own in order to view it. */
+"moment.unlock.disclaimer" = "Чтобы увидеть их момент, поделитесь своим";
 
 /* For indicating that there was an error while uploading the post. */
 "moment.uploading.failure" = "Ошибка";
@@ -1192,6 +1322,12 @@
 /* Your Post screen: label for the row that opens the privacy screen */
 "mypost.row.manage.privacy" = "Управление конфиденциальностью";
 
+/* Explains that the listed contacts will be able to see posts that are shared with all contacts */
+"n.contacts.privacy.disclaimer" = "n.contacts.privacy.disclaimer";
+
+/* Number of contacts that are already on HalloApp. */
+"n.fellow.contacts" = "n.fellow.contacts";
+
 /* Indicates how many invites are remaining */
 "n.invites.count" = "n.invites.count";
 
@@ -1222,6 +1358,9 @@
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Вы больше не входите в эту группу";
 
+/* Push notification for a comment to message */
+"notification.comment.reaction" = "Отреагировал %@ на комментарий";
+
 /* Push notification for a new comment. Parameter is the text of the comment */
 "notification.commented.with.text" = "Прокомментировано: %@";
 
@@ -1230,6 +1369,12 @@
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ только что принял(-а) Ваше приглашение присоединиться к HalloApp 🎉";
+
+/* New message notification text when message is a location. */
+"notification.location" = "📍 Местоположение";
+
+/* Push notification for a reaction to message */
+"notification.message.reaction" = "Отреагировал %@ на сообщение";
 
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Новый момент";
@@ -1327,6 +1472,12 @@
 /* Title of the button that opens the camera. */
 "open.camera" = "Открытая камера";
 
+/* Menu option to open a location in Google Maps. */
+"openInMapsApp.googleMaps" = "Открыть в Google Картах";
+
+/* Menu option to open a location in (Apple) Maps. */
+"openInMapsApp.maps" = "Открыть в Картах";
+
 /* button to launch photo and video library */
 "photo.and.video.library" = "Фото и видеотека";
 
@@ -1341,6 +1492,9 @@
 
 /* Message shown only limited access to media. */
 "picker.access.limited.message" = "Вы предоставили HalloApp доступ к выбранному количеству фото и видео.";
+
+/* Title for a screen that displays items from the last 24 hours. */
+"picker.last.24.hours.title" = "Последние 24 часа";
 
 /* Alert message in media picker when unable to load media file. */
 "picker.media.fail.message" = "Попробуйте снова или выберите другое фото или видео.";
@@ -1365,6 +1519,9 @@
 
 /* Title for the picker screen. */
 "post.controller.picker.title" = "Новые Сообщения";
+
+/* Body of alert indicating that a post's expiration does not match that set on a group */
+"post.expiration.mismatch" = "Этот пост истечет через %1$@, а срок действия контента группы установлен в %2$@.";
 
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted" = "Это сообщение было удалено";
@@ -1488,6 +1645,9 @@
 /* Button label to resend verification code by voice call */
 "registration.code.resend.by.voice" = "Позвони мне";
 
+/* An explainer during registration for why we need contact permissions. */
+"registration.contact.permissions.mesage" = "HalloApp никогда никому не отправляет сообщения от вашего имени и использует контакты вашего телефона только для связи с друзьями и семьей.";
+
 /* Text explaining why we need contact permissions */
 "registration.contacts.content" = "Чтобы связать вас с вашими друзьями и членами семьи, нам понадобится ваше разрешение на доступ к вашим контактам.";
 
@@ -1496,6 +1656,9 @@
 
 /* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
 "registration.free.app.notice" = "Бесплатно в магазине приложений iPhone";
+
+/* Title of a button. */
+"registration.get.started" = "Начать!";
 
 /* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
 "registration.group.name" = "Вас приглашают присоединиться к группе %@";
@@ -1530,8 +1693,20 @@
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Если вы перешли по ссылке-приглашению в группу для регистрации, перейдите по ссылке снова, чтобы завершить регистрацию и присоединиться к группе.";
 
+/* Text prompting the user for their push name. */
+"registration.name.prompt" = "Как вас называть?";
+
 /* Placeholder text for name entry */
 "registration.nameEntry.placeholder" = "Ваше имя";
+
+/* An explainer during registration for why we'd like notification permissions. */
+"registration.notification.permissions.mesage" = "Получайте сообщения, звонки и публикуйте обновления. Вы можете настроить свои уведомления в любое время.";
+
+/* Text that is above the field for the user's phone number during registration. */
+"registration.phone.number.prompt" = "Какой у тебя номер телефона?";
+
+/* Text that explains why HalloApp needs the user's phone number during registration. */
+"registration.phone.number.reasoning" = "Номер телефона — это как вы находите своих друзей в HalloApp, и как они находят вас!";
 
 /* Placeholder text for phone entry */
 "registration.phoneEntry.placeholder" = "Номер телефона";
@@ -1545,8 +1720,17 @@
 /* Title for popup that appears when user tries to register uninvited number */
 "registration.shucks" = "Ерунда!";
 
+/* Message displayed below the progress bar during the app's initial contacts sync. */
+"registration.syncing.contacts" = "Синхронизация контактов";
+
 /* Shown above name and phone inputs */
 "registration.welcome" = "Добро пожаловать!";
+
+/* Title of the button that allows the user to go back and re-enter their number during registration */
+"registration.wrong.number" = "Неправильный номер?";
+
+/* Message shown to the user once they have successfully registered. */
+"registration.you.are.in" = "Вы зашли!";
 
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Чтобы проверить безопасность твоего соединения с  %@, убедись, что цифры выше соответствуют тем, которые отображаются на его или ее устройстве, или сканируй QR-код  его или ее телефоном.";
@@ -1855,9 +2039,6 @@
 /* Instructs user to tap a button (e.g., Tap “Go to Settings” below.) */
 "tutorial.tap.below" = "Нажми “%@” ниже.";
 
-/* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "Неизвестный контакт";
-
 /* Text for action label that lets the user accept messages from unknown contacts */
 "unknown.contact.accept.to.message" = "Примите сообщение, чтобы ответить";
 
@@ -1947,4 +2128,7 @@
 
 /* Notification that post is uploading */
 "your.post.externalshare.uploading" = "Создание ссылки...";
+
+/* Text that appears on the splash screen prior to registration. */
+"your.private.social.network" = "Добро пожаловать в вашу частную социальную сеть";
 

@@ -377,7 +377,7 @@
 "chat.list.user.deleted.reaction.image" = "%1$@ menghapus %2$@ dari gambar";
 
 /* Text shown when user removed a reaction from a message */
-"chat.list.user.deleted.reaction.message" = "%1$@  menghapus %2$@ dari pesan";
+"chat.list.user.deleted.reaction.message" = "%1$@ menghapus %2$@ dari pesan";
 
 /* Text shown when user removed a reaction from a text message */
 "chat.list.user.deleted.reaction.text" = "%1$@ menghapus %2$@ dari %3$@";
@@ -386,7 +386,7 @@
 "chat.list.user.deleted.reaction.video" = "%1$@ menghapus %2$@ dari video";
 
 /* Text shown when user reacted to an audio */
-"chat.list.user.reacted.audio" = "%1$@ menanggapi %2$@ di audio";
+"chat.list.user.reacted.audio" = "%1$@ menanggapi %2$@ di pesan audio";
 
 /* Text shown when user reacted to an image */
 "chat.list.user.reacted.image" = "%1$@ menanggapi %2$@ di gambar";
@@ -538,13 +538,10 @@
 /* Title on edit button */
 "composer.button.edit" = "Edit";
 
-/* Send button title */
-"composer.button.send.to" = "Kirim ke";
-
-/* Title warning that a voice recording will be deleted */
+/* Title warning that a audio recording will be deleted */
 "composer.delete.recording.title" = "Hapus rekaman suara?";
 
-/* Warning message shown to the user before discarding a voice post */
+/* Warning message shown to the user before discarding a audio post */
 "composer.deletevoicenote.message" = "Rekaman suara tidak akan disimpan jika Anda membuang postingan ini.";
 
 /* Title for alert when closing the post composer with a voice note */
@@ -573,6 +570,9 @@
 
 /* Composer New Moment Post title. */
 "composer.moment.post.title" = "Momen Baru";
+
+/* Title of the composer during a user's very first post. */
+"composer.onboarding.post.title" = "Postingan Pertama Saya";
 
 /* Placeholder text for media caption field in post composer. */
 "composer.placeholder.media.description" = "Tulis deskripsi";
@@ -625,14 +625,26 @@
 /* Placeholder text shown inside the group name input box when it's empty */
 "create.group.name.placeholder" = "Beri nama grup Anda";
 
+/* Title for group name text field in group creation */
+"create.group.name.title" = "Nama";
+
 /* Title of group creation screen */
-"create.group.title" = "Informasi Grup";
+"create.group.title" = "Grup Baru";
+
+/* Prompt for the user to create their first post. */
+"create.your.first.post.1" = "Buat postingan pertama Anda";
+
+/* Prompt for the user to create their first post. */
+"create.your.first.post.2" = "Buat postingan pertama Anda dan undang teman untuk melihatnya";
 
 /* Title for generic delete button. */
 "Delete" = "Hapus";
 
 /* Body of the bottom sheet that is presented only once to explain the moments feature. */
 "describing.moments" = "Buka momen teman dengan membagikan momen Anda. Momen adalah fitur kasual, dan akan hilang setelah Anda melihatnya sekali.";
+
+/* Send to button and screen title */
+"destination.send.to" = "Kirim ke";
 
 /* Title that indicates that someone downloaded media from a post. */
 "downloaded.title" = "Diunduh";
@@ -833,13 +845,16 @@
 "feedInviteCarousel.searchPrompt" = "Cari teman dan keluarga lainnya";
 
 /* Title for section of contacts to invite in feed */
-"feedInviteCarousel.title" = "HalloApp adalah app yang menyenangkan untuk teman & keluarga";
+"feedInviteCarousel.title" = "HalloApp sangatlah menyenangkan dengan teman & keluarga";
 
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Komentar";
 
 /* Button under someoneelse's post. Verb. */
 "feedpost.button.reply" = "Balas secara Pribadi";
+
+/* Explains that as more contacts join the app, they will appear in this list automatically. */
+"fellow.contacts.will.arrive" = "Kontak ponsel Anda yang terdaftar dengan HalloApp akan muncul di sini secara otomatis.";
 
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Tambahkan deskripsi grup";
@@ -1240,8 +1255,12 @@
 /* Message action. Verb. */
 "message.delete" = "Hapus";
 
-/* Call to action to forward a message */
+/* Call to action to forward a message
+   Title of page where user can pick contats to forward a chat messsage */
 "message.forward" = "Teruskan";
+
+/* Call to action to forward a message which contains more than once media item */
+"message.forward.all" = "Teruskan Semua";
 
 /* Message action. Verb. */
 "message.reply" = "Balas";
@@ -1302,6 +1321,12 @@
 
 /* Your Post screen: label for the row that opens the privacy screen */
 "mypost.row.manage.privacy" = "Kelola Privasi";
+
+/* Explains that the listed contacts will be able to see posts that are shared with all contacts */
+"n.contacts.privacy.disclaimer" = "n.contacts.privacy.disclaimer";
+
+/* Number of contacts that are already on HalloApp. */
+"n.fellow.contacts" = "\nn.fellow.contacts";
 
 /* Indicates how many invites are remaining */
 "n.invites.count" = "n.invites.count";
@@ -1397,16 +1422,16 @@
 "notification.one.video" = "📹 video";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.1" = "%@ membagikan momen baru untuk membuka momen Anda";
+"notification.unlocked.moment.1" = "%@ membagikan momen baru untuk melihat momen Anda";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.2" = "%1$@ dan %2$@ membagikan momen baru untuk membuka momen Anda";
+"notification.unlocked.moment.2" = "%1$@ dan %2$@ membagikan momen baru untuk melihat momen Anda";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.3" = "%1$@, %2$@, dan %3$@ membagikan momen baru untuk membuka momen Anda";
+"notification.unlocked.moment.3" = "%1$@, %2$@, dan %3$@ membagikan momen baru untuk melihat momen Anda";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@, dan lainnya membagikan momen baru untuk membuka momen Anda";
+"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@, dan lainnya membagikan momen baru untuk melihat momen Anda";
 
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 Panggilan video tak terjawab";
@@ -1519,7 +1544,7 @@
 
 /* Controller title for changing destination and privacy
    Header when selecting contacts to share with */
-"post.privacy.title" = "Kontak Terbaru";
+"post.privacy.title" = "Kontak";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Diblokir";
@@ -1609,7 +1634,7 @@
 "registration.code.incorrect" = "Kode yang Anda masukkan salah";
 
 /* Instructions for filling in SMS verification code. Parameter is formatted phone number */
-"registration.code.instructions" = "Masukkan kode yang kami kirim ke %@";
+"registration.code.instructions" = "Masukkan kode yang telah dikirim ke: \n%@";
 
 /* Error message to display when we cannot send a verification code */
 "registration.code.request.error" = "Tidak dapat mengirim kode. Silakan coba lagi nanti.";
@@ -1620,6 +1645,9 @@
 /* Button label to resend verification code by voice call */
 "registration.code.resend.by.voice" = "Panggil saya";
 
+/* An explainer during registration for why we need contact permissions. */
+"registration.contact.permissions.mesage" = "HalloApp tidak pernah mengirim pesan kepada siapa pun atas nama Anda, dan hanya menggunakan kontak ponsel Anda untuk menghubungkan Anda dengan teman & keluarga Anda.";
+
 /* Text explaining why we need contact permissions */
 "registration.contacts.content" = "Untuk menghubungkan Anda dengan teman & keluarga Anda, kami memerlukan izin untuk mengakses kontak Anda.";
 
@@ -1628,6 +1656,9 @@
 
 /* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
 "registration.free.app.notice" = "Gratis di App Store iPhone";
+
+/* Title of a button. */
+"registration.get.started" = "Memulai!";
 
 /* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
 "registration.group.name" = "Anda diundang untuk bergabung dengan grup %@";
@@ -1662,8 +1693,20 @@
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Jika Anda menggunakan Tautan Undangan Grup untuk mendaftar, silakan klik lagi tautan tersebut untuk menyelesaikan pendaftaran dan bergabung dengan grup.";
 
+/* Text prompting the user for their push name. */
+"registration.name.prompt" = "Bagaimana kami harus memanggil Anda?";
+
 /* Placeholder text for name entry */
 "registration.nameEntry.placeholder" = "Nama Anda";
+
+/* An explainer during registration for why we'd like notification permissions. */
+"registration.notification.permissions.mesage" = "Dapatkan pembaruan pesan, panggilan, dan postingan. Anda dapat menyesuaikan pemberitahuan Anda kapan saja.";
+
+/* Text that is above the field for the user's phone number during registration. */
+"registration.phone.number.prompt" = "Berapa nomor telepon anda?";
+
+/* Text that explains why HalloApp needs the user's phone number during registration. */
+"registration.phone.number.reasoning" = "Dengan nomor telepon, Anda dapat mencari teman Anda di HalloApp dan teman Anda juga dapat mencari Anda!";
 
 /* Placeholder text for phone entry */
 "registration.phoneEntry.placeholder" = "Nomor telepon";
@@ -1677,8 +1720,17 @@
 /* Title for popup that appears when user tries to register uninvited number */
 "registration.shucks" = "Ups!";
 
+/* Message displayed below the progress bar during the app's initial contacts sync. */
+"registration.syncing.contacts" = "Menyinkronkan Kontak";
+
 /* Shown above name and phone inputs */
 "registration.welcome" = "Selamat Datang!";
+
+/* Title of the button that allows the user to go back and re-enter their number during registration */
+"registration.wrong.number" = "Salah nomor?";
+
+/* Message shown to the user once they have successfully registered. */
+"registration.you.are.in" = "Berhasil!";
 
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Untuk memverifikasi keamanan hubungan Anda dengan %@, pastikan angka di atas sama dengan yang ditampilkan di perangkat mereka, atau pindai kode QR di ponsel mereka.";
@@ -1987,9 +2039,6 @@
 /* Instructs user to tap a button (e.g., Tap “Go to Settings” below.) */
 "tutorial.tap.below" = "Ketuk “%@” di bawah.";
 
-/* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "Kontak Tak Dikenal";
-
 /* Text for action label that lets the user accept messages from unknown contacts */
 "unknown.contact.accept.to.message" = "Terima Pesan";
 
@@ -2079,4 +2128,7 @@
 
 /* Notification that post is uploading */
 "your.post.externalshare.uploading" = "Membuat tautan...";
+
+/* Text that appears on the splash screen prior to registration. */
+"your.private.social.network" = "Selamat Datang di Jaringan Social Pribadi Anda";
 

@@ -221,7 +221,7 @@
 "notification.voicecomment" = "🎤 Audiokommentar";
 
 /* New post notification text when post is a voice note. */
-"notification.voicenote" = "🎤 Audionotiz";
+"notification.voicenote" = "🎤 Audio-Notiz";
 
 /* New post notification text when post is a voice note. */
 "notification.voicepost" = "🎤 Audiobeitrag";
@@ -234,7 +234,4 @@
 
 /* Row in Settings screen */
 "title.privacy" = "Privatsphäre";
-
-/* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "Kontakt unbekannt";
 

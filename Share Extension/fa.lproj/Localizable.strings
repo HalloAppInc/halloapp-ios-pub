@@ -175,6 +175,9 @@
 /* Placeholder when sharing text only. */
 "share.composer.placeholder.text" = "نوشتن پست";
 
+/* Title of alert displayed while processing media shared by share extension */
+"share.composer.processing.media" = "بارگذاری رسانه‌ها...";
+
 /* Alert dialog message shown when uploading fails. */
 "share.composer.uploading.fail.message" = "لطفاً بعداً امتحان کنید.";
 
@@ -215,9 +218,6 @@
 
 /* Row in Settings screen */
 "title.privacy" = "حریم خصوصی";
-
-/* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "مخاطب ناشناس";
 
 /* How many bytes from total have been uploaded */
 "uploading.bytes.progress" = "@%1$ از @$2%";

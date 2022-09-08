@@ -380,13 +380,13 @@
 "chat.list.user.deleted.reaction.message" = "%1$@ removeu %2$@ de uma mensagem";
 
 /* Text shown when user removed a reaction from a text message */
-"chat.list.user.deleted.reaction.text" = "%1$@ removeu um %2$@ de %3$@";
+"chat.list.user.deleted.reaction.text" = "%1$@ removeu %2$@ de %3$@";
 
 /* Text shown when user removed a reaction from a video */
 "chat.list.user.deleted.reaction.video" = "%1$@ removeu %2$@ de um vídeo";
 
 /* Text shown when user reacted to an audio */
-"chat.list.user.reacted.audio" = "%1$@ reagiu %2$@ a um áudio";
+"chat.list.user.reacted.audio" = "%1$@ reagiu %2$@ a uma mensagem de áudio";
 
 /* Text shown when user reacted to an image */
 "chat.list.user.reacted.image" = "%1$@ reagiu %2$@ a uma imagem";
@@ -401,22 +401,22 @@
 "chat.list.user.reacted.video" = "%1$@ reagiu %2$@ a um vídeo";
 
 /* Text shown when you removed a reaction from an audio */
-"chat.list.you.deleted.reaction.audio" = "Você removeu um %1@ de um áudio";
+"chat.list.you.deleted.reaction.audio" = "Você removeu %1@ de um áudio";
 
 /* Text shown when you removed a reaction from an image */
-"chat.list.you.deleted.reaction.image" = "Você removeu um %1@ de uma imagem";
+"chat.list.you.deleted.reaction.image" = "Você removeu %1@ de uma imagem";
 
 /* Text shown when you removed a reaction from a message */
-"chat.list.you.deleted.reaction.message" = "Você removeu um %@ de uma mensagem";
+"chat.list.you.deleted.reaction.message" = "Você removeu %@ de uma mensagem";
 
 /* Text shown when you removed a reaction from a text message */
-"chat.list.you.deleted.reaction.text" = "Você removeu um %1$@ de %2$@";
+"chat.list.you.deleted.reaction.text" = "Você removeu %1$@ de %2$@";
 
 /* Text shown when you removed a reaction from a video */
-"chat.list.you.deleted.reaction.video" = "Você removeu um %1@ de um vídeo";
+"chat.list.you.deleted.reaction.video" = "Você removeu %1@ de um vídeo";
 
 /* Text shown when you reacted to an audio */
-"chat.list.you.reacted.audio" = "Você reagiu %1@ a um áudio";
+"chat.list.you.reacted.audio" = "Você reagiu %1@ a uma mensagem de áudio";
 
 /* Text shown when you reacted to an image */
 "chat.list.you.reacted.image" = "Você reagiu %1@ a uma imagem";
@@ -431,7 +431,7 @@
 "chat.list.you.reacted.video" = "Você reagiu %1@ a um vídeo";
 
 /* Message text shown in a message that have audio media but no text */
-"chat.message.audio" = "Mensagem de voz";
+"chat.message.audio" = "Nota de voz";
 
 /* Message text shown for quoted audio posts */
 "chat.message.audiopost" = "Postagem de áudio";
@@ -483,6 +483,9 @@
 
 /* Text shown in the chat interface informing the user that the contact is unblocked */
 "chat.unblocked.contact.label" = "Você desbloqueou este contato";
+
+/* Text shown in a notification when user reacted to a message. The user's name is shown above this message in the notification. */
+"chat.user.reacted.message" = "reagiu %2@ a uma mensagem";
 
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "Ao remover este chat, todo o histórico e conteúdos deste chat serão apagados do seu dispositivo.";
@@ -538,13 +541,10 @@
 /* Title on edit button */
 "composer.button.edit" = "Editar";
 
-/* Send button title */
-"composer.button.send.to" = "Enviar para";
-
-/* Title warning that a voice recording will be deleted */
+/* Title warning that a audio recording will be deleted */
 "composer.delete.recording.title" = "Excluir gravação de voz?";
 
-/* Warning message shown to the user before discarding a voice post */
+/* Warning message shown to the user before discarding a audio post */
 "composer.deletevoicenote.message" = "A gravação de voz não será salva se você descartar esta postagem.";
 
 /* Title for alert when closing the post composer with a voice note */
@@ -573,6 +573,9 @@
 
 /* Composer New Moment Post title. */
 "composer.moment.post.title" = "Novo momento";
+
+/* Title of the composer during a user's very first post. */
+"composer.onboarding.post.title" = "Minha primeira postagem";
 
 /* Placeholder text for media caption field in post composer. */
 "composer.placeholder.media.description" = "Escreva uma descrição";
@@ -625,14 +628,26 @@
 /* Placeholder text shown inside the group name input box when it's empty */
 "create.group.name.placeholder" = "Dê um nome ao seu grupo";
 
+/* Title for group name text field in group creation */
+"create.group.name.title" = "Nome";
+
 /* Title of group creation screen */
-"create.group.title" = "Informação do Grupo";
+"create.group.title" = "Novo Grupo";
+
+/* Prompt for the user to create their first post. */
+"create.your.first.post.1" = "Crie sua primeira postagem";
+
+/* Prompt for the user to create their first post. */
+"create.your.first.post.2" = "Crie sua primeira postagem e convide amigos para vê-la";
 
 /* Title for generic delete button. */
 "Delete" = "Apagar";
 
 /* Body of the bottom sheet that is presented only once to explain the moments feature. */
 "describing.moments" = "Desbloqueie os momentos de seus amigos compartilhando os seus. Os momentos são casuais, eles desaparecem depois que você os vê uma vez.";
+
+/* Send to button and screen title */
+"destination.send.to" = "Enviar para";
 
 /* Title that indicates that someone downloaded media from a post. */
 "downloaded.title" = "Baixado";
@@ -840,6 +855,9 @@
 
 /* Button under someoneelse's post. Verb. */
 "feedpost.button.reply" = "Responder em privado";
+
+/* Explains that as more contacts join the app, they will appear in this list automatically. */
+"fellow.contacts.will.arrive" = "Seus contatos telefônicos que se registrarem no HalloApp aparecerão aqui automaticamente.";
 
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Adicionar descrição do grupo";
@@ -1240,8 +1258,12 @@
 /* Message action. Verb. */
 "message.delete" = "Apagar";
 
-/* Call to action to forward a message */
+/* Call to action to forward a message
+   Title of page where user can pick contats to forward a chat messsage */
 "message.forward" = "Avançar";
+
+/* Call to action to forward a message which contains more than once media item */
+"message.forward.all" = "Encaminhar todos";
 
 /* Message action. Verb. */
 "message.reply" = "Responder";
@@ -1302,6 +1324,12 @@
 
 /* Your Post screen: label for the row that opens the privacy screen */
 "mypost.row.manage.privacy" = "Gerir privacidade";
+
+/* Explains that the listed contacts will be able to see posts that are shared with all contacts */
+"n.contacts.privacy.disclaimer" = "s.contatos.privacidade.avisolegal";
+
+/* Number of contacts that are already on HalloApp. */
+"n.fellow.contacts" = "s.companheiros.contatos";
 
 /* Indicates how many invites are remaining */
 "n.invites.count" = "n.invites.count";
@@ -1397,16 +1425,16 @@
 "notification.one.video" = "📹 vídeo";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.1" = "%@ compartilhou um novo momento para desbloquear o seu";
+"notification.unlocked.moment.1" = "%@ compartilhou um novo momento para ver o seu";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.2" = "%1$@ e %2$@ compartilharam um novo momento para desbloquear o seu";
+"notification.unlocked.moment.2" = "%1$@ e %2$@ compartilharam um novo momento para ver o seu";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.3" = "%1$@, %2$@ e %3$@ compartilharam um novo momento para desbloquear o seu";
+"notification.unlocked.moment.3" = "%1$@, %2$@ e %3$@ compartilharam um novo momento para ver o seu";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ e outros compartilharam um novo momento para desbloquear o seu";
+"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ e outros compartilharam um novo momento para ver o seu";
 
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 Chamada de vídeo perdida";
@@ -1519,7 +1547,7 @@
 
 /* Controller title for changing destination and privacy
    Header when selecting contacts to share with */
-"post.privacy.title" = "Contatos recentes";
+"post.privacy.title" = "Contatos";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Bloqueado";
@@ -1609,7 +1637,7 @@
 "registration.code.incorrect" = "O código que inseriu está incorreto";
 
 /* Instructions for filling in SMS verification code. Parameter is formatted phone number */
-"registration.code.instructions" = "Insira o código que enviamos para %@";
+"registration.code.instructions" = "Digite o código que enviamos para\n%@";
 
 /* Error message to display when we cannot send a verification code */
 "registration.code.request.error" = "Não foi possível enviar o código. Por favor, tente novamente mais tarde.";
@@ -1620,6 +1648,9 @@
 /* Button label to resend verification code by voice call */
 "registration.code.resend.by.voice" = "Ligue-me";
 
+/* An explainer during registration for why we need contact permissions. */
+"registration.contact.permissions.mesage" = "O HalloApp nunca envia mensagens a ninguém em seu nome e usa apenas os contatos do telefone para conectá-lo a amigos e familiares.";
+
 /* Text explaining why we need contact permissions */
 "registration.contacts.content" = "Para se ligar com seus amigos e familiares, precisaremos de sua permissão para acessar seus contatos.";
 
@@ -1628,6 +1659,9 @@
 
 /* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
 "registration.free.app.notice" = "Grátis na App Store do iPhone";
+
+/* Title of a button. */
+"registration.get.started" = "Iniciar!";
 
 /* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
 "registration.group.name" = "Foi convidado para entrar no grupo %@";
@@ -1662,8 +1696,20 @@
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Se seguiu um link de convite de grupo para se registar, por favor, abra o link novamente para finalizar o registo e entrar no grupo.";
 
+/* Text prompting the user for their push name. */
+"registration.name.prompt" = "Como devemos chamá-lo?";
+
 /* Placeholder text for name entry */
 "registration.nameEntry.placeholder" = "O seu nome";
+
+/* An explainer during registration for why we'd like notification permissions. */
+"registration.notification.permissions.mesage" = "Receba mensagens, chamadas e publique atualizações. Você pode personalizar suas notificações a qualquer momento.";
+
+/* Text that is above the field for the user's phone number during registration. */
+"registration.phone.number.prompt" = "Qual é o seu número de telefone?";
+
+/* Text that explains why HalloApp needs the user's phone number during registration. */
+"registration.phone.number.reasoning" = "Seu número de telefone é como você encontra seus amigos no HalloApp e como eles encontram você!";
 
 /* Placeholder text for phone entry */
 "registration.phoneEntry.placeholder" = "O seu número de telefone";
@@ -1677,8 +1723,17 @@
 /* Title for popup that appears when user tries to register uninvited number */
 "registration.shucks" = "Ups!";
 
+/* Message displayed below the progress bar during the app's initial contacts sync. */
+"registration.syncing.contacts" = "Sincronizando contatos";
+
 /* Shown above name and phone inputs */
 "registration.welcome" = "Bem-vindo!";
+
+/* Title of the button that allows the user to go back and re-enter their number during registration */
+"registration.wrong.number" = "Número errado?";
+
+/* Message shown to the user once they have successfully registered. */
+"registration.you.are.in" = "Você está dentro!";
 
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Para verificar a segurança da sua ligação com %@, confira se os números acima correspondem aos mostrados no dispositivo da pessoa, ou escaneie o seu código QR no telefone da pessoa.";
@@ -1987,9 +2042,6 @@
 /* Instructs user to tap a button (e.g., Tap “Go to Settings” below.) */
 "tutorial.tap.below" = "Toque em “%@” abaixo.";
 
-/* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "Contato desconhecido";
-
 /* Text for action label that lets the user accept messages from unknown contacts */
 "unknown.contact.accept.to.message" = "Aceitar Mensagem de contato desconhecido ";
 
@@ -2079,4 +2131,7 @@
 
 /* Notification that post is uploading */
 "your.post.externalshare.uploading" = "A criar link...";
+
+/* Text that appears on the splash screen prior to registration. */
+"your.private.social.network" = "Bem-vindo à sua rede social privada";
 

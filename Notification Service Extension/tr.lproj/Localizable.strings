@@ -70,6 +70,15 @@
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Güncelle";
 
+/* Group content expiry time limit option */
+"chat.group.expiry.option.24hours" = "24 saat";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.30days" = "30 gün";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.never" = "Asla";
+
 /* Alert message when missing microphone access */
 "chat.mic.access.denied.message" = "Ses kaydını etkinleştirmek için lütfen Ayarlara git ve Mikrofonu aç";
 
@@ -127,6 +136,9 @@
 /* Button title. Refers to discarding photo/video edits in media composer. */
 "media.button.discard" = "Sil";
 
+/* Push notification for a comment to message */
+"notification.comment.reaction" = "Bir yoruma %@ bıraktı";
+
 /* Push notification for a new comment. Parameter is the text of the comment */
 "notification.commented.with.text" = "Yorum yapıldı: %@";
 
@@ -135,6 +147,12 @@
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@, HalloApp davetini kabul etti 🎉";
+
+/* New message notification text when message is a location. */
+"notification.location" = "📍 Konum";
+
+/* Push notification for a reaction to message */
+"notification.message.reaction" = "Bir mesaja %@ bıraktı";
 
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "Yeni anlık";
@@ -181,6 +199,18 @@
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 video";
 
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.1" = "%@, senin anlığını görebilmek için bir anlık paylaştı";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.2" = "%1$@ ve %2$@ senin anlığını görebilmek için anlık paylaştılar";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.3" = "%1$@, %2$@ ve %3$@ senin anlığını görebilmek için anlık paylaştılar";
+
+/* New moment unlock notification text to be shown to the user. */
+"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@ vd., senin anlığını görebilmek için anlık paylaştılar";
+
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 Cevapsız görüntülü arama";
 
@@ -204,7 +234,4 @@
 
 /* Row in Settings screen */
 "title.privacy" = "Gizlilik";
-
-/* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "Bilinmeyen kişi";
 

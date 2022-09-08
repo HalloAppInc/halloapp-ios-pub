@@ -131,6 +131,36 @@
 			<string>Gagal menyiapkan media. Silakan coba lagi atau pilih foto/video lain.</string>
 		</dict>
 	</dict>
+	<key>n.contacts.privacy.disclaimer</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_contacts@</string>
+		<key>n_contacts</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>other</key>
+			<string>Kontak ini akan dapat melihat postingan Anda dengan semua kontak HalloApp.</string>
+		</dict>
+	</dict>
+	<key>n.fellow.contacts</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_contacts@</string>
+		<key>n_contacts</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>other</key>
+			<string>Anda terhubung dengan %d orang di HalloApp</string>
+			<key>zero</key>
+			<string>Anda belum terhubung dengan siapa pun di HalloApp</string>
+		</dict>
+	</dict>
 	<key>n.invites.count</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>

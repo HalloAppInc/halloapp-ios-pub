@@ -148,6 +148,40 @@
 			<string>La préparation de %d éléments multimédias a échoué. Veuillez réessayer ou sélectionner une autre photo/vidéo.</string>
 		</dict>
 	</dict>
+	<key>n.contacts.privacy.disclaimer</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_contacts@</string>
+		<key>n_contacts</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>This contact will be able to see your posts shared with all HalloApp contacts.</string>
+			<key>other</key>
+			<string>These contacts will be able to see your posts shared with all HalloApp contacts.</string>
+		</dict>
+	</dict>
+	<key>n.fellow.contacts</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_contacts@</string>
+		<key>n_contacts</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>You’re connected to %d person on HalloApp</string>
+			<key>other</key>
+			<string>You’re connected to %d people on HalloApp</string>
+			<key>zero</key>
+			<string>You’re not connected to anyone on HalloApp yet</string>
+		</dict>
+	</dict>
 	<key>n.invites.count</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>

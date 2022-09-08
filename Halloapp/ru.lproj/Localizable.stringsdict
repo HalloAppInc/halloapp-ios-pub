@@ -184,6 +184,49 @@
 			<string>Не удалось подготовить %d медиафайлов. Повторите попытку или выберите другие фото / видео.</string>
 		</dict>
 	</dict>
+	<key>n.contacts.privacy.disclaimer</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_contacts@</string>
+		<key>n_contacts</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>Эти контакты смогут увидеть ваши сообщения, которыми поделились со всеми контактами HalloApp.</string>
+			<key>many</key>
+			<string>Эти контакты смогут увидеть ваши сообщения, которыми поделились со всеми контактами HalloApp.</string>
+			<key>one</key>
+			<string>Этот контакт сможет увидеть ваши сообщения, которыми поделились со всеми контактами HalloApp.</string>
+			<key>other</key>
+			<string>Эти контакты смогут увидеть ваши сообщения, которыми поделились со всеми контактами HalloApp.</string>
+		</dict>
+	</dict>
+	<key>n.fellow.contacts</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_contacts@
+</string>
+		<key>n_contacts</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>Вы подключены к %d людям в HalloApp</string>
+			<key>many</key>
+			<string>Вы подключены к %d людям в HalloApp</string>
+			<key>one</key>
+			<string>Вы подключены к %d человеку в HalloApp</string>
+			<key>other</key>
+			<string>Вы подключены к %d людям в HalloApp</string>
+			<key>zero</key>
+			<string>Вы еще ни с кем не связаны в HalloApp</string>
+		</dict>
+	</dict>
 	<key>n.invites.count</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>

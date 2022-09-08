@@ -190,6 +190,3 @@
 /* Row in Settings screen */
 "title.privacy" = "Confidentialité";
 
-/* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "Contact inconnu";
-

@@ -332,7 +332,7 @@
 "chat.group.info.expiry.set.error" = "تعذّر تحديث مدة انتهاء صلاحية المحتوى";
 
 /* Title of groups info section that controls when group content expires */
-"chat.group.info.expiry.title" = "مدة انتهاء صلاحة المحتوى";
+"chat.group.info.expiry.title" = "مدة انتهاء صلاحية المحتوى";
 
 /* Action label for leaving group */
 "chat.group.info.leave.group" = "مغادرة المجموعة";
@@ -571,6 +571,9 @@
 /* Composer New Moment Post title. */
 "composer.moment.post.title" = "لحظة جديدة";
 
+/* Title of the composer during a user's very first post. */
+"composer.onboarding.post.title" = "منشوري الأول";
+
 /* Placeholder text for media caption field in post composer. */
 "composer.placeholder.media.description" = "اكتب وصفًا";
 
@@ -622,8 +625,17 @@
 /* Placeholder text shown inside the group name input box when it's empty */
 "create.group.name.placeholder" = "تسمية المجموعة";
 
+/* Title for group name text field in group creation */
+"create.group.name.title" = "الاسم";
+
 /* Title of group creation screen */
-"create.group.title" = "معلومات المجموعة";
+"create.group.title" = "مجموعة جديدة";
+
+/* Prompt for the user to create their first post. */
+"create.your.first.post.1" = "إنشاء أول منشور لك";
+
+/* Prompt for the user to create their first post. */
+"create.your.first.post.2" = "إنشاء أول منشور لك ودعوة الأصدقاء لرؤيته";
 
 /* Title for generic delete button. */
 "Delete" = "حذف";
@@ -840,6 +852,9 @@
 
 /* Button under someoneelse's post. Verb. */
 "feedpost.button.reply" = "الرد بشكل خاص";
+
+/* Explains that as more contacts join the app, they will appear in this list automatically. */
+"fellow.contacts.will.arrive" = "جهات اتصال هاتفك التي تنضمّ إلى هالوآب ستظهر هنا تلقائيًا.";
 
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "إضافة وصف للمجموعة";
@@ -1307,6 +1322,12 @@
 /* Your Post screen: label for the row that opens the privacy screen */
 "mypost.row.manage.privacy" = "إدارة الخصوصية";
 
+/* Explains that the listed contacts will be able to see posts that are shared with all contacts */
+"n.contacts.privacy.disclaimer" = "n.contacts.privacy.disclaimer";
+
+/* Number of contacts that are already on HalloApp. */
+"n.fellow.contacts" = "n.fellow.contacts";
+
 /* Indicates how many invites are remaining */
 "n.invites.count" = "n.invites.count";
 
@@ -1523,7 +1544,7 @@
 
 /* Controller title for changing destination and privacy
    Header when selecting contacts to share with */
-"post.privacy.title" = "جهات الاتصال الحديثة";
+"post.privacy.title" = "جهات الاتصال";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "محظورة";
@@ -1613,7 +1634,7 @@
 "registration.code.incorrect" = "الرمز الذي أدخلته غير صحيح";
 
 /* Instructions for filling in SMS verification code. Parameter is formatted phone number */
-"registration.code.instructions" = "أدخل رمز التأكيد الذي أرسلناه إلى %@";
+"registration.code.instructions" = "أدخل رمز التأكيد الذي أرسلناه إلى\n%@";
 
 /* Error message to display when we cannot send a verification code */
 "registration.code.request.error" = "تعذّر إرسال الرمز. يُرجى إعادة المحاولة لاحقًا.";
@@ -1624,6 +1645,9 @@
 /* Button label to resend verification code by voice call */
 "registration.code.resend.by.voice" = "الاتصال بي";
 
+/* An explainer during registration for why we need contact permissions. */
+"registration.contact.permissions.mesage" = "لا يُرسل هالوآب مطلقًا رسائل إلى أي شخص نيابةً عنك، ولا يستخدم جهات اتصال هاتفك إلا لغرض توصيلك بالأصدقاء والعائلة.";
+
 /* Text explaining why we need contact permissions */
 "registration.contacts.content" = "للتواصل مع أصدقائك وأفراد عائلتك يجب أن تمنح التطبيق إذن الوصول إلى جهات اتصالك.";
 
@@ -1632,6 +1656,9 @@
 
 /* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
 "registration.free.app.notice" = "مجانًا على App Store لهواتف iPhone";
+
+/* Title of a button. */
+"registration.get.started" = "البدء";
 
 /* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
 "registration.group.name" = "أنت مدعو للانضمام إلى المجموعة %@";
@@ -1666,8 +1693,20 @@
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "إذا استخدمت رابط الدعوة إلى المجموعة للتسجيل، يُرجى النقر على الرابط مرة أخرى لإكمال التسجيل والانضمام إلى المجموعة.";
 
+/* Text prompting the user for their push name. */
+"registration.name.prompt" = "ما اسمك المفضل؟";
+
 /* Placeholder text for name entry */
 "registration.nameEntry.placeholder" = "اسمك";
+
+/* An explainer during registration for why we'd like notification permissions. */
+"registration.notification.permissions.mesage" = "ستصلك تحديثات بشأن الرسائل والمكالمات والمنشورات. يمكنك تخصيص إشعاراتك في أي وقت.";
+
+/* Text that is above the field for the user's phone number during registration. */
+"registration.phone.number.prompt" = "ما هو رقم هاتفك؟";
+
+/* Text that explains why HalloApp needs the user's phone number during registration. */
+"registration.phone.number.reasoning" = "باستخدام رقم هاتفك، يمكنك العثور على أصدقائك على هالوآب، كما يمكنهم العثور عليك!";
 
 /* Placeholder text for phone entry */
 "registration.phoneEntry.placeholder" = "رقم الهاتف";
@@ -1681,8 +1720,17 @@
 /* Title for popup that appears when user tries to register uninvited number */
 "registration.shucks" = "عذرًا!";
 
+/* Message displayed below the progress bar during the app's initial contacts sync. */
+"registration.syncing.contacts" = "جارٍ مزامنة جهات الاتصال";
+
 /* Shown above name and phone inputs */
 "registration.welcome" = "أهلاً!";
+
+/* Title of the button that allows the user to go back and re-enter their number during registration */
+"registration.wrong.number" = "رقم خاطئ؟";
+
+/* Message shown to the user once they have successfully registered. */
+"registration.you.are.in" = "تم التسجيل";
 
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "للتحقق من أن اتصالك بـ %@ آمن، يجب التأكد من مطابقة الأرقام أعلاه للأرقام المعروضة على جهازه، أو يمكنك مسح رمز الاستجابة السريعة على هاتفه.";
@@ -2080,4 +2128,7 @@
 
 /* Notification that post is uploading */
 "your.post.externalshare.uploading" = "جارٍ إنشاء الرابط...";
+
+/* Text that appears on the splash screen prior to registration. */
+"your.private.social.network" = "مرحبًا بك في شبكتك الاجتماعية الخاصة";
 

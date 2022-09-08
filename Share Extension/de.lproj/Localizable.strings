@@ -77,7 +77,7 @@
 "chat.group.expiry.option.30days" = "30 Tage";
 
 /* Group content expiry time limit option */
-"chat.group.expiry.option.never" = "niemals";
+"chat.group.expiry.option.never" = "Niemals";
 
 /* Alert message when missing microphone access */
 "chat.mic.access.denied.message" = "Für Audioaufnahmen bitte in den Einstellungen das Mikrofon aktivieren";
@@ -175,6 +175,9 @@
 /* Placeholder when sharing text only. */
 "share.composer.placeholder.text" = "Einen Beitrag schreiben";
 
+/* Title of alert displayed while processing media shared by share extension */
+"share.composer.processing.media" = "Media wird bearbeitet...";
+
 /* Alert dialog message shown when uploading fails. */
 "share.composer.uploading.fail.message" = "Bitte versuche es später noch einmal.";
 
@@ -215,9 +218,6 @@
 
 /* Row in Settings screen */
 "title.privacy" = "Privatsphäre";
-
-/* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "Kontakt unbekannt";
 
 /* How many bytes from total have been uploaded */
 "uploading.bytes.progress" = "%1$@ von %2$@";

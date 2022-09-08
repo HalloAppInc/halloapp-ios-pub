@@ -235,6 +235,3 @@
 /* Row in Settings screen */
 "title.privacy" = "Privacidad";
 
-/* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "Contacto desconocido";
-

@@ -148,6 +148,40 @@
 			<string>%d adet görsel hazırlanamadı. Lütfen tekrar dene veya farklı bir fotoğraf/video seç.</string>
 		</dict>
 	</dict>
+	<key>n.contacts.privacy.disclaimer</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_kişiler@</string>
+		<key>n_contacts</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>Bu kişi, tüm HalloApp kişileriyle paylaşılan gönderilerini görebilecek.</string>
+			<key>other</key>
+			<string>Bu kişiler, tüm HalloApp kişileriyle paylaşılan gönderilerini görebilecek.</string>
+		</dict>
+	</dict>
+	<key>n.fellow.contacts</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_kişiler@</string>
+		<key>n_contacts</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>HalloApp'te %d kişiyle bağlantın var</string>
+			<key>other</key>
+			<string>HalloApp'te %d kişiyle bağlantın var</string>
+			<key>zero</key>
+			<string>HalloApp'te henüz kimseyle bağlantın yok</string>
+		</dict>
+	</dict>
 	<key>n.invites.count</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>

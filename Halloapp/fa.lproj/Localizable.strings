@@ -484,6 +484,9 @@
 /* Text shown in the chat interface informing the user that the contact is unblocked */
 "chat.unblocked.contact.label" = "شما این مخاطب را رفع مسدودیت کردید";
 
+/* Text shown in a notification when user reacted to a message. The user's name is shown above this message in the notification. */
+"chat.user.reacted.message" = "به پیام عکس العمل @2% را نشان داد";
+
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "با حذف این گفتگو تاریخچه گفتگو و محتوای آن را از دستگاه خود پاک خواهید کرد.";
 
@@ -538,13 +541,10 @@
 /* Title on edit button */
 "composer.button.edit" = "ویرایش";
 
-/* Send button title */
-"composer.button.send.to" = "فرستادن به";
-
-/* Title warning that a voice recording will be deleted */
+/* Title warning that a audio recording will be deleted */
 "composer.delete.recording.title" = "حذف پیام صوتی";
 
-/* Warning message shown to the user before discarding a voice post */
+/* Warning message shown to the user before discarding a audio post */
 "composer.deletevoicenote.message" = "ضبط صدا ذخیره نمیشود اگر این پست را لغو کنید.";
 
 /* Title for alert when closing the post composer with a voice note */
@@ -573,6 +573,9 @@
 
 /* Composer New Moment Post title. */
 "composer.moment.post.title" = "لحظه جدید";
+
+/* Title of the composer during a user's very first post. */
+"composer.onboarding.post.title" = "پست اولم";
 
 /* Placeholder text for media caption field in post composer. */
 "composer.placeholder.media.description" = "نوشتن توضیحات";
@@ -625,14 +628,26 @@
 /* Placeholder text shown inside the group name input box when it's empty */
 "create.group.name.placeholder" = "نامگذاری گروه";
 
+/* Title for group name text field in group creation */
+"create.group.name.title" = "نام";
+
 /* Title of group creation screen */
 "create.group.title" = "اطلاعات گروه";
+
+/* Prompt for the user to create their first post. */
+"create.your.first.post.1" = "اولین پست خود را آماده کنید";
+
+/* Prompt for the user to create their first post. */
+"create.your.first.post.2" = "اولین پست خود را آماده کنید و دوستانتان را دعوت کنید تا آن را مشاهده کنند";
 
 /* Title for generic delete button. */
 "Delete" = "حذف";
 
 /* Body of the bottom sheet that is presented only once to explain the moments feature. */
 "describing.moments" = "لحظه‌های دوستان خود را با به اشتراک گذاشتن لحظه‌های خود باز کنید. لحظه‌ها سرگرمی هستند، بعد از یک بار دیدن از بین میروند.";
+
+/* Send to button and screen title */
+"destination.send.to" = "فرستادن به";
 
 /* Title that indicates that someone downloaded media from a post. */
 "downloaded.title" = "دانلود شد";
@@ -840,6 +855,9 @@
 
 /* Button under someoneelse's post. Verb. */
 "feedpost.button.reply" = "پاسخ خصوصی";
+
+/* Explains that as more contacts join the app, they will appear in this list automatically. */
+"fellow.contacts.will.arrive" = "مخاطبین تلفن شما که در هالواپ هستنید به طور خودکار اینجا نشان داده میشوند.";
 
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "افزودن توضیحات گروه";
@@ -1240,8 +1258,12 @@
 /* Message action. Verb. */
 "message.delete" = "حذف";
 
-/* Call to action to forward a message */
+/* Call to action to forward a message
+   Title of page where user can pick contats to forward a chat messsage */
 "message.forward" = "هدایت";
+
+/* Call to action to forward a message which contains more than once media item */
+"message.forward.all" = "هدایت همه";
 
 /* Message action. Verb. */
 "message.reply" = "پاسخ";
@@ -1257,6 +1279,9 @@
 
 /* Title of text displayed the first time the user acts to post a second moment in the same day. */
 "moment.replacement.title" = "توجه";
+
+/* Text on a locked moment that explains the need to post your own in order to view it. */
+"moment.unlock.disclaimer" = "برای دیدن لحظه آن‌ها، لحظه خود را به اشتراک بگذارید";
 
 /* For indicating that there was an error while uploading the post. */
 "moment.uploading.failure" = "خطا";
@@ -1299,6 +1324,12 @@
 
 /* Your Post screen: label for the row that opens the privacy screen */
 "mypost.row.manage.privacy" = "تنظیمات حریم خصوصی";
+
+/* Explains that the listed contacts will be able to see posts that are shared with all contacts */
+"n.contacts.privacy.disclaimer" = "n.contacts.privacy.disclaimer";
+
+/* Number of contacts that are already on HalloApp. */
+"n.fellow.contacts" = "n.fellow.contacts";
 
 /* Indicates how many invites are remaining */
 "n.invites.count" = "n.invites.count";
@@ -1617,6 +1648,9 @@
 /* Button label to resend verification code by voice call */
 "registration.code.resend.by.voice" = "با من تماس بگیرید";
 
+/* An explainer during registration for why we need contact permissions. */
+"registration.contact.permissions.mesage" = "هالواپ هیچوقت به کسی از طرف شما پیام نمیدهد و فقط از شماره شما برای ارتباط شما با دوستان و آشنایانتان استفاده میکند.";
+
 /* Text explaining why we need contact permissions */
 "registration.contacts.content" = "برای ارتباط با دوستان و آشنایانتان نیاز به دسترسی به مخاطب‌هایتان داریم.";
 
@@ -1625,6 +1659,9 @@
 
 /* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
 "registration.free.app.notice" = "رایگان در اپ استور آیفون";
+
+/* Title of a button. */
+"registration.get.started" = "شروع!";
 
 /* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
 "registration.group.name" = "شما به گروه %@ دعوت شدید";
@@ -1659,8 +1696,20 @@
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "اگر با یک لینک گروه ثبتنام کردید، لطفاً روی لینک دوباره کلیک کنید تا به گروه بپیوندید.";
 
+/* Text prompting the user for their push name. */
+"registration.name.prompt" = "شما را چطور صدا کنیم؟";
+
 /* Placeholder text for name entry */
 "registration.nameEntry.placeholder" = "نام شما";
+
+/* An explainer during registration for why we'd like notification permissions. */
+"registration.notification.permissions.mesage" = "دریافت خبر پیام‌ها، تماس‌ها و پست‌ها. هر وقت خواستید میتوانید آن را تغییر دهید.";
+
+/* Text that is above the field for the user's phone number during registration. */
+"registration.phone.number.prompt" = "شماره شما چیست؟";
+
+/* Text that explains why HalloApp needs the user's phone number during registration. */
+"registration.phone.number.reasoning" = "با استفاده از شماره تلفن شما میتوانید دوستانتان را پیدا کنید و آن‌ها میتوانند شما را پیدا کنند!";
 
 /* Placeholder text for phone entry */
 "registration.phoneEntry.placeholder" = "شماره تلفن";
@@ -1674,8 +1723,17 @@
 /* Title for popup that appears when user tries to register uninvited number */
 "registration.shucks" = "اوه!";
 
+/* Message displayed below the progress bar during the app's initial contacts sync. */
+"registration.syncing.contacts" = "هماهنگ‌سازی مخاطبین";
+
 /* Shown above name and phone inputs */
 "registration.welcome" = "خوش‌آمدید!";
+
+/* Title of the button that allows the user to go back and re-enter their number during registration */
+"registration.wrong.number" = "شماره اشتباه؟";
+
+/* Message shown to the user once they have successfully registered. */
+"registration.you.are.in" = "وارد شدید!";
 
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "برای اطمینان از ایمنی ارتباطتان با %@، لطفاً شماره بالا را با شماره‌ای که روی دستگاه ایشان هست مقایسه کنید، یا کد کیوآر را از تلفن ایشان اسکن کنید.";
@@ -1984,9 +2042,6 @@
 /* Instructs user to tap a button (e.g., Tap “Go to Settings” below.) */
 "tutorial.tap.below" = "روی «%@» کلیک کنید.";
 
-/* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "مخاطب ناشناخته";
-
 /* Text for action label that lets the user accept messages from unknown contacts */
 "unknown.contact.accept.to.message" = "قبول کردن پیام";
 
@@ -2076,4 +2131,7 @@
 
 /* Notification that post is uploading */
 "your.post.externalshare.uploading" = "ایجاد لینک...";
+
+/* Text that appears on the splash screen prior to registration. */
+"your.private.social.network" = "به شبکه اجتماعی خصوصی خودتان خوش آمدید";
 

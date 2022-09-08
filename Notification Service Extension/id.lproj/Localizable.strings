@@ -200,16 +200,16 @@
 "notification.one.video" = "📹 video";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.1" = "%@ membagikan momen baru untuk membuka momen Anda";
+"notification.unlocked.moment.1" = "%@ membagikan momen baru untuk melihat momen Anda";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.2" = "%1$@ dan %2$@ membagikan momen baru untuk membuka momen Anda";
+"notification.unlocked.moment.2" = "%1$@ dan %2$@ membagikan momen baru untuk melihat momen Anda";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.3" = "%1$@, %2$@, dan %3$@ membagikan momen baru untuk membuka momen Anda";
+"notification.unlocked.moment.3" = "%1$@, %2$@, dan %3$@ membagikan momen baru untuk melihat momen Anda";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@, dan lainnya membagikan momen baru untuk membuka momen Anda";
+"notification.unlocked.moment.4" = "%1$@, %2$@, %3$@, dan lainnya membagikan momen baru untuk melihat momen Anda";
 
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 Panggilan video tak terjawab";
@@ -234,7 +234,4 @@
 
 /* Row in Settings screen */
 "title.privacy" = "Privasi";
-
-/* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "Kontak Tak Dikenal";
 

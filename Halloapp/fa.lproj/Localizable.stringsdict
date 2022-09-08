@@ -148,6 +148,40 @@
 			<string>خطا در پردازش d% فایل. لطفاً‌ دوباره امتحان کنید یا عکس / ویدیوی دیگری انتخاب کنید.</string>
 		</dict>
 	</dict>
+	<key>n.contacts.privacy.disclaimer</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_contacts@</string>
+		<key>n_contacts</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>این مخاطب میتواند پست‌هایی که شما با مخاطبین هالواپ خود به اشتراک گذاشتید را ببیند.</string>
+			<key>other</key>
+			<string>این مخاطبین میتوانند پست‌هایی که شما با مخاطبین هالواپ خود به اشتراک گذاشتید را ببینند.</string>
+		</dict>
+	</dict>
+	<key>n.fellow.contacts</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_contacts@</string>
+		<key>n_contacts</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>شما به d% نفر در هالواپ متصل هستید</string>
+			<key>other</key>
+			<string>شما به d% نفر در هالواپ متصل هستید</string>
+			<key>zero</key>
+			<string>شما هنوز به هیچکس متصل نیستید</string>
+		</dict>
+	</dict>
 	<key>n.invites.count</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>

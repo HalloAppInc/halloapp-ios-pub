@@ -148,6 +148,40 @@
 			<string>%d Mediendateien können nicht erstellt werden. Bitte versuche es noch einmal oder wähle ein anderes Foto/Video aus.</string>
 		</dict>
 	</dict>
+	<key>n.contacts.privacy.disclaimer</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_contacts@</string>
+		<key>n_contacts</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>Dieser Kontakt kann deine Beiträge, die mit allen HalloApp-Kontakten geteilt werden, sehen.</string>
+			<key>other</key>
+			<string>Diese Kontakte können deine Beiträge, die mit allen HalloApp-Kontakten geteilt werden, sehen.</string>
+		</dict>
+	</dict>
+	<key>n.fellow.contacts</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_contacts@</string>
+		<key>n_contacts</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>Du bist mit %d Person auf HalloApp verbunden</string>
+			<key>other</key>
+			<string>Du bist mit %d Personen auf HalloApp verbunden</string>
+			<key>zero</key>
+			<string>Du bist noch mit niemandem auf HalloApp verbunden</string>
+		</dict>
+	</dict>
 	<key>n.invites.count</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>

@@ -148,6 +148,40 @@
 			<string>Voorbereiden van %d media-items mislukt. Probeer het opnieuw of selecteer een andere foto / video.</string>
 		</dict>
 	</dict>
+	<key>n.contacts.privacy.disclaimer</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_contacts@</string>
+		<key>n_contacts</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>Dit contact kan je posts zien die je met alle HalloApp-contacten deelt.</string>
+			<key>other</key>
+			<string>Deze contacten kunnen je posts zien die je met alle HalloApp-contacten deelt.</string>
+		</dict>
+	</dict>
+	<key>n.fellow.contacts</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_contacts@</string>
+		<key>n_contacts</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>Je bent met %d persoon verbonden op HalloApp</string>
+			<key>other</key>
+			<string>Je bent met %d personen verbonden op HalloApp</string>
+			<key>zero</key>
+			<string>Je bent nog met niemand verbonden op HalloApp</string>
+		</dict>
+	</dict>
 	<key>n.invites.count</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>

@@ -371,19 +371,19 @@
 "chat.invite.friends" = "Vrienden Uitnodigen";
 
 /* Text shown when user removed a reaction from an audio */
-"chat.list.user.deleted.reaction.audio" = "%1$@ heeft een %2$@ verwijderd van een audio";
+"chat.list.user.deleted.reaction.audio" = "%1$@ heeft %2$@ verwijderd van een audiobericht";
 
 /* Text shown when user removed a reaction from an image */
-"chat.list.user.deleted.reaction.image" = "%1$@ heeft een %2$@ verwijderd van een afbeelding";
+"chat.list.user.deleted.reaction.image" = "%1$@ heeft %2$@ verwijderd van een afbeelding";
 
 /* Text shown when user removed a reaction from a message */
-"chat.list.user.deleted.reaction.message" = "%1$@ heeft een %2$@ verwijderd van een bericht";
+"chat.list.user.deleted.reaction.message" = "%1$@ heeft %2$@ verwijderd van een bericht";
 
 /* Text shown when user removed a reaction from a text message */
-"chat.list.user.deleted.reaction.text" = "%1$@ heeft een %2$@ verwijderd van %3$@";
+"chat.list.user.deleted.reaction.text" = "%1$@ heeft %2$@ verwijderd van %3$@";
 
 /* Text shown when user removed a reaction from a video */
-"chat.list.user.deleted.reaction.video" = "%1$@ heeft een %2$@ verwijderd van een video";
+"chat.list.user.deleted.reaction.video" = "%1$@ heeft %2$@ verwijderd van een video";
 
 /* Text shown when user reacted to an audio */
 "chat.list.user.reacted.audio" = "%1$@ reageerde met %2$@ op een audiobericht";
@@ -401,19 +401,19 @@
 "chat.list.user.reacted.video" = "%1$@ reageerde met %2$@ op een video";
 
 /* Text shown when you removed a reaction from an audio */
-"chat.list.you.deleted.reaction.audio" = "Je hebt een %1@ verwijderd van een audio";
+"chat.list.you.deleted.reaction.audio" = "Je hebt %1@ verwijderd van een audiobericht";
 
 /* Text shown when you removed a reaction from an image */
-"chat.list.you.deleted.reaction.image" = "Je hebt een %1@ verwijderd van een afbeelding";
+"chat.list.you.deleted.reaction.image" = "Je hebt %1@ verwijderd van een afbeelding";
 
 /* Text shown when you removed a reaction from a message */
-"chat.list.you.deleted.reaction.message" = "Je hebt een %@ verwijderd van een bericht";
+"chat.list.you.deleted.reaction.message" = "Je hebt %@ verwijderd van een bericht";
 
 /* Text shown when you removed a reaction from a text message */
-"chat.list.you.deleted.reaction.text" = "Je hebt een %1$@ verwijderd van %2$@";
+"chat.list.you.deleted.reaction.text" = "Je hebt %1$@ verwijderd van %2$@";
 
 /* Text shown when you removed a reaction from a video */
-"chat.list.you.deleted.reaction.video" = "Je hebt een %1@ verwijderd van een video";
+"chat.list.you.deleted.reaction.video" = "Je hebt %1@ verwijderd van een video";
 
 /* Text shown when you reacted to an audio */
 "chat.list.you.reacted.audio" = "Je reageerde met %1@ op een audiobericht";
@@ -484,6 +484,9 @@
 /* Text shown in the chat interface informing the user that the contact is unblocked */
 "chat.unblocked.contact.label" = "Je hebt dit contact gedeblokkeerd";
 
+/* Text shown in a notification when user reacted to a message. The user's name is shown above this message in the notification. */
+"chat.user.reacted.message" = "reageerde met %2@ op een bericht";
+
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "Als je deze chat verwijderd, verwijder je de chatgeschiedenis en inhoud ervan van je apparaat.";
 
@@ -538,14 +541,11 @@
 /* Title on edit button */
 "composer.button.edit" = "Bewerken";
 
-/* Send button title */
-"composer.button.send.to" = "Verzenden Naar";
+/* Title warning that a audio recording will be deleted */
+"composer.delete.recording.title" = "Audio-opname verwijderen?";
 
-/* Title warning that a voice recording will be deleted */
-"composer.delete.recording.title" = "Spraakopname verwijderen?";
-
-/* Warning message shown to the user before discarding a voice post */
-"composer.deletevoicenote.message" = "Spraakopname wordt niet opgeslagen als je deze post weggooit.";
+/* Warning message shown to the user before discarding a audio post */
+"composer.deletevoicenote.message" = "Audio-opname wordt niet opgeslagen als je deze post weggooit.";
 
 /* Title for alert when closing the post composer with a voice note */
 "composer.deletevoicenote.title" = "Post Weggooien?";
@@ -573,6 +573,9 @@
 
 /* Composer New Moment Post title. */
 "composer.moment.post.title" = "Nieuw Moment";
+
+/* Title of the composer during a user's very first post. */
+"composer.onboarding.post.title" = "Mijn Eerste Post";
 
 /* Placeholder text for media caption field in post composer. */
 "composer.placeholder.media.description" = "Voeg een omschrijving toe";
@@ -625,14 +628,26 @@
 /* Placeholder text shown inside the group name input box when it's empty */
 "create.group.name.placeholder" = "Groepsnaam invoeren";
 
+/* Title for group name text field in group creation */
+"create.group.name.title" = "Naam";
+
 /* Title of group creation screen */
-"create.group.title" = "Groepsinformatie";
+"create.group.title" = "Nieuwe Groep";
+
+/* Prompt for the user to create their first post. */
+"create.your.first.post.1" = "Maak je eerste post";
+
+/* Prompt for the user to create their first post. */
+"create.your.first.post.2" = "Maak je eerste post en nodig vrienden uit om deze te zien";
 
 /* Title for generic delete button. */
 "Delete" = "Verwijderen";
 
 /* Body of the bottom sheet that is presented only once to explain the moments feature. */
 "describing.moments" = "Ontgrendel momenten van je vrienden door je eigen moment te delen. Momenten zijn tijdelijk en verdwijnen nadat je ze één keer hebt bekeken.";
+
+/* Send to button and screen title */
+"destination.send.to" = "Verzenden Naar";
 
 /* Title that indicates that someone downloaded media from a post. */
 "downloaded.title" = "Gedownload";
@@ -840,6 +855,9 @@
 
 /* Button under someoneelse's post. Verb. */
 "feedpost.button.reply" = "Privé Beantwoorden";
+
+/* Explains that as more contacts join the app, they will appear in this list automatically. */
+"fellow.contacts.will.arrive" = "Je telefooncontacten die zich registreren op HalloApp verschijnen hier automatisch.";
 
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Groepsomschrijving toevoegen";
@@ -1240,8 +1258,12 @@
 /* Message action. Verb. */
 "message.delete" = "Verwijderen";
 
-/* Call to action to forward a message */
+/* Call to action to forward a message
+   Title of page where user can pick contats to forward a chat messsage */
 "message.forward" = "Doorsturen";
+
+/* Call to action to forward a message which contains more than once media item */
+"message.forward.all" = "Alles Doorsturen";
 
 /* Message action. Verb. */
 "message.reply" = "Beantwoorden";
@@ -1302,6 +1324,12 @@
 
 /* Your Post screen: label for the row that opens the privacy screen */
 "mypost.row.manage.privacy" = "Privacy Beheren";
+
+/* Explains that the listed contacts will be able to see posts that are shared with all contacts */
+"n.contacts.privacy.disclaimer" = "n.contacts.privacy.disclaimer";
+
+/* Number of contacts that are already on HalloApp. */
+"n.fellow.contacts" = "n.fellow.contacts";
 
 /* Indicates how many invites are remaining */
 "n.invites.count" = "n.invites.count";
@@ -1519,7 +1547,7 @@
 
 /* Controller title for changing destination and privacy
    Header when selecting contacts to share with */
-"post.privacy.title" = "Recente Contacten";
+"post.privacy.title" = "Contacten";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Geblokkeerd";
@@ -1609,7 +1637,7 @@
 "registration.code.incorrect" = "De code die je hebt ingevoerd is onjuist";
 
 /* Instructions for filling in SMS verification code. Parameter is formatted phone number */
-"registration.code.instructions" = "Voer de code in die we naar %@ hebben verzonden";
+"registration.code.instructions" = "Voer de code in die we hebben verzonden naar\n%@";
 
 /* Error message to display when we cannot send a verification code */
 "registration.code.request.error" = "Kon de code niet verzenden. Probeer het later opnieuw.";
@@ -1620,6 +1648,9 @@
 /* Button label to resend verification code by voice call */
 "registration.code.resend.by.voice" = "Bel mij";
 
+/* An explainer during registration for why we need contact permissions. */
+"registration.contact.permissions.mesage" = "HalloApp stuurt nooit iemand berichten namens jou en gebruikt je telefooncontacten alleen om je te verbinden met je vrienden en familie.";
+
 /* Text explaining why we need contact permissions */
 "registration.contacts.content" = "Om je te kunnen verbinden met je vrienden en familie hebben we toestemming nodig voor toegang tot je contacten.";
 
@@ -1628,6 +1659,9 @@
 
 /* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
 "registration.free.app.notice" = "Gratis in de iPhone App Store";
+
+/* Title of a button. */
+"registration.get.started" = "Beginnen!";
 
 /* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
 "registration.group.name" = "Je bent uitgenodigd om deel te nemen aan de groep %@";
@@ -1662,8 +1696,20 @@
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Als je een uitnodigingslink hebt gevolgd om je te registreren voor deze groep, klik dan opnieuw op de link om de registratie af te ronden en deel te nemen aan de groep.";
 
+/* Text prompting the user for their push name. */
+"registration.name.prompt" = "Hoe moeten we je noemen?";
+
 /* Placeholder text for name entry */
 "registration.nameEntry.placeholder" = "Jouw Naam";
+
+/* An explainer during registration for why we'd like notification permissions. */
+"registration.notification.permissions.mesage" = "Ontvang meldingen van berichten, oproepen en posts. Je kunt je meldingen op ieder moment aanpassen.";
+
+/* Text that is above the field for the user's phone number during registration. */
+"registration.phone.number.prompt" = "Wat is je telefoonnummer?";
+
+/* Text that explains why HalloApp needs the user's phone number during registration. */
+"registration.phone.number.reasoning" = "Je telefoonnummer is waarmee je je vrienden op HalloApp vindt en hoe ze jou vinden!";
 
 /* Placeholder text for phone entry */
 "registration.phoneEntry.placeholder" = "Telefoonnummer";
@@ -1677,8 +1723,17 @@
 /* Title for popup that appears when user tries to register uninvited number */
 "registration.shucks" = "Oeps!";
 
+/* Message displayed below the progress bar during the app's initial contacts sync. */
+"registration.syncing.contacts" = "Contacten Synchroniseren";
+
 /* Shown above name and phone inputs */
 "registration.welcome" = "Welkom!";
+
+/* Title of the button that allows the user to go back and re-enter their number during registration */
+"registration.wrong.number" = "Verkeerd nummer?";
+
+/* Message shown to the user once they have successfully registered. */
+"registration.you.are.in" = "Je bent binnen!";
 
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Om de beveiliging van je verbinding met %@ te verifiëren, controleer of bovenstaande nummers overeenkomen met die op het andere apparaat of scan de QR-code op de andere telefoon.";
@@ -1987,9 +2042,6 @@
 /* Instructs user to tap a button (e.g., Tap “Go to Settings” below.) */
 "tutorial.tap.below" = "Tik op “%@” hieronder.";
 
-/* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "Onbekend Contact";
-
 /* Text for action label that lets the user accept messages from unknown contacts */
 "unknown.contact.accept.to.message" = "Bericht Accepteren";
 
@@ -2079,4 +2131,7 @@
 
 /* Notification that post is uploading */
 "your.post.externalshare.uploading" = "Link wordt aangemaakt...";
+
+/* Text that appears on the splash screen prior to registration. */
+"your.private.social.network" = "Welkom bij je privé sociale netwerk";
 

@@ -415,10 +415,10 @@
 /* Title on edit button */
 "composer.button.edit" = "Modifier";
 
-/* Title warning that a voice recording will be deleted */
+/* Title warning that a audio recording will be deleted */
 "composer.delete.recording.title" = "Effacer l'enregistrement vocal ?";
 
-/* Warning message shown to the user before discarding a voice post */
+/* Warning message shown to the user before discarding a audio post */
 "composer.deletevoicenote.message" = "L'enregistrement vocal ne sera pas sauvegardé si tu abandonnes cette publication.";
 
 /* Title for alert when closing the post composer with a voice note */
@@ -1644,9 +1644,6 @@
 
 /* Instructs user to tap a button (e.g., Tap “Go to Settings” below.) */
 "tutorial.tap.below" = "Appuie sur « %@ » ci-dessous.";
-
-/* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "Contact inconnu";
 
 /* Text for action label that lets the user accept messages from unknown contacts */
 "unknown.contact.accept.to.message" = "Accepter les messages";

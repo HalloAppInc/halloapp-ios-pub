@@ -229,17 +229,17 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>few</key>
-			<string>These contacts will be able to see your posts shared with all HalloApp contacts.</string>
+			<string>ستتمكن جهات الاتصال هذه من رؤية منشوراتك التي تشاركها مع جميع جهات اتصال هالوآب.</string>
 			<key>many</key>
-			<string>These contacts will be able to see your posts shared with all HalloApp contacts.</string>
+			<string>ستتمكن جهات الاتصال هذه من رؤية منشوراتك التي تشاركها مع جميع جهات اتصال هالوآب.</string>
 			<key>one</key>
-			<string>This contact will be able to see your posts shared with all HalloApp contacts.</string>
+			<string>ستتمكن جهة الاتصال هذه من رؤية منشوراتك التي تشاركها مع جميع جهات اتصال هالوآب.</string>
 			<key>other</key>
-			<string>These contacts will be able to see your posts shared with all HalloApp contacts.</string>
+			<string>ستتمكن جهات الاتصال هذه من رؤية منشوراتك التي تشاركها مع جميع جهات اتصال هالوآب.</string>
 			<key>two</key>
-			<string>These contacts will be able to see your posts shared with all HalloApp contacts.</string>
+			<string>ستتمكن جهتا الاتصال هاتان من رؤية منشوراتك التي تشاركها مع جميع جهات اتصال هالوآب.</string>
 			<key>zero</key>
-			<string>These contacts will be able to see your posts shared with all HalloApp contacts.</string>
+			<string>ستتمكن جهات الاتصال هذه من رؤية منشوراتك التي تشاركها مع جميع جهات اتصال هالوآب.</string>
 		</dict>
 	</dict>
 	<key>n.fellow.contacts</key>
@@ -253,15 +253,15 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>few</key>
-			<string>You’re connected to %d people on HalloApp</string>
+			<string>أنت متصل بـ %d أشخاص على هالوآب</string>
 			<key>many</key>
-			<string>You’re connected to %d people on HalloApp</string>
+			<string>أنت متصل بـ %d شخصًا على هالوآب</string>
 			<key>one</key>
-			<string>You’re connected to %d person on HalloApp</string>
+			<string>أنت متصل بشخص %d على هالوآب</string>
 			<key>other</key>
-			<string>You’re connected to %d people on HalloApp</string>
+			<string>أنت متصل بـ %d شخص على هالوآب</string>
 			<key>two</key>
-			<string>You’re connected to %d people on HalloApp</string>
+			<string>أنت متصل بشخصين %d على هالوآب</string>
 			<key>zero</key>
 			<string>You’re not connected to anyone on HalloApp yet</string>
 		</dict>

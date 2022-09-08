@@ -70,6 +70,15 @@
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Güncelle";
 
+/* Group content expiry time limit option */
+"chat.group.expiry.option.24hours" = "24 saat";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.30days" = "30 gün";
+
+/* Group content expiry time limit option */
+"chat.group.expiry.option.never" = "Asla";
+
 /* Alert message when missing microphone access */
 "chat.mic.access.denied.message" = "Ses kaydını etkinleştirmek için lütfen Ayarlara git ve Mikrofonu aç";
 
@@ -166,6 +175,9 @@
 /* Placeholder when sharing text only. */
 "share.composer.placeholder.text" = "Bir gönderi yaz";
 
+/* Title of alert displayed while processing media shared by share extension */
+"share.composer.processing.media" = "Medya işleniyor...";
+
 /* Alert dialog message shown when uploading fails. */
 "share.composer.uploading.fail.message" = "Lütfen daha sonra tekrar dene.";
 
@@ -206,9 +218,6 @@
 
 /* Row in Settings screen */
 "title.privacy" = "Gizlilik";
-
-/* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "Bilinmeyen kişi";
 
 /* How many bytes from total have been uploaded */
 "uploading.bytes.progress" = "%2$@'nin %1$@ ";
