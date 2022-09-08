@@ -731,8 +731,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private func feedComments(for feedPostId: FeedPostID,
                               sortDescriptors: [NSSortDescriptor] = [NSSortDescriptor(keyPath: \FeedPostComment.timestamp, ascending: true)],
                               in managedObjectContext: NSManagedObjectContext) -> [FeedPostComment] {
+        guard let feedPost = feedPost(with: feedPostId, in: managedObjectContext) else {
+            DDLogError("FeedData/fetch-comments/could not fetch post \(feedPostId)")
+            return []
+        }
+
         let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "postID == %@", feedPostId)
+        fetchRequest.predicate = NSPredicate(format: "post == %@", feedPost)
         fetchRequest.returnsObjectsAsFaults = false
         do {
             let comments = try managedObjectContext.fetch(fetchRequest)

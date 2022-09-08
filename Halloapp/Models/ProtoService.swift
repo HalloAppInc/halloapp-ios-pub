@@ -2006,7 +2006,7 @@ extension ProtoService: HalloService {
                                                                                      historyResend: historyResend) { result in
                                         DDLogInfo("ProtoServiceCore/modifyGroup/\(groupID)/encryptHistoryContainer/result: \(result)")
                                         switch result {
-                                        case .serverError("audience_hash_mismatch"):
+                                        case .failure(.serverError("audience_hash_mismatch")):
                                             AppContext.shared.messageCrypter.updateAudienceHash(for: groupID)
                                         default:
                                             break
