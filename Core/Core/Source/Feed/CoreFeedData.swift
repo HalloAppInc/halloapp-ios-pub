@@ -398,7 +398,7 @@ open class CoreFeedData: NSObject {
         for mediaItem in media {
             let mediaID = mediaItem.id
             let mediaItemProgressPublisher = mediaItem.statusPublisher
-                .flatMap { [weak commonMediaUploader] status in
+                .flatMap { [weak commonMediaUploader] status -> AnyPublisher<Float, Never> in
                     switch status {
                     case .uploaded:
                         return Just(Float(1)).eraseToAnyPublisher()
