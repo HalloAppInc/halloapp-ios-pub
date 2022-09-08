@@ -2419,8 +2419,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         var receipts = [FeedPostReceipt]()
 
-        contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-            let contacts = contactStore.contacts(withUserIds: Array(seenReceipts.keys), in: managedObjectContext)
+        let fetchReceipts: (NSManagedObjectContext) -> Void = { managedObjectContext in
+            let contacts = self.contactStore.contacts(withUserIds: Array(seenReceipts.keys), in: managedObjectContext)
             let contactsMap = contacts.reduce(into: [UserID: ABContact]()) { (map, contact) in
                 if let userID = contact.userId {
                     map[userID] = contact
@@ -2436,7 +2436,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     phoneNumber = contact.phoneNumber?.formattedPhoneNumber
                 }
                 if contactName == nil {
-                    contactName = contactStore.fullName(for: userId, in: managedObjectContext)
+                    contactName = self.contactStore.fullName(for: userId, in: managedObjectContext)
                 }
 
                 receipts.append(FeedPostReceipt(userId: userId,
@@ -2448,6 +2448,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                                    screenshotTimestamp: receipt.screenshotDate))
             }
             receipts.sort(by: { $0.timestamp > $1.timestamp })
+        }
+
+        // Optimization: if we're on the main thread, attempt to use the view context. This prevents us from being blocked by lengthy contact sync operations.
+        if Thread.isMainThread {
+            fetchReceipts(contactStore.viewContext)
+        } else {
+            contactStore.performOnBackgroundContextAndWait(fetchReceipts)
         }
 
         return receipts
