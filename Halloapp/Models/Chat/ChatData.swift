@@ -3336,6 +3336,24 @@ extension ChatData {
         guard shouldCleanUp else {
             return
         }
+
+        // Delete temporary files
+        let cutoffDate = Date().addingTimeInterval(-3 * 24 * 60 * 60) // 3 days ago
+        let tmpDirectory = URL(fileURLWithPath: NSTemporaryDirectory())
+        FileManager.default.enumerator(at: tmpDirectory, includingPropertiesForKeys: [.contentModificationDateKey])?.forEach { fileURL in
+            guard let fileURL = fileURL as? URL,
+                  let modificationDate = (try? fileURL.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate,
+                  modificationDate <= cutoffDate else {
+                return
+            }
+            DDLogInfo("ChatData/cleanUpOldUploadData/deleting temp file: \(fileURL)")
+            do {
+                try FileManager.default.removeItem(at: fileURL)
+            } catch {
+                DDLogError("ChatData/cleanUpOldUploadData/failed to delete temp file: \(fileURL)")
+            }
+        }
+
         cleanUpOldUploadData(directoryURL: MainAppContext.chatMediaDirectoryURL)
         cleanUpOldUploadData(directoryURL: MainAppContext.commonMediaStoreURL)
         MainAppContext.shared.feedData.cleanUpOldUploadData(directoryURL: MainAppContext.mediaDirectoryURL)
