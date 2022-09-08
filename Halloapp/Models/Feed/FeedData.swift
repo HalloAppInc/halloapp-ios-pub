@@ -728,6 +728,22 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
+    private func feedComments(for feedPostId: FeedPostID,
+                              sortDescriptors: [NSSortDescriptor] = [NSSortDescriptor(keyPath: \FeedPostComment.timestamp, ascending: true)],
+                              in managedObjectContext: NSManagedObjectContext) -> [FeedPostComment] {
+        let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "postID == %@", feedPostId)
+        fetchRequest.returnsObjectsAsFaults = false
+        do {
+            let comments = try managedObjectContext.fetch(fetchRequest)
+            return comments
+        }
+        catch {
+            DDLogError("FeedData/fetch-comments/error  [\(error)]")
+            fatalError("Failed to fetch feed post comments.")
+        }
+    }
+
     private func feedComments(with ids: Set<FeedPostCommentID>,
                               sortDescriptors: [NSSortDescriptor] = [NSSortDescriptor(keyPath: \FeedPostComment.timestamp, ascending: true)],
                               in managedObjectContext: NSManagedObjectContext) -> [FeedPostComment] {
@@ -1851,9 +1867,17 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         performSeriallyOnBackgroundContext { (managedObjectContext) in
             let notifications: [FeedActivity]
             let isNotReadPredicate = NSPredicate(format: "read = %@", NSExpression(forConstantValue: false))
-            if postId != nil {
-                let postIdPredicate = NSPredicate(format: "postID = %@", postId!)
+            // Set of reaction ids to mark as read.
+            var reactionIds = [CommonReactionID]()
+            if let feedPostId = postId {
+                let postIdPredicate = NSPredicate(format: "postID = %@", feedPostId)
                 notifications = self.coreFeedData.notifications(with: NSCompoundPredicate(andPredicateWithSubpredicates: [ isNotReadPredicate, postIdPredicate ]), in: managedObjectContext)
+
+                // Fetch reactions.
+                let comments = self.feedComments(for: feedPostId, in: managedObjectContext)
+                comments.forEach { comment in
+                    reactionIds.append(contentsOf: comment.sortedReactionsList.compactMap { $0.id })
+                }
             } else {
                 notifications = self.coreFeedData.notifications(with: isNotReadPredicate, in: managedObjectContext)
             }
@@ -1863,7 +1887,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 $0.read = true
             }
             self.save(managedObjectContext)
+            // remove all notifications for comments.
             UNUserNotificationCenter.current().removeDeliveredCommentNotifications(commentIds: notifications.compactMap({ $0.commentID }))
+            // remove all notifications for comment reactions.
+            UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: reactionIds)
         }
     }
 
