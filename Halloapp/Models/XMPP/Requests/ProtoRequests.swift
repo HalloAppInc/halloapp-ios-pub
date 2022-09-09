@@ -199,7 +199,7 @@ final class ProtoGroupCreateRequest: ProtoRequest<String> {
         switch groupType {
         case .oneToOne:
             DDLogError("ProtoGroupCreateRequest/init/ error invalid groupType set to .oneToOne for a group")
-            return
+            break
         case .groupFeed:
             group.groupType = .feed
         case .groupChat:
