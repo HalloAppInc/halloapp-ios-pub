@@ -1169,7 +1169,7 @@ public class CoreChatData {
         case .oneToOne:
             return chatThreads(predicate: NSPredicate(format: "userID == %@", id), in: managedObjectContext).first
         case .groupChat, .groupFeed:
-            return chatThreads(predicate: NSPredicate(format: "groupID == %@", id), in: managedObjectContext).first
+            return chatThreads(predicate: NSPredicate(format: "groupID == %@ && typeValue = %d", id, type.rawValue), in: managedObjectContext).first
         }
     }
 
