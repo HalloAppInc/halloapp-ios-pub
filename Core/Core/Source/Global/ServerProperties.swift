@@ -47,6 +47,7 @@ public struct ServerProperties {
         case chatReactions = "chat_reactions"
         case commentReactions = "comment_reactions"
         case enableNewMediaUploader = "background_upload"
+        case enableChatLocationSharing = "location_sharing"
     }
 
     private struct UserDefaultsKey {
@@ -92,6 +93,7 @@ public struct ServerProperties {
         static let chatReactions = false
         static let commentReactions = false
         static let enableNewMediaUploader = false
+        static let enableChatLocationSharing = false
     }
 
     // MARK: Storage
@@ -318,6 +320,10 @@ public struct ServerProperties {
 
     public static var newChatUI: Bool {
         ServerProperties.bool(forKey: .newChatUI) ?? Defaults.newChatUI
+    }
+
+    public static var enableChatLocationSharing: Bool {
+        ServerProperties.bool(forKey: .enableChatLocationSharing) ?? Defaults.enableChatLocationSharing
     }
     
     public static var inviteString: String? {

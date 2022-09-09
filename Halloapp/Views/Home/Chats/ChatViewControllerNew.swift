@@ -1352,8 +1352,10 @@ extension ChatViewControllerNew: ContentInputDelegate {
         HAMenuButton(title: Localizations.fabAccessibilityCamera, image: UIImage(systemName: "camera.fill")) { [weak self] in
             self?.presentCameraViewController()
         }
-        HAMenuButton(title: Localizations.locationSharingNavTitle, image: UIImage(systemName: "location.fill")) { [weak self] in
-            self?.presentLocationSharingViewController()
+        if ServerProperties.enableChatLocationSharing {
+            HAMenuButton(title: Localizations.locationSharingNavTitle, image: UIImage(systemName: "location.fill")) { [weak self] in
+                self?.presentLocationSharingViewController()
+            }
         }
     }
     
