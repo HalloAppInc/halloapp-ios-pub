@@ -35,7 +35,10 @@ class MainAppContext: AppContext {
     lazy var webClientManager: WebClientManager? = {
         // TODO: Support logout
         guard let keys = userData.credentials?.noiseKeys else { return nil }
-        return WebClientManager(service: service, dataStore: mainDataStore, noiseKeys: keys)
+        let webStaticKey = Keychain.loadWebClientStaticKey(for: userData.userId)
+        let manager = WebClientManager(service: service, dataStore: mainDataStore, noiseKeys: keys, webStaticKey: webStaticKey)
+        manager.delegate = self
+        return manager
     }()
     lazy var nux: NUX = { NUX(userDefaults: userDefaults) }()
     private lazy var mergeSharedDataQueue = { DispatchQueue(label: "com.halloapp.mergeSharedData", qos: .default) }()
@@ -429,6 +432,16 @@ class MainAppContext: AppContext {
         return {
             DDLogInfo("AppContext/startBackgroundTask/ending: \(name)")
             UIApplication.shared.endBackgroundTask(identifier)
+        }
+    }
+}
+
+extension MainAppContext: WebClientManagerDelegate {
+    func webClientManager(_ manager: WebClientManager, didUpdateWebStaticKey staticKey: Data?) {
+        if let staticKey = staticKey {
+            Keychain.saveWebClientStaticKey(staticKey, for: userData.userId)
+        } else {
+            Keychain.removeWebClientStaticKey(for: userData.userId)
         }
     }
 }

@@ -71,6 +71,7 @@ final class ProtoService: ProtoServiceCore {
         MainAppContext.shared.startReportingEvents()
         uploadLogsToServerIfNecessary()
         uploadOneTimePreKeysIfNecessary()
+        reconnectWebClientIfNecessary()
     }
 
     override func authenticationSucceeded(with authResult: Server_AuthResult) {
@@ -320,6 +321,25 @@ final class ProtoService: ProtoServiceCore {
             delegate.halloService(self, didReceiveMessageReceipt: receipt, ack: ack)
         } else {
             ack?()
+        }
+    }
+
+    // MARK: Web client
+
+    public func reconnectWebClientIfNecessary() {
+        if let staticKey = Keychain.loadWebClientStaticKey(for: MainAppContext.shared.userData.userId) {
+            guard let manager = MainAppContext.shared.webClientManager else {
+                DDLogError("ProtoService/reconnectWebClient/error [could-not-initialize-web-manager]")
+                return
+            }
+            switch manager.state.value {
+            case .connected, .handshaking, .registering:
+                DDLogError("ProtoService/reconnectWebClient/skipping [\(manager.state.value)]")
+                return
+            case .disconnected:
+                DDLogError("ProtoService/reconnectWebClient/connecting [\(manager.state.value)]")
+                manager.connect(staticKey: staticKey)
+            }
         }
     }
 

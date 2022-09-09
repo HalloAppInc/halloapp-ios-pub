@@ -72,22 +72,15 @@ final class WebClientConnectionViewController: UIViewController {
             return "ERROR [no web client manager]"
         }
 
-        let keyPrefix: String? = {
-            guard let key = manager.webStaticKey else {
-                return nil
-            }
-            return "\(key.base64EncodedString().prefix(8))..."
-        }()
-
         switch manager.state.value {
         case .disconnected:
             return "Disconnected"
-        case .registering:
-            return "Connecting [\(keyPrefix ?? "nil")]"
+        case .registering(let key):
+            return "Connecting [\(key.base64PrefixForLogs())]"
         case .handshaking:
-            return "Handshaking [\(keyPrefix ?? "nil")]"
+            return "Handshaking [\(manager.webStaticKey?.base64PrefixForLogs() ?? "nil")]"
         case .connected:
-            return "Connected [\(keyPrefix ?? "nil")]"
+            return "Connected [\(manager.webStaticKey?.base64PrefixForLogs() ?? "nil")]"
         }
     }
 

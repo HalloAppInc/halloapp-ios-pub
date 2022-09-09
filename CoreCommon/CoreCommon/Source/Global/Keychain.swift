@@ -9,12 +9,13 @@
 import CocoaLumberjackSwift
 import Foundation
 
-final class Keychain {
+public final class Keychain {
 
     enum ServiceIdentifier: String, RawRepresentable {
         case password = "hallo"
         case noiseServer = "noise.server"
         case noiseUser = "noise.user"
+        case noiseWebClient = "noise.web"
     }
 
     @discardableResult
@@ -111,6 +112,26 @@ final class Keychain {
             DDLogError("Keychain/loadNoiseUserKeypair/error [\(error)]")
             return nil
         }
+    }
+
+    @discardableResult
+    public static func saveWebClientStaticKey(_ key: Data, for userID: UserID) -> Bool {
+        return saveOrUpdateKeychainItem(userID: userID, data: key, service: .noiseWebClient)
+    }
+
+    @discardableResult
+    public static func removeWebClientStaticKey(for userID: UserID) -> Bool {
+        return removeKeychainItem(userID: userID, service: .noiseWebClient)
+    }
+
+    public static func loadWebClientStaticKey(for userID: UserID) -> Data? {
+        guard let item = loadKeychainItem(userID: userID, service: .noiseWebClient) as? NSDictionary,
+              let data = item[kSecValueData] as? Data else
+        {
+            return nil
+        }
+
+        return data.isEmpty ? nil : data
     }
 
     // MARK: Private

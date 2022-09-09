@@ -13,53 +13,75 @@ import CoreCommon
 import Foundation
 import SwiftNoise
 
+protocol WebClientManagerDelegate: AnyObject {
+    func webClientManager(_ manager: WebClientManager, didUpdateWebStaticKey staticKey: Data?)
+}
+
 final class WebClientManager {
 
-    init(service: CoreServiceCommon, dataStore: MainDataStore, noiseKeys: NoiseKeys) {
+    init(
+        service: CoreServiceCommon,
+        dataStore: MainDataStore,
+        noiseKeys: NoiseKeys,
+        webStaticKey: Data? = nil)
+    {
         self.service = service
         self.dataStore = dataStore
         self.noiseKeys = noiseKeys
+        self.webStaticKey = webStaticKey
     }
 
     enum State {
         case disconnected
-        case registering
+        case registering(Data)
         case handshaking(HandshakeState)
         case connected(CipherState, CipherState)
     }
 
-    let service: CoreServiceCommon
-    let dataStore: MainDataStore
-    let noiseKeys: NoiseKeys
+    weak var delegate: WebClientManagerDelegate?
     var state = CurrentValueSubject<State, Never>(.disconnected)
 
+    private let service: CoreServiceCommon
+    private let dataStore: MainDataStore
+    private let noiseKeys: NoiseKeys
     private let webQueue = DispatchQueue(label: "hallo.web", qos: .userInitiated)
-    // TODO: Persist keys
+
     private(set) var webStaticKey: Data?
     private var keysToRemove = Set<Data>()
     private var isRemovingKeys = false
 
-
     func connect(staticKey: Data) {
         webQueue.async {
+            switch self.state.value {
+            case .disconnected, .connected:
+                // OK to start new connection
+                break
+            case .registering, .handshaking:
+                DDLogInfo("WebClientManager/connect/aborting [state: \(self.state.value)]")
+                return
+            }
             if let oldKey = self.webStaticKey {
                 if oldKey == staticKey {
-                    DDLogInfo("WebClientManager/connect/skipping [matches-current-key] [\(oldKey)]")
+                    DDLogInfo("WebClientManager/connect/skipping-to-handshake [key-already-registered]")
+                    self.initiateHandshake(useKK: true)
                     return
                 } else {
-                    DDLogInfo("WebClientManager/connect/will-remove-old-key [\(oldKey)]")
+                    DDLogInfo("WebClientManager/connect/will-remove-old-key [\(oldKey.base64PrefixForLogs())]")
                     self.keysToRemove.insert(oldKey)
                 }
             }
-            self.webStaticKey = staticKey
-            self.state.value = .registering
+            DDLogInfo("WebClientManager/connect/registering [\(staticKey.base64PrefixForLogs())]")
+            self.state.value = .registering(staticKey)
             self.service.authenticateWebClient(staticKey: staticKey) { [weak self] result in
+                guard let self = self else { return }
                 switch result {
                 case .success:
-                    self?.initiateHandshake()
+                    self.webStaticKey = staticKey
+                    self.delegate?.webClientManager(self, didUpdateWebStaticKey: staticKey)
+                    self.initiateHandshake()
 
                 case .failure:
-                    self?.disconnect(shouldRemoveOldKey: false)
+                    self.disconnect(shouldRemoveOldKey: false)
                 }
             }
             self.removeOldKeysIfNecessary()
@@ -73,6 +95,7 @@ final class WebClientManager {
             }
             self.webStaticKey = nil
             self.state.value = .disconnected
+            self.delegate?.webClientManager(self, didUpdateWebStaticKey: nil)
             self.removeOldKeysIfNecessary()
         }
     }
@@ -80,7 +103,7 @@ final class WebClientManager {
     func handleIncomingData(_ data: Data, from staticKey: Data) {
         webQueue.async {
             guard staticKey == self.webStaticKey else {
-                DDLogError("WebClientManager/handleIncoming/error [unrecognized-static-key: \(staticKey.base64EncodedString())] [expected: \(self.webStaticKey?.base64EncodedString() ?? "nil")]")
+                DDLogError("WebClientManager/handleIncoming/error [unrecognized-static-key: \(staticKey.base64PrefixForLogs())] [expected: \(self.webStaticKey?.base64PrefixForLogs() ?? "nil")]")
                 return
             }
             guard case .connected(_, let recv) = self.state.value else {
@@ -88,7 +111,7 @@ final class WebClientManager {
                 return
             }
             guard let decryptedData = try? recv.decryptWithAd(ad: Data(), ciphertext: data) else {
-                DDLogError("WebClientManager/handleIncoming/error could not decrypt auth result [\(data.base64EncodedString())]")
+                DDLogError("WebClientManager/handleIncoming/error [decryption-failure] [\(data.base64EncodedString())]")
                 self.disconnect()
                 return
             }
@@ -191,7 +214,8 @@ final class WebClientManager {
         }
     }
 
-    private func initiateHandshake() {
+    // Web expects us to use KK pattern when reconnecting
+    private func initiateHandshake(useKK: Bool = false) {
         guard let ephemeralKeys = NoiseKeys() else {
             DDLogError("WebClientManager/initiateHandshake/error [keygen-failure]")
             disconnect()
@@ -200,7 +224,7 @@ final class WebClientManager {
         let handshake: HandshakeState
         do {
             handshake = try HandshakeState(
-                pattern: .IK,
+                pattern: useKK ? .KK : .IK,
                 initiator: true,
                 prologue: Data(),
                 s: noiseKeys.makeX25519KeyPair(),
@@ -214,7 +238,7 @@ final class WebClientManager {
         self.state.value = .handshaking(handshake)
         do {
             let msgA = try handshake.writeMessage(payload: Data())
-            self.sendNoiseMessage(msgA, type: .ikA)
+            self.sendNoiseMessage(msgA, type: useKK ? .kkA : .ikA)
             // TODO: Set timeout
         } catch {
             DDLogError("WebClientManager/initiateHandshake/error [\(error)]")
@@ -274,16 +298,16 @@ final class WebClientManager {
             self?.isRemovingKeys = false
         }
         for key in keysToRemove {
-            DDLogInfo("WebClientManager/removeOldKeys/start [\(key.base64EncodedString())]")
+            DDLogInfo("WebClientManager/removeOldKeys/start [\(key.base64PrefixForLogs())]")
             group.enter()
             service.removeWebClient(staticKey: key) { [weak self] result in
                 guard let self = self else { return }
                 switch result {
                 case .failure(let error):
-                    DDLogError("WebClientManager/removeOldKeys/error [\(key.base64EncodedString())] [\(error)]")
+                    DDLogError("WebClientManager/removeOldKeys/error [\(key.base64PrefixForLogs())] [\(error)]")
                     group.leave()
                 case .success:
-                    DDLogInfo("WebClientManager/removeOldKeys/success [\(key.base64EncodedString())]")
+                    DDLogInfo("WebClientManager/removeOldKeys/success [\(key.base64PrefixForLogs())]")
                     self.webQueue.async {
                         self.keysToRemove.remove(key)
                         group.leave()
@@ -492,5 +516,11 @@ public enum WebClientQRCodeResult {
         } else {
             return .valid(Data(bytes[1...32]))
         }
+    }
+}
+
+extension Data {
+    func base64PrefixForLogs() -> String {
+        return String(base64EncodedString().prefix(8))
     }
 }
