@@ -11,7 +11,8 @@ import CoreData
 
 public enum ThreadType: Int16 {
     case oneToOne = 0
-    case group = 1 // Group feed
+    case groupFeed = 1
+    case groupChat = 2
 }
 
 public extension CommonThread {
@@ -90,22 +91,22 @@ public extension CommonThread {
 
     var lastMsgStatus: LastMsgStatus {
         get {
-            guard type == .oneToOne else { return .none }
+            guard type == .oneToOne || type == .groupChat else { return .none }
             return LastMsgStatus(rawValue: self.lastStatusValue) ?? .none
         }
         set {
-            guard type == .oneToOne else { return }
+            guard type == .oneToOne || type == .groupChat else { return }
             self.lastStatusValue = newValue.rawValue
         }
     }
 
     var lastFeedStatus: LastFeedStatus {
         get {
-            guard type == .group else { return .none }
+            guard type == .groupFeed else { return .none }
             return LastFeedStatus(rawValue: self.lastStatusValue) ?? .none
         }
         set {
-            guard type == .group else { return }
+            guard type == .groupFeed else { return }
             self.lastStatusValue = newValue.rawValue
         }
     }
@@ -134,89 +135,89 @@ public extension CommonThread {
     }
 
     var lastMsgMediaType: LastMediaType {
-        get { return type == .oneToOne ? lastMediaType : .none }
+        get { return type == .oneToOne || type == .groupChat ? lastMediaType : .none }
         set {
-            guard type == .oneToOne else { return }
+            guard type == .oneToOne || type == .groupChat else { return }
             lastMediaType = newValue
         }
     }
 
     var lastFeedMediaType: LastMediaType {
-        get { return type == .group ? lastMediaType : .none }
+        get { return type == .groupFeed ? lastMediaType : .none }
         set {
-            guard type == .group else { return }
+            guard type == .groupFeed else { return }
             lastMediaType = newValue
         }
     }
 
     var unreadFeedCount: Int32 {
-        get { return type == .group ? unreadCount : 0 }
+        get { return type == .groupFeed ? unreadCount : 0 }
         set {
-            guard type == .group else { return }
+            guard type == .groupFeed else { return }
             unreadCount = newValue
         }
     }
 
     var lastFeedId: String? {
-        get { return type == .group ? lastContentID : nil }
+        get { return type == .groupFeed ? lastContentID : nil }
         set {
-            guard type == .group else { return }
+            guard type == .groupFeed else { return }
             lastContentID = newValue
         }
     }
 
     var lastMsgId: String? {
-        get { return type == .oneToOne ? lastContentID : nil }
+        get { return type == .oneToOne || type == .groupChat ? lastContentID : nil }
         set {
-            guard type == .oneToOne else { return }
+            guard type == .oneToOne || type == .groupChat else { return }
             lastContentID = newValue
         }
     }
 
     var lastFeedTimestamp: Date? {
-        get { return type == .group ? lastTimestamp : nil }
+        get { return type == .groupFeed ? lastTimestamp : nil }
         set {
-            guard type == .group else { return }
+            guard type == .groupFeed else { return }
             lastTimestamp = newValue
         }
     }
 
     var lastMsgTimestamp: Date? {
-        get { return type == .oneToOne ? lastTimestamp : nil }
+        get { return type == .oneToOne || type == .groupChat ? lastTimestamp : nil }
         set {
-            guard type == .oneToOne else { return }
+            guard type == .oneToOne || type == .groupChat else { return }
             lastTimestamp = newValue
         }
     }
 
     var lastFeedText: String? {
-        get { return type == .group ? lastText : nil }
+        get { return type == .groupFeed ? lastText : nil }
         set {
-            guard type == .group else { return }
+            guard type == .groupFeed else { return }
             lastText = newValue
         }
     }
 
     var lastMsgText: String? {
-        get { return type == .oneToOne ? lastText : nil }
+        get { return type == .oneToOne || type == .groupChat ? lastText : nil }
         set {
-            guard type == .oneToOne else { return }
+            guard type == .oneToOne || type == .groupChat else { return }
             lastText = newValue
         }
     }
 
     var lastFeedUserID: String? {
-        get { return type == .group ? lastUserID : nil }
+        get { return type == .groupFeed ? lastUserID : nil }
         set {
-            guard type == .group else { return }
+            guard type == .groupFeed else { return }
             lastUserID = newValue
         }
     }
 
     var lastMsgUserId: String? {
-        get { return type == .oneToOne ? lastUserID : nil }
+        get { return type == .oneToOne || type == .groupChat ? lastUserID : nil }
         set {
-            guard type == .oneToOne else { return }
+            guard type == .oneToOne || type == .groupChat else { return }
             lastUserID = newValue
         }
     }

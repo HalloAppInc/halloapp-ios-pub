@@ -60,6 +60,7 @@ protocol HalloService: CoreService {
     func createGroup(name: String,
                      expiryType: Server_ExpiryInfo.ExpiryType,
                      expiryTime: Int64,
+                     groupType: GroupType,
                      members: [UserID],
                      completion: @escaping ServiceRequestCompletion<String>)
     func leaveGroup(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Void>)

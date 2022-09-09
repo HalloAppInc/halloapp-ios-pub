@@ -275,7 +275,7 @@ class GroupGridViewController: UIViewController {
             return
         }
 
-        navigationController?.pushViewController(CreateGroupViewController(completion: { [weak self] groupID in
+        navigationController?.pushViewController(CreateGroupViewController(groupType: GroupType.groupFeed, completion: { [weak self] groupID in
             guard let self = self, let navigationController = self.navigationController else {
                 return
             }
@@ -330,7 +330,11 @@ class GroupGridViewController: UIViewController {
 
     private func deleteGroup(id: GroupID) {
         let chatData = MainAppContext.shared.chatData!
-        let actionSheet = UIAlertController(title: chatData.chatGroup(groupId: id, in: chatData.viewContext)?.name,
+        guard let group = chatData.chatGroup(groupId: id, in: chatData.viewContext) else {
+            DDLogError("GroupGridViewController/deleteGroup/ group not found")
+            return
+        }
+        let actionSheet = UIAlertController(title: group.name,
                                             message: Localizations.groupsListRemoveMessage,
                                             preferredStyle: .alert)
         actionSheet.addAction(UIAlertAction(title: Localizations.buttonRemove, style: .destructive) { [weak self] _ in
@@ -340,7 +344,7 @@ class GroupGridViewController: UIViewController {
                 MainAppContext.shared.service.leaveGroup(groupID: id) { result in
                     switch result {
                     case .success:
-                        chatData.deleteChatGroup(groupId: id)
+                        chatData.deleteChatGroup(groupId: id, type: group.type)
                     case .failure(let error):
                         DDLogError("GroupGridViewController/Failed to leave group during deletion: \(error)")
 
@@ -350,7 +354,7 @@ class GroupGridViewController: UIViewController {
                     }
                 }
             } else {
-                chatData.deleteChatGroup(groupId: id)
+                chatData.deleteChatGroup(groupId: id, type: group.type)
             }
         })
         actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))

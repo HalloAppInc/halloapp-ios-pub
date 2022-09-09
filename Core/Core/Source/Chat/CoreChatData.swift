@@ -483,7 +483,7 @@ public class CoreChatData {
         }
 
         // Update Chat Thread
-        if let chatThread = chatThread(type: .group, id: groupID, in: managedObjectContext) {
+        if let chatThread = chatThread(type: .groupFeed, id: groupID, in: managedObjectContext) {
             // extra save for fetchedcontroller to notice re-ordering changes mixed in with other changes
             chatThread.lastFeedTimestamp = groupFeedPost.timestamp
             mainDataStore.save(managedObjectContext)
@@ -499,7 +499,7 @@ public class CoreChatData {
             }
         } else {
             let chatThread = CommonThread(context: managedObjectContext)
-            chatThread.type = ChatType.group
+            chatThread.type = ChatType.groupFeed
             chatThread.groupId = groupID
             chatThread.lastFeedId = groupFeedPost.id
             chatThread.lastFeedUserID = groupFeedPost.userId
@@ -525,7 +525,7 @@ public class CoreChatData {
         guard let groupFeedPost = AppContext.shared.coreFeedData.feedPost(with: id, in: managedObjectContext) else { return }
         guard let groupID = groupFeedPost.groupId else { return }
 
-        guard let thread = chatThread(type: .group, id: groupID, in: managedObjectContext) else { return }
+        guard let thread = chatThread(type: .groupFeed, id: groupID, in: managedObjectContext) else { return }
 
         guard thread.lastFeedId == id else { return }
 
@@ -577,7 +577,7 @@ public class CoreChatData {
 
             if chatGroup.name != xmppGroup.name {
                 chatGroup.name = xmppGroup.name
-                self.updateChatThread(type: .group, for: xmppGroup.groupId) { (chatThread) in
+                self.updateChatThread(type: .groupFeed, for: xmppGroup.groupId) { (chatThread) in
                     chatThread.title = xmppGroup.name
                 }
             }
@@ -1165,10 +1165,11 @@ public class CoreChatData {
     }
 
     func chatThread(type: ChatType, id: String, in managedObjectContext: NSManagedObjectContext) -> CommonThread? {
-        if type == .group {
-            return chatThreads(predicate: NSPredicate(format: "groupID == %@", id), in: managedObjectContext).first
-        } else {
+        switch type {
+        case .oneToOne:
             return chatThreads(predicate: NSPredicate(format: "userID == %@", id), in: managedObjectContext).first
+        case .groupChat, .groupFeed:
+            return chatThreads(predicate: NSPredicate(format: "groupID == %@", id), in: managedObjectContext).first
         }
     }
 

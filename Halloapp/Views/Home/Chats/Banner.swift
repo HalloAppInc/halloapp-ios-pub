@@ -17,7 +17,7 @@ fileprivate struct Constants {
 }
 
 class Banner {
-    static func show(title: String, body: String, userID: String? = nil, groupID: GroupID? = nil, using avatarStore: AvatarStore) {
+    static func show(title: String, body: String, userID: String? = nil, groupID: GroupID? = nil, type: ThreadType, using avatarStore: AvatarStore) {
         guard let keyWindow = UIApplication.shared.windows.filter({ $0.isKeyWindow }).first else {
             return
         }
@@ -27,6 +27,7 @@ class Banner {
                               body: body,
                             userID: userID,
                            groupID: groupID,
+                             type: type,
                              using: avatarStore)
     }
 }
@@ -96,13 +97,12 @@ fileprivate class BannerView: UIView, UIGestureRecognizerDelegate {
         fatalError("Banner view coder init not implemented...")
     }
 
-    public func configure(title: String, body: String, userID: UserID? = nil, groupID: GroupID? = nil, using avatarStore: AvatarStore) {
+    public func configure(title: String, body: String, userID: UserID? = nil, groupID: GroupID? = nil, type: ThreadType, using avatarStore: AvatarStore) {
+        self.type = type
         if let userID = userID {
-            self.type = .oneToOne
             self.userID = userID
             avatarView.configure(with: userID, using: avatarStore)
         } else if let groupID = groupID {
-            self.type = .group
             self.groupID = groupID
             avatarView.configure(groupId: groupID, using: avatarStore)
         }

@@ -46,7 +46,7 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
         guard let allChats = fetchedResultsController?.fetchedObjects else { return }
         commonChats = allChats.filter {
             var groupIdStr: GroupID? = nil
-            if $0.type == .group {
+            if ($0.type == .groupFeed || $0.type == .groupChat) {
                 groupIdStr = $0.groupId
             } else {
                 return false
@@ -403,7 +403,7 @@ extension GroupsInCommonViewController: UISearchResultsUpdating {
         
         filteredChats = allChats.filter {
             var titleText: String? = nil
-            if $0.type == .group {
+            if ($0.type == .groupFeed || $0.type == .groupChat) {
                 titleText = $0.title
             } else {
                 titleText = MainAppContext.shared.contactStore.fullName(for: $0.userID ?? "", in: MainAppContext.shared.contactStore.viewContext)

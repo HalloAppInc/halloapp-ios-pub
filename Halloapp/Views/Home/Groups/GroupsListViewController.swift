@@ -267,7 +267,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
 
         // create sample group
         DDLogInfo("GroupsListViewController/viewWillAppear/NUX/creating sample group for user")
-        MainAppContext.shared.chatData.createGroup(name: sampleGroupName, description: "", members: [], avatarData: nil, expirationType: .expiresInSeconds, expirationTime: ServerProperties.enableGroupExpiry ? .thirtyDays : Int64(FeedPost.defaultExpiration)) { result in
+        MainAppContext.shared.chatData.createGroup(name: sampleGroupName, description: "", groupType: GroupType.groupFeed, members: [], avatarData: nil, expirationType: .expiresInSeconds, expirationTime: ServerProperties.enableGroupExpiry ? .thirtyDays : Int64(FeedPost.defaultExpiration)) { result in
             switch result {
             case .success(let groupID):
                 sharedNUX.recordWelcomePost(id: groupID, type: .sampleGroup)
@@ -300,7 +300,8 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
             NSSortDescriptor(key: "lastTimestamp", ascending: false),
             NSSortDescriptor(key: "title", ascending: true)
         ]
-        fetchRequest.predicate = NSPredicate(format: "groupID != nil")
+        // filter for group feeds and omit group chats
+        fetchRequest.predicate = NSPredicate(format: "groupID != nil && type = %@", GroupType.groupFeed.rawValue)
         return fetchRequest
     }
 
@@ -411,7 +412,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
             return
         }
 
-        navigationController?.pushViewController(CreateGroupViewController(completion: didCreateNewGroup(_:)), animated: true)
+        navigationController?.pushViewController(CreateGroupViewController(groupType: GroupType.groupFeed , completion: didCreateNewGroup(_:)), animated: true)
     }
 
     private func didCreateNewGroup(_ groupId: GroupID) {
@@ -569,7 +570,7 @@ extension GroupsListViewController: UITableViewDelegate {
                         self.filteredChatsMembers.remove(at: indexPath.row)
                     }
                 }
-                MainAppContext.shared.chatData.deleteChatGroup(groupId: groupId)
+                MainAppContext.shared.chatData.deleteChatGroup(groupId: groupId, type: chatThread.type)
                 self.tableView.reloadData()
             })
             actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))

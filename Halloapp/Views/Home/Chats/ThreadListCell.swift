@@ -168,7 +168,7 @@ class ThreadListCell: UITableViewCell {
     private func lastFeedText(for chatThread: ChatThread) -> NSMutableAttributedString {
 
         var contactNamePart = ""
-        if chatThread.type == .group {
+        if chatThread.type == .groupFeed {
             if let userID = chatThread.lastFeedUserID, userID != MainAppContext.shared.userData.userId {
                 contactNamePart = MainAppContext.shared.contactStore.fullName(for: userID, in: MainAppContext.shared.contactStore.viewContext) + ": "
             }

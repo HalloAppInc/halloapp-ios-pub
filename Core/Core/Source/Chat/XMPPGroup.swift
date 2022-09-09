@@ -38,6 +38,7 @@ public struct XMPPGroup {
     public var avatarID: String? = nil
     public var background: Int32 = 0
     public var retryCount: Int32 = 0
+    public var groupType: GroupType
 
     public private(set) var messageId: String? = nil
     public private(set) var sender: UserID? = nil
@@ -48,9 +49,10 @@ public struct XMPPGroup {
     public private(set) var expirationType: Group.ExpirationType? = nil
     public private(set) var expirationTime: Int64? = nil
 
-    public init(id: GroupID, name: String, avatarID: String? = nil) {
+    public init(id: GroupID, name: String, type: GroupType, avatarID: String? = nil) {
         self.groupId = id
         self.name = name
+        self.groupType = type
         self.avatarID = avatarID
     }
 
@@ -64,6 +66,14 @@ public struct XMPPGroup {
         self.senderName = protoGroup.senderName
         self.groupId = protoGroup.gid
         self.name = protoGroup.name
+        switch protoGroup.groupType {
+        case .feed:
+            self.groupType = .groupFeed
+        case .chat:
+            self.groupType = .groupChat
+        case .UNRECOGNIZED(_):
+            self.groupType = .groupFeed
+        }
         self.description = protoGroup.description_p
         self.avatarID = protoGroup.avatarID
         self.members = protoGroup.members.compactMap { XMPPGroupMember(protoMember: $0) }

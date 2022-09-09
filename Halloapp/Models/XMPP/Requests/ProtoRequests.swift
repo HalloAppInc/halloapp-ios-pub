@@ -191,11 +191,20 @@ final class ProtoContactSyncRequest: ProtoRequest<[HalloContact]> {
 
 final class ProtoGroupCreateRequest: ProtoRequest<String> {
 
-    init(name: String, expiryType: Server_ExpiryInfo.ExpiryType, expiryTime: Int64, members: [UserID], completion: @escaping Completion) {
+    init(name: String, expiryType: Server_ExpiryInfo.ExpiryType, expiryTime: Int64, groupType: GroupType, members: [UserID], completion: @escaping Completion) {
         var group = Server_GroupStanza()
         group.action = .create
         group.name = name
         group.members = members.compactMap { Server_GroupMember(userID: $0) }
+        switch groupType {
+        case .oneToOne:
+            DDLogError("ProtoGroupCreateRequest/init/ error invalid groupType set to .oneToOne for a group")
+            return
+        case .groupFeed:
+            group.groupType = .feed
+        case .groupChat:
+            group.groupType = .chat
+        }
 
         var expiryInfo = Server_ExpiryInfo()
         expiryInfo.expiryType = expiryType

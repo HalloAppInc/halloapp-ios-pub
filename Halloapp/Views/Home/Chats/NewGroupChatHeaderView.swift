@@ -20,7 +20,12 @@ fileprivate struct Constants {
     static let PhotoIconSize: CGFloat = 36
 }
 
+protocol NewGroupChatHeaderViewDelegate: AnyObject {
+    func newGroupChatHeaderView(_ newGroupChatHeaderView: NewGroupChatHeaderView)
+}
+
 class NewGroupChatHeaderView: UIView {
+    weak var delegate: NewGroupChatHeaderViewDelegate?
     private lazy var newGroupChatIconView: UIView = {
         let newGroupChatIconView = UIView()
         newGroupChatIconView.backgroundColor = .systemBlue
@@ -82,5 +87,12 @@ class NewGroupChatHeaderView: UIView {
             newGroupChatHeaderView.topAnchor.constraint(equalTo: topAnchor, constant: 16),
             newGroupChatHeaderView.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.createNewChatGroup(_:)))
+        newGroupChatHeaderView.isUserInteractionEnabled = true
+        newGroupChatHeaderView.addGestureRecognizer(tapGesture)
+    }
+
+    @objc func createNewChatGroup (_ sender: UITapGestureRecognizer) {
+        self.delegate?.newGroupChatHeaderView(self)
     }
 }

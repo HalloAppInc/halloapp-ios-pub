@@ -25,6 +25,8 @@ class CreateGroupViewController: UIViewController {
 
     private var avatarData: Data? = nil
 
+    private var groupType: GroupType
+
     private var selectedMembers: [UserID] = []
 
     private var expirationType: Group.ExpirationType = .expiresInSeconds
@@ -32,8 +34,9 @@ class CreateGroupViewController: UIViewController {
 
     private var completion: (GroupID) -> Void
 
-    init(completion: @escaping (GroupID) -> Void) {
+    init(groupType: GroupType, completion: @escaping (GroupID) -> Void) {
         self.completion = completion
+        self.groupType = groupType
         super.init(nibName: nil, bundle: nil)
         hidesBottomBarWhenPushed = true
     }
@@ -372,6 +375,7 @@ class CreateGroupViewController: UIViewController {
 
         MainAppContext.shared.chatData.createGroup(name: name,
                                                    description: "",
+                                                   groupType: groupType,
                                                    members: userIds,
                                                    avatarData: avatarData,
                                                    expirationType: expirationType,

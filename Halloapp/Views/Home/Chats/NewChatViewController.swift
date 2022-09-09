@@ -84,8 +84,23 @@ class NewChatViewController: NewChatTableViewController {
             fatalError("Failed to fetch contacts. \(error)")
         }
         if AppContext.shared.userDefaults.bool(forKey: "enableGroupChat") {
-            tableView.tableHeaderView = NewGroupChatHeaderView()
+            let newGroupChatHeaderView = NewGroupChatHeaderView()
+            newGroupChatHeaderView.delegate = self
+            tableView.tableHeaderView = newGroupChatHeaderView
         }
+    }
+
+    private func openNewChatGroup() {
+        guard ContactStore.contactsAccessAuthorized else {
+            present(UINavigationController(rootViewController: NewGroupMembersPermissionDeniedController()), animated: true)
+            return
+        }
+
+        navigationController?.pushViewController(CreateGroupViewController(groupType: GroupType.groupChat, completion: didCreateNewGroup(_:)), animated: true)
+    }
+
+    private func didCreateNewGroup(_ groupId: GroupID) {
+        // Redirect to the group chat thread
     }
 
     override func viewWillLayoutSubviews() {
@@ -151,6 +166,12 @@ extension NewChatViewController: NewChatSearchResultsControllerDelegate {
         } else {
             didSelectContact(with: userId)
         }
+    }
+}
+
+extension NewChatViewController: NewGroupChatHeaderViewDelegate {
+    func newGroupChatHeaderView(_ newGroupChatHeaderView: NewGroupChatHeaderView) {
+        openNewChatGroup()
     }
 }
 

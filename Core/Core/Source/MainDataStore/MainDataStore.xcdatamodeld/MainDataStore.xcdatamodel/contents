@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="20086" systemVersion="21G72" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="20086" systemVersion="21F79" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="Call" representedClassName="Call" syncable="YES">
         <attribute name="answered" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="callID" attributeType="String"/>
@@ -234,6 +234,7 @@
         <attribute name="lastSync" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="maxSize" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="typeValue" attributeType="Integer 16" defaultValueString="1" usesScalarValueType="YES"/>
         <relationship name="members" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="GroupMember" inverseName="group" inverseEntity="GroupMember"/>
         <uniquenessConstraints>
             <uniquenessConstraint>
@@ -285,7 +286,7 @@
         <element name="FeedActivity" positionX="18" positionY="99" width="128" height="179"/>
         <element name="FeedPost" positionX="-18" positionY="81" width="128" height="314"/>
         <element name="FeedPostComment" positionX="0" positionY="90" width="128" height="254"/>
-        <element name="Group" positionX="9" positionY="162" width="128" height="164"/>
+        <element name="Group" positionX="9" positionY="162" width="128" height="14"/>
         <element name="GroupEvent" positionX="45" positionY="198" width="128" height="134"/>
         <element name="GroupHistoryInfo" positionX="-63" positionY="45" width="128" height="89"/>
         <element name="GroupMember" positionX="18" positionY="171" width="128" height="89"/>

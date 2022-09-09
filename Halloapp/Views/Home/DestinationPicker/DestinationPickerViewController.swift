@@ -548,7 +548,7 @@ extension DestinationPickerViewController: UICollectionViewDelegate {
             present(UINavigationController(rootViewController: NewGroupMembersPermissionDeniedController()), animated: true)
             return
         }
-        let controller = CreateGroupViewController { [weak self] groupID in
+        let controller = CreateGroupViewController(groupType: GroupType.groupFeed) { [weak self] groupID in
             guard let self = self else { return }
             self.dismiss(animated: true)
         }

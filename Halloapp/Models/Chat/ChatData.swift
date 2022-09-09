@@ -239,9 +239,9 @@ class ChatData: ObservableObject {
                             case .noPosts:
                                 break
                             case .newPosts(let numNew, _):
-                                self.setThreadUnreadFeedCount(type: .group, for: groupID, num: Int32(numNew))
+                                self.setThreadUnreadFeedCount(type: .groupFeed, for: groupID, num: Int32(numNew))
                             case .seenPosts(_):
-                                self.updateChatThread(type: .group, for: groupID, block: { thread in
+                                self.updateChatThread(type: .groupFeed, for: groupID, block: { thread in
                                     guard thread.unreadFeedCount > 0 else { return }
                                     thread.unreadFeedCount = 0
                                 })
@@ -253,7 +253,7 @@ class ChatData: ObservableObject {
                         // leftover groupThreadIDs not found in groupFeedStates mean those groups do not have
                         // any posts in feed and should reset its unread counter to 0
                         groupThreadIDs.forEach({
-                            self.updateChatThread(type: .group, for: $0, block: { thread in
+                            self.updateChatThread(type: .groupFeed, for: $0, block: { thread in
                                 guard thread.unreadFeedCount > 0 else { return }
                                 thread.unreadFeedCount = 0
                             })
@@ -602,12 +602,12 @@ class ChatData: ObservableObject {
                 thread.lastMediaType = legacy.lastMsgMediaType
                 DDLogInfo("ChatData/migrateLegacyThread/oneToOne/new/\(userID)")
             }
-        case .group:
+        case .groupFeed, .groupChat:
             guard let groupID = legacy.groupId else {
                 DDLogError("ChatData/migrateLegacyThread/group/aborting [missing groupID]")
                 return
             }
-            if let existingThread = chatThread(type: .group, id: groupID, in: managedObjectContext) {
+            if let existingThread = chatThread(type: legacy.type, id: groupID, in: managedObjectContext) {
                 DDLogInfo("ChatData/migrateLegacyThread/group/existing/\(groupID)")
                 thread = existingThread
             } else {
@@ -1954,18 +1954,20 @@ extension ChatData {
     }
 
     func chatThread(type: ChatType, id: String, in managedObjectContext: NSManagedObjectContext) -> ChatThread? {
-        if type == .group {
-            return commonThreads(predicate: NSPredicate(format: "groupID == %@", id), in: managedObjectContext).first
-        } else {
+        switch type {
+        case .oneToOne:
             return commonThreads(predicate: NSPredicate(format: "userID == %@", id), in: managedObjectContext).first
+        case .groupFeed, .groupChat:
+            return commonThreads(predicate: NSPredicate(format: "groupID == %@", id), in: managedObjectContext).first
         }
     }
     
     func chatThreadStatus(type: ChatType, id: String, messageId: String, in managedObjectContext: NSManagedObjectContext) -> ChatThread? {
-        if type == .group {
-            return commonThreads(predicate: NSPredicate(format: "groupID == %@ AND lastContentID == %@", id, messageId), in: managedObjectContext).first
-        } else {
+        switch type {
+        case .oneToOne:
             return commonThreads(predicate: NSPredicate(format: "userID == %@ AND lastContentID == %@", id, messageId), in: managedObjectContext).first
+        case .groupFeed, .groupChat:
+            return commonThreads(predicate: NSPredicate(format: "groupID == %@ AND lastContentID == %@", id, messageId), in: managedObjectContext).first
         }
     }
     
@@ -2034,8 +2036,10 @@ extension ChatData {
         case .oneToOne:
             chatStateList = chatStateInfoList.filter { $0.threadType == .oneToOne && $0.threadID == id }
             typingStr = Localizations.chatTyping
-        case .group:
-            chatStateList = chatStateInfoList.filter { $0.threadType == .group && $0.threadID == id }
+        case .groupFeed:
+            chatStateList = chatStateInfoList.filter { $0.threadType == .groupFeed && $0.threadID == id }
+        case .groupChat:
+            chatStateList = chatStateInfoList.filter { $0.threadType == .groupChat && $0.threadID == id }
         }
 
         guard chatStateList.count > 0 else { return nil }
@@ -4245,7 +4249,7 @@ extension ChatData {
             body = ""
         }
         AppContext.shared.notificationStore.runIfNotificationWasNotPresented(for: messageID) {
-            Banner.show(title: title, body: body, userID: userID, using: MainAppContext.shared.avatarStore)
+            Banner.show(title: title, body: body, userID: userID, type: .oneToOne, using: MainAppContext.shared.avatarStore)
         }
     }
     
@@ -4285,12 +4289,13 @@ extension ChatData {
 
     public func createGroup(name: String,
                             description: String,
+                            groupType: GroupType,
                             members: [UserID],
                             avatarData: Data?,
                             expirationType: Group.ExpirationType,
                             expirationTime: Int64,
                             completion: @escaping ServiceRequestCompletion<String>) {
-        MainAppContext.shared.service.createGroup(name: name, expiryType: expirationType.serverExpiryType, expiryTime: expirationTime, members: members) { [weak self] result in
+        MainAppContext.shared.service.createGroup(name: name, expiryType: expirationType.serverExpiryType, expiryTime: expirationTime, groupType: groupType, members: members) { [weak self] result in
             guard let self = self else { return }
 
             switch result {
@@ -4327,7 +4332,7 @@ extension ChatData {
     
     }
     
-    private func updateGroupName(for groupID: GroupID, with name: String, completion: @escaping () -> ()) {
+    private func updateGroupName(for groupID: GroupID, groupType: GroupType, with name: String, completion: @escaping () -> ()) {
         let group = DispatchGroup()
             
         group.enter()
@@ -4339,7 +4344,7 @@ extension ChatData {
         })
 
         group.enter()
-        updateChatThread(type: .group, for: groupID, block: { (chatThread) in
+        updateChatThread(type: groupType, for: groupID, block: { (chatThread) in
             guard chatThread.title != name else { return }
             chatThread.title = name
         }, performAfterSave: {
@@ -4351,12 +4356,12 @@ extension ChatData {
         }
     }
     
-    public func changeGroupName(groupID: GroupID, name: String, completion: @escaping ServiceRequestCompletion<Void>) {
+    public func changeGroupName(groupID: GroupID, type: GroupType, name: String, completion: @escaping ServiceRequestCompletion<Void>) {
         MainAppContext.shared.service.changeGroupName(groupID: groupID, name: name) { [weak self] result in
             guard let self = self else { return }
             switch result {
             case .success:
-                self.updateGroupName(for: groupID, with: name) {
+                self.updateGroupName(for: groupID, groupType: type, with: name) {
                     completion(.success(()))
                 }
             case .failure(let error):
@@ -4726,7 +4731,7 @@ extension ChatData {
     }
 
     // MARK: Group Core Data Deleting
-    func deleteChatGroup(groupId: GroupID) {
+    func deleteChatGroup(groupId: GroupID, type: GroupType) {
         DDLogInfo("ChatData/deleteChatGroup")
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
@@ -4743,7 +4748,7 @@ extension ChatData {
             }
 
             // delete thread
-            if let chatThread = self.chatThread(type: .group, id: groupId, in: managedObjectContext) {
+            if let chatThread = self.chatThread(type: type, id: groupId, in: managedObjectContext) {
                 managedObjectContext.delete(chatThread)
             }
 
@@ -5061,7 +5066,7 @@ extension ChatData {
         DDLogInfo("ChatData/group/processGroupChangeNameAction")
         let group = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
         group.name = xmppGroup.name
-        updateChatThread(type: .group, for: xmppGroup.groupId) { (chatThread) in
+        updateChatThread(type: xmppGroup.groupType, for: xmppGroup.groupId) { (chatThread) in
             chatThread.title = xmppGroup.name
         }
         recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: nil, in: managedObjectContext)
@@ -5128,6 +5133,7 @@ extension ChatData {
         let chatGroup = Group(context: managedObjectContext)
         chatGroup.id = xmppGroup.groupId
         chatGroup.name = xmppGroup.name
+        chatGroup.type = xmppGroup.groupType
         if let expirationTime = xmppGroup.expirationTime, let expirationType = xmppGroup.expirationType {
             chatGroup.expirationTime = expirationTime
             chatGroup.expirationType = expirationType
@@ -5137,9 +5143,9 @@ extension ChatData {
         }
 
         // Add Chat Thread
-        if chatThread(type: .group, id: chatGroup.id, in: managedObjectContext) == nil {
+        if chatThread(type: xmppGroup.groupType, id: chatGroup.id, in: managedObjectContext) == nil {
             let chatThread = ChatThread(context: managedObjectContext)
-            chatThread.type = ChatType.group
+            chatThread.type = xmppGroup.groupType
             chatThread.groupId = chatGroup.id
             chatThread.title = chatGroup.name
             chatThread.lastMsgTimestamp = nil
@@ -5209,7 +5215,7 @@ extension ChatData {
             }
         }()
 
-        if let chatThread = self.chatThread(type: .group, id: event.groupID, in: managedObjectContext) {
+        if let chatThread = self.chatThread(type: xmppGroup.groupType, id: event.groupID, in: managedObjectContext) {
 
             chatThread.lastFeedUserID = event.senderUserID
             chatThread.lastFeedTimestamp = event.timestamp
@@ -5274,7 +5280,7 @@ extension ChatData {
         let body = Localizations.groupsAddNotificationBody
 
         AppContext.shared.notificationStore.runIfNotificationWasNotPresented(for: messageID) {
-            Banner.show(title: title, body: body, groupID: groupID, using: MainAppContext.shared.avatarStore)
+            Banner.show(title: title, body: body, groupID: groupID, type: xmppGroup.groupType, using: MainAppContext.shared.avatarStore)
         }
     }
 

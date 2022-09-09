@@ -9,6 +9,8 @@
 import CoreCommon
 import CoreData
 
+public typealias GroupType = ThreadType
+
 public extension Group {
 
     enum ExpirationType: Int16 {
@@ -34,6 +36,7 @@ public extension Group {
 
     @NSManaged var id: String
     @NSManaged var name: String
+    @NSManaged var typeValue: Int16
     @NSManaged var avatarID: String?
     @NSManaged var background: Int32
     @NSManaged var desc: String?
@@ -49,6 +52,15 @@ public extension Group {
         }
         set {
             expirationTypeValue = newValue.rawValue
+        }
+    }
+
+    var type: GroupType {
+        get {
+            return GroupType(rawValue: self.typeValue) ?? .groupFeed
+        }
+        set {
+            self.typeValue = newValue.rawValue
         }
     }
 

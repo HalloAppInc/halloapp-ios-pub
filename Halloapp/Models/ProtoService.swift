@@ -580,7 +580,7 @@ final class ProtoService: ProtoServiceCore {
             DispatchQueue.main.async {
                 self.didGetChatState.send((
                                             from: UserID(pbChatState.fromUid),
-                                            threadType: pbChatState.threadType == .chat ? .oneToOne : .group,
+                                            threadType: pbChatState.threadType == .chat ? .oneToOne : .groupChat,
                                             threadID: pbChatState.threadID,
                                             type: pbChatState.type == .typing ? .typing : .available,
                                             timestamp: Date()))
@@ -789,10 +789,11 @@ final class ProtoService: ProtoServiceCore {
             }
         case .groupchatRetract(let pbGroupChatRetract):
             let fromUserID = UserID(msg.fromUid)
+            // TODO : @Nandini investigate if threadType needs to be set dynamically.
             DispatchQueue.main.async {
                 self.didGetChatRetract.send((
                     from: fromUserID,
-                    threadType: .group,
+                    threadType: .groupFeed,
                     threadID: pbGroupChatRetract.gid,
                     messageID: pbGroupChatRetract.id
                 ))
@@ -967,7 +968,7 @@ final class ProtoService: ProtoServiceCore {
                 return
             }
 
-            let group = HalloGroup(id: item.gid, name: item.name, avatarID: item.avatarID)
+            let group = HalloGroup(id: item.gid, name: item.name, type: ThreadType.groupFeed, avatarID: item.avatarID)
 
             switch item.action {
             case .publish:
@@ -1087,7 +1088,7 @@ final class ProtoService: ProtoServiceCore {
             guard let delegate = feedDelegate else {
                 break
             }
-            let group = HalloGroup(id: items.gid, name: items.name, avatarID: items.avatarID)
+            let group = HalloGroup(id: items.gid, name: items.name, type: ThreadType.groupFeed, avatarID: items.avatarID)
             // Since we recover using the content from server - set status to be rerequesting.
             // If at all, we receive this content again from the publisher - we can easily update the status in that case and report stats.
             for content in payloadContents(for: items.items, status: .rerequesting) {
@@ -1190,7 +1191,7 @@ final class ProtoService: ProtoServiceCore {
                     DDLogInfo("proto/didReceive/\(msg.id)/groupFeedHistory/success/begin processing items, count: \(items.items.count)")
                     // Update items decrypted count for groupHistory stats.
                     AppContext.shared.cryptoData.receivedFeedHistoryItems(groupID: groupID, timestamp: Date(), newlyDecrypted: items.items.count, newRerequests: 0)
-                    let group = HalloGroup(id: groupID, name: items.name, avatarID: items.avatarID)
+                    let group = HalloGroup(id: groupID, name: items.name, type: ThreadType.groupFeed, avatarID: items.avatarID)
                     for content in self.payloadContents(for: items.items, status: .received) {
                         let payload = HalloServiceFeedPayload(content: content, group: group, isEligibleForNotification: false)
                         self.feedDelegate?.halloService(self, didReceiveFeedPayload: payload, ack: nil)
@@ -1637,7 +1638,9 @@ extension ProtoService: HalloService {
         chatState.threadType = {
             switch type {
             case .oneToOne: return .chat
-            case .group: return .groupChat
+            case .groupChat:
+                return .groupChat
+            case .groupFeed: return .UNRECOGNIZED(Int(type.rawValue))
             }
         }()
         var packet = Server_Packet()
@@ -1853,8 +1856,8 @@ extension ProtoService: HalloService {
         send(packetData)
     }
     
-    func createGroup(name: String, expiryType: Server_ExpiryInfo.ExpiryType, expiryTime: Int64, members: [UserID], completion: @escaping ServiceRequestCompletion<String>) {
-        enqueue(request: ProtoGroupCreateRequest(name: name, expiryType: expiryType, expiryTime: expiryTime, members: members, completion: completion))
+    func createGroup(name: String, expiryType: Server_ExpiryInfo.ExpiryType, expiryTime: Int64, groupType: GroupType, members: [UserID], completion: @escaping ServiceRequestCompletion<String>) {
+        enqueue(request: ProtoGroupCreateRequest(name: name, expiryType: expiryType, expiryTime: expiryTime, groupType: groupType, members: members, completion: completion))
     }
 
     func leaveGroup(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Void>) {

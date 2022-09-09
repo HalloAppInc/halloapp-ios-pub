@@ -144,7 +144,8 @@ class EditGroupViewController: UIViewController {
         
         let name = textView.text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
         
-        MainAppContext.shared.chatData.changeGroupName(groupID: chatGroup.id, name: name) { [weak self] result in
+        // @Nandini: Remove the hard coded .groupFeed here and set it dynamically
+        MainAppContext.shared.chatData.changeGroupName(groupID: chatGroup.id, type: .groupFeed, name: name) { [weak self] result in
             guard let self = self else { return }
 
             switch result {
