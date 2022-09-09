@@ -1859,6 +1859,7 @@ extension ProtoService: HalloService {
     func createGroup(name: String, expiryType: Server_ExpiryInfo.ExpiryType, expiryTime: Int64, groupType: GroupType, members: [UserID], completion: @escaping ServiceRequestCompletion<String>) {
         guard groupType != .oneToOne else {
             DDLogError("ProtoService/createGroup/ error invalid groupType set to .oneToOne for a group")
+            completion(.failure(.malformedRequest))
             return
         }
         enqueue(request: ProtoGroupCreateRequest(name: name, expiryType: expiryType, expiryTime: expiryTime, groupType: groupType, members: members, completion: completion))
