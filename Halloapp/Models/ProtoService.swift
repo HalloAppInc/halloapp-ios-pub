@@ -21,7 +21,6 @@ fileprivate let userDefaultsKeyForLangID = "langId"
 fileprivate let userDefaultsKeyForAPNSSyncTime = "apnsSyncTime"
 fileprivate let userDefaultsKeyForVOIPSyncTime = "voipSyncTime"
 fileprivate let userDefaultsKeyForNameSync = "xmpp.name-sent"
-fileprivate let userDefaultsKeyForSilentRerequestRecords = "silentRerequestRecords"
 
 final class ProtoService: ProtoServiceCore {
 
@@ -70,7 +69,6 @@ final class ProtoService: ProtoServiceCore {
         requestServerPropertiesIfNecessary()
         NotificationSettings.current.sendConfigIfNecessary(using: self)
         MainAppContext.shared.startReportingEvents()
-        clearSilentChatRerequestRecords()
         uploadLogsToServerIfNecessary()
         uploadOneTimePreKeysIfNecessary()
     }
@@ -322,15 +320,6 @@ final class ProtoService: ProtoServiceCore {
             delegate.halloService(self, didReceiveMessageReceipt: receipt, ack: ack)
         } else {
             ack?()
-        }
-    }
-
-    // MARK: Silent Chats
-
-    private func clearSilentChatRerequestRecords() {
-        serviceQueue.async {
-            // Remove records for silent chats (no longer used)
-            MainAppContext.shared.userDefaults.set(nil, forKey: userDefaultsKeyForSilentRerequestRecords)
         }
     }
 
