@@ -127,7 +127,7 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        navigationItem.title = NSLocalizedString("title.your.post", value: "Seen By", comment: "Title for the screen with information about who saw your post.")
+        navigationItem.title = feedPost.isMoment ? Localizations.titleMomentSeenBy : Localizations.titlePostSeenBy
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(closeAction))
 
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: Constants.placeholderCellReuseIdentifier)
@@ -413,6 +413,16 @@ fileprivate enum ActionRow {
 }
 
 private extension Localizations {
+    // in some languages Post and Moment have different genders (ex. Arabic)
+    // as a result "seen by" has different form
+    static var titlePostSeenBy: String {
+        NSLocalizedString("title.your.post", value: "Seen By", comment: "Title for the screen with information about who saw your post.")
+    }
+
+    static var titleMomentSeenBy: String {
+        NSLocalizedString("title.your.moment", value: "Seen By", comment: "Title for the screen with information about who saw your moment.")
+    }
+
     static var contactsMyPostDisappearTimeLabel: String {
         NSLocalizedString("mypost.contacts.disappear.time.label",
                    value: "Your post will disappear after 30 days. Your contacts who join HalloApp can see your unexpired posts.",
