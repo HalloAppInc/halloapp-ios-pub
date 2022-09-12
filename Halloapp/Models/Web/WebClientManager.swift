@@ -12,6 +12,7 @@ import Core
 import CoreCommon
 import Foundation
 import SwiftNoise
+import CoreData
 
 protocol WebClientManagerDelegate: AnyObject {
     func webClientManager(_ manager: WebClientManager, didUpdateWebStaticKey staticKey: Data?)
@@ -123,26 +124,22 @@ final class WebClientManager {
             case .feedResponse:
                 DDLogError("WebClientManager/handleIncoming/feedResponse/error [invalid-payload]")
             case .feedRequest(let request):
-                switch request.type {
-                case .home:
-                    DDLogInfo("WebClientManager/handleIncoming/feedRequest/home")
-                case .group, .postComments, .UNRECOGNIZED:
-                    DDLogInfo("WebClientManager/handleIncoming/feedRequest/unsupported [\(request.type)]")
-                    return
-                }
-                let cursor = request.cursor.isEmpty ? nil : request.cursor
                 DispatchQueue.main.async {
+                    guard let response = self.feedResponse(for: request) else {
+                        DDLogError("WebClientManager/handleIncoming/feedResponse/error [no-response]")
+                        return
+                    }
                     var webContainer = Web_WebContainer()
-                    let feed = self.homeFeed(cursor: cursor, limit: Int(request.limit))
-                    webContainer.payload = .feedResponse(feed)
+                    webContainer.payload = .feedResponse(response)
                     do {
-                        DDLogInfo("WebClientManager/handleIncoming/feedRequest/sending [\(feed.items.count)]")
+                        DDLogInfo("WebClientManager/handleIncoming/feedRequest/sending [\(response.items.count)]")
                         let responseData = try webContainer.serializedData()
                         self.send(responseData)
                     } catch {
                         DDLogError("WebClientManager/handleIncoming/feedRequest/error [serialization]")
                     }
                 }
+
             case .none:
                 DDLogError("WebClientManager/handleIncoming/error [missing-payload]")
             }
@@ -323,156 +320,163 @@ final class WebClientManager {
         return FeedDataSource(fetchRequest: FeedDataSource.homeFeedRequest())
     }()
 
+    private func feedResponse(for request: Web_FeedRequest) -> Web_FeedResponse? {
+        let cursor = request.cursor.isEmpty ? nil : request.cursor
+        var response: Web_FeedResponse
+        switch request.type {
+        case .home:
+            DDLogInfo("WebClientManager/handleIncoming/feedRequest/home")
+            response = homeFeed(cursor: cursor, limit: Int(request.limit))
+        case .group:
+            DDLogInfo("WebClientManager/handleIncoming/feedRequest/group/\(request.contentID)")
+            response = groupFeed(id: request.contentID, cursor: cursor, limit: Int(request.limit))
+        case .postComments:
+            DDLogInfo("WebClientManager/handleIncoming/feedRequest/comment/\(request.contentID)")
+            response = commentFeed(id: request.contentID, cursor: cursor, limit: Int(request.limit))
+        case .UNRECOGNIZED:
+            DDLogInfo("WebClientManager/handleIncoming/feedRequest/unsupported [\(request.type)]")
+            return nil
+        }
+        response.id = request.id
+        return response
+    }
+
     private func homeFeed(cursor: String? = nil, limit: Int) -> Web_FeedResponse {
-
-        let cappedLimit: Int = {
-            if limit <= 0 { return 20 }
-            return limit > 50 ? 50 : limit
-        }()
-
-        homeFeedDataSource.setup()
-        let allPosts: [FeedPost] = homeFeedDataSource.displayItems.compactMap {
+        let dataSource = homeFeedDataSource
+        dataSource.setup()
+        let allPosts: [FeedPost] = dataSource.displayItems.compactMap {
             guard case .post(let post) = $0 else {
                 return nil
             }
             return post
         }
-        let startIndex: Int
-        if let cursor = cursor, !cursor.isEmpty {
-            guard let cursorIndex = allPosts.firstIndex(where: { $0.id == cursor }) else {
-                var response = Web_FeedResponse()
-                response.error = .invalidCursor
-                response.type = .home
-                return response
+        switch paginate(posts: allPosts, cursor: cursor, limit: limit) {
+        case .success(let page):
+            return feedResponse(with: page.items, type: .home, nextCursor: page.nextCursor)
+        case .failure(.invalidCursor):
+            var response = Web_FeedResponse()
+            response.error = .invalidCursor
+            response.type = .home
+            return response
+        }
+    }
+
+    private func groupFeed(id: GroupID, cursor: String? = nil, limit: Int) -> Web_FeedResponse {
+        let dataSource = FeedDataSource(fetchRequest: FeedDataSource.groupFeedRequest(groupID: id))
+        dataSource.setup()
+        let allPosts: [FeedPost] = dataSource.displayItems.compactMap {
+            guard case .post(let post) = $0 else {
+                return nil
             }
-            startIndex = cursorIndex
-        } else {
-            startIndex = 0
+            return post
         }
-        let nextIndex = startIndex + cappedLimit
+        switch paginate(posts: allPosts, cursor: cursor, limit: limit) {
+        case .success(let page):
+            return feedResponse(with: page.items, type: .group, nextCursor: page.nextCursor)
+        case .failure(.invalidCursor):
+            var response = Web_FeedResponse()
+            response.error = .invalidCursor
+            response.type = .group
+            return response
+        }
+    }
 
-        let postsForRequest: [FeedPost]
-        let nextCursor: String?
-        if allPosts.count > nextIndex {
-            postsForRequest = Array(allPosts[startIndex..<nextIndex])
-            nextCursor = allPosts[nextIndex].id
-        } else {
-            postsForRequest = Array(allPosts[startIndex...])
-            nextCursor = nil
+    private func commentFeed(id: FeedPostID, cursor: String? = nil, limit: Int) -> Web_FeedResponse {
+
+        let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "post.id = %@", id)
+        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPostComment.timestamp, ascending: true) ]
+
+        let frc = NSFetchedResultsController<FeedPostComment>(
+            fetchRequest: fetchRequest,
+            managedObjectContext: MainAppContext.shared.mainDataStore.viewContext,
+            sectionNameKeyPath: nil,
+            cacheName: nil)
+
+        do {
+            try frc.performFetch()
+        } catch {
+            DDLogError("WebClientManager/commentFeed/error [\(error)]")
         }
 
+        switch paginate(comments: frc.fetchedObjects ?? [], cursor: cursor, limit: limit) {
+        case .success(let page):
+            return commentFeedResponse(with: page.items, type: .postComments, nextCursor: page.nextCursor)
+        case .failure(.invalidCursor):
+            var response = Web_FeedResponse()
+            response.error = .invalidCursor
+            response.type = .postComments
+            return response
+        }
+    }
+
+    private func commentFeedResponse(with comments: [FeedPostComment], type: Web_FeedType, nextCursor: String?) -> Web_FeedResponse {
+
+        var usersToInclude = Set<UserID>()
+        // Include info for all users who have commented.
+        usersToInclude.formUnion(comments.map { $0.userID })
+        // Include info for all users who are mentioned in comments.
+        usersToInclude.formUnion(comments.flatMap { $0.mentions }.map { $0.userID })
+
+        var response = Web_FeedResponse()
+        response.type = type
+        response.userDisplayInfo = userDisplayInfo(for: usersToInclude)
+        if let nextCursor = nextCursor {
+            response.nextCursor = nextCursor
+        }
+        response.items = comments.compactMap { comment in
+            let commentData = comment.commentData
+
+            guard var serverComment = commentData.serverComment else {
+                DDLogError("WebClientManager/commentFeed/comment/\(comment.id)/error [could-not-create-server-comment]")
+                return nil
+            }
+
+            do {
+                // Set unencrypted payload
+                serverComment.payload = try commentData.clientContainer.serializedData()
+            } catch {
+                DDLogError("WebClientManager/commentFeed/comment/\(comment.id)/error [\(error)]")
+                return nil
+            }
+
+            var feedItem = Web_FeedItem()
+            feedItem.content = .comment(serverComment)
+            return feedItem
+        }
+
+        return response
+    }
+
+    private func feedResponse(with posts: [FeedPost], type: Web_FeedType, nextCursor: String?) -> Web_FeedResponse {
         let currentUserID = MainAppContext.shared.userData.userId
-        let postDisplayInfo: [Web_PostDisplayInfo] = postsForRequest.map { post in
-            var info = Web_PostDisplayInfo()
-            info.id = post.id
-            info.isUnsupported = post.isUnsupported
-            info.retractState = {
-                switch post.status {
-                case .retracting:
-                    return .retracting
-                case .retracted:
-                    return .retracted
-                default:
-                    return .unretracted
-                }
-            }()
-            info.transferState = {
-                switch post.status {
-                case .sent, .retracting:
-                    return .sent
-                case .sending:
-                    return .sending
-                case .incoming, .seenSending, .seen:
-                    return .received
-                case .sendError:
-                    return .sendError
-                case .rerequesting:
-                    return .decryptionError
-                case .none:
-                    return .unknown
-                case .retracted, .unsupported, .expired:
-                    return post.userID == currentUserID ? .sent : .received
-                }
-            }()
-            info.seenState = {
-                switch post.status {
-                case .incoming:
-                    return .unseen
-                case .seenSending:
-                    return .seenSending
-                default:
-                    return .seen
-                }
-            }()
-            info.unreadComments = post.unreadCount
-            info.userReceipts = post.seenReceipts.compactMap {
-                guard let userID = Int64($0.userId) else { return nil }
-                var receipt = Web_ReceiptInfo()
-                receipt.timestamp = Int64($0.timestamp.timeIntervalSince1970)
-                receipt.status = .seen
-                receipt.uid = userID
-                return receipt
-            }
-            return info
-        }
 
         var usersToInclude = Set<UserID>()
         // Include info for all users who have posted.
-        usersToInclude.formUnion(postsForRequest.map { $0.userID })
+        usersToInclude.formUnion(posts.map { $0.userID })
         // Include info for all users who are mentioned in posts.
-        usersToInclude.formUnion(postsForRequest.flatMap { $0.mentions }.map { $0.userID })
+        usersToInclude.formUnion(posts.flatMap { $0.mentions }.map { $0.userID })
         // Include info for all users who have seen your posts.
-        usersToInclude.formUnion(postsForRequest.flatMap { $0.seenReceipts }.map { $0.userId })
+        usersToInclude.formUnion(posts.flatMap { $0.seenReceipts }.map { $0.userId })
 
-        let contactNames = MainAppContext.shared.contactStore.fullNames(forUserIds: usersToInclude)
-        let avatarIDs = MainAppContext.shared.avatarStore.avatarIDs(forUserIDs: usersToInclude)
-
-        let userDisplayInfo: [Web_UserDisplayInfo] = usersToInclude.compactMap {
-            guard let userID = Int64($0) else { return nil }
-            var info = Web_UserDisplayInfo()
-            info.uid = userID
-            if let avatarID = avatarIDs[$0] {
-                info.avatarID = avatarID
-            }
-            if let contactName = contactNames[$0] {
-                info.contactName = contactName
-            }
-            return info
-        }
-
-        let groupsToInclude = Set<GroupID>(postsForRequest.compactMap { $0.groupID })
+        let groupsToInclude = Set<GroupID>(posts.compactMap { $0.groupID })
         let groupDisplayInfo: [Web_GroupDisplayInfo] = groupsToInclude.compactMap { groupID in
             guard let group = self.dataStore.group(id: groupID, in: self.dataStore.viewContext) else {
                 DDLogError("WebClientManager/homeFeed/group/error [not-found] [id: \(groupID)]")
                 return nil
             }
-            var info = Web_GroupDisplayInfo()
-            info.id = groupID
-            info.name = group.name
-            if let avatarID = group.avatarID {
-                info.avatarID = avatarID
-            }
-            if let description = group.desc {
-                info.description_p = description
-            }
-            var background = Clients_Background()
-            background.theme = group.background
-            if let backgroundData = try? background.serializedData() {
-                info.background = String(decoding: backgroundData, as: UTF8.self)
-            }
-
-            return info
+            return self.groupDisplayInfo(for: group)
         }
 
         var response = Web_FeedResponse()
-        response.type = .home
-        response.userDisplayInfo = userDisplayInfo
-        response.postDisplayInfo = postDisplayInfo
+        response.type = type
+        response.userDisplayInfo = userDisplayInfo(for: usersToInclude)
+        response.postDisplayInfo = posts.map { self.postDisplayInfo(for: $0, currentUserID: currentUserID) }
         response.groupDisplayInfo = groupDisplayInfo
         if let nextCursor = nextCursor {
             response.nextCursor = nextCursor
         }
-        response.items = postsForRequest.compactMap { post in
+        response.items = posts.compactMap { post in
             let postContainerData: Data
             do {
                 postContainerData = try post.postData.clientContainer.serializedData()
@@ -499,6 +503,160 @@ final class WebClientManager {
 
         return response
     }
+
+    // MARK: DisplayInfo
+
+    func userDisplayInfo(for userIDs: Set<UserID>) -> [Web_UserDisplayInfo] {
+        let contactNames = MainAppContext.shared.contactStore.fullNames(forUserIds: userIDs)
+        let avatarIDs = MainAppContext.shared.avatarStore.avatarIDs(forUserIDs: userIDs)
+
+        return userIDs.compactMap {
+            guard let userID = Int64($0) else { return nil }
+            var info = Web_UserDisplayInfo()
+            info.uid = userID
+            if let avatarID = avatarIDs[$0] {
+                info.avatarID = avatarID
+            }
+            if let contactName = contactNames[$0] {
+                info.contactName = contactName
+            }
+            return info
+        }
+    }
+
+    func groupDisplayInfo(for group: Group) -> Web_GroupDisplayInfo {
+        var info = Web_GroupDisplayInfo()
+        info.id = group.id
+        info.name = group.name
+        if let avatarID = group.avatarID {
+            info.avatarID = avatarID
+        }
+        if let description = group.desc {
+            info.description_p = description
+        }
+        var background = Clients_Background()
+        background.theme = group.background
+        if let backgroundData = try? background.serializedData() {
+            info.background = String(decoding: backgroundData, as: UTF8.self)
+        }
+
+        return info
+    }
+
+    func postDisplayInfo(for post: FeedPost, currentUserID: UserID) -> Web_PostDisplayInfo {
+        var info = Web_PostDisplayInfo()
+        info.id = post.id
+        info.isUnsupported = post.isUnsupported
+        info.retractState = {
+            switch post.status {
+            case .retracting:
+                return .retracting
+            case .retracted:
+                return .retracted
+            default:
+                return .unretracted
+            }
+        }()
+        info.transferState = {
+            switch post.status {
+            case .sent, .retracting:
+                return .sent
+            case .sending:
+                return .sending
+            case .incoming, .seenSending, .seen:
+                return .received
+            case .sendError:
+                return .sendError
+            case .rerequesting:
+                return .decryptionError
+            case .none:
+                return .unknown
+            case .retracted, .unsupported, .expired:
+                return post.userID == currentUserID ? .sent : .received
+            }
+        }()
+        info.seenState = {
+            switch post.status {
+            case .incoming:
+                return .unseen
+            case .seenSending:
+                return .seenSending
+            default:
+                return .seen
+            }
+        }()
+        info.unreadComments = post.unreadCount
+        info.userReceipts = post.seenReceipts.compactMap {
+            guard let userID = Int64($0.userId) else { return nil }
+            var receipt = Web_ReceiptInfo()
+            receipt.timestamp = Int64($0.timestamp.timeIntervalSince1970)
+            receipt.status = .seen
+            receipt.uid = userID
+            return receipt
+        }
+        return info
+    }
+    // MARK: Pagination
+
+    private struct Page<T> {
+        var items: [T]
+        var nextCursor: String?
+    }
+
+    enum PaginationError: Error {
+        case invalidCursor
+    }
+
+    private func paginate(posts: [FeedPost], cursor: String?, limit: Int) -> Result<Page<FeedPost>, PaginationError> {
+        let cappedLimit: Int = {
+            if limit <= 0 { return 20 }
+            return limit > 50 ? 50 : limit
+        }()
+
+        let startIndex: Int
+        if let cursor = cursor, !cursor.isEmpty {
+            guard let cursorIndex = posts.firstIndex(where: { $0.id == cursor }) else {
+                return .failure(.invalidCursor)
+            }
+            startIndex = cursorIndex
+        } else {
+            startIndex = 0
+        }
+
+        let (currentPosts, nextPost) = paginate(posts, startIndex: startIndex, limit: cappedLimit)
+        return .success(Page(items: currentPosts, nextCursor: nextPost?.id))
+    }
+
+    private func paginate(comments: [FeedPostComment], cursor: String?, limit: Int) -> Result<Page<FeedPostComment>, PaginationError> {
+        let cappedLimit: Int = {
+            if limit <= 0 { return 20 }
+            return limit > 50 ? 50 : limit
+        }()
+
+        let startIndex: Int
+        if let cursor = cursor, !cursor.isEmpty {
+            guard let cursorIndex = comments.firstIndex(where: { $0.id == cursor }) else {
+                return .failure(.invalidCursor)
+            }
+            startIndex = cursorIndex
+        } else {
+            startIndex = 0
+        }
+
+        let (currentComments, nextComment) = paginate(comments, startIndex: startIndex, limit: cappedLimit)
+        return .success(Page(items: currentComments, nextCursor: nextComment?.id))
+    }
+
+    private func paginate<T>(_ elements: [T], startIndex: Int, limit: Int) -> ([T], T?) {
+        let nextIndex = startIndex + limit
+
+        if elements.count > nextIndex {
+            return (Array(elements[startIndex..<nextIndex]), elements[nextIndex])
+        } else {
+            return (Array(elements[startIndex...]), nil)
+        }
+    }
+
 }
 
 public enum WebClientQRCodeResult {
