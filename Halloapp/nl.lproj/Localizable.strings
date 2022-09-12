@@ -287,10 +287,10 @@
 "chat.event.tap.to.add.contact" = "Tik om %@ toe te voegen aan je adresboek";
 
 /* Message text shown with the user who changed a groups content expiry settings */
-"chat.group.event.expiry.changed" = "%1$@ heeft de verlooptijd van de groepsinhoud gewijzigd in %2$@";
+"chat.group.event.expiry.changed" = "%1$@ heeft de verlooptijd van de groepsinhoud gewijzigd naar %2$@";
 
 /* Message text shown when you change a groups content expiry settings */
-"chat.group.event.expiry.changed.you" = "Je hebt de verlooptijd van de groepsinhoud gewijzigd in %1@";
+"chat.group.event.expiry.changed.you" = "Je hebt de verlooptijd van de groepsinhoud gewijzigd naar %1@";
 
 /* Message text shown with the user who joined the group via invite link */
 "chat.group.event.join" = "%@ neemt deel aan de groep via een uitnodigingslink";
@@ -1139,7 +1139,7 @@
 "link.learnMore" = "Meer informatie";
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
-"link.update.your.app" = "Mijn app bijwerken.";
+"link.update.your.app" = "App bijwerken.";
 
 /* General message of the alert for failures in location sharing features. */
 "locationSharing.alert.error" = "Er ging iets mis. Probeer het later opnieuw.";

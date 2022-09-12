@@ -484,6 +484,9 @@
 /* Text shown in the chat interface informing the user that the contact is unblocked */
 "chat.unblocked.contact.label" = "لقد رفعت الحظر عن جهة الاتصال هذه";
 
+/* Text shown in a notification when user reacted to a message. The user's name is shown above this message in the notification. */
+"chat.user.reacted.message" = "تفاعل بإضافة %2@ إلى رسالة";
+
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "عند حذف هذه الدردشة سيتم مسح سجل الدردشة والمحتوى الخاص بها من جهازك.";
 
@@ -1374,7 +1377,7 @@
 "notification.location" = "📍 موقع";
 
 /* Push notification for a reaction to message */
-"notification.message.reaction" = "تفاعل %@ مع إحدى الرسائل";
+"notification.message.reaction" = "تفاعل بإضافة %@ إلى رسالة";
 
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "لحظة جديدة";
