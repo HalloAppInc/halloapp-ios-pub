@@ -329,4 +329,12 @@ extension Localizations {
     static var sendTo: String {
         NSLocalizedString("destination.send.to", value: "Send To", comment: "Send to button and screen title")
     }
+
+    static var addMedia: String {
+        NSLocalizedString("composer.addmedia", value: "Add media", comment: "Label for add media button in post composer")
+    }
+
+    static var writePost: String {
+        NSLocalizedString("composer.placeholder.text.post", value: "Write a post", comment: "Placeholder text in text post composer screen.")
+    }
 }

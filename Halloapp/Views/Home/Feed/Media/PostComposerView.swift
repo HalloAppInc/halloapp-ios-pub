@@ -120,10 +120,6 @@ private extension Localizations {
         NSLocalizedString("composer.placeholder.media.description", value: "Write a description", comment: "Placeholder text for media caption field in post composer.")
     }
 
-    static var writePost: String {
-        NSLocalizedString("composer.placeholder.text.post", value: "Write a post", comment: "Placeholder text in text post composer screen.")
-    }
-
     static func mediaPrepareFailed(_ mediaCount: Int) -> String {
         let format = NSLocalizedString("media.prepare.failed.n.count", comment: "Error text displayed in post composer when some of the media selected couldn't be sent.")
         return String.localizedStringWithFormat(format, mediaCount)
@@ -167,10 +163,6 @@ private extension Localizations {
 
     static var deleteVoiceRecordingTitle: String {
         NSLocalizedString("composer.delete.recording.title", value: "Delete audio recording?", comment: "Title warning that a audio recording will be deleted")
-    }
-
-    static var addMedia: String {
-        NSLocalizedString("composer.addmedia", value: "Add media", comment: "Label for add media button in post composer")
     }
 }
 

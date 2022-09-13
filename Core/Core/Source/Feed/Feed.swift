@@ -31,6 +31,17 @@ public enum ShareDestination: Hashable, Equatable {
         guard let userId = contact.userId else { return nil }
         return .contact(id: userId, name: contact.fullName, phone: contact.phoneNumber)
     }
+
+    public var name: String? {
+        switch self {
+        case .feed(_):
+            return nil
+        case .group(_, let name):
+            return name
+        case .contact(_, let name, _):
+            return name
+        }
+    }
 }
 
 public typealias FeedPostCommentID = String

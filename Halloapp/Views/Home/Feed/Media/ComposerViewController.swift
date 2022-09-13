@@ -118,6 +118,8 @@ class ComposerViewController: UIViewController {
     public var isCompactShareFlow: Bool {
         if case .contact(_, _, _) = config.destination {
             return false
+        } else if initialType == .unified {
+            return false
         } else if AppContext.shared.userDefaults.bool(forKey: "forcePickerShare") {
             return false
         } else {
@@ -328,6 +330,13 @@ class ComposerViewController: UIViewController {
         return textComposerView
     }()
 
+    private lazy var unifiedComposerView: UnifiedComposerView = {
+        let unifiedComposerView = UnifiedComposerView()
+        unifiedComposerView.translatesAutoresizingMaskIntoConstraints = false
+        unifiedComposerView.delegate = self
+        return unifiedComposerView
+    }()
+
     private lazy var destinationsView: ComposerDestinationRowView = {
         let destinationsView = ComposerDestinationRowView(destination: config.destination, groups: groups, contacts: contacts)
         destinationsView.translatesAutoresizingMaskIntoConstraints = false
@@ -414,30 +423,31 @@ class ComposerViewController: UIViewController {
     }()
 
     private lazy var largeSendButton: UIButton = {
-        let iconConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .bold)
-        let icon = UIImage(systemName: "chevron.right", withConfiguration: iconConfig)?
-                    .withTintColor(.white, renderingMode: .alwaysOriginal)
+        let isShareButton = initialType == .unified
 
-        let attributedTitle = NSAttributedString(string: Localizations.sendTo,
+        let icon = (isShareButton ? UIImage(named: "icon_share") : UIImage(systemName: "chevron.right"))?
+            .withConfiguration(UIImage.SymbolConfiguration(pointSize: 16, weight: .bold))
+            .withTintColor(.white, renderingMode: .alwaysOriginal)
+
+        let attributedTitle = NSAttributedString(string: isShareButton ? Localizations.buttonShare : Localizations.sendTo,
                                                  attributes: [.kern: 0.5, .foregroundColor: UIColor.white])
-        let disabledAttributedTitle = NSAttributedString(string: Localizations.sendTo,
-                                                         attributes: [.kern: 0.5, .foregroundColor: UIColor.white])
 
         let button = RoundedRectButton()
         button.translatesAutoresizingMaskIntoConstraints = false
         // Attributed strings do not respect button title colors
         button.setAttributedTitle(attributedTitle, for: .normal)
-        button.setAttributedTitle(disabledAttributedTitle, for: .disabled)
+        button.setAttributedTitle(attributedTitle, for: .disabled)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
         button.setImage(icon, for: .normal)
-        button.contentEdgeInsets = UIEdgeInsets(top: -1.5, left: 30, bottom: 0, right: 36)
+        button.contentEdgeInsets = UIEdgeInsets(top: -1.5, left: isShareButton ? 20 : 30, bottom: 0, right: isShareButton ? 16 : 36)
 
         // keep image on the right & tappable
+        let imagePadding: CGFloat = isShareButton ? 8 : 12
         if case .rightToLeft = view.effectiveUserInterfaceLayoutDirection {
-            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -12, bottom: 0, right: 12)
+            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -imagePadding, bottom: 0, right: imagePadding)
             button.semanticContentAttribute = .forceLeftToRight
         } else {
-            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: 12, bottom: 0, right: -12)
+            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: imagePadding, bottom: 0, right: -imagePadding)
             button.semanticContentAttribute = .forceRightToLeft
         }
 
@@ -450,6 +460,8 @@ class ComposerViewController: UIViewController {
 
         return button
     }()
+
+    private lazy var titleView = ComposerTitleView()
 
     init(
         config: ComposerConfig,
@@ -478,6 +490,8 @@ class ComposerViewController: UIViewController {
 
         view.backgroundColor = .feedBackground
         view.addSubview(mainView)
+
+        navigationItem.titleView = titleView
 
         NSLayoutConstraint.activate([
             mainView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
@@ -520,8 +534,18 @@ class ComposerViewController: UIViewController {
         contentView.layoutMargins = UIEdgeInsets(top: ComposerConstants.verticalPadding, left: ComposerConstants.horizontalPadding, bottom: ComposerConstants.verticalPadding, right: ComposerConstants.horizontalPadding)
 
         if media.count > 0 {
-            title = ""
-            navigationItem.leftBarButtonItem = backButtonItem
+
+            if initialType == .unified {
+                titleView.alignment = .leading
+                titleView.title = Localizations.newPostTitle
+                titleView.subtitle = config.destination.name
+                navigationItem.leftBarButtonItem = closeButtonItem
+            } else {
+                titleView.alignment = .center
+                titleView.title = nil
+                titleView.subtitle = nil
+                navigationItem.leftBarButtonItem = backButtonItem
+            }
 
             contentView.addArrangedSubview(mediaCarouselView)
             contentView.addArrangedSubview(mediaErrorLabel)
@@ -549,8 +573,10 @@ class ComposerViewController: UIViewController {
             }
 
             listenForMediaErrors()
-        } else if initialType == .voiceNote || voiceNote != nil {
-            title = Localizations.fabAccessibilityVoiceNote
+        } else if initialType == .voiceNote || (initialType != .unified && voiceNote != nil) {
+            titleView.alignment = .center
+            titleView.title = Localizations.fabAccessibilityVoiceNote
+            titleView.subtitle = nil
             navigationItem.leftBarButtonItem = closeButtonItem
             navigationItem.rightBarButtonItems = []
 
@@ -573,8 +599,32 @@ class ComposerViewController: UIViewController {
                 constraints.append(mediaPickerButton.trailingAnchor.constraint(equalTo: bottomView.trailingAnchor, constant: -14))
                 constraints.append(mediaPickerButton.centerYAnchor.constraint(equalTo: sendButton.centerYAnchor))
             }
+        } else if initialType == .unified {
+            titleView.alignment = .center
+            titleView.title = Localizations.newPostTitle
+            titleView.subtitle = config.destination.name
+            navigationItem.leftBarButtonItem = closeButtonItem
+            navigationItem.rightBarButtonItems = []
+
+            contentView.layoutMargins = .zero
+            contentView.addArrangedSubview(unifiedComposerView)
+
+            let contentHeightContraint = contentView.heightAnchor.constraint(greaterThanOrEqualTo: scrollView.frameLayoutGuide.heightAnchor, constant: -36)
+            contentHeightContraint.priority = UILayoutPriority(251)
+            constraints.append(contentHeightContraint)
+
+            bottomView.addSubview(sendButton)
+            constraints += [
+                sendButton.centerXAnchor.constraint(equalTo: bottomView.centerXAnchor),
+                sendButton.topAnchor.constraint(equalTo: bottomView.topAnchor, constant: 8),
+                sendButton.bottomAnchor.constraint(equalTo: bottomView.bottomAnchor),
+            ]
+
+            unifiedComposerView.becomeFirstResponder()
         } else {
-            title = Localizations.fabAccessibilityTextPost
+            titleView.alignment = .center
+            titleView.title = Localizations.fabAccessibilityTextPost
+            titleView.subtitle = nil
             navigationItem.leftBarButtonItem = closeButtonItem
             navigationItem.rightBarButtonItems = []
 
@@ -653,7 +703,7 @@ class ComposerViewController: UIViewController {
             case .audio:
                 navigationItem.rightBarButtonItems = []
             }
-        } else if initialType == .voiceNote || voiceNote != nil {
+        } else if initialType == .voiceNote || (initialType != .unified && voiceNote != nil) {
             audioComposerView.update(with: audioRecorder, voiceNote: voiceNote)
 
             mediaPickerButton.isHidden = audioRecorder.isRecording || voiceNote == nil
@@ -663,6 +713,9 @@ class ComposerViewController: UIViewController {
             } else {
                 sendButton.isEnabled = !audioRecorder.isRecording && voiceNote != nil
             }
+        } else if initialType == .unified {
+            unifiedComposerView.update(with: input, mentionables: mentionableUsers(), recorder: audioRecorder, voiceNote: voiceNote, locked: audioRecorderControlsLocked)
+            sendButton.isEnabled = !input.text.isEmpty || (!audioRecorder.isRecording && voiceNote != nil)
         } else {
             textComposerView.update(with: input, mentionables: mentionableUsers())
 
@@ -864,7 +917,8 @@ class ComposerViewController: UIViewController {
         // don't dimiss when
         // - has a voice note
         // - started as text post and still has text
-        return voiceNote == nil && !(initialType == .noMedia && !input.text.isEmpty)
+        // - is not the unified composer
+        return voiceNote == nil && !(initialType == .noMedia && !input.text.isEmpty) && initialType != .unified
     }
 }
 
@@ -1113,6 +1167,36 @@ extension ComposerViewController: TextComposerDelegate {
     func textComposerDidTapPreviewLink(_ textComposerView: TextComposerView) {
         if let url = linkPreviewData?.url {
             URLRouter.shared.handleOrOpen(url: url)
+        }
+    }
+}
+
+// MARK: UnifiedComposerViewDelegate
+
+extension ComposerViewController: UnifiedComposerViewDelegate {
+
+    func unifiedComposer(_ unifiedComposerView: UnifiedComposerView, didUpdate data: LinkPreviewData?, andImage image: UIImage?) {
+        linkPreviewData = data
+        linkPreviewImage = image
+    }
+
+    func unifiedComposer(_ unifiedComposerView: UnifiedComposerView, didSelect mention: MentionableUser) {
+        updateUI()
+    }
+
+    func unifiedComposerDidTapPreviewLink(_ unifiedComposerView: UnifiedComposerView) {
+        if let url = linkPreviewData?.url {
+            URLRouter.shared.handleOrOpen(url: url)
+        }
+    }
+
+    func unifiedComposerOpenMediaPicker(_ unifiedComposerView: UnifiedComposerView) {
+        openPickerAction()
+    }
+
+    func unifiedComposerStopRecording(_ unifiedComposerView: UnifiedComposerView) {
+        if audioRecorder.isRecording {
+            audioRecorder.stop(cancel: false)
         }
     }
 }

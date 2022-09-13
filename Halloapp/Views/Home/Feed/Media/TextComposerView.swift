@@ -200,9 +200,3 @@ extension TextComposerView {
         mentionPickerView.isHidden = !shouldShow
     }
 }
-
-private extension Localizations {
-    static var writePost: String {
-        NSLocalizedString("composer.placeholder.text.post", value: "Write a post", comment: "Placeholder text in text post composer screen.")
-    }
-}

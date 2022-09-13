@@ -163,7 +163,7 @@ final class NewPostViewController: UIViewController {
                 self.state.pendingVoiceNote = result.voiceNote
 
                 if success {
-                    if controller.isCompactShareFlow {
+                    if controller.isCompactShareFlow || self.state.mediaSource == .unified {
                         self.share(to: result.destinations, result: result)
                     } else {
                         self.containedNavigationController.pushViewController(self.makeDestinationPickerViewController(with: result), animated: true)
