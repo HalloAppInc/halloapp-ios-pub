@@ -208,9 +208,7 @@ class GroupGridViewController: UIViewController {
             cell.configure(with: feedPost)
             let postID = feedPost.id
             cell.openPost = { [weak self] in
-                let navigationController = UINavigationController(rootViewController: FlatCommentsViewController(feedPostId: postID))
-                navigationController.modalPresentationStyle = .pageSheet
-                self?.present(navigationController, animated: true)
+                self?.navigationController?.pushViewController(FlatCommentsViewController(feedPostId: postID), animated: true)
             }
         }
         return cell
