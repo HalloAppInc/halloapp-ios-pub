@@ -273,6 +273,8 @@
 		A11272EC2856E47B0009EBD7 /* MomentComposerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11272EB2856E47B0009EBD7 /* MomentComposerViewController.swift */; };
 		A11BA85428C0236D0077F86A /* RegistrationSplashScreenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11BA85328C0236D0077F86A /* RegistrationSplashScreenViewController.swift */; };
 		A11FA897285BE02900ACDA76 /* MomentsExplainerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11FA896285BE02900ACDA76 /* MomentsExplainerViewController.swift */; };
+		A1562B1728D0EA630082F1E5 /* ViewfinderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1562B1628D0EA630082F1E5 /* ViewfinderView.swift */; };
+		A1562B1928D0EED40082F1E5 /* CaptureRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1562B1828D0EED40082F1E5 /* CaptureRequest.swift */; };
 		A15B2D96283EA9A0000CE989 /* LargeHitButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15B2D95283EA9A0000CE989 /* LargeHitButton.swift */; };
 		A15E6C782809FA1B008CAEA0 /* ProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15E6C772809FA1B008CAEA0 /* ProfileViewController.swift */; };
 		A15E6C80280DD778008CAEA0 /* FeedArchiveViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15E6C7F280DD778008CAEA0 /* FeedArchiveViewController.swift */; };
@@ -1062,6 +1064,8 @@
 		A11272EB2856E47B0009EBD7 /* MomentComposerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentComposerViewController.swift; sourceTree = "<group>"; };
 		A11BA85328C0236D0077F86A /* RegistrationSplashScreenViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationSplashScreenViewController.swift; sourceTree = "<group>"; };
 		A11FA896285BE02900ACDA76 /* MomentsExplainerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentsExplainerViewController.swift; sourceTree = "<group>"; };
+		A1562B1628D0EA630082F1E5 /* ViewfinderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewfinderView.swift; sourceTree = "<group>"; };
+		A1562B1828D0EED40082F1E5 /* CaptureRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureRequest.swift; sourceTree = "<group>"; };
 		A15B2D95283EA9A0000CE989 /* LargeHitButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargeHitButton.swift; sourceTree = "<group>"; };
 		A15E6C772809FA1B008CAEA0 /* ProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewController.swift; sourceTree = "<group>"; };
 		A15E6C7F280DD778008CAEA0 /* FeedArchiveViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedArchiveViewController.swift; sourceTree = "<group>"; };
@@ -1828,6 +1832,18 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		A1562B1528D0EA350082F1E5 /* Camera */ = {
+			isa = PBXGroup;
+			children = (
+				A1E695AB284304AF00025E38 /* NewCameraViewController.swift */,
+				A1E6767A28513F5E0086EDD2 /* CameraShutterButton.swift */,
+				A17B5128284FD48600B75405 /* CameraModel.swift */,
+				A1562B1628D0EA630082F1E5 /* ViewfinderView.swift */,
+				A1562B1828D0EED40082F1E5 /* CaptureRequest.swift */,
+			);
+			path = Camera;
+			sourceTree = "<group>";
+		};
 		A188383728BD5D91005BBCC2 /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
@@ -2108,9 +2124,7 @@
 				A11272EB2856E47B0009EBD7 /* MomentComposerViewController.swift */,
 				A11FA896285BE02900ACDA76 /* MomentsExplainerViewController.swift */,
 				5B64B56124F3FA2E00BCBEA8 /* CameraController.swift */,
-				A1E695AB284304AF00025E38 /* NewCameraViewController.swift */,
-				A1E6767A28513F5E0086EDD2 /* CameraShutterButton.swift */,
-				A17B5128284FD48600B75405 /* CameraModel.swift */,
+				A1562B1528D0EA350082F1E5 /* Camera */,
 				5BF5D12224F5295300F272D8 /* CameraViewController.swift */,
 				F84A8E5825D408C3003A8528 /* VideoEditViewController.swift */,
 				F893C86E25E5213000068F00 /* VideoView.swift */,
@@ -3144,6 +3158,7 @@
 				7661D958255B184C0063404E /* NotificationSettingsViewController.swift in Sources */,
 				3250C60527D010370032FEC4 /* Localizations+Registration.swift in Sources */,
 				6832F4FD24FEE97800A9C202 /* ProtoService.swift in Sources */,
+				A1562B1928D0EED40082F1E5 /* CaptureRequest.swift in Sources */,
 				325F2E8A28906C4800F8E014 /* DestinationPickerMoreView.swift in Sources */,
 				E55B6099268B80C800A322DC /* ExportDataModel.swift in Sources */,
 				E5CB831B26A0F17100C18ACA /* ActivityCenter.swift in Sources */,
@@ -3260,6 +3275,7 @@
 				6ABBD2502601DE890041B9ED /* FeedMigration.xcmappingmodel in Sources */,
 				68184009264B1F9800408D31 /* Feed2ToFeed3.xcmappingmodel in Sources */,
 				76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */,
+				A1562B1728D0EA630082F1E5 /* ViewfinderView.swift in Sources */,
 				146B93792405F40500768AC6 /* Font.swift in Sources */,
 				76B95CDE24295AB5007435AC /* CommentView.swift in Sources */,
 				A1FF1ECC28BD7BF70057FC27 /* PhoneNumberVerificationViewController.swift in Sources */,

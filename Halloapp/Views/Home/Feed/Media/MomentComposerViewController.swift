@@ -17,9 +17,6 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
     let context: MomentContext
 
     private var media: PendingMedia?
-    private var image: UIImage? {
-        didSet { sizeImageView() }
-    }
     /// Used to wait for the creation of the media's file path.
     private var mediaLoader: AnyCancellable?
 
@@ -63,30 +60,47 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
     private var audienceDisclaimerView: UIView?
     private var hideAudienceDisclaimerItem: DispatchWorkItem?
 
-    private lazy var imageView: UIImageView = {
-        let view = UIImageView()
-        view.layer.masksToBounds = true
-        view.backgroundColor = .black
-        view.contentMode = .scaleAspectFill
-        return view
-    }()
-
-    private lazy var imageContainer: UIScrollView = {
-        let view = UIScrollView()
+    private lazy var scrollViewContainer: UIView = {
+        let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.clipsToBounds = true
-        view.delegate = self
-        view.showsHorizontalScrollIndicator = false
-        view.showsVerticalScrollIndicator = false
         view.layer.cornerRadius = NewCameraViewController.Layout.innerRadius(for: .moment)
         view.layer.cornerCurve = .continuous
-        view.maximumZoomScale = 1.75
-        view.bounces = false
-        view.bouncesZoom = false
         return view
     }()
 
-    private(set) lazy var container: UIView = {
+    private lazy var leadingImageScrollView: ScrollableImageView = {
+        let view = ScrollableImageView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
+    private lazy var trailingImageScrollView: ScrollableImageView = {
+        let view = ScrollableImageView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
+    private lazy var trailingImageLeadingConstraint: NSLayoutConstraint = {
+        let constraint = trailingImageScrollView.leadingAnchor.constraint(equalTo: background.centerXAnchor)
+        constraint.priority = .defaultHigh
+        return constraint
+    }()
+
+    private lazy var hideTrailingImageViewConstraint: NSLayoutConstraint = {
+        let constraint = trailingImageScrollView.leadingAnchor.constraint(equalTo: scrollViewContainer.trailingAnchor)
+        return constraint
+    }()
+
+    private lazy var closeTrailingImageButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
+        button.addTarget(self, action: #selector(pushedCloseTrailingImageButton), for: .touchUpInside)
+        return button
+    }()
+
+    private(set) lazy var background: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = .momentPolaroid
@@ -130,7 +144,6 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
         view.backgroundColor = .black
         navigationController?.overrideUserInterfaceStyle = .dark
 
@@ -142,32 +155,50 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
 
         view.addSubview(audienceIndicator)
-        view.addSubview(container)
-        container.addSubview(imageContainer)
-        imageContainer.addSubview(imageView)
-        container.addSubview(sendButtonContainer)
+        view.addSubview(background)
+        background.addSubview(scrollViewContainer)
+
+        scrollViewContainer.addSubview(leadingImageScrollView)
+        scrollViewContainer.addSubview(trailingImageScrollView)
+        trailingImageScrollView.addSubview(closeTrailingImageButton)
+
+        background.addSubview(sendButtonContainer)
         sendButtonContainer.addSubview(sendButton)
 
         let padding = NewCameraViewController.Layout.padding(for: .moment)
 
         NSLayoutConstraint.activate([
-            container.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            container.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            background.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            background.trailingAnchor.constraint(equalTo: view.trailingAnchor),
 
-            imageContainer.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: padding),
-            imageContainer.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -padding),
-            imageContainer.topAnchor.constraint(equalTo: container.topAnchor, constant: padding),
-            imageContainer.heightAnchor.constraint(equalTo: imageContainer.widthAnchor),
+            scrollViewContainer.leadingAnchor.constraint(equalTo: background.leadingAnchor, constant: padding),
+            scrollViewContainer.trailingAnchor.constraint(equalTo: background.trailingAnchor, constant: -padding),
+            scrollViewContainer.topAnchor.constraint(equalTo: background.topAnchor, constant: padding),
+            scrollViewContainer.heightAnchor.constraint(equalTo: scrollViewContainer.widthAnchor),
 
-            sendButtonContainer.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-            sendButtonContainer.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-            sendButtonContainer.topAnchor.constraint(equalTo: imageContainer.bottomAnchor),
-            sendButtonContainer.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+            leadingImageScrollView.leadingAnchor.constraint(equalTo: scrollViewContainer.leadingAnchor),
+            leadingImageScrollView.trailingAnchor.constraint(equalTo: trailingImageScrollView.leadingAnchor),
+            leadingImageScrollView.topAnchor.constraint(equalTo: scrollViewContainer.topAnchor),
+            leadingImageScrollView.heightAnchor.constraint(equalTo: scrollViewContainer.heightAnchor),
+
+            trailingImageScrollView.trailingAnchor.constraint(equalTo: scrollViewContainer.trailingAnchor),
+            trailingImageLeadingConstraint,
+            trailingImageScrollView.topAnchor.constraint(equalTo: scrollViewContainer.topAnchor),
+            trailingImageScrollView.heightAnchor.constraint(equalTo: scrollViewContainer.heightAnchor),
+            hideTrailingImageViewConstraint,
+
+            sendButtonContainer.leadingAnchor.constraint(equalTo: background.leadingAnchor),
+            sendButtonContainer.trailingAnchor.constraint(equalTo: background.trailingAnchor),
+            sendButtonContainer.topAnchor.constraint(equalTo: leadingImageScrollView.bottomAnchor),
+            sendButtonContainer.bottomAnchor.constraint(equalTo: background.bottomAnchor),
 
             sendButton.centerXAnchor.constraint(equalTo: sendButtonContainer.centerXAnchor),
             sendButton.centerYAnchor.constraint(equalTo: sendButtonContainer.centerYAnchor),
             sendButton.heightAnchor.constraint(equalToConstant: 65),
             sendButton.widthAnchor.constraint(equalToConstant: 65),
+
+            closeTrailingImageButton.leadingAnchor.constraint(equalTo: trailingImageScrollView.frameLayoutGuide.leadingAnchor, constant: 10),
+            closeTrailingImageButton.topAnchor.constraint(equalTo: trailingImageScrollView.frameLayoutGuide.topAnchor, constant: 10),
 
             audienceIndicator.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             audienceIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -200,90 +231,77 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
                     return
                 }
 
-                self.image = media.image?.correctlyOrientedImage()
+                self.leadingImageScrollView.imageView.image = media.image
+                self.leadingImageScrollView.sizeImage()
+
                 self.sendButton.isEnabled = true
                 self.mediaLoader = nil
             }
     }
 
-    private func sizeImageView() {
-        guard let image = image else {
-            return
+    func configure(with results: [CaptureResult], animateTrailing: Bool) {
+        for result in results {
+            let scrollView = result.isPrimary ? leadingImageScrollView : trailingImageScrollView
+
+            scrollView.imageView.image = result.image.correctlyOrientedImage()
+            scrollView.sizeImage()
+
+            if !result.isPrimary {
+                updateTrailingImageViewDisplay(show: true, animate: animateTrailing)
+            }
+        }
+    }
+
+    private func updateTrailingImageViewDisplay(show: Bool, animate: Bool) {
+        hideTrailingImageViewConstraint.isActive = !show
+        leadingImageScrollView.setNeedsLayout()
+        trailingImageScrollView.setNeedsLayout()
+
+        if animate {
+            return UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 0.85, initialSpringVelocity: 0, options: .curveEaseOut) {
+                self.view.layoutIfNeeded()
+                self.leadingImageScrollView.sizeImage()
+                self.trailingImageScrollView.sizeImage()
+            }
         }
 
-        imageView.image = image
-        let factor = max(imageContainer.bounds.size.width / image.size.width, imageContainer.bounds.size.height / image.size.height)
-        let height = image.size.height * factor
-        let width = image.size.width * factor
+        view.layoutIfNeeded()
+        leadingImageScrollView.sizeImage()
+        trailingImageScrollView.sizeImage()
+    }
 
-        imageView.bounds.size.width = width
-        imageView.bounds.size.height = height
-        imageView.frame.origin = .zero
-
-        imageContainer.contentSize = imageView.bounds.size
-        imageContainer.setZoomScale(1, animated: false)
+    @objc
+    private func pushedCloseTrailingImageButton(_ button: UIButton) {
+        updateTrailingImageViewDisplay(show: false, animate: true)
     }
 
     @objc
     private func dismissTapped(_ button: UIBarButtonItem) {
         mediaLoader = nil
-        image = nil
-        imageView.image = nil
+
+        leadingImageScrollView.imageView.image = nil
+        trailingImageScrollView.imageView.image = nil
+        hideTrailingImageViewConstraint.isActive = true
+
         sendButton.isEnabled = false
-
         onCancel?()
-    }
-
-    private var cropRect: CGRect? {
-        guard let image = image else {
-            return nil
-        }
-
-        let containerSize = CGSize(width: floor(imageContainer.bounds.width), height: floor(imageContainer.bounds.height))
-        let imageViewSize = CGSize(width: floor(imageView.bounds.width), height: floor(imageView.bounds.height))
-
-        if containerSize.width == imageViewSize.width, containerSize.height == imageViewSize.height, imageContainer.zoomScale == 1 {
-            return nil
-        }
-
-        let scaleFactor = max(image.size.width / imageView.bounds.size.width, image.size.height / imageView.bounds.size.height)
-        let zoomFactor = 1 / imageContainer.zoomScale
-        let x = imageContainer.contentOffset.x * scaleFactor * zoomFactor
-        let y = imageContainer.contentOffset.y * scaleFactor * zoomFactor
-
-        let width = imageContainer.bounds.size.width * scaleFactor * zoomFactor
-        let height = imageContainer.bounds.size.height * scaleFactor * zoomFactor
-        var rect = CGRect(x: x, y: y, width: width, height: height).integral
-        let min = min(rect.width, rect.height)
-
-        rect.size.width = min
-        rect.size.height = min
-        return rect
     }
 
     @objc
     private func sendButtonPushed(_ button: UIButton) {
-        guard var image = image else {
-            return
-        }
-
-        sendButton.isEnabled = false
         DDLogInfo("MomentComposerViewController/send/start")
+        sendButton.isEnabled = false
+        let media = PendingMedia(type: .image)
 
-        if let cropRect = cropRect {
-            if let cropped = image.cgImage?.cropping(to: cropRect) {
-                DDLogInfo("MomentComposerViewController/send/successfully cropped image")
-
-                image = UIImage(cgImage: cropped)
-                self.image = image
-            } else {
-                DDLogError("MomentComposerViewController/send/failed to crop image [size: \(image.size)] [rect: \(cropRect)")
-                return
-            }
+        if !hideTrailingImageViewConstraint.isActive, let cropped = cropAndJoinImages() {
+            media.image = cropped
+        } else if hideTrailingImageViewConstraint.isActive, let cropped = leadingImageScrollView.croppedImage {
+            media.image = cropped
+        } else {
+            DDLogError("MomentComposerViewController/sendButtonPushed/unable to crop images")
+            return dismiss(animated: true)
         }
 
-        let media = PendingMedia(type: .image)
-        media.image = image
         // becuase we're creating the media object at the time of posting, we have to wait for its file url
         // to be ready. otherwise we'd crash as FeedData assumes there is a valid path.
         mediaLoader = media.ready
@@ -291,6 +309,26 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
             .sink { [weak self] _ in
                 self?.post(media: media)
             }
+    }
+
+    private func cropAndJoinImages() -> UIImage? {
+        guard
+            let leading = leadingImageScrollView.croppedImage,
+            let trailing = trailingImageScrollView.croppedImage
+        else {
+            return nil
+        }
+
+        let size = CGSize(width: leading.size.height, height: leading.size.height)
+
+        UIGraphicsBeginImageContext(size)
+        leading.draw(in: .init(x: 0, y: 0, width: leading.size.width, height: leading.size.height))
+        trailing.draw(in: .init(x: leading.size.width, y: 0, width: leading.size.width, height: size.width))
+
+        let result = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+
+        return result
     }
 
     private func post(media: PendingMedia) {
@@ -321,15 +359,6 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
         if audienceDisclaimerView != nil {
             hideAudienceDisclaimer()
         }
-    }
-
-    func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
-        let currentOffset = scrollView.contentOffset
-        targetContentOffset.pointee = currentOffset
-    }
-
-    func viewForZooming(in scrollView: UIScrollView) -> UIView? {
-        return imageView
     }
 
     private func showAudienceDisclaimer() {
@@ -471,6 +500,92 @@ extension FeedData {
                                 linkPreviewMedia: nil,
                                               to: .feed(.all),
                                    momentContext: context)
+    }
+}
+
+// MARK: - ScrollableImageView implementation
+
+fileprivate class ScrollableImageView: UIScrollView, UIScrollViewDelegate {
+
+    private(set) lazy var imageView: UIImageView = {
+        let view = UIImageView()
+        view.contentMode = .scaleAspectFill
+        return view
+    }()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        delegate = self
+
+        clipsToBounds = true
+        showsHorizontalScrollIndicator = false
+        showsVerticalScrollIndicator = false
+        bounces = false
+        bouncesZoom = false
+        maximumZoomScale = 2
+
+        addSubview(imageView)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("ScrollableImageView coder init not implemented...")
+    }
+
+    func sizeImage() {
+        guard let image = imageView.image else {
+            return
+        }
+
+        setZoomScale(1, animated: false)
+
+        let size = bounds.size
+        let factor = max(size.width / image.size.width, size.height / image.size.height)
+        let height = image.size.height * factor
+        let width = image.size.width * factor
+
+        let imageViewSize = CGSize(width: width, height: height)
+        imageView.frame = CGRect(origin: .zero, size: imageViewSize)
+        contentSize = imageViewSize
+
+        center()
+    }
+
+    private func center() {
+        if contentSize.width > bounds.width {
+            contentOffset.x = (contentSize.width - frame.size.width) / 2
+        } else if contentSize.height > bounds.height {
+            contentOffset.y = (contentSize.height - frame.size.height) / 2
+        }
+    }
+
+    var croppedImage: UIImage? {
+        guard let image = imageView.image else {
+            return nil
+        }
+
+        let scaleFactor = max(image.size.width / imageView.bounds.size.width, image.size.height / imageView.bounds.size.height)
+        let zoomFactor = 1 / zoomScale
+        let x = contentOffset.x * scaleFactor * zoomFactor
+        let y = contentOffset.y * scaleFactor * zoomFactor
+
+        let width = bounds.size.width * scaleFactor * zoomFactor
+        let height = bounds.size.height * scaleFactor * zoomFactor
+        let rect = CGRect(x: x, y: y, width: width, height: height).integral
+
+        if let cropped = image.cgImage?.cropping(to: rect) {
+            return UIImage(cgImage: cropped)
+        }
+
+        return nil
+    }
+
+    func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+        let currentOffset = scrollView.contentOffset
+        targetContentOffset.pointee = currentOffset
+    }
+
+    func viewForZooming(in scrollView: UIScrollView) -> UIView? {
+        return imageView
     }
 }
 

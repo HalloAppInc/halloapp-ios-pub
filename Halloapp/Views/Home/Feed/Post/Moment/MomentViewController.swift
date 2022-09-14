@@ -750,7 +750,10 @@ extension MomentViewController: ContentInputDelegate {
         let vc = NewCameraViewController()
         vc.delegate = self
 
-        present(UINavigationController(rootViewController: vc), animated: true)
+        let nc = UINavigationController(rootViewController: vc)
+        nc.modalPresentationStyle = .fullScreen
+
+        present(nc, animated: true)
     }
 
     private func addMediaWhenAvailable(_ media: PendingMedia) {
@@ -771,6 +774,16 @@ extension MomentViewController: ContentInputDelegate {
 // MARK: - CameraViewControllerDelegate methods
 
 extension MomentViewController: CameraViewControllerDelegate {
+
+    func cameraViewController(_ viewController: NewCameraViewController, didCapture results: [CaptureResult], isFinished: Bool) {
+        if let image = results.first?.image, isFinished {
+            let media = PendingMedia(type: .image)
+            media.image = image
+            addMediaWhenAvailable(media)
+
+            viewController.dismiss(animated: true)
+        }
+    }
 
     func cameraViewControllerDidReleaseShutter(_ viewController: NewCameraViewController) {
 

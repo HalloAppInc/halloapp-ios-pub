@@ -19,6 +19,9 @@ protocol NewMomentViewControllerDelegate: MomentViewControllerDelegate {
 /// Handles the creation and posting of a moment, regardless of context.
 final class NewMomentViewController: UIViewController {
 
+    private enum State { case camera, indeterminate, composer }
+    private var state: State = .camera
+
     let context: MomentContext
     var onPost: (() -> Void)?
 
@@ -74,6 +77,8 @@ final class NewMomentViewController: UIViewController {
     }()
 
     private var sendButtonSnapshot: UIView?
+    /// Used to discard invalid capture results on devices that use delayed capture.
+    private var previousCaptureIdentifier: UUID?
 
     /// Used to wait for `PendingMedia`s `ready` property before showing the composer.
     private var mediaLoader: AnyCancellable?
@@ -113,8 +118,8 @@ final class NewMomentViewController: UIViewController {
         contain(composerNavigationController)
 
         NSLayoutConstraint.activate([
-            composerController.container.topAnchor.constraint(equalTo: cameraController.background.topAnchor),
-            composerController.container.heightAnchor.constraint(equalTo: cameraController.background.heightAnchor),
+            composerController.background.topAnchor.constraint(equalTo: cameraController.background.topAnchor),
+            composerController.background.heightAnchor.constraint(equalTo: cameraController.background.heightAnchor),
         ])
 
         if case .unlock(_) = context, !Self.hasDisplayedUnlockingExplainer {
@@ -155,12 +160,41 @@ final class NewMomentViewController: UIViewController {
         }
     }
 
+    private func displayComposer() {
+        guard
+            state != .composer,
+            let snapshot = view.snapshotView(afterScreenUpdates: false)
+        else {
+            return
+        }
+
+        state = .composer
+        view.addSubview(snapshot)
+        view.sendSubviewToBack(cameraNavigationController.view)
+
+        UIView.transition(with: view, duration: 0.15, options: [.transitionCrossDissolve, .beginFromCurrentState]) {
+            self.sendButtonSnapshot?.alpha = 0
+            snapshot.alpha = 0
+
+        } completion: { _ in
+            self.sendButtonSnapshot?.removeFromSuperview()
+            self.sendButtonSnapshot = nil
+
+            snapshot.removeFromSuperview()
+        }
+    }
+
     /// After the user takes the photo. Displays the disabled send button while the camera's viewfinder is still active.
     private func displayIntermediateState() {
-        guard let sendButtonSnapshot = composerController.sendButton.snapshotView(afterScreenUpdates: true) else {
+        guard
+            state != .indeterminate,
+            let sendButtonSnapshot = composerController.sendButton.snapshotView(afterScreenUpdates: true)
+        else {
             DDLogError("NewMomentViewController/displayIntermediateState/unable to create send button snapshot")
             return
         }
+
+        state = .indeterminate
 
         sendButtonSnapshot.center = view.convert(composerController.sendButton.center, from: composerController.sendButton.superview)
         sendButtonSnapshot.transform = .identity.scaledBy(x: 0.25, y: 0.25)
@@ -179,6 +213,7 @@ final class NewMomentViewController: UIViewController {
     /// Dismisses the composer and goes back to the camera.
     private func dismissComposer() {
         // go back to the camera
+        state = .camera
         cameraController.hideControls = false
         cameraController.resume()
 
@@ -236,7 +271,7 @@ final class NewMomentViewController: UIViewController {
         view.insertSubview(momentViewController.view, at: 0)
         contain(momentViewController)
         guard
-            let composeSnapshot = composerController.container.snapshotView(afterScreenUpdates: true),
+            let composeSnapshot = composerController.background.snapshotView(afterScreenUpdates: true),
             let unlockSnapshot = momentViewController.unlockingMomentView.snapshotView(afterScreenUpdates: true)
         else {
             return dismiss(animated: true)
@@ -247,7 +282,7 @@ final class NewMomentViewController: UIViewController {
         let finalCenter = view.convert(momentViewController.unlockingMomentView.center, from: momentViewController.unlockingMomentView.superview)
         let finalSize = momentViewController.unlockingMomentView.frame.size
 
-        composeSnapshot.center = view.convert(composerController.container.center, from: composerController.container.superview)
+        composeSnapshot.center = view.convert(composerController.background.center, from: composerController.background.superview)
         view.addSubview(composeSnapshot)
         // align the two snapshots
         unlockSnapshot.frame = composeSnapshot.frame
@@ -315,20 +350,27 @@ final class NewMomentViewController: UIViewController {
 
 extension NewMomentViewController: CameraViewControllerDelegate {
 
-    func cameraViewControllerDidReleaseShutter(_ viewController: NewCameraViewController) {
-        displayIntermediateState()
+    func cameraViewController(_ viewController: NewCameraViewController, didCapture results: [CaptureResult], isFinished: Bool) {
+        if let previousIdentifier = previousCaptureIdentifier, previousIdentifier != results.first?.identifier {
+            // this result is from a capture the user backed out of; discard the result
+            return
+        }
+
+        previousCaptureIdentifier = results.first?.identifier
+
+        composerController.configure(with: results, animateTrailing: results.count != 2)
+        displayComposer()
+
+        if isFinished {
+            composerController.sendButton.isEnabled = true
+            previousCaptureIdentifier = nil
+
+            cameraController.pause()
+        }
     }
 
-    func cameraViewController(_ viewController: NewCameraViewController, didTake photo: UIImage) {
-        let media = PendingMedia(type: .image)
-        media.image = photo
-
-        mediaLoader = media.ready
-            .first { $0 }
-            .sink { [weak self] _ in
-                self?.displayComposer(with: media)
-                self?.mediaLoader = nil
-            }
+    func cameraViewControllerDidReleaseShutter(_ viewController: NewCameraViewController) {
+        displayIntermediateState()
     }
 
     func cameraViewController(_ viewController: NewCameraViewController, didSelect media: PendingMedia) {
@@ -389,10 +431,10 @@ extension NewMomentViewController {
         blur.contentView.addSubview(stack)
 
         NSLayoutConstraint.activate([
-            blur.leadingAnchor.constraint(equalTo: cameraController.preview.leadingAnchor),
-            blur.trailingAnchor.constraint(equalTo: cameraController.preview.trailingAnchor),
-            blur.topAnchor.constraint(equalTo: cameraController.preview.topAnchor),
-            blur.bottomAnchor.constraint(equalTo: cameraController.preview.bottomAnchor),
+            blur.leadingAnchor.constraint(equalTo: cameraController.primaryViewfinder.leadingAnchor),
+            blur.trailingAnchor.constraint(equalTo: cameraController.primaryViewfinder.trailingAnchor),
+            blur.topAnchor.constraint(equalTo: cameraController.primaryViewfinder.topAnchor),
+            blur.bottomAnchor.constraint(equalTo: cameraController.primaryViewfinder.bottomAnchor),
 
             stack.leadingAnchor.constraint(equalTo: blur.contentView.leadingAnchor),
             stack.trailingAnchor.constraint(equalTo: blur.contentView.trailingAnchor),
