@@ -231,7 +231,9 @@ class ComposerViewController: UIViewController {
     private var constraints: [NSLayoutConstraint] = []
 
     private lazy var mainViewBottomConstraint: NSLayoutConstraint = {
-        mainView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+        let mainViewBottomConstraint = view.safeAreaLayoutGuide.bottomAnchor.constraint(equalTo: mainView.bottomAnchor)
+        mainViewBottomConstraint.priority = UILayoutPriority(999)
+        return mainViewBottomConstraint
     }()
 
     private lazy var mediaCarouselHeightConstraint: NSLayoutConstraint = {
@@ -481,6 +483,8 @@ class ComposerViewController: UIViewController {
             mainView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             mainView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             mainView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            // leave at least 8pt in case of no safeAreaInsets
+            mainView.bottomAnchor.constraint(lessThanOrEqualTo: view.bottomAnchor, constant: -8),
             mainViewBottomConstraint,
         ])
 
@@ -871,8 +875,9 @@ extension ComposerViewController {
             guard let self = self else { return }
             guard let info = KeyboardNotificationInfo(userInfo: notification.userInfo) else { return }
 
+            let height = self.view.convert(info.endFrame, from: nil).intersection(self.view.bounds.inset(by: self.view.safeAreaInsets)).height
             UIView.animate(withKeyboardNotificationInfo: info) {
-                self.mainViewBottomConstraint.constant = -info.endFrame.height + 16
+                self.mainViewBottomConstraint.constant = height + 16
                 self.view?.layoutIfNeeded()
             }
         }.store(in: &cancellables)
