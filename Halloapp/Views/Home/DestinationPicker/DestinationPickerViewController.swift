@@ -102,7 +102,7 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
             section.boundarySupplementaryItems = [sectionHeader]
             if let self = self {
                 let sections = self.dataSource.snapshot().sectionIdentifiers
-                if sectionIndex < sections.count, sections[sectionIndex] == DestinationSection.groups, !self.showAllGroups, self.hasMoreGroups {
+                if sectionIndex < sections.count, sections[sectionIndex] == DestinationSection.groups, !self.showAllGroups, self.hasMoreGroups, !self.isFiltering {
                     section.boundarySupplementaryItems = [sectionHeader, sectionFooter]
                     backgroundDecoration.contentInsets.bottom = 44
                 }
@@ -389,9 +389,7 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
         }
         
         hasMoreGroups = allGroups.count > DestinationPickerViewController.maxGroupsToShowOnLaunch
-        if hasMoreGroups, !showAllGroups {
-            allGroups = [ChatThread](allGroups[..<DestinationPickerViewController.maxGroupsToShowOnLaunch])
-        }
+
         var contacts = contactsFetchedResultsController.fetchedObjects ?? []
         contacts = ABContact.contactsWithUniquePhoneNumbers(allContacts: contacts)
         
@@ -429,6 +427,21 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
             }
         } else {
             // No Search in progress
+
+            if hasMoreGroups, !showAllGroups {
+                let maxGroups = DestinationPickerViewController.maxGroupsToShowOnLaunch
+                var groups = [ChatThread](allGroups[..<maxGroups])
+
+                for group in allGroups[maxGroups...] {
+                    if selectedDestinations.contains(.group(id: group.groupID ?? "", name: group.title ?? "")) {
+                        groups.append(group)
+                    }
+                }
+
+                showAllGroups = allGroups.count == groups.count
+                allGroups = groups
+            }
+
             if config == .composer {
                 snapshot.appendSections([DestinationSection.main])
                 snapshot.appendItems([.feed(.all), .feed(.whitelist)], toSection: DestinationSection.main)
