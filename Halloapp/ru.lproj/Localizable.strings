@@ -484,6 +484,9 @@
 /* Text shown in the chat interface informing the user that the contact is unblocked */
 "chat.unblocked.contact.label" = "Вы разблокировал(-а) этот контакт";
 
+/* Text shown in a notification when user reacted to a message. The user's name is shown above this message in the notification. */
+"chat.user.reacted.message" = "отреагировал %2@ на сообщение";
+
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "Удалив этот чат, вы удалите его историю и контент со своего устройства.";
 
@@ -2025,6 +2028,9 @@
 
 /* Row in Settings screen */
 "title.storage" = "Место хранения";
+
+/* Title for the screen with information about who saw your moment. */
+"title.your.moment" = "Видели:";
 
 /* Title for the screen with information about who reacted to your post.
    Title for the screen with information about who saw your post. */
