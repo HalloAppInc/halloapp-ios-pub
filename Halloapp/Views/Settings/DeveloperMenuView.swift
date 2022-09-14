@@ -33,6 +33,7 @@ private enum MenuTitles {
     static var forceCompactShare: String { "Force Compact Share UI" }
     static var forcePickerShare: String { "Force Destination Picker Share UI" }
     static var resetMomentsFTUX: String { "Reset Moments FTUX" }
+    static var disableMultiCamMoments: String { "Disable multi-cam moments" }
     static var logOut: String { "Log Out" }
 }
 
@@ -53,6 +54,7 @@ struct DeveloperMenuView: View {
     @State var forceCompactShare = AppContext.shared.userDefaults.bool(forKey: "forceCompactShare")
     @State var forcePickerShare = AppContext.shared.userDefaults.bool(forKey: "forcePickerShare")
     @State var isShowingWebClientManager = false
+    @State var disableMultiCamMoments = MainAppContext.shared.userDefaults.bool(forKey: "moments.force.single.cam.session")
 
     // TODO: Temporarily turn off and potentially remove
 //    @ObservedObject var videoSettings = VideoSettings.shared
@@ -248,6 +250,11 @@ struct DeveloperMenuView: View {
                                 AppContext.shared.userDefaults.set(value, forKey: "forcePickerShare")
                             }
                     }
+
+                    Toggle(MenuTitles.disableMultiCamMoments, isOn: $disableMultiCamMoments)
+                        .onReceive(Just(disableMultiCamMoments)) { value in
+                            MainAppContext.shared.userDefaults.set(value, forKey: "moments.force.single.cam.session")
+                        }
 
                     if #available(iOS 14, *) {
                         Menu("Demo onboarding (code is 111111)") {

@@ -76,7 +76,10 @@ class NewCameraViewController: UIViewController {
     private var layout: ViewfinderLayout = .primaryFull
 
     private lazy var model: CameraModel = {
-        let options: CameraModel.Options = configuration == .moment ? [.multicam] : [.monitorOrientation]
+        let forceSingleCamSession = MainAppContext.shared.userDefaults.bool(forKey: "moments.force.single.cam.session")
+        let momentOptions: CameraModel.Options = forceSingleCamSession ? [] : [.multicam]
+        let options: CameraModel.Options = configuration == .moment ? momentOptions : [.monitorOrientation]
+
         let model = CameraModel(options: options)
         return model
     }()
