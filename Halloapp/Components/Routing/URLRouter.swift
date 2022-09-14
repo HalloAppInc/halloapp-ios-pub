@@ -55,7 +55,9 @@ class URLRouter {
                                                   animated: true)
                 case .failure(let error):
                     DDLogError("URLRouter/Failed to decrypt external share post: \(error)")
-                    let alertController = UIAlertController(title: Localizations.failedToLoadExternalSharePost, message: nil, preferredStyle: .alert)
+                    let alertController = UIAlertController(title: Localizations.failedToLoadExternalSharePostTitle,
+                                                            message: Localizations.failedToLoadExternalSharePostMessage,
+                                                            preferredStyle: .alert)
                     alertController.addAction(.init(title: Localizations.buttonOK, style: .default, handler: nil))
                     currentViewController.present(alertController, animated: true)
                 }
@@ -197,9 +199,15 @@ extension URLRouter {
 
 extension Localizations {
 
-    static var failedToLoadExternalSharePost: String {
-        NSLocalizedString("urlrouter.externalShare.failed",
-                          value: "Failed to load post",
-                          comment: "Alert appearing after clicking an external share link that failed to load")
+    static var failedToLoadExternalSharePostTitle: String {
+        NSLocalizedString("urlrouter.externalShare.failed.title",
+                          value: "This post is no longer available",
+                          comment: "Title for alert appearing after clicking an external share link that failed to load")
+    }
+
+    static var failedToLoadExternalSharePostMessage: String {
+        NSLocalizedString("urlrouter.externalShare.failed.message",
+                          value: "This post could have expired, been deleted, or something else.",
+                          comment: "Body for alert appearing after clicking an external share link that failed to load")
     }
 }
