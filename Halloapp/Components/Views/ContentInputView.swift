@@ -114,6 +114,18 @@ extension ContentInputView {
             }
         }
     }
+
+    fileprivate static func borderWith(for style: UIUserInterfaceStyle) -> CGFloat {
+        let width: CGFloat
+        switch style {
+        case .dark:
+            width = 2.5
+        default:
+            width = 1
+        }
+
+        return width / UIScreen.main.scale
+    }
     
     static let durationFormatter: DateComponentsFormatter = {
         let formatter = DateComponentsFormatter()
@@ -287,7 +299,7 @@ class ContentInputView: UIView {
         textView.delegate = self
 
         textView.layer.borderColor = Self.borderColor.cgColor
-        textView.layer.borderWidth = 1 / UIScreen.main.scale
+        textView.layer.borderWidth = Self.borderWith(for: traitCollection.userInterfaceStyle)
         
         return textView
     }()
@@ -579,6 +591,7 @@ class ContentInputView: UIView {
         
         if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
             textView.layer.borderColor = Self.borderColor.resolvedColor(with: traitCollection).cgColor
+            textView.layer.borderWidth = Self.borderWith(for: traitCollection.userInterfaceStyle)
         }
     }
     
