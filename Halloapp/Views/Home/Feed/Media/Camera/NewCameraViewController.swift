@@ -443,7 +443,10 @@ class NewCameraViewController: UIViewController {
     }
 
     private func handleShutterTap() {
-        guard let type = captureType else {
+        guard
+            !model.isTakingPhoto,
+            let type = captureType
+        else {
             DDLogError("CameraViewController/handleShutterTap/no capture type")
             return
         }

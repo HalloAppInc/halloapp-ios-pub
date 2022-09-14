@@ -78,7 +78,7 @@ final class NewMomentViewController: UIViewController {
 
     private var sendButtonSnapshot: UIView?
     /// Used to discard invalid capture results on devices that use delayed capture.
-    private var previousCaptureIdentifier: UUID?
+    private var shouldDiscardIncomingCaptureResult = false
 
     /// Used to wait for `PendingMedia`s `ready` property before showing the composer.
     private var mediaLoader: AnyCancellable?
@@ -214,6 +214,7 @@ final class NewMomentViewController: UIViewController {
     private func dismissComposer() {
         // go back to the camera
         state = .camera
+        shouldDiscardIncomingCaptureResult = true
         cameraController.hideControls = false
         cameraController.resume()
 
@@ -351,25 +352,22 @@ final class NewMomentViewController: UIViewController {
 extension NewMomentViewController: CameraViewControllerDelegate {
 
     func cameraViewController(_ viewController: NewCameraViewController, didCapture results: [CaptureResult], isFinished: Bool) {
-        if let previousIdentifier = previousCaptureIdentifier, previousIdentifier != results.first?.identifier {
+        if shouldDiscardIncomingCaptureResult {
             // this result is from a capture the user backed out of; discard the result
             return
         }
-
-        previousCaptureIdentifier = results.first?.identifier
 
         composerController.configure(with: results, animateTrailing: results.count != 2)
         displayComposer()
 
         if isFinished {
             composerController.sendButton.isEnabled = true
-            previousCaptureIdentifier = nil
-
             cameraController.pause()
         }
     }
 
     func cameraViewControllerDidReleaseShutter(_ viewController: NewCameraViewController) {
+        shouldDiscardIncomingCaptureResult = false
         displayIntermediateState()
     }
 
