@@ -436,6 +436,7 @@
 		F41FAA4227E52B7E00FC5090 /* BottomSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41FAA4127E52B7E00FC5090 /* BottomSheetViewController.swift */; };
 		F41FAA5227E54F2900FC5090 /* FeedPostMenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41FAA5127E54F2800FC5090 /* FeedPostMenuViewController.swift */; };
 		F4271260286A721B009C56FA /* GroupGridSearchBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = F427125F286A721B009C56FA /* GroupGridSearchBar.swift */; };
+		F427FF3A28D16220000D3EAD /* Group+Expiration.swift in Sources */ = {isa = PBXBuildFile; fileRef = F427FF3928D16220000D3EAD /* Group+Expiration.swift */; };
 		F42F574827C86D7200988E9D /* FeedInviteCarouselCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */; };
 		F445A73927FFB8270046D382 /* ShareMenuPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F445A73827FFB8270046D382 /* ShareMenuPresenter.swift */; };
 		F45D9F762825DEFF005BAD9D /* GroupGridViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45D9F752825DEFF005BAD9D /* GroupGridViewController.swift */; };
@@ -1219,6 +1220,7 @@
 		F41FAA4127E52B7E00FC5090 /* BottomSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomSheetViewController.swift; sourceTree = "<group>"; };
 		F41FAA5127E54F2800FC5090 /* FeedPostMenuViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostMenuViewController.swift; sourceTree = "<group>"; };
 		F427125F286A721B009C56FA /* GroupGridSearchBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridSearchBar.swift; sourceTree = "<group>"; };
+		F427FF3928D16220000D3EAD /* Group+Expiration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Group+Expiration.swift"; sourceTree = "<group>"; };
 		F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedInviteCarouselCell.swift; sourceTree = "<group>"; };
 		F445A73827FFB8270046D382 /* ShareMenuPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareMenuPresenter.swift; sourceTree = "<group>"; };
 		F45D9F752825DEFF005BAD9D /* GroupGridViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridViewController.swift; sourceTree = "<group>"; };
@@ -2025,6 +2027,7 @@
 				F8D876322746603700E69F41 /* AudioSessionManager.swift */,
 				68C8264A251A77A000BB8F3A /* NUX.swift */,
 				68EAABF027F8FC2300619B1A /* CommonMedia.swift */,
+				F427FF3928D16220000D3EAD /* Group+Expiration.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -3069,6 +3072,7 @@
 				6832F4FC24FEE97800A9C202 /* HalloService.swift in Sources */,
 				EA3585712450BE2900E6E8AB /* Chat.xcdatamodeld in Sources */,
 				EECC0A9128791CF700F5AFFF /* Combine.swift in Sources */,
+				F427FF3A28D16220000D3EAD /* Group+Expiration.swift in Sources */,
 				EAA424FC24ECF1480025CBBE /* ChatGroupMessage+CoreDataClass.swift in Sources */,
 				EAEE49F0277153660042E654 /* ChatEvent+CoreDataClass.swift in Sources */,
 				5B649728276B91BA000031C2 /* Feed6ToFeed7.xcmappingmodel in Sources */,
