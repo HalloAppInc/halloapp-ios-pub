@@ -91,17 +91,44 @@ class PostLinkPreviewSquareView: UIView {
         progressView.isHidden = true
         return progressView
     }()
-    
-    public func configure(url: URL, title: String, description: String, previewImage: UIImage?) {
-        urlLabel.text = url.host
-        titleLabel.text = title
-        descriptionLabel.text = description
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+
         addSubview(previewImageView)
         addSubview(titleDescriptionStack)
         addSubview(linkPreviewLinkStack)
         addSubview(progressView)
 
-        self.backgroundColor = .linkPreviewPostSquareDarkBackground
+        backgroundColor = .linkPreviewPostSquareDarkBackground
+
+        NSLayoutConstraint.activate([
+            previewImageView.widthAnchor.constraint(equalToConstant: 151),
+            previewImageView.heightAnchor.constraint(equalTo: previewImageView.widthAnchor),
+            previewImageView.topAnchor.constraint(equalTo: topAnchor),
+            previewImageView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            previewImageView.bottomAnchor.constraint(equalTo: linkPreviewLinkStack.topAnchor),
+            previewImageView.trailingAnchor.constraint(equalTo: titleDescriptionStack.leadingAnchor),
+            titleDescriptionStack.centerYAnchor.constraint(equalTo: previewImageView.centerYAnchor),
+            titleDescriptionStack.trailingAnchor.constraint(equalTo: trailingAnchor),
+            linkPreviewLinkStack.leadingAnchor.constraint(equalTo: leadingAnchor),
+            linkPreviewLinkStack.bottomAnchor.constraint(equalTo: bottomAnchor),
+            linkPreviewLinkStack.trailingAnchor.constraint(equalTo: trailingAnchor),
+            progressView.centerXAnchor.constraint(equalTo: previewImageView.centerXAnchor),
+            progressView.centerYAnchor.constraint(equalTo: previewImageView.centerYAnchor),
+            progressView.widthAnchor.constraint(equalToConstant: 60),
+        ])
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError()
+    }
+
+    public func configure(url: URL, title: String, description: String, previewImage: UIImage?) {
+        urlLabel.text = url.host
+        titleLabel.text = title
+        descriptionLabel.text = description
+
         if let previewImage = previewImage {
             let linkPreviewMedia = PendingMedia(type: .image)
             linkPreviewMedia.image = previewImage
@@ -118,22 +145,6 @@ class PostLinkPreviewSquareView: UIView {
                   }
             }
         }
-        NSLayoutConstraint.activate([
-            previewImageView.widthAnchor.constraint(equalToConstant: 151),
-            previewImageView.heightAnchor.constraint(equalTo: previewImageView.widthAnchor),
-            previewImageView.topAnchor.constraint(equalTo: self.topAnchor),
-            previewImageView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
-            previewImageView.bottomAnchor.constraint(equalTo: linkPreviewLinkStack.topAnchor),
-            previewImageView.trailingAnchor.constraint(equalTo: titleDescriptionStack.leadingAnchor),
-            titleDescriptionStack.centerYAnchor.constraint(equalTo: previewImageView.centerYAnchor),
-            titleDescriptionStack.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            linkPreviewLinkStack.leadingAnchor.constraint(equalTo: self.leadingAnchor),
-            linkPreviewLinkStack.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-            linkPreviewLinkStack.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            progressView.centerXAnchor.constraint(equalTo: previewImageView.centerXAnchor),
-            progressView.centerYAnchor.constraint(equalTo: previewImageView.centerYAnchor),
-            progressView.widthAnchor.constraint(equalToConstant: 60),
-        ])
     }
 
     public func showPlaceholderImage() {

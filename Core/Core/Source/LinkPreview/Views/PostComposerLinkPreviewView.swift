@@ -62,14 +62,7 @@ public class PostComposerLinkPreviewView: UIView {
         stack.axis = .vertical
         stack.alignment = .center
         stack.spacing = 6
-        stack.backgroundColor = .commentVoiceNoteBackground
-        stack.layer.borderWidth = 0.5
-        stack.layer.borderColor = UIColor.black.withAlphaComponent(0.1).cgColor
-        stack.layer.cornerRadius = 15
-        stack.layer.shadowColor = UIColor.black.withAlphaComponent(0.05).cgColor
-        stack.layer.shadowOffset = CGSize(width: 0, height: 2)
-        stack.layer.shadowRadius = 4
-        stack.layer.shadowOpacity = 0.5
+
         stack.clipsToBounds = true
         stack.distribution = .fillProportionally
         stack.isLayoutMarginsRelativeArrangement = false
@@ -83,8 +76,17 @@ public class PostComposerLinkPreviewView: UIView {
     public init(didFinish: @escaping ((Bool, LinkPreviewData?, UIImage?) -> Void)) {
         self.didFinish = didFinish
         super.init(frame: .zero)
+
+        backgroundColor = .commentVoiceNoteBackground
+        layer.borderWidth = 0.5
+        layer.borderColor = UIColor.black.withAlphaComponent(0.1).cgColor
+        layer.cornerRadius = 15
+        layer.shadowColor = UIColor.black.withAlphaComponent(0.05).cgColor
+        layer.shadowOffset = CGSize(width: 0, height: 2)
+        layer.shadowRadius = 4
+        layer.shadowOpacity = 0.5
         preservesSuperviewLayoutMargins = true
-        self.addSubview(vStack)
+        addSubview(vStack)
 
         NSLayoutConstraint.activate([
             titleLabel.heightAnchor.constraint(equalToConstant: 187),

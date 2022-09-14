@@ -81,19 +81,40 @@ class PostLinkPreviewRectangleView: UIView {
         return progressView
     }()
 
-    public func configure(url: URL, title: String, previewImage: UIImage?) {
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+
         let contentView = UIStackView()
         contentView.axis = .vertical
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.backgroundColor = .linkPreviewPostSquareBackground
         contentView.isLayoutMarginsRelativeArrangement = false
-        
-        addSubview(contentView)
-        urlLabel.text = url.host
-        titleLabel.text = title
+
         contentView.addArrangedSubview(previewImageView)
         contentView.addArrangedSubview(titleUrlStack)
         contentView.addSubview(progressView)
+
+        addSubview(contentView)
+
+        NSLayoutConstraint.activate([
+            contentView.topAnchor.constraint(equalTo: topAnchor),
+            contentView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            contentView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            contentView.heightAnchor.constraint(equalToConstant: 230),
+            progressView.centerXAnchor.constraint(equalTo: previewImageView.centerXAnchor),
+            progressView.centerYAnchor.constraint(equalTo: previewImageView.centerYAnchor),
+            progressView.widthAnchor.constraint(equalToConstant: 80),
+        ])
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError()
+    }
+
+    public func configure(url: URL, title: String, previewImage: UIImage?) {
+        urlLabel.text = url.host
+        titleLabel.text = title
 
         if let previewImage = previewImage {
             let linkPreviewMedia = PendingMedia(type: .image)
@@ -111,16 +132,6 @@ class PostLinkPreviewRectangleView: UIView {
                   }
             }
         }
-        NSLayoutConstraint.activate([
-            contentView.topAnchor.constraint(equalTo: self.topAnchor),
-            contentView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-            contentView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
-            contentView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            contentView.heightAnchor.constraint(equalToConstant: 230),
-            progressView.centerXAnchor.constraint(equalTo: previewImageView.centerXAnchor),
-            progressView.centerYAnchor.constraint(equalTo: previewImageView.centerYAnchor),
-            progressView.widthAnchor.constraint(equalToConstant: 80),
-        ])
     }
 
     public func showPlaceholderImage() {

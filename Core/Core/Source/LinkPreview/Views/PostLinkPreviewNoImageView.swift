@@ -59,13 +59,14 @@ class PostLinkPreviewNoImageView: UIView {
         return titleUrlStack
     }()
 
-    public func configure(url: URL, title: String) {
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+
         let contentView = UIStackView()
         contentView.axis = .vertical
         contentView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(contentView)
-        urlLabel.text = url.host
-        titleLabel.text = title
+
         contentView.addSubview(titleUrlStack)
 
         NSLayoutConstraint.activate([
@@ -78,5 +79,14 @@ class PostLinkPreviewNoImageView: UIView {
             titleUrlStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             contentView.heightAnchor.constraint(equalToConstant: 80),
         ])
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError()
+    }
+
+    public func configure(url: URL, title: String) {
+        urlLabel.text = url.host
+        titleLabel.text = title
     }
 }
