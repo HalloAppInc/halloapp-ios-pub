@@ -26,12 +26,17 @@ public final class WhisperSession {
         self.userID = userID
         self.service = service
         self.keyStore = keyStore
-        self.state = .awaitingSetup(attempts: 0)
-
-        if let (keyBundle, messageKeys) = loadFromKeyStore() {
-            self.state = .ready(keyBundle, messageKeys)
+        // If userID is empty - then mark state as failed, we will never recover.
+        if userID.isEmpty {
+            self.state = .failed
         } else {
-            AppContext.shared.eventMonitor.count(.sessionReset(false))
+            self.state = .awaitingSetup(attempts: 0)
+
+            if let (keyBundle, messageKeys) = loadFromKeyStore() {
+                self.state = .ready(keyBundle, messageKeys)
+            } else {
+                AppContext.shared.eventMonitor.count(.sessionReset(false))
+            }
         }
 
         // This should solve issues when client tries sending messages when facing connection problems.
