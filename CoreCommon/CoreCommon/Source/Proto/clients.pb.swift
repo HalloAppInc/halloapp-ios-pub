@@ -1146,11 +1146,23 @@ public struct Clients_Moment {
   /// Clears the value of `image`. Subsequent reads from it will return its default value.
   public mutating func clearImage() {self._image = nil}
 
+  public var selfieImage: Clients_Image {
+    get {return _selfieImage ?? Clients_Image()}
+    set {_selfieImage = newValue}
+  }
+  /// Returns true if `selfieImage` has been explicitly set.
+  public var hasSelfieImage: Bool {return self._selfieImage != nil}
+  /// Clears the value of `selfieImage`. Subsequent reads from it will return its default value.
+  public mutating func clearSelfieImage() {self._selfieImage = nil}
+
+  public var selfieLeading: Bool = false
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 
   fileprivate var _image: Clients_Image? = nil
+  fileprivate var _selfieImage: Clients_Image? = nil
 }
 
 public struct Clients_VoiceNote {
@@ -3219,6 +3231,8 @@ extension Clients_Moment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
   public static let protoMessageName: String = _protobuf_package + ".Moment"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "image"),
+    2: .standard(proto: "selfie_image"),
+    3: .standard(proto: "selfie_leading"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -3228,6 +3242,8 @@ extension Clients_Moment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularMessageField(value: &self._image) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._selfieImage) }()
+      case 3: try { try decoder.decodeSingularBoolField(value: &self.selfieLeading) }()
       default: break
       }
     }
@@ -3241,11 +3257,19 @@ extension Clients_Moment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
     try { if let v = self._image {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
     } }()
+    try { if let v = self._selfieImage {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
+    if self.selfieLeading != false {
+      try visitor.visitSingularBoolField(value: self.selfieLeading, fieldNumber: 3)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Clients_Moment, rhs: Clients_Moment) -> Bool {
     if lhs._image != rhs._image {return false}
+    if lhs._selfieImage != rhs._selfieImage {return false}
+    if lhs.selfieLeading != rhs.selfieLeading {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
