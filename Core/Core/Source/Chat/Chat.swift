@@ -99,12 +99,13 @@ public enum ChatContent {
 }
 
 public struct ChatContext {
-    public init(feedPostID: String? = nil, feedPostMediaIndex: Int32 = 0, chatReplyMessageID: String? = nil, chatReplyMessageMediaIndex: Int32 = 0, chatReplyMessageSenderID: String? = nil) {
+    public init(feedPostID: String? = nil, feedPostMediaIndex: Int32 = 0, chatReplyMessageID: String? = nil, chatReplyMessageMediaIndex: Int32 = 0, chatReplyMessageSenderID: String? = nil, forwardCount: Int32 = 0) {
         self.feedPostID = feedPostID
         self.feedPostMediaIndex = feedPostMediaIndex
         self.chatReplyMessageID = chatReplyMessageID
         self.chatReplyMessageMediaIndex = chatReplyMessageMediaIndex
         self.chatReplyMessageSenderID = chatReplyMessageSenderID
+        self.forwardCount = forwardCount
     }
 
     public var feedPostID: String? = nil
@@ -112,6 +113,7 @@ public struct ChatContext {
     public var chatReplyMessageID: String? = nil
     public var chatReplyMessageMediaIndex: Int32 = 0
     public var chatReplyMessageSenderID: String? = nil
+    public var forwardCount: Int32 = 0
 }
 
 public extension ChatContext {
@@ -126,6 +128,7 @@ public extension ChatContext {
             context.chatReplyMessageMediaIndex = chatReplyMessageMediaIndex
             context.chatReplyMessageSenderID = chatReplyMessageSenderID
         }
+        context.forwardCount = UInt32(forwardCount)
         return context
     }
 }
@@ -373,7 +376,8 @@ extension Clients_ChatContainer {
             feedPostMediaIndex: context.feedPostMediaIndex,
             chatReplyMessageID: context.chatReplyMessageID.isEmpty ? nil : context.chatReplyMessageID,
             chatReplyMessageMediaIndex: context.chatReplyMessageMediaIndex,
-            chatReplyMessageSenderID: context.chatReplyMessageSenderID.isEmpty ? nil : context.chatReplyMessageSenderID)
+            chatReplyMessageSenderID: context.chatReplyMessageSenderID.isEmpty ? nil : context.chatReplyMessageSenderID,
+            forwardCount: Int32(context.forwardCount))
     }
 
     public var chatContent: ChatContent {

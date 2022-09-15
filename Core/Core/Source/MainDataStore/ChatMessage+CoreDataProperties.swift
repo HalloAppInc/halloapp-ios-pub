@@ -56,6 +56,7 @@ public extension ChatMessage {
     @NSManaged var chatReplyMessageID: String?
     @NSManaged var chatReplyMessageSenderID: UserID?
     @NSManaged var chatReplyMessageMediaIndex: Int32
+    @NSManaged var forwardCount: Int32
 
     @NSManaged var quoted: ChatQuoted?
 

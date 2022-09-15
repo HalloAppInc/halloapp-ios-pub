@@ -73,7 +73,8 @@ extension XMPPChatMessage {
             feedPostMediaIndex: chatMessage.feedPostMediaIndex,
             chatReplyMessageID: chatMessage.chatReplyMessageID,
             chatReplyMessageMediaIndex: chatMessage.chatReplyMessageMediaIndex,
-            chatReplyMessageSenderID: chatMessage.chatReplyMessageSenderID)
+            chatReplyMessageSenderID: chatMessage.chatReplyMessageSenderID,
+            forwardCount: chatMessage.forwardCount)
         self.rerequestCount = Int32(chatMessage.resendAttempts)
 
         if let media = chatMessage.media, !media.isEmpty {

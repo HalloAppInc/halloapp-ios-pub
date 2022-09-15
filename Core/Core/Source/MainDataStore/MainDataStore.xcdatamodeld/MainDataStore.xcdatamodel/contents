@@ -27,6 +27,7 @@
         <attribute name="chatReplyMessageSenderID" optional="YES" attributeType="String"/>
         <attribute name="feedPostID" optional="YES" attributeType="String"/>
         <attribute name="feedPostMediaIndex" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="forwardCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="fromUserID" attributeType="String"/>
         <attribute name="hasBeenProcessed" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
         <attribute name="id" attributeType="String"/>
@@ -275,7 +276,7 @@
     <elements>
         <element name="Call" positionX="-63" positionY="-18" width="128" height="149"/>
         <element name="ChatEvent" positionX="36" positionY="189" width="128" height="74"/>
-        <element name="ChatMessage" positionX="-9" positionY="144" width="128" height="419"/>
+        <element name="ChatMessage" positionX="-9" positionY="144" width="128" height="434"/>
         <element name="ChatQuoted" positionX="0" positionY="153" width="128" height="119"/>
         <element name="CommonLinkPreview" positionX="-45" positionY="63" width="128" height="149"/>
         <element name="CommonLocation" positionX="0" positionY="0" width="128" height="89"/>

@@ -77,6 +77,7 @@ public class CoreChatData {
                             chatReplyMessageID: String? = nil,
                             chatReplyMessageSenderID: UserID? = nil,
                             chatReplyMessageMediaIndex: Int32 = 0,
+                            forwardCount: Int32 = 0,
                             didCreateMessage: ((Result<(ChatMessageID, [CommonMediaID]), Error>) -> Void)? = nil,
                             didBeginUpload: ((Result<ChatMessageID, Error>) -> Void)? = nil) {
         mainDataStore.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
@@ -97,6 +98,7 @@ public class CoreChatData {
                                chatReplyMessageID: chatReplyMessageID,
                                chatReplyMessageSenderID: chatReplyMessageSenderID,
                                chatReplyMessageMediaIndex: chatReplyMessageMediaIndex,
+                               forwardCount: forwardCount,
                                using: managedObjectContext,
                                didCreateMessage: didCreateMessage,
                                didBeginUpload: didBeginUpload)
@@ -116,6 +118,7 @@ public class CoreChatData {
                               chatReplyMessageID: String? = nil,
                               chatReplyMessageSenderID: UserID? = nil,
                               chatReplyMessageMediaIndex: Int32,
+                              forwardCount: Int32 = 0,
                               using context: NSManagedObjectContext,
                               didCreateMessage: ((Result<(ChatMessageID, [CommonMediaID]), Error>) -> Void)? = nil,
                               didBeginUpload: ((Result<ChatMessageID, Error>) -> Void)? = nil) -> ChatMessageID {
@@ -136,6 +139,7 @@ public class CoreChatData {
         chatMessage.chatReplyMessageID = chatReplyMessageID
         chatMessage.chatReplyMessageSenderID = chatReplyMessageSenderID
         chatMessage.chatReplyMessageMediaIndex = chatReplyMessageMediaIndex
+        chatMessage.forwardCount = forwardCount
         chatMessage.incomingStatus = .none
         chatMessage.outgoingStatus = isMsgToYourself ? .seen : .pending
         chatMessage.timestamp = Date()
@@ -942,6 +946,7 @@ public class CoreChatData {
             chatMessage.chatReplyMessageID = chatMessageProtocol.context.chatReplyMessageID
             chatMessage.chatReplyMessageSenderID = chatMessageProtocol.context.chatReplyMessageSenderID
             chatMessage.chatReplyMessageMediaIndex = chatMessageProtocol.context.chatReplyMessageMediaIndex
+            chatMessage.forwardCount = chatMessageProtocol.context.forwardCount
 
             chatMessage.incomingStatus = .none
             chatMessage.outgoingStatus = .none

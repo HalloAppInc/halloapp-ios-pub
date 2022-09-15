@@ -1446,6 +1446,7 @@ class ChatData: ObservableObject {
             chatMessage.chatReplyMessageID = chatContext?.chatReplyMessageID
             chatMessage.chatReplyMessageSenderID = chatContext?.chatReplyMessageSenderID
             chatMessage.chatReplyMessageMediaIndex = chatContext?.chatReplyMessageMediaIndex ?? 0
+            chatMessage.forwardCount = chatContext?.forwardCount ?? 0
             chatMessage.serverTimestamp = message.serverTimestamp
             DDLogDebug("ChatData/mergeSharedData/ChatData/\(messageId)/serialId [\(message.serialID)]")
             chatMessage.serialID = message.serialID
@@ -2196,6 +2197,8 @@ extension ChatData {
             chatLocation = ChatLocation(latitude: location.latitude, longitude: location.longitude, name: location.name ?? "", formattedAddressLines: [location.addressString ?? ""])
         }
         // Create chat message
+        // Increment forward count if current user is not the author of the message.
+        let forwardCount = (chatMessage.fromUserID == userData.userId) ? chatMessage.forwardCount : chatMessage.forwardCount + 1
         for toUserId in toUserIds {
             DDLogInfo("ChatData/forwardChatMessages/createChatMsg/chatMessageId: \(chatMessage.id) toUserId: \(toUserId)")
             let text = chatMessage.rawText
@@ -2212,6 +2215,7 @@ extension ChatData {
                                     chatReplyMessageID: nil,
                                     chatReplyMessageSenderID: nil,
                                     chatReplyMessageMediaIndex: 0,
+                                    forwardCount: forwardCount,
                                     using: managedObjectContext)
             }
         }
@@ -2256,6 +2260,7 @@ extension ChatData {
                         chatReplyMessageID: String? = nil,
                         chatReplyMessageSenderID: UserID? = nil,
                         chatReplyMessageMediaIndex: Int32,
+                        forwardCount: Int32 = 0,
                         using context: NSManagedObjectContext) -> ChatMessageID {
         if ServerProperties.enableNewMediaUploader {
             return coreChatData.createChatMsg(chatMessageRecipient: chatMessageRecipient,
@@ -2270,6 +2275,7 @@ extension ChatData {
                                               chatReplyMessageID: chatReplyMessageID,
                                               chatReplyMessageSenderID: chatReplyMessageSenderID,
                                               chatReplyMessageMediaIndex: chatReplyMessageMediaIndex,
+                                              forwardCount: forwardCount,
                                               using: context)
         }
 
@@ -2288,6 +2294,7 @@ extension ChatData {
         chatMessage.chatReplyMessageID = chatReplyMessageID
         chatMessage.chatReplyMessageSenderID = chatReplyMessageSenderID
         chatMessage.chatReplyMessageMediaIndex = chatReplyMessageMediaIndex
+        chatMessage.forwardCount = forwardCount
         chatMessage.incomingStatus = .none
         chatMessage.outgoingStatus = isMsgToYourself ? .seen : .pending
         chatMessage.timestamp = Date()
@@ -3517,6 +3524,7 @@ extension ChatData {
         chatMessage.chatReplyMessageID = nil
         chatMessage.chatReplyMessageSenderID = nil
         chatMessage.chatReplyMessageMediaIndex = 0
+        chatMessage.forwardCount = 0
         
         self.deleteMedia(in: chatMessage)
 
@@ -3682,6 +3690,7 @@ extension ChatData {
         chatMessage.chatReplyMessageID = xmppChatMessage.context.chatReplyMessageID
         chatMessage.chatReplyMessageSenderID = xmppChatMessage.context.chatReplyMessageSenderID
         chatMessage.chatReplyMessageMediaIndex = xmppChatMessage.context.chatReplyMessageMediaIndex
+        chatMessage.forwardCount = xmppChatMessage.context.forwardCount
         
         chatMessage.incomingStatus = .none
         chatMessage.outgoingStatus = .none
