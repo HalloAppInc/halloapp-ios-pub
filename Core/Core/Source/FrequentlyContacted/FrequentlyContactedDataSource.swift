@@ -127,11 +127,15 @@ public class FrequentlyContactedDataSource: NSObject {
         }
 
         chatMessagesFetchedResultsController.fetchedObjects?.forEach { chatMessage in
-            userIDCounts[chatMessage.toUserID, default: 0] += 1
+            if let toUserId = chatMessage.toUserId {
+                userIDCounts[toUserId, default: 0] += 1
+            }
         }
 
         reactionsFetchedResultsController.fetchedObjects?.forEach { reaction in
-            userIDCounts[reaction.toUserID, default: 0] += 1
+            if let toUserId = reaction.toUserID {
+                userIDCounts[toUserId, default: 0] += 1
+            }
         }
 
         let contactedUsers = userIDCounts.map { (entity: FrequentlyContactedEntity.user(userID: $0), count: $1) }

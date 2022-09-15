@@ -2486,7 +2486,7 @@ extension ChatData {
         let msgID = xmppChatMsg.id
         
         guard let chatMsg = chatMessage(with: msgID, in: managedObjectContext) else { return }
-        guard !chatMsg.toUserID.isEmpty else {
+        guard let toUserID = chatMsg.toUserID, !toUserID.isEmpty else {
             DDLogError("ChatData/uploadAllChatMsgMediaAndSend/msgId: \(chatMsg.id)/toUid is empty")
             return
         }
