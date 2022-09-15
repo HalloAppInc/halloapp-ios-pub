@@ -42,7 +42,7 @@ class DestinationTrayView: UICollectionView {
     init(onRemove: @escaping (Int) -> Void) {
         self.onRemove = onRemove
 
-        let layout = UICollectionViewFlowLayout()
+        let layout = DestinationTrayViewCollectionViewLayout()
         layout.scrollDirection = .horizontal
         layout.sectionInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         layout.itemSize = CGSize(width: 64, height: 90)
@@ -64,13 +64,21 @@ class DestinationTrayView: UICollectionView {
         snapshot.appendSections([0])
         snapshot.appendItems(destinations)
 
-        let scrollToTheRight = destinations.count > destinationDataSource.snapshot().numberOfItems
+        let scrollToLastDestination = destinations.count > destinationDataSource.snapshot().numberOfItems
         let animate = destinationDataSource.snapshot().numberOfItems > 0 && destinations.count > 0
 
         destinationDataSource.apply(snapshot, animatingDifferences: animate) {
-            if scrollToTheRight {
-                self.scrollToItem(at: IndexPath(row: destinations.count - 1, section: 0), at: .right, animated: true)
+            if scrollToLastDestination {
+                // Index path based scrolling leads to crashes on rapid updates, just scroll to end
+                self.setContentOffset(CGPoint(x: max(0, (self.contentSize.width - self.bounds.width)), y: 0), animated: true)
             }
         }
+    }
+}
+
+private class DestinationTrayViewCollectionViewLayout: UICollectionViewFlowLayout {
+
+    override var flipsHorizontallyInOppositeLayoutDirection: Bool {
+        return true
     }
 }
