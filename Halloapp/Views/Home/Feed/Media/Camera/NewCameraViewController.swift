@@ -545,8 +545,8 @@ class NewCameraViewController: UIViewController {
 
         if animated {
             let animator = UIViewPropertyAnimator(duration: 0.45,
-                                          timingParameters: UICubicTimingParameters(controlPoint1: .init(x: 0.19, y: 1),
-                                                                                    controlPoint2: .init(x: 0.22, y: 1)))
+                                             controlPoint1: .init(x: 0.19, y: 1),
+                                             controlPoint2: .init(x: 0.22, y: 1))
             animator.addAnimations { self.view.layoutIfNeeded() }
             return animator.startAnimation()
         }
