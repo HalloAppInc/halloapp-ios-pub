@@ -45,7 +45,8 @@ public extension ChatMessage {
 
     @NSManaged var id: ChatMessageID
     @NSManaged var fromUserID: String
-    @NSManaged var toUserID: String
+    @NSManaged var toUserID: String?
+    @NSManaged var toGroupID: String?
     @NSManaged var rawText: String?
     @NSManaged var media: Set<CommonMedia>?
 
@@ -106,6 +107,22 @@ public extension ChatMessage {
         }
     }
 
+    var chatMessageRecipient: ChatMessageRecipient {
+        get {
+            if let toUserId = self.toUserId { return .oneToOneChat(toUserId) }
+            if let toGroupId = self.toGroupId { return .groupChat(toGroupId) }
+            fatalError("toUserId and toGroupId not set for chat message")
+        }
+        set{
+            switch newValue {
+            case .oneToOneChat(let userId):
+                self.toUserId = userId
+            case .groupChat(let groupId):
+                self.toGroupId = groupId
+            }
+        }
+    }
+
     var linkPreviewData: [LinkPreviewProtocol] {
         get {
             var linkPreviewData = [LinkPreviewData]()
@@ -163,9 +180,13 @@ public extension ChatMessage {
         get { return fromUserID }
         set { fromUserID = newValue }
     }
-    var toUserId: String {
+    var toUserId: String? {
         get { return toUserID }
         set { toUserID = newValue }
+    }
+    var toGroupId: String? {
+        get { return toGroupID }
+        set { toGroupID = newValue }
     }
     var feedPostId: String? {
         get { return feedPostID }

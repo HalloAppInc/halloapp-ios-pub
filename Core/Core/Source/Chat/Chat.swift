@@ -46,10 +46,33 @@ public enum IncomingChatMessage {
     case decrypted(ChatMessageProtocol)
 }
 
+public enum ChatMessageRecipient {
+    case oneToOneChat(UserID)
+    case groupChat(GroupID)
+
+    public var toUserId: String? {
+        switch self {
+        case .oneToOneChat(let userId):
+            return userId
+        default:
+            return nil
+        }
+    }
+
+    public var toGroupId: String? {
+        switch self {
+        case .groupChat(let groupId):
+            return groupId
+        default:
+            return nil
+        }
+    }
+}
+
 public protocol ChatMessageProtocol {
     var id: String { get }
     var fromUserId: UserID { get }
-    var toUserId: UserID { get }
+    var chatMessageRecipient: ChatMessageRecipient { get }
 
     /// 1 and higher means it's an offline message and that server has sent out a push notification already
     var retryCount: Int32? { get }

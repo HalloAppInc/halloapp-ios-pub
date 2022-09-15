@@ -433,8 +433,13 @@ open class MainDataStore {
         return groups(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext).first
     }
 
-    public func chatThread(id: String, in managedObjectContext: NSManagedObjectContext) -> CommonThread? {
-        return commonThreads(predicate: NSPredicate(format: "userID == %@", id), in: managedObjectContext).first
+    public func chatThread(type: ChatType, id: String, in managedObjectContext: NSManagedObjectContext) -> CommonThread? {
+        switch type {
+        case .oneToOne:
+            return commonThreads(predicate: NSPredicate(format: "userID == %@ ", id), in: managedObjectContext).first
+        case .groupChat, .groupFeed:
+            return commonThreads(predicate: NSPredicate(format: "groupID == %@", id), in: managedObjectContext).first
+        }
     }
 
     public func commonThreads(predicate: NSPredicate, in context: NSManagedObjectContext) -> [CommonThread] {

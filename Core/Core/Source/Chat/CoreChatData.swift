@@ -23,6 +23,7 @@ public class CoreChatData {
     private let contactStore: ContactStoreCore
     private let commonMediaUploader: CommonMediaUploader
     private var cancellableSet: Set<AnyCancellable> = []
+    private var currentlyChattingWithUserId: String? = nil
 
     public init(service: CoreService, mainDataStore: MainDataStore, userData: UserData, contactStore: ContactStoreCore, commonMediaUploader: CommonMediaUploader) {
         self.mainDataStore = mainDataStore
@@ -65,7 +66,7 @@ public class CoreChatData {
 
     // MARK: Chat messgage upload and posting
 
-    public func sendMessage(toUserId: String,
+    public func sendMessage(chatMessageRecipient: ChatMessageRecipient,
                             text: String,
                             media: [PendingMedia],
                             linkPreviewData: LinkPreviewData? = nil,
@@ -80,8 +81,12 @@ public class CoreChatData {
                             didBeginUpload: ((Result<ChatMessageID, Error>) -> Void)? = nil) {
         mainDataStore.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
-            DDLogInfo("CoreChatData/sendMessage/createChatMsg/toUserId: \(toUserId)")
-            self.createChatMsg(toUserId: toUserId,
+            if let toUserId = chatMessageRecipient.toUserId {
+                DDLogInfo("CoreChatData/sendMessage/createChatMsg/toUserId: \(String(describing: toUserId))")
+                self.addIntent(toUserId: toUserId)
+            }
+
+            self.createChatMsg(chatMessageRecipient: chatMessageRecipient,
                                text: text,
                                media: media,
                                linkPreviewData: linkPreviewData,
@@ -96,11 +101,10 @@ public class CoreChatData {
                                didCreateMessage: didCreateMessage,
                                didBeginUpload: didBeginUpload)
         }
-        addIntent(toUserId: toUserId)
     }
 
     @discardableResult
-    public func createChatMsg(toUserId: String,
+    public func createChatMsg(chatMessageRecipient: ChatMessageRecipient,
                               text: String,
                               media: [PendingMedia],
                               linkPreviewData: LinkPreviewData?,
@@ -117,13 +121,14 @@ public class CoreChatData {
                               didBeginUpload: ((Result<ChatMessageID, Error>) -> Void)? = nil) -> ChatMessageID {
 
         let messageId = PacketID.generate()
+        let toUserId = chatMessageRecipient.toUserId
         let isMsgToYourself: Bool = toUserId == userData.userId
 
         // Create and save new ChatMessage object.
-        DDLogDebug("CoreChatData/createChatMsg/\(messageId)/toUserId: \(toUserId)")
+        DDLogDebug("CoreChatData/createChatMsg/\(messageId)/toUserId: \(String(describing: toUserId))")
         let chatMessage = ChatMessage(context: context)
         chatMessage.id = messageId
-        chatMessage.toUserId = toUserId
+        chatMessage.chatMessageRecipient = chatMessageRecipient
         chatMessage.fromUserId = userData.userId
         chatMessage.rawText = text
         chatMessage.feedPostId = feedPostId
@@ -277,27 +282,11 @@ public class CoreChatData {
         }
 
         // Update Chat Thread
-        if let chatThread = self.chatThread(type: ChatType.oneToOne, id: chatMessage.toUserId, in: context) {
-            DDLogDebug("CoreChatData/createChatMsg/ update-thread")
-            chatThread.lastMsgId = chatMessage.id
-            chatThread.lastMsgUserId = chatMessage.fromUserId
-            chatThread.lastMsgText = chatMessage.rawText
-            chatThread.lastMsgMediaType = lastMsgMediaType
-            chatThread.lastMsgStatus = isMsgToYourself ? .seen : .pending
-            chatThread.lastMsgTimestamp = chatMessage.timestamp
-            // Sending a message always clears out the unread count
-            chatThread.unreadCount = 0
-        } else {
-            DDLogDebug("CoreChatData/createChatMsg/\(messageId)/new-thread")
-            let chatThread = CommonThread(context: context)
-            chatThread.userID = chatMessage.toUserId
-            chatThread.lastMsgId = chatMessage.id
-            chatThread.lastMsgUserId = chatMessage.fromUserId
-            chatThread.lastMsgText = chatMessage.rawText
-            chatThread.lastMsgMediaType = lastMsgMediaType
-            chatThread.lastMsgStatus = isMsgToYourself ? .seen : .pending
-            chatThread.lastMsgTimestamp = chatMessage.timestamp
-            chatThread.unreadCount = 0
+        switch chatMessageRecipient {
+        case .oneToOneChat(let userId):
+            updateChatThread(chatType: .oneToOne, recipientId: userId, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, using: context)
+        case .groupChat(let groupId):
+            updateChatThread(chatType: .groupChat, recipientId: groupId, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, using: context)
         }
 
         mainDataStore.save(context)
@@ -311,6 +300,58 @@ public class CoreChatData {
         }
 
         return messageId
+    }
+
+    public func updateChatThread(chatType: ChatType, recipientId: String, chatMessage: ChatMessage, isMsgToYourself:Bool, lastMsgMediaType: CommonThread.LastMediaType, using context: NSManagedObjectContext) {
+        var chatThread: CommonThread
+        let isIncomingMsg = chatMessage.fromUserID != userData.userId
+        let isCurrentlyChattingWithUser = isCurrentlyChatting(with: recipientId)
+        if let existingChatThread = self.chatThread(type: chatType, id: recipientId, in: context) {
+            DDLogDebug("CoreChatData/updateChatThread/ update-thread")
+            chatThread = existingChatThread
+            if isIncomingMsg {
+                chatThread.unreadCount = isCurrentlyChattingWithUser ? 0 : chatThread.unreadCount + 1
+            } else if isCurrentlyChattingWithUser {
+                // Sending a message always clears out the unread count when currently chatting with user
+                chatThread.unreadCount = 0
+            }
+        } else {
+            DDLogDebug("CoreChatData/updateChatThread/\(chatMessage.id)/new-thread")
+            chatThread = CommonThread(context: context)
+            chatThread.userID = chatMessage.toUserId
+            chatThread.groupId = chatMessage.toGroupId
+            chatThread.type = chatType
+            if isIncomingMsg {
+                chatThread.unreadCount = 1
+            } else if isCurrentlyChattingWithUser {
+                // Sending a message always clears out the unread count when currently chatting with user
+                chatThread.unreadCount = 0
+            }
+        }
+
+        chatThread.lastMsgId = chatMessage.id
+        chatThread.lastMsgUserId = chatMessage.fromUserId
+        chatThread.lastMsgText = chatMessage.rawText
+        chatThread.lastMsgMediaType = lastMsgMediaType
+        chatThread.lastMsgStatus = isMsgToYourself ? .seen : .pending
+        chatThread.lastMsgTimestamp = chatMessage.timestamp
+    }
+
+    public func setCurrentlyChattingWithUserId(for chatWithUserId: String?) {
+        currentlyChattingWithUserId = chatWithUserId
+    }
+
+    public func getCurrentlyChattingWithUserId() -> String? {
+        return currentlyChattingWithUserId
+    }
+
+    public func isCurrentlyChatting(with userId: UserID) -> Bool {
+        if let currentlyChattingWithUserId = self.currentlyChattingWithUserId {
+            if userId == currentlyChattingWithUserId {
+                return true
+            }
+        }
+        return false
     }
 
     public func beginMediaUploadAndSend(chatMessage: ChatMessage, didBeginUpload: ((Result<ChatMessageID, Error>) -> Void)? = nil) {
@@ -783,7 +824,7 @@ public class CoreChatData {
                 return
             }
             guard userID == chatMessage.toUserId else {
-                DDLogError("CoreChatData/handleRerequest/\(messageID)/error user mismatch [original: \(chatMessage.toUserId)] [rerequest: \(userID)]")
+                DDLogError("CoreChatData/handleRerequest/\(messageID)/error user mismatch [original: \(String(describing: chatMessage.toUserId))] [rerequest: \(userID)]")
                 completion(.failure(.aborted))
                 return
             }
@@ -893,7 +934,7 @@ public class CoreChatData {
             }()
 
             chatMessage.id = chatMessageProtocol.id
-            chatMessage.toUserId = chatMessageProtocol.toUserId
+            chatMessage.chatMessageRecipient = chatMessageProtocol.chatMessageRecipient
             chatMessage.fromUserId = chatMessageProtocol.fromUserId
             chatMessage.feedPostId = chatMessageProtocol.context.feedPostID
             chatMessage.feedPostMediaIndex = chatMessageProtocol.context.feedPostMediaIndex
@@ -1049,7 +1090,7 @@ public class CoreChatData {
             }()
 
             commonReaction.id = chatMessageProtocol.id
-            commonReaction.toUserID = chatMessageProtocol.toUserId
+            commonReaction.chatMessageRecipient = chatMessageProtocol.chatMessageRecipient
             commonReaction.fromUserID = chatMessageProtocol.fromUserId
             switch chatMessageProtocol.content {
             case .reaction(let emoji):

@@ -670,7 +670,7 @@ extension MomentViewController: ContentInputDelegate {
         showToast()
 
         Task { @MainActor [weak self] in
-            guard let message = await MainAppContext.shared.chatData.sendMomentReply(to: post.userID, postID: post.id, text: text, media: content.media) else {
+            guard let message = await MainAppContext.shared.chatData.sendMomentReply(chatMessageRecipient: .oneToOneChat(post.userId), postID: post.id, text: text, media: content.media) else {
                 self?.finalizeToast(success: false)
                 return
             }

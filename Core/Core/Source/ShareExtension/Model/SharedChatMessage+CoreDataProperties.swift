@@ -26,7 +26,8 @@ extension SharedChatMessage {
     }
 
     @NSManaged public var id: String
-    @NSManaged public var toUserId: String
+    @NSManaged public var toUserId: String?
+    @NSManaged public var toGroupId: String?
     @NSManaged public var fromUserId: String
     @NSManaged public var text: String?
     @NSManaged public var statusValue: Int16
@@ -92,6 +93,22 @@ extension SharedChatMessage: ChatMessageProtocol {
     
     public var timeIntervalSince1970: TimeInterval? {
         timestamp.timeIntervalSince1970
+    }
+
+    public var chatMessageRecipient: ChatMessageRecipient {
+        get {
+            if let toUserId = self.toUserId { return .oneToOneChat(toUserId) }
+            if let toGroupId = self.toGroupId { return .groupChat(toGroupId) }
+            fatalError("toUserId and toGroupId not set for chat message")
+        }
+        set{
+            switch newValue {
+            case .oneToOneChat(let userId):
+                self.toUserId = userId
+            case .groupChat(let groupId):
+                self.toGroupId = groupId
+            }
+        }
     }
     
     public var linkPreviewData: [LinkPreviewProtocol] {

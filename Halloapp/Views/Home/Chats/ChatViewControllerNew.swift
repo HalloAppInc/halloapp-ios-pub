@@ -977,7 +977,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     func sendMessage(text: String, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?, location: ChatLocationProtocol? = nil) {
         guard let sendToUserId = self.fromUserId else { return }
 
-        MainAppContext.shared.chatData.sendMessage(toUserId: sendToUserId,
+        MainAppContext.shared.chatData.sendMessage(chatMessageRecipient: .oneToOneChat(sendToUserId),
                                                        text: text,
                                                       media: media,
                                             linkPreviewData: linkPreviewData,

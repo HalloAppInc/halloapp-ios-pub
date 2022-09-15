@@ -38,7 +38,8 @@ public extension CommonReaction {
 
     @NSManaged var id: CommonReactionID
     @NSManaged var emoji: String
-    @NSManaged var toUserID: String
+    @NSManaged var toUserID: String?
+    @NSManaged var toGroupID: String?
     @NSManaged var fromUserID: String
     @NSManaged var timestamp: Date
     @NSManaged var serverTimestamp: Date
@@ -65,6 +66,22 @@ public extension CommonReaction {
         }
         set {
             self.outgoingStatusValue = newValue.rawValue
+        }
+    }
+
+    var chatMessageRecipient: ChatMessageRecipient {
+        get {
+            if let toUserId = self.toUserID { return .oneToOneChat(toUserId) }
+            if let toGroupId = self.toGroupID { return .groupChat(toGroupId) }
+            fatalError("toUserId and toGroupId not set for reaction")
+        }
+        set{
+            switch newValue {
+            case .oneToOneChat(let userId):
+                self.toUserID = userId
+            case .groupChat(let groupId):
+                self.toGroupID = groupId
+            }
         }
     }
 }

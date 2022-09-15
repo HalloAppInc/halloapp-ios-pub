@@ -40,7 +40,8 @@
         <attribute name="serialID" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="serverTimestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="toUserID" attributeType="String"/>
+        <attribute name="toGroupID" optional="YES" attributeType="String"/>
+        <attribute name="toUserID" optional="YES" attributeType="String"/>
         <relationship name="linkPreviews" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CommonLinkPreview" inverseName="message" inverseEntity="CommonLinkPreview"/>
         <relationship name="location" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CommonLocation"/>
         <relationship name="media" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CommonMedia" inverseName="message" inverseEntity="CommonMedia"/>
@@ -116,6 +117,7 @@
         <attribute name="retractID" optional="YES" attributeType="String"/>
         <attribute name="serverTimestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="toGroupID" optional="YES" attributeType="String"/>
         <attribute name="toUserID" optional="YES" attributeType="String"/>
         <relationship name="comment" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPostComment" inverseName="reactions" inverseEntity="FeedPostComment"/>
         <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatMessage" inverseName="reactions" inverseEntity="ChatMessage"/>
@@ -273,12 +275,12 @@
     <elements>
         <element name="Call" positionX="-63" positionY="-18" width="128" height="149"/>
         <element name="ChatEvent" positionX="36" positionY="189" width="128" height="74"/>
-        <element name="ChatMessage" positionX="-9" positionY="144" width="128" height="389"/>
+        <element name="ChatMessage" positionX="-9" positionY="144" width="128" height="419"/>
         <element name="ChatQuoted" positionX="0" positionY="153" width="128" height="119"/>
         <element name="CommonLinkPreview" positionX="-45" positionY="63" width="128" height="149"/>
         <element name="CommonLocation" positionX="0" positionY="0" width="128" height="89"/>
         <element name="CommonMedia" positionX="-36" positionY="72" width="128" height="359"/>
-        <element name="CommonReaction" positionX="27" positionY="180" width="128" height="194"/>
+        <element name="CommonReaction" positionX="27" positionY="180" width="128" height="224"/>
         <element name="CommonThread" positionX="27" positionY="180" width="128" height="209"/>
         <element name="ContentPublishInfo" positionX="36" positionY="108" width="128" height="74"/>
         <element name="ContentResendInfo" positionX="-63" positionY="45" width="128" height="119"/>

@@ -12,7 +12,7 @@ import UIKit
 public struct XMPPReaction {
     public let id: String
     public let fromUserId: UserID
-    public let toUserId: UserID
+    public var chatMessageRecipient: ChatMessageRecipient
     public var retryCount: Int32? = nil
     public var rerequestCount: Int32
     public let content: ChatContent
@@ -21,6 +21,7 @@ public struct XMPPReaction {
 }
 
 extension XMPPReaction: ChatMessageProtocol {
+    
     public var orderedMedia: [ChatMediaProtocol] {
         return []
     }
@@ -41,7 +42,7 @@ extension XMPPReaction {
     public init(reaction: CommonReaction) {
         self.id = reaction.id
         self.fromUserId = reaction.fromUserID
-        self.toUserId = reaction.toUserID
+        self.chatMessageRecipient = reaction.chatMessageRecipient
         self.context = ChatContext(
             feedPostID: nil,
             feedPostMediaIndex: 0,
@@ -53,10 +54,10 @@ extension XMPPReaction {
         self.content = .reaction(reaction.emoji)
     }
 
-    public init(content: ChatContent, context: ChatContext, timestamp: Int64, from fromUserID: UserID, to toUserID: UserID, id: String, retryCount: Int32, rerequestCount: Int32) {
+    public init(content: ChatContent, context: ChatContext, timestamp: Int64, from fromUserID: UserID, chatMessageRecipient: ChatMessageRecipient, id: String, retryCount: Int32, rerequestCount: Int32) {
         self.id = id
         self.fromUserId = fromUserID
-        self.toUserId = toUserID
+        self.chatMessageRecipient = chatMessageRecipient
         self.timestamp = TimeInterval(timestamp)
         self.retryCount = retryCount
         self.rerequestCount = rerequestCount

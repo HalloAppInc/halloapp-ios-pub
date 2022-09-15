@@ -65,8 +65,7 @@ class ChatData: ObservableObject {
     private var service: HalloService
     private let coreChatData: CoreChatData
     private let mediaUploader: MediaUploader
-    
-    private var currentlyChattingWithUserId: String? = nil
+
     private var isSubscribedToCurrentUser: Bool = false
     
     private var currentlyChattingInGroup: GroupID? = nil
@@ -305,7 +304,7 @@ class ChatData: ObservableObject {
                             }
                             // Update unread count if it is a missed call.
                             if isMissedCall {
-                                if !self.isCurrentlyChatting(with: peerUserID) {
+                                if !coreChatData.isCurrentlyChatting(with: peerUserID) {
                                     $0.unreadCount += 1
                                     self.updateUnreadChatsThreadCount()
                                 }
@@ -329,7 +328,7 @@ class ChatData: ObservableObject {
                     DDLogInfo("ChatData/didConnect/sendPresence \(UIApplication.shared.applicationState.rawValue)")
                     self.checkViewAndSendPresence(type: .available)
 
-                    if let currentUser = self.currentlyChattingWithUserId {
+                    if let currentUser = coreChatData.getCurrentlyChattingWithUserId() {
                         if !self.isSubscribedToCurrentUser {
                             self.subscribeToPresence(to: currentUser)
                         }
@@ -406,7 +405,7 @@ class ChatData: ObservableObject {
             NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification).sink { [weak self] notification in
                 guard let self = self else { return }
                 self.checkViewAndSendPresence(type: .available)
-                if let currentlyChattingWithUserId = self.currentlyChattingWithUserId {
+                if let currentlyChattingWithUserId = coreChatData.getCurrentlyChattingWithUserId() {
                     self.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
                         guard let self = self else { return }
                         self.markSeenMessages(type: .oneToOne, for: currentlyChattingWithUserId, in: managedObjectContext)
@@ -847,7 +846,7 @@ class ChatData: ObservableObject {
                             context: chatContainer.chatContext,
                             timestamp: Int64(timestamp.timeIntervalSince1970),
                             from: message.fromUserId,
-                            to: message.toUserId,
+                            chatMessageRecipient: message.chatMessageRecipient,
                             id: message.id,
                             retryCount: 0, //TODO
                             rerequestCount: Int32(message.resendAttempts))
@@ -861,7 +860,7 @@ class ChatData: ObservableObject {
                             context: chatContainer.chatContext,
                             timestamp: Int64(timestamp.timeIntervalSince1970),
                             from: message.fromUserId,
-                            to: message.toUserId,
+                            chatMessageRecipient: message.chatMessageRecipient,
                             id: message.id,
                             retryCount: 0, //TODO
                             rerequestCount: Int32(message.resendAttempts))
@@ -1163,9 +1162,16 @@ class ChatData: ObservableObject {
             DDLogDebug("ChatData/processInboundChatAck/updatePendingChatMessage/ [\(messageID)]")
 
             chatMessage.outgoingStatus = .sentOut
-        
-            self.updateChatThreadStatus(type: .oneToOne, for: chatMessage.toUserId, messageId: chatMessage.id) { (chatThread) in
-                chatThread.lastMsgStatus = .sentOut
+
+            switch chatMessage.chatMessageRecipient {
+            case .oneToOneChat(let userId):
+                self.updateChatThreadStatus(type: .oneToOne, for: userId, messageId: chatMessage.id) { (chatThread) in
+                    chatThread.lastMsgStatus = .sentOut
+                }
+            case .groupChat(let groupId):
+                self.updateChatThreadStatus(type: .groupChat, for: groupId, messageId: chatMessage.id) { (chatThread) in
+                    chatThread.lastMsgStatus = .sentOut
+                }
             }
 
             // only change timestamp the first time message is ack'ed,
@@ -1197,9 +1203,15 @@ class ChatData: ObservableObject {
         updateRetractingChatMessage(for: messageID) { (chatMessage) in
             DDLogDebug("ChatData/processInboundChatAck/updateRetractingChatMessage/ [\(messageID)]")
             chatMessage.outgoingStatus = .retracted
-            
-            self.updateChatThreadStatus(type: .oneToOne, for: chatMessage.toUserId, messageId: messageID) { (chatThread) in
-                chatThread.lastMsgStatus = .retracted
+            switch chatMessage.chatMessageRecipient {
+            case .oneToOneChat(let userId):
+                self.updateChatThreadStatus(type: .oneToOne, for: userId, messageId: chatMessage.id) { (chatThread) in
+                    chatThread.lastMsgStatus = .retracted
+                }
+            case .groupChat(let groupId):
+                self.updateChatThreadStatus(type: .groupChat, for: groupId, messageId: chatMessage.id) { (chatThread) in
+                    chatThread.lastMsgStatus = .retracted
+                }
             }
         }
         
@@ -1216,17 +1228,16 @@ class ChatData: ObservableObject {
         var threadId = ""
         var messageId = ""
 
-        if let chatMessage = chatMedia.message {
-            threadId = chatMessage.toUserId
+        if let chatMessage = chatMedia.message, let toUserId = chatMessage.toUserId {
+            threadId = toUserId
             messageId = chatMessage.id
-        } else if let chatMessage = chatMedia.linkPreview?.message {
-            threadId = chatMessage.toUserId
+        } else if let chatMessage = chatMedia.message, let toGroupId = chatMessage.toGroupId {
+            threadId = toGroupId
+            messageId = chatMessage.id
+        } else if let chatMessage = chatMedia.linkPreview?.message, let toUserId = chatMessage.toUserId {
+            threadId = toUserId
             messageId = chatMessage.id
         }
-        /* else if let chatGroupMessage = chatMedia.groupMessage {
-            threadId = chatGroupMessage.groupId
-            messageId = chatGroupMessage.id
-        } */
         
         let order = chatMedia.order
 
@@ -1602,31 +1613,12 @@ class ChatData: ObservableObject {
                 }
             }
 
-            // TODO(murali@): this code is duplicated.
-            let threadId = isIncomingMsg ? chatMessage.fromUserId : chatMessage.toUserId
-            let isCurrentlyChattingWithUser = isCurrentlyChatting(with: threadId)
-            if let chatThread = chatThread(type: ChatType.oneToOne, id: threadId, in: managedObjectContext) {
-                chatThread.lastMsgId = chatMessage.id
-                chatThread.lastMsgUserId = chatMessage.fromUserId
-                chatThread.lastMsgText = chatMessage.rawText
-                chatThread.lastMsgMediaType = lastMsgMediaType
-                chatThread.lastMsgStatus = .none
-                chatThread.lastMsgTimestamp = chatMessage.timestamp
-                if isIncomingMsg {
-                    chatThread.unreadCount = isCurrentlyChattingWithUser ? 0 : chatThread.unreadCount + 1
-                }
-            } else {
-                let chatThread = NSEntityDescription.insertNewObject(forEntityName: ChatThread.entity().name!, into: managedObjectContext) as! ChatThread
-                chatThread.userID = threadId
-                chatThread.lastMsgId = chatMessage.id
-                chatThread.lastMsgUserId = chatMessage.fromUserId
-                chatThread.lastMsgText = chatMessage.rawText
-                chatThread.lastMsgMediaType = lastMsgMediaType
-                chatThread.lastMsgStatus = .none
-                chatThread.lastMsgTimestamp = chatMessage.timestamp
-                if isIncomingMsg {
-                    chatThread.unreadCount = 1
-                }
+            let isMsgToYourself = chatMessage.chatMessageRecipient.toUserId == userData.userId
+            switch chatMessage.chatMessageRecipient {
+            case .oneToOneChat(let userId):
+                coreChatData.updateChatThread(chatType: .oneToOne, recipientId: userId, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, using: managedObjectContext)
+            case .groupChat(let groupId):
+                coreChatData.updateChatThread(chatType: .groupChat, recipientId: groupId, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, using: managedObjectContext)
             }
             mergedMessages.append((message, chatMessage))
         }
@@ -2123,13 +2115,13 @@ extension ChatData {
 extension ChatData {
     
     func setCurrentlyChattingWithUserId(for chatWithUserId: String?) {
-        currentlyChattingWithUserId = chatWithUserId
+        coreChatData.setCurrentlyChattingWithUserId(for: chatWithUserId)
         isSubscribedToCurrentUser = false
     }
             
     // MARK: 1-1 Sending Messages
     
-    func sendMessage(toUserId: String,
+    func sendMessage(chatMessageRecipient: ChatMessageRecipient,
                      text: String,
                      media: [PendingMedia],
                      linkPreviewData: LinkPreviewData? = nil,
@@ -2142,8 +2134,12 @@ extension ChatData {
                      chatReplyMessageMediaIndex: Int32) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
-            DDLogInfo("ChatData/sendMessage/createChatMsg/toUserId: \(toUserId)")
-            self.createChatMsg( toUserId: toUserId,
+            if let toUserId = chatMessageRecipient.toUserId {
+                DDLogInfo("ChatData/sendMessage/createChatMsg/toUserId: \(toUserId)")
+                self.addIntent(toUserId: toUserId)
+            }
+
+            self.createChatMsg(chatMessageRecipient: chatMessageRecipient,
                                 text: text,
                                 media: media,
                                 linkPreviewData: linkPreviewData,
@@ -2156,8 +2152,6 @@ extension ChatData {
                                 chatReplyMessageMediaIndex: chatReplyMessageMediaIndex,
                                 using: managedObjectContext)
         }
-        
-        addIntent(toUserId: toUserId)
     }
 
     func forwardChatMessages(toUserIds: [String], chatMessage: ChatMessage) {
@@ -2207,7 +2201,7 @@ extension ChatData {
             let text = chatMessage.rawText
             performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
                 guard let self = self else { return }
-                self.createChatMsg( toUserId: toUserId,
+                self.createChatMsg( chatMessageRecipient: ChatMessageRecipient.oneToOneChat(toUserId),
                                     text: text ?? "",
                                     media: media,
                                     linkPreviewData: linkPreviewData,
@@ -2225,21 +2219,21 @@ extension ChatData {
 
     /// - Returns: A chat message object that should be used on the main thread.
     @discardableResult
-    func sendMomentReply(to userID: UserID, postID: FeedPostID, text: String, media: [PendingMedia]) async -> ChatMessage? {
+    func sendMomentReply(chatMessageRecipient: ChatMessageRecipient, postID: FeedPostID, text: String, media: [PendingMedia]) async -> ChatMessage? {
         await withCheckedContinuation { continuation in
             performSeriallyOnBackgroundContext { context in
-                DDLogInfo("ChatData/sendMomentReply/createChatMsg/toUserId: \(userID)")
-                let id = self.createChatMsg(toUserId: userID,
-                                                text: text,
-                                               media: media,
-                                     linkPreviewData: nil,
-                                    linkPreviewMedia: nil,
-                                            location: nil,
-                                          feedPostId: postID,
-                                  feedPostMediaIndex: 0,
-                                       isMomentReply: true,
-                          chatReplyMessageMediaIndex: 0,
-                                               using: context)
+                DDLogInfo("ChatData/sendMomentReply/createChatMsg/toUserId: \(String(describing: chatMessageRecipient.toUserId))")
+                let id = self.createChatMsg(chatMessageRecipient: chatMessageRecipient,
+                                text: text,
+                               media: media,
+                     linkPreviewData: nil,
+                    linkPreviewMedia: nil,
+                            location: nil,
+                          feedPostId: postID,
+                  feedPostMediaIndex: 0,
+                       isMomentReply: true,
+          chatReplyMessageMediaIndex: 0,
+                               using: context)
 
                 DispatchQueue.main.async {
                     let message = self.chatMessage(with: id, in: self.viewContext)
@@ -2250,7 +2244,7 @@ extension ChatData {
     }
 
     @discardableResult
-    func createChatMsg( toUserId: String,
+    func createChatMsg(chatMessageRecipient: ChatMessageRecipient,
                         text: String,
                         media: [PendingMedia],
                         linkPreviewData: LinkPreviewData?,
@@ -2264,7 +2258,7 @@ extension ChatData {
                         chatReplyMessageMediaIndex: Int32,
                         using context: NSManagedObjectContext) -> ChatMessageID {
         if ServerProperties.enableNewMediaUploader {
-            return coreChatData.createChatMsg(toUserId: toUserId,
+            return coreChatData.createChatMsg(chatMessageRecipient: chatMessageRecipient,
                                               text: text,
                                               media: media,
                                               linkPreviewData: linkPreviewData,
@@ -2280,14 +2274,14 @@ extension ChatData {
         }
 
         let messageId = PacketID.generate()
-        let isMsgToYourself: Bool = toUserId == userData.userId
+        let isMsgToYourself: Bool = chatMessageRecipient.toUserId == userData.userId
         
         // Create and save new ChatMessage object.
-        DDLogDebug("ChatData/createChatMsg/\(messageId)/toUserId: \(toUserId)")
+        DDLogDebug("ChatData/createChatMsg/\(messageId)/toUserId: \(String(describing: chatMessageRecipient.toUserId))")
         let chatMessage = ChatMessage(context: context)
         chatMessage.id = messageId
-        chatMessage.toUserId = toUserId
         chatMessage.fromUserId = userData.userId
+        chatMessage.chatMessageRecipient = chatMessageRecipient
         chatMessage.rawText = text
         chatMessage.feedPostId = feedPostId
         chatMessage.feedPostMediaIndex = feedPostMediaIndex
@@ -2343,7 +2337,7 @@ extension ChatData {
             // quoted moment; feed post has already been deleted at this point
             let quoted = ChatQuoted(context: context)
             quoted.type = .moment
-            quoted.userID = toUserId
+            quoted.userID = chatMessageRecipient.toUserId
             quoted.message = chatMessage
         } else if let feedPostId = feedPostId, let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: context) {
             // Create and save Quoted FeedPost
@@ -2412,29 +2406,13 @@ extension ChatData {
         }
         
         // Update Chat Thread
-        if let chatThread = self.chatThread(type: ChatType.oneToOne, id: chatMessage.toUserId, in: context) {
-            DDLogDebug("ChatData/createChatMsg/ update-thread")
-            chatThread.lastMsgId = chatMessage.id
-            chatThread.lastMsgUserId = chatMessage.fromUserId
-            chatThread.lastMsgText = chatMessage.rawText
-            chatThread.lastMsgMediaType = lastMsgMediaType
-            chatThread.lastMsgStatus = isMsgToYourself ? .seen : .pending
-            chatThread.lastMsgTimestamp = chatMessage.timestamp
-            // Sending a message always clears out the unread count
-            chatThread.unreadCount = 0
-        } else {
-            DDLogDebug("ChatData/createChatMsg/\(messageId)/new-thread")
-            let chatThread = ChatThread(context: context)
-            chatThread.userID = chatMessage.toUserId
-            chatThread.lastMsgId = chatMessage.id
-            chatThread.lastMsgUserId = chatMessage.fromUserId
-            chatThread.lastMsgText = chatMessage.rawText
-            chatThread.lastMsgMediaType = lastMsgMediaType
-            chatThread.lastMsgStatus = isMsgToYourself ? .seen : .pending
-            chatThread.lastMsgTimestamp = chatMessage.timestamp
-            chatThread.unreadCount = 0
+        switch chatMessageRecipient {
+        case .oneToOneChat(let userId):
+            coreChatData.updateChatThread(chatType: .oneToOne, recipientId: userId, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, using: context)
+        case .groupChat(let groupId):
+            coreChatData.updateChatThread(chatType: .groupChat, recipientId: groupId, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, using: context)
         }
-        
+                       
         save(context)
 
         if !isMsgToYourself {
@@ -2784,13 +2762,20 @@ extension ChatData {
             chatMessage.outgoingStatus = .retracting
             
             self.deleteChatMessageContent(in: chatMessage)
-            
-            self.updateChatThreadStatus(type: .oneToOne, for: chatMessage.toUserId, messageId: chatMessage.id) { (chatThread) in
-                chatThread.lastMsgStatus = .retracting
-                chatThread.lastMsgText = nil
-                chatThread.lastMsgMediaType = .none
+            switch chatMessage.chatMessageRecipient {
+            case .oneToOneChat(let userId):
+                self.updateChatThreadStatus(type: .oneToOne, for: userId, messageId: chatMessage.id) { (chatThread) in
+                    chatThread.lastMsgStatus = .retracting
+                    chatThread.lastMsgText = nil
+                    chatThread.lastMsgMediaType = .none
+                }
+            case .groupChat(let groupId):
+                self.updateChatThreadStatus(type: .groupChat, for: groupId, messageId: chatMessage.id) { (chatThread) in
+                    chatThread.lastMsgStatus = .retracting
+                    chatThread.lastMsgText = nil
+                    chatThread.lastMsgMediaType = .none
+                }
             }
-            
         }
                 
         self.service.retractChatMessage(messageID: messageID, toUserID: toUserID, messageToRetractID: messageToRetractID) { result in
@@ -2900,14 +2885,22 @@ extension ChatData {
 
         // Update Chat Thread
         let lastMsgStatus = isMsgToYourself ? ChatThread.LastMsgStatus.seen : ChatThread.LastMsgStatus.pending
-        updateChatThread(with: commonReaction,
-                         toUserID: commonReaction.toUserID,
-                         reactionText: reactionText,
-                         in: context,
-                         lastMsgStatus: lastMsgStatus,
-                         updateUnreadCount: false)
-
-        
+        switch commonReaction.chatMessageRecipient {
+        case .oneToOneChat(let userId):
+            updateChatThread(chatType: .oneToOne, with: commonReaction,
+                             recipientId: userId,
+                             reactionText: reactionText,
+                             in: context,
+                             lastMsgStatus: lastMsgStatus,
+                             updateUnreadCount: false)
+        case .groupChat(let groupId):
+            updateChatThread(chatType: .groupChat, with: commonReaction,
+                             recipientId: groupId,
+                             reactionText: reactionText,
+                             in: context,
+                             lastMsgStatus: lastMsgStatus,
+                             updateUnreadCount: false)
+        }
         save(context)
 
         if !isMsgToYourself {
@@ -2922,8 +2915,6 @@ extension ChatData {
 
         updateReaction(with: reactionToRetractID) { [weak self] (commonReaction) in
             guard let self = self else { return }
-            let reactionID = commonReaction.id
-            let toUserID = commonReaction.toUserID
 
             commonReaction.retractID = retractID
             commonReaction.outgoingStatus = .retracting
@@ -2948,10 +2939,19 @@ extension ChatData {
             }
             
             self.deleteReaction(commonReaction: commonReaction)
-            self.updateChatThreadStatus(type: .oneToOne, for: toUserID, messageId: reactionID) { (chatThread) in
-                chatThread.lastMsgStatus = .retracting
-                chatThread.lastMsgText = reactionText
-                chatThread.lastMsgMediaType = .none
+            switch commonReaction.chatMessageRecipient {
+            case .oneToOneChat(let userId):
+                self.updateChatThreadStatus(type: .oneToOne, for: userId, messageId: commonReaction.id) { (chatThread) in
+                    chatThread.lastMsgStatus = .retracting
+                    chatThread.lastMsgText = reactionText
+                    chatThread.lastMsgMediaType = .none
+                }
+            case .groupChat(let groupId):
+                self.updateChatThreadStatus(type: .groupChat, for: groupId, messageId: commonReaction.id) { (chatThread) in
+                    chatThread.lastMsgStatus = .retracting
+                    chatThread.lastMsgText = reactionText
+                    chatThread.lastMsgMediaType = .none
+                }
             }
         }
 
@@ -3154,14 +3154,14 @@ extension ChatData {
         }
     }
     
-    private func updateChatThread(with commonReaction: CommonReaction,
-                                  toUserID: String,
+    private func updateChatThread(chatType: ChatType, with commonReaction: CommonReaction,
+                                  recipientId: String,
                                   reactionText: String,
                                   in context: NSManagedObjectContext,
                                   lastMsgStatus: CommonThread.LastMsgStatus,
                                   updateUnreadCount: Bool) {
-        let isCurrentlyChattingWithUser = isCurrentlyChatting(with: commonReaction.fromUserID)
-        if let chatThread = self.chatThread(type: ChatType.oneToOne, id: toUserID, in: context) {
+        let isCurrentlyChattingWithUser = coreChatData.isCurrentlyChatting(with: commonReaction.fromUserID)
+        if let chatThread = self.chatThread(type: chatType, id: recipientId, in: context) {
             DDLogDebug("ChatData/updateChatThread/with-reaction/update-thread")
             chatThread.lastMsgId = commonReaction.id
             chatThread.lastMsgUserId = commonReaction.fromUserID
@@ -3175,6 +3175,9 @@ extension ChatData {
         } else {
             DDLogDebug("ChatData/updateChatThread/with-reaction/new-thread")
             let chatThread = ChatThread(context: context)
+            chatThread.userID = commonReaction.toUserID
+            chatThread.groupId = commonReaction.toGroupID
+            chatThread.type = chatType
             chatThread.lastMsgId = commonReaction.id
             chatThread.lastMsgUserId = commonReaction.fromUserID
             chatThread.lastMsgText = reactionText
@@ -3645,15 +3648,6 @@ extension ChatData {
 
         save(managedObjectContext)
     }
-    
-    private func isCurrentlyChatting(with userId: UserID) -> Bool {
-        if let currentlyChattingWithUserId = self.currentlyChattingWithUserId {
-            if userId == currentlyChattingWithUserId {
-                return true
-            }
-        }
-        return false
-    }
 
     private func processInboundChatMessage(xmppChatMessage: ChatMessageProtocol, using managedObjectContext: NSManagedObjectContext, isAppActive: Bool) {
         let existingChatMessage = chatMessage(with: xmppChatMessage.id, in: managedObjectContext)
@@ -3668,7 +3662,7 @@ extension ChatData {
             }
         }
 
-        let isCurrentlyChattingWithUser = isCurrentlyChatting(with: xmppChatMessage.fromUserId)
+        let isCurrentlyChattingWithUser = coreChatData.isCurrentlyChatting(with: xmppChatMessage.fromUserId)
         DDLogDebug("ChatData/processInboundChatMessage [\(xmppChatMessage.id)]")
         let chatMessage: ChatMessage = {
             guard let existingChatMessage = existingChatMessage else {
@@ -3680,7 +3674,7 @@ extension ChatData {
         }()
 
         chatMessage.id = xmppChatMessage.id
-        chatMessage.toUserId = xmppChatMessage.toUserId
+        chatMessage.chatMessageRecipient = xmppChatMessage.chatMessageRecipient
         chatMessage.fromUserId = xmppChatMessage.fromUserId
         chatMessage.feedPostId = xmppChatMessage.context.feedPostID
         chatMessage.feedPostMediaIndex = xmppChatMessage.context.feedPostMediaIndex
@@ -3857,7 +3851,7 @@ extension ChatData {
         }()
 
         commonReaction.id = xmppReaction.id
-        commonReaction.toUserID = xmppReaction.toUserId
+        commonReaction.chatMessageRecipient = xmppReaction.chatMessageRecipient
         commonReaction.fromUserID = xmppReaction.fromUserId
         switch xmppReaction.content {
         case .reaction(let emoji):
@@ -3904,12 +3898,23 @@ extension ChatData {
             }
         }
         // Update Chat Thread
-        updateChatThread(with: commonReaction,
-                         toUserID: commonReaction.fromUserID,
-                         reactionText: reactionText,
-                         in: managedObjectContext,
-                         lastMsgStatus: .none,
-                         updateUnreadCount: true)
+        switch commonReaction.chatMessageRecipient {
+        case .oneToOneChat(let userId):
+            updateChatThread(chatType: .oneToOne, with: commonReaction,
+                             recipientId: userId,
+                             reactionText: reactionText,
+                             in: managedObjectContext,
+                             lastMsgStatus: .none,
+                             updateUnreadCount: true)
+        case .groupChat(let groupId):
+            updateChatThread(chatType: .groupChat, with: commonReaction,
+                             recipientId: groupId,
+                             reactionText: reactionText,
+                             in: managedObjectContext,
+                             lastMsgStatus: .none,
+                             updateUnreadCount: true)
+        }
+        
 
         save(managedObjectContext)
 
@@ -3925,9 +3930,10 @@ extension ChatData {
         DDLogInfo("ChatData/processInboundOneToOneMessageReceipt")
         let messageId = receipt.itemId
         let receiptType = receipt.type
-        
+
         updateChatMessage(with: messageId) { [weak self] (chatMessage) in
             guard let self = self else { return }
+            // TODO @Nandini double check this for group chat message
             guard ![.played, .seen, .retracting, .retracted].contains(chatMessage.outgoingStatus) || receiptType == .played else { return }
 
             switch receiptType {
@@ -3941,17 +3947,32 @@ extension ChatData {
                 DDLogError("ChatData/processInboundOneToOneMessageReceipt/processing invalid \(receiptType) receipt")
                 break
             }
-
-            self.updateChatThreadStatus(type: .oneToOne, for: chatMessage.toUserId, messageId: chatMessage.id) { (chatThread) in
-                switch receiptType {
-                case .delivery:
-                    chatThread.lastMsgStatus = .delivered
-                case .read:
-                    chatThread.lastMsgStatus = .seen
-                case .played:
-                    chatThread.lastMsgStatus = .played
-                case .screenshot, .saved:
-                    break
+            switch chatMessage.chatMessageRecipient {
+            case .oneToOneChat(let userId):
+                self.updateChatThreadStatus(type: .oneToOne, for: userId, messageId: chatMessage.id) { (chatThread) in
+                    switch receiptType {
+                    case .delivery:
+                        chatThread.lastMsgStatus = .delivered
+                    case .read:
+                        chatThread.lastMsgStatus = .seen
+                    case .played:
+                        chatThread.lastMsgStatus = .played
+                    case .screenshot, .saved:
+                        break
+                    }
+                }
+            case .groupChat(let groupId):
+                self.updateChatThreadStatus(type: .groupChat, for: groupId, messageId: chatMessage.id) { (chatThread) in
+                    switch receiptType {
+                    case .delivery:
+                        chatThread.lastMsgStatus = .delivered
+                    case .read:
+                        chatThread.lastMsgStatus = .seen
+                    case .played:
+                        chatThread.lastMsgStatus = .played
+                    case .screenshot, .saved:
+                        break
+                    }
                 }
             }
         }
@@ -3993,13 +4014,22 @@ extension ChatData {
             self.deleteChatMessageContent(in: chatMessage)
 
             self.createNewChatThreadIfMissing(from: from, messageID: messageID, status: .retracted)
-            self.updateChatThreadStatus(type: .oneToOne, for: from, messageId: messageID) { (chatThread) in
-                chatThread.lastMsgStatus = .retracted
+            switch chatMessage.chatMessageRecipient {
+            case .oneToOneChat(_):
+                self.updateChatThreadStatus(type: .oneToOne, for: from, messageId: chatMessage.id) { (chatThread) in
+                    chatThread.lastMsgStatus = .retracted
 
-                chatThread.lastMsgText = nil
-                chatThread.lastMsgMediaType = .none
+                    chatThread.lastMsgText = nil
+                    chatThread.lastMsgMediaType = .none
+                }
+            case .groupChat(let groupId):
+                self.updateChatThreadStatus(type: .groupChat, for: groupId, messageId: chatMessage.id) { (chatThread) in
+                    chatThread.lastMsgStatus = .retracted
+
+                    chatThread.lastMsgText = nil
+                    chatThread.lastMsgMediaType = .none
+                }
             }
-
         }
     }
     
@@ -4036,10 +4066,19 @@ extension ChatData {
                 }
             }
             self.createNewChatThreadIfMissing(from: from, messageID: reactionID, status: .retracted)
-            self.updateChatThreadStatus(type: .oneToOne, for: from, messageId: reactionID) { (chatThread) in
-                chatThread.lastMsgStatus = .retracted
-                chatThread.lastMsgText = reactionText
-                chatThread.lastMsgMediaType = .none
+            switch commonReaction.chatMessageRecipient {
+            case .oneToOneChat(_):
+                self.updateChatThreadStatus(type: .oneToOne, for: from, messageId: commonReaction.id) { (chatThread) in
+                    chatThread.lastMsgStatus = .retracted
+                    chatThread.lastMsgText = reactionText
+                    chatThread.lastMsgMediaType = .none
+                }
+            case .groupChat(let groupId):
+                self.updateChatThreadStatus(type: .groupChat, for: groupId, messageId: commonReaction.id) { (chatThread) in
+                    chatThread.lastMsgStatus = .retracted
+                    chatThread.lastMsgText = reactionText
+                    chatThread.lastMsgMediaType = .none
+                }
             }
         }
     }
@@ -4096,7 +4135,7 @@ extension ChatData {
         }
                 
         // notify chatViewController
-        guard let currentlyChattingWithUserId = self.currentlyChattingWithUserId else { return }
+        guard let currentlyChattingWithUserId = coreChatData.getCurrentlyChattingWithUserId() else { return }
         guard currentlyChattingWithUserId == presenceInfo.userID else { return }
         didGetCurrentChatPresence.send((presenceStatus, presenceLastSeen))
         
@@ -4150,16 +4189,20 @@ extension ChatData {
                 guard let chatMsg = self.chatMessage(with: $0.id, in: managedObjectContext) else { return }
                 guard let messageID = chatMsg.retractID else { return }
                 DDLogInfo("ChatData/processRetractingChatMsgs \($0.id)")
-                let toUserID = chatMsg.toUserId
                 let msgToRetractID = chatMsg.id
-
-                self.service.retractChatMessage(messageID: messageID, toUserID: toUserID, messageToRetractID: msgToRetractID) { result in
-                    switch result {
-                    case .failure(let error):
-                        DDLogError("ChatData/processRetractingChatMsgs: \(msgToRetractID)/failed: \(error)")
-                    case .success:
-                        DDLogInfo("ChatData/processRetractingChatMsgs: \(msgToRetractID)/success")
+                
+                // TODO @Nandini handle group message retracts, withing service potentially
+                if let toUserId = chatMsg.toUserId {
+                    self.service.retractChatMessage(messageID: messageID, toUserID: toUserId, messageToRetractID: msgToRetractID) { result in
+                        switch result {
+                        case .failure(let error):
+                            DDLogError("ChatData/processRetractingChatMsgs: \(msgToRetractID)/failed: \(error)")
+                        case .success:
+                            DDLogInfo("ChatData/processRetractingChatMsgs: \(msgToRetractID)/success")
+                        }
                     }
+                } else {
+                    DDLogError("ChatData/processRetractingChatMsgs: \(msgToRetractID)/failed: toUserId not set /")
                 }
             }
         }
@@ -4209,7 +4252,7 @@ extension ChatData {
                     DDLogVerbose("ChatData/showOneToOneNotification/isAtChatListViewTop/skip")
                     return
                 }
-                guard self.currentlyChattingWithUserId != xmppChatMessage.fromUserId else {
+                guard self.coreChatData.getCurrentlyChattingWithUserId() != xmppChatMessage.fromUserId else {
                     DDLogVerbose("ChatData/showOneToOneNotification/currentlyChattingWithUserId/skip")
                     return
                 }

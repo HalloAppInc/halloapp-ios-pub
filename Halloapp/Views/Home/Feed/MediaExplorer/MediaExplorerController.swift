@@ -358,7 +358,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     private func request(with media: CommonMedia, limitToMessage: Bool = false) -> NSFetchRequest<CommonMedia> {
         let request: NSFetchRequest<CommonMedia> = CommonMedia.fetchRequest()
 
-        if let message = media.message {
+        if let message = media.message, let toUserId = message.toUserId {
             let base = """
                 ((message.fromUserID = %@ AND message.toUserID = %@) || (message.toUserID = %@ && message.fromUserID = %@)) &&
                 (typeValue == 0 || typeValue == 1)
@@ -366,9 +366,9 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
             if limitToMessage {
                 // TODO: Use compound predicate instead of concatenating query strings
-                request.predicate = NSPredicate(format: base + " && message.timestamp < %@", message.fromUserId, message.toUserId, message.fromUserId, message.toUserId, message.timestamp! as NSDate)
+                request.predicate = NSPredicate(format: base + " && message.timestamp < %@", message.fromUserId, toUserId, message.fromUserId, toUserId, message.timestamp! as NSDate)
             } else {
-                request.predicate = NSPredicate(format: base, message.fromUserId, message.toUserId, message.fromUserId, message.toUserId)
+                request.predicate = NSPredicate(format: base, message.fromUserId, toUserId, message.fromUserId, toUserId)
             }
 
             request.sortDescriptors = [
@@ -376,6 +376,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
                 NSSortDescriptor(keyPath: \CommonMedia.order, ascending: true),
             ]
         }
+        // TODO @Nandini support group chat?
         /* TODO: Add group message relationship to media?
 
          else if let message = media.groupMessage {

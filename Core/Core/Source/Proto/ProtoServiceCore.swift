@@ -968,8 +968,13 @@ extension ProtoServiceCore: CoreService {
             completion(nil, nil)
             return
         }
+        guard let toUserId = message.chatMessageRecipient.toUserId else {
+            DDLogError("ProtoServiceCore/makeChatStanza/\(message.id)/ error toUserId not set for message: \(message.id)")
+            completion(nil, nil)
+            return
+        }
 
-        AppContext.shared.messageCrypter.encrypt(messageData, for: message.toUserId) { result in
+        AppContext.shared.messageCrypter.encrypt(messageData, for: toUserId) { result in
             switch result {
             case .success((let encryptedData, var logInfo)):
                 logInfo["TS"] = self.dateTimeFormatterMonthDayTime.string(from: Date())
@@ -2153,6 +2158,11 @@ extension ProtoServiceCore: CoreService {
                 completion(.failure(RequestError.aborted))
                 return
             }
+            guard let toUserId = message.chatMessageRecipient.toUserId else {
+                DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/ toUserId not set for 1:1 chat message")
+                completion(.failure(.malformedRequest))
+                return
+            }
 
             self.makeChatStanza(message) { chat, error in
                 guard let chat = chat else {
@@ -2171,7 +2181,7 @@ extension ProtoServiceCore: CoreService {
 
                 let packet = Server_Packet.msgPacket(
                     from: fromUserID,
-                    to: message.toUserId,
+                    to: toUserId,
                     id: message.id,
                     type: .chat,
                     rerequestCount: message.rerequestCount,

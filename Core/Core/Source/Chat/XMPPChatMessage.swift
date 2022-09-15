@@ -12,7 +12,7 @@ import UIKit
 public struct XMPPChatMessage {
     public let id: String
     public let fromUserId: UserID
-    public let toUserId: UserID
+    public let chatMessageRecipient: ChatMessageRecipient
     public var retryCount: Int32? = nil
     public var rerequestCount: Int32
     public let content: ChatContent
@@ -67,7 +67,7 @@ extension XMPPChatMessage {
     public init(chatMessage: ChatMessage) {
         self.id = chatMessage.id
         self.fromUserId = chatMessage.fromUserId
-        self.toUserId = chatMessage.toUserId
+        self.chatMessageRecipient = chatMessage.chatMessageRecipient
         self.context = ChatContext(
             feedPostID: chatMessage.feedPostId,
             feedPostMediaIndex: chatMessage.feedPostMediaIndex,
@@ -91,10 +91,10 @@ extension XMPPChatMessage {
         }
     }
 
-    public init(content: ChatContent, context: ChatContext, timestamp: Int64, from fromUserID: UserID, to toUserID: UserID, id: String, retryCount: Int32, rerequestCount: Int32) {
+    public init(content: ChatContent, context: ChatContext, timestamp: Int64, from fromUserID: UserID, chatMessageRecipient: ChatMessageRecipient, id: String, retryCount: Int32, rerequestCount: Int32) {
         self.id = id
         self.fromUserId = fromUserID
-        self.toUserId = toUserID
+        self.chatMessageRecipient = chatMessageRecipient
         self.timestamp = TimeInterval(timestamp)
         self.retryCount = retryCount
         self.rerequestCount = rerequestCount

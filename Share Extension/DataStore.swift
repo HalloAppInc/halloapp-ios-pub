@@ -450,10 +450,10 @@ class DataStore: ShareExtensionDataStore {
         }
     }
     
-    func send(to userId: UserID, text: String, media: [PendingMedia], linkPreviewData: LinkPreviewData? = nil, linkPreviewMedia: PendingMedia? = nil, completion: @escaping (Result<String, Error>) -> ()) {
+    func send(chatMessageRecipient: ChatMessageRecipient, text: String, media: [PendingMedia], linkPreviewData: LinkPreviewData? = nil, linkPreviewMedia: PendingMedia? = nil, completion: @escaping (Result<String, Error>) -> ()) {
 
         let messageId = UUID().uuidString
-        let isMsgToYourself: Bool = userId == AppContext.shared.userData.userId
+        let isMsgToYourself: Bool = chatMessageRecipient.toUserId == AppContext.shared.userData.userId
         
         DDLogInfo("SharedDataStore/message/\(messageId)/created")
         
@@ -461,7 +461,7 @@ class DataStore: ShareExtensionDataStore {
         mainDataStore.saveSeriallyOnBackgroundContext { managedObjectContext in
             let chatMessage = ChatMessage(context: managedObjectContext)
             chatMessage.id = messageId
-            chatMessage.toUserId = userId
+            chatMessage.chatMessageRecipient = chatMessageRecipient
             chatMessage.fromUserId = AppContext.shared.userData.userId
             chatMessage.rawText = text
             chatMessage.incomingStatus = .none
@@ -502,23 +502,11 @@ class DataStore: ShareExtensionDataStore {
             }
 
             // Update Chat Thread
-            if let chatThread = self.mainDataStore.chatThread(id: chatMessage.toUserID, in: managedObjectContext) {
-                chatThread.userID = chatMessage.toUserId
-                chatThread.lastMsgId = chatMessage.id
-                chatThread.lastMsgUserId = chatMessage.fromUserId
-                chatThread.lastMsgText = chatMessage.rawText
-                chatThread.lastMsgMediaType = lastMsgMediaType
-                chatThread.lastMsgStatus = .none
-                chatThread.lastMsgTimestamp = chatMessage.timestamp
-            } else {
-                let chatThread = CommonThread(context: managedObjectContext)
-                chatThread.userID = chatMessage.toUserId
-                chatThread.lastMsgId = chatMessage.id
-                chatThread.lastMsgUserId = chatMessage.fromUserId
-                chatThread.lastMsgText = chatMessage.rawText
-                chatThread.lastMsgMediaType = lastMsgMediaType
-                chatThread.lastMsgStatus = .none
-                chatThread.lastMsgTimestamp = chatMessage.timestamp
+            switch chatMessageRecipient {
+            case .oneToOneChat(let userId):
+                self.updateChatThread(chatType: .oneToOne, recipientId: userId, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, using: managedObjectContext)
+            case .groupChat(let groupId):
+                self.updateChatThread(chatType: .groupChat, recipientId: groupId, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, using: managedObjectContext)
             }
 
             self.save(managedObjectContext)
@@ -561,6 +549,28 @@ class DataStore: ShareExtensionDataStore {
                 self.send(message: chatMessage, completion: completion)
             }
         }
+    }
+
+    public func updateChatThread(chatType: ChatType, recipientId: String, chatMessage: ChatMessage, isMsgToYourself:Bool, lastMsgMediaType: CommonThread.LastMediaType, using context: NSManagedObjectContext) {
+        var chatThread: CommonThread
+        if let existingChatThread = self.mainDataStore.chatThread(type: chatType, id: recipientId, in: context) {
+            DDLogDebug("NotificationExtension/DataStore/updateChatThread/ update-thread")
+            chatThread = existingChatThread
+        } else {
+            DDLogDebug("NotificationExtension/DataStore//updateChatThread/\(chatMessage.id)/new-thread")
+            chatThread = CommonThread(context: context)
+            
+        }
+        chatThread.type = chatType
+        chatThread.userID = chatMessage.toUserId
+        chatThread.groupId = chatMessage.toGroupId
+        chatThread.lastMsgId = chatMessage.id
+        chatThread.lastMsgUserId = chatMessage.fromUserId
+        chatThread.lastMsgText = chatMessage.rawText
+        chatThread.lastMsgMediaType = lastMsgMediaType
+        chatThread.lastMsgStatus = isMsgToYourself ? .seen : .pending
+        chatThread.lastMsgTimestamp = chatMessage.timestamp
+        // note we do not update unread count here for the thread.
     }
 
     private func send(message: ChatMessage, completion: @escaping (Result<String, Error>) -> ()) {
