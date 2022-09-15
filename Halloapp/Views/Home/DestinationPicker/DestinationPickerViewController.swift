@@ -475,7 +475,7 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
             if !frequentlyContactedDataSource.subject.value.isEmpty {
                 snapshot.appendSections([.frequentlyContacted])
                 let frequentlyContactedDestinations = frequentlyContactedDataSource.subject.value.prefix(4)
-                    .compactMap { frequentlyContactedEntity in
+                    .compactMap { frequentlyContactedEntity -> DestinationPickerDestination? in
                         switch frequentlyContactedEntity {
                         case .user(userID: let contactID):
                             if let contact = MainAppContext.shared.contactStore.contact(withUserId: contactID, in: MainAppContext.shared.contactStore.viewContext) {
