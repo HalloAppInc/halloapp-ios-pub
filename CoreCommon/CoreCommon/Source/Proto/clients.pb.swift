@@ -415,6 +415,8 @@ public struct Clients_ChatContext {
 
   public var chatReplyMessageSenderID: String = String()
 
+  public var forwardCount: UInt32 = 0
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -1884,6 +1886,7 @@ extension Clients_ChatContext: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     3: .standard(proto: "chat_reply_message_id"),
     4: .standard(proto: "chat_reply_message_media_index"),
     5: .standard(proto: "chat_reply_message_sender_id"),
+    6: .standard(proto: "forward_count"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1897,6 +1900,7 @@ extension Clients_ChatContext: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
       case 3: try { try decoder.decodeSingularStringField(value: &self.chatReplyMessageID) }()
       case 4: try { try decoder.decodeSingularInt32Field(value: &self.chatReplyMessageMediaIndex) }()
       case 5: try { try decoder.decodeSingularStringField(value: &self.chatReplyMessageSenderID) }()
+      case 6: try { try decoder.decodeSingularUInt32Field(value: &self.forwardCount) }()
       default: break
       }
     }
@@ -1918,6 +1922,9 @@ extension Clients_ChatContext: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     if !self.chatReplyMessageSenderID.isEmpty {
       try visitor.visitSingularStringField(value: self.chatReplyMessageSenderID, fieldNumber: 5)
     }
+    if self.forwardCount != 0 {
+      try visitor.visitSingularUInt32Field(value: self.forwardCount, fieldNumber: 6)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -1927,6 +1934,7 @@ extension Clients_ChatContext: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     if lhs.chatReplyMessageID != rhs.chatReplyMessageID {return false}
     if lhs.chatReplyMessageMediaIndex != rhs.chatReplyMessageMediaIndex {return false}
     if lhs.chatReplyMessageSenderID != rhs.chatReplyMessageSenderID {return false}
+    if lhs.forwardCount != rhs.forwardCount {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
