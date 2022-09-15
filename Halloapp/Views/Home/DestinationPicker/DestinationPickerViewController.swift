@@ -30,6 +30,12 @@ private extension Localizations {
                                  value: "Feeds",
                                  comment: "Header when selecting destinations to forward a message, this header appears above the feeds section")
     }
+
+    static var frequentlyContactedHeader: String {
+        return NSLocalizedString("post.privacy.header.frequentlyContacted",
+                                 value: "Frequently Contacted",
+                                 comment: "Header when selecting destinations to forward a message, this header appears above the feeds section")
+    }
 }
 
 enum DestinationPickerConfig {
@@ -45,6 +51,8 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
     let feedPrivacyTypes = [PrivacyListType.all, PrivacyListType.whitelist]
 
     private let config: DestinationPickerConfig
+
+    private lazy var frequentlyContactedDataSource = FrequentlyContactedDataSource()
 
     private lazy var fetchedResultsController: NSFetchedResultsController<ChatThread> = {
         let request = ChatThread.fetchRequest()
@@ -175,17 +183,17 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
         return UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(createGroupAction))
     }()
 
-    private lazy var dataSource: UICollectionViewDiffableDataSource<DestinationSection, ShareDestination> = {
-        let source = UICollectionViewDiffableDataSource<DestinationSection, ShareDestination>(collectionView: collectionView) { [weak self] collectionView, indexPath, shareDestination in
+    private lazy var dataSource: UICollectionViewDiffableDataSource<DestinationSection, DestinationPickerDestination> = {
+        let source = UICollectionViewDiffableDataSource<DestinationSection, DestinationPickerDestination>(collectionView: collectionView) { [weak self] collectionView, indexPath, destination in
             
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: DestinationCell.reuseIdentifier, for: indexPath)
             
             guard let cell = cell as? DestinationCell, let self = self else { return cell }
-            let isSelected = self.selectedDestinations.contains { $0 == shareDestination }
+            let isSelected = self.selectedDestinations.contains(destination.shareDestination)
 
             cell.separator.isHidden = collectionView.numberOfItems(inSection: indexPath.section) - 1 == indexPath.row
 
-            switch shareDestination {
+            switch destination.shareDestination {
             case .feed(let privacyListType):
                 switch privacyListType {
                 case .all:
@@ -248,6 +256,8 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
         switch destinationSection {
         case .main:
             return Localizations.feedsHeader
+        case .frequentlyContacted:
+            return Localizations.frequentlyContactedHeader
         case .groups:
             return Localizations.groupsHeader
         case .contacts:
@@ -322,7 +332,13 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
     }
 
     enum DestinationSection {
-        case main, groups, contacts
+        case main, frequentlyContacted, groups, contacts
+    }
+
+    // Use section to allow differentiation between duplicate groups / contacts
+    struct DestinationPickerDestination: Hashable, Equatable {
+        let section: DestinationSection
+        let shareDestination: ShareDestination
     }
 
     private var cancellableSet: Set<AnyCancellable> = []
@@ -334,6 +350,10 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
         self.config = config
         self.selectedDestinations = destinations
         super.init(nibName: nil, bundle: nil)
+
+        frequentlyContactedDataSource.subject
+            .sink { [weak self] _ in self?.updateData() }
+            .store(in: &cancellableSet)
     }
 
     required init?(coder: NSCoder) {
@@ -373,6 +393,7 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
             try? fetchedResultsController.performFetch()
         }
         try? contactsFetchedResultsController.performFetch()
+        frequentlyContactedDataSource.performFetch()
 
         updateData()
         updateSelectionRow()
@@ -382,7 +403,7 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
     }
 
     private func updateData(searchString: String? = nil) {
-        var snapshot = NSDiffableDataSourceSnapshot<DestinationSection, ShareDestination>()
+        var snapshot = NSDiffableDataSourceSnapshot<DestinationSection, DestinationPickerDestination>()
         var allGroups:[ChatThread] = []
         if config == .composer {
             allGroups = fetchedResultsController.fetchedObjects ?? []
@@ -404,7 +425,8 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
                         if !snapshot.sectionIdentifiers.contains(DestinationSection.groups) {
                             snapshot.appendSections([DestinationSection.groups])
                         }
-                        snapshot.appendItems([.group(id: groupID, name: groupTitle)], toSection: DestinationSection.groups)
+                        let destination = DestinationPickerDestination(section: .groups, shareDestination: .group(id: groupID, name: groupTitle))
+                        snapshot.appendItems([destination], toSection: DestinationSection.groups)
                     }
                 }
             }
@@ -421,7 +443,7 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
                         if !snapshot.sectionIdentifiers.contains(DestinationSection.contacts) {
                             snapshot.appendSections([DestinationSection.contacts])
                         }
-                        snapshot.appendItems([destination], toSection: DestinationSection.contacts)
+                        snapshot.appendItems([DestinationPickerDestination(section: .contacts, shareDestination: destination)], toSection: DestinationSection.contacts)
                     }
                 }
             }
@@ -444,20 +466,42 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
 
             if config == .composer {
                 snapshot.appendSections([DestinationSection.main])
-                snapshot.appendItems([.feed(.all), .feed(.whitelist)], toSection: DestinationSection.main)
+                snapshot.appendItems([
+                    DestinationPickerDestination(section: .main, shareDestination: .feed(.all)),
+                    DestinationPickerDestination(section: .main, shareDestination: .feed(.whitelist))
+                ], toSection: DestinationSection.main)
+            }
+
+            if !frequentlyContactedDataSource.subject.value.isEmpty {
+                snapshot.appendSections([.frequentlyContacted])
+                let frequentlyContactedDestinations = frequentlyContactedDataSource.subject.value.prefix(4)
+                    .compactMap { frequentlyContactedEntity in
+                        switch frequentlyContactedEntity {
+                        case .user(userID: let contactID):
+                            if let contact = MainAppContext.shared.contactStore.contact(withUserId: contactID, in: MainAppContext.shared.contactStore.viewContext) {
+                                return DestinationPickerDestination(section: .frequentlyContacted, shareDestination: .contact(id: contactID, name: contact.fullName, phone: contact.phoneNumber))
+                            }
+                        case .group(groupID: let groupID):
+                            if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext) {
+                                return DestinationPickerDestination(section: .frequentlyContacted, shareDestination: .group(id: groupID, name: group.name))
+                            }
+                        }
+                        return nil
+                    }
+                snapshot.appendItems(frequentlyContactedDestinations, toSection: .frequentlyContacted)
             }
 
             if allGroups.count > 0 {
                 snapshot.appendSections([DestinationSection.groups])
                 snapshot.appendItems(allGroups.compactMap {
                     guard let groupID = $0.groupID, let title = $0.title else { return nil }
-                    return .group(id: groupID, name: title)
+                    return DestinationPickerDestination(section: .groups, shareDestination: .group(id: groupID, name: title))
                 }, toSection: DestinationSection.groups)
             }
             if contacts.count > 0 {
                 snapshot.appendSections([DestinationSection.contacts])
-                snapshot.appendItems(contacts.compactMap {
-                    return ShareDestination.destination(from: $0)
+                snapshot.appendItems(contacts.compactMap { contact in
+                    return ShareDestination.destination(from: contact).flatMap { DestinationPickerDestination(section: .contacts, shareDestination: $0) }
                 }, toSection: DestinationSection.contacts)
             }
         }
@@ -496,9 +540,9 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
 
 extension DestinationPickerViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        guard let shareDestination = dataSource.itemIdentifier(for: indexPath) else { return }
+        guard let destination = dataSource.itemIdentifier(for: indexPath) else { return }
         //toggle selection
-        toggleDestinationSelection(shareDestination)
+        toggleDestinationSelection(destination.shareDestination)
         onSelectionChange(destinations: selectedDestinations)
     }
 
