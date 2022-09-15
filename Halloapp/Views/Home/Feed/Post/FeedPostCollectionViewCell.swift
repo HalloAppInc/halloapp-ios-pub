@@ -50,7 +50,7 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
     // MARK: Layout
 
     struct LayoutConstants {
-        static let interCardSpacing: CGFloat = 50
+        static let interCardSpacing: CGFloat = 20
         static let backgroundCornerRadius: CGFloat = 20
         /**
          Content view (vertical stack takes standard table view content width: tableView.width - tableView.layoutMargins.left - tableView.layoutMargins.right
