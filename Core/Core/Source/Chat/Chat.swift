@@ -67,6 +67,22 @@ public enum ChatMessageRecipient {
             return nil
         }
     }
+
+    public var chatType: ChatType {
+        switch self {
+        case .oneToOneChat(_):
+            return .oneToOne
+        case .groupChat(_):
+            return .groupChat
+        }
+    }
+
+    public var recipientId: String? {
+        if let toUserId = toUserId {
+            return toUserId
+        }
+        return toGroupId
+    }
 }
 
 public protocol ChatMessageProtocol {

@@ -1615,12 +1615,7 @@ class ChatData: ObservableObject {
             }
 
             let isMsgToYourself = chatMessage.chatMessageRecipient.toUserId == userData.userId
-            switch chatMessage.chatMessageRecipient {
-            case .oneToOneChat(let userId):
-                coreChatData.updateChatThread(chatType: .oneToOne, recipientId: userId, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, using: managedObjectContext)
-            case .groupChat(let groupId):
-                coreChatData.updateChatThread(chatType: .groupChat, recipientId: groupId, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, using: managedObjectContext)
-            }
+            coreChatData.updateChatThreadOnMessageCreate(chatMessageRecipient: chatMessage.chatMessageRecipient, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, using: managedObjectContext)
             mergedMessages.append((message, chatMessage))
         }
         save(managedObjectContext)
@@ -2413,12 +2408,7 @@ extension ChatData {
         }
         
         // Update Chat Thread
-        switch chatMessageRecipient {
-        case .oneToOneChat(let userId):
-            coreChatData.updateChatThread(chatType: .oneToOne, recipientId: userId, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, using: context)
-        case .groupChat(let groupId):
-            coreChatData.updateChatThread(chatType: .groupChat, recipientId: groupId, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, using: context)
-        }
+        coreChatData.updateChatThreadOnMessageCreate(chatMessageRecipient: chatMessageRecipient, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, using: context)
                        
         save(context)
 

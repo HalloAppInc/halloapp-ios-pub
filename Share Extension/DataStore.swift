@@ -502,12 +502,7 @@ class DataStore: ShareExtensionDataStore {
             }
 
             // Update Chat Thread
-            switch chatMessageRecipient {
-            case .oneToOneChat(let userId):
-                self.updateChatThread(chatType: .oneToOne, recipientId: userId, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, using: managedObjectContext)
-            case .groupChat(let groupId):
-                self.updateChatThread(chatType: .groupChat, recipientId: groupId, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, using: managedObjectContext)
-            }
+            self.updateChatThreadOnMessageCreate(chatMessageRecipient: chatMessageRecipient, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, using: managedObjectContext)
 
             self.save(managedObjectContext)
 
@@ -551,9 +546,13 @@ class DataStore: ShareExtensionDataStore {
         }
     }
 
-    public func updateChatThread(chatType: ChatType, recipientId: String, chatMessage: ChatMessage, isMsgToYourself:Bool, lastMsgMediaType: CommonThread.LastMediaType, using context: NSManagedObjectContext) {
+    public func updateChatThreadOnMessageCreate(chatMessageRecipient: ChatMessageRecipient, chatMessage: ChatMessage, isMsgToYourself:Bool, lastMsgMediaType: CommonThread.LastMediaType, using context: NSManagedObjectContext) {
+        guard let recipientId = chatMessageRecipient.recipientId else {
+            DDLogError("NotificationExtension/DataStore/updateChatThread/ unable to update chat thread chatMessageId: \(chatMessage.id)")
+            return
+        }
         var chatThread: CommonThread
-        if let existingChatThread = self.mainDataStore.chatThread(type: chatType, id: recipientId, in: context) {
+        if let existingChatThread = self.mainDataStore.chatThread(type: chatMessageRecipient.chatType, id: recipientId, in: context) {
             DDLogDebug("NotificationExtension/DataStore/updateChatThread/ update-thread")
             chatThread = existingChatThread
         } else {
@@ -561,7 +560,7 @@ class DataStore: ShareExtensionDataStore {
             chatThread = CommonThread(context: context)
             
         }
-        chatThread.type = chatType
+        chatThread.type = chatMessageRecipient.chatType
         chatThread.userID = chatMessage.toUserId
         chatThread.groupId = chatMessage.toGroupId
         chatThread.lastMsgId = chatMessage.id

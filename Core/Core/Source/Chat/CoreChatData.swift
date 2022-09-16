@@ -286,12 +286,7 @@ public class CoreChatData {
         }
 
         // Update Chat Thread
-        switch chatMessageRecipient {
-        case .oneToOneChat(let userId):
-            updateChatThread(chatType: .oneToOne, recipientId: userId, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, using: context)
-        case .groupChat(let groupId):
-            updateChatThread(chatType: .groupChat, recipientId: groupId, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, using: context)
-        }
+        updateChatThreadOnMessageCreate(chatMessageRecipient: chatMessageRecipient, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, using: context)
 
         mainDataStore.save(context)
 
@@ -306,11 +301,15 @@ public class CoreChatData {
         return messageId
     }
 
-    public func updateChatThread(chatType: ChatType, recipientId: String, chatMessage: ChatMessage, isMsgToYourself:Bool, lastMsgMediaType: CommonThread.LastMediaType, using context: NSManagedObjectContext) {
+    public func updateChatThreadOnMessageCreate(chatMessageRecipient: ChatMessageRecipient, chatMessage: ChatMessage, isMsgToYourself:Bool, lastMsgMediaType: CommonThread.LastMediaType, using context: NSManagedObjectContext) {
+        guard let recipientId = chatMessageRecipient.recipientId else {
+            DDLogError("CoreChatData/updateChatThread/ unable to update chat thread chatMessageId: \(chatMessage.id)")
+            return
+        }
         var chatThread: CommonThread
         let isIncomingMsg = chatMessage.fromUserID != userData.userId
         let isCurrentlyChattingWithUser = isCurrentlyChatting(with: recipientId)
-        if let existingChatThread = self.chatThread(type: chatType, id: recipientId, in: context) {
+        if let existingChatThread = self.chatThread(type: chatMessageRecipient.chatType, id: recipientId, in: context) {
             DDLogDebug("CoreChatData/updateChatThread/ update-thread")
             chatThread = existingChatThread
             if isIncomingMsg {
@@ -324,7 +323,7 @@ public class CoreChatData {
             chatThread = CommonThread(context: context)
             chatThread.userID = chatMessage.toUserId
             chatThread.groupId = chatMessage.toGroupId
-            chatThread.type = chatType
+            chatThread.type = chatMessageRecipient.chatType
             if isIncomingMsg {
                 chatThread.unreadCount = 1
             } else if isCurrentlyChattingWithUser {
