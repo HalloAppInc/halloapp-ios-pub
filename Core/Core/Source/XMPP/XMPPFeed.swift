@@ -335,7 +335,8 @@ public struct MentionData: Codable, FeedMentionProtocol {
 
 public struct FeedMediaData: FeedMediaProtocol {
 
-    public init(id: String, url: URL?, type: CommonMediaType, size: CGSize, key: String, sha256: String, blobVersion: BlobVersion, chunkSize: Int32, blobSize: Int64) {
+    public init(name: String?, id: String, url: URL?, type: CommonMediaType, size: CGSize, key: String, sha256: String, blobVersion: BlobVersion, chunkSize: Int32, blobSize: Int64) {
+        self.name = name
         self.id = id
         self.url = url
         self.type = type
@@ -349,6 +350,7 @@ public struct FeedMediaData: FeedMediaProtocol {
 
     public init(from media: FeedMediaProtocol) {
         self.init(
+            name: media.name,
             id: media.id,
             url: media.url,
             type: media.type,
@@ -369,6 +371,7 @@ public struct FeedMediaData: FeedMediaProtocol {
     public let blobVersion: BlobVersion
     public let chunkSize: Int32
     public let blobSize: Int64
+    public let name: String?
 
     public init?(id: String, protoMedia: Clients_Media) {
         guard let type: CommonMediaType = {
@@ -391,6 +394,7 @@ public struct FeedMediaData: FeedMediaProtocol {
         self.blobVersion = BlobVersion.init(fromProto: protoMedia.blobVersion)
         self.chunkSize = protoMedia.chunkSize
         self.blobSize = protoMedia.blobSize
+        self.name = nil
     }
 
     public init?(id: String, clientImage: Clients_Image) {
@@ -413,6 +417,7 @@ public struct FeedMediaData: FeedMediaProtocol {
         self.blobVersion = .default
         self.chunkSize = 0
         self.blobSize = 0
+        self.name = nil
     }
 
     public init?(id: String, clientVideo: Clients_Video) {
@@ -436,6 +441,7 @@ public struct FeedMediaData: FeedMediaProtocol {
         self.blobVersion = BlobVersion.init(fromProto: clientVideo.streamingInfo.blobVersion)
         self.chunkSize = clientVideo.streamingInfo.chunkSize
         self.blobSize = clientVideo.streamingInfo.blobSize
+        self.name = nil
     }
 
     public init?(id: String, clientVoiceNote: Clients_VoiceNote) {
@@ -453,6 +459,7 @@ public struct FeedMediaData: FeedMediaProtocol {
         self.blobVersion = .default
         self.chunkSize = 0
         self.blobSize = 0
+        self.name = nil
     }
 
     public init?(id: String, albumMedia: Clients_AlbumMedia) {

@@ -106,6 +106,8 @@ class QuotedMediaPanel: UIStackView, InputContextPanel {
             updateImageConstraints()
         case .audio:
             return
+        case .document:
+            return
         }
     }
 

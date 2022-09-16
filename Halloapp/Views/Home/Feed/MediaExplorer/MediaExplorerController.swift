@@ -169,6 +169,8 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
                 update = item.videoDidBecomeAvailable.map { _ in (item.fileURL, item.image, item.size) }.eraseToAnyPublisher()
             case .audio:
                 fatalError("audio is not supported in fullscreen")
+            case .document:
+                fatalError("documents are not supported in fullscreen")
             }
 
             return MediaExplorerMedia(
@@ -445,6 +447,8 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
             return cell
         case .audio:
             fatalError("audio is not supported in fullscreen")
+        case .document:
+            fatalError("documents are not supported in fullscreen")
         }
     }
 

@@ -95,6 +95,7 @@ extension ContentInputView {
     struct InputContent {
         let mentionText: MentionText
         let media: [PendingMedia]
+        let files: [FileSharingData]
         let linkPreview: (data: LinkPreviewData, media: PendingMedia?)?
     }
     
@@ -1084,12 +1085,11 @@ extension ContentInputView: AudioRecorderControlViewDelegate {
         if let linkPreview = linkPreview, let linkMedia = linkPreview.media, !linkMedia.ready.value {
             return linkMedia.ready.sink { [weak self] ready in
                 guard let self = self, ready else { return }
-                self.delegate?.inputView(self, didPost: .init(mentionText: text, media: [], linkPreview: linkPreview))
+                self.delegate?.inputView(self, didPost: .init(mentionText: text, media: [], files: [], linkPreview: linkPreview))
                 self.reset()
             }.store(in: &cancellables)
         }
-
-        delegate?.inputView(self, didPost: .init(mentionText: text, media: media, linkPreview: linkPreview))
+        delegate?.inputView(self, didPost: .init(mentionText: text, media: media, files: [], linkPreview: linkPreview))
         reset()
     }
 

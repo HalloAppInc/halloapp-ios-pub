@@ -700,7 +700,7 @@ class ComposerViewController: UIViewController {
                 navigationItem.rightBarButtonItems = [drawButtonItem, annotateButtonItem, cropButtonItem]
             case .video:
                 navigationItem.rightBarButtonItems = [cropButtonItem]
-            case .audio:
+            case .audio, .document:
                 navigationItem.rightBarButtonItems = []
             }
         } else if initialType == .voiceNote || (initialType != .unified && voiceNote != nil) {

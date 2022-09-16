@@ -17,6 +17,7 @@ public enum CommonMediaType: Int16, Codable {
     case image = 0
     case video = 1
     case audio = 2
+    case document = 3
 }
 
 public enum MediaDirectory: Int16 {
@@ -85,6 +86,8 @@ public extension CommonMedia {
     @NSManaged var id: CommonMediaID
     @NSManaged var typeValue: Int16
     @NSManaged var relativeFilePath: String?
+    @NSManaged var name: String?
+    @NSManaged var fileSize: Int64
     @NSManaged var url: URL?
     @NSManaged var uploadURL: URL?
     @NSManaged var post: FeedPost?
@@ -328,28 +331,31 @@ public extension CommonMedia {
 
 extension CommonMedia {
 
-    public static func copyMedia(from pendingMedia: PendingMedia, to feedPostMedia: CommonMedia) throws {
+    public static func copyMedia(from pendingMedia: PendingMedia, to commonMedia: CommonMedia) throws {
         guard let sourceURL = pendingMedia.fileURL else {
             DDLogError("CommonMedia/copyMedia/sourceURL is nil/pendingMedia: \(pendingMedia)")
             return
         }
+        try copyMedia(at: sourceURL, encryptedFileURL: pendingMedia.encryptedFileUrl, fileExtension: fileExtension(forMediaType: pendingMedia.type), to: commonMedia)
+    }
 
+    public static func copyMedia(at sourceURL: URL, encryptedFileURL: URL?, fileExtension: String, to commonMedia: CommonMedia) throws {
         // Set destination string based on the content id.
-        let mediaFilename = feedPostMedia.id
+        let mediaFilename = commonMedia.id
 
-        // Copy unencrypted file.
-        let destinationFileURL = fileURL(forMediaFilename: mediaFilename).appendingPathExtension(fileExtension(forMediaType: pendingMedia.type))
+        // Copy unencrypted file
+        let destinationFileURL = fileURL(forMediaFilename: mediaFilename).appendingPathExtension(fileExtension)
         try FileManager.default.createDirectory(at: destinationFileURL.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
         try FileManager.default.copyItem(at: sourceURL, to: destinationFileURL)
 
         // Copy encrypted file if any - same path and file name, with added "enc" file extension.
-        if let encryptedFileUrl = pendingMedia.encryptedFileUrl {
-            let encryptedDestinationUrl = destinationFileURL.appendingPathExtension("enc")
-            try FileManager.default.copyItem(at: encryptedFileUrl, to: encryptedDestinationUrl)
+        if let encryptedFileURL = encryptedFileURL {
+            let encryptedDestinationURL = destinationFileURL.appendingPathExtension("enc")
+            try FileManager.default.copyItem(at: encryptedFileURL, to: encryptedDestinationURL)
         }
         let mediaDirectory = MediaDirectory.commonMedia
-        feedPostMedia.mediaDirectory = mediaDirectory
-        feedPostMedia.relativeFilePath = mediaDirectory.relativePath(forFileURL: destinationFileURL)
+        commonMedia.mediaDirectory = mediaDirectory
+        commonMedia.relativeFilePath = mediaDirectory.relativePath(forFileURL: destinationFileURL)
         DDLogInfo("FeedDownloadManager/copyMedia/from: \(sourceURL)/to: \(destinationFileURL)")
     }
 
@@ -380,6 +386,9 @@ extension CommonMedia {
             return "mp4"
         case .audio:
             return "aac"
+        case .document:
+            DDLogWarn("CommonMedia/fileExtension/warn [no extension available for document media type]")
+            return ""
         }
     }
 }

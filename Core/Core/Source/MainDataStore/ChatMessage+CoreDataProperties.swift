@@ -134,7 +134,7 @@ public extension ChatMessage {
                     mediaData = linkPreviewMedia
                         .map {
                             // @TODO Unify Media Objects. Github issue: 1502
-                            FeedMediaData(id: "", url: $0.url , type: $0.type , size: $0.size, key: $0.key, sha256: $0.sha256, blobVersion: .default, chunkSize: 0, blobSize: 0)
+                            FeedMediaData(name: nil, id: "", url: $0.url , type: $0.type , size: $0.size, key: $0.key, sha256: $0.sha256, blobVersion: .default, chunkSize: 0, blobSize: 0)
                         }
                 }
                 if let linkPreview = LinkPreviewData(id: linkPreview.id, url: linkPreview.url, title: linkPreview.title ?? "", description: linkPreview.desc ?? "", previewImages: mediaData) {

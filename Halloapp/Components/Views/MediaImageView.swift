@@ -173,11 +173,11 @@ class MediaImageView: UIImageView {
         mediaStatusCancellable = feedMedia.mediaStatusDidChange.receive(on: DispatchQueue.main).sink(receiveValue: onMediaStatusChange)
 
         switch feedMedia.type {
-        case .audio:
+        case .audio, .document:
             videoIndicator.isHidden = true
-            showPlaceholderImage(for: .audio)
+            showPlaceholderImage(for: feedMedia.type)
             #if DEBUG
-            fatalError("MediaImageView cannot support audio")
+            fatalError("MediaImageView cannot support type (\(feedMedia.type)")
             #endif
         case .image:
             videoIndicator.isHidden = true
@@ -237,10 +237,10 @@ class MediaImageView: UIImageView {
         videoIndicator.isHidden = media.type != .video || configuration.useAnimatedVideoPreview
 
         switch media.type {
-        case .audio:
-            showPlaceholderImage(for: .audio)
+        case .audio, .document:
+            showPlaceholderImage(for: media.type)
             #if DEBUG
-            fatalError("MediaImageView cannot support audio")
+            fatalError("MediaImageView cannot support type (\(media.type)")
             #endif
         case .image:
             if let url = media.mediaURL {
@@ -274,7 +274,7 @@ class MediaImageView: UIImageView {
             self.load(mediaType, url: url)
 
             switch media.type {
-            case .audio:
+            case .audio, .document:
                 break
             case .image:
                 self.load(mediaType, url: url)
@@ -306,7 +306,7 @@ class MediaImageView: UIImageView {
                 } else {
                     image = VideoUtils.videoPreviewImage(url: url, size: self.configuration.maxVideoPreviewSize)
                 }
-            case .audio:
+            case .audio, .document:
                 return // only images and videos
             }
 
@@ -340,6 +340,8 @@ class MediaImageView: UIImageView {
             super.image = UIImage(systemName: "photo")
         case .video:
             super.image = UIImage(systemName: "video")
+        case .document:
+            super.image = UIImage(systemName: "doc")
         }
     }
 

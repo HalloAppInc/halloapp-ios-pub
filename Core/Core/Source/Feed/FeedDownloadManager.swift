@@ -50,7 +50,11 @@ public class FeedDownloadManager {
 
         fileprivate var filename: String {
             get {
-                return "\(id).\(FeedDownloadManager.fileExtension(forMediaType: mediaData.type))"
+                if let name = mediaData.name, !name.isEmpty {
+                    return name
+                } else {
+                    return "\(id).\(CommonMedia.fileExtension(forMediaType: mediaData.type))"
+                }
             }
         }
 
@@ -605,17 +609,6 @@ public class FeedDownloadManager {
     }
 
     // MARK: File management
-
-    public class func fileExtension(forMediaType mediaType: CommonMediaType) -> String {
-        switch mediaType {
-        case .image:
-            return "jpg"
-        case .video:
-            return "mp4"
-        case .audio:
-            return "aac"
-        }
-    }
 
     public func fileURL(forMediaFilename mediaFilename: String) -> URL {
         var first: String?, second: String?

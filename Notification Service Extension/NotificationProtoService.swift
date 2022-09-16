@@ -1349,8 +1349,16 @@ extension NotificationProtoService: FeedDownloadManagerDelegate {
                 return
             }
 
-            let filename = fileURL.deletingPathExtension().lastPathComponent
-            let relativeFilePath = SharedDataStore.relativeFilePath(forFilename: filename, mediaType: feedMediaItem.type)
+            let relativeFilePath: String = {
+                switch feedMediaItem.type {
+                case .video, .audio, .image:
+                    return SharedDataStore.relativeFilePath(
+                        forFilename: fileURL.deletingPathExtension().lastPathComponent,
+                        mediaType: feedMediaItem.type)
+                case .document:
+                    return fileURL.lastPathComponent
+                }
+            }()
             do {
                 // Try and include this media item in the notification now.
                 if let contentId = feedMediaItem.contentOwnerID,

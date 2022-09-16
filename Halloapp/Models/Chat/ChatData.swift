@@ -839,7 +839,7 @@ class ChatData: ObservableObject {
                     }
                     let content = chatContainer.chatContent
                     switch content {
-                    case .album, .text, .voiceNote, .location:
+                    case .album, .text, .voiceNote, .location, .files:
                         let timestamp = message.timestamp ?? Date()
                         let reinterpretedMessage = XMPPChatMessage(
                             content: chatContainer.chatContent,
@@ -1049,6 +1049,7 @@ class ChatData: ObservableObject {
             var photosDownloaded = 0
             var videosDownloaded = 0
             var audiosDownloaded = 0
+            var docsDownloaded = 0
             var totalDownloadSize = 0
 
             guard mediaItem.url != nil else { continue }
@@ -1063,6 +1064,7 @@ class ChatData: ObservableObject {
                 case .image: photosDownloaded += 1
                 case .video: videosDownloaded += 1
                 case .audio: audiosDownloaded += 1
+                case .document: docsDownloaded += 1
                 }
                 if startTime == nil {
                     startTime = Date()
@@ -1084,13 +1086,13 @@ class ChatData: ObservableObject {
             }
 
             mediaDownloadGroup.notify(queue: .main) {
-                guard photosDownloaded > 0 || videosDownloaded > 0 || audiosDownloaded > 0 else { return }
+                guard photosDownloaded > 0 || videosDownloaded > 0 || audiosDownloaded > 0 || docsDownloaded > 0 else { return }
                 guard let startTime = startTime else {
                     DDLogError("ChatData/downloadChatMedia/contentID: \(contentID)/error start time not set")
                     return
                 }
                 let duration = Date().timeIntervalSince(startTime)
-                DDLogInfo("ChatData/downloadChatMedia/contentID: \(contentID)/finished [photos: \(photosDownloaded)] [videos: \(videosDownloaded)] [audios: \(audiosDownloaded)] [t: \(duration)] [bytes: \(totalDownloadSize)]")
+                DDLogInfo("ChatData/downloadChatMedia/contentID: \(contentID)/finished [photos: \(photosDownloaded)] [videos: \(videosDownloaded)] [audios: \(audiosDownloaded)] [docs: \(docsDownloaded)] [t: \(duration)] [bytes: \(totalDownloadSize)]")
             }
         }
 
@@ -1238,20 +1240,14 @@ class ChatData: ObservableObject {
             threadId = toUserId
             messageId = chatMessage.id
         }
-        
-        let order = chatMedia.order
 
-        let fileExtension: String = {
-            switch chatMedia.type {
-            case .image:
-                return "jpg"
-            case .video:
-                return "mp4"
-            case .audio:
-                return "aac"
+        let filename: String = {
+            if let filename = chatMedia.name, !filename.isEmpty {
+                return filename
+            } else {
+                return "\(messageId)-\(chatMedia.order).\(CommonMedia.fileExtension(forMediaType: chatMedia.type))"
             }
-        } ()
-        let filename = "\(messageId)-\(order).\(fileExtension)"
+        }()
         
         let toUrl = MainAppContext.commonMediaStoreURL
             .appendingPathComponent(threadId, isDirectory: true)
@@ -1309,6 +1305,8 @@ class ChatData: ObservableObject {
             previewImage = VideoUtils.videoPreviewImage(url: fromURL)
         case .audio:
             previewImage = nil // no image to preview
+        case .document:
+            previewImage = nil // not currently showing preview in quoted panel
         }
         guard let img = previewImage else {
             DDLogError("ChatData/copyMediaToQuotedMedia/unable to generate thumbnail image for media url: \(fromURL)")
@@ -1476,6 +1474,7 @@ class ChatData: ObservableObject {
             // Check if the message is an incoming message.
             let isIncomingMsg = [.received, .acked].contains(message.status)
 
+            var lastMsgTextFallback: String?
             switch chatContent {
             case .album(let text, _):
                 chatMessage.rawText = text
@@ -1488,6 +1487,9 @@ class ChatData: ObservableObject {
                 chatMessage.rawText = emoji
             case .location(let chatLocation):
                 chatMessage.location = CommonLocation(chatLocation: chatLocation, context: managedObjectContext)
+            case .files(let files):
+                chatMessage.rawText = ""
+                lastMsgTextFallback = files.first?.name
             case .unsupported(let data):
                 chatMessage.rawData = data
                 // Overwrite incoming status for unsupported messages
@@ -1534,6 +1536,7 @@ class ChatData: ObservableObject {
                     chatMedia.sha256 = sharedPreviewMedia.sha256
                     chatMedia.linkPreview = linkPreview
                     chatMedia.mediaDirectory = .chatMedia
+                    chatMedia.name = sharedPreviewMedia.name
                     linkPreview.message = chatMessage
                     if let relativeFilePath = sharedPreviewMedia.relativeFilePath {
                         do {
@@ -1550,6 +1553,7 @@ class ChatData: ObservableObject {
             }
 
             var lastMsgMediaType: ChatThread.LastMediaType = .none
+
             message.media?.forEach { media in
                 DDLogInfo("ChatData/mergeSharedData/message/\(messageId)/add-media [\(media)], status: \(media.status)")
                 let chatMedia = CommonMedia(context: managedObjectContext)
@@ -1581,6 +1585,7 @@ class ChatData: ObservableObject {
                 chatMedia.order = media.order
                 chatMedia.sha256 = media.sha256
                 chatMedia.message = chatMessage
+                chatMedia.name = media.name
                 if let relativeFilePath = media.relativeFilePath {
                     do {
                         let sourceUrl = sharedDataStore.fileURL(forRelativeFilePath: relativeFilePath)
@@ -1615,7 +1620,13 @@ class ChatData: ObservableObject {
             }
 
             let isMsgToYourself = chatMessage.chatMessageRecipient.toUserId == userData.userId
-            coreChatData.updateChatThreadOnMessageCreate(chatMessageRecipient: chatMessage.chatMessageRecipient, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, using: managedObjectContext)
+            coreChatData.updateChatThreadOnMessageCreate(
+                chatMessageRecipient: chatMessage.chatMessageRecipient,
+                chatMessage: chatMessage,
+                isMsgToYourself: isMsgToYourself,
+                lastMsgMediaType: lastMsgMediaType,
+                lastMsgText: (chatMessage.rawText ?? "").isEmpty ? lastMsgTextFallback : chatMessage.rawText,
+                using: managedObjectContext)
             mergedMessages.append((message, chatMessage))
         }
         save(managedObjectContext)
@@ -1791,6 +1802,7 @@ extension ChatData: FeedDownloadManagerDelegate {
                 chatMediaItem.mediaDirectory = .commonMedia
                 chatMediaItem.status = task.isPartialChunkedDownload ? .downloadedPartial : .downloaded
                 chatMediaItem.relativeFilePath = task.decryptedFilePath
+                chatMediaItem.fileSize = Int64(task.fileSize ?? 0)
                 if task.isPartialChunkedDownload, let chunkSet = task.downloadedChunkSet {
                     DDLogDebug("ChatData/download-task/\(task.id)/feedDownloadManager chunkSet=[\(chunkSet)]")
                     chatMediaItem.chunkSet = chunkSet.data
@@ -2120,6 +2132,7 @@ extension ChatData {
     func sendMessage(chatMessageRecipient: ChatMessageRecipient,
                      text: String,
                      media: [PendingMedia],
+                     files: [FileSharingData],
                      linkPreviewData: LinkPreviewData? = nil,
                      linkPreviewMedia : PendingMedia? = nil,
                      location: ChatLocationProtocol? = nil,
@@ -2138,6 +2151,7 @@ extension ChatData {
             self.createChatMsg(chatMessageRecipient: chatMessageRecipient,
                                 text: text,
                                 media: media,
+                                files: files,
                                 linkPreviewData: linkPreviewData,
                                 linkPreviewMedia : linkPreviewMedia,
                                 location: location,
@@ -2153,12 +2167,17 @@ extension ChatData {
     func forwardChatMessages(toUserIds: [String], chatMessage: ChatMessage) {
         // Prepare chat message
         var media: [PendingMedia] = []
+        var files: [FileSharingData] = []
         var linkPreviewData: LinkPreviewData? = nil
         var linkPreviewMedia: PendingMedia? = nil
         var chatLocation: ChatLocation? = nil
         if let chatMedia = chatMessage.media {
             for mediaItem in chatMedia {
-                if let url = mediaItem.mediaURL {
+                guard let url = mediaItem.mediaURL else {
+                    continue
+                }
+                switch mediaItem.type {
+                case .image, .audio, .video:
                     let pendingMedia = PendingMedia(type: mediaItem.type)
                     pendingMedia.size = mediaItem.size
                     pendingMedia.fileURL = url
@@ -2168,6 +2187,13 @@ extension ChatData {
                         pendingMedia.originalVideoURL = url
                     }
                     media.append(pendingMedia)
+                case .document:
+                    DDLogInfo("forwardChatMessages \(mediaItem.order) [document]")
+                    let fileData = FileSharingData(
+                        name: mediaItem.name ?? "file",
+                        size: Int(mediaItem.fileSize),
+                        localURL: url)
+                    files.append(fileData)
                 }
             }
         }
@@ -2202,6 +2228,7 @@ extension ChatData {
                 self.createChatMsg( chatMessageRecipient: ChatMessageRecipient.oneToOneChat(toUserId),
                                     text: text ?? "",
                                     media: media,
+                                    files: files,
                                     linkPreviewData: linkPreviewData,
                                     linkPreviewMedia : linkPreviewMedia,
                                     location: chatLocation,
@@ -2218,13 +2245,14 @@ extension ChatData {
 
     /// - Returns: A chat message object that should be used on the main thread.
     @discardableResult
-    func sendMomentReply(chatMessageRecipient: ChatMessageRecipient, postID: FeedPostID, text: String, media: [PendingMedia]) async -> ChatMessage? {
+    func sendMomentReply(chatMessageRecipient: ChatMessageRecipient, postID: FeedPostID, text: String, media: [PendingMedia], files: [FileSharingData]) async -> ChatMessage? {
         await withCheckedContinuation { continuation in
             performSeriallyOnBackgroundContext { context in
                 DDLogInfo("ChatData/sendMomentReply/createChatMsg/toUserId: \(String(describing: chatMessageRecipient.toUserId))")
                 let id = self.createChatMsg(chatMessageRecipient: chatMessageRecipient,
                                 text: text,
                                media: media,
+                               files: files,
                      linkPreviewData: nil,
                     linkPreviewMedia: nil,
                             location: nil,
@@ -2246,6 +2274,7 @@ extension ChatData {
     func createChatMsg(chatMessageRecipient: ChatMessageRecipient,
                         text: String,
                         media: [PendingMedia],
+                        files: [FileSharingData],
                         linkPreviewData: LinkPreviewData?,
                         linkPreviewMedia : PendingMedia?,
                         location: ChatLocationProtocol?,
@@ -2261,6 +2290,7 @@ extension ChatData {
             return coreChatData.createChatMsg(chatMessageRecipient: chatMessageRecipient,
                                               text: text,
                                               media: media,
+                                              files: files,
                                               linkPreviewData: linkPreviewData,
                                               linkPreviewMedia: linkPreviewMedia,
                                               location: location,
@@ -2298,7 +2328,10 @@ extension ChatData {
         chatMessage.serialID = serialID
 
         var lastMsgMediaType: ChatThread.LastMediaType = .none // going with the first media
-        
+
+        if !files.isEmpty {
+            DDLogError("ChatData/createChatMsg/\(messageId)/error [file-sharing-requires-new-uploader]")
+        }
         for (index, mediaItem) in media.enumerated() {
             DDLogDebug("ChatData/createChatMsg/\(messageId)/add-media [\(mediaItem)]")
             guard let mediaItemSize = mediaItem.size,
@@ -2408,7 +2441,7 @@ extension ChatData {
         }
         
         // Update Chat Thread
-        coreChatData.updateChatThreadOnMessageCreate(chatMessageRecipient: chatMessageRecipient, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, using: context)
+        coreChatData.updateChatThreadOnMessageCreate(chatMessageRecipient: chatMessageRecipient, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, lastMsgText: chatMessage.rawText, using: context)
                        
         save(context)
 
@@ -2474,6 +2507,7 @@ extension ChatData {
                 media.sha256 = previewMedia.sha256
                 media.linkPreview = linkPreview
                 media.order = Int16(index)
+                media.name = previewMedia.name
             }
             linkPreview.message = chatMessage
         }
@@ -2871,6 +2905,8 @@ extension ChatData {
                     reactionText = String(format: Localizations.chatListYouReactedAudio, commonReaction.emoji)
                 case .image:
                     reactionText = String(format: Localizations.chatListYouReactedImage, commonReaction.emoji)
+                case .document:
+                    reactionText = String(format: Localizations.chatListYouReactedMessage, commonReaction.emoji)
                 case .none:
                     break
                 }
@@ -2927,6 +2963,8 @@ extension ChatData {
                         reactionText = String(format: Localizations.chatListYouDeletedReactionAudio, commonReaction.emoji)
                     case .image:
                         reactionText = String(format: Localizations.chatListYouDeletedReactionImage, commonReaction.emoji)
+                    case .document:
+                        reactionText = String(format: Localizations.chatListYouDeletedReactionMessage, commonReaction.emoji)
                     case .none:
                         break
                     }
@@ -3614,7 +3652,7 @@ extension ChatData {
                     switch chatMessage.content {
                     case .reaction(_):
                         self.processInboundReaction(xmppReaction: chatMessage, using: managedObjectContext, isAppActive: isAppActive)
-                    case .album, .text, .voiceNote, .location, .unsupported:
+                    case .album, .text, .voiceNote, .location, .files, .unsupported:
                         self.processInboundChatMessage(xmppChatMessage: chatMessage, using: managedObjectContext, isAppActive: isAppActive)
                         self.didGetAChatMsg.send(chatMessage.fromUserId)
                     }
@@ -3693,7 +3731,8 @@ extension ChatData {
         let serialID = MainAppContext.shared.getchatMsgSerialId()
         DDLogDebug("ChatData/processInboundChatMessage/\(xmppChatMessage.id)/serialId [\(serialID)]")
         chatMessage.serialID = serialID
-        
+
+        var lastMsgTextFallback: String?
         var lastMsgMediaType: ChatThread.LastMediaType = .none // going with the first media found
         
         // Process chat content
@@ -3718,6 +3757,7 @@ extension ChatData {
                 chatMedia.order = Int16(index)
                 chatMedia.sha256 = xmppMedia.sha256
                 chatMedia.message = chatMessage
+                chatMedia.name = xmppMedia.name
             }
         case .voiceNote(let xmppMedia):
             guard let downloadUrl = xmppMedia.url else { break }
@@ -3738,6 +3778,30 @@ extension ChatData {
             chatMedia.order = 0
             chatMedia.sha256 = xmppMedia.sha256
             chatMedia.message = chatMessage
+            chatMedia.name = xmppMedia.name
+        case .files(let files):
+            for (index, xmppMedia) in files.enumerated() {
+                guard let downloadUrl = xmppMedia.url else { break }
+
+                DDLogDebug("ChatData/process/new/add-media [\(downloadUrl)]")
+
+                chatMessage.rawText = ""
+                lastMsgMediaType = .document
+                lastMsgTextFallback = xmppMedia.name
+
+                let chatMedia = CommonMedia(context: managedObjectContext)
+                chatMedia.id = "\(chatMessage.id)-\(index)"
+                chatMedia.type = .document
+                chatMedia.incomingStatus = .pending
+                chatMedia.outgoingStatus = .none
+                chatMedia.url = xmppMedia.url
+                chatMedia.size = xmppMedia.size
+                chatMedia.key = xmppMedia.key
+                chatMedia.order = 0
+                chatMedia.sha256 = xmppMedia.sha256
+                chatMedia.message = chatMessage
+                chatMedia.name = xmppMedia.name
+            }
         case .text(let text, let linkPreviewData):
             chatMessage.rawText = text
             addLinkPreview( chatMessage: chatMessage, linkPreviewData: linkPreviewData, using: managedObjectContext)
@@ -3767,6 +3831,8 @@ extension ChatData {
 
         save(managedObjectContext) // extra save
 
+        let lastMsgText = (chatMessage.rawText ?? "").isEmpty ? lastMsgTextFallback : chatMessage.rawText
+
         // Update Chat Thread
         if let chatThread = self.chatThread(type: ChatType.oneToOne, id: chatMessage.fromUserId, in: managedObjectContext) {
             // do an extra save since fetchedcontroller have issues with detecting re-ordering changes for properties
@@ -3776,7 +3842,7 @@ extension ChatData {
 
             chatThread.lastMsgId = chatMessage.id
             chatThread.lastMsgUserId = chatMessage.fromUserId
-            chatThread.lastMsgText = chatMessage.rawText
+            chatThread.lastMsgText = lastMsgText
             chatThread.lastMsgMediaType = lastMsgMediaType
             chatThread.lastMsgStatus = .none
             chatThread.lastMsgTimestamp = chatMessage.timestamp
@@ -3787,7 +3853,7 @@ extension ChatData {
             chatThread.userID = chatMessage.fromUserId
             chatThread.lastMsgId = chatMessage.id
             chatThread.lastMsgUserId = chatMessage.fromUserId
-            chatThread.lastMsgText = chatMessage.rawText
+            chatThread.lastMsgText = lastMsgText
             chatThread.lastMsgMediaType = lastMsgMediaType
             chatThread.lastMsgStatus = .none
             chatThread.lastMsgTimestamp = chatMessage.timestamp
@@ -3855,7 +3921,7 @@ extension ChatData {
         switch xmppReaction.content {
         case .reaction(let emoji):
             commonReaction.emoji = emoji
-        case .album, .text, .voiceNote, .location, .unsupported:
+        case .album, .text, .voiceNote, .location, .files, .unsupported:
             DDLogError("ChatData/processInboundReaction content not reaction type")
         }
         if let chatReplyMsgId = xmppReaction.context.chatReplyMessageID {
@@ -3889,6 +3955,8 @@ extension ChatData {
                     reactionText = String(format: Localizations.chatListUserReactedAudio, fromUserName, commonReaction.emoji)
                 case .image:
                     reactionText = String(format: Localizations.chatListUserReactedImage, fromUserName, commonReaction.emoji)
+                case .document:
+                    reactionText = String(format: Localizations.chatListUserReactedMessage, fromUserName, commonReaction.emoji)
                 case .none:
                     break
                 }
@@ -4057,6 +4125,8 @@ extension ChatData {
                         reactionText = String(format: Localizations.chatListUserDeletedReactionAudio, fromUserName, commonReaction.emoji)
                     case .image:
                         reactionText = String(format: Localizations.chatListUserDeletedReactionImage, fromUserName, commonReaction.emoji)
+                    case .document:
+                        reactionText = String(format: Localizations.chatListUserDeletedReactionMessage, fromUserName, commonReaction.emoji)
                     case .none:
                         break
                     }
@@ -4284,6 +4354,7 @@ extension ChatData {
                 case .image: return "📷"
                 case .video: return "📹"
                 case .audio: return "🎤"
+                case .document: return "📄"
                 }
             }()
             body = [mediaStr, text].compactMap { $0 }.joined(separator: " ")
@@ -4293,6 +4364,13 @@ extension ChatData {
             body = "📍"
         case .reaction(let emoji):
             body = String(format: Localizations.chatUserReactedMessage, emoji)
+        case .files(let files):
+            let filenames = files.compactMap { $0.name }
+            var bodyComponents: [String?] = ["📄", filenames.first]
+            if filenames.count > 1 {
+                bodyComponents.append("...")
+            }
+            body = bodyComponents.compactMap { $0 }.joined(separator: " ")
         case .unsupported(_):
             body = ""
         }

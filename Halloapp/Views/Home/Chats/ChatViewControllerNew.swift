@@ -136,6 +136,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     static private let messageCellViewMediaReuseIdentifier = "MessageCellViewMedia"
     static private let messageCellViewAudioReuseIdentifier = "MessageCellViewAudio"
     static private let messageCellViewLocationReuseIdentifier = "MessageCellViewLocation"
+    static private let messageCellViewDocumentReuseIdentifier = "MessageCellViewDocument"
     static private let messageCellViewLinkPreviewReuseIdentifier = "MessageCellViewLinkPreview"
     static private let messageCellViewQuotedReuseIdentifier = "MessageCellViewQuoted"
     static private let messageCellViewEventReuseIdentifier = "MessageCellViewEvent"
@@ -231,6 +232,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         collectionView.register(MessageCellViewMedia.self, forCellWithReuseIdentifier: ChatViewControllerNew.messageCellViewMediaReuseIdentifier)
         collectionView.register(MessageCellViewAudio.self, forCellWithReuseIdentifier: ChatViewControllerNew.messageCellViewAudioReuseIdentifier)
         collectionView.register(MessageCellViewLocation.self, forCellWithReuseIdentifier: ChatViewControllerNew.messageCellViewLocationReuseIdentifier)
+        collectionView.register(MessageCellViewDocument.self, forCellWithReuseIdentifier: ChatViewControllerNew.messageCellViewDocumentReuseIdentifier)
         collectionView.register(MessageCellViewLinkPreview.self, forCellWithReuseIdentifier: ChatViewControllerNew.messageCellViewLinkPreviewReuseIdentifier)
         collectionView.register(MessageCellViewQuoted.self, forCellWithReuseIdentifier: ChatViewControllerNew.messageCellViewQuotedReuseIdentifier)
         collectionView.register(MessageUnreadHeaderView.self, forCellWithReuseIdentifier: MessageUnreadHeaderView.elementKind)
@@ -272,6 +274,15 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                 self.configureCell(itemCell: itemCell, for: chatMessage)
             }
             return cell
+        } else if chatMessage.media?.first?.type == .document {
+            let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: ChatViewControllerNew.messageCellViewDocumentReuseIdentifier,
+                for: indexPath)
+            if let itemCell = cell as? MessageCellViewDocument {
+                self.configureCell(itemCell: itemCell, for: chatMessage)
+            }
+            return cell
+
         }
         if let feedLinkPreviews = chatMessage.linkPreviews, feedLinkPreviews.first != nil {
             let cell = collectionView.dequeueReusableCell(
@@ -308,6 +319,8 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         }
         return cell
     }
+
+    fileprivate var documentInteractionController: UIDocumentInteractionController?
 
     private lazy var dataSource: ChatDataSource = {
         let dataSource = ChatDataSource(
@@ -611,7 +624,8 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                     let info = QuotedItemPanel.PostInfo(userID: feedPost.userId,
                                                           text: mentionText?.string ?? "",
                                                      mediaType: mediaType,
-                                                     mediaLink: mediaUrl)
+                                                     mediaLink: mediaUrl,
+                                                     mediaName: mediaItem.name)
                     let panel = QuotedItemPanel()
                     panel.postInfo = info
                     contentInputView.display(context: panel)
@@ -619,7 +633,8 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                     let info = QuotedItemPanel.PostInfo(userID: feedPost.userId,
                                                           text: mentionText?.string ?? "",
                                                      mediaType: nil,
-                                                     mediaLink: nil)
+                                                     mediaLink: nil,
+                                                     mediaName: nil)
                     let panel = QuotedItemPanel()
                     panel.postInfo = info
                     contentInputView.display(context: panel)
@@ -974,12 +989,13 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         }
     }
 
-    func sendMessage(text: String, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?, location: ChatLocationProtocol? = nil) {
+    func sendMessage(text: String, media: [PendingMedia], files: [FileSharingData], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?, location: ChatLocationProtocol? = nil) {
         guard let sendToUserId = self.fromUserId else { return }
 
         MainAppContext.shared.chatData.sendMessage(chatMessageRecipient: .oneToOneChat(sendToUserId),
                                                        text: text,
                                                       media: media,
+                                                      files: files,
                                             linkPreviewData: linkPreviewData,
                                            linkPreviewMedia: linkPreviewMedia,
                                                    location: location,
@@ -1175,27 +1191,23 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
            let replySenderID = chatReplyMessageSenderID,
            let replyMessage = MainAppContext.shared.chatData.chatMessage(with: replyMessageID, in: MainAppContext.shared.chatData.viewContext) {
 
-            if let replyMedia = replyMessage.media, !replyMedia.isEmpty {
-                let replyIndex = replyMedia.index(replyMedia.startIndex, offsetBy: Int(chatReplyMessageMediaIndex))
-                let mediaObject = replyMedia[replyIndex]
-                if let mediaURL = mediaObject.url?.absoluteString {
-                    let media = ChatReplyMedia(type: mediaObject.type, mediaURL: mediaURL)
-
-                    let reply = ReplyContext(replyMessageID: replyMessageID,
-                          replySenderID: replySenderID,
-                          mediaIndex: chatReplyMessageMediaIndex,
-                          text: replyMessage.rawText ?? "",
-                          media: media)
-
-                    return reply
+            let replyMedia: ChatReplyMedia? = {
+                let media = replyMessage.orderedMedia
+                guard media.count > chatReplyMessageMediaIndex && chatReplyMessageMediaIndex >= 0 else {
+                    return nil
                 }
-            }
+                let mediaObject = media[Int(chatReplyMessageMediaIndex)]
+                guard let url = mediaObject.mediaURL?.absoluteString else {
+                    return nil
+                }
+                return ChatReplyMedia(type: mediaObject.type, mediaURL: url, name: mediaObject.name)
+            }()
 
             let reply = ReplyContext(replyMessageID: replyMessageID,
                   replySenderID: replySenderID,
                   mediaIndex: chatReplyMessageMediaIndex,
                   text: replyMessage.rawText ?? "",
-                  media: nil)
+                  media: replyMedia)
 
             return reply
         } else if let feedPostId = self.feedPostId {
@@ -1302,6 +1314,7 @@ extension ChatViewControllerNew: ContentInputDelegate {
     func inputView(_ inputView: ContentInputView, didPost content: ContentInputView.InputContent) {
         sendMessage(text: content.mentionText.trimmed().collapsedText,
                     media: content.media,
+                    files: content.files,
                     linkPreviewData: content.linkPreview?.data,
                     linkPreviewMedia: content.linkPreview?.media)
     }
@@ -1357,6 +1370,12 @@ extension ChatViewControllerNew: ContentInputDelegate {
                 self?.presentLocationSharingViewController()
             }
         }
+
+        if ServerProperties.isFileSharingEnabled {
+            HAMenuButton(title: Localizations.addMediaOptionDocument, image: UIImage(systemName: "doc.fill")) { [weak self] in
+                self?.presentFilePicker()
+            }
+        }
     }
     
     private func presentLocationSharingViewController() {
@@ -1367,7 +1386,7 @@ extension ChatViewControllerNew: ContentInputDelegate {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] placemark in
                 self?.dismiss(animated: true)
-                self?.sendMessage(text: "", media: [], linkPreviewData: nil, linkPreviewMedia: nil, location: ChatLocation(placemark: placemark))
+                self?.sendMessage(text: "", media: [], files: [], linkPreviewData: nil, linkPreviewMedia: nil, location: ChatLocation(placemark: placemark))
             }
             .store(in: &cancellableSet)
 
@@ -1416,7 +1435,11 @@ extension ChatViewControllerNew: ContentInputDelegate {
                 let text = result.text?.trimmed().collapsedText ?? ""
 
                 if success {
-                    self.sendMessage(text: text, media: media, linkPreviewData: result.linkPreviewData, linkPreviewMedia: result.linkPreviewMedia)
+                    self.sendMessage(text: text,
+                                     media: media,
+                                     files: [],
+                                     linkPreviewData: result.linkPreviewData,
+                                     linkPreviewMedia: result.linkPreviewMedia)
                     self.view.window?.rootViewController?.dismiss(animated: true, completion: nil)
                 } else {
                     controller.dismiss(animated: false)
@@ -1440,6 +1463,21 @@ extension ChatViewControllerNew: ContentInputDelegate {
 
         let presenter = presentedViewController ?? self
         presenter.present(UINavigationController(rootViewController: composerController), animated: false)
+    }
+
+    private func presentFilePicker() {
+        let vc: UIDocumentPickerViewController
+        if #available(iOS 14.0, *) {
+            vc = UIDocumentPickerViewController(forOpeningContentTypes: [.data])
+        } else {
+            vc = UIDocumentPickerViewController(documentTypes: ["public.data"], in: .open)
+        }
+        vc.delegate = self
+        present(vc, animated: true)
+
+        if !firstActionHappened {
+            didAction()
+        }
     }
 
     func inputView(_ inputView: ContentInputView, didInterrupt recorder: AudioRecorder) {
@@ -1497,7 +1535,7 @@ extension ChatViewControllerNew: PostComposerViewDelegate {
                         linkPreviewData: LinkPreviewData? = nil,
                        linkPreviewMedia: PendingMedia? = nil) {
 
-        sendMessage(text: mentionText.trimmed().collapsedText, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
+        sendMessage(text: mentionText.trimmed().collapsedText, media: media, files: [], linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
         view.window?.rootViewController?.dismiss(animated: true, completion: nil)
     }
 
@@ -1518,7 +1556,59 @@ extension ChatViewControllerNew: PostComposerViewDelegate {
     }
 }
 
+extension ChatViewControllerNew: UIDocumentInteractionControllerDelegate {
+    func documentInteractionControllerViewControllerForPreview(_ controller: UIDocumentInteractionController) -> UIViewController {
+        return self
+    }
+    func documentInteractionControllerDidEndPreview(_ controller: UIDocumentInteractionController) {
+        documentInteractionController = nil
+    }
+}
+
+extension ChatViewControllerNew: UIDocumentPickerDelegate {
+    func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
+        DDLogInfo("ChatViewControllerNew/documentPickerWasCancelled")
+    }
+
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        DDLogInfo("ChatViewControllerNew/didPickDocuments")
+        // TODO: handle multiple files
+        guard let documentURL = urls.first else { return }
+        guard let threadID = fromUserId else { return }
+        guard documentURL.startAccessingSecurityScopedResource() else {
+            DDLogError("Unable to access security scoped resource [\(documentURL)]")
+            return
+        }
+        defer {
+            documentURL.stopAccessingSecurityScopedResource()
+        }
+        let filename = documentURL.lastPathComponent
+
+        let localURL = MainAppContext.commonMediaStoreURL
+            .appendingPathComponent(threadID, isDirectory: true)
+            .appendingPathComponent(filename, isDirectory: false)
+
+        // create intermediate directories
+        if !FileManager.default.fileExists(atPath: localURL.path) {
+            do {
+                try FileManager.default.createDirectory(at: localURL.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
+            } catch {
+                DDLogError(error.localizedDescription)
+            }
+        }
+
+        try? FileManager.default.copyItem(at: documentURL, to: localURL)
+        let fileData = FileSharingData(
+            name: filename,
+            size: (try? localURL.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0,
+            localURL: localURL)
+
+        sendMessage(text: "", media: [], files: [fileData], linkPreviewData: nil, linkPreviewMedia: nil)
+    }
+}
+
 extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewControllerChatDelegate, ReactionListViewControllerDelegate {
+
     func messageView(_ messageViewCell: MessageCellViewBase, didTapUserId userId: UserID) {
 
     }
@@ -1595,6 +1685,12 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
         present(vc, animated: true)
     }
 
+    func messageView(_ messageViewCell: MessageCellViewBase, openDocument documentURL: URL) {
+        documentInteractionController = UIDocumentInteractionController(url: documentURL)
+        documentInteractionController?.delegate = self
+        documentInteractionController?.presentPreview(animated: true)
+    }
+
     func messageView(_ messageViewCell: MessageCellViewBase, replyToChat chatMessage: ChatMessage) {
         guard chatMessage.incomingStatus != .retracted else { return }
         guard ![.retracting, .retracted].contains(chatMessage.outgoingStatus) else { return }
@@ -1640,7 +1736,8 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
             let info = QuotedItemPanel.PostInfo(userID: userID,
                                                  text: chatMessage.rawText ?? "",
                                             mediaType: mediaItem.type,
-                                            mediaLink: mediaUrl)
+                                            mediaLink: mediaUrl,
+                                            mediaName: mediaItem.name)
             let panel = QuotedItemPanel()
             panel.postInfo = info
             contentInputView.display(context: panel)
@@ -1648,7 +1745,8 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
             let info = QuotedItemPanel.PostInfo(userID: userID,
                                                  text: chatMessage.rawText ?? "",
                                             mediaType: nil,
-                                            mediaLink: nil)
+                                            mediaLink: nil,
+                                            mediaName: nil)
             let panel = QuotedItemPanel()
             panel.postInfo = info
             contentInputView.display(context: panel)
@@ -1685,7 +1783,8 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
             let info = QuotedItemPanel.PostInfo(userID: reply.replySenderID,
                                                   text: reply.text,
                                              mediaType: reply.media?.type,
-                                             mediaLink: mediaURL)
+                                             mediaLink: mediaURL,
+                                             mediaName: reply.media?.name)
             let panel = QuotedItemPanel()
             panel.postInfo = info
             contentInputView.display(context: panel)
@@ -1693,7 +1792,8 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
             let info = QuotedItemPanel.PostInfo(userID: reply.replySenderID,
                                                   text: reply.text,
                                              mediaType: nil,
-                                             mediaLink: nil)
+                                             mediaLink: nil,
+                                             mediaName: nil)
             let panel = QuotedItemPanel()
             panel.postInfo = info
             contentInputView.display(context: panel)
@@ -1880,6 +1980,7 @@ fileprivate class QuotedItemPanel: UIView, InputContextPanel {
         let text: String
         let mediaType: CommonMediaType?
         let mediaLink: URL?
+        let mediaName: String?
     }
 
     var postInfo: PostInfo? {
@@ -1918,11 +2019,11 @@ fileprivate class QuotedItemPanel: UIView, InputContextPanel {
         }
 
         if let mediaType = postInfo.mediaType, let mediaLink = postInfo.mediaLink {
-            configureMedia(mediaType, mediaLink)
+            configureMedia(mediaType, url: mediaLink, name: postInfo.mediaName)
         }
     }
 
-    private func configureMedia(_ mediaType: CommonMediaType, _ url: URL) {
+    private func configureMedia(_ mediaType: CommonMediaType, url: URL, name: String? = nil) {
         quoteFeedPanelImage.isHidden = false
         switch mediaType {
         case .image:
@@ -1954,6 +2055,23 @@ fileprivate class QuotedItemPanel: UIView, InputContextPanel {
 
             quoteFeedPanelTextLabel.attributedText = text.with(font: UIFont.preferredFont(forTextStyle: .subheadline),
                                                               color: UIColor.secondaryLabel)
+        case .document:
+            quoteFeedPanelImage.isHidden = true
+            let displayText: String = {
+                guard let name = name, !name.isEmpty else {
+                    return Localizations.chatMessageDocument
+                }
+                return name
+            }()
+            let attrString: NSMutableAttributedString = {
+                guard let icon = UIImage(systemName: "doc") else {
+                    return NSMutableAttributedString(string: "📄")
+                }
+                return NSMutableAttributedString(attachment: NSTextAttachment(image: icon))
+            }()
+            attrString.append(NSAttributedString(string: " \(displayText)"))
+
+            quoteFeedPanelTextLabel.attributedText = attrString
         }
     }
 

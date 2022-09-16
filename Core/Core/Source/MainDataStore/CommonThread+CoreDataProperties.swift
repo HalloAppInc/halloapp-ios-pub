@@ -41,6 +41,7 @@ public extension CommonThread {
         case incomingVideoCall = 8
         case outgoingVideoCall = 9
         case location = 10
+        case document = 11
     }
 
     enum LastFeedStatus: Int16 {
@@ -121,6 +122,8 @@ public extension CommonThread {
             return .video
         case .audio:
             return .audio
+        case .document:
+            return .document
         }
     }
 }

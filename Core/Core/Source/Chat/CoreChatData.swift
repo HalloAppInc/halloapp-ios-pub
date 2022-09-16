@@ -13,6 +13,17 @@ import Combine
 import CocoaLumberjackSwift
 import Intents
 
+public struct FileSharingData {
+    public init(name: String, size: Int, localURL: URL) {
+        self.localURL = localURL
+        self.size = size
+        self.name = name
+    }
+
+    public var localURL: URL
+    public var size: Int
+    public var name: String
+}
 
 // TODO: (murali@): reuse this logic in ChatData
 
@@ -69,6 +80,7 @@ public class CoreChatData {
     public func sendMessage(chatMessageRecipient: ChatMessageRecipient,
                             text: String,
                             media: [PendingMedia],
+                            files: [FileSharingData],
                             linkPreviewData: LinkPreviewData? = nil,
                             linkPreviewMedia : PendingMedia? = nil,
                             location: ChatLocationProtocol? = nil,
@@ -90,6 +102,7 @@ public class CoreChatData {
             self.createChatMsg(chatMessageRecipient: chatMessageRecipient,
                                text: text,
                                media: media,
+                               files: files,
                                linkPreviewData: linkPreviewData,
                                linkPreviewMedia: linkPreviewMedia,
                                location: location,
@@ -109,6 +122,7 @@ public class CoreChatData {
     public func createChatMsg(chatMessageRecipient: ChatMessageRecipient,
                               text: String,
                               media: [PendingMedia],
+                              files: [FileSharingData],
                               linkPreviewData: LinkPreviewData?,
                               linkPreviewMedia : PendingMedia?,
                               location: ChatLocationProtocol?,
@@ -147,6 +161,7 @@ public class CoreChatData {
         DDLogDebug("CoreChatData/createChatMsg/\(messageId)/serialId [\(serialID)]")
         chatMessage.serialID = serialID
 
+        var lastMsgTextFallback: String?
         var lastMsgMediaType: CommonThread.LastMediaType = .none // going with the first media
 
         var mediaIDs: [CommonMediaID] = []
@@ -177,6 +192,41 @@ public class CoreChatData {
 
             do {
                 try CommonMedia.copyMedia(from: mediaItem, to: chatMedia)
+            }
+            catch {
+                DDLogError("CoreChatData/createChatMsg/\(messageId)/copy-media/error [\(error)]")
+            }
+        }
+
+        for (index, file) in files.enumerated() {
+            DDLogDebug("CoreChatData/createChatMsg/\(messageId)/add-file [\(file.localURL)]")
+
+            // TODO: Iterate over files with other media to avoid this adjusted index
+            let adjustedIndex = index + media.count
+            let chatMedia = CommonMedia(context: context)
+            let chatMediaID = "\(chatMessage.id)-\(adjustedIndex)"
+            chatMedia.id = chatMediaID
+            mediaIDs.append(chatMediaID)
+            chatMedia.type = .document
+            chatMedia.name = file.name
+            chatMedia.fileSize = Int64(file.size)
+            if lastMsgMediaType == .none {
+                lastMsgMediaType = CommonThread.lastMediaType(for: .document)
+            }
+            lastMsgTextFallback = file.name
+            chatMedia.outgoingStatus = isMsgToYourself ? .uploaded : .pending
+            chatMedia.url = file.localURL
+            chatMedia.key = ""
+            chatMedia.sha256 = ""
+            chatMedia.order = Int16(adjustedIndex)
+            chatMedia.message = chatMessage
+
+            do {
+                try CommonMedia.copyMedia(
+                    at: file.localURL,
+                    encryptedFileURL: nil,
+                    fileExtension: file.localURL.pathExtension,
+                    to: chatMedia)
             }
             catch {
                 DDLogError("CoreChatData/createChatMsg/\(messageId)/copy-media/error [\(error)]")
@@ -286,7 +336,13 @@ public class CoreChatData {
         }
 
         // Update Chat Thread
-        updateChatThreadOnMessageCreate(chatMessageRecipient: chatMessageRecipient, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, using: context)
+        updateChatThreadOnMessageCreate(
+            chatMessageRecipient: chatMessageRecipient,
+            chatMessage: chatMessage,
+            isMsgToYourself: isMsgToYourself,
+            lastMsgMediaType: lastMsgMediaType,
+            lastMsgText: (chatMessage.rawText ?? "").isEmpty ? lastMsgTextFallback : chatMessage.rawText,
+            using: context)
 
         mainDataStore.save(context)
 
@@ -301,7 +357,7 @@ public class CoreChatData {
         return messageId
     }
 
-    public func updateChatThreadOnMessageCreate(chatMessageRecipient: ChatMessageRecipient, chatMessage: ChatMessage, isMsgToYourself:Bool, lastMsgMediaType: CommonThread.LastMediaType, using context: NSManagedObjectContext) {
+    public func updateChatThreadOnMessageCreate(chatMessageRecipient: ChatMessageRecipient, chatMessage: ChatMessage, isMsgToYourself:Bool, lastMsgMediaType: CommonThread.LastMediaType, lastMsgText: String?, using context: NSManagedObjectContext) {
         guard let recipientId = chatMessageRecipient.recipientId else {
             DDLogError("CoreChatData/updateChatThread/ unable to update chat thread chatMessageId: \(chatMessage.id)")
             return
@@ -334,7 +390,7 @@ public class CoreChatData {
 
         chatThread.lastMsgId = chatMessage.id
         chatThread.lastMsgUserId = chatMessage.fromUserId
-        chatThread.lastMsgText = chatMessage.rawText
+        chatThread.lastMsgText = lastMsgText
         chatThread.lastMsgMediaType = lastMsgMediaType
         chatThread.lastMsgStatus = isMsgToYourself ? .seen : .pending
         chatThread.lastMsgTimestamp = chatMessage.timestamp
@@ -884,7 +940,7 @@ public class CoreChatData {
             switch  chatMessageProtocol.content {
             case .reaction(_):
                 saveReaction(chatMessageProtocol, hasBeenProcessed: hasBeenProcessed, completion: completion)
-            case .album, .text, .voiceNote, .location, .unsupported:
+            case .album, .text, .voiceNote, .location, .files, .unsupported:
                 saveChatMessage(chatMessageProtocol, hasBeenProcessed: hasBeenProcessed, completion: completion)
             }
         }
@@ -963,6 +1019,7 @@ public class CoreChatData {
 
 
             var lastMsgMediaType: CommonThread.LastMediaType = .none
+            var lastMsgTextFallback: String?
             // Process chat content
             switch chatMessageProtocol.content {
             case .album(let text, let media):
@@ -984,6 +1041,10 @@ public class CoreChatData {
             case .location(let chatLocation):
                 chatMessage.location = CommonLocation(chatLocation: chatLocation, context: context)
                 lastMsgMediaType = .location
+            case .files(let files):
+                chatMessage.rawText = ""
+                lastMsgMediaType = .document
+                lastMsgTextFallback = files.first?.name
             case .unsupported(let data):
                 chatMessage.rawData = data
                 chatMessage.incomingStatus = .unsupported
@@ -1023,6 +1084,7 @@ public class CoreChatData {
                 chatMedia.key = media.key
                 chatMedia.order = Int16(index)
                 chatMedia.sha256 = media.sha256
+                chatMedia.name = media.name
                 chatMedia.message = chatMessage
             }
 
@@ -1040,11 +1102,12 @@ public class CoreChatData {
             }
 
             // Update Chat Thread
+            let lastMsgText = (chatMessage.rawText ?? "").isEmpty ? lastMsgTextFallback : chatMessage.rawText
             if let chatThread = self.chatThread(type: ChatType.oneToOne, id: chatMessage.fromUserId, in: context) {
                 chatThread.lastMsgTimestamp = chatMessage.timestamp
                 chatThread.lastMsgId = chatMessage.id
                 chatThread.lastMsgUserId = chatMessage.fromUserId
-                chatThread.lastMsgText = chatMessage.rawText
+                chatThread.lastMsgText = lastMsgText
                 chatThread.lastMsgMediaType = lastMsgMediaType
                 chatThread.lastMsgStatus = .none
                 chatThread.lastMsgTimestamp = chatMessage.timestamp
@@ -1054,7 +1117,7 @@ public class CoreChatData {
                 chatThread.userID = chatMessage.fromUserId
                 chatThread.lastMsgId = chatMessage.id
                 chatThread.lastMsgUserId = chatMessage.fromUserId
-                chatThread.lastMsgText = chatMessage.rawText
+                chatThread.lastMsgText = lastMsgText
                 chatThread.lastMsgMediaType = lastMsgMediaType
                 chatThread.lastMsgStatus = .none
                 chatThread.lastMsgTimestamp = chatMessage.timestamp
@@ -1099,7 +1162,7 @@ public class CoreChatData {
             switch chatMessageProtocol.content {
             case .reaction(let emoji):
                 commonReaction.emoji = emoji
-            case .album, .text, .voiceNote, .location, .unsupported:
+            case .album, .text, .voiceNote, .location, .files, .unsupported:
                 DDLogError("CoreChatData/saveReaction content not reaction type")
             }
             if let chatReplyMsgId = chatMessageProtocol.context.chatReplyMessageID {
@@ -1263,7 +1326,7 @@ public class CoreChatData {
             previewImage = UIImage(contentsOfFile: mediaURL.path)
         case .video:
             previewImage = VideoUtils.videoPreviewImage(url: mediaURL)
-        case .audio:
+        case .audio, .document:
             previewImage = nil // No image to preview
         }
 

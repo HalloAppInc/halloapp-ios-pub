@@ -385,8 +385,8 @@ class MediaEditViewController: UIViewController {
                 guard let self = self else { return }
                 self.navigationItem.rightBarButtonItem?.image = self.muteIcon($0)
             }
-        case .audio:
-            break // audio edit is not currently suported
+        case .audio, .document:
+            break // not currently suported
         }
 
         navigationItem.rightBarButtonItems?.append(undoButtonItem)
@@ -408,8 +408,8 @@ class MediaEditViewController: UIViewController {
             controller = ImageEditViewController(media[selected], config: config)
         case .video:
             controller = VideoEditViewController(media[selected], config: config)
-        case .audio:
-            return // audio edit is not currently suported
+        case .audio, .document:
+            return // not currently suported
         }
 
         controller.view.translatesAutoresizingMaskIntoConstraints = false

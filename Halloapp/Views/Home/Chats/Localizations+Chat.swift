@@ -41,6 +41,10 @@ extension Localizations {
         NSLocalizedString("chat.message.audio", value: "Audio note", comment: "Message text shown in a message that have audio media but no text")
     }
 
+    static var chatMessageDocument: String {
+        NSLocalizedString("chat.message.document", value: "File", comment: "Message text shown in a message that has document but no text")
+    }
+
     static var chatMessageAudioPost: String {
         NSLocalizedString("chat.message.audiopost", value: "Audio post", comment: "Message text shown for quoted audio posts")
     }

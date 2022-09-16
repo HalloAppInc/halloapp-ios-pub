@@ -830,6 +830,7 @@ class ShareComposerViewController: UIViewController {
                 AppContext.shared.coreChatData.sendMessage(chatMessageRecipient: .oneToOneChat(chatListSyncItem.userId),
                                                            text: text,
                                                            media: media,
+                                                           files: [],
                                                            linkPreviewData: linkPreviewData,
                                                            linkPreviewMedia: linkPreviewMedia,
                                                            didCreateMessage: showProcessingAlertIfNeeded,
@@ -1076,6 +1077,8 @@ extension ShareComposerViewController: UICollectionViewDataSource, UICollectionV
             }
             return cell
         case .audio:
+            return collectionView.dequeueReusableCell(withReuseIdentifier: EmptyCell.reuseIdentifier, for: indexPath)
+        case .document:
             return collectionView.dequeueReusableCell(withReuseIdentifier: EmptyCell.reuseIdentifier, for: indexPath)
         }
     }

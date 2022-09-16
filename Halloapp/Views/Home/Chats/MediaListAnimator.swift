@@ -264,8 +264,8 @@ class MediaListAnimator: NSObject, UIViewControllerAnimatedTransitioning, UIView
         case .video:
             guard let image = VideoUtils.videoPreviewImage(url: media.url) else { return nil }
             imageView.image = image
-        case .audio:
-            return nil // no transition for audio media
+        case .audio, .document:
+            return nil // no transition
         }
 
         return imageView

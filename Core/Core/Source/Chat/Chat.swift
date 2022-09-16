@@ -23,12 +23,14 @@ public struct MediaCounters {
     var numImages: Int32 = 0
     var numVideos: Int32 = 0
     var numAudio: Int32 = 0
+    var numFiles: Int32 = 0
 
     mutating func count(_ mediaType: CommonMediaType) {
         switch mediaType {
         case .image: numImages += 1
         case .video: numVideos += 1
         case .audio: numAudio += 1
+        case .document: numFiles += 1
         }
     }
 }
@@ -38,6 +40,7 @@ extension MediaCounters {
         lhs.numImages += rhs.numImages
         lhs.numVideos += rhs.numVideos
         lhs.numAudio += rhs.numAudio
+        lhs.numFiles += rhs.numFiles
     }
 }
 
@@ -111,6 +114,7 @@ public enum ChatContent {
     case reaction(String)
     case voiceNote(ChatMediaProtocol)
     case location(any ChatLocationProtocol)
+    case files([ChatMediaProtocol])
     case unsupported(Data)
 }
 
@@ -209,6 +213,18 @@ public extension ChatMessageProtocol {
             container.message = .voiceNote(vn)
         case .location(let location):
             container.message = .location(location.protoMessage)
+        case .files(let files):
+            var protoFiles = Clients_Files()
+            protoFiles.files = files.compactMap {
+                guard let protoResource = $0.protoResource else { return nil }
+                var protoFile = Clients_File()
+                protoFile.data = protoResource
+                if let name = $0.name {
+                    protoFile.filename = name
+                }
+                return protoFile
+            }
+            container.message = .files(protoFiles)
         case .unsupported(_):
             return nil
         }
@@ -224,7 +240,9 @@ public extension ChatMessageProtocol {
             }
             return counters
         case .voiceNote(_):
-            return MediaCounters(numImages: 0, numVideos: 0, numAudio: 1)
+            return MediaCounters(numImages: 0, numVideos: 0, numAudio: 1, numFiles: 0)
+        case .files(let files):
+            return MediaCounters(numImages: 0, numVideos: 0, numAudio: 0, numFiles: Int32(files.count))
         case .text, .reaction, .location, .unsupported:
             return MediaCounters()
         }
@@ -236,6 +254,7 @@ public extension ChatMessageProtocol {
         counters.numImages = mediaCounters.numImages
         counters.numVideos = mediaCounters.numVideos
         counters.numAudio = mediaCounters.numAudio
+        // TODO-DOC add files to server media counters
         return counters
     }
 }
@@ -249,6 +268,7 @@ public protocol ChatMediaProtocol {
     var blobVersion: BlobVersion { get }
     var chunkSize: Int32 { get }
     var blobSize: Int64 { get }
+    var name: String? { get }
 }
 
 public extension ChatMediaProtocol {
@@ -335,7 +355,7 @@ public extension ChatMediaProtocol {
             streamingInfo.blobSize = blobSize
             vid.streamingInfo = streamingInfo
             albumMedia.media = .video(vid)
-        case .audio:
+        case .audio, .document:
             return nil
         }
         return albumMedia
@@ -372,6 +392,9 @@ extension Clients_MediaType {
             self = .video
         case .audio:
             self = .audio
+        case .document:
+            DDLogWarn("ClientsMediaType/init/warn [document-type-not-available-in-schema]")
+            self = .unspecified
         }
     }
 }
@@ -409,9 +432,22 @@ extension Clients_ChatContainer {
         case .location(let location):
             return .location(ChatLocation(location))
         case .voiceNote(let voiceNote):
-            guard let media = XMPPChatMedia(audio: voiceNote.audio) else { fallthrough }
+            guard let media = XMPPChatMedia(audio: voiceNote.audio) else
+            {
+                let data = try? serializedData()
+                return .unsupported(data ?? Data())
+            }
             return .voiceNote(media)
-        case .contactCard, .files, .none:
+        case .files(let files):
+            guard let file = files.files.first,
+                  files.files.count == 1,
+                  let media = XMPPChatMedia(file: file) else
+            {
+                let data = try? serializedData()
+                return .unsupported(data ?? Data())
+            }
+            return .files([media])
+        case .contactCard, .none:
             let data = try? serializedData()
             return .unsupported(data ?? Data())
         }
@@ -427,8 +463,9 @@ public struct XMPPChatMedia {
     public var blobVersion: BlobVersion
     public var chunkSize: Int32
     public var blobSize: Int64
+    public var name: String?
 
-    public init(url: URL? = nil, type: CommonMediaType, size: CGSize, key: String, sha256: String, blobVersion: BlobVersion, chunkSize: Int32, blobSize: Int64) {
+    public init(name: String? = nil, url: URL? = nil, type: CommonMediaType, size: CGSize, key: String, sha256: String, blobVersion: BlobVersion, chunkSize: Int32, blobSize: Int64) {
         self.url = url
         self.type = type
         self.size = size
@@ -437,6 +474,7 @@ public struct XMPPChatMedia {
         self.blobVersion = blobVersion
         self.chunkSize = chunkSize
         self.blobSize = blobSize
+        self.name = name
     }
 
     public init?(protoMedia: Clients_Media) {
@@ -500,6 +538,20 @@ public struct XMPPChatMedia {
         blobVersion = .default
         chunkSize = 0
         blobSize = 0
+    }
+
+    public init?(file: Clients_File) {
+        guard let downloadURL = URL(string: file.data.downloadURL) else { return nil }
+
+        type = .document
+        url = downloadURL
+        size = .zero
+        key = file.data.encryptionKey.base64EncodedString()
+        sha256 = file.data.ciphertextHash.base64EncodedString()
+        blobVersion = .default
+        chunkSize = 0
+        blobSize = 0
+        name = file.filename
     }
 }
 

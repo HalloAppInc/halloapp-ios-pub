@@ -562,6 +562,9 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                         quotedTextView.attributedText = text.with(
                             font: UIFont.preferredFont(forTextStyle: .footnote),
                             color: UIColor.systemGray)
+                    case .document:
+                        DDLogError("OutboundMsgViewCell/updateQuoted/error [documents-unsupported-in-old-chat-ui]")
+                        break
                     }
                 }
             }

@@ -264,6 +264,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
                 case .image: return Self.cellReuseIdentifierImage
                 case .video: return self.configuration.disablePlayback ? Self.cellReuseIdentifierNonPlayingVideo : Self.cellReuseIdentifierVideo
                 case .audio: return Self.cellReuseIdentifierEmpty
+                case .document: return Self.cellReuseIdentifierEmpty
                 }
             }()
 

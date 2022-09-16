@@ -28,6 +28,8 @@ extension XMPPChatMessage: ChatMessageProtocol {
             return media
         case .voiceNote(let media):
             return [media]
+        case .files(let media):
+            return media
         case .text, .reaction, .location, .unsupported:
             return []
         }
@@ -39,7 +41,7 @@ extension XMPPChatMessage: ChatMessageProtocol {
 
     public var linkPreviewData: [LinkPreviewProtocol] {
         switch content {
-        case .album, .reaction, .voiceNote, .location, .unsupported:
+        case .album, .reaction, .voiceNote, .location, .files, .unsupported:
             return []
         case .text(_, let linkPreviewData):
             return linkPreviewData
@@ -50,6 +52,7 @@ extension XMPPChatMessage: ChatMessageProtocol {
 extension XMPPChatMedia {
     public init(chatMedia: CommonMedia) {
         self.init(
+            name: chatMedia.name,
             url: chatMedia.url,
             type: chatMedia.type,
             size: chatMedia.size,
@@ -80,6 +83,8 @@ extension XMPPChatMessage {
         if let media = chatMessage.media, !media.isEmpty {
             if media.count == 1, let item = media.first, item.type == .audio {
                 self.content = .voiceNote(XMPPChatMedia(chatMedia: item))
+            } else if media.count == 1, let item = media.first, item.type == .document {
+                self.content = .files([XMPPChatMedia(chatMedia: item)])
             } else {
                 self.content = .album(
                     chatMessage.rawText,

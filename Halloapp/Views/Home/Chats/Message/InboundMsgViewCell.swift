@@ -545,6 +545,9 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                         quotedTextView.attributedText = text.with(
                             font: UIFont.preferredFont(forTextStyle: .footnote),
                             color: UIColor.systemGray)
+                    case .document:
+                        DDLogError("InboundMsgViewCell/updateQuoted/error [documents-unsupported-in-old-chat-ui]")
+                        break
                     }
                 }
 
@@ -753,6 +756,9 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             if voiceNoteView.state == .loading, let status = media.message?.incomingStatus {
                 voiceNoteView.state = [.played, .sentPlayedReceipt].contains(status) ? .played : .normal
             }
+        case .document:
+            DDLogError("InboundMsgViewCell/updateMedia/error [documents-unsupported-in-old-chat-ui]")
+            break
         }
     }
     
@@ -763,7 +769,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         case .image:
             guard let image = UIImage(contentsOfFile: url.path) else { return }
             chatLinkPreviewView.show(image: image)
-        case .video, .audio:
+        case .video, .audio, .document:
             break
         }
     }

@@ -18,6 +18,7 @@ public enum NotificationMediaType: Int, Codable {
     case image = 0
     case video = 1
     case audio = 2
+    case document = 3
 }
 
 public extension NotificationMediaType {
@@ -42,6 +43,8 @@ public extension NotificationMediaType {
             self = .video
         case .audio:
             self = .audio
+        case .document:
+            self = .document
         }
     }
 }
@@ -482,17 +485,23 @@ class NotificationMetadata: Codable {
                 return "📹"
             case .audio:
                 return "🎤"
+            case .document:
+                return "📄"
         }
     }
 
     private static func notificationBody(forMedia mediaTypes: [NotificationMediaType]) -> String {
         let numPhotos = mediaTypes.filter { $0 == .image }.count
         let numVideos = mediaTypes.filter { $0 == .video }.count
-        if numPhotos == 1 && numVideos == 0 {
+        let numDocuments = mediaTypes.filter { $0 == .document }.count
+        if numPhotos == 1 && mediaTypes.count == 1 {
             return NSLocalizedString("notification.one.photo", value: "📷 photo", comment: "New post notification text when post is one photo without caption.")
         }
-        if numVideos == 1 && numPhotos == 0 {
+        if numVideos == 1 && mediaTypes.count == 1 {
              return NSLocalizedString("notification.one.video", value: "📹 video", comment: "New post notification text when post is one video without caption.")
+        }
+        if numDocuments == 1 && mediaTypes.count == 1 {
+            return NSLocalizedString("notification.one.document", value: "📄 file", comment: "New post notification text when post is one document without caption.")
         }
         var strings: [String] = []
         if numPhotos > 0 {
@@ -502,6 +511,10 @@ class NotificationMetadata: Codable {
         if numVideos > 0 {
             let format = NSLocalizedString("notification.n.videos", comment: "New post notification text when post is multiple videos without caption.")
             strings.append(String.localizedStringWithFormat(format, numVideos))
+        }
+        if numDocuments > 0 {
+            let format = NSLocalizedString("notification.n.documents", comment: "New post notification text when post is multiple documents without caption.")
+            strings.append(String.localizedStringWithFormat(format, numDocuments))
         }
         return ListFormatter.localizedString(byJoining: strings)
     }
@@ -772,6 +785,12 @@ class NotificationMetadata: Codable {
             return String(format: Localizations.messageReactionNotificationTitle, emoji)
         case .location(_):
             return Localizations.newLocationNotificationBody
+        case .files(let files):
+            guard let file = files.first, let filename = file.name, file.mediaType == .document, !filename.isEmpty, files.count == 1 else
+            {
+                return Self.notificationBody(forMedia: [.document])
+            }
+            return "📄 \(filename)"
         case .unsupported:
             DDLogInfo("NotificationMetadata/bodyText/unsupported")
             return nil

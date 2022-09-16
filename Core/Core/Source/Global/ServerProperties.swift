@@ -33,6 +33,7 @@ public struct ServerProperties {
         case isMediaDrawingEnabled = "draw_media"
         case isGroupCommentNotificationsEnabled = "group_comments_notification"
         case isHomeCommentNotificationsEnabled = "home_feed_comment_notifications"
+        case isFileSharingEnabled = "file_sharing"
         case inviteStrings = "invite_strings"
         case nseRuntimeSec = "nse_runtime_sec"
         case newChatUI = "new_chat_ui"
@@ -81,6 +82,7 @@ public struct ServerProperties {
         static let isMediaDrawingEnabled = false
         static let isGroupCommentNotificationsEnabled = false
         static let isHomeCommentNotificationsEnabled = false
+        static let isFileSharingEnabled = false
         static let nseRuntimeSec = 17.0
         static let newChatUI = false
         static let maxPostMediaItems = 10
@@ -314,6 +316,11 @@ public struct ServerProperties {
 
     public static var isHomeCommentNotificationsEnabled: Bool {
         ServerProperties.bool(forKey: .isHomeCommentNotificationsEnabled) ?? Defaults.isHomeCommentNotificationsEnabled
+    }
+
+    public static var isFileSharingEnabled: Bool {
+        // NB: depends on new chat UI and new uploader
+        ServerProperties.bool(forKey: .isFileSharingEnabled) ?? Defaults.isFileSharingEnabled
     }
 
     public static var nseRuntimeSec: TimeInterval {

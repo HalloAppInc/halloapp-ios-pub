@@ -32,7 +32,7 @@ extension FeedDownloadManager {
         }
 
         // Copy unencrypted file.
-        let destinationFileURL = self.fileURL(forMediaFilename: mediaFilename).appendingPathExtension(Self.fileExtension(forMediaType: pendingMedia.type))
+        let destinationFileURL = self.fileURL(forMediaFilename: mediaFilename).appendingPathExtension(CommonMedia.fileExtension(forMediaType: pendingMedia.type))
         try FileManager.default.createDirectory(at: destinationFileURL.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
         try FileManager.default.copyItem(at: sourceURL, to: destinationFileURL)
 

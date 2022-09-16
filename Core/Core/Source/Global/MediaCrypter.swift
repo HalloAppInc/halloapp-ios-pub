@@ -178,6 +178,8 @@ public class MediaCrypter {
             return (index >= 0 ? "HalloApp video \(index)" : "HalloApp video").bytes
         case .audio:
             return "HalloApp audio".bytes
+        case .document:
+            return "HalloApp files".bytes
         }
     }
 

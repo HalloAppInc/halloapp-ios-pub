@@ -398,7 +398,7 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
         case .audio:
             mediaPreview.contentMode = .center
             mediaPreview.layer.borderWidth = visibleBorderWidth
-        case .none:
+        case .none, .document:
             mediaPreview.contentMode = .scaleAspectFit
             mediaPreview.layer.borderWidth = visibleBorderWidth
         case .image, .video:

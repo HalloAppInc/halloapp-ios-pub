@@ -215,6 +215,7 @@ final class NewPostViewController: UIViewController {
                     chatMessageRecipient: .oneToOneChat(userID),
                     text: text.trimmed().collapsedText,
                     media: result.media,
+                    files: [],
                     linkPreviewData: result.linkPreviewData,
                     linkPreviewMedia: result.linkPreviewMedia,
                     feedPostId: nil,

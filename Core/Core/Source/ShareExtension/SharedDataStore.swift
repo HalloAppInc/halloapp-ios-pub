@@ -70,7 +70,7 @@ open class SharedDataStore {
 
     public final class func relativeFilePath(forFilename filename: String, mediaType: CommonMediaType) -> String {
         // No intermediate directories needed.
-        let fileExtension = FeedDownloadManager.fileExtension(forMediaType: mediaType)
+        let fileExtension = CommonMedia.fileExtension(forMediaType: mediaType)
         return "\(filename).\(fileExtension)"
     }
 

@@ -340,16 +340,16 @@ class QuotedMessageCellView: UIView {
         }
         // Check for voice note
         if isAudioNote(media: media) {
-            textLabel.attributedText = getPlaceholderMediaText(mediaType: .audio)
+            textLabel.attributedText = getPlaceholderMediaText(mediaType: .audio, name: media.first?.name)
             hasText = true
             return
         }
-        hasMedia = true
+        hasMedia = media.contains { [.image, .video].contains($0.type) }
         if let media = media.first {
             showMedia(media: media)
             // if quoted comment does not contain text, we need placeholder text
             if !hasText {
-                textLabel.attributedText = getPlaceholderMediaText(mediaType: media.type)
+                textLabel.attributedText = getPlaceholderMediaText(mediaType: media.type, name: media.name)
                 hasText = true
             }
         }
@@ -387,7 +387,7 @@ class QuotedMessageCellView: UIView {
         }
     }
 
-    private func getPlaceholderMediaText(mediaType: CommonMediaType) -> NSMutableAttributedString {
+    private func getPlaceholderMediaText(mediaType: CommonMediaType, name: String?) -> NSMutableAttributedString {
         var mediaIcon: UIImage?
         var messageText = ""
         switch mediaType {
@@ -400,6 +400,9 @@ class QuotedMessageCellView: UIView {
         case .audio:
             mediaIcon = UIImage(systemName: "mic.fill")?.withTintColor(.systemGray, renderingMode: .alwaysOriginal)
             messageText = Localizations.chatMessageAudio
+        case .document:
+            mediaIcon = UIImage(systemName: "doc.fill")?.withTintColor(.systemGray, renderingMode: .alwaysOriginal)
+            messageText = name ?? Localizations.chatMessageDocument
         }
         let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
         let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 3)

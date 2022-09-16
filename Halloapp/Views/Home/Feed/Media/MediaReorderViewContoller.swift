@@ -225,7 +225,7 @@ fileprivate class MediaCell: UICollectionViewCell {
         case .video:
             guard let url = media.fileURL else { return }
             imageView.image = VideoUtils.videoPreviewImage(url: url, size: bounds.size)
-        case .audio:
+        case .audio, .document:
             break
         }
 

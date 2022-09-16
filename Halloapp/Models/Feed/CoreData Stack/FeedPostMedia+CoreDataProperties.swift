@@ -105,6 +105,9 @@ extension FeedPostMedia: MediaUploadable {
 }
 
 extension FeedPostMedia: FeedMediaProtocol {
+    public var name: String? {
+        return nil
+    }
     public var id: String {
         get {
             if let feedPost = post {

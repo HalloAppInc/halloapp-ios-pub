@@ -710,7 +710,7 @@ class MediaPickerViewController: UIViewController {
                     self.request(image: media)
                 case .video:
                     self.request(video: media)
-                case .audio:
+                case .audio, .document:
                     continue
                 }
             }

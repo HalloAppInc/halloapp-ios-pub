@@ -86,7 +86,7 @@ class FeedMedia: Identifiable, Hashable {
                 if fileURL != nil {
                     videoDidBecomeAvailable.send(fileURL!)
                 }
-            case .audio:
+            case .audio, .document:
                 isMediaAvailable = fileURL != nil
             }
         }

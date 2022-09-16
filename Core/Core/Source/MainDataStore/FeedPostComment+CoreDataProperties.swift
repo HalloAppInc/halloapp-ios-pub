@@ -143,6 +143,7 @@ extension FeedPostComment {
             var mediaItems = [FeedMediaData]()
             media.forEach{ (media) in
                 let mediaData = FeedMediaData(
+                    name: media.name,
                     id: "\(self.id)-\(media.order)",
                     url: media.url,
                     type: media.type,

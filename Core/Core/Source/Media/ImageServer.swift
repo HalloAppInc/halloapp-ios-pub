@@ -292,7 +292,7 @@ public class ImageServer {
                 self.process(image: url, completion: onCompletion)
             case .video:
                 self.resize(video: task, completion: onCompletion)
-            case .audio:
+            case .audio, .document:
                 onCompletion(.success((url, .zero)))
             }
         }

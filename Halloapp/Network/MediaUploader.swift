@@ -94,6 +94,8 @@ final class MediaUploader {
                 operation = "audio-upload"
             case .video:
                 operation = "video-upload"
+            case .document:
+                operation = "document-upload"
             }
             sentryTransaction = SentrySDK.startTransaction(name: "Media Upload", operation: operation)
         }

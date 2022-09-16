@@ -105,6 +105,8 @@ public protocol FeedMediaProtocol {
     var chunkSize: Int32 { get }
 
     var blobSize: Int64 { get }
+
+    var name: String? { get }
 }
 
 extension FeedMediaProtocol {
@@ -181,7 +183,7 @@ extension FeedMediaProtocol {
             streamingInfo.blobSize = blobSize
             vid.streamingInfo = streamingInfo
             albumMedia.media = .video(vid)
-        case .audio:
+        case .audio, .document:
             return nil
         }
         return albumMedia

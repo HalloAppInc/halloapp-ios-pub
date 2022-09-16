@@ -1812,6 +1812,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     notification.mediaType = .video
                 case .audio:
                     notification.mediaType = .audio
+                case .document:
+                    notification.mediaType = .document
                 }
             } else {
                 notification.mediaType = .none
@@ -1853,6 +1855,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     notification.mediaType = .video
                 case .audio:
                     notification.mediaType = .audio
+                case .document:
+                    notification.mediaType = .document
                 }
             } else {
                 notification.mediaType = .none
@@ -2684,6 +2688,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             var photosDownloaded = 0
             var videosDownloaded = 0
             var audiosDownloaded = 0
+            var docsDownloaded = 0
             var totalDownloadSize = 0
 
             guard mediaItem.url != nil else { continue }
@@ -2695,6 +2700,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 case .image: photosDownloaded += 1
                 case .video: videosDownloaded += 1
                 case .audio: audiosDownloaded += 1
+                case .document: docsDownloaded += 1
                 }
                 if startTime == nil {
                     startTime = Date()
@@ -2970,6 +2976,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
         case .audio:
             break
+        case .document:
+            break
+
         }
     }
 
@@ -4868,8 +4877,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                                                                                        height: Self.externalShareThumbSize)) {
                     return thumb
                 }
-            case .audio:
-                // Audio is filtered out
+            case .audio, .document:
+                // These types are filtered out
                 break
             }
         }

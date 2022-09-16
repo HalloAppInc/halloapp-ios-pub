@@ -88,10 +88,12 @@
         <attribute name="blobVersionValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="chunkSet" optional="YES" attributeType="Binary"/>
         <attribute name="chunkSize" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="fileSize" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="height" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="id" attributeType="String" defaultValueString=""/>
         <attribute name="key" optional="YES" attributeType="String"/>
         <attribute name="mediaDirectoryValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="numTries" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="order" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="previewData" optional="YES" attributeType="Binary"/>
@@ -280,7 +282,7 @@
         <element name="ChatQuoted" positionX="0" positionY="153" width="128" height="119"/>
         <element name="CommonLinkPreview" positionX="-45" positionY="63" width="128" height="149"/>
         <element name="CommonLocation" positionX="0" positionY="0" width="128" height="89"/>
-        <element name="CommonMedia" positionX="-36" positionY="72" width="128" height="359"/>
+        <element name="CommonMedia" positionX="-36" positionY="72" width="128" height="404"/>
         <element name="CommonReaction" positionX="27" positionY="180" width="128" height="224"/>
         <element name="CommonThread" positionX="27" positionY="180" width="128" height="209"/>
         <element name="ContentPublishInfo" positionX="36" positionY="108" width="128" height="74"/>

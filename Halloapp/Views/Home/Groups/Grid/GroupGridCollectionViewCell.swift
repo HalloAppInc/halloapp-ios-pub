@@ -468,6 +468,8 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
                 visibleMedia.loadImage()
                 imageView.configure(with: visibleMedia)
                 showImageView = true
+            case .document:
+                break
             }
         } else {
             // Text post

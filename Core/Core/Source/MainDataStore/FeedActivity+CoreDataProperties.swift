@@ -30,6 +30,7 @@ public extension FeedActivity {
         case image = 1
         case video = 2
         case audio = 3
+        case document = 4
     }
 
     @nonobjc class func fetchRequest() -> NSFetchRequest<FeedActivity> {

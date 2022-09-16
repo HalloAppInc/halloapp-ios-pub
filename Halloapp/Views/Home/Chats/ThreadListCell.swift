@@ -135,8 +135,14 @@ class ThreadListCell: UITableViewCell {
         case .location:
             mediaIcon = UIImage(systemName: "mappin.and.ellipse")
             messageText = Localizations.locationSharingNavTitle + " " + messageText
-            
-        default:
+
+        case .document:
+            mediaIcon = UIImage(systemName: "doc.fill")
+            if messageText.isEmpty {
+                messageText = Localizations.chatMessageDocument
+            }
+
+        case .none:
             break
         }
 

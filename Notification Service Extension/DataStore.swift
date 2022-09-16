@@ -92,7 +92,7 @@ class DataStore: NotificationServiceExtensionDataStore {
 //                linkPreview.post = feedPost
                 // Set preview image if present
                 linkPreviewData.previewImages.forEach { previewMedia in
-                    let media = NSEntityDescription.insertNewObject(forEntityName: SharedMedia.entity().name!, into: managedObjectContext) as! SharedMedia
+                    let media = SharedMedia(context: managedObjectContext)
                     media.type = previewMedia.type
                     media.status = .none
                     media.url = previewMedia.url
@@ -100,6 +100,7 @@ class DataStore: NotificationServiceExtensionDataStore {
                     media.key = previewMedia.key
                     media.sha256 = previewMedia.sha256
                     media.linkPreview = linkPreview
+                    media.name = previewMedia.name
                 }
                 linkPreviews.insert(linkPreview)
             }
@@ -108,7 +109,7 @@ class DataStore: NotificationServiceExtensionDataStore {
             // Add media
             var postMedia: Set<SharedMedia> = []
             for (index, feedPostMedia) in postData?.orderedMedia.enumerated() ?? [].enumerated() {
-                let media = NSEntityDescription.insertNewObject(forEntityName: "SharedMedia", into: managedObjectContext) as! SharedMedia
+                let media = SharedMedia(context: managedObjectContext)
                 media.type = feedPostMedia.type
                 media.status = .none
                 media.url = feedPostMedia.url
@@ -119,6 +120,7 @@ class DataStore: NotificationServiceExtensionDataStore {
                 media.chunkSize = feedPostMedia.chunkSize
                 media.blobSize = feedPostMedia.blobSize
                 media.order = Int16(index)
+                media.name = feedPostMedia.name
                 postMedia.insert(media)
             }
             feedPost.media = postMedia
@@ -192,7 +194,7 @@ class DataStore: NotificationServiceExtensionDataStore {
                 // Process Comment Media
                 for (index, mediaItem) in media.enumerated() {
                     DDLogDebug("NotificationExtension/DataStore/add-comment-media [\(mediaItem.url!)]")
-                    let feedCommentMedia = NSEntityDescription.insertNewObject(forEntityName: SharedMedia.entity().name!, into: managedObjectContext) as! SharedMedia
+                    let feedCommentMedia = SharedMedia(context: managedObjectContext)
                     feedCommentMedia.type = mediaItem.type
                     feedCommentMedia.status = .none
                     feedCommentMedia.url = mediaItem.url
@@ -204,6 +206,7 @@ class DataStore: NotificationServiceExtensionDataStore {
                     feedCommentMedia.blobVersion = mediaItem.blobVersion
                     feedCommentMedia.chunkSize = mediaItem.chunkSize
                     feedCommentMedia.blobSize = mediaItem.blobSize
+                    feedCommentMedia.name = mediaItem.name
                 }
                 feedComment.rawData = nil
             case .voiceNote(let media):
@@ -215,6 +218,7 @@ class DataStore: NotificationServiceExtensionDataStore {
                 feedCommentMedia.key = media.key
                 feedCommentMedia.order = 0
                 feedCommentMedia.sha256 = media.sha256
+                feedCommentMedia.name = media.name
                 feedCommentMedia.comment = feedComment
                 feedComment.rawData = nil
             case .commentReaction:
@@ -261,7 +265,7 @@ class DataStore: NotificationServiceExtensionDataStore {
             linkPreview.comment = feedComment
             // Set preview image if present
             linkPreviewData.previewImages.forEach { previewMedia in
-                let media = NSEntityDescription.insertNewObject(forEntityName: SharedMedia.entity().name!, into: managedObjectContext) as! SharedMedia
+                let media = SharedMedia(context: managedObjectContext)
                 media.type = previewMedia.type
                 media.status = .none
                 media.url = previewMedia.url
@@ -269,6 +273,7 @@ class DataStore: NotificationServiceExtensionDataStore {
                 media.key = previewMedia.key
                 media.sha256 = previewMedia.sha256
                 media.linkPreview = linkPreview
+                media.name = previewMedia.name
             }
             linkPreviews.insert(linkPreview)
         }
@@ -300,7 +305,7 @@ class DataStore: NotificationServiceExtensionDataStore {
     }
 
     func insertSharedMedia(for mediaData: XMPPChatMedia, index: Int, into managedObjectContext: NSManagedObjectContext) -> SharedMedia {
-        let chatMedia = NSEntityDescription.insertNewObject(forEntityName: "SharedMedia", into: managedObjectContext) as! SharedMedia
+        let chatMedia = SharedMedia(context: managedObjectContext)
         chatMedia.type = mediaData.mediaType
         chatMedia.status = .none
         chatMedia.url = mediaData.url
@@ -312,7 +317,7 @@ class DataStore: NotificationServiceExtensionDataStore {
         chatMedia.chunkSize = mediaData.chunkSize
         chatMedia.blobSize = mediaData.blobSize
         chatMedia.order = Int16(index)
-
+        chatMedia.name = mediaData.name
         return chatMedia
     }
 
@@ -384,7 +389,7 @@ class DataStore: NotificationServiceExtensionDataStore {
                         linkPreview.desc = linkPreviewData.description
                         // Set preview image if present
                         linkPreviewData.previewImages.forEach { previewMedia in
-                            let media = NSEntityDescription.insertNewObject(forEntityName: SharedMedia.entity().name!, into: managedObjectContext) as! SharedMedia
+                            let media = SharedMedia(context: managedObjectContext)
                             media.type = previewMedia.type
                             media.status = .none
                             media.url = previewMedia.url
@@ -392,6 +397,7 @@ class DataStore: NotificationServiceExtensionDataStore {
                             media.key = previewMedia.key
                             media.sha256 = previewMedia.sha256
                             media.linkPreview = linkPreview
+                            media.name = previewMedia.name
                         }
                         linkPreviews.insert(linkPreview)
                     }
@@ -399,8 +405,13 @@ class DataStore: NotificationServiceExtensionDataStore {
 
                 case .contactCard:
                     DDLogInfo("SharedDataStore/message/\(messageId)/unsupported [contact]")
-                case .files:
-                    DDLogInfo("SharedDataStore/message/\(messageId)/unsupported [files]")
+                case .files(let files):
+                    chatMessage.text = files.text.text
+                    for (index, fileItem) in files.files.enumerated() {
+                        guard let mediaData = XMPPChatMedia(file: fileItem) else { continue }
+                        let sharedMedia = insertSharedMedia(for: mediaData, index: index, into: managedObjectContext)
+                        sharedMedia.message = chatMessage
+                    }
                 case .reaction:
                     DDLogInfo("SharedDataStore/message/\(messageId)/unsupported [reaction]")
                 case .location:

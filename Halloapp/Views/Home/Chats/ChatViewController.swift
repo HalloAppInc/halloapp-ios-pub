@@ -539,27 +539,23 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
            let replySenderID = chatReplyMessageSenderID,
            let replyMessage = MainAppContext.shared.chatData.chatMessage(with: replyMessageID, in: MainAppContext.shared.chatData.viewContext) {
 
-            if let replyMedia = replyMessage.media, !replyMedia.isEmpty {
-                let replyIndex = replyMedia.index(replyMedia.startIndex, offsetBy: Int(chatReplyMessageMediaIndex))
-                let mediaObject = replyMedia[replyIndex]
-                if let mediaURL = mediaObject.url?.absoluteString {
-                    let media = ChatReplyMedia(type: mediaObject.type, mediaURL: mediaURL)
-                    
-                    let reply = ReplyContext(replyMessageID: replyMessageID,
-                          replySenderID: replySenderID,
-                          mediaIndex: chatReplyMessageMediaIndex,
-                          text: replyMessage.rawText ?? "",
-                          media: media)
-                    
-                    return reply
+            let replyMedia: ChatReplyMedia? = {
+                let media = replyMessage.orderedMedia
+                guard media.count > chatReplyMessageMediaIndex && chatReplyMessageMediaIndex >= 0 else {
+                    return nil
                 }
-            }
-            
+                let mediaObject = media[Int(chatReplyMessageMediaIndex)]
+                guard let url = mediaObject.mediaURL?.absoluteString else {
+                    return nil
+                }
+                return ChatReplyMedia(type: mediaObject.type, mediaURL: url, name: mediaObject.name)
+            }()
+
             let reply = ReplyContext(replyMessageID: replyMessageID,
                   replySenderID: replySenderID,
                   mediaIndex: chatReplyMessageMediaIndex,
                   text: replyMessage.rawText ?? "",
-                  media: nil)
+                  media: replyMedia)
             
             return reply
         } else if let feedPostId = self.feedPostId {
@@ -1263,12 +1259,13 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         }
     }
 
-    func sendMessage(text: String, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?) {
+    func sendMessage(text: String, media: [PendingMedia], files: [FileSharingData], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?) {
         guard let sendToUserId = self.fromUserId else { return }
 
         MainAppContext.shared.chatData.sendMessage(chatMessageRecipient: .oneToOneChat(sendToUserId),
                                                        text: text,
                                                       media: media,
+                                                      files: files,
                                             linkPreviewData: linkPreviewData,
                                            linkPreviewMedia: linkPreviewMedia,
                                                    location: nil,
@@ -1619,7 +1616,7 @@ extension ChatViewController: PostComposerViewDelegate {
                         linkPreviewData: LinkPreviewData? = nil,
                        linkPreviewMedia: PendingMedia? = nil) {
         
-        sendMessage(text: mentionText.trimmed().collapsedText, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
+        sendMessage(text: mentionText.trimmed().collapsedText, media: media, files: [], linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
         view.window?.rootViewController?.dismiss(animated: true, completion: nil)
     }
 
@@ -1970,6 +1967,7 @@ extension ChatViewController: ContentInputDelegate {
     func inputView(_ inputView: ContentInputView, didPost content: ContentInputView.InputContent) {
         sendMessage(text: content.mentionText.trimmed().collapsedText,
                    media: content.media,
+                   files: content.files,
          linkPreviewData: content.linkPreview?.data,
         linkPreviewMedia: content.linkPreview?.media)
     }
@@ -2207,6 +2205,9 @@ fileprivate class QuotedItemPanel: UIView, InputContextPanel {
 
             quoteFeedPanelTextLabel.attributedText = text.with(font: UIFont.preferredFont(forTextStyle: .subheadline),
                                                               color: UIColor.secondaryLabel)
+        case .document:
+            DDLogError("ChatViewController/configureMedia/error [documents-unsupported-in-old-chat-ui]")
+            break
         }
     }
     
@@ -2306,5 +2307,9 @@ extension Localizations {
 
     static var chatDeleteForEveryone: String {
         NSLocalizedString("chat.delete.everyone", value: "Delete for everyone", comment: "Button to retract a chat message for everyone")
+    }
+
+    static var addMediaOptionDocument: String {
+        NSLocalizedString("add.media.option.document", value: "Document", comment: "Menu option for adding generic file")
     }
 }

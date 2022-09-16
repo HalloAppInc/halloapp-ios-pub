@@ -254,7 +254,7 @@ private class PostCollectionViewCell: UICollectionViewCell {
                 thumbnail = UIImage.thumbnail(contentsOf: url, maxPixelSize: self.thumbnailWidth)
             case .video:
                 thumbnail = VideoUtils.videoPreviewImage(url: url, size: self.thumbnailSize)
-            case .audio:
+            case .audio, .document:
                 return
             }
 

@@ -356,6 +356,10 @@ extension UIColor {
         UIColor(named: "MessageNotOwnText")!
     }
 
+    class var messageFileBackground: UIColor {
+        UIColor(named: "MessageFileBackground")!
+    }
+
     class var quotedMessageText: UIColor {
         UIColor(named: "QuotedMessageText")!
     }

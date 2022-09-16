@@ -119,8 +119,8 @@ class MediaEdit : ObservableObject {
 
                 image = UIImage(cgImage: cgImage)
             }
-        case .audio:
-            break // audio edit is not currently suported
+        case .audio, .document:
+            break // not currently suported
         }
     }
 
@@ -150,8 +150,8 @@ class MediaEdit : ObservableObject {
             }
 
             return muted || start != 0.0 || end != 1.0
-        case .audio:
-            return false // audio edit is not currently suported
+        case .audio, .document:
+            return false // not currently suported
         }
     }
 
@@ -206,8 +206,8 @@ class MediaEdit : ObservableObject {
                     self.media.error.send(error)
                 }
             }
-        case .audio:
-            break // audio edit is not currently suported
+        case .audio, .document:
+            break // not currently suported
         }
 
         return media
@@ -229,8 +229,8 @@ class MediaEdit : ObservableObject {
             muted = false
             start = 0.0
             end = 1.0
-        case .audio:
-            break // audio edit is not currently suported
+        case .audio, .document:
+            break // not currently suported
         }
 
         undoStack = []

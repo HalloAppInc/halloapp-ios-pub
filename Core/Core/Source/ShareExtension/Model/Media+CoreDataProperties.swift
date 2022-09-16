@@ -68,6 +68,7 @@ extension SharedMedia {
     @NSManaged public var sha256: String
     @NSManaged public var url: URL?
     @NSManaged public var uploadUrl: URL?
+    @NSManaged public var name: String?
 
     @NSManaged public var post: SharedFeedPost?
     @NSManaged public var message: SharedChatMessage?
