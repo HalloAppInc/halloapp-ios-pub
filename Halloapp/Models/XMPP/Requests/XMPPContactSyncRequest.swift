@@ -29,7 +29,7 @@ struct XMPPContact {
         if !pbContact.normalized.isEmpty {
             normalized = pbContact.normalized
         }
-        numPotentialContacts = Int(pbContact.numPotentialFriends)
+        numPotentialContacts = ServerProperties.closeFriendRecommendations ? Int(pbContact.numPotentialCloseFriends) : Int(pbContact.numPotentialFriends)
         pushName = pbContact.name
         raw = pbContact.raw
         if !pbContact.avatarID.isEmpty {

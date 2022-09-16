@@ -48,6 +48,7 @@ public struct ServerProperties {
         case commentReactions = "comment_reactions"
         case enableNewMediaUploader = "background_upload"
         case enableChatLocationSharing = "location_sharing"
+        case closeFriendRecommendations = "close_friends_recos"
     }
 
     private struct UserDefaultsKey {
@@ -94,6 +95,7 @@ public struct ServerProperties {
         static let commentReactions = false
         static let enableNewMediaUploader = false
         static let enableChatLocationSharing = false
+        static let closeFriendRecommendations = false
     }
 
     // MARK: Storage
@@ -374,5 +376,9 @@ public struct ServerProperties {
 
     public static var enableNewMediaUploader: Bool {
         ServerProperties.bool(forKey: .enableNewMediaUploader) ?? Defaults.enableNewMediaUploader
+    }
+
+    public static var closeFriendRecommendations: Bool {
+        ServerProperties.bool(forKey: .closeFriendRecommendations) ?? Defaults.closeFriendRecommendations
     }
 }
