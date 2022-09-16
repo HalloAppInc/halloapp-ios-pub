@@ -345,10 +345,7 @@ class NewCameraViewController: UIViewController {
         downButton.tintColor = .white
         libraryButton.tintColor = .white
         navigationItem.leftBarButtonItem = downButton
-
-        if ServerProperties.isInternalUser {
-            navigationItem.rightBarButtonItem = libraryButton
-        }
+        navigationItem.rightBarButtonItem = libraryButton
 
         let appearance = UINavigationBarAppearance()
         appearance.backgroundColor = .black
@@ -369,7 +366,7 @@ class NewCameraViewController: UIViewController {
     @objc
     private func libraryTapped(_ sender: UIBarButtonItem) {
         let picker = MediaPickerViewController(config: .moment) { [weak self] picker, _, media, _ in
-            self?.dismiss(animated: true)
+            picker.dismiss(animated: true)
 
             if let self = self, let media = media.first {
                 self.delegate?.cameraViewController(self, didSelect: media)

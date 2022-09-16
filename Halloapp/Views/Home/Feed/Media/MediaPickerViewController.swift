@@ -401,6 +401,7 @@ class MediaPickerViewController: UIViewController {
         navigationItem.leftBarButtonItem = backButtonItem
 
         title = config.onlyRecentItems ? Localizations.last24Hours : Localizations.fabAccessibilityPhotoLibrary
+        albumsButton.isHidden = config.onlyRecentItems
 
         updateNavigation()
         albumsButton.setTitle("", for: .normal)
