@@ -1124,6 +1124,7 @@ final class NotificationProtoService: ProtoServiceCore {
                 notificationContent.populateFeedCommentBody(from: commentData, using: metadata, contactStore: AppExtensionContext.shared.contactStore)
                 notificationContent.badge = AppExtensionContext.shared.applicationIconBadgeNumber as NSNumber?
                 notificationContent.sound = UNNotificationSound.default
+                metadata.data = try? commentData.clientContainer.serializedData()
                 notificationContent.userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
                 self.pendingNotificationContent[metadata.identifier] = notificationContent
 
