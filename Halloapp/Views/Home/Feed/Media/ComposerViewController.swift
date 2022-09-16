@@ -118,6 +118,8 @@ class ComposerViewController: UIViewController {
     public var isCompactShareFlow: Bool {
         if case .contact(_, _, _) = config.destination {
             return false
+        } else if case .group(_, _) = config.destination {
+            return false
         } else if initialType == .unified {
             return false
         } else if AppContext.shared.userDefaults.bool(forKey: "forcePickerShare") {
@@ -349,6 +351,7 @@ class ComposerViewController: UIViewController {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = .systemFont(ofSize: 11, weight: .medium)
+        label.setContentHuggingPriority(.defaultHigh, for: .vertical)
         label.textColor = .primaryBlackWhite.withAlphaComponent(0.4)
         label.text = Localizations.shareWith.uppercased()
 
@@ -423,31 +426,58 @@ class ComposerViewController: UIViewController {
     }()
 
     private lazy var largeSendButton: UIButton = {
-        let isShareButton = initialType == .unified
+        let icon: UIImage?
+        let title: String
+        let leftContentInset: CGFloat
+        let rightContentInset: CGFloat
+        let horizontalImageInset: CGFloat
 
-        let icon = (isShareButton ? UIImage(named: "icon_share") : UIImage(systemName: "chevron.right"))?
-            .withConfiguration(UIImage.SymbolConfiguration(pointSize: 16, weight: .bold))
-            .withTintColor(.white, renderingMode: .alwaysOriginal)
-
-        let attributedTitle = NSAttributedString(string: isShareButton ? Localizations.buttonShare : Localizations.sendTo,
-                                                 attributes: [.kern: 0.5, .foregroundColor: UIColor.white])
+        if initialType == .unified {
+            icon = UIImage(named: "icon_share")
+            title = Localizations.buttonShare
+            leftContentInset = 20
+            rightContentInset = 16
+            horizontalImageInset = 8
+        } else if case .contact(_, _, _) = config.destination {
+            icon = nil
+            title = Localizations.buttonSend
+            leftContentInset = 16
+            rightContentInset = 16
+            horizontalImageInset = 0
+        } else if case .group(_, _) = config.destination {
+            icon = nil
+            title = Localizations.buttonSend
+            leftContentInset = 16
+            rightContentInset = 16
+            horizontalImageInset = 0
+        } else {
+            // chevron left as the button's semantic content attribute is reversed
+            icon = UIImage(systemName: "chevron.left")?.imageFlippedForRightToLeftLayoutDirection()
+            title = Localizations.sendTo
+            leftContentInset = 30
+            rightContentInset = 36
+            horizontalImageInset = 12
+        }
 
         let button = RoundedRectButton()
         button.translatesAutoresizingMaskIntoConstraints = false
         // Attributed strings do not respect button title colors
+        let attributedTitle = NSAttributedString(string: title, attributes: [.kern: 0.5, .foregroundColor: UIColor.white])
         button.setAttributedTitle(attributedTitle, for: .normal)
         button.setAttributedTitle(attributedTitle, for: .disabled)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
-        button.setImage(icon, for: .normal)
-        button.contentEdgeInsets = UIEdgeInsets(top: -1.5, left: isShareButton ? 20 : 30, bottom: 0, right: isShareButton ? 16 : 36)
+        let configuredIcon = icon?
+            .withConfiguration(UIImage.SymbolConfiguration(pointSize: 16, weight: .bold))
+            .withTintColor(.white, renderingMode: .alwaysOriginal)
+        button.setImage(configuredIcon, for: .normal)
+        button.contentEdgeInsets = UIEdgeInsets(top: -1.5, left: leftContentInset, bottom: 0, right: rightContentInset)
 
         // keep image on the right & tappable
-        let imagePadding: CGFloat = isShareButton ? 8 : 12
         if case .rightToLeft = view.effectiveUserInterfaceLayoutDirection {
-            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -imagePadding, bottom: 0, right: imagePadding)
+            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -horizontalImageInset, bottom: 0, right: horizontalImageInset)
             button.semanticContentAttribute = .forceLeftToRight
         } else {
-            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: imagePadding, bottom: 0, right: -imagePadding)
+            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: horizontalImageInset, bottom: 0, right: -horizontalImageInset)
             button.semanticContentAttribute = .forceRightToLeft
         }
 
@@ -534,16 +564,19 @@ class ComposerViewController: UIViewController {
         contentView.layoutMargins = UIEdgeInsets(top: ComposerConstants.verticalPadding, left: ComposerConstants.horizontalPadding, bottom: ComposerConstants.verticalPadding, right: ComposerConstants.horizontalPadding)
 
         if media.count > 0 {
+            titleView.alignment = .leading
+            if case .group(_, _) = config.destination {
+                titleView.title = Localizations.newPostTitle
+            } else if initialType == .unified {
+                titleView.title = Localizations.newPostTitle
+            } else {
+                titleView.title = nil
+            }
+
 
             if initialType == .unified {
-                titleView.alignment = .leading
-                titleView.title = Localizations.newPostTitle
-                titleView.subtitle = config.destination.name
                 navigationItem.leftBarButtonItem = closeButtonItem
             } else {
-                titleView.alignment = .center
-                titleView.title = nil
-                titleView.subtitle = nil
                 navigationItem.leftBarButtonItem = backButtonItem
             }
 
@@ -576,7 +609,6 @@ class ComposerViewController: UIViewController {
         } else if initialType == .voiceNote || (initialType != .unified && voiceNote != nil) {
             titleView.alignment = .center
             titleView.title = Localizations.fabAccessibilityVoiceNote
-            titleView.subtitle = nil
             navigationItem.leftBarButtonItem = closeButtonItem
             navigationItem.rightBarButtonItems = []
 
@@ -602,7 +634,6 @@ class ComposerViewController: UIViewController {
         } else if initialType == .unified {
             titleView.alignment = .center
             titleView.title = Localizations.newPostTitle
-            titleView.subtitle = config.destination.name
             navigationItem.leftBarButtonItem = closeButtonItem
             navigationItem.rightBarButtonItems = []
 
@@ -624,7 +655,6 @@ class ComposerViewController: UIViewController {
         } else {
             titleView.alignment = .center
             titleView.title = Localizations.fabAccessibilityTextPost
-            titleView.subtitle = nil
             navigationItem.leftBarButtonItem = closeButtonItem
             navigationItem.rightBarButtonItems = []
 
@@ -653,6 +683,8 @@ class ComposerViewController: UIViewController {
 
             textComposerView.becomeFirstResponder()
         }
+
+        titleView.subtitle = config.destination.name
 
         NSLayoutConstraint.activate(constraints)
 

@@ -169,8 +169,9 @@ class MediaPickerViewController: UIViewController {
 
     private lazy var nextButton: UIButton = {
         let iconConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .bold)
-        let icon = UIImage(systemName: "chevron.right", withConfiguration: iconConfig)?
+        let icon = UIImage(systemName: "chevron.left", withConfiguration: iconConfig)?
                     .withTintColor(.white, renderingMode: .alwaysOriginal)
+                    .imageFlippedForRightToLeftLayoutDirection()
 
         let attributedTitle = NSAttributedString(string: Localizations.buttonNext,
                                                  attributes: [.kern: 0.5, .foregroundColor: UIColor.white])

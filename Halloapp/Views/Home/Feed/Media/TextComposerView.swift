@@ -42,31 +42,31 @@ class TextComposerView: UIStackView {
     }()
 
     private lazy var cardView: UIView = {
-        let cardView = UIStackView(arrangedSubviews: [textView, linkPreviewView])
-        cardView.translatesAutoresizingMaskIntoConstraints = false
-        cardView.axis = .vertical
-        cardView.spacing = 8
-        cardView.isLayoutMarginsRelativeArrangement = true
-        cardView.layoutMargins = UIEdgeInsets(top: 12, left: 12, bottom: 12, right: 12)
+        let stackView = UIStackView(arrangedSubviews: [textView, linkPreviewView])
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.axis = .vertical
+        stackView.spacing = 8
+        stackView.isLayoutMarginsRelativeArrangement = true
+        stackView.layoutMargins = UIEdgeInsets(top: 12, left: 24, bottom: 12, right: 24)
+
+        let cardView = UIView()
         cardView.backgroundColor = .secondarySystemGroupedBackground
         cardView.layer.cornerRadius = ComposerConstants.backgroundRadius
         cardView.layer.shadowOpacity = 1
         cardView.layer.shadowColor = UIColor.black.withAlphaComponent(0.08).cgColor
         cardView.layer.shadowRadius = 8
         cardView.layer.shadowOffset = CGSize(width: 0, height: 5)
-
-        let paddingView = UIView()
-        paddingView.translatesAutoresizingMaskIntoConstraints = false
-        paddingView.addSubview(cardView)
+        cardView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.insertSubview(cardView, at: 0)
 
         NSLayoutConstraint.activate([
-            paddingView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: -12),
-            paddingView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: 12),
-            paddingView.topAnchor.constraint(equalTo: cardView.topAnchor),
-            paddingView.bottomAnchor.constraint(equalTo: cardView.bottomAnchor),
+            cardView.leadingAnchor.constraint(equalTo: stackView.leadingAnchor, constant: 12),
+            cardView.trailingAnchor.constraint(equalTo: stackView.trailingAnchor, constant: -12),
+            cardView.topAnchor.constraint(equalTo: stackView.topAnchor),
+            cardView.bottomAnchor.constraint(equalTo: stackView.bottomAnchor),
         ])
 
-        return paddingView
+        return stackView
     }()
 
     private lazy var textView: ContentTextView = {

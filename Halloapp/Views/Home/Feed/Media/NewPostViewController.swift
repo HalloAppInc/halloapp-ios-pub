@@ -165,6 +165,8 @@ final class NewPostViewController: UIViewController {
                 if success {
                     if controller.isCompactShareFlow || self.state.mediaSource == .unified {
                         self.share(to: result.destinations, result: result)
+                    } else if case .group(_, _) = self.destination {
+                        self.share(to: result.destinations, result: result)
                     } else {
                         self.containedNavigationController.pushViewController(self.makeDestinationPickerViewController(with: result), animated: true)
                     }
