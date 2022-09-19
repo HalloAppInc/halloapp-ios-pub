@@ -433,11 +433,7 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
                 currentMembers.append(groupMember.userID)
             }
         }
-        guard ContactStore.contactsAccessAuthorized else {
-            let vController = NewGroupMembersPermissionDeniedController(currentMembers: currentMembers)
-            navigationController?.pushViewController(vController, animated: true)
-            return
-        }
+
         let vController = NewGroupMembersViewController(isNewCreationFlow: false,
                                                         currentMembers: currentMembers,
                                                         groupID: groupID) { [weak self, groupID] (_, didComplete, selectedMembers) in

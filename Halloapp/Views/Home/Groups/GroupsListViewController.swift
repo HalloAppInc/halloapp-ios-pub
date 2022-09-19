@@ -407,11 +407,6 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
     }
 
     private func openNewGroup() {
-        guard ContactStore.contactsAccessAuthorized else {
-            present(UINavigationController(rootViewController: NewGroupMembersPermissionDeniedController()), animated: true)
-            return
-        }
-
         navigationController?.pushViewController(CreateGroupViewController(groupType: GroupType.groupFeed , completion: didCreateNewGroup(_:)), animated: true)
     }
 

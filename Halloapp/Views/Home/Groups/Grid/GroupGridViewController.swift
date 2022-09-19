@@ -268,11 +268,6 @@ class GroupGridViewController: UIViewController {
     }
 
     @objc private func createGroup() {
-        guard ContactStore.contactsAccessAuthorized else {
-            present(UINavigationController(rootViewController: NewGroupMembersPermissionDeniedController()), animated: true)
-            return
-        }
-
         navigationController?.pushViewController(CreateGroupViewController(groupType: GroupType.groupFeed, completion: { [weak self] groupID in
             guard let self = self, let navigationController = self.navigationController else {
                 return

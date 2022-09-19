@@ -601,10 +601,6 @@ extension DestinationPickerViewController: UICollectionViewDelegate {
     }
 
     @objc private func createGroupAction() {
-        guard ContactStore.contactsAccessAuthorized else {
-            present(UINavigationController(rootViewController: NewGroupMembersPermissionDeniedController()), animated: true)
-            return
-        }
         let controller = CreateGroupViewController(groupType: GroupType.groupFeed) { [weak self] groupID in
             guard let self = self else { return }
             self.dismiss(animated: true)
