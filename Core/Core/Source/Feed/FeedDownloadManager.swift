@@ -88,6 +88,8 @@ public class FeedDownloadManager {
     
     private let decryptionQueue = DispatchQueue(label: "com.halloapp.downloadmanager", qos: .userInitiated, attributes: [ .concurrent ])
 
+    private let tasksAccessQueue = DispatchQueue(label: "com.halloapp.downloadmanager.tasks")
+
     // MARK: Scheduling
 
     private var tasks: Set<Task> = []
@@ -113,7 +115,13 @@ public class FeedDownloadManager {
             DDLogError("FeedDownloadManager/\(task.id)/missing-url")
             return false
         }
-        guard !self.tasks.contains(task) else {
+
+        var hasExistingTask = false
+        tasksAccessQueue.sync {
+            hasExistingTask = tasks.contains(task)
+        }
+
+        guard !hasExistingTask else {
             DDLogError("FeedDownloadManager/\(task.id)/duplicate [\(downloadURL)]")
             return false
         }
@@ -179,13 +187,19 @@ public class FeedDownloadManager {
                 }
         }
         task.downloadRequest = request
-        self.tasks.insert(task)
+        tasksAccessQueue.sync {
+            tasks.insert(task)
+        }
         return true
     }
 
     public func currentTask(for media: FeedMediaProtocol) -> Task? {
         let taskId = Task.taskId(for: media)
-        return self.tasks.first(where: { $0.id == taskId })
+        var task: Task?
+        tasksAccessQueue.sync {
+            task = tasks.first(where: { $0.id == taskId })
+        }
+        return task
     }
 
     // MARK: Suspend downloads and keep track of mediaObjectIds
@@ -193,15 +207,17 @@ public class FeedDownloadManager {
     public var suspendedMediaObjectIds: Set<NSManagedObjectID> = []
 
     public func suspendMediaDownloads() {
-        for task in tasks {
-            guard let request = task.downloadRequest else { continue }
-            request.cancel() { resumeData in
-                if let resumeData = resumeData {
-                    self.saveResumeData(resumeData, for: task)
+        tasksAccessQueue.sync {
+            for task in tasks {
+                guard let request = task.downloadRequest else { continue }
+                request.cancel() { resumeData in
+                    if let resumeData = resumeData {
+                        self.saveResumeData(resumeData, for: task)
+                    }
                 }
-            }
-            if let mediaObjectId = task.feedMediaObjectId {
-                suspendedMediaObjectIds.insert(mediaObjectId)
+                if let mediaObjectId = task.feedMediaObjectId {
+                    suspendedMediaObjectIds.insert(mediaObjectId)
+                }
             }
         }
     }
@@ -576,7 +592,9 @@ public class FeedDownloadManager {
     private func taskFinished(_ task: Task) {
         task.completed = true
         DispatchQueue.main.async {
-            self.tasks.remove(task)
+            self.tasksAccessQueue.sync {
+                self.tasks.remove(task)
+            }
             self.delegate?.feedDownloadManager(self, didFinishTask: task)
 
             if let completion = task.completion {
@@ -601,7 +619,9 @@ public class FeedDownloadManager {
             }
         }
         DispatchQueue.main.async {
-            self.tasks.remove(task)
+            self.tasksAccessQueue.sync {
+                self.tasks.remove(task)
+            }
             self.delegate?.feedDownloadManager(self, didFinishTask: task)
 
             task.completion?(.failure(task.error ?? MediaDownloadError.unknownError))
