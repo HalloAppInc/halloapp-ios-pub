@@ -218,6 +218,9 @@ class NewCameraViewController: UIViewController {
     }
 
     deinit {
+        primaryViewfinder.previewLayer.session = nil
+        secondaryViewfinder.previewLayer.session = nil
+
         model.stop(teardown: true)
     }
 
