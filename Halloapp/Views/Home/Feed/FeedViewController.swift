@@ -24,8 +24,6 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         return isWhatsAppAvailable || isIMessageAvailable
     }()
 
-    private var showContactsPermissionDialogIfNecessary = true
-
     override var collectionViewSupplementaryItems: [NSCollectionLayoutBoundarySupplementaryItem] {
         guard ContactStore.contactsAccessDenied else {
             return []
@@ -189,11 +187,6 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
 
     // MARK: UI Actions
 
-    @objc private func didTapNotificationButton() {
-        overlayContainer.dismissOverlay(with: activityCenterOverlayID)
-        self.present(UINavigationController(rootViewController: NotificationsViewController()), animated: true)
-    }
-
     @objc private func didTapInviteButtion() {
         guard ContactStore.contactsAccessAuthorized else {
             let inviteVC = InvitePermissionDeniedViewController()
@@ -283,26 +276,6 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
 
         overlay = popover
         overlayContainer.display(popover)
-    }
-
-    private let activityCenterOverlayID = "activity.center.nux.id"
-
-    private func showActivityCenterNUX() {
-//        guard let notificationButton = notificationButton else {
-//            return
-//        }
-//        let popover = NUXPopover(
-//            Localizations.nuxActivityCenterIconContent,
-//            targetRect: notificationButton.bounds,
-//            targetSpace: notificationButton.coordinateSpace,
-//            showButton: false) { [weak self] in
-//            MainAppContext.shared.nux.didComplete(.activityCenterIcon)
-//            self?.overlay = nil
-//        }
-//        popover.overlayID = activityCenterOverlayID
-//
-//        overlay = popover
-//        overlayContainer.display(popover)
     }
 
     @objc
@@ -401,74 +374,6 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
             // case where the FAB was already displayed when the indicator appeared
             cancelNewPostsIndicatorRemoval()
         }
-    }
-
-    private let settingsURL = URL(string: UIApplication.openSettingsURLString)
-
-    private func updateContactPermissionsAlert() {
-        let overlayID = "feed.contact.permissions.alert"
-
-        guard showContactsPermissionDialogIfNecessary && ContactStore.contactsAccessDenied else {
-            overlayContainer.dismissOverlay(with: overlayID)
-            return
-        }
-        guard overlay == nil else {
-            return
-        }
-        guard settingsURL != nil else {
-            DDLogError("FeedViewController/showPermissionsDialog/error settings-url-unavailable")
-            return
-        }
-      
-        let alert = FeedPermissionAlert(
-            message: Localizations.contactsPermissionExplanation,
-            acceptAction: .init(title: Localizations.buttonContinue) { [weak self] _ in
-                self?.dismissOverlay()
-                self?.updateContactPermissionsExplanationAlert()
-            },
-            dismissAction: .init(title: Localizations.buttonNotNow) { [weak self] _ in
-                self?.showContactsPermissionDialogIfNecessary = false
-                self?.dismissOverlay()
-            })
-        alert.overlayID = overlayID
-
-        overlay = alert
-        overlayContainer.display(alert)
-    }
-    
-    private func updateContactPermissionsExplanationAlert() {
-        let contentView = FeedPermissionExplanationAlert(learnMoreAction: nil, notNowAction: FeedPermissionExplanationAlert.Action(title: Localizations.buttonNotNow, handler: { [weak self] _ in
-            self?.dismissOverlay()
-        }), continueAction: FeedPermissionExplanationAlert.Action(title: Localizations.buttonOK, handler: { [weak self] _ in
-            self?.dismissOverlay()
-            self?.updateContactPermissionsTutorialAlert()
-        }))
-
-        let sheet = BottomSheet(innerView: contentView, completion: {
-            
-        })
-        
-        overlay = sheet
-        overlayContainer.display(sheet)
-    }
-    
-    private func updateContactPermissionsTutorialAlert() {
-        guard let settingsURL = settingsURL else {
-            DDLogError("FeedViewController/showPermissionsDialog/error settings-url-unavailable")
-            return
-        }
-        
-        let contentView = FeedPermissionTutorialAlert(goToSettingsAction: FeedPermissionTutorialAlert.Action(title: Localizations.buttonGoToSettings, handler: { [weak self] _ in
-            UIApplication.shared.open(settingsURL)
-            self?.dismissOverlay()
-        }))
-
-        let sheet = BottomSheet(innerView: contentView, completion: {
-            
-        })
-        
-        overlay = sheet
-        overlayContainer.display(sheet)
     }
 
     private func presentNewPostViewController(source: NewPostMediaSource) {
