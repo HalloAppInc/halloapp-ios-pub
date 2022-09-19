@@ -66,7 +66,8 @@ public class Call {
     var iceTimeTakenMs: Int {
         get {
             if let answeredDate = iceAnsweredDate,
-               let connectedDate = iceConnectedDate {
+               let connectedDate = iceConnectedDate,
+               connectedDate >= answeredDate {
                 return Int(connectedDate.timeIntervalSince(answeredDate) * 1000)
             } else {
                 return 0
