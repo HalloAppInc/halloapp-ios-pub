@@ -274,6 +274,7 @@
 		A11272EC2856E47B0009EBD7 /* MomentComposerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11272EB2856E47B0009EBD7 /* MomentComposerViewController.swift */; };
 		A11BA85428C0236D0077F86A /* RegistrationSplashScreenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11BA85328C0236D0077F86A /* RegistrationSplashScreenViewController.swift */; };
 		A11FA897285BE02900ACDA76 /* MomentsExplainerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11FA896285BE02900ACDA76 /* MomentsExplainerViewController.swift */; };
+		A13C928C28D8D3A40096CE00 /* AllowContactsPermissionHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13C928B28D8D3A40096CE00 /* AllowContactsPermissionHeaderView.swift */; };
 		A1562B1728D0EA630082F1E5 /* ViewfinderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1562B1628D0EA630082F1E5 /* ViewfinderView.swift */; };
 		A1562B1928D0EED40082F1E5 /* CaptureRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1562B1828D0EED40082F1E5 /* CaptureRequest.swift */; };
 		A15B2D96283EA9A0000CE989 /* LargeHitButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15B2D95283EA9A0000CE989 /* LargeHitButton.swift */; };
@@ -1068,6 +1069,7 @@
 		A11272EB2856E47B0009EBD7 /* MomentComposerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentComposerViewController.swift; sourceTree = "<group>"; };
 		A11BA85328C0236D0077F86A /* RegistrationSplashScreenViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationSplashScreenViewController.swift; sourceTree = "<group>"; };
 		A11FA896285BE02900ACDA76 /* MomentsExplainerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentsExplainerViewController.swift; sourceTree = "<group>"; };
+		A13C928B28D8D3A40096CE00 /* AllowContactsPermissionHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllowContactsPermissionHeaderView.swift; sourceTree = "<group>"; };
 		A1562B1628D0EA630082F1E5 /* ViewfinderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewfinderView.swift; sourceTree = "<group>"; };
 		A1562B1828D0EED40082F1E5 /* CaptureRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureRequest.swift; sourceTree = "<group>"; };
 		A15B2D95283EA9A0000CE989 /* LargeHitButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargeHitButton.swift; sourceTree = "<group>"; };
@@ -2067,6 +2069,7 @@
 				76A92443244E659600794859 /* FeedViewController.swift */,
 				32C83FB6268FA44F00BEB4F5 /* FeedPermissionDeniedController.swift */,
 				E5981A48266032250014FFC9 /* FeedPermissionExplanationAlert.swift */,
+				A13C928B28D8D3A40096CE00 /* AllowContactsPermissionHeaderView.swift */,
 				E5B9EAB7265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift */,
 				76654789252BE44C00379BEF /* GroupFeedViewController.swift */,
 				6829F78624D0A62800207F6B /* UserFeedViewController.swift */,
@@ -3288,6 +3291,7 @@
 				68184009264B1F9800408D31 /* Feed2ToFeed3.xcmappingmodel in Sources */,
 				76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */,
 				A1562B1728D0EA630082F1E5 /* ViewfinderView.swift in Sources */,
+				A13C928C28D8D3A40096CE00 /* AllowContactsPermissionHeaderView.swift in Sources */,
 				146B93792405F40500768AC6 /* Font.swift in Sources */,
 				76B95CDE24295AB5007435AC /* CommentView.swift in Sources */,
 				A1FF1ECC28BD7BF70057FC27 /* PhoneNumberVerificationViewController.swift in Sources */,

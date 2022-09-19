@@ -26,6 +26,18 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
 
     private var showContactsPermissionDialogIfNecessary = true
 
+    override var collectionViewSupplementaryItems: [NSCollectionLayoutBoundarySupplementaryItem] {
+        guard ContactStore.contactsAccessDenied else {
+            return []
+        }
+
+        let item = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: .init(widthDimension: .fractionalWidth(1), heightDimension: .estimated(44)),
+                                                              elementKind: UICollectionView.elementKindSectionHeader,
+                                                                alignment: .top)
+        item.pinToVisibleBounds = true
+        return [item]
+    }
+
     // MARK: UIViewController
 
     override func viewDidLoad() {
@@ -55,7 +67,6 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        updateContactPermissionsAlert()
         showNUXIfNecessary()
 
         if isNearTop(100) {
@@ -79,6 +90,28 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
 
     deinit {
         self.cancellables.forEach { $0.cancel() }
+    }
+
+    override func setupCollectionView() {
+        super.setupCollectionView()
+        guard ContactStore.contactsAccessDenied else {
+            return
+        }
+
+        collectionViewDataSource?.supplementaryViewProvider = { collectionView, elementKind, indexPath in
+            switch elementKind {
+            case UICollectionView.elementKindSectionHeader:
+                return collectionView.dequeueReusableSupplementaryView(ofKind: elementKind,
+                                                          withReuseIdentifier: AllowContactsPermissionHeaderView.reuseIdentifier,
+                                                                          for: indexPath)
+            default:
+                return UICollectionReusableView()
+            }
+        }
+
+        collectionView.register(AllowContactsPermissionHeaderView.self,
+                                forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+                                withReuseIdentifier: AllowContactsPermissionHeaderView.reuseIdentifier)
     }
 
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {

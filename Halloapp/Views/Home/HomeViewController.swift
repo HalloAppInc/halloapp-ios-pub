@@ -245,11 +245,6 @@ class HomeViewController: UITabBarController {
     }
     
     private func getFeedViewController() -> UIViewController {
-        guard ContactStore.contactsAccessAuthorized else {
-            DDLogInfo("HomeViewController/getFeedViewController/loading FeedPermissionDeniedController")
-            let feedPermissionDeniedViewController = FeedPermissionDeniedController(title: Localizations.titleHome)
-            return feedPermissionDeniedViewController
-        }
         DDLogInfo("HomeViewController/getFeedViewController/loading FeedViewController")
         return FeedViewController(
             title: Localizations.titleHome,
