@@ -29,7 +29,8 @@ class FeedArchiveViewController: UIViewController {
     }()
     
     private lazy var segmentedControl: UISegmentedControl = {
-        let images = [UIImage(named: "Posts"), UIImage(systemName: "clock.arrow.circlepath")]
+        // clock.arrow.circlepath is not available on iOS 13
+        let images = [UIImage(named: "Posts"), UIImage(systemName: "clock.arrow.circlepath") ?? UIImage(systemName: "clock")]
         let control = UISegmentedControl(items: images as [Any])
         
         control.setWidth(100, forSegmentAt: 0)
