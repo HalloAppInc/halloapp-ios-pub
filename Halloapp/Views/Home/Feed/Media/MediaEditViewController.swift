@@ -249,6 +249,12 @@ class MediaEditViewController: UIViewController {
         } else {
             self.selected = 0
         }
+
+        if config.mode == .annotate {
+            self.media[selected].isAnnotating = true
+        } else if config.mode == .draw {
+            self.media[selected].isDrawing = true
+        }
         
         super.init(nibName: nil, bundle: nil)
     }
