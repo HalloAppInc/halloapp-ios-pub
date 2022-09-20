@@ -1164,16 +1164,8 @@ class ChatData: ObservableObject {
             DDLogDebug("ChatData/processInboundChatAck/updatePendingChatMessage/ [\(messageID)]")
 
             chatMessage.outgoingStatus = .sentOut
-
-            switch chatMessage.chatMessageRecipient {
-            case .oneToOneChat(let userId):
-                self.updateChatThreadStatus(type: .oneToOne, for: userId, messageId: chatMessage.id) { (chatThread) in
-                    chatThread.lastMsgStatus = .sentOut
-                }
-            case .groupChat(let groupId):
-                self.updateChatThreadStatus(type: .groupChat, for: groupId, messageId: chatMessage.id) { (chatThread) in
-                    chatThread.lastMsgStatus = .sentOut
-                }
+            self.updateChatThreadStatus(chatMessageRecipient: chatMessage.chatMessageRecipient, messageId: chatMessage.id) { (chatThread) in
+                chatThread.lastMsgStatus = .sentOut
             }
 
             // only change timestamp the first time message is ack'ed,
@@ -1205,15 +1197,8 @@ class ChatData: ObservableObject {
         updateRetractingChatMessage(for: messageID) { (chatMessage) in
             DDLogDebug("ChatData/processInboundChatAck/updateRetractingChatMessage/ [\(messageID)]")
             chatMessage.outgoingStatus = .retracted
-            switch chatMessage.chatMessageRecipient {
-            case .oneToOneChat(let userId):
-                self.updateChatThreadStatus(type: .oneToOne, for: userId, messageId: chatMessage.id) { (chatThread) in
-                    chatThread.lastMsgStatus = .retracted
-                }
-            case .groupChat(let groupId):
-                self.updateChatThreadStatus(type: .groupChat, for: groupId, messageId: chatMessage.id) { (chatThread) in
-                    chatThread.lastMsgStatus = .retracted
-                }
+            self.updateChatThreadStatus(chatMessageRecipient: chatMessage.chatMessageRecipient, messageId: chatMessage.id) { (chatThread) in
+                chatThread.lastMsgStatus = .retracted
             }
         }
         
@@ -1976,15 +1961,19 @@ extension ChatData {
     private func updateChatThread(type: ChatType, for id: String, block: @escaping (ChatThread) -> Void, performAfterSave: (() -> ())? = nil) {
         coreChatData.updateChatThread(type: type, for: id, block: block, performAfterSave: performAfterSave)
     }
-    
-    private func updateChatThreadStatus(type: ChatType, for id: String, messageId: String, block: @escaping (ChatThread) -> Void) {
+
+    private func updateChatThreadStatus(chatMessageRecipient: ChatMessageRecipient, messageId: String, block: @escaping (ChatThread) -> Void) {
+        guard let recipientId = chatMessageRecipient.recipientId else {
+            DDLogError("ChatData/updateChatThreadStatus/ unable to update chat thread chatMessageId: \(messageId)")
+            return
+        }
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
-            guard let chatThread = self.chatThreadStatus(type: type, id: id, messageId: messageId, in: managedObjectContext) else {
+            guard let chatThread = self.chatThreadStatus(type: chatMessageRecipient.chatType, id: recipientId, messageId: messageId, in: managedObjectContext) else {
                 DDLogError("ChatData/updateChatThreadStatus - missing")
                 return
             }
-            DDLogVerbose("ChatData/updateChatThreadStatus found lastMsgID: [\(messageId)] in threadID: [\(id)]")
+            DDLogVerbose("ChatData/updateChatThreadStatus found lastMsgID: [\(messageId)] in threadID: [\(recipientId)]")
             block(chatThread)
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
@@ -2225,7 +2214,7 @@ extension ChatData {
             let text = chatMessage.rawText
             performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
                 guard let self = self else { return }
-                self.createChatMsg( chatMessageRecipient: ChatMessageRecipient.oneToOneChat(toUserId),
+                self.createChatMsg( chatMessageRecipient: ChatMessageRecipient.oneToOneChat(toUserId: toUserId, fromUserId: self.userData.userId),
                                     text: text ?? "",
                                     media: media,
                                     files: files,
@@ -2793,19 +2782,10 @@ extension ChatData {
             chatMessage.outgoingStatus = .retracting
             
             self.deleteChatMessageContent(in: chatMessage)
-            switch chatMessage.chatMessageRecipient {
-            case .oneToOneChat(let userId):
-                self.updateChatThreadStatus(type: .oneToOne, for: userId, messageId: chatMessage.id) { (chatThread) in
-                    chatThread.lastMsgStatus = .retracting
-                    chatThread.lastMsgText = nil
-                    chatThread.lastMsgMediaType = .none
-                }
-            case .groupChat(let groupId):
-                self.updateChatThreadStatus(type: .groupChat, for: groupId, messageId: chatMessage.id) { (chatThread) in
-                    chatThread.lastMsgStatus = .retracting
-                    chatThread.lastMsgText = nil
-                    chatThread.lastMsgMediaType = .none
-                }
+            self.updateChatThreadStatus(chatMessageRecipient: chatMessage.chatMessageRecipient, messageId: chatMessage.id) { (chatThread) in
+                chatThread.lastMsgStatus = .retracting
+                chatThread.lastMsgText = nil
+                chatThread.lastMsgMediaType = .none
             }
         }
                 
@@ -2919,14 +2899,14 @@ extension ChatData {
         // Update Chat Thread
         let lastMsgStatus = isMsgToYourself ? ChatThread.LastMsgStatus.seen : ChatThread.LastMsgStatus.pending
         switch commonReaction.chatMessageRecipient {
-        case .oneToOneChat(let userId):
+        case .oneToOneChat(let toUserId, _):
             updateChatThread(chatType: .oneToOne, with: commonReaction,
-                             recipientId: userId,
+                             recipientId: toUserId,
                              reactionText: reactionText,
                              in: context,
                              lastMsgStatus: lastMsgStatus,
                              updateUnreadCount: false)
-        case .groupChat(let groupId):
+        case .groupChat(let groupId, _):
             updateChatThread(chatType: .groupChat, with: commonReaction,
                              recipientId: groupId,
                              reactionText: reactionText,
@@ -2974,19 +2954,10 @@ extension ChatData {
             }
             
             self.deleteReaction(commonReaction: commonReaction)
-            switch commonReaction.chatMessageRecipient {
-            case .oneToOneChat(let userId):
-                self.updateChatThreadStatus(type: .oneToOne, for: userId, messageId: commonReaction.id) { (chatThread) in
-                    chatThread.lastMsgStatus = .retracting
-                    chatThread.lastMsgText = reactionText
-                    chatThread.lastMsgMediaType = .none
-                }
-            case .groupChat(let groupId):
-                self.updateChatThreadStatus(type: .groupChat, for: groupId, messageId: commonReaction.id) { (chatThread) in
-                    chatThread.lastMsgStatus = .retracting
-                    chatThread.lastMsgText = reactionText
-                    chatThread.lastMsgMediaType = .none
-                }
+            self.updateChatThreadStatus(chatMessageRecipient: commonReaction.chatMessageRecipient, messageId: commonReaction.id) { (chatThread) in
+                chatThread.lastMsgStatus = .retracting
+                chatThread.lastMsgText = reactionText
+                chatThread.lastMsgMediaType = .none
             }
         }
 
@@ -3966,14 +3937,14 @@ extension ChatData {
         }
         // Update Chat Thread
         switch commonReaction.chatMessageRecipient {
-        case .oneToOneChat(let userId):
+        case .oneToOneChat(_, let fromUserId):
             updateChatThread(chatType: .oneToOne, with: commonReaction,
-                             recipientId: userId,
+                             recipientId: fromUserId,
                              reactionText: reactionText,
                              in: managedObjectContext,
                              lastMsgStatus: .none,
                              updateUnreadCount: true)
-        case .groupChat(let groupId):
+        case .groupChat(let groupId, _):
             updateChatThread(chatType: .groupChat, with: commonReaction,
                              recipientId: groupId,
                              reactionText: reactionText,
@@ -4014,32 +3985,16 @@ extension ChatData {
                 DDLogError("ChatData/processInboundOneToOneMessageReceipt/processing invalid \(receiptType) receipt")
                 break
             }
-            switch chatMessage.chatMessageRecipient {
-            case .oneToOneChat(let userId):
-                self.updateChatThreadStatus(type: .oneToOne, for: userId, messageId: chatMessage.id) { (chatThread) in
-                    switch receiptType {
-                    case .delivery:
-                        chatThread.lastMsgStatus = .delivered
-                    case .read:
-                        chatThread.lastMsgStatus = .seen
-                    case .played:
-                        chatThread.lastMsgStatus = .played
-                    case .screenshot, .saved:
-                        break
-                    }
-                }
-            case .groupChat(let groupId):
-                self.updateChatThreadStatus(type: .groupChat, for: groupId, messageId: chatMessage.id) { (chatThread) in
-                    switch receiptType {
-                    case .delivery:
-                        chatThread.lastMsgStatus = .delivered
-                    case .read:
-                        chatThread.lastMsgStatus = .seen
-                    case .played:
-                        chatThread.lastMsgStatus = .played
-                    case .screenshot, .saved:
-                        break
-                    }
+            self.updateChatThreadStatus(chatMessageRecipient: chatMessage.chatMessageRecipient, messageId: chatMessage.id) { (chatThread) in
+                switch receiptType {
+                case .delivery:
+                    chatThread.lastMsgStatus = .delivered
+                case .read:
+                    chatThread.lastMsgStatus = .seen
+                case .played:
+                    chatThread.lastMsgStatus = .played
+                case .screenshot, .saved:
+                    break
                 }
             }
         }
@@ -4081,21 +4036,11 @@ extension ChatData {
             self.deleteChatMessageContent(in: chatMessage)
 
             self.createNewChatThreadIfMissing(from: from, messageID: messageID, status: .retracted)
-            switch chatMessage.chatMessageRecipient {
-            case .oneToOneChat(_):
-                self.updateChatThreadStatus(type: .oneToOne, for: from, messageId: chatMessage.id) { (chatThread) in
-                    chatThread.lastMsgStatus = .retracted
+            self.updateChatThreadStatus(chatMessageRecipient: chatMessage.chatMessageRecipient, messageId: chatMessage.id) { (chatThread) in
+                chatThread.lastMsgStatus = .retracted
 
-                    chatThread.lastMsgText = nil
-                    chatThread.lastMsgMediaType = .none
-                }
-            case .groupChat(let groupId):
-                self.updateChatThreadStatus(type: .groupChat, for: groupId, messageId: chatMessage.id) { (chatThread) in
-                    chatThread.lastMsgStatus = .retracted
-
-                    chatThread.lastMsgText = nil
-                    chatThread.lastMsgMediaType = .none
-                }
+                chatThread.lastMsgText = nil
+                chatThread.lastMsgMediaType = .none
             }
         }
     }
@@ -4135,19 +4080,10 @@ extension ChatData {
                 }
             }
             self.createNewChatThreadIfMissing(from: from, messageID: reactionID, status: .retracted)
-            switch commonReaction.chatMessageRecipient {
-            case .oneToOneChat(_):
-                self.updateChatThreadStatus(type: .oneToOne, for: from, messageId: commonReaction.id) { (chatThread) in
-                    chatThread.lastMsgStatus = .retracted
-                    chatThread.lastMsgText = reactionText
-                    chatThread.lastMsgMediaType = .none
-                }
-            case .groupChat(let groupId):
-                self.updateChatThreadStatus(type: .groupChat, for: groupId, messageId: commonReaction.id) { (chatThread) in
-                    chatThread.lastMsgStatus = .retracted
-                    chatThread.lastMsgText = reactionText
-                    chatThread.lastMsgMediaType = .none
-                }
+            self.updateChatThreadStatus(chatMessageRecipient: commonReaction.chatMessageRecipient, messageId: commonReaction.id) { (chatThread) in
+                chatThread.lastMsgStatus = .retracted
+                chatThread.lastMsgText = reactionText
+                chatThread.lastMsgMediaType = .none
             }
         }
     }

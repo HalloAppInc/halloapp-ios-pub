@@ -820,7 +820,7 @@ final class NotificationProtoService: ProtoServiceCore {
                                                   context: context,
                                                   timestamp: serverChatStanza.timestamp,
                                                   from: fromUserID,
-                                                  chatMessageRecipient: .oneToOneChat(AppContext.shared.userData.userId),
+                                                  chatMessageRecipient: .oneToOneChat(toUserId: AppContext.shared.userData.userId, fromUserId: fromUserID),
                                                   id: messageId,
                                                   retryCount: metadata.retryCount,
                                                   rerequestCount: metadata.rerequestCount)

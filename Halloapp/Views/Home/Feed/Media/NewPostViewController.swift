@@ -212,7 +212,7 @@ final class NewPostViewController: UIViewController {
             // TODO @Nandini support sending to group chats
             if case .contact(let userID, _, _) = destination {
                 MainAppContext.shared.chatData.sendMessage(
-                    chatMessageRecipient: .oneToOneChat(userID),
+                    chatMessageRecipient: .oneToOneChat(toUserId: userID, fromUserId: AppContext.shared.userData.userId),
                     text: text.trimmed().collapsedText,
                     media: result.media,
                     files: [],

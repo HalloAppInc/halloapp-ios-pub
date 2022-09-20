@@ -827,7 +827,7 @@ class ShareComposerViewController: UIViewController {
                                                     didCreatePost: showProcessingAlertIfNeeded,
                                                     didBeginUpload: checkCompletionCountAndCompleteIfNeeded)
             case .chat(let chatListSyncItem):
-                AppContext.shared.coreChatData.sendMessage(chatMessageRecipient: .oneToOneChat(chatListSyncItem.userId),
+                AppContext.shared.coreChatData.sendMessage(chatMessageRecipient: .oneToOneChat(toUserId: chatListSyncItem.userId, fromUserId: AppContext.shared.userData.userId),
                                                            text: text,
                                                            media: media,
                                                            files: [],
@@ -872,7 +872,7 @@ class ShareComposerViewController: UIViewController {
                 DDLogInfo("ShareComposerViewController/upload contact")
                 let userID = chat.userId
                 // TODO @Nandini handle sending to group chats
-                ShareExtensionContext.shared.dataStore.send(chatMessageRecipient: .oneToOneChat(userID), text: text, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia) {
+                ShareExtensionContext.shared.dataStore.send(chatMessageRecipient: .oneToOneChat(toUserId: userID, fromUserId: AppContext.shared.userData.userId), text: text, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia) {
                     results.append($0)
                     uploadDispatchGroup.leave()
                 }

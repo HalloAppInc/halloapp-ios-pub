@@ -110,16 +110,18 @@ public extension ChatMessage {
 
     var chatMessageRecipient: ChatMessageRecipient {
         get {
-            if let toUserId = self.toUserId { return .oneToOneChat(toUserId) }
-            if let toGroupId = self.toGroupId { return .groupChat(toGroupId) }
+            if let toUserId = self.toUserId { return .oneToOneChat(toUserId: toUserId, fromUserId: fromUserId) }
+            if let toGroupId = self.toGroupId { return .groupChat(toGroupId: toGroupId, fromUserId: fromUserId) }
             fatalError("toUserId and toGroupId not set for chat message")
         }
         set{
             switch newValue {
-            case .oneToOneChat(let userId):
+            case .oneToOneChat(let userId, let fromUserId):
                 self.toUserId = userId
-            case .groupChat(let groupId):
+                self.fromUserId = fromUserId
+            case .groupChat(let groupId, let fromUserId):
                 self.toGroupId = groupId
+                self.fromUserId = fromUserId
             }
         }
     }

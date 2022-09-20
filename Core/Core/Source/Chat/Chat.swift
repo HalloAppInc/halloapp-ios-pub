@@ -50,13 +50,13 @@ public enum IncomingChatMessage {
 }
 
 public enum ChatMessageRecipient {
-    case oneToOneChat(UserID)
-    case groupChat(GroupID)
+    case oneToOneChat(toUserId: UserID, fromUserId: UserID)
+    case groupChat(toGroupId: GroupID, fromUserId: UserID)
 
     public var toUserId: String? {
         switch self {
-        case .oneToOneChat(let userId):
-            return userId
+        case .oneToOneChat(let toUserId, _):
+            return toUserId
         default:
             return nil
         }
@@ -64,26 +64,40 @@ public enum ChatMessageRecipient {
 
     public var toGroupId: String? {
         switch self {
-        case .groupChat(let groupId):
+        case .groupChat(let groupId, _):
             return groupId
         default:
             return nil
         }
     }
 
+    public var fromUserId: String? {
+        switch self {
+        case .oneToOneChat(_, let fromUserId):
+            return fromUserId
+        case .groupChat(_, let fromUserId):
+            return fromUserId
+        }
+    }
+
     public var chatType: ChatType {
         switch self {
-        case .oneToOneChat(_):
+        case .oneToOneChat(_, _):
             return .oneToOne
-        case .groupChat(_):
+        case .groupChat(_, _):
             return .groupChat
         }
     }
 
     public var recipientId: String? {
+        // 1:1 message
         if let toUserId = toUserId {
-            return toUserId
+            // incoming chats recipientId = fromUserId
+            // outgoing chats recipientId = toUserId
+            let threadId = (toUserId == AppContext.shared.userData.userId) ? fromUserId : toUserId
+            return threadId
         }
+        // group message
         return toGroupId
     }
 }

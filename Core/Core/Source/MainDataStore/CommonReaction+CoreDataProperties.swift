@@ -71,16 +71,18 @@ public extension CommonReaction {
 
     var chatMessageRecipient: ChatMessageRecipient {
         get {
-            if let toUserId = self.toUserID { return .oneToOneChat(toUserId) }
-            if let toGroupId = self.toGroupID { return .groupChat(toGroupId) }
+            if let toUserId = self.toUserID { return .oneToOneChat(toUserId: toUserId, fromUserId: fromUserID) }
+            if let toGroupId = self.toGroupID { return .groupChat(toGroupId: toGroupId, fromUserId: fromUserID) }
             fatalError("toUserId and toGroupId not set for reaction")
         }
         set{
             switch newValue {
-            case .oneToOneChat(let userId):
+            case .oneToOneChat(let userId, let fromUserId):
                 self.toUserID = userId
-            case .groupChat(let groupId):
+                self.fromUserID = fromUserId
+            case .groupChat(let groupId, let fromUserId):
                 self.toGroupID = groupId
+                self.fromUserID = fromUserId
             }
         }
     }
