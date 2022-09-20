@@ -500,22 +500,20 @@ extension CameraModel {
     private func stopCaptureSession(teardown: Bool = true) async {
         stopListeningForOrientation()
         await perform { [session, audioSession] in
-            defer {
-                session.commitConfiguration()
-                audioSession.commitConfiguration()
-            }
-
-            session.beginConfiguration()
-            audioSession.beginConfiguration()
             session.stopRunning()
             audioSession.stopRunning()
 
             if teardown {
+                session.beginConfiguration()
+                audioSession.beginConfiguration()
+
                 session.inputs.forEach { session.removeInput($0) }
                 session.outputs.forEach { session.removeOutput($0) }
-
                 audioSession.inputs.forEach { audioSession.removeInput($0) }
                 audioSession.outputs.forEach { audioSession.removeOutput($0) }
+
+                session.commitConfiguration()
+                audioSession.commitConfiguration()
             }
         }
 
