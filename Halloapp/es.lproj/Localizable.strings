@@ -40,6 +40,9 @@
 /* First tab in the main app interface. */
 "activityCenter.promo.favorites" = "¡Mira la nueva función en Favoritos!";
 
+/* Menu option for adding generic file */
+"add.media.option.document" = "Documento";
+
 /* Text label for action button to add the contact to the address book */
 "add.to.contact.book" = "Agregar a libreta de contactos";
 
@@ -438,6 +441,9 @@
 
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "Este mensaje fue eliminado.";
+
+/* Message text shown in a message that has document but no text */
+"chat.message.document" = "Archivo";
 
 /* Message text shown in a message that have photo media but no text */
 "chat.message.photo" = "Foto";
@@ -1412,6 +1418,9 @@
 /* Title for the new feed post notification. */
 "notification.new.post" = "Nueva Publicación";
 
+/* New post notification text when post is one document without caption. */
+"notification.one.document" = "📄 Archivo";
+
 /* New post notification text when post is one photo without caption. */
 "notification.one.photo" = "📷 foto";
 
@@ -1534,6 +1543,9 @@
 
 /* Header when selecting destinations to forward a message, this header appears above the feeds section */
 "post.privacy.header.feeds" = "Muro";
+
+/* Header when selecting destinations to forward a message, this header appears above the feeds section */
+"post.privacy.header.frequentlyContacted" = "Frecuentemente contacto(a)";
 
 /* Header when selecting a group to share with
    Header when selecting destinations to forward a message, this header appears above the groups section */
@@ -2048,8 +2060,11 @@
 /* Text that indicates the unlock action for a moment. */
 "unlock.title" = "Desbloquear";
 
-/* Alert appearing after clicking an external share link that failed to load */
-"urlrouter.externalShare.failed" = "Error al cargar la publicación";
+/* Body for alert appearing after clicking an external share link that failed to load */
+"urlrouter.externalShare.failed.message" = "Esta publicación podría haber caducado, haber sido eliminada o algo más.";
+
+/* Title for alert appearing after clicking an external share link that failed to load */
+"urlrouter.externalShare.failed.title" = "Esta publicación ya no está disponible";
 
 /* Button to confirm blocking user via profile page */
 "user.block" = "Bloquear";

@@ -2051,9 +2051,6 @@
 /* Text that indicates the unlock action for a moment. */
 "unlock.title" = "Desbloquear";
 
-/* Alert appearing after clicking an external share link that failed to load */
-"urlrouter.externalShare.failed" = "Falha ao carregar a postagem";
-
 /* Button to confirm blocking user via profile page */
 "user.block" = "Bloquear";
 

@@ -326,6 +326,26 @@
 			<string>%d Unread Messages</string>
 		</dict>
 	</dict>
+	<key>notification.n.documents</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@num_documents@</string>
+		<key>num_documents</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>📄 %d files</string>
+			<key>many</key>
+			<string>📄 %d files</string>
+			<key>one</key>
+			<string>📄 %d file</string>
+			<key>other</key>
+			<string>📄 %d files</string>
+		</dict>
+	</dict>
 	<key>notification.n.photos</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>

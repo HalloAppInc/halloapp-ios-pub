@@ -1541,6 +1541,9 @@
 /* Header when selecting destinations to forward a message, this header appears above the feeds section */
 "post.privacy.header.feeds" = "Фиды";
 
+/* Header when selecting destinations to forward a message, this header appears above the feeds section */
+"post.privacy.header.frequentlyContacted" = "Частые контактны";
+
 /* Header when selecting a group to share with
    Header when selecting destinations to forward a message, this header appears above the groups section */
 "post.privacy.header.groups" = "Поделиться только с группой";
@@ -2054,8 +2057,11 @@
 /* Text that indicates the unlock action for a moment. */
 "unlock.title" = "Разблокировать";
 
-/* Alert appearing after clicking an external share link that failed to load */
-"urlrouter.externalShare.failed" = "Не удалось загрузить пост";
+/* Body for alert appearing after clicking an external share link that failed to load */
+"urlrouter.externalShare.failed.message" = "Это сообщение могло быть просрочено, удалено или что-то еще.";
+
+/* Title for alert appearing after clicking an external share link that failed to load */
+"urlrouter.externalShare.failed.title" = "Этот пост больше не доступен";
 
 /* Button to confirm blocking user via profile page */
 "user.block" = "Блокировать";

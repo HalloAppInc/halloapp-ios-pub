@@ -40,6 +40,9 @@
 /* First tab in the main app interface. */
 "activityCenter.promo.favorites" = "Probeer de nieuwe functie Favorieten!";
 
+/* Menu option for adding generic file */
+"add.media.option.document" = "Document";
+
 /* Text label for action button to add the contact to the address book */
 "add.to.contact.book" = "Toevoegen aan mijn Contactenlijst";
 
@@ -438,6 +441,9 @@
 
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "Dit bericht is verwijderd.";
+
+/* Message text shown in a message that has document but no text */
+"chat.message.document" = "Bestand";
 
 /* Message text shown in a message that have photo media but no text */
 "chat.message.photo" = "Foto";
@@ -1397,6 +1403,9 @@
 /* New moment screenshot notification text to be shown to the user. */
 "notification.moment.screenshot" = "%@ heeft een screenshot gemaakt van je moment";
 
+/* New post notification text when post is multiple documents without caption. */
+"notification.n.documents" = "notification.n.documents";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
 
@@ -1417,6 +1426,9 @@
 
 /* Title for the new feed post notification. */
 "notification.new.post" = "Nieuwe Post";
+
+/* New post notification text when post is one document without caption. */
+"notification.one.document" = "📄 bestand";
 
 /* New post notification text when post is one photo without caption. */
 "notification.one.photo" = "📷 foto";
@@ -1540,6 +1552,9 @@
 
 /* Header when selecting destinations to forward a message, this header appears above the feeds section */
 "post.privacy.header.feeds" = "Feeds";
+
+/* Header when selecting destinations to forward a message, this header appears above the feeds section */
+"post.privacy.header.frequentlyContacted" = "Frequent Gecontacteerd";
 
 /* Header when selecting a group to share with
    Header when selecting destinations to forward a message, this header appears above the groups section */
@@ -2054,8 +2069,11 @@
 /* Text that indicates the unlock action for a moment. */
 "unlock.title" = "Ontgrendelen";
 
-/* Alert appearing after clicking an external share link that failed to load */
-"urlrouter.externalShare.failed" = "Laden van post mislukt";
+/* Body for alert appearing after clicking an external share link that failed to load */
+"urlrouter.externalShare.failed.message" = "Deze post kan zijn verlopen, verwijderd of er is iets anders mee.";
+
+/* Title for alert appearing after clicking an external share link that failed to load */
+"urlrouter.externalShare.failed.title" = "Deze post is niet langer beschikbaar";
 
 /* Button to confirm blocking user via profile page */
 "user.block" = "Blokkeren";

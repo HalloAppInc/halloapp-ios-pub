@@ -231,6 +231,20 @@
 			<string>%d Pesan Belum Dibaca</string>
 		</dict>
 	</dict>
+	<key>notification.n.documents</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@num_documents@</string>
+		<key>num_documents</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>other</key>
+			<string>📄 %d files</string>
+		</dict>
+	</dict>
 	<key>notification.n.photos</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
