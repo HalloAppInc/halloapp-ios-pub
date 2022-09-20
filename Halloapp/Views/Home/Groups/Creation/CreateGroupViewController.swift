@@ -17,6 +17,7 @@ fileprivate struct Constants {
     static let MaxNameLength = 25
     static let NearMaxNameLength = 5
     static let MaxDescriptionLength = 500
+    static let formStackBottomPadding: CGFloat = 12
 }
 
 class CreateGroupViewController: UIViewController {
@@ -34,6 +35,9 @@ class CreateGroupViewController: UIViewController {
 
     private var completion: (GroupID) -> Void
 
+    private var formStackBottomAnchor: NSLayoutConstraint?
+    private var didPerformInitialLayout = false
+
     init(groupType: GroupType, completion: @escaping (GroupID) -> Void) {
         self.completion = completion
         self.groupType = groupType
@@ -44,6 +48,7 @@ class CreateGroupViewController: UIViewController {
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     override func viewDidLoad() {
+        super.viewDidLoad()
         DDLogInfo("CreateGroupViewController/viewDidLoad")
 
         navigationItem.rightBarButtonItem = nextBarButtonItem
@@ -90,8 +95,14 @@ class CreateGroupViewController: UIViewController {
             formStackField.addArrangedSubview(groupExpirationField)
         }
 
+        let avatarTopAnchor = avatarImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 100)
+        avatarTopAnchor.priority = UILayoutPriority(500)
+
+        let formStackBottomAnchor = formStackField.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -Constants.formStackBottomPadding)
+        self.formStackBottomAnchor = formStackBottomAnchor
+        
         NSLayoutConstraint.activate([
-            avatarImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 100),
+            avatarTopAnchor,
             avatarImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
 
             cameraIconView.centerXAnchor.constraint(equalTo: avatarImageView.trailingAnchor),
@@ -100,11 +111,33 @@ class CreateGroupViewController: UIViewController {
             formStackField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 12),
             formStackField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -12),
             formStackField.topAnchor.constraint(equalTo: avatarImageView.bottomAnchor, constant: 32),
+            formStackBottomAnchor,
         ])
 
         if MainAppContext.shared.nux.state == .zeroZone {
             groupNameTextField.text = Localizations.createGroupDefaultNameMyNewGroup
         }
+
+        NotificationCenter.default.publisher(for: UIResponder.keyboardWillChangeFrameNotification)
+            .sink { [weak self] notif in
+                guard let keyboardNotificationInfo = KeyboardNotificationInfo(userInfo: notif.userInfo) else {
+                    return
+                }
+                UIView.animate(withKeyboardNotificationInfo: keyboardNotificationInfo) { [weak self] in
+                    guard let self = self else {
+                        return
+                    }
+                    let inset = self.view.convert(keyboardNotificationInfo.endFrame, from: nil).intersection(self.view.bounds.inset(by: self.view.safeAreaInsets)).height
+                    self.formStackBottomAnchor?.constant = -max(0, inset) - Constants.formStackBottomPadding
+                    // prevent intial layout from animating due to keyboard
+                    if self.didPerformInitialLayout {
+                        self.view.layoutIfNeeded()
+                    }
+                }
+            }
+            .store(in: &cancellableSet)
+
+        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(endEditing)))
 
         groupNameChanged()
     }
@@ -112,6 +145,11 @@ class CreateGroupViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         groupNameTextField.becomeFirstResponder()
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        didPerformInitialLayout = true
     }
 
     deinit {
@@ -432,6 +470,10 @@ class CreateGroupViewController: UIViewController {
         }
 
         self.present(UINavigationController(rootViewController: pickerController), animated: true)
+    }
+
+    @objc private func endEditing() {
+        view.endEditing(true)
     }
 
     // MARK: Helpers
