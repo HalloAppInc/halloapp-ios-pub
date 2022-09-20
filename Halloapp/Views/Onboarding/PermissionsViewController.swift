@@ -11,17 +11,6 @@ import Combine
 import CoreCommon
 import CocoaLumberjackSwift
 
-extension PermissionsViewController {
-
-    private static var iconWidth: CGFloat {
-        35
-    }
-
-    private static var cardCornerRadius: CGFloat {
-        15
-    }
-}
-
 class PermissionsViewController: UIViewController {
 
     let onboardingManager: OnboardingManager
@@ -44,123 +33,29 @@ class PermissionsViewController: UIViewController {
     }()
 
     private lazy var vStack: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [UIView(), contactPermissionsContainer, notificationPermissionsContainer, syncProgressStack, UIView()])
+        let stack = UIStackView(arrangedSubviews: [UIView(), contactPermissionsExplainer, notificationPermissionsExplainer, syncProgressStack, UIView()])
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.isLayoutMarginsRelativeArrangement = true
         stack.layoutMargins = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15)
         stack.axis = .vertical
         stack.spacing = 20
-        stack.setCustomSpacing(40, after: notificationPermissionsContainer)
+        stack.setCustomSpacing(40, after: notificationPermissionsExplainer)
 
         return stack
     }()
 
-    private lazy var contactPermissionsContainer: ShadowView = {
-        let view = ShadowView()
-        view.backgroundColor = .feedPostBackground
-        view.layer.cornerCurve = .continuous
-        view.layer.cornerRadius = Self.cardCornerRadius
-        view.layer.shadowColor = UIColor.black.withAlphaComponent(0.15).cgColor
-        view.layer.shadowOffset = CGSize(width: 0, height: 1)
-        view.layer.shadowRadius = 0.75
-        view.layer.shadowOpacity = 1
-
+    private lazy var contactPermissionsExplainer: PermissionsExplainerView = {
+        let view = PermissionsExplainerView(permissionType: .contacts)
+        view.titleLabel.text = Localizations.contactsPermissionExplanationTitle
+        view.bodyLabel.text = Localizations.registrationContactPermissionsMessage
         return view
     }()
 
-    private lazy var contactPermissionsStack: UIStackView = {
-        let messageLabel = UILabel()
-        messageLabel.text = Localizations.registrationNotificationPermissionsMessage
-        messageLabel.numberOfLines = 0
-        messageLabel.textColor = .secondaryLabel
-        messageLabel.font = .systemFont(forTextStyle: .body)
-        messageLabel.adjustsFontSizeToFitWidth = true
-
-        let stack = UIStackView(arrangedSubviews: [contactPermissionsTitleStack, messageLabel])
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        stack.axis = .vertical
-        stack.isLayoutMarginsRelativeArrangement = true
-        stack.layoutMargins = UIEdgeInsets(top: 15, left: 15, bottom: 15, right: 15)
-        stack.spacing = 12
-
-        return stack
-    }()
-
-    private lazy var contactPermissionsTitleStack: UIStackView = {
-        let imageView = UIImageView()
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.image = UIImage(named: "ContactPermissions")
-        imageView.contentMode = .scaleAspectFit
-
-        let label = UILabel()
-        label.text = Localizations.contactsPermissionExplanationTitle
-        label.font = .gothamFont(forTextStyle: .subheadline, weight: .medium)
-        label.numberOfLines = 0
-
-        let stack = UIStackView(arrangedSubviews: [imageView, label])
-        stack.axis = .horizontal
-        stack.spacing = 12
-
-        NSLayoutConstraint.activate([
-            imageView.heightAnchor.constraint(equalToConstant: Self.iconWidth),
-            imageView.widthAnchor.constraint(equalToConstant: Self.iconWidth),
-        ])
-
-        return stack
-    }()
-
-    private lazy var notificationPermissionsContainer: ShadowView = {
-        let view = ShadowView()
-        view.backgroundColor = .feedPostBackground
-        view.layer.cornerCurve = .continuous
-        view.layer.cornerRadius = Self.cardCornerRadius
-
-        view.layer.shadowColor = UIColor.black.withAlphaComponent(0.15).cgColor
-        view.layer.shadowOffset = CGSize(width: 0, height: 1)
-        view.layer.shadowRadius = 0.75
-        view.layer.shadowOpacity = 1
-
+    private lazy var notificationPermissionsExplainer: PermissionsExplainerView = {
+        let view = PermissionsExplainerView(permissionType: .notifications)
+        view.titleLabel.text = Localizations.titleNotifications
+        view.bodyLabel.text = Localizations.registrationNotificationPermissionsMessage
         return view
-    }()
-
-    private lazy var notificationPermissionsStack: UIStackView = {
-        let messageLabel = UILabel()
-        messageLabel.text = Localizations.registrationNotificationPermissionsMessage
-        messageLabel.numberOfLines = 0
-        messageLabel.textColor = .secondaryLabel
-        messageLabel.font = .systemFont(forTextStyle: .body)
-
-        let stack = UIStackView(arrangedSubviews: [notificationPermissionsTitleStack, messageLabel])
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        stack.axis = .vertical
-        stack.isLayoutMarginsRelativeArrangement = true
-        stack.layoutMargins = UIEdgeInsets(top: 15, left: 15, bottom: 15, right: 15)
-        stack.spacing = 12
-
-        return stack
-    }()
-
-    private lazy var notificationPermissionsTitleStack: UIStackView = {
-        let imageView = UIImageView()
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.image = UIImage(named: "NotificationPermissions")
-        imageView.contentMode = .scaleAspectFit
-
-        let label = UILabel()
-        label.text = Localizations.titleNotifications
-        label.font = .gothamFont(forTextStyle: .subheadline, weight: .medium)
-        label.numberOfLines = 0
-
-        let stack = UIStackView(arrangedSubviews: [imageView, label])
-        stack.axis = .horizontal
-        stack.spacing = 12
-
-        NSLayoutConstraint.activate([
-            imageView.heightAnchor.constraint(equalToConstant: Self.iconWidth),
-            imageView.widthAnchor.constraint(equalToConstant: Self.iconWidth),
-        ])
-
-        return stack
     }()
 
     private lazy var getStartedButtonStack: UIStackView = {
@@ -230,8 +125,6 @@ class PermissionsViewController: UIViewController {
         view.backgroundColor = .feedBackground
 
         view.addSubview(logoView)
-        contactPermissionsContainer.addSubview(contactPermissionsStack)
-        notificationPermissionsContainer.addSubview(notificationPermissionsStack)
         view.addSubview(scrollView)
         scrollView.addSubview(vStack)
         view.addSubview(getStartedButtonStack)
@@ -255,16 +148,6 @@ class PermissionsViewController: UIViewController {
             vStack.bottomAnchor.constraint(lessThanOrEqualTo: scrollView.bottomAnchor),
             vStack.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
             vStackCenterConstraint,
-
-            contactPermissionsStack.leadingAnchor.constraint(equalTo: contactPermissionsContainer.leadingAnchor),
-            contactPermissionsStack.trailingAnchor.constraint(equalTo: contactPermissionsContainer.trailingAnchor),
-            contactPermissionsStack.topAnchor.constraint(equalTo: contactPermissionsContainer.topAnchor),
-            contactPermissionsStack.bottomAnchor.constraint(equalTo: contactPermissionsContainer.bottomAnchor),
-
-            notificationPermissionsStack.leadingAnchor.constraint(equalTo: notificationPermissionsContainer.leadingAnchor),
-            notificationPermissionsStack.trailingAnchor.constraint(equalTo: notificationPermissionsContainer.trailingAnchor),
-            notificationPermissionsStack.topAnchor.constraint(equalTo: notificationPermissionsContainer.topAnchor),
-            notificationPermissionsStack.bottomAnchor.constraint(equalTo: notificationPermissionsContainer.bottomAnchor),
 
             syncProgressView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.65),
 

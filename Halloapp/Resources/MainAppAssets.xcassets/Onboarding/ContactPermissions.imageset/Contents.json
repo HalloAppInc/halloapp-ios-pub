@@ -3,6 +3,16 @@
     {
       "filename" : "contact_permissions.svg",
       "idiom" : "universal"
+    },
+    {
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
+      "filename" : "contact_permissions_dark.svg",
+      "idiom" : "universal"
     }
   ],
   "info" : {

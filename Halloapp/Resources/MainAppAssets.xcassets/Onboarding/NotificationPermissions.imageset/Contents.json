@@ -3,6 +3,16 @@
     {
       "filename" : "notification_permissions.svg",
       "idiom" : "universal"
+    },
+    {
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
+      "filename" : "notification_permissions_dark.svg",
+      "idiom" : "universal"
     }
   ],
   "info" : {

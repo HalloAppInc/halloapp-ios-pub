@@ -274,7 +274,9 @@
 		A11272EC2856E47B0009EBD7 /* MomentComposerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11272EB2856E47B0009EBD7 /* MomentComposerViewController.swift */; };
 		A11BA85428C0236D0077F86A /* RegistrationSplashScreenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11BA85328C0236D0077F86A /* RegistrationSplashScreenViewController.swift */; };
 		A11FA897285BE02900ACDA76 /* MomentsExplainerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11FA896285BE02900ACDA76 /* MomentsExplainerViewController.swift */; };
-		A13C928C28D8D3A40096CE00 /* AllowContactsPermissionHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13C928B28D8D3A40096CE00 /* AllowContactsPermissionHeaderView.swift */; };
+		A13C928C28D8D3A40096CE00 /* AllowContactsPermissionCollectionViewHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13C928B28D8D3A40096CE00 /* AllowContactsPermissionCollectionViewHeader.swift */; };
+		A13C928E28D915A00096CE00 /* InAppPermissionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13C928D28D915A00096CE00 /* InAppPermissionsViewController.swift */; };
+		A13C929028D9255C0096CE00 /* PermissionExplainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13C928F28D9255C0096CE00 /* PermissionExplainerView.swift */; };
 		A1562B1728D0EA630082F1E5 /* ViewfinderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1562B1628D0EA630082F1E5 /* ViewfinderView.swift */; };
 		A1562B1928D0EED40082F1E5 /* CaptureRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1562B1828D0EED40082F1E5 /* CaptureRequest.swift */; };
 		A15B2D96283EA9A0000CE989 /* LargeHitButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15B2D95283EA9A0000CE989 /* LargeHitButton.swift */; };
@@ -1069,7 +1071,9 @@
 		A11272EB2856E47B0009EBD7 /* MomentComposerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentComposerViewController.swift; sourceTree = "<group>"; };
 		A11BA85328C0236D0077F86A /* RegistrationSplashScreenViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationSplashScreenViewController.swift; sourceTree = "<group>"; };
 		A11FA896285BE02900ACDA76 /* MomentsExplainerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentsExplainerViewController.swift; sourceTree = "<group>"; };
-		A13C928B28D8D3A40096CE00 /* AllowContactsPermissionHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllowContactsPermissionHeaderView.swift; sourceTree = "<group>"; };
+		A13C928B28D8D3A40096CE00 /* AllowContactsPermissionCollectionViewHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllowContactsPermissionCollectionViewHeader.swift; sourceTree = "<group>"; };
+		A13C928D28D915A00096CE00 /* InAppPermissionsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InAppPermissionsViewController.swift; sourceTree = "<group>"; };
+		A13C928F28D9255C0096CE00 /* PermissionExplainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionExplainerView.swift; sourceTree = "<group>"; };
 		A1562B1628D0EA630082F1E5 /* ViewfinderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewfinderView.swift; sourceTree = "<group>"; };
 		A1562B1828D0EED40082F1E5 /* CaptureRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureRequest.swift; sourceTree = "<group>"; };
 		A15B2D95283EA9A0000CE989 /* LargeHitButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargeHitButton.swift; sourceTree = "<group>"; };
@@ -1651,6 +1655,7 @@
 				766492242450E04D009BC368 /* BadgeView.swift */,
 				76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */,
 				764F774D246224C30063645A /* ContactTableViewCell.swift */,
+				A13C928F28D9255C0096CE00 /* PermissionExplainerView.swift */,
 				761EE21D24B5135400B30632 /* MFMessageComposeView.swift */,
 				765EB4EA24D92404002FA5D9 /* SafariView.swift */,
 				76A92448244EBCB600794859 /* ShapeView.swift */,
@@ -2069,7 +2074,7 @@
 				76A92443244E659600794859 /* FeedViewController.swift */,
 				32C83FB6268FA44F00BEB4F5 /* FeedPermissionDeniedController.swift */,
 				E5981A48266032250014FFC9 /* FeedPermissionExplanationAlert.swift */,
-				A13C928B28D8D3A40096CE00 /* AllowContactsPermissionHeaderView.swift */,
+				A13C928B28D8D3A40096CE00 /* AllowContactsPermissionCollectionViewHeader.swift */,
 				E5B9EAB7265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift */,
 				76654789252BE44C00379BEF /* GroupFeedViewController.swift */,
 				6829F78624D0A62800207F6B /* UserFeedViewController.swift */,
@@ -2276,6 +2281,7 @@
 				680FB660250C45C000CA5D40 /* OverlayView.swift */,
 				68CD603325E463FA0056D13E /* ConnectionBanner.swift */,
 				323F99EC2808D0B100C8AB69 /* FavoritesInformationViewController.swift */,
+				A13C928D28D915A00096CE00 /* InAppPermissionsViewController.swift */,
 				F408E27A281B0BDE00A49B29 /* MigrationViewController.swift */,
 			);
 			path = Home;
@@ -3035,6 +3041,7 @@
 				F41FAA4227E52B7E00FC5090 /* BottomSheetViewController.swift in Sources */,
 				761EE21E24B5135400B30632 /* MFMessageComposeView.swift in Sources */,
 				323F99ED2808D0B100C8AB69 /* FavoritesInformationViewController.swift in Sources */,
+				A13C928E28D915A00096CE00 /* InAppPermissionsViewController.swift in Sources */,
 				F850677A26A7FDDF00A120EC /* AudioView.swift in Sources */,
 				3295A55D28809491007642B5 /* DestinationCell.swift in Sources */,
 				EAA424FB24ECF1480025CBBE /* ChatGroupMember+CoreDataProperties.swift in Sources */,
@@ -3239,6 +3246,7 @@
 				F80A0089288FF3DB00EAE39C /* MediaComposerTextView.swift in Sources */,
 				F4271260286A721B009C56FA /* GroupGridSearchBar.swift in Sources */,
 				A15E6C84280F1AA6008CAEA0 /* SettingsViewController.swift in Sources */,
+				A13C929028D9255C0096CE00 /* PermissionExplainerView.swift in Sources */,
 				EAD476F52458F03700EF8591 /* ChatThread+CoreDataProperties.swift in Sources */,
 				EAA34C09270F9EDF00BCF1BD /* StorageViewController.swift in Sources */,
 				762EDBDB244E344300986617 /* UIFont.swift in Sources */,
@@ -3291,7 +3299,7 @@
 				68184009264B1F9800408D31 /* Feed2ToFeed3.xcmappingmodel in Sources */,
 				76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */,
 				A1562B1728D0EA630082F1E5 /* ViewfinderView.swift in Sources */,
-				A13C928C28D8D3A40096CE00 /* AllowContactsPermissionHeaderView.swift in Sources */,
+				A13C928C28D8D3A40096CE00 /* AllowContactsPermissionCollectionViewHeader.swift in Sources */,
 				146B93792405F40500768AC6 /* Font.swift in Sources */,
 				76B95CDE24295AB5007435AC /* CommentView.swift in Sources */,
 				A1FF1ECC28BD7BF70057FC27 /* PhoneNumberVerificationViewController.swift in Sources */,

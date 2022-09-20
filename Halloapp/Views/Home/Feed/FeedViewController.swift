@@ -99,17 +99,19 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         collectionViewDataSource?.supplementaryViewProvider = { collectionView, elementKind, indexPath in
             switch elementKind {
             case UICollectionView.elementKindSectionHeader:
-                return collectionView.dequeueReusableSupplementaryView(ofKind: elementKind,
-                                                          withReuseIdentifier: AllowContactsPermissionHeaderView.reuseIdentifier,
-                                                                          for: indexPath)
+                let header = collectionView.dequeueReusableSupplementaryView(ofKind: elementKind,
+                                                                withReuseIdentifier: AllowContactsPermissionCollectionViewHeader.reuseIdentifier,
+                                                                                for: indexPath)
+                (header as? AllowContactsPermissionCollectionViewHeader)?.text = Localizations.allowContactsPermissionPromptForPosts
+                return header
             default:
                 return UICollectionReusableView()
             }
         }
 
-        collectionView.register(AllowContactsPermissionHeaderView.self,
+        collectionView.register(AllowContactsPermissionCollectionViewHeader.self,
                                 forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
-                                withReuseIdentifier: AllowContactsPermissionHeaderView.reuseIdentifier)
+                                withReuseIdentifier: AllowContactsPermissionCollectionViewHeader.reuseIdentifier)
     }
 
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {

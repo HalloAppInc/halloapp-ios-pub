@@ -23,7 +23,13 @@ fileprivate struct Constants {
 
 class ChatListViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
-    private let tableView = UITableView(frame: CGRect.zero, style: .grouped)
+    private lazy var tableView: UITableView = {
+        // a table view's headers are sticky only when its style is `.plain`
+        // when there aren't contact permissions, we display a sticky banner
+        let style: UITableView.Style = ContactStore.contactsAccessAuthorized ? .grouped : .plain
+        return UITableView(frame: .zero, style: style)
+    }()
+
     private static let cellReuseIdentifier = "ThreadListCell"
     private static let inviteFriendsReuseIdentifier = "ChatListInviteFriendsCell"
     
@@ -114,7 +120,8 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
         installEmptyView()
 
-        tableView.register(ChatListHeaderView.self, forHeaderFooterViewReuseIdentifier: "sectionHeader")
+        tableView.register(AllowContactsPermissionTableViewHeader.self, forHeaderFooterViewReuseIdentifier: AllowContactsPermissionTableViewHeader.reuseIdentifier)
+        tableView.register(ChatListHeaderView.self, forHeaderFooterViewReuseIdentifier: ChatListHeaderView.reuseIdentifier)
         tableView.register(ThreadListCell.self, forCellReuseIdentifier: ChatListViewController.cellReuseIdentifier)
         tableView.register(ChatListInviteFriendsTableViewCell.self, forCellReuseIdentifier: ChatListViewController.inviteFriendsReuseIdentifier)
         tableView.delegate = self
@@ -123,9 +130,15 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         tableView.backgroundColor = .primaryBg
         tableView.separatorStyle = .none
         tableView.contentInset = UIEdgeInsets(top: -10, left: 0, bottom: 0, right: 0) // -10 to hide top padding on searchBar
-        
+
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 60 // set a number close to default to prevent cells overlapping issue, can't be auto
+
+        tableView.sectionHeaderHeight = UITableView.automaticDimension
+        tableView.estimatedSectionHeaderHeight = 44
+        if #available(iOS 15, *) {
+            tableView.sectionHeaderTopPadding = .zero
+        }
 
         dataSource = ChatsListDataSource(tableView: tableView) { [weak self] (tableView, indexPath, row) in
             guard let self = self else { return UITableViewCell() }
@@ -202,6 +215,41 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
                 }
             })
         )
+
+        if !ContactStore.contactsAccessAuthorized, !showThreadsWithoutContactsPermission {
+            showPermissionsViewController()
+        }
+    }
+
+    private var showThreadsWithoutContactsPermission: Bool {
+        guard let results = fetchedResultsController?.fetchedObjects else {
+            return false
+        }
+
+        return results.contains(where: { thread in
+            switch thread.type {
+            case .oneToOne where thread.userID != MainAppContext.shared.userData.userId:
+                return true
+            case .groupChat:
+                return true
+            default:
+                return false
+            }
+        })
+    }
+
+    private func showPermissionsViewController() {
+        let vc = InAppPermissionsViewController(configuration: .chat)
+        vc.view.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(vc.view)
+        addChild(vc)
+
+        NSLayoutConstraint.activate([
+            vc.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            vc.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            vc.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            vc.view.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+        ])
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -234,17 +282,12 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
     private func showInviteViewControllerIfNeeded() {
         let isZeroZone = MainAppContext.shared.nux.state == .zeroZone
-
         // check if list is empty since someone could've messaged the user
         let isEmpty = (fetchedResultsController?.sections?.first?.numberOfObjects ?? 0) == 0
-
-        guard isZeroZone, isEmpty else { return }
-
-        guard ContactStore.contactsAccessAuthorized else {
-            let inviteVC = InvitePermissionDeniedViewController()
-            present(UINavigationController(rootViewController: inviteVC), animated: true)
+        guard isZeroZone, isEmpty, ContactStore.contactsAccessAuthorized else {
             return
         }
+
         InviteManager.shared.requestInvitesIfNecessary()
         let inviteVC = InviteViewController(manager: InviteManager.shared, showDividers: false, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
         inviteVC.view.frame = self.view.bounds
@@ -536,13 +579,21 @@ extension ChatListViewController: UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        let view = tableView.dequeueReusableHeaderFooterView(withIdentifier: "sectionHeader") as! ChatListHeaderView
-        view.delegate = self
-        return view
+        guard ContactStore.contactsAccessAuthorized else {
+            let header = tableView.dequeueReusableHeaderFooterView(withIdentifier: AllowContactsPermissionTableViewHeader.reuseIdentifier)
+            let inset = tableView.contentInset.top
+            header?.layoutMargins.top = inset < 0 ? -inset : inset
+            return header
+        }
+
+        let header = tableView.dequeueReusableHeaderFooterView(withIdentifier: ChatListHeaderView.reuseIdentifier)
+        (header as? ChatListHeaderView)?.delegate = self
+
+        return header
     }
 
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return 25
+        return UITableView.automaticDimension
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -680,6 +731,9 @@ protocol ChatListHeaderViewDelegate: AnyObject {
 }
 
 class ChatListHeaderView: UITableViewHeaderFooterView {
+
+    static let reuseIdentifier = "chatListHeader"
+
     weak var delegate: ChatListHeaderViewDelegate?
     
     override init(reuseIdentifier: String?) {
