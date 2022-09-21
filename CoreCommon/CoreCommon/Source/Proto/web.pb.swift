@@ -87,11 +87,20 @@ public struct Web_WebContainer {
     set {payload = .feedResponse(newValue)}
   }
 
+  public var feedUpdate: Web_FeedUpdate {
+    get {
+      if case .feedUpdate(let v)? = payload {return v}
+      return Web_FeedUpdate()
+    }
+    set {payload = .feedUpdate(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Payload: Equatable {
     case feedRequest(Web_FeedRequest)
     case feedResponse(Web_FeedResponse)
+    case feedUpdate(Web_FeedUpdate)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Web_WebContainer.OneOf_Payload, rhs: Web_WebContainer.OneOf_Payload) -> Bool {
@@ -105,6 +114,10 @@ public struct Web_WebContainer {
       }()
       case (.feedResponse, .feedResponse): return {
         guard case .feedResponse(let l) = lhs, case .feedResponse(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.feedUpdate, .feedUpdate): return {
+        guard case .feedUpdate(let l) = lhs, case .feedUpdate(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -207,9 +220,20 @@ public struct Web_GroupDisplayInfo {
 
   public var background: String = String()
 
+  public var expiryInfo: Server_ExpiryInfo {
+    get {return _expiryInfo ?? Server_ExpiryInfo()}
+    set {_expiryInfo = newValue}
+  }
+  /// Returns true if `expiryInfo` has been explicitly set.
+  public var hasExpiryInfo: Bool {return self._expiryInfo != nil}
+  /// Clears the value of `expiryInfo`. Subsequent reads from it will return its default value.
+  public mutating func clearExpiryInfo() {self._expiryInfo = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
+
+  fileprivate var _expiryInfo: Server_ExpiryInfo? = nil
 }
 
 public struct Web_PostDisplayInfo {
@@ -465,25 +489,37 @@ public struct Web_FeedItem {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var content: Web_FeedItem.OneOf_Content? = nil
+  public var content: OneOf_Content? {
+    get {return _storage._content}
+    set {_uniqueStorage()._content = newValue}
+  }
 
   public var post: Server_Post {
     get {
-      if case .post(let v)? = content {return v}
+      if case .post(let v)? = _storage._content {return v}
       return Server_Post()
     }
-    set {content = .post(newValue)}
+    set {_uniqueStorage()._content = .post(newValue)}
   }
 
   public var comment: Server_Comment {
     get {
-      if case .comment(let v)? = content {return v}
+      if case .comment(let v)? = _storage._content {return v}
       return Server_Comment()
     }
-    set {content = .comment(newValue)}
+    set {_uniqueStorage()._content = .comment(newValue)}
   }
 
-  public var groupID: String = String()
+  public var groupID: String {
+    get {return _storage._groupID}
+    set {_uniqueStorage()._groupID = newValue}
+  }
+
+  /// Set only for post items. `-1` if item should never expire.
+  public var expiryTimestamp: Int64 {
+    get {return _storage._expiryTimestamp}
+    set {_uniqueStorage()._expiryTimestamp = newValue}
+  }
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -512,6 +548,26 @@ public struct Web_FeedItem {
   }
 
   public init() {}
+
+  fileprivate var _storage = _StorageClass.defaultInstance
+}
+
+public struct Web_FeedUpdate {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var items: [Web_FeedItem] = []
+
+  public var userDisplayInfo: [Web_UserDisplayInfo] = []
+
+  public var postDisplayInfo: [Web_PostDisplayInfo] = []
+
+  public var groupDisplayInfo: [Web_GroupDisplayInfo] = []
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
 }
 
 #if swift(>=5.5) && canImport(_Concurrency)
@@ -531,6 +587,7 @@ extension Web_FeedResponse: @unchecked Sendable {}
 extension Web_FeedResponse.Error: @unchecked Sendable {}
 extension Web_FeedItem: @unchecked Sendable {}
 extension Web_FeedItem.OneOf_Content: @unchecked Sendable {}
+extension Web_FeedUpdate: @unchecked Sendable {}
 #endif  // swift(>=5.5) && canImport(_Concurrency)
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
@@ -550,6 +607,7 @@ extension Web_WebContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "feed_request"),
     2: .standard(proto: "feed_response"),
+    3: .standard(proto: "feed_update"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -584,6 +642,19 @@ extension Web_WebContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
           self.payload = .feedResponse(v)
         }
       }()
+      case 3: try {
+        var v: Web_FeedUpdate?
+        var hadOneofValue = false
+        if let current = self.payload {
+          hadOneofValue = true
+          if case .feedUpdate(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.payload = .feedUpdate(v)
+        }
+      }()
       default: break
       }
     }
@@ -602,6 +673,10 @@ extension Web_WebContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     case .feedResponse?: try {
       guard case .feedResponse(let v)? = self.payload else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    }()
+    case .feedUpdate?: try {
+      guard case .feedUpdate(let v)? = self.payload else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
     }()
     case nil: break
     }
@@ -719,6 +794,7 @@ extension Web_GroupDisplayInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
     3: .standard(proto: "avatar_id"),
     4: .same(proto: "description"),
     5: .same(proto: "background"),
+    6: .standard(proto: "expiry_info"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -732,12 +808,17 @@ extension Web_GroupDisplayInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
       case 3: try { try decoder.decodeSingularStringField(value: &self.avatarID) }()
       case 4: try { try decoder.decodeSingularStringField(value: &self.description_p) }()
       case 5: try { try decoder.decodeSingularStringField(value: &self.background) }()
+      case 6: try { try decoder.decodeSingularMessageField(value: &self._expiryInfo) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if !self.id.isEmpty {
       try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
     }
@@ -753,6 +834,9 @@ extension Web_GroupDisplayInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
     if !self.background.isEmpty {
       try visitor.visitSingularStringField(value: self.background, fieldNumber: 5)
     }
+    try { if let v = self._expiryInfo {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -762,6 +846,7 @@ extension Web_GroupDisplayInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
     if lhs.avatarID != rhs.avatarID {return false}
     if lhs.description_p != rhs.description_p {return false}
     if lhs.background != rhs.background {return false}
+    if lhs._expiryInfo != rhs._expiryInfo {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -1005,6 +1090,125 @@ extension Web_FeedItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
     1: .same(proto: "post"),
     2: .same(proto: "comment"),
     3: .standard(proto: "group_id"),
+    4: .standard(proto: "expiry_timestamp"),
+  ]
+
+  fileprivate class _StorageClass {
+    var _content: Web_FeedItem.OneOf_Content?
+    var _groupID: String = String()
+    var _expiryTimestamp: Int64 = 0
+
+    static let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _content = source._content
+      _groupID = source._groupID
+      _expiryTimestamp = source._expiryTimestamp
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try {
+          var v: Server_Post?
+          var hadOneofValue = false
+          if let current = _storage._content {
+            hadOneofValue = true
+            if case .post(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._content = .post(v)
+          }
+        }()
+        case 2: try {
+          var v: Server_Comment?
+          var hadOneofValue = false
+          if let current = _storage._content {
+            hadOneofValue = true
+            if case .comment(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._content = .comment(v)
+          }
+        }()
+        case 3: try { try decoder.decodeSingularStringField(value: &_storage._groupID) }()
+        case 4: try { try decoder.decodeSingularInt64Field(value: &_storage._expiryTimestamp) }()
+        default: break
+        }
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      switch _storage._content {
+      case .post?: try {
+        guard case .post(let v)? = _storage._content else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+      }()
+      case .comment?: try {
+        guard case .comment(let v)? = _storage._content else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+      }()
+      case nil: break
+      }
+      if !_storage._groupID.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._groupID, fieldNumber: 3)
+      }
+      if _storage._expiryTimestamp != 0 {
+        try visitor.visitSingularInt64Field(value: _storage._expiryTimestamp, fieldNumber: 4)
+      }
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Web_FeedItem, rhs: Web_FeedItem) -> Bool {
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._content != rhs_storage._content {return false}
+        if _storage._groupID != rhs_storage._groupID {return false}
+        if _storage._expiryTimestamp != rhs_storage._expiryTimestamp {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Web_FeedUpdate: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".FeedUpdate"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "items"),
+    2: .standard(proto: "user_display_info"),
+    3: .standard(proto: "post_display_info"),
+    4: .standard(proto: "group_display_info"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1013,63 +1217,36 @@ extension Web_FeedItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try {
-        var v: Server_Post?
-        var hadOneofValue = false
-        if let current = self.content {
-          hadOneofValue = true
-          if case .post(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.content = .post(v)
-        }
-      }()
-      case 2: try {
-        var v: Server_Comment?
-        var hadOneofValue = false
-        if let current = self.content {
-          hadOneofValue = true
-          if case .comment(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.content = .comment(v)
-        }
-      }()
-      case 3: try { try decoder.decodeSingularStringField(value: &self.groupID) }()
+      case 1: try { try decoder.decodeRepeatedMessageField(value: &self.items) }()
+      case 2: try { try decoder.decodeRepeatedMessageField(value: &self.userDisplayInfo) }()
+      case 3: try { try decoder.decodeRepeatedMessageField(value: &self.postDisplayInfo) }()
+      case 4: try { try decoder.decodeRepeatedMessageField(value: &self.groupDisplayInfo) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    switch self.content {
-    case .post?: try {
-      guard case .post(let v)? = self.content else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    }()
-    case .comment?: try {
-      guard case .comment(let v)? = self.content else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    }()
-    case nil: break
+    if !self.items.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.items, fieldNumber: 1)
     }
-    if !self.groupID.isEmpty {
-      try visitor.visitSingularStringField(value: self.groupID, fieldNumber: 3)
+    if !self.userDisplayInfo.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.userDisplayInfo, fieldNumber: 2)
+    }
+    if !self.postDisplayInfo.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.postDisplayInfo, fieldNumber: 3)
+    }
+    if !self.groupDisplayInfo.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.groupDisplayInfo, fieldNumber: 4)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Web_FeedItem, rhs: Web_FeedItem) -> Bool {
-    if lhs.content != rhs.content {return false}
-    if lhs.groupID != rhs.groupID {return false}
+  public static func ==(lhs: Web_FeedUpdate, rhs: Web_FeedUpdate) -> Bool {
+    if lhs.items != rhs.items {return false}
+    if lhs.userDisplayInfo != rhs.userDisplayInfo {return false}
+    if lhs.postDisplayInfo != rhs.postDisplayInfo {return false}
+    if lhs.groupDisplayInfo != rhs.groupDisplayInfo {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

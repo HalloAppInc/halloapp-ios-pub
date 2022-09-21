@@ -2080,6 +2080,9 @@ extension ProtoServiceCore: CoreService {
         case .homeFeedComment:
             reportHomeDecryptionResult(error: error, contentID: contentID, contentType: .comment,
                                        type: .all, timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount)
+        case .chatReaction, .groupChat, .groupPostReaction, .groupCommentReaction, .homePostReaction, .homeCommentReaction:
+            // TODO: Handle these cases
+            break
         case .UNRECOGNIZED, .unknown:
             break
         }

@@ -3533,6 +3533,12 @@ public struct Server_ContentMissing {
     case homeFeedComment // = 6
     case historyResend // = 7
     case groupHistory // = 8
+    case chatReaction // = 9
+    case groupCommentReaction // = 10
+    case groupPostReaction // = 11
+    case homeCommentReaction // = 12
+    case homePostReaction // = 13
+    case groupChat // = 14
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -3550,6 +3556,12 @@ public struct Server_ContentMissing {
       case 6: self = .homeFeedComment
       case 7: self = .historyResend
       case 8: self = .groupHistory
+      case 9: self = .chatReaction
+      case 10: self = .groupCommentReaction
+      case 11: self = .groupPostReaction
+      case 12: self = .homeCommentReaction
+      case 13: self = .homePostReaction
+      case 14: self = .groupChat
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -3565,6 +3577,12 @@ public struct Server_ContentMissing {
       case .homeFeedComment: return 6
       case .historyResend: return 7
       case .groupHistory: return 8
+      case .chatReaction: return 9
+      case .groupCommentReaction: return 10
+      case .groupPostReaction: return 11
+      case .homeCommentReaction: return 12
+      case .homePostReaction: return 13
+      case .groupChat: return 14
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -3588,6 +3606,12 @@ extension Server_ContentMissing.ContentType: CaseIterable {
     .homeFeedComment,
     .historyResend,
     .groupHistory,
+    .chatReaction,
+    .groupCommentReaction,
+    .groupPostReaction,
+    .homeCommentReaction,
+    .homePostReaction,
+    .groupChat,
   ]
 }
 
@@ -5749,6 +5773,7 @@ public struct Server_GroupFeedRerequest {
     case historyResend // = 3
     case postReaction // = 4
     case commentReaction // = 5
+    case message // = 6
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -5763,6 +5788,7 @@ public struct Server_GroupFeedRerequest {
       case 3: self = .historyResend
       case 4: self = .postReaction
       case 5: self = .commentReaction
+      case 6: self = .message
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -5775,6 +5801,7 @@ public struct Server_GroupFeedRerequest {
       case .historyResend: return 3
       case .postReaction: return 4
       case .commentReaction: return 5
+      case .message: return 6
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -5803,6 +5830,7 @@ extension Server_GroupFeedRerequest.ContentType: CaseIterable {
     .historyResend,
     .postReaction,
     .commentReaction,
+    .message,
   ]
 }
 
@@ -12325,6 +12353,12 @@ extension Server_ContentMissing.ContentType: SwiftProtobuf._ProtoNameProviding {
     6: .same(proto: "HOME_FEED_COMMENT"),
     7: .same(proto: "HISTORY_RESEND"),
     8: .same(proto: "GROUP_HISTORY"),
+    9: .same(proto: "CHAT_REACTION"),
+    10: .same(proto: "GROUP_COMMENT_REACTION"),
+    11: .same(proto: "GROUP_POST_REACTION"),
+    12: .same(proto: "HOME_COMMENT_REACTION"),
+    13: .same(proto: "HOME_POST_REACTION"),
+    14: .same(proto: "GROUP_CHAT"),
   ]
 }
 
@@ -14922,6 +14956,7 @@ extension Server_GroupFeedRerequest.ContentType: SwiftProtobuf._ProtoNameProvidi
     3: .same(proto: "HISTORY_RESEND"),
     4: .same(proto: "POST_REACTION"),
     5: .same(proto: "COMMENT_REACTION"),
+    6: .same(proto: "MESSAGE"),
   ]
 }
 

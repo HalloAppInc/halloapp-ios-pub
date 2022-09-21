@@ -123,6 +123,8 @@ final class WebClientManager {
             switch container.payload {
             case .feedResponse:
                 DDLogError("WebClientManager/handleIncoming/feedResponse/error [invalid-payload]")
+            case .feedUpdate:
+                DDLogError("WebClientManager/handleIncoming/feedUpdate/error [invalid-payload]")
             case .feedRequest(let request):
                 DispatchQueue.main.async {
                     guard let response = self.feedResponse(for: request) else {
@@ -139,7 +141,6 @@ final class WebClientManager {
                         DDLogError("WebClientManager/handleIncoming/feedRequest/error [serialization]")
                     }
                 }
-
             case .none:
                 DDLogError("WebClientManager/handleIncoming/error [missing-payload]")
             }
