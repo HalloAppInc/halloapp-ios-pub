@@ -496,6 +496,9 @@ final class WebClientManager {
 
             var feedItem = Web_FeedItem()
             feedItem.content = .post(serverPost)
+            if let expiryTimestamp = post.expiration?.timeIntervalSince1970 {
+                feedItem.expiryTimestamp = Int64(expiryTimestamp)
+            }
             if let groupID = post.groupID {
                 feedItem.groupID = groupID
             }
@@ -540,6 +543,10 @@ final class WebClientManager {
         if let backgroundData = try? background.serializedData() {
             info.background = String(decoding: backgroundData, as: UTF8.self)
         }
+        var expiry = Server_ExpiryInfo()
+        expiry.expiryTimestamp = group.expirationTime
+        expiry.expiryType = group.expirationType.serverExpiryType
+        info.expiryInfo = expiry
 
         return info
     }
