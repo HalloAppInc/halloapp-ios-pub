@@ -50,19 +50,63 @@ class ContentTextView: UITextView {
             mentions = textAndMentions.mentions
         }
     }
-    
+
+    var placeholder: String? {
+        didSet {
+            placeholderLabel.text = placeholder
+
+            if placeholder != nil {
+                addSubview(placeholderLabel)
+                setNeedsLayout()
+                textDidChangeCancellable = NotificationCenter.default.publisher(for: UITextView.textDidChangeNotification)
+                    .sink(receiveValue: { [weak self] _ in
+                        self?.updatePlaceholderVisibility()
+                    })
+                updatePlaceholderVisibility()
+            } else {
+                placeholderLabel.removeFromSuperview()
+                textDidChangeCancellable = nil
+            }
+        }
+    }
+
+    var placeholderColor: UIColor = .label {
+        didSet {
+            placeholderLabel.textColor = placeholderColor
+        }
+    }
+
+    private let placeholderLabel = UILabel()
+
+    private var textDidChangeCancellable: AnyCancellable?
+
+    private func updatePlaceholderVisibility() {
+        placeholderLabel.isHidden = !(text?.isEmpty ?? true)
+    }
+
     override var font: UIFont? {
         didSet {
             guard let font = self.font else {
                 maxHeight = 144
                 return
             }
-            
             let usingLines = font.lineHeight * 5 + textContainerInset.top + textContainerInset.bottom
             maxHeight = min(usingLines.rounded(.up), 144)
+            placeholderLabel.font = font
         }
     }
-    
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        let insetBounds = bounds.inset(by: textContainerInset)
+        let placeholderSize = placeholderLabel.sizeThatFits(insetBounds.size)
+        let isLTR = effectiveUserInterfaceLayoutDirection == .leftToRight
+        // Hardcoding 4 pts here to align with textView cursor. This seems consistent between text size / dynamic type size.
+        placeholderLabel.frame = CGRect(origin: CGPoint(x: isLTR ? insetBounds.minX + 4 : insetBounds.maxX - placeholderSize.width - 4, y: insetBounds.minY),
+                                        size: placeholderSize)
+    }
+
     override var intrinsicContentSize: CGSize {
         get {
             // without this we'd get layout issues when pasting and deleting

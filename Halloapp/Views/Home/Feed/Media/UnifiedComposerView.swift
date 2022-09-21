@@ -184,25 +184,14 @@ class UnifiedComposerView: UIStackView {
         textView.tintColor = .systemBlue
         textView.textColor = ComposerConstants.textViewTextColor
         textView.backgroundColor = .secondarySystemGroupedBackground
-
-        textView.addSubview(placeholder)
+        textView.placeholder = Localizations.writePost
+        textView.placeholderColor = .label.withAlphaComponent(0.4)
 
         NSLayoutConstraint.activate([
-            placeholder.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: 5),
-            placeholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: 9),
             textView.heightAnchor.constraint(greaterThanOrEqualToConstant: 86),
         ])
 
         return textView
-    }()
-
-    private lazy var placeholder: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = .systemFont(ofSize: 20)
-        label.textColor = .label.withAlphaComponent(0.4)
-
-        return label
     }()
 
     private lazy var linkPreviewView: PostComposerLinkPreviewView = {
@@ -285,15 +274,12 @@ class UnifiedComposerView: UIStackView {
 
         addArrangedSubview(mentionPickerView)
         addArrangedSubview(cardView)
-
-        placeholder.text = Localizations.writePost
     }
 
     public func update(with input: MentionInput, mentionables: [MentionableUser], recorder: AudioRecorder, voiceNote: PendingMedia?, locked: Bool) {
         textView.text = input.text
         textView.mentions = input.mentions
         textView.font = ComposerConstants.getFontSize(textSize: input.text.count, isPostWithMedia: false)
-        placeholder.isHidden = !input.text.isEmpty
         scrollView.isHidden = voiceNote != nil
 
         updateLinkPreviewViewIfNecessary(with: input)
