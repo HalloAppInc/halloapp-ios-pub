@@ -1045,8 +1045,8 @@ extension ShareComposerViewController: UITextViewDelegate {
 // MARK: UIScrollViewDelegate
 extension ShareComposerViewController: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if scrollView == collectionView {
-            let rem = collectionView.contentOffset.x.truncatingRemainder(dividingBy: scrollView.frame.width)
+        if let collectionView = collectionView, let pageControl = pageControl, scrollView === collectionView, collectionView.frame.width > 0 {
+            let rem = collectionView.contentOffset.x.truncatingRemainder(dividingBy: collectionView.frame.width)
 
             if rem == 0 {
                 pageControl.currentPage = Int(collectionView.contentOffset.x / collectionView.frame.width)
