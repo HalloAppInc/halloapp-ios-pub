@@ -141,7 +141,7 @@ class UserFeedViewController: FeedCollectionViewController {
     
     private func setupMoreButton() {
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis")) {
-            HAMenu.actionsForUser(id: userId, options: [.utilityActions, .blockAction]) { [weak self] action in
+            HAMenu.menu(for: userId, options: [.addContact, .safetyNumber, .commonGroups, .favorite, .block]) { [weak self] action in
                 self?.handle(action: action)
             }
         }

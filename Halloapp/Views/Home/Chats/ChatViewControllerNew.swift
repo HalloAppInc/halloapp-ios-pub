@@ -2167,7 +2167,7 @@ extension ChatViewControllerNew: MessageChatHeaderViewDelegate {
     }
 }
 
-extension ChatViewControllerNew: MessageChatEventViewDelegate, UserMenuHandler {
+extension ChatViewControllerNew: MessageChatEventViewDelegate, UserActionHandler {
     func messageChatHeaderViewAddToContacts(_ messageCellViewEvent: MessageCellViewEvent) {
         guard let fromUserId = fromUserId else { return }
         handle(action: .addContact(fromUserId))

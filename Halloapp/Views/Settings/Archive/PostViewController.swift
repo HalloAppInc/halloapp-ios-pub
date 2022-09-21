@@ -12,7 +12,7 @@ import Foundation
 import Photos
 import UIKit
 
-class PostViewController: UIViewController, UserMenuHandler, ShareMenuPresenter, UIViewControllerMediaSaving {
+class PostViewController: UIViewController, ShareMenuPresenter, UIViewControllerMediaSaving {
 
     private let post: FeedPostDisplayable
     private let showFooter: Bool
@@ -171,7 +171,7 @@ extension PostViewController: UIGestureRecognizerDelegate {
 }
 
 // MARK: Post Actions
-extension PostViewController {
+extension PostViewController: UserActionHandler {
     @HAMenuContentBuilder
     private func moreMenu() -> HAMenu.Content {
         if post.hasSaveablePostMedia && post.canSaveMedia {

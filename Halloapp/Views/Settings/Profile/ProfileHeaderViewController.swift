@@ -21,7 +21,7 @@ protocol ProfileHeaderDelegate: AnyObject {
     func profileHeaderDidTapUnblock(_ profileHeader: ProfileHeaderViewController)
 }
 
-final class ProfileHeaderViewController: UIViewController, UserMenuHandler {
+final class ProfileHeaderViewController: UIViewController, UserActionHandler {
     var isEditingAllowed: Bool = false {
         didSet {
             if let view = viewIfLoaded as? ProfileHeaderView {
@@ -207,17 +207,17 @@ final class ProfileHeaderViewController: UIViewController, UserMenuHandler {
 
     @objc private func openChatView() {
         guard let userID = headerView.userID else { return }
-        self.handle(action: .message(userID))
+        handle(action: .message(userID))
     }
 
     @objc private func audioCallButtonTapped() {
         guard let userID = headerView.userID else { return }
-        self.handle(action: .call(userID, .audio))
+        handle(action: .call(userID, .audio))
     }
 
     @objc private func videoCallButtonTapped() {
         guard let userID = headerView.userID else { return }
-        self.handle(action: .call(userID, .video))
+        handle(action: .call(userID, .video))
     }
 
     private func presentPhotoPicker() {

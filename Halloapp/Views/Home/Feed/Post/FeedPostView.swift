@@ -31,7 +31,7 @@ class FeedPostView: UIView {
     var cancelSendingAction: (() -> ())?
     var retrySendingAction: (() -> ())?
     var deleteAction: (() -> ())?
-    var contextAction: ((UserMenuAction) -> ())?
+    var contextAction: ((UserAction) -> ())?
     var shareAction: (() -> ())?
 
     weak var delegate: FeedPostViewDelegate?
@@ -275,7 +275,7 @@ class FeedPostView: UIView {
 }
 
 extension FeedPostView: ExpandableTextViewDelegate {
-    func textView(_ textView: ExpandableTextView, didSelectAction action: UserMenuAction) {
+    func textView(_ textView: ExpandableTextView, didSelectAction action: UserAction) {
         contextAction?(action)
     }
     

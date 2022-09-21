@@ -1043,7 +1043,7 @@ extension FeedPostComment {
   }
 }
 
-extension FlatCommentsViewController: ExpandableTextViewDelegate, UserMenuHandler {
+extension FlatCommentsViewController: ExpandableTextViewDelegate, UserActionHandler {
     func textView(_ textView: ExpandableTextView, didRequestHandleMention userID: UserID) {
         showUserFeed(for: userID)
     }
@@ -1053,7 +1053,7 @@ extension FlatCommentsViewController: ExpandableTextViewDelegate, UserMenuHandle
         collectionView.collectionViewLayout.invalidateLayout()
     }
     
-    func textView(_ textView: ExpandableTextView, didSelectAction action: UserMenuAction) {
+    func textView(_ textView: ExpandableTextView, didSelectAction action: UserAction) {
         handle(action: action)
     }
     

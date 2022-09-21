@@ -13,7 +13,7 @@ import CoreCommon
 protocol ExpandableTextViewDelegate: UITextViewDelegate {
     func textView(_ textView: ExpandableTextView, didRequestHandleMention userID: UserID)
     func textViewDidRequestToExpand(_ textView: ExpandableTextView)
-    func textView(_ textView: ExpandableTextView, didSelectAction action: UserMenuAction)
+    func textView(_ textView: ExpandableTextView, didSelectAction action: UserAction)
 }
 
 /// An expandable text view that provides contextual menus for links, phone numbers,
@@ -404,7 +404,7 @@ extension ExpandableTextView: UIContextMenuInteractionDelegate {
         let config = UIContextMenuConfiguration(identifier: id as NSString, previewProvider: {
             return UserFeedViewController(userId: id)
         }) { [weak self] _ in
-            UIMenu(menu: HAMenu.actionsForUser(id: id) { [weak self] action in
+            UIMenu(menu: HAMenu.menu(for: id) { [weak self] action in
                 guard let self = self else { return }
                 (self.delegate as? ExpandableTextViewDelegate)?.textView(self, didSelectAction: action)
             })

@@ -269,7 +269,7 @@
 		76DFA00524195F2400F49CA4 /* XMPPContactSyncRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DFA00424195F2400F49CA4 /* XMPPContactSyncRequest.swift */; };
 		76E00DF624FEC4A800E06252 /* ProfileHeaderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E00DF324FEC2FC00E06252 /* ProfileHeaderViewController.swift */; };
 		76FE37ED2523EC9600372FB1 /* ContactPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */; };
-		A111BDFC27C96D9100E5DB4E /* UserMenuHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A111BDFB27C96D9100E5DB4E /* UserMenuHandler.swift */; };
+		A111BDFC27C96D9100E5DB4E /* UserActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A111BDFB27C96D9100E5DB4E /* UserActions.swift */; };
 		A11272EA2856C5930009EBD7 /* NewMomentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11272E92856C5930009EBD7 /* NewMomentViewController.swift */; };
 		A11272EC2856E47B0009EBD7 /* MomentComposerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11272EB2856E47B0009EBD7 /* MomentComposerViewController.swift */; };
 		A11BA85428C0236D0077F86A /* RegistrationSplashScreenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11BA85328C0236D0077F86A /* RegistrationSplashScreenViewController.swift */; };
@@ -1066,7 +1066,7 @@
 		76E81D27255E485F0068CD62 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		76F43F2D2489BD8900D47920 /* Notification Service Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Notification Service Extension.entitlements"; sourceTree = "<group>"; };
 		76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContactPickerViewController.swift; path = HalloApp/Components/Views/ContactPickerViewController.swift; sourceTree = SOURCE_ROOT; };
-		A111BDFB27C96D9100E5DB4E /* UserMenuHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserMenuHandler.swift; path = Halloapp/Views/Home/UserMenuHandler.swift; sourceTree = SOURCE_ROOT; };
+		A111BDFB27C96D9100E5DB4E /* UserActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserActions.swift; path = Halloapp/Views/Home/UserActions.swift; sourceTree = SOURCE_ROOT; };
 		A11272E92856C5930009EBD7 /* NewMomentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewMomentViewController.swift; sourceTree = "<group>"; };
 		A11272EB2856E47B0009EBD7 /* MomentComposerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentComposerViewController.swift; sourceTree = "<group>"; };
 		A11BA85328C0236D0077F86A /* RegistrationSplashScreenViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationSplashScreenViewController.swift; sourceTree = "<group>"; };
@@ -2081,7 +2081,7 @@
 				EA73DF3F25E88D9B0070875D /* NewPostsIndicator.swift */,
 				68E5E9D925F6FAF100250762 /* FeedDataSource.swift */,
 				68629293265C660D00C54367 /* FeedPermissionAlert.swift */,
-				A111BDFB27C96D9100E5DB4E /* UserMenuHandler.swift */,
+				A111BDFB27C96D9100E5DB4E /* UserActions.swift */,
 				F4D88F6A27D9873E00D706DA /* Toast.swift */,
 				F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */,
 				F41FAA5127E54F2800FC5090 /* FeedPostMenuViewController.swift */,
@@ -3344,7 +3344,7 @@
 				6829F78724D0A62800207F6B /* UserFeedViewController.swift in Sources */,
 				EABDC977253424E1005FE00A /* InboundMsgViewCell.swift in Sources */,
 				3283296E27DC0BA7003AD019 /* MessageCellViewQuoted.swift in Sources */,
-				A111BDFC27C96D9100E5DB4E /* UserMenuHandler.swift in Sources */,
+				A111BDFC27C96D9100E5DB4E /* UserActions.swift in Sources */,
 				68CCE7AD275FDE8200C39B70 /* RootViewController.swift in Sources */,
 				762EDBDD244E5A7800986617 /* HomeViewController.swift in Sources */,
 				764AB41A24A6A48400D4E354 /* PrivacyRequests.swift in Sources */,

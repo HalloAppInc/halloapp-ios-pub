@@ -21,7 +21,7 @@ protocol FeedCollectionViewControllerDelegate: AnyObject {
     func feedCollectionViewController(_ feedCollectionViewController: FeedCollectionViewController, userActioned: Bool)
 }
 
-class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, UserMenuHandler, ShareMenuPresenter, UIViewControllerMediaSaving {
+class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, ShareMenuPresenter, UIViewControllerMediaSaving, UserActionHandler {
 
     weak var delegate: FeedCollectionViewControllerDelegate?
 

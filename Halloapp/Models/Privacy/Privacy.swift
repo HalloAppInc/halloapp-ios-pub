@@ -612,9 +612,9 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
         }
     }
     
-    /**
-     Adds a user to the blocked list.
-     */
+    /// Adds `userID` to blocked.
+    ///
+    /// This method will remove `userID` from `whitelist` if it is contained there.
     public func block(userID: UserID) {
         guard
             let blockedList = blocked,
@@ -624,19 +624,58 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
         }
         
         replaceUserIDs(in: blockedList, with: blockedList.userIds + [userID])
+        removeFavorite(userID)
+
         MainAppContext.shared.didPrivacySettingChange.send(userID)
     }
     
-    /**
-     Removes a user to the blocked list.
-     */
+    /// Removes `userID` from `blocked`.
     public func unblock(userID: UserID) {
         guard let blockedList = blocked else {
             return
         }
+
         var newBlockedList = blockedList.userIds
         newBlockedList.removeAll { $0 == userID }
+        if newBlockedList.count == blockedList.userIds.count {
+            return
+        }
+
         replaceUserIDs(in: blockedList, with: newBlockedList)
         MainAppContext.shared.didPrivacySettingChange.send(userID)
+    }
+
+    /// - Returns: `true` if `userID` is contained in `blocked`.
+    public func isBlocked(_ userID: UserID) -> Bool {
+        blocked?.userIds.contains(userID) ?? false
+    }
+
+    /// Adds `userID` to `whitelist`.
+    public func addFavorite(_ userID: UserID) {
+        guard let whitelist = whitelist else {
+            return
+        }
+
+        replaceUserIDs(in: whitelist, with: whitelist.userIds + [userID])
+    }
+
+    /// Removes `userID` from `whitelist`.
+    public func removeFavorite(_ userID: UserID) {
+        guard let whitelist = whitelist else {
+            return
+        }
+
+        var newWhitelist = whitelist.userIds
+        newWhitelist.removeAll { $0 == userID }
+        if newWhitelist.count == whitelist.userIds.count {
+            return
+        }
+
+        replaceUserIDs(in: whitelist, with: newWhitelist)
+    }
+
+    /// - Returns: `true` if the `userID` is contained in `whitelist`.
+    public func isFavorite(_ userID: UserID) -> Bool {
+        whitelist?.userIds.contains(userID) ?? false
     }
 }
