@@ -35,6 +35,8 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
     /// - note: Used for when the user marks all notifications as read.
     private var cachedScrollPosition: (indexPath: IndexPath, offset: CGFloat)?
 
+    private var permissionsViewController: InAppPermissionsViewController?
+
     // MARK: UIViewController
 
     override func viewDidLoad() {
@@ -48,6 +50,7 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         navigationItem.rightBarButtonItem = readAll
 
         tableView.delegate = self
+        tableView.register(AllowContactsPermissionTableViewHeader.self, forHeaderFooterViewReuseIdentifier: AllowContactsPermissionTableViewHeader.reuseIdentifier)
         tableView.register(NotificationTableViewCell.self, forCellReuseIdentifier: NotificationsViewController.cellReuseIdentifier)
         tableView.separatorStyle = .none
         
@@ -60,6 +63,12 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 60 // set a number close to default to prevent cells overlapping issue, can't be auto
+
+        tableView.sectionHeaderHeight = UITableView.automaticDimension
+        tableView.estimatedSectionHeaderHeight = 44
+        if #available(iOS 15, *) {
+            tableView.sectionHeaderTopPadding = 0
+        }
 
         dataSource = UITableViewDiffableDataSource<ActivityCenterSection, ActivityCenterItem>(tableView: tableView) { tableView, indexPath, notification in
             let cell = tableView.dequeueReusableCell(withIdentifier: NotificationsViewController.cellReuseIdentifier, for: indexPath) as! NotificationTableViewCell
@@ -90,6 +99,10 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
 
         try? fetchedResultsController?.performFetch()
         updateUI()
+
+        if !ContactStore.contactsAccessAuthorized, fetchedResultsController.fetchedObjects?.count == 0 {
+            showPermissionsViewController()
+        }
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -104,6 +117,12 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
 
         dataSource.apply(snapshot, animatingDifferences: false)
         navigationItem.rightBarButtonItem?.isEnabled = hasUnreadItem
+
+        if snapshot.itemIdentifiers.count > 0, let permissionsVC = permissionsViewController {
+            permissionsVC.view.removeFromSuperview()
+            permissionsVC.removeFromParent()
+            permissionsViewController = nil
+        }
     }
 
     override func viewDidLayoutSubviews() {
@@ -118,6 +137,22 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         }
         
         cachedScrollPosition = nil
+    }
+
+    private func showPermissionsViewController() {
+        let vc = InAppPermissionsViewController(configuration: .activityCenter)
+        vc.view.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(vc.view)
+        addChild(vc)
+
+        NSLayoutConstraint.activate([
+            vc.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            vc.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            vc.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            vc.view.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+        ])
+
+        permissionsViewController = vc
     }
 
     // MARK: Fetched Results Controller
@@ -264,6 +299,18 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         let commentsViewController = FlatCommentsViewController(feedPostId: postId)
         commentsViewController.initiallyHighlightedCommentID = notification.commentId
         navigationController?.pushViewController(commentsViewController, animated: true)
+    }
+
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        guard !ContactStore.contactsAccessAuthorized else {
+            return nil
+        }
+
+        return tableView.dequeueReusableHeaderFooterView(withIdentifier: AllowContactsPermissionTableViewHeader.reuseIdentifier)
+    }
+
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        ContactStore.contactsAccessAuthorized ? .zero : UITableView.automaticDimension
     }
 
     // MARK: UI Actions

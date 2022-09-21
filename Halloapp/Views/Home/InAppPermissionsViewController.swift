@@ -46,13 +46,8 @@ class InAppPermissionsViewController: UIViewController {
         stack.spacing = 15
         stack.isLayoutMarginsRelativeArrangement = true
         stack.layoutMargins = UIEdgeInsets(top: 50, left: 15, bottom: 50, right: 15)
-
         stack.setCustomSpacing(10, after: emoji)
 
-        if case .activityCenter = configuration {
-            notificationsPermissionExplainer.isHidden = true
-        }
-        
         return stack
     }()
 
@@ -156,7 +151,7 @@ class InAppPermissionsViewController: UIViewController {
         case .authorized where !notificationsPermissionExplainer.isHidden:
             notificationsPermissionExplainer.isHidden = true
         case .denied, .notDetermined:
-            if case .chat = configuration, notificationsPermissionExplainer.isHidden {
+            if notificationsPermissionExplainer.isHidden {
                 notificationsPermissionExplainer.isHidden = false
             }
         default:
