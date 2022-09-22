@@ -34,10 +34,16 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
     weak var delegate: ProfileHeaderDelegate?
 
     private var cancellableSet: Set<AnyCancellable> = []
+    private var favoritesCancellable: AnyCancellable?
     
     private var headerView: ProfileHeaderView {
         view as! ProfileHeaderView
     }
+
+    private lazy var editTapGesture: UITapGestureRecognizer = {
+        let tap = UITapGestureRecognizer(target: self, action: #selector(editName))
+        return tap
+    }()
 
     override func loadView() {
         let screenWidth = UIScreen.main.bounds.width
@@ -47,6 +53,7 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
         headerView.audioCallButton.addTarget(self, action: #selector(audioCallButtonTapped), for: .touchUpInside)
         headerView.videoCallButton.addTarget(self, action: #selector(videoCallButtonTapped), for: .touchUpInside)
         headerView.unblockButton.addTarget(self, action: #selector(unblockButtonTappedprofile), for: .touchUpInside)
+        headerView.nameLabel.addGestureRecognizer(editTapGesture)
         view = headerView
     }
 
@@ -55,7 +62,7 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
     func configureForCurrentUser(withName name: String) {
         headerView.avatarViewButton.avatarView.configure(with: MainAppContext.shared.userData.userId, using: MainAppContext.shared.avatarStore)
         headerView.name = name
-        headerView.phoneButton.setTitle(MainAppContext.shared.userData.formattedPhoneNumber, for: .normal)
+        headerView.phoneNumberButton.setTitle(MainAppContext.shared.userData.formattedPhoneNumber, for: .normal)
         headerView.userID = MainAppContext.shared.userData.userId
 
         headerView.avatarViewButton.configureWithMenu {
@@ -64,15 +71,20 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
             }
         }
         
-        headerView.nameButton.addTarget(self, action: #selector(editName), for: .touchUpInside)
-        
-        headerView.phoneButton.configureWithMenu {
+        headerView.phoneNumberButton.configureWithMenu {
             HAMenu {
                 HAMenuButton(title: Localizations.userOptionCopyPhoneNumber, image: UIImage(systemName: "doc.on.doc")) { [weak self] in
                     self?.copyNumber()
                 }
             }
         }
+
+        favoritesCancellable = nil
+        if !headerView.favoriteButton.isHidden {
+            headerView.favoriteButton.isHidden = true
+        }
+
+        editTapGesture.isEnabled = true
     }
 
     func configureOrRefresh(userID: UserID) {
@@ -82,18 +94,18 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
 
         let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID, in: MainAppContext.shared.contactStore.viewContext)
 
-        headerView.isBlocked = isBlocked(userId: userID)
+        headerView.isBlocked = MainAppContext.shared.privacySettings.isBlocked(userID)
         headerView.isInAddressBook = isContactInAddressBook
         headerView.isOwnProfile = userID == MainAppContext.shared.userData.userId
         var showPhoneButton = false
 
         if let phoneNumber = MainAppContext.shared.contactStore.normalizedPhoneNumber(for: userID, using: MainAppContext.shared.contactStore.viewContext) {
-            headerView.phoneButton.setTitle(phoneNumber.formattedPhoneNumber, for: .normal)
+            headerView.phoneNumberButton.setTitle(phoneNumber.formattedPhoneNumber, for: .normal)
             showPhoneButton = true
         }
 
         if showPhoneButton {
-            headerView.phoneButton.configureWithMenu {
+            headerView.phoneNumberButton.configureWithMenu {
                 HAMenu {
                     HAMenuButton(title: Localizations.userOptionCopyPhoneNumber, image: UIImage(systemName: "doc.on.doc")) { [weak self] in
                         self?.copyNumber()
@@ -102,15 +114,18 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
             }
         }
 
-        headerView.phoneButton.isHidden = !showPhoneButton
+        headerView.phoneNumberButton.isHidden = !showPhoneButton
         headerView.avatarViewButton.addTarget(self, action: #selector(avatarViewTapped), for: .touchUpInside)
-    }
-          
-    func isBlocked(userId: UserID) -> Bool {
-        guard let blockedList = MainAppContext.shared.privacySettings.blocked else {
-            return false
-        }
-        return blockedList.userIds.contains(userId)
+
+        favoritesCancellable = MainAppContext.shared.privacySettings.favoriteStatus(for: userID)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isFavorite in
+                if self?.headerView.favoriteButton.isHidden != !isFavorite {
+                    self?.headerView.favoriteButton.isHidden = !isFavorite
+                }
+            }
+
+        editTapGesture.isEnabled = userID == MainAppContext.shared.userData.userId
     }
 
     func configureAsHorizontal() {
@@ -129,7 +144,7 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
     
     // MARK: Profile Name Editing
 
-    @objc private func editName() {
+    @objc private func editName(_ gesture: UITapGestureRecognizer) {
         DDLogInfo("profile/edit-name Presenting editor")
         let viewController = NameEditViewController { (controller, nameOrNil) in
             if let name = nameOrNil, name != MainAppContext.shared.userData.name {
@@ -145,7 +160,7 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
     }
     
     private func copyNumber() {
-        UIPasteboard.general.string = headerView.phoneButton.title(for: .normal)
+        UIPasteboard.general.string = headerView.phoneNumberButton.title(for: .normal)
     }
 
     // MARK: Profile Photo Editing
@@ -300,20 +315,14 @@ private final class ProfileHeaderView: UIView {
     }
 
     private(set) var avatarViewButton: AvatarViewButton!
-    private(set) var nameButton: UIButton!
-    private var nameLabel: UILabel!
-    private(set) var phoneButton: UIButton!
+    private(set) var phoneNumberButton: UIButton!
 
     var isEditingAllowed: Bool = false {
         didSet {
             if isEditingAllowed {
                 addCameraOverlayToAvatarViewButton()
-                nameButton.isHidden = false
-                nameLabel.isHidden = true
             } else {
                 avatarViewButton.avatarView.placeholderOverlayView = nil
-                nameButton.isHidden = true
-                nameLabel.isHidden = false
             }
         }
     }
@@ -344,7 +353,6 @@ private final class ProfileHeaderView: UIView {
         }
         set {
             nameLabel.text = newValue
-            nameButton.setTitle(newValue, for: .normal)
         }
     }
     
@@ -405,34 +413,13 @@ private final class ProfileHeaderView: UIView {
         avatarViewButtonHeightAnchor = avatarViewButton.heightAnchor.constraint(equalToConstant: 100)
         avatarViewButton.widthAnchor.constraint(equalTo: avatarViewButton.heightAnchor).isActive = true
         avatarViewButtonHeightAnchor?.isActive = true
-        
-        let nameFont = UIFont.gothamFont(forTextStyle: .headline, pointSizeChange: 1, weight: .medium, maximumPointSize: Constants.MaxFontPointSize)
 
-        nameLabel = UILabel()
-        nameLabel.textColor = UIColor.label.withAlphaComponent(0.8)
-        nameLabel.numberOfLines = 1
-        nameLabel.textAlignment = .center
-        nameLabel.font = nameFont
-        nameLabel.adjustsFontForContentSizeCategory = true
-        nameLabel.isHidden = isEditingAllowed
-
-        nameButton = UIButton(type: .system)
-        nameButton.tintColor = nameLabel.textColor
-        nameButton.titleLabel?.numberOfLines = 1
-        nameButton.titleLabel?.textAlignment = .left
-        nameButton.titleLabel?.font = nameFont
-        nameButton.titleLabel?.adjustsFontForContentSizeCategory = true
-        nameButton.isHidden = !isEditingAllowed
-        
-        nameButton.titleEdgeInsets = UIEdgeInsets(top: .leastNormalMagnitude, left: .leastNormalMagnitude, bottom: .leastNormalMagnitude, right: .leastNormalMagnitude)
-        nameButton.contentEdgeInsets = UIEdgeInsets(top: .leastNormalMagnitude, left: .leastNormalMagnitude, bottom: .leastNormalMagnitude, right: .leastNormalMagnitude)
-
-        phoneButton = UIButton(type: .system)
-        phoneButton.setTitleColor(.secondaryLabel, for: .normal)
-        phoneButton.titleLabel?.numberOfLines = 1
-        phoneButton.titleLabel?.textAlignment = .left
-        phoneButton.titleLabel?.font = .systemFont(forTextStyle: .callout, maximumPointSize: Constants.MaxFontPointSize - 2)
-        phoneButton.titleLabel?.adjustsFontForContentSizeCategory = true
+        phoneNumberButton = UIButton(type: .system)
+        phoneNumberButton.setTitleColor(.secondaryLabel, for: .normal)
+        phoneNumberButton.titleLabel?.numberOfLines = 1
+        phoneNumberButton.titleLabel?.textAlignment = .left
+        phoneNumberButton.titleLabel?.font = .systemFont(forTextStyle: .callout, maximumPointSize: Constants.MaxFontPointSize - 2)
+        phoneNumberButton.titleLabel?.adjustsFontForContentSizeCategory = true
 
         addSubview(vStack)
         vStackTopAnchorConstraint = vStack.topAnchor.constraint(equalTo: self.topAnchor, constant: 32)
@@ -455,15 +442,44 @@ private final class ProfileHeaderView: UIView {
     }()
     
     private lazy var nameColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ nameLabel, nameButton, phoneButton, actionPanel, unblockButton ])
+        let view = UIStackView(arrangedSubviews: [nameHStack, phoneNumberButton, actionPanel, unblockButton])
         view.axis = .vertical
         view.alignment = .center
         view.spacing = 5
-        view.setCustomSpacing(22, after: phoneButton)
+        view.setCustomSpacing(22, after: phoneNumberButton)
         
         view.translatesAutoresizingMaskIntoConstraints = false
     
         return view
+    }()
+
+    private(set) lazy var nameLabel: UILabel = {
+        let label = UILabel()
+        label.tintColor = UIColor.label.withAlphaComponent(0.8)
+        label.numberOfLines = 1
+        label.textAlignment = .left
+        label.font = UIFont.gothamFont(forTextStyle: .headline, pointSizeChange: 1, weight: .medium, maximumPointSize: Constants.MaxFontPointSize)
+        label.adjustsFontForContentSizeCategory = true
+        label.isUserInteractionEnabled = true
+
+        return label
+    }()
+
+    private(set) lazy var favoriteButton: LargeHitButton = {
+        let button = LargeHitButton(type: .system)
+        button.targetIncrease = 7
+        button.setImage(UIImage(named: "PrivacySettingFavoritesWithBackground")?.withRenderingMode(.alwaysOriginal), for: .normal)
+        button.contentEdgeInsets.bottom = 2
+        // TODO: add functionality
+        button.isUserInteractionEnabled = false
+        return button
+    }()
+
+    private lazy var nameHStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [nameLabel, favoriteButton])
+        stack.axis = .horizontal
+        stack.spacing = 7
+        return stack
     }()
 
     private(set) lazy var actionPanel: UIView = {

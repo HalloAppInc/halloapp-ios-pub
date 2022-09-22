@@ -218,6 +218,8 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
         validateState()
     }
 
+    let privacyListDidChange = PassthroughSubject<PrivacyListType, Never>()
+
     /**
      - returns:
      `true` if privacy settings have been loaded from the server and are ready to be displayed in the UI.
@@ -529,6 +531,8 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
             updateSettingValue(forPrivacyList: privacyList)
             upload(privacyList: privacyList, retryOnFailure: retryOnFailure, setActiveType: setActiveType)
         }
+
+        privacyListDidChange.send(privacyList.type)
     }
 
     func hidePostsFrom(userId: UserID) {
@@ -677,5 +681,22 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
     /// - Returns: `true` if the `userID` is contained in `whitelist`.
     public func isFavorite(_ userID: UserID) -> Bool {
         whitelist?.userIds.contains(userID) ?? false
+    }
+}
+
+// MARK: - subscribing to privacy list changes
+
+extension PrivacySettings {
+    /// Use this to keep track of a user's favorite status as privacy lists change.
+    /// Publishes `true` if the user is a favorite.
+    func favoriteStatus(for userID: UserID) -> AnyPublisher<Bool, Never> {
+        let didChangePublisher = privacyListDidChange
+            .filter { $0 == .whitelist }
+            .map { [whitelist] _ in
+                whitelist?.userIds.contains(userID) ?? false
+            }
+
+        return Just(isFavorite(userID)).merge(with: didChangePublisher)
+            .eraseToAnyPublisher()
     }
 }
