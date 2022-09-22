@@ -40,6 +40,9 @@
 /* First tab in the main app interface. */
 "activityCenter.promo.favorites" = "Schau dir die neue Favoritenfunktion an!";
 
+/* Menu option for adding generic file */
+"add.media.option.document" = "Dokument";
+
 /* Text label for action button to add the contact to the address book */
 "add.to.contact.book" = "Zu Kontakten hinzufügen";
 
@@ -48,6 +51,27 @@
 
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Bitte überprüfe, ob du eine Internetverbindung hast, und versuche es dann noch einmal.";
+
+/* Title of the activity tab when contacts permissions aren't given. */
+"allow.contacts.for.activity" = "Um Updates von deinen Freunden zu erhalten, erlaube den Zugriff auf deine Kontakte";
+
+/* Title of the chats tab when contacts permissions aren't given. */
+"allow.contacts.for.chat" = "Um den Chat zu starten, erlaube den Zugriff auf deine Kontakte";
+
+/* Message used in the app to explain the need for contacts permission. */
+"allow.contacts.permission.message" = "HalloApp benötigt nur den Zugriff auf deine Kontakte, um dich mit deinen Freunden und deiner Familie zu verbinden. HalloApp sendet niemals Nachrichten in deinem Namen.";
+
+/* Displayed in the sticky header that's on the feed when the user has not given contacts access. */
+"allow.contacts.permission.posts.prompt" = "Um dich mit deinen Freunden und deiner Familie zu verbinden und deren Beiträge zu sehen, erlaube HalloApp den Zugriff auf deine Kontakte.";
+
+/* Title of a button that opens the settings app. */
+"allow.in.settings.title" = "In den Einstellungen erlauben";
+
+/* Message used in the app to explain the need for notifications permission. */
+"allow.notifications.permission.message" = "Erlaube Benachrichtigungen von HalloApp, damit du keine Nachrichten, Anrufe und Updates von deinen Freunden verpasst.";
+
+/* Title of the container that explains the need for notifications permission. */
+"allow.notifications.permission.title.numbered" = "Benachrichtigungen zulassen";
 
 /* Title of view where users can invite friends and family. */
 "app.ios.invite.friends" = "Freunde & Familie einladen";
@@ -438,6 +462,9 @@
 
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "Diese Nachricht wurde gelöscht.";
+
+/* Message text shown in a message that has document but no text */
+"chat.message.document" = "Datei";
 
 /* Message text shown in a message that have photo media but no text */
 "chat.message.photo" = "Foto";

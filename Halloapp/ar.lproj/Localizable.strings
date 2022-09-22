@@ -40,14 +40,47 @@
 /* First tab in the main app interface. */
 "activityCenter.promo.favorites" = "اطلع على ميزة \"المفضلة\" الجديدة!";
 
+/* Menu option for adding generic file */
+"add.media.option.document" = "مستند";
+
 /* Text label for action button to add the contact to the address book */
 "add.to.contact.book" = "إضافة إلى قائمة جهات الاتصال";
+
+/* Text for the action of adding a contact to the user's favorites list (title case). */
+"add.to.favorites.title" = "إضافة إلى المفضلة";
+
+/* Confirmation when a user was successfully added to favorites. */
+"added.user.to.favorites" = "تمت إضافة %@ إلى المفضلة";
 
 /* Title for alert shown when there's no internet connectivity */
 "alert.no.internet.title" = "لا يوجد اتصال بالإنترنت";
 
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "يُرجى التحقق من وجود اتصال بالإنترنت، ثم إعادة المحاولة.";
+
+/* Title of the activity tab when contacts permissions aren't given. */
+"allow.contacts.for.activity" = "لتلقي تحديثات من أصدقائك، يجب منح إذن الوصول لجهات الاتصال.";
+
+/* Title of the chats tab when contacts permissions aren't given. */
+"allow.contacts.for.chat" = "لبدء الدردشة، يجب منح إذن الوصول لجهات الاتصال";
+
+/* Message used in the app to explain the need for contacts permission. */
+"allow.contacts.permission.message" = "يحتاج هالوآب إلى إذن الوصول لجهات اتصال الهاتف فقط لتوصيلك بالأصدقاء وأفراد العائلة. لا يرسل هالوآب رسائل إلى أي شخص نيابةً عنك.";
+
+/* Displayed in the sticky header that's on the feed when the user has not given contacts access. */
+"allow.contacts.permission.posts.prompt" = "للتواصل مع أصدقائك وأفراد عائلتك ورؤية منشوراتهم، يجب منح هالوآب إذن الوصول لجهات الاتصال.";
+
+/* Title of the container that explains the need for contacts permission. */
+"allow.contacts.permission.title.numbered" = "1. السماح بالوصول إلى جهات الاتصال";
+
+/* Title of a button that opens the settings app. */
+"allow.in.settings.title" = "السماح في الإعدادات";
+
+/* Message used in the app to explain the need for notifications permission. */
+"allow.notifications.permission.message" = "يجب السماح بالإشعارات من هالوآب حتى لا تفوتك أي رسائل أو مكالمات أو منشورات من أصدقائك.";
+
+/* Title of the container that explains the need for notifications permission. */
+"allow.notifications.permission.title.numbered" = "2. السماح بالإشعارات";
 
 /* Title of view where users can invite friends and family. */
 "app.ios.invite.friends" = "دعوة أفراد العائلة والأصدقاء";
@@ -438,6 +471,9 @@
 
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "تم حذف هذه الرسالة";
+
+/* Message text shown in a message that has document but no text */
+"chat.message.document" = "ملف";
 
 /* Message text shown in a message that have photo media but no text */
 "chat.message.photo" = "صورة";
@@ -1397,6 +1433,9 @@
 /* New moment screenshot notification text to be shown to the user. */
 "notification.moment.screenshot" = "أخذ %@ لقطة شاشة للحظة الخاصة بك";
 
+/* New post notification text when post is multiple documents without caption. */
+"notification.n.documents" = "notification.n.documents";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
 
@@ -1417,6 +1456,9 @@
 
 /* Title for the new feed post notification. */
 "notification.new.post" = "منشور جديد";
+
+/* New post notification text when post is one document without caption. */
+"notification.one.document" = "📄 ملف";
 
 /* New post notification text when post is one photo without caption. */
 "notification.one.photo" = "📷 صورة";
@@ -1540,6 +1582,9 @@
 
 /* Header when selecting destinations to forward a message, this header appears above the feeds section */
 "post.privacy.header.feeds" = "صفحات الموجز";
+
+/* Header when selecting destinations to forward a message, this header appears above the feeds section */
+"post.privacy.header.frequentlyContacted" = "يتكرر الاتصال بها";
 
 /* Header when selecting a group to share with
    Header when selecting destinations to forward a message, this header appears above the groups section */
@@ -1734,6 +1779,12 @@
 
 /* Message shown to the user once they have successfully registered. */
 "registration.you.are.in" = "تم التسجيل";
+
+/* Text for the action of removing a contact from the user's favorites list (title case). */
+"remove.from.favorites.title" = "إزالة من المفضلة";
+
+/* Confirmation when a user was successfully removed from favorites. */
+"removed.user.from.favorites" = "تمت إزالة %@ من المفضلة";
 
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "للتحقق من أن اتصالك بـ %@ آمن، يجب التأكد من مطابقة الأرقام أعلاه للأرقام المعروضة على جهازه، أو يمكنك مسح رمز الاستجابة السريعة على هاتفه.";
@@ -2054,6 +2105,12 @@
 /* Text that indicates the unlock action for a moment. */
 "unlock.title" = "إظهار";
 
+/* Body for alert appearing after clicking an external share link that failed to load */
+"urlrouter.externalShare.failed.message" = "ربما انتهت صلاحية هذا المنشور، أو تم حذفه، أو غير ذلك.";
+
+/* Title for alert appearing after clicking an external share link that failed to load */
+"urlrouter.externalShare.failed.title" = "لم يعد هذا المنشور متوفرًا";
+
 /* Button to confirm blocking user via profile page */
 "user.block" = "حظر";
 
@@ -2086,6 +2143,9 @@
 
 /* No comment provided by engineer. */
 "VIDEO" = "فيديو";
+
+/* Title of a button that navigates to a user's profile. */
+"view.profile" = "عرض الملف الشخصي";
 
 /* Text that indicates a view action. */
 "view.title" = "عرض";

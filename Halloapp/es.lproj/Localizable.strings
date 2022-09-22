@@ -46,11 +46,41 @@
 /* Text label for action button to add the contact to the address book */
 "add.to.contact.book" = "Agregar a libreta de contactos";
 
+/* Text for the action of adding a contact to the user's favorites list (title case). */
+"add.to.favorites.title" = "Agregar a favoritos";
+
+/* Confirmation when a user was successfully added to favorites. */
+"added.user.to.favorites" = "Agregar a %@ a favoritos";
+
 /* Title for alert shown when there's no internet connectivity */
 "alert.no.internet.title" = "No hay conexión a Internet";
 
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Comprueba si tienes conexión a Internet y vuelve a intentarlo.";
+
+/* Title of the activity tab when contacts permissions aren't given. */
+"allow.contacts.for.activity" = "Para recibir actualizaciones de tus amigos, permite el acceso a tus contactos.";
+
+/* Title of the chats tab when contacts permissions aren't given. */
+"allow.contacts.for.chat" = "Para comenzar a chatear, permite el acceso a tus contactos";
+
+/* Message used in the app to explain the need for contacts permission. */
+"allow.contacts.permission.message" = "HalloApp necesita acceso a los contactos de tu teléfono solo para conectarte con tus amigos y familiares. HalloApp nunca envía mensajes a nadie en tu nombre.";
+
+/* Displayed in the sticky header that's on the feed when the user has not given contacts access. */
+"allow.contacts.permission.posts.prompt" = "Para conectarte con sus amigos y familiares y ver sus publicaciones, permite que HalloApp acceda a tus contactos.";
+
+/* Title of the container that explains the need for contacts permission. */
+"allow.contacts.permission.title.numbered" = "1. Permitir contactos";
+
+/* Title of a button that opens the settings app. */
+"allow.in.settings.title" = "Permitir en Configuración";
+
+/* Message used in the app to explain the need for notifications permission. */
+"allow.notifications.permission.message" = "Permite las notificaciones de HalloApp para que no te pierdas mensajes, llamadas y actualizaciones de tus amigos.";
+
+/* Title of the container that explains the need for notifications permission. */
+"allow.notifications.permission.title.numbered" = "2. Permitir notificaciones";
 
 /* Title of view where users can invite friends and family. */
 "app.ios.invite.friends" = "Invitar a amigos y familia";
@@ -1741,6 +1771,12 @@
 /* Message shown to the user once they have successfully registered. */
 "registration.you.are.in" = "¡Ya estás en la app!";
 
+/* Text for the action of removing a contact from the user's favorites list (title case). */
+"remove.from.favorites.title" = "Remover de favoritos";
+
+/* Confirmation when a user was successfully removed from favorites. */
+"removed.user.from.favorites" = "Removiste a %@ de favoritos";
+
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Para verificar la seguridad de tu conexión con %@, comprueba que los números anteriores coinciden con los que aparecen en su dispositivo, o escanea el código QR de su teléfono.";
 
@@ -2098,6 +2134,9 @@
 
 /* No comment provided by engineer. */
 "VIDEO" = "VIDEO";
+
+/* Title of a button that navigates to a user's profile. */
+"view.profile" = "Ver perfil";
 
 /* Text that indicates a view action. */
 "view.title" = "Ver";

@@ -5,7 +5,7 @@
 "NSCameraUsageDescription" = "این به شما اجازه میدهد با استفاده از هالواپ عکس و ویدیو بگیرید.";
 
 /* Privacy - Contacts Usage Description */
-"NSContactsUsageDescription" = "مخاطب‌های خود را وارد سرور هالواپ کنید تا بتوانید پست‌های دوستانتان را ببینید و اجازه دهید آن‌ها پست‌های شما را ببینند.";
+"NSContactsUsageDescription" = "به هالواپ اجازه دسترسی به مخاطبین موبایل خود دهید تا بتوانید پست‌های دوستان و آشنایانتان را مشاهده کنید و به اشتراک بگذارید.";
 
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "این به شما اجازه میدهد مکان‌های اطرافتان را مشاهده کنید و به اشتراک بگذارید.";

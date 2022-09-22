@@ -40,6 +40,9 @@
 /* First tab in the main app interface. */
 "activityCenter.promo.favorites" = "Оцените новую фичу «Избранное»!";
 
+/* Menu option for adding generic file */
+"add.media.option.document" = "Документ";
+
 /* Text label for action button to add the contact to the address book */
 "add.to.contact.book" = "Добавить в Книгу контактов";
 
@@ -48,6 +51,30 @@
 
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Проверьте, есть ли у тебя подключение к Интернету, и попробуй снова.";
+
+/* Title of the activity tab when contacts permissions aren't given. */
+"allow.contacts.for.activity" = "Чтобы получать обновления от друзей, разрешите доступ к контактам.";
+
+/* Title of the chats tab when contacts permissions aren't given. */
+"allow.contacts.for.chat" = "Чтобы начать общение, разрешите доступ к контактам";
+
+/* Message used in the app to explain the need for contacts permission. */
+"allow.contacts.permission.message" = "HalloApp нужен доступ к вашим телефонным контактам только для того, чтобы связать вас с друзьями и семьей. HalloApp никогда никому не отправляет сообщения от вашего имени.";
+
+/* Displayed in the sticky header that's on the feed when the user has not given contacts access. */
+"allow.contacts.permission.posts.prompt" = "Чтобы общаться с друзьями и семьей и просматривать их сообщения, разрешите HalloApp доступ к вашим контактам.";
+
+/* Title of the container that explains the need for contacts permission. */
+"allow.contacts.permission.title.numbered" = "1. Разрешить доступ к контактам";
+
+/* Title of a button that opens the settings app. */
+"allow.in.settings.title" = "Разрешить в настройках";
+
+/* Message used in the app to explain the need for notifications permission. */
+"allow.notifications.permission.message" = "Разрешите уведомления от HalloApp, чтобы не пропускать сообщения, звонки и обновления от друзей.";
+
+/* Title of the container that explains the need for notifications permission. */
+"allow.notifications.permission.title.numbered" = "2. Разрешить уведомления";
 
 /* Title of view where users can invite friends and family. */
 "app.ios.invite.friends" = "Пригласить друзей и семью";
@@ -438,6 +465,9 @@
 
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "Это сообщение было удалено.";
+
+/* Message text shown in a message that has document but no text */
+"chat.message.document" = "Файл";
 
 /* Message text shown in a message that have photo media but no text */
 "chat.message.photo" = "Фото";
@@ -1397,6 +1427,9 @@
 /* New moment screenshot notification text to be shown to the user. */
 "notification.moment.screenshot" = "%@ сделал скриншот вашего момента";
 
+/* New post notification text when post is multiple documents without caption. */
+"notification.n.documents" = "notification.n.documents";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
 
@@ -1417,6 +1450,9 @@
 
 /* Title for the new feed post notification. */
 "notification.new.post" = "Новая публикация";
+
+/* New post notification text when post is one document without caption. */
+"notification.one.document" = "📄 файл";
 
 /* New post notification text when post is one photo without caption. */
 "notification.one.photo" = "📷 фото";

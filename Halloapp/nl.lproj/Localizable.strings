@@ -46,11 +46,41 @@
 /* Text label for action button to add the contact to the address book */
 "add.to.contact.book" = "Toevoegen aan mijn Contactenlijst";
 
+/* Text for the action of adding a contact to the user's favorites list (title case). */
+"add.to.favorites.title" = "Toevoegen aan Favorieten";
+
+/* Confirmation when a user was successfully added to favorites. */
+"added.user.to.favorites" = "%@ toegevoegd aan favorieten";
+
 /* Title for alert shown when there's no internet connectivity */
 "alert.no.internet.title" = "Geen Internetverbinding";
 
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Controleer of je internetverbinding hebt en probeer het opnieuw.";
+
+/* Title of the activity tab when contacts permissions aren't given. */
+"allow.contacts.for.activity" = "Om updates van je vrienden te ontvangen, sta HalloApp toegang tot je contacten toe.";
+
+/* Title of the chats tab when contacts permissions aren't given. */
+"allow.contacts.for.chat" = "Om te beginnen met chatten, sta HalloApp toegang tot je contacten toe";
+
+/* Message used in the app to explain the need for contacts permission. */
+"allow.contacts.permission.message" = "HalloApp heeft de toegang tot je contacten alleen nodig om je te kunnen verbinden met je vrienden & familie. HalloApp stuurt nooit iemand berichten namens jou.";
+
+/* Displayed in the sticky header that's on the feed when the user has not given contacts access. */
+"allow.contacts.permission.posts.prompt" = "Om je te verbinden met je vrienden & familie en hun posts te zien, sta HalloApp toegang tot je contacten toe.";
+
+/* Title of the container that explains the need for contacts permission. */
+"allow.contacts.permission.title.numbered" = "1. Contacten toestaan";
+
+/* Title of a button that opens the settings app. */
+"allow.in.settings.title" = "Toestaan in Instellingen";
+
+/* Message used in the app to explain the need for notifications permission. */
+"allow.notifications.permission.message" = "Sta meldingen van HalloApp toe zodat je geen berichten, oproepen en posts van je vrienden mist.";
+
+/* Title of the container that explains the need for notifications permission. */
+"allow.notifications.permission.title.numbered" = "2. Meldingen toestaan";
 
 /* Title of view where users can invite friends and family. */
 "app.ios.invite.friends" = "Vrienden & familie uitnodigen";
@@ -1750,6 +1780,12 @@
 /* Message shown to the user once they have successfully registered. */
 "registration.you.are.in" = "Je bent binnen!";
 
+/* Text for the action of removing a contact from the user's favorites list (title case). */
+"remove.from.favorites.title" = "Verwijderen uit Favorieten";
+
+/* Confirmation when a user was successfully removed from favorites. */
+"removed.user.from.favorites" = "%@ verwijderd uit favorieten";
+
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Om de beveiliging van je verbinding met %@ te verifiëren, controleer of bovenstaande nummers overeenkomen met die op het andere apparaat of scan de QR-code op de andere telefoon.";
 
@@ -2107,6 +2143,9 @@
 
 /* No comment provided by engineer. */
 "VIDEO" = "VIDEO";
+
+/* Title of a button that navigates to a user's profile. */
+"view.profile" = "Profiel Bekijken";
 
 /* Text that indicates a view action. */
 "view.title" = "Bekijken";

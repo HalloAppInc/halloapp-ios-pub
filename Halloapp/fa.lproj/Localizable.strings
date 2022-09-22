@@ -46,11 +46,41 @@
 /* Text label for action button to add the contact to the address book */
 "add.to.contact.book" = "افزودن به لیست تلفن‌ها";
 
+/* Text for the action of adding a contact to the user's favorites list (title case). */
+"add.to.favorites.title" = "اضافه کردن به محبوب‌ها";
+
+/* Confirmation when a user was successfully added to favorites. */
+"added.user.to.favorites" = "@% به محبوب‌ها اضافه شد";
+
 /* Title for alert shown when there's no internet connectivity */
 "alert.no.internet.title" = "عدم دسترسی به اینترنت";
 
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "لطفاً مطمئن شوید به اینترنت دسترسی دارید سپس دوباره امتحان کنید.";
+
+/* Title of the activity tab when contacts permissions aren't given. */
+"allow.contacts.for.activity" = "برای دریافت اخبار از دوستانتان، به مخاطبین موبایل دسترسی دهید.";
+
+/* Title of the chats tab when contacts permissions aren't given. */
+"allow.contacts.for.chat" = "برای پیام فرستادن، به مخاطبین موبایل دسترسی دهید.";
+
+/* Message used in the app to explain the need for contacts permission. */
+"allow.contacts.permission.message" = "هالواپ برای ارتباط با دوستان و آشنایانتان نیاز به دسترسی به مخاطبین موبایلتان دارد. هالواپ هیچوقت از طرف شما به کسی پیام نمیفرستد.";
+
+/* Displayed in the sticky header that's on the feed when the user has not given contacts access. */
+"allow.contacts.permission.posts.prompt" = "برای ارتباط با دوستان و آشنایانتان و دیدن پست‌های آن‌ها، به هالواپ اجازه دسترسی به مخاطبین موبایلتان بدهید.";
+
+/* Title of the container that explains the need for contacts permission. */
+"allow.contacts.permission.title.numbered" = "۱. اجازه دسترسی به مخاطبین";
+
+/* Title of a button that opens the settings app. */
+"allow.in.settings.title" = "اجازه در تنظیمات";
+
+/* Message used in the app to explain the need for notifications permission. */
+"allow.notifications.permission.message" = "به هالواپ اجازه اطلاع‌رسانی دهید تا اخبار و پیام‌ها از دوستانتان را از دست ندهید.";
+
+/* Title of the container that explains the need for notifications permission. */
+"allow.notifications.permission.title.numbered" = "۲. اجازه اطلاع‌رسانی";
 
 /* Title of view where users can invite friends and family. */
 "app.ios.invite.friends" = "دعوت دوستان و آشنایان";
@@ -1750,6 +1780,12 @@
 /* Message shown to the user once they have successfully registered. */
 "registration.you.are.in" = "وارد شدید!";
 
+/* Text for the action of removing a contact from the user's favorites list (title case). */
+"remove.from.favorites.title" = "حذف کردن از محبوب‌ها";
+
+/* Confirmation when a user was successfully removed from favorites. */
+"removed.user.from.favorites" = "@% از محبوب‌ها حذف شد";
+
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "برای اطمینان از ایمنی ارتباطتان با %@، لطفاً شماره بالا را با شماره‌ای که روی دستگاه ایشان هست مقایسه کنید، یا کد کیوآر را از تلفن ایشان اسکن کنید.";
 
@@ -2107,6 +2143,9 @@
 
 /* No comment provided by engineer. */
 "VIDEO" = "ویدیو";
+
+/* Title of a button that navigates to a user's profile. */
+"view.profile" = "مشاهده حساب کاربری";
 
 /* Text that indicates a view action. */
 "view.title" = "مشاهده کردن";

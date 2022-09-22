@@ -338,13 +338,13 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>few</key>
-			<string>📄 %d files</string>
+			<string>%d файла</string>
 			<key>many</key>
-			<string>📄 %d files</string>
+			<string>%d файлов</string>
 			<key>one</key>
-			<string>📄 %d file</string>
+			<string>%d файл</string>
 			<key>other</key>
-			<string>📄 %d files</string>
+			<string>%d файлов</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>

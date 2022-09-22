@@ -40,6 +40,9 @@
 /* First tab in the main app interface. */
 "activityCenter.promo.favorites" = "Confira o novo recurso Favoritos!";
 
+/* Menu option for adding generic file */
+"add.media.option.document" = "Documento";
+
 /* Text label for action button to add the contact to the address book */
 "add.to.contact.book" = "Adicionar à Agenda de Contatos";
 
@@ -1541,6 +1544,9 @@
 /* Header when selecting destinations to forward a message, this header appears above the feeds section */
 "post.privacy.header.feeds" = "Feeds";
 
+/* Header when selecting destinations to forward a message, this header appears above the feeds section */
+"post.privacy.header.frequentlyContacted" = "Frequentemente contatado";
+
 /* Header when selecting a group to share with
    Header when selecting destinations to forward a message, this header appears above the groups section */
 "post.privacy.header.groups" = "Seus grupos";
@@ -2029,6 +2035,9 @@
 /* Row in Settings screen */
 "title.storage" = "Armazenamento";
 
+/* Title for the screen with information about who saw your moment. */
+"title.your.moment" = "Visto por";
+
 /* Title for the screen with information about who reacted to your post.
    Title for the screen with information about who saw your post. */
 "title.your.post" = "Visto por";
@@ -2050,6 +2059,12 @@
 
 /* Text that indicates the unlock action for a moment. */
 "unlock.title" = "Desbloquear";
+
+/* Body for alert appearing after clicking an external share link that failed to load */
+"urlrouter.externalShare.failed.message" = "Esta postagem pode ter expirado, sido excluída ou outra coisa.";
+
+/* Title for alert appearing after clicking an external share link that failed to load */
+"urlrouter.externalShare.failed.title" = "A postagem não está mais disponível";
 
 /* Button to confirm blocking user via profile page */
 "user.block" = "Bloquear";

@@ -397,17 +397,17 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>few</key>
-			<string>📄 %d files</string>
+			<string>📄 %d ملفات</string>
 			<key>many</key>
-			<string>📄 %d files</string>
+			<string>📄 %d ملفًا</string>
 			<key>one</key>
-			<string>📄 %d file</string>
+			<string>📄 ملف واحد %d</string>
 			<key>other</key>
-			<string>📄 %d files</string>
+			<string>📄 %d ملف</string>
 			<key>two</key>
-			<string>📄 %d files</string>
+			<string>📄 ملفان %d</string>
 			<key>zero</key>
-			<string>📄 %d files</string>
+			<string>📄 %d من الملفات</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>
