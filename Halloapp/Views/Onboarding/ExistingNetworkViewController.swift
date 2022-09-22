@@ -11,7 +11,7 @@ import Core
 import CoreCommon
 import CocoaLumberjackSwift
 
-class ExistingNetworkViewController: UIViewController {
+class ExistingNetworkViewController: UIViewController, UserActionHandler {
 
     let onboardingManager: OnboardingManager
     let fellowUserIDs: [UserID]
@@ -32,7 +32,7 @@ class ExistingNetworkViewController: UIViewController {
         stack.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
         stack.spacing = 10
 
-        stack.setCustomSpacing(20, after: titleStack)
+        stack.setCustomSpacing(fellowUserIDs.count == 0 ? 10 : 20, after: titleStack)
         stack.setCustomSpacing(90, after: collectionViewFooterLabel)
         return stack
     }()
@@ -108,10 +108,11 @@ class ExistingNetworkViewController: UIViewController {
         label.font = .systemFont(ofSize: 36)
 
         let stack = UIStackView(arrangedSubviews: [label, bottomLabel, nextButton])
+        let padding = OnboardingConstants.bottomButtonPadding
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.axis = .vertical
         stack.isLayoutMarginsRelativeArrangement = true
-        stack.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
+        stack.layoutMargins = UIEdgeInsets(top: padding, left: 45, bottom: padding, right: 45)
         stack.alignment = .center
         stack.spacing = 10
         stack.setCustomSpacing(20, after: bottomLabel)
@@ -132,7 +133,7 @@ class ExistingNetworkViewController: UIViewController {
         button.backgroundTintColor = .lavaOrange
         button.setTitle(Localizations.buttonNext, for: .normal)
         button.tintColor = .white
-        button.contentEdgeInsets = UIEdgeInsets(top: 12, left: 80, bottom: 12, right: 80)
+        button.contentEdgeInsets = OnboardingConstants.bottomButtonInsets
         let imageInset: CGFloat = 12
 
         button.addTarget(self, action: #selector(nextButtonPushed), for: .touchUpInside)
@@ -153,7 +154,7 @@ class ExistingNetworkViewController: UIViewController {
         super.viewDidLoad()
         DDLogInfo("FellowContactsViewController/viewDidLoad with [\(fellowUserIDs.count)] contacts")
         view.backgroundColor = .feedBackground
-        navigationItem.hidesBackButton = true
+        navigationController?.setNavigationBarHidden(false, animated: false)
 
         view.addSubview(bottomStack)
         view.addSubview(scrollView)
@@ -165,7 +166,7 @@ class ExistingNetworkViewController: UIViewController {
         NSLayoutConstraint.activate([
             bottomStack.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             bottomStack.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            bottomStack.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            bottomStack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -OnboardingConstants.bottomButtonBottomDistance),
 
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -200,20 +201,15 @@ class ExistingNetworkViewController: UIViewController {
             InsetCollectionView.Section {
 
                 for id in fellowUserIDs {
-                    InsetCollectionView.Item(style: .user(id: id, menu: { [weak self] in
-                        HAMenu.lazy {
-                            self?.contactMenu(for: id)
-                        }
+                    InsetCollectionView.Item(style: .user(id: id, menu: {
+                        HAMenu.menu(for: id,
+                                options: [.viewProfile, .safetyNumber, .favorite, .block],
+                                handler: { [weak self] in self?.handle(action: $0) })
                     }))
                 }
             }
         }
         .separators())
-    }
-
-    @HAMenuContentBuilder
-    private func contactMenu(for userID: UserID) -> HAMenu.Content {
-        // TODO
     }
 
     @objc

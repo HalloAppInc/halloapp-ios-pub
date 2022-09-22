@@ -323,11 +323,11 @@ class PhoneNumberVerificationViewController: UIViewController {
     private func transitionAfterSuccess() {
         let vc = NameInputViewController(registrationManager: registrationManager)
 
-        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.75, initialSpringVelocity: 0) {
+        UIView.animate(withDuration: 0.6, delay: 0, usingSpringWithDamping: 0.75, initialSpringVelocity: 0) {
             self.registrationSuccessStack.alpha = 1
             self.registrationSuccessStack.transform = .identity
         } completion: { _ in
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 self.navigationController?.pushViewController(vc, animated: true)
             }
         }

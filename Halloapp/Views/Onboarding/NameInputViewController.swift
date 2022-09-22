@@ -86,15 +86,17 @@ class NameInputViewController: UIViewController {
     }()
 
     private lazy var nextButtonBottomConstraint: NSLayoutConstraint = {
-        let constraint = nextButtonStack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+        let constraint = nextButtonStack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor,
+                                                                constant: -OnboardingConstants.bottomButtonBottomDistance)
         return constraint
     }()
 
     private lazy var nextButtonStack: UIStackView = {
         let stack = UIStackView(arrangedSubviews: [nextButton])
+        let padding = OnboardingConstants.bottomButtonPadding
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.isLayoutMarginsRelativeArrangement = true
-        stack.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
+        stack.layoutMargins = UIEdgeInsets(top: padding, left: 0, bottom: padding, right: 0)
         stack.axis = .vertical
         stack.alignment = .center
         return stack
@@ -105,7 +107,7 @@ class NameInputViewController: UIViewController {
         button.backgroundTintColor = .lavaOrange
         button.setTitle(Localizations.buttonNext, for: .normal)
         button.tintColor = .white
-        button.contentEdgeInsets = UIEdgeInsets(top: 12, left: 80, bottom: 12, right: 80)
+        button.contentEdgeInsets = OnboardingConstants.bottomButtonInsets
         button.addTarget(self, action: #selector(nextButtonPushed), for: .touchUpInside)
 
         return button
@@ -191,7 +193,7 @@ class NameInputViewController: UIViewController {
     }
 
     private func updateLayoutForKeyboard(info: KeyboardNotificationInfo, showing: Bool) {
-        nextButtonBottomConstraint.constant = showing ? -info.endFrame.height + view.safeAreaInsets.bottom : 0
+        nextButtonBottomConstraint.constant = showing ? -info.endFrame.height + view.safeAreaInsets.bottom : -OnboardingConstants.bottomButtonBottomDistance
         UIView.animate(withKeyboardNotificationInfo: info) {
             self.view.layoutIfNeeded()
         }
@@ -213,12 +215,17 @@ class NameInputViewController: UIViewController {
             onboardingManager = DefaultOnboardingManager()
         }
 
+        hideKeyboard()
         let vc = PermissionsViewController(onboardingManager: onboardingManager)
         navigationController?.pushViewController(vc, animated: true)
     }
 
     @objc
     private func keyboardSwipe(_ gesture: UISwipeGestureRecognizer) {
+        hideKeyboard()
+    }
+
+    private func hideKeyboard() {
         view.endEditing(true)
     }
 }

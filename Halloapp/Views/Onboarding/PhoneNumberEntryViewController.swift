@@ -244,24 +244,25 @@ class PhoneNumberEntryViewController: UIViewController {
     }()
 
     private lazy var footerStackBottomConstraint: NSLayoutConstraint = {
-        let constraint = footerStack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+        let constraint = footerStack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -OnboardingConstants.bottomButtonBottomDistance)
         return constraint
     }()
 
     private lazy var footerStack: UIStackView = {
         let stack = UIStackView(arrangedSubviews: [nextButton, smsDisclaimerLabel])
+        let padding = OnboardingConstants.bottomButtonPadding
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.axis = .vertical
         stack.alignment = .center
         stack.spacing = 10
         stack.isLayoutMarginsRelativeArrangement = true
-        stack.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
+        stack.layoutMargins = UIEdgeInsets(top: padding, left: 0, bottom: padding, right: 0)
         return stack
     }()
 
     private lazy var nextButton: RoundedRectChevronButton = {
         let button = RoundedRectChevronButton()
-        button.contentEdgeInsets = UIEdgeInsets(top: 12, left: 80, bottom: 12, right: 80)
+        button.contentEdgeInsets = OnboardingConstants.bottomButtonInsets
         button.backgroundTintColor = .lavaOrange
         button.tintColor = .white
         button.setTitle(Localizations.buttonNext, for: .normal)
@@ -441,7 +442,7 @@ class PhoneNumberEntryViewController: UIViewController {
     }
 
     private func showCountryCodeTableViewIfNeeded(_ info: KeyboardNotificationInfo, keyboardShowing: Bool) {
-        footerStackBottomConstraint.constant = keyboardShowing ? -info.endFrame.height + view.safeAreaInsets.bottom + footerStack.bounds.height : .zero
+        footerStackBottomConstraint.constant = keyboardShowing ? -info.endFrame.height + view.safeAreaInsets.bottom + footerStack.bounds.height : -OnboardingConstants.bottomButtonBottomDistance
         /*
          The design calls for the bottom of the table view to be pinned to the top edge of the keyboard.
          When the user's system font size is very large, the actual height of the table view becomes borderline
@@ -467,7 +468,7 @@ class PhoneNumberEntryViewController: UIViewController {
     }
 
     private func hideCountryCodeTableViewIfNeeded(_ info: KeyboardNotificationInfo, keyboardShowing: Bool) {
-        footerStackBottomConstraint.constant = keyboardShowing ? -info.endFrame.height + view.safeAreaInsets.bottom : .zero
+        footerStackBottomConstraint.constant = keyboardShowing ? -info.endFrame.height + view.safeAreaInsets.bottom : -OnboardingConstants.bottomButtonBottomDistance
 
         footerStack.alpha = 1
         footerStack.isUserInteractionEnabled = true
@@ -638,6 +639,24 @@ fileprivate class CountryCodeTextField: PhoneNumberTextField {
         if let prefix = country?.prefix {
             text = prefix.first == "+" ? String(prefix.dropFirst(1)) : prefix
         }
+    }
+}
+
+// MARK: - onboarding constants
+
+/// Layout values that are used in the onboarding view controllers.
+struct OnboardingConstants {
+
+    static var bottomButtonBottomDistance: CGFloat {
+        65
+    }
+
+    static var bottomButtonInsets: UIEdgeInsets {
+        UIEdgeInsets(top: 12, left: 80, bottom: 12, right: 80)
+    }
+
+    static var bottomButtonPadding: CGFloat {
+        10
     }
 }
 

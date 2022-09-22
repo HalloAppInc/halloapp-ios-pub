@@ -60,11 +60,12 @@ class PermissionsViewController: UIViewController {
 
     private lazy var getStartedButtonStack: UIStackView = {
         let stack = UIStackView(arrangedSubviews: [getStartedButton])
+        let padding = OnboardingConstants.bottomButtonPadding
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.isLayoutMarginsRelativeArrangement = true
         stack.axis = .vertical
         stack.alignment = .center
-        stack.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
+        stack.layoutMargins = UIEdgeInsets(top: padding, left: 0, bottom: padding, right: 0)
         return stack
     }()
 
@@ -78,7 +79,7 @@ class PermissionsViewController: UIViewController {
         button.titleLabel?.font = font
         button.tintColor = .white
 
-        button.contentEdgeInsets = UIEdgeInsets(top: 12, left: 80, bottom: 12, right: 80)
+        button.contentEdgeInsets = OnboardingConstants.bottomButtonInsets
         button.setContentCompressionResistancePriority(.required, for: .vertical)
 
         button.addTarget(self, action: #selector(getStartedButtonPushed), for: .touchUpInside)
@@ -153,7 +154,7 @@ class PermissionsViewController: UIViewController {
 
             getStartedButtonStack.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             getStartedButtonStack.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            getStartedButtonStack.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            getStartedButtonStack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -OnboardingConstants.bottomButtonBottomDistance),
         ])
     }
 
@@ -217,7 +218,7 @@ class PermissionsViewController: UIViewController {
         if contacts.count < 5 {
             // show more onboarding screens
             let vc = ExistingNetworkViewController(onboardingManager: onboardingManager, userIDs: contacts)
-            navigationController?.pushViewController(vc, animated: true)
+            navigationController?.setViewControllers([vc], animated: true)
         } else {
             onboardingManager.didCompleteOnboardingFlow()
         }
