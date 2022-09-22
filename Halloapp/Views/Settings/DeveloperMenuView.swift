@@ -224,11 +224,11 @@ struct DeveloperMenuView: View {
                         .onReceive(Just(self.showDecryptionResults)) { value in
                             DeveloperSetting.showDecryptionResults = value
                         }
-
-                    Toggle(MenuTitles.enableGroupChat, isOn: $enableGroupChat)
-                        .onReceive(Just(self.enableGroupChat)) { value in
-                            AppContext.shared.userDefaults.set(value, forKey: "enableGroupChat")
-                        }
+                    // Temporarily disable group chat until ready for testing
+                    // Toggle(MenuTitles.enableGroupChat, isOn: $enableGroupChat)
+                    //    .onReceive(Just(self.enableGroupChat)) { value in
+                    //        AppContext.shared.userDefaults.set(value, forKey: "enableGroupChat")
+                    //    }
 
                     Toggle(MenuTitles.enableChatForwarding, isOn: $enableChatForwarding)
                         .onReceive(Just(self.enableChatForwarding)) { value in
