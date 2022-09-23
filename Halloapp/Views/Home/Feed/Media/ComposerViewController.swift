@@ -574,7 +574,7 @@ class ComposerViewController: UIViewController {
             }
 
 
-            if initialType == .unified {
+            if initialType != .library {
                 navigationItem.leftBarButtonItem = closeButtonItem
             } else {
                 navigationItem.leftBarButtonItem = backButtonItem
