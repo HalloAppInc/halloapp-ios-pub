@@ -4742,6 +4742,30 @@ extension ChatData {
         }
     }
 
+    func markGroupEventAsRead(groupEvent: GroupEvent) {
+        let objectID = groupEvent.objectID
+        mainDataStore.saveSeriallyOnBackgroundContext { context in
+            guard let groupEvent = context.object(with: objectID) as? GroupEvent else {
+                DDLogError("ChatData/markGroupEventAsRead/could not find groupevent")
+                return
+            }
+            groupEvent.read = true
+        }
+    }
+
+    func markAllGroupEventsAsRead() {
+        mainDataStore.saveSeriallyOnBackgroundContext { context in
+            let fetchRequest = GroupEvent.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "read == NO")
+            do {
+                let events = try context.fetch(fetchRequest)
+                events.forEach { $0.read = true }
+            } catch {
+                DDLogError("ChatData/group/fetch-events/error  [\(error)]")
+            }
+        }
+    }
+
     private func chatGroupMessageAllInfo(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext) -> [ChatGroupMessageInfo] {
         let fetchRequest: NSFetchRequest<ChatGroupMessageInfo> = ChatGroupMessageInfo.fetchRequest()
         fetchRequest.predicate = predicate

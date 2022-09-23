@@ -44,6 +44,7 @@ final class FeedDataSource: NSObject {
             .store(in: &cancellables)
 
         MainAppContext.shared.feedData.validMoment
+            .dropFirst() // no need to reload for initial values
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 // in this case we want to refresh since we want the prompt cell to be
@@ -75,6 +76,17 @@ final class FeedDataSource: NSObject {
                 return false
             }
         })
+    }
+
+    func index(of groupEvent: GroupEvent) -> Int? {
+        return displayItems.firstIndex {
+            switch $0 {
+            case .event(let feedEvent):
+                return feedEvent.groupEvent == groupEvent
+            default:
+                return false
+            }
+        }
     }
 
     func item(at index: Int) -> FeedDisplayItem? {
@@ -410,6 +422,7 @@ struct FeedEvent: Hashable, Equatable {
     var timestamp: Date
     var isThemed: Bool
     var containingItems: [FeedDisplayItem]?
+    var groupEvent: GroupEvent?
 }
 
 

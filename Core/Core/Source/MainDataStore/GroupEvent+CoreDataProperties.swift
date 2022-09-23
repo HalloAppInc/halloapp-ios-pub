@@ -50,6 +50,7 @@ public extension GroupEvent {
     @NSManaged var senderUserID: UserID?
     @NSManaged var groupName: String?
     @NSManaged var groupID: GroupID
+    @NSManaged var read: Bool
     @NSManaged var timestamp: Date
     @NSManaged private var groupExpirationTypeValue: Int16
     @NSManaged var groupExpirationTime: Int64

@@ -58,6 +58,14 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
         }
     }
 
+    var groupEventToScrollTo: GroupEvent? {
+        didSet {
+            if groupEventToScrollTo != nil {
+                shouldRestoreScrollPosition = false
+            }
+        }
+    }
+
     init(groupId: GroupID, shouldShowInviteSheet: Bool = false) {
         self.groupId = groupId
         self.group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext)
@@ -224,7 +232,30 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
 
         super.viewDidLayoutSubviews()
 
-        guard collectionView.contentSize != .zero, shouldRestoreScrollPosition, let scrollPosition = Self.cachedScrollPositions[groupId] else {
+        // On 16+ we don't get another layoutSubviews where collectionView.contentSize != .zero
+        if #available(iOS 16.0, *) {
+            guard feedPostIdToScrollTo == nil else {
+                return
+            }
+        } else {
+            guard collectionView.contentSize != .zero, feedPostIdToScrollTo == nil else {
+                return
+            }
+        }
+
+        if let groupEvent = groupEventToScrollTo {
+            groupEventToScrollTo = nil
+
+            if let index = feedDataSource.index(of: groupEvent) {
+                let indexPath = IndexPath(item: index, section: 0)
+                collectionView.scrollToItem(at: indexPath, at: .top, animated: false)
+                collectionView.layoutIfNeeded()
+                collectionView.scrollToItem(at: indexPath, at: .top, animated: false)
+            }
+            return
+        }
+
+        guard shouldRestoreScrollPosition, let scrollPosition = Self.cachedScrollPositions[groupId] else {
             return
         }
 
@@ -232,7 +263,7 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
         shouldRestoreScrollPosition = false
 
         // If we have a specific post to scroll to or can no longer find the anchor post, do not adjust scroll postion.
-        guard feedPostIdToScrollTo == nil, let index = feedDataSource.index(of: scrollPosition.postID) else {
+        guard let index = feedDataSource.index(of: scrollPosition.postID) else {
             return
         }
 
@@ -264,6 +295,14 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
         let fabAccessoryState: FloatingMenu.AccessoryState = scrollView.contentOffset.y <= 0 ? .accessorized : .plain
         // if we didn't use a DispatchQueue here, we'd get some issues when restoring scroll position
         DispatchQueue.main.async { [weak self] in self?.floatingMenu.setAccessoryState(fabAccessoryState, animated: true) }
+    }
+
+    override func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        super.collectionView(collectionView, willDisplay: cell, forItemAt: indexPath)
+
+        if case .event(let feedEvent) = feedDataSource.item(at: indexPath.item), let groupEvent = feedEvent.groupEvent {
+            MainAppContext.shared.chatData.markGroupEventAsRead(groupEvent: groupEvent)
+        }
     }
 
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
@@ -364,11 +403,11 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
 
         return result
     }
-    
+
     private func populateEvents() {
         let groupFeedEvents = MainAppContext.shared.chatData.groupFeedEvents(with: self.groupId, in: MainAppContext.shared.chatData.viewContext)
         let feedEvents: [FeedEvent] = groupFeedEvents.map {
-            FeedEvent(description: $0.text ?? "", timestamp: $0.timestamp, isThemed: theme != 0)
+            FeedEvent(description: $0.text ?? "", timestamp: $0.timestamp, isThemed: theme != 0, groupEvent: $0)
         }
 
         feedDataSource.events = feedEvents

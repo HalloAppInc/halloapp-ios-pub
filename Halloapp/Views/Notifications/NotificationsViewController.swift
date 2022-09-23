@@ -28,14 +28,64 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
     private let bottomSafeAreaHeight = UIApplication.shared.windows[0].safeAreaInsets.bottom
 
     private var dataSource: UITableViewDiffableDataSource<ActivityCenterSection, ActivityCenterItem>!
-    private var fetchedResultsController: NSFetchedResultsController<FeedActivity>!
     private lazy var tableView: UITableView = UITableView()
   
-    private var displayedItems: [ActivityCenterItem] = []
     /// - note: Used for when the user marks all notifications as read.
     private var cachedScrollPosition: (indexPath: IndexPath, offset: CGFloat)?
 
     private var permissionsViewController: InAppPermissionsViewController?
+
+    private lazy var feedActivityFetchedResultsController: NSFetchedResultsController<FeedActivity> = {
+        let fetchRequest: NSFetchRequest<FeedActivity> = FeedActivity.fetchRequest()
+        if !ContactStore.contactsAccessAuthorized {
+            let eligiblePostIdsFetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
+            eligiblePostIdsFetchRequest.predicate = NSPredicate(format: "(userID = %@ || groupID != nil) && fromExternalShare == NO",
+                                                                MainAppContext.shared.userData.userId)
+            do {
+                let eligiblePosts = try MainAppContext.shared.feedData.viewContext.fetch(eligiblePostIdsFetchRequest)
+                let eligiblePostIds = eligiblePosts.compactMap {$0.id}
+                fetchRequest.predicate = NSPredicate(format: "postID IN %@", eligiblePostIds)
+            }
+            catch {
+                DDLogError("NotificationsViewController/viewDidLoad/failed to fetch eligible posts")
+            }
+        }
+        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedActivity.timestamp, ascending: false) ]
+        return NSFetchedResultsController<FeedActivity>(fetchRequest: fetchRequest,
+                                                        managedObjectContext: MainAppContext.shared.mainDataStore.viewContext,
+                                                        sectionNameKeyPath: nil,
+                                                        cacheName: nil)
+    }()
+
+    private lazy var groupEventFetchedResultsController: NSFetchedResultsController<GroupEvent> = {
+        let userID = MainAppContext.shared.userData.userId
+        let fetchRequest = GroupEvent.fetchRequest()
+        fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            NSCompoundPredicate(orPredicateWithSubpredicates: [
+                NSPredicate(format: "actionValue = %d && memberActionValue = %d && memberUserID = %@",
+                            GroupEvent.Action.modifyMembers.rawValue, GroupEvent.MemberAction.remove.rawValue, userID),
+                NSPredicate(format: "actionValue = %d && memberActionValue = %d && memberUserID = %@",
+                            GroupEvent.Action.modifyMembers.rawValue, GroupEvent.MemberAction.add.rawValue, userID),
+                NSPredicate(format: "actionValue = %d && memberActionValue = %d && memberUserID = %@",
+                            GroupEvent.Action.modifyAdmins.rawValue, GroupEvent.MemberAction.demote.rawValue, userID),
+                NSPredicate(format: "actionValue = %d && memberActionValue = %d && memberUserID = %@",
+                            GroupEvent.Action.modifyAdmins.rawValue, GroupEvent.MemberAction.promote.rawValue, userID),
+                NSPredicate(format: "actionValue = %d", GroupEvent.Action.create.rawValue),
+                NSPredicate(format: "actionValue = %d", GroupEvent.Action.changeExpiry.rawValue),
+                NSPredicate(format: "actionValue = %d", GroupEvent.Action.changeName.rawValue),
+                NSPredicate(format: "actionValue = %d", GroupEvent.Action.changeDescription.rawValue),
+            ]),
+            NSPredicate(format: "senderUserID != %@", userID),
+            NSPredicate(format: "timestamp >= %@", Date(timeIntervalSinceNow: Date.days(-31)) as NSDate),
+        ])
+        fetchRequest.sortDescriptors = [
+            NSSortDescriptor(keyPath: \GroupEvent.timestamp, ascending: false)
+        ]
+        return NSFetchedResultsController(fetchRequest: fetchRequest,
+                                          managedObjectContext: MainAppContext.shared.mainDataStore.viewContext,
+                                          sectionNameKeyPath: nil,
+                                          cacheName: nil)
+    }()
 
     // MARK: UIViewController
 
@@ -76,31 +126,15 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
             return cell
         }
 
-        let fetchRequest: NSFetchRequest<FeedActivity> = FeedActivity.fetchRequest()
-        if !ContactStore.contactsAccessAuthorized {
-            let eligiblePostIdsFetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-            eligiblePostIdsFetchRequest.predicate = NSPredicate(format: "(userID = %@ || groupID != nil) && fromExternalShare == NO",
-                                                                MainAppContext.shared.userData.userId)
-            do {
-                let eligiblePosts = try MainAppContext.shared.feedData.viewContext.fetch(eligiblePostIdsFetchRequest)
-                let eligiblePostIds = eligiblePosts.compactMap {$0.id}
-                fetchRequest.predicate = NSPredicate(format: "postID IN %@", eligiblePostIds)
-            }
-            catch {
-                DDLogError("NotificationsViewController/viewDidLoad/failed to fetch eligible posts")
-            }
-        }
-        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedActivity.timestamp, ascending: false) ]
-        fetchedResultsController = NSFetchedResultsController<FeedActivity>(fetchRequest: fetchRequest,
-                                                                    managedObjectContext: MainAppContext.shared.mainDataStore.viewContext,
-                                                                      sectionNameKeyPath: nil,
-                                                                               cacheName: nil)
-        fetchedResultsController.delegate = self
+        feedActivityFetchedResultsController.delegate = self
+        try? feedActivityFetchedResultsController.performFetch()
 
-        try? fetchedResultsController?.performFetch()
+        groupEventFetchedResultsController.delegate = self
+        try? groupEventFetchedResultsController.performFetch()
+
         updateUI()
 
-        if !ContactStore.contactsAccessAuthorized, fetchedResultsController.fetchedObjects?.count == 0 {
+        if !ContactStore.contactsAccessAuthorized, dataSource.snapshot().itemIdentifiers.isEmpty {
             showPermissionsViewController()
         }
     }
@@ -164,12 +198,24 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
     private func makeDataSnapshot() -> NSDiffableDataSourceSnapshot<ActivityCenterSection, ActivityCenterItem> {
         var snapshot = NSDiffableDataSourceSnapshot<ActivityCenterSection, ActivityCenterItem>()
         snapshot.appendSections([.main])
-        
-        let activityCenterItems = activityCenterItems(for: fetchedResultsController.fetchedObjects ?? [])
-        
-        snapshot.appendItems(activityCenterItems)
-        displayedItems = activityCenterItems
-        
+
+        var items: [ActivityCenterItem] = []
+
+        if let feedActivities = feedActivityFetchedResultsController.fetchedObjects {
+            items += activityCenterItems(for: feedActivities)
+        }
+
+        if let groupEvents = groupEventFetchedResultsController.fetchedObjects {
+            items += groupEvents.compactMap { ActivityCenterItem(content: .groupEvent($0)) }
+        }
+
+        // Sort the notifications from newest to oldest before returning them
+        items.sort { lhs, rhs in
+            lhs.timestamp > rhs.timestamp
+        }
+
+        snapshot.appendItems(items)
+
         return snapshot
     }
     
@@ -201,11 +247,7 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
                 }
             }
         }
-        
-        // Sort the notifications from newest to oldest before returning them
-        return displayItems.sorted { lhs, rhs in
-            lhs.timestamp > rhs.timestamp
-        }
+        return displayItems
     }
     
     /// Generates notifications for events where another user commented on a post you did. Groups together notifications for non-contacts.
@@ -281,24 +323,36 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
 
     // MARK: Table View
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let notification = displayedItems[indexPath.row]
+        guard let activityCenterItem = dataSource.itemIdentifier(for: indexPath) else {
+            DDLogError("NotificationsViewController/didSelectRowAt/missing notification at \(indexPath)")
+            return
+        }
         tableView.deselectRow(at: indexPath, animated: true)
 
-        if case .singleNotification(let notif) = notification.content, notif.event == .favoritesPromo {
-            MainAppContext.shared.feedData.markNotificationsAsRead(for: "favorites")
-            let presentingViewController = presentingViewController
-            self.dismiss(animated: true)
-            presentingViewController?.present(FavoritesInformationViewController(), animated: true)
-            return
+        switch activityCenterItem.content {
+        case .singleNotification(let notification):
+            if notification.event == .favoritesPromo {
+                MainAppContext.shared.feedData.markNotificationsAsRead(for: "favorites")
+                let presentingViewController = presentingViewController
+                dismiss(animated: true)
+                presentingViewController?.present(FavoritesInformationViewController(), animated: true)
+            } else if MainAppContext.shared.feedData.feedPost(with: notification.postID, in: MainAppContext.shared.feedData.viewContext) != nil {
+                let commentsViewController = FlatCommentsViewController(feedPostId: notification.postID)
+                commentsViewController.initiallyHighlightedCommentID = notification.commentID
+                navigationController?.pushViewController(commentsViewController, animated: true)
+            }
+        case .unknownCommenters(_):
+            if let postID = activityCenterItem.postId, MainAppContext.shared.feedData.feedPost(with: postID, in: MainAppContext.shared.feedData.viewContext) != nil {
+                let commentsViewController = FlatCommentsViewController(feedPostId: postID)
+                commentsViewController.initiallyHighlightedCommentID = activityCenterItem.commentId
+                navigationController?.pushViewController(commentsViewController, animated: true)
+            }
+        case .groupEvent(let groupEvent):
+            MainAppContext.shared.chatData.markGroupEventAsRead(groupEvent: groupEvent)
+            let groupFeedViewController = GroupFeedViewController(groupId: groupEvent.groupID)
+            groupFeedViewController.groupEventToScrollTo = groupEvent
+            navigationController?.pushViewController(groupFeedViewController, animated: true)
         }
-
-        guard let postId = notification.postId, MainAppContext.shared.feedData.feedPost(with: postId, in: MainAppContext.shared.feedData.viewContext) != nil else {
-            return
-        }
-
-        let commentsViewController = FlatCommentsViewController(feedPostId: postId)
-        commentsViewController.initiallyHighlightedCommentID = notification.commentId
-        navigationController?.pushViewController(commentsViewController, animated: true)
     }
 
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
@@ -323,6 +377,7 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         HAMenu {
             HAMenuButton(title: Localizations.markAllRead) { [weak self] in
                 MainAppContext.shared.feedData.markNotificationsAsRead()
+                MainAppContext.shared.chatData.markAllGroupEventsAsRead()
                 self?.memoizeScrollPosition()
             }.destructive()
         }
@@ -426,9 +481,7 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
         unreadBadge.isHidden = item.read
         notificationTextLabel.attributedText = item.text
         mediaPreview.image = item.image
-        
 
-        
         // only text and audio posts get a border
         let displayedMediaType: FeedActivity.MediaType
 
@@ -438,6 +491,8 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
         case .unknownCommenters(let activities):
             // Fall back to borderless case if activities is empty
             displayedMediaType = activities.first?.mediaType ?? .image
+        case .groupEvent(_):
+            displayedMediaType = .none
         }
 
         let visibleBorderWidth: CGFloat = 0.5

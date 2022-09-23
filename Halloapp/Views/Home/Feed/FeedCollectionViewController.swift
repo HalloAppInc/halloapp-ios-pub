@@ -300,9 +300,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Sh
     // MARK: - FeedDataSourceDelegate methods
     
     func itemsDidChange(_ items: [FeedDisplayItem]) {
-        DispatchQueue.main.async {
-            self.update(with: items)
-        }
+        update(with: items)
     }
     
     func itemDidChange(_ item: FeedDisplayItem, change type: FeedDataSource.FeedDataSourceChangeType) {

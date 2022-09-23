@@ -145,9 +145,7 @@ class ArchiveViewController: UIViewController, UICollectionViewDelegate, UIColle
 
 extension ArchiveViewController: FeedDataSourceDelegate {
     func itemsDidChange(_ items: [FeedDisplayItem]) {
-        DispatchQueue.main.async {
-            self.update(with: items.compactMap({ $0.post }))
-        }
+        self.update(with: items.compactMap({ $0.post }))
     }
 }
 
