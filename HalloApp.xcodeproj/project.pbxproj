@@ -366,7 +366,6 @@
 		EA8D4721233C25B8006E2BA5 /* VerificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8D4720233C25B8006E2BA5 /* VerificationViewController.swift */; };
 		EA96D5B626689A0400F85731 /* GroupInviteQRViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA96D5B526689A0400F85731 /* GroupInviteQRViewController.swift */; };
 		EA9B750F25A9003B00389A8E /* MsgViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA9B750E25A9003B00389A8E /* MsgViewCell.swift */; };
-		EAA0798625AEAC9200B384AB /* GroupsListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA0798525AEAC9200B384AB /* GroupsListViewController.swift */; };
 		EAA0799725AFC71600B384AB /* ThreadListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA0799625AFC71600B384AB /* ThreadListCell.swift */; };
 		EAA34C09270F9EDF00BCF1BD /* StorageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA34C08270F9EDF00BCF1BD /* StorageViewController.swift */; };
 		EAA424FA24ECF1480025CBBE /* ChatGroupMember+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA424F424ECF1480025CBBE /* ChatGroupMember+CoreDataClass.swift */; };
@@ -1161,7 +1160,6 @@
 		EA8D4720233C25B8006E2BA5 /* VerificationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationViewController.swift; sourceTree = "<group>"; };
 		EA96D5B526689A0400F85731 /* GroupInviteQRViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupInviteQRViewController.swift; sourceTree = "<group>"; };
 		EA9B750E25A9003B00389A8E /* MsgViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MsgViewCell.swift; sourceTree = "<group>"; };
-		EAA0798525AEAC9200B384AB /* GroupsListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupsListViewController.swift; sourceTree = "<group>"; };
 		EAA0799625AFC71600B384AB /* ThreadListCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadListCell.swift; sourceTree = "<group>"; };
 		EAA34C08270F9EDF00BCF1BD /* StorageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageViewController.swift; sourceTree = "<group>"; };
 		EAA424F424ECF1480025CBBE /* ChatGroupMember+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroupMember+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -2005,7 +2003,6 @@
 				EA039C6C26C6E8BB002CC4CF /* Creation */,
 				F45D9F772825DF46005BAD9D /* Grid */,
 				EA039C6A26C6E875002CC4CF /* Info */,
-				EAA0798525AEAC9200B384AB /* GroupsListViewController.swift */,
 				EA1CEF5D2617964C00BC0C79 /* GroupInvitePreviewViewController.swift */,
 				33816C0C2664E5B500E05E21 /* GroupsInCommonViewController.swift */,
 				EA5975DD252D3CF600810F48 /* GroupMemberAvatars.swift */,
@@ -3303,7 +3300,6 @@
 				146B93792405F40500768AC6 /* Font.swift in Sources */,
 				76B95CDE24295AB5007435AC /* CommentView.swift in Sources */,
 				A1FF1ECC28BD7BF70057FC27 /* PhoneNumberVerificationViewController.swift in Sources */,
-				EAA0798625AEAC9200B384AB /* GroupsListViewController.swift in Sources */,
 				329DFD56270CF70200B85CFF /* Feed4ToFeed5.xcmappingmodel in Sources */,
 				6A911F3C270EAF2E003DCB7A /* Feed5ToFeed6.xcmappingmodel in Sources */,
 				EE3A915B28A1BCE4002B66B6 /* MessageCellViewLocation.swift in Sources */,

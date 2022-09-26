@@ -252,13 +252,9 @@ class HomeViewController: UITabBarController {
     }
 
     private func groupsNavigationController() -> UINavigationController {
-        let groupsViewController: UIViewController
-        if ServerProperties.enableGroupsGrid {
-            groupsViewController = GroupGridViewController()
-            groupsViewController.title = Localizations.titleGroups
-        } else {
-            groupsViewController = GroupsListViewController(title: Localizations.titleGroups)
-        }
+        let groupsViewController = GroupGridViewController()
+        groupsViewController.title = Localizations.titleGroups
+
         let navigationController = UINavigationController(rootViewController: groupsViewController)
         navigationController.tabBarItem.image = UIImage(named: "TabBarGroups")?.withTintColor(.tabBar, renderingMode: .alwaysOriginal)
         navigationController.tabBarItem.selectedImage = UIImage(named: "TabBarGroupsActive")

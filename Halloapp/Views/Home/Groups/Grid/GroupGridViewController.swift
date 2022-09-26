@@ -448,4 +448,8 @@ extension Localizations {
     static var groupsGridHeaderMoreInfo: String {
         NSLocalizedString("groupGridHeader.moreInfo", value: "More Info", comment: "More info menu item")
     }
+
+    static var groupsListRemoveMessage: String {
+        NSLocalizedString("groups.list.remove.message", value: "Are you sure you want to remove this group and its content from your device?", comment: "Text shown when user is about to remove the group")
+    }
 }

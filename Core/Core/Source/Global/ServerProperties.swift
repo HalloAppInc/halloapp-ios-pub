@@ -42,7 +42,6 @@ public struct ServerProperties {
         case sendClearTextHomeFeedContent = "cleartext_home_feed"
         case useClearTextHomeFeedContent = "use_cleartext_home_feed"
         case enableSentryPerfTracking = "enable_sentry_perf_tracking"
-        case enableGroupsGrid = "enable_groups_grid"
         case enableGroupExpiry = "group_expiry"
         case preAnswerCalls = "pre_answer_calls"
         case chatReactions = "chat_reactions"
@@ -90,7 +89,6 @@ public struct ServerProperties {
         static let sendClearTextHomeFeedContent = true
         static let useClearTextHomeFeedContent = true
         static let enableSentryPerfTracking = false
-        static let enableGroupsGrid = false
         static let enableGroupExpiry = false
         static let preAnswerCalls = false
         static let chatReactions = false
@@ -359,10 +357,6 @@ public struct ServerProperties {
 
     public static var enableSentryPerfTracking: Bool {
         ServerProperties.bool(forKey: .enableSentryPerfTracking) ?? Defaults.enableSentryPerfTracking
-    }
-
-    public static var enableGroupsGrid: Bool {
-        ServerProperties.bool(forKey: .enableGroupsGrid) ?? Defaults.enableGroupsGrid
     }
 
     public static var enableGroupExpiry: Bool {
