@@ -2996,6 +2996,8 @@ extension ChatData {
                     DDLogInfo("ChatData/retractGroupChatReaction: \(reactionToRetractID)/success")
                 }
             }
+        } else {
+            DDLogInfo("ChatData/retractGroupChatReaction: \(reactionToRetractID)/error - recipientID not set")
         }
         
     }
@@ -4225,8 +4227,6 @@ extension ChatData {
                 DDLogInfo("ChatData/processRetractingChatMsgs \($0.id)")
                 let msgToRetractID = chatMsg.id
 
-                // TODO @Nandini ask Murali if ok to call self.retractChatMessage here?
-                // side effect is we update chat threads in that function.
                 self.retractChatMessage(chatMessage: chatMsg, messageToRetractID: msgToRetractID)
             }
         }
