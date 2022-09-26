@@ -2777,12 +2777,12 @@ extension ChatData {
         }
     }
 
-    func retractChatMessage(toUserID: UserID, messageToRetractID: String) {
+    func retractChatMessage(chatMessage: ChatMessage, messageToRetractID: String) {
         let messageID = PacketID.generate()
 
         updateChatMessage(with: messageToRetractID) { [weak self] (chatMessage) in
             guard let self = self else { return }
-            guard [.sentOut, .delivered, .seen].contains(chatMessage.outgoingStatus) else { return }
+            guard [.sentOut, .delivered, .seen, .retracting].contains(chatMessage.outgoingStatus) else { return }
 
             chatMessage.retractID = messageID
             chatMessage.outgoingStatus = .retracting
@@ -2794,18 +2794,29 @@ extension ChatData {
                 chatThread.lastMsgMediaType = .none
             }
         }
-                
-        self.service.retractChatMessage(messageID: messageID, toUserID: toUserID, messageToRetractID: messageToRetractID) { result in
-            switch result {
-            case .failure(let error):
-                DDLogError("ChatData/retractChatMessage: \(messageToRetractID)/failed: \(error)")
-            case .success:
-                DDLogInfo("ChatData/retractChatMessage: \(messageToRetractID)/success")
+        if let toUserId = chatMessage.toUserId {
+            self.service.retractChatMessage(messageID: messageID, toUserID: toUserId, messageToRetractID: messageToRetractID) { result in
+                switch result {
+                case .failure(let error):
+                    DDLogError("ChatData/retractChatMessage: \(messageToRetractID)/failed: \(error)")
+                case .success:
+                    DDLogInfo("ChatData/retractChatMessage: \(messageToRetractID)/success")
+                }
             }
+        } else if let toGroupId = chatMessage.toGroupId {
+            self.service.retractGroupChatMessage(messageID: messageID, groupID: toGroupId, messageToRetractID: messageToRetractID) { result in
+                switch result {
+                case .failure(let error):
+                    DDLogError("ChatData/retractGroupChatMessage: \(messageToRetractID)/failed: \(error)")
+                case .success:
+                    DDLogInfo("ChatData/retractGroupChatMessage: \(messageToRetractID)/success")
+                }
+            }
+        } else {
+            DDLogError("ChatData/retractChatMessage: \(messageToRetractID)/failed: recipient Id not set")
         }
-        
     }
-    
+
     /// Donates an intent to Siri for improved suggestions when sharing content.
     ///
     /// Intents are used by iOS to provide contextual suggestions to the user for certain interactions. In this case, we are suggesting the user send another message to the user they just shared with.
@@ -2929,7 +2940,7 @@ extension ChatData {
         return reactionId
     }
 
-    func retractReaction(toUserID: UserID, reactionToRetractID: String) {
+    func retractReaction(commonReaction: CommonReaction, reactionToRetractID: String) {
         let retractID = PacketID.generate()
 
         updateReaction(with: reactionToRetractID) { [weak self] (commonReaction) in
@@ -2967,14 +2978,26 @@ extension ChatData {
             }
         }
 
-        self.service.retractChatMessage(messageID: retractID, toUserID: toUserID, messageToRetractID: reactionToRetractID) { result in
-            switch result {
-            case .failure(let error):
-                DDLogError("ChatData/retractReaction: \(reactionToRetractID)/failed: \(error)")
-            case .success:
-                DDLogInfo("ChatData/retractReaction: \(reactionToRetractID)/success")
+        if let toUserId = commonReaction.chatMessageRecipient.toUserId {
+            self.service.retractChatMessage(messageID: retractID, toUserID: toUserId, messageToRetractID: reactionToRetractID) { result in
+                switch result {
+                case .failure(let error):
+                    DDLogError("ChatData/retractChatReaction: \(reactionToRetractID)/failed: \(error)")
+                case .success:
+                    DDLogInfo("ChatData/retractChatReaction: \(reactionToRetractID)/success")
+                }
+            }
+        } else if let toGroupId = commonReaction.chatMessageRecipient.toGroupId {
+            self.service.retractGroupChatMessage(messageID: retractID, groupID: toGroupId, messageToRetractID: reactionToRetractID) { result in
+                switch result {
+                case .failure(let error):
+                    DDLogError("ChatData/retractGroupChatReaction: \(reactionToRetractID)/failed: \(error)")
+                case .success:
+                    DDLogInfo("ChatData/retractGroupChatReaction: \(reactionToRetractID)/success")
+                }
             }
         }
+        
     }
     
     // MARK: 1-1 Core Data Fetching
@@ -4201,20 +4224,10 @@ extension ChatData {
                 guard let messageID = chatMsg.retractID else { return }
                 DDLogInfo("ChatData/processRetractingChatMsgs \($0.id)")
                 let msgToRetractID = chatMsg.id
-                
-                // TODO @Nandini handle group message retracts, withing service potentially
-                if let toUserId = chatMsg.toUserId {
-                    self.service.retractChatMessage(messageID: messageID, toUserID: toUserId, messageToRetractID: msgToRetractID) { result in
-                        switch result {
-                        case .failure(let error):
-                            DDLogError("ChatData/processRetractingChatMsgs: \(msgToRetractID)/failed: \(error)")
-                        case .success:
-                            DDLogInfo("ChatData/processRetractingChatMsgs: \(msgToRetractID)/success")
-                        }
-                    }
-                } else {
-                    DDLogError("ChatData/processRetractingChatMsgs: \(msgToRetractID)/failed: toUserId not set /")
-                }
+
+                // TODO @Nandini ask Murali if ok to call self.retractChatMessage here?
+                // side effect is we update chat threads in that function.
+                self.retractChatMessage(chatMessage: chatMsg, messageToRetractID: msgToRetractID)
             }
         }
     }

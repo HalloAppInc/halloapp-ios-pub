@@ -745,6 +745,7 @@ final class ProtoService: ProtoServiceCore {
                 if let groupDecryptionFailure = groupDecryptionFailure {
                     DDLogError("proto/handleGrouChatStanza/\(msg.id)/\(msg.id)/decrypt/error \(groupDecryptionFailure.error)")
                     // TODO @Nandini - rerequest flow
+                    // TODO Address Garett question here : https://github.com/HalloAppInc/halloapp-ios/pull/3501/files
                 } else {
                     DDLogInfo("proto/didReceive/groupChatMessage/\(msg.id)/decrypt/success")
                     ack()
@@ -1897,32 +1898,6 @@ extension ProtoService: HalloService {
         }
 
         DDLogInfo("ProtoService/sendGroupChatMessage/\(message.id) sending (unencrypted)")
-        send(packetData)
-    }
-
-    func retractGroupChatMessage(messageID: String, groupID: GroupID, messageToRetractID: String) {
-        guard let userID = credentials?.userID, let fromUID = Int64(userID) else {
-            DDLogError("ProtoService/retractChatGroupMessage/error invalid sender uid")
-            return
-        }
-        
-        var packet = Server_Packet()
-        packet.msg.fromUid = fromUID
-        packet.msg.id = messageID
-        packet.msg.type = .groupchat
-
-        var groupChatRetract = Server_GroupChatRetract()
-        groupChatRetract.id = messageToRetractID
-        groupChatRetract.gid = groupID
-
-        packet.msg.payload = .groupchatRetract(groupChatRetract)
-        
-        guard let packetData = try? packet.serializedData() else {
-            DDLogError("ProtoService/retractChatGroupMessage/error could not serialize packet")
-            return
-        }
-
-        DDLogInfo("ProtoService/retractChatGroupMessage")
         send(packetData)
     }
     

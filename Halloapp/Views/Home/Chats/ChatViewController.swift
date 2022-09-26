@@ -1906,7 +1906,7 @@ extension ChatViewController: OutboundMsgViewCellDelegate {
            [.sentOut, .delivered, .seen, .played].contains(chatMessage.outgoingStatus),
            let toUserID = fromUserId {
             alertController.addAction(UIAlertAction(title: Localizations.chatDeleteForEveryone, style: .destructive) { _ in
-                MainAppContext.shared.chatData.retractChatMessage(toUserID: toUserID, messageToRetractID: chatMessageId)
+                MainAppContext.shared.chatData.retractChatMessage(chatMessage: chatMessage, messageToRetractID: chatMessageId)
             })
         }
 

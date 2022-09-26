@@ -2136,7 +2136,7 @@ extension ProtoServiceCore: CoreService {
                     newCompletion(nil, nil, groupDecryptionFailure)
                 case .success(let decryptedPayload):
                     if let container = try? Clients_Container(serializedData: decryptedPayload) {
-                        completion(container.chatContainer.chatContent, container.chatContainer.chatContext, nil)
+                        newCompletion(container.chatContainer.chatContent, container.chatContainer.chatContext, nil)
                     } else {
                         DDLogError("ProtoServiceCore/decryptGroupChatStanza/ failes to deserialize data")
                     }
@@ -2339,7 +2339,6 @@ extension ProtoServiceCore: CoreService {
                         groupChatStanza.chatType = .chat
                     }
                     // TODO @Nandini ask murali: groupChatStanza.senderLogInfo = ?
-                    // Add media counters.
                     groupChatStanza.mediaCounters = message.serverMediaCounters
                     completion(groupChatStanza, nil)
                 } catch {
@@ -2510,6 +2509,36 @@ extension ProtoServiceCore: CoreService {
             DDLogInfo("ProtoServiceCore/retractChatMessage: \(messageToRetractID)/success")
             completion(.success(()))
         }
+    }
+
+    public func retractGroupChatMessage(messageID: String, groupID: GroupID, messageToRetractID: String, completion: @escaping ServiceRequestCompletion<Void>) {
+        guard let userID = credentials?.userID, let fromUID = Int64(userID) else {
+            DDLogError("ProtoService/retractChatGroupMessage/error invalid sender uid")
+            completion(.failure(.aborted))
+            return
+        }
+
+        var packet = Server_Packet()
+        packet.msg.fromUid = fromUID
+        packet.msg.id = messageID
+        packet.msg.type = .groupchat
+
+        var groupChatRetract = Server_GroupChatRetract()
+        groupChatRetract.id = messageToRetractID
+        groupChatRetract.gid = groupID
+
+        packet.msg.payload = .groupchatRetract(groupChatRetract)
+
+        guard let packetData = try? packet.serializedData() else {
+            DDLogError("ProtoService/retractChatGroupMessage/error could not serialize packet")
+            completion(.failure(.malformedRequest))
+            return
+        }
+
+        DDLogInfo("ProtoService/retractChatGroupMessage")
+        send(packetData)
+        DDLogInfo("ProtoServiceCore/retractChatGroupMessage: \(messageToRetractID)/success")
+        completion(.success(()))
     }
 
     public func log(countableEvents: [CountableEvent], discreteEvents: [DiscreteEvent], completion: @escaping ServiceRequestCompletion<Void>) {

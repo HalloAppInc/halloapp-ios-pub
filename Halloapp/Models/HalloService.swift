@@ -57,7 +57,7 @@ protocol HalloService: CoreService {
     // MARK: Group Chat
     var didGetNewGroupChatMessage: PassthroughSubject<IncomingChatMessage, Never> { get }
     func sendGroupChatMessage(_ message: HalloGroupChatMessage)
-    func retractGroupChatMessage(messageID: String, groupID: GroupID, messageToRetractID: String)
+    func retractGroupChatMessage(messageID: String, groupID: GroupID, messageToRetractID: String, completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Groups
     func createGroup(name: String,

@@ -18,7 +18,7 @@ protocol ReactionViewControllerChatDelegate: AnyObject {
     func handleForwarding(msg chatMessage: ChatMessage)
     func showDeletionConfirmationMenu(for chatMessage: ChatMessage)
     func sendReaction(chatMessage: ChatMessage, reaction: String)
-    func removeReaction(chatMessage: ChatMessage, reaction: CommonReaction)
+    func removeReaction(reaction: CommonReaction)
 }
 
 protocol ReactionViewControllerCommentDelegate: AnyObject {
@@ -273,11 +273,11 @@ public class ReactionViewController: UIViewController {
             if emojiView.reaction == currentReaction.emoji {
                 emojiView.deselectEmoji()
                 dismiss(animated:true)
-                delegate.removeReaction(chatMessage: chatMessage, reaction: currentReaction)
+                delegate.removeReaction(reaction: currentReaction)
             } else {
                 emojiView.selectEmoji()
                 dismiss(animated:true)
-                delegate.removeReaction(chatMessage: chatMessage, reaction: currentReaction)
+                delegate.removeReaction(reaction: currentReaction)
                 delegate.sendReaction(chatMessage: chatMessage, reaction: emojiView.reaction)
             }
         } else if let delegate = commentDelegate, let feedPostComment = feedPostComment {

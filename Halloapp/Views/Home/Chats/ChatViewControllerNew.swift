@@ -1808,7 +1808,7 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
            [.sentOut, .delivered, .seen, .played].contains(chatMessage.outgoingStatus),
            let toUserID = fromUserId {
             alertController.addAction(UIAlertAction(title: Localizations.chatDeleteForEveryone, style: .destructive) { _ in
-                MainAppContext.shared.chatData.retractChatMessage(toUserID: toUserID, messageToRetractID: chatMessageId)
+                MainAppContext.shared.chatData.retractChatMessage(chatMessage: chatMessage, messageToRetractID: chatMessageId)
                 
             })
             
@@ -1830,15 +1830,10 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
                                                     chatMessageID: chatMessage.id)
     }
 
-    func removeReaction(chatMessage: ChatMessage, reaction: CommonReaction) {
-        if reaction.fromUserID == AppContext.shared.userData.userId, let toUserID = fromUserId {
-           MainAppContext.shared.chatData.retractReaction(toUserID: toUserID, reactionToRetractID: reaction.id)
-        }
-    }
-    
     func removeReaction(reaction: CommonReaction) {
-        if reaction.fromUserID == AppContext.shared.userData.userId, let toUserID = fromUserId {
-           MainAppContext.shared.chatData.retractReaction(toUserID: toUserID, reactionToRetractID: reaction.id)
+        // Users can only remove reactions they have authored
+        if reaction.fromUserID == AppContext.shared.userData.userId {
+            MainAppContext.shared.chatData.retractReaction(commonReaction: reaction, reactionToRetractID: reaction.id)
         }
     }
 
