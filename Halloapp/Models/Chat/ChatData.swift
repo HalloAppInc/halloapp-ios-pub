@@ -143,6 +143,12 @@ class ChatData: ObservableObject {
         )
 
         cancellableSet.insert(
+            service.didGetNewGroupChatMessage.sink { [weak self] incomingMessage in
+                self?.processIncomingChatMessage(incomingMessage)
+            }
+        )
+
+        cancellableSet.insert(
             // TODO: Move all presence logic to its own file.
             didUserPresenceChange.sink(receiveValue: { [weak self] presenceType in
                 DDLogInfo("ChatData/didUserPresenceChange: \(presenceType)")

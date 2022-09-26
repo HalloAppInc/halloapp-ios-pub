@@ -2117,6 +2117,45 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
+    public func decryptGroupChatStanza(_ serverGroupChat: Server_GroupChatStanza, msgId contentId: String, from fromUserID: UserID, in groupID: GroupID, completion: @escaping (ChatContent?, ChatContext?, GroupDecryptionFailure?) -> Void) {
+        let newCompletion: (ChatContent?, ChatContext?, GroupDecryptionFailure?) -> Void = { [weak self] content, context, decryptionFailure in
+            guard let self = self else { return }
+            completion(content, context, decryptionFailure)
+            DispatchQueue.main.async {
+                self.groupStates[groupID] = .ready
+                self.executePendingWorkItems(for: groupID)
+            }
+        }
+
+        let work = DispatchWorkItem {
+
+            DDLogInfo("ProtoServiceCore/decryptGroupChatStanza/contentId/\(serverGroupChat.gid)/\(contentId), fromUserID: \(fromUserID)/begin")
+            self.decryptGroupPayloadAndSenderState(serverGroupChat.encPayload, contentId: contentId, in: groupID, with: serverGroupChat.senderState, from: fromUserID) { result in
+                switch result {
+                case .failure(let groupDecryptionFailure):
+                    newCompletion(nil, nil, groupDecryptionFailure)
+                case .success(let decryptedPayload):
+                    if let container = try? Clients_Container(serializedData: decryptedPayload) {
+                        completion(container.chatContainer.chatContent, container.chatContainer.chatContext, nil)
+                    } else {
+                        DDLogError("ProtoServiceCore/decryptGroupChatStanza/ failes to deserialize data")
+                    }
+                }
+                DDLogInfo("ProtoServiceCore/decryptGroupChatStanza/contentId/\(serverGroupChat.gid)/\(contentId), fromUserID: \(fromUserID)/end")
+            }
+        }
+        DispatchQueue.main.async { [self] in
+            // Append task to pendingWorkItems and try to perform task.
+            if var pendingGroupWorkItems = pendingWorkItems[groupID] {
+                pendingGroupWorkItems.append(work)
+                self.pendingWorkItems[groupID] = pendingGroupWorkItems
+            } else {
+                pendingWorkItems[groupID] = [work]
+            }
+            executePendingWorkItems(for: groupID)
+        }
+    }
+
     /// TODO: Convert to Result now that success and failure are mutually exclusive (no more plaintext)
     public func decryptChat(_ serverChat: Server_ChatStanza, from fromUserID: UserID, completion: @escaping (ChatContent?, ChatContext?, DecryptionFailure?) -> Void) {
         AppContext.shared.messageCrypter.decrypt(
@@ -2161,54 +2200,155 @@ extension ProtoServiceCore: CoreService {
                 completion(.failure(RequestError.aborted))
                 return
             }
-            guard let toUserId = message.chatMessageRecipient.toUserId else {
-                DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/ toUserId not set for 1:1 chat message")
+
+            if let toUserId = message.chatMessageRecipient.toUserId {
+                self.sendOneToOneChatMessage(fromUserID: fromUserID, toUserId: toUserId, message: message, completion: completion)
+            } else if let toGroupId = message.chatMessageRecipient.toGroupId {
+                self.sendGroupChatMessage(fromUserID: fromUserID, toGroupId: toGroupId, message: message, completion: completion)
+            } else {
+                DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/ recipientId not set for chat message")
                 completion(.failure(.malformedRequest))
                 return
             }
+        }
+    }
 
-            self.makeChatStanza(message) { chat, error in
-                guard let chat = chat else {
-                    completion(.failure(.aborted))
+    private func sendOneToOneChatMessage(fromUserID: UserID, toUserId: UserID, message: ChatMessageProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
+        makeChatStanza(message) { chat, error in
+            guard let chat = chat else {
+                completion(.failure(.aborted))
+                return
+            }
+
+            // Dont send chat messages on encryption errors.
+            if let error = error {
+                DDLogInfo("ProtoServiceCore/sendOneToOneChatMessage/\(message.id)/error \(error)")
+                AppContext.shared.errorLogger?.logError(error)
+                DDLogInfo("ProtoServiceCore/sendOneToOneChatMessage/\(message.id) aborted")
+                completion(.failure(RequestError.aborted))
+                return
+            }
+
+            let packet = Server_Packet.msgPacket(
+                from: fromUserID,
+                to: toUserId,
+                id: message.id,
+                type: .chat,
+                rerequestCount: message.rerequestCount,
+                payload: .chatStanza(chat))
+
+            guard let packetData = try? packet.serializedData() else {
+                AppContext.shared.eventMonitor.count(.encryption(error: .serialization))
+                DDLogError("ProtoServiceCore/sendOneToOneChatMessage/\(message.id)/error could not serialize chat message!")
+                completion(.failure(RequestError.malformedRequest))
+                return
+            }
+
+            DispatchQueue.main.async {
+                guard self.isConnected else {
+                    DDLogInfo("ProtoServiceCore/sendOneToOneChatMessage/\(message.id) aborting (disconnected)")
+                    completion(.failure(RequestError.notConnected))
                     return
                 }
+                AppContext.shared.eventMonitor.count(.encryption(error: error))
+                DDLogInfo("ProtoServiceCore/sendOneToOneChatMessage/\(message.id) sending encrypted")
+                self.send(packetData)
+                DDLogInfo("ProtoServiceCore/sendOneToOneChatMessage/\(message.id) success")
+                completion(.success(()))
+            }
+        }
+    }
 
-                // Dont send chat messages on encryption errors.
-                if let error = error {
-                    DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id)/error \(error)")
-                    AppContext.shared.errorLogger?.logError(error)
-                    DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) aborted")
-                    completion(.failure(RequestError.aborted))
+    private func sendGroupChatMessage(fromUserID: UserID, toGroupId: GroupID, message: ChatMessageProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
+        makeGroupChatStanza(message) { chat, error in
+            guard let chat = chat else {
+                completion(.failure(.aborted))
+                return
+            }
+
+            // Dont send chat messages on encryption errors.
+            if let error = error {
+                DDLogInfo("ProtoServiceCore/sendGroupChatMessage/\(message.id)/error \(error)")
+                AppContext.shared.errorLogger?.logError(error)
+                DDLogInfo("ProtoServiceCore/sendGroupChatMessage/\(message.id) aborted")
+                completion(.failure(RequestError.aborted))
+                return
+            }
+
+            let packet = Server_Packet.msgPacket(
+                from: fromUserID,
+                id: message.id,
+                type: .groupchat,
+                rerequestCount: message.rerequestCount,
+                payload: .groupChatStanza(chat))
+
+            guard let packetData = try? packet.serializedData() else {
+                AppContext.shared.eventMonitor.count(.encryption(error: .serialization))
+                DDLogError("ProtoServiceCore/sendGroupChatMessage/\(message.id)/error could not serialize chat message!")
+                completion(.failure(RequestError.malformedRequest))
+                return
+            }
+
+            DispatchQueue.main.async {
+                guard self.isConnected else {
+                    DDLogInfo("ProtoServiceCore/sendGroupChatMessage/\(message.id) aborting (disconnected)")
+                    completion(.failure(RequestError.notConnected))
                     return
                 }
+                AppContext.shared.eventMonitor.count(.encryption(error: error))
+                DDLogInfo("ProtoServiceCore/sendGroupChatMessage/\(message.id) sending encrypted")
+                self.send(packetData)
+                DDLogInfo("ProtoServiceCore/sendGroupChatMessage/\(message.id) success")
+                completion(.success(()))
+            }
+        }
+        
+    }
 
-                let packet = Server_Packet.msgPacket(
-                    from: fromUserID,
-                    to: toUserId,
-                    id: message.id,
-                    type: .chat,
-                    rerequestCount: message.rerequestCount,
-                    payload: .chatStanza(chat))
-
-                guard let packetData = try? packet.serializedData() else {
-                    AppContext.shared.eventMonitor.count(.encryption(error: .serialization))
-                    DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error could not serialize chat message!")
-                    completion(.failure(RequestError.malformedRequest))
-                    return
+    private func makeGroupChatStanza(_ message: ChatMessageProtocol, completion: @escaping (Server_GroupChatStanza?, EncryptionError?) -> Void) {
+        guard let messageData = try? message.protoContainer?.serializedData() else {
+            DDLogError("ProtoServiceCore/makeGroupChatStanza/\(message.id)/error could not serialize group chat message!")
+            completion(nil, nil)
+            return
+        }
+        guard let toGroupId = message.chatMessageRecipient.toGroupId else {
+            DDLogError("ProtoServiceCore/makeGroupChatStanza/\(message.id)/ error toGroupId not set for message: \(message.id)")
+            completion(nil, nil)
+            return
+        }
+        AppContext.shared.messageCrypter.encrypt(messageData, in: toGroupId) { result in
+            switch result {
+            case .success(let groupEncryptedData):
+                DDLogInfo("ProtoServiceCore/makeGroupChatStanza/\(toGroupId)/encryption/success")
+                var groupChatStanza = Server_GroupChatStanza()
+                groupChatStanza.gid = toGroupId
+                //gate!sendClearTextGroupFeedContent
+                if ServerProperties.sendClearTextGroupFeedContent {
+                    groupChatStanza.payload = messageData
                 }
-
-                DispatchQueue.main.async {
-                    guard self.isConnected else {
-                        DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) aborting (disconnected)")
-                        completion(.failure(RequestError.notConnected))
-                        return
+                groupChatStanza.audienceHash = groupEncryptedData.audienceHash
+                groupChatStanza.senderStateBundles = groupEncryptedData.senderStateBundles
+                do {
+                    var clientEncryptedPayload = Clients_EncryptedPayload()
+                    clientEncryptedPayload.senderStateEncryptedPayload = groupEncryptedData.data
+                    groupChatStanza.encPayload = try clientEncryptedPayload.serializedData()
+                    switch message.content {
+                    case .reaction:
+                        groupChatStanza.chatType = .chatReaction
+                    case .text, .album, .files, .voiceNote, .location, .unsupported:
+                        groupChatStanza.chatType = .chat
                     }
-                    AppContext.shared.eventMonitor.count(.encryption(error: error))
-                    DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending encrypted")
-                    self.send(packetData)
-                    DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) success")
-                    completion(.success(()))
+                    // TODO @Nandini ask murali: groupChatStanza.senderLogInfo = ?
+                    // Add media counters.
+                    groupChatStanza.mediaCounters = message.serverMediaCounters
+                    completion(groupChatStanza, nil)
+                } catch {
+                    DDLogError("proto/makeGroupChatStanza/\(toGroupId)/payload-serialization/error \(error)")
+                    completion(nil, .serialization)
                 }
+            case .failure(let error):
+                DDLogError("ProtoServiceCore/makeGroupChatStanza/\(toGroupId)/encryption/error [\(error)]")
+                completion(nil, error)
             }
         }
     }

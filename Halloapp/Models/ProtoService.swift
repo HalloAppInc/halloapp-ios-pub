@@ -102,6 +102,8 @@ final class ProtoService: ProtoServiceCore {
     let didGetChatState = PassthroughSubject<ChatStateInfo, Never>()
     let didGetChatRetract = PassthroughSubject<ChatRetractInfo, Never>()
 
+    var didGetNewGroupChatMessage = PassthroughSubject<IncomingChatMessage, Never>()
+
     private let serviceQueue = DispatchQueue(label: "com.halloapp.proto.service", qos: .default)
 
     // MARK: Server Properties
@@ -695,6 +697,66 @@ final class ProtoService: ProtoServiceCore {
         case .savedReceipt(let pbReceipt):
             handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id, ack: ack)
             hasAckBeenDelegated = true
+        case .groupChatStanza(let serverGroupChatStanza):
+            if !serverGroupChatStanza.senderName.isEmpty {
+                MainAppContext.shared.contactStore.addPushNames([ UserID(msg.fromUid) : serverGroupChatStanza.senderName ])
+            }
+            if !serverGroupChatStanza.senderPhone.isEmpty {
+                MainAppContext.shared.contactStore.addPushNumbers([ UserID(msg.fromUid) : serverGroupChatStanza.senderPhone ])
+            }
+            // Dont process messages that were already decrypted and saved.
+            if isMessageDecryptedAndSaved(msgId: msg.id) {
+                return
+            }
+            // We manually ack the message after decryption.
+            // Message is decrypted and then processed on a separate queue.
+            hasAckBeenDelegated = true
+            
+            decryptGroupChatStanza(serverGroupChatStanza, msgId: msg.id, from: UserID(msg.fromUid), in: serverGroupChatStanza.gid) { (content, context, groupDecryptionFailure) in
+                if let content = content, let context = context {
+                    let chatMessage = XMPPChatMessage(content: content, context: context, timestamp: serverGroupChatStanza.timestamp, from: UserID(msg.fromUid), chatMessageRecipient: .groupChat(toGroupId: GroupID(serverGroupChatStanza.gid), fromUserId: UserID(msg.fromUid)), id: msg.id, retryCount: msg.retryCount, rerequestCount: msg.rerequestCount)
+                    switch chatMessage.content {
+                    case .album(let text, let media):
+                        DDLogInfo("proto/didReceive/\(msg.id)/groupChat/user/\(chatMessage.fromUserId)/album [length=\(text?.count ?? 0)] [media=\(media.count)]")
+                    case .text(let text, let linkPreviewData):
+                        DDLogInfo("proto/didReceive/\(msg.id)/groupChat/user/\(chatMessage.fromUserId)/text [length=\(text.count)] [linkPreviewCount=\(linkPreviewData.count)]")
+                    case .voiceNote(_):
+                        DDLogInfo("proto/didReceive/\(msg.id)/groupChat/user/\(chatMessage.fromUserId)/voiceNote")
+                    case .reaction(_):
+                        DDLogInfo("proto/didReceive/\(msg.id)/groupChat/user/\(chatMessage.fromUserId)/reaction")
+                    case .location(_):
+                        DDLogInfo("proto/didReceive/\(msg.id)/groupChat/user/\(chatMessage.fromUserId)/location")
+                    case.files:
+                        DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId)/document")
+                    case .unsupported(let data):
+                        DDLogInfo("proto/didReceive/\(msg.id)/groupChat/user/\(chatMessage.fromUserId)/unsupported [length=\(data.count)] [data=\(data.bytes.prefix(4))...]")
+                    }
+                    self.didGetNewGroupChatMessage.send(.decrypted(chatMessage))
+                } else {
+                    self.didGetNewGroupChatMessage.send(
+                        .notDecrypted(
+                            ChatMessageTombstone(
+                                id: msg.id,
+                                from: UserID(msg.fromUid),
+                                to: UserID(msg.toUid),
+                                timestamp: Date(timeIntervalSince1970: TimeInterval(serverGroupChatStanza.timestamp))
+                            )))
+                }
+                if let groupDecryptionFailure = groupDecryptionFailure {
+                    DDLogError("proto/handleGrouChatStanza/\(msg.id)/\(msg.id)/decrypt/error \(groupDecryptionFailure.error)")
+                    // TODO @Nandini - rerequest flow
+                } else {
+                    DDLogInfo("proto/didReceive/groupChatMessage/\(msg.id)/decrypt/success")
+                    ack()
+                }
+                if !serverGroupChatStanza.senderClientVersion.isEmpty {
+                    DDLogInfo("proto/didReceive/groupChatMessage/\(msg.id)/senderClient [\(serverGroupChatStanza.senderClientVersion)]")
+                }
+                if !serverGroupChatStanza.senderLogInfo.isEmpty {
+                    DDLogInfo("proto/didReceive/groupChatMessage/\(msg.id)/senderLog [\(serverGroupChatStanza.senderLogInfo)]")
+                }
+                // TODO @Nandini self.reportDecryptionResult( - update protobuf def
+            }
         case .chatStanza(let serverChat):
             if !serverChat.senderName.isEmpty {
                 MainAppContext.shared.contactStore.addPushNames([ UserID(msg.fromUid) : serverChat.senderName ])
@@ -1122,9 +1184,6 @@ final class ProtoService: ProtoServiceCore {
                 MainAppContext.shared.syncManager.processNotification(contactHashes: [pbContactHash.hash], completion: ack)
                 hasAckBeenDelegated = true
             }
-        case .groupChatStanza(_):
-            // TODO : Handle group chat!
-            break
         case .groupStanza(let pbGroup):
             if let group = HalloGroup(protoGroup: pbGroup, msgId: msg.id, retryCount: msg.retryCount) {
                 hasAckBeenDelegated = true

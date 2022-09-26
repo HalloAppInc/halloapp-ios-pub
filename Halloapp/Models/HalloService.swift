@@ -54,9 +54,12 @@ protocol HalloService: CoreService {
     var didGetChatRetract: PassthroughSubject<ChatRetractInfo, Never> { get }
     func sendChatStateIfPossible(type: ChatType, id: String, state: ChatState)
 
-    // MARK: Groups
+    // MARK: Group Chat
+    var didGetNewGroupChatMessage: PassthroughSubject<IncomingChatMessage, Never> { get }
     func sendGroupChatMessage(_ message: HalloGroupChatMessage)
     func retractGroupChatMessage(messageID: String, groupID: GroupID, messageToRetractID: String)
+
+    // MARK: Groups
     func createGroup(name: String,
                      expiryType: Server_ExpiryInfo.ExpiryType,
                      expiryTime: Int64,

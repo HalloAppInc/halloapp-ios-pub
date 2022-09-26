@@ -630,6 +630,32 @@ public extension Server_Packet {
         return packet
     }
 
+    static func msgPacket(
+        from: UserID,
+        id: String = PacketID.generate(),
+        type: Server_Msg.TypeEnum = .normal,
+        rerequestCount: Int32 = 0,
+        payload: Server_Msg.OneOf_Payload) -> Server_Packet
+    {
+        var msg = Server_Msg()
+
+        if let fromUID = Int64(from) {
+            msg.fromUid = fromUID
+        } else {
+            DDLogError("Server_Packet/\(id)/error invalid from user ID \(from)")
+        }
+
+        msg.type = type
+        msg.id = id
+        msg.payload = payload
+        msg.rerequestCount = rerequestCount
+
+        var packet = Server_Packet()
+        packet.msg = msg
+
+        return packet
+    }
+
     var requestID: String? {
         guard let stanza = stanza else {
             return nil
