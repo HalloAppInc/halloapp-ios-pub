@@ -152,7 +152,13 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
                     let cell = tableView.dequeueReusableCell(withIdentifier: ChatListViewController.cellReuseIdentifier, for: indexPath) as! ThreadListCell
 
                     cell.configureAvatarSize(Constants.AvatarSize)
-                    cell.configureForChatsList(with: chatThread, squareSize: Constants.AvatarSize)
+                    if chatThread.userID != nil {
+                        cell.configureForChatsList(with: chatThread, squareSize: Constants.AvatarSize)
+                    } else if chatThread.groupId != nil {
+                        cell.configureForGroupsList(with: chatThread, squareSize: Constants.AvatarSize)
+                    } else {
+                        DDLogError("ChatListViewController/viewDidLoad/ recipient id not set.")
+                    }
                     self.updateCellWithChatState(cell: cell, chatThread: chatThread)
 
                     if self.isFiltering {
@@ -400,7 +406,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         ]
 
         // TODO: Should this use type field instead?
-        fetchRequest.predicate = NSPredicate(format: "userID != nil")
+        fetchRequest.predicate = NSPredicate(format: "(userID != nil && typeValue == %d) || (groupID != nil && typeValue == %d)", ChatType.oneToOne.rawValue , ChatType.groupChat.rawValue)
         
         return fetchRequest
     }
@@ -604,17 +610,25 @@ extension ChatListViewController: UITableViewDelegate {
             return
         }
 
-        guard let chatWithUserId = chatThread.userID else { return }
-
-        if ServerProperties.newChatUI {
-            let vc = ChatViewControllerNew(for: chatWithUserId, with: nil, at: 0)
-            vc.chatViewControllerDelegate = self
-            self.navigationController?.pushViewController(vc, animated: true)
-        } else {
-            let vc = ChatViewController(for: chatWithUserId, with: nil, at: 0)
-            vc.delegate = self
-            self.navigationController?.pushViewController(vc, animated: true)
+        if let chatWithUserId = chatThread.userID {
+            if ServerProperties.newChatUI {
+                let vc = ChatViewControllerNew(for: chatWithUserId, with: nil, at: 0)
+                vc.chatViewControllerDelegate = self
+                self.navigationController?.pushViewController(vc, animated: true)
+            } else {
+                let vc = ChatViewController(for: chatWithUserId, with: nil, at: 0)
+                vc.delegate = self
+                self.navigationController?.pushViewController(vc, animated: true)
+            }
         }
+        
+        guard let groupUserId = chatThread.groupId  else {
+            return
+        }
+        
+        let vc = GroupChatViewController(for: groupUserId)
+        self.navigationController?.pushViewController(vc, animated: true)
+        
 
         tableView.deselectRow(at: indexPath, animated: true)
     }

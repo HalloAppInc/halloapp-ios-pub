@@ -21,6 +21,7 @@
 		32151C1D28207B330057D794 /* ChatViewControllerNew.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32151C1C28207B330057D794 /* ChatViewControllerNew.swift */; };
 		321A70112704FF13005603B8 /* FeedLinkPreview+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 321A70102704FF13005603B8 /* FeedLinkPreview+CoreDataProperties.swift */; };
 		321A70132704FF3B005603B8 /* FeedLinkPreview+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 321A70122704FF3B005603B8 /* FeedLinkPreview+CoreDataClass.swift */; };
+		32248AE028DE41FC00B48C9F /* GroupChatViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32248ADF28DE41FC00B48C9F /* GroupChatViewController.swift */; };
 		322DDDE52739A2A6006BE1E0 /* ChatLinkPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 322DDDE42739A2A6006BE1E0 /* ChatLinkPreviewView.swift */; };
 		323D787927D7D71300C29FA1 /* MessageCellViewAudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = 323D787827D7D71300C29FA1 /* MessageCellViewAudio.swift */; };
 		323D787D27D7E25000C29FA1 /* MessageCellViewLinkPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 323D787C27D7E25000C29FA1 /* MessageCellViewLinkPreview.swift */; };
@@ -678,6 +679,7 @@
 		321A700E2704FD3A005603B8 /* Feed5.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed5.xcdatamodel; sourceTree = "<group>"; };
 		321A70102704FF13005603B8 /* FeedLinkPreview+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedLinkPreview+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		321A70122704FF3B005603B8 /* FeedLinkPreview+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedLinkPreview+CoreDataClass.swift"; sourceTree = "<group>"; };
+		32248ADF28DE41FC00B48C9F /* GroupChatViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupChatViewController.swift; sourceTree = "<group>"; };
 		322DDDE42739A2A6006BE1E0 /* ChatLinkPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatLinkPreviewView.swift; sourceTree = "<group>"; };
 		322ECDC12735E6BD0006D9C1 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		323D787827D7D71300C29FA1 /* MessageCellViewAudio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageCellViewAudio.swift; sourceTree = "<group>"; };
@@ -2116,6 +2118,7 @@
 				F84DF6842851E4FF00BEC721 /* MediaListAnimator.swift */,
 				F82EFC2728657987007B45CF /* SwipeToExitGestureRecognizer.swift */,
 				325A0D762863BA9A00223611 /* NewGroupChatHeaderView.swift */,
+				32248ADF28DE41FC00B48C9F /* GroupChatViewController.swift */,
 			);
 			path = Chats;
 			sourceTree = "<group>";
@@ -3096,6 +3099,7 @@
 				EAEE49E3276C13E10042E654 /* ChatHeaderView.swift in Sources */,
 				3250C60327D0101C0032FEC4 /* PhoneInputViewController.swift in Sources */,
 				A1AFE776281FAA6B008BBC80 /* MomentViewController.swift in Sources */,
+				32248AE028DE41FC00B48C9F /* GroupChatViewController.swift in Sources */,
 				32C83FCB2694DB1D00BEB4F5 /* InvitePermissionDeniedViewController.swift in Sources */,
 				A188383628BD5D80005BBCC2 /* RoundedRectChevronButton.swift in Sources */,
 				32C83FDA2698171700BEB4F5 /* PrivacyPermissionDeniedView.swift in Sources */,

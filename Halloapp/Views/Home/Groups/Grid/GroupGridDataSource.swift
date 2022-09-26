@@ -63,7 +63,7 @@ class GroupGridDataSource: NSObject {
 
     private let threadsFetchedResultsController: NSFetchedResultsController<CommonThread> = {
         let fetchRequest = CommonThread.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "groupID != nil")
+        fetchRequest.predicate = NSPredicate(format: "groupID != nil && typeValue == %d", GroupType.groupFeed.rawValue)
         fetchRequest.sortDescriptors = [
             NSSortDescriptor(key: "lastTimestamp", ascending: false),
             NSSortDescriptor(key: "title", ascending: true)
