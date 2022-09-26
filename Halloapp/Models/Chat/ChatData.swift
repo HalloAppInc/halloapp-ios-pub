@@ -5346,6 +5346,32 @@ extension ChatData {
 
         save(managedObjectContext)
 
+        let shouldNotififyForGroupEvent: Bool = {
+            if event.senderUserID != MainAppContext.shared.userData.userId {
+                if [.changeExpiry, .changeName, .changeDescription].contains(event.action) { // create is handled via `showGroupAddNotification`
+                    return true
+                } else if event.memberUserID == MainAppContext.shared.userData.userId {
+                    if event.action == .modifyMembers, [.remove].contains(event.memberAction) { // add is handled via `showGroupAddNotification`
+                        return true
+                    } else if event.action == .modifyAdmins, [.promote, .demote].contains(event.memberAction) {
+                        return true
+                    }
+                }
+            }
+            return false
+        }()
+
+        if shouldNotififyForGroupEvent {
+            let groupEventObjectID = event.objectID
+            let messageID = xmppGroup.messageId
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self, let event = self.viewContext.object(with: groupEventObjectID) as? GroupEvent, let messageID = messageID else {
+                    return
+                }
+                self.showNotification(for: event, messageID: messageID)
+            }
+        }
+
         didGetAGroupEvent.send(event.groupID)
     }
 
@@ -5356,6 +5382,17 @@ extension ChatData {
 
 // MARK: Group Notifications
 extension ChatData {
+
+    private func showNotification(for groupEvent: GroupEvent, messageID: String) {
+        // Only display these notifications when the app is not active
+        guard UIApplication.shared.applicationState == .active else {
+            return
+        }
+
+        AppContext.shared.notificationStore.runIfNotificationWasNotPresented(for: messageID) {
+            Banner.show(attributedBody: groupEvent.formattedNotificationText, groupID: groupEvent.groupID, type: .groupFeed, using: MainAppContext.shared.avatarStore)
+        }
+    }
 
     private func showGroupAddNotification(for xmppGroup: XMPPGroup) {
         DDLogVerbose("ChatData/showGroupAddNotification/id \(xmppGroup.groupId)")

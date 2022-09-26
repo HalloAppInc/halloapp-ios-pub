@@ -17,16 +17,23 @@ fileprivate struct Constants {
 }
 
 class Banner {
-    static func show(title: String, body: String, userID: String? = nil, groupID: GroupID? = nil, type: ThreadType, using avatarStore: AvatarStore) {
+    static func show(title: String = "",
+                     body: String? = nil,
+                     attributedBody: NSAttributedString? = nil,
+                     userID: String? = nil,
+                     groupID: GroupID? = nil,
+                     type: ThreadType,
+                     using avatarStore: AvatarStore) {
         guard let keyWindow = UIApplication.shared.windows.filter({ $0.isKeyWindow }).first else {
             return
         }
         
         let bannerView = BannerView(keyWindow: keyWindow)
         bannerView.configure(title: title,
-                              body: body,
-                            userID: userID,
-                           groupID: groupID,
+                             body: body,
+                             attributedBody: attributedBody,
+                             userID: userID,
+                             groupID: groupID,
                              type: type,
                              using: avatarStore)
     }
@@ -97,7 +104,7 @@ fileprivate class BannerView: UIView, UIGestureRecognizerDelegate {
         fatalError("Banner view coder init not implemented...")
     }
 
-    public func configure(title: String, body: String, userID: UserID? = nil, groupID: GroupID? = nil, type: ThreadType, using avatarStore: AvatarStore) {
+    public func configure(title: String, body: String?, attributedBody: NSAttributedString?, userID: UserID? = nil, groupID: GroupID? = nil, type: ThreadType, using avatarStore: AvatarStore) {
         self.type = type
         if let userID = userID {
             self.userID = userID
@@ -108,8 +115,16 @@ fileprivate class BannerView: UIView, UIGestureRecognizerDelegate {
         }
         
         titleLabel.text = title
-        let ham = HAMarkdown(font: bodyLabel.font, color: bodyLabel.textColor)
-        bodyLabel.attributedText = ham.parse(body)
+        titleRow.isHidden = title.isEmpty
+
+        bodyLabel.numberOfLines = title.isEmpty ? 2 : 1
+
+        if let body = body {
+            let ham = HAMarkdown(font: bodyLabel.font, color: bodyLabel.textColor)
+            bodyLabel.attributedText = ham.parse(body)
+        } else {
+            bodyLabel.attributedText = attributedBody
+        }
     }
 
     private lazy var mainView: UIStackView = {
