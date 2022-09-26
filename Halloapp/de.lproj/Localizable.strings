@@ -46,6 +46,12 @@
 /* Text label for action button to add the contact to the address book */
 "add.to.contact.book" = "Zu Kontakten hinzufügen";
 
+/* Text for the action of adding a contact to the user's favorites list (title case). */
+"add.to.favorites.title" = "Zu Favoriten hinzufügen";
+
+/* Confirmation when a user was successfully added to favorites. */
+"added.user.to.favorites" = "%@ zu Favoriten hinzugefügt";
+
 /* Title for alert shown when there's no internet connectivity */
 "alert.no.internet.title" = "Keine Internetverbindung";
 
@@ -63,6 +69,9 @@
 
 /* Displayed in the sticky header that's on the feed when the user has not given contacts access. */
 "allow.contacts.permission.posts.prompt" = "Um dich mit deinen Freunden und deiner Familie zu verbinden und deren Beiträge zu sehen, erlaube HalloApp den Zugriff auf deine Kontakte.";
+
+/* Title of the container that explains the need for contacts permission. */
+"allow.contacts.permission.title.numbered" = "1. Zugriff auf Kontakte erlauben";
 
 /* Title of a button that opens the settings app. */
 "allow.in.settings.title" = "In den Einstellungen erlauben";
@@ -377,7 +386,7 @@
 "chat.group.info.title" = "Gruppen-Info";
 
 /* Text for menu option of viewing profile */
-"chat.group.info.view.profile" = "Profil anzeigen";
+"chat.group.info.view.profile" = "Profil ansehen";
 
 /* Confirmation message presented when leaving a group */
 "chat.group.leave.group.confirmation" = "“%@” verlassen?";
@@ -1445,6 +1454,9 @@
 /* Title for the new feed post notification. */
 "notification.new.post" = "Neuer Beitrag";
 
+/* New post notification text when post is one document without caption. */
+"notification.one.document" = "📄 Datei";
+
 /* New post notification text when post is one photo without caption. */
 "notification.one.photo" = "📷 Foto";
 
@@ -1764,6 +1776,12 @@
 
 /* Message shown to the user once they have successfully registered. */
 "registration.you.are.in" = "Geschafft!";
+
+/* Text for the action of removing a contact from the user's favorites list (title case). */
+"remove.from.favorites.title" = "Aus Favoriten entfernen";
+
+/* Confirmation when a user was successfully removed from favorites. */
+"removed.user.from.favorites" = "%@ entfernt aus Favoriten";
 
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Um die Sicherheit deiner Verbindung mit %@ zu verifizieren, prüfe bitte, ob die obigen Nummern mit denen auf dem anderen Mobilgerät angezeigten übereinstimmen oder scanne den QR-Code.";
@@ -2122,6 +2140,9 @@
 
 /* No comment provided by engineer. */
 "VIDEO" = "VIDEO";
+
+/* Title of a button that navigates to a user's profile. */
+"view.profile" = "Profil ansehen";
 
 /* Text that indicates a view action. */
 "view.title" = "Ansehen";

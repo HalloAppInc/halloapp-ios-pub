@@ -172,6 +172,9 @@
 /* New moment screenshot notification text to be shown to the user. */
 "notification.moment.screenshot" = "%@ tirou uma captura de tela do seu momento";
 
+/* New post notification text when post is multiple documents without caption. */
+"notification.n.documents" = "notificação.n.documentos";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notificação.n.fotos";
 
@@ -192,6 +195,9 @@
 
 /* Title for the new feed post notification. */
 "notification.new.post" = "Nova publicação";
+
+/* New post notification text when post is one document without caption. */
+"notification.one.document" = "📄 arquivo";
 
 /* New post notification text when post is one photo without caption. */
 "notification.one.photo" = "📷 foto";

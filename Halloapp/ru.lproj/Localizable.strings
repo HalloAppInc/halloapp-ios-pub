@@ -46,6 +46,12 @@
 /* Text label for action button to add the contact to the address book */
 "add.to.contact.book" = "Добавить в Книгу контактов";
 
+/* Text for the action of adding a contact to the user's favorites list (title case). */
+"add.to.favorites.title" = "Добавить в Избранное";
+
+/* Confirmation when a user was successfully added to favorites. */
+"added.user.to.favorites" = "Добавлено %@ в избранное";
+
 /* Title for alert shown when there's no internet connectivity */
 "alert.no.internet.title" = "Подключение к Интернету отсутствует";
 
@@ -1774,6 +1780,12 @@
 /* Message shown to the user once they have successfully registered. */
 "registration.you.are.in" = "Вы зашли!";
 
+/* Text for the action of removing a contact from the user's favorites list (title case). */
+"remove.from.favorites.title" = "Удалить из Избранного";
+
+/* Confirmation when a user was successfully removed from favorites. */
+"removed.user.from.favorites" = "Удалили %@ из избранного";
+
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Чтобы проверить безопасность твоего соединения с  %@, убедись, что цифры выше соответствуют тем, которые отображаются на его или ее устройстве, или сканируй QR-код  его или ее телефоном.";
 
@@ -2131,6 +2143,9 @@
 
 /* No comment provided by engineer. */
 "VIDEO" = "ВИДЕО";
+
+/* Title of a button that navigates to a user's profile. */
+"view.profile" = "Просмотреть профиль";
 
 /* Text that indicates a view action. */
 "view.title" = "Смотреть";

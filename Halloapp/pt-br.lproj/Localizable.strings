@@ -46,11 +46,41 @@
 /* Text label for action button to add the contact to the address book */
 "add.to.contact.book" = "Adicionar à Agenda de Contatos";
 
+/* Text for the action of adding a contact to the user's favorites list (title case). */
+"add.to.favorites.title" = "Adicionar aos favoritos";
+
+/* Confirmation when a user was successfully added to favorites. */
+"added.user.to.favorites" = "Adicionado %@ aos favoritos";
+
 /* Title for alert shown when there's no internet connectivity */
 "alert.no.internet.title" = "Sem conexão com a internet";
 
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Por favor, verifique se você tem conectividade com a internet, e tente novamente.";
+
+/* Title of the activity tab when contacts permissions aren't given. */
+"allow.contacts.for.activity" = "Para receber atualizações de seus amigos, permita o acesso aos contatos.";
+
+/* Title of the chats tab when contacts permissions aren't given. */
+"allow.contacts.for.chat" = "Para começar a conversar, permita o acesso aos contatos";
+
+/* Message used in the app to explain the need for contacts permission. */
+"allow.contacts.permission.message" = "HalloApp precisa de acesso aos contatos do seu telefone apenas para conectá-lo com seus amigos e familiares. O HalloApp nunca envia mensagens a ninguém em seu nome.";
+
+/* Displayed in the sticky header that's on the feed when the user has not given contacts access. */
+"allow.contacts.permission.posts.prompt" = "Para se conectar com seus amigos e familiares e ver suas postagens, permita que o HalloApp acesse seus contatos.";
+
+/* Title of the container that explains the need for contacts permission. */
+"allow.contacts.permission.title.numbered" = "1. Permitir contatos";
+
+/* Title of a button that opens the settings app. */
+"allow.in.settings.title" = "Permitir nas configurações";
+
+/* Message used in the app to explain the need for notifications permission. */
+"allow.notifications.permission.message" = "Permita notificações do HalloApp para não perder mensagens, chamadas e postar atualizações de seus amigos.";
+
+/* Title of the container that explains the need for notifications permission. */
+"allow.notifications.permission.title.numbered" = "2. Permitir notificações";
 
 /* Title of view where users can invite friends and family. */
 "app.ios.invite.friends" = "Convidar amigos e família";
@@ -441,6 +471,9 @@
 
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "Esta mensagem foi excluída.";
+
+/* Message text shown in a message that has document but no text */
+"chat.message.document" = "Arquivo";
 
 /* Message text shown in a message that have photo media but no text */
 "chat.message.photo" = "Foto";
@@ -1400,6 +1433,9 @@
 /* New moment screenshot notification text to be shown to the user. */
 "notification.moment.screenshot" = "%@ tirou uma captura de tela do seu momento";
 
+/* New post notification text when post is multiple documents without caption. */
+"notification.n.documents" = "notificação.n.documentos";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notificação.n.fotos";
 
@@ -1420,6 +1456,9 @@
 
 /* Title for the new feed post notification. */
 "notification.new.post" = "Nova postagem";
+
+/* New post notification text when post is one document without caption. */
+"notification.one.document" = "📄 arquivo";
 
 /* New post notification text when post is one photo without caption. */
 "notification.one.photo" = "📷 foto";
@@ -1740,6 +1779,12 @@
 
 /* Message shown to the user once they have successfully registered. */
 "registration.you.are.in" = "Você está dentro!";
+
+/* Text for the action of removing a contact from the user's favorites list (title case). */
+"remove.from.favorites.title" = "Remover dos favoritos";
+
+/* Confirmation when a user was successfully removed from favorites. */
+"removed.user.from.favorites" = "Removido %@ dos favoritos";
 
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Para verificar a segurança da sua conexão com %@, confira se os números acima correspondem aos mostrados no dispositivo da pessoa, ou escaneie o código QR no telefone da pessoa.";
@@ -2098,6 +2143,9 @@
 
 /* No comment provided by engineer. */
 "VIDEO" = "VÍDEO";
+
+/* Title of a button that navigates to a user's profile. */
+"view.profile" = "Visualizar perfil";
 
 /* Text that indicates a view action. */
 "view.title" = "Visualizar";

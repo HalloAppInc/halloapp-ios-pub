@@ -1018,6 +1018,90 @@
 /* Label shown above group members list */
 "group.members.label" = "Miembros";
 
+/* Notification that a user changed a groups avatar */
+"group.notification.changeAvatar" = "<$sender$> cambió el ícono del grupo <$groupname$>";
+
+/* Notification that you changed a groups avatar */
+"group.notification.changeAvatar.you" = "Cambiaste el ícono del grupo <$groupname$>";
+
+/* Notification that a user changed a groups description */
+"group.notification.changeDescription" = "<$sender$> cambió la descripción del grupo <$groupname$>";
+
+/* Notification that you changed a groups description */
+"group.notification.changeDescription.you" = "Cambiaste la descripción del grupo <$groupname$>";
+
+/* Notification that a user changed a group's expiration */
+"group.notification.changeExpiry" = "<$sender$> cambió la fecha de caducidad del grupo <$groupname$> a %1@";
+
+/* Notification that you changed a group's expiration */
+"group.notification.changeExpiry.you" = "Cambiaste la fecha de caducidad del grupo <$groupname$> a %1@";
+
+/* Notification that a user changed a groups name */
+"group.notification.changeName" = "<$sender$> cambió el nombre de un grupo a <$groupname$>";
+
+/* Notification that you changed a groups name */
+"group.notification.changeName.you" = "Cambiaste el nombre de un grupo a <$groupname$>";
+
+/* Notification that a user created a group */
+"group.notification.created" = "<$sender$> creó el grupo <$groupname$>";
+
+/* Notification that you created a group */
+"group.notification.created.you" = "Creaste el grupo <$groupname$>";
+
+/* Notification that a user joined a group */
+"group.notification.join" = "<$sender$> se unió al grupo <$groupname$> a través del enlace de invitación grupal";
+
+/* Notification that you joined a group */
+"group.notification.join.you" = "Te uniste al grupo <$groupname$> a través del enlace de invitación grupal";
+
+/* Notification that a user added a group member */
+"group.notification.memberaction.add" = "<$sender$> agregó <$member$> al grupo <$groupname$>";
+
+/* Notification that a user added a group member */
+"group.notification.memberaction.add.you.member" = "<$sender$> te agregó al grupo <$groupname$>";
+
+/* Notification that you added a group member */
+"group.notification.memberaction.add.you.sender" = "Agregaste <$member$> al grupo <$groupname$>";
+
+/* Notification that a user demmoted a group member */
+"group.notification.memberaction.demote" = "<$sender$> eliminó a <$member$> como administrador del grupo <$groupname$>";
+
+/* Notification that a user demmoted you */
+"group.notification.memberaction.demote.you.member" = "<$sender$> te eliminó como administrador del grupo <$groupname$>";
+
+/* Notification that you demmoted a group member */
+"group.notification.memberaction.demote.you.sender" = "Eliminaste a <$member$> como administrador del grupo <$groupname$>";
+
+/* Notification that a user left a group */
+"group.notification.memberaction.leave" = "<$sender$> se salió del group <$groupname$>";
+
+/* Notification that you left a group */
+"group.notification.memberaction.leave.you" = "Te saliste del grupo <$groupname$>";
+
+/* Notification that a user promoted a group member */
+"group.notification.memberaction.promote" = "<$sender$> nombró a <$member$> en administrador del grupo <$groupname$>";
+
+/* Notification that you promoted a group member */
+"group.notification.memberaction.promote.you.member" = "<$sender$> te nombró administrador del grupo <$groupname$>";
+
+/* Notification that you promoted a group member */
+"group.notification.memberaction.promote.you.sender" = "Nombraste a <$member$> administrador del grupo <$groupname$>";
+
+/* Notification that a user removed a group member */
+"group.notification.memberaction.remove" = "<$sender$> eliminó a <$member$> del grupo <$groupname$>";
+
+/* Notification that a user added a group member */
+"group.notification.memberaction.remove.you.member" = "<$sender$> te eliminó del grupo <$groupname$>";
+
+/* Notification that you removed a group member */
+"group.notification.memberaction.remove.you.sender" = "Eliminaste a <$member$> del grupo <$groupname$>";
+
+/* Notification that a user changed a groups background */
+"group.notification.setBackground" = "<$sender$> cambió el color de fondo del grupo <$groupname$>";
+
+/* Notification that you changed a groups background */
+"group.notification.setBackground.you" = "Cambiaste el color de fondo del grupo <$groupname$>";
+
 /* Text for alert box when the user clicks on an invalid group invite link */
 "group.preview.get.info.error.invalid.link" = "El enlace de invitación al grupo es inválido";
 

@@ -273,9 +273,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>📄 %d file</string>
+			<string>📄 %d Datei</string>
 			<key>other</key>
-			<string>📄 %d files</string>
+			<string>📄 %d Dateien</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>
