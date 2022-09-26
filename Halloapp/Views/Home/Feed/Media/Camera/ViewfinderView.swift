@@ -61,14 +61,14 @@ final class ViewfinderView: UIView {
     private lazy var blurOverlay: UIVisualEffectView = {
         let view = UIVisualEffectView(effect: nil)
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.effect = UIBlurEffect(style: .regular)
+        view.effect = UIBlurEffect(style: .systemThinMaterial)
         return view
     }()
 
     private var hideFocusIndicator: DispatchWorkItem?
     weak var delegate: ViewfinderViewDelegate?
 
-    private var connectionCancellable: AnyCancellable?
+    private var previewingCancellable: AnyCancellable?
     private var placeholderSnapshot: UIView?
 
     override init(frame: CGRect) {
@@ -95,10 +95,14 @@ final class ViewfinderView: UIView {
         addGestureRecognizer(tap)
         addGestureRecognizer(pinch)
 
-        connectionCancellable = previewLayer.publisher(for: \.connection)
+        previewingCancellable = previewLayer.publisher(for: \.isPreviewing)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] connection in
-                self?.updateOverlay(with: connection)
+            .sink { [weak self] isPreviewing in
+                if isPreviewing {
+                    self?.animateAddedConnection()
+                } else {
+                    self?.animateRemovedConnection()
+                }
             }
     }
 
@@ -111,14 +115,6 @@ final class ViewfinderView: UIView {
         refreshState()
     }
 
-    private func updateOverlay(with connection: AVCaptureConnection?) {
-        if connection == nil {
-            animateRemovedConnection()
-        } else {
-            animateAddedConnection()
-        }
-    }
-
     private func animateRemovedConnection() {
         guard let snapshot = snapshotView(afterScreenUpdates: false) else {
             return
@@ -128,20 +124,18 @@ final class ViewfinderView: UIView {
         insertSubview(snapshot, belowSubview: blurOverlay)
         placeholderSnapshot = snapshot
 
-        UIView.animate(withDuration: 0.3) {
-            self.blurOverlay.effect = UIBlurEffect(style: .regular)
+        UIView.animate(withDuration: 0.35, delay: 0, options: .curveEaseInOut) {
+            self.blurOverlay.effect = UIBlurEffect(style: .systemThinMaterial)
         }
     }
 
     private func animateAddedConnection() {
-        UIView.animateKeyframes(withDuration: 0.3, delay: 0) {
-            UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.4) {
-                self.placeholderSnapshot?.alpha = 0
-            }
-
-            UIView.addKeyframe(withRelativeStartTime: 0.25, relativeDuration: 0.75) {
-                self.blurOverlay.effect = nil
-            }
+        UIView.animate(withDuration: 0.35, delay: 0, options: .curveEaseOut) {
+            self.blurOverlay.effect = nil
+            self.placeholderSnapshot?.alpha = 0
+        } completion: { _ in
+            self.placeholderSnapshot?.removeFromSuperview()
+            self.placeholderSnapshot = nil
         }
     }
 
