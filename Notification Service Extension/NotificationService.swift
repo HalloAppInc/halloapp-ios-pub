@@ -12,7 +12,6 @@ import Core
 import CoreCommon
 import Combine
 import UserNotifications
-import Reachability
 
 class NotificationService: UNNotificationServiceExtension  {
 
@@ -47,31 +46,6 @@ class NotificationService: UNNotificationServiceExtension  {
         AppContext.shared.observeAndSave(event: .pushReceived(id: requestID, timestamp: timestamp))
     }
 
-    // MARK: Reachability
-
-    var reachability: Reachability?
-
-    func setUpReachability() {
-        DDLogInfo("NotificationService/setUpReachability")
-        reachability = try? Reachability()
-        reachability?.whenReachable = { reachability in
-            DDLogInfo("NotificationService/Reachability/reachable/\(reachability.connection)")
-            AppContext.shared.coreService.reachabilityState = .reachable
-            AppContext.shared.coreService.reachabilityConnectionType = reachability.connection.description
-            AppContext.shared.coreService.startConnectingIfNecessary()
-        }
-        reachability?.whenUnreachable = { reachability in
-            DDLogInfo("NotificationService/Reachability/unreachable/\(reachability.connection)")
-            AppContext.shared.coreService.reachabilityState = .unreachable
-            AppContext.shared.coreService.reachabilityConnectionType = reachability.connection.description
-        }
-        do {
-            try reachability?.startNotifier()
-        } catch {
-            DDLogError("NotificationService/Reachability/Failed to start notifier/\(reachability?.connection.description ?? "nil")")
-        }
-    }
-
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
         DDLogInfo("processDidReceive/begin \(request)")
         self.processDidReceive(request: request, contentHandler: contentHandler)
@@ -81,7 +55,6 @@ class NotificationService: UNNotificationServiceExtension  {
         DDLogInfo("NotificationService/processDidReceive/start")
         DDLogInfo("didReceiveRequest/begin \(request) [\(AppContext.userAgent)]")
         Self.initializeAppContext
-        setUpReachability()
         service = AppExtensionContext.shared.coreService
         service?.startConnectingIfNecessary()
         recordPushEvent(requestID: request.identifier)
