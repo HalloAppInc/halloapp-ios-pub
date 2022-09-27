@@ -622,13 +622,10 @@ extension ChatListViewController: UITableViewDelegate {
             }
         }
         
-        guard let groupUserId = chatThread.groupId  else {
-            return
+        if let groupUserId = chatThread.groupId {
+            let vc = GroupChatViewController(for: groupUserId)
+            self.navigationController?.pushViewController(vc, animated: true)
         }
-        
-        let vc = GroupChatViewController(for: groupUserId)
-        self.navigationController?.pushViewController(vc, animated: true)
-        
 
         tableView.deselectRow(at: indexPath, animated: true)
     }
