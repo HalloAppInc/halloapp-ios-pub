@@ -642,7 +642,7 @@ class ShareComposerViewController: UIViewController {
     // MARK: Actions
 
     @objc func shareAction() {
-        guard media.count > 0 || !textView.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        guard media.count > 0 || !(textView?.text?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true) else { return }
         shareButton.isEnabled = false
 
         if let linkViewImage = linkViewImage {
