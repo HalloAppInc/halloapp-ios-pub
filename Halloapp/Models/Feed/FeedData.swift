@@ -4519,6 +4519,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             request.predicate = NSCompoundPredicate(type: .and, subpredicates: [
                 NSPredicate(format: "timestamp < %@", cutoff as NSDate),
                 NSPredicate(format: "userID != %@", MainAppContext.shared.userData.userId),
+                NSPredicate(format: "statusValue != %d", FeedPost.Status.expired.rawValue),
                 NSPredicate(format: "isMoment == YES"),
             ])
 
