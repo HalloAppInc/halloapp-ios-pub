@@ -222,13 +222,14 @@ class GroupGridViewController: UIViewController {
             let header = collectionView.dequeueReusableSupplementaryView(ofKind: GroupGridHeader.elementKind,
                                                                          withReuseIdentifier: GroupGridHeader.reuseIdentifier,
                                                                          for: indexPath)
-            if let header = header as? GroupGridHeader, let groupID = dataSource.groupID(at: indexPath.section) {
-                header.configure(with: groupID)
+            if let header = header as? GroupGridHeader, let group = dataSource.group(at: indexPath.section) {
+                let groupID = group.id
+                header.configure(with: group)
                 header.openGroupFeed = { [weak self] in
                     self?.navigationController?.pushViewController(GroupFeedViewController(groupId: groupID), animated: true)
                 }
                 header.composeGroupPost = { [weak self] in self?.createPost(in: groupID) }
-                header.menuActionsForGroup = { [weak self] in self?.menuActionsForGroup(groupID: $0) ?? [] }
+                header.menuActions = { [weak self] in self?.menuActionsForGroup(groupID: groupID) ?? [] }
             }
             return header
         case GroupGridSearchBar.elementKind:

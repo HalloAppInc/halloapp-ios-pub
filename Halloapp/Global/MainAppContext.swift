@@ -193,6 +193,7 @@ class MainAppContext: AppContext {
                 self.migrateFeedPostLastUpdatedIfNecessary()
                 self.migrateFeedPostExpiryIfNecessary()
                 self.migrateCommonMediaIDsIfNecessary()
+                self.migrateGroupLastUpdatedIfNecessary()
             }
         } else {
             performAppUpdateMigrationIfNecessary()
@@ -200,6 +201,7 @@ class MainAppContext: AppContext {
             migrateFeedPostLastUpdatedIfNecessary()
             migrateFeedPostExpiryIfNecessary()
             migrateCommonMediaIDsIfNecessary()
+            migrateGroupLastUpdatedIfNecessary()
         }
 
         NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
@@ -266,6 +268,14 @@ class MainAppContext: AppContext {
         let key = "migration.commonmedia.id.complete"
         if !userDefaults.bool(forKey: key) {
             mainDataStore.migrateCommonMediaIDs()
+            userDefaults.set(true, forKey: key)
+        }
+    }
+
+    private func migrateGroupLastUpdatedIfNecessary() {
+        let key = "migration.group.lastupdated.complete"
+        if !userDefaults.bool(forKey: key) {
+            chatData.migrateChatGroupLastUpdated()
             userDefaults.set(true, forKey: key)
         }
     }

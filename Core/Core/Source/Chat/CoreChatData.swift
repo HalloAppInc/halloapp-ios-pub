@@ -551,15 +551,18 @@ public class CoreChatData {
 
         var groupExist = true
 
+        var chatGroup = chatGroup(groupId: groupID, in: managedObjectContext)
         if isInbound {
             // if group doesn't exist yet, create
-            if chatGroup(groupId: groupID, in: managedObjectContext) == nil {
+            if chatGroup == nil {
                 DDLogDebug("CoreChatData/group/updateThreadWithGroupFeed/group not exist yet [\(groupID)]")
                 groupExist = false
-                let chatGroup = Group(context: managedObjectContext)
-                chatGroup.id = groupID
+                chatGroup = Group(context: managedObjectContext)
+                chatGroup?.id = groupID
             }
         }
+
+        chatGroup?.lastUpdate = Date()
 
         var lastFeedMediaType: CommonThread.LastMediaType = .none // going with the first media found
 

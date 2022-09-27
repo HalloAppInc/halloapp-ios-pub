@@ -237,6 +237,7 @@
         <attribute name="id" optional="YES" attributeType="String"/>
         <attribute name="inviteLink" optional="YES" attributeType="String"/>
         <attribute name="lastSync" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="lastUpdate" attributeType="Date" defaultDateTimeInterval="0" usesScalarValueType="YES"/>
         <attribute name="maxSize" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="typeValue" attributeType="Integer 16" defaultValueString="1" usesScalarValueType="YES"/>

@@ -655,6 +655,7 @@ class ChatData: ObservableObject {
         group.inviteLink = legacy.inviteLink
         group.expirationType = .expiresInSeconds
         group.expirationTime = .thirtyDays
+        group.lastUpdate = Date()
 
         // Remove and recreate members
         group.members?.forEach { managedObjectContext.delete($0) }
@@ -824,6 +825,34 @@ class ChatData: ObservableObject {
 
         DDLogInfo("ChatData/migrateLegacyGroupMember/finished/\(legacy.userId)")
 
+    }
+
+    func migrateChatGroupLastUpdated() {
+        DDLogInfo("ChatData/migrateChatGroupLastUpdated/start")
+        do {
+            try mainDataStore.saveSeriallyOnBackgroundContextAndWait { context in
+                for group in chatGroups(predicate: NSPredicate(format: "typeValue = %d", GroupType.groupFeed.rawValue), in: context) {
+                    let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
+                    fetchRequest.predicate = NSPredicate(format: "groupID == %@", group.id)
+                    fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false)]
+                    fetchRequest.returnsObjectsAsFaults = false
+                    fetchRequest.fetchLimit = 1
+
+                    do {
+                        if let timestamp = try context.fetch(fetchRequest).first?.timestamp {
+                            group.lastUpdate = timestamp
+                            DDLogInfo("ChatData/migrateChatGroupLastUpdated/updated \(group.id)")
+                        }
+                    } catch {
+                        DDLogError("ChatData/migrateChatGroupLastUpdated/ failed to fetch latest post for \(group.id): \(error)")
+                    }
+                }
+            }
+        } catch {
+            DDLogError("ChatData/migrateChatGroupLastUpdated error: \(error)")
+        }
+
+        DDLogInfo("ChatData/migrateChatGroupLastUpdated/end")
     }
 
     private func processUnsupportedItems() {
@@ -5239,6 +5268,7 @@ extension ChatData {
         chatGroup.id = xmppGroup.groupId
         chatGroup.name = xmppGroup.name
         chatGroup.type = xmppGroup.groupType
+        chatGroup.lastUpdate = Date()
         if let expirationTime = xmppGroup.expirationTime, let expirationType = xmppGroup.expirationType {
             chatGroup.expirationTime = expirationTime
             chatGroup.expirationType = expirationType

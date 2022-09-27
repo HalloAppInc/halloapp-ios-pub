@@ -36,7 +36,7 @@ class GroupGridDataSource: NSObject {
         dataSource = UICollectionViewDiffableDataSource(collectionView: collectionView, cellProvider: cellProvider)
         super.init()
         postsFetchedResultsController.delegate = self
-        threadsFetchedResultsController.delegate = self
+        groupsFetchedResultsController.delegate = self
     }
 
     private let postsFetchedResultsController: NSFetchedResultsController<FeedPost> = {
@@ -61,12 +61,12 @@ class GroupGridDataSource: NSObject {
                                           cacheName: nil)
     }()
 
-    private let threadsFetchedResultsController: NSFetchedResultsController<CommonThread> = {
-        let fetchRequest = CommonThread.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "groupID != nil && typeValue == %d", GroupType.groupFeed.rawValue)
+    private let groupsFetchedResultsController: NSFetchedResultsController<Group> = {
+        let fetchRequest = Group.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "typeValue == %d", GroupType.groupFeed.rawValue)
         fetchRequest.sortDescriptors = [
-            NSSortDescriptor(key: "lastTimestamp", ascending: false),
-            NSSortDescriptor(key: "title", ascending: true)
+            NSSortDescriptor(key: "lastUpdate", ascending: false),
+            NSSortDescriptor(key: "name", ascending: true)
         ]
         return NSFetchedResultsController(fetchRequest: fetchRequest,
                                           managedObjectContext: MainAppContext.shared.mainDataStore.viewContext,
@@ -76,6 +76,13 @@ class GroupGridDataSource: NSObject {
 
     func groupID(at section: Int) -> GroupID? {
         return dataSource.snapshot().sectionIdentifiers[section]
+    }
+
+    func group(at section: Int) -> Group? {
+        guard let groupID = groupID(at: section) else {
+            return nil
+        }
+        return groupsFetchedResultsController.fetchedObjects?.first { $0.id == groupID }
     }
 
     func feedPostID(at indexPath: IndexPath) -> FeedPostID? {
@@ -99,7 +106,7 @@ class GroupGridDataSource: NSObject {
     func performFetch() {
         do {
             try postsFetchedResultsController.performFetch()
-            try threadsFetchedResultsController.performFetch()
+            try groupsFetchedResultsController.performFetch()
         } catch {
             DDLogError("GroupGridDataSource/Unable to fetch: \(error)")
         }
@@ -117,7 +124,7 @@ class GroupGridDataSource: NSObject {
     private func snapshot() -> NSDiffableDataSourceSnapshot<GroupID, FeedPostID> {
         var snapshot = NSDiffableDataSourceSnapshot<GroupID, FeedPostID>()
 
-        if let sortedGroupIDs = threadsFetchedResultsController.fetchedObjects?.compactMap(\.groupID) {
+        if let sortedGroupIDs = groupsFetchedResultsController.fetchedObjects?.map(\.id) {
             snapshot.appendSections(sortedGroupIDs)
 
             postsFetchedResultsController.sections?.forEach { section in
@@ -149,23 +156,19 @@ class GroupGridDataSource: NSObject {
         var matchingMemberGroupIDs: [GroupID] = []
         var matchingMemberGroupIDToMemberUserIDs: [GroupID: [UserID]] = [:]
 
-        threadsFetchedResultsController.fetchedObjects?.forEach { thread in
-            guard let groupID = thread.groupID else {
-                return
-            }
-
-            if thread.title?.localizedCaseInsensitiveContains(searchText) ?? false {
-                matchingTitleGroupIDs.append(groupID)
+        groupsFetchedResultsController.fetchedObjects?.forEach { group in
+            if group.name.localizedCaseInsensitiveContains(searchText) {
+                matchingTitleGroupIDs.append(group.id)
             } else {
-                let memberUserIDs = MainAppContext.shared.chatData.chatGroupMemberUserIDs(groupID: groupID,
+                let memberUserIDs = MainAppContext.shared.chatData.chatGroupMemberUserIDs(groupID: group.id,
                                                                                           in: MainAppContext.shared.chatData.viewContext)
                 let matchingMemberUserIDs = MainAppContext.shared.contactStore.fullNames(forUserIds: Set(memberUserIDs))
                     .filter { $0.value.localizedCaseInsensitiveContains(searchText) }
                     .map { $0.key }
 
                 if !matchingMemberUserIDs.isEmpty {
-                    matchingMemberGroupIDs.append(groupID)
-                    matchingMemberGroupIDToMemberUserIDs[groupID] = matchingMemberUserIDs
+                    matchingMemberGroupIDs.append(group.id)
+                    matchingMemberGroupIDToMemberUserIDs[group.id] = matchingMemberUserIDs
                 }
             }
         }

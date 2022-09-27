@@ -43,6 +43,7 @@ public extension Group {
     @NSManaged var maxSize: Int16
     @NSManaged var lastSync: Date?
     @NSManaged var inviteLink: String?
+    @NSManaged var lastUpdate: Date // Currently tracks last post or creation date for groupFeed groups
 
     @NSManaged private var expirationTypeValue: Int16
 

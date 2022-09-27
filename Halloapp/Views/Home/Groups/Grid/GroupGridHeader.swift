@@ -18,7 +18,7 @@ class GroupGridHeader: UICollectionReusableView {
 
     var openGroupFeed: (() -> Void)?
     var composeGroupPost: (() -> Void)?
-    var menuActionsForGroup: ((GroupID) -> [UIMenuElement])?
+    var menuActions: (() -> [UIMenuElement])?
 
     private struct Constants {
         static let postButtonSize: CGFloat = 22
@@ -45,7 +45,6 @@ class GroupGridHeader: UICollectionReusableView {
         return groupNameLabel
     }()
 
-    private var group: Group?
     private var groupNameChangedCancellable: AnyCancellable?
 
     override init(frame: CGRect) {
@@ -94,11 +93,9 @@ class GroupGridHeader: UICollectionReusableView {
         fatalError()
     }
 
-    func configure(with groupID: GroupID) {
-        groupAvatarView.configure(groupId: groupID, squareSize: Constants.avatarSize, using: MainAppContext.shared.avatarStore)
-
-        group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext)
-        groupNameChangedCancellable = group?.publisher(for: \.name).sink { [weak self] in
+    func configure(with group: Group) {
+        groupAvatarView.configure(groupId: group.id, squareSize: Constants.avatarSize, using: MainAppContext.shared.avatarStore)
+        groupNameChangedCancellable = group.publisher(for: \.name).sink { [weak self] in
             self?.groupNameLabel.text = $0
         }
     }
@@ -123,7 +120,7 @@ extension GroupGridHeader: UIContextMenuInteractionDelegate {
     func contextMenuInteraction(_ interaction: UIContextMenuInteraction,
                                 configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
         let groupName = groupNameLabel.text ?? ""
-        let items = group.flatMap { menuActionsForGroup?($0.id) ?? [] } ?? []
+        let items = menuActions?() ?? []
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
             return UIMenu(title: groupName, image: nil, identifier: nil, options: [], children: items)
         }
