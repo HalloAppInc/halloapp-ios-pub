@@ -50,13 +50,15 @@ public final class NoiseStream: NSObject {
     }
 
     public func connect(host: String, port: UInt16) {
-        endpoint = NWEndpoint.hostPort(
-            host: NWEndpoint.Host(host),
-            port: NWEndpoint.Port(integerLiteral: port))
-        connectToEndpoint()
+        socketQueue.sync {
+            endpoint = NWEndpoint.hostPort(
+                host: NWEndpoint.Host(host),
+                port: NWEndpoint.Port(integerLiteral: port))
+            connectToEndpoint()
+        }
     }
 
-    public func connectToEndpoint() {
+    private func connectToEndpoint() {
         guard let endpoint = endpoint else {
             DDLogError("noise/connectToEndpoint/error [no-endpoint-defined]")
             return
@@ -131,6 +133,12 @@ public final class NoiseStream: NSObject {
     }
 
     public func disconnect() {
+        socketQueue.sync {
+            disconnectFromSocketQueue()
+        }
+    }
+
+    private func disconnectFromSocketQueue() {
         DDLogInfo("noise/disconnect")
         state = .disconnecting
         connection?.cancelAndRemoveCallbacks()
@@ -138,11 +146,11 @@ public final class NoiseStream: NSObject {
     }
 
     public func send(_ data: Data) {
-        guard case .connected(let send, _) = state else {
-            DDLogError("noise/send/error not connected")
-            return
-        }
         socketQueue.async {
+            guard case .connected(let send, _) = self.state else {
+                DDLogError("noise/send/error not connected")
+                return
+            }
             do {
                 let outgoingData = try send.encryptWithAd(ad: Data(), plaintext: data)
                 self.writeToSocket(outgoingData)
@@ -178,7 +186,7 @@ public final class NoiseStream: NSObject {
 
     private func reconnect() {
         shouldReconnectImmediately = true
-        disconnect()
+        disconnectFromSocketQueue()
     }
 
     private func sendNoiseMessage(_ content: Data, type: Server_NoiseMessage.MessageType, timeout: TimeInterval? = 8, header: Data? = nil) {
@@ -528,11 +536,11 @@ public final class NoiseStream: NSObject {
                         state = .connected(send, recv)
                     } else {
                         DDLogInfo("noise/receive/authorizing/connection-not-successful")
-                        disconnect()
+                        disconnectFromSocketQueue()
                     }
                 } else {
                     DDLogError("noise/receive/error [no-delegate]")
-                    disconnect()
+                    disconnectFromSocketQueue()
                 }
             case .connected(_, let recv):
                 guard let decryptedData = try? recv.decryptWithAd(ad: Data(), ciphertext: packetData) else {
@@ -553,7 +561,11 @@ public final class NoiseStream: NSObject {
     private var socketBuffer: Data?
 
     private var endpoint: NWEndpoint?
-    private var connection: NWConnection?
+    private var connection: NWConnection? {
+        didSet  {
+            oldValue?.cancelAndRemoveCallbacks()
+        }
+    }
     private var shouldReconnectImmediately = false
     private var connectionID = ""
 
