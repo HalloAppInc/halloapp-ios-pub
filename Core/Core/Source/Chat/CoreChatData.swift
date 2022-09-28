@@ -1124,6 +1124,7 @@ public class CoreChatData {
                 chatThread.lastMsgMediaType = lastMsgMediaType
                 chatThread.lastMsgStatus = .none
                 chatThread.lastMsgTimestamp = chatMessage.timestamp
+                chatThread.type = .oneToOne
                 chatThread.unreadCount = 1
             }
         }, completion: completion)

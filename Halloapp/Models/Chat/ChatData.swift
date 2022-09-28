@@ -941,6 +941,7 @@ class ChatData: ObservableObject {
                     chatThread.lastMsgText = nil
                     chatThread.unreadCount = 0
                     chatThread.isNew = false
+                    chatThread.type = .oneToOne
                 }
                 self.save(managedObjectContext)
             }
@@ -967,6 +968,7 @@ class ChatData: ObservableObject {
                 chatThread.lastMsgText = nil
                 chatThread.lastMsgTimestamp = timestampForNewThreads
                 chatThread.unreadCount = 0
+                chatThread.type = .oneToOne
             }
             self.save(managedObjectContext)
         }
@@ -996,6 +998,7 @@ class ChatData: ObservableObject {
                 chatThread.lastMsgTimestamp = Date()
                 chatThread.unreadCount = 0
                 chatThread.isNew = true
+                chatThread.type = .oneToOne
             }
             self.save(managedObjectContext)
         }
@@ -3214,6 +3217,7 @@ extension ChatData {
             chatThread.lastMsgStatus = status
             chatThread.lastMsgText = nil
             chatThread.lastMsgMediaType = .none
+            chatThread.type = .oneToOne
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
             }
@@ -3250,6 +3254,7 @@ extension ChatData {
             chatThread.lastMsgMediaType = .none
             chatThread.lastMsgStatus = lastMsgStatus
             chatThread.lastMsgTimestamp = commonReaction.timestamp
+            chatThread.type = chatType
             if updateUnreadCount {
                 chatThread.unreadCount = isCurrentlyChattingWithUser ? 0 : chatThread.unreadCount + 1
             }
@@ -3888,6 +3893,7 @@ extension ChatData {
             chatThread.lastMsgMediaType = lastMsgMediaType
             chatThread.lastMsgStatus = .none
             chatThread.lastMsgTimestamp = chatMessage.timestamp
+            chatThread.type = .oneToOne
             chatThread.unreadCount = isCurrentlyChattingWithUser ? 0 : chatThread.unreadCount + 1
         }
 
