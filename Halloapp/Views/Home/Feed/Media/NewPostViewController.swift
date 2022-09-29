@@ -337,9 +337,9 @@ extension NewPostViewController: CameraViewControllerDelegate {
             return
         }
 
-        let media = results.map {
+        let media = results.map { result -> PendingMedia in
             let media = PendingMedia(type: .image)
-            media.image = $0.image
+            media.image = result.image
             return media
         }
 
