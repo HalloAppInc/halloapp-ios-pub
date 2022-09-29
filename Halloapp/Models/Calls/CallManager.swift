@@ -322,7 +322,12 @@ final class CallManager: NSObject, CXProviderDelegate {
     func setSpeakerCall(speaker: Bool, completion: @escaping (Result<Void, CallError>) -> Void) {
         if let callID = activeCallID {
             DDLogInfo("CallManager/setSpeakerCall/callID: \(callID)/speaker: \(speaker)")
-            speaker ? activeCall?.speakerOn() : activeCall?.speakerOff()
+            if speaker {
+                activeCall?.setPreferredInput(input: nil)
+                activeCall?.speakerOn()
+            } else {
+                activeCall?.speakerOff()
+            }
             completion(.success(()))
         } else {
             DDLogError("CallManager/setSpeakerCall/callID is nil")
