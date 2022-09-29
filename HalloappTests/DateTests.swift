@@ -238,14 +238,14 @@ class DateTests: XCTestCase {
         
         // Test day month timestamp
         let dateMonthLowerBound = Date(timeInterval: -Date.weeks(1), since: referenceDate)
-        XCTAssertEqual(dateMonthLowerBound.chatTimestamp(referenceDate), "Jun 16, 4:35 PM")
+        XCTAssertEqual(dateMonthLowerBound.chatTimestamp(referenceDate), "Jun 16 at 4:35 PM")
         
         let dateMonthUpperBound = Date(timeInterval: -Date.weeks(26) + 1, since: referenceDate)
-        XCTAssertEqual(dateMonthUpperBound.chatTimestamp(referenceDate), "Dec 23, 4:35 PM")
+        XCTAssertEqual(dateMonthUpperBound.chatTimestamp(referenceDate), "Dec 23 at 4:35 PM")
         
         // Test date timestamp
         let dateStampLowerBound = Date(timeInterval: -Date.weeks(26), since: referenceDate)
-        XCTAssertEqual(dateStampLowerBound.chatTimestamp(referenceDate), "Dec 23, 2020, 4:35 PM")
+        XCTAssertEqual(dateStampLowerBound.chatTimestamp(referenceDate), "Dec 23, 2020 at 4:35 PM")
     }
     
     func testLastSeenTimestamp() {
