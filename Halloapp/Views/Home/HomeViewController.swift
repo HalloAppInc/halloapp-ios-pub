@@ -78,23 +78,14 @@ class HomeViewController: UITabBarController {
         let activityNavController = activityNavigationController()
         activityController = activityNavController
 
-        if ServerProperties.isInternalUser {
-            tabBarViewControllers = [
-                feedNavController,
-                groupsNavController,
-                cameraNavController,
-                chatsNavController,
-                activityNavController,
-            ]
-        } else {
-            tabBarViewControllers = [
-                feedNavController,
-                groupsNavController,
-                chatsNavController,
-                activityNavController,
-            ]
-        }
-        
+        tabBarViewControllers = [
+            feedNavController,
+            groupsNavController,
+            cameraNavController,
+            chatsNavController,
+            activityNavController,
+        ]
+
         setViewControllers(tabBarViewControllers, animated: false)
 
         /*
@@ -322,7 +313,7 @@ class HomeViewController: UITabBarController {
     }
 
     private func updateChatNavigationControllerBadge(_ count: Int) {
-        if let controller = self.viewControllers?[2] {
+        if let controller = chatsController {
             controller.tabBarItem.badgeValue = count == 0 ? nil : String(count)
         }
     }
@@ -495,8 +486,9 @@ class HomeViewController: UITabBarController {
     enum TabBarSelection: Int {
         case home = 0
         case group = 1
-        case chat = 2
-        case settings = 3
+        case camera = 2
+        case chat = 3
+        case activity = 4
     }
     
     /// Switches the view to be for whichever tab is selected
