@@ -116,13 +116,6 @@ class MomentViewController: UIViewController {
         return gesture
     }()
 
-    private lazy var nextMomentTapGesture: UITapGestureRecognizer = {
-        let gesture = UITapGestureRecognizer(target: self, action: #selector(nextMomentTapped))
-        gesture.delegate = self
-        gesture.cancelsTouchesInView = false
-        return gesture
-    }()
-
     private var transitionSnapshot: UIView?
     private lazy var transitionAnimator: TransitionAnimator = {
         let animator = TransitionAnimator(referenceView: viewForAnimation())
@@ -197,7 +190,6 @@ class MomentViewController: UIViewController {
 
         view.addGestureRecognizer(dismissTapGesture)
         momentView.addGestureRecognizer(dismissPanGesture)
-        momentView.addGestureRecognizer(nextMomentTapGesture)
         view.addGestureRecognizer(dismissKeyboardGesture)
 
         NotificationCenter.default.publisher(for: UIApplication.userDidTakeScreenshotNotification)
@@ -325,13 +317,6 @@ class MomentViewController: UIViewController {
     }
 
     @objc
-    private func nextMomentTapped(_ sender: UITapGestureRecognizer) {
-        if let moment = otherMoments.popLast() {
-            setupAndAnimate(toNext: moment)
-        }
-    }
-
-    @objc
     private func keyboardDismissSwipe(_ gesture: UISwipeGestureRecognizer) {
         if contentInputView.textView.isFirstResponder {
             contentInputView.textView.resignFirstResponder()
@@ -395,9 +380,6 @@ extension MomentViewController: UIGestureRecognizerDelegate {
 
         case dismissTapGesture:
             return !momentView.bounds.contains(touch.location(in: momentView))
-
-        case nextMomentTapGesture:
-            return momentView.bounds.contains(touch.location(in: momentView))
 
         default:
             return true
@@ -477,7 +459,7 @@ extension MomentViewController {
 
         installPushBehavior(gesture, closure)
         if let moment = otherMoments.popLast() {
-            setupAndAnimate(toNext: moment, interactive: true)
+            setupAndAnimate(toNext: moment)
         }
     }
 
@@ -555,9 +537,9 @@ extension MomentViewController {
         transitionAnimator.addBehavior(gravityBehavior)
     }
 
-    private func animate(toNext moment: FeedPost, interactive: Bool = false, completion: @escaping () -> ()) {
+    private func animate(toNext moment: FeedPost, completion: @escaping () -> ()) {
         guard let snapshot = transitionSnapshot else {
-            DDLogError("MomentViewController/animateToNext/no snapshot present (interactive: \(interactive)")
+            DDLogError("MomentViewController/animateToNext/no snapshot present")
             return
         }
 
@@ -571,45 +553,31 @@ extension MomentViewController {
         let secondDuration = 0.175
         let secondDelay = (firstDuration + firstDelay) * 0.5
 
-        if interactive {
-            momentView.alpha = 0
-            momentView.isHidden = false
-            momentView.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+        momentView.alpha = 0
+        momentView.isHidden = false
+        momentView.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
 
-            UIView.animate(withDuration: firstDuration, delay: firstDelay, options: [.curveEaseOut]) {
-                self.momentView.alpha = 1
-                self.momentView.transform = .identity
-                self.unlockingMomentView.alpha = 1
-                self.momentView.setState(nextMomentState)
-                snapshot.alpha = 0
-            }
+        UIView.animate(withDuration: firstDuration, delay: firstDelay, options: [.curveEaseOut]) {
+            self.momentView.alpha = 1
+            self.momentView.transform = .identity
+            self.unlockingMomentView.alpha = 1
+            self.momentView.setState(nextMomentState)
+            snapshot.alpha = 0
         }
 
-        UIView.transition(with: self.headerView, duration: secondDuration, delay: interactive ? secondDelay : 0, options: [.transitionCrossDissolve]) {
+        UIView.transition(with: self.headerView, duration: secondDuration, delay: secondDelay, options: [.transitionCrossDissolve]) {
             self.headerView.configure(with: moment, contentWidth: self.view.bounds.width, showGroupName: false)
             self.headerView.alpha = 1
             self.contentInputView.placeholderText = String(format: Localizations.privateReplyPlaceholder, name)
-
-            if !interactive {
-                self.momentView.setState(nextMomentState)
-                self.momentView.isHidden = false
-                snapshot.alpha = 0
-            }
-
         } completion: { _ in
             self.cleanUpAfterAnimation()
             completion()
         }
     }
 
-    private func setupAndAnimate(toNext moment: FeedPost, interactive: Bool = false) {
+    private func setupAndAnimate(toNext moment: FeedPost) {
         if ftuxLabel != nil {
             removeFTUX()
-        }
-
-        if !interactive {
-            isAnimatingToNextMoment = true
-            makeTransitionSnapshot()
         }
 
         post = moment
@@ -617,8 +585,8 @@ extension MomentViewController {
 
         contentInputView.reset()
 
-        animate(toNext: moment, interactive: interactive) { [weak self, post] in
-            DDLogInfo("MomentViewController/animateToNext completion/transitioned to \(post.id); interactive: \(interactive)")
+        animate(toNext: moment) { [weak self, post] in
+            DDLogInfo("MomentViewController/animateToNext completion/transitioned to \(post.id)")
 
             self?.isAnimatingToNextMoment = false
             // this will expire the new moment when ready
