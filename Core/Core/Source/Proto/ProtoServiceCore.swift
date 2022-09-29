@@ -2058,6 +2058,10 @@ extension ProtoServiceCore: CoreService {
         case .groupHistory:
             // Update 1-1 stats.
             reportDecryptionResult(error: error, messageID: contentID, timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount, contentType: .groupHistory)
+        case .chatReaction:
+            // Update 1-1 stats.
+            reportDecryptionResult(error: error, messageID: contentID, timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount, contentType: .chatReaction)
+
         case .groupFeedPost:
             // Update group stats.
             reportGroupDecryptionResult(error: error, contentID: contentID, contentType: .post,
@@ -2080,7 +2084,7 @@ extension ProtoServiceCore: CoreService {
         case .homeFeedComment:
             reportHomeDecryptionResult(error: error, contentID: contentID, contentType: .comment,
                                        type: .all, timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount)
-        case .chatReaction, .groupChat, .groupPostReaction, .groupCommentReaction, .homePostReaction, .homeCommentReaction:
+        case .groupChat, .groupPostReaction, .groupCommentReaction, .homePostReaction, .homeCommentReaction:
             // TODO: Handle these cases
             break
         case .UNRECOGNIZED, .unknown:

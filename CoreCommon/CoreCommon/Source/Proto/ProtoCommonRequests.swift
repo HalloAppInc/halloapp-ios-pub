@@ -149,6 +149,8 @@ private extension DiscreteEvent {
                 report.contentType = .chat
             case .groupHistory:
                 report.contentType = .groupHistory
+            case .chatReaction:
+                report.contentType = .chatReaction
             }
             return .decryptionReport(report)
 

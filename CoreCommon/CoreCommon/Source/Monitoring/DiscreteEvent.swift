@@ -18,6 +18,7 @@ public enum FabActionType: String {
 public enum DecryptionReportContentType: String {
     case chat
     case groupHistory
+    case chatReaction
 }
 
 public enum GroupDecryptionReportContentType: String {

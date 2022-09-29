@@ -532,18 +532,27 @@ final class ProtoService: ProtoServiceCore {
         return false
     }
 
-    private func rerequestMessageIfNecessary(_ message: Server_Msg, failedEphemeralKey: Data?, ack: (() -> Void)?) {
+    private func rerequestMessageIfNecessary(_ message: Server_Msg, contentType: Server_ChatStanza.ChatType, failedEphemeralKey: Data?, ack: (() -> Void)?) {
         // Dont rerequest messages that were already decrypted and saved.
         if !isMessageDecryptedAndSaved(msgId: message.id) {
-            updateStatusAndRerequestMessage(message, failedEphemeralKey: failedEphemeralKey, ack: ack)
+            updateStatusAndRerequestMessage(message, contentType: contentType, failedEphemeralKey: failedEphemeralKey, ack: ack)
         }
     }
 
-    private func updateStatusAndRerequestMessage(_ message: Server_Msg, failedEphemeralKey: Data?, ack: (() -> Void)?) {
+    private func updateStatusAndRerequestMessage(_ message: Server_Msg, contentType: Server_ChatStanza.ChatType, failedEphemeralKey: Data?, ack: (() -> Void)?) {
         self.updateMessageStatus(id: message.id, status: .rerequested)
         let fromUserID = UserID(message.fromUid)
         DDLogInfo("ProtoService/rerequestMessage/\(message.id) rerequesting")
-        rerequestMessage(message.id, senderID: fromUserID, failedEphemeralKey: failedEphemeralKey, contentType: .chat) { result in
+        let rerequestContentType: Server_Rerequest.ContentType
+        switch contentType {
+        case .chat:
+            rerequestContentType = .chat
+        case .chatReaction:
+            rerequestContentType = .chatReaction
+        default:
+            rerequestContentType = .chat
+        }
+        rerequestMessage(message.id, senderID: fromUserID, failedEphemeralKey: failedEphemeralKey, contentType: rerequestContentType) { result in
             switch result {
             case .success(_):
                 DDLogInfo("ProtoService/rerequestMessage/\(message.id)/success")
@@ -807,7 +816,7 @@ final class ProtoService: ProtoServiceCore {
                 if let failure = decryptionFailure {
                     DDLogError("proto/didReceive/\(msg.id)/decrypt/error \(failure.error)")
                     AppContext.shared.errorLogger?.logError(failure.error)
-                    self.rerequestMessageIfNecessary(msg, failedEphemeralKey: failure.ephemeralKey, ack: ack)
+                    self.rerequestMessageIfNecessary(msg, contentType: serverChat.chatType, failedEphemeralKey: failure.ephemeralKey, ack: ack)
                 } else {
                     DDLogInfo("proto/didReceive/\(msg.id)/decrypt/success")
                     ack()
@@ -818,13 +827,17 @@ final class ProtoService: ProtoServiceCore {
                 if !serverChat.senderLogInfo.isEmpty {
                     DDLogInfo("proto/didReceive/\(msg.id)/senderLog [\(serverChat.senderLogInfo)]")
                 }
+                var decryptionReportContentType: DecryptionReportContentType = .chat
+                if serverChat.chatType == .chatReaction {
+                    decryptionReportContentType = .chatReaction
+                }
                 self.reportDecryptionResult(
                     error: decryptionFailure?.error,
                     messageID: msg.id,
                     timestamp: receiptTimestamp,
                     sender: UserAgent(string: serverChat.senderClientVersion),
                     rerequestCount: Int(msg.rerequestCount),
-                    contentType: .chat)
+                    contentType: decryptionReportContentType)
             }
         case .rerequest(let rerequest):
             let userID = UserID(msg.fromUid)
@@ -846,6 +859,9 @@ final class ProtoService: ProtoServiceCore {
             DDLogInfo("proto/didReceive/\(msg.id)/rerequest/contentType: \(rerequest.contentType)")
             if let chatDelegate = chatDelegate, rerequest.contentType == .chat {
                 chatDelegate.halloService(self, didRerequestMessage: rerequest.id, from: userID, ack: ack)
+                hasAckBeenDelegated = true
+            } else if let chatDelegate = chatDelegate, rerequest.contentType == .chatReaction {
+                chatDelegate.halloService(self, didRerequestReaction: rerequest.id, from: userID, ack: ack)
                 hasAckBeenDelegated = true
             } else if let feedDelegate = feedDelegate, rerequest.contentType == .groupHistory {
                 feedDelegate.halloService(self, didRerequestGroupFeedHistory: rerequest.id, from: userID, ack: ack)

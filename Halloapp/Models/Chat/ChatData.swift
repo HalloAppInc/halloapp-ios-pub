@@ -5511,6 +5511,11 @@ extension ChatData: HalloChatDelegate {
         coreChatData.handleRerequest(for: messageID, from: userID, ack: ack)
     }
 
+    func halloService(_ halloService: HalloService, didRerequestReaction reactionID: String, from userID: UserID, ack: (() -> Void)?) {
+        DDLogDebug("ChatData/didRerequestReaction [\(reactionID)]")
+        coreChatData.handleReactionRerequest(for: reactionID, from: userID, ack: ack)
+    }
+
     func halloService(_ halloService: HalloService, didSendMessageReceipt receipt: HalloReceipt) {
         guard receipt.thread == .none else { return }
 

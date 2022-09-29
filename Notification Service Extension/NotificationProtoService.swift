@@ -217,6 +217,9 @@ final class NotificationProtoService: ProtoServiceCore {
             if rerequest.contentType == .chat {
                 hasAckBeenDelegated = true
                 AppContext.shared.coreChatData.handleRerequest(for: contentID, from: fromUserID, ack: ack)
+            } else if rerequest.contentType == .chatReaction{
+                hasAckBeenDelegated = true
+                AppContext.shared.coreChatData.handleReactionRerequest(for: contentID, from: fromUserID, ack: ack)
             } else if rerequest.contentType == .groupHistory {
                 hasAckBeenDelegated = true
                 AppContext.shared.coreFeedData.handleGroupFeedHistoryRerequest(for: contentID, from: fromUserID, ack: ack)

@@ -909,6 +909,58 @@ public class CoreChatData {
         }
     }
 
+    public func handleReactionRerequest(for reactionID: String, from userID: UserID, ack: (() -> Void)?) {
+        handleReactionRerequest(for: reactionID, from: userID) { result in
+            switch result {
+            case .failure(let error):
+                DDLogError("CoreChatData/handleReactionRerequest/\(reactionID)/error: \(error)/from: \(userID)")
+                if error.canAck {
+                    ack?()
+                }
+            case .success:
+                DDLogInfo("CoreChatData/handleReactionRerequest/\(reactionID)/success/from: \(userID)")
+                ack?()
+            }
+        }
+    }
+
+    public func handleReactionRerequest(for reactionID: String, from userID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
+        mainDataStore.saveSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else {
+                completion(.failure(.aborted))
+                return
+            }
+            guard let chatReaction = self.commonReaction(with: reactionID, in: managedObjectContext) else {
+                DDLogError("CoreChatData/handleReactionRerequest/\(reactionID)/error could not find message")
+                self.service.sendContentMissing(id: reactionID, type: .chatReaction, to: userID) { result in
+                    completion(result)
+                }
+                return
+            }
+            guard userID == chatReaction.toUserID else {
+                DDLogError("CoreChatData/handleReactionRerequest/\(reactionID)/error user mismatch [original: \(String(describing: chatReaction.toUserID))] [rerequest: \(userID)]")
+                completion(.failure(.aborted))
+                return
+            }
+            guard chatReaction.resendAttempts < 5 else {
+                DDLogInfo("CoreChatData/handleReactionRerequest/\(reactionID)/skipping (\(chatReaction.resendAttempts) resend attempts)")
+                completion(.failure(.aborted))
+                return
+            }
+            chatReaction.resendAttempts += 1
+
+            switch chatReaction.outgoingStatus {
+            case .retracted, .retracting:
+                let retractID = chatReaction.retractID.isEmpty ? PacketID.generate() : chatReaction.retractID
+                chatReaction.retractID = retractID
+                self.service.retractChatMessage(messageID: retractID, toUserID: userID, messageToRetractID: reactionID, completion: completion)
+            default:
+                let xmppReaction = XMPPReaction(reaction: chatReaction)
+                self.service.sendChatMessage(xmppReaction, completion: completion)
+            }
+        }
+    }
+
     // MARK: Handle whisper messages
     // This part is not great and should be in CoreModule - but since the groups list is stored in ChatData.
     // This code is ending up here for now - should fix this soon.
