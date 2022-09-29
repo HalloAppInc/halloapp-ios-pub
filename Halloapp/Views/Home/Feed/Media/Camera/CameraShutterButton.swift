@@ -8,10 +8,23 @@
 
 import UIKit
 
-class CameraShutterButton: UIControl {
-    private var lineWidth: CGFloat {
-        5
+extension CameraShutterButton {
+
+    private static let primaryWhite = UIColor { traits in
+        switch traits.userInterfaceStyle {
+        case .dark:
+            return .white.withAlphaComponent(0.9)
+        default:
+            return .feedPostBackground
+        }
     }
+
+    private static let primaryGray = UIColor(red: 0.19, green: 0.19, blue: 0.19, alpha: 0.7)
+    private static let outerRingWidth: CGFloat = 6
+}
+
+
+class CameraShutterButton: UIControl {
 
     override var intrinsicContentSize: CGSize {
         CGSize(width: 75, height: 75)
@@ -25,15 +38,7 @@ class CameraShutterButton: UIControl {
 
     private lazy var circleLayer: CAShapeLayer = {
         let layer = CAShapeLayer()
-        layer.fillColor = UIColor.white.withAlphaComponent(0.9).cgColor
-        return layer
-    }()
-
-    private lazy var outerRingLayer: CAShapeLayer = {
-        let layer = CAShapeLayer()
-        layer.lineWidth = lineWidth
-        layer.fillColor = UIColor.clear.cgColor
-        layer.strokeColor = UIColor.white.withAlphaComponent(0.5).cgColor
+        layer.fillColor = Self.primaryWhite.cgColor
         return layer
     }()
 
@@ -78,22 +83,64 @@ class CameraShutterButton: UIControl {
         super.init(frame: frame)
 
         layer.addSublayer(circleLayer)
-        layer.addSublayer(outerRingLayer)
 
         addGestureRecognizer(tapGesture)
         addGestureRecognizer(longPressGesture)
+
+        updateStyle()
     }
 
     required init?(coder: NSCoder) {
         fatalError("CameraShutterButton coder init not implemented...")
     }
 
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+
+        if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+            updateStyle()
+        }
+    }
+
     override func layoutSubviews() {
-        outerRingLayer.frame = bounds
+        super.layoutSubviews()
+
+        layer.cornerRadius = bounds.height / 2
         circleLayer.frame = bounds
 
-        outerRingLayer.path = UIBezierPath(ovalIn: bounds.insetBy(dx: lineWidth / 2, dy: lineWidth / 2)).cgPath
-        circleLayer.path = UIBezierPath(ovalIn: bounds.insetBy(dx: lineWidth * 1.5, dy: lineWidth * 1.5)).cgPath
+        let inset: CGFloat
+        switch traitCollection.userInterfaceStyle {
+        case .dark:
+            inset = Self.outerRingWidth * 1.75
+        default:
+            inset = Self.outerRingWidth
+        }
+
+        circleLayer.path = UIBezierPath(ovalIn: bounds.insetBy(dx: inset, dy: inset)).cgPath
+    }
+
+    private func updateStyle() {
+        let borderWidth: CGFloat
+        let borderColor: UIColor?
+        let backgroundColor: UIColor?
+
+        switch traitCollection.userInterfaceStyle {
+        case .dark:
+            borderWidth = Self.outerRingWidth
+            borderColor = Self.primaryWhite
+            backgroundColor = nil
+        default:
+            borderWidth = .zero
+            borderColor = nil
+            backgroundColor = Self.primaryGray
+        }
+
+        layer.borderWidth = borderWidth
+        layer.borderColor = borderColor?.cgColor
+        self.backgroundColor = backgroundColor
+        circleLayer.fillColor = Self.primaryWhite.cgColor
+
+        setNeedsLayout()
     }
 
     func updateProgress() {
@@ -112,7 +159,7 @@ class CameraShutterButton: UIControl {
         circleLayer.transform = CATransform3DMakeScale(scale, scale, scale)
 
         if !isHighlighted {
-            animateButtonColor(to: .white.withAlphaComponent(0.9))
+            animateButtonColor(to: Self.primaryWhite)
         } else {
             feedbackGenerator.impactOccurred(intensity: 0.75)
         }
@@ -149,9 +196,9 @@ class CameraShutterButton: UIControl {
     }
 
     private func refreshEnabledState() {
-        let alpha: CGFloat = isEnabled ? 0.9 :0.5
-
-        circleLayer.fillColor = UIColor.white.withAlphaComponent(alpha).cgColor
+        UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut) { [isEnabled] in
+            self.alpha = isEnabled ? 1 : 0.5
+        }
 
         tapGesture.isEnabled = isEnabled
         longPressGesture.isEnabled = isEnabled && allowsLongPress

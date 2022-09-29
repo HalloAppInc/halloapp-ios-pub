@@ -61,7 +61,7 @@ final class ViewfinderView: UIView {
     private lazy var blurOverlay: UIVisualEffectView = {
         let view = UIVisualEffectView(effect: nil)
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.effect = UIBlurEffect(style: .systemThinMaterial)
+        view.effect = UIBlurEffect(style: .regular)
         return view
     }()
 
@@ -116,26 +116,26 @@ final class ViewfinderView: UIView {
     }
 
     private func animateRemovedConnection() {
-        guard let snapshot = snapshotView(afterScreenUpdates: false) else {
-            return
+        if let snapshot = snapshotView(afterScreenUpdates: false) {
+            snapshot.frame = bounds
+            insertSubview(snapshot, belowSubview: blurOverlay)
+
+            // remove the old snapshot only if we get a new one
+            placeholderSnapshot?.removeFromSuperview()
+            placeholderSnapshot = snapshot
         }
 
-        snapshot.frame = bounds
-        insertSubview(snapshot, belowSubview: blurOverlay)
-        placeholderSnapshot = snapshot
-
-        UIView.animate(withDuration: 0.35, delay: 0, options: .curveEaseInOut) {
-            self.blurOverlay.effect = UIBlurEffect(style: .systemThinMaterial)
+        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut) {
+            self.blurOverlay.effect = UIBlurEffect(style: .regular)
         }
     }
 
     private func animateAddedConnection() {
-        UIView.animate(withDuration: 0.35, delay: 0, options: .curveEaseOut) {
+        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut) {
             self.blurOverlay.effect = nil
             self.placeholderSnapshot?.alpha = 0
         } completion: { _ in
-            self.placeholderSnapshot?.removeFromSuperview()
-            self.placeholderSnapshot = nil
+
         }
     }
 

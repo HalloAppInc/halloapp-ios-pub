@@ -145,14 +145,6 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black
-        navigationController?.overrideUserInterfaceStyle = .dark
-
-        let appearance = UINavigationBarAppearance()
-        appearance.backgroundColor = .black
-        appearance.shadowColor = nil
-        appearance.titleTextAttributes = [.font: UIFont.gothamFont(ofFixedSize: 16, weight: .medium)]
-        navigationController?.navigationBar.standardAppearance = appearance
-        navigationController?.navigationBar.scrollEdgeAppearance = appearance
 
         view.addSubview(audienceIndicator)
         view.addSubview(background)

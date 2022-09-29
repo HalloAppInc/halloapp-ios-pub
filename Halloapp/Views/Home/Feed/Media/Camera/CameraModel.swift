@@ -122,8 +122,8 @@ class CameraModel: NSObject {
     @Published private(set) var isTakingPhoto = false
     @Published private(set) var isRecordingVideo = false
 
-    @Published private(set) var videoDuration: Int?
-    private var videoDurationTimer: AnyCancellable?
+    @Published private(set) var videoDuration: TimeInterval?
+    private var videoRecordingStartTime: TimeInterval?
 
     private var cancellables: Set<AnyCancellable> = []
     private var orientationTask: Task<Void, Never>?
@@ -142,28 +142,6 @@ class CameraModel: NSObject {
             .receive(on: sessionQueue)
             .sink { [weak self] orientation in
                 self?.updatePhoto(orientation: orientation)
-            }
-            .store(in: &cancellables)
-
-        NotificationCenter.default.publisher(for: .AVCaptureSessionRuntimeError)
-            .receive(on: sessionQueue)
-            .sink { notification in
-                let error = notification.userInfo?[AVCaptureSessionErrorKey] as? Error
-                DDLogError("CameraModel/session-runtime-error [\(String(describing: error))]")
-            }
-            .store(in: &cancellables)
-
-        NotificationCenter.default.publisher(for: .AVCaptureSessionDidStartRunning)
-            .receive(on: sessionQueue)
-            .sink { _ in
-                DDLogInfo("CameraModel/session-did-start")
-            }
-            .store(in: &cancellables)
-
-        NotificationCenter.default.publisher(for: .AVCaptureSessionDidStopRunning)
-            .receive(on: sessionQueue)
-            .sink { _ in
-                DDLogInfo("CameraModel/session-did-stop")
             }
             .store(in: &cancellables)
 
@@ -218,12 +196,16 @@ class CameraModel: NSObject {
             return
         }
 
-        if let connection = primaryPhotoOutput?.connection(with: .video) {
+        if let connection = primaryPhotoOutput?.connection(with: .video), connection.isVideoMirroringSupported {
             connection.isVideoMirrored = camera == .front
         }
 
-        if let connection = videoOutput?.connection(with: .video) {
+        if let connection = videoOutput?.connection(with: .video), connection.isVideoMirroringSupported {
             connection.isVideoMirrored = camera == .front
+
+            if connection.isVideoOrientationSupported {
+                videoOutput?.connection(with: .video)?.videoOrientation = .landscapeRight
+            }
         }
     }
 }
@@ -317,6 +299,7 @@ extension CameraModel {
     private func startSession() async {
         await delegate?.modelWillStart(self)
         await perform { [weak self] in
+            self?.setFormats()
             self?.session.startRunning()
         }
 
@@ -342,10 +325,6 @@ extension CameraModel {
     }
 
     private func setupSingleCamInputs() throws {
-        if session.canSetSessionPreset(.photo) {
-            session.sessionPreset = .photo
-        }
-
         if let input = backInput {
             session.addInput(input)
             activeCamera = .back
@@ -376,10 +355,14 @@ extension CameraModel {
             try addConnection(connection)
             connection.isVideoMirrored = true
         }
+    }
 
-        if let backCamera = backCamera, let frontCamera = frontCamera {
-            setMultiCamFormat(for: backCamera)
-            setMultiCamFormat(for: frontCamera)
+    private func setFormats() {
+        if isUsingMultipleCameras, let back = backCamera, let front = frontCamera {
+            setMultiCamFormat(for: back)
+            setMultiCamFormat(for: front)
+        } else {
+            setSingleCamFormat()
         }
     }
 
@@ -392,6 +375,14 @@ extension CameraModel {
 
         configure(camera) { camera in
             camera.activeFormat = format
+        }
+    }
+
+    private func setSingleCamFormat() {
+        DDLogInfo("CameraModel/setSingleCamFormat")
+        let preset: AVCaptureSession.Preset = .photo
+        if session.canSetSessionPreset(preset) {
+            session.sessionPreset = preset
         }
     }
 
@@ -795,10 +786,6 @@ extension CameraModel: AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureAu
         DispatchQueue.main.asyncAfter(deadline: .now() + maximumVideoDuration, execute: timeout)
         videoTimeout = timeout
 
-        videoDurationTimer = Timer.publish(every: 1, on: .main, in: .default)
-            .autoconnect()
-            .scan(0) { seconds, _ in seconds + 1 }
-            .sink { [weak self] in self?.videoDuration = $0 }
         videoDuration = 0
     }
 
@@ -810,7 +797,6 @@ extension CameraModel: AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureAu
         DDLogInfo("CameraModel/stopRecording")
         isRecordingVideo = false
 
-        videoDurationTimer = nil
         videoDuration = nil
         videoTimeout?.cancel()
         videoTimeout = nil
@@ -943,6 +929,10 @@ extension CameraModel: AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureAu
             // make sure we start writing on a video sample buffer to avoid the initial frames being black
             writer.startWriting()
             writer.startSession(atSourceTime: sampleBuffer.presentationTimeStamp)
+
+            let currentTimestamp = sampleBuffer.presentationTimeStamp
+            let currentTime = Double(currentTimestamp.value) / Double(currentTimestamp.timescale)
+            videoRecordingStartTime = currentTime
         }
 
         guard CMSampleBufferDataIsReady(sampleBuffer) else {
@@ -958,6 +948,12 @@ extension CameraModel: AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureAu
             let correctedTimestamp = convertTimestamp(for: sampleBuffer)
             CMSampleBufferSetOutputPresentationTimeStamp(sampleBuffer, newValue: correctedTimestamp)
             audioInput.append(sampleBuffer)
+        }
+
+        let currentTimestamp = sampleBuffer.presentationTimeStamp
+        let currentTime = Double(currentTimestamp.value) / Double(currentTimestamp.timescale)
+        sessionQueue.async { [weak self] in
+            self?.videoDuration = currentTime - (self?.videoRecordingStartTime ?? currentTime)
         }
     }
 

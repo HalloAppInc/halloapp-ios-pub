@@ -40,11 +40,6 @@ enum NewPostMediaSource {
     case unified
 }
 
-enum NewMomentContext {
-    case normal
-    case unlock(UserID)
-}
-
 struct NewPostState {
     var pendingMedia = [PendingMedia]()
     var mediaSource = NewPostMediaSource.noMedia
@@ -65,17 +60,17 @@ struct NewPostState {
 typealias DidPickImageCallback = (UIImage) -> Void
 typealias DidPickVideoCallback = (URL) -> Void
 
-final class NewPostViewController: UIViewController {
+final class NewPostViewController: UINavigationController {
 
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return .portrait
     }
 
-    init(source: NewPostMediaSource, destination: ShareDestination, momentContext: NewMomentContext? = nil, didFinish: @escaping ((Bool) -> Void)) {
+    init(source: NewPostMediaSource, destination: ShareDestination, usedInTabBar: Bool = false, didFinish: @escaping ((Bool) -> Void)) {
         self.didFinish = didFinish
         self.state = NewPostState(mediaSource: source)
         self.destination = destination
-        self.momentContext = momentContext
+        self.usedInTabBar = usedInTabBar
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -85,24 +80,35 @@ final class NewPostViewController: UIViewController {
 
     override func loadView() {
         super.loadView()
-
         view.backgroundColor = .feedBackground
-        addChild(containedNavigationController)
-        containedNavigationController.view.frame = view.bounds
-        view.addSubview(containedNavigationController.view)
-        containedNavigationController.didMove(toParent: self)
+
+        setViewControllers([startingViewController()], animated: false)
+
+        if usedInTabBar {
+            setupTabBarAppearance()
+        }
     }
 
     // MARK: Private
 
     private let didFinish: ((Bool) -> Void)
     private var state: NewPostState
-    private let momentContext: NewMomentContext?
     private var destination: ShareDestination
+    private let usedInTabBar: Bool
 
-    private(set) lazy var containedNavigationController = {
-        return makeNavigationController()
-    }()
+    private func setupTabBarAppearance() {
+        let appearance = UITabBarAppearance()
+        appearance.backgroundEffect = nil
+        appearance.backgroundColor = nil
+        appearance.backgroundImage = UIImage()
+        appearance.shadowImage = UIImage()
+        appearance.configureWithTransparentBackground()
+
+        tabBarItem.standardAppearance = appearance
+        if #available(iOS 15, *) {
+            tabBarItem.scrollEdgeAppearance = appearance
+        }
+    }
 
     private func cleanupAndFinish(didPost: Bool = false) {
         // Display warning about deleting voice note
@@ -135,21 +141,26 @@ final class NewPostViewController: UIViewController {
                 DDLogInfo("NewPostViewController/cleanup/\(encryptedFileURL.absoluteString)/error [\(error)]")
             }
         }
+
+        if usedInTabBar, let first = viewControllers.first {
+            setViewControllers([first], animated: true)
+        }
+
         didFinish(didPost)
     }
 
-    private func didFinishPickingMedia() {
-        containedNavigationController.pushViewController(makeComposerViewController(), animated: true)
+    private func pushComposer() {
+        pushViewController(makeComposerViewController(), animated: true)
     }
 
-    private func makeNavigationController() -> UINavigationController {
+    private func startingViewController() -> UIViewController {
         switch state.mediaSource {
         case .library:
             return makeMediaPickerViewControllerNew()
         case .camera:
-            return UINavigationController(rootViewController: makeNewCameraViewController())
+            return makeNewCameraViewController()
         case .noMedia, .voiceNote, .unified:
-            return UINavigationController(rootViewController: makeComposerViewController())
+            return makeComposerViewController()
         }
     }
 
@@ -168,14 +179,14 @@ final class NewPostViewController: UIViewController {
                     } else if case .group(_, _) = self.destination {
                         self.share(to: result.destinations, result: result)
                     } else {
-                        self.containedNavigationController.pushViewController(self.makeDestinationPickerViewController(with: result), animated: true)
+                        self.pushViewController(self.makeDestinationPickerViewController(with: result), animated: true)
                     }
                 } else {
-                    self.containedNavigationController.popViewController(animated: true)
+                    self.popViewController(animated: true)
 
                     switch self.state.mediaSource {
                     case .library:
-                        let controller = self.containedNavigationController.topViewController as? MediaPickerViewController
+                        let controller = self.topViewController as? MediaPickerViewController
                         controller?.reset(destination: self.destination, selected: self.state.pendingMedia)
                     case .camera:
                         break
@@ -202,7 +213,7 @@ final class NewPostViewController: UIViewController {
             if destinations.count > 0 {
                 self.share(to: destinations, result: result)
             } else {
-                self.containedNavigationController.popViewController(animated: true)
+                self.popViewController(animated: true)
             }
         }
     }
@@ -239,40 +250,16 @@ final class NewPostViewController: UIViewController {
     }
 
     private func makeNewCameraViewController() -> UIViewController {
-        let cameraSubtitle: String?
-        switch momentContext {
-        case .normal:
-            cameraSubtitle = Localizations.newMomentCameraSubtitle
-        case .unlock(let userID):
-            let name = MainAppContext.shared.contactStore.firstName(for: userID, in: MainAppContext.shared.contactStore.viewContext)
-            cameraSubtitle = String(format: Localizations.newMomentCameraUnlockSubtitle, name)
-        case .none:
-            cameraSubtitle = nil
-        }
+        let options: NewCameraViewController.Options = usedInTabBar ? [.showLibraryButton] : [.showDismissButton, .showLibraryButton]
+        let vc = NewCameraViewController(options: options)
 
-        return CameraViewController(
-            configuration: .init(showCancelButton: state.isPostComposerCancellable, format: momentContext != nil ? .square : .normal, subtitle: cameraSubtitle),
-            didFinish: { [weak self] in self?.cleanupAndFinish() },
-            didPickImage: { [weak self] uiImage in self?.onCameraImagePicked(uiImage) },
-            didPickVideo: { [weak self] videoURL in self?.onCameraVideoPicked(videoURL) }
-        )
-    }
+        vc.title = Localizations.fabAccessibilityCamera
+        vc.delegate = self
 
-    private func makeCameraViewController() -> UINavigationController {
-        let imagePickerController = UIImagePickerController()
-        imagePickerController.sourceType = .camera
-        if let mediatypes = UIImagePickerController.availableMediaTypes(for: .camera) {
-            imagePickerController.mediaTypes = mediatypes
-        }
-        imagePickerController.allowsEditing = false
-        imagePickerController.videoQuality = .typeHigh // gotcha: .typeMedium have empty frames in the beginning
-        imagePickerController.videoMaximumDuration = Date.minutes(1)
-        imagePickerController.delegate = self
-
-        return imagePickerController
+        return vc
     }
     
-    private func makeMediaPickerViewControllerNew() -> UINavigationController {
+    private func makeMediaPickerViewControllerNew() -> UIViewController {
         let config = MediaPickerConfig.config(with: destination)
         let pickerController = MediaPickerViewController(config: config) { [weak self] controller, destination, media, cancel in
             guard let self = self else { return }
@@ -285,12 +272,12 @@ final class NewPostViewController: UIViewController {
                 }
 
                 self.state.pendingMedia = media
-                self.didFinishPickingMedia()
+                self.pushComposer()
             }
         }
         pickerController.title = Localizations.newPost
         
-        return UINavigationController(rootViewController: pickerController)
+        return pickerController
     }
 
     private func onCameraImagePicked(_ uiImage: UIImage) {
@@ -301,7 +288,7 @@ final class NewPostViewController: UIViewController {
 
         pendingMedia.append(mediaToPost)
         state.pendingMedia = pendingMedia
-        didFinishPickingMedia()
+        pushComposer()
     }
 
     private func onCameraVideoPicked(_ videoURL: URL) {
@@ -312,7 +299,7 @@ final class NewPostViewController: UIViewController {
 
         pendingMedia.append(mediaToPost)
         state.pendingMedia = pendingMedia
-        didFinishPickingMedia()
+        pushComposer()
     }
 }
 
@@ -335,11 +322,45 @@ extension NewPostViewController: UIImagePickerControllerDelegate {
             DDLogError("UIImagePickerController returned unknown media type")
         }
         state.pendingMedia = pendingMedia
-        didFinishPickingMedia()
+        pushComposer()
     }
 }
 
-extension NewPostViewController: UINavigationControllerDelegate {}
+extension NewPostViewController: CameraViewControllerDelegate {
+
+    func cameraViewControllerDidReleaseShutter(_ viewController: NewCameraViewController) {
+
+    }
+
+    func cameraViewController(_ viewController: NewCameraViewController, didCapture results: [CaptureResult], isFinished: Bool) {
+        guard isFinished else {
+            return
+        }
+
+        let media = results.map {
+            let media = PendingMedia(type: .image)
+            media.image = $0.image
+            return media
+        }
+
+        state.pendingMedia = media
+        pushComposer()
+    }
+
+    func cameraViewController(_ viewController: NewCameraViewController, didRecordVideoTo url: URL) {
+        let media = PendingMedia(type: .video)
+        media.originalVideoURL = url
+        media.fileURL = url
+
+        state.pendingMedia = [media]
+        pushComposer()
+    }
+
+    func cameraViewController(_ viewController: NewCameraViewController, didSelect media: PendingMedia) {
+        state.pendingMedia = [media]
+        pushComposer()
+    }
+}
 
 extension NewPostViewController: PostComposerViewDelegate {
     func composerDidTapShare(controller: PostComposerViewController,
@@ -362,11 +383,11 @@ extension NewPostViewController: PostComposerViewDelegate {
         self.destination = destination
 
         state.pendingVoiceNote = voiceNote
-        containedNavigationController.popViewController(animated: true)
+        popViewController(animated: true)
 
         switch state.mediaSource {
         case .library:
-            let picker = containedNavigationController.topViewController as? MediaPickerViewController
+            let picker = topViewController as? MediaPickerViewController
             picker?.reset(destination: destination, selected: media)
         case .camera:
             break

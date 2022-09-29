@@ -37,6 +37,28 @@ extension NewCameraViewController {
         }
     }
 
+    class var secondaryButtonColor: UIColor {
+        UIColor { traits in
+            switch traits.userInterfaceStyle {
+            case .dark:
+                return .white.withAlphaComponent(0.9)
+            default:
+                return .black.withAlphaComponent(0.9)
+            }
+        }
+    }
+
+    class var backgroundColor: UIColor {
+        UIColor { traits in
+            switch traits.userInterfaceStyle {
+            case .dark:
+                return .black
+            default:
+                return .feedBackground
+            }
+        }
+    }
+
     private enum ViewfinderLayout {
         case primaryLeading, secondaryLeading, primaryFull, secondaryFull
 
@@ -66,6 +88,13 @@ extension NewCameraViewController {
             }
         }
     }
+
+    struct Options: OptionSet {
+        let rawValue: Int
+
+        static let showDismissButton = Options(rawValue: 1 << 0)
+        static let showLibraryButton = Options(rawValue: 1 << 1)
+    }
 }
 
 class NewCameraViewController: UIViewController {
@@ -73,6 +102,7 @@ class NewCameraViewController: UIViewController {
     enum Configuration { case normal, moment }
 
     let configuration: Configuration
+    let options: Options
     private var layout: ViewfinderLayout = .primaryFull
 
     private lazy var model: CameraModel = {
@@ -110,7 +140,7 @@ class NewCameraViewController: UIViewController {
     private(set) lazy var background: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = configuration == .moment ? .momentPolaroid : .secondarySystemBackground
+        view.backgroundColor = configuration == .moment ? .momentPolaroid : .feedPostBackground
         view.layer.cornerRadius = Layout.cornerRadius(for: configuration)
         view.layer.cornerCurve = .continuous
         return view
@@ -146,7 +176,7 @@ class NewCameraViewController: UIViewController {
         button.targetIncrease = 12
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(UIImage(named: "CameraFlip")?.withRenderingMode(.alwaysTemplate), for: .normal)
-        button.tintColor = configuration == .moment ? .black : .white.withAlphaComponent(0.9)
+        button.tintColor = configuration == .moment ? .black : Self.secondaryButtonColor
         button.addTarget(self, action: #selector(flipCameraPushed), for: .touchUpInside)
         return button
     }()
@@ -156,9 +186,43 @@ class NewCameraViewController: UIViewController {
         button.targetIncrease = 12
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(UIImage(named: "CameraFlashOff")?.withRenderingMode(.alwaysTemplate), for: .normal)
-        button.tintColor = configuration == .moment ? .black : .white.withAlphaComponent(0.9)
+        button.tintColor = configuration == .moment ? .black : Self.secondaryButtonColor
         button.addTarget(self, action: #selector(flashButtonPushed), for: .touchUpInside)
         return button
+    }()
+
+    private var durationLabelConstraints: [NSLayoutConstraint] = []
+    private lazy var durationLabelContainer: UIView = {
+        let view = UIView()
+        let blur = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterialDark))
+
+        view.translatesAutoresizingMaskIntoConstraints = false
+        blur.translatesAutoresizingMaskIntoConstraints = false
+
+        view.layoutMargins = UIEdgeInsets(top: 7, left: 9, bottom: 7, right: 9)
+        blur.layer.cornerRadius = 10
+        blur.layer.cornerCurve = .continuous
+        blur.layer.masksToBounds = true
+
+        view.addSubview(blur)
+        view.addSubview(videoDurationLabel)
+
+        let minimizers = [view.heightAnchor.constraint(equalToConstant: 0), view.widthAnchor.constraint(equalToConstant: 0)]
+        minimizers.forEach { $0.priority = UILayoutPriority(1) }
+
+        NSLayoutConstraint.activate([
+            blur.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            blur.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            blur.topAnchor.constraint(equalTo: view.topAnchor),
+            blur.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+
+            videoDurationLabel.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
+            videoDurationLabel.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
+            videoDurationLabel.topAnchor.constraint(equalTo: view.layoutMarginsGuide.topAnchor),
+            videoDurationLabel.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor),
+        ] + minimizers)
+
+        return view
     }()
 
     private lazy var videoDurationLabel: UILabel = {
@@ -208,8 +272,9 @@ class NewCameraViewController: UIViewController {
 
     weak var delegate: CameraViewControllerDelegate?
 
-    init(style: Configuration = .normal) {
+    init(style: Configuration = .normal, options: Options = [.showDismissButton, .showLibraryButton]) {
         self.configuration = style
+        self.options = options
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -226,8 +291,7 @@ class NewCameraViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .black
-        overrideUserInterfaceStyle = .dark
+        view.backgroundColor = Self.backgroundColor
 
         model.delegate = self
         subscribeToModelUpdates()
@@ -252,9 +316,8 @@ class NewCameraViewController: UIViewController {
         view.addSubview(background)
         view.addSubview(viewfinderContainer)
         view.addSubview(controlsContainer)
-
-        view.addSubview(videoDurationLabel)
         view.addSubview(subtitleLabel)
+        view.addSubview(durationLabelContainer)
 
         viewfinderContainer.addSubview(primaryViewfinder)
         viewfinderContainer.addSubview(secondaryViewfinder)
@@ -271,19 +334,22 @@ class NewCameraViewController: UIViewController {
         leftContainer.addSubview(flashButton)
         rightContainer.addSubview(flipCameraButton)
 
+        let edgeMargin: CGFloat = configuration == .moment ? 0 : 15
+        let padding = Layout.padding(for: configuration)
+
         let minimizeControlHeight = controlsContainer.heightAnchor.constraint(equalToConstant: 0)
-        let backgroundWidth = background.widthAnchor.constraint(equalTo: view.widthAnchor)
+        let backgroundWidth = background.widthAnchor.constraint(equalTo: view.widthAnchor, constant: -edgeMargin * 2)
         let backgroundCenterY = background.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+
         minimizeControlHeight.priority = UILayoutPriority(1)
         backgroundWidth.priority = .defaultHigh
         backgroundCenterY.priority = .defaultHigh
-
-        let padding = Layout.padding(for: configuration)
 
         NSLayoutConstraint.activate([
             background.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             backgroundWidth,
             backgroundCenterY,
+            background.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -30),
 
             viewfinderContainer.leadingAnchor.constraint(equalTo: background.leadingAnchor, constant: padding),
             viewfinderContainer.topAnchor.constraint(equalTo: background.topAnchor, constant: padding),
@@ -316,10 +382,6 @@ class NewCameraViewController: UIViewController {
             flipCameraButton.centerYAnchor.constraint(equalTo: rightContainer.centerYAnchor),
             flipCameraButton.centerXAnchor.constraint(equalTo: rightContainer.centerXAnchor),
 
-            videoDurationLabel.topAnchor.constraint(greaterThanOrEqualTo: subtitleLabel.bottomAnchor, constant: 30),
-            videoDurationLabel.bottomAnchor.constraint(equalTo: background.topAnchor, constant: -10),
-            videoDurationLabel.centerXAnchor.constraint(equalTo: background.centerXAnchor),
-
             subtitleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
             subtitleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 40),
             subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -40),
@@ -345,19 +407,8 @@ class NewCameraViewController: UIViewController {
         let downButton = UIBarButtonItem(image: chevronImage, style: .plain, target: self, action: #selector(dismissTapped))
         let libraryButton = UIBarButtonItem(image: libraryImage, style: .plain, target: self, action: #selector(libraryTapped))
 
-        downButton.tintColor = .white
-        libraryButton.tintColor = .white
-        navigationItem.leftBarButtonItem = downButton
-        navigationItem.rightBarButtonItem = libraryButton
-
-        let appearance = UINavigationBarAppearance()
-        appearance.backgroundColor = .black
-        appearance.shadowColor = nil
-        appearance.titleTextAttributes = [.font: UIFont.gothamFont(ofFixedSize: 16, weight: .medium)]
-
-        navigationController?.navigationBar.scrollEdgeAppearance = appearance
-        navigationController?.navigationBar.standardAppearance = appearance
-        navigationController?.overrideUserInterfaceStyle = .dark
+        navigationItem.leftBarButtonItem = options.contains(.showDismissButton) ? downButton : nil
+        navigationItem.rightBarButtonItem = options.contains(.showLibraryButton) ? libraryButton : nil
     }
 
     @objc
@@ -368,7 +419,7 @@ class NewCameraViewController: UIViewController {
 
     @objc
     private func libraryTapped(_ sender: UIBarButtonItem) {
-        let picker = MediaPickerViewController(config: .moment) { [weak self] picker, _, media, _ in
+        let picker = MediaPickerViewController(config: configuration == .moment ? .moment : .feed) { [weak self] picker, _, media, _ in
             picker.dismiss(animated: true)
 
             if let self = self, let media = media.first {
@@ -382,6 +433,7 @@ class NewCameraViewController: UIViewController {
 
     private func subscribeToModelUpdates() {
         model.$orientation
+            .filter { [model] _ in !model.isRecordingVideo }
             .receive(on: DispatchQueue.main)
             .sink { [weak self] in
                 self?.refresh(orientation: $0)
@@ -403,25 +455,40 @@ class NewCameraViewController: UIViewController {
             .store(in: &cancellables)
 
         model.$videoDuration
+            .map { $0 == nil }
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] seconds in
-                self?.videoDurationLabel.isHidden = seconds == nil
-                if let seconds = seconds {
-                    self?.videoDurationLabel.text = self?.durationFormatter.string(from: TimeInterval(seconds))
-                }
-            }
+            .assign(to: \.isHidden, onWeak: durationLabelContainer)
             .store(in: &cancellables)
 
-        model.$isRecordingVideo
+        model.$videoDuration
+            .compactMap { [durationFormatter] in
+                if let seconds = $0 {
+                    return durationFormatter.string(from: TimeInterval(seconds))
+                }
+
+                return nil
+            }
             .receive(on: DispatchQueue.main)
-            .map { !$0 }
-            .assign(to: \.isEnabled, onWeak: flipCameraButton)
+            .assign(to: \.text, onWeak: videoDurationLabel)
             .store(in: &cancellables)
 
         model.$isRecordingVideo
             .receive(on: DispatchQueue.main)
             .map { !$0 }
             .assign(to: \.isEnabled, onWeak: flashButton)
+            .store(in: &cancellables)
+
+        model.$isRecordingVideo
+            .dropFirst()
+            .filter { !$0 }
+            .map { [model] _ in
+                model.orientation
+            }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in
+                // update orientation after recording finishes
+                self?.refresh(orientation: $0)
+            }
             .store(in: &cancellables)
     }
 
@@ -520,10 +587,38 @@ class NewCameraViewController: UIViewController {
         }
 
         let transform = CGAffineTransform(rotationAngle: angle)
-        UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 0.5) {
+        UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 0.75, initialSpringVelocity: 0.5) {
             self.flashButton.transform = transform
             self.flipCameraButton.transform = transform
         }
+
+        durationLabelContainer.transform = CGAffineTransform(rotationAngle: angle)
+        let constraints: [NSLayoutConstraint]
+        let distance: CGFloat = 25
+
+        switch orientation {
+        case .portrait, .portraitUpsideDown:
+            let padding: CGFloat = orientation == .portrait ? distance : -distance
+            let anchor = orientation == .portrait ? viewfinderContainer.topAnchor : viewfinderContainer.bottomAnchor
+            constraints = [
+                durationLabelContainer.centerYAnchor.constraint(equalTo: anchor, constant: padding),
+                durationLabelContainer.centerXAnchor.constraint(equalTo: viewfinderContainer.centerXAnchor),
+            ]
+
+        case .landscapeRight, .landscapeLeft:
+            let padding: CGFloat = orientation == .landscapeRight ? distance : -distance
+            let anchor = orientation == .landscapeRight ? viewfinderContainer.leadingAnchor : viewfinderContainer.trailingAnchor
+            constraints = [
+                durationLabelContainer.centerXAnchor.constraint(equalTo: anchor, constant: padding),
+                durationLabelContainer.centerYAnchor.constraint(equalTo: viewfinderContainer.centerYAnchor),
+            ]
+        default:
+            constraints = []
+        }
+
+        NSLayoutConstraint.deactivate(durationLabelConstraints)
+        durationLabelConstraints = constraints
+        NSLayoutConstraint.activate(durationLabelConstraints)
     }
 
     private func updateLayout(_ newLayout: ViewfinderLayout, animated: Bool = true) {

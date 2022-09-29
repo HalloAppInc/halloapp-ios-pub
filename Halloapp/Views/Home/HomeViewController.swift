@@ -36,6 +36,7 @@ class HomeViewController: UITabBarController {
 
     private var feedController: UIViewController?
     private var groupsController: UIViewController?
+    private var cameraController: UIViewController?
     private var chatsController: UIViewController?
     private var activityController: UIViewController?
 
@@ -70,17 +71,29 @@ class HomeViewController: UITabBarController {
         feedController = feedNavController
         let groupsNavController = groupsNavigationController()
         groupsController = groupsNavController
+        let cameraNavController = cameraNavigationController()
+        cameraController = cameraNavigationController()
         let chatsNavController = chatsNavigationController()
         chatsController = chatsNavController
         let activityNavController = activityNavigationController()
         activityController = activityNavController
 
-        tabBarViewControllers = [
-            feedNavController,
-            groupsNavController,
-            chatsNavController,
-            activityNavController,
-        ]
+        if ServerProperties.isInternalUser {
+            tabBarViewControllers = [
+                feedNavController,
+                groupsNavController,
+                cameraNavController,
+                chatsNavController,
+                activityNavController,
+            ]
+        } else {
+            tabBarViewControllers = [
+                feedNavController,
+                groupsNavController,
+                chatsNavController,
+                activityNavController,
+            ]
+        }
         
         setViewControllers(tabBarViewControllers, animated: false)
 
@@ -260,6 +273,19 @@ class HomeViewController: UITabBarController {
         navigationController.tabBarItem.selectedImage = UIImage(named: "TabBarGroupsActive")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
         return navigationController
+    }
+
+    private func cameraNavigationController() -> UIViewController {
+        let controller = NewPostViewController(source: .camera, destination: .feed(.all), usedInTabBar: true) { didPost in
+
+        }
+
+        controller.title = Localizations.fabAccessibilityCamera
+        controller.tabBarItem.image = UIImage(named: "TabBarCamera")?.withTintColor(.tabBar, renderingMode: .alwaysOriginal)
+        controller.tabBarItem.selectedImage = UIImage(named: "TabBarCameraActive")?.withRenderingMode(.alwaysTemplate)
+        controller.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
+
+        return controller
     }
 
     private func chatsNavigationController() -> UINavigationController {

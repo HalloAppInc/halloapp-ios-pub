@@ -97,6 +97,7 @@ final class NewMomentViewController: UIViewController {
         view.backgroundColor = .black
 
         overrideUserInterfaceStyle = .dark
+
         modalPresentationStyle = .custom
         modalTransitionStyle = .coverVertical
 
@@ -113,9 +114,17 @@ final class NewMomentViewController: UIViewController {
         DDLogInfo("NewMomentViewController/viewDidLoad")
 
         contain(cameraNavigationController)
-
         view.insertSubview(composerNavigationController.view, at: 0)
         contain(composerNavigationController)
+
+        let appearance = UINavigationBarAppearance()
+        appearance.backgroundColor = .black
+        appearance.shadowColor = nil
+        appearance.titleTextAttributes = [.font: UIFont.gothamFont(ofFixedSize: 16, weight: .medium)]
+        cameraNavigationController.navigationBar.standardAppearance = appearance
+        cameraNavigationController.navigationBar.scrollEdgeAppearance = appearance
+        composerNavigationController.navigationBar.standardAppearance = appearance
+        composerNavigationController.navigationBar.scrollEdgeAppearance = appearance
 
         NSLayoutConstraint.activate([
             composerController.background.topAnchor.constraint(equalTo: cameraController.background.topAnchor),
