@@ -300,6 +300,14 @@ extension CameraModel {
         await delegate?.modelWillStart(self)
         await perform { [weak self] in
             self?.setFormats()
+
+            if let back = self?.backCamera, let front = self?.frontCamera {
+                self?.focus(camera: back)
+                self?.focus(camera: front)
+                self?.resetZoom(on: back)
+                self?.resetZoom(on: front)
+            }
+
             self?.session.startRunning()
         }
 
@@ -419,7 +427,6 @@ extension CameraModel {
 
         backCamera = device
         backInput = input
-        focus(camera: device)
     }
 
     private func setupFrontCamera() throws {
@@ -433,7 +440,6 @@ extension CameraModel {
 
         frontCamera = device
         frontInput = input
-        focus(camera: device)
     }
 
     private func setupMicrophone() throws {
@@ -602,26 +608,41 @@ extension CameraModel {
         DDLogInfo("CameraModel/focus-camera position [\(camera.position)]")
 
         configure(camera) { camera in
+            if camera.isSmoothAutoFocusSupported {
+                camera.isSmoothAutoFocusEnabled = true
+            }
+
+            if let point, camera.isFocusPointOfInterestSupported, camera.isExposurePointOfInterestSupported {
+                camera.focusPointOfInterest = point
+                camera.exposurePointOfInterest = point
+                camera.focusMode = .autoFocus
+                camera.exposureMode = .autoExpose
+
+                return
+            }
+
             if camera.isFocusModeSupported(.continuousAutoFocus) {
                 camera.focusMode = .continuousAutoFocus
-            }
-            if camera.isFocusPointOfInterestSupported, let point = point {
+            } else if camera.isFocusModeSupported(.autoFocus) {
                 camera.focusMode = .autoFocus
-                camera.focusPointOfInterest = point
             }
+
             if camera.isExposureModeSupported(.continuousAutoExposure) {
                 camera.exposureMode = .continuousAutoExposure
-            }
-            if camera.isExposurePointOfInterestSupported, let point = point {
+            } else if camera.isExposureModeSupported(.autoExpose) {
                 camera.exposureMode = .autoExpose
-                camera.exposurePointOfInterest = point
             }
+        }
+    }
+
+    private func resetZoom(on camera: AVCaptureDevice) {
+        configure(camera) { camera in
+            camera.videoZoomFactor = camera.minAvailableVideoZoomFactor
         }
     }
 
     func zoom(_ position: AVCaptureDevice.Position, to scale: CGFloat) {
         guard
-            session.isRunning,
             position != .unspecified,
             let camera = position == .back ? backCamera : frontCamera
         else {
@@ -802,6 +823,11 @@ extension CameraModel: AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureAu
         videoTimeout = nil
 
         Task {
+            guard writer.status != .unknown else {
+                DDLogError("CameraModel/stopRecording task/asset writer has unknown status")
+                return
+            }
+
             await writer.finishWriting()
             if let error = writer.error {
                 DDLogError("CameraModel/stopRecording task/asset writer finished with error: \(String(describing: error))")

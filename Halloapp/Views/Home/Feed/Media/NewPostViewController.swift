@@ -83,6 +83,7 @@ final class NewPostViewController: UINavigationController {
         view.backgroundColor = .feedBackground
 
         setViewControllers([startingViewController()], animated: false)
+        navigationBar.tintColor = .primaryBlue
 
         if usedInTabBar {
             setupTabBarAppearance()

@@ -59,9 +59,8 @@ final class ViewfinderView: UIView {
     }()
 
     private lazy var blurOverlay: UIVisualEffectView = {
-        let view = UIVisualEffectView(effect: nil)
+        let view = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.effect = UIBlurEffect(style: .regular)
         return view
     }()
 
@@ -125,17 +124,19 @@ final class ViewfinderView: UIView {
             placeholderSnapshot = snapshot
         }
 
-        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut) {
-            self.blurOverlay.effect = UIBlurEffect(style: .regular)
+        layoutIfNeeded()
+
+        UIView.animate(withDuration: 0.4, delay: 0, options: .curveEaseOut) {
+            self.blurOverlay.effect = UIBlurEffect(style: .dark)
         }
     }
 
     private func animateAddedConnection() {
-        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut) {
+        layoutIfNeeded()
+
+        UIView.animate(withDuration: 0.4, delay: 0, options: .curveEaseOut) {
             self.blurOverlay.effect = nil
             self.placeholderSnapshot?.alpha = 0
-        } completion: { _ in
-
         }
     }
 

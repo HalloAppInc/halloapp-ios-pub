@@ -145,24 +145,14 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
         }
 
         return rowView
-    } ()
+    }()
 
     private lazy var selectionRowHeightConstraint: NSLayoutConstraint = {
         selectionRow.heightAnchor.constraint(equalToConstant: 0)
-    } ()
+    }()
 
     private lazy var bottomConstraint: NSLayoutConstraint = {
         bottomView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
-    } ()
-
-    private lazy var closeImage: UIImage? = {
-        UIImage(systemName: "chevron.down", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))?
-            .withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
-    }()
-
-    private lazy var backImage: UIImage? = {
-        UIImage(systemName: "chevron.left", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))?
-            .withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
     }()
 
     private lazy var leftBarButtonItem: UIBarButtonItem = {
@@ -170,16 +160,16 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
 
         switch config {
         case .composer:
-            image = backImage
+            image = UIImage(systemName: "chevron.left", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))
         case .forwarding:
-            image = closeImage
+            image = UIImage(systemName: "chevron.down", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))
         }
 
         return UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(backAction))
     }()
 
     private lazy var rightBarButtonItem: UIBarButtonItem = {
-        let image = UIImage(named: "NavCreateGroup")?.withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
+        let image = UIImage(named: "NavCreateGroup")
         return UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(createGroupAction))
     }()
 

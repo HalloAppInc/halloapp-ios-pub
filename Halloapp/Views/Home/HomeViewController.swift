@@ -518,12 +518,15 @@ extension HomeViewController: UITabBarControllerDelegate {
     }
 
     func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
-        guard let navigationController = (viewController as? UINavigationController) else {
+        guard
+            selectedIndex != TabBarSelection.camera.rawValue,
+            let navigationController = viewController as? UINavigationController,
+            navigationController.topViewController !== navigationController.viewControllers.first
+        else {
             return
         }
-        if(navigationController.topViewController != navigationController.viewControllers.first) {
-            navigationController.popToRootViewController(animated: false)
-        }
+
+        navigationController.popToRootViewController(animated: false)
     }
 }
 

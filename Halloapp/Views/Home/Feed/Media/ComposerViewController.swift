@@ -143,12 +143,14 @@ class ComposerViewController: UIViewController {
 
     private lazy var backButtonItem: UIBarButtonItem = {
         let imageConfig = UIImage.SymbolConfiguration(pointSize: 22, weight: .semibold)
-        let image = UIImage(systemName: "chevron.left", withConfiguration: imageConfig)?
-                    .withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
+        let image = UIImage(systemName: "chevron.left", withConfiguration: imageConfig)
 
         let button = UIButton(type: .custom)
         button.setImage(image, for: .normal)
-        button.setTitle(Localizations.addMore, for: .normal)
+        if case .library = initialType {
+            button.setTitle(Localizations.addMore, for: .normal)
+        }
+
         button.setTitleColor(.primaryBlue, for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16)
         button.addTarget(self, action: #selector(backAction), for: .touchUpInside)
@@ -158,30 +160,28 @@ class ComposerViewController: UIViewController {
 
     private lazy var closeButtonItem: UIBarButtonItem = {
         let imageConfig = UIImage.SymbolConfiguration(weight: .bold)
-        let image = UIImage(systemName: "chevron.down", withConfiguration: imageConfig)?
-                    .withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
+        let image = UIImage(systemName: "chevron.down", withConfiguration: imageConfig)
 
         return UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(backAction))
     }()
 
     private lazy var cropButtonItem: UIBarButtonItem = {
         let imageConfig = UIImage.SymbolConfiguration(weight: .bold)
-        let image = UIImage(systemName: "crop.rotate", withConfiguration: imageConfig)?
-                    .withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
+        let image = UIImage(systemName: "crop.rotate", withConfiguration: imageConfig)
 
         return UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(cropAction))
     }()
 
     private lazy var annotateButtonItem: UIBarButtonItem = {
         let imageConfig = UIImage.SymbolConfiguration(weight: .bold)
-        let image = UIImage(named: "Annotate")?.withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
+        let image = UIImage(named: "Annotate")
 
         return UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(annotateAction))
     }()
 
     private lazy var drawButtonItem: UIBarButtonItem = {
         let imageConfig = UIImage.SymbolConfiguration(weight: .bold)
-        let image = UIImage(named: "Draw")?.withTintColor(.primaryBlue, renderingMode: .alwaysOriginal)
+        let image = UIImage(named: "Draw")
 
         return UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(drawAction))
     }()
@@ -573,11 +573,11 @@ class ComposerViewController: UIViewController {
                 titleView.title = nil
             }
 
-
-            if initialType != .library {
-                navigationItem.leftBarButtonItem = closeButtonItem
-            } else {
+            switch initialType {
+            case .library, .camera:
                 navigationItem.leftBarButtonItem = backButtonItem
+            default:
+                navigationItem.leftBarButtonItem = closeButtonItem
             }
 
             contentView.addArrangedSubview(mediaCarouselView)
