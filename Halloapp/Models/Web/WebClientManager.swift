@@ -515,7 +515,7 @@ final class WebClientManager {
 
         let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "post.id = %@", id)
-        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPostComment.timestamp, ascending: true) ]
+        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPostComment.timestamp, ascending: false) ]
 
         let frc = NSFetchedResultsController<FeedPostComment>(
             fetchRequest: fetchRequest,
