@@ -4261,7 +4261,7 @@ extension ChatData {
 
             retractingOutboundChatMsgs.forEach {
                 guard let chatMsg = self.chatMessage(with: $0.id, in: managedObjectContext) else { return }
-                guard let messageID = chatMsg.retractID else { return }
+                guard chatMsg.retractID != nil else { return }
                 DDLogInfo("ChatData/processRetractingChatMsgs \($0.id)")
                 let msgToRetractID = chatMsg.id
 

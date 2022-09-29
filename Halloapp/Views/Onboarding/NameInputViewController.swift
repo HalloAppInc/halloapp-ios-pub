@@ -201,7 +201,7 @@ class NameInputViewController: UIViewController {
 
     @objc
     private func nextButtonPushed(_ button: UIButton) {
-        guard let name = textField.text else {
+        guard textField.text != nil else {
             return
         }
 

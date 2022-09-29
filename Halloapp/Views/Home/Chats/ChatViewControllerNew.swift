@@ -1792,9 +1792,7 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
         let chatMessageId = chatMessage.id
         let alertController = UIAlertController(title: Localizations.chatDeleteTitle, message: nil, preferredStyle: .actionSheet)
 
-        if chatMessage.fromUserId == AppContext.shared.userData.userId,
-           [.sentOut, .delivered, .seen, .played].contains(chatMessage.outgoingStatus),
-           let toUserID = fromUserId {
+        if chatMessage.fromUserId == AppContext.shared.userData.userId, [.sentOut, .delivered, .seen, .played].contains(chatMessage.outgoingStatus) {
             alertController.addAction(UIAlertAction(title: Localizations.chatDeleteForEveryone, style: .destructive) { _ in
                 MainAppContext.shared.chatData.retractChatMessage(chatMessage: chatMessage, messageToRetractID: chatMessageId)
                 

@@ -187,7 +187,7 @@ public class FeedDownloadManager {
                 }
         }
         task.downloadRequest = request
-        tasksAccessQueue.sync {
+        _ = tasksAccessQueue.sync {
             tasks.insert(task)
         }
         return true
@@ -592,7 +592,7 @@ public class FeedDownloadManager {
     private func taskFinished(_ task: Task) {
         task.completed = true
         DispatchQueue.main.async {
-            self.tasksAccessQueue.sync {
+            _ = self.tasksAccessQueue.sync {
                 self.tasks.remove(task)
             }
             self.delegate?.feedDownloadManager(self, didFinishTask: task)
@@ -619,7 +619,7 @@ public class FeedDownloadManager {
             }
         }
         DispatchQueue.main.async {
-            self.tasksAccessQueue.sync {
+            _ = self.tasksAccessQueue.sync {
                 self.tasks.remove(task)
             }
             self.delegate?.feedDownloadManager(self, didFinishTask: task)

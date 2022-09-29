@@ -341,9 +341,7 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
         // batch add of message Rows
         snapshot.appendItems(tempMessageRows, toSection: .chats)
         // Apply the new snapshot
-        dataSource?.apply(snapshot, animatingDifferences: false) { [weak self] in
-            guard let self = self else { return }
-        }
+        dataSource?.apply(snapshot, animatingDifferences: false)
     }
 
     func chatMessage(id chatMessageId: ChatMessageID) -> ChatMessage? {
