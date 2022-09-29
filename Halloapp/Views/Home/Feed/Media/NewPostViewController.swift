@@ -165,46 +165,34 @@ final class NewPostViewController: UINavigationController {
     }
 
     private func makeComposerViewController() -> UIViewController {
-        if AppContext.shared.userDefaults.bool(forKey: "enableUIKitComposer") {
-            return ComposerViewController(config: .config(with: destination), type: state.mediaSource, input: state.pendingInput, media: state.pendingMedia, voiceNote: state.pendingVoiceNote) { [weak self] controller, result , success in
-                guard let self = self else { return }
+        return ComposerViewController(config: .config(with: destination), type: state.mediaSource, input: state.pendingInput, media: state.pendingMedia, voiceNote: state.pendingVoiceNote) { [weak self] controller, result , success in
+            guard let self = self else { return }
 
-                self.state.pendingInput = result.input
-                self.state.pendingMedia = result.media
-                self.state.pendingVoiceNote = result.voiceNote
+            self.state.pendingInput = result.input
+            self.state.pendingMedia = result.media
+            self.state.pendingVoiceNote = result.voiceNote
 
-                if success {
-                    if controller.isCompactShareFlow || self.state.mediaSource == .unified {
-                        self.share(to: result.destinations, result: result)
-                    } else if case .group(_, _) = self.destination {
-                        self.share(to: result.destinations, result: result)
-                    } else {
-                        self.pushViewController(self.makeDestinationPickerViewController(with: result), animated: true)
-                    }
+            if success {
+                if controller.isCompactShareFlow || self.state.mediaSource == .unified {
+                    self.share(to: result.destinations, result: result)
+                } else if case .group(_, _) = self.destination {
+                    self.share(to: result.destinations, result: result)
                 } else {
-                    self.popViewController(animated: true)
+                    self.pushViewController(self.makeDestinationPickerViewController(with: result), animated: true)
+                }
+            } else {
+                self.popViewController(animated: true)
 
-                    switch self.state.mediaSource {
-                    case .library:
-                        let controller = self.topViewController as? MediaPickerViewController
-                        controller?.reset(destination: self.destination, selected: self.state.pendingMedia)
-                    case .camera:
-                        break
-                    default:
-                        self.cleanupAndFinish()
-                    }
+                switch self.state.mediaSource {
+                case .library:
+                    let controller = self.topViewController as? MediaPickerViewController
+                    controller?.reset(destination: self.destination, selected: self.state.pendingMedia)
+                case .camera:
+                    break
+                default:
+                    self.cleanupAndFinish()
                 }
             }
-        } else {
-            let config = PostComposerViewConfiguration.config(with: destination)
-
-            return PostComposerViewController(
-                mediaToPost: state.pendingMedia,
-                initialInput: state.pendingInput,
-                configuration: config,
-                initialPostType: state.mediaSource,
-                voiceNote: state.pendingVoiceNote,
-                delegate: self)
         }
     }
 

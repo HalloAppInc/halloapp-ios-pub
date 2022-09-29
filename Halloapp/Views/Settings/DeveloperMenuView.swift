@@ -28,7 +28,6 @@ private enum MenuTitles {
     static var manageWebClient: String { "Manage web client" }
     static var enableGroupChat: String { "Enable Group Chat" }
     static var enableChatForwarding: String { "Enable Chat Forwarding" }
-    static var enableUIKitComposer: String { "Enable UIKit Composer" }
     static var showDecryptionResults: String { "Show decryption results  ✅ ❌" }
     static var forceCompactShare: String { "Force Compact Share UI" }
     static var forcePickerShare: String { "Force Destination Picker Share UI" }
@@ -50,7 +49,6 @@ struct DeveloperMenuView: View {
     @State var enableGroupChat = AppContext.shared.userDefaults.bool(forKey: "enableGroupChat")
     @State var enableChatForwarding = AppContext.shared.userDefaults.bool(forKey: "enableChatForwarding")
     @State var showDecryptionResults = DeveloperSetting.showDecryptionResults
-    @State var enableUIKitComposer = AppContext.shared.userDefaults.bool(forKey: "enableUIKitComposer")
     @State var forceCompactShare = AppContext.shared.userDefaults.bool(forKey: "forceCompactShare")
     @State var forcePickerShare = AppContext.shared.userDefaults.bool(forKey: "forcePickerShare")
     @State var isShowingWebClientManager = false
@@ -234,22 +232,16 @@ struct DeveloperMenuView: View {
                         .onReceive(Just(self.enableChatForwarding)) { value in
                             AppContext.shared.userDefaults.set(value, forKey: "enableChatForwarding")
                         }
-                    Toggle(MenuTitles.enableUIKitComposer, isOn: $enableUIKitComposer)
-                        .onReceive(Just(enableUIKitComposer)) { value in
-                            AppContext.shared.userDefaults.set(value, forKey: "enableUIKitComposer")
+
+                    Toggle(MenuTitles.forceCompactShare, isOn: $forceCompactShare)
+                        .onReceive(Just(forceCompactShare)) { value in
+                            AppContext.shared.userDefaults.set(value, forKey: "forceCompactShare")
                         }
 
-                    if enableUIKitComposer {
-                        Toggle(MenuTitles.forceCompactShare, isOn: $forceCompactShare)
-                            .onReceive(Just(forceCompactShare)) { value in
-                                AppContext.shared.userDefaults.set(value, forKey: "forceCompactShare")
-                            }
-
-                        Toggle(MenuTitles.forcePickerShare, isOn: $forcePickerShare)
-                            .onReceive(Just(forcePickerShare)) { value in
-                                AppContext.shared.userDefaults.set(value, forKey: "forcePickerShare")
-                            }
-                    }
+                    Toggle(MenuTitles.forcePickerShare, isOn: $forcePickerShare)
+                        .onReceive(Just(forcePickerShare)) { value in
+                            AppContext.shared.userDefaults.set(value, forKey: "forcePickerShare")
+                        }
 
                     Toggle(MenuTitles.disableMultiCamMoments, isOn: $disableMultiCamMoments)
                         .onReceive(Just(disableMultiCamMoments)) { value in
