@@ -30,6 +30,9 @@ final class WebClientManager {
         self.dataStore = dataStore
         self.noiseKeys = noiseKeys
         self.webStaticKey = webStaticKey
+        if webStaticKey != nil {
+            registerForManagedObjectNotifications()
+        }
     }
 
     enum State {
@@ -46,6 +49,12 @@ final class WebClientManager {
     private let dataStore: MainDataStore
     private let noiseKeys: NoiseKeys
     private let webQueue = DispatchQueue(label: "hallo.web", qos: .userInitiated)
+
+    private var updatedManagedObjectIDs = Set<NSManagedObjectID>()
+    /// Countdown to send next update batch
+    private var updateBatchTimer: Timer?
+    /// Timestamp marking the first update from current batch
+    private var updateBatchStart: Date?
 
     private(set) var webStaticKey: Data?
     private var keysToRemove = Set<Data>()
@@ -80,6 +89,7 @@ final class WebClientManager {
                     self.webStaticKey = staticKey
                     self.delegate?.webClientManager(self, didUpdateWebStaticKey: staticKey)
                     self.initiateHandshake()
+                    self.registerForManagedObjectNotifications()
 
                 case .failure:
                     self.disconnect(shouldRemoveOldKey: false)
@@ -176,6 +186,93 @@ final class WebClientManager {
             } catch {
                 DDLogError("WebClientManager/send/error [\(error)]")
             }
+        }
+    }
+
+    private func registerForManagedObjectNotifications() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleManagedObjectNotification),
+            name: Notification.Name.NSManagedObjectContextDidMergeChangesObjectIDs,
+            object: MainAppContext.shared.feedData.viewContext)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleManagedObjectNotification),
+            name: Notification.Name.NSManagedObjectContextDidSaveObjectIDs,
+            object: MainAppContext.shared.feedData.viewContext)
+    }
+
+    @objc
+    private func handleManagedObjectNotification(_ notification: NSNotification) {
+        guard let userInfo = notification.userInfo else { return }
+
+        DispatchQueue.main.async {
+            DDLogInfo("WebClientManager/handleManagedObjectNotification/starting [\(self.updatedManagedObjectIDs.count)]")
+
+            var updatedIDs = Set<NSManagedObjectID>()
+
+            if let inserts = userInfo[NSInsertedObjectIDsKey] as? Set<NSManagedObjectID> {
+                updatedIDs.formUnion(inserts)
+                DDLogInfo("WebClientManager/handleManagedObjectNotification/inserts [\(inserts.count)] [\(self.updatedManagedObjectIDs.count)]")
+            }
+            if let updates = userInfo[NSUpdatedObjectIDsKey] as? Set<NSManagedObjectID> {
+                updatedIDs.formUnion(updates)
+                DDLogInfo("WebClientManager/handleManagedObjectNotification/updates [\(updates.count)] [\(self.updatedManagedObjectIDs.count)]")
+            }
+            if let deletes = userInfo[NSDeletedObjectIDsKey] as? Set<NSManagedObjectID> {
+                // Ignore deletes
+                DDLogInfo("WebClientManager/handleManagedObjectNotification/deletes/skipping [\(deletes.count)]")
+            }
+
+            guard !updatedIDs.isEmpty else {
+                DDLogInfo("WebClientManager/handleManagedObjectNotification/skipping [no updates]")
+                return
+            }
+
+            self.updatedManagedObjectIDs.formUnion(updatedIDs)
+
+            let currentTime = Date()
+            let startTime = self.updateBatchStart ?? currentTime
+
+            if let timer = self.updateBatchTimer {
+                timer.invalidate()
+                self.updateBatchTimer = nil
+            }
+
+            self.updateBatchStart = startTime
+
+            if currentTime.timeIntervalSince(startTime) > 5 {
+                // Send immediately if we've been waiting too long
+                DDLogInfo("WebClientManager/handleManagedObjectNotification/send-immediately")
+                self.updateBatchStart = nil
+                self.sendUpdateBatch()
+            } else {
+                // Wait a few seconds to collect any changes
+                DDLogInfo("WebClientManager/handleManagedObjectNotification/schedule-send")
+                let timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: false) { [weak self] _ in
+                    self?.updateBatchStart = nil
+                    self?.sendUpdateBatch()
+                }
+                self.updateBatchTimer = timer
+            }
+        }
+    }
+
+    private func sendUpdateBatch() {
+        guard let updates = self.feedUpdate(for: self.updatedManagedObjectIDs) else {
+            DDLogError("WebClientManager/sendUpdateBatch/error [no-updates]")
+            return
+        }
+        var webContainer = Web_WebContainer()
+        webContainer.payload = .feedUpdate(updates)
+        do {
+            DDLogInfo("WebClientManager/sendUpdateBatch/sending [\(updates.items.count)]")
+            let responseData = try webContainer.serializedData()
+            self.send(responseData)
+            // TODO: Restore these managed object IDs in event of send failure
+            self.updatedManagedObjectIDs.removeAll()
+        } catch {
+            DDLogError("WebClientManager/sendUpdateBatch/error [serialization]")
         }
     }
 
@@ -321,6 +418,38 @@ final class WebClientManager {
         return FeedDataSource(fetchRequest: FeedDataSource.homeFeedRequest())
     }()
 
+    private func feedUpdate(for managedObjectIDs: Set<NSManagedObjectID>) -> Web_FeedUpdate? {
+        let currentUserID = MainAppContext.shared.userData.userId
+
+        let context = MainAppContext.shared.feedData.viewContext
+        var posts = [FeedPost]()
+        var comments = [FeedPostComment]()
+        for id in managedObjectIDs {
+            let obj = context.object(with: id)
+            if let comment = obj as? FeedPostComment {
+                comments.append(comment)
+            } else if let post = obj as? FeedPost {
+                posts.append(post)
+            }
+        }
+
+        let items = posts.compactMap { Self.feedItem(from: $0) } + comments.compactMap { Self.feedItem(from: $0)}
+        guard !items.isEmpty else {
+            DDLogInfo("WebClientManager/feedUpdate/aborting [no items]")
+            return nil
+        }
+
+        let groupIDs = posts.compactMap { $0.groupID } + comments.compactMap { $0.post.groupID }
+        let userIDs = Self.usersReferenced(in: posts).union(Self.usersReferenced(in: comments))
+
+        var update = Web_FeedUpdate()
+        update.items = items
+        update.groupDisplayInfo = groupDisplayInfo(for: Set(groupIDs))
+        update.userDisplayInfo = userDisplayInfo(for: userIDs)
+        update.postDisplayInfo = posts.map { Self.postDisplayInfo(for: $0, currentUserID: currentUserID) }
+        return update
+    }
+
     private func feedResponse(for request: Web_FeedRequest) -> Web_FeedResponse? {
         let cursor = request.cursor.isEmpty ? nil : request.cursor
         var response: Web_FeedResponse
@@ -412,39 +541,13 @@ final class WebClientManager {
     }
 
     private func commentFeedResponse(with comments: [FeedPostComment], type: Web_FeedType, nextCursor: String?) -> Web_FeedResponse {
-
-        var usersToInclude = Set<UserID>()
-        // Include info for all users who have commented.
-        usersToInclude.formUnion(comments.map { $0.userID })
-        // Include info for all users who are mentioned in comments.
-        usersToInclude.formUnion(comments.flatMap { $0.mentions }.map { $0.userID })
-
         var response = Web_FeedResponse()
         response.type = type
-        response.userDisplayInfo = userDisplayInfo(for: usersToInclude)
+        response.userDisplayInfo = userDisplayInfo(for: Self.usersReferenced(in: comments))
         if let nextCursor = nextCursor {
             response.nextCursor = nextCursor
         }
-        response.items = comments.compactMap { comment in
-            let commentData = comment.commentData
-
-            guard var serverComment = commentData.serverComment else {
-                DDLogError("WebClientManager/commentFeed/comment/\(comment.id)/error [could-not-create-server-comment]")
-                return nil
-            }
-
-            do {
-                // Set unencrypted payload
-                serverComment.payload = try commentData.clientContainer.serializedData()
-            } catch {
-                DDLogError("WebClientManager/commentFeed/comment/\(comment.id)/error [\(error)]")
-                return nil
-            }
-
-            var feedItem = Web_FeedItem()
-            feedItem.content = .comment(serverComment)
-            return feedItem
-        }
+        response.items = comments.compactMap { Self.feedItem(from: $0) }
 
         return response
     }
@@ -452,6 +555,69 @@ final class WebClientManager {
     private func feedResponse(with posts: [FeedPost], type: Web_FeedType, nextCursor: String?) -> Web_FeedResponse {
         let currentUserID = MainAppContext.shared.userData.userId
 
+        var response = Web_FeedResponse()
+        response.type = type
+        response.userDisplayInfo = userDisplayInfo(for: Self.usersReferenced(in: posts))
+        response.postDisplayInfo = posts.map { Self.postDisplayInfo(for: $0, currentUserID: currentUserID) }
+        response.groupDisplayInfo = groupDisplayInfo(for: Set(posts.compactMap { $0.groupID }))
+        if let nextCursor = nextCursor {
+            response.nextCursor = nextCursor
+        }
+        response.items = posts.compactMap { Self.feedItem(from: $0) }
+
+        return response
+    }
+
+    private static func feedItem(from comment: FeedPostComment) -> Web_FeedItem? {
+        let commentData = comment.commentData
+
+        guard var serverComment = commentData.serverComment else {
+            DDLogError("WebClientManager/commentFeed/comment/\(comment.id)/error [could-not-create-server-comment]")
+            return nil
+        }
+
+        do {
+            // Set unencrypted payload
+            serverComment.payload = try commentData.clientContainer.serializedData()
+        } catch {
+            DDLogError("WebClientManager/commentFeed/comment/\(comment.id)/error [\(error)]")
+            return nil
+        }
+
+        var feedItem = Web_FeedItem()
+        feedItem.content = .comment(serverComment)
+        return feedItem
+    }
+
+    private static func feedItem(from post: FeedPost) -> Web_FeedItem? {
+        let postContainerData: Data
+        do {
+            postContainerData = try post.postData.clientContainer.serializedData()
+        } catch {
+            DDLogError("WebClientManager/homeFeed/post/\(post.id)/error [\(error)]")
+            return nil
+        }
+        var serverPost = Server_Post()
+        // TODO: audience, media counters, tag, psa tag, moment unlock uid?
+        serverPost.payload = postContainerData
+        serverPost.id = post.id
+        serverPost.timestamp = Int64(post.timestamp.timeIntervalSince1970)
+        if let publisherUserID = Int64(post.userID) {
+            serverPost.publisherUid = publisherUserID
+        }
+
+        var feedItem = Web_FeedItem()
+        feedItem.content = .post(serverPost)
+        if let expiryTimestamp = post.expiration?.timeIntervalSince1970 {
+            feedItem.expiryTimestamp = Int64(expiryTimestamp)
+        }
+        if let groupID = post.groupID {
+            feedItem.groupID = groupID
+        }
+        return feedItem
+    }
+
+    private static func usersReferenced(in posts: [FeedPost]) -> Set<UserID> {
         var usersToInclude = Set<UserID>()
         // Include info for all users who have posted.
         usersToInclude.formUnion(posts.map { $0.userID })
@@ -459,53 +625,16 @@ final class WebClientManager {
         usersToInclude.formUnion(posts.flatMap { $0.mentions }.map { $0.userID })
         // Include info for all users who have seen your posts.
         usersToInclude.formUnion(posts.flatMap { $0.seenReceipts }.map { $0.userId })
+        return usersToInclude
+    }
 
-        let groupsToInclude = Set<GroupID>(posts.compactMap { $0.groupID })
-        let groupDisplayInfo: [Web_GroupDisplayInfo] = groupsToInclude.compactMap { groupID in
-            guard let group = self.dataStore.group(id: groupID, in: self.dataStore.viewContext) else {
-                DDLogError("WebClientManager/homeFeed/group/error [not-found] [id: \(groupID)]")
-                return nil
-            }
-            return self.groupDisplayInfo(for: group)
-        }
-
-        var response = Web_FeedResponse()
-        response.type = type
-        response.userDisplayInfo = userDisplayInfo(for: usersToInclude)
-        response.postDisplayInfo = posts.map { self.postDisplayInfo(for: $0, currentUserID: currentUserID) }
-        response.groupDisplayInfo = groupDisplayInfo
-        if let nextCursor = nextCursor {
-            response.nextCursor = nextCursor
-        }
-        response.items = posts.compactMap { post in
-            let postContainerData: Data
-            do {
-                postContainerData = try post.postData.clientContainer.serializedData()
-            } catch {
-                DDLogError("WebClientManager/homeFeed/post/\(post.id)/error [\(error)]")
-                return nil
-            }
-            var serverPost = Server_Post()
-            // TODO: audience, media counters, tag, psa tag, moment unlock uid?
-            serverPost.payload = postContainerData
-            serverPost.id = post.id
-            serverPost.timestamp = Int64(post.timestamp.timeIntervalSince1970)
-            if let publisherUserID = Int64(post.userID) {
-                serverPost.publisherUid = publisherUserID
-            }
-
-            var feedItem = Web_FeedItem()
-            feedItem.content = .post(serverPost)
-            if let expiryTimestamp = post.expiration?.timeIntervalSince1970 {
-                feedItem.expiryTimestamp = Int64(expiryTimestamp)
-            }
-            if let groupID = post.groupID {
-                feedItem.groupID = groupID
-            }
-            return feedItem
-        }
-
-        return response
+    private static func usersReferenced(in comments: [FeedPostComment]) -> Set<UserID> {
+        var usersToInclude = Set<UserID>()
+        // Include info for all users who have commented.
+        usersToInclude.formUnion(comments.map { $0.userID })
+        // Include info for all users who are mentioned in comments.
+        usersToInclude.formUnion(comments.flatMap { $0.mentions }.map { $0.userID })
+        return usersToInclude
     }
 
     // MARK: DisplayInfo
@@ -525,6 +654,16 @@ final class WebClientManager {
                 info.contactName = contactName
             }
             return info
+        }
+    }
+
+    func groupDisplayInfo(for groupIDs: Set<GroupID>) -> [Web_GroupDisplayInfo] {
+        return groupIDs.compactMap { groupID in
+            guard let group = self.dataStore.group(id: groupID, in: self.dataStore.viewContext) else {
+                DDLogError("WebClientManager/groupDisplayInfo/group/error [not-found] [id: \(groupID)]")
+                return nil
+            }
+            return self.groupDisplayInfo(for: group)
         }
     }
 
@@ -551,7 +690,7 @@ final class WebClientManager {
         return info
     }
 
-    func postDisplayInfo(for post: FeedPost, currentUserID: UserID) -> Web_PostDisplayInfo {
+    private static func postDisplayInfo(for post: FeedPost, currentUserID: UserID) -> Web_PostDisplayInfo {
         var info = Web_PostDisplayInfo()
         info.id = post.id
         info.isUnsupported = post.isUnsupported
@@ -604,6 +743,7 @@ final class WebClientManager {
         }
         return info
     }
+
     // MARK: Pagination
 
     private struct Page<T> {
