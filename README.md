@@ -6,7 +6,7 @@ HalloApp
 
 ### Prerequisites
 
-iOS 13
+iOS 14
 
 XCode 11
 
