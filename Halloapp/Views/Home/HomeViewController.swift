@@ -335,12 +335,12 @@ class HomeViewController: UITabBarController {
         }
 
         if metadata.isFeedNotification {
-            selectedIndex = 0
+            selectedIndex = TabBarSelection.home.rawValue
         } else if metadata.isGroupAddNotification {
-            selectedIndex = 1
+            selectedIndex = TabBarSelection.group.rawValue
         } else if metadata.isChatNotification || metadata.isContactNotification {
             // we need to show the chatscreen when the notification tapped is chat/friend/inviter notification.
-            selectedIndex = 2
+            selectedIndex = TabBarSelection.chat.rawValue
         } else if metadata.isMissedCallNotification {
             metadata.removeFromUserDefaults()
             // Default to audio call.
