@@ -1051,7 +1051,16 @@ final class ProtoService: ProtoServiceCore {
                 contentType = .post
                 contentID = serverPost.id
             case .comment(let serverComment):
-                contentType = .comment
+                switch serverComment.commentType {
+                case .comment:
+                    contentType = .comment
+                case .commentReaction:
+                    contentType = .commentReaction
+                case .postReaction:
+                    contentType = .postReaction
+                case .UNRECOGNIZED:
+                    contentType = .comment
+                }
                 contentID = serverComment.id
             default:
                 DDLogError("proto/handleGroupFeedItem/\(msg.id)/decrypt/invalid content")

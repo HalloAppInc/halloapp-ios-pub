@@ -706,7 +706,13 @@ extension Server_GroupFeedItem {
     public var contentType: GroupFeedRerequestContentType? {
         switch self.item {
         case .post: return .post
-        case .comment: return .comment
+        case .comment(let comment):
+            switch comment.commentType {
+            case .comment: return .comment
+            case .commentReaction: return .commentReaction
+            case .postReaction: return .postReaction
+            case .UNRECOGNIZED: return .comment
+            }
         default: return nil
         }
     }

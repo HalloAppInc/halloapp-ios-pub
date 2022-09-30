@@ -1223,7 +1223,65 @@ open class CoreFeedData: NSObject {
                         completion(result)
                     }
                 }
-            case .postReaction, .commentReaction, .message, .unknown, .UNRECOGNIZED:
+
+            case .commentReaction:
+                guard let commentReaction = self.commonReaction(with: contentID, in: managedObjectContext) else {
+                    DDLogError("FeedData/handleRerequest/\(contentID)/error could not find comment")
+                    self.service.sendContentMissing(id: contentID, type: .groupCommentReaction, to: userID) { result in
+                        completion(result)
+                    }
+                    return
+                }
+
+                // Reactions have their own rerequest count.
+                managedObjectContext.delete(resendInfo)
+                commentReaction.resendAttempts += 1
+                let rerequestCount = commentReaction.resendAttempts
+                DDLogInfo("FeedData/handleRerequest/reactionID: \(commentReaction.id) begin/userID: \(userID)/rerequestCount: \(rerequestCount)")
+                guard rerequestCount <= 5 else {
+                    DDLogError("FeedData/handleRerequest/\(contentID)/userID: \(userID)/rerequestCount: \(rerequestCount) - aborting")
+                    completion(.failure(.aborted))
+                    return
+                }
+
+                guard let parentComment = commentReaction.comment else {
+                    DDLogInfo("FeedData/handleRerequest/reactionID: \(commentReaction.id) /parentComment is missing")
+                    completion(.failure(.aborted))
+                    return
+                }
+
+                guard let groupId = parentComment.post.groupID else {
+                    DDLogInfo("FeedData/handleRerequest/reactionID: \(commentReaction.id) /groupId is missing")
+                    completion(.failure(.aborted))
+                    return
+                }
+
+                // Handle rerequests for comment reactions based on status.
+                switch commentReaction.outgoingStatus {
+                case .retracting, .retracted:
+                    DDLogInfo("FeedData/handleRerequest/reactionID: \(commentReaction.id)/userID: \(userID)/sending retract")
+                    self.service.retractComment(commentReaction.id, postID: parentComment.post.id, in: groupId, to: userID, completion: completion)
+                default:
+                    let commentData = CommentData(id: commentReaction.id,
+                                                  userId: commentReaction.fromUserID,
+                                                  timestamp: commentReaction.timestamp,
+                                                  feedPostId: parentComment.post.id,
+                                                  parentId: parentComment.id,
+                                                  content: .commentReaction(commentReaction.emoji),
+                                                  status: .sent)
+                    self.service.resendComment(commentData, groupId: groupId, rerequestCount: Int32(rerequestCount), to: userID) { result in
+                        switch result {
+                        case .success():
+                            DDLogInfo("FeedData/handleRerequest/reactionID: \(commentReaction.id) success/userID: \(userID)/rerequestCount: \(rerequestCount)")
+                            // TODO: murali@: update rerequestCount only on success.
+                        case .failure(let error):
+                            DDLogError("FeedData/handleRerequest/reactionID: \(commentReaction.id) error \(error)")
+                        }
+                        completion(result)
+                    }
+                }
+
+            case .postReaction, .message, .unknown, .UNRECOGNIZED:
                 //TODO: handle postReaction and commentReaction cases
                 completion(.failure(.aborted))
             }

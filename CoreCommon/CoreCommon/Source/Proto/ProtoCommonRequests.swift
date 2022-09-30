@@ -202,6 +202,12 @@ private extension DiscreteEvent {
                 report.itemType = .comment
             case .historyResend:
                 report.itemType = .historyResend
+            case .postReaction:
+                report.itemType = .postReaction
+            case .commentReaction:
+                report.itemType = .commentReaction
+            case .chat:
+                report.itemType = .chat
             }
             if error.isEmpty {
                 report.result = .ok

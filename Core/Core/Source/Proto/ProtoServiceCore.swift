@@ -2075,6 +2075,11 @@ extension ProtoServiceCore: CoreService {
             // Update group stats.
             reportGroupDecryptionResult(error: error, contentID: contentID, contentType: .historyResend,
                                         groupID: "", timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount)
+        case .groupCommentReaction:
+            // Update group stats.
+            reportGroupDecryptionResult(error: error, contentID: contentID, contentType: .commentReaction,
+                                        groupID: "", timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount)
+
         case .call:
             // TODO: murali@: check if we are we reporting call stats on 1-1 channel.
             break
@@ -2084,7 +2089,8 @@ extension ProtoServiceCore: CoreService {
         case .homeFeedComment:
             reportHomeDecryptionResult(error: error, contentID: contentID, contentType: .comment,
                                        type: .all, timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount)
-        case .groupChat, .groupPostReaction, .groupCommentReaction, .homePostReaction, .homeCommentReaction:
+
+        case .groupChat, .groupPostReaction, .homePostReaction, .homeCommentReaction:
             // TODO: Handle these cases
             break
         case .UNRECOGNIZED, .unknown:
