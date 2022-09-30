@@ -33,6 +33,8 @@ public enum GroupDecryptionReportContentType: String {
 public enum HomeDecryptionReportContentType: String {
     case post
     case comment
+    case postReaction
+    case commentReaction
 }
 
 public enum HomeDecryptionReportAudienceType: String {

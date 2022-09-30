@@ -1234,6 +1234,7 @@ open class CoreFeedData: NSObject {
                 }
 
                 // Reactions have their own rerequest count.
+                // TODO: avoid creating resendInfo.
                 managedObjectContext.delete(resendInfo)
                 commentReaction.resendAttempts += 1
                 let rerequestCount = commentReaction.resendAttempts
@@ -1384,8 +1385,61 @@ open class CoreFeedData: NSObject {
                         completion(result)
                     }
                 }
-            case .postReaction, .commentReaction, .unknown, .UNRECOGNIZED:
-                //TODO: handle postReaction and commentReaction cases
+
+            case .commentReaction:
+                guard let commentReaction = self.commonReaction(with: contentID, in: managedObjectContext) else {
+                    DDLogError("FeedData/handleRerequest/\(contentID)/error could not find comment")
+                    self.service.sendContentMissing(id: contentID, type: .homeCommentReaction, to: userID) { result in
+                        completion(result)
+                    }
+                    return
+                }
+
+                // Reactions have their own rerequest count.
+                // TODO: avoid creating resendInfo.
+                managedObjectContext.delete(resendInfo)
+                commentReaction.resendAttempts += 1
+                let rerequestCount = commentReaction.resendAttempts
+                DDLogInfo("FeedData/handleRerequest/reactionID: \(commentReaction.id) begin/userID: \(userID)/rerequestCount: \(rerequestCount)")
+                guard rerequestCount <= 5 else {
+                    DDLogError("FeedData/handleRerequest/\(contentID)/userID: \(userID)/rerequestCount: \(rerequestCount) - aborting")
+                    completion(.failure(.aborted))
+                    return
+                }
+
+                guard let parentComment = commentReaction.comment else {
+                    DDLogInfo("FeedData/handleRerequest/reactionID: \(commentReaction.id)/parentComment is missing")
+                    completion(.failure(.aborted))
+                    return
+                }
+
+                // Handle rerequests for comment reactions based on status.
+                switch commentReaction.outgoingStatus {
+                case .retracting, .retracted:
+                    DDLogInfo("FeedData/handleRerequest/reactionID: \(commentReaction.id)/userID: \(userID)/sending retract")
+                    self.service.retractComment(commentReaction.id, postID: parentComment.post.id, in: nil, to: userID, completion: completion)
+                default:
+                    let commentData = CommentData(id: commentReaction.id,
+                                                  userId: commentReaction.fromUserID,
+                                                  timestamp: commentReaction.timestamp,
+                                                  feedPostId: parentComment.post.id,
+                                                  parentId: parentComment.id,
+                                                  content: .commentReaction(commentReaction.emoji),
+                                                  status: .sent)
+                    self.service.resendComment(commentData, groupId: nil, rerequestCount: Int32(rerequestCount), to: userID) { result in
+                        switch result {
+                        case .success():
+                            DDLogInfo("FeedData/handleRerequest/reactionID: \(commentReaction.id) success/userID: \(userID)/rerequestCount: \(rerequestCount)")
+                            // TODO: murali@: update rerequestCount only on success.
+                        case .failure(let error):
+                            DDLogError("FeedData/handleRerequest/reactionID: \(commentReaction.id) error \(error)")
+                        }
+                        completion(result)
+                    }
+                }
+
+            case .postReaction, .unknown, .UNRECOGNIZED:
+                //TODO: handle postReaction cases
                 completion(.failure(.aborted))
             }
         }

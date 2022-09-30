@@ -169,6 +169,10 @@ private extension DiscreteEvent {
                 report.itemType = .post
             case .comment:
                 report.itemType = .comment
+            case .postReaction:
+                report.itemType = .postReaction
+            case .commentReaction:
+                report.itemType = .commentReaction
             }
             if error.isEmpty {
                 report.result = .ok

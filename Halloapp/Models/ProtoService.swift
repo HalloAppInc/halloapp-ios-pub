@@ -907,7 +907,16 @@ final class ProtoService: ProtoServiceCore {
                 contentType = .post
                 postID = post.id
             case .comment(let comment):
-                contentType = .comment
+                switch comment.commentType {
+                case .commentReaction:
+                    contentType = .commentReaction
+                case .postReaction:
+                    contentType = .postReaction
+                case .comment:
+                    contentType = .comment
+                case .UNRECOGNIZED:
+                    contentType = .comment
+                }
                 postID = comment.postID
             default:
                 DDLogError("proto/handleFeedItem/invalid item stanza")
