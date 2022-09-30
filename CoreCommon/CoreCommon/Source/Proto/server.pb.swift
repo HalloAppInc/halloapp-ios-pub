@@ -1311,6 +1311,12 @@ public struct Server_GroupStanza {
     set {_uniqueStorage()._groupType = newValue}
   }
 
+  /// If set, override the max_group_size prop value.
+  public var maxGroupSize: Int64 {
+    get {return _storage._maxGroupSize}
+    set {_uniqueStorage()._maxGroupSize = newValue}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum Action: SwiftProtobuf.Enum {
@@ -3446,6 +3452,66 @@ extension Server_WebClientInfo.Result: CaseIterable {
 
 #endif  // swift(>=4.2)
 
+public struct Server_ReportUserContent {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var type: Server_ReportUserContent.TypeEnum = .unknownType
+
+  public var uid: Int64 = 0
+
+  public var contentID: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum TypeEnum: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknownType // = 0
+    case user // = 1
+    case post // = 2
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknownType
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknownType
+      case 1: self = .user
+      case 2: self = .post
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknownType: return 0
+      case .user: return 1
+      case .post: return 2
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Server_ReportUserContent.TypeEnum: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_ReportUserContent.TypeEnum] = [
+    .unknownType,
+    .user,
+    .post,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 public struct Server_WebStanza {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -3950,6 +4016,14 @@ public struct Server_Iq {
     set {payload = .webClientInfo(newValue)}
   }
 
+  public var reportUserContent: Server_ReportUserContent {
+    get {
+      if case .reportUserContent(let v)? = payload {return v}
+      return Server_ReportUserContent()
+    }
+    set {payload = .reportUserContent(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Payload: Equatable {
@@ -3995,6 +4069,7 @@ public struct Server_Iq {
     case externalSharePost(Server_ExternalSharePost)
     case externalSharePostContainer(Server_ExternalSharePostContainer)
     case webClientInfo(Server_WebClientInfo)
+    case reportUserContent(Server_ReportUserContent)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Iq.OneOf_Payload, rhs: Server_Iq.OneOf_Payload) -> Bool {
@@ -4160,6 +4235,10 @@ public struct Server_Iq {
       }()
       case (.webClientInfo, .webClientInfo): return {
         guard case .webClientInfo(let l) = lhs, case .webClientInfo(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.reportUserContent, .reportUserContent): return {
+        guard case .reportUserContent(let l) = lhs, case .reportUserContent(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -7504,6 +7583,8 @@ extension Server_ExternalSharePostContainer: @unchecked Sendable {}
 extension Server_WebClientInfo: @unchecked Sendable {}
 extension Server_WebClientInfo.Action: @unchecked Sendable {}
 extension Server_WebClientInfo.Result: @unchecked Sendable {}
+extension Server_ReportUserContent: @unchecked Sendable {}
+extension Server_ReportUserContent.TypeEnum: @unchecked Sendable {}
 extension Server_WebStanza: @unchecked Sendable {}
 extension Server_WebStanza.OneOf_Payload: @unchecked Sendable {}
 extension Server_ContentMissing: @unchecked Sendable {}
@@ -9321,6 +9402,7 @@ extension Server_GroupStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     11: .standard(proto: "history_resend"),
     12: .standard(proto: "expiry_info"),
     13: .standard(proto: "group_type"),
+    14: .standard(proto: "max_group_size"),
   ]
 
   fileprivate class _StorageClass {
@@ -9337,6 +9419,7 @@ extension Server_GroupStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     var _historyResend: Server_HistoryResend? = nil
     var _expiryInfo: Server_ExpiryInfo? = nil
     var _groupType: Server_GroupStanza.GroupType = .feed
+    var _maxGroupSize: Int64 = 0
 
     static let defaultInstance = _StorageClass()
 
@@ -9356,6 +9439,7 @@ extension Server_GroupStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       _historyResend = source._historyResend
       _expiryInfo = source._expiryInfo
       _groupType = source._groupType
+      _maxGroupSize = source._maxGroupSize
     }
   }
 
@@ -9387,6 +9471,7 @@ extension Server_GroupStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
         case 11: try { try decoder.decodeSingularMessageField(value: &_storage._historyResend) }()
         case 12: try { try decoder.decodeSingularMessageField(value: &_storage._expiryInfo) }()
         case 13: try { try decoder.decodeSingularEnumField(value: &_storage._groupType) }()
+        case 14: try { try decoder.decodeSingularInt64Field(value: &_storage._maxGroupSize) }()
         default: break
         }
       }
@@ -9438,6 +9523,9 @@ extension Server_GroupStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       if _storage._groupType != .feed {
         try visitor.visitSingularEnumField(value: _storage._groupType, fieldNumber: 13)
       }
+      if _storage._maxGroupSize != 0 {
+        try visitor.visitSingularInt64Field(value: _storage._maxGroupSize, fieldNumber: 14)
+      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -9460,6 +9548,7 @@ extension Server_GroupStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
         if _storage._historyResend != rhs_storage._historyResend {return false}
         if _storage._expiryInfo != rhs_storage._expiryInfo {return false}
         if _storage._groupType != rhs_storage._groupType {return false}
+        if _storage._maxGroupSize != rhs_storage._maxGroupSize {return false}
         return true
       }
       if !storagesAreEqual {return false}
@@ -12227,6 +12316,58 @@ extension Server_WebClientInfo.Result: SwiftProtobuf._ProtoNameProviding {
   ]
 }
 
+extension Server_ReportUserContent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ReportUserContent"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "type"),
+    2: .same(proto: "uid"),
+    3: .standard(proto: "content_id"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.type) }()
+      case 2: try { try decoder.decodeSingularInt64Field(value: &self.uid) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.contentID) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.type != .unknownType {
+      try visitor.visitSingularEnumField(value: self.type, fieldNumber: 1)
+    }
+    if self.uid != 0 {
+      try visitor.visitSingularInt64Field(value: self.uid, fieldNumber: 2)
+    }
+    if !self.contentID.isEmpty {
+      try visitor.visitSingularStringField(value: self.contentID, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_ReportUserContent, rhs: Server_ReportUserContent) -> Bool {
+    if lhs.type != rhs.type {return false}
+    if lhs.uid != rhs.uid {return false}
+    if lhs.contentID != rhs.contentID {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_ReportUserContent.TypeEnum: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN_TYPE"),
+    1: .same(proto: "USER"),
+    2: .same(proto: "POST"),
+  ]
+}
+
 extension Server_WebStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".WebStanza"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -12407,6 +12548,7 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
     43: .standard(proto: "external_share_post"),
     44: .standard(proto: "external_share_post_container"),
     45: .standard(proto: "web_client_info"),
+    46: .standard(proto: "report_user_content"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -12937,6 +13079,19 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
           self.payload = .webClientInfo(v)
         }
       }()
+      case 46: try {
+        var v: Server_ReportUserContent?
+        var hadOneofValue = false
+        if let current = self.payload {
+          hadOneofValue = true
+          if case .reportUserContent(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.payload = .reportUserContent(v)
+        }
+      }()
       default: break
       }
     }
@@ -13113,6 +13268,10 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
     case .webClientInfo?: try {
       guard case .webClientInfo(let v)? = self.payload else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 45)
+    }()
+    case .reportUserContent?: try {
+      guard case .reportUserContent(let v)? = self.payload else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 46)
     }()
     case nil: break
     }

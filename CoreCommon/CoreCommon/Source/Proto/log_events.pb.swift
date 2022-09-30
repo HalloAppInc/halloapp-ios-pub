@@ -979,6 +979,7 @@ public struct Server_GroupDecryptionReport {
     case historyResend // = 3
     case postReaction // = 4
     case commentReaction // = 5
+    case chat // = 6
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -993,6 +994,7 @@ public struct Server_GroupDecryptionReport {
       case 3: self = .historyResend
       case 4: self = .postReaction
       case 5: self = .commentReaction
+      case 6: self = .chat
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -1005,6 +1007,7 @@ public struct Server_GroupDecryptionReport {
       case .historyResend: return 3
       case .postReaction: return 4
       case .commentReaction: return 5
+      case .chat: return 6
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -1062,6 +1065,7 @@ extension Server_GroupDecryptionReport.ItemType: CaseIterable {
     .historyResend,
     .postReaction,
     .commentReaction,
+    .chat,
   ]
 }
 
@@ -2938,6 +2942,7 @@ extension Server_GroupDecryptionReport.ItemType: SwiftProtobuf._ProtoNameProvidi
     3: .same(proto: "HISTORY_RESEND"),
     4: .same(proto: "POST_REACTION"),
     5: .same(proto: "COMMENT_REACTION"),
+    6: .same(proto: "CHAT"),
   ]
 }
 
