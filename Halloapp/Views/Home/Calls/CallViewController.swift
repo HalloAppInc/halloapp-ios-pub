@@ -748,11 +748,6 @@ final class CallViewButton: UIButton {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.layer.cornerRadius = diameter / 2
-        if let imageView = imageView {
-            view.addSubview(imageView)
-            imageView.contentMode = .scaleAspectFit
-        }
-
         view.heightAnchor.constraint(equalToConstant: diameter).isActive = true
         view.widthAnchor.constraint(equalToConstant: diameter).isActive = true
         return view

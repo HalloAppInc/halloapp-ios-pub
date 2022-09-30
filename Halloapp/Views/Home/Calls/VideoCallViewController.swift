@@ -33,7 +33,14 @@ class VideoCallViewController: CallViewController {
 
     private var callStatus = CallStatus.calling
     private var useCallStatus: Bool = false
+    private var speakerOn: Bool = true
+    var selectedOutputPortType: AVAudioSession.Port = .builtInSpeaker
+    var selectedOutputName: String = Localizations.callSpeaker
+    var routeChangeSubscriber: AnyCancellable?
 
+    private let speakerImage = UIImage(systemName: "speaker.wave.3.fill")
+    private let earphonesImage = UIImage(systemName: "earpods")
+    private let carplayImage = UIImage(systemName: "car")
     private let camImage = UIImage(systemName: "arrow.triangle.2.circlepath.camera.fill")
     private let micImage = UIImage(systemName: "mic.slash.fill")
     private let videoImage = UIImage(systemName: "video.slash.fill")
@@ -134,6 +141,7 @@ class VideoCallViewController: CallViewController {
         buttonPanel.addArrangedSubview(camButton)
         buttonPanel.addArrangedSubview(videoButton)
         buttonPanel.addArrangedSubview(micButton)
+        buttonPanel.addArrangedSubview(speakerButton)
         buttonPanel.addArrangedSubview(endCallButton)
         return buttonPanel
     }()
@@ -142,6 +150,8 @@ class VideoCallViewController: CallViewController {
         let button = VideoCallViewButton(image: camImage, title: "")
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(camButtonTapped), for: .touchUpInside)
+        let edgeInset = (VideoCallViewButton.Style.normal.circleDiameter - VideoCallViewButton.Style.normal.iconHeight)/2
+        button.contentEdgeInsets = UIEdgeInsets(top: edgeInset, left: 0, bottom: edgeInset, right: 0)
         return button
     }()
 
@@ -149,6 +159,8 @@ class VideoCallViewController: CallViewController {
         let button = VideoCallViewButton(image: videoImage, title: "")
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(videoButtonTapped), for: .touchUpInside)
+        let edgeInset = (VideoCallViewButton.Style.normal.circleDiameter - VideoCallViewButton.Style.normal.iconHeight)/2
+        button.contentEdgeInsets = UIEdgeInsets(top: edgeInset, left: 0, bottom: edgeInset, right: 0)
         return button
     }()
 
@@ -156,14 +168,84 @@ class VideoCallViewController: CallViewController {
         let button = VideoCallViewButton(image: micImage, title: "")
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(micButtonTapped), for: .touchUpInside)
+        let edgeInset = (VideoCallViewButton.Style.normal.circleDiameter - VideoCallViewButton.Style.normal.iconHeight)/2
+        button.contentEdgeInsets = UIEdgeInsets(top: edgeInset, left: 0, bottom: edgeInset, right: 0)
         return button
     }()
+
+    // TODO: perhaps merge with the mute button like whatsapp does.
+    private lazy var speakerButton: VideoCallViewButton = {
+        let button = VideoCallViewButton(image: speakerImage, title: "")
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.isSelected = true
+        let edgeInset = (VideoCallViewButton.Style.normal.circleDiameter - VideoCallViewButton.Style.normal.iconHeight)/2
+        button.contentEdgeInsets = UIEdgeInsets(top: edgeInset, left: 0, bottom: edgeInset, right: 0)
+        return button
+    }()
+
+    func updateSpeakerButton() {
+        if #available(iOS 14.0, *) {
+            let inputs = RTCAudioSession.sharedInstance().session.availableInputs ?? []
+            if inputs.count > 1 {
+                speakerButton.showsMenuAsPrimaryAction = true
+                var menuItems: [UIMenuElement] = []
+                menuItems += inputs.compactMap { input in
+                    let title = input.portName
+                    if input.portType == .builtInMic {
+                        return nil
+                    } else {
+                        var state: UIMenuElement.State = .off
+                        if selectedOutputName == input.portName && speakerOn == false {
+                            state = .on
+                        } else {
+                            state = .off
+                        }
+                        return UIAction(title: title,
+                                        state: state,
+                                        handler: { _ in
+                            self.selectedOutputPortType = input.portType
+                            self.selectedOutputName = input.portName
+                            self.speakerOn = false
+                            self.selectAudioInput(input: input)
+                            self.updateSpeakerButton()
+                        })
+                    }
+                }
+
+                menuItems.append(UIAction(title: Localizations.callSpeaker, state: speakerOn ? .on : .off, handler: { _ in
+                    self.selectedOutputPortType = .builtInSpeaker
+                    self.selectedOutputName = Localizations.callSpeaker
+                    self.speakerOn = true
+                    self.setSpeakerOn()
+                    self.updateSpeakerButton()
+                }))
+                if #available(iOS 15.0, *) {
+                    speakerButton.menu = UIMenu(options: [.singleSelection], children: menuItems)
+                } else {
+                    // Fallback on earlier versions
+                    speakerButton.menu = UIMenu(children: menuItems)
+                }
+                speakerButton.removeTarget(self, action: #selector(speakerButtonTapped), for: .touchUpInside)
+            } else {
+                speakerButton.showsMenuAsPrimaryAction = false
+                speakerButton.menu = nil
+                speakerButton.image = speakerImage
+                speakerButton.addTarget(self, action: #selector(speakerButtonTapped), for: .touchUpInside)
+            }
+        } else {
+            // handle this.
+            speakerButton.image = speakerImage
+            speakerButton.addTarget(self, action: #selector(speakerButtonTapped), for: .touchUpInside)
+        }
+    }
 
     private lazy var endCallButton: VideoCallViewButton = {
         let button = VideoCallViewButton(image: endCallImage, title: "", style: .destructive)
         button.tintColor = .red
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(endCallButtonTapped), for: .touchUpInside)
+        let edgeInset = (VideoCallViewButton.Style.destructive.circleDiameter - VideoCallViewButton.Style.destructive.iconHeight)/2
+        button.contentEdgeInsets = UIEdgeInsets(top: edgeInset, left: 0, bottom: edgeInset, right: 0)
         return button
     }()
 
@@ -466,6 +548,16 @@ class VideoCallViewController: CallViewController {
                     }
                 })
         }
+
+        updateSpeakerButton()
+
+        // Listen to route updates and update speaker button accordingly.
+        routeChangeSubscriber?.cancel()
+        routeChangeSubscriber = NotificationCenter.default.publisher(for: AVAudioSession.routeChangeNotification)
+            .sink(receiveValue: { [weak self] notification in
+                guard let self = self else { return }
+                self.updateSpeakerButton()
+            })
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -596,6 +688,28 @@ class VideoCallViewController: CallViewController {
         }
     }
 
+    @objc func speakerButtonTapped(sender: UIButton) {
+        speakerOn = !speakerOn
+        let prevImage = self.speakerButton.image
+        let prevSelectedState = self.speakerButton.isSelected
+        self.speakerButton.image = self.speakerImage
+        self.speakerButton.isSelected = self.speakerOn
+        DDLogInfo("VideoCallViewController/speakerButtonTapped/speakerOn: \(speakerOn)")
+        callManager.setSpeakerCall(speaker: speakerOn) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .failure(let error):
+                    DDLogError("VideoCallViewController/speakerButtonTapped/failed: \(error)")
+                    self.speakerButton.image = prevImage
+                    self.speakerButton.isSelected = prevSelectedState
+                case .success:
+                    DDLogError("VideoCallViewController/speakerButtonTapped/success")
+                    self.speakerButton.isSelected = self.speakerOn
+                }
+            }
+        }
+    }
+
     @objc func endCallButtonTapped(sender: UIButton) {
         DDLogInfo("VideoCallViewController/endCallButtonTapped")
         callManager.endCall(reason: .ended) { [weak self] result in
@@ -614,6 +728,71 @@ class VideoCallViewController: CallViewController {
 
     @objc func didTapBack() {
         backAction?()
+    }
+
+    func selectAudioInput(input: AVAudioSessionPortDescription) {
+        DDLogInfo("VideoCallViewController/selectAudioInput/input: \(input)")
+        var speakerButtonImage = speakerImage
+        var speakerButtonSelected = false
+        switch input.portType {
+        case .builtInMic:
+            speakerOn = false
+            speakerButtonSelected = false
+        case .bluetoothHFP:
+            speakerButtonImage = earphonesImage
+            speakerButtonSelected = true
+        case .carAudio:
+            speakerButtonImage = carplayImage
+            speakerButtonSelected = true
+        default:
+            speakerOn = true
+            speakerButtonSelected = true
+        }
+        let prevImage = self.speakerButton.image
+        let prevSelectedState = self.speakerButton.isSelected
+        self.speakerButton.image = speakerButtonImage
+        self.speakerButton.isSelected = speakerButtonSelected
+        callManager.setPreferredInput(input: input) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .failure(let error):
+                    DDLogError("VideoCallViewController/selectAudioInput/failed: \(error)")
+                    self.speakerButton.image = prevImage
+                    self.speakerButton.isSelected = prevSelectedState
+                case .success:
+                    DDLogError("VideoCallViewController/selectAudioInput/success")
+                }
+            }
+        }
+    }
+
+    func setSpeakerOn() {
+        DDLogInfo("CallViewController/setSpeakerOn")
+        speakerOn = true
+        setSpeaker(speaker: speakerOn)
+    }
+
+    func setSpeakerOff() {
+        DDLogInfo("CallViewController/setSpeakerOff")
+        speakerOn = false
+        setSpeaker(speaker: speakerOn)
+    }
+
+    func setSpeaker(speaker: Bool) {
+        speakerOn = speaker
+        DDLogInfo("CallViewController/setSpeakerOn/speakerOn: \(speakerOn)")
+        callManager.setSpeakerCall(speaker: speakerOn) { [weak self] result in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                switch result {
+                case .failure(let error):
+                    DDLogError("CallViewController/setSpeakerOn/failed: \(error)")
+                case .success:
+                    self.speakerButton.image = self.speakerImage
+                    self.speakerButton.isSelected = self.speakerOn
+                }
+            }
+        }
     }
 
     // MARK:- CallViewDelegate
@@ -823,7 +1002,7 @@ extension VideoCallViewController: RTCVideoViewDelegate {
 
 }
 
-final class VideoCallViewButton: UIControl {
+final class VideoCallViewButton: UIButton {
 
     struct Style {
         var circleDiameter: CGFloat = 48
@@ -846,11 +1025,15 @@ final class VideoCallViewButton: UIControl {
         self.diameter = style.circleDiameter
         super.init(frame: .zero)
         circleView.backgroundColor = style.circleColor
-        imageView.image = image
+        self.image = image
+        self.style = style
+        imageView?.tintColor = .white
+        imageView?.translatesAutoresizingMaskIntoConstraints = false
+        setImage(image?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
+        setImage(image?.withTintColor(.black, renderingMode: .alwaysOriginal), for: .selected)
         label.text = title
-        addSubview(circleView)
+        insertSubview(circleView, at: 0)
         addSubview(label)
-        imageView.heightAnchor.constraint(equalToConstant: style.iconHeight).isActive = true
         circleView.isUserInteractionEnabled = false
         circleView.constrain([.top, .centerX], to: self)
         circleView.widthAnchor.constraint(lessThanOrEqualTo: widthAnchor).isActive = true
@@ -864,17 +1047,13 @@ final class VideoCallViewButton: UIControl {
 
     let diameter: CGFloat
 
-    var image: UIImage? {
-        get { imageView.image }
-        set { imageView.image = newValue }
-    }
+    var image: UIImage?
+    var style: Style = .normal
 
-    private let imageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.tintColor = .white
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        return imageView
-    }()
+    override func setImage(_ image: UIImage?, for state: UIControl.State) {
+        let configuredImage = image?.withConfiguration(UIImage.SymbolConfiguration(pointSize: style.iconHeight))
+        super.setImage(configuredImage, for: state)
+    }
 
     private let label: UILabel = {
         let label = UILabel()
@@ -888,13 +1067,7 @@ final class VideoCallViewButton: UIControl {
     private lazy var circleView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(imageView)
         view.layer.cornerRadius = diameter / 2
-
-        imageView.widthAnchor.constraint(equalToConstant: diameter).isActive = true
-        imageView.contentMode = .scaleAspectFit
-        imageView.constrain([.centerX, .centerY], to: view)
-
         view.heightAnchor.constraint(equalToConstant: diameter).isActive = true
         view.widthAnchor.constraint(equalToConstant: diameter).isActive = true
         return view
@@ -904,10 +1077,8 @@ final class VideoCallViewButton: UIControl {
         didSet {
             if isSelected {
                 circleView.backgroundColor = UIColor.white
-                imageView.image  = image?.withTintColor(.black, renderingMode: .alwaysOriginal)
             } else {
                 circleView.backgroundColor = UIColor.black.withAlphaComponent(0.6)
-                imageView.image  = image?.withTintColor(.white, renderingMode: .alwaysOriginal)
             }
         }
     }
