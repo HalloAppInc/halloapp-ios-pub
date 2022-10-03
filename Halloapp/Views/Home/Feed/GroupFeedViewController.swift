@@ -39,6 +39,10 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
             }
         }
     }
+
+    override var isThemed: Bool {
+        return theme != 0
+    }
     
     private var currentUnreadThreadGroupCount = 0
     private var currentUnseenGroupFeedList: [GroupID: Int] = [:]
@@ -300,8 +304,15 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
     override func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         super.collectionView(collectionView, willDisplay: cell, forItemAt: indexPath)
 
-        if case .event(let feedEvent) = feedDataSource.item(at: indexPath.item), let groupEvent = feedEvent.groupEvent {
-            MainAppContext.shared.chatData.markGroupEventAsRead(groupEvent: groupEvent)
+        if case .event(let feedEvent) = feedDataSource.item(at: indexPath.item) {
+            switch feedEvent {
+            case .groupEvent(let groupEvent):
+                MainAppContext.shared.chatData.markGroupEventAsRead(groupEvent: groupEvent)
+            case .collapsedGroupEvents(let groupEvents):
+                groupEvents.forEach { MainAppContext.shared.chatData.markGroupEventAsRead(groupEvent: $0) }
+            default:
+                break
+            }
         }
     }
 
@@ -406,9 +417,7 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
 
     private func populateEvents() {
         let groupFeedEvents = MainAppContext.shared.chatData.groupFeedEvents(with: self.groupId, in: MainAppContext.shared.chatData.viewContext)
-        let feedEvents: [FeedEvent] = groupFeedEvents.map {
-            FeedEvent(description: $0.text ?? "", timestamp: $0.timestamp, isThemed: theme != 0, groupEvent: $0)
-        }
+        let feedEvents: [FeedEvent] = groupFeedEvents.map { .groupEvent($0) }
 
         feedDataSource.events = feedEvents
         feedDataSource.refresh()

@@ -82,7 +82,14 @@ final class FeedDataSource: NSObject {
         return displayItems.firstIndex {
             switch $0 {
             case .event(let feedEvent):
-                return feedEvent.groupEvent == groupEvent
+                switch feedEvent {
+                case .groupEvent(let event):
+                    return event == groupEvent
+                case .collapsedGroupEvents(let events):
+                    return events.contains { $0 == groupEvent }
+                default:
+                    return false
+                }
             default:
                 return false
             }
@@ -134,24 +141,72 @@ final class FeedDataSource: NSObject {
         }
         delegate?.itemsDidChange(displayItems)
     }
-    
-    func expand(expandItem: FeedDisplayItem) {
-        var thisEvent: FeedEvent?
-        var index = -1
-        for term in displayItems {
-            index += 1
-            if let evt = term.event {
-                if expandItem == term {
-                    thisEvent = evt
-                    break
-                }
-            }
+
+    func toggleExpansion(feedEvent: FeedEvent) {
+        guard let index = displayItems.firstIndex(of: .event(feedEvent)) else {
+            DDLogError("FeedDataSource/toggleExpansion/could not find feedEvent")
+            return
         }
-        if let thisEvent = thisEvent {
-            displayItems.remove(at: index)
-            for addDeletion in thisEvent.containingItems! {
-                displayItems.insert(addDeletion, at: index)
+
+        switch feedEvent {
+        case .groupEvent(let groupEvent):
+            var groupEvents: [GroupEvent] = [groupEvent]
+            var firstIndex = index
+            while firstIndex > 0,
+                  case .event(let previousFeedEvent) = displayItems[firstIndex - 1],
+                  case .groupEvent(let previousGroupEvent) = previousFeedEvent,
+                  groupEvent.canCollapse(with: previousGroupEvent) {
+                groupEvents.insert(previousGroupEvent, at: 0)
+                firstIndex -= 1
             }
+
+            var lastIndex = index
+            while lastIndex < displayItems.count - 1,
+                  case .event(let nextFeedEvent) = displayItems[lastIndex + 1],
+                  case .groupEvent(let nextGroupEvent) = nextFeedEvent,
+                  groupEvent.canCollapse(with: nextGroupEvent){
+                groupEvents.append(nextGroupEvent)
+                lastIndex += 1
+            }
+
+            if groupEvents.count >= 3 {
+                groupEvents.forEach { expandedEventObjectIDs.remove($0.objectID) }
+                displayItems.replaceSubrange(Range(uncheckedBounds: (firstIndex, lastIndex + 1)), with: [.event(.collapsedGroupEvents(groupEvents))])
+            }
+        case .collapsedGroupEvents(let groupEvents):
+            groupEvents.forEach { groupEvent in
+                expandedEventObjectIDs.insert(groupEvent.objectID)
+            }
+            displayItems.remove(at: index)
+            displayItems.insert(contentsOf: groupEvents.map { .event(.groupEvent($0)) }, at: index)
+        case .deletedPost(let feedPost):
+            var retractedPosts: [FeedPost] = [feedPost]
+            var firstIndex = index
+            while firstIndex > 0,
+                  case .event(let previousFeedEvent) = displayItems[firstIndex - 1],
+                  case .deletedPost(let previousRetractedPost) = previousFeedEvent {
+                retractedPosts.insert(previousRetractedPost, at: 0)
+                firstIndex -= 1
+            }
+
+            var lastIndex = index
+            while lastIndex < displayItems.count - 1,
+                  case .event(let nextFeedEvent) = displayItems[lastIndex + 1],
+                  case .deletedPost(let nextRetractedPost) = nextFeedEvent {
+                retractedPosts.append(nextRetractedPost)
+                lastIndex += 1
+            }
+
+            if retractedPosts.count >= 3 {
+                retractedPosts.forEach { expandedRetractedPostIDs.remove($0.id) }
+                displayItems.replaceSubrange(Range(uncheckedBounds: (firstIndex, lastIndex + 1)), with: [.event(.collapsedDeletedPosts(retractedPosts))])
+            }
+        case .collapsedDeletedPosts(let feedPosts):
+            feedPosts.forEach { feedPost in
+                expandedRetractedPostIDs.insert(feedPost.id)
+            }
+            displayItems.remove(at: index)
+            displayItems.insert(contentsOf: feedPosts.map { .event(.deletedPost($0)) }, at: index)
         }
         delegate?.itemsDidChange(displayItems)
     }
@@ -160,6 +215,9 @@ final class FeedDataSource: NSObject {
 
     private var fetchedResultsController: NSFetchedResultsController<FeedPost>?
     private let fetchRequest: NSFetchRequest<FeedPost>
+
+    private var expandedEventObjectIDs: Set<NSManagedObjectID> = []
+    private var expandedRetractedPostIDs: Set<FeedPostID> = []
 
     private func newFetchedResultsController() -> NSFetchedResultsController<FeedPost> {
         let fetchedResultsController = NSFetchedResultsController<FeedPost>(
@@ -171,50 +229,93 @@ final class FeedDataSource: NSObject {
         return fetchedResultsController
     }
 
-    private func mergeDeletionPosts(originalItems: [FeedDisplayItem])->[FeedDisplayItem] {
-        var displayItems = originalItems
-        var count = 0
-        var begin = 0
-        var num = -1
-        for item in displayItems {
-            num += 1
-            var isRetracted = false
-            if let thisPost = item.post {
-                if thisPost.isPostRetracted {
-                    count += 1
-                    isRetracted = true
-                }
+    private func mergeEvents(in displayItems: [FeedDisplayItem]) -> [FeedDisplayItem] {
+        var mergedDisplayItems: [FeedDisplayItem] = []
+        var pendingGroupEvents: [GroupEvent]?
+        var pendingRetractedPosts: [FeedPost]?
+
+        let appendPendingGroupEvents = {
+            guard let groupEvents = pendingGroupEvents else {
+                return
             }
-            if ((!isRetracted) || (num == displayItems.count && isRetracted)) {
-                if count >= 3 {
-                    let newEvent = FeedEvent(description: Self.deletedPostWithNumber(from: num-begin),
-                                               timestamp: displayItems[begin].post?.timestamp ?? Date(),
-                                                isThemed: false,
-                                         containingItems: Array(displayItems[begin..<num]))
-                    var pos = num - 1
-                    while pos >= begin {
-                        displayItems.remove(at: pos)
-                        pos -= 1
+            if groupEvents.count >= 3 {
+                mergedDisplayItems.append(.event(.collapsedGroupEvents(groupEvents)))
+            } else {
+                mergedDisplayItems.append(contentsOf: groupEvents.map { .event(.groupEvent($0)) })
+            }
+            pendingGroupEvents = nil
+        }
+
+        let appendPendingRetractedPosts = {
+            guard let retractedPosts = pendingRetractedPosts  else {
+                return
+            }
+            if retractedPosts.count >= 3 {
+                mergedDisplayItems.append(.event(.collapsedDeletedPosts(retractedPosts)))
+            } else {
+                mergedDisplayItems.append(contentsOf: retractedPosts.map { .event(.deletedPost($0)) })
+            }
+            pendingRetractedPosts = nil
+        }
+
+        // Keep a buffer of events or posts that can be merged, and append once events no longer match.
+        for displayItem in displayItems {
+            if case .event(let feedEvent) = displayItem {
+                switch feedEvent {
+                case .deletedPost(let feedPost):
+                    appendPendingGroupEvents()
+
+                    if !(pendingRetractedPosts?.isEmpty ?? true), !expandedRetractedPostIDs.contains(feedPost.id) {
+                        pendingRetractedPosts?.append(feedPost)
+                    } else {
+                        appendPendingRetractedPosts()
+                        pendingRetractedPosts = [feedPost]
                     }
-                    num = pos + 1
-                    displayItems.insert(FeedDisplayItem.event(newEvent), at: num)
-                    num += 1
+                case .groupEvent(let groupEvent):
+                    appendPendingRetractedPosts()
+
+                    if let lastGroupEvent = pendingGroupEvents?.last, groupEvent.canCollapse(with: lastGroupEvent), !expandedEventObjectIDs.contains(groupEvent.objectID) {
+                        pendingGroupEvents?.append(groupEvent)
+                    } else {
+                        appendPendingGroupEvents()
+                        pendingGroupEvents = [groupEvent]
+                    }
+                default:
+                    appendPendingGroupEvents()
+                    appendPendingRetractedPosts()
+                    mergedDisplayItems.append(displayItem)
                 }
-                count = 0
-                begin = num + 1
+            } else {
+                appendPendingGroupEvents()
+                appendPendingRetractedPosts()
+                mergedDisplayItems.append(displayItem)
             }
         }
-        return displayItems
+
+        appendPendingGroupEvents()
+        appendPendingRetractedPosts()
+
+        return mergedDisplayItems
     }
 
     /// Merges lists of posts and events (sorted by descending timestamp) into a single display item list
     private func makeDisplayItems(orderedPosts: [FeedPost], orderedEvents: [FeedEvent]) -> [FeedDisplayItem] {
         var originalItems = [FeedDisplayItem]()
         let (filteredPosts, validMoments) = filterOutMoments(orderedPosts)
-        
-        originalItems.append(contentsOf: filteredPosts.map { $0.isMoment ? .moment($0) : .post($0) })
-        originalItems.append(contentsOf: orderedEvents.map { FeedDisplayItem.event($0) })
-        
+
+        originalItems += filteredPosts.map { feedPost in
+            if feedPost.isPostRetracted {
+                return .event(.deletedPost(feedPost))
+            } else if feedPost.isMoment {
+                return .moment(feedPost)
+            } else {
+                return .post(feedPost)
+            }
+        }
+        originalItems += orderedEvents.map { event in
+            return .event(event)
+        }
+
         originalItems = originalItems.sorted {
             let t1 = $0.post?.timestamp ?? $0.event?.timestamp ?? Date()
             let t2 = $1.post?.timestamp ?? $1.event?.timestamp ?? Date()
@@ -227,9 +328,7 @@ final class FeedDataSource: NSObject {
 
         self.momentItems = validMoments
 
-        //merge consecutive deletion posts when the count of consecutive deletion posts >=3
-        let displayItems = mergeDeletionPosts(originalItems: originalItems)
-        return displayItems
+        return mergeEvents(in: originalItems)
     }
 
     /// Filters out expired moments and seperates valid moments from regular feed posts.
@@ -355,11 +454,6 @@ extension FeedDataSource {
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
         return fetchRequest
     }
-    
-    static func deletedPostWithNumber(from number: Int) -> String {
-        let format = NSLocalizedString("n.posts.deleted", value: "%@ posts deleted", comment: "Displayed in place of deleted feed posts.")
-        return String(format: format, String(number))
-    }
 }
 
 enum FeedDisplaySection {
@@ -417,12 +511,43 @@ struct FeedPostDisplayData: Equatable {
     var textNumberOfLines: Int?
 }
 
-struct FeedEvent: Hashable, Equatable {
-    var description: String
-    var timestamp: Date
-    var isThemed: Bool
-    var containingItems: [FeedDisplayItem]?
-    var groupEvent: GroupEvent?
+enum FeedEvent: Hashable, Equatable {
+    case groupEvent(GroupEvent)
+    case collapsedGroupEvents([GroupEvent])
+    case deletedPost(FeedPost)
+    case collapsedDeletedPosts([FeedPost])
+
+    var timestamp: Date {
+        switch self {
+        case .groupEvent(let groupEvent):
+            return groupEvent.timestamp
+        case .collapsedGroupEvents(let groupEvents):
+            return groupEvents.first?.timestamp ?? Date()
+        case .deletedPost(let feedPost):
+            return feedPost.timestamp
+        case .collapsedDeletedPosts(let feedPosts):
+            return feedPosts.first?.timestamp ?? Date()
+        }
+    }
+
+    var description: String? {
+        switch self {
+        case .groupEvent(let groupEvent):
+            return groupEvent.text
+        case .collapsedGroupEvents(let groupEvents):
+            return groupEvents.first.flatMap { GroupEvent.collapsedText(for: $0.action, memberAction: $0.memberAction, count: groupEvents.count) }
+        case .deletedPost(let feedPost):
+            return Localizations.deletedPost(from: feedPost.userID)
+        case .collapsedDeletedPosts(let feedPosts):
+            return Localizations.deletedPostWithNumber(from: feedPosts.count)
+        }
+    }
 }
 
+private extension Localizations {
 
+    static func deletedPostWithNumber(from number: Int) -> String {
+        let format = NSLocalizedString("n.posts.deleted", value: "%@ posts deleted", comment: "Displayed in place of deleted feed posts.")
+        return String(format: format, String(number))
+    }
+}

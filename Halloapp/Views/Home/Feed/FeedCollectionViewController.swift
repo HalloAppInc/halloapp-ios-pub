@@ -70,6 +70,10 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Sh
         return inviteContactsManager
     }()
 
+    var isThemed: Bool {
+        return false
+    }
+
     var feedPostIdToScrollTo: FeedPostID?
     var shouldScrollToOwnMoment = false
     
@@ -757,18 +761,11 @@ extension FeedCollectionViewController {
             switch item {
             case .event(let event):
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedEventCollectionViewCell.reuseIdentifier, for: indexPath)
-                if let _ = event.containingItems {
-                    (cell as? FeedEventCollectionViewCell)?.configure(with: event.description, type: .deletedPostsMerge, isThemed: event.isThemed, tapFunction: self?.tapFunction, thisEvent: item)
-                } else {
-                    (cell as? FeedEventCollectionViewCell)?.configure(with: event.description, type: .event, isThemed: event.isThemed, tapFunction: nil, thisEvent: item)
-                }
+                (cell as? FeedEventCollectionViewCell)?.configure(with: event, isThemed: self?.isThemed ?? false, onTap: { [weak self] in
+                    self?.feedDataSource.toggleExpansion(feedEvent: event)
+                })
                 return cell
             case .moment(let feedPost):
-                guard !feedPost.isPostRetracted else {
-                    let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedEventCollectionViewCell.reuseIdentifier, for: indexPath)
-                    (cell as? FeedEventCollectionViewCell)?.configure(with: Localizations.deletedPost(from: feedPost.userId), type: .deletedPost, tapFunction: nil, thisEvent: item)
-                    return cell
-                }
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MomentCollectionViewCell.reuseIdentifier, for: indexPath)
                 if let postCell = cell as? MomentCollectionViewCell {
                     self?.configure(cell: postCell, withSecretFeedPost: feedPost)
@@ -781,11 +778,6 @@ extension FeedCollectionViewController {
                 }
                 return cell
             case .post(let feedPost):
-                guard !feedPost.isPostRetracted else {
-                    let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedEventCollectionViewCell.reuseIdentifier, for: indexPath)
-                    (cell as? FeedEventCollectionViewCell)?.configure(with: Localizations.deletedPost(from: feedPost.userId), type: .deletedPost, tapFunction: nil, thisEvent: item)
-                    return cell
-                }
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedPostCollectionViewCell.reuseIdentifier, for: indexPath)
                 if let postCell = cell as? FeedPostCollectionViewCell {
                     self?.configure(cell: postCell, withActiveFeedPost: feedPost)
@@ -852,10 +844,6 @@ extension FeedCollectionViewController {
                 return cell
             }
         }
-    }
-    
-    func tapFunction(expandEvent: FeedDisplayItem) {
-        feedDataSource.expand(expandItem: expandEvent)
     }
 
     private var cellContentWidth: CGFloat {

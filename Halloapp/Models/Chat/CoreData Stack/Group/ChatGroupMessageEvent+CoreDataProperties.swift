@@ -277,3 +277,53 @@ extension Localizations {
         }
     }
 }
+
+// MARK: Event Collapsing
+
+extension GroupEvent {
+
+    public func canCollapse(with groupEvent: GroupEvent) -> Bool {
+        if action == groupEvent.action, memberAction == groupEvent.memberAction {
+            // mirror cases in collapsedText
+            switch action {
+            case .modifyMembers:
+                switch memberAction {
+                case .add, .remove:
+                    return true
+                default:
+                    return false
+                }
+            case .join, .leave:
+                return true
+            default:
+                return false
+            }
+        }
+        return false
+    }
+
+    public static func collapsedText(for action: Action, memberAction: MemberAction, count: Int) -> String? {
+        let formatString: String?
+
+        // mirror cases in canCollapse
+        switch action {
+        case .modifyMembers:
+            switch memberAction {
+            case .add:
+                formatString = NSLocalizedString("feed.collapsed.n.users.added", comment: "Number of contacts added to a group.")
+            case .remove:
+                formatString = NSLocalizedString("feed.collapsed.n.users.removed", comment: "Number of contacts removed from a group.")
+            default:
+                formatString = nil
+            }
+        case .join:
+            formatString = NSLocalizedString("feed.collapsed.n.users.joined", comment: "Number of contacts that joined a group.")
+        case .leave:
+            formatString = NSLocalizedString("feed.collapsed.n.users.left", comment: "Number of contacts that left a group.")
+        default:
+            formatString = nil
+        }
+
+        return formatString.flatMap { String.localizedStringWithFormat($0, count) }
+    }
+}

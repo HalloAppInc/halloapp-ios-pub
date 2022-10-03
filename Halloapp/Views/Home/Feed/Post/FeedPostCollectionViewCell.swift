@@ -275,12 +275,6 @@ extension FeedPostCollectionViewCell: ExpandableTextViewDelegate {
 
 final class FeedEventCollectionViewCell: UICollectionViewCell {
 
-    enum EventType {
-        case event
-        case deletedPost
-        case deletedPostsMerge
-    }
-
     override init(frame: CGRect) {
         super.init(frame: frame)
         commonInit()
@@ -291,53 +285,33 @@ final class FeedEventCollectionViewCell: UICollectionViewCell {
         commonInit()
     }
 
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        textLabel.text = nil
-    }
-
     class var reuseIdentifier: String {
         "feed-event"
     }
 
-    func configure(with text: String, type: EventType, isThemed: Bool = false, tapFunction: ((FeedDisplayItem)->Void)?, thisEvent: FeedDisplayItem) {
-        textLabel.text = text
-        if let tapFunction = tapFunction {
-            currentEvent = thisEvent
-            tapFunc = tapFunction
-            textLabel.isUserInteractionEnabled = true
-            textLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tapAction)))
-        } else {
-            textLabel.isUserInteractionEnabled = false
-        }
-        switch type {
-        case .deletedPost:
-            bubble.backgroundColor = UIColor.feedPostEventDeletedBg
-            textLabel.textColor = .secondaryLabel
-        case .event:
+    func configure(with feedEvent: FeedEvent, isThemed: Bool, onTap: (() -> Void)?) {
+        textLabel.text = feedEvent.description
+
+        switch feedEvent {
+        case .groupEvent, .collapsedGroupEvents:
             bubble.backgroundColor = isThemed ? UIColor.feedPostEventThemedBg : UIColor.feedPostEventDefaultBg
             textLabel.textColor = isThemed ? UIColor.feedPostEventText : UIColor.primaryBlackWhite.withAlphaComponent(0.6)
-        case .deletedPostsMerge:
+        case .deletedPost, .collapsedDeletedPosts:
             bubble.backgroundColor = UIColor.feedPostEventDeletedBg
             textLabel.textColor = .secondaryLabel
         }
+        self.onTap = onTap
     }
     
     @objc func tapAction() {
-        if let currentEvent = currentEvent {
-            if let tapFunc = tapFunc {
-                tapFunc(currentEvent)
-            }
-        }
+        onTap?()
     }
     
-    private static let cacheKey = "\(FeedEventCollectionViewCell.self).content"
     private static let sizingLabel = makeLabel(alignment: .natural, isMultiLine: true)
     private static let directionalLayoutMargins = NSDirectionalEdgeInsets(top: 8, leading: 50, bottom: 8, trailing: 50)
     private static let bubbleMargins = NSDirectionalEdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
     let textLabel = makeLabel(alignment: .center, isMultiLine: true)
-    var currentEvent: FeedDisplayItem?
-    var tapFunc: ((FeedDisplayItem)->Void)?
+    var onTap: (() -> Void)?
     private let bubble = makeBubble()
 
     private func commonInit() {
@@ -346,6 +320,8 @@ final class FeedEventCollectionViewCell: UICollectionViewCell {
         bubble.addSubview(textLabel)
         contentView.addSubview(bubble)
 
+        textLabel.isUserInteractionEnabled = true
+        textLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tapAction)))
         textLabel.constrainMargins(to: bubble)
 
         bubble.constrainMargins([.top, .bottom, .centerX], to: contentView)
