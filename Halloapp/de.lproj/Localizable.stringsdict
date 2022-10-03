@@ -233,7 +233,7 @@
 	<key>n.unread.comments.title</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>%#@n_ungelesene_Kommentare@</string>
+		<string>%#@n_unread_comments@</string>
 		<key>n_unread_comments</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
@@ -249,7 +249,7 @@
 	<key>n.unread.messages.title</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>%#@n_ungelesene_Nachrichten@</string>
+		<string>%#@n_unread_messages@</string>
 		<key>n_unread_messages</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>

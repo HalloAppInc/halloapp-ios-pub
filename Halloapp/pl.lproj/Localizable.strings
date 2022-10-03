@@ -841,9 +841,6 @@
 /* Text shown when user is about to remove the group */
 "groups.list.remove.message" = "Czy na pewno chcesz usunąć tę grupę i jej zawartość ze swojego urządzenia?";
 
-/* The name of the group that is created for the user when they are new and in the zero zone (no contacts and no content) */
-"groups.NUX.user.group.name" = "Grupa użytkownika %@";
-
 /* A label on the header to indicate which person I have groups in common with */
 "groups.title" = "Z użytkownikiem %@";
 

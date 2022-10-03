@@ -1018,6 +1018,90 @@
 /* Label shown above group members list */
 "group.members.label" = "Участники";
 
+/* Notification that a user changed a groups avatar */
+"group.notification.changeAvatar" = "<$sender$> изменил значок для группы <$groupname$>";
+
+/* Notification that you changed a groups avatar */
+"group.notification.changeAvatar.you" = "Вы изменили значок группы <$groupname$>";
+
+/* Notification that a user changed a groups description */
+"group.notification.changeDescription" = "<$sender$> изменил описание группы <$groupname$>";
+
+/* Notification that you changed a groups description */
+"group.notification.changeDescription.you" = "Вы изменили описание группы <$groupname$>";
+
+/* Notification that a user changed a group's expiration */
+"group.notification.changeExpiry" = "<$sender$> изменил срок действия группы <$groupname$> на %1@";
+
+/* Notification that you changed a group's expiration */
+"group.notification.changeExpiry.you" = "Вы изменили срок действия для группы <$groupname$> на %1@";
+
+/* Notification that a user changed a groups name */
+"group.notification.changeName" = "<$sender$> изменил название группы на <$groupname$>";
+
+/* Notification that you changed a groups name */
+"group.notification.changeName.you" = "Вы изменили название группы на <$groupname$>";
+
+/* Notification that a user created a group */
+"group.notification.created" = "<$sender$> создал группу <$groupname$>";
+
+/* Notification that you created a group */
+"group.notification.created.you" = "Вы создали группу <$groupname$>";
+
+/* Notification that a user joined a group */
+"group.notification.join" = "<$sender$> присоединился к группе <$groupname$> через ссылку для приглашения в группу";
+
+/* Notification that you joined a group */
+"group.notification.join.you" = "Вы присоединились к группе <$groupname$> через ссылку для приглашения в группу";
+
+/* Notification that a user added a group member */
+"group.notification.memberaction.add" = "<$sender$> добавил <$member$> в группу <$groupname$>";
+
+/* Notification that a user added a group member */
+"group.notification.memberaction.add.you.member" = "<$sender$> добавил вас в группу <$groupname$>";
+
+/* Notification that you added a group member */
+"group.notification.memberaction.add.you.sender" = "Вы добавили <$member$> в группу <$groupname$>";
+
+/* Notification that a user demmoted a group member */
+"group.notification.memberaction.demote" = "<$sender$> удалил <$member$> как администратора группы <$groupname$>";
+
+/* Notification that a user demmoted you */
+"group.notification.memberaction.demote.you.member" = "<$sender$> удалил вас как администратора группы <$groupname$>";
+
+/* Notification that you demmoted a group member */
+"group.notification.memberaction.demote.you.sender" = "Вы удалили <$member$> как администратора группы <$groupname$>";
+
+/* Notification that a user left a group */
+"group.notification.memberaction.leave" = "<$sender$> покинул группу <$groupname$>";
+
+/* Notification that you left a group */
+"group.notification.memberaction.leave.you" = "Вы вышли из группы <$groupname$>";
+
+/* Notification that a user promoted a group member */
+"group.notification.memberaction.promote" = "<$sender$> сделал <$member$> администратором группы <$groupname$>";
+
+/* Notification that you promoted a group member */
+"group.notification.memberaction.promote.you.member" = "<$sender$> сделал вас администратором группы <$groupname$>";
+
+/* Notification that you promoted a group member */
+"group.notification.memberaction.promote.you.sender" = "Вы сделали <$member$> администратором группы <$groupname$>";
+
+/* Notification that a user removed a group member */
+"group.notification.memberaction.remove" = "<$sender$> удалил <$member$> из группы <$groupname$>";
+
+/* Notification that a user added a group member */
+"group.notification.memberaction.remove.you.member" = "<$sender$> удалил вас из группы <$groupname$>";
+
+/* Notification that you removed a group member */
+"group.notification.memberaction.remove.you.sender" = "Вы удалили <$member$> из группы <$groupname$>";
+
+/* Notification that a user changed a groups background */
+"group.notification.setBackground" = "<$sender$> изменил цвет фона для группы <$groupname$>";
+
+/* Notification that you changed a groups background */
+"group.notification.setBackground.you" = "Вы изменили цвет фона для группы <$groupname$>";
+
 /* Text for alert box when the user clicks on an invalid group invite link */
 "group.preview.get.info.error.invalid.link" = "Эта ссылка приглашения в группу недействительна";
 
@@ -1059,9 +1143,6 @@
 
 /* Text shown when user is about to remove the group */
 "groups.list.remove.message" = "Вы точно хотите удалить эту группу и ее содержимое со своего устройства?";
-
-/* The name of the group that is created for the user when they are new and in the zero zone (no contacts and no content) */
-"groups.NUX.user.group.name" = "Группа %@";
 
 /* A label on the header to indicate which person I have groups in common with */
 "groups.title" = "С %@";

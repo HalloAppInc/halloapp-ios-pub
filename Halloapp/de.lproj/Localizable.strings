@@ -1018,6 +1018,87 @@
 /* Label shown above group members list */
 "group.members.label" = "Mitglieder";
 
+/* Notification that a user changed a groups avatar */
+"group.notification.changeAvatar" = "<$sender$> hat das Symbol der Gruppe <$groupname$> geändert";
+
+/* Notification that you changed a groups avatar */
+"group.notification.changeAvatar.you" = "Du hast das Symbol der Gruppe <$groupname$> geändert";
+
+/* Notification that a user changed a groups description */
+"group.notification.changeDescription" = "<$sender$> hat die Beschreibung der Gruppe <$groupname$> geändert";
+
+/* Notification that you changed a groups description */
+"group.notification.changeDescription.you" = "Du hast die Beschreibung der Gruppe <$groupname$> geändert";
+
+/* Notification that a user changed a group's expiration */
+"group.notification.changeExpiry" = "<$sender$> hat die Ablaufzeit für die Gruppe <$groupname$> auf %1@ geändert";
+
+/* Notification that you changed a group's expiration */
+"group.notification.changeExpiry.you" = "Du hast die Ablaufzeit der Inhalte der Gruppe <$groupname$> auf %1@ geändert";
+
+/* Notification that a user changed a groups name */
+"group.notification.changeName" = "<$sender$> hat den Namen einer Gruppe in <$groupname$> geändert";
+
+/* Notification that you changed a groups name */
+"group.notification.changeName.you" = "Du hast den Namen einer Gruppe in <$groupname$> geändert";
+
+/* Notification that a user created a group */
+"group.notification.created" = "<$sender$> hat die Gruppe <$groupname$> gegründet";
+
+/* Notification that you created a group */
+"group.notification.created.you" = "Du hast die Gruppe <$groupname$> gegründet";
+
+/* Notification that a user joined a group */
+"group.notification.join" = "<$sender$> ist der Gruppe <$groupname$> via Gruppeneinladungs-Link beigetreten";
+
+/* Notification that you joined a group */
+"group.notification.join.you" = "Du bist der Gruppe <$groupname$> via Gruppeneinladungs-Link beigetreten";
+
+/* Notification that a user added a group member */
+"group.notification.memberaction.add" = "<$sender$> hat <$member$> zur Gruppe <$groupname$> hinzugefügt";
+
+/* Notification that a user added a group member */
+"group.notification.memberaction.add.you.member" = "<$sender$> hat dich der Gruppe <$groupname$> hinzugefügt";
+
+/* Notification that you added a group member */
+"group.notification.memberaction.add.you.sender" = "Du hast <$member$> der Gruppe <$groupname$> hinzugefügt";
+
+/* Notification that a user demmoted a group member */
+"group.notification.memberaction.demote" = "<$sender$> hat <$member$> als Admin der Gruppe <$groupname$> entfernt";
+
+/* Notification that a user demmoted you */
+"group.notification.memberaction.demote.you.member" = "<$sender$> hat dich als Admin aus der Gruppe <$groupname$> entfernt";
+
+/* Notification that you demmoted a group member */
+"group.notification.memberaction.demote.you.sender" = "Du hast <$member$> als Admin der Gruppe <$groupname$> entfernt";
+
+/* Notification that you left a group */
+"group.notification.memberaction.leave.you" = "Du hast die Gruppe <$groupname$> verlassen";
+
+/* Notification that a user promoted a group member */
+"group.notification.memberaction.promote" = "<$sender$> hat <$member$> zum Admin der Gruppe <$groupname$> gemacht";
+
+/* Notification that you promoted a group member */
+"group.notification.memberaction.promote.you.member" = "<$sender$> hat dich zum Admin der Gruppe <$groupname$> gemacht";
+
+/* Notification that you promoted a group member */
+"group.notification.memberaction.promote.you.sender" = "Du hast <$member$> zum Admin der Gruppe <$groupname$> gemacht";
+
+/* Notification that a user removed a group member */
+"group.notification.memberaction.remove" = "<$sender$> hat <$member$> aus der Gruppe <$groupname$> entfernt";
+
+/* Notification that a user added a group member */
+"group.notification.memberaction.remove.you.member" = "<$sender$> hat dich aus der Gruppe <$groupname$> entfernt";
+
+/* Notification that you removed a group member */
+"group.notification.memberaction.remove.you.sender" = "Du hast <$member$> aus der Gruppe <$groupname$> entfernt";
+
+/* Notification that a user changed a groups background */
+"group.notification.setBackground" = "<$sender$> hat die Hintergrundfarbe der Gruppe <$groupname$> geändert";
+
+/* Notification that you changed a groups background */
+"group.notification.setBackground.you" = "Du hast die Hintergrundfarbe der Gruppe <$groupname$> geändert";
+
 /* Text for alert box when the user clicks on an invalid group invite link */
 "group.preview.get.info.error.invalid.link" = "Der Einladungslink zur Gruppe ist ungültig";
 
@@ -1059,9 +1140,6 @@
 
 /* Text shown when user is about to remove the group */
 "groups.list.remove.message" = "Möchtest du wirklich diese Gruppe und ihren Inhalt von deinem Gerät entfernen?";
-
-/* The name of the group that is created for the user when they are new and in the zero zone (no contacts and no content) */
-"groups.NUX.user.group.name" = "%@'s Gruppe";
 
 /* A label on the header to indicate which person I have groups in common with */
 "groups.title" = "Mit %@";
@@ -1329,7 +1407,7 @@
 "moment.uploading.success" = "Geteilt!";
 
 /* Text shown on the moments stack to indicate that the stack is interactive. Only shown the first time. */
-"moments.swipe.for.more" = "für mehr wischen";
+"moments.swipe.for.more" = "für weitere wischen";
 
 /* Message displayed to say when moments will disappear. */
 "mymoment.disappear.time.label" = "Dein Moment wurde mit deinen Kontakten geteilt. Momente sind 24 Stunden sichtbar und können nur einmal angesehen werden.";

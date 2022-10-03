@@ -1034,7 +1034,7 @@
 "group.notification.changeExpiry" = "<$sender$> heeft de verlooptijd van de groep <$groupname$> gewijzigd naar %1@";
 
 /* Notification that you changed a group's expiration */
-"group.notification.changeExpiry.you" = "Je hebt de verlooptijd van de groep $groupname$> gewijzigd naar %1@";
+"group.notification.changeExpiry.you" = "Je hebt de verlooptijd van de groep <$groupname$> gewijzigd naar %1@";
 
 /* Notification that a user changed a groups name */
 "group.notification.changeName" = "<$sender$> heeft de naam van een groep gewijzigd in <$groupname$>";
@@ -1143,9 +1143,6 @@
 
 /* Text shown when user is about to remove the group */
 "groups.list.remove.message" = "Weet je zeker dat je deze groep en de inhoud ervan wilt verwijderen van je apparaat?";
-
-/* The name of the group that is created for the user when they are new and in the zero zone (no contacts and no content) */
-"groups.NUX.user.group.name" = "Groep van %@";
 
 /* A label on the header to indicate which person I have groups in common with */
 "groups.title" = "Met %@";
