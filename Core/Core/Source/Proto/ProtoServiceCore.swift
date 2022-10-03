@@ -1990,7 +1990,9 @@ extension ProtoServiceCore: CoreService {
                                            contentType: .post,
                                            completion: completion)
             } else {
+                AppContext.shared.errorLogger?.logError(NSError(domain: "missingPostToRerequest", code: 1012))
                 DDLogError("proto/rerequestHomeFeedPost/\(contentID)/missing post info to send a rerequest")
+                completion(.failure(.aborted))
             }
         }
     }

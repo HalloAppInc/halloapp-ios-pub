@@ -35,8 +35,12 @@ public final class CryptoData {
                 DDLogInfo("CryptoData/update/\(messageID)/skipping already reported")
                 return
             }
-            guard messageDecryption.decryptionResult != "success" else {
+            guard !messageDecryption.isSuccess() else {
                 DDLogInfo("CryptoData/update/\(messageID)/skipping already decrypted")
+                return
+            }
+            guard !messageDecryption.isMissingFromAuthor() else {
+                DDLogInfo("CryptoData/update/\(messageID)/skipping already missing from author")
                 return
             }
             guard let timeReceived = messageDecryption.timeReceived, timeReceived.timeIntervalSinceNow > -self.deadline else {
@@ -125,10 +129,13 @@ public final class CryptoData {
             guard let self = self else { return }
 
             let isItemAlreadyDecrypted: Bool
+            let isItemMissingFromAuthor: Bool
             if let itemResult = self.fetchGroupFeedItemDecryption(id: contentID, in: managedObjectContext) {
                 isItemAlreadyDecrypted = itemResult.isSuccess()
+                isItemMissingFromAuthor = itemResult.isMissingFromAuthor()
             } else {
                 isItemAlreadyDecrypted = false
+                isItemMissingFromAuthor = false
             }
             guard let groupFeedItemDecryption = self.fetchGroupFeedItemDecryption(id: contentID, in: managedObjectContext) ??
                     self.createGroupFeedItemDecryption(id: contentID, contentType: contentType, groupID: groupID, timestamp: timestamp, sender: sender, in: managedObjectContext) else
@@ -138,6 +145,10 @@ public final class CryptoData {
             }
             guard !isItemAlreadyDecrypted else {
                 DDLogInfo("CryptoData/update/\(contentID)/group/\(groupID)/skipping already decrypted")
+                return
+            }
+            guard !isItemMissingFromAuthor else {
+                DDLogInfo("CryptoData/update/\(contentID)/group/\(groupID)/skipping already missing from author")
                 return
             }
             groupFeedItemDecryption.rerequestCount = Int32(rerequestCount)
@@ -163,10 +174,13 @@ public final class CryptoData {
             guard let self = self else { return }
 
             let isItemAlreadyDecrypted: Bool
+            let isItemMissingFromAuthor: Bool
             if let itemResult = self.fetchHomeFeedItemDecryption(id: contentID, in: managedObjectContext) {
                 isItemAlreadyDecrypted = itemResult.isSuccess()
+                isItemMissingFromAuthor = itemResult.isMissingFromAuthor()
             } else {
                 isItemAlreadyDecrypted = false
+                isItemMissingFromAuthor = false
             }
             guard let homeFeedItemDecryption = self.fetchHomeFeedItemDecryption(id: contentID, in: managedObjectContext) ??
                     self.createHomeFeedItemDecryption(id: contentID, contentType: contentType, audienceType: audienceType, timestamp: timestamp, sender: sender, in: managedObjectContext) else
@@ -176,6 +190,10 @@ public final class CryptoData {
             }
             guard !isItemAlreadyDecrypted else {
                 DDLogInfo("CryptoData/update/\(contentID)/audienceType: \(audienceType)/skipping already decrypted")
+                return
+            }
+            guard !isItemMissingFromAuthor else {
+                DDLogInfo("CryptoData/update/\(contentID)/audienceType: \(audienceType)/skipping already missing from author")
                 return
             }
             homeFeedItemDecryption.rerequestCount = Int32(rerequestCount)
@@ -710,6 +728,10 @@ extension MessageDecryption {
     public func isSuccess() -> Bool {
         return decryptionResult == "success"
     }
+
+    public func isMissingFromAuthor() -> Bool {
+        return (decryptionResult ?? "") == "missingContent"
+    }
 }
 
 extension HomeFeedItemDecryption {
@@ -758,6 +780,10 @@ extension HomeFeedItemDecryption {
     public func isSuccess() -> Bool {
         return (decryptionError ?? "").isEmpty
     }
+
+    public func isMissingFromAuthor() -> Bool {
+        return (decryptionError ?? "") == "missingContent"
+    }
 }
 
 extension GroupFeedItemDecryption {
@@ -804,6 +830,10 @@ extension GroupFeedItemDecryption {
 
     public func isSuccess() -> Bool {
         return (decryptionError ?? "").isEmpty
+    }
+
+    public func isMissingFromAuthor() -> Bool {
+        return (decryptionError ?? "") == "missingContent"
     }
 }
 

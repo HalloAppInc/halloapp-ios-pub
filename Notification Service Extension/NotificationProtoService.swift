@@ -673,6 +673,14 @@ final class NotificationProtoService: ProtoServiceCore {
                 DDLogError("proto/decryptAndProcessHomeFeedItem/invalid item stanza")
                 return
             }
+            let contentTypeValue: HomeDecryptionReportContentType = {
+                switch contentType {
+                case .post:
+                    return .post
+                case .comment:
+                    return .comment
+                }
+            }()
 
             if let content = content, homeDecryptionFailure == nil {
                 DDLogError("NotificationExtension/decryptAndProcessHomeFeedItem/contentID/\(contentID)/success")
@@ -701,38 +709,52 @@ final class NotificationProtoService: ProtoServiceCore {
                    let rerequestContentType = item.contentType {
                     // Use serverProp value to decide whether to fallback to plainTextContent.
                     let fallback = ServerProperties.useClearTextHomeFeedContent
+
+                    // Comment rerequest block
+                    let commentRerequestCompletion = {
+                        self.rerequestHomeFeedItemIfNecessary(id: contentID, contentType: rerequestContentType, failure: decryptionFailure) { result in
+                            switch result {
+                            case .success:
+                                DDLogError("NotificationExtension/decryptAndProcessGroupFeedItem/contentID/\(contentID)/send rerequest success")
+                            case .failure(let error):
+                                DDLogError("NotificationExtension/decryptAndProcessGroupFeedItem/contentID/\(contentID)/failed rerequest: \(error)")
+                            }
+                            switch contentType {
+                            case .post:
+                                var postData = metadata.postData(status: .rerequesting, usePlainTextPayload: fallback, audience: item.post.audience)
+                                postData?.update(with: item.post)
+                                self.processPostData(postData: postData, status: .decryptionError, metadata: metadata, ack: ack)
+                            case .comment:
+                                self.processCommentData(commentData: metadata.commentData(status: .rerequesting, usePlainTextPayload: fallback), status: .decryptionError, metadata: metadata, ack: ack)
+                            }
+                        }
+                    }
+
                     if decryptionFailure.error == .missingCommentKey {
                         AppContext.shared.errorLogger?.logError(NSError(domain: "missingCommentKey", code: 1010))
                         self.rerequestHomeFeedPost(id: postID) { result in
-                            DDLogInfo("proto/decryptAndProcessHomeFeedItem/\(postID)/rerequestHomeFeedPost result: \(result)")
+                            switch result {
+                            case .success:
+                                DDLogInfo("proto/decryptAndProcessHomeFeedItem/\(postID)/rerequestHomeFeedPost success")
+                                commentRerequestCompletion()
+                            case .failure(let reason):
+                                DDLogError("proto/decryptAndProcessHomeFeedItem/\(postID)/rerequestHomeFeedPost failed: \(reason)")
+                                // Report missingContent error in this case - since these errors are not visible to the user.
+                                self.reportHomeDecryptionResult(
+                                    error: .missingContent,
+                                    contentID: contentID,
+                                    contentType: contentTypeValue,
+                                    type: item.sessionType,
+                                    timestamp: Date(),
+                                    sender: UserAgent(string: item.senderClientVersion),
+                                    rerequestCount: Int(metadata.rerequestCount))
+                            }
                         }
-                    }
-                    self.rerequestHomeFeedItemIfNecessary(id: contentID, contentType: rerequestContentType, failure: decryptionFailure) { result in
-                        switch result {
-                        case .success:
-                            DDLogError("NotificationExtension/decryptAndProcessGroupFeedItem/contentID/\(contentID)/send rerequest success")
-                        case .failure(let error):
-                            DDLogError("NotificationExtension/decryptAndProcessGroupFeedItem/contentID/\(contentID)/failed rerequest: \(error)")
-                        }
-                        switch contentType {
-                        case .post:
-                            var postData = metadata.postData(status: .rerequesting, usePlainTextPayload: fallback, audience: item.post.audience)
-                            postData?.update(with: item.post)
-                            self.processPostData(postData: postData, status: .decryptionError, metadata: metadata, ack: ack)
-                        case .comment:
-                            self.processCommentData(commentData: metadata.commentData(status: .rerequesting, usePlainTextPayload: fallback), status: .decryptionError, metadata: metadata, ack: ack)
-                        }
+                    } else {
+                        commentRerequestCompletion()
                     }
                 }
             }
-            let contentTypeValue: HomeDecryptionReportContentType = {
-                switch contentType {
-                case .post:
-                    return .post
-                case .comment:
-                    return .comment
-                }
-            }()
             self.reportHomeDecryptionResult(
                 error: homeDecryptionFailure?.error,
                 contentID: contentID,

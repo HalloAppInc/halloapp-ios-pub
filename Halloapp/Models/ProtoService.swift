@@ -937,26 +937,46 @@ final class ProtoService: ProtoServiceCore {
                     let completion = {
                         // Ack only on saves and successful rerequest if necessary.
                         if let failure = homeDecryptionFailure,
-                           let contentType = item.contentType {
+                           let rerequestContentType = item.contentType {
                             DDLogError("proto/handleFeedItem/\(msg.id)/\(contentID)/decrypt/error \(failure.error)")
+
+                            // rerequest block for comments.
+                            let commentRerequestCompletion = {
+                                self.rerequestHomeFeedItemIfNecessary(id: contentID, contentType: rerequestContentType, failure: failure) { result in
+                                    switch result {
+                                    case .success:
+                                        self.updateMessageStatus(id: msg.id, status: .rerequested)
+                                        // Ack only on successful rereq
+                                        ack()
+                                    case .failure(let error):
+                                        if error.canAck {
+                                            ack()
+                                        }
+                                        DDLogError("proto/handleFeedItem/\(msg.id)/\(contentID)/failed rerequesting: \(error)")
+                                    }
+                                }
+                            }
                             if failure.error == .missingCommentKey {
                                 AppContext.shared.errorLogger?.logError(NSError(domain: "missingCommentKey", code: 1010))
                                 self.rerequestHomeFeedPost(id: postID) { result in
-                                    DDLogInfo("proto/handleFeedItem/\(msg.id)/\(postID)/rerequestHomeFeedPost result: \(result)")
-                                }
-                            }
-                            self.rerequestHomeFeedItemIfNecessary(id: contentID, contentType: contentType, failure: failure) { result in
-                                switch result {
-                                case .success:
-                                    self.updateMessageStatus(id: msg.id, status: .rerequested)
-                                    // Ack only on successful rereq
-                                    ack()
-                                case .failure(let error):
-                                    if error.canAck {
-                                        ack()
+                                    switch result {
+                                    case .failure(let reason):
+                                        DDLogError("proto/handleFeedItem/\(msg.id)/\(postID)/rerequestHomeFeedPost failed: \(reason)")
+                                        self.reportHomeDecryptionResult(
+                                            error: .missingContent,
+                                            contentID: contentID,
+                                            contentType: contentType,
+                                            type: item.sessionType,
+                                            timestamp: receiptTimestamp,
+                                            sender: UserAgent(string: item.senderClientVersion),
+                                            rerequestCount: Int(msg.rerequestCount))
+                                    case .success:
+                                        DDLogInfo("proto/handleFeedItem/\(msg.id)/\(postID)/rerequestHomeFeedPost success")
+                                        commentRerequestCompletion()
                                     }
-                                    DDLogError("proto/handleFeedItem/\(msg.id)/\(contentID)/failed rerequesting: \(error)")
                                 }
+                            } else {
+                                commentRerequestCompletion()
                             }
                         } else {
                             DDLogError("proto/handleFeedItem/\(msg.id)/\(contentID)/decrypt/success")
