@@ -571,7 +571,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
     init(for fromUserId: String, with feedPostId: FeedPostID? = nil, at feedPostMediaIndex: Int32 = 0) {
         let contactsViewContext = MainAppContext.shared.contactStore.viewContext
-        DDLogDebug("ChatViewControllerNew/init/\(fromUserId) [\(MainAppContext.shared.contactStore.fullName(for: fromUserId, in: contactsViewContext))]")
+        DDLogDebug("ChatViewControllerNew/init/\(fromUserId) [\(MainAppContext.shared.contactStore.fullName(for: fromUserId, in: contactsViewContext))]/feedpostId: \(feedPostId ?? "")/feedPostMediaIndex: \(feedPostMediaIndex)")
         self.fromUserId = fromUserId
         self.feedPostId = feedPostId
         self.feedPostMediaIndex = feedPostMediaIndex
@@ -720,6 +720,11 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         
         updateJumpButtonVisibility()
         isFirstLaunch = false
+
+        // Show keyboard if we start the controller as a reply to a feedpost.
+        if self.feedPostId != nil {
+            self.showKeyboard()
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
