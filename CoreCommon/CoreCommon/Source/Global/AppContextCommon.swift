@@ -95,7 +95,7 @@ open class AppContextCommon {
     required public init(serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type, appTarget: AppTarget) {
         #if !DEBUG
         SentrySDK.start { options in
-            options.dsn = "https://ed03b5bdacbe4571927f8f2c93a45790@o473086.ingest.sentry.io/6126729"
+            options.dsn = "https://ed03b5bdacbe4571927f8f2c93a45790@sentry.halloapp.net/6126729"
             options.enableAppHangTracking = true
             options.enableAutoPerformanceTracking = true
             options.enableUserInteractionTracing = true
