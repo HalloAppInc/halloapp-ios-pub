@@ -37,7 +37,7 @@ fileprivate enum MessageRow: Hashable, Equatable {
         switch self {
         case .chatMessage(let data):
             return data.timestamp
-        case .groupEvent(let data):
+        case .groupChatEvent(let data):
             return data.timestamp
         case .unreadCountHeader(_), .timeHeader(_):
             return nil
@@ -133,7 +133,7 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
                     if let self = self, let chatMessage = self.chatMessage(id: chatMessageData.id) {
                         return self.chatMessageCell(chatMessage: chatMessage, indexPath: indexPath)
                     }
-                case .groupEvent(let groupEvent):
+                case .groupChatEvent(let groupEvent):
                     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: GroupChatViewController.messageCellViewEventReuseIdentifier, for: indexPath)
                     (cell as? MessageCellViewEvent)?.configure(groupEvent: groupEvent)
                     return cell
@@ -356,7 +356,7 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
         // Add Group Events
         if let chatEvents = groupEventFetchedResultsController?.fetchedObjects {
             chatEvents.forEach { chatEvent in
-                messageRows.append(MessageRow.groupEvent(chatEvent))
+                messageRows.append(MessageRow.groupChatEvent(chatEvent))
             }
         }
         // Sort all messages by timestamp

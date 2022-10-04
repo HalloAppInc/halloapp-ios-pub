@@ -612,7 +612,7 @@ extension CameraModel {
                 camera.isSmoothAutoFocusEnabled = true
             }
 
-            if let point, camera.isFocusPointOfInterestSupported, camera.isExposurePointOfInterestSupported {
+            if let point = point, camera.isFocusPointOfInterestSupported, camera.isExposurePointOfInterestSupported {
                 camera.focusPointOfInterest = point
                 camera.exposurePointOfInterest = point
                 camera.focusMode = .autoFocus
