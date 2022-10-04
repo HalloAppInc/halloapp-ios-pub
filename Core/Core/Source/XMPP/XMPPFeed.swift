@@ -19,8 +19,61 @@ public enum PostContent {
     case retracted
     case unsupported(Data)
     case voiceNote(FeedMediaData)
-    case moment(FeedMediaData, unlockedUserID: UserID?)
+    case moment(MomentContent)
     case waiting
+}
+
+public struct MomentContent {
+
+    let image: FeedMediaData
+    let selfieImage: FeedMediaData?
+    let selfieLeading: Bool
+    public private(set) var unlockUserID: UserID?
+
+    init(image: FeedMediaData, selfieImage: FeedMediaData?, selfieLeading: Bool, unlockUserID: UserID?) {
+        self.image = image
+        self.selfieImage = selfieImage
+        self.selfieLeading = selfieLeading
+        self.unlockUserID = unlockUserID
+    }
+
+    init?(_ clientsMoment: Clients_Moment, postID: FeedPostID) {
+        guard let parsed = FeedMediaData(id: "\(postID)-moment", clientImage: clientsMoment.image) else {
+            return nil
+        }
+
+        image = parsed
+        selfieImage = FeedMediaData(id: "\(postID)-selfie-moment", clientImage: clientsMoment.selfieImage)
+        selfieLeading = clientsMoment.selfieLeading
+        unlockUserID = nil
+    }
+
+    mutating func update(unlockUserID: UserID?) {
+        self.unlockUserID = unlockUserID
+    }
+
+    var proto: Clients_Moment {
+        var moment = Clients_Moment()
+        var main = Clients_Image()
+        var selfie = Clients_Image()
+
+        if let resource = image.protoResource {
+            main.img = resource
+            main.width = Int32(image.size.width)
+            main.height = Int32(image.size.height)
+        }
+
+        if let resource = selfieImage?.protoResource {
+            selfie.img = resource
+            selfie.width = Int32(image.size.width)
+            selfie.height = Int32(image.size.height)
+        }
+
+        moment.image = main
+        moment.selfieImage = selfie
+        moment.selfieLeading = selfieLeading
+        return moment
+    }
 }
 
 // It is a bit confusing to use this in some places and other status in some places.
@@ -75,8 +128,8 @@ public struct PostData {
             return media
         case .voiceNote(let mediaItem):
             return [mediaItem]
-        case .moment(let media, _):
-            return [media]
+        case .moment(let content):
+            return [content.image, content.selfieImage].compactMap { $0 }
         case .retracted, .text, .unsupported, .waiting:
             return []
         }
@@ -123,10 +176,10 @@ public struct PostData {
             return MediaCounters()
         case .voiceNote:
             return MediaCounters(numImages: 0, numVideos: 0, numAudio: 1)
-        case .moment(let media, _):
+        case .moment(let content):
             // can only be an image for now, but leaving this in for eventual video support
-            return MediaCounters(numImages: media.type == .image ? 1 : 0,
-                                 numVideos: media.type == .video ? 1 : 0,
+            return MediaCounters(numImages: content.selfieImage != nil ? 2 : 1,
+                                 numVideos: 0,
                                   numAudio: 0)
         }
     }
@@ -201,8 +254,9 @@ public struct PostData {
             self.init(id: postId, userId: userId, content: .waiting, timestamp: timestamp, expiration: expiration, status: status, isShared: isShared, audience: serverPost.audience, commentKey: nil)
         }
 
-        if case let .moment(media, _) = content, serverPost.momentUnlockUid == Int64(AppContextCommon.shared.userData.userId) {
-            self.content = .moment(media, unlockedUserID: AppContextCommon.shared.userData.userId)
+        if case var .moment(momentContent) = content, serverPost.momentUnlockUid == Int64(AppContextCommon.shared.userData.userId) {
+            momentContent.update(unlockUserID: AppContextCommon.shared.userData.userId)
+            content = .moment(momentContent)
         }
     }
 
@@ -305,18 +359,19 @@ public struct PostData {
             }
             return .voiceNote(media)
         case .moment(let moment):
-            guard let media = FeedMediaData(id: "\(postId)-moment", clientImage: moment.image) else {
+            guard let content = MomentContent(moment, postID: postId) else {
                 return .unsupported(payload)
             }
-            return .moment(media, unlockedUserID: nil)
+            return .moment(content)
         case .none:
             return .unsupported(payload)
         }
     }
 
     public mutating func update(with serverPost: Server_Post) {
-        if case let .moment(media, _) = content, serverPost.momentUnlockUid == Int64(AppContextCommon.shared.userData.userId) {
-            content = .moment(media, unlockedUserID: AppContextCommon.shared.userData.userId)
+        if case var .moment(momentContent) = content, serverPost.momentUnlockUid == Int64(AppContextCommon.shared.userData.userId) {
+            momentContent.update(unlockUserID: AppContextCommon.shared.userData.userId)
+            content = .moment(momentContent)
         }
     }
 }

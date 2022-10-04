@@ -1161,9 +1161,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
              // This is safe to always update as we skip processing any existing posts if fromExternalShare
             feedPost.fromExternalShare = fromExternalShare
 
-            if case let .moment(_, unlockUID) = xmppPost.content {
+            if case let .moment(content) = xmppPost.content {
                 feedPost.isMoment = true
-                feedPost.unlockedMomentUserID = unlockUID
+                feedPost.unlockedMomentUserID = content.unlockUserID
             }
 
             switch xmppPost.content {
@@ -3006,9 +3006,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     
     let didSendGroupFeedPost = PassthroughSubject<FeedPost, Never>()
 
-    func post(text: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?, to destination: ShareDestination, momentContext: MomentContext? = nil) {
+    func post(text: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?, to destination: ShareDestination, momentInfo: PendingMomentInfo? = nil) {
         if ServerProperties.enableNewMediaUploader {
-            coreFeedData.post(text: text, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia, to: destination, momentContext: momentContext)
+            coreFeedData.post(text: text, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia, to: destination, momentInfo: momentInfo)
             return
         }
 
@@ -3039,14 +3039,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         feedPost.timestamp = timestamp
         feedPost.lastUpdated = timestamp
 
-        switch momentContext {
-        case .unlock(let unlockedPost):
-            feedPost.unlockedMomentUserID = unlockedPost.userId
-            fallthrough
-        case .normal:
+        if let momentInfo {
             feedPost.isMoment = true
-        case .none:
-            feedPost.isMoment = false
+            feedPost.unlockedMomentUserID = momentInfo.unlockUserID
+            feedPost.isMomentSelfieLeading = momentInfo.isSelfieLeading && media.count > 1
         }
 
         // Add mentions

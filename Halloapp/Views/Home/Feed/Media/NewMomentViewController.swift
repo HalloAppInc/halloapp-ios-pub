@@ -19,10 +19,11 @@ protocol NewMomentViewControllerDelegate: MomentViewControllerDelegate {
 /// Handles the creation and posting of a moment, regardless of context.
 final class NewMomentViewController: UIViewController {
 
+    enum Context { case normal, unlock(FeedPost) }
     private enum State { case camera, indeterminate, composer }
-    private var state: State = .camera
 
-    let context: MomentContext
+    private var state: State = .camera
+    let context: Context
     var onPost: (() -> Void)?
 
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
@@ -91,7 +92,7 @@ final class NewMomentViewController: UIViewController {
 
     weak var delegate: NewMomentViewControllerDelegate?
 
-    init(context: MomentContext = .normal) {
+    init(context: Context = .normal) {
         self.context = context
         super.init(nibName: nil, bundle: nil)
         view.backgroundColor = .black

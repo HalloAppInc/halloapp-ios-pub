@@ -508,17 +508,8 @@ public extension PostData {
                 voiceNote.audio = audio
             }
             container.post = .voiceNote(voiceNote)
-        case .moment(let mediaItem, _):
-            var moment = Clients_Moment()
-            var image = Clients_Image()
-            if let resource = mediaItem.protoResource {
-                image.img = resource
-                image.width = Int32(mediaItem.size.width)
-                image.height = Int32(mediaItem.size.height)
-            }
-            
-            moment.image = image
-            container.post = .moment(moment)
+        case .moment(let content):
+            container.post = .moment(content.proto)
         case .retracted, .unsupported, .waiting:
             break
         }
@@ -546,9 +537,9 @@ public extension PostData {
         serverPost.publisherUid = Int64(userId) ?? 0
         serverPost.timestamp = Int64(timestamp.timeIntervalSince1970)
 
-        if case let .moment(_, unlockedUserID) = content {
+        if case let .moment(momentContent) = content {
             serverPost.tag = .secretPost
-            if let unlockedUserID = unlockedUserID, let asInteger = Int64(unlockedUserID) {
+            if let unlockedUserID = momentContent.unlockUserID, let asInteger = Int64(unlockedUserID) {
                 serverPost.momentUnlockUid = asInteger
             }
         }

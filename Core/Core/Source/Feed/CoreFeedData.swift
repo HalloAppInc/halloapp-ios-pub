@@ -26,6 +26,17 @@ public enum MomentContext {
     case unlock(FeedPost)
 }
 
+public struct PendingMomentInfo {
+
+    public let isSelfieLeading: Bool
+    public let unlockUserID: UserID?
+
+    public init(isSelfieLeading: Bool, unlockUserID: UserID?) {
+        self.isSelfieLeading = isSelfieLeading
+        self.unlockUserID = unlockUserID
+    }
+}
+
 open class CoreFeedData: NSObject {
     private let service: CoreService
     private let mainDataStore: MainDataStore
@@ -67,7 +78,7 @@ open class CoreFeedData: NSObject {
                      linkPreviewData: LinkPreviewData?,
                      linkPreviewMedia : PendingMedia?,
                      to destination: ShareDestination,
-                     momentContext: MomentContext? = nil,
+                     momentInfo: PendingMomentInfo? = nil,
                      didCreatePost: ((Result<(FeedPostID, [CommonMediaID]), Error>) -> Void)? = nil,
                      didBeginUpload: ((Result<FeedPostID, Error>) -> Void)? = nil) {
         mainDataStore.performSeriallyOnBackgroundContext { managedObjectContext in
@@ -98,14 +109,10 @@ open class CoreFeedData: NSObject {
             feedPost.timestamp = timestamp
             feedPost.lastUpdated = timestamp
 
-            switch momentContext {
-            case .unlock(let unlockedPost):
-                feedPost.unlockedMomentUserID = (managedObjectContext.object(with: unlockedPost.objectID) as? FeedPost)?.userID
-                fallthrough
-            case .normal:
+            if let momentInfo {
                 feedPost.isMoment = true
-            case .none:
-                feedPost.isMoment = false
+                feedPost.unlockedMomentUserID = momentInfo.unlockUserID
+                feedPost.isMomentSelfieLeading = momentInfo.isSelfieLeading && media.count > 1
             }
 
             // Add mentions
@@ -663,8 +670,8 @@ open class CoreFeedData: NSObject {
             feedPost.lastUpdated = Date()
             feedPost.hasBeenProcessed = hasBeenProcessed
 
-            if case let .moment(_, unlockedUserID) = postData.content {
-                feedPost.unlockedMomentUserID = unlockedUserID
+            if case let .moment(content) = postData.content {
+                feedPost.unlockedMomentUserID = content.unlockUserID
             }
 
             // Status

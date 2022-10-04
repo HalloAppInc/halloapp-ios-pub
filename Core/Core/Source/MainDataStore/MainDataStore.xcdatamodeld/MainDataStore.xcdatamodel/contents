@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="21509" systemVersion="21G115" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="21277" systemVersion="21G72" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="Call" representedClassName="Call" syncable="YES">
         <attribute name="answered" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="callID" attributeType="String"/>
@@ -186,6 +186,7 @@
         <attribute name="hasBeenProcessed" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
         <attribute name="id" attributeType="String"/>
         <attribute name="isMoment" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="isMomentSelfieLeading" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="lastUpdated" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="mentionsValue" optional="YES" attributeType="Transformable" valueTransformerName="MentionValueTransformer"/>
         <attribute name="rawData" optional="YES" attributeType="Binary"/>

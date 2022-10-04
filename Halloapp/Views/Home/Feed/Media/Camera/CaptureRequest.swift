@@ -55,7 +55,7 @@ class CaptureRequest {
         }
 
         let result = CaptureResult(identifier: identifier,
-                                        image: image,
+                                        image: image.correctlyOrientedImage(),
                                     direction: direction,
                                     isPrimary: direction == type.primaryPosition)
         results.append(result)

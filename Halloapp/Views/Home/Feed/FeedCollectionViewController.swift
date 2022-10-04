@@ -412,7 +412,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Sh
         presentNewMomentViewController(context: .normal)
     }
 
-    func presentNewMomentViewController(context: MomentContext) {
+    func presentNewMomentViewController(context: NewMomentViewController.Context) {
         let vc = NewMomentViewController(context: context)
         vc.delegate = self
         present(vc, animated: true)

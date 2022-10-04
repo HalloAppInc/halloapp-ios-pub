@@ -14,7 +14,7 @@ import CocoaLumberjackSwift
 
 class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
 
-    let context: MomentContext
+    let context: NewMomentViewController.Context
 
     private var media: PendingMedia?
     /// Used to wait for the creation of the media's file path.
@@ -132,7 +132,7 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
     var onPost: (() -> Void)?
     var onCancel: (() -> Void)?
 
-    init(context: MomentContext) {
+    init(context: NewMomentViewController.Context) {
         self.context = context
         super.init(nibName: nil, bundle: nil)
         title = Localizations.newMomentTitle
@@ -235,7 +235,7 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
         for result in results {
             let scrollView = result.isPrimary ? leadingImageScrollView : trailingImageScrollView
 
-            scrollView.imageView.image = result.image.correctlyOrientedImage()
+            scrollView.configure(with: result)
             scrollView.sizeImage()
 
             if !result.isPrimary {
@@ -294,12 +294,17 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
             return dismiss(animated: true)
         }
 
+        var unlockUserID: UserID?
+        if case let .unlock(post) = context {
+            unlockUserID = post.userID
+        }
+
         // becuase we're creating the media object at the time of posting, we have to wait for its file url
         // to be ready. otherwise we'd crash as FeedData assumes there is a valid path.
         mediaLoader = media.ready
             .first { $0 }
             .sink { [weak self] _ in
-                self?.post(media: media)
+                self?.post(info: .init(isSelfieLeading: false, unlockUserID: unlockUserID), media: [media])
             }
     }
 
@@ -323,16 +328,18 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
         return result
     }
 
-    private func post(media: PendingMedia) {
+    private func post(info: PendingMomentInfo, media: [PendingMedia]) {
         if MainAppContext.shared.feedData.validMoment.value != nil {
             // user has already posted a moment for the day
-            if !Self.hasShownReplacementDisclaimer {
-                presentReplacementDisclaimer(mediaToPost: media)
-            } else {
-                replaceMoment(with: media)
+            presentReplacementDisclaimerIfNeeded { [weak self] shouldReplace in
+                if shouldReplace {
+                    self?.replaceMoment(info: info, with: media)
+                } else {
+                    self?.sendButton.isEnabled = true
+                }
             }
         } else {
-            MainAppContext.shared.feedData.postMoment(context: context, media: media)
+            MainAppContext.shared.feedData.postMoment(info: info, media: media)
             onPost?()
         }
     }
@@ -424,14 +431,20 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
         }
     }
 
-    private func presentReplacementDisclaimer(mediaToPost: PendingMedia) {
+    private func presentReplacementDisclaimerIfNeeded(_ completion: @escaping (Bool) -> Void) {
+        guard !Self.hasShownReplacementDisclaimer else {
+            return completion(true)
+        }
+
         let alert = UIAlertController(title: Localizations.momentReplacementDisclaimerTitle,
                                     message: Localizations.momentReplacementDisclaimerBody,
                              preferredStyle: .alert)
 
-        alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
-        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default) { [weak self] _ in
-            self?.replaceMoment(with: mediaToPost)
+        alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel) { _ in
+            completion(false)
+        })
+        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default) { _ in
+            completion(true)
         })
 
         present(alert, animated: true) {
@@ -439,10 +452,10 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
         }
     }
 
-    private func replaceMoment(with media: PendingMedia) {
+    private func replaceMoment(info: PendingMomentInfo, with media: [PendingMedia]) {
         Task {
             do {
-                try await MainAppContext.shared.feedData.replaceMoment(media: media)
+                try await MainAppContext.shared.feedData.replaceMoment(info: info, media: media)
                 DDLogInfo("FeedData/replaceMoment task/replace task finished")
             } catch {
                 // not sure if this is sufficient; would like to show some error to the user but the
@@ -455,15 +468,84 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
     }
 }
 
+// MARK: - Publishers for posting
+
+extension MomentComposerViewController {
+    private typealias NewMomentContent = (media: [PendingMedia], info: PendingMomentInfo)
+
+    /// - Returns: A publisher that fires only once when both cropped images are written to files
+    ///            and ready to be posted. `nil` if there aren't two images.
+    private var dualImagePublisher: AnyPublisher<NewMomentContent, Never>? {
+        guard
+            !hideTrailingImageViewConstraint.isActive,
+            let leadingResult = leadingImageScrollView.captureResult,
+            let leadingCropped = leadingImageScrollView.croppedImage,
+            let trailingCropped = trailingImageScrollView.croppedImage
+        else {
+            return nil
+        }
+
+        let isSelfieLeading = leadingResult.direction == .front
+        let backMedia = PendingMedia(type: .image)
+        let frontMedia = PendingMedia(type: .image)
+        var unlockUserID: UserID?
+        if case let .unlock(post) = context {
+            unlockUserID = post.userId
+        }
+
+        let orderedMedia = [backMedia, frontMedia]
+        let info = PendingMomentInfo(isSelfieLeading: isSelfieLeading, unlockUserID: unlockUserID)
+
+        backMedia.image = isSelfieLeading ? trailingCropped : leadingCropped
+        frontMedia.image = isSelfieLeading ? leadingCropped : trailingCropped
+
+        return Publishers.Merge(backMedia.ready, frontMedia.ready)
+            .collect()
+            .allSatisfy { $0.allSatisfy { ready in ready } }
+            .flatMap { _ -> Just<NewMomentContent> in
+                Just((orderedMedia, info))
+            }
+            .eraseToAnyPublisher()
+    }
+
+    /// - Returns: A publisher that fires only once when the image is written to a file and ready.
+    ///            to be posted. `nil` if there isn't an image.
+    private var singleImagePublisher: AnyPublisher<NewMomentContent, Never>? {
+        guard
+            hideTrailingImageViewConstraint.isActive,
+            let cropped = leadingImageScrollView.croppedImage
+        else {
+            return nil
+        }
+
+        var unlockUserID: UserID?
+        if case let .unlock(post) = context {
+            unlockUserID = post.userId
+        }
+
+        let media = PendingMedia(type: .image)
+        let info = PendingMomentInfo(isSelfieLeading: false, unlockUserID: unlockUserID)
+
+        media.image = cropped
+
+        return media.ready
+            .first { $0 }
+            .flatMap { _ -> Just<NewMomentContent> in
+                Just(([media], info))
+            }
+            .eraseToAnyPublisher()
+    }
+}
+
 // MARK: - FeedData extension for posting moments
 
 extension FeedData {
     /// - note: These methods are `@MainActor` since creating new `FeedPost` objects is done using
     ///         the view context.
     @MainActor
-    func replaceMoment(media: PendingMedia) async throws {
+    func replaceMoment(info: PendingMomentInfo, media: [PendingMedia]) async throws {
         guard let current = MainAppContext.shared.feedData.validMoment.value else {
-            await MainActor.run { postMoment(context: .normal, media: media) }
+            await MainActor.run { postMoment(info: info, media: media) }
             return
         }
 
@@ -481,17 +563,17 @@ extension FeedData {
         }
 
         DDLogInfo("FeedData/replaceMoment/finished retraction of post with id: \(current.id)")
-        await MainActor.run { postMoment(context: .normal, media: media) }
+        await MainActor.run { postMoment(info: info, media: media) }
     }
 
-    func postMoment(context: MomentContext, media: PendingMedia) {
+    func postMoment(info: PendingMomentInfo, media: [PendingMedia]) {
         DDLogInfo("FeedData/postMoment/start")
         MainAppContext.shared.feedData.post(text: MentionText(collapsedText: "", mentionArray: []),
-                                           media: [media],
+                                           media: media,
                                  linkPreviewData: nil,
                                 linkPreviewMedia: nil,
-                                              to: .feed(.all),
-                                   momentContext: context)
+                                              to: .feed(.whitelist),
+                                      momentInfo: info)
     }
 }
 
@@ -504,6 +586,12 @@ fileprivate class ScrollableImageView: UIScrollView, UIScrollViewDelegate {
         view.contentMode = .scaleAspectFill
         return view
     }()
+
+    var image: UIImage? {
+        get { imageView.image }
+    }
+
+    private(set) var captureResult: CaptureResult?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -521,6 +609,16 @@ fileprivate class ScrollableImageView: UIScrollView, UIScrollViewDelegate {
 
     required init?(coder: NSCoder) {
         fatalError("ScrollableImageView coder init not implemented...")
+    }
+
+    func configure(with result: CaptureResult) {
+        imageView.image = result.image
+        captureResult = result
+    }
+
+    func configure(with image: UIImage) {
+        imageView.image = image
+        captureResult = nil
     }
 
     func sizeImage() {

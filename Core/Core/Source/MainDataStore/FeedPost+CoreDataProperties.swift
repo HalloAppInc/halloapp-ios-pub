@@ -64,6 +64,7 @@ public extension FeedPost {
     /// The actual ID is only useful for the user's own (outgoing) moments.
     /// For other user's (incoming) moments, this value will either be the user's own ID, or `nil`.
     @NSManaged var unlockedMomentUserID: UserID?
+    @NSManaged var isMomentSelfieLeading: Bool
 
     var status: Status {
         get {
@@ -108,16 +109,15 @@ public extension FeedPost {
     }
 }
 
- extension FeedPost {
+extension FeedPost {
 
     private var postContent: PostContent {
         guard !isPostRetracted else {
             return .retracted
         }
         
-        if isMoment, let media = media?.first {
-            let mediaData = FeedMediaData(from: media)
-            return .moment(mediaData, unlockedUserID: unlockedMomentUserID)
+        if isMoment, let content = momentContent {
+            return .moment(content)
         }
 
         let mentionText = MentionText(
@@ -154,6 +154,24 @@ public extension FeedPost {
                 return .text(mentionText, linkPreviewData)
             }
         }
+    }
+
+    private var momentContent: MomentContent? {
+        let orderedMedia = orderedMedia
+        guard isMoment, let first = orderedMedia.first else {
+            return nil
+        }
+
+        let image = FeedMediaData(from: first)
+        var selfie: FeedMediaData?
+        if orderedMedia.count > 1 {
+            selfie = FeedMediaData(from: orderedMedia[1])
+        }
+
+        return MomentContent(image: image,
+                       selfieImage: selfie,
+                     selfieLeading: isMomentSelfieLeading,
+                      unlockUserID: unlockedMomentUserID)
     }
 
     public var feedItemStatus: FeedItemStatus {
