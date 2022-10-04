@@ -395,6 +395,7 @@ public class CommonMediaUploader: NSObject {
                 encryptedFileURL = media.encryptedFileURL
                 numTries = media.numTries + 1
                 media.numTries = numTries
+                media.status = .readyToUpload
             }
 
             guard let encryptedFileURL = encryptedFileURL else {
@@ -402,16 +403,12 @@ public class CommonMediaUploader: NSObject {
                 throw MediaUploadError.mediaNotFound
             }
 
+            let uploadTask: URLSessionUploadTask?
+
             if numTries > 3 {
                 // fetch new urls for direct upload and start task freshly again!
-                return try await retryUpload(mediaID: mediaID, encryptedFileURL: encryptedFileURL, type: .direct)
-            } else {
-                guard let statusCode = (task.response as? HTTPURLResponse)?.statusCode else {
-                    // If the error is unknown - this is primarily due to loss of connection without a server response.
-                    // so we should retry this task immediately.
-                    DDLogError("CommonMediaUploader/parseResponseAndRetryIfNeeded/Failed with empty status code for \(mediaID)")
-                    return try await retryUpload(mediaID: mediaID, encryptedFileURL: encryptedFileURL, type: .resumable)
-                }
+                uploadTask = try await retryUpload(mediaID: mediaID, encryptedFileURL: encryptedFileURL, type: .direct)
+            } else if let statusCode = (task.response as? HTTPURLResponse)?.statusCode {
                 DDLogInfo("CommonMediaUploader/parseResponseAndRetryIfNeeded/Failed with status \(statusCode) for \(mediaID)")
 
                 switch statusCode {
@@ -429,14 +426,14 @@ public class CommonMediaUploader: NSObject {
                  */
                 case 404:
                     // fetch new urls for resumable upload and start task freshly again!
-                    return try await retryUpload(mediaID: mediaID, encryptedFileURL: encryptedFileURL, type: .resumable)
+                    uploadTask = try await retryUpload(mediaID: mediaID, encryptedFileURL: encryptedFileURL, type: .resumable)
                 /*
                  Precondition failed; Try direct upload by sending IQ without size attribute.
                  Here we are checking Tus-Resumable header to be compatible. The current expected value is 1.0.0.
                  */
                 case 412:
                     // fetch new urls for direct upload and start task freshly again!
-                    return try await retryUpload(mediaID: mediaID, encryptedFileURL: encryptedFileURL, type: .direct)
+                    uploadTask = try await retryUpload(mediaID: mediaID, encryptedFileURL: encryptedFileURL, type: .direct)
                 /*
                  Requested Entity too large; Cann't upload this large an object (We don't impose any limits right now, but we will in future).
                  */
@@ -448,9 +445,22 @@ public class CommonMediaUploader: NSObject {
                 default:
                     // Retry three time after (2, 4, 8) seconds. After three failures try direct upload by sending IQ without size attribute.
                     try await Task.sleep(nanoseconds: 2 * UInt64(numTries) * NSEC_PER_SEC)
-                    return try await retryUpload(mediaID: mediaID, encryptedFileURL: encryptedFileURL, type: .resumable)
+                    uploadTask = try await retryUpload(mediaID: mediaID, encryptedFileURL: encryptedFileURL, type: .resumable)
                 }
+            } else {
+                // If the error is unknown - this is primarily due to loss of connection without a server response.
+                // so we should retry this task immediately.
+                DDLogError("CommonMediaUploader/parseResponseAndRetryIfNeeded/Failed with empty status code for \(mediaID)")
+                uploadTask = try await retryUpload(mediaID: mediaID, encryptedFileURL: encryptedFileURL, type: .resumable)
             }
+
+            if uploadTask != nil {
+                try? await updateMedia(with: mediaID, update: { media in
+                    media.status = .uploading
+                })
+            }
+
+            return uploadTask
         } else {
             var encryptedFileURL: URL?
             var mediaURL: URL?
@@ -809,6 +819,10 @@ extension CommonMediaUploader: URLSessionTaskDelegate {
         Task {
             let uploadTask = await uploadTaskManager.findOrCreateTask(for: mediaID)
             uploadTask.currentURLTask = nil
+
+            try? await self.updateMedia(with: mediaID) { media in
+                media.status = .readyToUpload
+            }
 
             let task = Task.detached {
                 try await self.parseResponseAndRetryIfNeeded(mediaID: mediaID, task: task, error: error)
