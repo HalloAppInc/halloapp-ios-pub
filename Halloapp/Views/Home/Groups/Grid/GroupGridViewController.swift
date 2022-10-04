@@ -97,6 +97,7 @@ class GroupGridViewController: UIViewController {
 
     private var isEmptyCancellable: AnyCancellable?
     private var requestScrollToTopAnimatedCancellable: AnyCancellable?
+    private var lastDisappearDate: Date?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -153,9 +154,9 @@ class GroupGridViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 
-        // Any animated transition back to here will be from some presented / pushed view controller
-        // Reload content only if we're switching tabs
-        if transitionCoordinator == nil {
+        // reload contents if we've been gone for > 10 min
+        if let lastDisappearDate = lastDisappearDate, -lastDisappearDate.timeIntervalSinceNow > 60 * 10 {
+            self.lastDisappearDate = nil
             dataSource.reload(animated: false)
             scrollToTop(animated: false)
         }
@@ -163,6 +164,8 @@ class GroupGridViewController: UIViewController {
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
+
+        lastDisappearDate = Date()
 
         if searchController.isActive, searchController.searchBar.text?.isEmpty ?? true {
             searchController.isActive = false
