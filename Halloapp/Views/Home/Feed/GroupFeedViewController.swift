@@ -14,7 +14,7 @@ import CoreData
 import UIKit
 import UserNotifications
 
-class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
+class GroupFeedViewController: FeedCollectionViewController {
 
     private enum Constants {
         static let sectionHeaderReuseIdentifier = "header-view"
@@ -146,13 +146,6 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
             }
         )
 
-        cancellableSet.insert(MainAppContext.shared.callManager.isAnyCallOngoing.sink(receiveValue: { [weak self] activeCall in
-            let hasActiveCall = activeCall != nil
-            let isVideoCallOngoing = activeCall?.isVideoCall ?? false
-            self?.composeVoiceNoteButton?.button.isEnabled = !hasActiveCall
-            self?.composeCamPostButton?.button.isEnabled = !isVideoCallOngoing
-        }))
-
         // Mark all posts as read on first view of group.
         // This is tracked by whether we have a cached scroll position
         if !shouldRestoreScrollPosition, feedPostIdToScrollTo == nil {
@@ -229,7 +222,7 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
 
     override func viewDidLayoutSubviews() {
         // Adjust bottom inset before any scrolling occurs in super.didLayoutSubviews
-        let bottomInset = view.bounds.maxY - floatingMenu.triggerButton.frame.minY - collectionView.safeAreaInsets.bottom
+        let bottomInset = view.bounds.maxY - newPostButton.frame.minY - collectionView.safeAreaInsets.bottom
         if bottomInset != collectionView.contentInset.bottom {
             collectionView.contentInset.bottom = bottomInset
         }
@@ -291,14 +284,26 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {
         super.scrollViewDidScroll(scrollView)
 
-        guard scrollView.contentSize.height > scrollView.bounds.inset(by: scrollView.adjustedContentInset).height else {
-            DispatchQueue.main.async { [weak self] in self?.floatingMenu.setAccessoryState(.accessorized, animated: true) }
-            return
-        }
-        
-        let fabAccessoryState: FloatingMenu.AccessoryState = scrollView.contentOffset.y <= 0 ? .accessorized : .plain
+
+        let shouldHideAccessoryView = scrollView.contentSize.height > scrollView.bounds.inset(by: scrollView.adjustedContentInset).height && scrollView.contentOffset.y > 0
+
         // if we didn't use a DispatchQueue here, we'd get some issues when restoring scroll position
-        DispatchQueue.main.async { [weak self] in self?.floatingMenu.setAccessoryState(fabAccessoryState, animated: true) }
+        DispatchQueue.main.async { [weak self] in
+            guard let newPostButton = self?.newPostButton, newPostButton.accessoryView.isHidden != shouldHideAccessoryView else {
+                return
+            }
+
+            UIView.animate(
+                withDuration: 0.3,
+                delay: 0,
+                usingSpringWithDamping: 1,
+                initialSpringVelocity: 0,
+                options: .allowUserInteraction,
+                animations: {
+                    newPostButton.accessoryView.isHidden = shouldHideAccessoryView
+                    newPostButton.layoutIfNeeded()
+                })
+        }
     }
 
     override func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
@@ -425,43 +430,7 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
 
     // MARK: New post
 
-    private var composeVoiceNoteButton: FloatingMenuButton?
-    private var composeCamPostButton: FloatingMenuButton?
-
-    private(set) lazy var floatingMenu: FloatingMenu = {
-        let camButton = FloatingMenuButton.standardActionButton(
-            iconTemplate: UIImage(named: "icon_fab_compose_camera")?.withRenderingMode(.alwaysTemplate),
-            accessibilityLabel: Localizations.fabAccessibilityCamera,
-            action: { [weak self] in self?.presentNewPostViewController(source: .camera) })
-        composeCamPostButton = camButton
-
-        let symbolConfiguration = UIImage.SymbolConfiguration(pointSize: 20, weight: .semibold, scale: .medium)
-        let textIconName = view.effectiveUserInterfaceLayoutDirection == .leftToRight ? "text.alignleft" : "text.alignright"
-        let textIcon = UIImage(systemName: textIconName)?.withConfiguration(symbolConfiguration)
-
-        var expandedButtons: [FloatingMenuButton] = [
-            .standardActionButton(
-                iconTemplate: UIImage(systemName: "photo.fill")?.withConfiguration(symbolConfiguration),
-                accessibilityLabel: Localizations.fabAccessibilityPhotoLibrary,
-                action: { [weak self] in self?.presentNewPostViewController(source: .library) }),
-            .standardActionButton(
-                iconTemplate: textIcon,
-                accessibilityLabel: Localizations.fabAccessibilityTextPost,
-                action: { [weak self] in self?.presentNewPostViewController(source: .noMedia) }),
-            camButton
-        ]
-
-        let button = FloatingMenuButton.standardActionButton(
-            iconTemplate: UIImage(named: "icon_fab_compose_voice")?.withRenderingMode(.alwaysTemplate),
-            accessibilityLabel: Localizations.fabAccessibilityVoiceNote,
-            action: { [weak self] in self?.presentNewPostViewController(source: .voiceNote) })
-        composeVoiceNoteButton = button
-        expandedButtons.insert(button, at: 1)
-
-        return FloatingMenu(presenter: self, expandedButtons: expandedButtons)
-    }()
-    
-    func makeTriggerButton() -> FloatingMenuButton {
+    private lazy var newPostButton: AccessorizedFloatingButton = {
         let postLabel = UILabel()
         postLabel.translatesAutoresizingMaskIntoConstraints = false
         postLabel.font = .quicksandFont(ofFixedSize: 21, weight: .bold)
@@ -473,93 +442,45 @@ class GroupFeedViewController: FeedCollectionViewController, FloatingMenuPresent
         labelContainer.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 1, right: 0)
         labelContainer.addSubview(postLabel)
         postLabel.constrainMargins(to: labelContainer)
-        
+
         let config = UIImage.SymbolConfiguration(pointSize: 20, weight: .bold)
         let plusImage = UIImage(systemName: "plus", withConfiguration: config)?.withRenderingMode(.alwaysTemplate)
-        
-        return .rotatingToggleButton(collapsedIconTemplate: plusImage,
-                                             accessoryView: labelContainer,
-                                          expandedRotation: 45)
-    }
-    
-    func floatingMenuExpansionStateWillChange(to state: FloatingMenu.ExpansionState) {
-        if case .expanded = state {
-            cancelNewPostsIndicatorRemoval()
-        } else {
-            scheduleNewPostsIndicatorRemoval()
+
+        let button = AccessorizedFloatingButton(icon: plusImage, accessoryView: labelContainer)
+        button.addTarget(self, action: #selector(presentNewPostController), for: .touchUpInside)
+        return button
+    }()
+
+    @objc private func presentNewPostController() {
+        guard let group = group else { return }
+
+        let newPostViewController = NewPostViewController(source: .unified, destination: ShareDestination.destination(from: group)) { didPost in
+            MainAppContext.shared.privacySettings.activeType = .all
+            self.dismiss(animated: true)
+            if didPost { self.scrollToTop(animated: true) }
+        }
+        newPostViewController.modalPresentationStyle = .fullScreen
+        present(newPostViewController, animated: true)
+
+        if !firstActionHappened {
+            delegate?.feedCollectionViewController(self, userActioned: true)
+            firstActionHappened = true
         }
     }
 
     private func updateFloatingActionMenu() {
-        floatingMenu.triggerButton.isHidden = !userBelongsToGroup
-        floatingMenu.triggerButton.isUserInteractionEnabled = userBelongsToGroup
+        newPostButton.isHidden = !userBelongsToGroup
+        newPostButton.isUserInteractionEnabled = userBelongsToGroup
     }
 
     private func installFloatingActionMenu() {
-        let trigger = floatingMenu.triggerButton
-        
-        trigger.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(trigger)
+        newPostButton.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(newPostButton)
         
         NSLayoutConstraint.activate([
-            trigger.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
-            trigger.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor, constant: -20)
+            newPostButton.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
+            newPostButton.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor, constant: -20)
         ])
-    }
-    
-    override func showNewPostsIndicator() {
-        super.showNewPostsIndicator()
-        
-        if presentedViewController === floatingMenu {
-            cancelNewPostsIndicatorRemoval()
-        }
-    }
-
-    private func presentNewPostViewController(source: NewPostMediaSource) {
-        let fabActionType: FabActionType?
-        switch source {
-        case .library:
-            fabActionType = .gallery
-        case .camera:
-            fabActionType = .camera
-        case .noMedia:
-            fabActionType = .text
-        case .voiceNote:
-            fabActionType = .audio
-        case .unified:
-            fabActionType = nil // only used in group grid
-        }
-        if let fabActionType = fabActionType {
-            AppContext.shared.observeAndSave(event: .fabAction(type: fabActionType))
-        }
-        if source == .voiceNote && MainAppContext.shared.callManager.isAnyCallActive {
-            // When we have an active call ongoing: we should not record audio.
-            // We should present an alert saying that this action is not allowed.
-            let alert = UIAlertController(
-                title: Localizations.failedActionDuringCallTitle,
-                message: Localizations.failedActionDuringCallNoticeText,
-                preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: { action in
-                DDLogInfo("GroupFeedViewController/presentNewPostViewController/failedActionDuringCall/dismiss")
-            }))
-            present(alert, animated: true)
-        } else {
-            guard let group = group else { return }
-
-
-            let newPostViewController = NewPostViewController(source: source, destination: ShareDestination.destination(from: group)) { didPost in
-                MainAppContext.shared.privacySettings.activeType = .all
-                self.dismiss(animated: true)
-                if didPost { self.scrollToTop(animated: true) }
-            }
-            newPostViewController.modalPresentationStyle = .fullScreen
-            present(newPostViewController, animated: true)
-
-            if !firstActionHappened {
-                delegate?.feedCollectionViewController(self, userActioned: true)
-                firstActionHappened = true
-            }
-        }
     }
 
     override func newPostsIndicatorTapped() {
