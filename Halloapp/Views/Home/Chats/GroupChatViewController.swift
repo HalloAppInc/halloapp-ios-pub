@@ -31,10 +31,13 @@ fileprivate enum MessageRow: Hashable, Equatable {
     case chatMessage(ChatMessageData)
     case unreadCountHeader(Int32)
     case timeHeader(String)
+    case groupChatEvent(GroupEvent)
 
     var timestamp: Date? {
         switch self {
         case .chatMessage(let data):
+            return data.timestamp
+        case .groupEvent(let data):
             return data.timestamp
         case .unreadCountHeader(_), .timeHeader(_):
             return nil
@@ -45,6 +48,8 @@ fileprivate enum MessageRow: Hashable, Equatable {
         switch self {
         case .chatMessage(let data):
             return data.timestamp?.chatMsgGroupingTimestamp(Date()) ?? ""
+        case .groupChatEvent(let data):
+            return data.timestamp.chatMsgGroupingTimestamp(Date())
         case .unreadCountHeader(_):
             return ""
         case .timeHeader(let timestamp):
@@ -58,7 +63,7 @@ fileprivate enum MessageRow: Hashable, Equatable {
         switch self {
         case .chatMessage(_):
             return true
-        case .timeHeader(_), .unreadCountHeader(_):
+        case .timeHeader(_), .unreadCountHeader(_), .groupChatEvent(_):
             return false
         }
     }
@@ -85,6 +90,7 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
     static private let messageCellViewCallReuseIdentifier = "MessageCellViewCall"
 
     private var chatMessageFetchedResultsController: NSFetchedResultsController<ChatMessage>?
+    private var groupEventFetchedResultsController: NSFetchedResultsController<GroupEvent>?
 
     fileprivate typealias ChatDataSource = UICollectionViewDiffableDataSource<Section, MessageRow>
     fileprivate typealias ChatMessageSnapshot = NSDiffableDataSourceSnapshot<Section, MessageRow>
@@ -127,6 +133,10 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
                     if let self = self, let chatMessage = self.chatMessage(id: chatMessageData.id) {
                         return self.chatMessageCell(chatMessage: chatMessage, indexPath: indexPath)
                     }
+                case .groupEvent(let groupEvent):
+                    let cell = collectionView.dequeueReusableCell(withReuseIdentifier: GroupChatViewController.messageCellViewEventReuseIdentifier, for: indexPath)
+                    (cell as? MessageCellViewEvent)?.configure(groupEvent: groupEvent)
+                    return cell
                 case .unreadCountHeader(let unreadCount):
                     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MessageUnreadHeaderView.elementKind,
                         for: indexPath)
@@ -277,6 +287,7 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
     private func setupUI() {
         collectionView.dataSource = dataSource
         setupChatMessageFetchedResultsController()
+        setupGroupEventFetchedResultsController()
         updateCollectionViewData()
     }
 
@@ -305,6 +316,27 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
         }
     }
 
+    private func setupGroupEventFetchedResultsController() {
+        let sortDescriptors = [
+            NSSortDescriptor(keyPath: \GroupEvent.timestamp, ascending: true)
+        ]
+
+        let fetchRequest = GroupEvent.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "groupID == %@", groupId)
+        fetchRequest.sortDescriptors = sortDescriptors
+        fetchRequest.returnsObjectsAsFaults = false
+
+        groupEventFetchedResultsController = NSFetchedResultsController<GroupEvent>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.mainDataStore.viewContext, sectionNameKeyPath: nil, cacheName: nil)
+        groupEventFetchedResultsController?.delegate = self
+        do {
+            DDLogError("GroupChatViewController/setupGroupEventFetchedResultsController/fetching group events from chat group: \(groupId)")
+            try groupEventFetchedResultsController!.performFetch()
+        } catch {
+            DDLogError("GroupChatViewController/setupGroupEventFetchedResultsController/failed to fetch  group events from chat group: \(groupId)")
+            return
+        }
+    }
+
     func updateCollectionViewData() {
         DDLogInfo("GroupChatViewController/updateCollectionViewData/called")
         var messageRows: [MessageRow] = []
@@ -319,6 +351,12 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
                 if let groupId = chatMessage.toGroupId {
                     messageRows.append(MessageRow.chatMessage(ChatMessageData(id: chatMessage.id, fromUserId: chatMessage.fromUserId, groupId: groupId, timestamp: chatMessage.timestamp)))
                 }
+            }
+        }
+        // Add Group Events
+        if let chatEvents = groupEventFetchedResultsController?.fetchedObjects {
+            chatEvents.forEach { chatEvent in
+                messageRows.append(MessageRow.groupEvent(chatEvent))
             }
         }
         // Sort all messages by timestamp

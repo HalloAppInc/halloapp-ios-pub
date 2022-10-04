@@ -8,6 +8,7 @@
 
 import UIKit
 import CoreCommon
+import Core
 
 public enum ChatLogEventType: Int16 {
     case whisperKeysChange = 0
@@ -96,6 +97,12 @@ class MessageCellViewEvent: UICollectionViewCell {
         case .addToAddressBook:
             let fullname = MainAppContext.shared.contactStore.fullName(for: userID, in: MainAppContext.shared.contactStore.viewContext)
             messageLabel.text = Localizations.chatEventAddContactToAddressBook(name: fullname)
+        }
+    }
+
+    func configure(groupEvent: GroupEvent) {
+        if let text = groupEvent.text {
+            messageLabel.text = text
         }
     }
 
