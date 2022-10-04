@@ -508,27 +508,39 @@ public struct Clients_PostContainerBlob {
   // methods supported on all messages.
 
   public var postContainer: Clients_PostContainer {
-    get {return _postContainer ?? Clients_PostContainer()}
-    set {_postContainer = newValue}
+    get {return _storage._postContainer ?? Clients_PostContainer()}
+    set {_uniqueStorage()._postContainer = newValue}
   }
   /// Returns true if `postContainer` has been explicitly set.
-  public var hasPostContainer: Bool {return self._postContainer != nil}
+  public var hasPostContainer: Bool {return _storage._postContainer != nil}
   /// Clears the value of `postContainer`. Subsequent reads from it will return its default value.
-  public mutating func clearPostContainer() {self._postContainer = nil}
+  public mutating func clearPostContainer() {_uniqueStorage()._postContainer = nil}
 
-  public var uid: Int64 = 0
+  public var uid: Int64 {
+    get {return _storage._uid}
+    set {_uniqueStorage()._uid = newValue}
+  }
 
-  public var postID: String = String()
+  public var postID: String {
+    get {return _storage._postID}
+    set {_uniqueStorage()._postID = newValue}
+  }
 
-  public var timestamp: Int64 = 0
+  public var timestamp: Int64 {
+    get {return _storage._timestamp}
+    set {_uniqueStorage()._timestamp = newValue}
+  }
 
-  public var groupID: String = String()
+  public var groupID: String {
+    get {return _storage._groupID}
+    set {_uniqueStorage()._groupID = newValue}
+  }
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 
-  fileprivate var _postContainer: Clients_PostContainer? = nil
+  fileprivate var _storage = _StorageClass.defaultInstance
 }
 
 public struct Clients_CommentContainer {
@@ -1156,6 +1168,8 @@ public struct Clients_Moment {
   public mutating func clearSelfieImage() {self._selfieImage = nil}
 
   public var selfieLeading: Bool = false
+
+  public var location: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -2074,51 +2088,91 @@ extension Clients_PostContainerBlob: SwiftProtobuf.Message, SwiftProtobuf._Messa
     5: .standard(proto: "group_id"),
   ]
 
+  fileprivate class _StorageClass {
+    var _postContainer: Clients_PostContainer? = nil
+    var _uid: Int64 = 0
+    var _postID: String = String()
+    var _timestamp: Int64 = 0
+    var _groupID: String = String()
+
+    static let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _postContainer = source._postContainer
+      _uid = source._uid
+      _postID = source._postID
+      _timestamp = source._timestamp
+      _groupID = source._groupID
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularMessageField(value: &self._postContainer) }()
-      case 2: try { try decoder.decodeSingularInt64Field(value: &self.uid) }()
-      case 3: try { try decoder.decodeSingularStringField(value: &self.postID) }()
-      case 4: try { try decoder.decodeSingularInt64Field(value: &self.timestamp) }()
-      case 5: try { try decoder.decodeSingularStringField(value: &self.groupID) }()
-      default: break
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularMessageField(value: &_storage._postContainer) }()
+        case 2: try { try decoder.decodeSingularInt64Field(value: &_storage._uid) }()
+        case 3: try { try decoder.decodeSingularStringField(value: &_storage._postID) }()
+        case 4: try { try decoder.decodeSingularInt64Field(value: &_storage._timestamp) }()
+        case 5: try { try decoder.decodeSingularStringField(value: &_storage._groupID) }()
+        default: break
+        }
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    try { if let v = self._postContainer {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    } }()
-    if self.uid != 0 {
-      try visitor.visitSingularInt64Field(value: self.uid, fieldNumber: 2)
-    }
-    if !self.postID.isEmpty {
-      try visitor.visitSingularStringField(value: self.postID, fieldNumber: 3)
-    }
-    if self.timestamp != 0 {
-      try visitor.visitSingularInt64Field(value: self.timestamp, fieldNumber: 4)
-    }
-    if !self.groupID.isEmpty {
-      try visitor.visitSingularStringField(value: self.groupID, fieldNumber: 5)
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      try { if let v = _storage._postContainer {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+      } }()
+      if _storage._uid != 0 {
+        try visitor.visitSingularInt64Field(value: _storage._uid, fieldNumber: 2)
+      }
+      if !_storage._postID.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._postID, fieldNumber: 3)
+      }
+      if _storage._timestamp != 0 {
+        try visitor.visitSingularInt64Field(value: _storage._timestamp, fieldNumber: 4)
+      }
+      if !_storage._groupID.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._groupID, fieldNumber: 5)
+      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Clients_PostContainerBlob, rhs: Clients_PostContainerBlob) -> Bool {
-    if lhs._postContainer != rhs._postContainer {return false}
-    if lhs.uid != rhs.uid {return false}
-    if lhs.postID != rhs.postID {return false}
-    if lhs.timestamp != rhs.timestamp {return false}
-    if lhs.groupID != rhs.groupID {return false}
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._postContainer != rhs_storage._postContainer {return false}
+        if _storage._uid != rhs_storage._uid {return false}
+        if _storage._postID != rhs_storage._postID {return false}
+        if _storage._timestamp != rhs_storage._timestamp {return false}
+        if _storage._groupID != rhs_storage._groupID {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -3233,6 +3287,7 @@ extension Clients_Moment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
     1: .same(proto: "image"),
     2: .standard(proto: "selfie_image"),
     3: .standard(proto: "selfie_leading"),
+    4: .same(proto: "location"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -3244,6 +3299,7 @@ extension Clients_Moment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
       case 1: try { try decoder.decodeSingularMessageField(value: &self._image) }()
       case 2: try { try decoder.decodeSingularMessageField(value: &self._selfieImage) }()
       case 3: try { try decoder.decodeSingularBoolField(value: &self.selfieLeading) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.location) }()
       default: break
       }
     }
@@ -3263,6 +3319,9 @@ extension Clients_Moment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
     if self.selfieLeading != false {
       try visitor.visitSingularBoolField(value: self.selfieLeading, fieldNumber: 3)
     }
+    if !self.location.isEmpty {
+      try visitor.visitSingularStringField(value: self.location, fieldNumber: 4)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -3270,6 +3329,7 @@ extension Clients_Moment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
     if lhs._image != rhs._image {return false}
     if lhs._selfieImage != rhs._selfieImage {return false}
     if lhs.selfieLeading != rhs.selfieLeading {return false}
+    if lhs.location != rhs.location {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -3612,3 +3672,4 @@ extension Clients_GroupHistoryPayload: SwiftProtobuf.Message, SwiftProtobuf._Mes
     return true
   }
 }
+
