@@ -18,7 +18,7 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
 
     private var media: PendingMedia?
     /// Used to wait for the creation of the media's file path.
-    private var mediaLoader: AnyCancellable?
+    private var sendCancellable: AnyCancellable?
 
     private lazy var audienceIndicator: UIView = {
         let pill = PillView()
@@ -216,7 +216,7 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
         DDLogInfo("MomentComposerViewController/configure/start")
         self.media = media
 
-        mediaLoader = media.ready
+        sendCancellable = media.ready
             .first { $0 }
             .sink { [weak self] _ in
                 guard let self = self else {
@@ -227,7 +227,7 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
                 self.leadingImageScrollView.sizeImage()
 
                 self.sendButton.isEnabled = true
-                self.mediaLoader = nil
+                self.sendCancellable = nil
             }
     }
 
@@ -269,7 +269,7 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
 
     @objc
     private func dismissTapped(_ button: UIBarButtonItem) {
-        mediaLoader = nil
+        sendCancellable = nil
 
         leadingImageScrollView.imageView.image = nil
         trailingImageScrollView.imageView.image = nil
@@ -282,29 +282,16 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
     @objc
     private func sendButtonPushed(_ button: UIButton) {
         DDLogInfo("MomentComposerViewController/send/start")
+        guard let publisher = dualImagePublisher ?? singleImagePublisher else {
+            DDLogError("MomentComposerViewController/sendButtonPushed/could not get publisher")
+            return
+        }
+
         sendButton.isEnabled = false
-        let media = PendingMedia(type: .image)
 
-        if !hideTrailingImageViewConstraint.isActive, let cropped = cropAndJoinImages() {
-            media.image = cropped
-        } else if hideTrailingImageViewConstraint.isActive, let cropped = leadingImageScrollView.croppedImage {
-            media.image = cropped
-        } else {
-            DDLogError("MomentComposerViewController/sendButtonPushed/unable to crop images")
-            return dismiss(animated: true)
-        }
-
-        var unlockUserID: UserID?
-        if case let .unlock(post) = context {
-            unlockUserID = post.userID
-        }
-
-        // becuase we're creating the media object at the time of posting, we have to wait for its file url
-        // to be ready. otherwise we'd crash as FeedData assumes there is a valid path.
-        mediaLoader = media.ready
-            .first { $0 }
-            .sink { [weak self] _ in
-                self?.post(info: .init(isSelfieLeading: false, unlockUserID: unlockUserID), media: [media])
+        sendCancellable = publisher
+            .sink { [weak self] content in
+                self?.post(info: content.info, media: content.media)
             }
     }
 
@@ -473,8 +460,6 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
 extension MomentComposerViewController {
     private typealias NewMomentContent = (media: [PendingMedia], info: PendingMomentInfo)
 
-    /// - Returns: A publisher that fires only once when both cropped images are written to files
-    ///            and ready to be posted. `nil` if there aren't two images.
     private var dualImagePublisher: AnyPublisher<NewMomentContent, Never>? {
         guard
             !hideTrailingImageViewConstraint.isActive,
@@ -485,13 +470,10 @@ extension MomentComposerViewController {
             return nil
         }
 
-        let isSelfieLeading = leadingResult.direction == .front
         let backMedia = PendingMedia(type: .image)
         let frontMedia = PendingMedia(type: .image)
-        var unlockUserID: UserID?
-        if case let .unlock(post) = context {
-            unlockUserID = post.userId
-        }
+        let isSelfieLeading = leadingResult.direction == .front
+        let unlockUserID = unlockUserID
 
         let orderedMedia = [backMedia, frontMedia]
         let info = PendingMomentInfo(isSelfieLeading: isSelfieLeading, unlockUserID: unlockUserID)
@@ -501,15 +483,15 @@ extension MomentComposerViewController {
 
         return Publishers.Merge(backMedia.ready, frontMedia.ready)
             .collect()
-            .allSatisfy { $0.allSatisfy { ready in ready } }
+            .allSatisfy {
+                $0.allSatisfy { ready in ready }
+            }
             .flatMap { _ -> Just<NewMomentContent> in
                 Just((orderedMedia, info))
             }
             .eraseToAnyPublisher()
     }
 
-    /// - Returns: A publisher that fires only once when the image is written to a file and ready.
-    ///            to be posted. `nil` if there isn't an image.
     private var singleImagePublisher: AnyPublisher<NewMomentContent, Never>? {
         guard
             hideTrailingImageViewConstraint.isActive,
@@ -518,12 +500,8 @@ extension MomentComposerViewController {
             return nil
         }
 
-        var unlockUserID: UserID?
-        if case let .unlock(post) = context {
-            unlockUserID = post.userId
-        }
-
         let media = PendingMedia(type: .image)
+        let unlockUserID = unlockUserID
         let info = PendingMomentInfo(isSelfieLeading: false, unlockUserID: unlockUserID)
 
         media.image = cropped
@@ -534,6 +512,14 @@ extension MomentComposerViewController {
                 Just(([media], info))
             }
             .eraseToAnyPublisher()
+    }
+
+    private var unlockUserID: UserID? {
+        if case let .unlock(post) = context {
+            return post.userID
+        }
+
+        return nil
     }
 }
 
