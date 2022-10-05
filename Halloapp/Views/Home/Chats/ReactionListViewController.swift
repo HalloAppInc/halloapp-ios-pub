@@ -46,8 +46,8 @@ class ReactionListViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        navigationItem.title = NSLocalizedString("title.your.post", value: "Reactions", comment: "Title for the screen with information about who reacted to your post.")
+
+        navigationItem.title = Localizations.titleReactions
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(closeAction))
         
         tableView.register(ReactionTableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
@@ -101,8 +101,18 @@ private class ReactionTableViewCell: ContactTableViewCell {
         
         nameLabel.text = contactStore.fullName(for: reaction.fromUserID, in: contactStore.viewContext)
         if reaction.fromUserID == AppContext.shared.userData.userId {
-            subtitleLabel.text = "Tap to remove"
+            subtitleLabel.text = Localizations.tapToRemoveReaction
         }
         accessoryLabel.text = reaction.emoji
+    }
+}
+
+extension Localizations {
+    static var titleReactions: String {
+        NSLocalizedString("title.reactions", value: "Reactions", comment: "Title for the screen with information about who reacted to your content.")
+    }
+
+    static var tapToRemoveReaction: String {
+        NSLocalizedString("tap.to.remove.reaction", value: "Tap to remove", comment: "Action text that shows up next to your selected reaction.")
     }
 }
