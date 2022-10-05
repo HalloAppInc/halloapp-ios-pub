@@ -476,10 +476,8 @@ extension ProtoServiceCore: CoreService {
 
         switch feed {
         case .group(let groupID):
-            // Clear unencrypted payload if server prop is disabled.
-            if !ServerProperties.sendClearTextGroupFeedContent {
-                serverPost.payload = Data()
-            }
+            // Clear unencrypted group payload.
+            serverPost.payload = Data()
             makeGroupEncryptedPayload(payloadData: payloadData, groupID: groupID, oneOfItem: .post(serverPost), expiryTimestamp: post.expiration.flatMap { Int64($0.timeIntervalSince1970) } ?? -1) { result in
                 switch result {
                 case .failure(let failure):
@@ -510,11 +508,8 @@ extension ProtoServiceCore: CoreService {
             return
         }
         let payloadData = serverComment.payload
-        // Clear unencrypted payload if server prop is disabled.
-        if !ServerProperties.sendClearTextGroupFeedContent {
-            serverComment.payload = Data()
-        }
-
+        // Clear unencrypted group payload.
+        serverComment.payload = Data()
         if let groupID = groupID {
             makeGroupEncryptedPayload(payloadData: payloadData, groupID: groupID, oneOfItem: .comment(serverComment)) { result in
                 switch result {
@@ -1013,10 +1008,8 @@ extension ProtoServiceCore: CoreService {
 
         switch feed {
         case .group(let groupID):
-            // Clear unencrypted payload if server prop is disabled.
-            if !ServerProperties.sendClearTextGroupFeedContent {
-                serverPost.payload = Data()
-            }
+            // Clear unencrypted group payload.
+            serverPost.payload = Data()
             var item = Server_GroupFeedItem()
             item.action = .publish
             item.gid = groupID
@@ -1070,11 +1063,8 @@ extension ProtoServiceCore: CoreService {
             return
         }
         let payloadData = serverComment.payload
-        // Clear unencrypted payload if server prop is disabled.
-        if !ServerProperties.sendClearTextGroupFeedContent {
-            serverComment.payload = Data()
-        }
-
+        // Clear unencrypted group payload.
+        serverComment.payload = Data()
         // Add media counters.
         serverComment.mediaCounters = comment.serverMediaCounters
 
@@ -2337,10 +2327,8 @@ extension ProtoServiceCore: CoreService {
                 DDLogInfo("ProtoServiceCore/makeGroupChatStanza/\(toGroupId)/encryption/success")
                 var groupChatStanza = Server_GroupChatStanza()
                 groupChatStanza.gid = toGroupId
-                //gate!sendClearTextGroupFeedContent
-                if ServerProperties.sendClearTextGroupFeedContent {
-                    groupChatStanza.payload = messageData
-                }
+                // Clear unencrypted group payload.
+                groupChatStanza.payload = Data()
                 groupChatStanza.audienceHash = groupEncryptedData.audienceHash
                 groupChatStanza.senderStateBundles = groupEncryptedData.senderStateBundles
                 do {

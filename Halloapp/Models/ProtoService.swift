@@ -409,8 +409,7 @@ final class ProtoService: ProtoServiceCore {
         var elements = [FeedElement]()
 
         // This function is used for groupFeedItems from server and for fallback to unencrypted payload.
-        // So, use serverProp value to decide whether to fallback to plainTextContent when status is .rerequesting
-        let fallback: Bool = status == .rerequesting ? ServerProperties.useClearTextGroupFeedContent : true
+        let fallback: Bool = false
         for item in items {
             let isShared: Bool = item.isResentHistory ? true : item.action == .share
             switch item.item {

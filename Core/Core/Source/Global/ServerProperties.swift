@@ -23,8 +23,6 @@ public struct ServerProperties {
         case targetVideoBitRate = "target_video_bit_rate"
         case targetVideoResolution = "target_video_resolution"
         case contactSyncFrequency = "contact_sync_frequency"
-        case sendClearTextGroupFeedContent = "cleartext_group_feed"
-        case useClearTextGroupFeedContent = "use_cleartext_group_feed"
         case callWaitTimeoutSec = "call_wait_timeout"
         case canHoldCalls = "call_hold"
         case streamingUploadChunkSize = "streaming_upload_chunk_size"
@@ -71,8 +69,6 @@ public struct ServerProperties {
         static let targetVideoBitRate = 4000000.0
         static let targetVideoResolution = 720.0
         static let contactSyncFrequency: TimeInterval = 24 * 3600
-        static let sendClearTextGroupFeedContent = true
-        static let useClearTextGroupFeedContent = true
         static let callWaitTimeoutSec = 60
         static let canHoldCalls = false
         static let streamingUploadChunkSize = 65536
@@ -266,14 +262,6 @@ public struct ServerProperties {
 
     public static var contactSyncFrequency: TimeInterval {
         ServerProperties.double(forKey: .contactSyncFrequency) ?? Defaults.contactSyncFrequency
-    }
-
-    public static var sendClearTextGroupFeedContent: Bool {
-        ServerProperties.bool(forKey: .sendClearTextGroupFeedContent) ?? Defaults.sendClearTextGroupFeedContent
-    }
-
-    public static var useClearTextGroupFeedContent: Bool {
-        ServerProperties.bool(forKey: .useClearTextGroupFeedContent) ?? Defaults.useClearTextGroupFeedContent
     }
 
     public static var sendClearTextHomeFeedContent: Bool {
