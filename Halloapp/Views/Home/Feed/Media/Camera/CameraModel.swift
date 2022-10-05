@@ -147,16 +147,21 @@ class CameraModel: NSObject {
 
         NotificationCenter.default.publisher(for: .AVCaptureSessionRuntimeError)
             .receive(on: sessionQueue)
-            .sink { notification in
-                let error = notification.userInfo?[AVCaptureSessionErrorKey] as? Error
+            .sink { [weak self] notification in
+                let error = notification.userInfo?[AVCaptureSessionErrorKey] as? AVError
                 DDLogError("CameraModel/session-runtime-error [\(String(describing: error))]")
+
+                if case .sessionHardwareCostOverage = error?.code {
+                    self?.checkMultiCamPerformanceCost()
+                }
             }
             .store(in: &cancellables)
 
         NotificationCenter.default.publisher(for: .AVCaptureSessionDidStartRunning)
             .receive(on: sessionQueue)
-            .sink { _ in
+            .sink { [weak self] _ in
                 DDLogInfo("CameraModel/session-did-start")
+                self?.checkMultiCamPerformanceCost()
             }
             .store(in: &cancellables)
 
@@ -308,6 +313,7 @@ extension CameraModel {
                 self?.resetZoom(on: front)
             }
 
+            self?.checkMultiCamPerformanceCost()
             self?.session.startRunning()
         }
 
@@ -376,10 +382,12 @@ extension CameraModel {
 
     private func setMultiCamFormat(for camera: AVCaptureDevice) {
         DDLogInfo("CameraModel/setMultiCamFormat for device [\(camera.position)]")
-        guard let format = camera.optimalMulticamPhotoFormat else {
+        guard let format = camera.preferredMulticamFormat else {
             DDLogError("CameraModel/unable to get optimal format for camera [\(camera.position)]")
             return
         }
+
+        DDLogInfo("CameraModel/setMultiCamFormat format [\(format.description)]")
 
         configure(camera) { camera in
             camera.activeFormat = format
@@ -1001,6 +1009,125 @@ extension CameraModel: AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureAu
     }
 }
 
+// MARK: - monitoring multi-cam system pressure
+
+extension CameraModel {
+    /// Checks and adjusts the performance cost of running a multi-cam session.
+    ///
+    /// We want to keep the session's `hardwareCost` and `systemPressureCost` values between 0 and 1.
+    /// This method is called prior to the session starting, and will recursively lower frame rate and
+    /// resolution if the pressure values are too high.
+    private func checkMultiCamPerformanceCost() {
+        guard
+            isUsingMultipleCameras,
+            let backInput, let frontInput,
+            let session = session as? AVCaptureMultiCamSession
+        else {
+            return
+        }
+
+        let exceededHardwareCost = session.hardwareCost > 1
+        let exceededSystemCost = session.systemPressureCost > 1
+        DDLogInfo("CameraModel/checkMultiCamPerformanceCost/hardware: [\(session.hardwareCost)] system: [\(session.systemPressureCost)]")
+
+        if exceededSystemCost || exceededHardwareCost {
+            // prioritize changing frame rate since we're only taking photos
+            if reduceFrameRate(for: backInput) {
+                checkMultiCamPerformanceCost()
+            } else if reduceFrameRate(for: frontInput) {
+                checkMultiCamPerformanceCost()
+
+            } else if binVideo(for: backInput) {
+                checkMultiCamPerformanceCost()
+            } else if binVideo(for: frontInput) {
+                checkMultiCamPerformanceCost()
+
+            } else if reduceResolution(for: backInput) {
+                checkMultiCamPerformanceCost()
+            } else if reduceResolution(for: frontInput) {
+                checkMultiCamPerformanceCost()
+
+            } else {
+                DDLogInfo("CameraModel/checkMultiCamPerformanceCost/unable to further reduce costs")
+            }
+        }
+    }
+
+    private func reduceFrameRate(for input: AVCaptureDeviceInput) -> Bool {
+        let minFrameDuration = input.device.activeVideoMinFrameDuration
+        var activeMaxFrameRate: Double = Double(minFrameDuration.timescale) / Double(minFrameDuration.value)
+
+        DDLogInfo("CameraModel/reduceFrameRate/current: [\(activeMaxFrameRate)]")
+        activeMaxFrameRate -= 5
+
+        if activeMaxFrameRate >= 15 {
+            configure(input.device) { camera in
+                input.videoMinFrameDurationOverride = CMTimeMake(value: 1, timescale: Int32(activeMaxFrameRate))
+            }
+
+            DDLogInfo("CameraModel/reduceFrameRate/reduced to \(activeMaxFrameRate)")
+            return true
+        }
+
+        return false
+    }
+
+    private func reduceResolution(for input: AVCaptureDeviceInput) -> Bool {
+        let formats = input.device.formats
+        let activeFormat = input.device.activeFormat
+        let dimensions = CMVideoFormatDescriptionGetDimensions(activeFormat.formatDescription)
+        let currentWidth = dimensions.width
+        let currentHeight = dimensions.height
+
+        guard
+            currentWidth > 640 || currentHeight > 480,
+            let index = formats.firstIndex(of: activeFormat)
+        else {
+            return false
+        }
+
+        for index in (0..<index).reversed() {
+            let format = formats[index]
+            guard format.isMultiCamSupported else { continue }
+
+            let dimensions = CMVideoFormatDescriptionGetDimensions(format.formatDescription)
+            if dimensions.width < currentWidth || dimensions.height < currentHeight {
+                configure(input.device) { camera in
+                    camera.activeFormat = format
+                }
+
+                DDLogInfo("CameraModel/reduceResolution/reduced to width: [\(dimensions.width)] height: [\(dimensions.height)]")
+                return true
+            }
+        }
+
+        return false
+    }
+
+    private func binVideo(for input: AVCaptureDeviceInput) -> Bool {
+        let formats = input.device.formats
+        let activeFormat = input.device.activeFormat
+
+        guard !activeFormat.isVideoBinned, let index = formats.firstIndex(of: activeFormat) else {
+            return false
+        }
+
+        for index in (0..<index).reversed() {
+            let format = formats[index]
+            guard format.isMultiCamSupported, format.isVideoBinned else { continue }
+
+            configure(input.device) { camera in
+                camera.activeFormat = format
+            }
+
+            DDLogInfo("CameraModel/binVideo/changed to binned format")
+            return true
+        }
+
+        return false
+    }
+}
+
 extension AVCaptureDevice {
 
     static func permissions(for type: AVMediaType) async -> Bool {
@@ -1018,18 +1145,18 @@ extension AVCaptureDevice {
         }
     }
 
-    var optimalMulticamPhotoFormat: Format? {
+    var preferredMulticamFormat: Format? {
         formats
             .filter {
                 if #available(iOS 15, *), position == .front {
-                    return $0.isMultiCamSupported && $0.isPortraitEffectSupported
+                    return $0.isMultiCamSupported && $0.isPortraitEffectSupported && !$0.isVideoBinned
                 }
 
-                return $0.isMultiCamSupported
+                return $0.isMultiCamSupported && !$0.isVideoBinned
             }
-            .max {
-                $0.highResolutionStillImageDimensions.width * $0.highResolutionStillImageDimensions.height <
-                $1.highResolutionStillImageDimensions.width * $1.highResolutionStillImageDimensions.height
+            .first {
+                let dim = CMVideoFormatDescriptionGetDimensions($0.formatDescription)
+                return dim.width >= 1200 || dim.height >= 1000
             }
     }
 }
