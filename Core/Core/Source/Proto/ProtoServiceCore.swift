@@ -1820,6 +1820,31 @@ extension ProtoServiceCore: CoreService {
                                             rerequestCount: rerequestCount)
     }
 
+    // Checks if the message is decrypted and saved in the main app's data store.
+    // TODO: discuss with garrett on other options here.
+    // We should move the cryptoData keystore to be accessible by all extensions and the main app.
+    // It would be cleaner that way - having these checks after merging still leads to some flakiness in my view.
+    public func isMessageDecryptedAndSaved(msgId: String) -> Bool {
+        var isMessageAlreadyInLocalStore = false
+
+        AppContext.shared.mainDataStore.performOnBackgroundContextAndWait { managedObjectContext in
+            if let message = AppContext.shared.coreChatData.chatMessage(with: msgId, in: managedObjectContext), message.incomingStatus != .rerequesting {
+                DDLogInfo("ProtoService/isMessageDecryptedAndSaved/msgId \(msgId) - message is available in local store.")
+                isMessageAlreadyInLocalStore = true
+            } else if let reaction = AppContext.shared.coreChatData.commonReaction(with: msgId, in: managedObjectContext), reaction.incomingStatus != .rerequesting {
+                DDLogInfo("ProtoService/isMessageDecryptedAndSaved/msgId \(msgId) - reaction is available in local store.")
+                isMessageAlreadyInLocalStore = true
+            }
+        }
+
+        if isMessageAlreadyInLocalStore {
+            return true
+        }
+
+        DDLogInfo("ProtoService/isMessageDecryptedAndSaved/msgId \(msgId) - message is missing.")
+        return false
+    }
+
     // Checks if the oneToOne content is decrypted and saved in the stats dataStore.
     public func isOneToOneContentDecryptedAndSaved(contentID: String) -> Bool {
         var isOneToOneContentDecrypted = false
@@ -1925,6 +1950,27 @@ extension ProtoServiceCore: CoreService {
                 DDLogInfo("ProtoServiceCore/rerequestGroupFeedItem/\(contentId) success")
                 completion(.success(()))
             }
+        }
+    }
+
+    public func rerequestGroupChatMessageIfNecessary(id messageId: String, groupID: GroupID, contentType: GroupFeedRerequestContentType, failure: GroupDecryptionFailure, completion: @escaping ServiceRequestCompletion<Void>) {
+        guard let authorUserID = failure.fromUserId else {
+            DDLogError("proto/rerequestGroupChatMessageIfNecessary/\(messageId)/decrypt/authorUserID missing")
+            completion(.failure(.aborted))
+            return
+        }
+        // Dont rerequest messages that were already decrypted and saved.
+        if !isMessageDecryptedAndSaved(msgId: messageId) {
+            DDLogInfo("proto/rerequestGroupChatMessageIfNecessary/\(messageId)/decrypt/content is missing - so send a rerequest")
+            self.rerequestGroupFeedItem(contentId: messageId,
+                                        groupID: groupID,
+                                        authorUserID: authorUserID,
+                                        rerequestType: failure.rerequestType,
+                                        contentType: contentType,
+                                        completion: completion)
+        } else {
+            DDLogInfo("proto/rerequestGroupChatMessageIfNecessary/\(messageId)/decrypt/content already exists")
+            completion(.success(()))
         }
     }
 
@@ -2268,6 +2314,52 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
+    public func resendGroupChatMessage(_ message: ChatMessageProtocol, groupId: GroupID, to toUserID: UserID, rerequestCount: Int32, completion: @escaping ServiceRequestCompletion<Void>) {
+        makeGroupChatStanza(message) { chat, error in
+            guard let chat = chat else {
+                completion(.failure(.aborted))
+                return
+            }
+
+            // Dont send chat messages on encryption errors.
+            if let error = error {
+                DDLogInfo("ProtoServiceCore/resendGroupChatMessage/\(message.id)/error \(error)")
+                AppContext.shared.errorLogger?.logError(error)
+                DDLogInfo("ProtoServiceCore/resendGroupChatMessage/\(message.id) aborted")
+                completion(.failure(RequestError.aborted))
+                return
+            }
+
+            let packet = Server_Packet.msgPacket(
+                from: message.fromUserId,
+                to: toUserID,
+                id: message.id,
+                type: .groupchat,
+                rerequestCount: rerequestCount,
+                payload: .groupChatStanza(chat))
+
+            guard let packetData = try? packet.serializedData() else {
+                AppContext.shared.eventMonitor.count(.encryption(error: .serialization))
+                DDLogError("ProtoServiceCore/resendGroupChatMessage/\(message.id)/error could not serialize chat message!")
+                completion(.failure(RequestError.malformedRequest))
+                return
+            }
+
+            DispatchQueue.main.async {
+                guard self.isConnected else {
+                    DDLogInfo("ProtoServiceCore/resendGroupChatMessage/\(message.id) aborting (disconnected)")
+                    completion(.failure(RequestError.notConnected))
+                    return
+                }
+                AppContext.shared.eventMonitor.count(.encryption(error: error))
+                DDLogInfo("ProtoServiceCore/resendGroupChatMessage/\(message.id) sending encrypted")
+                self.send(packetData)
+                DDLogInfo("ProtoServiceCore/resendGroupChatMessage/\(message.id) success")
+                completion(.success(()))
+            }
+        }
+    }
+
     private func sendGroupChatMessage(fromUserID: UserID, toGroupId: GroupID, message: ChatMessageProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
         makeGroupChatStanza(message) { chat, error in
             guard let chat = chat else {
@@ -2335,6 +2427,7 @@ extension ProtoServiceCore: CoreService {
                 groupChatStanza.payload = Data()
                 groupChatStanza.audienceHash = groupEncryptedData.audienceHash
                 groupChatStanza.senderStateBundles = groupEncryptedData.senderStateBundles
+                groupChatStanza.senderClientVersion = AppContext.userAgent
                 do {
                     var clientEncryptedPayload = Clients_EncryptedPayload()
                     clientEncryptedPayload.senderStateEncryptedPayload = groupEncryptedData.data
@@ -2527,6 +2620,42 @@ extension ProtoServiceCore: CoreService {
 
         var packet = Server_Packet()
         packet.msg.fromUid = fromUID
+        packet.msg.id = messageID
+        packet.msg.type = .groupchat
+
+        var groupChatRetract = Server_GroupChatRetract()
+        groupChatRetract.id = messageToRetractID
+        groupChatRetract.gid = groupID
+
+        packet.msg.payload = .groupchatRetract(groupChatRetract)
+
+        guard let packetData = try? packet.serializedData() else {
+            DDLogError("ProtoService/retractChatGroupMessage/error could not serialize packet")
+            completion(.failure(.malformedRequest))
+            return
+        }
+
+        DDLogInfo("ProtoService/retractChatGroupMessage")
+        send(packetData)
+        DDLogInfo("ProtoServiceCore/retractChatGroupMessage: \(messageToRetractID)/success")
+        completion(.success(()))
+    }
+
+    public func retractGroupChatMessage(messageID: String, groupID: GroupID, to toUserID: UserID, messageToRetractID: String, completion: @escaping ServiceRequestCompletion<Void>) {
+        guard let userID = credentials?.userID, let fromUID = Int64(userID) else {
+            DDLogError("ProtoService/retractChatGroupMessage/error invalid sender uid")
+            completion(.failure(.aborted))
+            return
+        }
+        guard let toUID = Int64(toUserID) else {
+            DDLogError("ProtoService/retractChatGroupMessage/error invalid to uid")
+            completion(.failure(.aborted))
+            return
+        }
+
+        var packet = Server_Packet()
+        packet.msg.fromUid = fromUID
+        packet.msg.toUid = toUID
         packet.msg.id = messageID
         packet.msg.type = .groupchat
 

@@ -56,8 +56,6 @@ protocol HalloService: CoreService {
 
     // MARK: Group Chat
     var didGetNewGroupChatMessage: PassthroughSubject<IncomingChatMessage, Never> { get }
-    func sendGroupChatMessage(_ message: HalloGroupChatMessage)
-    func retractGroupChatMessage(messageID: String, groupID: GroupID, messageToRetractID: String, completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Groups
     func createGroup(name: String,
@@ -140,6 +138,7 @@ protocol HalloChatDelegate: AnyObject {
     func halloService(_ halloService: HalloService, didReceiveMessageReceipt receipt: HalloReceipt, ack: (() -> Void)?)
     func halloService(_ halloService: HalloService, didSendMessageReceipt receipt: HalloReceipt)
     func halloService(_ halloService: HalloService, didReceiveGroupMessage group: HalloGroup)
+    func halloService(_ halloService: HalloService, didRerequestGroupChatMessage contentID: String, contentType: GroupFeedRerequestContentType, groupID: GroupID, from userID: UserID, ack: (() -> Void)?)
     func halloService(_ halloService: HalloService, didReceiveHistoryResendPayload historyPayload: Clients_GroupHistoryPayload?, withGroupMessage group: HalloGroup)
     func halloService(_ halloService: HalloService, didReceiveHistoryResendPayload historyPayload: Clients_GroupHistoryPayload, for groupID: GroupID, from fromUserID: UserID)
 }

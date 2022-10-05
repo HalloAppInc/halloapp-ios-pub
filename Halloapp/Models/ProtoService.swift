@@ -506,31 +506,6 @@ final class ProtoService: ProtoServiceCore {
 
     }
 
-    // Checks if the message is decrypted and saved in the main app's data store.
-    // TODO: discuss with garrett on other options here.
-    // We should move the cryptoData keystore to be accessible by all extensions and the main app.
-    // It would be cleaner that way - having these checks after merging still leads to some flakiness in my view.
-    private func isMessageDecryptedAndSaved(msgId: String) -> Bool {
-        var isMessageAlreadyInLocalStore = false
-
-        MainAppContext.shared.chatData.performOnBackgroundContextAndWait { managedObjectContext in
-            if let message = MainAppContext.shared.chatData.chatMessage(with: msgId, in: managedObjectContext), message.incomingStatus != .rerequesting {
-                DDLogInfo("ProtoService/isMessageDecryptedAndSaved/msgId \(msgId) - message is available in local store.")
-                isMessageAlreadyInLocalStore = true
-            } else if let reaction = AppContext.shared.coreChatData.commonReaction(with: msgId, in: managedObjectContext), reaction.incomingStatus != .rerequesting {
-                DDLogInfo("ProtoService/isMessageDecryptedAndSaved/msgId \(msgId) - reaction is available in local store.")
-                isMessageAlreadyInLocalStore = true
-            }
-        }
-
-        if isMessageAlreadyInLocalStore {
-            return true
-        }
-
-        DDLogInfo("ProtoService/isMessageDecryptedAndSaved/msgId \(msgId) - message is missing.")
-        return false
-    }
-
     private func rerequestMessageIfNecessary(_ message: Server_Msg, contentType: Server_ChatStanza.ChatType, failedEphemeralKey: Data?, ack: (() -> Void)?) {
         // Dont rerequest messages that were already decrypted and saved.
         if !isMessageDecryptedAndSaved(msgId: message.id) {
@@ -719,6 +694,8 @@ final class ProtoService: ProtoServiceCore {
             // We manually ack the message after decryption.
             // Message is decrypted and then processed on a separate queue.
             hasAckBeenDelegated = true
+            let contentID = msg.id
+            let groupID = serverGroupChatStanza.gid
             
             decryptGroupChatStanza(serverGroupChatStanza, msgId: msg.id, from: UserID(msg.fromUid), in: serverGroupChatStanza.gid) { (content, context, groupDecryptionFailure) in
                 if let content = content, let context = context {
@@ -752,8 +729,18 @@ final class ProtoService: ProtoServiceCore {
                 }
                 if let groupDecryptionFailure = groupDecryptionFailure {
                     DDLogError("proto/handleGrouChatStanza/\(msg.id)/\(msg.id)/decrypt/error \(groupDecryptionFailure.error)")
-                    // TODO @Nandini - rerequest flow
-                    // TODO Address Garett question here : https://github.com/HalloAppInc/halloapp-ios/pull/3501/files
+                    self.rerequestGroupChatMessageIfNecessary(id: msg.id, groupID: serverGroupChatStanza.gid, contentType: .message, failure: groupDecryptionFailure) { result in
+                        switch result {
+                        case .success:
+                            // Ack only on successful rereq
+                            ack()
+                        case .failure(let error):
+                            DDLogError("proto/handleGrouChatStanza/\(msg.id)/failed rerequesting: \(error)")
+                            if error.canAck {
+                                ack()
+                            }
+                        }
+                    }
                 } else {
                     DDLogInfo("proto/didReceive/groupChatMessage/\(msg.id)/decrypt/success")
                     ack()
@@ -764,7 +751,14 @@ final class ProtoService: ProtoServiceCore {
                 if !serverGroupChatStanza.senderLogInfo.isEmpty {
                     DDLogInfo("proto/didReceive/groupChatMessage/\(msg.id)/senderLog [\(serverGroupChatStanza.senderLogInfo)]")
                 }
-                // TODO @Nandini self.reportDecryptionResult( - update protobuf def
+                self.reportGroupDecryptionResult(
+                    error: groupDecryptionFailure?.error,
+                    contentID: contentID,
+                    contentType: .chat,
+                    groupID: groupID,
+                    timestamp: Date(),
+                    sender: UserAgent(string: serverGroupChatStanza.senderClientVersion),
+                    rerequestCount: Int(msg.rerequestCount))
             }
         case .chatStanza(let serverChat):
             if !serverChat.senderName.isEmpty {
@@ -887,6 +881,15 @@ final class ProtoService: ProtoServiceCore {
                     messageID: pbGroupChatRetract.id
                 ))
             }
+            // Update crypto result for this item.
+            self.updateGroupDecryptionResult(
+                error: nil,
+                contentID: pbGroupChatRetract.id,
+                contentType: .chat,
+                groupID: pbGroupChatRetract.gid,
+                timestamp: Date(),
+                sender: nil,
+                rerequestCount: Int(msg.rerequestCount))
 
         case .feedItem(let item):
             guard let delegate = feedDelegate else {
@@ -1189,7 +1192,11 @@ final class ProtoService: ProtoServiceCore {
             }
 
         case .groupFeedRerequest(let rerequest):
-            guard let delegate = feedDelegate else {
+            guard let feedDelegate = feedDelegate else {
+                DDLogError("proto/handleGroupFeedRerequest/delegate missing")
+                break
+            }
+            guard let chatDelegate = chatDelegate else {
                 DDLogError("proto/handleGroupFeedRerequest/delegate missing")
                 break
             }
@@ -1198,16 +1205,26 @@ final class ProtoService: ProtoServiceCore {
             // Check key integrity -- do we need this?
             // MainAppContext.shared.keyData.service(self, didReceiveRerequestWithRerequestCount: Int(msg.rerequestCount))
 
+            // Reset crypto session if necessary.
             switch rerequest.rerequestType {
             case .payload:
-                delegate.halloService(self, didRerequestGroupFeedItem: rerequest.id, contentType: rerequest.contentType, from: userID, ack: ack)
-                hasAckBeenDelegated = true
+                break
             case .senderState:
-                hasAckBeenDelegated = true
                 AppContext.shared.messageCrypter.resetWhisperSession(for: userID)
-                // we are acking the message here - what if we fail to reset the session properly
-                delegate.halloService(self, didRerequestGroupFeedItem: rerequest.id, contentType: rerequest.contentType, from: userID, ack: ack)
             case .UNRECOGNIZED(_):
+                break
+            }
+
+            // Handle rerequesting payload properly.
+            switch rerequest.contentType {
+            case .message:
+                hasAckBeenDelegated = true
+                chatDelegate.halloService(self, didRerequestGroupChatMessage: rerequest.id, contentType: rerequest.contentType, groupID: rerequest.gid, from: userID, ack: ack)
+            case .post, .comment, .postReaction, .commentReaction, .historyResend:
+                hasAckBeenDelegated = true
+                // we are acking the message here - what if we fail to reset the session properly
+                feedDelegate.halloService(self, didRerequestGroupFeedItem: rerequest.id, contentType: rerequest.contentType, from: userID, ack: ack)
+            case .UNRECOGNIZED, .unknown:
                 return
             }
 
@@ -1919,39 +1936,6 @@ extension ProtoService: HalloService {
 
     func requestAccountDeletion(phoneNumber: String, feedback: String?, completion: @escaping ServiceRequestCompletion<Void>) {
         enqueue(request: ProtoDeleteAccountRequest(phoneNumber: phoneNumber, feedback: feedback, completion: completion))
-    }
-
-    func sendGroupChatMessage(_ message: HalloGroupChatMessage) {
-        guard let messageData = try? message.protoContainer?.serializedData() else {
-            DDLogError("ProtoService/sendGroupChatMessage/\(message.id)/error could not serialize message data")
-            return
-        }
-        guard let userID = credentials?.userID, let fromUID = Int64(userID) else {
-            DDLogError("ProtoService/sendGroupChatMessage/\(message.id)/error invalid sender uid")
-            return
-        }
-
-        var packet = Server_Packet()
-        packet.msg.fromUid = fromUID
-        packet.msg.id = message.id
-        packet.msg.type = .groupchat
-
-        var chat = Server_GroupChat()
-        chat.payload = messageData
-        chat.gid = message.groupId
-        if let groupName = message.groupName {
-            chat.name = groupName
-        }
-
-        packet.msg.payload = .groupChat(chat)
-        
-        guard let packetData = try? packet.serializedData() else {
-            DDLogError("ProtoService/sendGroupChatMessage/\(message.id)/error could not serialize packet")
-            return
-        }
-
-        DDLogInfo("ProtoService/sendGroupChatMessage/\(message.id) sending (unencrypted)")
-        send(packetData)
     }
     
     func createGroup(name: String, expiryType: Server_ExpiryInfo.ExpiryType, expiryTime: Int64, groupType: GroupType, members: [UserID], completion: @escaping ServiceRequestCompletion<String>) {

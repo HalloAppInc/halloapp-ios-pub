@@ -909,6 +909,63 @@ public class CoreChatData {
         }
     }
 
+    public func handleRerequest(for messageID: String, in groupID: GroupID, from userID: UserID, ack: (() -> Void)?) {
+        handleRerequest(for: messageID, in: groupID, from: userID) { result in
+            switch result {
+            case .failure(let error):
+                DDLogError("CoreChatData/handleRerequest/\(messageID)/error: \(error)/from: \(userID)")
+                if error.canAck {
+                    ack?()
+                }
+            case .success:
+                DDLogInfo("CoreChatData/handleRerequest/\(messageID)/success/from: \(userID)")
+                ack?()
+            }
+        }
+    }
+
+    public func handleRerequest(for contentID: String, in groupID: GroupID, from userID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
+        mainDataStore.saveSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else {
+                completion(.failure(.aborted))
+                return
+            }
+            let resendInfo = self.mainDataStore.fetchContentResendInfo(for: contentID, userID: userID, in: managedObjectContext)
+            resendInfo.retryCount += 1
+            // retryCount indicates number of times content has been rerequested until now: increment and use it when sending.
+            let rerequestCount = resendInfo.retryCount
+            DDLogInfo("FeedData/handleRerequest/\(contentID)/userID: \(userID)/rerequestCount: \(rerequestCount)")
+            guard rerequestCount <= 5 else {
+                DDLogError("FeedData/handleRerequest/\(contentID)/userID: \(userID)/rerequestCount: \(rerequestCount) - aborting")
+                completion(.failure(.aborted))
+                return
+            }
+
+            guard let chatMessage = self.chatMessage(with: contentID, in: managedObjectContext) else {
+                DDLogError("CoreChatData/handleRerequest/\(contentID)/error could not find message")
+                self.service.sendContentMissing(id: contentID, type: .groupChat, to: userID) { result in
+                    completion(result)
+                }
+                return
+            }
+            guard groupID == chatMessage.toGroupId else {
+                DDLogError("CoreChatData/handleRerequest/\(contentID)/error group mismatch [original: \(String(describing: chatMessage.toGroupId))] [rerequest: \(groupID)]")
+                completion(.failure(.aborted))
+                return
+            }
+
+            switch chatMessage.outgoingStatus {
+            case .retracted, .retracting:
+                let retractID = chatMessage.retractID ?? PacketID.generate()
+                chatMessage.retractID = retractID
+                self.service.retractGroupChatMessage(messageID: retractID, groupID: groupID, to: userID, messageToRetractID: contentID, completion: completion)
+            default:
+                let xmppChatMessage = XMPPChatMessage(chatMessage: chatMessage)
+                self.service.resendGroupChatMessage(xmppChatMessage, groupId: groupID, to: userID, rerequestCount: resendInfo.retryCount, completion: completion)
+            }
+        }
+    }
+
     public func handleReactionRerequest(for reactionID: String, from userID: UserID, ack: (() -> Void)?) {
         handleReactionRerequest(for: reactionID, from: userID) { result in
             switch result {

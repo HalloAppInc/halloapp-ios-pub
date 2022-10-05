@@ -46,7 +46,11 @@ public protocol CoreService: CoreServiceCommon {
     func decryptChat(_ serverChat: Server_ChatStanza, from fromUserID: UserID, completion: @escaping (ChatContent?, ChatContext?, DecryptionFailure?) -> Void)
     func rerequestMessage(_ messageID: String, senderID: UserID, failedEphemeralKey: Data?, contentType: Server_Rerequest.ContentType, completion: @escaping ServiceRequestCompletion<Void>)
     func retractChatMessage(messageID: String, toUserID: UserID, messageToRetractID: String, completion: @escaping ServiceRequestCompletion<Void>)
+
+    // MARK: GroupChat
+    func retractGroupChatMessage(messageID: String, groupID: GroupID, to toUserID: UserID, messageToRetractID: String, completion: @escaping ServiceRequestCompletion<Void>)
     func retractGroupChatMessage(messageID: String, groupID: GroupID, messageToRetractID: String, completion: @escaping ServiceRequestCompletion<Void>)
+    func resendGroupChatMessage(_ message: ChatMessageProtocol, groupId: GroupID, to toUserID: UserID, rerequestCount: Int32, completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Groups
     func getGroupInfo(groupID: GroupID, completion: @escaping ServiceRequestCompletion<HalloGroup>)
