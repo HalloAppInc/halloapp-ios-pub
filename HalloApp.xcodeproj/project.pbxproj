@@ -316,6 +316,7 @@
 		A1FF1ED328BE76560057FC27 /* OnboardingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1FF1ED228BE76560057FC27 /* OnboardingManager.swift */; };
 		A1FF1ED528BE78D40057FC27 /* PermissionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1FF1ED428BE78D40057FC27 /* PermissionsViewController.swift */; };
 		A1FF1ED728BE7DC80057FC27 /* ExistingNetworkViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1FF1ED628BE7DC80057FC27 /* ExistingNetworkViewController.swift */; };
+		A1FFAB7428EA007A002879A8 /* MomentDownloadProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1FFAB7328EA007A002879A8 /* MomentDownloadProgressView.swift */; };
 		E5230B1E267AABA60046A2EB /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E5230B1D267AABA60046A2EB /* Intents.framework */; };
 		E5230B21267AABA60046A2EB /* IntentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5230B20267AABA60046A2EB /* IntentHandler.swift */; };
 		E5230B25267AABA60046A2EB /* Intents Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E5230B1C267AABA60046A2EB /* Intents Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -1114,6 +1115,7 @@
 		A1FF1ED228BE76560057FC27 /* OnboardingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingManager.swift; sourceTree = "<group>"; };
 		A1FF1ED428BE78D40057FC27 /* PermissionsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsViewController.swift; sourceTree = "<group>"; };
 		A1FF1ED628BE7DC80057FC27 /* ExistingNetworkViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExistingNetworkViewController.swift; sourceTree = "<group>"; };
+		A1FFAB7328EA007A002879A8 /* MomentDownloadProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentDownloadProgressView.swift; sourceTree = "<group>"; };
 		E5230B0F267A61BC0046A2EB /* Intents.intentdefinition */ = {isa = PBXFileReference; lastKnownFileType = file.intentdefinition; path = Intents.intentdefinition; sourceTree = "<group>"; };
 		E5230B1C267AABA60046A2EB /* Intents Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Intents Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E5230B1D267AABA60046A2EB /* Intents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Intents.framework; path = System/Library/Frameworks/Intents.framework; sourceTree = SDKROOT; };
@@ -1878,6 +1880,7 @@
 			isa = PBXGroup;
 			children = (
 				A1AFE7772821E135008BBC80 /* MomentView.swift */,
+				A1FFAB7328EA007A002879A8 /* MomentDownloadProgressView.swift */,
 				A1AFA974286A7E99005B0DEA /* MinimalMomentView.swift */,
 				A1AFE7732819F485008BBC80 /* MomentCollectionViewCell.swift */,
 				A1DD9747287E39A000B98618 /* StackedMomentCollectionViewCell.swift */,
@@ -3070,6 +3073,7 @@
 				EA796B9C2469DDF100BC795E /* ChatQuotedLegacy+CoreDataProperties.swift in Sources */,
 				EAB1FFEF2509D73000256365 /* ChatGroupMessageEvent+CoreDataProperties.swift in Sources */,
 				EA79C6FD2554E89400E0525F /* Localizations+Chat.swift in Sources */,
+				A1FFAB7428EA007A002879A8 /* MomentDownloadProgressView.swift in Sources */,
 				EAD476CD245513EF00EF8591 /* ChatListViewController.swift in Sources */,
 				76538096243D4B33000AD9A1 /* FeedPostCommentLegacy+CoreDataProperties.swift in Sources */,
 				F42F574827C86D7200988E9D /* FeedInviteCarouselCell.swift in Sources */,

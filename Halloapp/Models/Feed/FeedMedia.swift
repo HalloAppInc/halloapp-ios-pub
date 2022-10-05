@@ -62,6 +62,17 @@ class FeedMedia: Identifiable, Hashable {
             }
         }
     }
+
+    /// Sends the current value of `image` right away as well as values from `imageDidBecomeAvailable`.
+    var imagePublisher: AnyPublisher<UIImage?, Never> {
+        let mapped = imageDidBecomeAvailable
+            .map { Optional($0) }
+            .eraseToAnyPublisher()
+
+        return Just(image).merge(with: mapped)
+            .eraseToAnyPublisher()
+    }
+
     let imageDidBecomeAvailable = PassthroughSubject<UIImage, Never>()
     let videoDidBecomeAvailable = PassthroughSubject<URL, Never>()
     let mediaStatusDidChange = PassthroughSubject<FeedMedia, Never>()

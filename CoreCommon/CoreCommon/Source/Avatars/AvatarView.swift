@@ -83,6 +83,12 @@ public class AvatarView: UIView {
             avatar.alpha = newValue
         }
     }
+
+    override public var contentMode: UIView.ContentMode {
+        didSet {
+            avatar.contentMode = contentMode
+        }
+    }
     
     public override init(frame: CGRect) {
         super.init(frame: frame)
@@ -96,8 +102,7 @@ public class AvatarView: UIView {
     
     private func commonInit() {
         isUserInteractionEnabled = false
-        
-        avatar.contentMode = .scaleAspectFit
+        contentMode = .scaleAspectFit
         avatar.image = AvatarView.defaultImage
         avatarContainerView.addSubview(avatar)
         addSubview(avatarContainerView)

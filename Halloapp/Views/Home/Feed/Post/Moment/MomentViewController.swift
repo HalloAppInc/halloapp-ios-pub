@@ -32,7 +32,7 @@ class MomentViewController: UIViewController {
         // not the user's own moment
         post.userId != MainAppContext.shared.userData.userId &&
         // the image is loaded
-        post.feedMedia.first?.isMediaAvailable ?? true &&
+        post.feedMedia.allSatisfy { $0.isMediaAvailable } &&
         // no blur covering the image
         momentView.state == .unlocked &&
         // if this is an unlocking context, make sure the user's moment has been uploaded
@@ -126,6 +126,10 @@ class MomentViewController: UIViewController {
         .portrait
     }
 
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        .lightContent
+    }
+
     override var canBecomeFirstResponder: Bool {
         true
     }
@@ -150,6 +154,7 @@ class MomentViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
 
         modalPresentationStyle = .custom
+        modalPresentationCapturesStatusBarAppearance = true
         transitioningDelegate = self
     }
     
@@ -160,6 +165,8 @@ class MomentViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         DDLogInfo("MomentViewController/viewDidLoad/post: \(post.id); unlocking post: \(unlockingPost?.id ?? "nil")")
+        view.overrideUserInterfaceStyle = .dark
+        contentInputView.overrideUserInterfaceStyle = .dark
 
         view.backgroundColor = .momentFullscreenBg.withAlphaComponent(0.99)
         contentInputView.backgroundColor = view.backgroundColor
@@ -245,17 +252,25 @@ class MomentViewController: UIViewController {
 
     private func subscribeToMediaUpdates() {
         mediaAvailableCancellable = nil
-        guard let media = post.feedMedia.first, !media.isMediaAvailable else {
-            expireMomentIfReady()
-            refreshAccessoryView()
-            return
-        }
+        let media = post.feedMedia
 
-        mediaAvailableCancellable = media.imageDidBecomeAvailable
-            .sink { [weak self] _ in
-                self?.expireMomentIfReady()
-                self?.refreshAccessoryView()
-            }
+        if media.count == 2 {
+            mediaAvailableCancellable = Publishers.CombineLatest(media[0].imagePublisher, media[1].imagePublisher)
+                .first {
+                    $0 != nil && $1 != nil
+                }
+                .sink { [weak self] _ in
+                    self?.expireMomentIfReady()
+                    self?.refreshAccessoryView()
+                }
+        } else {
+            mediaAvailableCancellable = media.first?.imagePublisher
+                .first { $0 != nil }
+                .sink { [weak self] _ in
+                    self?.expireMomentIfReady()
+                    self?.refreshAccessoryView()
+                }
+        }
     }
 
     private func refreshAccessoryView(show: Bool = true) {
@@ -919,7 +934,10 @@ fileprivate class MomentPresenter: NSObject, UIViewControllerAnimatedTransitioni
 
         to.momentView.alpha = 0
         let transitionMomentViewFinalState: MomentView.State
-        if let validMoment = MainAppContext.shared.feedData.validMoment.value, validMoment.status == .sent {
+
+        if to.post.userId == MainAppContext.shared.userData.userId {
+            transitionMomentViewFinalState = .unlocked
+        } else if let validMoment = MainAppContext.shared.feedData.validMoment.value, validMoment.status == .sent {
             transitionMomentViewFinalState = .unlocked
         } else {
             transitionMomentViewFinalState = .indeterminate
@@ -928,6 +946,7 @@ fileprivate class MomentPresenter: NSObject, UIViewControllerAnimatedTransitioni
         UIView.animate(withDuration: transitionDuration(using: nil), delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: .curveEaseInOut) {
             to.view.alpha = 1
 
+            transitionViews.momentView.overrideUserInterfaceStyle = .dark
             transitionViews.momentView.transform = .identity
             transitionViews.momentView.frame = to.momentView.frame
             transitionViews.momentView.layoutIfNeeded()

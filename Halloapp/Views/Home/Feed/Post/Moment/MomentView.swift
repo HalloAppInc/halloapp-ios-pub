@@ -10,6 +10,7 @@ import UIKit
 import Combine
 import Core
 import CoreCommon
+import CocoaLumberjackSwift
 
 protocol MomentViewDelegate: AnyObject {
     func momentView(_ momentView: MomentView, didSelect action: MomentView.Action)
@@ -42,23 +43,43 @@ extension MomentView {
 }
 
 class MomentView: UIView {
+
     typealias LayoutConstants = FeedPostCollectionViewCell.LayoutConstants
     enum State { case locked, unlocked, indeterminate, prompt }
-
     enum Action { case open(moment: FeedPost), camera, view(profile: UserID) }
 
     private(set) var state: State = .locked
     private(set) var feedPost: FeedPost?
 
-    private(set) lazy var mediaView: MediaCarouselView = {
-        let view = MediaCarouselView(media: [], initialIndex: nil, configuration: .moment)
-        view.delegate = self
+    private var cancellables: Set<AnyCancellable> = []
+    private var imageLoadingCancellables: Set<AnyCancellable> = []
+    private var downloadProgressCancellable: AnyCancellable?
+
+    private lazy var imageContainer: UIView = {
+        let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = .systemGray
         view.layer.cornerRadius = Layout.innerRadius
         view.layer.cornerCurve = .continuous
-
+        view.layer.masksToBounds = true
         return view
+    }()
+
+    private lazy var leadingImageView: ZoomableImageView = {
+        let view = ZoomableImageView(frame: .zero)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.contentMode = .scaleAspectFill
+        return view
+    }()
+
+    private lazy var trailingImageView: ZoomableImageView = {
+        let view = ZoomableImageView(frame: .zero)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.contentMode = .scaleAspectFill
+        return view
+    }()
+
+    private lazy var showTrailingImageViewConstraint: NSLayoutConstraint = {
+        trailingImageView.widthAnchor.constraint(equalTo: imageContainer.widthAnchor, multiplier: 0.5)
     }()
     
     private lazy var blurView: UIVisualEffectView = {
@@ -76,6 +97,12 @@ class MomentView: UIView {
         view.layer.cornerRadius = Layout.innerRadius
         view.layer.cornerCurve = .continuous
         view.layer.masksToBounds = true
+        return view
+    }()
+
+    private lazy var downloadProgressView: MomentDownloadProgressView = {
+        let view = MomentDownloadProgressView()
+        view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
     
@@ -171,8 +198,6 @@ class MomentView: UIView {
         stack.layoutMargins = UIEdgeInsets(top: 7, left: 0, bottom: 7, right: 0)
         return stack
     }()
-    
-    private var cancellables: Set<AnyCancellable> = []
 
     weak var delegate: MomentViewDelegate?
 
@@ -184,40 +209,62 @@ class MomentView: UIView {
         backgroundColor = .momentPolaroid
 
         addSubview(gradientView)
-        addSubview(mediaView)
+        addSubview(downloadProgressView)
+        addSubview(imageContainer)
         addSubview(footerView)
         addSubview(blurView)
         addSubview(overlayStack)
+        imageContainer.addSubview(leadingImageView)
+        imageContainer.addSubview(trailingImageView)
+
+        imageContainer.layer.allowsEdgeAntialiasing = true
+        blurView.layer.allowsEdgeAntialiasing = true
+        leadingImageView.layer.allowsEdgeAntialiasing = true
+        trailingImageView.layer.allowsEdgeAntialiasing = true
 
         let footerPadding = Layout.footerPadding
-        let mediaPadding = Layout.mediaPadding
-
-        mediaView.layer.allowsEdgeAntialiasing = true
-
-        let mediaHeightConstraint = mediaView.heightAnchor.constraint(equalTo: mediaView.widthAnchor)
+        let imageHeightConstraint = imageContainer.heightAnchor.constraint(equalTo: imageContainer.widthAnchor)
+        let hideTrailingImageConstraint = trailingImageView.widthAnchor.constraint(equalToConstant: 0)
         let footerBottomConstraint = footerView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -footerPadding)
         let avatarDiameter = Layout.avatarDiameter
-        mediaHeightConstraint.priority = .defaultHigh
+
+        imageHeightConstraint.priority = .required
+        hideTrailingImageConstraint.priority = .defaultHigh
         footerBottomConstraint.priority = .defaultHigh
 
         let minimizeFooterHeight = footerView.heightAnchor.constraint(equalToConstant: 1)
         minimizeFooterHeight.priority = UILayoutPriority(1)
 
         NSLayoutConstraint.activate([
-            mediaView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: mediaPadding),
-            mediaView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -mediaPadding),
-            mediaView.topAnchor.constraint(equalTo: topAnchor, constant: mediaPadding),
-            mediaHeightConstraint,
+            imageContainer.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor),
+            imageContainer.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor),
+            imageContainer.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor),
+            imageHeightConstraint,
 
-            gradientView.leadingAnchor.constraint(equalTo: mediaView.leadingAnchor),
-            gradientView.trailingAnchor.constraint(equalTo: mediaView.trailingAnchor),
-            gradientView.topAnchor.constraint(equalTo: mediaView.topAnchor),
-            gradientView.bottomAnchor.constraint(equalTo: mediaView.bottomAnchor),
+            leadingImageView.leadingAnchor.constraint(equalTo: imageContainer.leadingAnchor),
+            leadingImageView.trailingAnchor.constraint(equalTo: trailingImageView.leadingAnchor),
+            leadingImageView.topAnchor.constraint(equalTo: imageContainer.topAnchor),
+            leadingImageView.bottomAnchor.constraint(equalTo: imageContainer.bottomAnchor),
 
-            blurView.leadingAnchor.constraint(equalTo: mediaView.leadingAnchor),
-            blurView.topAnchor.constraint(equalTo: mediaView.topAnchor),
-            blurView.trailingAnchor.constraint(equalTo: mediaView.trailingAnchor),
-            blurView.bottomAnchor.constraint(equalTo: mediaView.bottomAnchor),
+            trailingImageView.trailingAnchor.constraint(equalTo: imageContainer.trailingAnchor),
+            trailingImageView.topAnchor.constraint(equalTo: imageContainer.topAnchor),
+            trailingImageView.bottomAnchor.constraint(equalTo: imageContainer.bottomAnchor),
+            hideTrailingImageConstraint,
+
+            gradientView.leadingAnchor.constraint(equalTo: imageContainer.leadingAnchor),
+            gradientView.trailingAnchor.constraint(equalTo: imageContainer.trailingAnchor),
+            gradientView.topAnchor.constraint(equalTo: imageContainer.topAnchor),
+            gradientView.bottomAnchor.constraint(equalTo: imageContainer.bottomAnchor),
+
+            downloadProgressView.topAnchor.constraint(equalTo: imageContainer.topAnchor),
+            downloadProgressView.bottomAnchor.constraint(equalTo: imageContainer.bottomAnchor),
+            downloadProgressView.leadingAnchor.constraint(equalTo: imageContainer.leadingAnchor),
+            downloadProgressView.trailingAnchor.constraint(equalTo: imageContainer.trailingAnchor),
+
+            blurView.leadingAnchor.constraint(equalTo: imageContainer.leadingAnchor),
+            blurView.topAnchor.constraint(equalTo: imageContainer.topAnchor),
+            blurView.trailingAnchor.constraint(equalTo: imageContainer.trailingAnchor),
+            blurView.bottomAnchor.constraint(equalTo: imageContainer.bottomAnchor),
 
             overlayStack.leadingAnchor.constraint(equalTo: blurView.leadingAnchor),
             overlayStack.topAnchor.constraint(greaterThanOrEqualTo: blurView.topAnchor, constant: 10),
@@ -230,8 +277,8 @@ class MomentView: UIView {
 
             footerView.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor),
             footerView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -footerPadding - 8),
-            footerView.topAnchor.constraint(equalTo: mediaView.bottomAnchor, constant: footerPadding - 2),
-            footerView.heightAnchor.constraint(greaterThanOrEqualTo: mediaView.heightAnchor, multiplier: 0.15),
+            footerView.topAnchor.constraint(equalTo: imageContainer.bottomAnchor, constant: footerPadding - 2),
+            footerView.heightAnchor.constraint(greaterThanOrEqualTo: imageContainer.heightAnchor, multiplier: 0.15),
             minimizeFooterHeight,
             footerBottomConstraint,
         ])
@@ -274,18 +321,19 @@ class MomentView: UIView {
     }
 
     func configure(with post: FeedPost?) {
+        imageLoadingCancellables.forEach { $0.cancel() }
+        imageLoadingCancellables = []
+        downloadProgressCancellable = nil
+
         guard let post = post else {
             return configureForPrompt()
         }
 
         feedPost = post
-        mediaView.refreshData(media: post.feedMedia, index: 0, animated: false)
-        for media in post.feedMedia where !media.isMediaAvailable {
-            media.loadImage()
-        }
 
         dayOfWeekLabel.text = DateFormatter.dateTimeFormatterDayOfWeekLong.string(from: post.timestamp).uppercased()
         avatarView.configure(with: post.userID, using: MainAppContext.shared.avatarStore)
+        setupMedia()
 
         let isOwnPost = MainAppContext.shared.userData.userId == post.userId
         let state: State = isOwnPost ? .unlocked : .locked
@@ -293,14 +341,152 @@ class MomentView: UIView {
         setState(state)
     }
 
+    private func setupMedia() {
+        guard let (leading, trailing) = arrangedMedia else {
+            return
+        }
+
+        leading.imagePublisher
+            .sink { [weak self] image in
+                self?.leadingImageView.image = image
+            }
+            .store(in: &imageLoadingCancellables)
+
+        trailing?.imagePublisher
+            .sink { [weak self] image in
+                self?.trailingImageView.image = image
+            }
+            .store(in: &imageLoadingCancellables)
+
+        selfieMedia?.imagePublisher
+            .compactMap { $0 }
+            .sink { [weak self] image in
+                self?.avatarView.contentMode = .scaleAspectFill
+                self?.avatarView.configure(image: image)
+            }
+            .store(in: &imageLoadingCancellables)
+
+        [leading, trailing]
+            .compactMap { $0 }
+            .forEach { media in
+                media.loadImage()
+            }
+
+        showTrailingImageViewConstraint.isActive = trailing != nil
+        subscribeToDownloadProgressIfNecessary()
+    }
+
+    /// The media items in their display order.
+    private var arrangedMedia: (leading: FeedMedia, trailing: FeedMedia?)? {
+        guard let feedPost else {
+            return nil
+        }
+
+        let media = feedPost.feedMedia
+        if let selfieMedia, let first = media.first {
+            return feedPost.isMomentSelfieLeading ? (selfieMedia, first) : (first, selfieMedia)
+        }
+
+        if let first = media.first {
+            return (first, nil)
+        }
+
+        return nil
+    }
+
+    /// The media item that corresponds to the front camera.
+    private var selfieMedia: FeedMedia? {
+        guard let feedPost else {
+            return nil
+        }
+
+        let media = feedPost.feedMedia
+        return media.count == 2 ? media[1] : nil
+    }
+
+    @discardableResult
+    private func subscribeToDownloadProgressIfNecessary() -> Bool {
+        guard let publisher = downloadProgressPublisher else {
+            DDLogInfo("MomentView/subscribeToDownloadProgress/not subscribing")
+            return false
+        }
+
+        DDLogInfo("MomentView/subscribeToDownloadProgress/subscribing")
+
+        downloadProgressCancellable = publisher
+            .sink { [weak self] _ in
+                guard let self = self, let arranged = self.arrangedMedia else {
+                    return
+                }
+
+                DDLogInfo("MomentView/subscribeToDownloadProgress/received completion")
+                [arranged.leading, arranged.trailing]
+                    .compactMap { $0 }
+                    .forEach { media in
+                        media.loadImage()
+                    }
+
+                self.downloadProgressCancellable = nil
+                self.setState(self.state, animated: true)
+
+            } receiveValue: { [weak self] progress in
+                DDLogInfo("MomentView/subscribeToDownloadProgress/received progress [\(progress)]")
+                self?.downloadProgressView.set(progress: progress)
+            }
+
+        return true
+    }
+
+    private var downloadProgressPublisher: AnyPublisher<Float, Never>? {
+        guard let media = feedPost?.feedMedia, let first = media.first else {
+            return nil
+        }
+
+        let needsDownloads = {
+            media.contains { $0.isDownloadRequired }
+        }
+
+        guard needsDownloads() else {
+            return nil
+        }
+
+        var statusPublishers: [AnyPublisher<FeedMedia, Never>] = [Just(first).eraseToAnyPublisher()]
+        statusPublishers.append(contentsOf: media.compactMap { $0.mediaStatusDidChange.eraseToAnyPublisher() })
+
+        return Publishers.MergeMany(statusPublishers)
+            .receive(on: DispatchQueue.main)
+            .prefix { _ in
+                needsDownloads()
+            }
+            .flatMap { _ -> AnyPublisher<Float, Never> in
+                let needed = media.reduce(0) { $1.isDownloadRequired ? $0 + 1 : $0 }
+                let completed = media.count - needed
+                let publishers = media.compactMap { $0.progress }
+
+                return Publishers.MergeMany(publishers)
+                    .map { _ -> Float in
+                        let total: Float = publishers.reduce(0) { $0 + $1.value }
+                        return (total + Float(completed)) / Float(media.count)
+                    }
+                    .removeDuplicates()
+                    .eraseToAnyPublisher()
+            }
+            .eraseToAnyPublisher()
+    }
+
     private func configureForPrompt() {
         feedPost = nil
-        avatarView.configure(with: MainAppContext.shared.userData.userId, using: MainAppContext.shared.avatarStore)
+        leadingImageView.image = nil
+        trailingImageView.image = nil
 
+        avatarView.configure(with: MainAppContext.shared.userData.userId, using: MainAppContext.shared.avatarStore)
         setState(.prompt)
     }
 
     func prepareForReuse() {
+        imageLoadingCancellables = []
+        downloadProgressCancellable = nil
+
         avatarView.prepareForReuse()
     }
 
@@ -311,14 +497,14 @@ class MomentView: UIView {
 
         let hasValidMoment = MainAppContext.shared.feedData.validMoment.value != nil
 
-        var blurAlpha: CGFloat = 1
+        var showBlur = true
         var overlayAlpha: CGFloat = 1
-        var mediaHidden = false
         var dayHidden = false
         var promptText = ""
         var buttonText = Localizations.view
         var buttonImage = hasValidMoment ? nil : lockedButtonImage
         var hideDisclaimer = hasValidMoment
+        let hideImageContainer = downloadProgressCancellable != nil
 
         if let post = feedPost {
             let name = MainAppContext.shared.contactStore.firstName(for: post.userID,
@@ -330,13 +516,12 @@ class MomentView: UIView {
         case .locked:
             break
         case .unlocked:
-            blurAlpha = 0
+            showBlur = false
             overlayAlpha = 0
         case .indeterminate:
             overlayAlpha = 0
         case .prompt:
-            blurAlpha = 0
-            mediaHidden = true
+            showBlur = false
             dayHidden = true
             promptText = Localizations.shareMoment
             buttonText = Localizations.openCamera
@@ -344,11 +529,12 @@ class MomentView: UIView {
             hideDisclaimer = true
         }
 
-        blurView.effect = blurAlpha == .zero ? nil : UIBlurEffect(style: .regular)
+        imageContainer.isHidden = hideImageContainer
+        downloadProgressView.isHidden = !hideImageContainer
+        blurView.effect = showBlur ? UIBlurEffect(style: .regular) : nil
         blurView.isUserInteractionEnabled = newState != .unlocked
 
         overlayStack.alpha = overlayAlpha
-        mediaView.isHidden = mediaHidden
         dayOfWeekLabel.isHidden = dayHidden
         promptLabel.text = promptText
 

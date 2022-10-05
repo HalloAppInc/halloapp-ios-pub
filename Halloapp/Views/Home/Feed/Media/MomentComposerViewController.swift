@@ -558,7 +558,7 @@ extension FeedData {
                                            media: media,
                                  linkPreviewData: nil,
                                 linkPreviewMedia: nil,
-                                              to: .feed(.whitelist),
+                                              to: .feed(.all),
                                       momentInfo: info)
     }
 }
