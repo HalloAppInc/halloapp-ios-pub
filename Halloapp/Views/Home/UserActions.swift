@@ -101,7 +101,8 @@ extension UserActionHandler where Self: UIViewController {
         MainAppContext.shared.privacySettings.addFavorite(userID)
 
         let name = MainAppContext.shared.contactStore.firstName(for: userID, in: MainAppContext.shared.contactStore.viewContext)
-        let toast = Toast(type: .icon(UIImage(named: "FavoritesOutline")), text: String(format: Localizations.addedToFavorites, name))
+        let toast = Toast(type: .icon(UIImage(named: "FavoritesOutline")?.withRenderingMode(.alwaysTemplate)),
+                          text: String(format: Localizations.addedToFavorites, name))
 
         toast.show()
     }
@@ -110,7 +111,8 @@ extension UserActionHandler where Self: UIViewController {
         MainAppContext.shared.privacySettings.removeFavorite(userID)
 
         let name = MainAppContext.shared.contactStore.firstName(for: userID, in: MainAppContext.shared.contactStore.viewContext)
-        let toast = Toast(type: .icon(UIImage(named: "UnfavoriteOutline")), text: String(format: Localizations.removedFromFavorites, name))
+        let toast = Toast(type: .icon(UIImage(named: "UnfavoriteOutline")?.withRenderingMode(.alwaysTemplate)),
+                          text: String(format: Localizations.removedFromFavorites, name))
 
         toast.show()
     }
