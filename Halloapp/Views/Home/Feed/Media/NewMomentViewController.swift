@@ -478,7 +478,7 @@ extension Localizations {
 
     static var newMomentCameraSubtitle: String {
         NSLocalizedString("camera.moment.subtitle",
-                   value: "Moments disappear after 24 hours and can only be viewed once",
+                   value: "Moments disappear after 24 hours",
                  comment: "Text shown on the camera screen when composing a new moment.")
     }
 

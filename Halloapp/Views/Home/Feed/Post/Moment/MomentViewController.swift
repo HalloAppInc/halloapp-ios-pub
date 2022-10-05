@@ -260,14 +260,14 @@ class MomentViewController: UIViewController {
                     $0 != nil && $1 != nil
                 }
                 .sink { [weak self] _ in
-                    self?.expireMomentIfReady()
+                    self?.sendSeenReceiptIfReady()
                     self?.refreshAccessoryView()
                 }
         } else {
             mediaAvailableCancellable = media.first?.imagePublisher
                 .first { $0 != nil }
                 .sink { [weak self] _ in
-                    self?.expireMomentIfReady()
+                    self?.sendSeenReceiptIfReady()
                     self?.refreshAccessoryView()
                 }
         }
@@ -309,7 +309,7 @@ class MomentViewController: UIViewController {
                 case .sent:
                     self?.momentView.setState(.unlocked, animated: true)
                     self?.refreshAccessoryView()
-                    self?.expireMomentIfReady()
+                    self?.sendSeenReceiptIfReady()
                 default:
                     break
                 }
@@ -342,13 +342,13 @@ class MomentViewController: UIViewController {
         delegate?.momentView(momentView, didSelect: .view(profile: post.userId))
     }
 
-    private func expireMomentIfReady() {
+    private func sendSeenReceiptIfReady() {
         guard isReadyForSensitiveOperations else {
-            DDLogInfo("MomentViewController/expireMomentIfReady/failed guard")
+            DDLogInfo("MomentViewController/sendSeenReceiptIfReady/failed guard")
             return
         }
 
-        DDLogInfo("MomentViewController/expireMomentIfReady/passed guard")
+        DDLogInfo("MomentViewController/sendSeenReceiptIfReady/passed guard")
         MainAppContext.shared.feedData.momentWasViewed(post)
         UNUserNotificationCenter.current().removeDeliveredMomentNotifications()
     }

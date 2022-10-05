@@ -443,7 +443,7 @@ private extension Localizations {
 
     static var momentPostDisappearTimeLabel: String {
         NSLocalizedString("mymoment.disappear.time.label",
-                   value: "Your Moment was shared with your contacts list. Moments disappear after 24 hours and can only be viewed once.",
+                   value: "Your Moment was shared with your contacts list. Moments disappear after 24 hours.",
                  comment: "Message displayed to say when moments will disappear.")
     }
 

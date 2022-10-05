@@ -334,7 +334,6 @@ final class FeedDataSource: NSObject {
     /// Filters out expired moments and seperates valid moments from regular feed posts.
     private func filterOutMoments(_ orderedPosts: [FeedPost]) -> (posts: [FeedPost], moments: [MomentStackItem]) {
         let momentCutoff = FeedData.momentCutoffDate
-        let expiredCache = MainAppContext.shared.feedData.expiredMoments
         var stackedMoments = [MomentStackItem]()
         oldestUnexpiredMoment = nil
 
@@ -344,14 +343,8 @@ final class FeedDataSource: NSObject {
                 return true
             }
 
-            if $0.timestamp < momentCutoff || $0.status == .retracted || $0.status == .expired {
+            if $0.timestamp < momentCutoff || $0.status == .retracted {
                 // no tombstones for moments
-                return false
-            }
-
-            if expiredCache.contains($0.id) {
-                DDLogError("FeedDataSource/filterOutMoments/found an already expired moment id: [\($0.id)] status: [\($0.status)] cache contents: [\(expiredCache)]")
-                MainAppContext.shared.errorLogger?.logError(NSError(domain: "ExpiredMomentInDataSource", code: 1))
                 return false
             }
 

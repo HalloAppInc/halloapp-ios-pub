@@ -33,7 +33,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     let didGetRemoveHomeTabIndicator = PassthroughSubject<Void, Never>()
     
     let validMoment = CurrentValueSubject<FeedPost?, Never>(nil)
-    private(set) var expiredMoments = Set<FeedPostID>()
 
     private struct UserDefaultsKey {
         static let persistentStoreUserID = "feed.store.userID"
@@ -4924,22 +4923,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             return
         }
 
-        DDLogInfo("FeedData/momentWasViewed/starting update block id: [\(moment.id)]")
-        expiredMoments.insert(moment.id)
-
-        updateFeedPost(with: moment.id) { [weak self] moment in
-            self?.internalSendSeenReceipt(for: moment)
-            guard let context = moment.managedObjectContext else {
-                DDLogError("FeedData/momentWasViewed/post in update block has no moc")
-                return
-            }
-
-            self?.deleteMedia(feedPost: moment)
-            self?.deleteAssociatedData(for: [moment.id], in: context)
-            moment.status = .expired
-
-            DDLogInfo("FeedData/momentWasViewed/finished update: \(moment.id) status: \(moment.status)")
-        }
+        sendSeenReceiptIfNecessary(for: moment)
     }
 
     /// - Returns: All of the valid, unexpired moments from other users (sorted).
