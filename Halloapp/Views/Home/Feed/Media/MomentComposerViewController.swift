@@ -627,9 +627,11 @@ fileprivate class ScrollableImageView: UIScrollView, UIScrollViewDelegate {
     }
 
     private func center() {
-        if contentSize.width > bounds.width {
+        if contentSize.width > contentSize.height {
+            // Landscape image
             contentOffset.x = (contentSize.width - frame.size.width) / 2
-        } else if contentSize.height > bounds.height {
+        } else {
+            // Portrait image
             contentOffset.y = (contentSize.height - frame.size.height) / 2
         }
     }
