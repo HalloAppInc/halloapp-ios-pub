@@ -9,21 +9,22 @@
 import AVKit
 import Combine
 import Core
+import CoreCommon
 import Foundation
 import UIKit
 
 class ChatMediaListViewController: UIViewController {
     public weak var animatorDelegate: MediaListAnimatorDelegate?
 
-    private let userID: String
+    private let name: String
     private let message: ChatMessage
     private let index: Int
 
     private var animator: MediaListAnimator?
     private var swipeExitRecognizer: SwipeToExitGestureRecognizer?
 
-    init(userID: String, message: ChatMessage, index: Int) {
-        self.userID = userID
+    init(name: String, message: ChatMessage, index: Int) {
+        self.name = name
         self.message = message
         self.index = index
 
@@ -119,8 +120,7 @@ class ChatMediaListViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
-        titleLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, in: contactsViewContext)
+        titleLabel.text = name
 
         navigationItem.titleView = titleView
         navigationItem.leftBarButtonItem = leftBarButtonItem

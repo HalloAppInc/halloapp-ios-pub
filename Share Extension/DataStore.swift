@@ -552,6 +552,7 @@ class DataStore: ShareExtensionDataStore {
             return
         }
         var chatThread: CommonThread
+        let isIncomingMsg = chatMessage.fromUserID != AppContext.shared.userData.userId
         if let existingChatThread = self.mainDataStore.chatThread(type: chatMessageRecipient.chatType, id: recipientId, in: context) {
             DDLogDebug("NotificationExtension/DataStore/updateChatThread/ update-thread")
             chatThread = existingChatThread
@@ -567,7 +568,11 @@ class DataStore: ShareExtensionDataStore {
         chatThread.lastMsgUserId = chatMessage.fromUserId
         chatThread.lastMsgText = chatMessage.rawText
         chatThread.lastMsgMediaType = lastMsgMediaType
-        chatThread.lastMsgStatus = isMsgToYourself ? .seen : .pending
+        if isIncomingMsg {
+            chatThread.lastMsgStatus = .none
+        } else {
+            chatThread.lastMsgStatus = isMsgToYourself ? .seen : .pending
+        }
         chatThread.lastMsgTimestamp = chatMessage.timestamp
         // note we do not update unread count here for the thread.
     }

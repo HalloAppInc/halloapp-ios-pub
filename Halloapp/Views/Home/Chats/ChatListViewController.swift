@@ -456,12 +456,13 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         var chatRows = [Row]()
 
         chatThreads.forEach { thread in
-            guard let chatWithUserID = thread.userID else {
-                // all chat threads should have a userID, logging to attempt to catch the time when it does not
-                DDLogDebug("ChatListView/reloadDataInMainQueue/empty chatWithUserID: \(thread)")
+            let recipientId = thread.userID != nil ? thread.userID : thread.groupID
+            guard let recipientId = recipientId else {
+                // all chat threads should have a userID or groupID, logging to attempt to catch the time when it does not
+                DDLogDebug("ChatListView/reloadDataInMainQueue/empty recipientId: \(thread)")
                 return
             }
-            var chatThreadData = ChatThreadData(chatWithUserID: chatWithUserID, lastMsgID: thread.lastMsgId ?? "", lastMsgMediaType: thread.lastMsgMediaType, lastMsgStatus: thread.lastMsgStatus, isNew: thread.isNew, unreadCount: thread.unreadCount)
+            var chatThreadData = ChatThreadData(recipientID: recipientId, lastMsgID: thread.lastMsgId ?? "", lastMsgMediaType: thread.lastMsgMediaType, lastMsgStatus: thread.lastMsgStatus, isNew: thread.isNew, unreadCount: thread.unreadCount)
             if isFiltering {
                 if let searchStr = searchController.searchBar.text?.trimmingCharacters(in: CharacterSet.whitespaces) {
                     chatThreadData.searchStr = searchStr
@@ -722,6 +723,12 @@ extension ChatListViewController: NewChatViewControllerDelegate {
 }
 
 extension ChatListViewController: ChatViewControllerDelegate {
+    func chatViewController(_ chatViewController: GroupChatViewController, userActioned: Bool) {
+        DispatchQueue.main.async {
+            self.scrollToTop(animated: false)
+        }
+    }
+    
     func chatViewController(_ controller: ChatViewController, userActioned: Bool) {
         searchController.isActive = false
         DispatchQueue.main.async {
@@ -807,7 +814,7 @@ fileprivate class ChatsListDataSource: UITableViewDiffableDataSource<Section, Ro
 }
 
 fileprivate struct ChatThreadData {
-    let chatWithUserID: UserID
+    let recipientID: String
     let lastMsgID: String
     var lastMsgMediaType: ChatThread.LastMediaType
     let lastMsgStatus: ChatThread.LastMsgStatus
@@ -818,7 +825,7 @@ fileprivate struct ChatThreadData {
 
 extension ChatThreadData : Hashable {
     func hash(into hasher: inout Hasher) {
-        hasher.combine(chatWithUserID)
+        hasher.combine(recipientID)
         hasher.combine(lastMsgID)
         hasher.combine(lastMsgStatus)
         hasher.combine(isNew)
@@ -829,7 +836,7 @@ extension ChatThreadData : Hashable {
 
 extension ChatThreadData : Equatable {
     static func == (lhs: Self, rhs: Self) -> Bool {
-        return  lhs.chatWithUserID == rhs.chatWithUserID &&
+        return  lhs.recipientID == rhs.recipientID &&
                 lhs.lastMsgID == rhs.lastMsgID &&
                 lhs.lastMsgMediaType == rhs.lastMsgMediaType &&
                 lhs.lastMsgStatus == rhs.lastMsgStatus &&

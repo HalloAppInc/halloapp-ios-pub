@@ -236,13 +236,30 @@ class ThreadListCell: UITableViewCell {
     func configureForChatsList(with chatThread: ChatThread, squareSize: CGFloat = 0) {
         self.chatThread = chatThread
         
-        guard let userID = chatThread.userID else { return }
+        if let userID = chatThread.userID {
+            titleLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, showPushNumber: true, in: MainAppContext.shared.contactStore.viewContext)
+            DDLogDebug("ThreadListCell/configureForChatsList/id: \(userID)/groupID: \(String(describing: chatThread.groupId))/unreadCount: \(chatThread.unreadCount)")
 
-        titleLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, showPushNumber: true, in: MainAppContext.shared.contactStore.viewContext)
+            avatarView.configure(userId: chatThread.userID ?? "", using: MainAppContext.shared.avatarStore)
 
+            if !MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID, in: MainAppContext.shared.contactStore.viewContext) {
+                cancellableSet.forEach { $0.cancel() }
+                cancellableSet.removeAll()
+                cancellableSet.insert(
+                    MainAppContext.shared.contactStore.didDiscoverNewUsers.sink { [weak self] (newUserIDs) in
+                        guard let self = self else { return }
+                        if newUserIDs.contains(userID) {
+                            self.titleLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, in: MainAppContext.shared.contactStore.viewContext)
+                        }
+                    }
+                )
+            }
+        } else if let groupId = chatThread.groupId {
+            titleLabel.text = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext)?.name
+            DDLogDebug("ThreadListCell/configureForChatsList/ groupID: \(String(describing: groupId))/unreadCount: \(chatThread.unreadCount)")
+            avatarView.configure(groupId: groupId, using: MainAppContext.shared.avatarStore)
+        }
         lastMsgLabel.attributedText = lastMessageText(for: chatThread).firstLineWithEllipsisIfNecessary()
-
-        DDLogDebug("ThreadListCell/configureForChatsList/id: \(userID)/groupID: \(String(describing: chatThread.groupId))/unreadCount: \(chatThread.unreadCount)")
         if chatThread.unreadCount > 0 {
             unreadCountView.isHidden = false
             unreadCountView.count = chatThread.unreadCount
@@ -255,25 +272,14 @@ class ThreadListCell: UITableViewCell {
         if let timestamp = chatThread.lastMsgTimestamp, chatThread.lastMsgId != nil {
             timeLabel.text = timestamp.chatListTimestamp()
         }
-
-        avatarView.configure(userId: chatThread.userID ?? "", using: MainAppContext.shared.avatarStore)
-
-        if !MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID, in: MainAppContext.shared.contactStore.viewContext) {
-            cancellableSet.forEach { $0.cancel() }
-            cancellableSet.removeAll()
-            cancellableSet.insert(
-                MainAppContext.shared.contactStore.didDiscoverNewUsers.sink { [weak self] (newUserIDs) in
-                    guard let self = self else { return }
-                    if newUserIDs.contains(userID) {
-                        self.titleLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, in: MainAppContext.shared.contactStore.viewContext)
-                    }
-                }
-            )
-        }
     }
 
     func configureForGroupsList(with chatThread: ChatThread, squareSize: CGFloat = 0) {
         guard let groupID = chatThread.groupId else { return }
+        if chatThread.type == .groupChat {
+            configureForChatsList(with: chatThread, squareSize: squareSize)
+            return
+        }
         self.chatThread = chatThread
         titleLabel.text = chatThread.title
 

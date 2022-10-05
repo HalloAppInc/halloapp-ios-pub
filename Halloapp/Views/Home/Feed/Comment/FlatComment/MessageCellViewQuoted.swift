@@ -279,6 +279,10 @@ class MessageCellViewQuoted: MessageCellViewBase {
     override func playVoiceNote() {
         audioView.play()
     }
+
+    func pauseVoiceNote() {
+        audioView.pause()
+    }
 }
 
 extension MessageCellViewQuoted: MessageMediaViewDelegate {

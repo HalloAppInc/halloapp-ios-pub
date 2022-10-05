@@ -3873,32 +3873,7 @@ extension ChatData {
         let lastMsgText = (chatMessage.rawText ?? "").isEmpty ? lastMsgTextFallback : chatMessage.rawText
 
         // Update Chat Thread
-        if let chatThread = self.chatThread(type: ChatType.oneToOne, id: chatMessage.fromUserId, in: managedObjectContext) {
-            // do an extra save since fetchedcontroller have issues with detecting re-ordering changes for properties
-            // that started out as nil (and possibly when it's just mixed with other changes)
-            chatThread.lastMsgTimestamp = chatMessage.timestamp
-            save(managedObjectContext)
-
-            chatThread.lastMsgId = chatMessage.id
-            chatThread.lastMsgUserId = chatMessage.fromUserId
-            chatThread.lastMsgText = lastMsgText
-            chatThread.lastMsgMediaType = lastMsgMediaType
-            chatThread.lastMsgStatus = .none
-            chatThread.lastMsgTimestamp = chatMessage.timestamp
-            // Incoming messages always updates unread count
-            chatThread.unreadCount = chatThread.unreadCount + 1
-        } else {
-            let chatThread = ChatThread(context: managedObjectContext)
-            chatThread.userID = chatMessage.fromUserId
-            chatThread.lastMsgId = chatMessage.id
-            chatThread.lastMsgUserId = chatMessage.fromUserId
-            chatThread.lastMsgText = lastMsgText
-            chatThread.lastMsgMediaType = lastMsgMediaType
-            chatThread.lastMsgStatus = .none
-            chatThread.lastMsgTimestamp = chatMessage.timestamp
-            chatThread.type = .oneToOne
-            chatThread.unreadCount = isCurrentlyChattingWithUser ? 0 : chatThread.unreadCount + 1
-        }
+        coreChatData.updateChatThreadOnMessageCreate(chatMessageRecipient: xmppChatMessage.chatMessageRecipient, chatMessage: chatMessage, isMsgToYourself: false, lastMsgMediaType: lastMsgMediaType, lastMsgText: lastMsgText, using: managedObjectContext)
 
         save(managedObjectContext)
 

@@ -1167,6 +1167,9 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             if let cell = cell as? MessageCellViewAudio {
                 cell.pauseVoiceNote()
             }
+            if let cell = cell as? MessageCellViewQuoted {
+                cell.pauseVoiceNote()
+            }
         }
     }
 
@@ -1625,8 +1628,8 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
             present(controller, animated: true)
         } else if message.orderedMedia.count > 1 {
             guard let userID = fromUserId else { return }
-
-            let controller = ChatMediaListViewController(userID: userID, message: message, index: index)
+            let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+            let controller = ChatMediaListViewController(name: MainAppContext.shared.contactStore.fullName(for: userID, in: contactsViewContext), message: message, index: index)
             controller.animatorDelegate = self
 
             present(controller.withNavigationController(), animated: true)

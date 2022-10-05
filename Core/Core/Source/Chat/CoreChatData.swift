@@ -377,7 +377,7 @@ public class CoreChatData {
         } else {
             DDLogDebug("CoreChatData/updateChatThread/\(chatMessage.id)/new-thread")
             chatThread = CommonThread(context: context)
-            chatThread.userID = chatMessage.toUserId
+            chatThread.userID = isIncomingMsg ? chatMessage.fromUserId : chatMessage.toUserId
             chatThread.groupId = chatMessage.toGroupId
             chatThread.type = chatMessageRecipient.chatType
             if isIncomingMsg {
@@ -392,7 +392,11 @@ public class CoreChatData {
         chatThread.lastMsgUserId = chatMessage.fromUserId
         chatThread.lastMsgText = lastMsgText
         chatThread.lastMsgMediaType = lastMsgMediaType
-        chatThread.lastMsgStatus = isMsgToYourself ? .seen : .pending
+        if isIncomingMsg {
+            chatThread.lastMsgStatus = .none
+        } else {
+            chatThread.lastMsgStatus = isMsgToYourself ? .seen : .pending
+        }
         chatThread.lastMsgTimestamp = chatMessage.timestamp
     }
 

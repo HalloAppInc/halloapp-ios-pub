@@ -363,14 +363,30 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         if let message = media.message, let toUserId = message.toUserId {
             let base = """
                 ((message.fromUserID = %@ AND message.toUserID = %@) || (message.toUserID = %@ && message.fromUserID = %@)) &&
-                (typeValue == 0 || typeValue == 1)
+                (typeValue == %d || typeValue == %d)
             """
 
             if limitToMessage {
                 // TODO: Use compound predicate instead of concatenating query strings
-                request.predicate = NSPredicate(format: base + " && message.timestamp < %@", message.fromUserId, toUserId, message.fromUserId, toUserId, message.timestamp! as NSDate)
+                request.predicate = NSPredicate(format: base + " && message.timestamp < %@", message.fromUserId, toUserId, message.fromUserId, toUserId, CommonMediaType.image.rawValue, CommonMediaType.video.rawValue, message.timestamp! as NSDate)
             } else {
-                request.predicate = NSPredicate(format: base, message.fromUserId, toUserId, message.fromUserId, toUserId)
+                request.predicate = NSPredicate(format: base, message.fromUserId, toUserId, message.fromUserId, toUserId, CommonMediaType.image.rawValue, CommonMediaType.video.rawValue)
+            }
+
+            request.sortDescriptors = [
+                NSSortDescriptor(key: "message.timestamp", ascending: true),
+                NSSortDescriptor(keyPath: \CommonMedia.order, ascending: true),
+            ]
+        } else if let message = media.message, let toGroupId = message.toGroupID, let timestamp = message.timestamp {
+            let base = """
+                message.toGroupID = %@ && (typeValue == %d || typeValue == %d)
+            """
+
+            if limitToMessage {
+                // TODO: Use compound predicate instead of concatenating query strings
+                request.predicate = NSPredicate(format: base + " && message.timestamp < %@", toGroupId, CommonMediaType.image.rawValue, CommonMediaType.video.rawValue, timestamp as NSDate)
+            } else {
+                request.predicate = NSPredicate(format: base, toGroupId)
             }
 
             request.sortDescriptors = [
@@ -378,23 +394,6 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
                 NSSortDescriptor(keyPath: \CommonMedia.order, ascending: true),
             ]
         }
-        // TODO @Nandini support group chat?
-        /* TODO: Add group message relationship to media?
-
-         else if let message = media.groupMessage {
-            let base = "groupMessage.groupId = %@"
-
-            if limitToMessage {
-                request.predicate = NSPredicate(format: base + " && groupMessage.timestamp < %@", message.groupId, message.timestamp! as NSDate)
-            } else {
-                request.predicate = NSPredicate(format: base, message.groupId)
-            }
-
-            request.sortDescriptors = [
-                NSSortDescriptor(key: "groupMessage.timestamp", ascending: true),
-                NSSortDescriptor(keyPath: \CommonMedia.order, ascending: true),
-            ]
-        }*/
 
         return request
     }

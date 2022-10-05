@@ -22,6 +22,7 @@ fileprivate struct Constants {
 protocol ChatViewControllerDelegate: AnyObject {
     func chatViewController(_ chatViewController: ChatViewController, userActioned: Bool)
     func chatViewController(_ chatViewController: ChatViewControllerNew, userActioned: Bool)
+    func chatViewController(_ chatViewController: GroupChatViewController, userActioned: Bool)
 }
 
 class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
