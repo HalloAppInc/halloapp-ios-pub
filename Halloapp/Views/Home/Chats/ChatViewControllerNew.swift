@@ -1555,6 +1555,9 @@ extension ChatViewControllerNew: UIDocumentInteractionControllerDelegate {
     }
     func documentInteractionControllerDidEndPreview(_ controller: UIDocumentInteractionController) {
         documentInteractionController = nil
+
+        // Workaround for bug when interactively dismissing document (content input view animates into view extremely slowly)
+        contentInputView.superview?.layer.removeAllAnimations()
     }
 }
 
