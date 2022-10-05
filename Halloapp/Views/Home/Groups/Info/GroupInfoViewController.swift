@@ -341,13 +341,16 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
         /* apply snapshot */
         var snapshot = NSDiffableDataSourceSnapshot<Section, Row>()
         let numContacts = allContactRows.count
-        snapshot.appendSections([ .description, .background, .contacts(numContacts: numContacts) ])
+        snapshot.appendSections([ .description, .contacts(numContacts: numContacts) ])
         snapshot.appendItems(descriptionRows, toSection: .description)
-        if ServerProperties.enableGroupExpiry {
+        if chatGroup?.type == .groupFeed {
+            snapshot.insertSections([.background], afterSection: .description)
+            snapshot.appendItems(backgroundRows, toSection: .background)
+        }
+        if ServerProperties.enableGroupExpiry, chatGroup?.type == .groupFeed {
             snapshot.insertSections([.expiry], afterSection: .description)
             snapshot.appendItems([.expiryRow], toSection: .expiry)
         }
-        snapshot.appendItems(backgroundRows, toSection: .background)
         snapshot.appendItems(contactRows, toSection: .contacts(numContacts: numContacts))
         if ServerProperties.isInternalUser {
             snapshot.appendSections([.historyStats])
