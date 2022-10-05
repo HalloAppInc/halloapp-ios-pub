@@ -81,10 +81,13 @@ class HomeViewController: UITabBarController {
         tabBarViewControllers = [
             feedNavController,
             groupsNavController,
-            cameraNavController,
             chatsNavController,
             activityNavController,
         ]
+
+        if ServerProperties.isInternalUser {
+            tabBarViewControllers.insert(cameraNavController, at: TabBarSelection.camera.index)
+        }
 
         setViewControllers(tabBarViewControllers, animated: false)
 
@@ -335,12 +338,12 @@ class HomeViewController: UITabBarController {
         }
 
         if metadata.isFeedNotification {
-            selectedIndex = TabBarSelection.home.rawValue
+            selectedIndex = TabBarSelection.home.index
         } else if metadata.isGroupAddNotification {
-            selectedIndex = TabBarSelection.group.rawValue
+            selectedIndex = TabBarSelection.group.index
         } else if metadata.isChatNotification || metadata.isContactNotification {
             // we need to show the chatscreen when the notification tapped is chat/friend/inviter notification.
-            selectedIndex = TabBarSelection.chat.rawValue
+            selectedIndex = TabBarSelection.chat.index
         } else if metadata.isMissedCallNotification {
             metadata.removeFromUserDefaults()
             // Default to audio call.
@@ -427,7 +430,7 @@ class HomeViewController: UITabBarController {
     }
 
     private func showHomeTabIndicatorIfNeeded() {
-        if currentlyOn() == .home { // user is on the main feed
+        if selectedIndex == TabBarSelection.home.index { // user is on the main feed
             guard let nc = self.viewControllers?[0] as? UINavigationController else { return }
             guard let vc = nc.topViewController as? FeedViewController else { return }
             guard !vc.isNearTop(100) else { return } // exit if user is at the top of the main feed
@@ -483,24 +486,35 @@ class HomeViewController: UITabBarController {
     }
     
     /// Describes the status of which tab is selected
-    enum TabBarSelection: Int {
-        case home = 0
-        case group = 1
-        case camera = 2
-        case chat = 3
-        case activity = 4
+    enum TabBarSelection {
+        case home
+        case group
+        case camera
+        case chat
+        case activity
+
+        var index: Int {
+            let isInternal = ServerProperties.isInternalUser
+
+            switch self {
+            case .home:
+                return 0
+            case .group:
+                return 1
+            case .camera:
+                return 2
+            case .chat:
+                return isInternal ? 3 : 2
+            case .activity:
+                return isInternal ? 4 : 3
+            }
+        }
     }
     
     /// Switches the view to be for whichever tab is selected
     /// - Parameter tab: Tab to display as a `TabBarSelection`
     private func switchTo(tab: TabBarSelection) {
-        self.selectedIndex = tab.rawValue
-    }
-    
-    /// Gets the current tab that the `HomeViewController` is displaying
-    /// - Returns: The `TabBarSelection` representing the currently displayed view
-    private func currentlyOn() -> TabBarSelection {
-        return TabBarSelection(rawValue: self.selectedIndex) ?? .home
+        self.selectedIndex = tab.index
     }
 }
 
@@ -519,7 +533,7 @@ extension HomeViewController: UITabBarControllerDelegate {
 
     func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
         guard
-            selectedIndex != TabBarSelection.camera.rawValue,
+            selectedIndex != TabBarSelection.camera.index,
             let navigationController = viewController as? UINavigationController,
             navigationController.topViewController !== navigationController.viewControllers.first
         else {

@@ -1782,7 +1782,7 @@ class ChatData: ObservableObject {
         guard
             let keyWindow = UIApplication.shared.windows.filter({$0.isKeyWindow}).first,
             let tabController = keyWindow.rootViewController?.children.first as? UITabBarController,
-            tabController.selectedIndex == HomeViewController.TabBarSelection.chat.rawValue,
+            tabController.selectedIndex == HomeViewController.TabBarSelection.chat.index,
             let chatNavigationController = tabController.selectedViewController as? UINavigationController,
             let chatListViewController = chatNavigationController.topViewController as? ChatListViewController
         else {
