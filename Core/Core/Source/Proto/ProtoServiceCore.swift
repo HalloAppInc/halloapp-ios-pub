@@ -1738,7 +1738,8 @@ extension ProtoServiceCore: CoreService {
             return
         }
         let errorString = error?.rawValue ?? ""
-        DDLogInfo("proto/reportGroupDecryptionResult/\(contentID)/\(contentType)/\(groupID)/error value: \(errorString)")
+        let logString = error == nil ? "success" : "error [\(errorString)]"
+        DDLogInfo("proto/reportGroupDecryptionResult/\(contentID)/\(contentType)/\(groupID)/\(logString)")
         AppContext.shared.eventMonitor.count(.groupDecryption(error: error, itemTypeString: contentType.rawValue, sender: sender))
         AppContext.shared.cryptoData.update(contentID: contentID,
                                             contentType: contentType,
@@ -1755,7 +1756,8 @@ extension ProtoServiceCore: CoreService {
             return
         }
         let errorString = error?.rawValue ?? ""
-        DDLogInfo("proto/reportGroupDecryptionResult/\(contentID)/\(contentType)/\(groupID)/error value: \(errorString)")
+        let logString = error == nil ? "success" : "error [\(errorString)]"
+        DDLogInfo("proto/reportGroupDecryptionResult/\(contentID)/\(contentType)/\(groupID)/\(logString)")
         AppContext.shared.cryptoData.update(contentID: contentID,
                                             contentType: contentType,
                                             groupID: groupID,
@@ -1780,7 +1782,8 @@ extension ProtoServiceCore: CoreService {
             return
         }
         let errorString = error?.rawValue ?? ""
-        DDLogInfo("proto/reportHomeDecryptionResult/\(contentID)/\(contentType)/\(audienceType)/error value: \(errorString)")
+        let logString = error == nil ? "success" : "error [\(errorString)]"
+        DDLogInfo("proto/reportHomeDecryptionResult/\(contentID)/\(contentType)/\(audienceType)/\(logString)")
         AppContext.shared.eventMonitor.count(.homeDecryption(error: error, itemTypeString: contentType.rawValue, sender: sender))
         AppContext.shared.cryptoData.update(contentID: contentID,
                                             contentType: contentType,
@@ -1806,7 +1809,8 @@ extension ProtoServiceCore: CoreService {
             return
         }
         let errorString = error?.rawValue ?? ""
-        DDLogInfo("proto/reportHomeDecryptionResult/\(contentID)/\(contentType)/\(audienceType)/error value: \(errorString)")
+        let logString = error == nil ? "success" : "error [\(errorString)]"
+        DDLogInfo("proto/reportHomeDecryptionResult/\(contentID)/\(contentType)/\(audienceType)/\(logString)")
         AppContext.shared.cryptoData.update(contentID: contentID,
                                             contentType: contentType,
                                             audienceType: audienceType,
