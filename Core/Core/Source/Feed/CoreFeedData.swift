@@ -1078,7 +1078,7 @@ open class CoreFeedData: NSObject {
     }
 
     public func handleGroupFeedHistoryRerequest(for contentID: String, from userID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
-        mainDataStore.performSeriallyOnBackgroundContext{ [mainDataStore] managedObjectContext in
+        mainDataStore.saveSeriallyOnBackgroundContext{ [mainDataStore] managedObjectContext in
             let resendInfo = mainDataStore.fetchContentResendInfo(for: contentID, userID: userID, in: managedObjectContext)
             resendInfo.retryCount += 1
             // retryCount indicates number of times content has been rerequested until now: increment and use it when sending.
