@@ -25,15 +25,17 @@ public enum PostContent {
 
 public struct MomentContent {
 
-    let image: FeedMediaData
-    let selfieImage: FeedMediaData?
-    let selfieLeading: Bool
+    public let image: FeedMediaData
+    public let selfieImage: FeedMediaData?
+    public let selfieLeading: Bool
+    public let locationString: String?
     public private(set) var unlockUserID: UserID?
 
-    init(image: FeedMediaData, selfieImage: FeedMediaData?, selfieLeading: Bool, unlockUserID: UserID?) {
+    init(image: FeedMediaData, selfieImage: FeedMediaData?, selfieLeading: Bool, locationString: String?, unlockUserID: UserID?) {
         self.image = image
         self.selfieImage = selfieImage
         self.selfieLeading = selfieLeading
+        self.locationString = locationString
         self.unlockUserID = unlockUserID
     }
 
@@ -45,6 +47,7 @@ public struct MomentContent {
         image = parsed
         selfieImage = FeedMediaData(id: "\(postID)-selfie-moment", clientImage: clientsMoment.selfieImage)
         selfieLeading = clientsMoment.selfieLeading
+        locationString = clientsMoment.location.isEmpty ? nil : clientsMoment.location
         unlockUserID = nil
     }
 
@@ -72,6 +75,12 @@ public struct MomentContent {
         moment.image = main
         moment.selfieImage = selfie
         moment.selfieLeading = selfieLeading
+        if let locationString {
+            moment.location = locationString
+        } else {
+            moment.location = ""
+        }
+
         return moment
     }
 }

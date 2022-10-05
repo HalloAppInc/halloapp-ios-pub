@@ -188,6 +188,7 @@
         <attribute name="isMoment" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="isMomentSelfieLeading" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="lastUpdated" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="locationString" optional="YES" attributeType="String"/>
         <attribute name="mentionsValue" optional="YES" attributeType="Transformable" valueTransformerName="MentionValueTransformer"/>
         <attribute name="rawData" optional="YES" attributeType="Binary"/>
         <attribute name="rawText" optional="YES" attributeType="String"/>

@@ -803,7 +803,7 @@ extension MomentViewController {
 
     private func installFTUX() {
         guard
-            let momentFooterView = momentView.dayOfWeekLabel.superview,
+            let momentFooterView = momentView.footerLabel.superview,
             let image = UIImage(systemName: "hand.draw")
         else {
             return
@@ -834,7 +834,7 @@ extension MomentViewController {
 
         UIView.animate(withDuration: 0.2, delay: 0.15) {
             label.alpha = 1
-            self.momentView.dayOfWeekLabel.alpha = 0
+            self.momentView.footerLabel.alpha = 0
         }
     }
 
@@ -843,7 +843,7 @@ extension MomentViewController {
             return
         }
 
-        momentView.dayOfWeekLabel.alpha = 1
+        momentView.footerLabel.alpha = 1
         ftuxLabel.removeFromSuperview()
         self.ftuxLabel = nil
 

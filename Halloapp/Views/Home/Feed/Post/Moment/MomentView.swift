@@ -182,7 +182,7 @@ class MomentView: UIView {
         return stack
     }()
     
-    private(set) lazy var dayOfWeekLabel: UILabel = {
+    private(set) lazy var footerLabel: UILabel = {
         let label = UILabel()
         label.font = .handwritingFont(forTextStyle: .body, pointSizeChange: 2, weight: .regular, maximumPointSize: 26)
         label.textColor = .black.withAlphaComponent(0.9)
@@ -291,7 +291,7 @@ class MomentView: UIView {
         layer.masksToBounds = false
         clipsToBounds = false
 
-        footerView.addArrangedSubview(dayOfWeekLabel)
+        footerView.addArrangedSubview(footerLabel)
 
         layer.borderWidth = 0.5 / UIScreen.main.scale
         layer.borderColor = UIColor(red: 0.71, green: 0.71, blue: 0.71, alpha: 1.00).cgColor
@@ -321,7 +321,6 @@ class MomentView: UIView {
     }
 
     func configure(with post: FeedPost?) {
-        imageLoadingCancellables.forEach { $0.cancel() }
         imageLoadingCancellables = []
         downloadProgressCancellable = nil
 
@@ -331,7 +330,12 @@ class MomentView: UIView {
 
         feedPost = post
 
-        dayOfWeekLabel.text = DateFormatter.dateTimeFormatterDayOfWeekLong.string(from: post.timestamp).uppercased()
+        if let location = post.locationString {
+            footerLabel.text = location
+        } else {
+            footerLabel.text = DateFormatter.dateTimeFormatterDayOfWeekLong.string(from: post.timestamp).uppercased()
+        }
+
         avatarView.configure(with: post.userID, using: MainAppContext.shared.avatarStore)
         setupMedia()
 
@@ -535,7 +539,7 @@ class MomentView: UIView {
         blurView.isUserInteractionEnabled = newState != .unlocked
 
         overlayStack.alpha = overlayAlpha
-        dayOfWeekLabel.isHidden = dayHidden
+        footerLabel.isHidden = dayHidden
         promptLabel.text = promptText
 
         actionButton.setTitle(buttonText, for: .normal)

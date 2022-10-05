@@ -29,10 +29,12 @@ public enum MomentContext {
 public struct PendingMomentInfo {
 
     public let isSelfieLeading: Bool
+    public let locationString: String?
     public let unlockUserID: UserID?
 
-    public init(isSelfieLeading: Bool, unlockUserID: UserID?) {
+    public init(isSelfieLeading: Bool, locationString: String?, unlockUserID: UserID?) {
         self.isSelfieLeading = isSelfieLeading
+        self.locationString = locationString
         self.unlockUserID = unlockUserID
     }
 }
@@ -113,6 +115,7 @@ open class CoreFeedData: NSObject {
                 feedPost.isMoment = true
                 feedPost.unlockedMomentUserID = momentInfo.unlockUserID
                 feedPost.isMomentSelfieLeading = momentInfo.isSelfieLeading && media.count > 1
+                feedPost.locationString = momentInfo.locationString
             }
 
             // Add mentions
@@ -671,7 +674,10 @@ open class CoreFeedData: NSObject {
             feedPost.hasBeenProcessed = hasBeenProcessed
 
             if case let .moment(content) = postData.content {
+                feedPost.isMoment = true
                 feedPost.unlockedMomentUserID = content.unlockUserID
+                feedPost.isMomentSelfieLeading = content.selfieLeading
+                feedPost.locationString = content.locationString
             }
 
             // Status

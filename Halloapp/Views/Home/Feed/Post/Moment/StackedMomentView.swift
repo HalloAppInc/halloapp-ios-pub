@@ -302,7 +302,7 @@ extension StackedMomentView {
     private func installFTUX() {
         guard
             let topMoment = topView,
-            let momentFooterView = topMoment.dayOfWeekLabel.superview,
+            let momentFooterView = topMoment.footerLabel.superview,
             let swipeImage = UIImage(systemName: "hand.draw")
         else {
             return
@@ -311,10 +311,10 @@ extension StackedMomentView {
         if let ftuxLabel = ftuxLabel, let momentView = ftuxLabel.superview as? MomentView {
             // it's possible that the FTUX was attached to a view that is now somewhere else in the stack
             ftuxLabel.removeFromSuperview()
-            momentView.dayOfWeekLabel.alpha = 1
+            momentView.footerLabel.alpha = 1
         }
 
-        topMoment.dayOfWeekLabel.alpha = 0
+        topMoment.footerLabel.alpha = 0
         let string = NSMutableAttributedString.string(Localizations.swipeForMore,
                                                 with: swipeImage,
                                              spacing: 2,
@@ -342,7 +342,7 @@ extension StackedMomentView {
             return
         }
 
-        momentView.dayOfWeekLabel.alpha = 1
+        momentView.footerLabel.alpha = 1
         ftuxLabel.removeFromSuperview()
         self.ftuxLabel = nil
 

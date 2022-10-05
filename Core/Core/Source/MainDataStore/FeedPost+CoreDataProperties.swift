@@ -65,6 +65,7 @@ public extension FeedPost {
     /// For other user's (incoming) moments, this value will either be the user's own ID, or `nil`.
     @NSManaged var unlockedMomentUserID: UserID?
     @NSManaged var isMomentSelfieLeading: Bool
+    @NSManaged var locationString: String?
 
     var status: Status {
         get {
@@ -171,6 +172,7 @@ extension FeedPost {
         return MomentContent(image: image,
                        selfieImage: selfie,
                      selfieLeading: isMomentSelfieLeading,
+                    locationString: locationString,
                       unlockUserID: unlockedMomentUserID)
     }
 

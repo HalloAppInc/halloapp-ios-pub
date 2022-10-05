@@ -1163,6 +1163,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             if case let .moment(content) = xmppPost.content {
                 feedPost.isMoment = true
                 feedPost.unlockedMomentUserID = content.unlockUserID
+                feedPost.isMomentSelfieLeading = content.selfieLeading
+                feedPost.locationString = content.locationString
             }
 
             switch xmppPost.content {
@@ -3042,6 +3044,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.isMoment = true
             feedPost.unlockedMomentUserID = momentInfo.unlockUserID
             feedPost.isMomentSelfieLeading = momentInfo.isSelfieLeading && media.count > 1
+            feedPost.locationString = momentInfo.locationString
         }
 
         // Add mentions
