@@ -40,6 +40,9 @@
 /* First tab in the main app interface. */
 "activityCenter.promo.favorites" = "¡Mira la nueva función en Favoritos!";
 
+/* Title of a button that allows a location to be added. */
+"add.location.title" = "Agrega ubicación";
+
 /* Menu option for adding generic file */
 "add.media.option.document" = "Documento";
 
@@ -895,6 +898,9 @@
 /* Explains that as more contacts join the app, they will appear in this list automatically. */
 "fellow.contacts.will.arrive" = "Tus contactos telefónicos que se registren con HalloApp aparecerán aquí automáticamente.";
 
+/* Title to indicate that a fetch operation is in progress. */
+"fetching.title" = "Buscando";
+
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Agrega la descripción del grupo";
 
@@ -1257,6 +1263,9 @@
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Actualiza tu aplicación.";
+
+/* Displayed when a location fetch fails. */
+"location.fetch.error" = "Error al obtener la ubicación";
 
 /* General message of the alert for failures in location sharing features. */
 "locationSharing.alert.error" = "Algo salió mal. Por favor, inténtalo más tarde.";
@@ -1658,14 +1667,6 @@
 /* Header when selecting destinations to forward a message, this header appears above the feeds section */
 "post.privacy.header.frequentlyContacted" = "Frecuentemente contacto(a)";
 
-/* Header when selecting a group to share with
-   Header when selecting destinations to forward a message, this header appears above the groups section */
-"post.privacy.header.groups" = "Tus grupos";
-
-/* Controller title for changing destination and privacy
-   Header when selecting contacts to share with */
-"post.privacy.title" = "Contactos recientes";
-
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Bloqueado";
 
@@ -2047,6 +2048,9 @@
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "toca para devolver la llamada";
 
+/* Action text that shows up next to your selected reaction. */
+"tap.to.remove.reaction" = "Toca para eliminar";
+
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.add.reading.list" = "Agregar a la lista de lectura";
 
@@ -2140,6 +2144,9 @@
 /* Row in Settings screen */
 "title.privacy" = "Privacidad";
 
+/* Title for the screen with information about who reacted to your content. */
+"title.reactions" = "Reacciones";
+
 /* Title of screen where user can add members during group creation flow */
 "title.select.group.members.create.title" = "Agregar miembros";
 
@@ -2155,8 +2162,7 @@
 /* Title for the screen with information about who saw your moment. */
 "title.your.moment" = "Visto por";
 
-/* Title for the screen with information about who reacted to your post.
-   Title for the screen with information about who saw your post. */
+/* Title for the screen with information about who saw your post. */
 "title.your.post" = "Visto por";
 
 /* Text on the bottom sheet's button that dismisses the sheet. */

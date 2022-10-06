@@ -40,6 +40,9 @@
 /* First tab in the main app interface. */
 "activityCenter.promo.favorites" = "Schau dir die neue Favoritenfunktion an!";
 
+/* Title of a button that allows a location to be added. */
+"add.location.title" = "Standort hinzufügen";
+
 /* Menu option for adding generic file */
 "add.media.option.document" = "Dokument";
 
@@ -281,7 +284,7 @@
 "camera.init.error.title" = "Initialisierungsfehler";
 
 /* Text shown on the camera screen when composing a new moment. */
-"camera.moment.subtitle" = "Momente sind 24 Stunden sichtbar und können nur einmal angesehen werden";
+"camera.moment.subtitle" = "Momente sind für 24 Stunden sichtbar";
 
 /* Text shown on the camera screen when composing a new moment to unlock someone else's moment. */
 "camera.moment.unlock.subtitle" = "Um %@'s Moment zu sehen, teile deinen eigenen";
@@ -895,6 +898,9 @@
 /* Explains that as more contacts join the app, they will appear in this list automatically. */
 "fellow.contacts.will.arrive" = "Deine Kontakte, die sich bei HalloApp registrieren, werden hier automatisch angezeigt.";
 
+/* Title to indicate that a fetch operation is in progress. */
+"fetching.title" = "Wird abgerufen";
+
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Gruppenbeschreibung hinzufügen";
 
@@ -1071,6 +1077,9 @@
 
 /* Notification that you demmoted a group member */
 "group.notification.memberaction.demote.you.sender" = "Du hast <$member$> als Admin der Gruppe <$groupname$> entfernt";
+
+/* Notification that a user left a group */
+"group.notification.memberaction.leave" = "<$sender$> hat die Gruppe <$groupname$> verlassen";
 
 /* Notification that you left a group */
 "group.notification.memberaction.leave.you" = "Du hast die Gruppe <$groupname$> verlassen";
@@ -1255,6 +1264,9 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Meine App aktualisieren.";
 
+/* Displayed when a location fetch fails. */
+"location.fetch.error" = "Fehler beim Abrufen des Standorts";
+
 /* General message of the alert for failures in location sharing features. */
 "locationSharing.alert.error" = "Etwas ist schiefgelaufen. Bitte versuche es später noch einmal.";
 
@@ -1410,7 +1422,7 @@
 "moments.swipe.for.more" = "für weitere wischen";
 
 /* Message displayed to say when moments will disappear. */
-"mymoment.disappear.time.label" = "Dein Moment wurde mit deinen Kontakten geteilt. Momente sind 24 Stunden sichtbar und können nur einmal angesehen werden.";
+"mymoment.disappear.time.label" = "Dein Moment wurde mit deinen Kontakten geteilt. Momente sind für 24 Stunden sichtbar.";
 
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Nachricht senden";
@@ -1660,14 +1672,6 @@
 
 /* Header when selecting destinations to forward a message, this header appears above the feeds section */
 "post.privacy.header.frequentlyContacted" = "Häufig kontaktiert";
-
-/* Header when selecting a group to share with
-   Header when selecting destinations to forward a message, this header appears above the groups section */
-"post.privacy.header.groups" = "Deine Gruppen";
-
-/* Controller title for changing destination and privacy
-   Header when selecting contacts to share with */
-"post.privacy.title" = "Kontakte";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Geblockte Kontakte";
@@ -2050,6 +2054,9 @@
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "Tippen, um zum Anruf zurückzukehren";
 
+/* Action text that shows up next to your selected reaction. */
+"tap.to.remove.reaction" = "Zum Entfernen tippen";
+
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.add.reading.list" = "Zur Leseliste hinzufügen";
 
@@ -2143,6 +2150,9 @@
 /* Row in Settings screen */
 "title.privacy" = "Privatsphäre";
 
+/* Title for the screen with information about who reacted to your content. */
+"title.reactions" = "Reaktionen";
+
 /* Title of screen where user can add members during group creation flow */
 "title.select.group.members.create.title" = "Mitglieder hinzufügen";
 
@@ -2158,8 +2168,7 @@
 /* Title for the screen with information about who saw your moment. */
 "title.your.moment" = "Gesehen von";
 
-/* Title for the screen with information about who reacted to your post.
-   Title for the screen with information about who saw your post. */
+/* Title for the screen with information about who saw your post. */
 "title.your.post" = "Gesehen von";
 
 /* Text on the bottom sheet's button that dismisses the sheet. */

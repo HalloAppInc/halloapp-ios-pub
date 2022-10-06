@@ -1207,14 +1207,6 @@
 /* Header when selecting all or some contacts to share with */
 "post.privacy.header.contacts" = "Qui verra cette publication";
 
-/* Header when selecting a group to share with
-   Header when selecting destinations to forward a message, this header appears above the groups section */
-"post.privacy.header.groups" = "Partager seulement avec un groupe";
-
-/* Controller title for changing destination and privacy
-   Header when selecting contacts to share with */
-"post.privacy.title" = "Partager avec...";
-
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Bloqué";
 
@@ -1632,8 +1624,7 @@
 /* Row in Settings screen */
 "title.storage" = "Stockage";
 
-/* Title for the screen with information about who reacted to your post.
-   Title for the screen with information about who saw your post. */
+/* Title for the screen with information about who saw your post. */
 "title.your.post" = "Vu par";
 
 /* Indicates which switch a user needs to turn on to enable contacts permissions. */

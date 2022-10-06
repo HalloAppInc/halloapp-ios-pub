@@ -34,6 +34,70 @@
 			<string>Compartir con %d de mis contactos</string>
 		</dict>
 	</dict>
+	<key>feed.collapsed.n.users.added</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_users@</string>
+		<key>n_users</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d persona fue agregada</string>
+			<key>other</key>
+			<string>%d personas fueron agregadas</string>
+		</dict>
+	</dict>
+	<key>feed.collapsed.n.users.joined</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_users@</string>
+		<key>n_users</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d persona se unió</string>
+			<key>other</key>
+			<string>%d personas se unieron</string>
+		</dict>
+	</dict>
+	<key>feed.collapsed.n.users.left</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_users@</string>
+		<key>n_users</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d persona se salió</string>
+			<key>other</key>
+			<string>%d personas se salieron</string>
+		</dict>
+	</dict>
+	<key>feed.collapsed.n.users.removed</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_users@</string>
+		<key>n_users</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d persona fue eliminada</string>
+			<key>other</key>
+			<string>%d personas fueron eliminadas</string>
+		</dict>
+	</dict>
 	<key>feed.privacy.value.n.contacts.excluded</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>

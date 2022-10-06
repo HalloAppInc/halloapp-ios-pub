@@ -34,6 +34,70 @@
 			<string>Mit %d meiner Kontakte teilen</string>
 		</dict>
 	</dict>
+	<key>feed.collapsed.n.users.added</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_users@</string>
+		<key>n_users</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d Person wurde hinzugefügt</string>
+			<key>other</key>
+			<string>%d Personen wurden hinzugefügt</string>
+		</dict>
+	</dict>
+	<key>feed.collapsed.n.users.joined</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_users@</string>
+		<key>n_users</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d Person ist beigetreten</string>
+			<key>other</key>
+			<string>%d Personen sind beigetreten</string>
+		</dict>
+	</dict>
+	<key>feed.collapsed.n.users.left</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_users@</string>
+		<key>n_users</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d Person hat die Gruppe verlassen</string>
+			<key>other</key>
+			<string>%d Personen haben die Gruppe verlassen</string>
+		</dict>
+	</dict>
+	<key>feed.collapsed.n.users.removed</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_users@</string>
+		<key>n_users</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d Person wurde entfernt</string>
+			<key>other</key>
+			<string>%d Personen wurden entfernt</string>
+		</dict>
+	</dict>
 	<key>feed.privacy.value.n.contacts.excluded</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>

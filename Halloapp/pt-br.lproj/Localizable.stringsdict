@@ -50,6 +50,102 @@
 			<string>Sharing with %d of my contacts</string>
 		</dict>
 	</dict>
+	<key>feed.collapsed.n.users.added</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_users@</string>
+		<key>n_users</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>%d people were added</string>
+			<key>many</key>
+			<string>%d people were added</string>
+			<key>one</key>
+			<string>%d pessoa foi adicionada</string>
+			<key>other</key>
+			<string>%d pessoas foram adicionadas</string>
+			<key>two</key>
+			<string>%d people were added</string>
+			<key>zero</key>
+			<string>%d people were added</string>
+		</dict>
+	</dict>
+	<key>feed.collapsed.n.users.joined</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_users@</string>
+		<key>n_users</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>%d people joined</string>
+			<key>many</key>
+			<string>%d people joined</string>
+			<key>one</key>
+			<string>%d person joined</string>
+			<key>other</key>
+			<string>%d people joined</string>
+			<key>two</key>
+			<string>%d people joined</string>
+			<key>zero</key>
+			<string>%d people joined</string>
+		</dict>
+	</dict>
+	<key>feed.collapsed.n.users.left</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_users@</string>
+		<key>n_users</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>%d people left</string>
+			<key>many</key>
+			<string>%d people left</string>
+			<key>one</key>
+			<string>%d person left</string>
+			<key>other</key>
+			<string>%d people left</string>
+			<key>two</key>
+			<string>%d people left</string>
+			<key>zero</key>
+			<string>%d people left</string>
+		</dict>
+	</dict>
+	<key>feed.collapsed.n.users.removed</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_users@</string>
+		<key>n_users</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>%d people were removed</string>
+			<key>many</key>
+			<string>%d people were removed</string>
+			<key>one</key>
+			<string>%d person was removed</string>
+			<key>other</key>
+			<string>%d people were removed</string>
+			<key>two</key>
+			<string>%d people were removed</string>
+			<key>zero</key>
+			<string>%d people were removed</string>
+		</dict>
+	</dict>
 	<key>feed.privacy.value.n.contacts.excluded</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>

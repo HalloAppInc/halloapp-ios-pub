@@ -1535,14 +1535,6 @@
 /* Header when selecting destinations to forward a message, this header appears above the feeds section */
 "post.privacy.header.feeds" = "Yayınlar";
 
-/* Header when selecting a group to share with
-   Header when selecting destinations to forward a message, this header appears above the groups section */
-"post.privacy.header.groups" = "Yalnızca bir grupla paylaş";
-
-/* Controller title for changing destination and privacy
-   Header when selecting contacts to share with */
-"post.privacy.title" = "Şununla paylaş:";
-
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Engellendi";
 
@@ -2023,8 +2015,7 @@
 /* Row in Settings screen */
 "title.storage" = "Depolama";
 
-/* Title for the screen with information about who reacted to your post.
-   Title for the screen with information about who saw your post. */
+/* Title for the screen with information about who saw your post. */
 "title.your.post" = "... tarafından görüldü";
 
 /* Text on the bottom sheet's button that dismisses the sheet. */

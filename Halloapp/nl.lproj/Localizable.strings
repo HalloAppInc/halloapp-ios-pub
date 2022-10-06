@@ -40,6 +40,9 @@
 /* First tab in the main app interface. */
 "activityCenter.promo.favorites" = "Probeer de nieuwe functie Favorieten!";
 
+/* Title of a button that allows a location to be added. */
+"add.location.title" = "Locatie Toevoegen";
+
 /* Menu option for adding generic file */
 "add.media.option.document" = "Document";
 
@@ -730,6 +733,18 @@
 /* Indicates that an item has failed to be sent. */
 "failed.to.send" = "Verzenden mislukt";
 
+/* Number of contacts added to a group. */
+"feed.collapsed.n.users.added" = "feed.collapsed.n.users.added";
+
+/* Number of contacts that joined a group. */
+"feed.collapsed.n.users.joined" = "feed.collapsed.n.users.joined";
+
+/* Number of contacts that left a group. */
+"feed.collapsed.n.users.left" = "feed.collapsed.n.users.left";
+
+/* Number of contacts removed from a group. */
+"feed.collapsed.n.users.removed" = "feed.collapsed.n.users.removed";
+
 /* Text shown in place of a received post we are not able to decrypt yet. */
 "feed.comment.waiting" = "Wachten op deze reactie. Dit kan even duren.";
 
@@ -1258,6 +1273,9 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "App bijwerken.";
 
+/* Displayed when a location fetch fails. */
+"location.fetch.error" = "Fout bij ophalen van locatie";
+
 /* General message of the alert for failures in location sharing features. */
 "locationSharing.alert.error" = "Er ging iets mis. Probeer het later opnieuw.";
 
@@ -1665,15 +1683,7 @@
 "post.privacy.header.feeds" = "Feeds";
 
 /* Header when selecting destinations to forward a message, this header appears above the feeds section */
-"post.privacy.header.frequentlyContacted" = "Frequent Gecontacteerd";
-
-/* Header when selecting a group to share with
-   Header when selecting destinations to forward a message, this header appears above the groups section */
-"post.privacy.header.groups" = "Jouw Groepen";
-
-/* Controller title for changing destination and privacy
-   Header when selecting contacts to share with */
-"post.privacy.title" = "Contacten";
+"post.privacy.header.frequentlyContacted" = "Veelgebruikte Contacten";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Geblokkeerd";
@@ -2056,6 +2066,9 @@
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "tik om terug te gaan naar oproep";
 
+/* Action text that shows up next to your selected reaction. */
+"tap.to.remove.reaction" = "Tik om te verwijderen";
+
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.add.reading.list" = "Toevoegen aan Leeslijst";
 
@@ -2149,6 +2162,9 @@
 /* Row in Settings screen */
 "title.privacy" = "Privacy";
 
+/* Title for the screen with information about who reacted to your content. */
+"title.reactions" = "Reacties";
+
 /* Title of screen where user can add members during group creation flow */
 "title.select.group.members.create.title" = "Deelnemers Toevoegen";
 
@@ -2164,8 +2180,7 @@
 /* Title for the screen with information about who saw your moment. */
 "title.your.moment" = "Gezien Door";
 
-/* Title for the screen with information about who reacted to your post.
-   Title for the screen with information about who saw your post. */
+/* Title for the screen with information about who saw your post. */
 "title.your.post" = "Gezien Door";
 
 /* Text on the bottom sheet's button that dismisses the sheet. */

@@ -34,6 +34,70 @@
 			<string>Delen met %d van mijn contacten</string>
 		</dict>
 	</dict>
+	<key>feed.collapsed.n.users.added</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_users@</string>
+		<key>n_users</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d persoon is toegevoegd</string>
+			<key>other</key>
+			<string>%d personen zijn toegevoegd</string>
+		</dict>
+	</dict>
+	<key>feed.collapsed.n.users.joined</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_users@</string>
+		<key>n_users</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d persoon neemt deel aan de groep</string>
+			<key>other</key>
+			<string>%d personen nemen deel aan de groep</string>
+		</dict>
+	</dict>
+	<key>feed.collapsed.n.users.left</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_users@</string>
+		<key>n_users</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d persoon heeft de groep verlaten</string>
+			<key>other</key>
+			<string>%d personen hebben de groep verlaten</string>
+		</dict>
+	</dict>
+	<key>feed.collapsed.n.users.removed</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_users@</string>
+		<key>n_users</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d persoon is verwijderd</string>
+			<key>other</key>
+			<string>%d personen zijn verwijderd</string>
+		</dict>
+	</dict>
 	<key>feed.privacy.value.n.contacts.excluded</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
