@@ -396,19 +396,31 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Sh
         }
     }
     
-    func presentMomentViewController(for post: FeedPost, using momentView: MomentView) {
-        if let latest = MainAppContext.shared.feedData.fetchLatestMoment(using: MainAppContext.shared.feedData.viewContext) {
-            let userID = MainAppContext.shared.userData.userId
-            let unlocker = (post.userId == userID || latest.status == .sent) ? nil : latest
-            // user may have uploaded using the prompt card and it's still pending, in this case we show the unlock flow
-            let vc = MomentViewController(post: post, unlockingPost: unlocker)
-            //vc.delegate = self
-            vc.transitionStartView = momentView
-            vc.delegate = self
-            present(vc, animated: true)
-        } else {
-            presentNewMomentViewController(context: .unlock(post))
+    func presentAppropriateMomentViewController(for moment: FeedPost, using momentView: MomentView) {
+        let ownValidMoment = MainAppContext.shared.feedData.fetchLatestMoment(using: MainAppContext.shared.feedData.viewContext)
+
+        switch (ownValidMoment, moment.status) {
+        case (_, .seenSending), (_, .seen):
+            presentMomentViewController(moment: moment, unlockingMoment: nil, momentView: momentView)
+
+        case (.some(let unlocker), _) where unlocker.status == .sent:
+            presentMomentViewController(moment: moment, unlockingMoment: nil, momentView: momentView)
+
+        case (.some(let unlocker), _):
+            // user's moment hasn't been confirmed as `.sent` yet; open in full-screen with the unlocking post
+            presentMomentViewController(moment: moment, unlockingMoment: unlocker, momentView: momentView)
+
+        default:
+            presentNewMomentViewController(context: .unlock(moment))
         }
+    }
+
+    private func presentMomentViewController(moment: FeedPost, unlockingMoment: FeedPost?, momentView: MomentView) {
+        let vc = MomentViewController(post: moment, unlockingPost: unlockingMoment)
+        vc.transitionStartView = momentView
+        vc.delegate = self
+
+        present(vc, animated: true)
     }
 
     @objc
@@ -882,7 +894,7 @@ extension FeedCollectionViewController {
         }
 
         cell.openAction = { [weak self, feedPost] in
-            self?.presentMomentViewController(for: feedPost, using: cell.momentView)
+            self?.presentAppropriateMomentViewController(for: feedPost, using: cell.momentView)
         }
 
         cell.uploadProgressControl.onRetry = { [weak self] in
@@ -896,7 +908,7 @@ extension FeedCollectionViewController {
         cell.stackedView.actionCallback = { [weak self] momentView, action in
             switch action {
             case .open(moment: let moment):
-                self?.presentMomentViewController(for: moment, using: momentView)
+                self?.presentAppropriateMomentViewController(for: moment, using: momentView)
             case .camera:
                 self?.createNewMoment()
             case .view(profile: let userID):

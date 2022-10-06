@@ -54,6 +54,7 @@ class MomentView: UIView {
     private var cancellables: Set<AnyCancellable> = []
     private var imageLoadingCancellables: Set<AnyCancellable> = []
     private var downloadProgressCancellable: AnyCancellable?
+    private var unlockCancellable: AnyCancellable?
 
     private lazy var imageContainer: UIView = {
         let view = UIView()
@@ -199,6 +200,11 @@ class MomentView: UIView {
         return stack
     }()
 
+    private lazy var openTapGesture: UITapGestureRecognizer = {
+        let tap = UITapGestureRecognizer(target: self, action: #selector(openTapped))
+        return tap
+    }()
+
     weak var delegate: MomentViewDelegate?
 
     override init(frame: CGRect) {
@@ -207,6 +213,8 @@ class MomentView: UIView {
         layer.cornerRadius = Layout.cornerRadius
         layer.cornerCurve = .circular
         backgroundColor = .momentPolaroid
+
+        addGestureRecognizer(openTapGesture)
 
         addSubview(gradientView)
         addSubview(downloadProgressView)
@@ -323,6 +331,7 @@ class MomentView: UIView {
     func configure(with post: FeedPost?) {
         imageLoadingCancellables = []
         downloadProgressCancellable = nil
+        unlockCancellable = nil
 
         guard let post = post else {
             return configureForPrompt()
@@ -340,9 +349,27 @@ class MomentView: UIView {
         setupMedia()
 
         let isOwnPost = MainAppContext.shared.userData.userId == post.userId
-        let state: State = isOwnPost ? .unlocked : .locked
+        let state: State
+
+        switch post.status {
+        case .seen, .seenSending:
+            state = .unlocked
+        default:
+            state = isOwnPost ? .unlocked : .locked
+        }
 
         setState(state)
+        unlockCancellable = post.publisher(for: \.statusValue)
+            .compactMap { FeedPost.Status(rawValue: $0) }
+            .sink { [weak self] status in
+                // when the post is seen in the fullscreen viewer, unlock it in other places
+                switch status {
+                case .seen, .seenSending:
+                    self?.setState(.unlocked)
+                default:
+                    break
+                }
+            }
     }
 
     private func setupMedia() {
@@ -509,6 +536,7 @@ class MomentView: UIView {
         var buttonImage = hasValidMoment ? nil : lockedButtonImage
         var hideDisclaimer = hasValidMoment
         let hideImageContainer = downloadProgressCancellable != nil
+        var enableOpenTap = false
 
         if let post = feedPost {
             let name = MainAppContext.shared.contactStore.firstName(for: post.userID,
@@ -522,6 +550,7 @@ class MomentView: UIView {
         case .unlocked:
             showBlur = false
             overlayAlpha = 0
+            enableOpenTap = true
         case .indeterminate:
             overlayAlpha = 0
         case .prompt:
@@ -544,6 +573,8 @@ class MomentView: UIView {
 
         actionButton.setTitle(buttonText, for: .normal)
         actionButton.setImage(buttonImage?.withRenderingMode(.alwaysTemplate), for: .normal)
+
+        openTapGesture.isEnabled = enableOpenTap
 
         if disclaimerLabel.isHidden != hideDisclaimer {
             disclaimerLabel.isHidden = hideDisclaimer
@@ -568,6 +599,13 @@ class MomentView: UIView {
             delegate?.momentView(self, didSelect: .view(profile: id))
         } else if case .prompt = state {
             delegate?.momentView(self, didSelect: .view(profile: MainAppContext.shared.userData.userId))
+        }
+    }
+
+    @objc
+    private func openTapped(_ gesture: UITapGestureRecognizer) {
+        if let feedPost {
+            delegate?.momentView(self, didSelect: .open(moment: feedPost))
         }
     }
 }

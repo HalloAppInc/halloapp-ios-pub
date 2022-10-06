@@ -934,12 +934,16 @@ fileprivate class MomentPresenter: NSObject, UIViewControllerAnimatedTransitioni
 
         to.momentView.alpha = 0
         let transitionMomentViewFinalState: MomentView.State
+        let ownValidMoment = MainAppContext.shared.feedData.validMoment.value
 
-        if to.post.userId == MainAppContext.shared.userData.userId {
+        switch (ownValidMoment, to.post.status) {
+        case (_, .seen), (_, .seenSending):
             transitionMomentViewFinalState = .unlocked
-        } else if let validMoment = MainAppContext.shared.feedData.validMoment.value, validMoment.status == .sent {
+
+        case (.some(let validMoment), _) where validMoment.status == .sent:
             transitionMomentViewFinalState = .unlocked
-        } else {
+
+        default:
             transitionMomentViewFinalState = .indeterminate
         }
 
