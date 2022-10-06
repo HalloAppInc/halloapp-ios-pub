@@ -11,6 +11,7 @@ import Combine
 import CoreCommon
 import CoreData
 import SwiftProtobuf
+import Intents
 
 // TODO: (murali@): reuse this logic in FeedData
 
@@ -71,6 +72,48 @@ open class CoreFeedData: NSObject {
         commonMediaUploader.commentMediaStatusChangedPublisher
             .sink { [weak self] commentID in self?.uploadFeedCommentIfMediaReady(commentID: commentID) }
             .store(in: &cancellables)
+    }
+
+    /// Donates an intent to Siri for improved suggestions when sharing content.
+    /// Intents are used by iOS to provide contextual suggestions to the user for certain interactions. In this case, we are suggesting the user send another message to the user they just shared with.
+    /// For more information, see [this documentation](https://developer.apple.com/documentation/sirikit/insendmessageintent)\.
+    /// - Parameter chatGroup: The ID for the group the user is sharing to
+    /// - Remark: This is different from the implementation in `FeedData.swift` because `MainAppContext` isn't available.
+    public func addIntent(groupId: GroupID?) {
+        guard let groupId = groupId,
+              #available(iOS 14.0, *) else {
+            return
+        }
+        mainDataStore.performSeriallyOnBackgroundContext { managedObjectContext in
+            guard let group = AppContext.shared.coreChatData.chatGroup(groupId: groupId, in: managedObjectContext) else {
+                return
+            }
+            let name = group.name
+            let recipient = INSpeakableString(spokenPhrase: name)
+            let sendMessageIntent = INSendMessageIntent(recipients: nil,
+                                                        content: nil,
+                                                        speakableGroupName: recipient,
+                                                        conversationIdentifier: ConversationID(id: groupId, type: .group).description,
+                                                        serviceName: nil,
+                                                        sender: nil)
+
+            let potentialUserAvatar = AppContext.shared.avatarStore.groupAvatarData(for: groupId).image
+
+            guard let defaultAvatar = UIImage(named: "AvatarGroup") else { return }
+
+            // Have to convert UIImage to data and then NIImage because NIImage(uiimage: UIImage) initializer was throwing exception
+            guard let userAvaterUIImage = (potentialUserAvatar ?? defaultAvatar).pngData() else { return }
+            let userAvatar = INImage(imageData: userAvaterUIImage)
+
+            sendMessageIntent.setImage(userAvatar, forParameterNamed: \.speakableGroupName)
+
+            let interaction = INInteraction(intent: sendMessageIntent, response: nil)
+            interaction.donate(completion: { error in
+                if let error = error {
+                    DDLogDebug("ChatViewController/sendMessage/\(error.localizedDescription)")
+                }
+            })
+        }
     }
 
     // MARK: - Post Creation
@@ -380,6 +423,7 @@ open class CoreFeedData: NSObject {
                 } performAfterSave: {
                     completion?(.success(postId))
                 }
+                self.addIntent(groupId: post.groupId)
             case .failure(let error):
                 DDLogError("FeedData/send-post/postID: \(postId) error \(error)")
                 self.contentInFlight.remove(postId)
@@ -502,6 +546,7 @@ open class CoreFeedData: NSObject {
                     var interestedPosts = AppContext.shared.userDefaults.value(forKey: AppContext.commentedGroupPostsKey) as? [FeedPostID] ?? []
                     interestedPosts.append(postId)
                     AppContext.shared.userDefaults.set(Array(Set(interestedPosts)), forKey: AppContext.commentedGroupPostsKey)
+                    self.addIntent(groupId: groupId)
                 }
 
             case .failure(let error):

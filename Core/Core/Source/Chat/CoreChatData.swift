@@ -97,6 +97,9 @@ public class CoreChatData {
             if let toUserId = chatMessageRecipient.toUserId {
                 DDLogInfo("CoreChatData/sendMessage/createChatMsg/toUserId: \(String(describing: toUserId))")
                 self.addIntent(toUserId: toUserId)
+            } else if let toGroupId = chatMessageRecipient.toGroupId {
+                DDLogInfo("CoreChatData/sendMessage/createChatMsg/toGroupId: \(toGroupId)")
+                AppContext.shared.coreFeedData.addIntent(groupId: toGroupId)
             }
 
             self.createChatMsg(chatMessageRecipient: chatMessageRecipient,
@@ -515,7 +518,7 @@ public class CoreChatData {
     /// For more information, see [this documentation](https://developer.apple.com/documentation/sirikit/insendmessageintent)\.
     /// - Parameter toUserId: The user ID for the person the user just shared with
     /// - Remark: This is different from the implementation in `ShareComposerViewController.swift` because `MainAppContext` isn't available in the share extension.
-    private func addIntent(toUserId: UserID) {
+    public func addIntent(toUserId: UserID) {
         if #available(iOS 14.0, *) {
             var name = ""
             contactStore.performOnBackgroundContextAndWait { managedObjectContext in

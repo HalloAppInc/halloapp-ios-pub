@@ -433,7 +433,7 @@ class DataStore: ShareExtensionDataStore {
                     feedPost.status = .sent
                     feedPost.timestamp = timestamp
                     self.save(context)
-
+                    self.feedData.addIntent(groupId: feedPost.groupId)
                     completion(.success(feedPost.id))
 
                 case .failure(let error):

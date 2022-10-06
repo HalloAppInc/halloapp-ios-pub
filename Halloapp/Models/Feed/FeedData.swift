@@ -3352,6 +3352,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     var interestedPosts = AppContext.shared.userDefaults.value(forKey: AppContext.commentedGroupPostsKey) as? [FeedPostID] ?? []
                     interestedPosts.append(postId)
                     AppContext.shared.userDefaults.set(Array(Set(interestedPosts)), forKey: AppContext.commentedGroupPostsKey)
+                    self.coreFeedData.addIntent(groupId: groupId)
                 }
 
             case .failure(let error):
@@ -3404,6 +3405,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     var interestedPosts = AppContext.shared.userDefaults.value(forKey: AppContext.commentedGroupPostsKey) as? [FeedPostID] ?? []
                     interestedPosts.append(postId)
                     AppContext.shared.userDefaults.set(Array(Set(interestedPosts)), forKey: AppContext.commentedGroupPostsKey)
+                    self.coreFeedData.addIntent(groupId: groupId)
                 }
 
             case .failure(let error):
@@ -3454,6 +3456,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     feedPost.status = .sent
 
                     MainAppContext.shared.endBackgroundTask(postId)
+                    self.coreFeedData.addIntent(groupId: post.groupID)
                 }
             case .failure(let error):
                 DDLogError("FeedData/send-post/postID: \(postId) error \(error)")

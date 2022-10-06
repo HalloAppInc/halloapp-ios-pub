@@ -2175,7 +2175,10 @@ extension ChatData {
             guard let self = self else { return }
             if let toUserId = chatMessageRecipient.toUserId {
                 DDLogInfo("ChatData/sendMessage/createChatMsg/toUserId: \(toUserId)")
-                self.addIntent(toUserId: toUserId)
+                self.coreChatData.addIntent(toUserId: toUserId)
+            } else if let toGroupId = chatMessageRecipient.toGroupId {
+                DDLogInfo("ChatData/sendMessage/createChatMsg/toGroupId: \(toGroupId)")
+                AppContext.shared.coreFeedData.addIntent(groupId: toGroupId)
             }
 
             self.createChatMsg(chatMessageRecipient: chatMessageRecipient,
@@ -2851,44 +2854,6 @@ extension ChatData {
             DDLogError("ChatData/retractChatMessage: \(messageToRetractID)/failed: recipient Id not set")
         }
     }
-
-    /// Donates an intent to Siri for improved suggestions when sharing content.
-    ///
-    /// Intents are used by iOS to provide contextual suggestions to the user for certain interactions. In this case, we are suggesting the user send another message to the user they just shared with.
-    /// For more information, see [this documentation](https://developer.apple.com/documentation/sirikit/insendmessageintent)\.
-    /// - Parameter toUserId: The user ID for the person the user just shared with
-    /// - Remark: This is different from the implementation in `ShareComposerViewController.swift` because `MainAppContext` isn't available in the share extension.
-    private func addIntent(toUserId: UserID) {
-        if #available(iOS 14.0, *) {
-            var name = ""
-            MainAppContext.shared.contactStore.performSeriallyOnBackgroundContext { managedObjectContext in
-                name = MainAppContext.shared.contactStore.fullName(for: toUserId, in: managedObjectContext)
-            }
-
-            let recipient = INSpeakableString(spokenPhrase: name)
-            let sendMessageIntent = INSendMessageIntent(recipients: nil,
-                                                        content: nil,
-                                                        speakableGroupName: recipient,
-                                                        conversationIdentifier: ConversationID(id: toUserId, type: .chat).description,
-                                                        serviceName: nil, sender: nil)
-            
-            let potentialUserAvatar = MainAppContext.shared.avatarStore.userAvatar(forUserId: toUserId).image
-            guard let defaultAvatar = UIImage(named: "AvatarUser") else { return }
-            
-            // Have to convert UIImage to data and then NIImage because NIImage(uiimage: UIImage) initializer was throwing exception
-            guard let userAvaterUIImage = (potentialUserAvatar ?? defaultAvatar).pngData() else { return }
-            let userAvatar = INImage(imageData: userAvaterUIImage)
-            
-            sendMessageIntent.setImage(userAvatar, forParameterNamed: \.speakableGroupName)
-            
-            let interaction = INInteraction(intent: sendMessageIntent, response: nil)
-            interaction.donate(completion: { error in
-                if let error = error {
-                    DDLogDebug("ChatViewController/sendMessage/\(error.localizedDescription)")
-                }
-            })
-        }
-    }
     
     // MARK: 1-1 Reaction
     func sendReaction(toUserId: String,
@@ -2903,7 +2868,7 @@ extension ChatData {
                                 using: managedObjectContext)
         }
 
-        addIntent(toUserId: toUserId)
+        coreChatData.addIntent(toUserId: toUserId)
     }
 
     @discardableResult
