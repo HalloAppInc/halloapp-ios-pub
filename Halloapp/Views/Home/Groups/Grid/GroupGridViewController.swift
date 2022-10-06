@@ -96,7 +96,7 @@ class GroupGridViewController: UIViewController {
     private lazy var searchBarContainer = GroupGridSearchBar.SearchBarContainer(searchBar: searchController.searchBar)
 
     private var isEmptyCancellable: AnyCancellable?
-    private var requestScrollToTopAnimatedCancellable: AnyCancellable?
+    private var cancellables = Set<AnyCancellable>()
     private var lastDisappearDate: Date?
 
     override func viewDidLoad() {
@@ -132,9 +132,21 @@ class GroupGridViewController: UIViewController {
             self?.collectionView.backgroundView?.isHidden = !isEmpty
         }
 
-        requestScrollToTopAnimatedCancellable = dataSource.requestScrollToTopAnimatedSubject.sink { [weak self] animated in
-            self?.scrollToTop(animated: animated)
-        }
+        dataSource.requestScrollToTopAnimatedSubject
+            .sink { [weak self] animated in
+                self?.scrollToTop(animated: animated)
+            }
+            .store(in: &cancellables)
+
+        dataSource.requestScrollToIndexPathSubject
+            .sink { [weak self] indexPath in
+                guard let self = self else {
+                    return
+                }
+                self.scrollToTop(animated: true)
+                self.collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
+            }
+            .store(in: &cancellables)
 
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(keyboardWillChangeFrame(_:)),

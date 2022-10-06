@@ -17,6 +17,7 @@ class GroupGridDataSource: NSObject {
 
     @Published var isEmpty = true
     let requestScrollToTopAnimatedSubject = PassthroughSubject<Bool, Never>()
+    let requestScrollToIndexPathSubject = PassthroughSubject<IndexPath, Never>() // always animated
 
     var supplementaryViewProvider: UICollectionViewDiffableDataSource<GroupID, FeedPostID>.SupplementaryViewProvider? {
         get {
@@ -29,7 +30,7 @@ class GroupGridDataSource: NSObject {
 
     private var searchText: String?
     private let dataSource: UICollectionViewDiffableDataSource<GroupID, FeedPostID>
-    private var didAddSelfPostInLastUpdate = false
+    private var selfPostIDAddedInLastUpdate: FeedPostID?
 
     init(collectionView: UICollectionView,
          cellProvider: @escaping UICollectionViewDiffableDataSource<GroupID, FeedPostID>.CellProvider) {
@@ -196,7 +197,7 @@ class GroupGridDataSource: NSObject {
 extension GroupGridDataSource: NSFetchedResultsControllerDelegate {
 
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        didAddSelfPostInLastUpdate = false
+        selfPostIDAddedInLastUpdate = nil
     }
 
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,
@@ -210,7 +211,7 @@ extension GroupGridDataSource: NSFetchedResultsControllerDelegate {
         switch type {
         case .insert:
             if feedPost.userID == MainAppContext.shared.userData.userId {
-                didAddSelfPostInLastUpdate = true
+                selfPostIDAddedInLastUpdate = feedPost.id
             }
         default:
             break
@@ -220,8 +221,8 @@ extension GroupGridDataSource: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         reload(animated: true)
 
-        if didAddSelfPostInLastUpdate {
-            requestScrollToTopAnimatedSubject.send(true)
+        if let selfPostIDAddedInLastUpdate = selfPostIDAddedInLastUpdate, let indexPath = dataSource.indexPath(for: selfPostIDAddedInLastUpdate) {
+            requestScrollToIndexPathSubject.send(indexPath)
         }
     }
 }
