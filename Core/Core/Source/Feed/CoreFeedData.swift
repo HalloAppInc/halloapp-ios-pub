@@ -84,6 +84,7 @@ open class CoreFeedData: NSObject {
               #available(iOS 14.0, *) else {
             return
         }
+        let potentialUserAvatar = AppContext.shared.avatarStore.groupAvatarData(for: groupId).image
         mainDataStore.performSeriallyOnBackgroundContext { managedObjectContext in
             guard let group = AppContext.shared.coreChatData.chatGroup(groupId: groupId, in: managedObjectContext) else {
                 return
@@ -96,8 +97,6 @@ open class CoreFeedData: NSObject {
                                                         conversationIdentifier: ConversationID(id: groupId, type: .group).description,
                                                         serviceName: nil,
                                                         sender: nil)
-
-            let potentialUserAvatar = AppContext.shared.avatarStore.groupAvatarData(for: groupId).image
 
             guard let defaultAvatar = UIImage(named: "AvatarGroup") else { return }
 
