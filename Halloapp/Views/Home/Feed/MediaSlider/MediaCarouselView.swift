@@ -1261,6 +1261,9 @@ fileprivate class MediaCarouselSimpleVideoViewCell: MediaCarouselCollectionViewC
     private var showsVideoPlaybackControls = true
     private var isShowingPlaceholder = false {
         didSet {
+            guard isShowingPlaceholder != oldValue else {
+                return
+            }
             imageView.contentMode = isShowingPlaceholder ? .center : preferredContentMode
             playButton.isHidden = isShowingPlaceholder || !showsVideoPlaybackControls
             borderView.isHidden = isShowingPlaceholder
@@ -1324,13 +1327,21 @@ fileprivate class MediaCarouselSimpleVideoViewCell: MediaCarouselCollectionViewC
         }
         self.videoURL = videoURL
 
+        // show preview image
+        isShowingPlaceholder = true
+        imageView.image = UIImage(systemName: "video")
+
         if let videoURL = videoURL {
-            isShowingPlaceholder = false
-            imageView.image = VideoUtils.videoPreviewImage(url: videoURL)
-        } else {
-            // show preview image
-            isShowingPlaceholder = true
-            imageView.image = UIImage(systemName: "video")
+            DispatchQueue.global().async { [weak self] in
+                let image = VideoUtils.videoPreviewImage(url: videoURL)
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self, let image = image, self.videoURL == videoURL else {
+                        return
+                    }
+                    self.isShowingPlaceholder = false
+                    self.imageView.image = image
+                }
+            }
         }
     }
 
@@ -1339,6 +1350,10 @@ fileprivate class MediaCarouselSimpleVideoViewCell: MediaCarouselCollectionViewC
 
         CATransaction.begin()
         CATransaction.setDisableActions(true)
+
+        defer {
+            CATransaction.commit()
+        }
 
         guard !isShowingPlaceholder, borderView.cornerRadius > 0 else {
             imageView.layer.mask = nil
@@ -1360,8 +1375,6 @@ fileprivate class MediaCarouselSimpleVideoViewCell: MediaCarouselCollectionViewC
         imageView.layer.mask = maskLayer
 
         borderView.frame = imageBounds
-
-        CATransaction.commit()
     }
 
     override func prepareForReuse() {
