@@ -2637,7 +2637,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     func downloadMediaInMoments() {
-        let moments = fetchAllIncomingMoments()
+        let moments = fetchAllValidMoments()
         downloadMedia(in: moments)
     }
 
@@ -4941,7 +4941,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     /// - Returns: All of the valid, unexpired moments from other users (sorted).
-    func fetchAllIncomingMoments() -> [FeedPost] {
+    func fetchAllValidMoments() -> [FeedPost] {
         let request = FeedPost.fetchRequest()
 
         request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
@@ -4950,6 +4950,25 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             NSPredicate(format: "statusValue != %d", FeedPost.Status.retracted.rawValue),
             NSPredicate(format: "statusValue != %d", FeedPost.Status.expired.rawValue),
             NSPredicate(format: "timestamp > %@", Self.momentCutoffDate as NSDate),
+        ])
+
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false)]
+
+        return (try? viewContext.fetch(request)) ?? []
+    }
+
+    func fetchAllSeenMoments() -> [FeedPost] {
+        let request = FeedPost.fetchRequest()
+
+        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            NSPredicate(format: "userID != %@", userData.userId),
+            NSPredicate(format: "isMoment == YES"),
+            NSPredicate(format: "timestamp > %@", Self.momentCutoffDate as NSDate),
+
+            NSCompoundPredicate(orPredicateWithSubpredicates: [
+                NSPredicate(format: "statusValue == %d", FeedPost.Status.seenSending.rawValue),
+                NSPredicate(format: "statusValue == %d", FeedPost.Status.seen.rawValue),
+            ])
         ])
 
         request.sortDescriptors = [NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false)]

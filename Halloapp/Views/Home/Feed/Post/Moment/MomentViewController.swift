@@ -233,14 +233,29 @@ class MomentViewController: UIViewController {
 
         subscribeToMediaUpdates()
 
+
+
         if shouldFetchOtherMoments, post.userId != MainAppContext.shared.userData.userId {
-            otherMoments = MainAppContext.shared.feedData.fetchAllIncomingMoments().filter { $0.id != self.post.id }
+            fetchOtherMoments()
             DDLogInfo("MomentViewController/viewDidAppear/loaded \(otherMoments.count) other moments")
 
             if !otherMoments.isEmpty, !Self.hasSwipedToNext {
                 installFTUX()
             }
         }
+    }
+
+    private func fetchOtherMoments() {
+        let ownValidMoment = MainAppContext.shared.feedData.validMoment.value
+        let otherMoments: [FeedPost]
+
+        if ownValidMoment != nil {
+            otherMoments = MainAppContext.shared.feedData.fetchAllValidMoments()
+        } else {
+            otherMoments = MainAppContext.shared.feedData.fetchAllSeenMoments()
+        }
+
+        self.otherMoments = otherMoments.filter { $0.id != post.id }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -558,8 +573,19 @@ extension MomentViewController {
             return
         }
 
-        let nextMomentState: MomentView.State = unlockingPost?.status ?? .sent == .sent ? .unlocked : .indeterminate
-        momentView.setState(.indeterminate)
+        let nextMomentState: MomentView.State
+        switch moment.status {
+        case .seenSending, .seen:
+            nextMomentState = .unlocked
+        default:
+            if case .sent = unlockingPost?.status ?? .sent {
+                nextMomentState = .unlocked
+            } else {
+                nextMomentState = .indeterminate
+            }
+        }
+
+        momentView.setState(nextMomentState)
 
         let name = MainAppContext.shared.contactStore.firstName(for: moment.userID,
                                                                  in: MainAppContext.shared.contactStore.viewContext)
@@ -576,7 +602,6 @@ extension MomentViewController {
             self.momentView.alpha = 1
             self.momentView.transform = .identity
             self.unlockingMomentView.alpha = 1
-            self.momentView.setState(nextMomentState)
             snapshot.alpha = 0
         }
 
