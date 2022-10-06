@@ -56,6 +56,7 @@ public enum DiscreteEvent {
     case groupHistoryReport(gid: String, numExpected: Int32, numDecrypted: Int32, clientVersion: String, rerequestCount: Int32, timeTaken: TimeInterval)
     case callReport(id: String, peerUserID: UserID, type: String, direction: String, networkType: String, answered: Bool, connected: Bool, duration_ms: Int, endCallReason: String, localEndCall: Bool, iceTimeTakenMs: Int, webrtcStats: String)
     case fabAction(type: FabActionType)
+    case inviteResult(phoneNumber: ABContact.NormalizedPhoneNumber, type: Server_InviteRequestResult.TypeEnum)
 }
 
 extension DiscreteEvent: Codable {
@@ -148,6 +149,10 @@ extension DiscreteEvent: Codable {
             } else {
                 self = .fabAction(type: .text)
             }
+        case .inviteResult:
+            let phoneNumber = try container.decode(String.self, forKey: .phoneNumber)
+            let type = try Server_InviteRequestResult.TypeEnum(rawValue: container.decode(Int.self, forKey: .inviteResultType)) ?? .unknown
+            self = .inviteResult(phoneNumber: phoneNumber, type: type)
         }
     }
 
@@ -229,6 +234,10 @@ extension DiscreteEvent: Codable {
         case .fabAction(let type):
             try container.encode(EventType.fabAction, forKey: .eventType)
             try container.encode(type.rawValue, forKey: .contentType)
+        case .inviteResult(phoneNumber: let phoneNumber, type: let type):
+            try container.encode(EventType.inviteResult, forKey: .eventType)
+            try container.encode(phoneNumber, forKey: .phoneNumber)
+            try container.encode(type.rawValue, forKey: .inviteResultType)
         }
     }
 
@@ -262,6 +271,8 @@ extension DiscreteEvent: Codable {
         case status
         case audienceType
         case iceTimeTakenMs
+        case phoneNumber
+        case inviteResultType
     }
 
     private enum EventType: String, Codable {
@@ -274,5 +285,6 @@ extension DiscreteEvent: Codable {
         case fabAction
         case groupHistoryReport
         case homeDecryptionReport
+        case inviteResult
     }
 }

@@ -287,6 +287,11 @@ private extension DiscreteEvent {
                 fabAction.type = .camera
             }
             return .fabAction(fabAction)
+        case .inviteResult(phoneNumber: let phoneNumber, type: let type):
+            var inviteRequestResult = Server_InviteRequestResult()
+            inviteRequestResult.invitedPhone = phoneNumber
+            inviteRequestResult.type = type
+            return .inviteRequestResult(inviteRequestResult)
         }
     }
 }

@@ -179,7 +179,6 @@
 		761BD0FC24B3D75800B567F6 /* InviteManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761BD0FB24B3D75800B567F6 /* InviteManager.swift */; };
 		761C6161242D2AE50028AE19 /* DeveloperMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761C6160242D2AE50028AE19 /* DeveloperMenuView.swift */; };
 		761C6168242D89F90028AE19 /* TextLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761C6167242D89F90028AE19 /* TextLabel.swift */; };
-		761EE21E24B5135400B30632 /* MFMessageComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761EE21D24B5135400B30632 /* MFMessageComposeView.swift */; };
 		76271384252D24AD00389FBC /* FeedItemContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76271383252D24AD00389FBC /* FeedItemContentView.swift */; };
 		76271389252D250E00389FBC /* FacePileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76271388252D250E00389FBC /* FacePileView.swift */; };
 		7627173B257B0744006F7F3D /* AboutViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7627173A257B0744006F7F3D /* AboutViewController.swift */; };
@@ -982,7 +981,6 @@
 		761BD0FB24B3D75800B567F6 /* InviteManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InviteManager.swift; path = HalloApp/Models/Invites/InviteManager.swift; sourceTree = SOURCE_ROOT; };
 		761C6160242D2AE50028AE19 /* DeveloperMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DeveloperMenuView.swift; path = Halloapp/Views/Settings/DeveloperMenuView.swift; sourceTree = SOURCE_ROOT; };
 		761C6167242D89F90028AE19 /* TextLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TextLabel.swift; path = HalloApp/Components/Views/TextLabel.swift; sourceTree = SOURCE_ROOT; };
-		761EE21D24B5135400B30632 /* MFMessageComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MFMessageComposeView.swift; path = HalloApp/Components/Views/MFMessageComposeView.swift; sourceTree = SOURCE_ROOT; };
 		76271383252D24AD00389FBC /* FeedItemContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedItemContentView.swift; path = HalloApp/Views/Home/Feed/Post/FeedItemContentView.swift; sourceTree = SOURCE_ROOT; };
 		76271388252D250E00389FBC /* FacePileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FacePileView.swift; path = HalloApp/Views/Home/Feed/Post/FacePileView.swift; sourceTree = SOURCE_ROOT; };
 		7627173A257B0744006F7F3D /* AboutViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AboutViewController.swift; path = Halloapp/Views/Settings/About/AboutViewController.swift; sourceTree = SOURCE_ROOT; };
@@ -1657,7 +1655,6 @@
 				76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */,
 				764F774D246224C30063645A /* ContactTableViewCell.swift */,
 				A13C928F28D9255C0096CE00 /* PermissionExplainerView.swift */,
-				761EE21D24B5135400B30632 /* MFMessageComposeView.swift */,
 				765EB4EA24D92404002FA5D9 /* SafariView.swift */,
 				76A92448244EBCB600794859 /* ShapeView.swift */,
 				761C6167242D89F90028AE19 /* TextLabel.swift */,
@@ -3042,7 +3039,6 @@
 				68A64E9224D33E0F00F40F1F /* MentionPickerView.swift in Sources */,
 				EAF3A1C32334191E00805FF9 /* AppDelegate.swift in Sources */,
 				F41FAA4227E52B7E00FC5090 /* BottomSheetViewController.swift in Sources */,
-				761EE21E24B5135400B30632 /* MFMessageComposeView.swift in Sources */,
 				323F99ED2808D0B100C8AB69 /* FavoritesInformationViewController.swift in Sources */,
 				A13C928E28D915A00096CE00 /* InAppPermissionsViewController.swift in Sources */,
 				F850677A26A7FDDF00A120EC /* AudioView.swift in Sources */,
